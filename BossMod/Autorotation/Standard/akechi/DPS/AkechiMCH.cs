@@ -11,81 +11,80 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track
-    {
-        Potion = SharedTrack.Count,
-        Hypercharge, HeatSpender, Battery, Reassemble, Drill, Wildfire,
-        BarrelStabilizer, AirAnchor, Chainsaw, GaussRound, Ricochet, Flamethrower, Excavator, FullMetalField
-    }
+    public enum Track { Potion = SharedTrack.Count, Heat, Battery, Reassemble, Hypercharge, Drill, Wildfire, BarrelStabilizer, AirAnchor, Chainsaw, GaussRound, DoubleCheck, Ricochet, Checkmate, Flamethrower, Excavator, FullMetalField }
     public enum PotionStrategy { None, Use, Align }
-    public enum HyperchargeStrategy { Automatic, ASAP, Full, Delay }
-    public enum HeatSpenderStrategy { Automatic, OnlyHeatBlast, OnlyAutoCrossbow }
-    public enum BatteryStrategy { Automatic, Fifty, Hundred, RaidBuffs, End, Delay }
+    public enum HeatOption { Automatic, OnlyHeatBlast, OnlyAutoCrossbow }
+    public enum BatteryStrategy { Automatic, Fifty, Hundred, End, Delay }
     public enum ReassembleStrategy { Automatic, HoldOne, Force, ForceWeave, Delay }
-    public enum WildfireStrategy { Automatic, End, Force, ForceWeave, Delay }
+    public enum HyperchargeStrategy { Automatic, ASAP, Full, Delay }
     public enum DrillStrategy { Automatic, OnlyDrill, OnlyBioblaster, ForceDrill, ForceBioblaster, Delay }
+    public enum WildfireStrategy { Automatic, End, Force, ForceWeave, Delay }
     #endregion
 
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi MCH", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.MCH), 100);
+        var res = new RotationModuleDefinition("Akechi MCH", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.MCH), 100);
         res.DefineAOE().AddAssociatedActions(
             AID.SplitShot, AID.SlugShot, AID.CleanShot,
             AID.HeatedSplitShot, AID.HeatedSlugShot, AID.HeatedCleanShot,
             AID.SpreadShot, AID.Scattergun);
         res.DefineHold();
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 200)
+        res.Define(Track.Potion).As<PotionStrategy>("Potion", "Pot", 200)
             .AddOption(PotionStrategy.None, "None", "Do not use Potion")
             .AddOption(PotionStrategy.Use, "Use", "Use Potion when available", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Align, "Align", "Align Potion with raid buffs", 270, 30, ActionTargets.Self);
-        res.Define(Track.Hypercharge).As<HyperchargeStrategy>("HC", uiPriority: 200)
-            .AddOption(HyperchargeStrategy.Automatic, "Automatic", "Use Heat actions when optimal")
-            .AddOption(HyperchargeStrategy.ASAP, "ASAP", "Use Heat actions ASAP (if any Heat Gauge is available)", 0, 0, ActionTargets.Hostile, 30)
-            .AddOption(HyperchargeStrategy.Full, "Full", "Use Heat actions when Heat Gauge is full (or about to be)", 0, 0, ActionTargets.Hostile, 30)
-            .AddOption(HyperchargeStrategy.Delay, "Delay", "Delay use of Heat actions", 0, 0, ActionTargets.None, 30);
-        res.Define(Track.HeatSpender).As<HeatSpenderStrategy>("Heat Spender", uiPriority: 200)
-            .AddOption(HeatSpenderStrategy.Automatic, "Automatic", "Automatically choose best optimal Heat actions")
-            .AddOption(HeatSpenderStrategy.OnlyHeatBlast, "Heat Blast", "Only use Heat Blast, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
-            .AddOption(HeatSpenderStrategy.OnlyAutoCrossbow, "Auto Crossbow", "Only use Auto Crossbow, regardless of targets", 0, 0, ActionTargets.Hostile, 52)
+            .AddOption(PotionStrategy.Align, "Align", "Align Potion with raid buffs", 270, 30, ActionTargets.Self)
+            .AddAssociatedAction(ActionDefinitions.IDPotionDex);
+        res.Define(Track.Heat).As<HeatOption>("Heat Option", "Heat", 195)
+            .AddOption(HeatOption.Automatic, "Automatic", "Automatically use Heat Blast or Auto-Crossbow based on targets nearby")
+            .AddOption(HeatOption.OnlyHeatBlast, "Heat Blast", "Only use Heat Blast, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
+            .AddOption(HeatOption.OnlyAutoCrossbow, "Auto Crossbow", "Only use Auto Crossbow, regardless of targets", 0, 0, ActionTargets.Hostile, 52)
             .AddAssociatedActions(AID.HeatBlast, AID.AutoCrossbow, AID.BlazingShot);
-        res.Define(Track.Battery).As<BatteryStrategy>("Battery", uiPriority: 200)
+        res.Define(Track.Battery).As<BatteryStrategy>("Battery", "", 190)
             .AddOption(BatteryStrategy.Automatic, "Automatic", "Use Battery actions when optimal")
-            .AddOption(BatteryStrategy.Fifty, "50", "Use Battery actions ASAP when 50 or more Battery Gauge is available", 0, 0, ActionTargets.Self, 40)
+            .AddOption(BatteryStrategy.Fifty, "50", "Use Battery actions ASAP when 50+ Battery Gauge is available", 0, 0, ActionTargets.Self, 40)
             .AddOption(BatteryStrategy.Hundred, "100", "Use Battery actions ASAP when 100 Battery Gauge is available", 0, 0, ActionTargets.Self, 40)
-            .AddOption(BatteryStrategy.RaidBuffs, "Raid Buffs", "Use Battery actions when raid buffs are active", 0, 0, ActionTargets.Self, 40)
             .AddOption(BatteryStrategy.End, "End", "Ends Battery action ASAP with Overdrive (assuming it's currently active)", 0, 0, ActionTargets.Self, 40)
-            .AddOption(BatteryStrategy.Delay, "Delay", "Delay use of Battery actions", 0, 0, ActionTargets.None, 40);
-        res.Define(Track.Reassemble).As<ReassembleStrategy>("Reassemble", uiPriority: 200)
+            .AddOption(BatteryStrategy.Delay, "Delay", "Delay use of Battery actions", 0, 0, ActionTargets.None, 40)
+            .AddAssociatedActions(AID.RookAutoturret, AID.RookOverdrive, AID.AutomatonQueen, AID.QueenOverdrive);
+        res.Define(Track.Reassemble).As<ReassembleStrategy>("Reassemble", "", 185)
             .AddOption(ReassembleStrategy.Automatic, "Automatic", "Use Reassemble when optimal")
             .AddOption(ReassembleStrategy.HoldOne, "Hold One", "Hold one charge of Reassemble for manual usage", 55, 5, ActionTargets.Self, 10)
             .AddOption(ReassembleStrategy.Force, "Force", "Force use of Reassemble, regardless of weaving", 55, 5, ActionTargets.Self, 10)
             .AddOption(ReassembleStrategy.ForceWeave, "ForceWeave", "Force use of Reassemble in next possible weave window", 55, 5, ActionTargets.Self, 10)
             .AddOption(ReassembleStrategy.Delay, "Delay", "Delay use of Reassemble", 0, 0, ActionTargets.None, 10)
             .AddAssociatedActions(AID.Reassemble);
-        res.Define(Track.Drill).As<DrillStrategy>("Drill", uiPriority: 200)
-            .AddOption(DrillStrategy.Automatic, "Automatic", "Use Drill when optimal")
+        res.Define(Track.Hypercharge).As<HyperchargeStrategy>("Hypercharge", "H.charge", 200)
+            .AddOption(HyperchargeStrategy.Automatic, "Automatic", "Use Hypercharge when optimal")
+            .AddOption(HyperchargeStrategy.ASAP, "ASAP", "Use Hypercharge ASAP (if any Heat Gauge is available)", 0, 0, ActionTargets.Self, 30)
+            .AddOption(HyperchargeStrategy.Full, "Full", "Use Hypercharge when Heat Gauge is full (or about to be)", 0, 0, ActionTargets.Self, 30)
+            .AddOption(HyperchargeStrategy.Delay, "Delay", "Delay use of Hypercharge", 0, 0, ActionTargets.None, 30)
+            .AddAssociatedActions(AID.Hypercharge);
+        res.Define(Track.Drill).As<DrillStrategy>("Drill", "", 170)
+            .AddOption(DrillStrategy.Automatic, "Automatic", "Automatically use Drill or Bioblaster based on targets nearby")
             .AddOption(DrillStrategy.OnlyDrill, "Only Drill", "Only use Drill, regardless of targets", 20, 0, ActionTargets.Hostile, 58)
-            .AddOption(DrillStrategy.OnlyBioblaster, "Only Bioblaster", "Only use Bioblaster, regardless of targets", 20, 0, ActionTargets.Hostile, 58)
-            .AddOption(DrillStrategy.ForceDrill, "Force Drill", "Force use of Drill", 20, 15, ActionTargets.Hostile, 72)
+            .AddOption(DrillStrategy.OnlyBioblaster, "Only Bioblaster", "Only use Bioblaster, regardless of targets", 20, 15, ActionTargets.Hostile, 72)
+            .AddOption(DrillStrategy.ForceDrill, "Force Drill", "Force use of Drill", 20, 0, ActionTargets.Hostile, 58)
             .AddOption(DrillStrategy.ForceBioblaster, "Force Bioblaster", "Force use of Bioblaster", 20, 15, ActionTargets.Hostile, 72)
             .AddOption(DrillStrategy.Delay, "Delay", "Delay use of Drill", 0, 0, ActionTargets.None, 58)
             .AddAssociatedActions(AID.Drill, AID.Bioblaster);
-        res.Define(Track.Wildfire).As<WildfireStrategy>("Wildfire", uiPriority: 200)
+        res.Define(Track.Wildfire).As<WildfireStrategy>("Wildfire", "W.fire", 180)
             .AddOption(WildfireStrategy.Automatic, "Automatic", "Use Wildfire when optimal")
             .AddOption(WildfireStrategy.End, "End", "End Wildfire early with Detonator", 0, 0, ActionTargets.Hostile, 45)
             .AddOption(WildfireStrategy.Force, "Force", "Force use of Wildfire, regardless of weaving", 120, 10, ActionTargets.Hostile, 45)
             .AddOption(WildfireStrategy.ForceWeave, "ForceWeave", "Force use of Wildfire in next possible weave window", 120, 10, ActionTargets.Hostile, 45)
             .AddOption(WildfireStrategy.Delay, "Delay", "Delay use of Wildfire", 0, 0, ActionTargets.None, 45)
-            .AddAssociatedActions(AID.Wildfire);
-        res.DefineOGCD(Track.BarrelStabilizer, AID.BarrelStabilizer, "Barrel Stabilizer", "B.Stab.", uiPriority: 200, 120, 30, ActionTargets.Hostile, 66).AddAssociatedActions(AID.BarrelStabilizer);
-        res.DefineGCD(Track.AirAnchor, AID.AirAnchor, "Air Anchor", "A.Anchor", uiPriority: 200, 40, 0, ActionTargets.Hostile, 30).AddAssociatedActions(AID.AirAnchor);
-        res.DefineGCD(Track.Chainsaw, AID.ChainSaw, "Chainsaw", "C.saw", uiPriority: 200, 60, 30, ActionTargets.Hostile, 30).AddAssociatedActions(AID.ChainSaw);
-        res.DefineOGCD(Track.GaussRound, AID.GaussRound, "Gauss Round", "G.Round", uiPriority: 200, 30, 0, ActionTargets.Hostile, 15).AddAssociatedActions(AID.GaussRound);
-        res.DefineOGCD(Track.Ricochet, AID.Ricochet, "Ricochet", "Rico", uiPriority: 200, 30, 0, ActionTargets.Hostile, 50).AddAssociatedActions(AID.Ricochet);
-        res.DefineGCD(Track.Flamethrower, AID.Flamethrower, "Flamethrower", "F.thrower", uiPriority: 200, 0, 0, ActionTargets.Hostile, 70).AddAssociatedActions(AID.Flamethrower);
-        res.DefineGCD(Track.Excavator, AID.Excavator, "Excavator", "Excav.", uiPriority: 200, 0, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.Excavator);
-        res.DefineGCD(Track.FullMetalField, AID.FullMetalField, "Full Metal Field", "F.M.Field", uiPriority: 200, 0, 0, ActionTargets.Hostile, 100).AddAssociatedActions(AID.FullMetalField);
+            .AddAssociatedActions(AID.Wildfire, AID.Detonator);
+        res.DefineOGCD(Track.BarrelStabilizer, AID.BarrelStabilizer, "Barrel Stabilizer", "B.Stab.", 175, 120, 30, ActionTargets.Self, 66).AddAssociatedActions(AID.BarrelStabilizer);
+        res.DefineGCD(Track.AirAnchor, AID.AirAnchor, "Air Anchor", "A.Anchor", 165, 40, 0, ActionTargets.Hostile, 76).AddAssociatedActions(AID.AirAnchor);
+        res.DefineGCD(Track.Chainsaw, AID.ChainSaw, "Chainsaw", "C.saw", 160, 60, 30, ActionTargets.Hostile, 90).AddAssociatedActions(AID.ChainSaw);
+        res.DefineOGCD(Track.GaussRound, AID.GaussRound, "Gauss Round", "G.Round", uiPriority: 145, 30, 0, ActionTargets.Hostile, 15, 91).AddAssociatedActions(AID.GaussRound);
+        res.DefineOGCD(Track.DoubleCheck, AID.DoubleCheck, "Double Check", "D.Check", uiPriority: 144, 30, 0, ActionTargets.Hostile, 92).AddAssociatedActions(AID.DoubleCheck);
+        res.DefineOGCD(Track.Ricochet, AID.Ricochet, "Ricochet", "", uiPriority: 141, 30, 0, ActionTargets.Hostile, 50, 91).AddAssociatedActions(AID.Ricochet);
+        res.DefineOGCD(Track.Checkmate, AID.Checkmate, "Checkmate", "C.mate", uiPriority: 140, 30, 0, ActionTargets.Hostile, 92).AddAssociatedActions(AID.Checkmate);
+        res.DefineGCD(Track.Flamethrower, AID.Flamethrower, "Flamethrower", "F.thrower", -1, 60, 0, ActionTargets.Self, 70).AddAssociatedActions(AID.Flamethrower);
+        res.DefineGCD(Track.Excavator, AID.Excavator, "Excavator", "Excav.", uiPriority: 155, 0, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.Excavator);
+        res.DefineGCD(Track.FullMetalField, AID.FullMetalField, "Full Metal Field", "F.M.Field", uiPriority: 150, 0, 0, ActionTargets.Hostile, 100).AddAssociatedActions(AID.FullMetalField);
         return res;
     }
     #endregion
@@ -143,18 +142,18 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Upgrade Paths
-    public AID ST => ComboLastMove is AID.SlugShot or AID.HeatedSlugShot ? BestCleanShot : ComboLastMove is AID.SplitShot or AID.HeatedSplitShot ? BestSlugShot : BestSplitShot;
-    public AID BestSpreadShot => Unlocked(AID.Scattergun) ? AID.Scattergun : AID.SpreadShot;
-    public AID BestSplitShot => Unlocked(AID.HeatedSplitShot) ? AID.HeatedSplitShot : AID.SplitShot;
-    public AID BestSlugShot => Unlocked(AID.HeatedSlugShot) ? AID.HeatedSlugShot : AID.SlugShot;
-    public AID BestCleanShot => Unlocked(AID.HeatedCleanShot) ? AID.HeatedCleanShot : AID.CleanShot;
-    public AID BestHeatBlast => Unlocked(AID.BlazingShot) ? AID.BlazingShot : Unlocked(AID.HeatBlast) ? AID.HeatBlast : ST;
-    public AID BestDrill => NumConeTargets > 1 && Unlocked(AID.Bioblaster) ? AID.Bioblaster : AID.Drill;
-    public AID BestAirAnchor => Unlocked(AID.AirAnchor) ? AID.AirAnchor : AID.HotShot;
-    public AID BestGauss => Unlocked(AID.DoubleCheck) ? AID.DoubleCheck : AID.GaussRound;
-    public AID BestRicochet => Unlocked(AID.Checkmate) ? AID.Checkmate : AID.Ricochet;
-    public AID BestHeatSpender => NumConeTargets > 3 ? AID.AutoCrossbow : BestHeatBlast;
-    public AID BestBattery => Unlocked(AID.AutomatonQueen) ? AID.AutomatonQueen : AID.RookAutoturret;
+    private AID ST => ComboLastMove is AID.SlugShot or AID.HeatedSlugShot ? BestCleanShot : ComboLastMove is AID.SplitShot or AID.HeatedSplitShot ? BestSlugShot : BestSplitShot;
+    private AID BestSpreadShot => Unlocked(AID.Scattergun) ? AID.Scattergun : AID.SpreadShot;
+    private AID BestSplitShot => Unlocked(AID.HeatedSplitShot) ? AID.HeatedSplitShot : AID.SplitShot;
+    private AID BestSlugShot => Unlocked(AID.HeatedSlugShot) ? AID.HeatedSlugShot : AID.SlugShot;
+    private AID BestCleanShot => Unlocked(AID.HeatedCleanShot) ? AID.HeatedCleanShot : AID.CleanShot;
+    private AID BestHeatBlast => Unlocked(AID.BlazingShot) ? AID.BlazingShot : Unlocked(AID.HeatBlast) ? AID.HeatBlast : ST;
+    private AID BestDrill => NumConeTargets > 1 && Unlocked(AID.Bioblaster) ? AID.Bioblaster : AID.Drill;
+    private AID BestAirAnchor => Unlocked(AID.AirAnchor) ? AID.AirAnchor : AID.HotShot;
+    private AID BestGauss => Unlocked(AID.DoubleCheck) ? AID.DoubleCheck : AID.GaussRound;
+    private AID BestRicochet => Unlocked(AID.Checkmate) ? AID.Checkmate : AID.Ricochet;
+    private AID BestHeat => NumConeTargets > 3 ? AID.AutoCrossbow : BestHeatBlast;
+    private AID BestBattery => Unlocked(AID.AutomatonQueen) ? AID.AutomatonQueen : AID.RookAutoturret;
     #endregion
 
     #region Rotation Helpers
@@ -304,15 +303,15 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             HyperchargeStrategy.Delay or _ => false,
         };
     }
-    private bool ShouldChooseHeat(HeatSpenderStrategy strategy, Actor? target)
+    private bool ShouldChooseHeat(HeatOption strategy, Actor? target)
     {
         if (!CanHB)
             return false;
         return strategy switch
         {
-            HeatSpenderStrategy.Automatic => InsideCombatWith(target) && (ShouldUseAOE ? In12y(target) : In25y(target)),
-            HeatSpenderStrategy.OnlyHeatBlast => In25y(target),
-            HeatSpenderStrategy.OnlyAutoCrossbow => In12y(target),
+            HeatOption.Automatic => InsideCombatWith(target) && (ShouldUseAOE ? In12y(target) : In25y(target)),
+            HeatOption.OnlyHeatBlast => In25y(target),
+            HeatOption.OnlyAutoCrossbow => In12y(target),
             _ => false,
         };
     }
@@ -334,7 +333,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Other
-    private bool ShouldUseCheckmateDC(bool canUse, int charges, OGCDStrategy strategy, Actor? target)
+    private bool ShouldUseCMDC(bool canUse, int charges, OGCDStrategy strategy, Actor? target)
     {
         if (!canUse)
             return false;
@@ -355,10 +354,10 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         1 => OGCDPriority.Low,
         _ => OGCDPriority.ExtremelyLow
     };
-    private bool ShouldUseCheckmate(OGCDStrategy strategy, Actor? target) => ShouldUseCheckmateDC(CanCM, RicoCharges, strategy, target);
-    public OGCDPriority CMprio() => CMDCPriority(RicoCharges);
-    private bool ShouldUseDoubleCheck(OGCDStrategy strategy, Actor? target) => ShouldUseCheckmateDC(CanDC, GaussCharges, strategy, target);
-    public OGCDPriority DCprio() => CMDCPriority(GaussCharges);
+    private bool ShouldUseCheckmate(OGCDStrategy strategy, Actor? target) => ShouldUseCMDC(CanCM, RicoCharges, strategy, target);
+    private OGCDPriority CMprio() => CMDCPriority(RicoCharges);
+    private bool ShouldUseDoubleCheck(OGCDStrategy strategy, Actor? target) => ShouldUseCMDC(CanDC, GaussCharges, strategy, target);
+    private OGCDPriority DCprio() => CMDCPriority(GaussCharges);
     private bool ShouldUseFlamethrower(GCDStrategy strategy, Actor? target)
     {
         if (!CanFT)
@@ -441,8 +440,12 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         var assembleStrat = assemble.As<ReassembleStrategy>();
         var gauss = strategy.Option(Track.GaussRound);
         var gaussStrat = gauss.As<OGCDStrategy>();
+        var dc = strategy.Option(Track.DoubleCheck);
+        var dcStrat = dc.As<OGCDStrategy>();
         var ricochet = strategy.Option(Track.Ricochet);
         var ricochetStrat = ricochet.As<OGCDStrategy>();
+        var cm = strategy.Option(Track.Checkmate);
+        var cmStrat = cm.As<OGCDStrategy>();
         var ft = strategy.Option(Track.Flamethrower);
         var ftStrat = ft.As<GCDStrategy>();
         var excavator = strategy.Option(Track.Excavator);
@@ -455,8 +458,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         var aaStrat = aa.As<GCDStrategy>();
         var drill = strategy.Option(Track.Drill);
         var drillStrat = drill.As<DrillStrategy>();
-        var hsp = strategy.Option(Track.HeatSpender);
-        var hspStrat = hsp.As<HeatSpenderStrategy>();
+        var hsp = strategy.Option(Track.Heat);
+        var hspStrat = hsp.As<HeatOption>();
         var hc = strategy.Option(Track.Hypercharge);
         var hcStrat = hc.As<HyperchargeStrategy>();
         var battery = strategy.Option(Track.Battery);
@@ -534,8 +537,12 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                     }
                     if (ShouldUseDoubleCheck(gaussStrat, primaryTarget?.Actor))
                         QueueOGCD(BestGauss, TargetChoice(gauss) ?? (Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor), OGCDPrio(gaussStrat, DCprio()));
+                    if (ShouldUseDoubleCheck(dcStrat, primaryTarget?.Actor))
+                        QueueOGCD(BestGauss, TargetChoice(gauss) ?? (Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor), OGCDPrio(dcStrat, DCprio()));
                     if (ShouldUseCheckmate(ricochetStrat, primaryTarget?.Actor))
                         QueueOGCD(BestRicochet, TargetChoice(ricochet) ?? BestSplashTarget?.Actor, OGCDPrio(ricochetStrat, CMprio()));
+                    if (ShouldUseCheckmate(cmStrat, primaryTarget?.Actor))
+                        QueueOGCD(BestRicochet, TargetChoice(ricochet) ?? BestSplashTarget?.Actor, OGCDPrio(cmStrat, CMprio()));
                     if (ShouldUseFlamethrower(ftStrat, primaryTarget?.Actor))
                         QueueGCD(AID.Flamethrower, TargetChoice(ft) ?? BestFlamethrowerTarget?.Actor, ftStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.ModeratelyLow);
                     if (ShouldUseExcavator(excavatorStrat, primaryTarget?.Actor))
@@ -557,11 +564,11 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                     }
                     if (ShouldChooseHeat(hspStrat, primaryTarget?.Actor))
                     {
-                        if (hspStrat == HeatSpenderStrategy.Automatic)
-                            QueueGCD(BestHeatSpender, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
-                        if (hspStrat == HeatSpenderStrategy.OnlyHeatBlast)
+                        if (hspStrat == HeatOption.Automatic)
+                            QueueGCD(BestHeat, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
+                        if (hspStrat == HeatOption.OnlyHeatBlast)
                             QueueGCD(BestHeatBlast, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
-                        if (hspStrat == HeatSpenderStrategy.OnlyAutoCrossbow)
+                        if (hspStrat == HeatOption.OnlyAutoCrossbow)
                             QueueGCD(Unlocked(AID.AutoCrossbow) ? AID.AutoCrossbow : BestHeatBlast, TargetChoice(hsp) ?? BestConeTarget?.Actor, GCDPriority.High);
                     }
                 }
