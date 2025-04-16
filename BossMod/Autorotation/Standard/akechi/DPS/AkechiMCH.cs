@@ -325,7 +325,6 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                     RaidBuffsLeft > 0 || (Battery >= 90 && (TotalCD(BestAirAnchor) <= 2 || CScd <= 2 || EVleft > 0)) || (Battery == 100 && ComboLastMove is AID.SlugShot or AID.HeatedSlugShot)),
             BatteryStrategy.Fifty => CanSummon,
             BatteryStrategy.Hundred => CanSummon && Battery >= 100,
-            BatteryStrategy.RaidBuffs => CanSummon && (RaidBuffsLeft > 0 || RaidBuffsIn > 9000),
             BatteryStrategy.End => MinionActive,
             _ => false
         };
@@ -578,7 +577,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                         QueueOGCD(AID.Hypercharge, TargetChoice(hc) ?? primaryTarget?.Actor, hcStrat == HyperchargeStrategy.ASAP ? OGCDPriority.Forced : (Heat >= 100 || LastActionUsed(AID.Excavator) || LastActionUsed(AID.FullMetalField)) ? OGCDPriority.VerySevere : OGCDPriority.High);
                     if (ShouldUseBattery(batteryStrat))
                     {
-                        if (batteryStrat is BatteryStrategy.Automatic or BatteryStrategy.Fifty or BatteryStrategy.Hundred or BatteryStrategy.RaidBuffs)
+                        if (batteryStrat is BatteryStrategy.Automatic or BatteryStrategy.Fifty or BatteryStrategy.Hundred)
                             QueueOGCD(BestBattery, Player, OGCDPriority.Critical);
                         if (batteryStrat == BatteryStrategy.End)
                             QueueOGCD(AID.Detonator, Player, OGCDPriority.Critical);
