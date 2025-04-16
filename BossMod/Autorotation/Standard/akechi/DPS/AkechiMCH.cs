@@ -534,14 +534,10 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                         if (ShouldUseReassemble(assembleStrat, primaryTarget?.Actor))
                             QueueOGCD(AID.Reassemble, Player, OGCDPriority.Critical);
                     }
-                    if (ShouldUseDoubleCheck(gaussStrat, primaryTarget?.Actor))
-                        QueueOGCD(BestGauss, TargetChoice(gauss) ?? (Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor), OGCDPrio(gaussStrat, DCprio()));
-                    if (ShouldUseDoubleCheck(dcStrat, primaryTarget?.Actor))
-                        QueueOGCD(BestGauss, TargetChoice(gauss) ?? (Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor), OGCDPrio(dcStrat, DCprio()));
-                    if (ShouldUseCheckmate(ricochetStrat, primaryTarget?.Actor))
-                        QueueOGCD(BestRicochet, TargetChoice(ricochet) ?? BestSplashTarget?.Actor, OGCDPrio(ricochetStrat, CMprio()));
-                    if (ShouldUseCheckmate(cmStrat, primaryTarget?.Actor))
-                        QueueOGCD(BestRicochet, TargetChoice(ricochet) ?? BestSplashTarget?.Actor, OGCDPrio(cmStrat, CMprio()));
+                    if (Player.Level > 91 ? ShouldUseDoubleCheck(dcStrat, primaryTarget?.Actor) : ShouldUseDoubleCheck(gaussStrat, primaryTarget?.Actor))
+                        QueueOGCD(BestGauss, TargetChoice(gauss) ?? (Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor), Player.Level > 91 ? OGCDPrio(dcStrat, DCprio()) : OGCDPrio(gaussStrat, DCprio()));
+                    if (Player.Level > 91 ? ShouldUseCheckmate(cmStrat, primaryTarget?.Actor) : ShouldUseCheckmate(ricochetStrat, primaryTarget?.Actor))
+                        QueueOGCD(BestRicochet, TargetChoice(ricochet) ?? BestSplashTarget?.Actor, Player.Level > 91 ? OGCDPrio(cmStrat, CMprio()) : OGCDPrio(ricochetStrat, CMprio()));
                     if (ShouldUseFlamethrower(ftStrat, primaryTarget?.Actor))
                         QueueGCD(AID.Flamethrower, TargetChoice(ft) ?? BestFlamethrowerTarget?.Actor, ftStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.ModeratelyLow);
                     if (ShouldUseExcavator(excavatorStrat, primaryTarget?.Actor))
