@@ -247,268 +247,6 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
-    {
-        #region Variables
-
-        #region Strategy Definitions
-        var bg = strategy.Option(Track.Gauge);
-        var bgStrat = bg.As<GaugeStrategy>(); //Retrieve Gauge strategy
-        var st = strategy.Option(Track.SurgingTempest);
-        var stStrat = st.As<SurgingTempestStrategy>(); //Retrieve SurgingTempest strategy
-        var uo = strategy.Option(Track.Upheaval);
-        var uoStrat = uo.As<UpheavalStrategy>(); //Retrieve Upheaval strategy
-        var ir = strategy.Option(Track.InnerRelease);
-        var irStrat = ir.As<OGCDStrategy>(); //Retrieve InnerRelease strategy
-        var inf = strategy.Option(Track.Infuriate);
-        var infStrat = inf.As<InfuriateStrategy>(); //Retrieve Infuriate strategy
-        var prend = strategy.Option(Track.PrimalRend);
-        var prendStrat = prend.As<PrimalRendStrategy>(); //Retrieve InnerRelease combo strategy
-        var pwrath = strategy.Option(Track.PrimalWrath);
-        var pwrathStrat = pwrath.As<OGCDStrategy>(); //Retrieve PrimalWrath strategy       
-        var pruin = strategy.Option(Track.PrimalRuination);
-        var pruinStrat = pruin.As<GCDStrategy>(); //Retrieve PrimalRuination strategy
-        var ons = strategy.Option(Track.Onslaught);
-        var onsStrat = ons.As<OnslaughtStrategy>(); //Retrieve Onslaught strategy
-        var Tomahawk = strategy.Option(Track.Tomahawk);
-        var TomahawkStrat = Tomahawk.As<TomahawkStrategy>(); //Retrieve Tomahawk strategy
-        ForceEye = stStrat is SurgingTempestStrategy.ForceEye;
-        ForcePath = stStrat is SurgingTempestStrategy.ForcePath;
-        KeepAt30s = stStrat is SurgingTempestStrategy.At30s;
-        #endregion
-
-        #region Gauge
-        var gauge = World.Client.GetGauge<WarriorGauge>(); //Retrieve WAR gauge
-        BeastGauge = gauge.BeastGauge;
-        #endregion
-
-        #region Cooldowns
-        SurgingTempest.Left = StatusRemaining(Player, SID.SurgingTempest, 60); //Retrieve current SurgingTempest time left
-        SurgingTempest.IsActive = SurgingTempest.Left > 0.1f; //Checks if SurgingTempest is active
-        SurgingTempest.KeepAt30s = SurgingTempest.Left <= 30; //Checks if SurgingTempest needs to be refreshed once less than 30s
-        //TODO: optimize
-        SurgingTempest.NeedsRefresh = ShouldRefreshTempest(stStrat); //Checks if SurgingTempest needs to be refreshed, roughly 4 GCDs to refresh it 
-
-        Upheaval.CD = TotalCD(AID.Upheaval); //Retrieve current Upheaval cooldown
-        Upheaval.IsReady = Unlocked(AID.Upheaval) && Upheaval.CD < 0.6f; //Upheaval ability
-
-        Orogeny.CD = TotalCD(AID.Orogeny); //Retrieve current Orogeny cooldown
-        Orogeny.IsReady = Unlocked(AID.Orogeny) && Orogeny.CD < 0.6f; //Orogeny ability
-
-        BurgeoningFury.Stacks = StacksRemaining(Player, SID.BurgeoningFury, 30); //Retrieve current BurgeoningFury stacks
-
-        PrimalRend.Left = StatusRemaining(Player, SID.PrimalRend, 20); //Retrieve current Primal Rend time left
-        PrimalRend.IsActive = PrimalRend.Left > 0.1f; //Checks if Primal Rend is active
-        PrimalRend.IsReady = Unlocked(AID.PrimalRend) && PrimalRend.Left > 0.1f; //Primal Rend ability
-
-        PrimalWrath.Left = StatusRemaining(Player, SID.Wrathful, 30); //Retrieve current Primal Wrath time left
-        PrimalWrath.IsActive = PrimalWrath.Left > 0.1f; //Checks if Primal Wrath is active
-        PrimalWrath.IsReady = Unlocked(AID.PrimalWrath) && PrimalWrath.Left > 0.1f; //Primal Wrath ability
-
-        PrimalRuination.Left = StatusRemaining(Player, SID.PrimalRuinationReady, 20); //Retrieve current Primal Ruination time left
-        PrimalRuination.IsActive = PrimalRuination.Left > 0.1f; //Checks if Primal Ruination is active
-        PrimalRuination.IsReady = Unlocked(AID.PrimalRuination) && PrimalRuination.Left > 0.1f; //Primal Ruination ability
-
-        InnerRelease.Stacks = StacksRemaining(Player, BestBerserk, 15); //Retrieve current InnerRelease stacks
-        InnerRelease.CD = TotalCD(BestInnerRelease); //Retrieve current InnerRelease cooldown
-        InnerRelease.IsActive = InnerRelease.Stacks > 0; //Checks if InnerRelease is active
-        InnerRelease.IsReady = Unlocked(BestInnerRelease) && InnerRelease.CD < 0.6f; //InnerRelease ability
-
-        NascentChaos.Left = StatusRemaining(Player, SID.NascentChaos, 30);
-        NascentChaos.IsActive = NascentChaos.Left > 0.1f;
-
-        Onslaught.CD = TotalCD(AID.Onslaught); //Retrieve current Onslaught cooldown
-        Onslaught.IsReady = Unlocked(AID.Onslaught) && Onslaught.CD < 60.6f; //Onslaught ability
-
-        Infuriate.TotalCD = TotalCD(AID.Infuriate); //Retrieve current Infuriate cooldown
-        Infuriate.HasCharges = Infuriate.TotalCD <= 60; //Checks if Infuriate has charges
-        Infuriate.IsReady = Unlocked(AID.Infuriate) && Infuriate.HasCharges && !PlayerHasEffect(SID.NascentChaos, 30); //Infuriate ability
-        Infuriate.ChargeCD = Infuriate.TotalCD * 0.5f;  // This gives 60s for one charge
-        if (Unlocked(TraitID.EnhancedInfuriate))
-        {
-            if (LastActionUsed(AID.FellCleave) || LastActionUsed(AID.Decimate) || LastActionUsed(AID.InnerChaos) || LastActionUsed(AID.ChaoticCyclone))
-            {
-                Infuriate.TotalCD -= 5f;
-            }
-            //If the cooldown drops to 0, but TotalCD isn't 0, reset ChargeCD to 60
-            //Technically, this should mean that charges are not capped, and therefore the timer is still rolling
-            if (Infuriate.ChargeCD <= 0 && Infuriate.TotalCD > 0)
-            {
-                Infuriate.ChargeCD = 60f;
-            }
-        }
-        #endregion
-
-        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
-
-        BurstWindowLeft = (InnerRelease.CD >= 40) ? 1.0f : 0.0f;
-        BurstWindowIn = (InnerRelease.CD == 0) ? 1.0f : 0.0f;
-        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
-        BestSplashTarget = Unlocked(AID.PrimalRend) && NumSplashTargets >= 2 ? BestSplashTargets : primaryTarget;
-        (TwoMinuteLeft, TwoMinuteIn) = EstimateRaidBuffTimings(primaryTarget?.Actor);
-        #endregion
-
-        #region Full Rotation Execution
-
-        #region Standard Rotations
-        if (strategy.AutoFinish())
-            QueueGCD(BestRotation(),
-                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.Standard);
-        if (strategy.AutoBreak())
-            QueueGCD(ShouldUseAOE ? AOE() : ST(),
-                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.Standard);
-        if (strategy.ForceST())
-            QueueGCD(ST(),
-                TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
-                IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.ForcedCombo);
-        if (strategy.ForceAOE())
-            QueueGCD(AOE(),
-                Player,
-                IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.ForcedCombo);
-        #endregion
-
-        #region Cooldowns
-        if (!strategy.HoldAll()) //if not holding cooldowns
-        {
-            if (!strategy.HoldCDs()) //if holding cooldowns
-            {
-                if (!strategy.HoldBuffs())
-                {
-                    if (ShouldUseInnerRelease(irStrat, primaryTarget))
-                        QueueOGCD(BestInnerRelease,
-                            Player,
-                            irStrat is OGCDStrategy.Force
-                            or OGCDStrategy.AnyWeave
-                            or OGCDStrategy.EarlyWeave
-                            or OGCDStrategy.LateWeave
-                            ? NewOGCDPriority.ForcedOGCD
-                            : NewOGCDPriority.InnerRelease);
-                }
-                if (ShouldUseUpheavalOrOrogeny(uoStrat, primaryTarget))
-                {
-                    if (uoStrat is UpheavalStrategy.Automatic)
-                        QueueOGCD(UpheavalOrOrogeny,
-                            TargetChoice(uo) ?? primaryTarget?.Actor,
-                            uoStrat is UpheavalStrategy.ForceUpheaval
-                            or UpheavalStrategy.ForceOrogeny
-                            ? NewOGCDPriority.ForcedOGCD
-                            : NewOGCDPriority.Upheaval);
-                    if (uoStrat is UpheavalStrategy.OnlyUpheaval)
-                        QueueOGCD(AID.Upheaval,
-                            TargetChoice(uo) ?? primaryTarget?.Actor,
-                            uoStrat is UpheavalStrategy.ForceUpheaval
-                            ? NewOGCDPriority.ForcedOGCD
-                            : NewOGCDPriority.Upheaval);
-                    if (uoStrat is UpheavalStrategy.OnlyOrogeny)
-                        QueueOGCD(BestOrogeny,
-                            TargetChoice(uo) ?? primaryTarget?.Actor,
-                            uoStrat is UpheavalStrategy.ForceOrogeny
-                            ? NewOGCDPriority.ForcedOGCD
-                            : NewOGCDPriority.Upheaval);
-                }
-                if (ShouldUseInfuriate(infStrat, primaryTarget))
-                    QueueOGCD(AID.Infuriate,
-                        Player,
-                        infStrat is InfuriateStrategy.Force
-                        or InfuriateStrategy.ForceOvercap
-                        ? NewOGCDPriority.ForcedOGCD
-                        : NewOGCDPriority.Infuriate);
-
-                if (ShouldUsePrimalRend(prendStrat, primaryTarget))
-                    QueueGCD(AID.PrimalRend,
-                        TargetChoice(prend) ?? BestSplashTarget?.Actor,
-                        prendStrat is PrimalRendStrategy.Force
-                        or PrimalRendStrategy.ASAP
-                        or PrimalRendStrategy.ASAPNotMoving
-                        ? NewGCDPriority.ForcedGCD
-                        : NewGCDPriority.PrimalRend);
-
-                if (ShouldUsePrimalWrath(pwrathStrat, primaryTarget))
-                    QueueGCD(AID.PrimalWrath,
-                        TargetChoice(pwrath) ?? BestSplashTarget?.Actor,
-                        pwrathStrat is OGCDStrategy.Force
-                        or OGCDStrategy.AnyWeave
-                        or OGCDStrategy.EarlyWeave
-                        or OGCDStrategy.LateWeave
-                        ? NewOGCDPriority.ForcedOGCD
-                        : NewOGCDPriority.PrimalWrath);
-
-                if (ShouldUsePrimalRuination(pruinStrat, primaryTarget))
-                    QueueGCD(AID.PrimalRuination,
-                        TargetChoice(pruin) ?? BestSplashTarget?.Actor,
-                        pruinStrat is GCDStrategy.Force
-                        ? NewGCDPriority.ForcedGCD
-                        : NewGCDPriority.PrimalRuination);
-                if (ShouldUseOnslaught(onsStrat, primaryTarget))
-                    QueueOGCD(AID.Onslaught,
-                        TargetChoice(ons) ?? primaryTarget?.Actor,
-                        onsStrat is OnslaughtStrategy.Force
-                        or OnslaughtStrategy.GapClose
-                        ? NewOGCDPriority.ForcedOGCD
-                        : NewOGCDPriority.Standard);
-            }
-            if (!strategy.HoldGauge())
-            {
-                if (ShouldUseGauge(bgStrat, primaryTarget))
-                {
-                    if (bgStrat is GaugeStrategy.Automatic)
-                        QueueGCD(BestGaugeSpender,
-                            TargetChoice(bg) ?? primaryTarget?.Actor,
-                            bgStrat is GaugeStrategy.ForceST
-                            or GaugeStrategy.ForceAOE
-                            ? NewGCDPriority.ForcedGCD
-                            : FellCleave());
-                    if (bgStrat is GaugeStrategy.OnlyST)
-                        QueueGCD(AID.FellCleave,
-                            TargetChoice(bg) ?? primaryTarget?.Actor,
-                            bgStrat is GaugeStrategy.ForceST
-                            ? NewGCDPriority.ForcedGCD
-                            : IsRiskingGauge()
-                            ? NewGCDPriority.NeedGauge
-                            : NewGCDPriority.Gauge);
-                    if (bgStrat is GaugeStrategy.OnlyAOE)
-                        QueueGCD(AID.Decimate,
-                            Unlocked(AID.Decimate)
-                            ? Player
-                            : TargetChoice(bg) ?? primaryTarget?.Actor,
-                            bgStrat is GaugeStrategy.ForceAOE
-                            ? NewGCDPriority.ForcedGCD
-                            : IsRiskingGauge()
-                            ? NewGCDPriority.NeedGauge
-                            : NewGCDPriority.Gauge);
-                }
-            }
-        }
-        if (ShouldUseTomahawk(TomahawkStrat, primaryTarget))
-            QueueGCD(AID.Tomahawk,
-                TargetChoice(Tomahawk) ?? primaryTarget?.Actor,
-                NewGCDPriority.Standard);
-        if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,
-                Player,
-                ActionQueue.Priority.VeryHigh + (int)NewOGCDPriority.ForcedOGCD,
-                0,
-                GCD - 0.9f);
-        #endregion
-
-        #endregion
-
-        #region AI
-        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
-        var goalAOE = Hints.GoalAOECircle(3); //Set goal for AOE
-        var goal = strategy.Option(SharedTrack.AOE).As<AOEStrategy>() switch //Set goal based on AOE strategy
-        {
-            AOEStrategy.ForceST => goalST, //if forced single target
-            AOEStrategy.ForceAOE => goalAOE, //if forced AOE
-            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE //otherwise, combine goals
-        };
-        if (goal != null) //if goal is set
-            Hints.GoalZones.Add(goal); //add goal to zones
-        #endregion
-    }
-
     #region Rotation Helpers
     private AID BestRotation() => ComboLastMove switch
     {
@@ -722,4 +460,251 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         _ => false
     };
     #endregion
+
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        #region Variables
+        var gauge = World.Client.GetGauge<WarriorGauge>(); //Retrieve WAR gauge
+        BeastGauge = gauge.BeastGauge;
+        SurgingTempest.Left = StatusRemaining(Player, SID.SurgingTempest, 60); //Retrieve current SurgingTempest time left
+        SurgingTempest.IsActive = SurgingTempest.Left > 0.1f; //Checks if SurgingTempest is active
+        SurgingTempest.KeepAt30s = SurgingTempest.Left <= 30; //Checks if SurgingTempest needs to be refreshed once less than 30s
+        SurgingTempest.NeedsRefresh = ShouldRefreshTempest(strategy.Option(Track.SurgingTempest).As<SurgingTempestStrategy>()); //Checks if SurgingTempest needs to be refreshed, roughly 4 GCDs to refresh it 
+        Upheaval.CD = TotalCD(AID.Upheaval); //Retrieve current Upheaval cooldown
+        Upheaval.IsReady = Unlocked(AID.Upheaval) && Upheaval.CD < 0.6f; //Upheaval ability
+        Orogeny.CD = TotalCD(AID.Orogeny); //Retrieve current Orogeny cooldown
+        Orogeny.IsReady = Unlocked(AID.Orogeny) && Orogeny.CD < 0.6f; //Orogeny ability
+        BurgeoningFury.Stacks = StacksRemaining(Player, SID.BurgeoningFury, 30); //Retrieve current BurgeoningFury stacks
+        PrimalRend.Left = StatusRemaining(Player, SID.PrimalRend, 20); //Retrieve current Primal Rend time left
+        PrimalRend.IsActive = PrimalRend.Left > 0.1f; //Checks if Primal Rend is active
+        PrimalRend.IsReady = Unlocked(AID.PrimalRend) && PrimalRend.Left > 0.1f; //Primal Rend ability
+        PrimalWrath.Left = StatusRemaining(Player, SID.Wrathful, 30); //Retrieve current Primal Wrath time left
+        PrimalWrath.IsActive = PrimalWrath.Left > 0.1f; //Checks if Primal Wrath is active
+        PrimalWrath.IsReady = Unlocked(AID.PrimalWrath) && PrimalWrath.Left > 0.1f; //Primal Wrath ability
+        PrimalRuination.Left = StatusRemaining(Player, SID.PrimalRuinationReady, 20); //Retrieve current Primal Ruination time left
+        PrimalRuination.IsActive = PrimalRuination.Left > 0.1f; //Checks if Primal Ruination is active
+        PrimalRuination.IsReady = Unlocked(AID.PrimalRuination) && PrimalRuination.Left > 0.1f; //Primal Ruination ability
+        InnerRelease.Stacks = StacksRemaining(Player, BestBerserk, 15); //Retrieve current InnerRelease stacks
+        InnerRelease.CD = TotalCD(BestInnerRelease); //Retrieve current InnerRelease cooldown
+        InnerRelease.IsActive = InnerRelease.Stacks > 0; //Checks if InnerRelease is active
+        InnerRelease.IsReady = Unlocked(BestInnerRelease) && InnerRelease.CD < 0.6f; //InnerRelease ability
+        NascentChaos.Left = StatusRemaining(Player, SID.NascentChaos, 30);
+        NascentChaos.IsActive = NascentChaos.Left > 0.1f;
+        Onslaught.CD = TotalCD(AID.Onslaught); //Retrieve current Onslaught cooldown
+        Onslaught.IsReady = Unlocked(AID.Onslaught) && Onslaught.CD < 60.6f; //Onslaught ability
+        Infuriate.TotalCD = TotalCD(AID.Infuriate); //Retrieve current Infuriate cooldown
+        Infuriate.HasCharges = Infuriate.TotalCD <= 60; //Checks if Infuriate has charges
+        Infuriate.IsReady = Unlocked(AID.Infuriate) && Infuriate.HasCharges && !PlayerHasEffect(SID.NascentChaos, 30); //Infuriate ability
+        Infuriate.ChargeCD = Infuriate.TotalCD * 0.5f;  // This gives 60s for one charge
+        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
+        BurstWindowLeft = (InnerRelease.CD >= 40) ? 1.0f : 0.0f;
+        BurstWindowIn = (InnerRelease.CD == 0) ? 1.0f : 0.0f;
+        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
+        BestSplashTarget = Unlocked(AID.PrimalRend) && NumSplashTargets >= 2 ? BestSplashTargets : primaryTarget;
+        (TwoMinuteLeft, TwoMinuteIn) = EstimateRaidBuffTimings(primaryTarget?.Actor);
+
+        #region Strategy Definitions
+        var bg = strategy.Option(Track.Gauge);
+        var bgStrat = bg.As<GaugeStrategy>(); //Retrieve Gauge strategy
+        var st = strategy.Option(Track.SurgingTempest);
+        var stStrat = st.As<SurgingTempestStrategy>(); //Retrieve SurgingTempest strategy
+        var uo = strategy.Option(Track.Upheaval);
+        var uoStrat = uo.As<UpheavalStrategy>(); //Retrieve Upheaval strategy
+        var ir = strategy.Option(Track.InnerRelease);
+        var irStrat = ir.As<OGCDStrategy>(); //Retrieve InnerRelease strategy
+        var inf = strategy.Option(Track.Infuriate);
+        var infStrat = inf.As<InfuriateStrategy>(); //Retrieve Infuriate strategy
+        var prend = strategy.Option(Track.PrimalRend);
+        var prendStrat = prend.As<PrimalRendStrategy>(); //Retrieve InnerRelease combo strategy
+        var pwrath = strategy.Option(Track.PrimalWrath);
+        var pwrathStrat = pwrath.As<OGCDStrategy>(); //Retrieve PrimalWrath strategy       
+        var pruin = strategy.Option(Track.PrimalRuination);
+        var pruinStrat = pruin.As<GCDStrategy>(); //Retrieve PrimalRuination strategy
+        var ons = strategy.Option(Track.Onslaught);
+        var onsStrat = ons.As<OnslaughtStrategy>(); //Retrieve Onslaught strategy
+        var Tomahawk = strategy.Option(Track.Tomahawk);
+        var TomahawkStrat = Tomahawk.As<TomahawkStrategy>(); //Retrieve Tomahawk strategy
+        ForceEye = stStrat is SurgingTempestStrategy.ForceEye;
+        ForcePath = stStrat is SurgingTempestStrategy.ForcePath;
+        KeepAt30s = stStrat is SurgingTempestStrategy.At30s;
+        #endregion
+
+        #endregion
+
+        #region Full Rotation Execution
+
+        //Infuriate Timer update hack
+        if (Unlocked(TraitID.EnhancedInfuriate))
+        {
+            if (LastActionUsed(AID.FellCleave) ||
+                LastActionUsed(AID.Decimate) ||
+                LastActionUsed(AID.InnerChaos) ||
+                LastActionUsed(AID.ChaoticCyclone))
+                Infuriate.TotalCD -= 5f;
+            if (Infuriate.ChargeCD <= 0 &&
+                Infuriate.TotalCD > 0)
+                Infuriate.ChargeCD = 60f;
+        }
+
+        if (!strategy.HoldEverything())
+        {
+            #region Standard Rotations
+            if (strategy.AutoFinish())
+                QueueGCD(BestRotation(),
+                    TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                    IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.Standard);
+            if (strategy.AutoBreak())
+                QueueGCD(ShouldUseAOE ? AOE() : ST(),
+                    TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                    IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.Standard);
+            if (strategy.ForceST())
+                QueueGCD(ST(),
+                    TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor,
+                    IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.ForcedCombo);
+            if (strategy.ForceAOE())
+                QueueGCD(AOE(),
+                    Player,
+                    IsRiskingGauge() ? NewGCDPriority.Standard - 400 : NewGCDPriority.ForcedCombo);
+            #endregion
+
+            #region Cooldowns
+            if (!strategy.HoldAbilities()) //if not holding cooldowns
+            {
+                if (!strategy.HoldCDs()) //if holding cooldowns
+                {
+                    if (!strategy.HoldBuffs())
+                    {
+                        if (ShouldUseInnerRelease(irStrat, primaryTarget))
+                            QueueOGCD(BestInnerRelease,
+                                Player,
+                                irStrat is OGCDStrategy.Force
+                                or OGCDStrategy.AnyWeave
+                                or OGCDStrategy.EarlyWeave
+                                or OGCDStrategy.LateWeave
+                                ? NewOGCDPriority.ForcedOGCD
+                                : NewOGCDPriority.InnerRelease);
+                    }
+                    if (ShouldUseUpheavalOrOrogeny(uoStrat, primaryTarget))
+                    {
+                        if (uoStrat is UpheavalStrategy.Automatic)
+                            QueueOGCD(UpheavalOrOrogeny,
+                                TargetChoice(uo) ?? primaryTarget?.Actor,
+                                uoStrat is UpheavalStrategy.ForceUpheaval
+                                or UpheavalStrategy.ForceOrogeny
+                                ? NewOGCDPriority.ForcedOGCD
+                                : NewOGCDPriority.Upheaval);
+                        if (uoStrat is UpheavalStrategy.OnlyUpheaval)
+                            QueueOGCD(AID.Upheaval,
+                                TargetChoice(uo) ?? primaryTarget?.Actor,
+                                uoStrat is UpheavalStrategy.ForceUpheaval
+                                ? NewOGCDPriority.ForcedOGCD
+                                : NewOGCDPriority.Upheaval);
+                        if (uoStrat is UpheavalStrategy.OnlyOrogeny)
+                            QueueOGCD(BestOrogeny,
+                                TargetChoice(uo) ?? primaryTarget?.Actor,
+                                uoStrat is UpheavalStrategy.ForceOrogeny
+                                ? NewOGCDPriority.ForcedOGCD
+                                : NewOGCDPriority.Upheaval);
+                    }
+                    if (ShouldUseInfuriate(infStrat, primaryTarget))
+                        QueueOGCD(AID.Infuriate,
+                            Player,
+                            infStrat is InfuriateStrategy.Force
+                            or InfuriateStrategy.ForceOvercap
+                            ? NewOGCDPriority.ForcedOGCD
+                            : NewOGCDPriority.Infuriate);
+
+                    if (ShouldUsePrimalRend(prendStrat, primaryTarget))
+                        QueueGCD(AID.PrimalRend,
+                            TargetChoice(prend) ?? BestSplashTarget?.Actor,
+                            prendStrat is PrimalRendStrategy.Force
+                            or PrimalRendStrategy.ASAP
+                            or PrimalRendStrategy.ASAPNotMoving
+                            ? NewGCDPriority.ForcedGCD
+                            : NewGCDPriority.PrimalRend);
+
+                    if (ShouldUsePrimalWrath(pwrathStrat, primaryTarget))
+                        QueueGCD(AID.PrimalWrath,
+                            TargetChoice(pwrath) ?? BestSplashTarget?.Actor,
+                            pwrathStrat is OGCDStrategy.Force
+                            or OGCDStrategy.AnyWeave
+                            or OGCDStrategy.EarlyWeave
+                            or OGCDStrategy.LateWeave
+                            ? NewOGCDPriority.ForcedOGCD
+                            : NewOGCDPriority.PrimalWrath);
+
+                    if (ShouldUsePrimalRuination(pruinStrat, primaryTarget))
+                        QueueGCD(AID.PrimalRuination,
+                            TargetChoice(pruin) ?? BestSplashTarget?.Actor,
+                            pruinStrat is GCDStrategy.Force
+                            ? NewGCDPriority.ForcedGCD
+                            : NewGCDPriority.PrimalRuination);
+                    if (ShouldUseOnslaught(onsStrat, primaryTarget))
+                        QueueOGCD(AID.Onslaught,
+                            TargetChoice(ons) ?? primaryTarget?.Actor,
+                            onsStrat is OnslaughtStrategy.Force
+                            or OnslaughtStrategy.GapClose
+                            ? NewOGCDPriority.ForcedOGCD
+                            : NewOGCDPriority.Standard);
+                }
+                if (!strategy.HoldGauge())
+                {
+                    if (ShouldUseGauge(bgStrat, primaryTarget))
+                    {
+                        if (bgStrat is GaugeStrategy.Automatic)
+                            QueueGCD(BestGaugeSpender,
+                                TargetChoice(bg) ?? primaryTarget?.Actor,
+                                bgStrat is GaugeStrategy.ForceST
+                                or GaugeStrategy.ForceAOE
+                                ? NewGCDPriority.ForcedGCD
+                                : FellCleave());
+                        if (bgStrat is GaugeStrategy.OnlyST)
+                            QueueGCD(AID.FellCleave,
+                                TargetChoice(bg) ?? primaryTarget?.Actor,
+                                bgStrat is GaugeStrategy.ForceST
+                                ? NewGCDPriority.ForcedGCD
+                                : IsRiskingGauge()
+                                ? NewGCDPriority.NeedGauge
+                                : NewGCDPriority.Gauge);
+                        if (bgStrat is GaugeStrategy.OnlyAOE)
+                            QueueGCD(AID.Decimate,
+                                Unlocked(AID.Decimate)
+                                ? Player
+                                : TargetChoice(bg) ?? primaryTarget?.Actor,
+                                bgStrat is GaugeStrategy.ForceAOE
+                                ? NewGCDPriority.ForcedGCD
+                                : IsRiskingGauge()
+                                ? NewGCDPriority.NeedGauge
+                                : NewGCDPriority.Gauge);
+                    }
+                }
+            }
+            if (ShouldUseTomahawk(TomahawkStrat, primaryTarget))
+                QueueGCD(AID.Tomahawk,
+                    TargetChoice(Tomahawk) ?? primaryTarget?.Actor,
+                    NewGCDPriority.Standard);
+            if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,
+                    Player,
+                    ActionQueue.Priority.VeryHigh + (int)NewOGCDPriority.ForcedOGCD,
+                    0,
+                    GCD - 0.9f);
+            #endregion
+        }
+
+        #endregion
+
+        #region AI
+        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null; //Set goal for single target
+        var goalAOE = Hints.GoalAOECircle(3); //Set goal for AOE
+        var goal = strategy.Option(SharedTrack.AOE).As<AOEStrategy>() switch //Set goal based on AOE strategy
+        {
+            AOEStrategy.ForceST => goalST, //if forced single target
+            AOEStrategy.ForceAOE => goalAOE, //if forced AOE
+            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE //otherwise, combine goals
+        };
+        if (goal != null) //if goal is set
+            Hints.GoalZones.Add(goal); //add goal to zones
+        #endregion
+    }
 }

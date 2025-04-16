@@ -57,6 +57,9 @@ public enum HoldStrategy
     HoldBuffs,
 
     /// <summary> Holds all <b>buffs</b>, <b>cooldowns</b>, and <b>gauge abilities</b>. </summary>
+    HoldAbilities,
+
+    /// <summary> Holds <b>ALL</b> actions entirely. </summary>
     HoldEverything
 }
 
@@ -931,7 +934,8 @@ static class ModuleExtensions
             .AddOption(HoldStrategy.HoldCooldowns, "Hold", "Forbid use of all cooldowns only")
             .AddOption(HoldStrategy.HoldGauge, "HoldGauge", "Forbid use of all gauge abilities only")
             .AddOption(HoldStrategy.HoldBuffs, "HoldBuffs", "Forbid use of all raidbuffs or buff-related abilities only")
-            .AddOption(HoldStrategy.HoldEverything, "HoldEverything", "Forbid use of all cooldowns, buffs, and gauge abilities");
+            .AddOption(HoldStrategy.HoldAbilities, "HoldAbilities", "Forbid use of all cooldowns, buffs, and gauge abilities")
+            .AddOption(HoldStrategy.HoldEverything, "HoldEverything", "Forbid complete use of ALL actions; rotations included");
     }
 
     /// <summary>A quick and easy helper for shortcutting how we define our <b>GCD</b> abilities.</summary>
@@ -998,8 +1002,11 @@ static class ModuleExtensions
     /// <summary>A global helper for force-executing the AOE rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
     public static bool ForceAOE(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() == AOEStrategy.ForceAOE;
 
+    /// <summary>A global helper for forbidding ALL actions, rotations <em>and</em> abilities. See <seealso cref="HoldStrategy"/> for more details.</summary>
+    public static bool HoldEverything(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldEverything;
+
     /// <summary>A global helper for forbidding ALL available abilities that are buff, gauge, or cooldown related. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldAll(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldEverything;
+    public static bool HoldAbilities(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldAbilities;
 
     /// <summary>A global helper for forbidding ALL available abilities that are related to raidbuffs. See <seealso cref="HoldStrategy"/> for more details.</summary>
     public static bool HoldBuffs(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldBuffs;
