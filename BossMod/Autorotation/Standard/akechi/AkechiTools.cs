@@ -512,6 +512,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if the target is within <b>10-yalm</b> range.</summary>
     protected bool In10y(Actor? target) => InRange(target, 10.00f);
 
+    /// <summary>Checks if the target is within <b>12-yalm</b> range.</summary>
+    protected bool In12y(Actor? target) => InRange(target, 12.00f);
+
     /// <summary>Checks if the target is within <b>15-yalm</b> range.</summary>
     protected bool In15y(Actor? target) => InRange(target, 15.00f);
 
@@ -777,6 +780,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if player is inside combat and has a primary target.</summary>
     protected bool InsideCombatWith(Actor? target) => Player.InCombat && target != null;
 
+    protected float RaidBuffsIn { get; private set; }
+    protected float RaidBuffsLeft { get; private set; }
+
     //TODO: new stuff
     /*
     protected DateTime? movementStartTime;
@@ -819,7 +825,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     #region Priorities
     protected GCDPriority GCDPrio(GCDStrategy strat, GCDPriority defaultPrio) => strat is GCDStrategy.Force ? GCDPriority.Forced : defaultPrio;
-    protected enum GCDPriority //Base = 4000
+    public enum GCDPriority //Base = 4000
     {
         None = 0,
         Minimal = 50,
@@ -844,7 +850,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         Forced = 1000 //This is really high already, should never be past 5000 total tbh
     }
     protected OGCDPriority OGCDPrio(OGCDStrategy strat, OGCDPriority defaultPrio) => strat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : defaultPrio;
-    protected enum OGCDPriority //Base = 2000
+    public enum OGCDPriority //Base = 2000
     {
         None = 0,
         Minimal = 50,
@@ -890,6 +896,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
         HasPeloton = PlayerHasAnyEffect(ClassShared.SID.Peloton);
         CanPeloton = !Player.InCombat && !HasPeloton && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
+        (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
 
         if (Player.MountId is not (103 or 117 or 128))
             Execution(strategy, PlayerTarget);
