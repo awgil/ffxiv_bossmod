@@ -2,8 +2,6 @@
 using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.MCH;
-using static BossMod.ActorCastEvent;
-using System.Diagnostics.Metrics;
 #endregion
 
 namespace BossMod.Autorotation.akechi;
