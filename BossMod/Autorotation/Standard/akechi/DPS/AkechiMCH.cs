@@ -532,9 +532,9 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                             QueueOGCD(AID.Reassemble, Player, OGCDPriority.Critical);
                     }
                     if (Unlocked(TraitID.DoubleBarrelMastery) ? ShouldUseDoubleCheck(dcStrat, primaryTarget?.Actor) : ShouldUseDoubleCheck(gaussStrat, primaryTarget?.Actor))
-                        QueueOGCD(BestGauss, TargetChoice(gauss) ?? (Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor), Player.Level > 91 ? OGCDPrio(dcStrat, DCprio()) : OGCDPrio(gaussStrat, DCprio()));
+                        QueueOGCD(BestGauss, TargetChoice(gauss) ?? (Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor), Unlocked(TraitID.DoubleBarrelMastery) ? OGCDPrio(dcStrat, DCprio()) : OGCDPrio(gaussStrat, DCprio()));
                     if (Unlocked(TraitID.DoubleBarrelMastery) ? ShouldUseCheckmate(cmStrat, primaryTarget?.Actor) : ShouldUseCheckmate(ricochetStrat, primaryTarget?.Actor))
-                        QueueOGCD(BestRicochet, TargetChoice(ricochet) ?? BestSplashTarget?.Actor, Player.Level > 91 ? OGCDPrio(cmStrat, CMprio()) : OGCDPrio(ricochetStrat, CMprio()));
+                        QueueOGCD(BestRicochet, TargetChoice(ricochet) ?? BestSplashTarget?.Actor, Unlocked(TraitID.DoubleBarrelMastery) ? OGCDPrio(cmStrat, CMprio()) : OGCDPrio(ricochetStrat, CMprio()));
                     if (ShouldUseFlamethrower(ftStrat, primaryTarget?.Actor))
                         QueueGCD(AID.Flamethrower, TargetChoice(ft) ?? BestFlamethrowerTarget?.Actor, ftStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.ModeratelyLow);
                     if (ShouldUseExcavator(excavatorStrat, primaryTarget?.Actor))
