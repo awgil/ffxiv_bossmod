@@ -61,7 +61,7 @@ class DarkAether(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.TheStorm, (uint)OID.TheSwell, (uint)OID.AmeNoHabakiri]);
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.TheStorm, OID.TheSwell, OID.AmeNoHabakiri]);
 
 public class ZenosP2States : StateMachineBuilder
 {

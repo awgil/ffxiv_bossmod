@@ -1,8 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A12Fafnir;
 
-class HurricaneWingRaidwide(BossModule module) : Components.CastCounterMulti(module, [ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE1), ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE2), ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE3),
-    ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE4), ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE5), ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE6),
-    ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE7), ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE8), ActionID.MakeSpell(AID.HurricaneWingRaidwideAOE9)]);
+class HurricaneWingRaidwide(BossModule module) : Components.CastCounterMulti(module, [AID.HurricaneWingRaidwideAOE1, AID.HurricaneWingRaidwideAOE2, AID.HurricaneWingRaidwideAOE3, AID.HurricaneWingRaidwideAOE4, AID.HurricaneWingRaidwideAOE5, AID.HurricaneWingRaidwideAOE6, AID.HurricaneWingRaidwideAOE7, AID.HurricaneWingRaidwideAOE8, AID.HurricaneWingRaidwideAOE9]);
 
 class HurricaneWingAOE(BossModule module) : Components.GenericAOEs(module)
 {

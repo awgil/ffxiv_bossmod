@@ -95,7 +95,7 @@ class RestraintCollar(BossModule module) : BossComponent(module)
         }
     }
 };
-class AddsModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.RestraintCollar, (uint)OID.BladeOfTheGriffin])
+class AddsModule(BossModule module) : Components.AddsMulti(module, [OID.RestraintCollar, OID.BladeOfTheGriffin])
 {
     private readonly List<Actor> _blades = [];
     public override void OnActorCreated(Actor actor)

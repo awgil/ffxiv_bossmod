@@ -49,7 +49,7 @@ class PsychicWave(BossModule module) : Components.RaidwideCast(module, ActionID.
 class VoltaicSlash(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.VoltaicSlash));
 class OverwhelmingChargeSolo(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OverwhelmingChargeSolo), new AOEShapeCone(26, 90.Degrees()));
 class PsychokinesisDoors(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PsychokinesisDoorsAOE), new AOEShapeRect(70, 6.5f));
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.OrigenicsEyeborg, (uint)OID.Superfluity]);
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.OrigenicsEyeborg, OID.Superfluity]);
 
 class ExtrasensoryExpulsion(BossModule module) : Components.Knockback(module)
 {

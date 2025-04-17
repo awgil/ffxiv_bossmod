@@ -161,7 +161,7 @@ class VoidCall(BossModule module) : BossComponent(module)
             _towers.Remove(bestTower);
     }
 }
-class MultiAddsModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.Voidsphere, (uint)OID.Bibliophile, (uint)OID.Bibliomancer, (uint)OID.Biblioklept, (uint)OID.AbyssalLance])
+class MultiAddsModule(BossModule module) : Components.AddsMulti(module, [OID.Voidsphere, OID.Bibliophile, OID.Bibliomancer, OID.Biblioklept, OID.AbyssalLance])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

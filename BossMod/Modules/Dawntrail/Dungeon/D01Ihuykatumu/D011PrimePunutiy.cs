@@ -140,7 +140,7 @@ class PunitiyHydrowave(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class PunitiyAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.ProdigiousPunutiy, (uint)OID.Punutiy, (uint)OID.PetitPunutiy]);
+class PunitiyAdds(BossModule module) : Components.AddsMulti(module, [OID.ProdigiousPunutiy, OID.Punutiy, OID.PetitPunutiy]);
 
 class ShoreShaker(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)])
 {

@@ -24,7 +24,7 @@ public enum AID : uint
     GalesOfTartarus1 = 28876, // Boss->self, 6.0s cast, range 30 width 30 rect
 }
 
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.ImperialCenturion, (uint)OID.ImperialPilusPrior]);
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.ImperialCenturion, OID.ImperialPilusPrior]);
 
 class MagitekMissiles(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekMissiles), 7);
 class DrillShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DrillShot), new AOEShapeRect(30, 2.5f));

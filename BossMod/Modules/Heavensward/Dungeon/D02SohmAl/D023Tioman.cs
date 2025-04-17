@@ -126,19 +126,7 @@ class MeteorImpact(BossModule module) : Components.GenericAOEs(module)
 }
 class Heavensfall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Heavensfall), 5);
 class DarkStar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DarkStar));
-class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.LeftWingOfTragedy, (uint)OID.RightWingOfInjury])
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var e in hints.PotentialTargets)
-            e.Priority = (OID)e.Actor.OID switch
-            {
-                OID.RightWingOfInjury or OID.LeftWingOfTragedy => 2,
-                OID.Boss => 1,
-                _ => 0
-            };
-    }
-};
+class MultiAddModule(BossModule module) : Components.AddsMulti(module, [OID.LeftWingOfTragedy, OID.RightWingOfInjury], 1);
 class D023TiomanStates : StateMachineBuilder
 {
     public D023TiomanStates(BossModule module) : base(module)

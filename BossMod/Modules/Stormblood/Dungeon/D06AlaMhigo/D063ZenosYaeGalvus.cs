@@ -117,7 +117,7 @@ class ArtOfTheSwell1(BossModule module) : Components.KnockbackFromCastTarget(mod
 
 class StormSwellSword(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StormSwellSword1));
 
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.AmeNoHabakiri, (uint)OID.TheStorm, (uint)OID.TheSwell]);
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.AmeNoHabakiri, OID.TheStorm, OID.TheSwell]);
 
 class ZenosYaeGalvusStates : StateMachineBuilder
 {

@@ -243,7 +243,7 @@ class TrueHoly(BossModule module) : Components.KnockbackFromCastTarget(module, A
 }
 class TrueStoneIV(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TrueStoneIV), 10, maxCasts: 7);
 class EnomotosSmall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EnomotosSmall), 4);
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.Thelema, (uint)OID.ThelemaAgape], 1);
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.Thelema, OID.ThelemaAgape], 1);
 
 public class VenatStates : StateMachineBuilder
 {

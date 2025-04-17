@@ -26,7 +26,7 @@ public enum AID : uint
     UnbreakableCermetBlade = 14470, // ScholaColossusRubricatus->self, 9.0s cast, range 30 circle
 }
 
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.ScholaAvenger, (uint)OID.ScholaCenturion, (uint)OID.ScholaEques, (uint)OID.ScholaLaquearius]);
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.ScholaAvenger, OID.ScholaCenturion, OID.ScholaEques, OID.ScholaLaquearius]);
 class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Exhaust), new AOEShapeRect(43.2f, 5));
 class GrandSword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandSword), new AOEShapeCone(18.4f, 60.Degrees()));
 class MagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekMissile), 15);

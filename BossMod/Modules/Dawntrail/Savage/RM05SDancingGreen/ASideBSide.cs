@@ -169,4 +169,4 @@ class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, Act
     }
 }
 
-class PlaySideCounter(BossModule module) : Components.CastCounterMulti(module, [ActionID.MakeSpell(AID.PlayASide), ActionID.MakeSpell(AID.PlayBSide)]);
+class PlaySideCounter(BossModule module) : Components.CastCounterMulti(module, [AID.PlayASide, AID.PlayBSide]);

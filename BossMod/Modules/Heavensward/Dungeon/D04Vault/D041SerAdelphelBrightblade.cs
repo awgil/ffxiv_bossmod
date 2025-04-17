@@ -54,7 +54,7 @@ class BrightFlare(BossModule module) : Components.GenericAOEs(module)
     private IEnumerable<Actor> Brightspheres => Module.Enemies(OID.Brightsphere).Where(e => !e.IsDead);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Brightspheres.Select(b => new AOEInstance(new AOEShapeCircle(6f), b.Position));
 }
-class MultiAddsModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.VaultOstiary, (uint)OID.VaultDeacon, (uint)OID.SerAdelphel]);
+class MultiAddsModule(BossModule module) : Components.AddsMulti(module, [OID.VaultOstiary, OID.VaultDeacon, OID.SerAdelphel]);
 class D041SerAdelphelBrightbladeStates : StateMachineBuilder
 {
     public D041SerAdelphelBrightbladeStates(BossModule module) : base(module)

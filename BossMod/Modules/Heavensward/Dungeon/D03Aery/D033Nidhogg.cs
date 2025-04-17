@@ -52,7 +52,7 @@ class Touchdown(BossModule module) : Components.RaidwideInstant(module, ActionID
 }
 class TheScarletPrice(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TheScarletPrice));
 
-class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.TheSablePrice, (uint)OID.Liegedrake, (uint)OID.Ahleh])
+class MultiAddModule(BossModule module) : Components.AddsMulti(module, [OID.TheSablePrice, OID.Liegedrake, OID.Ahleh])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

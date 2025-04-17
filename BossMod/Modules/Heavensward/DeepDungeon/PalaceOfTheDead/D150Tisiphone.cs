@@ -26,7 +26,7 @@ public enum AID : uint
 }
 
 class BloodRain(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BloodRain), "Heavy Raidwide damage! Also killing any add that is currently up");
-class BossAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.FanaticZombie, (uint)OID.FanaticSuccubus])
+class BossAdds(BossModule module) : Components.AddsMulti(module, [OID.FanaticZombie, OID.FanaticSuccubus])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

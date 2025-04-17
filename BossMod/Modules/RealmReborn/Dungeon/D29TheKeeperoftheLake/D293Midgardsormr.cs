@@ -40,7 +40,7 @@ public enum AID : uint
 }
 
 class Adonishment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Admonishment), new AOEShapeRect(40, 6));
-class MidgarAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.MirageDragonC, (uint)OID.MirageDragonD]);
+class MidgarAdds(BossModule module) : Components.AddsMulti(module, [OID.MirageDragonC, OID.MirageDragonD]);
 class Animadversion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Animadversion), "Raidwide");
 class Condescension(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Condescension)); // tank buster
 class Disgust(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Disgust), "Raidwide");

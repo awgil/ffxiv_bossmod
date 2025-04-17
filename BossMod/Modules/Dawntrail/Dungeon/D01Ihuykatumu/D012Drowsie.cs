@@ -49,7 +49,7 @@ class Arise(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.Ma
 class WallopNarrow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WallopNarrow), new AOEShapeRect(40, 5));
 class WallopWide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WallopWide), new AOEShapeRect(40, 8));
 class Sneeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sneeze), new AOEShapeCone(60, 75.Degrees()));
-class Mimiclots(BossModule module) : Components.AddsMulti(module, [(uint)OID.MimiclotGreen1, (uint)OID.MimiclotGreen2, (uint)OID.MimiclotBlue1, (uint)OID.MimiclotBlue2, (uint)OID.MimiclotBlue3, (uint)OID.MimiclotRed]);
+class Mimiclots(BossModule module) : Components.AddsMulti(module, [OID.MimiclotGreen1, OID.MimiclotGreen2, OID.MimiclotBlue1, OID.MimiclotBlue2, OID.MimiclotBlue3, OID.MimiclotRed]);
 class FlagrantSpreadBlue(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FlagrantSpreadBlue), 6);
 class FlagrantSpreadGreen(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlagrantSpreadGreen), 6);
 

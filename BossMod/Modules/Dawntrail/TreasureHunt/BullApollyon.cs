@@ -56,7 +56,7 @@ class FlameBladeHelper(BossModule module) : Components.SelfTargetedAOEs(module, 
 class FlameBladeFollowup(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlameBladeHelperFollowUps), new AOEShapeRect(20, 2.5f, 20));
 class PyreBurst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PyreburstCast));
 
-class BonusAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.TuligoraQueen, (uint)OID.TuraliTomato, (uint)OID.TuraliGarlic, (uint)OID.TuraliEggplant, (uint)OID.TuraliOnion])
+class BonusAdds(BossModule module) : Components.AddsMulti(module, [OID.TuligoraQueen, OID.TuraliTomato, OID.TuraliGarlic, OID.TuraliEggplant, OID.TuraliOnion])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

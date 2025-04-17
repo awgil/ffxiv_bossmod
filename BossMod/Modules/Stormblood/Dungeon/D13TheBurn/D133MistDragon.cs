@@ -117,7 +117,7 @@ class CauterizeConceal(BossModule module) : Components.GenericAOEs(module)
     }
 }
 class TouchDown(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Touchdown), new AOEShapeCircle(15));
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.DraconicRegard, (uint)OID.Mist])
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.DraconicRegard, OID.Mist])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

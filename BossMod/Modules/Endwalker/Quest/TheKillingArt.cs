@@ -64,7 +64,7 @@ class CarnemLevareDonut(BossModule module) : Components.GenericAOEs(module)
 class MeatySlice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MeatySlice1), new AOEShapeRect(50, 6));
 class Cleaver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Cleaver1), new AOEShapeCone(40, 60.Degrees()));
 class FlankCleaver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlankCleaver1), new AOEShapeCone(40, 60.Degrees()));
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.VoidHecteyes, (uint)OID.VoidPersona], 1);
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.VoidHecteyes, OID.VoidPersona], 1);
 
 class OrcusStates : StateMachineBuilder
 {

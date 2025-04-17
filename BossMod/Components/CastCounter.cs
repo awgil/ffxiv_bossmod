@@ -15,6 +15,8 @@ public class CastCounter(BossModule module, ActionID aid) : BossComponent(module
 
 public class CastCounterMulti(BossModule module, ActionID[] aids) : BossComponent(module)
 {
+    public CastCounterMulti(BossModule module, Enum[] aids) : this(module, aids.Select(ActionID.MakeSpell).ToArray()) { }
+
     public ActionID[] WatchedActions = aids;
     public int NumCasts { get; protected set; }
 

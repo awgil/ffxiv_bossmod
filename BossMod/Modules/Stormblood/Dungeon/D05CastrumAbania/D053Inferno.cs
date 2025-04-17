@@ -43,7 +43,7 @@ class RahuBlaster2(BossModule module) : Components.SelfTargetedAOEs(module, Acti
 class RahuRay(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(10), (uint)IconID.Ray, ActionID.MakeSpell(AID.RahuRay), centerAtTarget: true);
 class RahuComet(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RahuComet), 20);
 class RahuComet2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RahuComet2), 20);
-class MultiAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.LegionDeathClaw, (uint)OID.LegionPacker])
+class MultiAdds(BossModule module) : Components.AddsMulti(module, [OID.LegionDeathClaw, OID.LegionPacker])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
