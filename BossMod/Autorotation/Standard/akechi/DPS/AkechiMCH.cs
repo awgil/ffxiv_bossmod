@@ -170,7 +170,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #region Buffs
     private bool ShouldUseWildfire(WildfireStrategy strategy, Actor? target) => strategy switch
     {
-        WildfireStrategy.Automatic => InsideCombatWith(target) && In25y(target) && CanWF && CanWeaveIn && ((CombatTimer is > 6 and < 30 && FMFleft > 0 && EVleft == 0 && Drillcd > 21) || (CombatTimer >= 30 && LastActionUsed(AID.Hypercharge) || OverheatActive)),
+        WildfireStrategy.Automatic => InsideCombatWith(target) && In25y(target) && CanWF && CanLateWeaveIn && ((CombatTimer is > 6 and < 30 && FMFleft > 0 && EVleft == 0 && Drillcd > 21) || (CombatTimer >= 30 && (LastActionUsed(AID.FullMetalField) || LastActionUsed(AID.Hypercharge) || OverheatActive))),
         WildfireStrategy.End => PlayerHasEffect(SID.WildfirePlayer),
         WildfireStrategy.Force => CanWF,
         WildfireStrategy.ForceWeave => CanWF && CanWeaveIn,
@@ -182,7 +182,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         {
             if (CombatTimer < 30 && FMFleft > 0 && EVleft == 0)
                 return OGCDPriority.Max;
-            if (CombatTimer >= 30 && LastActionUsed(AID.Hypercharge) || OverheatActive)
+            if (CombatTimer >= 30 && (LastActionUsed(AID.FullMetalField) || LastActionUsed(AID.Hypercharge) || OverheatActive))
                 return OGCDPriority.Critical;
         }
         return strategy switch
@@ -210,7 +210,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     {
         if (!CanRA)
             return false;
-        var condition = CombatTimer >= 5 && BScd > 20 && CanWeaveIn && (ShouldUseAOE ? (CScd <= GCD || CanEV) : (AAcd <= GCD || (Unlocked(AID.Drill) ? ChargeCD(AID.Drill) < 0.4f : Unlocked(AID.CleanShot) ? NextGCD is AID.CleanShot : TotalCD(AID.HotShot) <= GCD) || CScd <= GCD || CanEV));
+        var condition = CombatTimer >= 5 && BScd > 20 && CanWeaveIn && (ShouldUseAOE ? (CScd <= 2f || CanEV) : (AAcd <= 2f || (Unlocked(AID.Drill) ? ChargeCD(AID.Drill) <= 2f : Unlocked(AID.CleanShot) ? NextGCD is AID.CleanShot : TotalCD(AID.HotShot) <= 2f) || CScd <= 2f || CanEV));
         return strategy switch
         {
             ReassembleStrategy.Automatic => condition,
@@ -219,6 +219,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             ReassembleStrategy.Delay or _ => false,
         };
     }
+
     #endregion
 
     #region Tools
@@ -439,7 +440,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         BestChainsawTarget = ShouldUseSaw ? BestChainsawTargets : primaryTarget;
         BestFlamethrowerTarget = ShouldFlamethrower ? BestConeTarget : primaryTarget;
         RicoCharges = MaxChargesIn(BestRicochet) <= GCD ? 3 : TotalCD(BestRicochet) < 30.6f ? 2 : TotalCD(BestRicochet) < 60.6f ? 1 : 0;
-        GaussCharges = MaxChargesIn(BestRicochet) <= GCD ? 3 : TotalCD(BestGauss) < 30.6f ? 2 : TotalCD(BestGauss) < 60.6f ? 1 : 0;
+        GaussCharges = MaxChargesIn(BestGauss) <= GCD ? 3 : TotalCD(BestGauss) < 30.6f ? 2 : TotalCD(BestGauss) < 60.6f ? 1 : 0;
 
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE); //Retrieves AOE track
@@ -517,11 +518,11 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
 
             #region Standard Rotation
             if (AOEStrategy == AOEStrategy.AutoFinish)
-                QueueGCD(AutoFinish, TargetChoice(AOE) ?? BestConeTarget?.Actor, (ComboLastMove == AID.HeatedSlugShot && BScd is > 50 and < 70 && EVleft > 0) ? GCDPriority.VeryHigh : GCDPriority.Low);
+                QueueGCD(AutoFinish, TargetChoice(AOE) ?? BestConeTarget?.Actor, GCDPriority.Low);
             if (AOEStrategy == AOEStrategy.AutoBreak)
                 QueueGCD(AutoBreak, TargetChoice(AOE) ?? BestConeTarget?.Actor, GCDPriority.Low);
             if (AOEStrategy == AOEStrategy.ForceST)
-                QueueGCD(ST, TargetChoice(AOE) ?? primaryTarget?.Actor, (ComboLastMove == AID.HeatedSlugShot && BScd is > 50 and < 70 && EVleft > 0) ? GCDPriority.VeryHigh : GCDPriority.Low);
+                QueueGCD(ST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
             if (AOEStrategy == AOEStrategy.ForceAOE)
                 QueueGCD(BestSpreadShot, TargetChoice(AOE) ?? BestConeTarget?.Actor, GCDPriority.Low);
             #endregion
