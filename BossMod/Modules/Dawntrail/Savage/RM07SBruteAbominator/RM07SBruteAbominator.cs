@@ -397,7 +397,7 @@ class Sporesplosion(BossModule module) : Components.LocationTargetedAOEs(module,
 
 #if DEBUG
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1024, NameID = 13756, PlanLevel = 100)]
-public class RM07BruteAbombinator(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
+public class RM07SBruteAbombinator(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

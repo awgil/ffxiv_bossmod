@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM07BruteAbominator;
 
-class RM07BruteAbombinatorStates : StateMachineBuilder
+class RM07SBruteAbombinatorStates : StateMachineBuilder
 {
-    public RM07BruteAbombinatorStates(BossModule module) : base(module)
+    public RM07SBruteAbombinatorStates(BossModule module) : base(module)
     {
         DeathPhase(0, SinglePhase);
     }
