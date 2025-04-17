@@ -210,7 +210,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     {
         if (!CanRA)
             return false;
-        var condition = CombatTimer >= 5 && BScd > 20 && CanWeaveIn && (ShouldUseAOE ? (CScd <= GCD || CanEV) : (AAcd <= GCD || (Unlocked(AID.Drill) ? ChargeCD(AID.Drill) <= GCD : Unlocked(AID.CleanShot) ? NextGCD is AID.CleanShot : TotalCD(AID.HotShot) <= GCD) || CScd <= GCD || CanEV));
+        var condition = CombatTimer >= 5 && BScd > 20 && CanWeaveIn && (ShouldUseAOE ? (CScd <= GCD || CanEV) : (AAcd <= GCD || (Unlocked(AID.Drill) ? ChargeCD(AID.Drill) < 0.4f : Unlocked(AID.CleanShot) ? NextGCD is AID.CleanShot : TotalCD(AID.HotShot) <= GCD) || CScd <= GCD || CanEV));
         return strategy switch
         {
             ReassembleStrategy.Automatic => condition,
@@ -253,7 +253,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         {
             if (MaxChargesIn(AID.Drill) <= GCD)
                 return OGCDPriority.ExtremelyHigh;
-            if (ChargeCD(AID.Drill) <= GCD)
+            if (ChargeCD(AID.Drill) < 0.4f)
                 return OGCDPriority.High;
         }
 
@@ -419,7 +419,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         CanWF = ActionReady(AID.Wildfire);
         CanBS = ActionReady(AID.BarrelStabilizer);
         CanRA = Unlocked(AID.Reassemble) && ChargeCD(AID.Reassemble) <= GCD && !OverheatActive && RAleft == 0;
-        CanDrill = Unlocked(AID.Drill) && ChargeCD(AID.Drill) <= GCD && !OverheatActive;
+        CanDrill = Unlocked(AID.Drill) && ChargeCD(AID.Drill) < 0.4f && !OverheatActive;
         CanBB = Unlocked(AID.Bioblaster) && ChargeCD(AID.Bioblaster) <= GCD && !OverheatActive;
         CanAA = ActionReady(BestAirAnchor) && !OverheatActive;
         CanCS = ActionReady(AID.ChainSaw) && !OverheatActive;
