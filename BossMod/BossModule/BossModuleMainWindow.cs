@@ -1,5 +1,6 @@
-﻿using Dalamud.Interface;
+﻿using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using static BossMod.BossModuleConfig;
 
 namespace BossMod;
 
@@ -15,7 +16,6 @@ public class BossModuleMainWindow : UIWindow
         _mgr = mgr;
         _zmm = zmm;
         RespectCloseHotkey = false;
-        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.WindowClose, IconOffset = new(1), Click = _ => OnClose() });
     }
 
     public override void PreOpenCheck()
@@ -50,35 +50,55 @@ public class BossModuleMainWindow : UIWindow
         if (!IsOpen)
         {
             // user pressed close button
-            OnManualClose();
+            OnManualClose(_mgr.Config.CloseBehavior);
             IsOpen = true;
         }
     }
 
-    private void OnManualClose()
+    private void OnManualClose(RadarCloseBehavior beh)
     {
-        switch (_mgr.Config.CloseBehavior)
+        switch (beh)
         {
-            case BossModuleConfig.RadarCloseBehavior.Prompt:
-                Service.Log($"TODO: implement prompt");
+            case RadarCloseBehavior.Prompt:
+                _showClosePopup = true;
                 break;
 
-            case BossModuleConfig.RadarCloseBehavior.DisableRadar:
+            case RadarCloseBehavior.DisableRadar:
                 _mgr.Config.Enable = false;
                 break;
 
-            case BossModuleConfig.RadarCloseBehavior.DisableActiveModule:
-                Service.Log($"TODO: implement disable single {_mgr.ActiveModule?.Info}");
+            case RadarCloseBehavior.DisableActiveModule:
+                if (_mgr.ActiveModule?.Info is { } info)
+                {
+                    _mgr.Config.DisabledModules.Add(info.ModuleType.ToString());
+                    _mgr.ActiveModule = null;
+                }
                 break;
 
-            case BossModuleConfig.RadarCloseBehavior.DisableActiveModuleCategory:
-                Service.Log($"TODO: implement disable group {_mgr.ActiveModule?.Info}");
+            case RadarCloseBehavior.DisableActiveModuleCategory:
+                if (_mgr.ActiveModule?.Info is { } i)
+                {
+                    _mgr.Config.DisabledCategories.Add(i.Category);
+                    _mgr.ActiveModule = null;
+                }
                 break;
         }
     }
 
+    private bool _showClosePopup;
+
     public override void Draw()
     {
+        using (var popup = ImRaii.PopupModal("Radar close behavior##radar_close"))
+            if (popup)
+                DrawRadarClosePopup();
+
+        if (_showClosePopup)
+        {
+            _showClosePopup = false;
+            ImGui.OpenPopup("Radar close behavior##radar_close");
+        }
+
         if (ShowZoneModule())
         {
             _zmm.ActiveModule?.DrawGlobalHints();
@@ -112,6 +132,47 @@ public class BossModuleMainWindow : UIWindow
             var offset = 0.07f * Vector3.Normalize(Vector3.Cross(Vector3.UnitY, dir));
             Camera.Instance.DrawWorldLine(arrowStart + offset, end3, color);
             Camera.Instance.DrawWorldLine(arrowStart - offset, end3, color);
+        }
+    }
+
+    private bool _rememberCloseChoice;
+    private RadarCloseBehavior _beh;
+
+    private void DrawRadarClosePopup()
+    {
+        ImGui.Text("What would you like to do?");
+
+        if (ImGui.RadioButton("Hide the radar window", _beh == RadarCloseBehavior.DisableRadar))
+            _beh = RadarCloseBehavior.DisableRadar;
+        if (ImGui.RadioButton($"Disable the current module (currently: {_mgr.ActiveModule})", _beh == RadarCloseBehavior.DisableActiveModule))
+            _beh = RadarCloseBehavior.DisableActiveModule;
+        if (ImGui.RadioButton($"Disable the current category (currently: {_mgr.ActiveModule?.Info?.Category.ToString() ?? "unknown"})", _beh == RadarCloseBehavior.DisableActiveModuleCategory))
+            _beh = RadarCloseBehavior.DisableActiveModuleCategory;
+
+        ImGui.Dummy(new(0, 15));
+
+        ImGui.Checkbox("Remember my choice", ref _rememberCloseChoice);
+
+        ImGui.Dummy(new(0, 15));
+
+        if (ImGui.Button("OK"))
+        {
+            if (_rememberCloseChoice)
+            {
+                _mgr.Config.CloseBehavior = _beh;
+                _mgr.Config.Modified.Fire();
+            }
+            ImGui.CloseCurrentPopup();
+            OnManualClose(_beh);
+            _beh = default;
+            _rememberCloseChoice = false;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Cancel"))
+        {
+            _beh = default;
+            _rememberCloseChoice = false;
+            ImGui.CloseCurrentPopup();
         }
     }
 

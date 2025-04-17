@@ -35,6 +35,8 @@ public class AddsMulti(BossModule module, uint[] oids, int priority = 0) : BossC
     public readonly List<Actor> Actors = [];
     public IEnumerable<Actor> ActiveActors => Actors.Where(a => a.IsTargetable && !a.IsDead);
 
+    public AddsMulti(BossModule module, Enum[] oids, int priority = 0) : this(module, oids.Select(s => (uint)(object)s).ToArray(), priority) { }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (priority > 0)

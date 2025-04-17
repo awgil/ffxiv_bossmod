@@ -16,7 +16,7 @@ class BrutalImpact(BossModule module) : Components.CastCounter(module, ActionID.
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Activation >= WorldState.CurrentTime)
+        if (ShowHint)
             hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Activation));
     }
 
@@ -172,7 +172,7 @@ class SinisterSeedsStored(BossModule module) : Components.GenericAOEs(module, de
 
 class RootsOfEvil(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_RootsOfEvil), 12);
 
-class TendrilsOfTerror1(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID._Spell_TendrilsOfTerror), new AOEShapeCross(60, 2));
+class TendrilsOfTerror(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_TendrilsOfTerror, AID._Spell_TendrilsOfTerror2, AID._Spell_TendrilsOfTerror4], new AOEShapeCross(60, 2));
 
 class Impact(BossModule module) : Components.UniformStackSpread(module, 6, 0, 2, 4)
 {
@@ -224,7 +224,7 @@ class QuarrySwamp(BossModule module) : Components.GenericLineOfSightAOE(module, 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Modify(caster.Position, Module.Enemies(OID._Gen_BloomingAbomination).Where(b => b.IsDead).Select(b => (b.Position, 1f)), Module.CastFinishAt(spell));
+            Modify(caster.Position, Module.Enemies(OID._Gen_BloomingAbomination).Select(b => (b.Position, b.HitboxRadius)), Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -234,22 +234,26 @@ class QuarrySwamp(BossModule module) : Components.GenericLineOfSightAOE(module, 
     }
 }
 
-class Explosion(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_Explosion), 22, "GTFO from AOE!", 2)
+class Explosion(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_Explosion), 22, "GTFO from aoe!", 2)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        base.AddAIHints(slot, actor, assignment, hints);
+
         foreach (var c in Casters)
             hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Module.CastFinishAt(c.CastInfo)));
     }
 }
 
-class PulpSmash(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, ActionID.MakeSpell(AID._Weaponskill_PulpSmash2), 5.2f, 10);
+class PulpSmash(BossModule module) : Components.StackWithIcon(module, (uint)IconID.PulpSmash, ActionID.MakeSpell(AID._Weaponskill_PulpSmash2), 6, 5.1f);
 
 class PulpSmashProtean(BossModule module) : Components.GenericBaitAway(module)
 {
+    private bool Risky;
+
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID.Stack)
+        if ((IconID)iconID == IconID.PulpSmash)
         {
             foreach (var player in Raid.WithoutSlot().Exclude(actor))
                 CurrentBaits.Add(new(actor, player, new AOEShapeCone(60, 15.Degrees()), WorldState.FutureTime(7.1f)));
@@ -260,6 +264,7 @@ class PulpSmashProtean(BossModule module) : Components.GenericBaitAway(module)
     {
         if ((AID)spell.Action.ID == AID._Weaponskill_PulpSmash2)
         {
+            Risky = true;
             for (var i = 0; i < CurrentBaits.Count; i++)
                 CurrentBaits.Ref(i).Source = Module.PrimaryActor;
             CurrentBaits.Add(new(Module.PrimaryActor, WorldState.Actors.Find(spell.MainTargetID)!, new AOEShapeCone(60, 15.Degrees()), CurrentBaits[0].Activation));
@@ -271,13 +276,145 @@ class PulpSmashProtean(BossModule module) : Components.GenericBaitAway(module)
             CurrentBaits.Clear();
         }
     }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Risky)
+            base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Risky)
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
 }
 
 class ItCameFromTheDirt(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_ItCameFromTheDirt), 6);
 
 class NeoBombarianSpecial(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_NeoBombarianSpecial));
 
+class P2Stoneringer(BossModule module) : Components.GenericAOEs(module)
+{
+    private AOEInstance? NextAOE;
+
+    private bool In;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(NextAOE);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.StoneringerClubP2:
+                In = false;
+                break;
+            case AID.StoneringerSwordP2:
+                In = true;
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_BrutishSwing6 or AID._Weaponskill_BrutishSwing9)
+        {
+            NumCasts++;
+            NextAOE = null;
+        }
+    }
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.WallTether)
+            NextAOE = new(In ? new AOEShapeDonut(21.712f, 88) : new AOEShapeCircle(25), source.Position, Activation: WorldState.FutureTime(8.1f));
+    }
+}
+
+class GlowerPowerP2(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID._Weaponskill_GlowerPower1), new AOEShapeRect(65, 7));
+
+class ElectrogeneticForceP2(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)
+{
+    public int NumCasts;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_GlowerPower)
+            AddSpreads(Raid.WithoutSlot(), WorldState.FutureTime(3.9f));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID._Spell_ElectrogeneticForce)
+        {
+            NumCasts++;
+            Spreads.Clear();
+        }
+    }
+}
+
+class RevengeOfTheVines(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_RevengeOfTheVines));
+
+class ThornsOfDeath(BossModule module) : BossComponent(module)
+{
+    public readonly List<(Actor, Actor)> Tethers = [];
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID is TetherID.ThornsOfDeathTank or TetherID.ThornsOfDeath or TetherID.ThornsOfDeathPre)
+            Tethers.Add((source, WorldState.Actors.Find(tether.Target)!));
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID is TetherID.ThornsOfDeathTank or TetherID.ThornsOfDeath or TetherID.ThornsOfDeathPre)
+            Tethers.RemoveAll(t => t.Item1 == source && t.Item2.InstanceID == tether.Target);
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var (src, tar) in Tethers)
+            Arena.AddLine(src.Position, tar.Position, ArenaColor.Danger);
+    }
+}
+
+class AbominableBlink(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(23), (uint)IconID.Flare, ActionID.MakeSpell(AID._Ability_AbominableBlink), activationDelay: 6.5f, centerAtTarget: true)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (CurrentBaits.Count > 0)
+            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), CurrentBaits[0].Activation));
+    }
+}
+
+class StrangeSeeds(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.SinisterSeed, ActionID.MakeSpell(AID._Spell_StrangeSeeds), 6, 5);
+class KillerSeeds(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID._Spell_KillerSeeds), 6, 2, 2);
+
+class Powerslam(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_Powerslam));
+class Sporesplosion(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID._Spell_Sporesplosion), 8, maxCasts: 12);
+
 #if DEBUG
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1024, NameID = 13756, PlanLevel = 100)]
-public class RM07BruteAbombinator(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));
+public class RM07BruteAbombinator(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
+{
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        if (Bounds.Contains(PrimaryActor.Position - Center))
+            Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        else
+        {
+            var (hx, hz) = Bounds switch
+            {
+                ArenaBoundsRect rect => (rect.HalfWidth, rect.HalfHeight),
+                ArenaBoundsSquare s => (s.HalfWidth, s.HalfWidth),
+                _ => throw new Exception("unreachable")
+            };
+
+            // the boss looks off-center if we use regular raycast clamp to bounds
+            Arena.ActorOutsideBounds(new(Math.Clamp(PrimaryActor.Position.X, Center.X - hx, Center.X + hx), Math.Clamp(PrimaryActor.Position.Z, Center.Z - hz, Center.Z + hz)), PrimaryActor.Rotation, ArenaColor.Enemy);
+        }
+    }
+}
 #endif

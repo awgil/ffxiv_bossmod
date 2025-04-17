@@ -24,7 +24,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, flo
             {
                 var toBlock = b.Center - origin.Value;
                 var dist = toBlock.Length();
-                Visibility.Add((dist + b.Radius, Angle.FromDirection(toBlock), b.Radius < dist ? Angle.Asin(b.Radius / dist) : 90.Degrees()));
+                Visibility.Add((dist, Angle.FromDirection(toBlock), b.Radius < dist ? Angle.Asin(b.Radius / dist) : 90.Degrees()));
             }
         }
     }

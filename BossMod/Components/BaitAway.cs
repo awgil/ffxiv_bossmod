@@ -48,8 +48,11 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        var predictedDamage = new BitMask();
         foreach (var b in ActiveBaits)
         {
+            predictedDamage.Set(Raid.FindSlot(b.Target.InstanceID));
+
             if (b.Target != actor)
             {
                 hints.AddForbiddenZone(b.Shape, BaitOrigin(b), b.Rotation, b.Activation);
@@ -80,6 +83,9 @@ public class GenericBaitAway(BossModule module, ActionID aid = default, bool alw
                 }
             }
         }
+
+        if (predictedDamage.Any())
+            hints.PredictedDamage.Add((predictedDamage, CurrentBaits[0].Activation));
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => ActiveBaitsOn(player).Any() ? BaiterPriority : PlayerPriority.Irrelevant;
