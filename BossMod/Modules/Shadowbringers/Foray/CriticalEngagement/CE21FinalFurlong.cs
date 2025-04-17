@@ -43,7 +43,7 @@ class GraspingRancor : Components.LocationTargetedAOEs
 {
     private readonly IReadOnlyList<Actor> _hands;
 
-    public GraspingRancor(BossModule module) : base(module, ActionID.MakeSpell(AID.PurifyingLight), 12)
+    public GraspingRancor(BossModule module) : base(module, AID.PurifyingLight, 12)
     {
         Color = ArenaColor.SafeFromAOE;
         Risky = false;
@@ -77,14 +77,14 @@ class GraspingRancor : Components.LocationTargetedAOEs
     }
 }
 
-class HatefulMiasma(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.HatefulMiasma), 6);
-class PoisonedWords(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PoisonedWords), 6);
-class TalonedGaze(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TalonedGaze), "AOE front/back --> sides");
-class TalonedWings(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TalonedWings), "AOE sides --> front/back");
-class CoffinNails(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CoffinNails), new AOEShapeCone(60, 45.Degrees()), 2);
-class Stab(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Stab));
-class GripOfPoison(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.GripOfPoison));
-class StepsOfDestruction(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StepsOfDestructionAOE), 6);
+class HatefulMiasma(BossModule module) : Components.StackWithCastTargets(module, AID.HatefulMiasma, 6);
+class PoisonedWords(BossModule module) : Components.LocationTargetedAOEs(module, AID.PoisonedWords, 6);
+class TalonedGaze(BossModule module) : Components.CastHint(module, AID.TalonedGaze, "AOE front/back --> sides");
+class TalonedWings(BossModule module) : Components.CastHint(module, AID.TalonedWings, "AOE sides --> front/back");
+class CoffinNails(BossModule module) : Components.SelfTargetedAOEs(module, AID.CoffinNails, new AOEShapeCone(60, 45.Degrees()), 2);
+class Stab(BossModule module) : Components.SingleTargetCast(module, AID.Stab);
+class GripOfPoison(BossModule module) : Components.RaidwideCast(module, AID.GripOfPoison);
+class StepsOfDestruction(BossModule module) : Components.LocationTargetedAOEs(module, AID.StepsOfDestructionAOE, 6);
 
 class CE21FinalFurlongStates : StateMachineBuilder
 {

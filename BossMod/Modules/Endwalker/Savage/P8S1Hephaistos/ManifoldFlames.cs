@@ -8,7 +8,7 @@ class ManifoldFlames : Components.UniformStackSpread
     }
 }
 
-class NestOfFlamevipersCommon(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.NestOfFlamevipersAOE))
+class NestOfFlamevipersCommon(BossModule module) : Components.CastCounter(module, AID.NestOfFlamevipersAOE)
 {
     protected BitMask BaitingPlayers;
 

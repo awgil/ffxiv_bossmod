@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
-class AzureAuspice(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeDonut(6, 40)); // TODO: verify inner radius
+class AzureAuspice(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeDonut(6, 40)); // TODO: verify inner radius
 class NAzureAuspice(BossModule module) : AzureAuspice(module, AID.NAzureAuspice);
 class SAzureAuspice(BossModule module) : AzureAuspice(module, AID.SAzureAuspice);
 
-class BoundlessAzure(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(30, 5, 30));
+class BoundlessAzure(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(30, 5, 30));
 class NBoundlessAzure(BossModule module) : BoundlessAzure(module, AID.NBoundlessAzureAOE);
 class SBoundlessAzure(BossModule module) : BoundlessAzure(module, AID.SBoundlessAzureAOE);
 

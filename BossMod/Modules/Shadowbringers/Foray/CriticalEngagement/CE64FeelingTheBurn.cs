@@ -45,9 +45,9 @@ public enum IconID : uint
     ChainCannon = 164, // player
 }
 
-class DiveFormation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DiveFormation), new AOEShapeRect(60, 3));
+class DiveFormation(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiveFormation, new AOEShapeRect(60, 3));
 
-class AntiPersonnelMissile(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BallisticImpact))
+class AntiPersonnelMissile(BossModule module) : Components.GenericAOEs(module, AID.BallisticImpact)
 {
     private readonly List<WPos> _positions = [];
     private static readonly AOEShapeRect _shape = new(12, 12, 12);
@@ -142,10 +142,10 @@ class ChainCannonBoss(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SurfaceMissileAOE), 6);
-class SuppressiveMagitekRays(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SuppressiveMagitekRays));
-class Analysis(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Analysis), "Face open weakpoint to charging adds");
-class PreciseStrike(BossModule module) : Components.CastWeakpoint(module, ActionID.MakeSpell(AID.PreciseStrike), new AOEShapeRect(60, 3), (uint)SID.FrontUnseen, (uint)SID.BackUnseen, 0, 0);
+class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.SurfaceMissileAOE, 6);
+class SuppressiveMagitekRays(BossModule module) : Components.RaidwideCast(module, AID.SuppressiveMagitekRays);
+class Analysis(BossModule module) : Components.CastHint(module, AID.Analysis, "Face open weakpoint to charging adds");
+class PreciseStrike(BossModule module) : Components.CastWeakpoint(module, AID.PreciseStrike, new AOEShapeRect(60, 3), (uint)SID.FrontUnseen, (uint)SID.BackUnseen, 0, 0);
 
 class CE64FeelingTheBurnStates : StateMachineBuilder
 {

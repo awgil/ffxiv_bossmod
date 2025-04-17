@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Quest.FadedMemories;
 
-class FlamingTizona(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlamingTizona), 6);
+class FlamingTizona(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlamingTizona, 6);
 
 class FlameGeneralAldynnStates : StateMachineBuilder
 {
@@ -15,4 +15,3 @@ public class FlameGeneralAldynn(WorldState ws, Actor primary) : BossModule(ws, p
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }
-

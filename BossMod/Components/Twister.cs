@@ -2,7 +2,7 @@
 
 // generic 'twister' component: a set of aoes that appear under players, but can't be accurately predicted until it's too late
 // normally you'd predict them at the end (or slightly before the end) of some cast, or on component creation
-public class GenericTwister(BossModule module, float radius, uint oid, ActionID aid = default) : GenericAOEs(module, aid, "GTFO from twister!")
+public class GenericTwister(BossModule module, float radius, uint oid, Enum? aid = default) : GenericAOEs(module, aid, "GTFO from twister!")
 {
     private readonly AOEShapeCircle _shape = new(radius);
     private readonly uint _twisterOID = oid;
@@ -45,7 +45,7 @@ public class ImmediateTwister : GenericTwister
 }
 
 // twister that activates on cast end, or slightly before
-public class CastTwister(BossModule module, float radius, uint oid, ActionID aid, float activationDelay, float predictBeforeCastEnd = 0) : GenericTwister(module, radius, oid, aid)
+public class CastTwister(BossModule module, float radius, uint oid, Enum aid, float activationDelay, float predictBeforeCastEnd = 0) : GenericTwister(module, radius, oid, aid)
 {
     private readonly float _activationDelay = activationDelay; // from cast-end to twister spawn
     private readonly float _predictBeforeCastEnd = predictBeforeCastEnd;

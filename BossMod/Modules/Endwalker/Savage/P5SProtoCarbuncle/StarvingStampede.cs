@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
-class StarvingStampede(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.StarvingStampede))
+class StarvingStampede(BossModule module) : Components.GenericAOEs(module, AID.StarvingStampede)
 {
     private readonly List<WPos> _positions = [];
 

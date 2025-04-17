@@ -32,11 +32,11 @@ public enum AID : uint
 
 class Adds(BossModule module) : Components.AddsMulti(module, [OID.AlbeleosCanisDirus, OID.O4ThLegionArmoredWeapon, OID.O4ThLegionColossus, OID.O4ThLegionPredator, OID.O4ThLegionReaper, OID.O4ThLegionDuplicarius, OID.AlbeleosHrodvitnir, OID.AlbeleosMonstrosity, OID.O4ThLegionColossus, OID.O4ThLegionDuplicarius1, OID.O4ThLegionHexadrone, OID.O4ThLegionExecutioner, OID.O4ThLegionLaquearius, OID.O4ThLegionEques, OID.O4ThLegionDuplicarius2, OID.O4ThLegionScorpion], 1);
 
-class MagitekRay(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.MagitekRay), new AOEShapeRect(40, 3));
-class MagitekCannon(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekCannon), 6);
-class GrandSword(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.GrandSword), new AOEShapeCone(27, 60.Degrees()));
-class DiffractiveLaser(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DiffractiveLaser), 5);
-class BalefulGaze(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.BalefulGaze));
+class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(40, 3));
+class MagitekCannon(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekCannon, 6);
+class GrandSword(BossModule module) : Components.StandardAOEs(module, AID.GrandSword, new AOEShapeCone(27, 60.Degrees()));
+class DiffractiveLaser(BossModule module) : Components.LocationTargetedAOEs(module, AID.DiffractiveLaser, 5);
+class BalefulGaze(BossModule module) : Components.CastGaze(module, AID.BalefulGaze);
 
 class AlbeleoTheMaleficentStates : StateMachineBuilder
 {

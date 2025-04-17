@@ -25,17 +25,17 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
-class Gust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Gust), 6);
-class ChangelessWinds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ChangelessWinds), new AOEShapeRect(40, 4));
-class ChangelessWindsKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.ChangelessWinds), 10, shape: new AOEShapeRect(40, 4), kind: Kind.DirForward, stopAtWall: true);
-class Whipwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Whipwind), new AOEShapeRect(55, 20));
-class WhipwindKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Whipwind), 25, shape: new AOEShapeRect(55, 20), kind: Kind.DirForward, stopAtWall: true);
-class GentleBreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GentleBreeze), new AOEShapeRect(15, 2));
-class WhirlingGaol(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WhirlingGaol), "Raidwide + Knockback");
-class WhirlingGaolKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WhirlingGaol), 25, stopAtWall: true);
-class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
-class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
-class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
+class Gust(BossModule module) : Components.LocationTargetedAOEs(module, AID.Gust, 6);
+class ChangelessWinds(BossModule module) : Components.SelfTargetedAOEs(module, AID.ChangelessWinds, new AOEShapeRect(40, 4));
+class ChangelessWindsKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ChangelessWinds, 10, shape: new AOEShapeRect(40, 4), kind: Kind.DirForward, stopAtWall: true);
+class Whipwind(BossModule module) : Components.SelfTargetedAOEs(module, AID.Whipwind, new AOEShapeRect(55, 20));
+class WhipwindKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Whipwind, 25, shape: new AOEShapeRect(55, 20), kind: Kind.DirForward, stopAtWall: true);
+class GentleBreeze(BossModule module) : Components.SelfTargetedAOEs(module, AID.GentleBreeze, new AOEShapeRect(15, 2));
+class WhirlingGaol(BossModule module) : Components.RaidwideCast(module, AID.WhirlingGaol, "Raidwide + Knockback");
+class WhirlingGaolKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WhirlingGaol, 25, stopAtWall: true);
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spin, new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
 
 class DjinnStates : StateMachineBuilder
 {

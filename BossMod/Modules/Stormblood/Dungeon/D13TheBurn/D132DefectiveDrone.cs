@@ -35,8 +35,8 @@ public enum IconID : uint
     Charges = 158, // MiningDrone/Boss
     Tankbuster = 381, // player
 }
-class AetherochemicalFlame(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AetherochemicalFlame));
-class AetherochemicalResidue(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), (uint)IconID.SludgeIcon, ActionID.MakeSpell(AID.AetherochemicalResidue), centerAtTarget: true);
+class AetherochemicalFlame(BossModule module) : Components.RaidwideCast(module, AID.AetherochemicalFlame);
+class AetherochemicalResidue(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), (uint)IconID.SludgeIcon, AID.AetherochemicalResidue, centerAtTarget: true);
 class SludgeVoidZone(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -63,7 +63,7 @@ class SludgeVoidZone(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class AetherochemicalCoil(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.AetherochemicalCoil));
+class AetherochemicalCoil(BossModule module) : Components.SingleTargetCast(module, AID.AetherochemicalCoil);
 class Throttles(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -94,7 +94,7 @@ class Throttles(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class SelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SelfDetonate), new AOEShapeCircle(5));
+class SelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, AID.SelfDetonate, new AOEShapeCircle(5));
 class AditDriver(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];

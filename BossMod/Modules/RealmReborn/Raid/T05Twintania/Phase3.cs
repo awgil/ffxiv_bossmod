@@ -91,7 +91,7 @@ class P3Adds(BossModule module) : BossComponent(module)
     }
 }
 
-class P3AethericProfusion(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AethericProfusion))
+class P3AethericProfusion(BossModule module) : Components.CastCounter(module, AID.AethericProfusion)
 {
     private readonly DateTime _activation = module.WorldState.FutureTime(6.7f);
 

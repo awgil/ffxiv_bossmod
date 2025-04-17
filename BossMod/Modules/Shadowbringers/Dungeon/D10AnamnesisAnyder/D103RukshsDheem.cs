@@ -46,14 +46,14 @@ public enum SID : uint
     MeatShield = 2267
 }
 
-class SeabedCeremony(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SeabedCeremony));
-class Seafoam(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Seafoam));
-class Bonebreaker(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Bonebreaker));
-class FallingWater(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FallingWater), 8);
-class FlyingFount(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.FlyingFount), 6);
-class CommandCurrent(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CommandCurrent), new AOEShapeCone(40, 15.Degrees()));
-class CoralTrident(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CoralTrident), new AOEShapeCone(6, 45.Degrees()));
-class RisingTide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RisingTide), new AOEShapeCross(50, 3));
+class SeabedCeremony(BossModule module) : Components.RaidwideCast(module, AID.SeabedCeremony);
+class Seafoam(BossModule module) : Components.RaidwideCast(module, AID.Seafoam);
+class Bonebreaker(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Bonebreaker);
+class FallingWater(BossModule module) : Components.SpreadFromCastTargets(module, AID.FallingWater, 8);
+class FlyingFount(BossModule module) : Components.StackWithCastTargets(module, AID.FlyingFount, 6);
+class CommandCurrent(BossModule module) : Components.SelfTargetedAOEs(module, AID.CommandCurrent, new AOEShapeCone(40, 15.Degrees()));
+class CoralTrident(BossModule module) : Components.SelfTargetedAOEs(module, AID.CoralTrident, new AOEShapeCone(6, 45.Degrees()));
+class RisingTide(BossModule module) : Components.SelfTargetedAOEs(module, AID.RisingTide, new AOEShapeCross(50, 3));
 
 class Voidzones(BossModule module) : BossComponent(module)
 {

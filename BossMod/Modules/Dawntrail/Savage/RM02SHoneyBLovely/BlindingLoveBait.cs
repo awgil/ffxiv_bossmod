@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM02SHoneyBLovely;
 
-class BlindingLoveBait(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlindingLoveBaitAOE), new AOEShapeRect(50, 4))
+class BlindingLoveBait(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlindingLoveBaitAOE, new AOEShapeRect(50, 4))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

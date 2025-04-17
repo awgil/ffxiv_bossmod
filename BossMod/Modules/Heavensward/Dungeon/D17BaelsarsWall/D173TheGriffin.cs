@@ -30,12 +30,12 @@ public enum IconID : uint
     BigBoot = 22,
     Tankbuster = 198,
 };
-class BeakOfTheGriffin(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BeakOfTheGriffin));
-class FlashPowder(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.FlashPowder));
-class SanguineBlade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanguineBlade), new AOEShapeCone(41.5f, 90.Degrees()));
-class ClawOfTheGriffin(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ClawOfTheGriffin));
-class GullDive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GullDive), new AOEShapeCircle(80));
-class BigBoot(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.BigBoot), stopAtWall: true)
+class BeakOfTheGriffin(BossModule module) : Components.RaidwideCast(module, AID.BeakOfTheGriffin);
+class FlashPowder(BossModule module) : Components.CastGaze(module, AID.FlashPowder);
+class SanguineBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanguineBlade, new AOEShapeCone(41.5f, 90.Degrees()));
+class ClawOfTheGriffin(BossModule module) : Components.SingleTargetCast(module, AID.ClawOfTheGriffin);
+class GullDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.GullDive, new AOEShapeCircle(80));
+class BigBoot(BossModule module) : Components.Knockback(module, AID.BigBoot, stopAtWall: true)
 {
     private Actor? _kbTarget;
     public override IEnumerable<Source> Sources(int slot, Actor actor)
@@ -69,7 +69,7 @@ class BigBoot(BossModule module) : Components.Knockback(module, ActionID.MakeSpe
                 DrawKnockback(e.from, e.to, pc.Rotation, Arena);
     }
 };
-class Corrosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Corrosion), new AOEShapeCircle(9));
+class Corrosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Corrosion, new AOEShapeCircle(9));
 class RestraintCollar(BossModule module) : BossComponent(module)
 {
     private Actor? _fetterTarget;

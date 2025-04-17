@@ -19,7 +19,7 @@ class Beacons(BossModule module) : BossComponent(module)
 
 class CalamitousCry : Components.GenericWildCharge
 {
-    public CalamitousCry(BossModule module) : base(module, 3, ActionID.MakeSpell(AID.CalamitousCryAOE), 80)
+    public CalamitousCry(BossModule module) : base(module, 3, AID.CalamitousCryAOE, 80)
     {
         Reset();
     }
@@ -50,4 +50,4 @@ class CalamitousCry : Components.GenericWildCharge
     }
 }
 
-class CalamitousEcho(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CalamitousEcho), new AOEShapeCone(40, 10.Degrees()));
+class CalamitousEcho(BossModule module) : Components.SelfTargetedAOEs(module, AID.CalamitousEcho, new AOEShapeCone(40, 10.Degrees()));

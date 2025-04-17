@@ -27,14 +27,14 @@ public enum AID : uint
     Plaincracker = 1087, // MegalithMarionette->self, 7.0s cast, range 25+R circle
 }
 
-class VoidFireCleave(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.VoidFireCleave), new AOEShapeCircle(5), originAtTarget: true);
-class VoidFireAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireAOE), 5);
-class VoidThunder(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.VoidThunder), "Interruptible tankbuster");
-class MindMelt(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MindMelt), "Interruptible raidwide");
-class Canker(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Canker), "Interruptible debuff");
-class Rockslide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Rockslide), new AOEShapeRect(12.76f, 4));
-class Obliterate(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Obliterate));
-class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plaincracker), new AOEShapeCircle(30.5f));
+class VoidFireCleave(BossModule module) : Components.Cleave(module, AID.VoidFireCleave, new AOEShapeCircle(5), originAtTarget: true);
+class VoidFireAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireAOE, 5);
+class VoidThunder(BossModule module) : Components.SingleTargetCast(module, AID.VoidThunder, "Interruptible tankbuster");
+class MindMelt(BossModule module) : Components.RaidwideCast(module, AID.MindMelt, "Interruptible raidwide");
+class Canker(BossModule module) : Components.CastHint(module, AID.Canker, "Interruptible debuff");
+class Rockslide(BossModule module) : Components.SelfTargetedAOEs(module, AID.Rockslide, new AOEShapeRect(12.76f, 4));
+class Obliterate(BossModule module) : Components.RaidwideCast(module, AID.Obliterate);
+class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, AID.Plaincracker, new AOEShapeCircle(30.5f));
 
 class D161PsycheflayerStates : StateMachineBuilder
 {

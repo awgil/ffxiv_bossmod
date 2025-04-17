@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS5Phantom;
 
-class MaledictionOfAgony(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MaledictionOfAgonyAOE));
+class MaledictionOfAgony(BossModule module) : Components.CastCounter(module, AID.MaledictionOfAgonyAOE);
 class BloodyWraith(BossModule module) : Components.Adds(module, (uint)OID.BloodyWraith);
 class MistyWraith(BossModule module) : Components.Adds(module, (uint)OID.MistyWraith);
 

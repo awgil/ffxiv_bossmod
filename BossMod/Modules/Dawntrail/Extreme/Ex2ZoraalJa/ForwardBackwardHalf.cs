@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex2ZoraalJa;
 
-class ForwardBackwardHalf(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.HalfFullShortAOE))
+class ForwardBackwardHalf(BossModule module) : Components.GenericAOEs(module, AID.HalfFullShortAOE)
 {
     private readonly List<AOEInstance> _aoes = [];
 
@@ -28,7 +28,7 @@ class ForwardBackwardHalf(BossModule module) : Components.GenericAOEs(module, Ac
     }
 }
 
-class HalfFull(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.HalfFullLongAOE))
+class HalfFull(BossModule module) : Components.GenericAOEs(module, AID.HalfFullLongAOE)
 {
     private readonly List<AOEInstance> _aoes = [];
 

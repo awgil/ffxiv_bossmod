@@ -19,10 +19,10 @@ public enum AID : uint
     FlowerDevour = 5010, // E8F->self, 3.0s cast, range 8 circle
 }
 
-class BloodyCaress(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BloodyCaress), new AOEShapeCone(8, 45.Degrees()));
-class AcidRain(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AcidRain2), 6);
-class SweetScent(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(45, 45.Degrees()), 46, ActionID.MakeSpell(AID.FloralTrap));
-class FlowerDevour(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlowerDevour), new AOEShapeCircle(8));
+class BloodyCaress(BossModule module) : Components.SelfTargetedAOEs(module, AID.BloodyCaress, new AOEShapeCone(8, 45.Degrees()));
+class AcidRain(BossModule module) : Components.LocationTargetedAOEs(module, AID.AcidRain2, 6);
+class SweetScent(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(45, 45.Degrees()), 46, AID.FloralTrap);
+class FlowerDevour(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlowerDevour, new AOEShapeCircle(8));
 class Adds(BossModule module) : Components.Adds(module, (uint)OID.DravanianHornet);
 
 class D021RaskovnikStates : StateMachineBuilder

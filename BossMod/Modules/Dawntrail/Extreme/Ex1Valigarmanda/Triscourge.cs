@@ -38,7 +38,7 @@ class FireScourgeOfFire(BossModule module) : Components.UniformStackSpread(modul
     }
 }
 
-class FireScourgeOfFireVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.FireScourgeOfFire), module => module.Enemies(OID.ScourgeOfFireVoidzone).Where(z => z.EventState != 7), 0.9f);
+class FireScourgeOfFireVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.FireScourgeOfFire, module => module.Enemies(OID.ScourgeOfFireVoidzone).Where(z => z.EventState != 7), 0.9f);
 
 class FireScourgeOfIce(BossModule module) : Components.StayMove(module)
 {
@@ -67,11 +67,11 @@ class FireScourgeOfIce(BossModule module) : Components.StayMove(module)
     }
 }
 
-class IceScourgeOfFireIce(BossModule module) : Components.IconStackSpread(module, (uint)IconID.CalamitysInferno, (uint)IconID.CalamitysChill, ActionID.MakeSpell(AID.IceScourgeOfFire), ActionID.MakeSpell(AID.IceScourgeOfIce), 5, 16, 7.1f, 3, 3, true);
-class FireIceScourgeOfThunder(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.CalamitysBolt, ActionID.MakeSpell(AID.FireIceScourgeOfThunder), 5, 7.1f);
+class IceScourgeOfFireIce(BossModule module) : Components.IconStackSpread(module, (uint)IconID.CalamitysInferno, (uint)IconID.CalamitysChill, AID.IceScourgeOfFire, AID.IceScourgeOfIce, 5, 16, 7.1f, 3, 3, true);
+class FireIceScourgeOfThunder(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.CalamitysBolt, AID.FireIceScourgeOfThunder, 5, 7.1f);
 
 // TODO: add hint if player and stack target has different levitate states
-class ThunderScourgeOfFire(BossModule module) : Components.StackWithIcon(module, (uint)IconID.CalamitysInferno, ActionID.MakeSpell(AID.ThunderScourgeOfFire), 5, 7.1f, 4, 4);
+class ThunderScourgeOfFire(BossModule module) : Components.StackWithIcon(module, (uint)IconID.CalamitysInferno, AID.ThunderScourgeOfFire, 5, 7.1f, 4, 4);
 
 // TODO: verify spread radius for ice boulders...
 class ThunderScourgeOfIceThunder(BossModule module) : Components.UniformStackSpread(module, 0, 8, alwaysShowSpreads: true)

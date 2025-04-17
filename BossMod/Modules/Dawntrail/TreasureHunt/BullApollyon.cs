@@ -45,16 +45,16 @@ public enum AID : uint
     UnknownAbility2 = 38248, // Boss->self, no cast, single-target
 }
 
-class Blade(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Blade));
-class BlazingBlast(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BlazingBlastHelper), 6);
-class BlazingBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlazingBreathHelper), new AOEShapeRect(44, 5));
-class CrossfireBladeBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrossfireBladeInitialBoss), new AOEShapeRect(20, 5, 20));
-class CrossfireBladeHelper(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrossfireBladeInitialHelper), new AOEShapeRect(20, 5, 20));
-class CrossfireFollowup(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrossfireBladeFollowUps), new AOEShapeRect(20, 2.5f, 20));
-class FlameBladeBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlameBladeInitalBoss), new AOEShapeRect(20, 5, 20));
-class FlameBladeHelper(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlameBladeInitialHelper), new AOEShapeRect(20, 5, 20));
-class FlameBladeFollowup(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlameBladeHelperFollowUps), new AOEShapeRect(20, 2.5f, 20));
-class PyreBurst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PyreburstCast));
+class Blade(BossModule module) : Components.SingleTargetCast(module, AID.Blade);
+class BlazingBlast(BossModule module) : Components.LocationTargetedAOEs(module, AID.BlazingBlastHelper, 6);
+class BlazingBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlazingBreathHelper, new AOEShapeRect(44, 5));
+class CrossfireBladeBoss(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrossfireBladeInitialBoss, new AOEShapeRect(20, 5, 20));
+class CrossfireBladeHelper(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrossfireBladeInitialHelper, new AOEShapeRect(20, 5, 20));
+class CrossfireFollowup(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrossfireBladeFollowUps, new AOEShapeRect(20, 2.5f, 20));
+class FlameBladeBoss(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlameBladeInitalBoss, new AOEShapeRect(20, 5, 20));
+class FlameBladeHelper(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlameBladeInitialHelper, new AOEShapeRect(20, 5, 20));
+class FlameBladeFollowup(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlameBladeHelperFollowUps, new AOEShapeRect(20, 2.5f, 20));
+class PyreBurst(BossModule module) : Components.RaidwideCast(module, AID.PyreburstCast);
 
 class BonusAdds(BossModule module) : Components.AddsMulti(module, [OID.TuligoraQueen, OID.TuraliTomato, OID.TuraliGarlic, OID.TuraliEggplant, OID.TuraliOnion])
 {
@@ -73,10 +73,10 @@ class BonusAdds(BossModule module) : Components.AddsMulti(module, [OID.TuligoraQ
             };
     }
 };
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
 
 class BullApollyonStates : StateMachineBuilder
 {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
 
-class MalformedReincarnation(BossModule module, AID aid) : Components.CastCounter(module, ActionID.MakeSpell(aid));
+class MalformedReincarnation(BossModule module, AID aid) : Components.CastCounter(module, aid);
 class NMalformedReincarnation(BossModule module) : MalformedReincarnation(module, AID.NMalformedReincarnationAOE);
 class SMalformedReincarnation(BossModule module) : MalformedReincarnation(module, AID.SMalformedReincarnationAOE);
 
@@ -133,6 +133,6 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
     }
 }
 
-class FlickeringFlame(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(46, 2.5f), 8);
+class FlickeringFlame(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(46, 2.5f), 8);
 class NFlickeringFlame(BossModule module) : FlickeringFlame(module, AID.NFireSpreadCross);
 class SFlickeringFlame(BossModule module) : FlickeringFlame(module, AID.SFireSpreadCross);

@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash2;
 
-class GravityForce(BossModule module, AID aid) : Components.StackWithCastTargets(module, ActionID.MakeSpell(aid), 6, 4);
+class GravityForce(BossModule module, AID aid) : Components.StackWithCastTargets(module, aid, 6, 4);
 class NGravityForce(BossModule module) : GravityForce(module, AID.NGravityForce);
 class SGravityForce(BossModule module) : GravityForce(module, AID.SGravityForce);
 
-class IsleDrop(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 6);
+class IsleDrop(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 6);
 class NIsleDrop(BossModule module) : IsleDrop(module, AID.NIsleDrop);
 class SIsleDrop(BossModule module) : IsleDrop(module, AID.SIsleDrop);
 

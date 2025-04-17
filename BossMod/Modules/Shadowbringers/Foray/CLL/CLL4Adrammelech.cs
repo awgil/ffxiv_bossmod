@@ -39,9 +39,9 @@ public enum AID : uint
     Tornado = 20368, // Helper->location, 4.0s cast, range 6 circle
 }
 
-class AeroIV(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.AeroIV), new AOEShapeDonut(15, 30));
-class AeroIV2(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.AeroIV2), new AOEShapeDonut(15, 30));
-class BurstII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BurstII), 6);
+class AeroIV(BossModule module) : Components.StandardAOEs(module, AID.AeroIV, new AOEShapeDonut(15, 30));
+class AeroIV2(BossModule module) : Components.StandardAOEs(module, AID.AeroIV2, new AOEShapeDonut(15, 30));
+class BurstII(BossModule module) : Components.LocationTargetedAOEs(module, AID.BurstII, 6);
 class BlizzardIV(BossModule module) : Components.StayMove(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -135,8 +135,8 @@ class WarpedLight(BossModule module) : Components.ChargeAOEs(module, default, 1.
     }
 }
 
-class Shock(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.Shock), new AOEShapeCircle(35));
-class Flare(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Flare));
+class Shock(BossModule module) : Components.StandardAOEs(module, AID.Shock, new AOEShapeCircle(35));
+class Flare(BossModule module) : Components.SingleTargetCast(module, AID.Flare);
 
 class AdrammelechStates : StateMachineBuilder
 {

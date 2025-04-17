@@ -28,8 +28,8 @@ public enum AID : uint
     Misfortune = 15586, // Helper->location, 3.0s cast, range 6 circle
 }
 
-class ShadowWreck(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ShadowWreck));
-class Misfortune(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Misfortune), 6);
+class ShadowWreck(BossModule module) : Components.RaidwideCast(module, AID.ShadowWreck);
+class Misfortune(BossModule module) : Components.LocationTargetedAOEs(module, AID.Misfortune, 6);
 
 class Apokalypsis(BossModule module) : Components.GenericAOEs(module)
 {

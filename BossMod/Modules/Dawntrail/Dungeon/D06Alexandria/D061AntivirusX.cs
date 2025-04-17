@@ -68,9 +68,9 @@ class PathoPurge(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ImmuneResponseFront(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ImmuneResponseFrontAOE), new AOEShapeCone(40, 60.Degrees())); // TODO: verify angle
+class ImmuneResponseFront(BossModule module) : Components.SelfTargetedAOEs(module, AID.ImmuneResponseFrontAOE, new AOEShapeCone(40, 60.Degrees())); // TODO: verify angle
 
-class ImmuneResponseBack(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ImmuneResponseBackAOE), new AOEShapeCone(40, 120.Degrees())) // TODO: verify angle
+class ImmuneResponseBack(BossModule module) : Components.SelfTargetedAOEs(module, AID.ImmuneResponseBackAOE, new AOEShapeCone(40, 120.Degrees())) // TODO: verify angle
 {
     private readonly PathoPurge? _purge = module.FindComponent<PathoPurge>();
 
@@ -78,7 +78,7 @@ class ImmuneResponseBack(BossModule module) : Components.SelfTargetedAOEs(module
 }
 
 // for quarantine/disinfection, duty support always stacks at the middle
-class Disinfection(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.Disinfection, ActionID.MakeSpell(AID.Disinfection), 5.1f, true)
+class Disinfection(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.Disinfection, AID.Disinfection, 5.1f, true)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -123,7 +123,7 @@ class Quarantine(BossModule module) : Components.UniformStackSpread(module, 6, 0
     }
 }
 
-class Cytolysis(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Cytolysis));
+class Cytolysis(BossModule module) : Components.RaidwideCast(module, AID.Cytolysis);
 
 class D061AntivirusXStates : StateMachineBuilder
 {

@@ -28,13 +28,13 @@ public enum AID : uint
     TerrorEye = 6405, // DemonButler->location, 4.0s cast, range 6 circle
 }
 
-class BlackHoneymoon(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BlackHoneymoon));
-class ColdFeet(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.ColdFeet));
-class DarkHarvest(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DarkHarvest), "Tankbuster");
-class Desolation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Desolation), new AOEShapeRect(57.3f, 3));
-class InHeathCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InHealthCircle), new AOEShapeCircle(16));
-class InHeathDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InHealthDonut), new AOEShapeDonut(2.5f, 50));
-class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TerrorEye), 6);
+class BlackHoneymoon(BossModule module) : Components.RaidwideCast(module, AID.BlackHoneymoon);
+class ColdFeet(BossModule module) : Components.CastGaze(module, AID.ColdFeet);
+class DarkHarvest(BossModule module) : Components.SingleTargetCast(module, AID.DarkHarvest, "Tankbuster");
+class Desolation(BossModule module) : Components.SelfTargetedAOEs(module, AID.Desolation, new AOEShapeRect(57.3f, 3));
+class InHeathCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.InHealthCircle, new AOEShapeCircle(16));
+class InHeathDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.InHealthDonut, new AOEShapeDonut(2.5f, 50));
+class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, AID.TerrorEye, 6);
 
 class D50EddaBlackbosomStates : StateMachineBuilder
 {

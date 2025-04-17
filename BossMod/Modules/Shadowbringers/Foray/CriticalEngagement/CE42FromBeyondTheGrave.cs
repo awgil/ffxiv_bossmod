@@ -63,8 +63,8 @@ public enum SID : uint
     ForcedMarch = 1257, // Boss->player, extra=0x2/0x1/0x8/0x4
 }
 
-class DevourSoul(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DevourSoul));
-class Blight(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Blight));
+class DevourSoul(BossModule module) : Components.SingleTargetCast(module, AID.DevourSoul);
+class Blight(BossModule module) : Components.RaidwideCast(module, AID.Blight);
 
 class GallowsMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
@@ -122,18 +122,18 @@ class SoulPurge(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class CrimsonBlade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrimsonBlade), new AOEShapeCone(50, 90.Degrees()));
-class BloodCyclone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BloodCyclone), new AOEShapeCircle(5));
-class Aethertide(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.AethertideAOE), 8);
-class MarchingBreath(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.MarchingBreath), showNameInHint: true); // heals all allies by 20% of max health (raidwide)
-class TacticalAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TacticalAero), new AOEShapeRect(40, 4));
-class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EntropicFlame), new AOEShapeRect(60, 4));
-class DarkFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DarkFlare), 8);
-class SoulSacrifice(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.SoulSacrifice), showNameInHint: true); // WarWraith sacrifices itself to give boss a damage buff
+class CrimsonBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrimsonBlade, new AOEShapeCone(50, 90.Degrees()));
+class BloodCyclone(BossModule module) : Components.SelfTargetedAOEs(module, AID.BloodCyclone, new AOEShapeCircle(5));
+class Aethertide(BossModule module) : Components.SpreadFromCastTargets(module, AID.AethertideAOE, 8);
+class MarchingBreath(BossModule module) : Components.CastInterruptHint(module, AID.MarchingBreath, showNameInHint: true); // heals all allies by 20% of max health (raidwide)
+class TacticalAero(BossModule module) : Components.SelfTargetedAOEs(module, AID.TacticalAero, new AOEShapeRect(40, 4));
+class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, AID.EntropicFlame, new AOEShapeRect(60, 4));
+class DarkFlare(BossModule module) : Components.LocationTargetedAOEs(module, AID.DarkFlare, 8);
+class SoulSacrifice(BossModule module) : Components.CastInterruptHint(module, AID.SoulSacrifice, showNameInHint: true); // WarWraith sacrifices itself to give boss a damage buff
 
 class PurifyingLight : Components.LocationTargetedAOEs
 {
-    public PurifyingLight(BossModule module) : base(module, ActionID.MakeSpell(AID.PurifyingLight), 12)
+    public PurifyingLight(BossModule module) : base(module, AID.PurifyingLight, 12)
     {
         Color = ArenaColor.SafeFromAOE;
         Risky = false;

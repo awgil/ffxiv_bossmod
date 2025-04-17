@@ -23,14 +23,14 @@ public enum SID : uint
     Invincibility = 325, // KnightOfDarkness->Boss/FirstWard, extra=0x0
 }
 
-class Overpower(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Overpower), new AOEShapeCone(7, 45.Degrees()));
-class UnlitCyclone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UnlitCyclone), new AOEShapeCircle(6));
-class UnlitCycloneAdds(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.UnlitCycloneAdds), 9);
+class Overpower(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overpower, new AOEShapeCone(7, 45.Degrees()));
+class UnlitCyclone(BossModule module) : Components.SelfTargetedAOEs(module, AID.UnlitCyclone, new AOEShapeCircle(6));
+class UnlitCycloneAdds(BossModule module) : Components.LocationTargetedAOEs(module, AID.UnlitCycloneAdds, 9);
 
-class Skydrive(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), 23, ActionID.MakeSpell(AID.Skydrive), centerAtTarget: true);
+class Skydrive(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), 23, AID.Skydrive, centerAtTarget: true);
 class SkydrivePuddle(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(0x1EA19C).Where(x => x.EventState != 7));
-class RollingBlade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RollingBladeCircle), new AOEShapeCircle(7));
-class RollingBladeCone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RollingBladeCone), new AOEShapeCone(60, 15.Degrees()));
+class RollingBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.RollingBladeCircle, new AOEShapeCircle(7));
+class RollingBladeCone(BossModule module) : Components.SelfTargetedAOEs(module, AID.RollingBladeCone, new AOEShapeCone(60, 15.Degrees()));
 
 class BladeOfLight(BossModule module) : BossComponent(module)
 {
@@ -98,7 +98,7 @@ class TargetPriorityHandler(BossModule module) : BossComponent(module)
     }
 }
 
-class UtterDestruction(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UtterDestruction), new AOEShapeDonut(10, 20));
+class UtterDestruction(BossModule module) : Components.SelfTargetedAOEs(module, AID.UtterDestruction, new AOEShapeDonut(10, 20));
 
 class WarriorOfDarknessStates : StateMachineBuilder
 {

@@ -26,7 +26,7 @@ public enum AID : uint
     Disseminate = 14899, // 26FB->self, 2.0s cast, range 6+R circle, casts on death of serpents
 }
 
-class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interrupt!");
+class HighVoltage(BossModule module) : Components.CastHint(module, AID.HighVoltage, "Interrupt!");
 
 class Ballast(BossModule module) : Components.GenericAOEs(module)
 {
@@ -84,11 +84,11 @@ class Ballast(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 4));
-class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(12.3f));
-class Superstorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Superstorm2), new AOEShapeDonut(8, 20));
-class Spellsword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spellsword), new AOEShapeCone(7.1f, 60.Degrees()));
-class Disseminate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Disseminate), new AOEShapeCircle(7.2f));
+class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingLaser, new AOEShapeRect(32.3f, 4));
+class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, AID.RepellingCannons, new AOEShapeCircle(12.3f));
+class Superstorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.Superstorm2, new AOEShapeDonut(8, 20));
+class Spellsword(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spellsword, new AOEShapeCone(7.1f, 60.Degrees()));
+class Disseminate(BossModule module) : Components.SelfTargetedAOEs(module, AID.Disseminate, new AOEShapeCircle(7.2f));
 
 class BallastKB(BossModule module) : Components.Knockback(module) //actual knockbacks are 0.274s after snapshot
 {

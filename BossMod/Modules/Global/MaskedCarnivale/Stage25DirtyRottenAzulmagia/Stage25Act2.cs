@@ -24,10 +24,10 @@ public enum SID : uint
     Doom = 910, // Boss->player, extra=0x0
 }
 
-class ApocalypticBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticBolt), new AOEShapeRect(51.2f, 4));
-class ApocalypticRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ApocalypticRoar), new AOEShapeCone(36.2f, 60.Degrees()));
-class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(8));
-class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(6, 30));
+class ApocalypticBolt(BossModule module) : Components.SelfTargetedAOEs(module, AID.ApocalypticBolt, new AOEShapeRect(51.2f, 4));
+class ApocalypticRoar(BossModule module) : Components.SelfTargetedAOEs(module, AID.ApocalypticRoar, new AOEShapeCone(36.2f, 60.Degrees()));
+class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(8));
+class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(6, 30));
 
 class Hints(BossModule module) : BossComponent(module)
 {

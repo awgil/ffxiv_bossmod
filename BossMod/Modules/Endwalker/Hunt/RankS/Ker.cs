@@ -46,23 +46,23 @@ public enum SID : uint
     WhispersManifest = 2847, // Boss->Boss, extra=0x0
 }
 
-class MinaxGlare(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.MinaxGlare), "Applies temporary misdirection");
-class Heliovoid(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Heliovoid), new AOEShapeCircle(12));
-class AncientBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientBlizzard), new AOEShapeDonut(8, 40));
-class AncientBlizzard2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientBlizzard2), new AOEShapeDonut(8, 40));
-class AncientBlizzardWhispersManifest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhispersManifest3), new AOEShapeDonut(8, 40));
-class ForeInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForeInterment), new AOEShapeCone(40, 90.Degrees()));
-class RearInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RearInterment), new AOEShapeCone(40, 90.Degrees()));
-class RightInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightInterment), new AOEShapeCone(40, 90.Degrees()));
-class LeftInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftInterment), new AOEShapeCone(40, 90.Degrees()));
-class MirroredForeInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MirroredForeInterment), new AOEShapeCone(40, 90.Degrees()));
-class MirroredRearInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MirroredRearInterment), new AOEShapeCone(40, 90.Degrees()));
-class MirroredRightInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MirroredRightInterment), new AOEShapeCone(40, 90.Degrees()));
-class MirroredLeftInterment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MirroredLeftInterment), new AOEShapeCone(40, 90.Degrees()));
-class EternalDamnation(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EternalDamnation));
-class EternalDamnationWhispersManifest(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.WhispersManifest4));
-class EternalDamnation2(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EternalDamnation2));
-class WhisperedIncantation(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.WhisperedIncantation), "Remembers the next skill and uses it again when casting Whispers Manifest");
+class MinaxGlare(BossModule module) : Components.CastHint(module, AID.MinaxGlare, "Applies temporary misdirection");
+class Heliovoid(BossModule module) : Components.SelfTargetedAOEs(module, AID.Heliovoid, new AOEShapeCircle(12));
+class AncientBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientBlizzard, new AOEShapeDonut(8, 40));
+class AncientBlizzard2(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientBlizzard2, new AOEShapeDonut(8, 40));
+class AncientBlizzardWhispersManifest(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhispersManifest3, new AOEShapeDonut(8, 40));
+class ForeInterment(BossModule module) : Components.SelfTargetedAOEs(module, AID.ForeInterment, new AOEShapeCone(40, 90.Degrees()));
+class RearInterment(BossModule module) : Components.SelfTargetedAOEs(module, AID.RearInterment, new AOEShapeCone(40, 90.Degrees()));
+class RightInterment(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightInterment, new AOEShapeCone(40, 90.Degrees()));
+class LeftInterment(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftInterment, new AOEShapeCone(40, 90.Degrees()));
+class MirroredForeInterment(BossModule module) : Components.SelfTargetedAOEs(module, AID.MirroredForeInterment, new AOEShapeCone(40, 90.Degrees()));
+class MirroredRearInterment(BossModule module) : Components.SelfTargetedAOEs(module, AID.MirroredRearInterment, new AOEShapeCone(40, 90.Degrees()));
+class MirroredRightInterment(BossModule module) : Components.SelfTargetedAOEs(module, AID.MirroredRightInterment, new AOEShapeCone(40, 90.Degrees()));
+class MirroredLeftInterment(BossModule module) : Components.SelfTargetedAOEs(module, AID.MirroredLeftInterment, new AOEShapeCone(40, 90.Degrees()));
+class EternalDamnation(BossModule module) : Components.CastGaze(module, AID.EternalDamnation);
+class EternalDamnationWhispersManifest(BossModule module) : Components.CastGaze(module, AID.WhispersManifest4);
+class EternalDamnation2(BossModule module) : Components.CastGaze(module, AID.EternalDamnation2);
+class WhisperedIncantation(BossModule module) : Components.CastHint(module, AID.WhisperedIncantation, "Remembers the next skill and uses it again when casting Whispers Manifest");
 
 class MirroredIncantation(BossModule module) : BossComponent(module)
 {
@@ -166,9 +166,9 @@ class AncientFlare(BossModule module) : BossComponent(module)
     }
 }
 
-class AncientHoly(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientHoly), new AOEShapeCircle(20));
-class AncientHoly2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientHoly2), new AOEShapeCircle(20));
-class AncientHolyWhispersManifest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhispersManifest2), new AOEShapeCircle(20));
+class AncientHoly(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientHoly, new AOEShapeCircle(20));
+class AncientHoly2(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientHoly2, new AOEShapeCircle(20));
+class AncientHolyWhispersManifest(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhispersManifest2, new AOEShapeCircle(20));
 
 // TODO: wicked swipe, check if there are even more skills missing
 

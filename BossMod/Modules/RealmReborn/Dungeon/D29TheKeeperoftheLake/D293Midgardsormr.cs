@@ -39,15 +39,15 @@ public enum AID : uint
     UnknownAbility = 30226, // 392D/392E->self, no cast, single-target
 }
 
-class Adonishment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Admonishment), new AOEShapeRect(40, 6));
+class Adonishment(BossModule module) : Components.SelfTargetedAOEs(module, AID.Admonishment, new AOEShapeRect(40, 6));
 class MidgarAdds(BossModule module) : Components.AddsMulti(module, [OID.MirageDragonC, OID.MirageDragonD]);
-class Animadversion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Animadversion), "Raidwide");
-class Condescension(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Condescension)); // tank buster
-class Disgust(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Disgust), "Raidwide");
-class InnerTurmoil(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InnerTurmoil), new AOEShapeCircle(22));
-class PhandomAdomishment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PhantomAdmonishment), new AOEShapeRect(40, 6));
-class PhantomInner(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PhantomInnerTurmoil), new AOEShapeCircle(22));
-class PhantomOuter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PhantomOuterTurmoil), new AOEShapeDonutSector(22, 40, 90.Degrees()));
+class Animadversion(BossModule module) : Components.RaidwideCast(module, AID.Animadversion, "Raidwide");
+class Condescension(BossModule module) : Components.SingleTargetCast(module, AID.Condescension); // tank buster
+class Disgust(BossModule module) : Components.RaidwideCast(module, AID.Disgust, "Raidwide");
+class InnerTurmoil(BossModule module) : Components.SelfTargetedAOEs(module, AID.InnerTurmoil, new AOEShapeCircle(22));
+class PhandomAdomishment(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomAdmonishment, new AOEShapeRect(40, 6));
+class PhantomInner(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomInnerTurmoil, new AOEShapeCircle(22));
+class PhantomOuter(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomOuterTurmoil, new AOEShapeDonutSector(22, 40, 90.Degrees()));
 
 class MirageAdmonishment(BossModule module) : Components.GenericAOEs(module)
 {
@@ -91,7 +91,7 @@ class Anitpathy(BossModule module) : Components.ConcentricAOEs(module, [new AOES
     }
 }
 
-class AhkMornInitial(BossModule module) : Components.StackWithIcon(module, (uint)IconID.AhkMornStack, ActionID.MakeSpell(AID.AkhMornCast), 6, 0, 2, 4);
+class AhkMornInitial(BossModule module) : Components.StackWithIcon(module, (uint)IconID.AhkMornStack, AID.AkhMornCast, 6, 0, 2, 4);
 class AhkMornFollow(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4)
 {
     public int NumCasts { get; private set; }

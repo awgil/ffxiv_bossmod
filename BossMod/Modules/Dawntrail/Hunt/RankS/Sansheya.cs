@@ -110,7 +110,7 @@ class VeilHaloTwinscorch(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FiresDomain(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FiresDomain))
+class FiresDomain(BossModule module) : Components.GenericAOEs(module, AID.FiresDomain)
 {
     private Actor? _target;
     private DateTime _activation;
@@ -143,7 +143,7 @@ class FiresDomain(BossModule module) : Components.GenericAOEs(module, ActionID.M
     }
 }
 
-class PyreOfRebirth(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PyreOfRebirth), "Raidwide + apply boiling");
+class PyreOfRebirth(BossModule module) : Components.RaidwideCast(module, AID.PyreOfRebirth, "Raidwide + apply boiling");
 
 class PyreOfRebirthPyretic(BossModule module) : Components.StayMove(module)
 {
@@ -169,8 +169,8 @@ class PyreOfRebirthPyretic(BossModule module) : Components.StayMove(module)
     };
 }
 
-class CaptiveBolt(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.CaptiveBolt), 6, 4);
-class CullingBlade(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CullingBlade));
+class CaptiveBolt(BossModule module) : Components.StackWithCastTargets(module, AID.CaptiveBolt, 6, 4);
+class CullingBlade(BossModule module) : Components.RaidwideCast(module, AID.CullingBlade);
 
 class SansheyaStates : StateMachineBuilder
 {

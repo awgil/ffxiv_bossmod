@@ -17,8 +17,8 @@ public enum AID : uint
     AutumnWreath = 17498, // Boss->self, 4.0s cast, range 10-20 donut
 }
 
-class SpringBreeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpringBreeze), new AOEShapeRect(40, 5, 40));
-class SummerHeat(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SummerHeat));
+class SpringBreeze(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpringBreeze, new AOEShapeRect(40, 5, 40));
+class SummerHeat(BossModule module) : Components.RaidwideCast(module, AID.SummerHeat);
 
 class Combos(BossModule module) : Components.GenericAOEs(module)
 {

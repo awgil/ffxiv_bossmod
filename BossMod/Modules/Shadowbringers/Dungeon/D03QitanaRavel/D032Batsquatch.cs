@@ -19,13 +19,13 @@ public enum AID : uint
     Towerfall = 15512, // 233C->self, 3.0s cast, range 15 30-degree cone
 }
 
-class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Towerfall), new AOEShapeCone(15, 15.Degrees()));
-class Soundwave(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Soundwave), "Raidwide + towers fall");
-class Subsonics(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Subsonics), "Raidwide x11");
-class RipperFang(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.RipperFang));
-class FallingBoulder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingBoulder), new AOEShapeCircle(4));
-class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3));
-class FallingRock2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock2), new AOEShapeCircle(2));
+class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, AID.Towerfall, new AOEShapeCone(15, 15.Degrees()));
+class Soundwave(BossModule module) : Components.RaidwideCast(module, AID.Soundwave, "Raidwide + towers fall");
+class Subsonics(BossModule module) : Components.RaidwideCast(module, AID.Subsonics, "Raidwide x11");
+class RipperFang(BossModule module) : Components.SingleTargetDelayableCast(module, AID.RipperFang);
+class FallingBoulder(BossModule module) : Components.SelfTargetedAOEs(module, AID.FallingBoulder, new AOEShapeCircle(4));
+class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, AID.FallingRock, new AOEShapeCircle(3));
+class FallingRock2(BossModule module) : Components.SelfTargetedAOEs(module, AID.FallingRock2, new AOEShapeCircle(2));
 
 class D032BatsquatchStates : StateMachineBuilder
 {

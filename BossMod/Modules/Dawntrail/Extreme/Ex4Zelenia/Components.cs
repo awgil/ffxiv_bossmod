@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
-class P1Explosion(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID._Spell_Explosion), 3);
+class P1Explosion(BossModule module) : Components.CastTowers(module, AID._Spell_Explosion, 3);
 
-class SpecterOfTheLost(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(48, 30.Degrees()), (uint)TetherID._Gen_Tether_89, ActionID.MakeSpell(AID._Ability_SpecterOfTheLost));
-class SpecterOfTheLostAOE(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID._Ability_SpecterOfTheLost), new AOEShapeCone(48, 30.Degrees()));
+class SpecterOfTheLost(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(48, 30.Degrees()), (uint)TetherID._Gen_Tether_89, AID._Ability_SpecterOfTheLost);
+class SpecterOfTheLostAOE(BossModule module) : Components.StandardAOEs(module, AID._Ability_SpecterOfTheLost, new AOEShapeCone(48, 30.Degrees()));
 
 class AlexandrianThunderIV(BossModule module) : Components.GenericAOEs(module)
 {
@@ -27,7 +27,7 @@ class AlexandrianThunderIV(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Take(1).Select(csr => new AOEInstance((AID)csr.CastInfo!.Action.ID == AID._Ability_AlexandrianThunderIV ? new AOEShapeCircle(8) : new AOEShapeDonut(8, 20), csr.Position, Activation: Module.CastFinishAt(csr.CastInfo)));
 }
 
-class ThunderSlash(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID._Ability_ThunderSlash), new AOEShapeCone(24, 30.Degrees()))
+class ThunderSlash(BossModule module) : Components.StandardAOEs(module, AID._Ability_ThunderSlash, new AOEShapeCone(24, 30.Degrees()))
 {
     private Tiles? Tiles;
 
@@ -54,7 +54,7 @@ class ThunderSlash(BossModule module) : Components.StandardAOEs(module, ActionID
     }
 }
 
-class P2Explosion(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID._Spell_Explosion1), 3, minSoakers: 3, maxSoakers: 4)
+class P2Explosion(BossModule module) : Components.CastTowers(module, AID._Spell_Explosion1, 3, minSoakers: 3, maxSoakers: 4)
 {
     private BitMask TetheredPlayers;
 
@@ -123,7 +123,7 @@ class RosebloodDrop(BossModule module) : Components.Adds(module, (uint)OID.Roseb
     }
 }
 
-class PerfumedQuietus(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID._Weaponskill_PerfumedQuietus1));
+class PerfumedQuietus(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_PerfumedQuietus1);
 
 class AlexandrianThunderII(BossModule module) : Components.GenericRotatingAOE(module)
 {
@@ -158,7 +158,7 @@ class AlexandrianThunderII(BossModule module) : Components.GenericRotatingAOE(mo
     }
 }
 
-class AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.AlexandrianThunderIII, ActionID.MakeSpell(AID._Spell_AlexandrianThunderIII1), 4, 5)
+class AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.AlexandrianThunderIII, AID._Spell_AlexandrianThunderIII1, 4, 5)
 {
     private Tiles? Tiles;
 
@@ -301,7 +301,7 @@ class B3Emblazon(BossModule module) : BossComponent(module)
     private IEnumerable<Actor> OtherBaits(Actor actor) => Raid.WithSlot().IncludedInMask(Baiters).Exclude(actor).Select(p => p.Item2);
 }
 
-class B3Explosion(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID._Spell_Explosion2))
+class B3Explosion(BossModule module) : Components.CastCounter(module, AID._Spell_Explosion2)
 {
     private Tiles? TilesComponent;
     private Tiles Tiles => TilesComponent!;

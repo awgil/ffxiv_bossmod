@@ -61,7 +61,7 @@ public enum AID : uint
     TrueStoneIV = 25621, // 233C->location, 6.0s cast, range 10 circle
 }
 
-class Kleos(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Kleos), "Raidwide + death wall spawn");
+class Kleos(BossModule module) : Components.RaidwideCast(module, AID.Kleos, "Raidwide + death wall spawn");
 
 class ParhelionCone(BossModule module) : Components.GenericRotatingAOE(module)
 {
@@ -153,9 +153,9 @@ class EpeaPteroenta(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class CrepuscularRay(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.CrepuscularRay), 4);
-class CircumzenithalArc(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CircumzenithalArcFirst), new AOEShapeCone(40, 90.Degrees()));
-class CircumzenithalArcSecond(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CircumzenithalArcSecond), new AOEShapeCone(40, 90.Degrees()))
+class CrepuscularRay(BossModule module) : Components.ChargeAOEs(module, AID.CrepuscularRay, 4);
+class CircumzenithalArc(BossModule module) : Components.SelfTargetedAOEs(module, AID.CircumzenithalArcFirst, new AOEShapeCone(40, 90.Degrees()));
+class CircumzenithalArcSecond(BossModule module) : Components.SelfTargetedAOEs(module, AID.CircumzenithalArcSecond, new AOEShapeCone(40, 90.Degrees()))
 {
     private CrepuscularRay? ray;
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -167,8 +167,8 @@ class CircumzenithalArcSecond(BossModule module) : Components.SelfTargetedAOEs(m
             base.AddAIHints(slot, actor, assignment, hints);
     }
 }
-class CircleOfBrilliance(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CircleOfBrilliance), new AOEShapeCircle(5));
-class Enomotos(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6), ActionID.MakeSpell(AID.EnomotosFirst))
+class CircleOfBrilliance(BossModule module) : Components.SelfTargetedAOEs(module, AID.CircleOfBrilliance, new AOEShapeCircle(5));
+class Enomotos(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6), AID.EnomotosFirst)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -200,7 +200,7 @@ class Enomotos(BossModule module) : Components.Exaflare(module, new AOEShapeCirc
     }
 }
 
-class DeathWall(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Kleos))
+class DeathWall(BossModule module) : Components.GenericAOEs(module, AID.Kleos)
 {
     private DateTime? ExpectedActivation;
     private readonly AOEShape Voidzone = new AOEShapeDonut(19.5f, 100);
@@ -229,10 +229,10 @@ class DeathWall(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     }
 }
 
-class Windage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Windage), new AOEShapeCircle(5));
-class AfflatusAzem(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(5), ActionID.MakeSpell(AID.AfflatusAzemFirst), ActionID.MakeSpell(AID.AfflatusAzemChase), 5, 2.1f, 5);
-class WindageSlow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindageSlow), new AOEShapeCircle(5));
-class TrueHoly(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TrueHoly), 20)
+class Windage(BossModule module) : Components.SelfTargetedAOEs(module, AID.Windage, new AOEShapeCircle(5));
+class AfflatusAzem(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(5), AID.AfflatusAzemFirst, AID.AfflatusAzemChase, 5, 2.1f, 5);
+class WindageSlow(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindageSlow, new AOEShapeCircle(5));
+class TrueHoly(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TrueHoly, 20)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -241,8 +241,8 @@ class TrueHoly(BossModule module) : Components.KnockbackFromCastTarget(module, A
             hints.ActionsToExecute.Push(action, actor, ActionQueue.Priority.Medium);
     }
 }
-class TrueStoneIV(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TrueStoneIV), 10, maxCasts: 7);
-class EnomotosSmall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EnomotosSmall), 4);
+class TrueStoneIV(BossModule module) : Components.LocationTargetedAOEs(module, AID.TrueStoneIV, 10, maxCasts: 7);
+class EnomotosSmall(BossModule module) : Components.LocationTargetedAOEs(module, AID.EnomotosSmall, 4);
 class Adds(BossModule module) : Components.AddsMulti(module, [OID.Thelema, OID.ThelemaAgape], 1);
 
 public class VenatStates : StateMachineBuilder

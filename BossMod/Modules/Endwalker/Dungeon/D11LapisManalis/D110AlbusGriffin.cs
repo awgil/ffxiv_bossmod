@@ -13,9 +13,9 @@ public enum AID : uint
     GoldenTalons = 32787, // Boss->self, 4.5s cast, range 8 90-degree cone
 }
 
-class WindsOfWinter(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WindsOfWinter), "Stun Albus Griffin, Raidwide");
-class GoldenTalons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GoldenTalons), new AOEShapeCone(8, 45.Degrees()));
-class Freefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Freefall), 8);
+class WindsOfWinter(BossModule module) : Components.RaidwideCast(module, AID.WindsOfWinter, "Stun Albus Griffin, Raidwide");
+class GoldenTalons(BossModule module) : Components.SelfTargetedAOEs(module, AID.GoldenTalons, new AOEShapeCone(8, 45.Degrees()));
+class Freefall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Freefall, 8);
 
 class D110AlbusGriffinStates : StateMachineBuilder
 {

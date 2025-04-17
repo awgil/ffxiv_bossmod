@@ -18,7 +18,7 @@ class EscelonsFall : Components.GenericBaitAway
     private readonly DateTime[] Vulns = new DateTime[PartyState.MaxPartySize];
     private DateTime NextActivation; // 13.9s from boss cast, then every 3.1s
 
-    public EscelonsFall(BossModule module) : base(module, ActionID.MakeSpell(AID._Ability_EscelonsFall))
+    public EscelonsFall(BossModule module) : base(module, AID._Ability_EscelonsFall)
     {
         AllowDeadTargets = false;
     }
@@ -87,4 +87,3 @@ class EscelonsFall : Components.GenericBaitAway
         }
     }
 }
-

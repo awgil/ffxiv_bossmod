@@ -94,10 +94,10 @@ class P2StrengthOfTheWard2SpreadStack : Components.UniformStackSpread
 }
 
 // growing voidzones
-class P2StrengthOfTheWard2Voidzones(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DimensionalCollapseAOE), 9, "GTFO from voidzone aoe!");
+class P2StrengthOfTheWard2Voidzones(BossModule module) : Components.LocationTargetedAOEs(module, AID.DimensionalCollapseAOE, 9, "GTFO from voidzone aoe!");
 
 // charges on tethered targets
-class P2StrengthOfTheWard2Charges(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HolyShieldBash))
+class P2StrengthOfTheWard2Charges(BossModule module) : Components.CastCounter(module, AID.HolyShieldBash)
 {
     private readonly List<Actor> _chargeSources = [.. module.Enemies(OID.SerAdelphel), .. module.Enemies(OID.SerJanlenoux)];
 
@@ -180,7 +180,7 @@ class P2StrengthOfTheWard2Charges(BossModule module) : Components.CastCounter(mo
 
 // towers
 // TODO: assign tower to proper player
-class P2StrengthOfTheWard2Towers(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Conviction1AOE), 3)
+class P2StrengthOfTheWard2Towers(BossModule module) : Components.CastTowers(module, AID.Conviction1AOE, 3)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

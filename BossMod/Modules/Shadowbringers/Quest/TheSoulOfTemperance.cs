@@ -20,16 +20,16 @@ public enum AID : uint
     SanctifiedHoly2 = 17604, // 2A0C->location, 4.0s cast, range 6 circle
 }
 
-class SanctifiedHoly1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedHoly1), new AOEShapeCircle(8));
-class SanctifiedHoly2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedHoly2), 6);
-class ForceOfRestraint(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForceOfRestraint), new AOEShapeRect(60, 2));
-class HolyBlur(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HolyBlur));
-class Focus(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Focus), 2);
-class TemperedVirtue(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TemperedVirtue), new AOEShapeCircle(15));
-class WaterAndWine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WaterAndWine), new AOEShapeDonut(6, 12));
-class SanctifiedStone(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SanctifiedStone), 5, 1);
+class SanctifiedHoly1(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanctifiedHoly1, new AOEShapeCircle(8));
+class SanctifiedHoly2(BossModule module) : Components.LocationTargetedAOEs(module, AID.SanctifiedHoly2, 6);
+class ForceOfRestraint(BossModule module) : Components.SelfTargetedAOEs(module, AID.ForceOfRestraint, new AOEShapeRect(60, 2));
+class HolyBlur(BossModule module) : Components.RaidwideCast(module, AID.HolyBlur);
+class Focus(BossModule module) : Components.BaitAwayChargeCast(module, AID.Focus, 2);
+class TemperedVirtue(BossModule module) : Components.SelfTargetedAOEs(module, AID.TemperedVirtue, new AOEShapeCircle(15));
+class WaterAndWine(BossModule module) : Components.SelfTargetedAOEs(module, AID.WaterAndWine, new AOEShapeDonut(6, 12));
+class SanctifiedStone(BossModule module) : Components.StackWithCastTargets(module, AID.SanctifiedStone, 5, 1);
 
-class SanctifiedAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedAero1), new AOEShapeRect(40.5f, 3));
+class SanctifiedAero(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanctifiedAero1, new AOEShapeRect(40.5f, 3));
 
 class Repose(BossModule module) : BossComponent(module)
 {

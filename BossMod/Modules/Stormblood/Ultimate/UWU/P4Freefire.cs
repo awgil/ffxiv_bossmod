@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P4Freefire(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FreefireIntermission))
+class P4Freefire(BossModule module) : Components.GenericAOEs(module, AID.FreefireIntermission)
 {
     private readonly List<Actor> _casters = [];
     private DateTime _activation;

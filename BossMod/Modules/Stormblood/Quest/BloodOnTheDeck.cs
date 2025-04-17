@@ -17,10 +17,10 @@ public enum AID : uint
     Bombslinger1 = 8411, // AdjunctOstyrgreinHelper->location, 3.0s cast, range 6 circle
 }
 
-class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(7));
-class Butcher(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(9, 45.Degrees()));
-class TenkaGoken(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TenkaGoken), new AOEShapeCone(8.5f, 60.Degrees()));
-class Bombslinger(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Bombslinger1), 6);
+class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScytheTail, new AOEShapeCircle(7));
+class Butcher(BossModule module) : Components.SelfTargetedAOEs(module, AID.Butcher, new AOEShapeCone(9, 45.Degrees()));
+class TenkaGoken(BossModule module) : Components.SelfTargetedAOEs(module, AID.TenkaGoken, new AOEShapeCone(8.5f, 60.Degrees()));
+class Bombslinger(BossModule module) : Components.LocationTargetedAOEs(module, AID.Bombslinger1, 6);
 
 class GurumiBorlumiStates : StateMachineBuilder
 {
@@ -39,4 +39,3 @@ public class GurumiBorlumi(WorldState ws, Actor primary) : BossModule(ws, primar
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }
-

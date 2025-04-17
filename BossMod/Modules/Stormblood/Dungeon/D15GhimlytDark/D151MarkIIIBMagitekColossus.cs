@@ -33,11 +33,11 @@ public enum IconID : uint
     Tankbuster = 198 // player
 }
 
-class CeruleumVent(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CeruleumVent));
-class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Exhaust), new AOEShapeRect(43.5f, 5));
-class JarringBlow(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.JarringBlow));
-class MagitekRay(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MagitekRay), 6, 4, 4);
-class WildFireBeam(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.WildFireBeamHelper), 6);
+class CeruleumVent(BossModule module) : Components.RaidwideCast(module, AID.CeruleumVent);
+class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, AID.Exhaust, new AOEShapeRect(43.5f, 5));
+class JarringBlow(BossModule module) : Components.SingleTargetDelayableCast(module, AID.JarringBlow);
+class MagitekRay(BossModule module) : Components.StackWithCastTargets(module, AID.MagitekRay, 6, 4, 4);
+class WildFireBeam(BossModule module) : Components.SpreadFromCastTargets(module, AID.WildFireBeamHelper, 6);
 class MagitektSlashRotation(BossModule module) : Components.GenericRotatingAOE(module)
 {
     private static readonly Angle a60 = 60.Degrees();

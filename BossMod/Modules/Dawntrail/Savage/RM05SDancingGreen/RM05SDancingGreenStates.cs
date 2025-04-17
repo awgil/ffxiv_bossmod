@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM05SDancingGreen;
 
-class DeepCut(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 30.Degrees()), 471, ActionID.MakeSpell(AID.DeepCut));
-class DiscoInferno(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DiscoInfernal));
-class CelebrateGoodTimes(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CelebrateGoodTimes));
+class DeepCut(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 30.Degrees()), 471, AID.DeepCut);
+class DiscoInferno(BossModule module) : Components.RaidwideCast(module, AID.DiscoInfernal);
+class CelebrateGoodTimes(BossModule module) : Components.RaidwideCast(module, AID.CelebrateGoodTimes);
 
 class LetsDance(BossModule module) : Components.GenericAOEs(module)
 {
@@ -133,8 +133,8 @@ class RideTheWaves(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class QuarterBeats(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.QuarterBeats), 4, minStackSize: 2, maxStackSize: 2);
-class EighthBeats(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.EighthBeats), 5);
+class QuarterBeats(BossModule module) : Components.StackWithCastTargets(module, AID.QuarterBeats, 4, minStackSize: 2, maxStackSize: 2);
+class EighthBeats(BossModule module) : Components.SpreadFromCastTargets(module, AID.EighthBeats, 5);
 
 class Moonwalk(BossModule module) : Components.GenericAOEs(module)
 {

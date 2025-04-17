@@ -36,10 +36,10 @@ public enum AID : uint
     ArtificialPlasmaBoostRest = 29353, // Boss->self, no cast, raidwide
 }
 
-class AglaeaClimb(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.AglaeaClimb));
-class ArtificialPlasma(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ArtificialPlasma));
+class AglaeaClimb(BossModule module) : Components.SingleTargetCast(module, AID.AglaeaClimb);
+class ArtificialPlasma(BossModule module) : Components.RaidwideCast(module, AID.ArtificialPlasma);
 
-class Roundhouse(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Roundhouse))
+class Roundhouse(BossModule module) : Components.GenericAOEs(module, AID.Roundhouse)
 {
     private readonly List<Actor> _castersRoundhouse = [];
     private readonly List<Actor> _castersDischarge = [];
@@ -75,7 +75,7 @@ class Roundhouse(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
 
 // note: casts are staggered in a slightly complicated way, so we don't remove actors immediately when cast finishes
 // a 'set' is always considered finished when 6th discharge finishes
-class InfiniteReach(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.InfiniteReachDischarge))
+class InfiniteReach(BossModule module) : Components.GenericAOEs(module, AID.InfiniteReachDischarge)
 {
     private readonly List<Actor?> _castersRect = [];
     private readonly List<Actor?> _castersDischarge = [];
@@ -133,7 +133,7 @@ class InfiniteReach(BossModule module) : Components.GenericAOEs(module, ActionID
     };
 }
 
-class StunningSweep(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.StunningSweep))
+class StunningSweep(BossModule module) : Components.GenericAOEs(module, AID.StunningSweep)
 {
     private readonly List<Actor> _castersSweepDischarge = [];
     private readonly List<Actor> _castersThermobaric = [];
@@ -167,7 +167,7 @@ class StunningSweep(BossModule module) : Components.GenericAOEs(module, ActionID
     };
 }
 
-class AngrySalamander(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.AngrySalamander))
+class AngrySalamander(BossModule module) : Components.GenericAOEs(module, AID.AngrySalamander)
 {
     private readonly List<Actor> _castersSalamander = [];
     private readonly List<Actor> _castersThermobaric = [];

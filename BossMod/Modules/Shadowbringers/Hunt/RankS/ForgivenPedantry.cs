@@ -67,12 +67,12 @@ class LeftRightCheek(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class TerrifyingGlance(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.TerrifyingGlance));
-class TheStake(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheStake), new AOEShapeCircle(18));
-class SecondCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SecondCircle), new AOEShapeRect(40, 4));
-class CleansingFire(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CleansingFire));
+class TerrifyingGlance(BossModule module) : Components.CastGaze(module, AID.TerrifyingGlance);
+class TheStake(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheStake, new AOEShapeCircle(18));
+class SecondCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.SecondCircle, new AOEShapeRect(40, 4));
+class CleansingFire(BossModule module) : Components.CastGaze(module, AID.CleansingFire);
 
-class FeveredFlagellation(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.FeveredFlagellation), new AOEShapeCone(15, 45.Degrees()))
+class FeveredFlagellation(BossModule module) : Components.BaitAwayCast(module, AID.FeveredFlagellation, new AOEShapeCone(15, 45.Degrees()))
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell) { }
     public override void OnEventCast(Actor caster, ActorCastEvent spell) //tankbuster resolves on cast event, which can be delayed by moving out of tankbuster range
@@ -82,7 +82,7 @@ class FeveredFlagellation(BossModule module) : Components.BaitAwayCast(module, A
     }
 }
 
-class FeveredFlagellationHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FeveredFlagellation), "Cleave tankbuster");
+class FeveredFlagellationHint(BossModule module) : Components.SingleTargetCast(module, AID.FeveredFlagellation, "Cleave tankbuster");
 
 class WitchHunt(BossModule module) : Components.GenericBaitAway(module)
 {

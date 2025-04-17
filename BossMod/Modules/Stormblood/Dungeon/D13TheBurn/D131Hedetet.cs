@@ -206,16 +206,16 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module)
         Modify(Origin, BlockerActors().Select(b => (b.Position, b.HitboxRadius)), Module.CastFinishAt(caster?.CastInfo));
     }
 }
-class ResonantFrequency(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ResonantFrequency), new AOEShapeCircle(6));
-class Shardfall(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.Shardfall), 40, false)
+class ResonantFrequency(BossModule module) : Components.SelfTargetedAOEs(module, AID.ResonantFrequency, new AOEShapeCircle(6));
+class Shardfall(BossModule module) : Components.CastLineOfSightAOE(module, AID.Shardfall, 40, false)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.DimCrystal).Where(e => !e.IsDead);
 }
-class Dissonance(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Dissonance), new AOEShapeDonut(5, 40));
-class CrystallineFracture(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrystallineFracture), new AOEShapeCircle(3));
+class Dissonance(BossModule module) : Components.SelfTargetedAOEs(module, AID.Dissonance, new AOEShapeDonut(5, 40));
+class CrystallineFracture(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrystallineFracture, new AOEShapeCircle(3));
 
-class Shardstrike(BossModule module) : Components.IconStackSpread(module, default, (uint)IconID.Shardstrike, default, ActionID.MakeSpell(AID.ShardstrikeImpact), 0, 5, 0, alwaysShowSpreads: true);
-class ShardstrikeAvoid(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShardstrikeImpact), new AOEShapeCircle(6));
+class Shardstrike(BossModule module) : Components.IconStackSpread(module, default, (uint)IconID.Shardstrike, default, AID.ShardstrikeImpact, 0, 5, 0, alwaysShowSpreads: true);
+class ShardstrikeAvoid(BossModule module) : Components.SelfTargetedAOEs(module, AID.ShardstrikeImpact, new AOEShapeCircle(6));
 class CrystalObject(BossModule module) : BossComponent(module)
 {
     private IEnumerable<Actor> Crystals => Module.Enemies(OID.DimCrystal).Where(e => !e.IsDead);

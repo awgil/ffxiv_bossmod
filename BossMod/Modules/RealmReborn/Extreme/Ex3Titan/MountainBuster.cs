@@ -2,7 +2,7 @@
 
 class MountainBuster : Components.Cleave
 {
-    public MountainBuster(BossModule module) : base(module, ActionID.MakeSpell(AID.MountainBuster), new AOEShapeCone(21.25f, 60.Degrees())) // TODO: verify angle
+    public MountainBuster(BossModule module) : base(module, AID.MountainBuster, new AOEShapeCone(21.25f, 60.Degrees())) // TODO: verify angle
     {
         NextExpected = module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Tankbuster);
     }
@@ -18,7 +18,7 @@ class MountainBuster : Components.Cleave
 
 class RockBuster : Components.Cleave
 {
-    public RockBuster(BossModule module) : base(module, ActionID.MakeSpell(AID.RockBuster), new AOEShapeCone(11.25f, 60.Degrees())) // TODO: verify angle
+    public RockBuster(BossModule module) : base(module, AID.RockBuster, new AOEShapeCone(11.25f, 60.Degrees())) // TODO: verify angle
     {
         NextExpected = module.StateMachine.NextTransitionWithFlag(StateMachine.StateHint.Tankbuster);
     }

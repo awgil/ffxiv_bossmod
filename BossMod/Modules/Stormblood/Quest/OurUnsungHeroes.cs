@@ -27,11 +27,11 @@ public enum SID : uint
     Invincibility = 325, // Boss->Boss, extra=0x0
 }
 
-class CureIV(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CureIV), new AOEShapeCircle(12));
-class Glory(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Glory), new AOEShapeCone(42.7f, 45.Degrees()));
-class CureIII(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.CureIII, ActionID.MakeSpell(AID.CureIII1), 10, 5.15f);
-class CureV(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, ActionID.MakeSpell(AID.CureV1), 6, 5.15f);
-class DarkII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkII), new AOEShapeCone(50.8f, 30.Degrees()));
+class CureIV(BossModule module) : Components.SelfTargetedAOEs(module, AID.CureIV, new AOEShapeCircle(12));
+class Glory(BossModule module) : Components.SelfTargetedAOEs(module, AID.Glory, new AOEShapeCone(42.7f, 45.Degrees()));
+class CureIII(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.CureIII, AID.CureIII1, 10, 5.15f);
+class CureV(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.CureV1, 6, 5.15f);
+class DarkII(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkII, new AOEShapeCone(50.8f, 30.Degrees()));
 
 class FallenKuribuStates : StateMachineBuilder
 {

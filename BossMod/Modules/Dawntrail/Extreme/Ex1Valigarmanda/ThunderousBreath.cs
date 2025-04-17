@@ -2,7 +2,7 @@
 
 class ThunderousBreath : Components.CastCounter
 {
-    public ThunderousBreath(BossModule module) : base(module, ActionID.MakeSpell(AID.ThunderousBreathAOE))
+    public ThunderousBreath(BossModule module) : base(module, AID.ThunderousBreathAOE)
     {
         var platform = module.FindComponent<ThunderPlatform>();
         if (platform != null)
@@ -11,7 +11,7 @@ class ThunderousBreath : Components.CastCounter
     }
 }
 
-class ArcaneLighning(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ArcaneLightning))
+class ArcaneLighning(BossModule module) : Components.GenericAOEs(module, AID.ArcaneLightning)
 {
     public readonly List<AOEInstance> AOEs = [];
 

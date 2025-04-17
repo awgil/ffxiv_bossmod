@@ -60,7 +60,7 @@ public enum AID : uint
     ShadeSteeledStrikeIDK = 37063, // Helper->self, 5.2s cast, range 30 width 8 cross
 }
 
-class FancyBladework(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FancyBladework));
+class FancyBladework(BossModule module) : Components.RaidwideCast(module, AID.FancyBladework);
 
 class Thrill(BossModule module) : Components.GenericTowers(module)
 {
@@ -117,8 +117,8 @@ class BurningSun(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class CoiledStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CoiledStrikeAOE), new AOEShapeCone(30, 75.Degrees()));
-class SteeledStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SteeledStrikeAOE), new AOEShapeCross(30, 4))
+class CoiledStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.CoiledStrikeAOE, new AOEShapeCone(30, 75.Degrees()));
+class SteeledStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.SteeledStrikeAOE, new AOEShapeCross(30, 4))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -128,9 +128,9 @@ class SteeledStrike(BossModule module) : Components.SelfTargetedAOEs(module, Act
                 yield return e;
     }
 }
-class SteeledStrikeShade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShadeSteeledStrike), new AOEShapeCross(30, 4));
-class MorningStarsLines(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MorningStarsLines), 4);
-class MorningStarsChase(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MorningStarsChase), 4);
+class SteeledStrikeShade(BossModule module) : Components.SelfTargetedAOEs(module, AID.ShadeSteeledStrike, new AOEShapeCross(30, 4));
+class MorningStarsLines(BossModule module) : Components.LocationTargetedAOEs(module, AID.MorningStarsLines, 4);
+class MorningStarsChase(BossModule module) : Components.LocationTargetedAOEs(module, AID.MorningStarsChase, 4);
 
 class DualBlows(BossModule module) : Components.GenericAOEs(module)
 {
@@ -165,7 +165,7 @@ class DualBlows(BossModule module) : Components.GenericAOEs(module)
 }
 
 class BurningSunPuddle(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.BurningSunPuddle).Where(x => x.EventState != 7));
-class BrawlEnder(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.BrawlEnderCast), stopAtWall: true)
+class BrawlEnder(BossModule module) : Components.Knockback(module, AID.BrawlEnderCast, stopAtWall: true)
 {
     private DateTime? Activation;
     private Angle? FixedDirection;
@@ -196,7 +196,7 @@ class BrawlEnder(BossModule module) : Components.Knockback(module, ActionID.Make
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(Activation).Select(a => new Source(actor.Position, 20, a, null, FixedDirection ?? actor.Rotation, Kind.DirForward));
 }
 
-class GloryBlaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GloryBlaze), new AOEShapeRect(40, 3));
+class GloryBlaze(BossModule module) : Components.SelfTargetedAOEs(module, AID.GloryBlaze, new AOEShapeRect(40, 3));
 
 class GuloolJaJaStates : StateMachineBuilder
 {

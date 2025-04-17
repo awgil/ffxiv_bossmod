@@ -59,4 +59,4 @@ class HairRaid(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class HairSprayDeadlyTwist(BossModule module) : Components.CastStackSpread(module, ActionID.MakeSpell(AID.DeadlyTwist), ActionID.MakeSpell(AID.HairSpray), 6, 5, 4);
+class HairSprayDeadlyTwist(BossModule module) : Components.CastStackSpread(module, AID.DeadlyTwist, AID.HairSpray, 6, 5, 4);

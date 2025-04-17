@@ -20,10 +20,10 @@ public enum AID : uint
     DeadlyThrust = 702, // Boss->self, 2.0s cast, visual (spawns pollen zone)
 }
 
-class Silkscreen(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Silkscreen), new AOEShapeRect(18, 2));
-class StickyWeb(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.StickyWeb), "Delayed AOE at target");
-class PodBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PodBurst), new AOEShapeCircle(7.050f));
-class DeadlyThrust(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.DeadlyThrust), "Persistent voidzone at target");
+class Silkscreen(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.Silkscreen, new AOEShapeRect(18, 2));
+class StickyWeb(BossModule module) : Components.CastHint(module, AID.StickyWeb, "Delayed AOE at target");
+class PodBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.PodBurst, new AOEShapeCircle(7.050f));
+class DeadlyThrust(BossModule module) : Components.CastHint(module, AID.DeadlyThrust, "Persistent voidzone at target");
 class PollenZone(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.PollenZone));
 
 class D053GraffiasStates : StateMachineBuilder

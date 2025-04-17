@@ -2,7 +2,7 @@
 
 class FeintParticleBeam : Components.StandardChasingAOEs
 {
-    public FeintParticleBeam(BossModule module) : base(module, new AOEShapeCircle(3), ActionID.MakeSpell(AID.FeintParticleBeamAOEFirst), ActionID.MakeSpell(AID.FeintParticleBeamAOERest), 2.1f, 0.4f, 18)
+    public FeintParticleBeam(BossModule module) : base(module, new AOEShapeCircle(3), AID.FeintParticleBeamAOEFirst, AID.FeintParticleBeamAOERest, 2.1f, 0.4f, 18)
     {
         ExcludedTargets = new(~0u);
     }

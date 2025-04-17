@@ -15,7 +15,7 @@ public enum AID : uint
     MoldyPhlegm = 941, // Boss->location, 2.5s cast, range 6 circle
 }
 
-class MoldySneeze(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.MoldySneeze), new AOEShapeCone(8.85f, 45.Degrees()));
+class MoldySneeze(BossModule module) : Components.Cleave(module, AID.MoldySneeze, new AOEShapeCone(8.85f, 45.Degrees()));
 
 class InhaleGoobbuesGrief(BossModule module) : Components.GenericAOEs(module)
 {
@@ -62,7 +62,7 @@ class InhaleGoobbuesGrief(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MoldyPhlegm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MoldyPhlegm), 6);
+class MoldyPhlegm(BossModule module) : Components.LocationTargetedAOEs(module, AID.MoldyPhlegm, 6);
 
 class D151KeeperOfHalidomStates : StateMachineBuilder
 {

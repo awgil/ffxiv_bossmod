@@ -2,7 +2,7 @@
 
 class P2IntermissionLimitCut(BossModule module) : LimitCut(module, 3.2f);
 
-class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.HawkBlasterIntermission))
+class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(module, AID.HawkBlasterIntermission)
 {
     private Angle _blasterStartingDirection;
 

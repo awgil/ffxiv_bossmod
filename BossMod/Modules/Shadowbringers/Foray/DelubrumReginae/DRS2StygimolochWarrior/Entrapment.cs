@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2StygimolochWarrior;
 
-class EntrapmentAttract(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.EntrapmentAttract), true)
+class EntrapmentAttract(BossModule module) : Components.Knockback(module, AID.EntrapmentAttract, true)
 {
     private DateTime _activation;
 
@@ -38,7 +38,7 @@ class Entrapment : Components.CastCounter
     private Pattern _potentiallyUnsafe;
     private bool _possiblePatternsDirty;
 
-    public Entrapment(BossModule module, Pattern[] allowedPatterns) : base(module, ActionID.MakeSpell(AID.MassiveExplosion))
+    public Entrapment(BossModule module, Pattern[] allowedPatterns) : base(module, AID.MassiveExplosion)
     {
         _allowedPatterns = allowedPatterns;
         _possiblePatterns = new((1u << allowedPatterns.Length) - 1);
@@ -248,6 +248,6 @@ class EntrapmentInescapable(BossModule module) : Entrapment(module, _allowedPatt
     }
 }
 
-class LethalBlow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LethalBlow), new AOEShapeRect(44, 24));
-class LeapingSpark(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LeapingSparkAOE));
-class Devour(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Devour), new AOEShapeCone(6, 60.Degrees()));
+class LethalBlow(BossModule module) : Components.SelfTargetedAOEs(module, AID.LethalBlow, new AOEShapeRect(44, 24));
+class LeapingSpark(BossModule module) : Components.CastCounter(module, AID.LeapingSparkAOE);
+class Devour(BossModule module) : Components.SelfTargetedAOEs(module, AID.Devour, new AOEShapeCone(6, 60.Degrees()));

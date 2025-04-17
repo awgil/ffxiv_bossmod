@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Foray;
 
-public class DispelComponent(BossModule module, uint statusID, ActionID action = default) : Components.CastHint(module, action, "Prepare to dispel!")
+public class DispelComponent(BossModule module, uint statusID, Enum? action = default) : Components.CastHint(module, action, "Prepare to dispel!")
 {
     private readonly List<Actor> Targets = [];
 

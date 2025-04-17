@@ -65,7 +65,7 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
     }
 }
 
-class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.MegaflareTower), 3)
+class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, AID.MegaflareTower, 3)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -97,4 +97,4 @@ class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, Act
     }
 }
 
-class P3HeavensfallFireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, ActionID.MakeSpell(AID.Fireball), 4, 5.3f, 8);
+class P3HeavensfallFireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, AID.Fireball, 4, 5.3f, 8);

@@ -44,20 +44,20 @@ public enum TetherID : uint
     RawSteel = 57, // Boss->player
 }
 
-class StormSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormSlash), new AOEShapeCone(8, 60.Degrees()));
-class MagitekBurst(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekBurst), 8);
-class BurnishedJoust(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.BurnishedJoust), 3);
+class StormSlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.StormSlash, new AOEShapeCone(8, 60.Degrees()));
+class MagitekBurst(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekBurst, 8);
+class BurnishedJoust(BossModule module) : Components.ChargeAOEs(module, AID.BurnishedJoust, 3);
 
 // note: there are two casters, probably to avoid 32-target limit - we only want to show one
-class GustSlash(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.GustSlashAOE), 35, true, 1, null, Kind.DirForward);
+class GustSlash(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GustSlashAOE, 35, true, 1, null, Kind.DirForward);
 
-class FireShot(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.FireShot), m => m.Enemies(OID.FireShot).Where(e => e.EventState != 7), 0);
-class AirborneExplosion(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AirborneExplosion), 10);
-class RideDownAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RideDown), new AOEShapeRect(60, 5));
+class FireShot(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.FireShot, m => m.Enemies(OID.FireShot).Where(e => e.EventState != 7), 0);
+class AirborneExplosion(BossModule module) : Components.LocationTargetedAOEs(module, AID.AirborneExplosion, 10);
+class RideDownAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.RideDown, new AOEShapeRect(60, 5));
 
 // note: there are two casters, probably to avoid 32-target limit - we only want to show one
 // TODO: generalize to reusable component
-class RideDownKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.RideDownAOE), false, 1)
+class RideDownKnockback(BossModule module) : Components.Knockback(module, AID.RideDownAOE, false, 1)
 {
     private readonly List<Source> _sources = [];
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
@@ -82,13 +82,13 @@ class RideDownKnockback(BossModule module) : Components.Knockback(module, Action
     }
 }
 
-class CallRaze(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CallRaze), "Multi raidwide");
+class CallRaze(BossModule module) : Components.RaidwideCast(module, AID.CallRaze, "Multi raidwide");
 
 // TODO: find out optimal distance, test results so far:
 // - distance ~6.4 (inside hitbox) and 1 vuln stack: 79194 damage
 // - distance ~22.2 and 4 vuln stacks: 21083 damage
 // since hitbox is 7.2 it is probably starting to be optimal around distance 15
-class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.RawSteel), 2)
+class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, AID.RawSteel, 2)
 {
     private const float _safeDistance = 15;
 
@@ -125,10 +125,10 @@ class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, Action
     }
 }
 
-class CloseQuarters(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CloseQuartersAOE), new AOEShapeCircle(15));
-class FarAfield(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FarAfieldAOE), new AOEShapeDonut(10, 30));
-class CallControlledBurn(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.CallControlledBurnAOE), 6);
-class MagitekBlaster(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MagitekBlaster), 8);
+class CloseQuarters(BossModule module) : Components.SelfTargetedAOEs(module, AID.CloseQuartersAOE, new AOEShapeCircle(15));
+class FarAfield(BossModule module) : Components.SelfTargetedAOEs(module, AID.FarAfieldAOE, new AOEShapeDonut(10, 30));
+class CallControlledBurn(BossModule module) : Components.SpreadFromCastTargets(module, AID.CallControlledBurnAOE, 6);
+class MagitekBlaster(BossModule module) : Components.StackWithCastTargets(module, AID.MagitekBlaster, 8);
 
 class CE53HereComesTheCavalryStates : StateMachineBuilder
 {

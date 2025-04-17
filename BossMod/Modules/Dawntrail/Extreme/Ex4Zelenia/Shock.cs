@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
-class ShockDonutBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(1, 6), (uint)IconID.ShockDonut, ActionID.MakeSpell(AID._Weaponskill_ShockDonut1), centerAtTarget: true);
-class ShockCircleBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.ShockCircle, ActionID.MakeSpell(AID._Weaponskill_ShockCircle1), centerAtTarget: true);
+class ShockDonutBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(1, 6), (uint)IconID.ShockDonut, AID._Weaponskill_ShockDonut1, centerAtTarget: true);
+class ShockCircleBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.ShockCircle, AID._Weaponskill_ShockCircle1, centerAtTarget: true);
 
 class ShockAOEs(BossModule module) : Components.GenericAOEs(module)
 {

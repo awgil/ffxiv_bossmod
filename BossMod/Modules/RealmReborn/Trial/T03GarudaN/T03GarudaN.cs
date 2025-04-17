@@ -35,16 +35,16 @@ class Friction(BossModule module) : BossComponent(module)
     }
 }
 
-class Downburst(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Downburst), new AOEShapeCone(11.7f, 60.Degrees()));
-class Slipstream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Slipstream), new AOEShapeCone(11.7f, 45.Degrees()));
+class Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 60.Degrees()));
+class Slipstream(BossModule module) : Components.SelfTargetedAOEs(module, AID.Slipstream, new AOEShapeCone(11.7f, 45.Degrees()));
 
-class MistralSongP1(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MistralSongP1), 31.7f, true)
+class MistralSongP1(BossModule module) : Components.CastLineOfSightAOE(module, AID.MistralSongP1, 31.7f, true)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Monolith);
 }
 
 // actual casts happen every ~6s after aerial blast cast
-class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.AerialBlast))
+class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, AID.AerialBlast)
 {
     private readonly AOEShapeDonut _shape = new(12, 25);
 
@@ -56,8 +56,8 @@ class EyeOfTheStorm(BossModule module) : Components.GenericAOEs(module, ActionID
     }
 }
 
-class MistralSongP2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralSongP2), new AOEShapeCone(31.7f, 60.Degrees()));
-class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralShriek), new AOEShapeCircle(24.7f));
+class MistralSongP2(BossModule module) : Components.SelfTargetedAOEs(module, AID.MistralSongP2, new AOEShapeCone(31.7f, 60.Degrees()));
+class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, AID.MistralShriek, new AOEShapeCircle(24.7f));
 
 class T03GarudaNStates : StateMachineBuilder
 {

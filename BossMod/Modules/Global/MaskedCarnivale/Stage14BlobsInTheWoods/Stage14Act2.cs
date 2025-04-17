@@ -11,7 +11,7 @@ public enum AID : uint
     TheLastSong = 14756, // 271E->self, 6.0s cast, range 60 circle, heavy dmg, applies silence to player
 }
 
-class LastSong(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.TheLastSong), 60, true); //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
+class LastSong(BossModule module) : Components.GenericLineOfSightAOE(module, AID.TheLastSong, 60, true); //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
 
 class LastSongHint(BossModule module) : BossComponent(module)
 {

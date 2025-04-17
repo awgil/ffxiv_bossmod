@@ -103,4 +103,4 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P2Hypernova(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.Hypernova), m => m.Enemies(OID.VoidzoneHypernova).Where(z => z.EventState != 7), 1.4f);
+class P2Hypernova(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.Hypernova, m => m.Enemies(OID.VoidzoneHypernova).Where(z => z.EventState != 7), 1.4f);

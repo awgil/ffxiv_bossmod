@@ -38,9 +38,9 @@ public enum IconID : uint
     PiercingLight = 139, // player->self
 }
 
-class Thricecull(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Thricecull));
-class AcallamNaSenorach(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AcallamNaSenorach));
-class PiercingLight(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.PiercingLight), 6);
+class Thricecull(BossModule module) : Components.SingleTargetCast(module, AID.Thricecull);
+class AcallamNaSenorach(BossModule module) : Components.RaidwideCast(module, AID.AcallamNaSenorach);
+class PiercingLight(BossModule module) : Components.SpreadFromCastTargets(module, AID.PiercingLight, 6);
 class LegendaryImbas(BossModule module) : Components.StackTogether(module, (uint)IconID.LegendaryImbas, 5);
 class ElementalMagicks(BossModule module) : Components.GenericAOEs(module)
 {
@@ -110,4 +110,3 @@ public class Owain(WorldState ws, Actor primary) : BAModule(ws, primary, new(129
             hints.SetPriority(PrimaryActor, AIHints.Enemy.PriorityPointless);
     }
 }
-

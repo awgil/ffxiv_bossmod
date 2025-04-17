@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P3Burst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Burst))
+class P3Burst(BossModule module) : Components.GenericAOEs(module, AID.Burst)
 {
     private readonly IReadOnlyList<Actor> _bombs = module.Enemies(OID.BombBoulder);
     private readonly Dictionary<ulong, DateTime?> _bombActivation = [];

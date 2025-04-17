@@ -22,15 +22,15 @@ public enum AID : uint
 }
 
 class AutoZero(BossModule module) : QuestBattle.RotationModule<ZeroAI>(module);
-class Explosion(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Explosion), 5);
-class VoidSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VoidSlash), new AOEShapeCone(9.7f, 45.Degrees()));
-class JongleursX(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.JongleursX));
-class StraightSpindle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StraightSpindle), new AOEShapeRect(50, 2.5f));
-class VoidTorch(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidTorch), 6);
-class HellishScythe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HellishScythe), new AOEShapeCircle(10));
-class FlameBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlameBlast), new AOEShapeRect(80, 2));
-class JestersReward(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.JestersReward), new AOEShapeCone(28, 90.Degrees()));
-class Blackout(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Blackout), "Kill wasp before enrage!", true)
+class Explosion(BossModule module) : Components.CastTowers(module, AID.Explosion, 5);
+class VoidSlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidSlash, new AOEShapeCone(9.7f, 45.Degrees()));
+class JongleursX(BossModule module) : Components.SingleTargetCast(module, AID.JongleursX);
+class StraightSpindle(BossModule module) : Components.SelfTargetedAOEs(module, AID.StraightSpindle, new AOEShapeRect(50, 2.5f));
+class VoidTorch(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidTorch, 6);
+class HellishScythe(BossModule module) : Components.SelfTargetedAOEs(module, AID.HellishScythe, new AOEShapeCircle(10));
+class FlameBlast(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlameBlast, new AOEShapeRect(80, 2));
+class JestersReward(BossModule module) : Components.SelfTargetedAOEs(module, AID.JestersReward, new AOEShapeCone(28, 90.Degrees()));
+class Blackout(BossModule module) : Components.CastHint(module, AID.Blackout, "Kill wasp before enrage!", true)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

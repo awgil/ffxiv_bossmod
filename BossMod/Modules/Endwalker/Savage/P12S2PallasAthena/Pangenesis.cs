@@ -122,7 +122,7 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
     }
 }
 
-class FactorIn(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FactorIn), centerAtTarget: true)
+class FactorIn(BossModule module) : Components.GenericBaitAway(module, AID.FactorIn, centerAtTarget: true)
 {
     private readonly List<(Actor source, Actor target)> _slimes = [];
 

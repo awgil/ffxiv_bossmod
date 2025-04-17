@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex1Valigarmanda;
 
-class MountainFire(BossModule module) : Components.GenericTowers(module, ActionID.MakeSpell(AID.MountainFireTower))
+class MountainFire(BossModule module) : Components.GenericTowers(module, AID.MountainFireTower)
 {
     private BitMask _nonTanks = module.Raid.WithSlot(true).WhereActor(p => p.Role != Role.Tank).Mask();
     private BitMask _lastSoakers;

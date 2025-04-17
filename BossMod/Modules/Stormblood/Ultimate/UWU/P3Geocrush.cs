@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P3Geocrush1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geocrush1), new AOEShapeCircle(18));
+class P3Geocrush1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Geocrush1, new AOEShapeCircle(18));
 
 // TODO: add prediction after PATE xxx - need non-interpolated actor rotation for that...
-class P3Geocrush2(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Geocrush2))
+class P3Geocrush2(BossModule module) : Components.GenericAOEs(module, AID.Geocrush2)
 {
     private Actor? _caster;
     private AOEShapeDonut? _shapeReduced;

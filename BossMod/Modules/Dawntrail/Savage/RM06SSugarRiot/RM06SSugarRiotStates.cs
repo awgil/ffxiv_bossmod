@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM06SSugarRiot;
 
-class MousseMural(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MousseMural));
+class MousseMural(BossModule module) : Components.RaidwideCast(module, AID.MousseMural);
 
 class SweetShot(BossModule module) : Components.GenericAOEs(module)
 {
@@ -32,7 +32,7 @@ class SweetShot(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(new AOEShapeRect(100, 3.5f), c.Caster.Position, c.Caster.Rotation, c.Activation));
 }
 
-class PuddingParty(BossModule module) : Components.StackWithIcon(module, (uint)IconID.PuddingParty, ActionID.MakeSpell(AID.PuddingParty), 6, 5.1f)
+class PuddingParty(BossModule module) : Components.StackWithIcon(module, (uint)IconID.PuddingParty, AID.PuddingParty, 6, 5.1f)
 {
     public int NumCasts;
 
@@ -43,7 +43,7 @@ class PuddingParty(BossModule module) : Components.StackWithIcon(module, (uint)I
     }
 }
 
-class RushEnrage(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RushEnrage));
+class RushEnrage(BossModule module) : Components.CastCounter(module, AID.RushEnrage);
 
 class RM06SSugarRiotStates : StateMachineBuilder
 {

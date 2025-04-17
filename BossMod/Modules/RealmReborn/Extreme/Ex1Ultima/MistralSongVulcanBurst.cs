@@ -1,6 +1,6 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex1Ultima;
 
-class MistralSongVulcanBurst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MistralSong))
+class MistralSongVulcanBurst(BossModule module) : Components.GenericAOEs(module, AID.MistralSong)
 {
     public bool Active { get; private set; }
     private Actor? _garuda; // non-null while mechanic is active

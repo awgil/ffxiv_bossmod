@@ -17,15 +17,15 @@ public enum AID : uint
     SHellsNebula = 31108, // Boss->self, 4.0s cast, raidwide set hp to 1
 }
 
-class DominionSlash(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(12, 45.Degrees()));
+class DominionSlash(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(12, 45.Degrees()));
 class NDominionSlash(BossModule module) : DominionSlash(module, AID.NDominionSlash);
 class SDominionSlash(BossModule module) : DominionSlash(module, AID.SDominionSlash);
 
-class InfernalWeight(BossModule module, AID aid) : Components.RaidwideCast(module, ActionID.MakeSpell(aid), "Raidwide with slow");
+class InfernalWeight(BossModule module, AID aid) : Components.RaidwideCast(module, aid, "Raidwide with slow");
 class NInfernalWeight(BossModule module) : InfernalWeight(module, AID.NInfernalWeight);
 class SInfernalWeight(BossModule module) : InfernalWeight(module, AID.SInfernalWeight);
 
-class HellsNebula(BossModule module, AID aid) : Components.CastHint(module, ActionID.MakeSpell(aid), "Reduce hp to 1");
+class HellsNebula(BossModule module, AID aid) : Components.CastHint(module, aid, "Reduce hp to 1");
 class NHellsNebula(BossModule module) : HellsNebula(module, AID.NHellsNebula);
 class SHellsNebula(BossModule module) : HellsNebula(module, AID.SHellsNebula);
 

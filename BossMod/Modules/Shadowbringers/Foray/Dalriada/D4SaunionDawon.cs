@@ -186,13 +186,13 @@ class SpiralScourge(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MagitekHalo(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.MagitekHalo), new AOEShapeDonut(9, 60));
-class MagitekCrossray(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.MagitekCrossray), new AOEShapeCross(60, 9.5f));
-class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SurfaceMissile), 6);
-class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.AntiPersonnelMissile), 6);
-class MissileSalvo(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MissileSalvo), 6);
+class MagitekHalo(BossModule module) : Components.StandardAOEs(module, AID.MagitekHalo, new AOEShapeDonut(9, 60));
+class MagitekCrossray(BossModule module) : Components.StandardAOEs(module, AID.MagitekCrossray, new AOEShapeCross(60, 9.5f));
+class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.SurfaceMissile, 6);
+class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets(module, AID.AntiPersonnelMissile, 6);
+class MissileSalvo(BossModule module) : Components.StackWithCastTargets(module, AID.MissileSalvo, 6);
 
-class MobileCrossray(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MobileCrossray))
+class MobileCrossray(BossModule module) : Components.GenericAOEs(module, AID.MobileCrossray)
 {
     private readonly List<AOEInstance> aoes = [];
 
@@ -222,7 +222,7 @@ class MobileCrossray(BossModule module) : Components.GenericAOEs(module, ActionI
     }
 }
 
-class MobileHalo(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MobileHalo))
+class MobileHalo(BossModule module) : Components.GenericAOEs(module, AID.MobileHalo)
 {
     private readonly List<AOEInstance> aoes = [];
 
@@ -251,7 +251,7 @@ class MobileHalo(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
             aoes.Clear();
     }
 }
-class HighPoweredMagitekRay(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.HighPoweredMagitekRay), new AOEShapeCircle(5), centerAtTarget: true, endsOnCastEvent: true);
+class HighPoweredMagitekRay(BossModule module) : Components.BaitAwayCast(module, AID.HighPoweredMagitekRay, new AOEShapeCircle(5), centerAtTarget: true, endsOnCastEvent: true);
 
 class Tether(BossModule module) : BossComponent(module)
 {
@@ -319,8 +319,8 @@ class Feathers(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class SwoopingFrenzy(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SwoopingFrenzy), 12);
-class FrigidPulse(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.FrigidPulse), new AOEShapeDonut(12, 180));
+class SwoopingFrenzy(BossModule module) : Components.LocationTargetedAOEs(module, AID.SwoopingFrenzy, 12);
+class FrigidPulse(BossModule module) : Components.StandardAOEs(module, AID.FrigidPulse, new AOEShapeDonut(12, 180));
 
 class Obey(BossModule module) : Components.GenericAOEs(module)
 {
@@ -369,9 +369,9 @@ class Obey(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Pentagust(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.Pentagust1), new AOEShapeCone(50, 10.Degrees()));
-class ToothAndTalon(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ToothAndTalon));
-class FireBrand(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.FireBrand1), new AOEShapeCross(50, 7));
+class Pentagust(BossModule module) : Components.StandardAOEs(module, AID.Pentagust1, new AOEShapeCone(50, 10.Degrees()));
+class ToothAndTalon(BossModule module) : Components.SingleTargetCast(module, AID.ToothAndTalon);
+class FireBrand(BossModule module) : Components.StandardAOEs(module, AID.FireBrand1, new AOEShapeCross(50, 7));
 
 class SaunionStates : StateMachineBuilder
 {
@@ -410,4 +410,3 @@ public class Saunion(WorldState ws, Actor primary) : BossModule(ws, primary, new
         Arena.Actors(Enemies(OID.DawonTheYounger), ArenaColor.Enemy);
     }
 }
-

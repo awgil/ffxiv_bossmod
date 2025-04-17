@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Quest.TheProtectorAndTheDestroyer;
 
-class RollingThunder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RollingThunder), new AOEShapeCone(20, 22.5f.Degrees()))
+class RollingThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.RollingThunder, new AOEShapeCone(20, 22.5f.Degrees()))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -13,7 +13,7 @@ class RollingThunder(BossModule module) : Components.SelfTargetedAOEs(module, Ac
         }
     }
 }
-class CracklingHowl(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CracklingHowl));
+class CracklingHowl(BossModule module) : Components.RaidwideCast(module, AID.CracklingHowl);
 class VioletVoltage(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
@@ -81,7 +81,7 @@ class UntamedCurrent(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class UntamedCurrentSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.UntamedCurrentSpread), 5);
+class UntamedCurrentSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.UntamedCurrentSpread, 5);
 
 class BallOfLevin(BossModule module) : Components.Adds(module, (uint)OID.BallOfLevin)
 {

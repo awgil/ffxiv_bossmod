@@ -28,15 +28,15 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
-class Hypnotize(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Hypnotize));
-class Ram(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Ram));
-class SaibaiMandragora(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SaibaiMandragora), "Calls adds");
-class LeafDagger(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LeafDagger), 3);
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
+class Hypnotize(BossModule module) : Components.CastGaze(module, AID.Hypnotize);
+class Ram(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Ram);
+class SaibaiMandragora(BossModule module) : Components.CastHint(module, AID.SaibaiMandragora, "Calls adds");
+class LeafDagger(BossModule module) : Components.LocationTargetedAOEs(module, AID.LeafDagger, 3);
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
 class KorriganStates : StateMachineBuilder
 {

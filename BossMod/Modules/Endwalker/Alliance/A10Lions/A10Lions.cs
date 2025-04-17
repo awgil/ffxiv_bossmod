@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A10Lions;
 
-class DoubleImmolation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DoubleImmolation));
+class DoubleImmolation(BossModule module) : Components.RaidwideCast(module, AID.DoubleImmolation);
 
 class A10LionsStates : StateMachineBuilder
 {

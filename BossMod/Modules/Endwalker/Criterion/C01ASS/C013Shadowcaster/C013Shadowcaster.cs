@@ -1,15 +1,15 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C013Shadowcaster;
 
-class FiresteelFracture(BossModule module, AID aid) : Components.Cleave(module, ActionID.MakeSpell(aid), new AOEShapeCone(40, 30.Degrees()));
+class FiresteelFracture(BossModule module, AID aid) : Components.Cleave(module, aid, new AOEShapeCone(40, 30.Degrees()));
 class NFiresteelFracture(BossModule module) : FiresteelFracture(module, AID.NFiresteelFracture);
 class SFiresteelFracture(BossModule module) : FiresteelFracture(module, AID.SFiresteelFracture);
 
 // TODO: show AOEs
-class BlazingBenifice(BossModule module, AID aid) : Components.CastCounter(module, ActionID.MakeSpell(aid));
+class BlazingBenifice(BossModule module, AID aid) : Components.CastCounter(module, aid);
 class NBlazingBenifice(BossModule module) : BlazingBenifice(module, AID.NBlazingBenifice);
 class SBlazingBenifice(BossModule module) : BlazingBenifice(module, AID.SBlazingBenifice);
 
-class PureFire(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 6);
+class PureFire(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 6);
 class NPureFire(BossModule module) : PureFire(module, AID.NPureFireAOE);
 class SPureFire(BossModule module) : PureFire(module, AID.SPureFireAOE);
 

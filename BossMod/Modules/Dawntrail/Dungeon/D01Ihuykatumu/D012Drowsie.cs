@@ -44,14 +44,14 @@ public enum IconID : uint
     FlagrantSpread = 139, // player
 }
 
-class Uppercut(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Uppercut));
-class Arise(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Arise), new AOEShapeCircle(8));
-class WallopNarrow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WallopNarrow), new AOEShapeRect(40, 5));
-class WallopWide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WallopWide), new AOEShapeRect(40, 8));
-class Sneeze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Sneeze), new AOEShapeCone(60, 75.Degrees()));
+class Uppercut(BossModule module) : Components.SingleTargetCast(module, AID.Uppercut);
+class Arise(BossModule module) : Components.SelfTargetedAOEs(module, AID.Arise, new AOEShapeCircle(8));
+class WallopNarrow(BossModule module) : Components.SelfTargetedAOEs(module, AID.WallopNarrow, new AOEShapeRect(40, 5));
+class WallopWide(BossModule module) : Components.SelfTargetedAOEs(module, AID.WallopWide, new AOEShapeRect(40, 8));
+class Sneeze(BossModule module) : Components.SelfTargetedAOEs(module, AID.Sneeze, new AOEShapeCone(60, 75.Degrees()));
 class Mimiclots(BossModule module) : Components.AddsMulti(module, [OID.MimiclotGreen1, OID.MimiclotGreen2, OID.MimiclotBlue1, OID.MimiclotBlue2, OID.MimiclotBlue3, OID.MimiclotRed]);
-class FlagrantSpreadBlue(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FlagrantSpreadBlue), 6);
-class FlagrantSpreadGreen(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlagrantSpreadGreen), 6);
+class FlagrantSpreadBlue(BossModule module) : Components.SpreadFromCastTargets(module, AID.FlagrantSpreadBlue, 6);
+class FlagrantSpreadGreen(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlagrantSpreadGreen, 6);
 
 class D012DrowsieStates : StateMachineBuilder
 {
@@ -71,4 +71,3 @@ class D012DrowsieStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12716)]
 public class D012Drowsie(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, 53), new ArenaBoundsCircle(20));
-

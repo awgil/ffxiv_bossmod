@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P2Flarethrower(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FlarethrowerP2AOE))
+class P2Flarethrower(BossModule module) : Components.GenericBaitAway(module, AID.FlarethrowerP2AOE)
 {
     private Actor? _source;
 

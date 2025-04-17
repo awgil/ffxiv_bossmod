@@ -45,21 +45,21 @@ public enum IconID : uint
     Hailfire4 = 82, // player
 }
 
-class CrystallineFracture(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrystallineFracture), new AOEShapeCircle(4));
-class ResonantFrequencyDim(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ResonantFrequencyDim), new AOEShapeCircle(6));
-class ResonantFrequencyCorrupted(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ResonantFrequencyCorrupted), new AOEShapeCircle(6));
+class CrystallineFracture(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrystallineFracture, new AOEShapeCircle(4));
+class ResonantFrequencyDim(BossModule module) : Components.SelfTargetedAOEs(module, AID.ResonantFrequencyDim, new AOEShapeCircle(6));
+class ResonantFrequencyCorrupted(BossModule module) : Components.SelfTargetedAOEs(module, AID.ResonantFrequencyCorrupted, new AOEShapeCircle(6));
 
-class CrystallineStingers(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.CrystallineStingers), 60, false)
+class CrystallineStingers(BossModule module) : Components.CastLineOfSightAOE(module, AID.CrystallineStingers, 60, false)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.DimCrystal).Where(a => !a.IsDead);
 }
 
-class AetherialStingers(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.AetherialStingers), 60, false)
+class AetherialStingers(BossModule module) : Components.CastLineOfSightAOE(module, AID.AetherialStingers, 60, false)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.CorruptedCrystal).Where(a => !a.IsDead);
 }
 
-class Subduction(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Subduction), new AOEShapeCircle(8));
+class Subduction(BossModule module) : Components.SelfTargetedAOEs(module, AID.Subduction, new AOEShapeCircle(8));
 
 // next aoe starts casting slightly before previous, so use a custom component
 class Earthbreaker(BossModule module) : Components.GenericAOEs(module)
@@ -90,11 +90,11 @@ class Earthbreaker(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class CrystalNeedle(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CrystalNeedle));
-class Shardstrike(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ShardstrikeAOE), 5);
+class CrystalNeedle(BossModule module) : Components.SingleTargetCast(module, AID.CrystalNeedle);
+class Shardstrike(BossModule module) : Components.SpreadFromCastTargets(module, AID.ShardstrikeAOE, 5);
 
 // TODO: this should probably be generalized
-class Hailfire(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.HailfireAOE))
+class Hailfire(BossModule module) : Components.GenericAOEs(module, AID.HailfireAOE)
 {
     private readonly Actor?[] _targets = new Actor?[4];
     private DateTime _activation;

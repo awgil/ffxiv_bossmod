@@ -21,15 +21,15 @@ public enum AID : uint
     StreakLightning1 = 17147, // Helper->location, 2.5s cast, range 3 circle
 }
 
-class Thunderbolt(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Thunderbolt1), 5);
-class BalamBlaster(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BalamBlaster), new AOEShapeCone(38.05f, 135.Degrees()));
-class BalamBlasterRear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BalamBlasterRear), new AOEShapeCone(38.05f, 135.Degrees()));
-class ElectricWhisker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectricWhisker), new AOEShapeCone(16.05f, 45.Degrees()));
-class RoaringThunder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RoaringThunder), new AOEShapeDonut(8, 30));
-class StreakLightning(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StreakLightning), 3);
-class StreakLightning1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StreakLightning1), 3);
-class AlternatingCurrent(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AlternatingCurrent1), new AOEShapeRect(60, 2.5f));
-class RumblingThunder(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.RumblingThunderStack), 5, 1);
+class Thunderbolt(BossModule module) : Components.SpreadFromCastTargets(module, AID.Thunderbolt1, 5);
+class BalamBlaster(BossModule module) : Components.SelfTargetedAOEs(module, AID.BalamBlaster, new AOEShapeCone(38.05f, 135.Degrees()));
+class BalamBlasterRear(BossModule module) : Components.SelfTargetedAOEs(module, AID.BalamBlasterRear, new AOEShapeCone(38.05f, 135.Degrees()));
+class ElectricWhisker(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectricWhisker, new AOEShapeCone(16.05f, 45.Degrees()));
+class RoaringThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.RoaringThunder, new AOEShapeDonut(8, 30));
+class StreakLightning(BossModule module) : Components.LocationTargetedAOEs(module, AID.StreakLightning, 3);
+class StreakLightning1(BossModule module) : Components.LocationTargetedAOEs(module, AID.StreakLightning1, 3);
+class AlternatingCurrent(BossModule module) : Components.SelfTargetedAOEs(module, AID.AlternatingCurrent1, new AOEShapeRect(60, 2.5f));
+class RumblingThunder(BossModule module) : Components.StackWithCastTargets(module, AID.RumblingThunderStack, 5, 1);
 
 class RendaRae(WorldState ws) : UnmanagedRotation(ws, 20)
 {

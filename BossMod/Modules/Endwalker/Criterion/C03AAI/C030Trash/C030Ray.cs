@@ -2,15 +2,15 @@
 
 namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
 
-class Hydrocannon(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(15, 3));
+class Hydrocannon(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(15, 3));
 class NHydrocannon(BossModule module) : Hydrocannon(module, AID.NHydrocannon);
 class SHydrocannon(BossModule module) : Hydrocannon(module, AID.SHydrocannon);
 
-class Expulsion(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(8));
+class Expulsion(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(8));
 class NExpulsion(BossModule module) : Expulsion(module, AID.NExpulsion);
 class SExpulsion(BossModule module) : Expulsion(module, AID.SExpulsion);
 
-class ElectricWhorl(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeDonut(8, 60));
+class ElectricWhorl(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeDonut(8, 60));
 class NElectricWhorl(BossModule module) : ElectricWhorl(module, AID.NElectricWhorl);
 class SElectricWhorl(BossModule module) : ElectricWhorl(module, AID.SElectricWhorl);
 

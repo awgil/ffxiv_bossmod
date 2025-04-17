@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
-class P3FiendishWail(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.FiendishWailAOE))
+class P3FiendishWail(BossModule module) : Components.CastCounter(module, AID.FiendishWailAOE)
 {
     private BitMask _physResistMask;
     private readonly List<Actor> _towers = [];

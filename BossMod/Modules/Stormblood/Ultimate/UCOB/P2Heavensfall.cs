@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P2Heavensfall(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Heavensfall), true)
+class P2Heavensfall(BossModule module) : Components.Knockback(module, AID.Heavensfall, true)
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -37,7 +37,7 @@ class P2HeavensfallPillar(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P2ThermionicBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThermionicBurst), new AOEShapeCone(24.5f, 11.25f.Degrees()));
+class P2ThermionicBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThermionicBurst, new AOEShapeCone(24.5f, 11.25f.Degrees()));
 
 class P2MeteorStream : Components.UniformStackSpread
 {
@@ -58,7 +58,7 @@ class P2MeteorStream : Components.UniformStackSpread
     }
 }
 
-class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DalamudDive), true, true)
+class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(module, AID.DalamudDive, true, true)
 {
     private readonly Actor? _target = module.WorldState.Actors.Find(module.PrimaryActor.TargetID);
 

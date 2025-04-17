@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
-class VenomousMass(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.VenomousMassAOE))
+class VenomousMass(BossModule module) : Components.CastCounter(module, AID.VenomousMassAOE)
 {
     private Actor? _target;
 

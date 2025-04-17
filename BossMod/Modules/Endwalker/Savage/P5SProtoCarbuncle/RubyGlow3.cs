@@ -2,7 +2,7 @@
 
 // note: currently we use visual casts to determine all safespots, these happen much earlier than animation changes...
 // note: it's somewhat simpler to count casts rather than activating/deactivating stones
-class RubyGlow3(BossModule module) : RubyGlowCommon(module, ActionID.MakeSpell(AID.RubyReflectionQuarter))
+class RubyGlow3(BossModule module) : RubyGlowCommon(module, AID.RubyReflectionQuarter)
 {
     private readonly BitMask[] _aoeQuadrants = new BitMask[4]; // [i] = danger quardants at explosion #i, bits: 0=NW, 1=NE, 2=SW, 3=SE
 

@@ -25,7 +25,7 @@ public enum IconID : uint
     Stackmarker = 62, // player
 }
 
-class OdiousMiasma(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OdiousMiasma), new AOEShapeCone(12, 60.Degrees()));
+class OdiousMiasma(BossModule module) : Components.SelfTargetedAOEs(module, AID.OdiousMiasma, new AOEShapeCone(12, 60.Degrees()));
 
 class AllergenInjection(BossModule module) : Components.GenericBaitAway(module)
 {

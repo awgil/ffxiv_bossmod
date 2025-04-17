@@ -15,9 +15,9 @@ public enum AID : uint
     Epigraph = 7997, // Boss->self, 3.5s cast, range 50+R width 8 rect
 }
 
-class TremblingEpigraph(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TremblingEpigraph), "Raidwide x4");
-class FlaringEpigraph(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FlaringEpigraph));
-class Epigraph(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Epigraph), new AOEShapeRect(55.04f, 4));
+class TremblingEpigraph(BossModule module) : Components.RaidwideCast(module, AID.TremblingEpigraph, "Raidwide x4");
+class FlaringEpigraph(BossModule module) : Components.RaidwideCast(module, AID.FlaringEpigraph);
+class Epigraph(BossModule module) : Components.SelfTargetedAOEs(module, AID.Epigraph, new AOEShapeRect(55.04f, 4));
 
 class OrghanaStates : StateMachineBuilder
 {

@@ -4,7 +4,7 @@ class MistralSong : Components.GenericLineOfSightAOE
 {
     private WPos _predictedPosition;
 
-    public MistralSong(BossModule module, WPos predictedPosition) : base(module, ActionID.MakeSpell(AID.MistralSong), 31.7f, true)
+    public MistralSong(BossModule module, WPos predictedPosition) : base(module, AID.MistralSong, 31.7f, true)
     {
         _predictedPosition = predictedPosition;
         Modify(_predictedPosition, ActiveBlockers());

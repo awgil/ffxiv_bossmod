@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
-class P2DemonsClawKnockback(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DemonsClaw), true)
+class P2DemonsClawKnockback(BossModule module) : Components.Knockback(module, AID.DemonsClaw, true)
 {
     private Actor? _caster;
 
@@ -23,7 +23,7 @@ class P2DemonsClawKnockback(BossModule module) : Components.Knockback(module, Ac
     }
 }
 
-class P2DemonsClawWaveCannon(BossModule module) : Components.GenericWildCharge(module, 5, ActionID.MakeSpell(AID.WaveCannonShared))
+class P2DemonsClawWaveCannon(BossModule module) : Components.GenericWildCharge(module, 5, AID.WaveCannonShared)
 {
     public Actor? Target { get; private set; }
 

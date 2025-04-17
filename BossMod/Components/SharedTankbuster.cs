@@ -2,7 +2,7 @@
 
 // generic 'shared tankbuster' component; assumes only 1 concurrent cast is active
 // TODO: revise and improve (track invuln, ai hints, num stacked tanks?)
-public class GenericSharedTankbuster(BossModule module, ActionID aid, AOEShape shape, bool originAtTarget = false) : CastCounter(module, aid)
+public class GenericSharedTankbuster(BossModule module, Enum? aid, AOEShape shape, bool originAtTarget = false) : CastCounter(module, aid)
 {
     public AOEShape Shape { get; init; } = shape;
     public bool OriginAtTarget { get; init; } = originAtTarget;
@@ -13,7 +13,7 @@ public class GenericSharedTankbuster(BossModule module, ActionID aid, AOEShape s
     public bool Active => Source != null;
 
     // circle shapes typically have origin at target
-    public GenericSharedTankbuster(BossModule module, ActionID aid, float radius) : this(module, aid, new AOEShapeCircle(radius), true) { }
+    public GenericSharedTankbuster(BossModule module, Enum? aid, float radius) : this(module, aid, new AOEShapeCircle(radius), true) { }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -62,9 +62,9 @@ public class GenericSharedTankbuster(BossModule module, ActionID aid, AOEShape s
 }
 
 // shared tankbuster at cast target
-public class CastSharedTankbuster(BossModule module, ActionID aid, AOEShape shape, bool originAtTarget = false) : GenericSharedTankbuster(module, aid, shape, originAtTarget)
+public class CastSharedTankbuster(BossModule module, Enum aid, AOEShape shape, bool originAtTarget = false) : GenericSharedTankbuster(module, aid, shape, originAtTarget)
 {
-    public CastSharedTankbuster(BossModule module, ActionID aid, float radius) : this(module, aid, new AOEShapeCircle(radius), true) { }
+    public CastSharedTankbuster(BossModule module, Enum aid, float radius) : this(module, aid, new AOEShapeCircle(radius), true) { }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -84,9 +84,9 @@ public class CastSharedTankbuster(BossModule module, ActionID aid, AOEShape shap
 }
 
 // shared tankbuster at icon
-public class IconSharedTankbuster(BossModule module, uint iconId, ActionID aid, AOEShape shape, float activationDelay = 5.1f, bool originAtTarget = false) : GenericSharedTankbuster(module, aid, shape, originAtTarget)
+public class IconSharedTankbuster(BossModule module, uint iconId, Enum aid, AOEShape shape, float activationDelay = 5.1f, bool originAtTarget = false) : GenericSharedTankbuster(module, aid, shape, originAtTarget)
 {
-    public IconSharedTankbuster(BossModule module, uint iconId, ActionID aid, float radius, float activationDelay = 5.1f) : this(module, iconId, aid, new AOEShapeCircle(radius), activationDelay, true) { }
+    public IconSharedTankbuster(BossModule module, uint iconId, Enum aid, float radius, float activationDelay = 5.1f) : this(module, iconId, aid, new AOEShapeCircle(radius), activationDelay, true) { }
 
     public virtual Actor? BaitSource(Actor target) => Module.PrimaryActor;
 

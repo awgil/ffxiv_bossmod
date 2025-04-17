@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
 
-class FlamespireClaw(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FlamespireClawAOE))
+class FlamespireClaw(BossModule module) : Components.GenericBaitAway(module, AID.FlamespireClawAOE)
 {
     private readonly int[] _order = new int[PartyState.MaxPartySize];
     private BitMask _tethers;

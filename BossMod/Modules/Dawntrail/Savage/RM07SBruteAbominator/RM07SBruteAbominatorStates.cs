@@ -21,7 +21,7 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
         Cast(id, AID._Weaponskill_BrutalImpact, delay, 5, "Raidwide 1")
             .ActivateOnEnter<BrutalImpact>()
             .SetHint(StateMachine.StateHint.Raidwide);
-        ComponentCondition<BrutalImpact>(id + 2, 5.6f, b => b.NumCasts >= 6, "Raidwide 6")
+        ComponentCondition<BrutalImpact>(id + 2, 5.6f, b => b.NumCasts == 6, "Raidwide 6")
             .DeactivateOnExit<BrutalImpact>();
 
         CastMulti(id + 0x10, [AID.StoneringerClub, AID.StoneringerSword], 5.2f, 2)
@@ -36,26 +36,26 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
             .DeactivateOnExit<P1Smash>();
 
         id += 0x10000;
-        Cast(id, AID._Weaponskill_SporeSac, 6.3f, 3)
+        Cast(id, AID._Weaponskill_SporeSac, 6.2f, 3)
             .ActivateOnEnter<SporeSac>()
-            .ActivateOnEnter<Pollen>()
             .ActivateOnEnter<SinisterSeedsSpread>()
             .ActivateOnEnter<SinisterSeedsChase>()
             .ActivateOnEnter<SinisterSeedsStored>()
-            .ActivateOnEnter<TendrilsOfTerror>()
-            .ActivateOnEnter<Impact>()
             .ActivateOnEnter<BloomingAbomination>()
             .ActivateOnEnter<CrossingCrosswinds>()
             .ActivateOnEnter<WindingWildwinds>()
             .ActivateOnEnter<HurricaneForce>();
 
-        ComponentCondition<SporeSac>(id + 2, 5.05f, s => s.NumCasts > 0, "Seed AOEs 1")
+        ComponentCondition<SporeSac>(id + 2, 5.1f, s => s.NumCasts > 0, "Seed AOEs 1")
             .DeactivateOnExit<SporeSac>();
-        ComponentCondition<Pollen>(id + 3, 5.75f, s => s.NumCasts > 0, "Seed AOEs 2")
+        ComponentCondition<Pollen>(id + 3, 5.6f, s => s.NumCasts > 0, "Seed AOEs 2")
+            .ActivateOnEnter<Pollen>()
             .DeactivateOnExit<Pollen>();
 
         ComponentCondition<TendrilsOfTerror>(id + 0x10, 11.5f, t => t.NumCasts > 0, "Safe spot + stacks")
+            .ActivateOnEnter<Impact>()
             .ActivateOnEnter<RootsOfEvil>()
+            .ActivateOnEnter<TendrilsOfTerror>()
             .ExecOnExit<SinisterSeedsStored>(s => s.Activate())
             .DeactivateOnExit<Impact>()
             .DeactivateOnExit<SinisterSeedsSpread>()
@@ -125,21 +125,23 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
     private void Phase2(uint id, float delay)
     {
         Targetable(id, true, delay, "Boss appears")
-            .ActivateOnEnter<P2Stoneringer>()
-            .ActivateOnEnter<GlowerPowerP2>()
+            .ActivateOnEnter<P2BrutishSwingIn>()
+            .ActivateOnEnter<P2BrutishSwingOut>()
+            .ActivateOnEnter<P2BrutishSwingCounter>()
+            .ActivateOnEnter<P2GlowerPower>()
             .ActivateOnEnter<RevengeOfTheVines>();
 
-        CastMulti(id + 0x10, [AID.StoneringerClubP2, AID.StoneringerSwordP2], 5.25f, 2);
+        CastMulti(id + 0x10, [AID.P2StoneringerClub, AID.P2StoneringerSword], 5.25f, 2);
 
         CastStartMulti(id + 0x20, [AID._Weaponskill_BrutishSwing7, AID._Weaponskill_BrutishSwing41], 5.9f);
 
-        ComponentCondition<P2Stoneringer>(id + 0x21, 8, s => s.NumCasts > 0, "In/out");
+        ComponentCondition<P2BrutishSwingCounter>(id + 0x21, 8, s => s.NumCasts > 0, "In/out");
 
         Cast(id + 0x30, AID._Weaponskill_GlowerPower, 0.9f, 2.6f)
-            .ActivateOnEnter<ElectrogeneticForceP2>();
+            .ActivateOnEnter<P2ElectrogeneticForce>();
 
-        ComponentCondition<ElectrogeneticForceP2>(id + 0x32, 1.2f, e => e.NumCasts > 0, "Spreads")
-            .DeactivateOnExit<ElectrogeneticForceP2>();
+        ComponentCondition<P2ElectrogeneticForce>(id + 0x32, 1.2f, e => e.NumCasts > 0, "Spreads")
+            .DeactivateOnExit<P2ElectrogeneticForce>();
 
         Cast(id + 0x40, AID._Weaponskill_RevengeOfTheVines, 0.9f, 5, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
@@ -152,7 +154,7 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
         ComponentCondition<ThornsOfDeath>(id + 0x52, 1.1f, t => t.Tethers.Count > 0, "Tank tether appear");
 
-        CastMulti(id + 0x60, [AID.StoneringerClubP2, AID.StoneringerSwordP2], 1, 2);
+        CastMulti(id + 0x60, [AID.P2StoneringerClub, AID.P2StoneringerSword], 1, 2);
 
         Cast(id + 0x70, AID._Weaponskill_AbominableBlink, 5.9f, 5.3f);
 
@@ -172,13 +174,13 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
         id += 0x10000;
 
-        ComponentCondition<P2Stoneringer>(id + 0x98, 5.1f, s => s.NumCasts > 1, "In/out");
+        ComponentCondition<P2BrutishSwingCounter>(id + 0x98, 5.1f, s => s.NumCasts > 1, "In/out");
 
         Cast(id + 0xA0, AID._Weaponskill_GlowerPower, 0.9f, 2.7f)
-            .ActivateOnEnter<ElectrogeneticForceP2>();
+            .ActivateOnEnter<P2ElectrogeneticForce>();
 
-        ComponentCondition<ElectrogeneticForceP2>(id + 0xA2, 1.2f, e => e.NumCasts > 0, "Spreads")
-            .DeactivateOnExit<ElectrogeneticForceP2>();
+        ComponentCondition<P2ElectrogeneticForce>(id + 0xA2, 1.2f, e => e.NumCasts > 0, "Spreads")
+            .DeactivateOnExit<P2ElectrogeneticForce>();
 
         Cast(id + 0xB0, AID._Weaponskill_RevengeOfTheVines, 1, 5, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
@@ -189,27 +191,27 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
         ComponentCondition<ThornsOfDeath>(id + 0xC2, 0.9f, t => t.Tethers.Count > 0, "Tethers appear");
 
-        Cast(id + 0xD0, AID._Weaponskill_AbominableBlink, 8.1f, 5.3f);
+        Cast(id + 0xD0, AID._Weaponskill_AbominableBlink, 7.2f, 5.3f);
 
         ComponentCondition<AbominableBlink>(id + 0xD2, 1, b => b.NumCasts > 1, "Flare")
             .DeactivateOnExit<AbominableBlink>();
 
         id += 0x100;
-        Cast(id, AID._Weaponskill_StrangeSeeds, 4.1f, 4)
-            .ActivateOnEnter<StrangeSeeds>();
+        Cast(id, AID._Weaponskill_StrangeSeeds, 3.1f, 4)
+            .ActivateOnEnter<StrangeSeeds>()
+            .ActivateOnEnter<StrangeSeedsCounter>();
 
         ComponentCondition<StrangeSeeds>(id + 2, 1.2f, s => s.ActiveSpreads.Any(), "Seeds start");
 
-        ComponentCondition<StrangeSeeds>(id + 4, 5, s => s.NumFinishedSpreads == 2, "Seeds 1");
+        ComponentCondition<StrangeSeedsCounter>(id + 4, 5, s => s.NumCasts == 2, "Seeds 1");
 
-        CastStartMulti(id + 0x10, [AID.StoneringerClubP2, AID.StoneringerSwordP2], 5.25f);
+        CastStartMulti(id + 0x10, [AID.P2StoneringerClub, AID.P2StoneringerSword], 5.25f);
 
-        ComponentCondition<StrangeSeeds>(id + 0x12, 5.1f, s => s.NumFinishedSpreads == 4, "Seeds 2");
-
-        ComponentCondition<StrangeSeeds>(id + 0x14, 5.1f, s => s.NumFinishedSpreads == 6, "Seeds 3");
-
-        ComponentCondition<StrangeSeeds>(id + 0x16, 5.1f, s => s.NumFinishedSpreads == 8, "Seeds 4")
-            .DeactivateOnExit<StrangeSeeds>();
+        ComponentCondition<StrangeSeedsCounter>(id + 0x12, 5, s => s.NumCasts == 4, "Seeds 2");
+        ComponentCondition<StrangeSeedsCounter>(id + 0x13, 5, s => s.NumCasts == 6, "Seeds 3");
+        ComponentCondition<StrangeSeedsCounter>(id + 0x14, 5, s => s.NumCasts == 8, "Seeds 4")
+            .DeactivateOnExit<StrangeSeeds>()
+            .DeactivateOnExit<StrangeSeedsCounter>();
 
         ComponentCondition<KillerSeeds>(id + 0x18, 9.8f, k => k.NumFinishedStacks > 0, "Pairs")
             .ActivateOnEnter<KillerSeeds>()
@@ -217,16 +219,20 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
         id += 0x10000;
 
-        CastMulti(id + 0x20, [AID._Weaponskill_BrutishSwing10, AID._Weaponskill_BrutishSwing4, AID._Weaponskill_BrutishSwing11, AID._Weaponskill_BrutishSwing21], 2.1f, 4);
+        CastStartMulti(id + 0x20, [AID._Weaponskill_BrutishSwing10, AID._Weaponskill_BrutishSwing4, AID._Weaponskill_BrutishSwing11, AID._Weaponskill_BrutishSwing21], 2);
 
-        ComponentCondition<P2Stoneringer>(id + 0x22, 4.1f, s => s.NumCasts > 2, "In/out")
-            .DeactivateOnExit<P2Stoneringer>();
+        ComponentCondition<TendrilsOfTerror>(id + 0x22, 2.6f, t => t.Casters.Count == 0, "Star AOEs");
+
+        ComponentCondition<P2BrutishSwingCounter>(id + 0x24, 5.5f, s => s.NumCasts > 2, "In/out")
+            .DeactivateOnExit<P2BrutishSwingCounter>()
+            .DeactivateOnExit<P2BrutishSwingIn>()
+            .DeactivateOnExit<P2BrutishSwingOut>();
 
         Cast(id + 0x30, AID._Weaponskill_GlowerPower, 0.9f, 2.7f)
-            .ActivateOnEnter<ElectrogeneticForceP2>();
-        ComponentCondition<ElectrogeneticForceP2>(id + 0x32, 1.2f, e => e.NumCasts > 0, "Spreads")
-            .DeactivateOnExit<ElectrogeneticForceP2>()
-            .DeactivateOnExit<GlowerPowerP2>();
+            .ActivateOnEnter<P2ElectrogeneticForce>();
+        ComponentCondition<P2ElectrogeneticForce>(id + 0x32, 1.2f, e => e.NumCasts > 0, "Spreads")
+            .DeactivateOnExit<P2ElectrogeneticForce>()
+            .DeactivateOnExit<P2GlowerPower>();
 
         Cast(id + 0x40, AID._Weaponskill_RevengeOfTheVines, 0.9f, 5, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
@@ -244,17 +250,35 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
     private void Phase3(uint id, float delay)
     {
-        Targetable(id, true, delay, "Boss appears");
+        Targetable(id, true, delay, "Boss appears")
+            .ActivateOnEnter<P3BrutishSwingIn>()
+            .ActivateOnEnter<P3BrutishSwingOut>()
+            .ActivateOnEnter<P3BrutishSwingCounter>();
 
-        Cast(id + 0x10, AID._Weaponskill_BrutalImpact, 7.1f, 5, "Raidwide");
-        CastMulti(id + 0x20, [AID._Weaponskill_Stoneringer2Stoneringers, AID._Weaponskill_Stoneringer2Stoneringers1], 12, 2, "Weapon select");
+        Cast(id + 0x10, AID._Weaponskill_BrutalImpact, 7.1f, 5, "Raidwide 1")
+            .ActivateOnEnter<BrutalImpact>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<BrutalImpact>(id + 0x12, 6.7f, b => b.NumCasts == 7, "Raidwide 7")
+            .DeactivateOnExit<BrutalImpact>();
 
-        Cast(id + 0x30, AID._Weaponskill_BrutishSwing12, 6.3f, 3, "Jump");
+        CastMulti(id + 0x20, [AID._Weaponskill_Stoneringer2Stoneringers, AID._Weaponskill_Stoneringer2Stoneringers1], 5.3f, 2)
+            .ActivateOnEnter<Lariat>()
+            .ActivateOnEnter<GlowerP3>()
+            .ActivateOnEnter<Slaminator>();
 
-        Cast(id + 0x40, AID._Weaponskill_LashingLariat, 6.9f, 3.5f, "Lariat");
+        Cast(id + 0x30, AID._Weaponskill_BrutishSwing12, 6.3f, 3);
 
-        Cast(id + 0x50, AID._Weaponskill_BrutishSwing18, 2.1f, 3, "Jump");
-        Cast(id + 0x60, AID._Weaponskill_GlowerPower2, 4.8f, 0.7f, "Glower");
+        ComponentCondition<P3BrutishSwingCounter>(id + 0x32, 3.8f, b => b.NumCasts > 0, "In/out");
+
+        CastMulti(id + 0x40, [AID._Weaponskill_LashingLariat, AID._Weaponskill_LashingLariat2], 3.1f, 3.5f);
+
+        ComponentCondition<Lariat>(id + 0x42, 0.5f, l => l.NumCasts > 0, "Cleave");
+
+        CastMulti(id + 0x50, [AID._Weaponskill_BrutishSwing18, AID._Weaponskill_BrutishSwing15], 1.6f, 3);
+
+        ComponentCondition<P3BrutishSwingCounter>(id + 0x52, 3.7f, b => b.NumCasts > 1, "In/out");
+
+        Cast(id + 0x60, AID._Weaponskill_GlowerPower2, 1.1f, 0.7f, "Glower");
         Cast(id + 0x70, AID._Weaponskill_Slaminator, 2.1f, 4, "Tower");
         Cast(id + 0x80, AID._Weaponskill_BrutalImpact, 5.1f, 5, "Raidwide");
         CastMulti(id + 0x90, [AID.StoneringerSword, AID.StoneringerClub], 10.9f, 2, "Select weapon");

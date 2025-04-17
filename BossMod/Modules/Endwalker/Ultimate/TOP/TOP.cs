@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class SolarRayM(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.SolarRayM), new AOEShapeCircle(5), true);
-class SolarRayF(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.SolarRayF), new AOEShapeCircle(5), true);
-class P4BlueScreen(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.BlueScreenAOE));
-class P5BlindFaith(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BlindFaithSuccess), "Intermission");
+class SolarRayM(BossModule module) : Components.BaitAwayCast(module, AID.SolarRayM, new AOEShapeCircle(5), true);
+class SolarRayF(BossModule module) : Components.BaitAwayCast(module, AID.SolarRayF, new AOEShapeCircle(5), true);
+class P4BlueScreen(BossModule module) : Components.CastCounter(module, AID.BlueScreenAOE);
+class P5BlindFaith(BossModule module) : Components.CastHint(module, AID.BlindFaithSuccess, "Intermission");
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 908, PlanLevel = 90)]
 public class TOP(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))

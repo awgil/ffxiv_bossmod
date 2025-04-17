@@ -25,8 +25,8 @@ public enum TetherID : uint
     WhaleOilTether = 3,
 }
 
-class PageTear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PageTear), new AOEShapeCone(5f + 3f, 45.Degrees()));
-class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.HeadDown), 4)
+class PageTear(BossModule module) : Components.SelfTargetedAOEs(module, AID.PageTear, new AOEShapeCone(5f + 3f, 45.Degrees()));
+class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, AID.HeadDown, 4)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -36,8 +36,8 @@ class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, Action
             hints.AddForbiddenZone(new AOEShapeDonut(3f + 2.6f, 23f), BaitOrigin(b), b.Rotation, b.Activation);
     }
 }
-class BoneShaker(BossModule module) : Components.RaidwideInstant(module, ActionID.MakeSpell(AID.BoneShaker), 5.1f);
-class Bibliocide(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(3f), (uint)TetherID.WhaleOilTether, ActionID.MakeSpell(AID.Bibliocide))
+class BoneShaker(BossModule module) : Components.RaidwideInstant(module, AID.BoneShaker, 5.1f);
+class Bibliocide(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(3f), (uint)TetherID.WhaleOilTether, AID.Bibliocide)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -84,9 +84,9 @@ class Bibliocide(BossModule module) : Components.BaitAwayTethers(module, new AOE
         }
     }
 };
-class GaleCut(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.GaleCut));
-class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSmash), new AOEShapeCone(9f + 3f, 45.Degrees()));
-class DeathRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathRay), new AOEShapeRect(23f + 3f, 1.5f));
+class GaleCut(BossModule module) : Components.SingleTargetCast(module, AID.GaleCut);
+class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSmash, new AOEShapeCone(9f + 3f, 45.Degrees()));
+class DeathRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeathRay, new AOEShapeRect(23f + 3f, 1.5f));
 class TomeWind(BossModule module) : BossComponent(module)
 {
     private IEnumerable<Actor> TomeWinds => Module.Enemies(OID.TomeWind).Where(e => !e.IsDead);

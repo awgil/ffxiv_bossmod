@@ -19,7 +19,7 @@ class TasteOfLightningBait(BossModule module) : BossComponent(module)
     }
 }
 
-class LightningFlash(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LightningFlash));
+class LightningFlash(BossModule module) : Components.CastCounter(module, AID.LightningFlash);
 
 class TasteOfLightningDelayed(BossModule module) : Components.GenericAOEs(module)
 {
@@ -49,7 +49,7 @@ class TasteOfLightningDelayed(BossModule module) : Components.GenericAOEs(module
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Baits.Select(b => new AOEInstance(new AOEShapeCircle(3), b, default, Activation));
 }
 
-class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), 4);
+class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningBolt, 4);
 
 // strikes about every 10.5s
 class TempestPiece(BossModule module) : Components.GenericAOEs(module)
@@ -101,9 +101,9 @@ class TempestPiece(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(NextPosition).Select(p => new AOEInstance(new AOEShapeCircle(21), p, default, NextActivation));
 }
 
-class Highlightning(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Highlightning));
+class Highlightning(BossModule module) : Components.CastCounter(module, AID.Highlightning);
 
-class LightningStorm(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.LightningStorm, ActionID.MakeSpell(AID.LightningStorm), 15, true)
+class LightningStorm(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.LightningStorm, AID.LightningStorm, 15, true)
 {
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {

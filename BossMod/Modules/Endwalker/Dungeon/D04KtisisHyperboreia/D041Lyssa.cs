@@ -15,9 +15,9 @@ public enum AID : uint
     HeavySmash = 25180, // Boss->none, 5.0s cast, range 6 circle
 }
 
-class SkullDasher(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SkullDasher));
+class SkullDasher(BossModule module) : Components.SingleTargetCast(module, AID.SkullDasher);
 
-class PunishingSlice(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.PunishingSlice))
+class PunishingSlice(BossModule module) : Components.GenericAOEs(module, AID.PunishingSlice)
 {
     private AOEInstance? _aoe;
     private static readonly AOEShapeRect shape = new(50, 25);
@@ -54,10 +54,10 @@ class PunishingSlice(BossModule module) : Components.GenericAOEs(module, ActionI
     }
 }
 
-class FrigidStomp(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FrigidStomp));
-class IcePillar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IcePillar), new AOEShapeCircle(4));
-class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarPierce), new AOEShapeRect(80, 2));
-class HeavySmash(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.HeavySmash), 6, 4);
+class FrigidStomp(BossModule module) : Components.RaidwideCast(module, AID.FrigidStomp);
+class IcePillar(BossModule module) : Components.SelfTargetedAOEs(module, AID.IcePillar, new AOEShapeCircle(4));
+class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarPierce, new AOEShapeRect(80, 2));
+class HeavySmash(BossModule module) : Components.StackWithCastTargets(module, AID.HeavySmash, 6, 4);
 
 class D041LyssaStates : StateMachineBuilder
 {

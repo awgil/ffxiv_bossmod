@@ -50,8 +50,8 @@ public enum SID : uint
     ExtremeCaution = 1269, // Boss->players
 }
 
-class Spincrush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spincrush), new AOEShapeCone(15, 60.Degrees()));
-class FireShot(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FireShot), 7);
+class Spincrush(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spincrush, new AOEShapeCone(15, 60.Degrees()));
+class FireShot(BossModule module) : Components.LocationTargetedAOEs(module, AID.FireShot, 7);
 
 class FiresOfMtGulg(BossModule module) : Components.GenericAOEs(module)
 {
@@ -87,12 +87,12 @@ class FiresOfMtGulg(BossModule module) : Components.GenericAOEs(module)
 }
 
 // note: raidwide cast is followed by 7 aoes every ~2.7s
-class BarrageFire(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BarrageFire), "Raidwide + 7 repeats after");
+class BarrageFire(BossModule module) : Components.RaidwideCast(module, AID.BarrageFire, "Raidwide + 7 repeats after");
 
 // note: it could have been a simple StackWithCastTargets, however sometimes there is no cast - i assume it happens because actor spawns right before starting a cast, and sometimes due to timings cast-start is missed by the game
 // because of that, we just use icons & cast events
 // i've also seen player getting rez, immediately getting stack later than others, but then caster gets destroyed without finishing the cast
-class DrillShot(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.DrillShot), 6)
+class DrillShot(BossModule module) : Components.StackWithCastTargets(module, AID.DrillShot, 6)
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -141,7 +141,7 @@ class ExplosionMissile(BossModule module) : BossComponent(module)
     }
 }
 
-class ExplosionGrenade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionGrenade), new AOEShapeCircle(12));
+class ExplosionGrenade(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosionGrenade, new AOEShapeCircle(12));
 
 class DwarvenDischarge(BossModule module, AOEShape shape, OID oid, AID aid, float delay) : Components.GenericAOEs(module)
 {
@@ -179,9 +179,9 @@ class DwarvenDischargeDonut(BossModule module) : DwarvenDischarge(module, new AO
 class DwarvenDischargeCircle(BossModule module) : DwarvenDischarge(module, new AOEShapeCircle(8), OID.DwarvenChargeCircle, AID.DwarvenDischargeCircle, 8.1f);
 
 class AutomatonEscort(BossModule module) : Components.Adds(module, (uint)OID.AutomatonEscort);
-class SteamDome(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.SteamDome), 15);
+class SteamDome(BossModule module) : Components.KnockbackFromCastTarget(module, AID.SteamDome, 15);
 
-class DynamicSensoryJammer(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.DynamicSensoryJammer), "")
+class DynamicSensoryJammer(BossModule module) : Components.CastHint(module, AID.DynamicSensoryJammer, "")
 {
     private BitMask _ec;
     public bool Ec { get; private set; }

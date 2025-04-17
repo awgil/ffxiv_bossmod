@@ -27,13 +27,13 @@ public enum IconID : uint
     BloodshotGaze = 548, // player
 }
 
-class CatsEyeNormal(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CatsEyeNormal), false, 40);
-class CatsEyeInverted(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CatsEyeInverted), true, 40);
-class BloodshotGazeNormal(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.BloodshotGazeNormal), false, 8);
-class BloodshotGazeInverted(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.BloodshotGazeInverted), true, 8);
-class BloodshotStackNormal(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.BloodshotGazeNormal), 8, 4);
-class BloodshotStackInverted(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.BloodshotGazeInverted), 8, 4);
-class GravitationalWave(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.GravitationalWave));
+class CatsEyeNormal(BossModule module) : Components.CastGaze(module, AID.CatsEyeNormal, false, 40);
+class CatsEyeInverted(BossModule module) : Components.CastGaze(module, AID.CatsEyeInverted, true, 40);
+class BloodshotGazeNormal(BossModule module) : Components.CastGaze(module, AID.BloodshotGazeNormal, false, 8);
+class BloodshotGazeInverted(BossModule module) : Components.CastGaze(module, AID.BloodshotGazeInverted, true, 8);
+class BloodshotStackNormal(BossModule module) : Components.StackWithCastTargets(module, AID.BloodshotGazeNormal, 8, 4);
+class BloodshotStackInverted(BossModule module) : Components.StackWithCastTargets(module, AID.BloodshotGazeInverted, 8, 4);
+class GravitationalWave(BossModule module) : Components.RaidwideCast(module, AID.GravitationalWave);
 
 class CatsEyeStates : StateMachineBuilder
 {

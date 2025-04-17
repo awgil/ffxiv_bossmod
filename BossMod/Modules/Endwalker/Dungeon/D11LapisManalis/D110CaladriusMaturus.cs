@@ -12,7 +12,7 @@ public enum AID : uint
     TransonicBlast = 32535, // Caladrius->self, 4.0s cast, range 9 90-degree cone
 }
 
-class TransonicBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TransonicBlast), new AOEShapeCone(9, 45.Degrees()));
+class TransonicBlast(BossModule module) : Components.SelfTargetedAOEs(module, AID.TransonicBlast, new AOEShapeCone(9, 45.Degrees()));
 
 class D110CaladriusMaturusStates : StateMachineBuilder
 {

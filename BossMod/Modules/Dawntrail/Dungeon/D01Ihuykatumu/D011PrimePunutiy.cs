@@ -52,8 +52,8 @@ public enum TetherID : uint
     SongOfThePunutiy = 17, // ProdigiousPunutiy/Punutiy/PetitPunutiy->player
 }
 
-class PunutiyFlop(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PunutiyPress));
-class Hydrowave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrowave), new AOEShapeCone(60, 15.Degrees()));
+class PunutiyFlop(BossModule module) : Components.RaidwideCast(module, AID.PunutiyPress);
+class Hydrowave(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrowave, new AOEShapeCone(60, 15.Degrees()));
 
 class Resurface(BossModule module) : Components.GenericAOEs(module)
 {
@@ -108,7 +108,7 @@ class Bury(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Decay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Decay), new AOEShapeDonut(5, 40))
+class Decay(BossModule module) : Components.SelfTargetedAOEs(module, AID.Decay, new AOEShapeDonut(5, 40))
 {
     private readonly IReadOnlyList<Actor> _flytrap = module.Enemies(OID.IhuykatumuFlytrap);
 
@@ -118,8 +118,8 @@ class Decay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.Ma
     }
 }
 
-class PunitiyFlopLarge(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.PunutiyFlopLarge), new AOEShapeCircle(14), true);
-class PunitiyFlopSmall(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.PunutiyFlopSmall), new AOEShapeCircle(6), true);
+class PunitiyFlopLarge(BossModule module) : Components.BaitAwayCast(module, AID.PunutiyFlopLarge, new AOEShapeCircle(14), true);
+class PunitiyFlopSmall(BossModule module) : Components.BaitAwayCast(module, AID.PunutiyFlopSmall, new AOEShapeCircle(6), true);
 class PunitiyHydrowave(BossModule module) : Components.GenericBaitAway(module)
 {
     private static readonly AOEShapeCone _shape = new(60, 30.Degrees());

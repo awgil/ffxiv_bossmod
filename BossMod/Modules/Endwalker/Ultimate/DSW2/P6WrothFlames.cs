@@ -63,7 +63,7 @@ class P6WrothFlames : Components.GenericAOEs
     }
 }
 
-class P6AkhMorn(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.AkhMornFirst), 6, 8)
+class P6AkhMorn(BossModule module) : Components.StackWithCastTargets(module, AID.AkhMornFirst, 6, 8)
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell) { } // do not clear stacks on first cast
 

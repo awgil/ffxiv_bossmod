@@ -3,7 +3,7 @@
 namespace BossMod.Components;
 
 // generic gaze/weakpoint component, allows customized 'eye' position
-public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool inverted = false) : CastCounter(module, aid)
+public abstract class GenericGaze(BossModule module, Enum? aid = default, bool inverted = false) : CastCounter(module, aid)
 {
     public record struct Eye(
         WPos Position,
@@ -85,7 +85,7 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
 }
 
 // gaze that happens on cast end
-public class CastGaze(BossModule module, ActionID aid, bool inverted = false, float range = 10000) : GenericGaze(module, aid, inverted)
+public class CastGaze(BossModule module, Enum aid, bool inverted = false, float range = 10000) : GenericGaze(module, aid, inverted)
 {
     private readonly List<Actor> _casters = [];
 
@@ -107,7 +107,7 @@ public class CastGaze(BossModule module, ActionID aid, bool inverted = false, fl
 }
 
 // cast weakpoint component: a number of casts (with supposedly non-intersecting shapes), player should face specific side determined by active status to the caster for aoe he's in
-public class CastWeakpoint(BossModule module, ActionID aid, AOEShape shape, uint statusForward, uint statusBackward, uint statusLeft, uint statusRight) : GenericGaze(module, aid, true)
+public class CastWeakpoint(BossModule module, Enum aid, AOEShape shape, uint statusForward, uint statusBackward, uint statusLeft, uint statusRight) : GenericGaze(module, aid, true)
 {
     public AOEShape Shape = shape;
     public readonly uint[] Statuses = [statusForward, statusLeft, statusBackward, statusRight]; // 4 elements: fwd, left, back, right

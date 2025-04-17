@@ -351,7 +351,7 @@ class P5Delta(BossModule module) : BossComponent(module)
     private WDir BaitOffset(int index) => 19 * (Angle.FromDirection(_eyeDir) + index * 60.Degrees() - 0.15f * ArmRotations[index]).ToDirection(); // 5 degrees offset in correct direction
 }
 
-class P5DeltaOpticalLaser(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.OpticalLaser))
+class P5DeltaOpticalLaser(BossModule module) : Components.GenericAOEs(module, AID.OpticalLaser)
 {
     public Actor? Source { get; private set; }
     private DateTime _activation;
@@ -375,7 +375,7 @@ class P5DeltaOpticalLaser(BossModule module) : Components.GenericAOEs(module, Ac
     }
 }
 
-class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DeltaExplosion), 3)
+class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(module, AID.DeltaExplosion, 3)
 {
     private readonly P5Delta? _delta = module.FindComponent<P5Delta>();
 

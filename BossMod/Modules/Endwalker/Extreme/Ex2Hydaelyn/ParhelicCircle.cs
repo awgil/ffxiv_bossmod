@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex2Hydaelyn;
 
-class ParhelicCircle(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Incandescence))
+class ParhelicCircle(BossModule module) : Components.CastCounter(module, AID.Incandescence)
 {
     private readonly List<WPos> _positions = [];
 

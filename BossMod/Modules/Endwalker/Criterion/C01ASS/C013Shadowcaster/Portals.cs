@@ -23,7 +23,7 @@ static class Portals
     }
 }
 
-class PortalsAOE(BossModule module, AID aid, OID movedOID, float activationDelay, AOEShape shape) : Components.GenericAOEs(module, ActionID.MakeSpell(aid))
+class PortalsAOE(BossModule module, AID aid, OID movedOID, float activationDelay, AOEShape shape) : Components.GenericAOEs(module, aid)
 {
     private readonly IReadOnlyList<Actor> _movedActors = module.Enemies(movedOID);
     private readonly float _activationDelay = activationDelay;

@@ -26,9 +26,9 @@ public enum IconID : uint
     CloudCall = 24, // player
 }
 
-class Touchdown(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TouchdownVisual), new AOEShapeCircle(20));
-class GallopLine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GallopLine), new AOEShapeRect(40, 1));
-class GallopKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.GallopKnockback), 10, shape: new AOEShapeRect(6.5f, 20), kind: Kind.DirForward, stopAtWall: true)
+class Touchdown(BossModule module) : Components.SelfTargetedAOEs(module, AID.TouchdownVisual, new AOEShapeCircle(20));
+class GallopLine(BossModule module) : Components.SelfTargetedAOEs(module, AID.GallopLine, new AOEShapeRect(40, 1));
+class GallopKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GallopKnockback, 10, shape: new AOEShapeRect(6.5f, 20), kind: Kind.DirForward, stopAtWall: true)
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => pos.X is > 405 or < 395;
 
@@ -60,9 +60,9 @@ class GallopKnockback(BossModule module) : Components.KnockbackFromCastTarget(mo
         }, Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
-class BurningBright(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.BurningBright), new AOEShapeRect(26, 3), endsOnCastEvent: false);
-class CloudCall(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.CloudCall, ActionID.MakeSpell(AID.CloudCall), 4.1f, true);
-class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), new AOEShapeCircle(8));
+class BurningBright(BossModule module) : Components.BaitAwayCast(module, AID.BurningBright, new AOEShapeRect(26, 3), endsOnCastEvent: false);
+class CloudCall(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.CloudCall, AID.CloudCall, 4.1f, true);
+class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightningBolt, new AOEShapeCircle(8));
 
 class Walls(BossModule module) : BossComponent(module)
 {
@@ -113,4 +113,3 @@ class PoqhirajStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171, NameID = 4952, Contributors = "xan")]
 public class Poqhiraj(WorldState ws, Actor primary) : BossModule(ws, primary, new(400, 104.15f), new ArenaBoundsRect(4.5f, 20));
-

@@ -22,13 +22,13 @@ public enum AID : uint
     MarkOfTheBeast = 32205, // 3D28->self, 3.0s cast, range 8 120-degree cone
 }
 
-class InfernoBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.InfernoBlast), new AOEShapeRect(46, 20));
-class Roar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Roar), new AOEShapeCircle(12));
-class FlareStar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlareStar), new AOEShapeCircle(12));
-class MarkOfTheBeast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MarkOfTheBeast), new AOEShapeCone(8, 60.Degrees()));
-class Pounce(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Pounce));
-class MagmaChamber(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagmaChamber2), 8);
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class InfernoBlast(BossModule module) : Components.SelfTargetedAOEs(module, AID.InfernoBlast, new AOEShapeRect(46, 20));
+class Roar(BossModule module) : Components.SelfTargetedAOEs(module, AID.Roar, new AOEShapeCircle(12));
+class FlareStar(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlareStar, new AOEShapeCircle(12));
+class MarkOfTheBeast(BossModule module) : Components.SelfTargetedAOEs(module, AID.MarkOfTheBeast, new AOEShapeCone(8, 60.Degrees()));
+class Pounce(BossModule module) : Components.SingleTargetCast(module, AID.Pounce);
+class MagmaChamber(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagmaChamber2, 8);
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
 
 class LeonStates : StateMachineBuilder
 {

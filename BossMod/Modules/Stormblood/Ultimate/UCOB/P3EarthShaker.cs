@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.EarthShakerAOE))
+class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.EarthShakerAOE)
 {
     private List<Bait> _futureBaits = [];
 

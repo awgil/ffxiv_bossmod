@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex3Sphene;
 
-class AbsoluteAuthorityPuddles(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AbsoluteAuthorityPuddlesAOE), 8);
+class AbsoluteAuthorityPuddles(BossModule module) : Components.LocationTargetedAOEs(module, AID.AbsoluteAuthorityPuddlesAOE, 8);
 
 class AbsoluteAuthorityExpansionBoot(BossModule module) : Components.UniformStackSpread(module, 6, 15, 4, alwaysShowSpreads: true) // TODO: verify falloff
 {
@@ -32,7 +32,7 @@ class AbsoluteAuthorityExpansionBoot(BossModule module) : Components.UniformStac
     }
 }
 
-class AbsoluteAuthorityHeel(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AbsoluteAuthorityHeel))
+class AbsoluteAuthorityHeel(BossModule module) : Components.CastCounter(module, AID.AbsoluteAuthorityHeel)
 {
     private BitMask _targets;
 
@@ -59,4 +59,4 @@ class AbsoluteAuthorityHeel(BossModule module) : Components.CastCounter(module, 
     }
 }
 
-class AbsoluteAuthorityKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AbsoluteAuthorityKnockback), 30, kind: Kind.DirForward);
+class AbsoluteAuthorityKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AbsoluteAuthorityKnockback, 30, kind: Kind.DirForward);

@@ -106,4 +106,4 @@ class LimitlessDesolation : Components.UniformStackSpread
     }
 }
 
-class LimitlessDesolationTyrantsFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TyrantsFlareLimitless), 8);
+class LimitlessDesolationTyrantsFlare(BossModule module) : Components.LocationTargetedAOEs(module, AID.TyrantsFlareLimitless, 8);

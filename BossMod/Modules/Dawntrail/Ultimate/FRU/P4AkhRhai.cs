@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
-class P4AkhRhai(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.AkhRhaiAOE))
+class P4AkhRhai(BossModule module) : Components.GenericAOEs(module, AID.AkhRhaiAOE)
 {
     public readonly List<AOEInstance> AOEs = [];
 

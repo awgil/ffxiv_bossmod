@@ -38,8 +38,8 @@ public enum SID : uint
     RightwardBearing = 2838, // Boss->Boss, extra=0x0
 }
 
-class Gnaw(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Gnaw));
-class Caterwaul(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Caterwaul));
+class Gnaw(BossModule module) : Components.SingleTargetCast(module, AID.Gnaw);
+class Caterwaul(BossModule module) : Components.RaidwideCast(module, AID.Caterwaul);
 
 class Stance(BossModule module) : Components.GenericAOEs(module)
 {

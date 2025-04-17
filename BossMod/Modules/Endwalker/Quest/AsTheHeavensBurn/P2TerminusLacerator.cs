@@ -20,12 +20,12 @@ public enum AID : uint
     Explosion = 27026, // 35ED->self, 3.0s cast, range 6 circle
 }
 
-class Burst(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Burst), 5);
-class DeadlyImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DeadlyImpact), 10, maxCasts: 6);
-class BlackStar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BlackStar));
-class DeadlyImpactProximity(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeadlyImpactMeteorite), new AOEShapeCircle(8));
-class DeadlyImpactProximity2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeadlyImpactMeteorite2), new AOEShapeCircle(10));
-class MeteorExplosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(6));
+class Burst(BossModule module) : Components.CastTowers(module, AID.Burst, 5);
+class DeadlyImpact(BossModule module) : Components.LocationTargetedAOEs(module, AID.DeadlyImpact, 10, maxCasts: 6);
+class BlackStar(BossModule module) : Components.RaidwideCast(module, AID.BlackStar);
+class DeadlyImpactProximity(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeadlyImpactMeteorite, new AOEShapeCircle(8));
+class DeadlyImpactProximity2(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeadlyImpactMeteorite2, new AOEShapeCircle(10));
+class MeteorExplosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(6));
 class Meteor(BossModule module) : Components.GenericLineOfSightAOE(module, default, 100, false)
 {
     public record MeteorObj(Actor Actor, DateTime Explosion);
@@ -77,4 +77,3 @@ public class TerminusLacerator(WorldState ws, Actor primary) : BossModule(ws, pr
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
 }
-

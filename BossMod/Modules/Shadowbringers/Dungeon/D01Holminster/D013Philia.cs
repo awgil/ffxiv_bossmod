@@ -54,8 +54,8 @@ public enum SID : uint
 }
 
 class SludgeVoidzone(BossModule module) : Components.PersistentVoidzone(module, 9.8f, m => m.Enemies(OID.SludgeVoidzone).Where(z => z.EventState != 7));
-class ScavengersDaughter(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ScavengersDaughter));
-class HeadCrusher(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HeadCrusher));
+class ScavengersDaughter(BossModule module) : Components.RaidwideCast(module, AID.ScavengersDaughter);
+class HeadCrusher(BossModule module) : Components.SingleTargetCast(module, AID.HeadCrusher);
 
 class Chains(BossModule module) : BossComponent(module)
 {
@@ -192,10 +192,10 @@ class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class PendulumAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PendulumAOE3), 15);
-class LeftKnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftKnout), new AOEShapeCone(24, 105.Degrees()));
-class RightKnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightKnout), new AOEShapeCone(24, 105.Degrees()));
-class Taphephobia(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Taphephobia2), 6);
+class PendulumAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.PendulumAOE3, 15);
+class LeftKnout(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftKnout, new AOEShapeCone(24, 105.Degrees()));
+class RightKnout(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightKnout, new AOEShapeCone(24, 105.Degrees()));
+class Taphephobia(BossModule module) : Components.SpreadFromCastTargets(module, AID.Taphephobia2, 6);
 
 // TODO: create and use generic 'line stack' component
 class IntoTheLight(BossModule module) : Components.GenericBaitAway(module)

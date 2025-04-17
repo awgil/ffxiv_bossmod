@@ -31,20 +31,20 @@ public enum AID : uint
     MercilessLeft2 = 16297, // 29FD->self, 4.2s cast, range 40 120-degree cone
 }
 
-class UnceremoniousBeheading(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UnceremoniousBeheading), new AOEShapeCircle(10));
-class KatunCycle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.KatunCycle), new AOEShapeDonut(5, 40));
-class MercilessRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MercilessRight1), new AOEShapeCone(40, 60.Degrees()));
-class MercilessRight1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MercilessRight2), new AOEShapeCone(40, 60.Degrees()));
-class MercilessLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MercilessLeft1), new AOEShapeCone(40, 60.Degrees()));
-class MercilessLeft1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MercilessLeft2), new AOEShapeCone(40, 60.Degrees()));
-class Evisceration(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Evisceration), new AOEShapeCone(40, 60.Degrees()));
-class HotPursuit(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HotPursuit1), 5);
-class NexusOfThunder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NexusOfThunder1), new AOEShapeRect(45, 2.5f));
-class NexusOfThunder1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NexusOfThunder2), new AOEShapeRect(45, 2.5f));
-class Burn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Burn), new AOEShapeCircle(8), maxCasts: 5);
-class Spiritcall(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Spiritcall), 20, stopAtWall: true);
+class UnceremoniousBeheading(BossModule module) : Components.SelfTargetedAOEs(module, AID.UnceremoniousBeheading, new AOEShapeCircle(10));
+class KatunCycle(BossModule module) : Components.SelfTargetedAOEs(module, AID.KatunCycle, new AOEShapeDonut(5, 40));
+class MercilessRight(BossModule module) : Components.SelfTargetedAOEs(module, AID.MercilessRight1, new AOEShapeCone(40, 60.Degrees()));
+class MercilessRight1(BossModule module) : Components.SelfTargetedAOEs(module, AID.MercilessRight2, new AOEShapeCone(40, 60.Degrees()));
+class MercilessLeft(BossModule module) : Components.SelfTargetedAOEs(module, AID.MercilessLeft1, new AOEShapeCone(40, 60.Degrees()));
+class MercilessLeft1(BossModule module) : Components.SelfTargetedAOEs(module, AID.MercilessLeft2, new AOEShapeCone(40, 60.Degrees()));
+class Evisceration(BossModule module) : Components.SelfTargetedAOEs(module, AID.Evisceration, new AOEShapeCone(40, 60.Degrees()));
+class HotPursuit(BossModule module) : Components.LocationTargetedAOEs(module, AID.HotPursuit1, 5);
+class NexusOfThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.NexusOfThunder1, new AOEShapeRect(45, 2.5f));
+class NexusOfThunder1(BossModule module) : Components.SelfTargetedAOEs(module, AID.NexusOfThunder2, new AOEShapeRect(45, 2.5f));
+class Burn(BossModule module) : Components.SelfTargetedAOEs(module, AID.Burn, new AOEShapeCircle(8), maxCasts: 5);
+class Spiritcall(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Spiritcall, 20, stopAtWall: true);
 
-class Electrocution(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Electrocution), new AOEShapeCircle(6))
+class Electrocution(BossModule module) : Components.SelfTargetedAOEs(module, AID.Electrocution, new AOEShapeCircle(6))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

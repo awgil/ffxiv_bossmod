@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
-class MercifulMoon(BossModule module) : Components.GenericGaze(module, ActionID.MakeSpell(AID.MercifulMoon))
+class MercifulMoon(BossModule module) : Components.GenericGaze(module, AID.MercifulMoon)
 {
     private Eye? _eye;
 

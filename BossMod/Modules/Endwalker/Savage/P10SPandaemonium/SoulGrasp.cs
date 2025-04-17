@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class SoulGrasp(BossModule module) : Components.GenericSharedTankbuster(module, ActionID.MakeSpell(AID.SoulGraspAOE), 4)
+class SoulGrasp(BossModule module) : Components.GenericSharedTankbuster(module, AID.SoulGraspAOE, 4)
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {

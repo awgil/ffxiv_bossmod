@@ -37,7 +37,7 @@ class Aethertithe(BossModule module) : Components.GenericAOEs(module)
 
 class Retribute : Components.GenericWildCharge
 {
-    public Retribute(BossModule module) : base(module, 4, ActionID.MakeSpell(AID.RetributeAOE), 60)
+    public Retribute(BossModule module) : base(module, 4, AID.RetributeAOE, 60)
     {
         Source = module.PrimaryActor;
         foreach (var (i, p) in module.Raid.WithSlot(true))

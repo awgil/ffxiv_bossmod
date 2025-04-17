@@ -15,8 +15,8 @@ public enum AID : uint
     BlizzardIII = 10874, // Boss->location, 3.0s cast, range 5 circle
 }
 
-class Kasaya(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Kasaya), new AOEShapeCone(7.6f, 60.Degrees()));
-class WaterIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WaterIII), 8);
+class Kasaya(BossModule module) : Components.SelfTargetedAOEs(module, AID.Kasaya, new AOEShapeCone(7.6f, 60.Degrees()));
+class WaterIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.WaterIII, 8);
 
 class BlizzardIIIIcon(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), 26, centerAtTarget: true)
 {
@@ -32,7 +32,7 @@ class BlizzardIIIIcon(BossModule module) : Components.BaitAwayIcon(module, new A
             CurrentBaits.Clear();
     }
 }
-class BlizzardIIICast(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.BlizzardIII), m => m.Enemies(0x1E8D9C).Where(x => x.EventState != 7), 0);
+class BlizzardIIICast(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.BlizzardIII, m => m.Enemies(0x1E8D9C).Where(x => x.EventState != 7), 0);
 
 class SlickshellCaptainStates : StateMachineBuilder
 {
@@ -67,4 +67,3 @@ public class SlickshellCaptain(WorldState ws, Actor primary) : BossModule(ws, pr
             h.Priority = WorldState.Actors.Find(h.Actor.TargetID)?.OID == 0x2138 ? 1 : 0;
     }
 }
-

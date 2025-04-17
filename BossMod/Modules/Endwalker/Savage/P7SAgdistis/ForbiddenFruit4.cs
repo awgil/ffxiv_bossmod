@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
-class ForbiddenFruit4(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.BullishSwipeAOE))
+class ForbiddenFruit4(BossModule module) : ForbiddenFruitCommon(module, AID.BullishSwipeAOE)
 {
     private int _bullPlatform;
 

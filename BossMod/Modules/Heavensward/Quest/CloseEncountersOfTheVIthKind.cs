@@ -26,11 +26,11 @@ class RegulaVanHydrusStates : StateMachineBuilder
     }
 }
 
-class HandOfTheEmpire(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HandOfTheEmpire), 2);
+class HandOfTheEmpire(BossModule module) : Components.LocationTargetedAOEs(module, AID.HandOfTheEmpire, 2);
 
 class Voidzone(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Puddle));
 
-class TerminusEst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.TerminusEstAOE))
+class TerminusEst(BossModule module) : Components.GenericAOEs(module, AID.TerminusEstAOE)
 {
     private bool _active;
 
@@ -59,4 +59,3 @@ class TerminusEst(BossModule module) : Components.GenericAOEs(module, ActionID.M
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67203, NameID = 3818)]
 public class RegulaVanHydrus(WorldState ws, Actor primary) : BossModule(ws, primary, new(252.75f, 553), new ArenaBoundsCircle(19.5f));
-

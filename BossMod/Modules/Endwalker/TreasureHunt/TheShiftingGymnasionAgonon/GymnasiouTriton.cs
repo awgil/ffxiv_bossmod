@@ -20,10 +20,10 @@ public enum AID : uint
     ProtolithicPuncture = 32228, // Boss->player, 5.0s cast, single-target
 }
 
-class PelagicCleaver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver), new AOEShapeCone(40, 30.Degrees()));
-class FoulWaters(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.FoulWaters), m => m.Enemies(OID.Bubble), 0);
-class AquaticLance(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AquaticLance), new AOEShapeCircle(13));
-class ProtolithicPuncture(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ProtolithicPuncture));
+class PelagicCleaver(BossModule module) : Components.SelfTargetedAOEs(module, AID.PelagicCleaver, new AOEShapeCone(40, 30.Degrees()));
+class FoulWaters(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.FoulWaters, m => m.Enemies(OID.Bubble), 0);
+class AquaticLance(BossModule module) : Components.SelfTargetedAOEs(module, AID.AquaticLance, new AOEShapeCircle(13));
+class ProtolithicPuncture(BossModule module) : Components.SingleTargetCast(module, AID.ProtolithicPuncture);
 
 class TritonStates : StateMachineBuilder
 {

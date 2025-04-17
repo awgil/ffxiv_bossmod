@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Quest.LifeEphemeralPathEternal;
 
-class ElectrogeneticForce(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.ElectrogeneticForce), 6);
+class ElectrogeneticForce(BossModule module) : Components.CastTowers(module, AID.ElectrogeneticForce, 6);
 class RawRockbreaker(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10), new AOEShapeDonut(10, 20)])
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -26,14 +26,14 @@ class RawRockbreaker(BossModule module) : Components.ConcentricAOEs(module, [new
             Sequences.Clear();
     }
 }
-class ChiBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ChiBlast1));
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(6));
-class ArmOfTheScholar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ArmOfTheScholar), new AOEShapeCircle(5));
+class ChiBlast(BossModule module) : Components.RaidwideCast(module, AID.ChiBlast1);
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(6));
+class ArmOfTheScholar(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArmOfTheScholar, new AOEShapeCircle(5));
 
-class ClassicalFire(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ClassicalFire), 6);
-class ClassicalThunder(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ClassicalThunder), 6);
-class ClassicalBlizzard(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ClassicalBlizzard), 6);
-class ClassicalStone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ClassicalStone), new AOEShapeCircle(15));
+class ClassicalFire(BossModule module) : Components.StackWithCastTargets(module, AID.ClassicalFire, 6);
+class ClassicalThunder(BossModule module) : Components.SpreadFromCastTargets(module, AID.ClassicalThunder, 6);
+class ClassicalBlizzard(BossModule module) : Components.LocationTargetedAOEs(module, AID.ClassicalBlizzard, 6);
+class ClassicalStone(BossModule module) : Components.SelfTargetedAOEs(module, AID.ClassicalStone, new AOEShapeCircle(15));
 
 class AncelRockfistStates : StateMachineBuilder
 {

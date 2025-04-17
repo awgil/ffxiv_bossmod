@@ -2,7 +2,7 @@
 
 // state related to coherence mechanic
 // TODO: i'm not 100% sure how exactly it selects target for aoe ray, I assume it is closest player except tether target?..
-class Coherence(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CoherenceRay))
+class Coherence(BossModule module) : Components.CastCounter(module, AID.CoherenceRay)
 {
     private Actor? _tetherTarget;
     private Actor? _rayTarget;

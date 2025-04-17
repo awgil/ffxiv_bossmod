@@ -17,13 +17,13 @@ public enum AID : uint
     Touchdown = 1027, // Boss->self, no cast, range 5 aoe around center
 }
 
-class RimeWreath(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RimeWreath));
-class FrostBreath(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.FrostBreath), new AOEShapeCone(27, 60.Degrees())); // TODO: verify angle
-class SheetOfIce(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SheetOfIce), 5);
-class SheetOfIce2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SheetOfIce2), 5);
-class Cauterize(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(48, 10));
+class RimeWreath(BossModule module) : Components.RaidwideCast(module, AID.RimeWreath);
+class FrostBreath(BossModule module) : Components.Cleave(module, AID.FrostBreath, new AOEShapeCone(27, 60.Degrees())); // TODO: verify angle
+class SheetOfIce(BossModule module) : Components.LocationTargetedAOEs(module, AID.SheetOfIce, 5);
+class SheetOfIce2(BossModule module) : Components.LocationTargetedAOEs(module, AID.SheetOfIce2, 5);
+class Cauterize(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.Cauterize, new AOEShapeRect(48, 10));
 
-class Touchdown(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Touchdown))
+class Touchdown(BossModule module) : Components.GenericAOEs(module, AID.Touchdown)
 {
     private readonly AOEShapeCircle _shape = new(5);
 

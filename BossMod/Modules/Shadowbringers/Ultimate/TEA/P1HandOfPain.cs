@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P1HandOfPain(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HandOfPain))
+class P1HandOfPain(BossModule module) : Components.CastCounter(module, AID.HandOfPain)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

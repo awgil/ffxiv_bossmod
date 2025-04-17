@@ -19,9 +19,9 @@ public enum AID : uint
     TailSnapAttract = 18101, // rotation, pulls player in from 30 by max 25 units between hitboxes, 3 attacks of TailSnapRotating
 }
 
-class BodySlam(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BodySlam), new AOEShapeCircle(11));
-class NumbingNoise(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NumbingNoise), new AOEShapeCone(13, 60.Degrees()));
-class TailSnap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSnap), new AOEShapeCone(18, 60.Degrees()));
+class BodySlam(BossModule module) : Components.SelfTargetedAOEs(module, AID.BodySlam, new AOEShapeCircle(11));
+class NumbingNoise(BossModule module) : Components.SelfTargetedAOEs(module, AID.NumbingNoise, new AOEShapeCone(13, 60.Degrees()));
+class TailSnap(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSnap, new AOEShapeCone(18, 60.Degrees()));
 
 class NumbingNoiseTailSnapRotating(BossModule module) : Components.GenericRotatingAOE(module)
 {

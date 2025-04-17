@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS8Queen;
 
 // TODO: show reflect hints, show stay under dome hints
-class MaelstromsBolt(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MaelstromsBoltAOE))
+class MaelstromsBolt(BossModule module) : Components.CastCounter(module, AID.MaelstromsBoltAOE)
 {
     private readonly IReadOnlyList<Actor> _ballLightnings = module.Enemies(OID.BallLightning);
     private readonly IReadOnlyList<Actor> _domes = module.Enemies(OID.ProtectiveDome);

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
-class DualityOfDeath(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DualityOfDeathFire), centerAtTarget: true)
+class DualityOfDeath(BossModule module) : Components.GenericBaitAway(module, AID.DualityOfDeathFire, centerAtTarget: true)
 {
     private ulong _firstFireTarget;
 

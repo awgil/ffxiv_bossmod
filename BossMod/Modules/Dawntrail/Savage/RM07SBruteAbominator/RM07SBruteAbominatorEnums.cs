@@ -17,8 +17,8 @@ public enum AID : uint
     _Weaponskill_BrutalImpact1 = 42332, // Boss->self, no cast, range 60 circle
     StoneringerClub = 42333, // Boss->self, 2.0+3.5s cast, single-target
     StoneringerSword = 42334, // Boss->self, 2.0+3.5s cast, single-target
-    StoneringerClubP2 = 42367, // Boss->self, 2.0+3.5s cast, single-target
-    StoneringerSwordP2 = 42368, // Boss->self, 2.0+3.5s cast, single-target
+    P2StoneringerClub = 42367, // Boss->self, 2.0+3.5s cast, single-target
+    P2StoneringerSword = 42368, // Boss->self, 2.0+3.5s cast, single-target
     _Weaponskill_SmashThere = 42336, // Boss->self, 3.0+1.0s cast, single-target
     _Weaponskill_BrutishSwing2 = 42340, // Boss->self, no cast, single-target
     _Weaponskill_BrutishSwing3 = 42338, // Helper->self, 4.0s cast, range 9-60 donut

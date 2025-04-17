@@ -18,10 +18,10 @@ public enum AID : uint
     ThePathOfLight = 9875, // Boss->self, 5.0s cast, range 40+R 120-degree cone
 }
 
-class PathOfLight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThePathOfLight), new AOEShapeCone(43.5f, 60.Degrees()));
-class BlissfulSpear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlissfulSpear), new AOEShapeCross(40, 4));
-class ThePallOfLight(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ThePallOfLight), 6, 1);
-class BlissfulHammer(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(7), 109, ActionID.MakeSpell(AID.BlissfulHammer), 12.15f, true);
+class PathOfLight(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThePathOfLight, new AOEShapeCone(43.5f, 60.Degrees()));
+class BlissfulSpear(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlissfulSpear, new AOEShapeCross(40, 4));
+class ThePallOfLight(BossModule module) : Components.StackWithCastTargets(module, AID.ThePallOfLight, 6, 1);
+class BlissfulHammer(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(7), 109, AID.BlissfulHammer, 12.15f, true);
 class FordolaShield(BossModule module) : BossComponent(module)
 {
     public Actor? Shield => WorldState.Actors.FirstOrDefault(a => (OID)a.OID == OID.FordolaShield);
@@ -101,4 +101,3 @@ public class Lakshmi(WorldState ws, Actor primary) : BossModule(ws, primary, new
             };
     }
 }
-

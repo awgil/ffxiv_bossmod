@@ -36,11 +36,11 @@ public enum IconID : uint
     StreakLightning = 138, // player->self
 }
 
-class BoomingLament(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BoomingLament), 10);
-class SpiritsOfTheFallen(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SpiritsOfTheFallen));
-class AmeNoSakahoko(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AmeNoSakahoko1), new AOEShapeCircle(25));
-class WhirlingZantetsuken(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhirlingZantetsuken), new AOEShapeDonut(5, 60));
-class Shock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shock), new AOEShapeCircle(8));
+class BoomingLament(BossModule module) : Components.LocationTargetedAOEs(module, AID.BoomingLament, 10);
+class SpiritsOfTheFallen(BossModule module) : Components.RaidwideCast(module, AID.SpiritsOfTheFallen);
+class AmeNoSakahoko(BossModule module) : Components.SelfTargetedAOEs(module, AID.AmeNoSakahoko1, new AOEShapeCircle(25));
+class WhirlingZantetsuken(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhirlingZantetsuken, new AOEShapeDonut(5, 60));
+class Shock(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shock, new AOEShapeCircle(8));
 class LateralZantetsuken(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> Casters = [];
@@ -74,9 +74,9 @@ class StreakLightning(BossModule module) : Components.GenericStackSpread(module,
     }
 }
 class LightningAdds(BossModule module) : Components.Adds(module, (uint)OID.StreakLightning, 1);
-class UltimateZantetsuken(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.UltimateZantetsuken), "Kill adds!", true);
+class UltimateZantetsuken(BossModule module) : Components.CastHint(module, AID.UltimateZantetsuken, "Kill adds!", true);
 
-class CloudToGround(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6), ActionID.MakeSpell(AID.CloudToGroundFirst))
+class CloudToGround(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6), AID.CloudToGroundFirst)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

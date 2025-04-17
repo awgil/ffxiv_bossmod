@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Components;
 
 // generic 'wild charge': various mechanics that consist of charge aoe on some target that other players have to stay in; optionally some players can be marked as 'having to be closest to source' (usually tanks)
-public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid = default, float fixedLength = 0) : CastCounter(module, aid)
+public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = default, float fixedLength = 0) : CastCounter(module, aid)
 {
     public enum PlayerRole
     {
@@ -131,11 +131,13 @@ public class GenericWildCharge(BossModule module, float halfWidth, ActionID aid 
 }
 
 // simple line stack where target is determined by 'target select' cast
-public class SimpleLineStack(BossModule module, float halfWidth, float fixedLength, ActionID aidTargetSelect, ActionID aidResolve, float activationDelay) : GenericWildCharge(module, halfWidth, aidResolve, fixedLength)
+public class SimpleLineStack(BossModule module, float halfWidth, float fixedLength, Enum aidTargetSelect, Enum aidResolve, float activationDelay) : GenericWildCharge(module, halfWidth, aidResolve, fixedLength)
 {
+    public readonly ActionID TargetSelect = ActionID.MakeSpell(aidTargetSelect);
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == aidTargetSelect)
+        if (spell.Action == TargetSelect)
         {
             Source = caster;
             Activation = WorldState.FutureTime(activationDelay);

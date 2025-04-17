@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3SeventhUmbralEra(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.SeventhUmbralEra), true)
+class P3SeventhUmbralEra(BossModule module) : Components.Knockback(module, AID.SeventhUmbralEra, true)
 {
     private readonly DateTime _activation = module.WorldState.FutureTime(5.3f);
 
@@ -10,5 +10,5 @@ class P3SeventhUmbralEra(BossModule module) : Components.Knockback(module, Actio
     }
 }
 
-class P3CalamitousFlame(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CalamitousFlame));
-class P3CalamitousBlaze(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CalamitousBlaze));
+class P3CalamitousFlame(BossModule module) : Components.CastCounter(module, AID.CalamitousFlame);
+class P3CalamitousBlaze(BossModule module) : Components.CastCounter(module, AID.CalamitousBlaze);

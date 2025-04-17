@@ -35,7 +35,7 @@ public enum TetherID : uint
     FerocityTetherStretch = 57, // Boss->player
 }
 
-class SteelClaw(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.SteelClaw));
+class SteelClaw(BossModule module) : Components.SingleTargetDelayableCast(module, AID.SteelClaw);
 
 class FerocityGood(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(0, 0.Degrees()), (uint)TetherID.FerocityTetherGood) // TODO: consider generalizing stretched tethers?
 {
@@ -113,8 +113,8 @@ class FerocityBad(BossModule module) : Components.BaitAwayTethers(module, new AO
     }
 }
 
-class PreternaturalTurnCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PreternaturalTurnCircle), new AOEShapeCircle(15));
-class PreternaturalTurnDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PreternaturalTurnDonut), new AOEShapeDonut(6, 30));
+class PreternaturalTurnCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.PreternaturalTurnCircle, new AOEShapeCircle(15));
+class PreternaturalTurnDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.PreternaturalTurnDonut, new AOEShapeDonut(6, 30));
 
 class Shatter(BossModule module) : Components.GenericAOEs(module)
 {
@@ -159,9 +159,9 @@ class Shatter(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Roar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Roar));
-class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), new AOEShapeCircle(3));
-class Impact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Impact), new AOEShapeCircle(5));
+class Roar(BossModule module) : Components.RaidwideCast(module, AID.Roar);
+class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, AID.FallingRock, new AOEShapeCircle(3));
+class Impact(BossModule module) : Components.SelfTargetedAOEs(module, AID.Impact, new AOEShapeCircle(5));
 
 class D70AeturnaStates : StateMachineBuilder
 {

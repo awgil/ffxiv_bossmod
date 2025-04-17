@@ -2,7 +2,7 @@
 
 class ThornedCatharsis : Components.RaidwideCast
 {
-    public ThornedCatharsis(BossModule module) : base(module, ActionID.MakeSpell(AID._Weaponskill_ThornedCatharsis))
+    public ThornedCatharsis(BossModule module) : base(module, AID._Weaponskill_ThornedCatharsis)
     {
         KeepOnPhaseChange = true;
     }

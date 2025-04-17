@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex3Sphene;
 
-class Coronation(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.RuthlessRegalia))
+class Coronation(BossModule module) : Components.GenericAOEs(module, AID.RuthlessRegalia)
 {
     public struct Group
     {
@@ -62,4 +62,4 @@ class Coronation(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
     }
 }
 
-class AtomicRay(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.AtomicRayAOE), 16, false);
+class AtomicRay(BossModule module) : Components.SpreadFromCastTargets(module, AID.AtomicRayAOE, 16, false);

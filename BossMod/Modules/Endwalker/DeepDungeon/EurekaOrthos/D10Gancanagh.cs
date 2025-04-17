@@ -15,9 +15,9 @@ public enum AID : uint
     Mandrastorm = 31479, // Boss->self, 5.0s cast, range 60 circle, Proximity AOE from boss ? distance (18.5f seems the the point where it will hit for flat damage)
 }
 
-class MandrashockSingle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MandrashockSingle), new AOEShapeCircle(10f));
-class MandraShockTitan(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MandrashockTitan), new AOEShapeCircle(10f), 6); // made this 6 at the second to keep the safe spot shown for 3rd hit.
-class MandraStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mandrastorm), new AOEShapeCircle(18.5f));
+class MandrashockSingle(BossModule module) : Components.SelfTargetedAOEs(module, AID.MandrashockSingle, new AOEShapeCircle(10f));
+class MandraShockTitan(BossModule module) : Components.SelfTargetedAOEs(module, AID.MandrashockTitan, new AOEShapeCircle(10f), 6); // made this 6 at the second to keep the safe spot shown for 3rd hit.
+class MandraStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mandrastorm, new AOEShapeCircle(18.5f));
 
 class D10GancanaghStates : StateMachineBuilder
 {

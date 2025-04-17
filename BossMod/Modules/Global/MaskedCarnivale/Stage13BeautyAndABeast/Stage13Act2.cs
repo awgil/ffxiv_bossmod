@@ -25,15 +25,15 @@ public enum AID : uint
     BloodRain = 14882, // 26F8->location, 3.0s cast, range 50 circle
 }
 
-class VoidFireII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireII), 5);
-class VoidFireIV(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireIV), 10);
-class VoidFireIV3(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFireIV3), 6);
-class VoidAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VoidAero), new AOEShapeRect(42, 4));
-class DarkSabbath(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DarkSabbath));
-class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(10));
-class CircleOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CircleOfBlood2), new AOEShapeDonut(10, 20));
-class BeguilingMist(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BeguilingMist), "Interrupt or run around uncontrollably!");
-class BloodRain(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BloodRain), "Harmless raidwide unless you failed to kill succubus in time");
+class VoidFireII(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireII, 5);
+class VoidFireIV(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireIV, 10);
+class VoidFireIV3(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireIV3, 6);
+class VoidAero(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidAero, new AOEShapeRect(42, 4));
+class DarkSabbath(BossModule module) : Components.CastGaze(module, AID.DarkSabbath);
+class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkMist, new AOEShapeCircle(10));
+class CircleOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.CircleOfBlood2, new AOEShapeDonut(10, 20));
+class BeguilingMist(BossModule module) : Components.CastHint(module, AID.BeguilingMist, "Interrupt or run around uncontrollably!");
+class BloodRain(BossModule module) : Components.RaidwideCast(module, AID.BloodRain, "Harmless raidwide unless you failed to kill succubus in time");
 
 class Hints(BossModule module) : BossComponent(module)
 {

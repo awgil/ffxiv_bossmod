@@ -84,14 +84,14 @@ class PelagicCleaverRotation(BossModule module) : Components.GenericRotatingAOE(
     }
 }
 
-class PelagicCleaver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver), new AOEShapeCone(40, 30.Degrees()));
-class TidalGuillotine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TidalGuillotine), new AOEShapeCircle(13));
-class ProtolithicPuncture(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ProtolithicPuncture));
-class BiteAndRun(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.BiteAndRun), 2.5f);
-class AquaticLance(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.AquaticLance), 8);
-class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
-class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
-class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
+class PelagicCleaver(BossModule module) : Components.SelfTargetedAOEs(module, AID.PelagicCleaver, new AOEShapeCone(40, 30.Degrees()));
+class TidalGuillotine(BossModule module) : Components.SelfTargetedAOEs(module, AID.TidalGuillotine, new AOEShapeCircle(13));
+class ProtolithicPuncture(BossModule module) : Components.SingleTargetCast(module, AID.ProtolithicPuncture);
+class BiteAndRun(BossModule module) : Components.BaitAwayChargeCast(module, AID.BiteAndRun, 2.5f);
+class AquaticLance(BossModule module) : Components.SpreadFromCastTargets(module, AID.AquaticLance, 8);
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spin, new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
 
 class CladoselacheStates : StateMachineBuilder
 {

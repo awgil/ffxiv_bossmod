@@ -19,8 +19,8 @@ public enum AID : uint
     Scratch = 27348, // Boss->player, 5.0s cast, single-target
 }
 
-class RightMaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightMaw), new AOEShapeCone(30, 90.Degrees()));
-class LeftMaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftMaw), new AOEShapeCone(30, 90.Degrees()));
+class RightMaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightMaw, new AOEShapeCone(30, 90.Degrees()));
+class LeftMaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftMaw, new AOEShapeCone(30, 90.Degrees()));
 
 class PyricCircleBurst(BossModule module) : Components.GenericAOEs(module)
 {
@@ -59,7 +59,7 @@ class PyricCircleBurst(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Scratch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Scratch));
+class Scratch(BossModule module) : Components.SingleTargetCast(module, AID.Scratch);
 
 class OphioneusStates : StateMachineBuilder
 {

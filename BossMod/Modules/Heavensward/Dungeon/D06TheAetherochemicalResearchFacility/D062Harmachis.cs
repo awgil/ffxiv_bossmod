@@ -60,7 +60,7 @@ class BallisticMissile(BossModule module) : Components.UniformStackSpread(module
     }
 }
 
-class ChthonicHush(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.ChthonicHush), new AOEShapeCone(13.3f, 60.Degrees()))
+class ChthonicHush(BossModule module) : Components.Cleave(module, AID.ChthonicHush, new AOEShapeCone(13.3f, 60.Degrees()))
 {
     private readonly GasousBomb _stack1 = module.FindComponent<GasousBomb>()!;
     private readonly BallisticMissile _stack2 = module.FindComponent<BallisticMissile>()!;
@@ -112,13 +112,13 @@ class CircleofFlame(BossModule module) : Components.UniformStackSpread(module, 0
     }
 }
 
-class FormNaga(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WeighingOfTheHeartNaga), "Naga Form, Gaze -> x2 Spread AOE's");
-class FormMachina(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WeighingOfTheHeartMachina), "Machina form, 2 Player Enum/Stack -> Party Stack");
-class FormCobra(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WeighingOfTheHeartCobra), "Cobra form, damage up + cleave");
-class GasousBomb(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, ActionID.MakeSpell(AID.GaseousBomb), 5, 4.1f, 4, 4);
-class Ka(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Ka), new AOEShapeCone(45, 30.Degrees()));
-class Paradox(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Paradox), 5);
-class Petrifaction(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Petrifaction));
+class FormNaga(BossModule module) : Components.RaidwideCast(module, AID.WeighingOfTheHeartNaga, "Naga Form, Gaze -> x2 Spread AOE's");
+class FormMachina(BossModule module) : Components.RaidwideCast(module, AID.WeighingOfTheHeartMachina, "Machina form, 2 Player Enum/Stack -> Party Stack");
+class FormCobra(BossModule module) : Components.RaidwideCast(module, AID.WeighingOfTheHeartCobra, "Cobra form, damage up + cleave");
+class GasousBomb(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.GaseousBomb, 5, 4.1f, 4, 4);
+class Ka(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ka, new AOEShapeCone(45, 30.Degrees()));
+class Paradox(BossModule module) : Components.LocationTargetedAOEs(module, AID.Paradox, 5);
+class Petrifaction(BossModule module) : Components.CastGaze(module, AID.Petrifaction);
 
 class D062HarmachisStates : StateMachineBuilder
 {

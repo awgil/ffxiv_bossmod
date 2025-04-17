@@ -298,7 +298,7 @@ class P3UltimateRelativityDarkFireUnholyDarkness(BossModule module) : Components
     }
 }
 
-class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.UltimateRelativitySinboundMeltdownAOEFirst))
+class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.GenericBaitAway(module, AID.UltimateRelativitySinboundMeltdownAOEFirst)
 {
     private readonly P3UltimateRelativity? _rel = module.FindComponent<P3UltimateRelativity>();
 
@@ -407,7 +407,7 @@ class P3UltimateRelativitySinboundMeltdownAOE(BossModule module) : Components.Ge
     }
 }
 
-class P3UltimateRelativityDarkBlizzard(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.UltimateRelativityDarkBlizzard))
+class P3UltimateRelativityDarkBlizzard(BossModule module) : Components.GenericAOEs(module, AID.UltimateRelativityDarkBlizzard)
 {
     private readonly List<Actor> _sources = [];
     private DateTime _activation;

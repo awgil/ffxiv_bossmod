@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
 // used by two trio mechanics, in p2 and in p5
-class DragonsGaze(BossModule module, OID bossOID) : Components.GenericGaze(module, ActionID.MakeSpell(AID.DragonsGazeAOE))
+class DragonsGaze(BossModule module, OID bossOID) : Components.GenericGaze(module, AID.DragonsGazeAOE)
 {
     public bool EnableHints;
     private readonly OID _bossOID = bossOID;

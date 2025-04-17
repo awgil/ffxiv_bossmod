@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A14ShadowLord;
 
-class Teleport(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Teleport));
-class TeraSlash(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.TeraSlash));
-class UnbridledRage(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(100, 4), (uint)IconID.UnbridledRage, ActionID.MakeSpell(AID.UnbridledRageAOE), 5.9f);
-class DarkNova(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkNova), 6);
+class Teleport(BossModule module) : Components.CastCounter(module, AID.Teleport);
+class TeraSlash(BossModule module) : Components.CastCounter(module, AID.TeraSlash);
+class UnbridledRage(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(100, 4), (uint)IconID.UnbridledRage, AID.UnbridledRageAOE, 5.9f);
+class DarkNova(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkNova, 6);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13653)]
 public class A14ShadowLord(WorldState ws, Actor primary) : BossModule(ws, primary, new(150, 800), NormalBounds)

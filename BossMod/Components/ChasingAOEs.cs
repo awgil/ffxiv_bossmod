@@ -1,7 +1,7 @@
 namespace BossMod.Components;
 
 // generic 'chasing AOE' component - these are AOEs that follow the target for a set amount of casts
-public class GenericChasingAOEs(BossModule module, ActionID aid = default, string warningText = "GTFO from chasing aoe!") : GenericAOEs(module, aid, warningText)
+public class GenericChasingAOEs(BossModule module, Enum? aid = default, string warningText = "GTFO from chasing aoe!") : GenericAOEs(module, aid, warningText)
 {
     public class Chaser(AOEShape shape, Actor target, WPos prevPos, float moveDist, int numRemaining, DateTime nextActivation, float secondsBetweenActivations)
     {
@@ -58,11 +58,11 @@ public class GenericChasingAOEs(BossModule module, ActionID aid = default, strin
 }
 
 // standard chasing aoe; first cast is long - assume it is baited on the nearest allowed target; successive casts are instant
-public class StandardChasingAOEs(BossModule module, AOEShape shape, ActionID actionFirst, ActionID actionRest, float moveDistance, float secondsBetweenActivations, int maxCasts) : GenericChasingAOEs(module)
+public class StandardChasingAOEs(BossModule module, AOEShape shape, Enum actionFirst, Enum actionRest, float moveDistance, float secondsBetweenActivations, int maxCasts) : GenericChasingAOEs(module)
 {
     public AOEShape Shape = shape;
-    public ActionID ActionFirst = actionFirst;
-    public ActionID ActionRest = actionRest;
+    public ActionID ActionFirst = ActionID.MakeSpell(actionFirst);
+    public ActionID ActionRest = ActionID.MakeSpell(actionRest);
     public float MoveDistance = moveDistance;
     public float SecondsBetweenActivations = secondsBetweenActivations;
     public int MaxCasts = maxCasts;

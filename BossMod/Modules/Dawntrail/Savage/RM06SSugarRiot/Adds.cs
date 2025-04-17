@@ -132,8 +132,8 @@ class Adds(BossModule module) : BossComponent(module)
     }
 }
 
-class ICraveViolence(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.ICraveViolence), new AOEShapeCircle(6));
-class WaterIII(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, ActionID.MakeSpell(AID.WaterIIISpread), m => m.Enemies(0x1EBD91).Where(o => o.EventState != 7), 1.5f, 5);
+class ICraveViolence(BossModule module) : Components.StandardAOEs(module, AID.ICraveViolence, new AOEShapeCircle(6));
+class WaterIII(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.WaterIIISpread, m => m.Enemies(0x1EBD91).Where(o => o.EventState != 7), 1.5f, 5);
 class WaterIIITether(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(8), (uint)TetherID.FeatherRay, centerAtTarget: true)
 {
     public override void Update()
@@ -141,6 +141,6 @@ class WaterIIITether(BossModule module) : Components.BaitAwayTethers(module, new
         CurrentBaits.RemoveAll(b => b.Source.IsDeadOrDestroyed);
     }
 }
-class ReadyOreNot(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ReadyOreNot));
-class OreRigato(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OreRigato), "Squirrel enrage!");
-class HangryHiss(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HangryHiss), "Cat enrage!");
+class ReadyOreNot(BossModule module) : Components.RaidwideCast(module, AID.ReadyOreNot);
+class OreRigato(BossModule module) : Components.RaidwideCast(module, AID.OreRigato, "Squirrel enrage!");
+class HangryHiss(BossModule module) : Components.RaidwideCast(module, AID.HangryHiss, "Cat enrage!");

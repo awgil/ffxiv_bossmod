@@ -2,7 +2,7 @@
 
 // generic protean mechanic is a bunch of aoes baited in some manner by players that have to hit that player only
 // TODO: combine with BaitAway
-public abstract class GenericProtean(BossModule module, ActionID aid, AOEShape shape) : CastCounter(module, aid)
+public abstract class GenericProtean(BossModule module, Enum aid, AOEShape shape) : CastCounter(module, aid)
 {
     public AOEShape Shape { get; init; } = shape;
 
@@ -32,7 +32,7 @@ public abstract class GenericProtean(BossModule module, ActionID aid, AOEShape s
 }
 
 // typical protean will originate from primary actor and hit all alive players
-public class SimpleProtean(BossModule module, ActionID aid, AOEShape shape) : GenericProtean(module, aid, shape)
+public class SimpleProtean(BossModule module, Enum aid, AOEShape shape) : GenericProtean(module, aid, shape)
 {
     public override IEnumerable<(Actor source, Actor target)> ActiveAOEs() => Raid.WithoutSlot().Select(p => (Module.PrimaryActor, p));
 }

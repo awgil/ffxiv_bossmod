@@ -1,13 +1,13 @@
 ﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
-class Flare(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(25), (uint)IconID.Flare, ActionID.MakeSpell(AID.FlareAOE), 8.1f, true);
+class Flare(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(25), (uint)IconID.Flare, AID.FlareAOE, 8.1f, true);
 class StygianShadow(BossModule module) : Components.Adds(module, (uint)OID.StygianShadow);
 class Atomos(BossModule module) : Components.Adds(module, (uint)OID.Atomos);
-class GhastlyGloomCross(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GhastlyGloomCrossAOE), new AOEShapeCross(40, 15));
-class GhastlyGloomDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GhastlyGloomDonutAOE), new AOEShapeDonut(21, 40));
-class FloodOfDarknessAdd(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.FloodOfDarknessAdd)); // TODO: only if add is player's?..
-class Excruciate(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Excruciate), new AOEShapeCircle(4), true);
-class LoomingChaos(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LoomingChaosAOE));
+class GhastlyGloomCross(BossModule module) : Components.SelfTargetedAOEs(module, AID.GhastlyGloomCrossAOE, new AOEShapeCross(40, 15));
+class GhastlyGloomDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.GhastlyGloomDonutAOE, new AOEShapeDonut(21, 40));
+class FloodOfDarknessAdd(BossModule module) : Components.CastInterruptHint(module, AID.FloodOfDarknessAdd); // TODO: only if add is player's?..
+class Excruciate(BossModule module) : Components.BaitAwayCast(module, AID.Excruciate, new AOEShapeCircle(4), true);
+class LoomingChaos(BossModule module) : Components.CastCounter(module, AID.LoomingChaosAOE);
 
 // TODO: tankswap hints component for phase1
 // TODO: phase 2 teleport zones?

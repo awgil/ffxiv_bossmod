@@ -24,13 +24,13 @@ public enum AID : uint
     FrostedOrb = 32135, // Helper->self, 5.0s cast, range 6 circle, regular aoe
 }
 
-class HolyStorm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HolyStorm));
-class DiamondStorm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DiamondStorm));
-class FrigidDive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrigidDive), new AOEShapeRect(40, 10));
-class HallowedDive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HallowedDive), new AOEShapeRect(40, 10));
-class Wyrmclaw(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Wyrmclaw));
-class FrostedOrb(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrostedOrb), new AOEShapeCircle(6));
-class HolyBreath(BossModule module) : Components.SpreadFromIcon(module, 311, ActionID.MakeSpell(AID.HolyBreath), 6, 6);
+class HolyStorm(BossModule module) : Components.RaidwideCast(module, AID.HolyStorm);
+class DiamondStorm(BossModule module) : Components.RaidwideCast(module, AID.DiamondStorm);
+class FrigidDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrigidDive, new AOEShapeRect(40, 10));
+class HallowedDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.HallowedDive, new AOEShapeRect(40, 10));
+class Wyrmclaw(BossModule module) : Components.SingleTargetCast(module, AID.Wyrmclaw);
+class FrostedOrb(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrostedOrb, new AOEShapeCircle(6));
+class HolyBreath(BossModule module) : Components.SpreadFromIcon(module, 311, AID.HolyBreath, 6, 6);
 class HallowedWings(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> Casters = [];
@@ -119,4 +119,3 @@ class HraesvelgrStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171, NameID = 4954, Contributors = "xan")]
 public class Hraesvelgr(WorldState ws, Actor primary) : BossModule(ws, primary, new(400, -400), new ArenaBoundsCircle(20));
-

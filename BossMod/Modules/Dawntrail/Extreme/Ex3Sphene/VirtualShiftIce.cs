@@ -148,7 +148,7 @@ class Rush(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class IceDart(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(16), (uint)TetherID.IceDart, ActionID.MakeSpell(AID.IceDart), true)
+class IceDart(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(16), (uint)TetherID.IceDart, AID.IceDart, true)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -160,7 +160,7 @@ class IceDart(BossModule module) : Components.BaitAwayTethers(module, new AOESha
     }
 }
 
-class RaisedTribute(BossModule module) : Components.GenericWildCharge(module, 4, ActionID.MakeSpell(AID.RaisedTribute), 80)
+class RaisedTribute(BossModule module) : Components.GenericWildCharge(module, 4, AID.RaisedTribute, 80)
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {

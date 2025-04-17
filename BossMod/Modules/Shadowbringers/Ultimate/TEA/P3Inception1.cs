@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P3Inception1(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.JudgmentCrystalAOE))
+class P3Inception1(BossModule module) : Components.CastCounter(module, AID.JudgmentCrystalAOE)
 {
     private readonly List<Actor> _plasmaspheres = [];
     private readonly Actor?[] _tetherSources = new Actor?[PartyState.MaxPartySize];

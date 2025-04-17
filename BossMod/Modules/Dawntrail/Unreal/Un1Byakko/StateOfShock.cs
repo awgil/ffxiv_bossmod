@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Unreal.Un1Byakko;
 
-class StateOfShock(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.StateOfShockSecond))
+class StateOfShock(BossModule module) : Components.CastCounter(module, AID.StateOfShockSecond)
 {
     public int NumStuns;
 
@@ -17,7 +17,7 @@ class StateOfShock(BossModule module) : Components.CastCounter(module, ActionID.
     }
 }
 
-class HighestStakes(BossModule module) : Components.GenericTowers(module, ActionID.MakeSpell(AID.HighestStakesAOE))
+class HighestStakes(BossModule module) : Components.GenericTowers(module, AID.HighestStakesAOE)
 {
     private BitMask _forbidden;
 

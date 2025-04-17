@@ -32,12 +32,12 @@ public enum AID : uint
     VoidQuakeAOE3 = 20551, // Helper->self, 3.0s cast, range 20-30 donut aoe
 }
 
-class Hellclaw(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Hellclaw));
-class TailBlow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailBlow), new AOEShapeCone(19, 45.Degrees()));
-class LavaSpit(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LavaSpitAOE), 5);
-class ScorchingLash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScorchingLash), new AOEShapeRect(50, 5));
+class Hellclaw(BossModule module) : Components.SingleTargetCast(module, AID.Hellclaw);
+class TailBlow(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailBlow, new AOEShapeCone(19, 45.Degrees()));
+class LavaSpit(BossModule module) : Components.LocationTargetedAOEs(module, AID.LavaSpitAOE, 5);
+class ScorchingLash(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScorchingLash, new AOEShapeRect(50, 5));
 
-class Hellpounce(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Hellpounce), "GTFO from charge!")
+class Hellpounce(BossModule module) : Components.GenericAOEs(module, AID.Hellpounce, "GTFO from charge!")
 {
     private AOEInstance? _charge;
 
@@ -70,10 +70,10 @@ class Hellpounce(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
     }
 }
 
-class LionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LionsBreathAOE), new AOEShapeCone(60, 45.Degrees()));
-class DragonsBreathR(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DragonsBreathAOER), new AOEShapeCone(60, 36.Degrees(), -10.Degrees())); // TODO: verify; there should not be an offset in reality here...
-class DragonsBreathL(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DragonsBreathAOEL), new AOEShapeCone(60, 36.Degrees(), 10.Degrees())); // TODO: verify; there should not be an offset in reality here...
-class VoidTornado(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidTornado), "Set hp to 1");
+class LionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.LionsBreathAOE, new AOEShapeCone(60, 45.Degrees()));
+class DragonsBreathR(BossModule module) : Components.SelfTargetedAOEs(module, AID.DragonsBreathAOER, new AOEShapeCone(60, 36.Degrees(), -10.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class DragonsBreathL(BossModule module) : Components.SelfTargetedAOEs(module, AID.DragonsBreathAOEL, new AOEShapeCone(60, 36.Degrees(), 10.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class VoidTornado(BossModule module) : Components.CastHint(module, AID.VoidTornado, "Set hp to 1");
 
 class VoidQuake(BossModule module) : Components.GenericAOEs(module) //this concentric AOE can happen forwards or backwards in order with the same AID as the starter
 {

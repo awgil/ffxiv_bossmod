@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
-class Footprint(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Footprint))
+class Footprint(BossModule module) : Components.Knockback(module, AID.Footprint)
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

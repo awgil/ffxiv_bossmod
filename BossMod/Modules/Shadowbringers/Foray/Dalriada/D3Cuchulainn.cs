@@ -47,12 +47,12 @@ public enum IconID : uint
     FellFlow = 40, // player->self
 }
 
-class FellFlowBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(50, 7.5f.Degrees()), (uint)IconID.FellFlow, ActionID.MakeSpell(AID.FellFlow1), 5.2f);
-class PutrifiedSoul(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PutrifiedSoul));
+class FellFlowBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(50, 7.5f.Degrees()), (uint)IconID.FellFlow, AID.FellFlow1, 5.2f);
+class PutrifiedSoul(BossModule module) : Components.RaidwideCast(module, AID.PutrifiedSoul);
 class BurgeoningDread(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace, stopAtWall: true);
-class NecroticBillow(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.NecroticBillow1), new AOEShapeCircle(8));
+class NecroticBillow(BossModule module) : Components.StandardAOEs(module, AID.NecroticBillow1, new AOEShapeCircle(8));
 
-class AmbientPulsation(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.AmbientPulsation1), new AOEShapeCircle(12), maxCasts: 6)
+class AmbientPulsation(BossModule module) : Components.StandardAOEs(module, AID.AmbientPulsation1, new AOEShapeCircle(12), maxCasts: 6)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -69,7 +69,7 @@ class AmbientPulsation(BossModule module) : Components.StandardAOEs(module, Acti
             NumCasts = 0;
     }
 }
-class FellFlow(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.FellFlow), new AOEShapeCone(50, 60.Degrees()));
+class FellFlow(BossModule module) : Components.StandardAOEs(module, AID.FellFlow, new AOEShapeCone(50, 60.Degrees()));
 
 class Puddles(BossModule module) : Components.GenericAOEs(module)
 {
@@ -116,4 +116,3 @@ public class FourthMakeCuchulainn(WorldState ws, Actor primary) : BossModule(ws,
 {
     public override bool DrawAllPlayers => true;
 }
-

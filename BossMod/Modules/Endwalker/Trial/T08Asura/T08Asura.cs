@@ -1,17 +1,17 @@
 namespace BossMod.Endwalker.Trial.T08Asura;
 
-class LowerRealm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LowerRealm));
-class Ephemerality(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Ephemerality));
-class CuttingJewel(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.CuttingJewel), new AOEShapeCircle(4), true);
-class CuttingJewelHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CuttingJewel));
-class IconographyPedestalPurge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IconographyPedestalPurge), new AOEShapeCircle(10));
-class PedestalPurge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PedestalPurge), new AOEShapeCircle(27)); // Note, this is not a raidwide, origin is outside of the arena
-class IconographyWheelOfDeincarnation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IconographyWheelOfDeincarnation), new AOEShapeDonut(8, 40));
-class WheelOfDeincarnation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WheelOfDeincarnation), new AOEShapeDonut(15, 96));
-class IconographyBladewise(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IconographyBladewise), new AOEShapeRect(50, 3));
-class Bladewise(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Bladewise), new AOEShapeRect(100, 14));
-class Scattering(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scattering), new AOEShapeRect(20, 3));
-class OrderedChaos(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.OrderedChaos), 5);
+class LowerRealm(BossModule module) : Components.RaidwideCast(module, AID.LowerRealm);
+class Ephemerality(BossModule module) : Components.RaidwideCast(module, AID.Ephemerality);
+class CuttingJewel(BossModule module) : Components.BaitAwayCast(module, AID.CuttingJewel, new AOEShapeCircle(4), true);
+class CuttingJewelHint(BossModule module) : Components.SingleTargetCast(module, AID.CuttingJewel);
+class IconographyPedestalPurge(BossModule module) : Components.SelfTargetedAOEs(module, AID.IconographyPedestalPurge, new AOEShapeCircle(10));
+class PedestalPurge(BossModule module) : Components.SelfTargetedAOEs(module, AID.PedestalPurge, new AOEShapeCircle(27)); // Note, this is not a raidwide, origin is outside of the arena
+class IconographyWheelOfDeincarnation(BossModule module) : Components.SelfTargetedAOEs(module, AID.IconographyWheelOfDeincarnation, new AOEShapeDonut(8, 40));
+class WheelOfDeincarnation(BossModule module) : Components.SelfTargetedAOEs(module, AID.WheelOfDeincarnation, new AOEShapeDonut(15, 96));
+class IconographyBladewise(BossModule module) : Components.SelfTargetedAOEs(module, AID.IconographyBladewise, new AOEShapeRect(50, 3));
+class Bladewise(BossModule module) : Components.SelfTargetedAOEs(module, AID.Bladewise, new AOEShapeRect(100, 14));
+class Scattering(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scattering, new AOEShapeRect(20, 3));
+class OrderedChaos(BossModule module) : Components.SpreadFromCastTargets(module, AID.OrderedChaos, 5);
 
 class T08AsuraStates : StateMachineBuilder
 {

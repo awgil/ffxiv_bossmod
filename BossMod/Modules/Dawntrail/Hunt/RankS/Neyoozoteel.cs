@@ -47,7 +47,7 @@ public enum IconID : uint
     RotateCCW = 168, // Boss
 }
 
-class NoxiousSap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NoxiousSap), new AOEShapeCone(30, 60.Degrees()));
+class NoxiousSap(BossModule module) : Components.SelfTargetedAOEs(module, AID.NoxiousSap, new AOEShapeCone(30, 60.Degrees()));
 
 class SapSpiller(BossModule module) : Components.GenericAOEs(module)
 {
@@ -121,8 +121,8 @@ class SapSpiller(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Neurotoxify(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Neurotoxify), "Raidwide + delayed stun");
-class Cocopult(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Cocopult), 5, 4);
+class Neurotoxify(BossModule module) : Components.RaidwideCast(module, AID.Neurotoxify, "Raidwide + delayed stun");
+class Cocopult(BossModule module) : Components.StackWithCastTargets(module, AID.Cocopult, 5, 4);
 
 class RavagingRoots(BossModule module) : Components.GenericRotatingAOE(module)
 {

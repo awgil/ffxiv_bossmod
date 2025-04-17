@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 class P3WormholeLimitCut(BossModule module) : LimitCut(module, 2.7f);
-class P3WormholeSacrament(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SacramentWormhole), new AOEShapeCross(100, 8));
+class P3WormholeSacrament(BossModule module) : Components.SelfTargetedAOEs(module, AID.SacramentWormhole, new AOEShapeCross(100, 8));
 
 class P3WormholeRepentance(BossModule module) : BossComponent(module)
 {
@@ -134,7 +134,7 @@ class P3WormholeRepentance(BossModule module) : BossComponent(module)
     }
 }
 
-class P3WormholeIncineratingHeat(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.IncineratingHeat), 5, 8);
+class P3WormholeIncineratingHeat(BossModule module) : Components.StackWithCastTargets(module, AID.IncineratingHeat, 5, 8);
 
 class P3WormholeEnumeration(BossModule module) : Components.UniformStackSpread(module, 5, 0, 3, 3, raidwideOnResolve: false) // TODO: verify enumeration radius
 {

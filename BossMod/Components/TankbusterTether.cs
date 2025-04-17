@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Components;
 
 // generic component for tankbuster at tethered targets; tanks are supposed to intercept tethers and gtfo from the raid
-public class TankbusterTether(BossModule module, ActionID aid, uint tetherID, float radius) : CastCounter(module, aid)
+public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float radius) : CastCounter(module, aid)
 {
     public uint TID { get; init; } = tetherID;
     public float Radius { get; init; } = radius;

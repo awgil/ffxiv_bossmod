@@ -7,7 +7,7 @@ class TaintedFlood : Components.CastCounter
 
     private const float _radius = 6;
 
-    public TaintedFlood(BossModule module) : base(module, ActionID.MakeSpell(AID.TaintedFloodAOE))
+    public TaintedFlood(BossModule module) : base(module, AID.TaintedFloodAOE)
     {
         var flow = module.FindComponent<ChannelingFlow>();
         if (flow != null)

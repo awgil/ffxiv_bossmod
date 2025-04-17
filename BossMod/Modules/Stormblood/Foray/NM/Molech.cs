@@ -19,11 +19,11 @@ public enum AID : uint
 }
 
 class Adds(BossModule module) : Components.AddsPointless(module, (uint)OID.Adulator);
-class W11TonzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W11TonzeSwipe), new AOEShapeCone(9, 75.Degrees()));
-class W111TonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W111TonzeSwing), new AOEShapeCircle(13));
-class W111TonzeSwingAdds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W111TonzeSwingAdds), new AOEShapeCircle(13));
-class W111TonzeSwingBig(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W111TonzeSwingBig), new AOEShapeCircle(20));
-class ZoomIn(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.ZoomIn), 4);
+class W11TonzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.W11TonzeSwipe, new AOEShapeCone(9, 75.Degrees()));
+class W111TonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.W111TonzeSwing, new AOEShapeCircle(13));
+class W111TonzeSwingAdds(BossModule module) : Components.SelfTargetedAOEs(module, AID.W111TonzeSwingAdds, new AOEShapeCircle(13));
+class W111TonzeSwingBig(BossModule module) : Components.SelfTargetedAOEs(module, AID.W111TonzeSwingBig, new AOEShapeCircle(20));
+class ZoomIn(BossModule module) : Components.ChargeAOEs(module, AID.ZoomIn, 4);
 
 class MolechStates : StateMachineBuilder
 {
@@ -41,4 +41,3 @@ class MolechStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1414, Contributors = "xan", SortOrder = 3)]
 public class Molech(WorldState ws, Actor primary) : BossModule(ws, primary, new(-676.8632f, -441.8009f), new ArenaBoundsCircle(80, MapResolution: 1));
-

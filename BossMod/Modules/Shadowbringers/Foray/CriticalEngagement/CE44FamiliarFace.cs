@@ -41,16 +41,16 @@ public enum AID : uint
     Hammerfall = 23825, // Helper->self, 8.0s cast, range 37 circle aoe
 }
 
-class TectonicEruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TectonicEruption), 6);
-class RockCutter(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.RockCutter));
-class AncientQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AncientQuake));
-class Roxxor(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Roxxor), 6);
-class ControlTowerAppear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ControlTowerAppear), new AOEShapeCircle(6));
+class TectonicEruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.TectonicEruption, 6);
+class RockCutter(BossModule module) : Components.SingleTargetDelayableCast(module, AID.RockCutter);
+class AncientQuake(BossModule module) : Components.RaidwideCast(module, AID.AncientQuake);
+class Roxxor(BossModule module) : Components.SpreadFromCastTargets(module, AID.Roxxor, 6);
+class ControlTowerAppear(BossModule module) : Components.SelfTargetedAOEs(module, AID.ControlTowerAppear, new AOEShapeCircle(6));
 
 // note: we could predict aoes way in advance, when FallingTower actors are created - they immediately have correct rotation
 // if previous cast was TowerRound, delay is ~24.4s; otherwise if previous cast was ControlTower, delay is ~9.6s; otherwise it is ~13s
 // however, just watching casts normally gives more than enough time to avoid aoes and does not interfere with mechanics that resolve earlier
-class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Towerfall), new AOEShapeRect(40, 5));
+class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, AID.Towerfall, new AOEShapeRect(40, 5));
 
 class ExtremeEdge(BossModule module) : Components.GenericAOEs(module)
 {

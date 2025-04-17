@@ -12,8 +12,8 @@ public enum AID : uint
     TheCurse = 5765, // D25->self, 3.0s cast, range 7+R ?-degree cone
 }
 
-class FlamingTizona(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlamingTizona), 6);
-class TheCurse(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheCurse), new AOEShapeDonutSector(2, 7, 90.Degrees()));
+class FlamingTizona(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlamingTizona, 6);
+class TheCurse(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheCurse, new AOEShapeDonutSector(2, 7, 90.Degrees()));
 
 class Demoralize(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(0x1E9FA8).Where(e => e.EventState != 7));
 class Tizona(BossModule module) : Components.Adds(module, (uint)OID.Tizona, 5);

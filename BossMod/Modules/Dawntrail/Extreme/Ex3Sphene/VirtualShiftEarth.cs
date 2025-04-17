@@ -36,7 +36,7 @@ class VirtualShiftEarth(BossModule module) : BossComponent(module)
     }
 }
 
-abstract class LawsOfEarthBurst(BossModule module) : Components.GenericTowers(module, ActionID.MakeSpell(AID.LawsOfEarthBurst))
+abstract class LawsOfEarthBurst(BossModule module) : Components.GenericTowers(module, AID.LawsOfEarthBurst)
 {
     private readonly VirtualShiftEarth? _virtualShift = module.FindComponent<VirtualShiftEarth>();
 
@@ -92,10 +92,10 @@ class LawsOfEarthBurst2 : LawsOfEarthBurst
     }
 }
 
-class GravityPillar(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.GravityPillar), new AOEShapeCircle(10), true);
+class GravityPillar(BossModule module) : Components.BaitAwayCast(module, AID.GravityPillar, new AOEShapeCircle(10), true);
 
 // note: the tethers appear before target is created; the target is at the same location as the boss
-class GravityRay(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(50, 30.Degrees()), (uint)TetherID.GravityRay, ActionID.MakeSpell(AID.GravityRay)) // TODO: verify angle
+class GravityRay(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(50, 30.Degrees()), (uint)TetherID.GravityRay, AID.GravityRay) // TODO: verify angle
 {
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
@@ -177,7 +177,7 @@ class MeteorImpact(BossModule module) : Components.CastCounter(module, default)
 }
 
 // TODO: how targeting / safe zones really work? what if <8 meteors are placed?
-class WeightyBlow(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.WeightyBlowAOE))
+class WeightyBlow(BossModule module) : Components.CastCounter(module, AID.WeightyBlowAOE)
 {
     private readonly VirtualShiftEarth? _virtualShift = module.FindComponent<VirtualShiftEarth>();
     private readonly List<Actor> _boulders = [];

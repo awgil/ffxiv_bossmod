@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
-class P3GevurahChesed(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.LifeForce)) // doesn't matter which spell to track
+class P3GevurahChesed(BossModule module) : Components.CastCounter(module, AID.LifeForce) // doesn't matter which spell to track
 {
     private BitMask _physResistMask;
     private int _physSide; // 0 if not active, -1 if left, +1 if right

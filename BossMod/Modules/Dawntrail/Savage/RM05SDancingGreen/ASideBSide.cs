@@ -124,7 +124,7 @@ class PlayASide(BossModule module) : BossComponent(module)
     }
 }
 
-class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, ActionID.MakeSpell(AID.PlayBSide), 60)
+class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, AID.PlayBSide, 60)
 {
     private ABSide? _ab;
 

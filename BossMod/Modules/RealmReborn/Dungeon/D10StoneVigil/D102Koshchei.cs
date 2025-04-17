@@ -16,8 +16,8 @@ public enum AID : uint
     TyphoonAOE = 28731, // MaelstromHelper->self, no cast, range 3 aoe
 }
 
-class SpikedTail(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpikedTail));
-class SonicStorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SonicStorm), 6);
+class SpikedTail(BossModule module) : Components.SingleTargetCast(module, AID.SpikedTail);
+class SonicStorm(BossModule module) : Components.LocationTargetedAOEs(module, AID.SonicStorm, 6);
 
 class Typhoon(BossModule module) : Components.Exaflare(module, 3)
 {

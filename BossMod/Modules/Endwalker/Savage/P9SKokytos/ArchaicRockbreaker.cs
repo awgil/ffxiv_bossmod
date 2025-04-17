@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
-class ArchaicRockbreakerCenter(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ArchaicRockbreakerCenter), 6);
+class ArchaicRockbreakerCenter(BossModule module) : Components.LocationTargetedAOEs(module, AID.ArchaicRockbreakerCenter, 6);
 
-class ArchaicRockbreakerShockwave(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.ArchaicRockbreakerShockwave), true)
+class ArchaicRockbreakerShockwave(BossModule module) : Components.Knockback(module, AID.ArchaicRockbreakerShockwave, true)
 {
     private readonly Uplift? _uplift = module.FindComponent<Uplift>();
     private readonly DateTime _activation = module.WorldState.FutureTime(6.5f);
@@ -37,7 +37,7 @@ class ArchaicRockbreakerPairs : Components.UniformStackSpread
     }
 }
 
-class ArchaicRockbreakerLine(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ArchaicRockbreakerLine), 8, maxCasts: 8);
+class ArchaicRockbreakerLine(BossModule module) : Components.LocationTargetedAOEs(module, AID.ArchaicRockbreakerLine, 8, maxCasts: 8);
 
 class ArchaicRockbreakerCombination(BossModule module) : Components.GenericAOEs(module)
 {

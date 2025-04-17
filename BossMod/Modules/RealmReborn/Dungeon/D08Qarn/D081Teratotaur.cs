@@ -26,9 +26,9 @@ public enum SID : uint
     Doom = 210, // Boss->player, extra=0x0
 }
 
-class Triclip(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Triclip), new AOEShapeRect(5.25f, 2));
-class Mow(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.Mow), new AOEShapeCone(8.25f, 60.Degrees()));
-class FrightfulRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrightfulRoar), new AOEShapeCircle(8.25f));
+class Triclip(BossModule module) : Components.Cleave(module, AID.Triclip, new AOEShapeRect(5.25f, 2));
+class Mow(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.Mow, new AOEShapeCone(8.25f, 60.Degrees()));
+class FrightfulRoar(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(8.25f));
 
 class MortalRay(BossModule module) : BossComponent(module)
 {

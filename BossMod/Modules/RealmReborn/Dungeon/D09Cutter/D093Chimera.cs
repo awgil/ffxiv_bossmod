@@ -20,15 +20,15 @@ public enum AID : uint
     ChaoticChorus = 1108, // Cacophony->self, no cast, range 6 aoe
 }
 
-class LionsBreath(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.LionsBreath), new AOEShapeCone(9.7f, 60.Degrees())); // TODO: verify angle
-class RamsBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.RamsBreath), new AOEShapeCone(9.7f, 60.Degrees(), -45.Degrees()));
-class DragonsBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.DragonsBreath), new AOEShapeCone(9.7f, 60.Degrees(), 45.Degrees()));
-class RamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RamsVoice), new AOEShapeCircle(9.7f));
-class DragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DragonsVoice), new AOEShapeDonut(7, 30));
-class RamsKeeper(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RamsKeeper), 6);
+class LionsBreath(BossModule module) : Components.Cleave(module, AID.LionsBreath, new AOEShapeCone(9.7f, 60.Degrees())); // TODO: verify angle
+class RamsBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.RamsBreath, new AOEShapeCone(9.7f, 60.Degrees(), -45.Degrees()));
+class DragonsBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.DragonsBreath, new AOEShapeCone(9.7f, 60.Degrees(), 45.Degrees()));
+class RamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.RamsVoice, new AOEShapeCircle(9.7f));
+class DragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.DragonsVoice, new AOEShapeDonut(7, 30));
+class RamsKeeper(BossModule module) : Components.LocationTargetedAOEs(module, AID.RamsKeeper, 6);
 class RamsKeeperVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.RamsKeeper));
 
-class ChaoticChorus(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ChaoticChorus))
+class ChaoticChorus(BossModule module) : Components.GenericAOEs(module, AID.ChaoticChorus)
 {
     private readonly AOEShape _shape = new AOEShapeCircle(6);
 

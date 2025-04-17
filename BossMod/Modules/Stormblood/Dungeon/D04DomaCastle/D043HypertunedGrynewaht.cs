@@ -39,8 +39,8 @@ public enum TetherID : uint
 {
     ChainMine = 60,
 }
-class Chainsaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Chainsaw), new AOEShapeRect(4f + 0.6f, 1f));
-class Chainsaw2(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Chainsaw2))
+class Chainsaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.Chainsaw, new AOEShapeRect(4f + 0.6f, 1f));
+class Chainsaw2(BossModule module) : Components.GenericAOEs(module, AID.Chainsaw2)
 {
     private readonly List<AOEInstance> _aoes = [];
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
@@ -58,7 +58,7 @@ class Chainsaw2(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
         }
     }
 };
-class DelayActionCharge2(BossModule module) : Components.IconStackSpread(module, 0, (uint)IconID.DelayActionCharge, default, ActionID.MakeSpell(AID.DelayActionCharge2), 0, 6, 5.1f);
+class DelayActionCharge2(BossModule module) : Components.IconStackSpread(module, 0, (uint)IconID.DelayActionCharge, default, AID.DelayActionCharge2, 0, 6, 5.1f);
 class ChainMines(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _tethers = [];
@@ -81,8 +81,8 @@ class ChainMines(BossModule module) : Components.GenericAOEs(module)
             _tethers.Remove(source);
     }
 };
-class Gunsaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Gunsaw), new AOEShapeRect(60.5f, 1f));
-class GunsawFollow(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.GunsawFollow))
+class Gunsaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.Gunsaw, new AOEShapeRect(60.5f, 1f));
+class GunsawFollow(BossModule module) : Components.GenericBaitAway(module, AID.GunsawFollow)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

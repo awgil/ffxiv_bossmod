@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS8Queen;
 
-class HeavensWrathAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavensWrathVisual), new AOEShapeRect(25, 5, 25));
+class HeavensWrathAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavensWrathVisual, new AOEShapeRect(25, 5, 25));
 
 // TODO: generalize
 class HeavensWrathKnockback(BossModule module) : Components.Knockback(module)

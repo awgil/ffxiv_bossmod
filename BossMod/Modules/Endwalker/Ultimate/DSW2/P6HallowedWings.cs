@@ -36,7 +36,7 @@ class P6CauterizeN : Components.GenericAOEs
 
     private static readonly AOEShapeRect _shape = new(80, 11);
 
-    public P6CauterizeN(BossModule module) : base(module, ActionID.MakeSpell(AID.CauterizeN))
+    public P6CauterizeN(BossModule module) : base(module, AID.CauterizeN)
     {
         var caster = module.Enemies(OID.NidhoggP6).FirstOrDefault();
         if (caster != null)
@@ -46,7 +46,7 @@ class P6CauterizeN : Components.GenericAOEs
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(AOE);
 }
 
-abstract class P6HallowedPlume(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HallowedPlume), centerAtTarget: true)
+abstract class P6HallowedPlume(BossModule module) : Components.GenericBaitAway(module, AID.HallowedPlume, centerAtTarget: true)
 {
     protected P6HallowedWings? _wings = module.FindComponent<P6HallowedWings>();
     protected bool _far;

@@ -29,13 +29,13 @@ public enum SID : uint
     Stun = 2, // Boss->player, extra=0x0
 }
 
-class SpineLash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpineLash), new AOEShapeCone(11, 45.Degrees()));
-class Waterga(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WatergaIII), 8);
+class SpineLash(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpineLash, new AOEShapeCone(11, 45.Degrees()));
+class Waterga(BossModule module) : Components.LocationTargetedAOEs(module, AID.WatergaIII, 8);
 class ShockSpikes(BossModule module) : DispelComponent(module, (uint)SID.ShockSpikes);
 class MightyStrikes(BossModule module) : DispelComponent(module, (uint)SID.CriticalStrikes);
-class Meteor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Meteor));
-class Aeroga(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AerogaIV), new AOEShapeCircle(10));
-class Tornado(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TornadoII), new AOEShapeDonut(5, 40));
+class Meteor(BossModule module) : Components.RaidwideCast(module, AID.Meteor);
+class Aeroga(BossModule module) : Components.SelfTargetedAOEs(module, AID.AerogaIV, new AOEShapeCircle(10));
+class Tornado(BossModule module) : Components.SelfTargetedAOEs(module, AID.TornadoII, new AOEShapeDonut(5, 40));
 class Dualcast(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? cast;
@@ -90,4 +90,3 @@ class TristitiaStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1422, Contributors = "xan", SortOrder = 12)]
 public class Tristitia(WorldState ws, Actor primary) : BossModule(ws, primary, new(-125.7764f, -111.1819f), new ArenaBoundsCircle(80, 1));
-

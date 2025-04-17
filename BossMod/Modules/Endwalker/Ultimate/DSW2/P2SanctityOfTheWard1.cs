@@ -46,7 +46,7 @@ class P2SanctityOfTheWard1Sever(BossModule module) : Components.UniformStackSpre
 }
 
 // shining blade (charges that leave orbs) + flares (their explosions)
-class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BrightFlare), "GTFO from charges and spheres!")
+class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(module, AID.BrightFlare, "GTFO from charges and spheres!")
 {
     public class ChargeInfo(Actor source)
     {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
-class MeteorImpactProximity(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpactProximity), new AOEShapeCircle(10)); // TODO: verify falloff
+class MeteorImpactProximity(BossModule module) : Components.SelfTargetedAOEs(module, AID.MeteorImpactProximity, new AOEShapeCircle(10)); // TODO: verify falloff
 
 class MeteorImpactCharge(BossModule module) : BossComponent(module)
 {
@@ -148,4 +148,4 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
     }
 }
 
-class MeteorImpactExplosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorImpactExplosion), new AOEShapeCircle(10));
+class MeteorImpactExplosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.MeteorImpactExplosion, new AOEShapeCircle(10));

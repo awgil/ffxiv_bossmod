@@ -23,10 +23,10 @@ public enum AID : uint
     DefilersDeserts = 14643, // Helper->self, 3.5s cast, range 35+R width 8 rect
 }
 
-class DefilersDeserts(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DefilersDeserts), new AOEShapeRect(36, 4));
-class AcallamNaSenorach(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AcallamNaSenorach));
-class Thricecull(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Thricecull));
-class Legendcarver(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Legendcarver), new AOEShapeCircle(15))
+class DefilersDeserts(BossModule module) : Components.SelfTargetedAOEs(module, AID.DefilersDeserts, new AOEShapeRect(36, 4));
+class AcallamNaSenorach(BossModule module) : Components.RaidwideCast(module, AID.AcallamNaSenorach);
+class Thricecull(BossModule module) : Components.SingleTargetCast(module, AID.Thricecull);
+class Legendcarver(BossModule module) : Components.SelfTargetedAOEs(module, AID.Legendcarver, new AOEShapeCircle(15))
 {
     private Mythcarver? mc;
 
@@ -36,7 +36,7 @@ class Legendcarver(BossModule module) : Components.SelfTargetedAOEs(module, Acti
         Color = mc?.Casters.Count > 0 ? ArenaColor.Danger : ArenaColor.AOE;
     }
 }
-class Legendspinner(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Legendspinner), new AOEShapeDonut(7, 22))
+class Legendspinner(BossModule module) : Components.SelfTargetedAOEs(module, AID.Legendspinner, new AOEShapeDonut(7, 22))
 {
     private Mythspinner? ms;
 
@@ -47,10 +47,11 @@ class Legendspinner(BossModule module) : Components.SelfTargetedAOEs(module, Act
     }
 }
 
-abstract class SpearAOEs(BossModule module, ActionID bossCast, AOEShape shape) : Components.GenericAOEs(module)
+abstract class SpearAOEs(BossModule module, Enum bossCast, AOEShape shape) : Components.GenericAOEs(module)
 {
     public readonly List<Actor> Casters = [];
     private DateTime Activation;
+    public readonly ActionID BossCast = ActionID.MakeSpell(bossCast);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Activation == default ? [] : Casters.Select(c => new AOEInstance(shape, c.Position, Activation: Activation));
 
@@ -62,7 +63,7 @@ abstract class SpearAOEs(BossModule module, ActionID bossCast, AOEShape shape) :
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == bossCast && Casters.Count > 0)
+        if (spell.Action == BossCast && Casters.Count > 0)
             Activation = WorldState.FutureTime(7.5f);
     }
 
@@ -73,9 +74,9 @@ abstract class SpearAOEs(BossModule module, ActionID bossCast, AOEShape shape) :
     }
 }
 
-class Mythcarver(BossModule module) : SpearAOEs(module, ActionID.MakeSpell(AID.Legendcarver), new AOEShapeCircle(15));
-class Mythspinner(BossModule module) : SpearAOEs(module, ActionID.MakeSpell(AID.Legendspinner), new AOEShapeDonut(7, 22));
-class LegendaryGeas(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LegendaryGeas), 8);
+class Mythcarver(BossModule module) : SpearAOEs(module, AID.Legendcarver, new AOEShapeCircle(15));
+class Mythspinner(BossModule module) : SpearAOEs(module, AID.Legendspinner, new AOEShapeDonut(7, 22));
+class LegendaryGeas(BossModule module) : Components.LocationTargetedAOEs(module, AID.LegendaryGeas, 8);
 
 class ArtStates : StateMachineBuilder
 {
@@ -95,4 +96,3 @@ class ArtStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7968)]
 public class Art(WorldState ws, Actor primary) : BAModule(ws, primary, new(-129, 748), new ArenaBoundsCircle(30));
-

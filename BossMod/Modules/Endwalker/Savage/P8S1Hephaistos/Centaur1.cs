@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
-class RearingRampageSecond(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RearingRampageSecond));
-class RearingRampageLast(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RearingRampageLast));
+class RearingRampageSecond(BossModule module) : Components.CastCounter(module, AID.RearingRampageSecond);
+class RearingRampageLast(BossModule module) : Components.CastCounter(module, AID.RearingRampageLast);
 
 class UpliftStompDead : Components.UniformStackSpread
 {

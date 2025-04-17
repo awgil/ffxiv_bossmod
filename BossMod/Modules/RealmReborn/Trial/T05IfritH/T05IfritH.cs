@@ -39,10 +39,10 @@ class Hints(BossModule module) : BossComponent(module)
     }
 }
 
-class Incinerate(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Incinerate), new AOEShapeCone(15, 60.Degrees()));
-class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EruptionAOE), 8);
+class Incinerate(BossModule module) : Components.Cleave(module, AID.Incinerate, new AOEShapeCone(15, 60.Degrees()));
+class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.EruptionAOE, 8);
 
-class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrimsonCyclone))
+class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, AID.CrimsonCyclone)
 {
     private readonly List<Actor> _casters = [];
 
@@ -66,7 +66,7 @@ class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, ActionI
     }
 }
 
-class RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantPlumeAOE), 8);
+class RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, AID.RadiantPlumeAOE, 8);
 
 class T05IfritHStates : StateMachineBuilder
 {

@@ -68,8 +68,8 @@ class MesmerizingMarchStirringSamba(BossModule module) : Components.GenericAOEs(
     }
 }
 
-class GlidingSwoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GlidingSwoop), new AOEShapeRect(18, 8));
-class PeckingFlurry(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PeckingFlurryFirst), "Raidwide x3");
+class GlidingSwoop(BossModule module) : Components.SelfTargetedAOEs(module, AID.GlidingSwoop, new AOEShapeRect(18, 8));
+class PeckingFlurry(BossModule module) : Components.RaidwideCast(module, AID.PeckingFlurryFirst, "Raidwide x3");
 
 class PkuuchaStates : StateMachineBuilder
 {

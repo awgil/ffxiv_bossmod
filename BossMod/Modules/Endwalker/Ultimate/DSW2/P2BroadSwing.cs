@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
-class P2BroadSwing(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BroadSwingAOE))
+class P2BroadSwing(BossModule module) : Components.GenericAOEs(module, AID.BroadSwingAOE)
 {
     private readonly List<AOEInstance> _aoes = [];
 

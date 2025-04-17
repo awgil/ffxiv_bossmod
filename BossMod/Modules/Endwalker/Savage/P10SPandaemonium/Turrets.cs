@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class Turrets(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.PealOfCondemnation), true, 1) // TODO: verify whether it ignores immunes
+class Turrets(BossModule module) : Components.Knockback(module, AID.PealOfCondemnation, true, 1) // TODO: verify whether it ignores immunes
 {
     private readonly Actor?[] _turrets = new Actor?[8]; // pairs in order of activation
     private DateTime _activation;

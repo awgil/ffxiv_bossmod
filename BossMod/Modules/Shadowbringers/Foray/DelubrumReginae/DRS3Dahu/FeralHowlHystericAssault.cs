@@ -2,7 +2,7 @@
 
 // these two abilities are very similar, only differ by activation delay and action id
 // TODO: not all the wall is safe...
-class FeralHowlHystericAssault(BossModule module, AID aidCast, AID aidAOE, float delay) : Components.Knockback(module, ActionID.MakeSpell(aidAOE), true, stopAtWall: true)
+class FeralHowlHystericAssault(BossModule module, AID aidCast, AID aidAOE, float delay) : Components.Knockback(module, aidAOE, true, stopAtWall: true)
 {
     private readonly AID _aidCast = aidCast;
     private readonly float _delay = delay;

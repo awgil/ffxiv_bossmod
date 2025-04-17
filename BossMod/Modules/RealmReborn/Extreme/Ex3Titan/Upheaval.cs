@@ -1,7 +1,7 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
 // TODO: most of what's here should be handled by KnockbackFromCastTarget component...
-class Upheaval(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Upheaval))
+class Upheaval(BossModule module) : Components.Knockback(module, AID.Upheaval)
 {
     private DateTime _remainInPosition;
 

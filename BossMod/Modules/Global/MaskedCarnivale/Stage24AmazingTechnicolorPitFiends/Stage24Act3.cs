@@ -20,8 +20,8 @@ public enum AID : uint
     SelfDetonate = 15329, // 273A->player, 3.0s cast, single-target
 }
 
-class MagicHammer(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagicHammer), 8);
-class PageTear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PageTear), new AOEShapeCone(8, 45.Degrees()));
+class MagicHammer(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagicHammer, 8);
+class PageTear(BossModule module) : Components.SelfTargetedAOEs(module, AID.PageTear, new AOEShapeCone(8, 45.Degrees()));
 
 class VacuumBlade(BossModule module) : Components.GenericAOEs(module)
 {
@@ -52,9 +52,9 @@ class VacuumBlade(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.HeadDown), 4);
+class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, AID.HeadDown, 4);
 
-class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HeadDown), 10, kind: Kind.DirForward)
+class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HeadDown, 10, kind: Kind.DirForward)
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
@@ -67,7 +67,7 @@ class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module,
     }
 }
 
-class BoneShaker(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BoneShaker), "Adds + Raidwide");
+class BoneShaker(BossModule module) : Components.RaidwideCast(module, AID.BoneShaker, "Adds + Raidwide");
 
 class Hints2(BossModule module) : BossComponent(module)
 {

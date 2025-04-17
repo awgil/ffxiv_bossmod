@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
 
-class RightArmComet(BossModule module, AID aid, float distance) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(aid), distance, shape: new AOEShapeCircle(_radius))
+class RightArmComet(BossModule module, AID aid, float distance) : Components.KnockbackFromCastTarget(module, aid, distance, shape: new AOEShapeCircle(_radius))
 {
     private const float _radius = 5;
 

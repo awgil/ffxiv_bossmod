@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
-class P3Daat(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.DaatRandom))
+class P3Daat(BossModule module) : Components.CastCounter(module, AID.DaatRandom)
 {
     private const float radius = 5;
 

@@ -40,21 +40,21 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
-class Windrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindRune), new AOEShapeRect(40, 4));
-class SongRune(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SongRune), 6);
-class StormRune(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StormRune));
-class BushBash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BushBash), new AOEShapeCircle(12));
-class BushBash2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BushBash2), new AOEShapeCircle(12));
-class NatureCall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NatureCall), new AOEShapeCone(30, 60.Degrees()));
-class NatureCall2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NatureCall2), new AOEShapeCone(30, 60.Degrees()));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
-class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCircle(11));
-class Mash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mash), new AOEShapeRect(13, 2));
-class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scoop), new AOEShapeCone(15, 60.Degrees()));
+class Windrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindRune, new AOEShapeRect(40, 4));
+class SongRune(BossModule module) : Components.LocationTargetedAOEs(module, AID.SongRune, 6);
+class StormRune(BossModule module) : Components.RaidwideCast(module, AID.StormRune);
+class BushBash(BossModule module) : Components.SelfTargetedAOEs(module, AID.BushBash, new AOEShapeCircle(12));
+class BushBash2(BossModule module) : Components.SelfTargetedAOEs(module, AID.BushBash2, new AOEShapeCircle(12));
+class NatureCall(BossModule module) : Components.SelfTargetedAOEs(module, AID.NatureCall, new AOEShapeCone(30, 60.Degrees()));
+class NatureCall2(BossModule module) : Components.SelfTargetedAOEs(module, AID.NatureCall2, new AOEShapeCone(30, 60.Degrees()));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spin, new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
 
 class GreedyPixieStates : StateMachineBuilder
 {

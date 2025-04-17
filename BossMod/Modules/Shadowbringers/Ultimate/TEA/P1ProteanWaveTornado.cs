@@ -6,7 +6,7 @@ class P1ProteanWaveTornado : Components.GenericBaitAway
 
     private static readonly AOEShapeCone _shape = new(40, 15.Degrees());
 
-    public P1ProteanWaveTornado(BossModule module, bool enableHints) : base(module, ActionID.MakeSpell(AID.ProteanWaveTornadoInvis))
+    public P1ProteanWaveTornado(BossModule module, bool enableHints) : base(module, AID.ProteanWaveTornadoInvis)
     {
         _liquidRage = module.Enemies(OID.LiquidRage);
         EnableHints = enableHints;
@@ -24,6 +24,6 @@ class P1ProteanWaveTornado : Components.GenericBaitAway
     }
 }
 
-class P1ProteanWaveTornadoVisCast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ProteanWaveTornadoVis), new AOEShapeCone(40, 15.Degrees()));
+class P1ProteanWaveTornadoVisCast(BossModule module) : Components.SelfTargetedAOEs(module, AID.ProteanWaveTornadoVis, new AOEShapeCone(40, 15.Degrees()));
 class P1ProteanWaveTornadoVisBait(BossModule module) : P1ProteanWaveTornado(module, false);
 class P1ProteanWaveTornadoInvis(BossModule module) : P1ProteanWaveTornado(module, true);

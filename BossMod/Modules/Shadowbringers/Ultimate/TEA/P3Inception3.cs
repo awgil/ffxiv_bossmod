@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 // note: boss moves to position around the component activation time
-class P3Inception3Sacrament(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SacramentInception))
+class P3Inception3Sacrament(BossModule module) : Components.GenericAOEs(module, AID.SacramentInception)
 {
     public bool Active => _source != null;
 

@@ -29,9 +29,9 @@ public enum AID : uint
     PerfectContrition = 15630, // 27CD->self, 6.0s cast, range 5-15 donut
 }
 
-class Catechism(BossModule module) : Components.SingleTargetCastDelay(module, ActionID.MakeSpell(AID.Catechism), ActionID.MakeSpell(AID.Catechism2), 0.5f);
-class SacramentOfPenance(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.SacramentOfPenance), ActionID.MakeSpell(AID.SacramentOfPenance2), 0.5f);
-class PerfectContrition(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PerfectContrition), new AOEShapeDonut(5, 15));
+class Catechism(BossModule module) : Components.SingleTargetCastDelay(module, AID.Catechism, AID.Catechism2, 0.5f);
+class SacramentOfPenance(BossModule module) : Components.RaidwideCastDelay(module, AID.SacramentOfPenance, AID.SacramentOfPenance2, 0.5f);
+class PerfectContrition(BossModule module) : Components.SelfTargetedAOEs(module, AID.PerfectContrition, new AOEShapeDonut(5, 15));
 
 class JudgmentDay(BossModule module) : Components.GenericTowers(module)
 {

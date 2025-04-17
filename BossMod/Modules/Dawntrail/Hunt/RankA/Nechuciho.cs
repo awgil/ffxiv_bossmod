@@ -30,7 +30,7 @@ public enum AID : uint
     SentinelRoar = 39491, // Boss->self, 5.0s cast, range 40 circle, raidwide
 }
 
-class WordOfTheWood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WordOfTheWood), new AOEShapeCone(30, 90.Degrees()));
+class WordOfTheWood(BossModule module) : Components.SelfTargetedAOEs(module, AID.WordOfTheWood, new AOEShapeCone(30, 90.Degrees()));
 
 class WhisperOfTheWood(BossModule module) : Components.GenericAOEs(module)
 {
@@ -99,8 +99,8 @@ class WhisperOfTheWood(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Level5DeathSentence(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.Level5DeathSentence));
-class SentinelRoar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SentinelRoar));
+class Level5DeathSentence(BossModule module) : Components.CastInterruptHint(module, AID.Level5DeathSentence);
+class SentinelRoar(BossModule module) : Components.RaidwideCast(module, AID.SentinelRoar);
 
 class NechucihoStates : StateMachineBuilder
 {

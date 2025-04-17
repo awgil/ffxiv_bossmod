@@ -24,11 +24,11 @@ public enum IconID : uint
     Stackmarker = 62, // player
 }
 
-class RazorScales(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RazorScales), new AOEShapeCone(60, 30.Degrees()));
-class PrimordialRoar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PrimordialRoar));
-class MadDash(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.MadDash), 6);
-class MadDashStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MadDashStack), 6, 2);
-class TheLastSong(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TheLastSong));
+class RazorScales(BossModule module) : Components.SelfTargetedAOEs(module, AID.RazorScales, new AOEShapeCone(60, 30.Degrees()));
+class PrimordialRoar(BossModule module) : Components.RaidwideCast(module, AID.PrimordialRoar);
+class MadDash(BossModule module) : Components.SpreadFromCastTargets(module, AID.MadDash, 6);
+class MadDashStack(BossModule module) : Components.StackWithCastTargets(module, AID.MadDashStack, 6, 2);
+class TheLastSong(BossModule module) : Components.RaidwideCast(module, AID.TheLastSong);
 class Adds(BossModule module) : Components.Adds(module, (uint)OID.ChymeOfTheMountain)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

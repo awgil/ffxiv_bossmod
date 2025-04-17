@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM02SHoneyBLovely;
 
-class HoneyBLiveBeat1(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HoneyBLiveBeat1AOE));
-class HoneyBLiveBeat2(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HoneyBLiveBeat2AOE));
-class HoneyBLiveBeat3(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HoneyBLiveBeat3AOE));
+class HoneyBLiveBeat1(BossModule module) : Components.CastCounter(module, AID.HoneyBLiveBeat1AOE);
+class HoneyBLiveBeat2(BossModule module) : Components.CastCounter(module, AID.HoneyBLiveBeat2AOE);
+class HoneyBLiveBeat3(BossModule module) : Components.CastCounter(module, AID.HoneyBLiveBeat3AOE);
 
 class HoneyBLiveHearts(BossModule module) : BossComponent(module)
 {
@@ -33,7 +33,7 @@ class HoneyBLiveHearts(BossModule module) : BossComponent(module)
     };
 }
 
-abstract class Fracture(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Fracture), 4)
+abstract class Fracture(BossModule module) : Components.CastTowers(module, AID.Fracture, 4)
 {
     protected abstract BitMask UpdateForbidden();
 
@@ -100,9 +100,9 @@ class Fracture3 : Fracture
     protected override BitMask UpdateForbidden() => _defamations;
 }
 
-class Loveseeker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LoveseekerAOE), new AOEShapeCircle(10));
-class HeartStruck(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeartStruck), 6);
-class Heartsore(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Heartsore, ActionID.MakeSpell(AID.Heartsore), 6, 7.1f);
+class Loveseeker(BossModule module) : Components.SelfTargetedAOEs(module, AID.LoveseekerAOE, new AOEShapeCircle(10));
+class HeartStruck(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeartStruck, 6);
+class Heartsore(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Heartsore, AID.Heartsore, 6, 7.1f);
 
 class Sweetheart(BossModule module) : Components.GenericAOEs(module)
 {
@@ -125,7 +125,7 @@ class Sweetheart(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-abstract class Heartsick(BossModule module, bool roles) : Components.StackWithIcon(module, (uint)IconID.Heartsick, ActionID.MakeSpell(AID.Heartsick), 6, 7, roles ? 2 : 4)
+abstract class Heartsick(BossModule module, bool roles) : Components.StackWithIcon(module, (uint)IconID.Heartsick, AID.Heartsick, 6, 7, roles ? 2 : 4)
 {
     private readonly HoneyBLiveHearts? _hearts = module.FindComponent<HoneyBLiveHearts>();
 

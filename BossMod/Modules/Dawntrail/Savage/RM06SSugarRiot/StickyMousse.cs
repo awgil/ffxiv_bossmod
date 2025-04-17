@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM06SSugarRiot;
 
-class StickyMousse(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.StickyMousse), centerAtTarget: true)
+class StickyMousse(BossModule module) : Components.GenericBaitAway(module, AID.StickyMousse, centerAtTarget: true)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

@@ -64,11 +64,11 @@ class GunmetalSoul(BossModule module) : Components.GenericAOEs(module)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Module.Enemies(0x1EB1D5).Where(e => e.EventState != 7).Select(e => new AOEInstance(new AOEShapeDonut(4, 100), e.Position));
 }
-class LunarGungnir(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.LunarGungnir), 6);
-class LunarGungnir2(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.LunarGungnir1), 6);
-class Gungnir(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GungnirAOE), new AOEShapeCircle(10));
-class Gagnrath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Gagnrath), new AOEShapeRect(50, 2));
-class GungnirSpread(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(10), 189, ActionID.MakeSpell(AID.GungnirSpread), 5.3f, centerAtTarget: true);
+class LunarGungnir(BossModule module) : Components.StackWithCastTargets(module, AID.LunarGungnir, 6);
+class LunarGungnir2(BossModule module) : Components.StackWithCastTargets(module, AID.LunarGungnir1, 6);
+class Gungnir(BossModule module) : Components.SelfTargetedAOEs(module, AID.GungnirAOE, new AOEShapeCircle(10));
+class Gagnrath(BossModule module) : Components.SelfTargetedAOEs(module, AID.Gagnrath, new AOEShapeRect(50, 2));
+class GungnirSpread(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(10), 189, AID.GungnirSpread, 5.3f, centerAtTarget: true);
 
 class Zantetsuken(BossModule module) : Components.GenericAOEs(module)
 {

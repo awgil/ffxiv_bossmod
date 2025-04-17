@@ -47,18 +47,18 @@ public enum IconID : uint
     CuttingWind = 506, // Whirlwind
 }
 
-class RazorZephyr(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RazorZephyr), new AOEShapeRect(50, 6));
-class BladeSingle(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.BladeSingle));
-class BladeMulti(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.BladeMultiAOE), new AOEShapeCircle(6), true);
-class HighWind(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HighWind));
-class BladesOfFamine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BladesOfFamineAOE), new AOEShapeRect(50, 6));
-class LevinsickleSpark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LevinsickleAOESpark), 4);
-class LevinsickleNormal(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LevinsickleAOENormal), 4);
-class LevinsickleVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.LevinsickleAOESpark), m => m.Enemies(OID.LevinsickleVoidzone).Where(x => x.EventState != 7), 0.8f);
-class WingOfLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WingOfLightning), new AOEShapeCone(40, 22.5f.Degrees()), 8);
-class ThunderIII(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ThunderIIIAOE), 6);
-class WindSickle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindSickle), new AOEShapeDonut(5, 60));
-class RazorStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RazorStorm), new AOEShapeRect(40, 20));
+class RazorZephyr(BossModule module) : Components.SelfTargetedAOEs(module, AID.RazorZephyr, new AOEShapeRect(50, 6));
+class BladeSingle(BossModule module) : Components.SingleTargetCast(module, AID.BladeSingle);
+class BladeMulti(BossModule module) : Components.BaitAwayCast(module, AID.BladeMultiAOE, new AOEShapeCircle(6), true);
+class HighWind(BossModule module) : Components.RaidwideCast(module, AID.HighWind);
+class BladesOfFamine(BossModule module) : Components.SelfTargetedAOEs(module, AID.BladesOfFamineAOE, new AOEShapeRect(50, 6));
+class LevinsickleSpark(BossModule module) : Components.LocationTargetedAOEs(module, AID.LevinsickleAOESpark, 4);
+class LevinsickleNormal(BossModule module) : Components.LocationTargetedAOEs(module, AID.LevinsickleAOENormal, 4);
+class LevinsickleVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, AID.LevinsickleAOESpark, m => m.Enemies(OID.LevinsickleVoidzone).Where(x => x.EventState != 7), 0.8f);
+class WingOfLightning(BossModule module) : Components.SelfTargetedAOEs(module, AID.WingOfLightning, new AOEShapeCone(40, 22.5f.Degrees()), 8);
+class ThunderIII(BossModule module) : Components.SpreadFromCastTargets(module, AID.ThunderIIIAOE, 6);
+class WindSickle(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindSickle, new AOEShapeDonut(5, 60));
+class RazorStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.RazorStorm, new AOEShapeRect(40, 20));
 
 class CuttingWind(BossModule module) : Components.GenericAOEs(module)
 {

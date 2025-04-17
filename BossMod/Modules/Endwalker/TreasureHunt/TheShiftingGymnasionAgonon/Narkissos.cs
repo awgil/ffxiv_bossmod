@@ -41,9 +41,9 @@ class Brainstorm(BossModule module) : Components.StatusDrivenForcedMarch(module,
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<SapShower>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class FetchingFulgence(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.FetchingFulgence));
-class Lash(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Lash));
-class PotentPerfume(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PotentPerfume), 8);
+class FetchingFulgence(BossModule module) : Components.CastGaze(module, AID.FetchingFulgence);
+class Lash(BossModule module) : Components.SingleTargetCast(module, AID.Lash);
+class PotentPerfume(BossModule module) : Components.LocationTargetedAOEs(module, AID.PotentPerfume, 8);
 
 class SapShowerTendrilsHint(BossModule module) : BossComponent(module)
 {
@@ -79,17 +79,17 @@ class SapShowerTendrilsHint(BossModule module) : BossComponent(module)
 
 class SapShower : Components.LocationTargetedAOEs
 {
-    public SapShower(BossModule module) : base(module, ActionID.MakeSpell(AID.SapShower2), 8)
+    public SapShower(BossModule module) : base(module, AID.SapShower2, 8)
     {
         Color = ArenaColor.Danger;
     }
 }
 
-class ExtensibleTendrils(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExtensibleTendrils), new AOEShapeCross(25, 3));
-class PutridBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PutridBreath), new AOEShapeCone(25, 45.Degrees()));
-class RockHard(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.RockHard), 6);
-class BeguilingGas(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.BeguilingGas), "Raidwide + Temporary Misdirection");
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class ExtensibleTendrils(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExtensibleTendrils, new AOEShapeCross(25, 3));
+class PutridBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.PutridBreath, new AOEShapeCone(25, 45.Degrees()));
+class RockHard(BossModule module) : Components.SpreadFromCastTargets(module, AID.RockHard, 6);
+class BeguilingGas(BossModule module) : Components.CastHint(module, AID.BeguilingGas, "Raidwide + Temporary Misdirection");
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
 
 class NarkissosStates : StateMachineBuilder
 {

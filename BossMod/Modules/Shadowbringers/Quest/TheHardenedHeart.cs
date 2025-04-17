@@ -17,7 +17,7 @@ public enum AID : uint
     RustingClaw = 15540, // 291B/291A->self, 5.0s cast, range 8+R ?-degree cone
 }
 
-class SanctifiedFireIII(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SanctifiedFireIII), 6)
+class SanctifiedFireIII(BossModule module) : Components.StackWithCastTargets(module, AID.SanctifiedFireIII, 6)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -26,8 +26,8 @@ class SanctifiedFireIII(BossModule module) : Components.StackWithCastTargets(mod
     }
 }
 
-class TwistedTalent(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.TwistedTalent1), 5);
-class AbyssalCharge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AbyssalCharge1), new AOEShapeRect(40, 2));
+class TwistedTalent(BossModule module) : Components.SpreadFromCastTargets(module, AID.TwistedTalent1, 5);
+class AbyssalCharge(BossModule module) : Components.SelfTargetedAOEs(module, AID.AbyssalCharge1, new AOEShapeRect(40, 2));
 
 class AutoBranden(WorldState ws) : UnmanagedRotation(ws, 3)
 {
@@ -105,7 +105,7 @@ class TankbusterTether(BossModule module) : BossComponent(module)
 
 class BrandenAI(BossModule module) : RotationModule<AutoBranden>(module);
 
-class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustingClaw), new AOEShapeCone(10.3f, 45.Degrees()));
+class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.RustingClaw, new AOEShapeCone(10.3f, 45.Degrees()));
 
 class TadricTheVaingloriousStates : StateMachineBuilder
 {
@@ -140,4 +140,3 @@ public class TadricTheVainglorious(WorldState ws, Actor primary) : BossModule(ws
         }
     }
 }
-

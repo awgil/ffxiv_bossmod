@@ -35,12 +35,12 @@ public enum AID : uint
     FrostBreath = 9334, // GreatDragon->self, no cast, range 15, 8.5-degree cone, frontal cone AoE
 }
 
-class Ribbit(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Ribbit), new AOEShapeCone(19.5f, 75.Degrees()));
-class SpellbladeThunderIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpellbladeThunderIII), new AOEShapeRect(60, 3));
-class SpellbladeBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpellbladeBlizzardIII), new AOEShapeCircle(9));
-class SpellbladeFireIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpellbladeFireIII), new AOEShapeDonut(4, 15));
-class CrossReaper(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CrossReaper), new AOEShapeCircle(10));
-class TheQueensWaltz1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheQueensWaltz1), new AOEShapeCone(34, 10.Degrees()));
+class Ribbit(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ribbit, new AOEShapeCone(19.5f, 75.Degrees()));
+class SpellbladeThunderIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpellbladeThunderIII, new AOEShapeRect(60, 3));
+class SpellbladeBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpellbladeBlizzardIII, new AOEShapeCircle(9));
+class SpellbladeFireIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpellbladeFireIII, new AOEShapeDonut(4, 15));
+class CrossReaper(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrossReaper, new AOEShapeCircle(10));
+class TheQueensWaltz1(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheQueensWaltz1, new AOEShapeCone(34, 10.Degrees()));
 class TheQueensWaltz2(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];

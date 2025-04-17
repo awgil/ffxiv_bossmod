@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Components;
 
 // generic component that shows line-of-sight cones for arbitrary origin and blocking shapes
-public abstract class GenericLineOfSightAOE(BossModule module, ActionID aid, float maxRange, bool blockersImpassable) : CastCounter(module, aid)
+public abstract class GenericLineOfSightAOE(BossModule module, Enum? aid, float maxRange, bool blockersImpassable) : CastCounter(module, aid)
 {
     public DateTime NextExplosion;
     public bool BlockersImpassable = blockersImpassable;
@@ -88,7 +88,7 @@ public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
     private readonly List<Actor> _casters = [];
     public Actor? ActiveCaster => _casters.MinBy(c => c.CastInfo!.RemainingTime);
 
-    protected CastLineOfSightAOE(BossModule module, ActionID aid, float maxRange, bool blockersImpassable) : base(module, aid, maxRange, blockersImpassable)
+    protected CastLineOfSightAOE(BossModule module, Enum aid, float maxRange, bool blockersImpassable) : base(module, aid, maxRange, blockersImpassable)
     {
         Refresh();
     }

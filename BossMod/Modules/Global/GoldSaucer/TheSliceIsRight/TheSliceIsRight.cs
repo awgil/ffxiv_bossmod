@@ -115,9 +115,9 @@ class BambooSplits(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DaigoroFirstGilJump(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.FirstGilJump), 3.5f);
-class DaigoroNextGilJump(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.NextGilJump), 3.5f);
-class DaigoroBadCup(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadCup), new AOEShapeCone(17.5f, 60.Degrees()));
+class DaigoroFirstGilJump(BossModule module) : Components.ChargeAOEs(module, AID.FirstGilJump, 3.5f);
+class DaigoroNextGilJump(BossModule module) : Components.ChargeAOEs(module, AID.NextGilJump, 3.5f);
+class DaigoroBadCup(BossModule module) : Components.SelfTargetedAOEs(module, AID.BadCup, new AOEShapeCone(17.5f, 60.Degrees()));
 
 class TheSliceIsRightStates : StateMachineBuilder
 {

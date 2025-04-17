@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
-class ForbiddenFruit8(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.StymphalianStrike))
+class ForbiddenFruit8(BossModule module) : ForbiddenFruitCommon(module, AID.StymphalianStrike)
 {
     private BitMask _noBirdsPlatforms = ValidPlatformsMask;
 

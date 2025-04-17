@@ -40,25 +40,25 @@ public enum AID : uint
     HeavySmash = 32317, // 3D4E->location, 3.0s cast, range 6 circle
 }
 
-class Ceras(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Ceras));
+class Ceras(BossModule module) : Components.SingleTargetCast(module, AID.Ceras);
 
-class WaveOfTurmoil(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WaveOfTurmoil), 20, stopAtWall: true)
+class WaveOfTurmoil(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WaveOfTurmoil, 20, stopAtWall: true)
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Hydrobomb>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class Hydrobomb(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrobomb), 10);
-class Waterspout(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Waterspout2), 8);
-class Hydrocannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrocannon), new AOEShapeRect(17, 1.5f));
-class Hydrocannon2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrocannon2), new AOEShapeRect(27, 3));
-class FallingWater(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FallingWater), 8);
-class Immersion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Immersion));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class Hydrobomb(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hydrobomb, 10);
+class Waterspout(BossModule module) : Components.LocationTargetedAOEs(module, AID.Waterspout2, 8);
+class Hydrocannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrocannon, new AOEShapeRect(17, 1.5f));
+class Hydrocannon2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrocannon2, new AOEShapeRect(27, 3));
+class FallingWater(BossModule module) : Components.SpreadFromCastTargets(module, AID.FallingWater, 8);
+class Immersion(BossModule module) : Components.RaidwideCast(module, AID.Immersion);
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
 
 class MeganereisStates : StateMachineBuilder
 {

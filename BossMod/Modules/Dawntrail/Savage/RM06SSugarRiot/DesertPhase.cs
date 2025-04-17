@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM06SSugarRiot;
 
-class SprayPain(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.SprayPain1), new AOEShapeCircle(10), maxCasts: 10)
+class SprayPain(BossModule module) : Components.StandardAOEs(module, AID.SprayPain1, new AOEShapeCircle(10), maxCasts: 10)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -15,7 +15,7 @@ class SprayPain(BossModule module) : Components.StandardAOEs(module, ActionID.Ma
     }
 }
 
-class SprayPain2(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.SprayPain2), new AOEShapeCircle(10));
+class SprayPain2(BossModule module) : Components.StandardAOEs(module, AID.SprayPain2, new AOEShapeCircle(10));
 
 class HeatingUpHints(BossModule module) : BossComponent(module)
 {
@@ -175,7 +175,7 @@ class Quicksand(BossModule module) : Components.GenericAOEs(module, warningText:
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(Center).Select(c => new AOEInstance(new AOEShapeCircle(23), c, default, Activation, Color: StandInQuicksand[slot] ? ArenaColor.SafeFromAOE : 0, Risky: !StandInQuicksand[slot]));
 }
 
-class PuddingGraf(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.PuddingGraf), 6);
+class PuddingGraf(BossModule module) : Components.SpreadFromCastTargets(module, AID.PuddingGraf, 6);
 class PuddingGrafAim(BossModule module) : BossComponent(module)
 {
     private BitMask Aimers;

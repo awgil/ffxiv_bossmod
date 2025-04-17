@@ -31,17 +31,17 @@ public enum AID : uint
     HeavySmash = 32317, // BossAdd->location, 3.0s cast, range 6 circle
 }
 
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
-class AbsoluteZero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AbsoluteZero), new AOEShapeCone(45, 45.Degrees()));
-class FrumiousJaws(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FrumiousJaws));
-class BlizzardIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.BlizzardIII), 6);
-class Eyeshine(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Eyeshine));
-class CatchingClaws(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CatchingClaws), new AOEShapeCone(12, 45.Degrees()));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
+class AbsoluteZero(BossModule module) : Components.SelfTargetedAOEs(module, AID.AbsoluteZero, new AOEShapeCone(45, 45.Degrees()));
+class FrumiousJaws(BossModule module) : Components.SingleTargetCast(module, AID.FrumiousJaws);
+class BlizzardIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.BlizzardIII, 6);
+class Eyeshine(BossModule module) : Components.CastGaze(module, AID.Eyeshine);
+class CatchingClaws(BossModule module) : Components.SelfTargetedAOEs(module, AID.CatchingClaws, new AOEShapeCone(12, 45.Degrees()));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
 
 class TigrisStates : StateMachineBuilder
 {

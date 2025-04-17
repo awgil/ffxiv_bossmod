@@ -25,9 +25,9 @@ public enum AID : uint
     OctupleSwipeTelegraph = 31867, // Helper->self, 1.0s cast, range 40 ?-degree cone // Displays the order of the aoe's going off
 }
 
-class BullishSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BullishSwing), new AOEShapeCircle(13));
-class BullishSwipeSingle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BullishSwipeSingle), new AOEShapeCone(40, 45.Degrees()));
-class DisorientingGroan(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.DisorientingGroan), 15, true);
+class BullishSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.BullishSwing, new AOEShapeCircle(13));
+class BullishSwipeSingle(BossModule module) : Components.SelfTargetedAOEs(module, AID.BullishSwipeSingle, new AOEShapeCone(40, 45.Degrees()));
+class DisorientingGroan(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DisorientingGroan, 15, true);
 class Shock(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly Dictionary<Actor, DateTime> Casters = [];
@@ -52,7 +52,7 @@ class Shock(BossModule module) : Components.GenericAOEs(module)
             Casters.Remove(caster);
     }
 }
-class Thundercall(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Thundercall), "Raidwide + Summoning Orbs");
+class Thundercall(BossModule module) : Components.RaidwideCast(module, AID.Thundercall, "Raidwide + Summoning Orbs");
 
 class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)
 {

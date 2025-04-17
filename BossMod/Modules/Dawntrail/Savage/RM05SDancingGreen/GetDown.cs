@@ -31,7 +31,7 @@ class GetDownAOE(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class GetDownProtean(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.GetDownProtean))
+class GetDownProtean(BossModule module) : Components.GenericBaitAway(module, AID.GetDownProtean)
 {
     private BitMask targetedPlayers;
 
@@ -66,4 +66,4 @@ class GetDownProtean(BossModule module) : Components.GenericBaitAway(module, Act
 
     private void AddBaits(IEnumerable<Actor> players) => CurrentBaits.AddRange(players.Select(r => new Bait(Module.PrimaryActor, r, new AOEShapeCone(60, 22.5f.Degrees()), NextActivation)));
 }
-class GetDownRepeat(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.GetDownRepeat), new AOEShapeCone(40, 22.5f.Degrees()));
+class GetDownRepeat(BossModule module) : Components.StandardAOEs(module, AID.GetDownRepeat, new AOEShapeCone(40, 22.5f.Degrees()));

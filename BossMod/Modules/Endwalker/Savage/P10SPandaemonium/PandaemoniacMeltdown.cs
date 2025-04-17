@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
 // TODO: generalize (line stack/spread)
-class PandaemoniacMeltdown(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PandaemoniacMeltdownStack))
+class PandaemoniacMeltdown(BossModule module) : Components.CastCounter(module, AID.PandaemoniacMeltdownStack)
 {
     private Actor? _stackTarget;
     private readonly List<Actor> _spreadTargets = [];

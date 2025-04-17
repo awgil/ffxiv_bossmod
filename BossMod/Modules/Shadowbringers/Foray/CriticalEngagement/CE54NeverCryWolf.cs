@@ -45,11 +45,11 @@ public enum AID : uint
     ActivateImaginifer = 23623, // Imaginifer->self, no cast, single-target, visual
 }
 
-class IcePillar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IcePillarAOE), new AOEShapeCircle(4));
-class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarPierce), new AOEShapeRect(80, 2));
-class Shatter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shatter), new AOEShapeCircle(8));
+class IcePillar(BossModule module) : Components.SelfTargetedAOEs(module, AID.IcePillarAOE, new AOEShapeCircle(4));
+class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarPierce, new AOEShapeRect(80, 2));
+class Shatter(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shatter, new AOEShapeCircle(8));
 
-class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BracingWind), 40, false, 1, new AOEShapeRect(60, 6), Kind.DirForward)
+class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BracingWind, 40, false, 1, new AOEShapeRect(60, 6), Kind.DirForward)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -61,7 +61,7 @@ class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module
     }
 }
 
-class LunarCry(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.LunarCry), 80, false)
+class LunarCry(BossModule module) : Components.CastLineOfSightAOE(module, AID.LunarCry, 80, false)
 {
     private readonly List<Actor> _safePillars = [];
     private readonly BracingWind? _knockback = module.FindComponent<BracingWind>();
@@ -171,10 +171,10 @@ class AgeOfEndlessFrost(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class StormWithout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormWithout), new AOEShapeDonut(10, 40));
-class StormWithin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StormWithin), new AOEShapeCircle(10));
-class AncientGlacier(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AncientGlacierAOE), 6);
-class Glaciation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Glaciation));
+class StormWithout(BossModule module) : Components.SelfTargetedAOEs(module, AID.StormWithout, new AOEShapeDonut(10, 40));
+class StormWithin(BossModule module) : Components.SelfTargetedAOEs(module, AID.StormWithin, new AOEShapeCircle(10));
+class AncientGlacier(BossModule module) : Components.LocationTargetedAOEs(module, AID.AncientGlacierAOE, 6);
+class Glaciation(BossModule module) : Components.RaidwideCast(module, AID.Glaciation);
 
 class CE54NeverCryWolfStates : StateMachineBuilder
 {

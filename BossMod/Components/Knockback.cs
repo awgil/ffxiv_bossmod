@@ -3,7 +3,7 @@
 namespace BossMod.Components;
 
 // generic knockback/attract component; it's a cast counter for convenience
-public abstract class Knockback(BossModule module, ActionID aid = new(), bool ignoreImmunes = false, int maxCasts = int.MaxValue, bool stopAtWall = false) : CastCounter(module, aid)
+public abstract class Knockback(BossModule module, Enum? aid = default, bool ignoreImmunes = false, int maxCasts = int.MaxValue, bool stopAtWall = false) : CastCounter(module, aid)
 {
     public enum Kind
     {
@@ -171,7 +171,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
 
 // generic 'knockback from/attract to cast target' component
 // TODO: knockback is really applied when effectresult arrives rather than when actioneffect arrives, this is important for ai hints (they can reposition too early otherwise)
-public class KnockbackFromCastTarget(BossModule module, ActionID aid, float distance, bool ignoreImmunes = false, int maxCasts = int.MaxValue, AOEShape? shape = null, Kind kind = Kind.AwayFromOrigin, float minDistance = 0, bool minDistanceBetweenHitboxes = false, bool stopAtWall = false)
+public class KnockbackFromCastTarget(BossModule module, Enum aid, float distance, bool ignoreImmunes = false, int maxCasts = int.MaxValue, AOEShape? shape = null, Kind kind = Kind.AwayFromOrigin, float minDistance = 0, bool minDistanceBetweenHitboxes = false, bool stopAtWall = false)
     : Knockback(module, aid, ignoreImmunes, maxCasts, stopAtWall)
 {
     public float Distance = distance;

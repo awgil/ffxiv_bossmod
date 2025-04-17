@@ -17,10 +17,10 @@ public enum AID : uint
     SandPillar = 1113, // SandPillarHelper->self, no cast, range 4.5 aoe
 }
 
-class Sandstorm(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Sandstorm), new AOEShapeCone(10.5f, 45.Degrees()));
+class Sandstorm(BossModule module) : Components.Cleave(module, AID.Sandstorm, new AOEShapeCone(10.5f, 45.Degrees()));
 
 // TODO: pillars teleport right before cast, so we don't show them for now...
-class Submerge(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Earthbreak))
+class Submerge(BossModule module) : Components.GenericAOEs(module, AID.Earthbreak)
 {
     private readonly AOEShapeCircle _shape = new(14.5f);
 

@@ -28,15 +28,15 @@ public enum AID : uint
     TuraliQuake = 37117, // Helper->location, 5.0s cast, range 9 circle
 }
 
-class TuraliQuake(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TuraliQuake), 9, maxCasts: 5);
-class RunThrough(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RunThrough1), new AOEShapeRect(45, 2.5f));
-class RunThrough1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RunThrough2), new AOEShapeRect(45, 2.5f));
-class Fireflood(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireflood), 10);
-class TuraliStoneIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TuraliStoneIII), 4);
-class RiotousRampage(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.RiotousRampage), 4);
-class ArcaneActivation1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ArcaneActivation2), new AOEShapeDonut(3, 10));
-class LethalSwipe1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LethalSwipe2), new AOEShapeCircle(10));
-class GreatLeap(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.GreatLeapVisual))
+class TuraliQuake(BossModule module) : Components.LocationTargetedAOEs(module, AID.TuraliQuake, 9, maxCasts: 5);
+class RunThrough(BossModule module) : Components.SelfTargetedAOEs(module, AID.RunThrough1, new AOEShapeRect(45, 2.5f));
+class RunThrough1(BossModule module) : Components.SelfTargetedAOEs(module, AID.RunThrough2, new AOEShapeRect(45, 2.5f));
+class Fireflood(BossModule module) : Components.LocationTargetedAOEs(module, AID.Fireflood, 10);
+class TuraliStoneIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.TuraliStoneIII, 4);
+class RiotousRampage(BossModule module) : Components.CastTowers(module, AID.RiotousRampage, 4);
+class ArcaneActivation1(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArcaneActivation2, new AOEShapeDonut(3, 10));
+class LethalSwipe1(BossModule module) : Components.SelfTargetedAOEs(module, AID.LethalSwipe2, new AOEShapeCircle(10));
+class GreatLeap(BossModule module) : Components.GenericAOEs(module, AID.GreatLeapVisual)
 {
     private DateTime? CastFinish;
 
@@ -73,9 +73,9 @@ class GreatLeap(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
             CastFinish = null;
     }
 }
-class Fireshower(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireshower), 6);
-class ArcaneActivation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ArcaneActivation1), new AOEShapeCircle(10));
-class Kickdown(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Kickdown))
+class Fireshower(BossModule module) : Components.LocationTargetedAOEs(module, AID.Fireshower, 6);
+class ArcaneActivation(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArcaneActivation1, new AOEShapeCircle(10));
+class Kickdown(BossModule module) : Components.Knockback(module, AID.Kickdown)
 {
     private readonly List<Actor> Casters = [];
 
@@ -111,9 +111,9 @@ class Kickdown(BossModule module) : Components.Knockback(module, ActionID.MakeSp
             Casters.Clear();
     }
 }
-class LethalSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LethalSwipe1), new AOEShapeCone(45, 90.Degrees()));
-class Roar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Roar));
-class RoarBounds(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Roar))
+class LethalSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.LethalSwipe1, new AOEShapeCone(45, 90.Degrees()));
+class Roar(BossModule module) : Components.RaidwideCast(module, AID.Roar);
+class RoarBounds(BossModule module) : Components.GenericAOEs(module, AID.Roar)
 {
     private AOEInstance? Bounds;
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(Bounds);

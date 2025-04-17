@@ -9,7 +9,7 @@ class Hatch : Components.CastCounter
     private readonly IReadOnlyList<Actor> _neurolinks;
     private BitMask _targets;
 
-    public Hatch(BossModule module) : base(module, ActionID.MakeSpell(AID.Hatch))
+    public Hatch(BossModule module) : base(module, AID.Hatch)
     {
         _orbs = module.Enemies(OID.Oviform);
         _neurolinks = module.Enemies(OID.Neurolink);

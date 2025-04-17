@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P6SHegemone;
 
-class PteraIxou(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.PteraIxouAOESnake)) // doesn't matter which spell to track
+class PteraIxou(BossModule module) : Components.CastCounter(module, AID.PteraIxouAOESnake) // doesn't matter which spell to track
 {
     private BitMask _vulnSnake;
     private BitMask _vulnWing;
@@ -54,4 +54,4 @@ class PteraIxou(BossModule module) : Components.CastCounter(module, ActionID.Mak
     }
 }
 
-class PteraIxouSpreadStack(BossModule module) : Components.CastStackSpread(module, ActionID.MakeSpell(AID.PteraIxouUnholyDarkness), ActionID.MakeSpell(AID.PteraIxouDarkSphere), 6, 10, 3);
+class PteraIxouSpreadStack(BossModule module) : Components.CastStackSpread(module, AID.PteraIxouUnholyDarkness, AID.PteraIxouDarkSphere, 6, 10, 3);

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
-class RapidSequenceParticleBeam(BossModule module) : Components.GenericWildCharge(module, 3, ActionID.MakeSpell(AID.RapidSequenceParticleBeamAOE), 50)
+class RapidSequenceParticleBeam(BossModule module) : Components.GenericWildCharge(module, 3, AID.RapidSequenceParticleBeamAOE, 50)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

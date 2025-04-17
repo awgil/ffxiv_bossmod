@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW1;
 
-class HeavensflameAOE(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HeavensflameAOE));
+class HeavensflameAOE(BossModule module) : Components.CastCounter(module, AID.HeavensflameAOE);
 
-class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.FaithUnmoving), 16)
+class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.FaithUnmoving, 16)
 {
     private readonly WPos[] _playerAdjustedPositions = new WPos[PartyState.MaxPartySize];
     private readonly int[] _playerIcons = new int[PartyState.MaxPartySize]; // 0 = unassigned, 1 = circle/red, 2 = triangle/green, 3 = cross/blue, 4 = square/purple

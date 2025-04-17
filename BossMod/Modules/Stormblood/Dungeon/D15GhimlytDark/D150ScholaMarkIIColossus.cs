@@ -27,10 +27,10 @@ public enum AID : uint
 }
 
 class Adds(BossModule module) : Components.AddsMulti(module, [OID.ScholaAvenger, OID.ScholaCenturion, OID.ScholaEques, OID.ScholaLaquearius]);
-class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Exhaust), new AOEShapeRect(43.2f, 5));
-class GrandSword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandSword), new AOEShapeCone(18.4f, 60.Degrees()));
-class MagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekMissile), 15);
-class SelfDetonate(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SelfDetonate), "Enrage!", true);
+class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, AID.Exhaust, new AOEShapeRect(43.2f, 5));
+class GrandSword(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrandSword, new AOEShapeCone(18.4f, 60.Degrees()));
+class MagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekMissile, 15);
+class SelfDetonate(BossModule module) : Components.CastHint(module, AID.SelfDetonate, "Enrage!", true);
 
 class UnbreakableCermetBlade(BossModule module) : Components.GenericAOEs(module) // Mel
 {

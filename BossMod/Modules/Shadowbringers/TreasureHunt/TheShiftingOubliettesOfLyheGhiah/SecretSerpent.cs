@@ -31,16 +31,16 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
-class Douse(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, ActionID.MakeSpell(AID.Douse), m => m.Enemies(OID.WaterVoidzone).Where(z => z.EventState != 7), 0);
-class FangsEnd(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FangsEnd));
-class Drench(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Drench), new AOEShapeCone(15.29f, 45.Degrees()));
-class Drench2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Drench2), new AOEShapeCone(13.45f, 45.Degrees()));
-class ScaleRipple(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScaleRipple), new AOEShapeCircle(8));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
+class Douse(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.Douse, m => m.Enemies(OID.WaterVoidzone).Where(z => z.EventState != 7), 0);
+class FangsEnd(BossModule module) : Components.SingleTargetCast(module, AID.FangsEnd);
+class Drench(BossModule module) : Components.SelfTargetedAOEs(module, AID.Drench, new AOEShapeCone(15.29f, 45.Degrees()));
+class Drench2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Drench2, new AOEShapeCone(13.45f, 45.Degrees()));
+class ScaleRipple(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScaleRipple, new AOEShapeCircle(8));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
 class SerpentStates : StateMachineBuilder
 {

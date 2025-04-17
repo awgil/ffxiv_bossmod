@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7StygimolochLord;
 
-class FatefulWords(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.FatefulWordsAOE), true)
+class FatefulWords(BossModule module) : Components.Knockback(module, AID.FatefulWordsAOE, true)
 {
     private readonly Kind[] _mechanics = new Kind[PartyState.MaxPartySize];
 

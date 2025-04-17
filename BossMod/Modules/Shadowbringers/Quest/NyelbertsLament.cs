@@ -27,7 +27,7 @@ class TwoThousandMinaSlash : Components.GenericLineOfSightAOE
 {
     private readonly List<Actor> _casters = [];
 
-    public TwoThousandMinaSlash(BossModule module) : base(module, ActionID.MakeSpell(AID.TwoThousandMinaSlash), 40, false)
+    public TwoThousandMinaSlash(BossModule module) : base(module, AID.TwoThousandMinaSlash, 40, false)
     {
         Refresh();
     }
@@ -60,8 +60,8 @@ class TwoThousandMinaSlash : Components.GenericLineOfSightAOE
     }
 }
 
-class FallingRock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FallingRock), 4);
-class ZoomIn(BossModule module) : Components.SimpleLineStack(module, 4, 42, ActionID.MakeSpell(AID.ZoomTargetSelect), ActionID.MakeSpell(AID.ZoomIn), 5.1f)
+class FallingRock(BossModule module) : Components.LocationTargetedAOEs(module, AID.FallingRock, 4);
+class ZoomIn(BossModule module) : Components.SimpleLineStack(module, 4, 42, AID.ZoomTargetSelect, AID.ZoomIn, 5.1f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

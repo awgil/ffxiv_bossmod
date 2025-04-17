@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
-class P2SanctityOfTheWard2HeavensStakeCircles(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavensStakeAOE), 7);
-class P2SanctityOfTheWard2HeavensStakeDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavensStakeDonut), new AOEShapeDonut(15, 30));
+class P2SanctityOfTheWard2HeavensStakeCircles(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavensStakeAOE, 7);
+class P2SanctityOfTheWard2HeavensStakeDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavensStakeDonut, new AOEShapeDonut(15, 30));
 class P2SanctityOfTheWard2VoidzoneFire(BossModule module) : Components.PersistentVoidzone(module, 7, m => m.Enemies(OID.VoidzoneFire).Where(z => z.EventState != 7));
 class P2SanctityOfTheWard2VoidzoneIce(BossModule module) : Components.PersistentVoidzone(module, 7, m => m.Enemies(OID.VoidzoneIce).Where(z => z.EventState != 7));
 
-class P2SanctityOfTheWard2Knockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.FaithUnmoving), 16)
+class P2SanctityOfTheWard2Knockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.FaithUnmoving, 16)
 {
     private readonly DSW2Config _config = Service.Config.Get<DSW2Config>();
 
@@ -20,7 +20,7 @@ class P2SanctityOfTheWard2Knockback(BossModule module) : Components.KnockbackFro
 }
 
 // note: technically it's a 2-man stack, but that is not really helpful here...
-class P2SanctityOfTheWard2HiemalStorm(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HiemalStormAOE))
+class P2SanctityOfTheWard2HiemalStorm(BossModule module) : Components.CastCounter(module, AID.HiemalStormAOE)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -33,7 +33,7 @@ class P2SanctityOfTheWard2HiemalStorm(BossModule module) : Components.CastCounte
 // - towers 1: [0,11] are outer towers in CW order, starting from '11 o'clock' (CCW tower of N quadrant); [12,15] are inner towers in CCW order, starting from NE (NE-SE-SW-NW)
 //   so, inner towers for quadrant k are [3*k, 3*k+2]; neighbouring inner are 12+k & 12+(k+3)%4
 // TODO: move hints for prey (position for new meteor is snapshotted approximately when previous meteors do their aoes; actual actor appears ~0.5s later)
-class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Conviction2AOE), 3)
+class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(module, AID.Conviction2AOE, 3)
 {
     struct PlayerData
     {
@@ -558,7 +558,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
 
 // identifiers used by this component:
 // - towers 2: [0,7] - CW order, starting from N
-class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Conviction3AOE), 3)
+class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(module, AID.Conviction3AOE, 3)
 {
     private bool _preyOnTH;
     private BitMask _preyTargets;

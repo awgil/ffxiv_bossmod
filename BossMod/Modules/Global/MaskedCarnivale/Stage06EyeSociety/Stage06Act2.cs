@@ -22,7 +22,7 @@ public enum SID : uint
     Blind = 571, // Mandragora->player, extra=0x0
 }
 
-class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DemonEye))
+class DemonEye(BossModule module) : Components.CastGaze(module, AID.DemonEye)
 {
     private BitMask _blinded;
 
@@ -44,7 +44,7 @@ class DemonEye(BossModule module) : Components.CastGaze(module, ActionID.MakeSpe
     }
 }
 
-class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ColdStare), new AOEShapeCone(42.53f, 45.Degrees())) //TODO: cone based gaze
+class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, AID.ColdStare, new AOEShapeCone(42.53f, 45.Degrees())) //TODO: cone based gaze
 {
     private BitMask _blinded;
 
@@ -66,7 +66,7 @@ class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
     }
 }
 
-class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TearyTwirl), 6.3f)
+class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, AID.TearyTwirl, 6.3f)
 {
     private BitMask _blinded;
 
@@ -91,7 +91,7 @@ class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, Ac
     }
 }
 
-class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DreadGaze), new AOEShapeCone(7.35f, 45.Degrees())) //TODO: cone based gaze
+class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, AID.DreadGaze, new AOEShapeCone(7.35f, 45.Degrees())) //TODO: cone based gaze
 {
     private BitMask _blinded;
 

@@ -19,7 +19,7 @@ class SpinnersWheelSelect(BossModule module) : BossComponent(module)
     }
 }
 
-class SpinnersWheelGaze(BossModule module, bool inverted, AID aid, SID sid) : Components.GenericGaze(module, ActionID.MakeSpell(aid), inverted)
+class SpinnersWheelGaze(BossModule module, bool inverted, AID aid, SID sid) : Components.GenericGaze(module, aid, inverted)
 {
     private readonly SID _sid = sid;
     private readonly Actor? _source = module.Enemies(OID.Nymeia).FirstOrDefault();

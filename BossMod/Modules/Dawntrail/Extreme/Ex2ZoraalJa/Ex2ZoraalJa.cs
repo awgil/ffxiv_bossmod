@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex2ZoraalJa;
 
-class MultidirectionalDivide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MultidirectionalDivide), new AOEShapeCross(30, 2));
-class MultidirectionalDivideMain(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MultidirectionalDivideMain), new AOEShapeCross(30, 4));
-class MultidirectionalDivideExtra(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MultidirectionalDivideExtra), new AOEShapeCross(40, 2));
-class RegicidalRage(BossModule module) : Components.TankbusterTether(module, ActionID.MakeSpell(AID.RegicidalRageAOE), (uint)TetherID.RegicidalRage, 8);
-class BitterWhirlwind(BossModule module) : Components.TankSwap(module, ActionID.MakeSpell(AID.BitterWhirlwind), ActionID.MakeSpell(AID.BitterWhirlwindAOEFirst), ActionID.MakeSpell(AID.BitterWhirlwindAOERest), 3.1f, new AOEShapeCircle(5), true);
-class BurningChains(BossModule module) : Components.Chains(module, (uint)TetherID.BurningChains, ActionID.MakeSpell(AID.BurningChainsAOE));
-class HalfCircuitRect(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HalfCircuitAOERect), new AOEShapeRect(60, 60));
-class HalfCircuitDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HalfCircuitAOEDonut), new AOEShapeDonut(10, 30));
-class HalfCircuitCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HalfCircuitAOECircle), new AOEShapeCircle(10));
+class MultidirectionalDivide(BossModule module) : Components.SelfTargetedAOEs(module, AID.MultidirectionalDivide, new AOEShapeCross(30, 2));
+class MultidirectionalDivideMain(BossModule module) : Components.SelfTargetedAOEs(module, AID.MultidirectionalDivideMain, new AOEShapeCross(30, 4));
+class MultidirectionalDivideExtra(BossModule module) : Components.SelfTargetedAOEs(module, AID.MultidirectionalDivideExtra, new AOEShapeCross(40, 2));
+class RegicidalRage(BossModule module) : Components.TankbusterTether(module, AID.RegicidalRageAOE, (uint)TetherID.RegicidalRage, 8);
+class BitterWhirlwind(BossModule module) : Components.TankSwap(module, AID.BitterWhirlwind, AID.BitterWhirlwindAOEFirst, AID.BitterWhirlwindAOERest, 3.1f, new AOEShapeCircle(5), true);
+class BurningChains(BossModule module) : Components.Chains(module, (uint)TetherID.BurningChains, AID.BurningChainsAOE);
+class HalfCircuitRect(BossModule module) : Components.SelfTargetedAOEs(module, AID.HalfCircuitAOERect, new AOEShapeRect(60, 60));
+class HalfCircuitDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.HalfCircuitAOEDonut, new AOEShapeDonut(10, 30));
+class HalfCircuitCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.HalfCircuitAOECircle, new AOEShapeCircle(10));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 996, NameID = 12882, PlanLevel = 100)]
 public class Ex2ZoraalJa(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), NormalBounds)

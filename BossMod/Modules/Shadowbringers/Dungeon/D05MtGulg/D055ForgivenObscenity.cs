@@ -183,16 +183,16 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class SacramentSforzando(BossModule module) : Components.SingleTargetCastDelay(module, ActionID.MakeSpell(AID.SacramentSforzando), ActionID.MakeSpell(AID.SacramentSforzando2), 0.8f);
-class OrisonFortissimo(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.OrisonFortissimo), ActionID.MakeSpell(AID.OrisonFortissimo2), 0.8f);
-class DivineDiminuendo(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo), new AOEShapeCircle(8));
-class DivineDiminuendo1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo1), new AOEShapeCircle(8));
-class DivineDiminuendo2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo2), new AOEShapeDonut(10, 16));
-class DivineDiminuendo3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo3), new AOEShapeDonut(18, 32));
-class DivineDiminuendo4(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineDiminuendo4), new AOEShapeCircle(8));
-class ConvictionMarcato(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato), new AOEShapeRect(40, 2.5f));
-class ConvictionMarcato2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato2), new AOEShapeRect(40, 2.5f));
-class ConvictionMarcato3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConvictionMarcato3), new AOEShapeRect(40, 2.5f));
+class SacramentSforzando(BossModule module) : Components.SingleTargetCastDelay(module, AID.SacramentSforzando, AID.SacramentSforzando2, 0.8f);
+class OrisonFortissimo(BossModule module) : Components.RaidwideCastDelay(module, AID.OrisonFortissimo, AID.OrisonFortissimo2, 0.8f);
+class DivineDiminuendo(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo, new AOEShapeCircle(8));
+class DivineDiminuendo1(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo1, new AOEShapeCircle(8));
+class DivineDiminuendo2(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo2, new AOEShapeDonut(10, 16));
+class DivineDiminuendo3(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo3, new AOEShapeDonut(18, 32));
+class DivineDiminuendo4(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo4, new AOEShapeCircle(8));
+class ConvictionMarcato(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConvictionMarcato, new AOEShapeRect(40, 2.5f));
+class ConvictionMarcato2(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConvictionMarcato2, new AOEShapeRect(40, 2.5f));
+class ConvictionMarcato3(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConvictionMarcato3, new AOEShapeRect(40, 2.5f));
 
 class Voidzone(BossModule module) : BossComponent(module)
 {

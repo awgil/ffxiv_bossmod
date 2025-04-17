@@ -33,14 +33,14 @@ public enum IconID : uint
     Baitaway = 23, // player
 }
 
-class TheScorpionsSting(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheScorpionsSting), new AOEShapeCone(11.92f, 45.Degrees()));
-class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9.92f));
-class TheRamsVoiceHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TheRamsVoice));
-class TheLionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheLionsBreath), new AOEShapeCone(11.92f, 60.Degrees()));
-class LanguorousGaze(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LanguorousGaze), new AOEShapeCone(8.07f, 45.Degrees()));
-class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30));
-class TheDragonsVoiceHint(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TheDragonsVoice));
-class TheRamsKeeper(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsKeeper), 6);
+class TheScorpionsSting(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheScorpionsSting, new AOEShapeCone(11.92f, 45.Degrees()));
+class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(9.92f));
+class TheRamsVoiceHint(BossModule module) : Components.CastInterruptHint(module, AID.TheRamsVoice);
+class TheLionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheLionsBreath, new AOEShapeCone(11.92f, 60.Degrees()));
+class LanguorousGaze(BossModule module) : Components.SelfTargetedAOEs(module, AID.LanguorousGaze, new AOEShapeCone(8.07f, 45.Degrees()));
+class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8, 30));
+class TheDragonsVoiceHint(BossModule module) : Components.CastInterruptHint(module, AID.TheDragonsVoice);
+class TheRamsKeeper(BossModule module) : Components.LocationTargetedAOEs(module, AID.TheRamsKeeper, 6);
 
 class TheRamsKeeperBait(BossModule module) : Components.GenericBaitAway(module)
 {
@@ -82,9 +82,9 @@ class TheRamsKeeperBait(BossModule module) : Components.GenericBaitAway(module)
 }
 
 class IceVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.IceVoidzone).Where(z => z.EventState != 7));
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class ChimeraStates : StateMachineBuilder
 {

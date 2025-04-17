@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
-class P2AbsoluteZero(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.AbsoluteZeroAOE));
+class P2AbsoluteZero(BossModule module) : Components.CastCounter(module, AID.AbsoluteZeroAOE);
 
-class P2SwellingFrost(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.SwellingFrost), true)
+class P2SwellingFrost(BossModule module) : Components.Knockback(module, AID.SwellingFrost, true)
 {
     private readonly DateTime _activation = module.WorldState.FutureTime(3.2f);
 
@@ -12,9 +12,9 @@ class P2SwellingFrost(BossModule module) : Components.Knockback(module, ActionID
     }
 }
 
-class P2SinboundBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SinboundBlizzardAOE), new AOEShapeCone(50, 10.Degrees()));
+class P2SinboundBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.SinboundBlizzardAOE, new AOEShapeCone(50, 10.Degrees()));
 
-class P2HiemalStorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HiemalStormAOE), 7)
+class P2HiemalStorm(BossModule module) : Components.LocationTargetedAOEs(module, AID.HiemalStormAOE, 7)
 {
     private bool _slowDodges;
 
@@ -38,7 +38,7 @@ class P2HiemalStorm(BossModule module) : Components.LocationTargetedAOEs(module,
     }
 }
 
-class P2HiemalRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.HiemalRay), module => module.Enemies(OID.HiemalRayVoidzone).Where(z => z.EventState != 7), 0.7f);
+class P2HiemalRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, AID.HiemalRay, module => module.Enemies(OID.HiemalRayVoidzone).Where(z => z.EventState != 7), 0.7f);
 
 // TODO: show hint if ice veil is clipped
 class P2Intermission(BossModule module) : Components.GenericBaitAway(module)

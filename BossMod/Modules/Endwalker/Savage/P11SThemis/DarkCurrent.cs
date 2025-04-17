@@ -46,4 +46,4 @@ class DarkCurrent(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BlindingLight(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.BlindingLightAOE), 6);
+class BlindingLight(BossModule module) : Components.SpreadFromCastTargets(module, AID.BlindingLightAOE, 6);

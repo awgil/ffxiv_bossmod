@@ -18,14 +18,14 @@ public enum AID : uint
     AwayWithYouInverted = 27371, // Boss->self, 7.0s cast, range 6-40 donut
 }
 
-class AvertYourEyes(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.AvertYourEyes));
-class YouMayApproach(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.YouMayApproach), new AOEShapeDonut(6, 40));
-class AwayWithYou(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AwayWithYou), new AOEShapeCircle(15));
-class Needles(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Needles), new AOEShapeCircle(6));
-class WickedWhim(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.WickedWhim), "Invert next cast");
-class AvertYourEyesInverted(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.AvertYourEyesInverted), true);
-class YouMayApproachInverted(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.YouMayApproachInverted), new AOEShapeCircle(15));
-class AwayWithYouInverted(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AwayWithYouInverted), new AOEShapeDonut(6, 40));
+class AvertYourEyes(BossModule module) : Components.CastGaze(module, AID.AvertYourEyes);
+class YouMayApproach(BossModule module) : Components.SelfTargetedAOEs(module, AID.YouMayApproach, new AOEShapeDonut(6, 40));
+class AwayWithYou(BossModule module) : Components.SelfTargetedAOEs(module, AID.AwayWithYou, new AOEShapeCircle(15));
+class Needles(BossModule module) : Components.SelfTargetedAOEs(module, AID.Needles, new AOEShapeCircle(6));
+class WickedWhim(BossModule module) : Components.CastHint(module, AID.WickedWhim, "Invert next cast");
+class AvertYourEyesInverted(BossModule module) : Components.CastGaze(module, AID.AvertYourEyesInverted, true);
+class YouMayApproachInverted(BossModule module) : Components.SelfTargetedAOEs(module, AID.YouMayApproachInverted, new AOEShapeCircle(15));
+class AwayWithYouInverted(BossModule module) : Components.SelfTargetedAOEs(module, AID.AwayWithYouInverted, new AOEShapeDonut(6, 40));
 
 class LunatenderQueenStates : StateMachineBuilder
 {

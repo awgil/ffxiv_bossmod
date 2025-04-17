@@ -16,8 +16,8 @@ public enum AID : uint
     SewageWave3 = 17421, // 2854->self, no cast, range 30 180-degree cone
 }
 
-class SewerWater(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SewerWater), new AOEShapeCone(12, 90.Degrees()));
-class SewerWater2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SewerWater2), new AOEShapeCone(12, 90.Degrees()));
+class SewerWater(BossModule module) : Components.SelfTargetedAOEs(module, AID.SewerWater, new AOEShapeCone(12, 90.Degrees()));
+class SewerWater2(BossModule module) : Components.SelfTargetedAOEs(module, AID.SewerWater2, new AOEShapeCone(12, 90.Degrees()));
 
 class SewageWave(BossModule module) : Components.GenericAOEs(module)
 {

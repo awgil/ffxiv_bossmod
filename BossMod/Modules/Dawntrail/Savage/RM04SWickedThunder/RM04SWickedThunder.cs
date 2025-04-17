@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM04SWickedThunder;
 
-class BewitchingFlight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BewitchingFlightAOE), new AOEShapeRect(40, 2.5f));
-class WickedJolt(BossModule module) : Components.TankSwap(module, ActionID.MakeSpell(AID.WickedJolt), ActionID.MakeSpell(AID.WickedJolt), ActionID.MakeSpell(AID.WickedJoltSecond), 3.2f, new AOEShapeRect(60, 2.5f), false);
-class Soulshock(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Soulshock));
-class Impact(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Impact));
-class Cannonbolt(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Cannonbolt));
-class CrossTailSwitch(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CrossTailSwitchAOE));
-class CrossTailSwitchLast(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CrossTailSwitchLast));
-class WickedSpecialCenter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WickedSpecialCenterAOE), new AOEShapeRect(40, 10));
-class WickedSpecialSides(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WickedSpecialSidesAOE), new AOEShapeRect(40, 7.5f));
+class BewitchingFlight(BossModule module) : Components.SelfTargetedAOEs(module, AID.BewitchingFlightAOE, new AOEShapeRect(40, 2.5f));
+class WickedJolt(BossModule module) : Components.TankSwap(module, AID.WickedJolt, AID.WickedJolt, AID.WickedJoltSecond, 3.2f, new AOEShapeRect(60, 2.5f), false);
+class Soulshock(BossModule module) : Components.CastCounter(module, AID.Soulshock);
+class Impact(BossModule module) : Components.CastCounter(module, AID.Impact);
+class Cannonbolt(BossModule module) : Components.CastCounter(module, AID.Cannonbolt);
+class CrossTailSwitch(BossModule module) : Components.CastCounter(module, AID.CrossTailSwitchAOE);
+class CrossTailSwitchLast(BossModule module) : Components.CastCounter(module, AID.CrossTailSwitchLast);
+class WickedSpecialCenter(BossModule module) : Components.SelfTargetedAOEs(module, AID.WickedSpecialCenterAOE, new AOEShapeRect(40, 10));
+class WickedSpecialSides(BossModule module) : Components.SelfTargetedAOEs(module, AID.WickedSpecialSidesAOE, new AOEShapeRect(40, 7.5f));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 992, NameID = 13057, PlanLevel = 100)]
 public class RM04SWickedThunder(WorldState ws, Actor primary) : BossModule(ws, primary, P1Center, P1DefaultBounds)

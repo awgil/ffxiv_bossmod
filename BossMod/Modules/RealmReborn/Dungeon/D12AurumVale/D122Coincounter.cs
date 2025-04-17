@@ -16,11 +16,11 @@ public enum AID : uint
     EyeOfTheBeholder = 631, // Boss->self, 2.5s cast, range 8-15+R donut 270-degree cone aoe
 }
 
-class TenTonzeSwipe(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.TenTonzeSwipe), new AOEShapeCone(10, 60.Degrees())); // TODO: verify angle
-class HundredTonzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HundredTonzeSwipe), new AOEShapeCone(10, 60.Degrees()));
-class HundredTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HundredTonzeSwing), new AOEShapeCircle(12));
-class Glower(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Glower), new AOEShapeRect(21, 3.5f));
-class EyeOfTheBeholder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheBeholder), new AOEShapeDonutSector(8, 19, 135.Degrees()));
+class TenTonzeSwipe(BossModule module) : Components.Cleave(module, AID.TenTonzeSwipe, new AOEShapeCone(10, 60.Degrees())); // TODO: verify angle
+class HundredTonzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.HundredTonzeSwipe, new AOEShapeCone(10, 60.Degrees()));
+class HundredTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.HundredTonzeSwing, new AOEShapeCircle(12));
+class Glower(BossModule module) : Components.SelfTargetedAOEs(module, AID.Glower, new AOEShapeRect(21, 3.5f));
+class EyeOfTheBeholder(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheBeholder, new AOEShapeDonutSector(8, 19, 135.Degrees()));
 
 class D122CoincounterStates : StateMachineBuilder
 {

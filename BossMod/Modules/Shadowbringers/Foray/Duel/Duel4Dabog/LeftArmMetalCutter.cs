@@ -41,7 +41,7 @@ class LeftArmMetalCutterAOE(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class LeftArmMetalCutterKnockback(BossModule module, AID aid, float distance) : Components.Knockback(module, ActionID.MakeSpell(aid))
+class LeftArmMetalCutterKnockback(BossModule module, AID aid, float distance) : Components.Knockback(module, aid)
 {
     private readonly float _distance = distance;
     private Source? _instance;

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 // TODO: implement!
-class ForbiddenFruit10(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.BronzeBellows))
+class ForbiddenFruit10(BossModule module) : ForbiddenFruitCommon(module, AID.BronzeBellows)
 {
     private BitMask _minotaurPlaforms = ValidPlatformsMask;
     private BitMask _bullPlatforms;

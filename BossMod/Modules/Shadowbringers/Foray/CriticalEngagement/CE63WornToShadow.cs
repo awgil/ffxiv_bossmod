@@ -41,7 +41,7 @@ public enum TetherID : uint
     Foreshadowing = 45, // AlkonostsShadow->Boss
 }
 
-class Stormcall(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Explosion))
+class Stormcall(BossModule module) : Components.GenericAOEs(module, AID.Explosion)
 {
     private readonly List<(Actor source, WPos dest, DateTime activation)> _sources = [];
     private static readonly AOEShapeCircle _shape = new(35);
@@ -74,9 +74,9 @@ class Stormcall(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     }
 }
 
-class BladedBeak(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.BladedBeak));
-class NihilitysSong(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.NihilitysSong));
-class Fantod(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FantodAOE), 3);
+class BladedBeak(BossModule module) : Components.SingleTargetCast(module, AID.BladedBeak);
+class NihilitysSong(BossModule module) : Components.RaidwideCast(module, AID.NihilitysSong);
+class Fantod(BossModule module) : Components.LocationTargetedAOEs(module, AID.FantodAOE, 3);
 
 class Foreshadowing(BossModule module) : Components.GenericAOEs(module)
 {

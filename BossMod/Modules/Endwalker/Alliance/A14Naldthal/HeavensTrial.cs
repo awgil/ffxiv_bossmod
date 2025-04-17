@@ -21,4 +21,4 @@ class HeavensTrialCone(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class HeavensTrialStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.HeavensTrialAOE), 6, 8);
+class HeavensTrialStack(BossModule module) : Components.StackWithCastTargets(module, AID.HeavensTrialAOE, 6, 8);

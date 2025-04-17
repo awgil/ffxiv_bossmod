@@ -32,11 +32,11 @@ public enum IconID : uint
     Baitaway = 23, // player
 }
 
-class FlurryOfRage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlurryOfRage), new AOEShapeCone(13.06f, 60.Degrees()));
-class WaveOfMalice(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WaveOfMalice), 5);
-class WhorlOfFrenzy(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhorlOfFrenzy), new AOEShapeCircle(11.06f));
-class TheWardensVerdict(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheWardensVerdict), new AOEShapeRect(45.06f, 2));
-class FlamesOfFury(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlamesOfFury), 10);
+class FlurryOfRage(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlurryOfRage, new AOEShapeCone(13.06f, 60.Degrees()));
+class WaveOfMalice(BossModule module) : Components.LocationTargetedAOEs(module, AID.WaveOfMalice, 5);
+class WhorlOfFrenzy(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhorlOfFrenzy, new AOEShapeCircle(11.06f));
+class TheWardensVerdict(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheWardensVerdict, new AOEShapeRect(45.06f, 2));
+class FlamesOfFury(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlamesOfFury, 10);
 
 class FlamesOfFuryBait(BossModule module) : Components.GenericBaitAway(module)
 {
@@ -80,9 +80,9 @@ class FlamesOfFuryBait(BossModule module) : Components.GenericBaitAway(module)
 }
 
 class FlamesOfFuryVoidzone(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7));
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class TotemStates : StateMachineBuilder
 {

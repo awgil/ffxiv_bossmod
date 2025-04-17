@@ -52,7 +52,7 @@ class P1CyclonicBreakSpreadStack(BossModule module) : Components.UniformStackSpr
     }
 }
 
-class P1CyclonicBreakProtean(BossModule module) : Components.BaitAwayEveryone(module, module.PrimaryActor, P1CyclonicBreakCone.Shape, ActionID.MakeSpell(AID.CyclonicBreakAOEFirst))
+class P1CyclonicBreakProtean(BossModule module) : Components.BaitAwayEveryone(module, module.PrimaryActor, P1CyclonicBreakCone.Shape, AID.CyclonicBreakAOEFirst)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by dedicated component
 }

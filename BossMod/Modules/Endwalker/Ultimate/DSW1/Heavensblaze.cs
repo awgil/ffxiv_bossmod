@@ -3,7 +3,7 @@
 // TODO: consider adding invuln hint for tether tank?..
 class HolyShieldBash : Components.BaitAwayTethers
 {
-    public HolyShieldBash(BossModule module) : base(module, new AOEShapeRect(80, 4), (uint)TetherID.HolyBladedance, ActionID.MakeSpell(AID.HolyShieldBash))
+    public HolyShieldBash(BossModule module) : base(module, new AOEShapeRect(80, 4), (uint)TetherID.HolyBladedance, AID.HolyShieldBash)
     {
         BaiterPriority = PlayerPriority.Danger;
         // TODO: consider selecting specific tank rather than any
@@ -12,7 +12,7 @@ class HolyShieldBash : Components.BaitAwayTethers
 }
 
 // note: this is not really a 'bait', but component works well enough
-class HolyBladedance(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HolyBladedanceAOE))
+class HolyBladedance(BossModule module) : Components.GenericBaitAway(module, AID.HolyBladedanceAOE)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -21,7 +21,7 @@ class HolyBladedance(BossModule module) : Components.GenericBaitAway(module, Act
     }
 }
 
-class Heavensblaze(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Heavensblaze), 4, 7)
+class Heavensblaze(BossModule module) : Components.StackWithCastTargets(module, AID.Heavensblaze, 4, 7)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

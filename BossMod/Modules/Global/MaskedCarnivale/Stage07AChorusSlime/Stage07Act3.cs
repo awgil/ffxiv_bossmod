@@ -13,7 +13,7 @@ public enum AID : uint
     Object130 = 14711, // 2706->self, no cast, range 30+R circle - instant kill if you do not line of sight the towers when they die
 }
 
-class LowVoltage(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.LowVoltage), 35, true); //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
+class LowVoltage(BossModule module) : Components.GenericLineOfSightAOE(module, AID.LowVoltage, 35, true); //TODO: find a way to use the obstacles on the map and draw proper AOEs, this does nothing right now
 
 class SlimeExplosion(BossModule module) : Components.GenericStackSpread(module)
 {

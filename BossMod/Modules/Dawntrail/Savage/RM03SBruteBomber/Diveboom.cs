@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM03SBruteBomber;
 
-class OctoboomDiveProximity(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OctoboomDiveProximityAOE), new AOEShapeCircle(20)); // TODO: verify falloff
-class OctoboomDiveKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.OctoboomDiveKnockbackAOE), 25);
-class QuadroboomDiveProximity(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.QuadroboomDiveProximityAOE), new AOEShapeCircle(20)); // TODO: verify falloff
-class QuadroboomDiveKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.QuadroboomDiveKnockbackAOE), 25);
+class OctoboomDiveProximity(BossModule module) : Components.SelfTargetedAOEs(module, AID.OctoboomDiveProximityAOE, new AOEShapeCircle(20)); // TODO: verify falloff
+class OctoboomDiveKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.OctoboomDiveKnockbackAOE, 25);
+class QuadroboomDiveProximity(BossModule module) : Components.SelfTargetedAOEs(module, AID.QuadroboomDiveProximityAOE, new AOEShapeCircle(20)); // TODO: verify falloff
+class QuadroboomDiveKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.QuadroboomDiveKnockbackAOE, 25);
 
 class Diveboom(BossModule module) : Components.UniformStackSpread(module, 5, 5, alwaysShowSpreads: true)
 {

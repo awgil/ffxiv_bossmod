@@ -21,13 +21,13 @@ public enum AID : uint
     VoidSlash = 33173, // 3EE5->self, 11.0s cast, range 8+R 90-degree cone
 }
 
-class StraightSpindleAdds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StraightSpindleAdds), new AOEShapeRect(50, 2.5f));
-class Voidblood(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Voidblood), 6);
-class VoidSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VoidSlash), new AOEShapeCone(9.7f, 45.Degrees()));
-class EvilMist(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EvilMist));
-class Explosion(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Explosion), 5);
-class Dark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Dark), 10);
-class Hellsnap(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Hellsnap), 6);
+class StraightSpindleAdds(BossModule module) : Components.SelfTargetedAOEs(module, AID.StraightSpindleAdds, new AOEShapeRect(50, 2.5f));
+class Voidblood(BossModule module) : Components.LocationTargetedAOEs(module, AID.Voidblood, 6);
+class VoidSlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidSlash, new AOEShapeCone(9.7f, 45.Degrees()));
+class EvilMist(BossModule module) : Components.RaidwideCast(module, AID.EvilMist);
+class Explosion(BossModule module) : Components.CastTowers(module, AID.Explosion, 5);
+class Dark(BossModule module) : Components.LocationTargetedAOEs(module, AID.Dark, 10);
+class Hellsnap(BossModule module) : Components.StackWithCastTargets(module, AID.Hellsnap, 6);
 
 class StraightSpindle(BossModule module) : Components.GenericAOEs(module)
 {
@@ -47,7 +47,7 @@ class StraightSpindle(BossModule module) : Components.GenericAOEs(module)
             Casters.Remove(caster);
     }
 }
-class Decay(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Decay), "Kill wasp before enrage!", true)
+class Decay(BossModule module) : Components.CastHint(module, AID.Decay, "Kill wasp before enrage!", true)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

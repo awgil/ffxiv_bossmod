@@ -38,10 +38,10 @@ public enum AID : uint
     HeavySmash = 32317, // 3D4E->location, 3.0s cast, range 6 circle
 }
 
-class Rake(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Rake));
-class Tiiimbeeer(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Tiiimbeeer));
-class StoneIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StoneIII2), 6);
-class EarthShaker(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.EarthShaker2), new AOEShapeCone(60, 15.Degrees()), endsOnCastEvent: true);
+class Rake(BossModule module) : Components.SingleTargetCast(module, AID.Rake);
+class Tiiimbeeer(BossModule module) : Components.RaidwideCast(module, AID.Tiiimbeeer);
+class StoneIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.StoneIII2, 6);
+class EarthShaker(BossModule module) : Components.BaitAwayCast(module, AID.EarthShaker2, new AOEShapeCone(60, 15.Degrees()), endsOnCastEvent: true);
 
 class EarthQuaker(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
@@ -68,12 +68,12 @@ class EarthQuaker(BossModule module) : Components.ConcentricAOEs(module, _shapes
     }
 }
 
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
 
 class StyphnolobionStates : StateMachineBuilder
 {

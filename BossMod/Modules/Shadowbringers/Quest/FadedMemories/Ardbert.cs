@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Quest.FadedMemories;
 
-class Overcome(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Overcome), new AOEShapeCone(8, 60.Degrees()), 2);
-class Skydrive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Skydrive), new AOEShapeCircle(5));
+class Overcome(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overcome, new AOEShapeCone(8, 60.Degrees()), 2);
+class Skydrive(BossModule module) : Components.SelfTargetedAOEs(module, AID.Skydrive, new AOEShapeCircle(5));
 
 class SkyHighDrive(BossModule module) : Components.GenericRotatingAOE(module)
 {
@@ -37,10 +37,10 @@ class SkyHighDrive(BossModule module) : Components.GenericRotatingAOE(module)
     }
 }
 
-class AvalancheAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AvalanceAxe1), new AOEShapeCircle(10));
-class AvalancheAxe2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AvalanceAxe2), new AOEShapeCircle(10));
-class AvalancheAxe3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AvalanceAxe3), new AOEShapeCircle(10));
-class OvercomeAllOdds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OvercomeAllOdds), new AOEShapeCone(60, 15.Degrees()), 1)
+class AvalancheAxe(BossModule module) : Components.SelfTargetedAOEs(module, AID.AvalanceAxe1, new AOEShapeCircle(10));
+class AvalancheAxe2(BossModule module) : Components.SelfTargetedAOEs(module, AID.AvalanceAxe2, new AOEShapeCircle(10));
+class AvalancheAxe3(BossModule module) : Components.SelfTargetedAOEs(module, AID.AvalanceAxe3, new AOEShapeCircle(10));
+class OvercomeAllOdds(BossModule module) : Components.SelfTargetedAOEs(module, AID.OvercomeAllOdds, new AOEShapeCone(60, 15.Degrees()), 1)
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
@@ -49,9 +49,9 @@ class OvercomeAllOdds(BossModule module) : Components.SelfTargetedAOEs(module, A
             MaxCasts = 2;
     }
 }
-class Soulflash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Soulflash1), new AOEShapeCircle(4));
-class EtesianAxe(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.EtesianAxe), 15, kind: Kind.DirForward);
-class Soulflash2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Soulflash2), new AOEShapeCircle(8));
+class Soulflash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Soulflash1, new AOEShapeCircle(4));
+class EtesianAxe(BossModule module) : Components.KnockbackFromCastTarget(module, AID.EtesianAxe, 15, kind: Kind.DirForward);
+class Soulflash2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Soulflash2, new AOEShapeCircle(8));
 
 class GroundbreakerExaflares(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6))
 {
@@ -83,9 +83,9 @@ class GroundbreakerExaflares(BossModule module) : Components.Exaflare(module, ne
     }
 }
 
-class GroundbreakerCone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GroundbreakerCone), new AOEShapeCone(40, 45.Degrees()));
-class GroundbreakerDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GroundbreakerDonut), new AOEShapeDonut(5, 20));
-class GroundbreakerCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GroundbreakerCircle), new AOEShapeCircle(15));
+class GroundbreakerCone(BossModule module) : Components.SelfTargetedAOEs(module, AID.GroundbreakerCone, new AOEShapeCone(40, 45.Degrees()));
+class GroundbreakerDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.GroundbreakerDonut, new AOEShapeDonut(5, 20));
+class GroundbreakerCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.GroundbreakerCircle, new AOEShapeCircle(15));
 
 class ArdbertStates : StateMachineBuilder
 {

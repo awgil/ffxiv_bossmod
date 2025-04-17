@@ -131,8 +131,8 @@ class Magnetron(BossModule module) : Components.Knockback(module)
     }
 }
 
-class ThunderousShower(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.ThunderousShower), 6, 4);
-class Electrowave(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Electrowave));
+class ThunderousShower(BossModule module) : Components.StackWithCastTargets(module, AID.ThunderousShower, 6, 4);
+class Electrowave(BossModule module) : Components.RaidwideCast(module, AID.Electrowave);
 
 class UrnaVariabilisStates : StateMachineBuilder
 {

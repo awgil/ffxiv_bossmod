@@ -70,7 +70,7 @@ class ChitinousTrace(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class StygianVapor(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StygianVapor));
+class StygianVapor(BossModule module) : Components.RaidwideCast(module, AID.StygianVapor);
 
 class RuminatorStates : StateMachineBuilder
 {

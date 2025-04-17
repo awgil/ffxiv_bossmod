@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM04SWickedThunder;
 
-class FlameSlash(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FlameSlashAOE))
+class FlameSlash(BossModule module) : Components.GenericAOEs(module, AID.FlameSlashAOE)
 {
     public AOEInstance? AOE;
     public bool SmallArena;
@@ -33,7 +33,7 @@ class FlameSlash(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
     }
 }
 
-class RainingSwords(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.RainingSwordsAOE), 3);
+class RainingSwords(BossModule module) : Components.CastTowers(module, AID.RainingSwordsAOE, 3);
 
 class ChainLightning(BossModule module) : Components.GenericAOEs(module)
 {

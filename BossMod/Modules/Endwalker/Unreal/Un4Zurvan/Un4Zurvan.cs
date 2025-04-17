@@ -1,17 +1,17 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un4Zurvan;
 
-class P1MetalCutter(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.MetalCutterP1), new AOEShapeCone(37.44f, 45.Degrees()), (uint)OID.BossP1);
-class P1FlareStar(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FlareStarAOE), 6);
-class P1Purge(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Purge));
-class P2MetalCutter(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.MetalCutterP2), new AOEShapeCone(37.44f, 45.Degrees()), (uint)OID.BossP2);
+class P1MetalCutter(BossModule module) : Components.Cleave(module, AID.MetalCutterP1, new AOEShapeCone(37.44f, 45.Degrees()), (uint)OID.BossP1);
+class P1FlareStar(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlareStarAOE, 6);
+class P1Purge(BossModule module) : Components.CastCounter(module, AID.Purge);
+class P2MetalCutter(BossModule module) : Components.Cleave(module, AID.MetalCutterP2, new AOEShapeCone(37.44f, 45.Degrees()), (uint)OID.BossP2);
 class P2IcyVoidzone(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.IcyVoidzone).Where(z => z.EventState != 7));
-class P2BitingHalberd(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BitingHalberd), new AOEShapeCone(55.27f, 135.Degrees()));
-class P2TailEnd(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailEnd), new AOEShapeCircle(15));
-class P2Ciclicle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Ciclicle), new AOEShapeDonut(10, 20)); // TODO: verify inner radius
-class P2SouthernCross(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SouthernCrossAOE), 6);
+class P2BitingHalberd(BossModule module) : Components.SelfTargetedAOEs(module, AID.BitingHalberd, new AOEShapeCone(55.27f, 135.Degrees()));
+class P2TailEnd(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailEnd, new AOEShapeCircle(15));
+class P2Ciclicle(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ciclicle, new AOEShapeDonut(10, 20)); // TODO: verify inner radius
+class P2SouthernCross(BossModule module) : Components.LocationTargetedAOEs(module, AID.SouthernCrossAOE, 6);
 class P2SouthernCrossVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.SouthernCrossVoidzone).Where(z => z.EventState != 7));
-class P2WaveCannon(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.WaveCannonSolo), new AOEShapeRect(55.27f, 5));
-class P2TyrfingFire(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.TyrfingFire), new AOEShapeCircle(5), (uint)OID.BossP2, originAtTarget: true);
+class P2WaveCannon(BossModule module) : Components.BaitAwayCast(module, AID.WaveCannonSolo, new AOEShapeRect(55.27f, 5));
+class P2TyrfingFire(BossModule module) : Components.Cleave(module, AID.TyrfingFire, new AOEShapeCircle(5), (uint)OID.BossP2, originAtTarget: true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 951, NameID = 5567, PlanLevel = 90)]
 public class Un4Zurvan(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))

@@ -21,10 +21,10 @@ public enum AID : uint
     ArtOfTheSword1 = 8993, // 1CEE->self, 3.0s cast, range 40+R width 6 rect
 }
 
-class ArtOfTheSword(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ArtOfTheSword1), new AOEShapeRect(41, 3));
-class VeinSplitter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VeinSplitter), new AOEShapeCircle(10));
-class Concentrativity(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Concentrativity));
-class LightlessFlame(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.LightlessFlame))
+class ArtOfTheSword(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArtOfTheSword1, new AOEShapeRect(41, 3));
+class VeinSplitter(BossModule module) : Components.SelfTargetedAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
+class Concentrativity(BossModule module) : Components.RaidwideCast(module, AID.Concentrativity);
+class LightlessFlame(BossModule module) : Components.GenericAOEs(module, AID.LightlessFlame)
 {
     private readonly Dictionary<ulong, (WPos position, DateTime activation)> Flames = [];
 
@@ -48,7 +48,7 @@ class LightlessFlame(BossModule module) : Components.GenericAOEs(module, ActionI
             Flames.Remove(caster.InstanceID);
     }
 }
-class LightlessSpark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightlessSpark), new AOEShapeCone(40.92f, 45.Degrees()));
+class LightlessSpark(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightlessSpark, new AOEShapeCone(40.92f, 45.Degrees()));
 class P2Boss(BossModule module) : BossComponent(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -87,4 +87,3 @@ public class ZenosYaeGalvus(WorldState ws, Actor primary) : BossModule(ws, prima
 
     public static readonly ArenaBoundsCustom CustomBounds = new(25, new(vertices.Select(v => v - new WDir(-247, 546.5f))));
 }
-

@@ -48,14 +48,14 @@ public enum IconID : uint
     SoulbaneShock = 376, // player
 }
 
-class Electrothermia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Electrothermia));
-class SoulbaneSaber(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoulbaneSaber), new AOEShapeRect(20, 2));
-class SoulbaneSaberBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SoulbaneSaberBurst), new AOEShapeRect(20, 20));
-class SaberRush(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SaberRush));
-class SoulbaneShock(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SoulbaneShock), 5);
+class Electrothermia(BossModule module) : Components.RaidwideCast(module, AID.Electrothermia);
+class SoulbaneSaber(BossModule module) : Components.SelfTargetedAOEs(module, AID.SoulbaneSaber, new AOEShapeRect(20, 2));
+class SoulbaneSaberBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.SoulbaneSaberBurst, new AOEShapeRect(20, 20));
+class SaberRush(BossModule module) : Components.SingleTargetCast(module, AID.SaberRush);
+class SoulbaneShock(BossModule module) : Components.SpreadFromCastTargets(module, AID.SoulbaneShock, 5);
 class BossP2(BossModule module) : Components.Adds(module, (uint)OID.BossP2);
-class Screech(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Screech));
-class ShadeShot(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ShadeShot));
+class Screech(BossModule module) : Components.RaidwideCast(module, AID.Screech);
+class ShadeShot(BossModule module) : Components.SingleTargetCast(module, AID.ShadeShot);
 
 class SynthesleanSlither(BossModule module) : Components.GenericAOEs(module)
 {
@@ -84,11 +84,11 @@ class SynthesleanSlither(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class SlitherbaneForeguard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneForeguard), new AOEShapeRect(20, 2));
-class SlitherbaneForeguardAoE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneForeguardAOE), new AOEShapeCone(20, 90.Degrees()));
-class SlitherbaneRearguard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneRearguard), new AOEShapeRect(20, 2));
-class SlitherbaneRearguardAoE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneRearguardAOE), new AOEShapeCone(20, 90.Degrees()));
-class SlitherbaneBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SlitherbaneBurst), new AOEShapeRect(20, 20))
+class SlitherbaneForeguard(BossModule module) : Components.SelfTargetedAOEs(module, AID.SlitherbaneForeguard, new AOEShapeRect(20, 2));
+class SlitherbaneForeguardAoE(BossModule module) : Components.SelfTargetedAOEs(module, AID.SlitherbaneForeguardAOE, new AOEShapeCone(20, 90.Degrees()));
+class SlitherbaneRearguard(BossModule module) : Components.SelfTargetedAOEs(module, AID.SlitherbaneRearguard, new AOEShapeRect(20, 2));
+class SlitherbaneRearguardAoE(BossModule module) : Components.SelfTargetedAOEs(module, AID.SlitherbaneRearguardAOE, new AOEShapeCone(20, 90.Degrees()));
+class SlitherbaneBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.SlitherbaneBurst, new AOEShapeRect(20, 20))
 {
     private readonly SlitherbaneForeguardAoE? _foreguard = module.FindComponent<SlitherbaneForeguardAoE>();
     private readonly SlitherbaneRearguardAoE? _rearguard = module.FindComponent<SlitherbaneRearguardAoE>();

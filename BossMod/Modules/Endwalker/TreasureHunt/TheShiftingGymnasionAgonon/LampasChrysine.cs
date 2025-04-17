@@ -21,9 +21,9 @@ public enum AID : uint
     Telega = 9630, // BonusAddLampas->self, no cast, single-target, bonus loot add despawn
 }
 
-class Shine(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Shine2), 5);
+class Shine(BossModule module) : Components.LocationTargetedAOEs(module, AID.Shine2, 5);
 
-class AetherialLight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherialLight2), new AOEShapeCone(40, 30.Degrees()), 4)
+class AetherialLight(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherialLight2, new AOEShapeCone(40, 30.Degrees()), 4)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -38,8 +38,8 @@ class AetherialLight(BossModule module) : Components.SelfTargetedAOEs(module, Ac
     }
 }
 
-class Lightburst(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Lightburst2));
-class Summon(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Summon), "Calls bonus adds");
+class Lightburst(BossModule module) : Components.SingleTargetCast(module, AID.Lightburst2);
+class Summon(BossModule module) : Components.CastHint(module, AID.Summon, "Calls bonus adds");
 
 class LampasStates : StateMachineBuilder
 {

@@ -38,7 +38,7 @@ class MousseDripStack(BossModule module) : Components.GenericStackSpread(module)
     }
 }
 
-class MousseDrip(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.MousseDrip), m => m.Enemies(0x1EBD92).Where(e => e.EventState != 7), 2);
+class MousseDrip(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.MousseDrip, m => m.Enemies(0x1EBD92).Where(e => e.EventState != 7), 2);
 
 class Moussacre(BossModule module) : Components.GenericBaitAway(module)
 {

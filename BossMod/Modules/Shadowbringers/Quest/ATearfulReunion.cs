@@ -18,14 +18,14 @@ public enum AID : uint
     SanctifiedBlizzardIV = 17047, // _Gen_Phronesis->self, 5.0s cast, range 5-20 donut
 }
 
-class SanctifiedBlizzardIV(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzardIV), new AOEShapeDonut(5, 20));
-class SanctifiedBlizzardII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzardII), new AOEShapeCircle(5));
-class SanctifiedFireIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedFireIII), 6);
-class SanctifiedBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzardIII), new AOEShapeCone(40.5f, 22.5f.Degrees()));
+class SanctifiedBlizzardIV(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanctifiedBlizzardIV, new AOEShapeDonut(5, 20));
+class SanctifiedBlizzardII(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanctifiedBlizzardII, new AOEShapeCircle(5));
+class SanctifiedFireIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.SanctifiedFireIII, 6);
+class SanctifiedBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanctifiedBlizzardIII, new AOEShapeCone(40.5f, 22.5f.Degrees()));
 class Hollow(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Hollow));
 class HollowTether(BossModule module) : Components.Chains(module, 1, chainLength: 5);
-class SanctifiedFireIV(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SanctifiedFireIV1), 10);
-class SanctifiedFlare(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SanctifiedFlare), 6, 1)
+class SanctifiedFireIV(BossModule module) : Components.SpreadFromCastTargets(module, AID.SanctifiedFireIV1, 10);
+class SanctifiedFlare(BossModule module) : Components.StackWithCastTargets(module, AID.SanctifiedFlare, 6, 1)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

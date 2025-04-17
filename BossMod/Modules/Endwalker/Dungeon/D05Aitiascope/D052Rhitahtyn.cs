@@ -43,7 +43,7 @@ public enum TetherID : uint
     Tether161 = 161, // 35DA->Boss
 }
 
-class Impact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Impact), new AOEShapeRect(14, 20));
+class Impact(BossModule module) : Components.SelfTargetedAOEs(module, AID.Impact, new AOEShapeRect(14, 20));
 
 class ImpactWalls(BossModule module) : Components.GenericAOEs(module)
 {
@@ -83,12 +83,12 @@ class ImpactWalls(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ShrapnelShellAOE(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ShrapnelShellAOE), 6);
-class TartareanSpark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanSpark), new AOEShapeRect(40, 3));
+class ShrapnelShellAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.ShrapnelShellAOE, 6);
+class TartareanSpark(BossModule module) : Components.SelfTargetedAOEs(module, AID.TartareanSpark, new AOEShapeRect(40, 3));
 
-class AnvilOfTartarus(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.AnvilOfTartarus));
-class TartareanImpact(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TartareanImpact));
-class ShieldSkewer(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ShieldSkewer), new AOEShapeRect(40, 7)) { }
+class AnvilOfTartarus(BossModule module) : Components.SingleTargetCast(module, AID.AnvilOfTartarus);
+class TartareanImpact(BossModule module) : Components.RaidwideCast(module, AID.TartareanImpact);
+class ShieldSkewer(BossModule module) : Components.SelfTargetedAOEs(module, AID.ShieldSkewer, new AOEShapeRect(40, 7)) { }
 
 class ImpactSafezone(BossModule module) : Components.GenericAOEs(module)
 {

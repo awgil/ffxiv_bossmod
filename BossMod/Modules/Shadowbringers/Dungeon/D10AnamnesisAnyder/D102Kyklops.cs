@@ -19,13 +19,13 @@ public enum AID : uint
     WanderersPyre = 19295, // Helper->player, 5.0s cast, range 5 circle
 }
 
-class FinalVerse(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TheFinalVerse));
-class C2000MinaSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W2000MinaSwing), new AOEShapeCircle(12));
-class WanderersPyre(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.WanderersPyre), 5);
-class OpenHearth(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.OpenHearth), 6);
-class RagingGlower(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingGlower), new AOEShapeRect(45, 3));
-class C2000MinaSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W2000MinaSwipe), new AOEShapeCone(12, 60.Degrees()));
-class EyeOfTheCyclone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheCyclone), new AOEShapeDonut(8, 25));
+class FinalVerse(BossModule module) : Components.RaidwideCast(module, AID.TheFinalVerse);
+class C2000MinaSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.W2000MinaSwing, new AOEShapeCircle(12));
+class WanderersPyre(BossModule module) : Components.SpreadFromCastTargets(module, AID.WanderersPyre, 5);
+class OpenHearth(BossModule module) : Components.StackWithCastTargets(module, AID.OpenHearth, 6);
+class RagingGlower(BossModule module) : Components.SelfTargetedAOEs(module, AID.RagingGlower, new AOEShapeRect(45, 3));
+class C2000MinaSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.W2000MinaSwipe, new AOEShapeCone(12, 60.Degrees()));
+class EyeOfTheCyclone(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheCyclone, new AOEShapeDonut(8, 25));
 class Terrible(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<List<AOEInstance>> aoes = [];
@@ -91,4 +91,3 @@ class KyklopsStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 714, NameID = 9263)]
 public class Kyklops(WorldState ws, Actor primary) : BossModule(ws, primary, new(20, -80), new ArenaBoundsSquare(14.5f));
-

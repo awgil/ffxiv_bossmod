@@ -20,9 +20,9 @@ public enum AID : uint
     unknown2 = 14533, // Boss->self, no cast, single-target
 }
 
-class Chainsaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Chainsaw), new AOEShapeCone(10, 45.Degrees()));
-class Shock(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Shock), new AOEShapeCircle(10));
-class MagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekMissile2), 5);
+class Chainsaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.Chainsaw, new AOEShapeCone(10, 45.Degrees()));
+class Shock(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shock, new AOEShapeCircle(10));
+class MagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekMissile2, 5);
 
 class MAxStates : StateMachineBuilder
 {

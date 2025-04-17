@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7StygimolochLord;
 
-class CrushingHoof(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrushingHoofAOE))
+class CrushingHoof(BossModule module) : Components.GenericAOEs(module, AID.CrushingHoofAOE)
 {
     private AOEInstance? _aoe;
 
