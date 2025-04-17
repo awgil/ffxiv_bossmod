@@ -29,6 +29,9 @@ public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<A
 
     public override void Exec(StrategyValues strategy, AIHints.Enemy? primaryTarget)
     {
+        if (Player.FindStatus(SID.Meditate) != null)
+            return;
+
         var advance = strategy.Option(Track.ThirdEye).As<ThirdEyeStrategy>() switch
         {
             ThirdEyeStrategy.Automatic => 3,

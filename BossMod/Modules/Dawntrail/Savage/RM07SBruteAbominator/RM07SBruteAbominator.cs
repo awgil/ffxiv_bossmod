@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Savage.RM07BruteAbominator;
+﻿namespace BossMod.Dawntrail.Savage.RM07SBruteAbominator;
 
 class BrutalImpact(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID._Weaponskill_BrutalImpact1))
 {

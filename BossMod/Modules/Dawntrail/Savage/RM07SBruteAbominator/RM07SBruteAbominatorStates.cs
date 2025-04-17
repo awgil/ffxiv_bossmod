@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Savage.RM07BruteAbominator;
+﻿namespace BossMod.Dawntrail.Savage.RM07SBruteAbominator;
 
 class RM07SBruteAbombinatorStates : StateMachineBuilder
 {
