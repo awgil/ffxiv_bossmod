@@ -371,6 +371,38 @@ class Lariat(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponski
 class GlowerP3(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GlowerPower3, new AOEShapeRect(65, 7));
 class Slaminator(BossModule module) : Components.CastTowers(module, AID._Weaponskill_Slaminator1, 8, maxSoakers: 8);
 
+class P3ElectrogeneticForce : Components.UniformStackSpread
+{
+    public int NumCasts;
+    public bool Risky;
+
+    public P3ElectrogeneticForce(BossModule module) : base(module, 0, 6, alwaysShowSpreads: true)
+    {
+        AddSpreads(Raid.WithoutSlot(), WorldState.FutureTime(11.3f));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID._Spell_ElectrogeneticForce)
+        {
+            NumCasts++;
+            Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Risky)
+            base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Risky)
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
+
 #if DEBUG
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1024, NameID = 13756, PlanLevel = 100)]
 public class RM07SBruteAbombinator(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))

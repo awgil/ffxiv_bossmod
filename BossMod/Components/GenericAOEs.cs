@@ -134,7 +134,7 @@ public class ChargeAOEs(BossModule module, Enum aid, float halfWidth) : GenericA
 
 public class StandardAOEs(BossModule module, Enum aid, AOEShape shape, int maxCasts = int.MaxValue) : SelfTargetedAOEs(module, aid, shape, maxCasts)
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color, Risky));
 }
 
 public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module)

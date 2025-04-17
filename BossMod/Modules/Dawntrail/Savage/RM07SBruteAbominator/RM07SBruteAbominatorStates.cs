@@ -165,12 +165,16 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
         ComponentCondition<Sporesplosion>(id + 0x82, 6.1f, s => s.NumCasts >= 6, "Puddles 1");
 
-        CastStartMulti(id + 0x90, [AID._Weaponskill_BrutishSwing10, AID._Weaponskill_BrutishSwing4], 1);
+        CastStartMulti(id + 0x90, [AID._Weaponskill_BrutishSwing10, AID._Weaponskill_BrutishSwing4], 1)
+            .ExecOnEnter<P2BrutishSwingIn>(p => p.Risky = false)
+            .ExecOnEnter<P2BrutishSwingOut>(p => p.Risky = false);
 
         ComponentCondition<Sporesplosion>(id + 0x92, 1, s => s.NumCasts >= 12, "Puddles 2");
 
         ComponentCondition<Sporesplosion>(id + 0x94, 2, s => s.NumCasts >= 18, "Puddles 3")
-            .DeactivateOnExit<Sporesplosion>();
+            .DeactivateOnExit<Sporesplosion>()
+            .ExecOnExit<P2BrutishSwingIn>(p => p.Risky = true)
+            .ExecOnExit<P2BrutishSwingOut>(p => p.Risky = true);
 
         id += 0x10000;
 
@@ -219,9 +223,13 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
         id += 0x10000;
 
-        CastStartMulti(id + 0x20, [AID._Weaponskill_BrutishSwing10, AID._Weaponskill_BrutishSwing4, AID._Weaponskill_BrutishSwing11, AID._Weaponskill_BrutishSwing21], 2);
+        CastStartMulti(id + 0x20, [AID._Weaponskill_BrutishSwing10, AID._Weaponskill_BrutishSwing4, AID._Weaponskill_BrutishSwing11, AID._Weaponskill_BrutishSwing21], 2)
+            .ExecOnEnter<P2BrutishSwingIn>(p => p.Risky = false)
+            .ExecOnEnter<P2BrutishSwingOut>(p => p.Risky = false);
 
-        ComponentCondition<TendrilsOfTerror>(id + 0x22, 2.6f, t => t.Casters.Count == 0, "Star AOEs");
+        ComponentCondition<TendrilsOfTerror>(id + 0x22, 2.6f, t => t.Casters.Count == 0, "Star AOEs")
+            .ExecOnExit<P2BrutishSwingIn>(p => p.Risky = true)
+            .ExecOnExit<P2BrutishSwingOut>(p => p.Risky = true);
 
         ComponentCondition<P2BrutishSwingCounter>(id + 0x24, 5.5f, s => s.NumCasts > 2, "In/out")
             .DeactivateOnExit<P2BrutishSwingCounter>()
@@ -274,17 +282,48 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
         ComponentCondition<Lariat>(id + 0x42, 0.5f, l => l.NumCasts > 0, "Cleave");
 
-        CastMulti(id + 0x50, [AID._Weaponskill_BrutishSwing18, AID._Weaponskill_BrutishSwing15], 1.6f, 3);
+        CastMulti(id + 0x50, [AID._Weaponskill_BrutishSwing18, AID._Weaponskill_BrutishSwing15], 1.6f, 3)
+            .ActivateOnEnter<P3ElectrogeneticForce>();
 
-        ComponentCondition<P3BrutishSwingCounter>(id + 0x52, 3.7f, b => b.NumCasts > 1, "In/out");
+        ComponentCondition<P3BrutishSwingCounter>(id + 0x52, 3.7f, b => b.NumCasts > 1, "In/out")
+            .ExecOnExit<P3ElectrogeneticForce>(p => p.Risky = true);
 
-        Cast(id + 0x60, AID._Weaponskill_GlowerPower2, 1.1f, 0.7f, "Glower");
-        Cast(id + 0x70, AID._Weaponskill_Slaminator, 2.1f, 4, "Tower");
-        Cast(id + 0x80, AID._Weaponskill_BrutalImpact, 5.1f, 5, "Raidwide");
-        CastMulti(id + 0x90, [AID.StoneringerSword, AID.StoneringerClub], 10.9f, 2, "Select weapon");
-        CastMulti(id + 0xA0, [AID._Weaponskill_SmashHere, AID._Weaponskill_SmashThere], 5.9f, 3, "Tankbuster");
-        Cast(id + 0xB0, AID._Spell_DebrisDeathmatch, 10.3f, 3, "Debris deathmatch");
-        Cast(id + 0xC0, AID._Weaponskill_SporeSac, 2.2f, 3, "Spores");
+        Cast(id + 0x60, AID._Weaponskill_GlowerPower2, 1.1f, 0.7f);
+        ComponentCondition<P3ElectrogeneticForce>(id + 0x62, 1.2f, f => f.NumCasts > 0, "Spreads");
+        ComponentCondition<GlowerP3>(id + 0x63, 0.1f, g => g.NumCasts > 0, "Line AOE");
+
+        Cast(id + 0x70, AID._Weaponskill_Slaminator, 0.8f, 4);
+
+        ComponentCondition<Slaminator>(id + 0x72, 1.1f, s => s.NumCasts > 0, "Tower");
+
+        Cast(id + 0x80, AID._Weaponskill_BrutalImpact, 4.1f, 5, "Raidwide 1")
+            .ActivateOnEnter<BrutalImpact>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<BrutalImpact>(id + 0x82, 7.7f, b => b.NumCasts == 8, "Raidwide 8")
+            .DeactivateOnExit<BrutalImpact>();
+
+        CastMulti(id + 0x90, [AID.StoneringerSword, AID.StoneringerClub], 3.2f, 2)
+            .ActivateOnEnter<P1Stoneringer>()
+            .ActivateOnEnter<P1Smash>();
+        ComponentCondition<P1Stoneringer>(id + 0x92, 9.9f, p => p.NumCasts > 0, "In/out");
+        ComponentCondition<P1Smash>(id + 0x93, 1.1f, p => p.NumCasts > 0, "Tankbuster")
+            .SetHint(StateMachine.StateHint.Tankbuster)
+            .DeactivateOnExit<P1Stoneringer>()
+            .DeactivateOnExit<P1Smash>();
+
+        Cast(id + 0xB0, AID._Spell_DebrisDeathmatch, 8.2f, 3);
+
+        ComponentCondition<ThornsOfDeath>(id + 0xB2, 1.1f, t => t.Tethers.Count > 0, "Tethers appear");
+
+        Cast(id + 0xC0, AID._Weaponskill_SporeSac, 2.2f, 3)
+            .ActivateOnEnter<SporeSac>()
+            .ActivateOnEnter<Pollen>();
+
+        ComponentCondition<SporeSac>(id + 0xC2, 5.1f, s => s.NumCasts > 0, "Seed AOEs 1")
+            .DeactivateOnExit<SporeSac>();
+        ComponentCondition<Pollen>(id + 0xC3, 5.7f, s => s.NumCasts > 0, "Seed AOEs 2")
+            .DeactivateOnExit<Pollen>();
+
         Cast(id + 0xD0, AID._Weaponskill_QuarrySwamp, 27.3f, 4, "Petrify");
     }
 }
