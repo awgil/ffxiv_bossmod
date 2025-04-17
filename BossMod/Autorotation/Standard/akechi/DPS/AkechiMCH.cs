@@ -510,6 +510,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                     QueueGCD(AID.Reassemble, Player);
                 if (CountdownRemaining < 1.15f)
                     Opener(primaryTarget?.Actor);
+                if (CountdownRemaining > 0)
+                    return;
             }
             if (ShouldUsePotion(potStrat))
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.VeryHigh + (int)GCDPriority.VeryCritical);
