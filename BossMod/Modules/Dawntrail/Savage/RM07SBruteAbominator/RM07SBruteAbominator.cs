@@ -198,12 +198,14 @@ class BloomingAbomination(BossModule module) : Components.Adds(module, (uint)OID
     }
 }
 
-class CrossingCrosswinds(BossModule module) : Components.StandardAOEs(module, AID._Ability_CrossingCrosswinds, new AOEShapeCross(50, 5));
-class WindingWildwinds(BossModule module) : Components.StandardAOEs(module, AID._Ability_WindingWildwinds, new AOEShapeDonut(5, 60))
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
+class P3BloomingAbomination(BossModule module) : Components.AddsPointless(module, (uint)OID._Gen_BloomingAbomination);
 
+class CrossingCrosswinds(BossModule module) : Components.StandardAOEs(module, AID._Ability_CrossingCrosswinds, new AOEShapeCross(50, 5));
+class WindingWildwinds : Components.StandardAOEs
+{
+    public WindingWildwinds(BossModule module) : base(module, AID._Ability_WindingWildwinds, new AOEShapeDonut(5, 60))
+    {
+        Risky = false;
     }
 }
 
@@ -215,6 +217,12 @@ class QuarrySwamp(BossModule module) : Components.GenericLineOfSightAOE(module, 
     {
         if (spell.Action == WatchedAction)
             Modify(caster.Position, Module.Enemies(OID._Gen_BloomingAbomination).Select(b => (b.Position, b.HitboxRadius)), Module.CastFinishAt(spell));
+    }
+
+    public override void Update()
+    {
+        if (Origin != null)
+            Modify(Origin, Module.Enemies(OID._Gen_BloomingAbomination).Select(b => (b.Position, b.HitboxRadius)), NextExplosion);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

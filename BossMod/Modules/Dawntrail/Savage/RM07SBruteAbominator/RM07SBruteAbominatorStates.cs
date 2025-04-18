@@ -289,8 +289,10 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
             .ExecOnExit<P3ElectrogeneticForce>(p => p.Risky = true);
 
         Cast(id + 0x60, AID._Weaponskill_GlowerPower2, 1.1f, 0.7f);
-        ComponentCondition<P3ElectrogeneticForce>(id + 0x62, 1.2f, f => f.NumCasts > 0, "Spreads");
-        ComponentCondition<GlowerP3>(id + 0x63, 0.1f, g => g.NumCasts > 0, "Line AOE");
+        ComponentCondition<P3ElectrogeneticForce>(id + 0x62, 1.2f, f => f.NumCasts > 0, "Spreads")
+            .DeactivateOnExit<P3ElectrogeneticForce>();
+        ComponentCondition<GlowerP3>(id + 0x63, 0.1f, g => g.NumCasts > 0, "Line AOE")
+            .DeactivateOnExit<GlowerP3>();
 
         Cast(id + 0x70, AID._Weaponskill_Slaminator, 0.8f, 4);
 
@@ -315,15 +317,48 @@ class RM07SBruteAbombinatorStates : StateMachineBuilder
 
         ComponentCondition<ThornsOfDeath>(id + 0xB2, 1.1f, t => t.Tethers.Count > 0, "Tethers appear");
 
-        Cast(id + 0xC0, AID._Weaponskill_SporeSac, 2.2f, 3)
+        Cast(id + 0xC0, AID._Weaponskill_SporeSac, 1, 3)
             .ActivateOnEnter<SporeSac>()
-            .ActivateOnEnter<Pollen>();
+            .ActivateOnEnter<Pollen>()
+            .ActivateOnEnter<P3BloomingAbomination>();
 
         ComponentCondition<SporeSac>(id + 0xC2, 5.1f, s => s.NumCasts > 0, "Seed AOEs 1")
             .DeactivateOnExit<SporeSac>();
         ComponentCondition<Pollen>(id + 0xC3, 5.7f, s => s.NumCasts > 0, "Seed AOEs 2")
-            .DeactivateOnExit<Pollen>();
+            .ActivateOnEnter<KillerSeeds>()
+            .DeactivateOnExit<Pollen>()
+            .DeactivateOnExit<TendrilsOfTerror>();
 
-        Cast(id + 0xD0, AID._Weaponskill_QuarrySwamp, 27.3f, 4, "Petrify");
+        Cast(id + 0xD0, AID._Weaponskill_QuarrySwamp, 16.5f, 4, "Petrify adds")
+            .ActivateOnEnter<QuarrySwamp>()
+            .ActivateOnEnter<SinisterSeedsSpread>()
+            .ActivateOnEnter<SinisterSeedsChase>()
+            .ActivateOnEnter<RootsOfEvil>()
+            .ActivateOnEnter<TendrilsOfTerror>()
+            .DeactivateOnExit<QuarrySwamp>()
+            .DeactivateOnExit<P3BloomingAbomination>()
+            .DeactivateOnExit<KillerSeeds>();
+
+        ComponentCondition<SinisterSeedsChase>(id + 0xD2, 12.3f, s => s.Casters.Count > 0, "Puddles start");
+
+        ComponentCondition<TendrilsOfTerror>(id + 0xD4, 13.6f, t => t.NumCasts > 0, "Safe spot")
+            .ActivateOnEnter<PulpSmash>()
+            .ActivateOnEnter<PulpSmashProtean>()
+            .ActivateOnEnter<ItCameFromTheDirt>()
+            .DeactivateOnExit<SinisterSeedsChase>()
+            .DeactivateOnExit<SinisterSeedsSpread>()
+            .DeactivateOnExit<RootsOfEvil>();
+
+        ComponentCondition<PulpSmash>(id + 0xE0, 3.4f, p => p.NumFinishedStacks > 0, "Stack");
+        ComponentCondition<PulpSmashProtean>(id + 0xE1, 2.1f, p => p.NumCasts > 0, "Proteans")
+            .DeactivateOnExit<PulpSmash>()
+            .DeactivateOnExit<PulpSmashProtean>()
+            .DeactivateOnExit<ItCameFromTheDirt>();
+
+        Cast(id + 0xF0, AID._Weaponskill_BrutalImpact, 1.4f, 5, "Raidwide 1")
+            .ActivateOnEnter<BrutalImpact>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<BrutalImpact>(id + 0xF2, 7.7f, b => b.NumCasts == 8, "Raidwide 8")
+            .DeactivateOnExit<BrutalImpact>();
     }
 }
