@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Savage.RM07SBruteAbominator;
+﻿
+namespace BossMod.Dawntrail.Savage.RM07SBruteAbominator;
 
 class BrutalImpact(BossModule module) : Components.CastCounter(module, AID._Weaponskill_BrutalImpact1)
 {
@@ -162,7 +163,13 @@ class SinisterSeedsStored(BossModule module) : Components.GenericAOEs(module, de
 
 class RootsOfEvil(BossModule module) : Components.LocationTargetedAOEs(module, AID._Spell_RootsOfEvil, 12);
 
-class TendrilsOfTerror(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_TendrilsOfTerror, AID._Spell_TendrilsOfTerror2, AID._Spell_TendrilsOfTerror4], new AOEShapeCross(60, 2));
+class TendrilsOfTerror(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_TendrilsOfTerror, AID._Spell_TendrilsOfTerror2, AID._Spell_TendrilsOfTerror4], new AOEShapeCross(60, 2))
+{
+    public void ResetCount()
+    {
+        NumCasts = 0;
+    }
+}
 
 class Impact(BossModule module) : Components.UniformStackSpread(module, 6, 0, 2, 4)
 {
@@ -292,9 +299,36 @@ class ItCameFromTheDirt(BossModule module) : Components.LocationTargetedAOEs(mod
 
 class NeoBombarianSpecial(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_NeoBombarianSpecial);
 
-class P2BrutishSwingIn(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BrutishSwing6, new AOEShapeDonut(21.712f, 88));
-class P2BrutishSwingOut(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BrutishSwing9, new AOEShapeCircle(25));
-class P2BrutishSwingCounter(BossModule module) : Components.CastCounterMulti(module, [AID._Weaponskill_BrutishSwing6, AID._Weaponskill_BrutishSwing9]);
+class P2BrutishSwing(BossModule module) : Components.GenericAOEs(module)
+{
+    public bool Risky;
+
+    private readonly List<(Actor Caster, bool In)> Casters = [];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID._Weaponskill_BrutishSwing6:
+                Casters.Add((caster, true));
+                break;
+            case AID._Weaponskill_BrutishSwing9:
+                Casters.Add((caster, false));
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_BrutishSwing6 or AID._Weaponskill_BrutishSwing9)
+        {
+            Casters.RemoveAll(c => c.Caster == caster);
+            NumCasts++;
+        }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(c.In ? new AOEShapeDonut(21.712f, 88) : new AOEShapeCircle(25), c.Caster.CastInfo!.LocXZ, c.Caster.CastInfo!.Rotation, Module.CastFinishAt(c.Caster.CastInfo), Risky: Risky));
+}
 
 class P2GlowerPower(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GlowerPower1, new AOEShapeRect(65, 7));
 
@@ -354,7 +388,23 @@ class AbominableBlink(BossModule module) : Components.BaitAwayIcon(module, new A
     }
 }
 
-class StrangeSeeds(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.SinisterSeed, AID._Spell_StrangeSeeds, 6, 5);
+class StrangeSeeds(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.SinisterSeed, AID._Spell_StrangeSeeds, 6, 5)
+{
+    public bool Risky = true;
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Risky)
+            base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Risky)
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
+
 class StrangeSeedsCounter(BossModule module) : BossComponent(module)
 {
     public int NumCasts;
@@ -371,12 +421,39 @@ class KillerSeeds(BossModule module) : Components.StackWithCastTargets(module, A
 class Powerslam(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Powerslam);
 class Sporesplosion(BossModule module) : Components.LocationTargetedAOEs(module, AID._Spell_Sporesplosion, 8, maxCasts: 12);
 
-class P3BrutishSwingIn(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BrutishSwing14, new AOEShapeDonut(21.712f, 88));
-class P3BrutishSwingOut(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BrutishSwing17, new AOEShapeCircle(25));
-class P3BrutishSwingCounter(BossModule module) : Components.CastCounterMulti(module, [AID._Weaponskill_BrutishSwing14, AID._Weaponskill_BrutishSwing17]);
+class P3BrutishSwing(BossModule module) : Components.GenericAOEs(module)
+{
+    public bool Risky;
+
+    private readonly List<(Actor Caster, bool In)> Casters = [];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID._Weaponskill_BrutishSwing14:
+                Casters.Add((caster, true));
+                break;
+            case AID._Weaponskill_BrutishSwing17:
+                Casters.Add((caster, false));
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_BrutishSwing14 or AID._Weaponskill_BrutishSwing17)
+        {
+            Casters.RemoveAll(c => c.Caster == caster);
+            NumCasts++;
+        }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(c.In ? new AOEShapeDonut(21.712f, 88) : new AOEShapeCircle(25), c.Caster.CastInfo!.LocXZ, c.Caster.CastInfo!.Rotation, Module.CastFinishAt(c.Caster.CastInfo), Risky: Risky));
+}
 
 class Lariat(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_LashingLariat1, AID._Weaponskill_LashingLariat3], new AOEShapeRect(70, 16));
-class GlowerP3(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GlowerPower3, new AOEShapeRect(65, 7));
+class P3Glower(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GlowerPower3, new AOEShapeRect(65, 7));
 class Slaminator(BossModule module) : Components.CastTowers(module, AID._Weaponskill_Slaminator1, 8, maxSoakers: 8);
 
 class P3ElectrogeneticForce : Components.UniformStackSpread

@@ -102,6 +102,10 @@ public enum AID : uint
     _Weaponskill_BrutishSwing21 = 42382, // Boss->location, 4.0+3.8s cast, single-target
     _Weaponskill_LashingLariat2 = 42409, // Boss->location, 3.5+0.5s cast, single-target
     _Weaponskill_LashingLariat3 = 42410, // Helper->self, 4.0s cast, range 70 width 32 rect
+    _Weaponskill_StrangeSeeds1 = 43274, // Boss->self, 4.0s cast, single-target
+    _Weaponskill_SpecialBombarianSpecial = 42417, // Boss->location, 10.0s cast, single-target
+    _Weaponskill_SpecialBombarianSpecial1 = 42418, // Boss->location, no cast, single-target
+    _Weaponskill_SpecialBombarianSpecial2 = 42419, // Helper->self, no cast, range 60 circle
 }
 
 public enum IconID : uint
