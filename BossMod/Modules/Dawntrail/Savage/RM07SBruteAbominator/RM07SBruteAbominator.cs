@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Savage.RM07SBruteAbominator;
+﻿namespace BossMod.Dawntrail.Savage.RM07SBruteAbominator;
 
 class BrutalImpact(BossModule module) : Components.CastCounter(module, AID._Weaponskill_BrutalImpact1)
 {
@@ -171,15 +170,17 @@ class TendrilsOfTerror(BossModule module) : Components.GroupedAOEs(module, [AID.
     }
 }
 
-class Impact(BossModule module) : Components.UniformStackSpread(module, 6, 0, 2, 4)
+class Impact : Components.UniformStackSpread
 {
     public int NumCasts;
 
+    public Impact(BossModule module) : base(module, 6, 0, 2, 4)
+    {
+        AddStacks(Raid.WithoutSlot().Where(r => r.Role == Role.Healer).Take(2), WorldState.FutureTime(4.5f));
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_SinisterSeeds1 && Stacks.Count == 0)
-            AddStacks(Raid.WithoutSlot().Where(r => r.Role == Role.Healer).Take(2), WorldState.FutureTime(10));
-
         if ((AID)spell.Action.ID == AID._Weaponskill_Impact)
         {
             NumCasts++;
