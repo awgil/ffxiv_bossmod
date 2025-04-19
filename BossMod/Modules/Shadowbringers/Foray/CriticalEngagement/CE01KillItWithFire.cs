@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE13KillItWithFire;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE01KillItWithFire;
 
 public enum OID : uint
 {
@@ -108,9 +108,9 @@ class SplashGrenade(BossModule module) : Components.StackWithCastTargets(module,
 class PlayfulBreeze(BossModule module) : Components.RaidwideCast(module, AID.PlayfulBreeze);
 class Budbutt(BossModule module) : Components.SingleTargetCast(module, AID.Budbutt);
 
-class CE13KillItWithFireStates : StateMachineBuilder
+class PeerifoolStates : StateMachineBuilder
 {
-    public CE13KillItWithFireStates(BossModule module) : base(module)
+    public PeerifoolStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Pheromones>()
@@ -124,4 +124,4 @@ class CE13KillItWithFireStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 1)] // bnpcname=9391
-public class CE13KillItWithFire(WorldState ws, Actor primary) : BossModule(ws, primary, new(-90, 700), new ArenaBoundsCircle(25));
+public class Peerifool(WorldState ws, Actor primary) : BossModule(ws, primary, new(-90, 700), new ArenaBoundsCircle(25));

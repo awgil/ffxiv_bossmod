@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE62LooksToDieFor;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE30LooksToDieFor;
 
 public enum OID : uint
 {
@@ -145,9 +145,9 @@ class Roar(BossModule module) : Components.RaidwideCast(module, AID.Roar);
 class Levinbolt(BossModule module) : Components.SpreadFromCastTargets(module, AID.LevinboltAOE, 6);
 class SerpentsEdge(BossModule module) : Components.SingleTargetCast(module, AID.SerpentsEdge);
 
-class CE62LooksToDieForStates : StateMachineBuilder
+class AyidaStates : StateMachineBuilder
 {
-    public CE62LooksToDieForStates(BossModule module) : base(module)
+    public AyidaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Thundercall>()
@@ -166,4 +166,4 @@ class CE62LooksToDieForStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 30)] // bnpcname=9925
-public class CE62LooksToDieFor(WorldState ws, Actor primary) : BossModule(ws, primary, new(-200, -580), new ArenaBoundsCircle(20));
+public class Ayida(WorldState ws, Actor primary) : BossModule(ws, primary, new(-200, -580), new ArenaBoundsCircle(20));

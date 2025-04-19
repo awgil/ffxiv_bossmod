@@ -109,7 +109,7 @@ public sealed class PlanDatabase
         // finally, add unreferenced plans to the database
         foreach (var plan in foundPlans.Values)
         {
-            Service.Log($"Found plan unreferenced by database: '{plan.Guid} for {plan.Class} {plan.Encounter.FullName}");
+            Service.Log($"Found plan unreferenced by database: '{plan.Guid}' for {plan.Class} {plan.Encounter.FullName}");
             GetPlans(plan.Encounter, plan.Class).Plans.Add(plan);
         }
     }

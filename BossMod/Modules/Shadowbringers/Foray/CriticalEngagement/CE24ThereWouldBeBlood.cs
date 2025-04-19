@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE51ThereWouldBeBlood;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE24ThereWouldBeBlood;
 
 public enum OID : uint
 {
@@ -42,9 +42,9 @@ class FlightOfTheMaleficCenter(BossModule module) : Components.LocationTargetedA
 class TempestOfAnguish(BossModule module) : Components.SelfTargetedAOEs(module, AID.TempestOfAnguish, new AOEShapeRect(55, 5));
 class TragicalGaze(BossModule module) : Components.CastGaze(module, AID.TragicalGaze);
 
-class CE51ThereWouldBeBloodStates : StateMachineBuilder
+class HanbiStates : StateMachineBuilder
 {
-    public CE51ThereWouldBeBloodStates(BossModule module) : base(module)
+    public HanbiStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<CloudOfLocusts>()
@@ -61,4 +61,4 @@ class CE51ThereWouldBeBloodStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 24)] // bnpcname=10064
-public class CE51ThereWouldBeBlood(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390, 230), new ArenaBoundsCircle(25));
+public class Hanbi(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390, 230), new ArenaBoundsCircle(25));

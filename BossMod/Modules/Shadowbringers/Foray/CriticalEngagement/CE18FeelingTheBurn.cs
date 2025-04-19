@@ -1,6 +1,4 @@
-﻿using Dalamud.Logging.Internal;
-
-namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE64FeelingTheBurn;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE18FeelingTheBurn;
 
 public enum OID : uint
 {
@@ -147,9 +145,9 @@ class SuppressiveMagitekRays(BossModule module) : Components.RaidwideCast(module
 class Analysis(BossModule module) : Components.CastHint(module, AID.Analysis, "Face open weakpoint to charging adds");
 class PreciseStrike(BossModule module) : Components.CastWeakpoint(module, AID.PreciseStrike, new AOEShapeRect(60, 3), (uint)SID.FrontUnseen, (uint)SID.BackUnseen, 0, 0);
 
-class CE64FeelingTheBurnStates : StateMachineBuilder
+class BlackburnStates : StateMachineBuilder
 {
-    public CE64FeelingTheBurnStates(BossModule module) : base(module)
+    public BlackburnStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<DiveFormation>()
@@ -164,11 +162,11 @@ class CE64FeelingTheBurnStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 18)] // bnpcname=9945
-public class CE64FeelingTheBurn : BossModule
+public class Blackburn : BossModule
 {
     public IReadOnlyList<Actor> Escorts;
 
-    public CE64FeelingTheBurn(WorldState ws, Actor primary) : base(ws, primary, new(-240, -230), new ArenaBoundsSquare(24))
+    public Blackburn(WorldState ws, Actor primary) : base(ws, primary, new(-240, -230), new ArenaBoundsSquare(24))
     {
         Escorts = Enemies(OID.Escort2);
     }

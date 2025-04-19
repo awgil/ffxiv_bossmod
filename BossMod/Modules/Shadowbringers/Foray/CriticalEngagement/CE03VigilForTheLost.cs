@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE14VigilForLost;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE03VigilForTheLost;
 
 public enum OID : uint
 {
@@ -34,9 +34,9 @@ class PlasmaField(BossModule module) : Components.RaidwideCast(module, AID.Plasm
 class Towers(BossModule module) : Components.CastTowers(module, AID.Explosion, 6);
 class MagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRay, new AOEShapeRect(50, 2));
 
-class CE14VigilForLostStates : StateMachineBuilder
+class VigiliaStates : StateMachineBuilder
 {
-    public CE14VigilForLostStates(BossModule module) : base(module)
+    public VigiliaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<LightLeap>()
@@ -52,4 +52,4 @@ class CE14VigilForLostStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 3)] // bnpcname=9396
-public class CE14VigilForLost(WorldState ws, Actor primary) : BossModule(ws, primary, new(451, 830), new ArenaBoundsCircle(30));
+public class Vigilia(WorldState ws, Actor primary) : BossModule(ws, primary, new(451, 830), new ArenaBoundsCircle(30));

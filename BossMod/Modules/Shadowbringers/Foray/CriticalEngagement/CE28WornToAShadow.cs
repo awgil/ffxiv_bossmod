@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE63WornToShadow;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE28WornToAShadow;
 
 public enum OID : uint
 {
@@ -147,9 +147,9 @@ class Foreshadowing(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class CE63WornToShadowStates : StateMachineBuilder
+class AlkonostStates : StateMachineBuilder
 {
-    public CE63WornToShadowStates(BossModule module) : base(module)
+    public AlkonostStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Stormcall>()
@@ -161,4 +161,4 @@ class CE63WornToShadowStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)] // bnpcname=9973
-public class CE63WornToShadow(WorldState ws, Actor primary) : BossModule(ws, primary, new(-480, -690), new ArenaBoundsCircle(30));
+public class Alkonost(WorldState ws, Actor primary) : BossModule(ws, primary, new(-480, -690), new ArenaBoundsCircle(30));

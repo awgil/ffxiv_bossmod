@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE54NeverCryWolf;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE25NeverCryWolf;
 
 public enum OID : uint
 {
@@ -176,9 +176,9 @@ class StormWithin(BossModule module) : Components.SelfTargetedAOEs(module, AID.S
 class AncientGlacier(BossModule module) : Components.LocationTargetedAOEs(module, AID.AncientGlacierAOE, 6);
 class Glaciation(BossModule module) : Components.RaidwideCast(module, AID.Glaciation);
 
-class CE54NeverCryWolfStates : StateMachineBuilder
+class HrodvitnirStates : StateMachineBuilder
 {
-    public CE54NeverCryWolfStates(BossModule module) : base(module)
+    public HrodvitnirStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<IcePillar>()
@@ -196,11 +196,11 @@ class CE54NeverCryWolfStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 25)] // bnpcname=9941
-public class CE54NeverCryWolf : BossModule
+public class Hrodvitnir : BossModule
 {
     private readonly IReadOnlyList<Actor> _adds;
 
-    public CE54NeverCryWolf(WorldState ws, Actor primary) : base(ws, primary, new(-830, 190), new ArenaBoundsSquare(24))
+    public Hrodvitnir(WorldState ws, Actor primary) : base(ws, primary, new(-830, 190), new ArenaBoundsSquare(24))
     {
         _adds = Enemies(OID.Imaginifer);
     }

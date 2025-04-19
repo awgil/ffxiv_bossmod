@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE12BayingOfHounds;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE02TheBayingOfTheHounds;
 
 public enum OID : uint
 {
@@ -103,9 +103,9 @@ class VoidQuake(BossModule module) : Components.GenericAOEs(module) //this conce
     }
 }
 
-class CE12BayingOfHoundsStates : StateMachineBuilder
+class CanisDirusStates : StateMachineBuilder
 {
-    public CE12BayingOfHoundsStates(BossModule module) : base(module)
+    public CanisDirusStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Hellclaw>()
@@ -122,4 +122,4 @@ class CE12BayingOfHoundsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 2)] // bnpcname=9394
-public class CE12BayingOfHounds(WorldState ws, Actor primary) : BossModule(ws, primary, new(154, 785), new ArenaBoundsCircle(25));
+public class CanisDirus(WorldState ws, Actor primary) : BossModule(ws, primary, new(154, 785), new ArenaBoundsCircle(25));

@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE41WithDiremiteAndMain;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21WithDiremiteAndMain;
 
 public enum OID : uint
 {
@@ -144,9 +144,9 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module, AID.HailfireA
     }
 }
 
-class CE41WithDiremiteAndMainStates : StateMachineBuilder
+class HedetetStates : StateMachineBuilder
 {
-    public CE41WithDiremiteAndMainStates(BossModule module) : base(module)
+    public HedetetStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<CrystallineFracture>()
@@ -163,12 +163,12 @@ class CE41WithDiremiteAndMainStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 21)] // bnpcname=9969
-public class CE41WithDiremiteAndMain : BossModule
+public class Hedetet : BossModule
 {
     private readonly IReadOnlyList<Actor> _dimCrystals;
     private readonly IReadOnlyList<Actor> _corruptedCrystals;
 
-    public CE41WithDiremiteAndMain(WorldState ws, Actor primary) : base(ws, primary, new(-220, 530), new ArenaBoundsCircle(30))
+    public Hedetet(WorldState ws, Actor primary) : base(ws, primary, new(-220, 530), new ArenaBoundsCircle(30))
     {
         _dimCrystals = Enemies(OID.DimCrystal);
         _corruptedCrystals = Enemies(OID.CorruptedCrystal);

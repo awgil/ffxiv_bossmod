@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE53HereComesTheCavalry;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE22HereComesTheCavalry;
 
 public enum OID : uint
 {
@@ -130,9 +130,9 @@ class FarAfield(BossModule module) : Components.SelfTargetedAOEs(module, AID.Far
 class CallControlledBurn(BossModule module) : Components.SpreadFromCastTargets(module, AID.CallControlledBurnAOE, 6);
 class MagitekBlaster(BossModule module) : Components.StackWithCastTargets(module, AID.MagitekBlaster, 8);
 
-class CE53HereComesTheCavalryStates : StateMachineBuilder
+class ClibanariusStates : StateMachineBuilder
 {
-    public CE53HereComesTheCavalryStates(BossModule module) : base(module)
+    public ClibanariusStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<StormSlash>()
@@ -153,7 +153,7 @@ class CE53HereComesTheCavalryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 22)] // bnpcname=9929
-public class CE53HereComesTheCavalry(WorldState ws, Actor primary) : BossModule(ws, primary, new(-750, 790), new ArenaBoundsCircle(25))
+public class Clibanarius(WorldState ws, Actor primary) : BossModule(ws, primary, new(-750, 790), new ArenaBoundsCircle(25))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat; // not targetable at start
 

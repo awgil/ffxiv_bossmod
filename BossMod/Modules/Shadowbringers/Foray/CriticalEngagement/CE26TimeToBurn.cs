@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE52TimeToBurn;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE26TimeToBurn;
 
 public enum OID : uint
 {
@@ -135,9 +135,9 @@ class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.
 class FireTankbuster(BossModule module) : Components.SingleTargetCast(module, AID.FireTankbuster);
 class FireRaidwide(BossModule module) : Components.RaidwideCast(module, AID.FireRaidwide);
 
-class CE52TimeToBurnStates : StateMachineBuilder
+class FourthMakeBeliasStates : StateMachineBuilder
 {
-    public CE52TimeToBurnStates(BossModule module) : base(module)
+    public FourthMakeBeliasStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<TimeEruptionBombReproduce>()
@@ -148,4 +148,4 @@ class CE52TimeToBurnStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 26)] // bnpcname=9930
-public class CE52TimeToBurn(WorldState ws, Actor primary) : BossModule(ws, primary, new(-550, 0), new ArenaBoundsSquare(30));
+public class FourthMakeBelias(WorldState ws, Actor primary) : BossModule(ws, primary, new(-550, 0), new ArenaBoundsSquare(30));

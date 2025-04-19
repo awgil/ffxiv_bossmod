@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE21FinalFurlong;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE06TheFinalFurlong;
 
 public enum OID : uint
 {
@@ -86,9 +86,9 @@ class Stab(BossModule module) : Components.SingleTargetCast(module, AID.Stab);
 class GripOfPoison(BossModule module) : Components.RaidwideCast(module, AID.GripOfPoison);
 class StepsOfDestruction(BossModule module) : Components.LocationTargetedAOEs(module, AID.StepsOfDestructionAOE, 6);
 
-class CE21FinalFurlongStates : StateMachineBuilder
+class SpartoiStates : StateMachineBuilder
 {
-    public CE21FinalFurlongStates(BossModule module) : base(module)
+    public SpartoiStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<GraspingRancor>()
@@ -104,4 +104,4 @@ class CE21FinalFurlongStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 6)] // bnpcname=9405
-public class CE21FinalFurlong(WorldState ws, Actor primary) : BossModule(ws, primary, new(644, 228), new ArenaBoundsCircle(27));
+public class Spartoi(WorldState ws, Actor primary) : BossModule(ws, primary, new(644, 228), new ArenaBoundsCircle(27));

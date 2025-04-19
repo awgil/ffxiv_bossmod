@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE44FamiliarFace;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE29AFamiliarFace;
 
 public enum OID : uint
 {
@@ -132,9 +132,9 @@ class Hammerfall(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class CE44FamiliarFaceStates : StateMachineBuilder
+class FourthMakeHashmalStates : StateMachineBuilder
 {
-    public CE44FamiliarFaceStates(BossModule module) : base(module)
+    public FourthMakeHashmalStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<TectonicEruption>()
@@ -150,4 +150,4 @@ class CE44FamiliarFaceStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 29)] // bnpcname=9693
-public class CE44FamiliarFace(WorldState ws, Actor primary) : BossModule(ws, primary, new(330, 390), new ArenaBoundsCircle(30));
+public class FourthMakeHashmal(WorldState ws, Actor primary) : BossModule(ws, primary, new(330, 390), new ArenaBoundsCircle(30));

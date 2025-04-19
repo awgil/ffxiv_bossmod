@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE11ShadowOfDeathHand;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE05TheShadowOfDeathsHand;
 
 public enum OID : uint
 {
@@ -60,9 +60,9 @@ class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m 
 class Wind(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WindVisual, 30, kind: Kind.DirForward);
 class PiercingBarrageCrow(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingBarrageCrow, new AOEShapeRect(40, 4));
 
-class CE11ShadowOfDeathHandStates : StateMachineBuilder
+class TamedCarrionCrowStates : StateMachineBuilder
 {
-    public CE11ShadowOfDeathHandStates(BossModule module) : base(module)
+    public TamedCarrionCrowStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<BestialLoyalty>()
@@ -80,7 +80,7 @@ class CE11ShadowOfDeathHandStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 5)] // bnpcname=9400
-public class CE11ShadowOfDeathHand(WorldState ws, Actor primary) : BossModule(ws, primary, new(825, 640), new ArenaBoundsCircle(20))
+public class TamedCarrionCrow(WorldState ws, Actor primary) : BossModule(ws, primary, new(825, 640), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

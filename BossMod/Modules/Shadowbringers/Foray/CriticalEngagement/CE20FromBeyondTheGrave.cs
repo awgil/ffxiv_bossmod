@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE42FromBeyondTheGrave;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE20FromBeyondTheGrave;
 
 public enum OID : uint
 {
@@ -140,9 +140,9 @@ class PurifyingLight : Components.LocationTargetedAOEs
     }
 }
 
-class CE42FromBeyondTheGraveStates : StateMachineBuilder
+class FourthMakeShemhazaiStates : StateMachineBuilder
 {
-    public CE42FromBeyondTheGraveStates(BossModule module) : base(module)
+    public FourthMakeShemhazaiStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<DevourSoul>()
@@ -163,7 +163,7 @@ class CE42FromBeyondTheGraveStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 20)] // bnpcname=9931
-public class CE42FromBeyondTheGrave(WorldState ws, Actor primary) : BossModule(ws, primary, new(-60, 800), new ArenaBoundsCircle(30))
+public class FourthMakeShemhazai(WorldState ws, Actor primary) : BossModule(ws, primary, new(-60, 800), new ArenaBoundsCircle(30))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

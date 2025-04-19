@@ -1,4 +1,4 @@
-﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE31MetalFoxChaos;
+﻿namespace BossMod.Shadowbringers.Foray.CriticalEngagement.CE13MetalFoxChaos;
 
 public enum OID : uint
 {
@@ -97,9 +97,9 @@ class LaserShower(BossModule module) : Components.LocationTargetedAOEs(module, A
 class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiffractiveLaser, new AOEShapeCone(60, 75.Degrees()));
 class SatelliteLaser(BossModule module) : Components.RaidwideCast(module, AID.SatelliteLaser, "Raidwide + all lasers fire at the same time");
 
-class CE31MetalFoxChaosStates : StateMachineBuilder
+class DainsleifStates : StateMachineBuilder
 {
-    public CE31MetalFoxChaosStates(BossModule module) : base(module)
+    public DainsleifStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<SatelliteLaser>()
@@ -111,7 +111,7 @@ class CE31MetalFoxChaosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 13)] // bnpcname=9424
-public class CE31MetalFoxChaos(WorldState ws, Actor primary) : BossModule(ws, primary, new(-234, 262), new ArenaBoundsSquare(30.2f))
+public class Dainsleif(WorldState ws, Actor primary) : BossModule(ws, primary, new(-234, 262), new ArenaBoundsSquare(30.2f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
