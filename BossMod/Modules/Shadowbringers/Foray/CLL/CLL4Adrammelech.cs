@@ -71,7 +71,7 @@ class BlizzardIV(BossModule module) : Components.StayMove(module)
     }
 }
 
-class WaterIV(BossModule module) : Components.KnockbackFromCastTarget(module, default, 12)
+class WaterIV(BossModule module) : Components.KnockbackFromCastTarget(module, (AID)0, 12)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
