@@ -225,7 +225,7 @@ class SovereignScar : Components.CastCounter
 
         if (actor.Role == Role.Healer)
         {
-            var stacked = Raid.WithoutSlot().Exclude(actor).InShape(Shape, Source.Position, Source.AngleTo(actor));
+            var stacked = Raid.WithoutSlot().Exclude(actor).InShape(Shape, Source.Position, Source.AngleTo(actor)).ToList();
             if (stacked.Any(p => p.Role == Role.Healer))
                 hints.Add("GTFO from other healer!");
 
