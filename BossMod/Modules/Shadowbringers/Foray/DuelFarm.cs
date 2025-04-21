@@ -13,8 +13,8 @@ public sealed class DuelAttribute(uint nameID, uint prepNameID, uint fateID = 0)
     public string Label => $"{ModuleViewer.BNpcName(nameID)} ({ModuleViewer.BNpcName(prepNameID)})";
 }
 
-[ConfigDisplay(Name = "Eureka", Parent = typeof(ShadowbringersConfig))]
-public class BozjaConfig : ConfigNode
+[ConfigDisplay(Name = "Bozja duel farming", Parent = typeof(ShadowbringersConfig))]
+public class DuelFarmConfig : ConfigNode
 {
     [PropertyDisplay("Max range to look for new mobs to pull")]
     [PropertySlider(20, 100, Speed = 0.1f)]
@@ -27,9 +27,9 @@ public class BozjaConfig : ConfigNode
     public bool AssistMode;
 }
 
-public abstract class BozjaZone<Duel> : ZoneModule where Duel : struct, Enum
+public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
 {
-    protected readonly BozjaConfig _globalConfig = Service.Config.Get<BozjaConfig>();
+    protected readonly DuelFarmConfig _globalConfig = Service.Config.Get<DuelFarmConfig>();
 
     public readonly string Zone;
 
@@ -41,7 +41,7 @@ public abstract class BozjaZone<Duel> : ZoneModule where Duel : struct, Enum
 
     protected abstract Duel FarmTarget { get; set; }
 
-    protected BozjaZone(WorldState ws, string zone) : base(ws)
+    protected DuelFarm(WorldState ws, string zone) : base(ws)
     {
         _subscriptions = new(ws.Client.FateInfo.Subscribe(OnFateSpawn));
         Zone = zone;
@@ -117,7 +117,7 @@ public abstract class BozjaZone<Duel> : ZoneModule where Duel : struct, Enum
     }
 }
 
-[ConfigDisplay(Name = "Bozja", Parent = typeof(BozjaConfig))]
+[ConfigDisplay(Name = "Bozja", Parent = typeof(DuelFarmConfig))]
 public class BozjaFarmConfig : ConfigNode
 {
     public BozjaDuel FarmTarget = BozjaDuel.None;
@@ -135,11 +135,44 @@ public enum BozjaDuel : uint
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 735)]
-public class Bozja(WorldState ws) : BozjaZone<BozjaDuel>(ws, "Bozja")
+public class Bozja(WorldState ws) : DuelFarm<BozjaDuel>(ws, "Bozja")
 {
     private readonly BozjaFarmConfig _config = Service.Config.Get<BozjaFarmConfig>();
 
     protected override BozjaDuel FarmTarget
+    {
+        get => _config.FarmTarget;
+        set
+        {
+            _config.FarmTarget = value;
+            _config.Modified.Fire();
+        }
+    }
+}
+
+[ConfigDisplay(Name = "Zadnor", Parent = typeof(DuelFarmConfig))]
+public class ZadnorFarmConfig : ConfigNode
+{
+    public ZadnorDuel FarmTarget = ZadnorDuel.None;
+}
+
+public enum ZadnorDuel : uint
+{
+    None,
+    [Duel(9958, 10131, 1722)]
+    Dabog,
+    [Duel(9695, 10138, 1727)]
+    Menenius,
+    [Duel(9409, 10160, 1739)]
+    Lyon
+}
+
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 778)]
+public class Zadnor(WorldState ws) : DuelFarm<ZadnorDuel>(ws, "Zadnor")
+{
+    private readonly ZadnorFarmConfig _config = Service.Config.Get<ZadnorFarmConfig>();
+
+    protected override ZadnorDuel FarmTarget
     {
         get => _config.FarmTarget;
         set
