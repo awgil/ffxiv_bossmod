@@ -260,6 +260,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         // fallback for out of range
         if (Coil > 0)
             PushGCD(AID.UncoiledFury, BestRangedAOETarget);
+        else
+            PushGCD(AID.WrithingSnap, primaryTarget);
     }
 
     private bool ShouldReawaken(StrategyValues strategy)
@@ -297,6 +299,9 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         if (CurSerpentsTail != AID.SerpentsTail)
             PushOGCD(CurSerpentsTail, primaryTarget);
+
+        if (NextPositionalImminent && !NextPositionalCorrect)
+            PushOGCD(AID.TrueNorth, Player, delay: GCD - 0.8f);
 
         switch (TwinCombo)
         {
