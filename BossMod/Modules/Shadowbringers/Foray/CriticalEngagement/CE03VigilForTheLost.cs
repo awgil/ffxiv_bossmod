@@ -25,7 +25,7 @@ public enum AID : uint
 }
 
 class LightLeap(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightLeap, 10);
-class ChemicalMissile(BossModule module) : Components.SelfTargetedAOEs(module, AID.ChemicalMissile, new AOEShapeCircle(12));
+class ChemicalMissile(BossModule module) : Components.SelfTargetedAOEs(module, AID.ChemicalMissile, new AOEShapeCircle(12), maxCasts: 2);
 class TailMissile(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailMissileAOE, new AOEShapeCircle(30));
 class Shockwave(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shockwave, new AOEShapeCircle(16));
 class ExplosiveFlare(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosiveFlare, new AOEShapeCircle(10));

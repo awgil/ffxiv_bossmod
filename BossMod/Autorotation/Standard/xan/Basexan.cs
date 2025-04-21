@@ -421,7 +421,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     // other classes have timed personal buffs to plan around, like blm leylines, mch overheat, gnb nomercy
     // war could also be here but i dont have a war rotation
-    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE;
+    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE or Class.DRK;
 
     private new (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {

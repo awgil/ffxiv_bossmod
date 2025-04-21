@@ -37,15 +37,15 @@ public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(mana
         if (strategy.Option(Track.Platebearer).As<PBIgnore>() == PBIgnore.Enabled && Player.Statuses.Any(s => s.ID == (uint)SID.WisdomOfThePlatebearer))
             Hints.ForbiddenZones.Clear();
 
-        if (strategy.Enabled(Track.Feint) && HaveLogos(EurekaActionID.FeintL) && primaryTarget is { } p1 && p1.ForayInfo.Element == 3)
+        if (strategy.Enabled(Track.Feint) && HaveLogos(EurekaActionID.FeintL) && primaryTarget?.ForayInfo.Element == 3)
         {
-            var feintLeft = p1.FindStatus(SID.EvasionDown, World.FutureTime(60)) is ActorStatus s ? (s.ExpireAt - World.CurrentTime).TotalSeconds : 0;
+            var feintLeft = primaryTarget.FindStatus(SID.EvasionDown, World.FutureTime(60)) is ActorStatus s ? (s.ExpireAt - World.CurrentTime).TotalSeconds : 0;
             if (feintLeft < NextChargeIn(EurekaActionID.FeintL))
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.FeintL), p1, ActionQueue.Priority.VeryHigh);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.FeintL), primaryTarget, ActionQueue.Priority.VeryHigh);
         }
 
-        if (strategy.Enabled(Track.Dispel) && HaveLogos(EurekaActionID.DispelL) && primaryTarget is { } p2 && Hints.FindEnemy(p2)?.ShouldBeDispelled == true && p2.PendingDispels.Count == 0)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.DispelL), p2, ActionQueue.Priority.VeryHigh);
+        if (strategy.Enabled(Track.Dispel) && HaveLogos(EurekaActionID.DispelL) && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.DispelL), primaryTarget, ActionQueue.Priority.VeryHigh);
 
         if (strategy.Enabled(Track.Bloodbath) && HaveLogos(EurekaActionID.BloodbathL) && Player.InCombat && Player.PredictedHPRatio < 0.5f)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.BloodbathL), Player, ActionQueue.Priority.Medium);

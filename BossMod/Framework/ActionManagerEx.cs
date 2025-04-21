@@ -205,7 +205,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
     {
         // TODO: 7.1: there are now 5 actions, but only 2 charges...
         var dm = DutyActionManager.GetInstanceIfReady();
-        return dm == null || !dm->ActionsPresent || slot >= dm->NumValidSlots
+        return dm == null || !dm->ActionActive[0] || slot >= dm->NumValidSlots
             ? default
             : new(new(ActionType.Spell, dm->ActionId[slot]), dm->CurCharges[slot], dm->MaxCharges[slot]);
     }

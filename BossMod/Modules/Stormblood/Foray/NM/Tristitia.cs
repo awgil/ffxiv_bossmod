@@ -31,8 +31,8 @@ public enum SID : uint
 
 class SpineLash(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpineLash, new AOEShapeCone(11, 45.Degrees()));
 class Waterga(BossModule module) : Components.LocationTargetedAOEs(module, AID.WatergaIII, 8);
-class ShockSpikes(BossModule module) : DispelComponent(module, (uint)SID.ShockSpikes);
-class MightyStrikes(BossModule module) : DispelComponent(module, (uint)SID.CriticalStrikes);
+class ShockSpikes(BossModule module) : Components.DispelHint(module, (uint)SID.ShockSpikes);
+class MightyStrikes(BossModule module) : Components.DispelHint(module, (uint)SID.CriticalStrikes);
 class Meteor(BossModule module) : Components.RaidwideCast(module, AID.Meteor);
 class Aeroga(BossModule module) : Components.SelfTargetedAOEs(module, AID.AerogaIV, new AOEShapeCircle(10));
 class Tornado(BossModule module) : Components.SelfTargetedAOEs(module, AID.TornadoII, new AOEShapeDonut(5, 40));

@@ -193,7 +193,8 @@ sealed unsafe class DebugAction : IDisposable
             return;
         }
         ImGui.TextUnformatted($"Excel rows: pending={cd->DutyActionManager.PendingContentExActionRowId}, current={cd->DutyActionManager.CurrentContentExActionRowId}");
-        ImGui.TextUnformatted($"Num valid slots: {cd->DutyActionManager.NumValidSlots}, actions present={cd->DutyActionManager.ActionsPresent}");
+        // TODO: fix offset
+        ImGui.TextUnformatted($"Num valid slots: {cd->DutyActionManager.NumValidSlots}, actions present={cd->DutyActionManager.ActionActive[0]}");
         for (int i = 0; i < 2; ++i)
         {
             ImGui.TextUnformatted($"[{i}]: action={new ActionID(ActionType.Spell, cd->DutyActionManager.ActionId[i])}, active={cd->DutyActionManager.ActionActive[i]}, charges={cd->DutyActionManager.CurCharges[i]}/{cd->DutyActionManager.MaxCharges[i]}");
