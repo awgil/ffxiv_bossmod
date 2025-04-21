@@ -3,8 +3,14 @@ namespace BossMod.Shadowbringers.Foray.CLL.CLL4Adrammelech;
 
 public enum OID : uint
 {
-    Boss = 0x2E01,
-    Helper = 0x233C,
+    Boss = 0x2E01, // R5.005, x1
+    Helper = 0x233C, // R0.500, x16, Helper type
+    Twister = 0x2E09, // R1.950, x0 (spawn during fight)
+    AqueousOrb = 0x2E04, // R1.300, x0 (spawn during fight)
+    TorridOrb = 0x2E02, // R1.300, x0 (spawn during fight)
+    VorticalOrb = 0x2E06, // R0.700, x0 (spawn during fight)
+    ElectricCharge = 0x2E08, // R1.300, x0 (spawn during fight)
+    ArcaneSphere = 0x2E0E, // R1.000, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -22,7 +28,7 @@ public enum AID : uint
     BlizzardIV2 = 21597, // Helper->self, 6.5s cast, deep freeze effect
     BlizzardIV3 = 20555, // Helper->self, 6.5s cast, deep freeze effect
     BlizzardIV4 = 20349, // Helper->self, 6.5s cast, deep freeze effect
-    AeroIV = 20352, // Helper->self, 6.5s cast, range 15-30 donut
+    AeroIV1 = 20352, // Helper->self, 6.5s cast, range 15-30 donut
     AeroIV2 = 20358, // Helper->self, 6.5s cast, range 15-30 donut
     BurstII = 20363, // Helper->location, 4.0s cast, range 6 circle
     BurstIIBoss = 20362, // Boss->self, 4.0s cast, single-target
@@ -37,10 +43,18 @@ public enum AID : uint
     Flare = 20373, // Boss->player, 4.0s cast, single-target
     TornadoBoss = 20367, // Boss->self, 4.0s cast, single-target
     Tornado = 20368, // Helper->location, 4.0s cast, range 6 circle
+    FireIV1 = 21594, // Helper->self, 6.5s cast, ???
+    FireIV2 = 21596, // Helper->self, 6.5s cast, ???
+    FireIV3 = 20348, // Helper->self, 6.5s cast, ???
+    FireIV4 = 20554, // Helper->self, 6.5s cast, ???
+    ThunderIV1 = 20351, // Helper->self, 6.5s cast, range 18 circle
+    ThunderIV2 = 20357, // Helper->self, 6.5s cast, range 18 circle
+    Updraft = 20369, // Helper->self, no cast, range 6 circle
+    Meteor = 20370, // Boss->self, 4.0s cast, single-target
 }
 
-class AeroIV(BossModule module) : Components.StandardAOEs(module, AID.AeroIV, new AOEShapeDonut(15, 30));
-class AeroIV2(BossModule module) : Components.StandardAOEs(module, AID.AeroIV2, new AOEShapeDonut(15, 30));
+class AeroIV(BossModule module) : Components.GroupedAOEs(module, [AID.AeroIV1, AID.AeroIV2], new AOEShapeDonut(15, 30));
+class ThunderIV(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderIV1, AID.ThunderIV2], new AOEShapeCircle(18));
 class BurstII(BossModule module) : Components.LocationTargetedAOEs(module, AID.BurstII, 6);
 class BlizzardIV(BossModule module) : Components.StayMove(module)
 {
@@ -54,6 +68,12 @@ class BlizzardIV(BossModule module) : Components.StayMove(module)
             case AID.BlizzardIV4:
                 Array.Fill(PlayerStates, new(Requirement.Move, Module.CastFinishAt(spell)));
                 break;
+            case AID.FireIV1:
+            case AID.FireIV2:
+            case AID.FireIV3:
+            case AID.FireIV4:
+                Array.Fill(PlayerStates, new(Requirement.Stay, Module.CastFinishAt(spell)));
+                break;
         }
     }
 
@@ -65,6 +85,10 @@ class BlizzardIV(BossModule module) : Components.StayMove(module)
             case AID.BlizzardIV2:
             case AID.BlizzardIV3:
             case AID.BlizzardIV4:
+            case AID.FireIV1:
+            case AID.FireIV2:
+            case AID.FireIV3:
+            case AID.FireIV4:
                 Array.Fill(PlayerStates, default);
                 break;
         }
@@ -101,7 +125,7 @@ class WaterIV(BossModule module) : Components.KnockbackFromCastTarget(module, (A
     }
 }
 
-class WarpedLight(BossModule module) : Components.ChargeAOEs(module, default, 1.5f)
+class WarpedLight(BossModule module) : Components.ChargeAOEs(module, (AID)0, 1.5f)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -137,6 +161,16 @@ class WarpedLight(BossModule module) : Components.ChargeAOEs(module, default, 1.
 
 class Shock(BossModule module) : Components.StandardAOEs(module, AID.Shock, new AOEShapeCircle(35));
 class Flare(BossModule module) : Components.SingleTargetCast(module, AID.Flare);
+class Tornado(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.Tornado, m => m.Enemies(OID.Twister).Where(e => e.EventState != 7), 0.7f)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        foreach (var z in Sources(Module))
+            hints.AddForbiddenZone(ShapeContains.Capsule(z.Position, z.Rotation.ToDirection(), 3, 6), WorldState.FutureTime(2));
+    }
+}
 
 class AdrammelechStates : StateMachineBuilder
 {
@@ -147,10 +181,11 @@ class AdrammelechStates : StateMachineBuilder
             .ActivateOnEnter<Shock>()
             .ActivateOnEnter<Flare>()
             .ActivateOnEnter<AeroIV>()
-            .ActivateOnEnter<AeroIV2>()
+            .ActivateOnEnter<ThunderIV>()
             .ActivateOnEnter<WaterIV>()
             .ActivateOnEnter<BlizzardIV>()
             .ActivateOnEnter<BurstII>()
+            .ActivateOnEnter<Tornado>()
             ;
     }
 }
