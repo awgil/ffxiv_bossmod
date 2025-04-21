@@ -17,7 +17,7 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly List<Actor> _invincible = [];
     private ArenaBoundsCircle? _activeFateBounds;
 
-    private static List<uint> InvincibleStatuses =
+    private static readonly List<uint> InvincibleStatuses =
     [
         151,
         198,
