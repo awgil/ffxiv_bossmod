@@ -67,7 +67,7 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
             yield return new(c.Position, WallCheck(actor.Position) ? 19 - (actor.Position - Module.Arena.Center).Length() : Distance, Module.CastFinishAt(c.CastInfo));
     }
 
-    private bool WallCheck(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w.Angle, 5.Degrees().Rad));
+    private bool WallCheck(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w.Angle, 3.Degrees().Rad));
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
