@@ -6,11 +6,16 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Scathe = SharedTrack.Count }
+    public enum Track { Scathe = SharedTrack.Count, DOT }
     public enum ScatheStrategy
     {
         Forbid,
         Allow
+    }
+    public enum DOTStrategy
+    {
+        Allow,
+        Forbid
     }
 
     public static RotationModuleDefinition Definition()
@@ -22,9 +27,14 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         def.Define(Track.Scathe).As<ScatheStrategy>("Scathe")
             .AddOption(ScatheStrategy.Forbid, "Forbid")
             .AddOption(ScatheStrategy.Allow, "Allow");
+        def.Define(Track.DOT).As<DOTStrategy>("DOT")
+            .AddOption(DOTStrategy.Allow, "Allow")
+            .AddOption(DOTStrategy.Forbid, "Forbid");
 
         return def;
     }
+
+    private bool ThunderOk(StrategyValues strategy) => strategy.Option(Track.DOT).As<DOTStrategy>() == DOTStrategy.Allow;
 
     public int Element; // -3 (ice) <=> 3 (fire), 0 for none
     public float NextPolyglot; // max 30
@@ -184,7 +194,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void FirePhaseST(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
+        if (ThunderOk(strategy) &&
+            Thunderhead && TargetThunderLeft < 5)
             PushGCD(AID.Thunder1, primaryTarget);
 
         if (Fire < 3 && Unlocked(AID.Fire3))
@@ -262,7 +273,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void FirePhaseAOE(StrategyValues strategy)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
+        if (ThunderOk(strategy) &&
+            Thunderhead && TargetThunderLeft < 5)
             PushGCD(AID.Thunder2, BestAOETarget);
 
         if (Fire == 0)
@@ -279,7 +291,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void FireAOELowLevel(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
+        if (ThunderOk(strategy) &&
+            Thunderhead && TargetThunderLeft < 5)
         {
             PushGCD(AID.Thunder2, BestAOETarget);
             PushGCD(AID.Thunder1, primaryTarget);
@@ -313,7 +326,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void IcePhaseST(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
+        if (ThunderOk(strategy) &&
+            Thunderhead && TargetThunderLeft < 5)
             PushGCD(AID.Thunder1, primaryTarget);
 
         if (Paradox)
@@ -358,7 +372,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void IceAOELowLevel(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
+        if (ThunderOk(strategy) &&
+            Thunderhead && TargetThunderLeft < 5)
         {
             PushGCD(AID.Thunder2, BestAOETarget);
             PushGCD(AID.Thunder1, primaryTarget);
@@ -387,7 +402,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void TryInstantCast(StrategyValues strategy, Enemy? primaryTarget, bool useFirestarter = true, bool useThunderhead = true, bool usePolyglot = true)
     {
-        var tp = useThunderhead && Thunderhead;
+        var tp = ThunderOk(strategy) && useThunderhead && Thunderhead;
 
         if (tp && TargetThunderLeft < 5)
             Choose(AID.Thunder1, AID.Thunder2, primaryTarget);
@@ -404,7 +419,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void TryInstantOrTranspose(StrategyValues strategy, Enemy? primaryTarget, bool useThunderhead = true)
     {
-        if (useThunderhead && Thunderhead)
+        if (ThunderOk(strategy) && useThunderhead && Thunderhead)
             Choose(AID.Thunder1, AID.Thunder2, primaryTarget);
 
         if (Fire > 0 && MP < 1600)
