@@ -7,11 +7,24 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
+    public enum Track { WrithingSnap = SharedTrack.Count }
+
+    public enum WrithingSnapStrategy
+    {
+        Allow,
+        Forbid,
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan VPR", "Viper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Reawaken);
+
+        def.Define(Track.WrithingSnap).As<WrithingSnapStrategy>("Writhing Snap")
+            .AddOption(WrithingSnapStrategy.Allow, "Allow", "Use when out of range if out of Rattling Coil")
+            .AddOption(WrithingSnapStrategy.Forbid, "Forbid", "Do not use")
+            .AddAssociatedActions(AID.WrithingSnap);
 
         return def;
     }
@@ -260,7 +273,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         // fallback for out of range
         if (Coil > 0)
             PushGCD(AID.UncoiledFury, BestRangedAOETarget);
-        else
+        else if (strategy.Option(Track.WrithingSnap).As<WrithingSnapStrategy>() == WrithingSnapStrategy.Allow)
             PushGCD(AID.WrithingSnap, primaryTarget);
     }
 
