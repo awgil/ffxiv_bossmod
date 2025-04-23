@@ -162,7 +162,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         AID.SlugShot or AID.HeatedSlugShot or AID.SplitShot or AID.HeatedSplitShot => ST,
         AID.CleanShot or AID.HeatedCleanShot or AID.Scattergun or AID.SpreadShot or _ => AutoBreak,
     };
-    private AID AutoBreak => ShouldUseAOE ? BestSpreadShot : ST;
+    private bool BreakCombo => ComboLastMove == AID.HeatedSlugShot ? NumConeTargets > 3 : ComboLastMove == AID.HeatedSplitShot ? NumConeTargets > 2 : NumConeTargets > 1
+    private AID AutoBreak => BreakCombo ? BestSpreadShot : ST;
     #endregion
 
     #region Cooldown Helpers
@@ -449,7 +450,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         (BestChainsawTargets, NumChainsawTargets) = GetBestTarget(primaryTarget, 25, Is25yRectTarget);
         NumFlamethrowerTargets = Hints.NumPriorityTargetsInAOECone(Player.Position, 12, Player.Rotation.ToDirection(), 45.Degrees());
-        ShouldUseAOE = Unlocked(AID.SpreadShot) && (ComboLastMove is AID.HeatedSlugShot ? NumConeTargets > 3 : ComboLastMove is AID.HeatedSplitShot ? NumConeTargets > 2 : NumConeTargets > 1);
+        ShouldUseAOE = Unlocked(AID.SpreadShot) && NumConeTargets > 1;
         ShouldUseRangedAOE = Unlocked(AID.Ricochet) && NumSplashTargets > 1;
         ShouldUseSaw = Unlocked(AID.ChainSaw) && NumChainsawTargets > 1;
         ShouldFlamethrower = Unlocked(AID.Flamethrower) && NumFlamethrowerTargets > 2;
