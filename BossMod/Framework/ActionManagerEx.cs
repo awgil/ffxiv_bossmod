@@ -269,6 +269,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
                     var id = level > 0 ? lb->GetActionId((Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value, (byte)(level - 1)) : 0;
                     return id != 0 ? new(ActionType.Spell, id) : action;
                 }
+                // special case for lunar sprint, copied from UseGeneralAction
+                else if (action == ActionDefinitions.IDGeneralSprint && GameMain.Instance()->CurrentTerritoryIntendedUseId == 60)
+                {
+                    return new(ActionType.Spell, 43357);
+                }
                 else if (action == ActionDefinitions.IDGeneralSprint || action == ActionDefinitions.IDGeneralDuty1 || action == ActionDefinitions.IDGeneralDuty2)
                 {
                     return new(ActionType.Spell, GetSpellIdForAction(action));
