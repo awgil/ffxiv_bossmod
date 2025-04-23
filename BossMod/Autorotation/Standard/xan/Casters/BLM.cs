@@ -6,11 +6,20 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
 {
-    public enum Track { Scathe = SharedTrack.Count }
+    public enum Track { Scathe = SharedTrack.Count, Thunder }
     public enum ScatheStrategy
     {
         Forbid,
         Allow
+    }
+
+    public enum ThunderStrategy
+    {
+        Automatic,
+        Delay,
+        Force,
+        InstantOnly,
+        ForbidInstant
     }
 
     public static RotationModuleDefinition Definition()
@@ -22,6 +31,13 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         def.Define(Track.Scathe).As<ScatheStrategy>("Scathe")
             .AddOption(ScatheStrategy.Forbid, "Forbid")
             .AddOption(ScatheStrategy.Allow, "Allow");
+
+        def.Define(Track.Thunder).As<ThunderStrategy>("DoT")
+            .AddOption(ThunderStrategy.Automatic, "Automatic", "Automatically refresh on main target according to standard rotation", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.Delay, "Delay", "Don't apply")
+            .AddOption(ThunderStrategy.Force, "Force", "Force refresh ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.InstantOnly, "InstantOnly", "Allow Thunder if an instant cast is needed, but don't try to maintain uptime", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.ForbidInstant, "ForbidInstant", "Use only for standard refresh, not as a utility instant cast", supportedTargets: ActionTargets.Hostile);
 
         return def;
     }
@@ -39,16 +55,20 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     public bool Firestarter;
     public bool InLeyLines;
 
-    public float TargetThunderLeft;
-
     public int Fire => Math.Max(0, Element);
     public int Ice => Math.Max(0, -Element);
 
     public int MaxPolyglot => Unlocked(TraitID.EnhancedPolyglotII) ? 3 : Unlocked(TraitID.EnhancedPolyglot) ? 2 : 1;
     public int MaxHearts => Unlocked(TraitID.UmbralHeart) ? 3 : 0;
 
+    public int NumAOETargets;
+    public int NumAOEDotTargets;
+
     private Enemy? BestAOETarget;
-    private int NumAOETargets;
+    private Enemy? BestThunderTarget;
+    private Enemy? BestAOEThunderTarget;
+
+    public float TargetThunderLeft;
 
     protected override float GetCastTime(AID aid)
     {
@@ -75,6 +95,22 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         return castTime;
     }
 
+    private readonly float[] EnemyDotTimers = new float[100];
+
+    private float CalculateDotTimer(Actor? t) => t == null ? float.MaxValue : Utils.MaxAll(
+        StatusDetails(t, SID.Thunder, Player.InstanceID, 24).Left,
+        StatusDetails(t, SID.ThunderII, Player.InstanceID, 18).Left,
+        StatusDetails(t, SID.ThunderIII, Player.InstanceID, 27).Left,
+        StatusDetails(t, SID.ThunderIV, Player.InstanceID, 21).Left,
+        StatusDetails(t, SID.HighThunder, Player.InstanceID, 30).Left,
+        StatusDetails(t, SID.HighThunderII, Player.InstanceID, 24).Left
+    );
+
+    private float GetTargetThunderLeft(Actor? t) => t == null ? float.MaxValue : EnemyDotTimers.BoundSafeAt(t.CharacterSpawnIndex);
+
+    private bool DotExpiring(Actor? t) => DotExpiring(GetTargetThunderLeft(t));
+    private bool DotExpiring(float timer) => !CanFitGCD(timer);
+
     public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
@@ -93,16 +129,24 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         Firestarter = Player.FindStatus(SID.Firestarter) != null;
         InLeyLines = Player.FindStatus(SID.CircleOfPower) != null;
 
-        TargetThunderLeft = Utils.MaxAll(
-            StatusDetails(primaryTarget, SID.Thunder, Player.InstanceID, 24).Left,
-            StatusDetails(primaryTarget, SID.ThunderII, Player.InstanceID, 18).Left,
-            StatusDetails(primaryTarget, SID.ThunderIII, Player.InstanceID, 27).Left,
-            StatusDetails(primaryTarget, SID.ThunderIV, Player.InstanceID, 21).Left,
-            StatusDetails(primaryTarget, SID.HighThunder, Player.InstanceID, 30).Left,
-            StatusDetails(primaryTarget, SID.HighThunderII, Player.InstanceID, 24).Left
-        );
+        for (var i = 0; i < Hints.Enemies.Length; i++)
+            EnemyDotTimers[i] = CalculateDotTimer(Hints.Enemies[i]?.Actor);
 
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
+
+        var dotTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Option(Track.Thunder).Value)) ?? primaryTarget;
+
+        if (strategy.Option(Track.Thunder).As<ThunderStrategy>() is ThunderStrategy.Force or ThunderStrategy.Delay)
+        {
+            BestThunderTarget = dotTarget;
+            TargetThunderLeft = GetTargetThunderLeft(dotTarget?.Actor);
+        }
+        else
+        {
+            (BestThunderTarget, TargetThunderLeft) = SelectDotTarget(strategy, dotTarget, GetTargetThunderLeft, 2);
+        }
+
+        (BestAOEThunderTarget, NumAOEDotTargets) = SelectTarget(strategy, dotTarget, 25, (primary, other) => DotExpiring(other) && Hints.TargetInAOECircle(other, primary.Position, 5));
 
         if (CountdownRemaining > 0)
         {
@@ -184,8 +228,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void FirePhaseST(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
-            PushGCD(AID.Thunder1, primaryTarget);
+        T1(strategy);
 
         if (Fire < 3 && Unlocked(AID.Fire3))
             PushGCD(AID.Fire3, primaryTarget);
@@ -262,8 +305,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void FirePhaseAOE(StrategyValues strategy)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
-            PushGCD(AID.Thunder2, BestAOETarget);
+        T2(strategy);
 
         if (Fire == 0)
             PushGCD(AID.Fire2, BestAOETarget);
@@ -279,11 +321,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void FireAOELowLevel(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
-        {
-            PushGCD(AID.Thunder2, BestAOETarget);
-            PushGCD(AID.Thunder1, primaryTarget);
-        }
+        T2(strategy);
+        T1(strategy);
 
         if (MP >= 3000)
             PushGCD(AID.Fire2, BestAOETarget);
@@ -313,8 +352,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void IcePhaseST(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
-            PushGCD(AID.Thunder1, primaryTarget);
+        T1(strategy);
 
         if (Paradox)
             PushGCD(AID.Paradox, primaryTarget);
@@ -358,11 +396,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void IceAOELowLevel(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Thunderhead && TargetThunderLeft < 5)
-        {
-            PushGCD(AID.Thunder2, BestAOETarget);
-            PushGCD(AID.Thunder1, primaryTarget);
-        }
+        T2(strategy);
+        T1(strategy);
 
         if (MP >= 9600)
         {
@@ -377,6 +412,50 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Blizzard2, BestAOETarget);
     }
 
+    private void T1(StrategyValues strategy, bool useForInstant = false)
+    {
+        var wantStandard = DotExpiring(TargetThunderLeft);
+        var wantInstant = useForInstant;
+
+        var canUse = Thunderhead && strategy.Option(Track.Thunder).As<ThunderStrategy>() switch
+        {
+            // use to refresh normally, or use as utility cast
+            ThunderStrategy.Automatic => wantStandard || wantInstant,
+            // only use to refresh normally
+            ThunderStrategy.ForbidInstant => wantStandard,
+            // ignore timer, refresh asap
+            ThunderStrategy.Force => true,
+            // only use for utility, ignore timer
+            ThunderStrategy.InstantOnly => wantInstant,
+            _ => false
+        };
+
+        if (canUse)
+            PushGCD(AID.Thunder1, BestThunderTarget);
+    }
+
+    private void T2(StrategyValues strategy, bool useForInstant = false)
+    {
+        var wantStandard = NumAOEDotTargets > 2;
+        var wantInstant = useForInstant && NumAOETargets > 2;
+
+        var canUse = Thunderhead && strategy.Option(Track.Thunder).As<ThunderStrategy>() switch
+        {
+            // use to refresh normally, or use as utility cast
+            ThunderStrategy.Automatic => wantStandard || wantInstant,
+            // only use to refresh normally
+            ThunderStrategy.ForbidInstant => wantStandard,
+            // ignore timer, just check if we have enough AOE targets
+            ThunderStrategy.Force => NumAOETargets > 2,
+            // only use for utility, ignore timer
+            ThunderStrategy.InstantOnly => wantInstant,
+            _ => false
+        };
+
+        if (canUse)
+            PushGCD(AID.Thunder2, BestAOEThunderTarget);
+    }
+
     private void Choose(AID st, AID aoe, Enemy? primaryTarget, int additionalPrio = 0)
     {
         if (NumAOETargets > 2 && Unlocked(aoe))
@@ -387,16 +466,14 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void TryInstantCast(StrategyValues strategy, Enemy? primaryTarget, bool useFirestarter = true, bool useThunderhead = true, bool usePolyglot = true)
     {
-        var tp = useThunderhead && Thunderhead;
-
-        if (tp && TargetThunderLeft < 5)
-            Choose(AID.Thunder1, AID.Thunder2, primaryTarget);
+        if (useThunderhead)
+        {
+            T2(strategy, true);
+            T1(strategy, true);
+        }
 
         if (usePolyglot && Polyglot > 0)
             Choose(AID.Xenoglossy, AID.Foul, primaryTarget);
-
-        if (tp)
-            Choose(AID.Thunder1, AID.Thunder2, primaryTarget, TargetThunderLeft < 5 ? 20 : 0);
 
         if (useFirestarter && Firestarter)
             PushGCD(AID.Fire3, primaryTarget);
@@ -404,8 +481,11 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void TryInstantOrTranspose(StrategyValues strategy, Enemy? primaryTarget, bool useThunderhead = true)
     {
-        if (useThunderhead && Thunderhead)
-            Choose(AID.Thunder1, AID.Thunder2, primaryTarget);
+        if (useThunderhead)
+        {
+            T2(strategy, true);
+            T1(strategy, true);
+        }
 
         if (Fire > 0 && MP < 1600)
             PushGCD(AID.Manafont, Player);
