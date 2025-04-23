@@ -162,7 +162,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         AID.SlugShot or AID.HeatedSlugShot or AID.SplitShot or AID.HeatedSplitShot => ST,
         AID.CleanShot or AID.HeatedCleanShot or AID.Scattergun or AID.SpreadShot or _ => AutoBreak,
     };
-    private bool BreakCombo => ComboLastMove == AID.HeatedSlugShot ? NumConeTargets > 3 : ComboLastMove == AID.HeatedSplitShot ? NumConeTargets > 2 : NumConeTargets > 1
+    private bool BreakCombo => ComboLastMove == AID.HeatedSlugShot ? NumConeTargets > 3 : ComboLastMove == AID.HeatedSplitShot ? NumConeTargets > 2 : NumConeTargets > 1;
     private AID AutoBreak => BreakCombo ? BestSpreadShot : ST;
     #endregion
 
@@ -233,6 +233,23 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             QueueGCD(AID.Drill, target, GCDPriority.VerySevere);
         if (!Unlocked(AID.Drill))
             QueueGCD(AID.HotShot, target, GCDPriority.VerySevere);
+    }
+    private GCDPriority BuffedTool()
+    {
+        if (RAleft > 0)
+        {
+            if (AAcd <= 2f)
+                return GCDPriority.Severe + 5;
+            if (CScd <= 2f)
+                return GCDPriority.Severe + 3;
+            if (EVleft > 0)
+                return GCDPriority.Severe + 2;
+            if (ChargeCD(AID.Drill) <= 2f && ComboTimer > 8)
+            {
+                return CombatTimer < 30 ? GCDPriority.Severe + 4 : GCDPriority.Severe + 1;
+            }
+        }
+        return GCDPriority.None;
     }
     private bool ShouldUseDrill(DrillStrategy strategy, Actor? target)
     {
@@ -392,23 +409,6 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #endregion
-    private GCDPriority BuffedTool()
-    {
-        if (RAleft > 0)
-        {
-            if (AAcd <= 2f)
-                return GCDPriority.Severe + 5;
-            if (CScd <= 2f)
-                return GCDPriority.Severe + 3;
-            if (EVleft > 0)
-                return GCDPriority.Severe + 2;
-            if (ChargeCD(AID.Drill) <= 2f && ComboTimer > 8)
-            {
-                return CombatTimer < 30 ? GCDPriority.Severe + 4 : GCDPriority.Severe + 1;
-            }
-        }
-        return GCDPriority.None;
-    }
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
@@ -527,6 +527,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             {
                 if (CountdownRemaining < 5 && RAleft == 0 && ActionReady(AID.Reassemble))
                     QueueGCD(AID.Reassemble, Player);
+                if (ShouldUsePotion(potStrat) && CountdownRemaining <= 1.99f)
+                    Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.VeryHigh + (int)GCDPriority.VeryCritical);
                 if (CountdownRemaining < 1.15f)
                     Opener(primaryTarget?.Actor);
                 if (CountdownRemaining > 0)
