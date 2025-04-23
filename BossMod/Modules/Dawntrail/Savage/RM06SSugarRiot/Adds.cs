@@ -80,6 +80,8 @@ class Adds(BossModule module) : BossComponent(module)
 
                     if (TetheredRays.Contains(h.Actor.InstanceID))
                     {
+                        h.Priority = 1;
+
                         // prioritize rays over using aoe on squirrel
                         if (_config.MantaPrio && (playerIsRanged || actor.DistanceToHitbox(h.Actor) <= 3))
                             h.Priority = 3;
