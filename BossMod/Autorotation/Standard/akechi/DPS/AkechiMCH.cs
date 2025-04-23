@@ -431,7 +431,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         AfterDrill = !Unlocked(AID.Drill) || (Unlocked(AID.Drill) && Drillcd >= 9);
         AfterAA = !Unlocked(AID.Drill) || (Unlocked(AID.AirAnchor) && AAcd >= 9);
         AfterCS = !Unlocked(AID.Drill) || (Unlocked(AID.ChainSaw) && CScd >= 9);
-        CanHC = ActionReady(AID.Hypercharge) && (Heat >= 50 || HCleft > 0) && !OverheatActive;
+        CanHC = ActionReady(AID.Hypercharge) && (Heat >= 50 || HCleft > 0) && RAleft == 0 && !OverheatActive;
         CanHB = Unlocked(AID.HeatBlast) && OverheatActive;
         CanDC = Unlocked(BestGauss) && ChargeCD(BestGauss) <= GCD;
         CanCM = Unlocked(BestRicochet) && ChargeCD(BestRicochet) <= GCD;
