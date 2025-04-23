@@ -212,7 +212,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         if (!CanRA)
             return false;
         var d = Unlocked(AID.Drill) ? ChargeCD(AID.Drill) <= 2f : Unlocked(AID.CleanShot) ? NextGCD is AID.CleanShot : TotalCD(AID.HotShot) <= 2f;
-        var condition = Player.InCombat && CombatTimer >= 5 && CanWeaveIn && (AAcd <= 2f || (CombatTimer < 30 ? d : BScd is < 90 and > 20 && d) || CScd <= 2f || CanEV);
+        var condition = Player.InCombat && CombatTimer >= 5 && CanWeaveIn && BScd is > 50 or < 5 && (AAcd <= 2f || (CombatTimer < 30 ? d : BScd is < 90 and > 50 && d) || CScd <= 2f || CanEV);
         return strategy switch
         {
             ReassembleStrategy.Automatic => condition,
