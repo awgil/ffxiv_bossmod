@@ -95,6 +95,42 @@ public enum AID : uint
     Unk2 = 41871, // Boss->location, no cast, single-target
 
     TacticalPackVisual = 41928, // Boss->self, 3.0s cast, single-target
+
+    _Ability_ = 41929, // Boss->self, no cast, single-target
+    _Spell_HowlingHavoc = 41947, // _Gen_WolfOfWind2->self, 5.0s cast, single-target
+    _Spell_HowlingHavoc1 = 41949, // Helper->self, 5.0s cast, range 40 circle
+    _Spell_HowlingHavoc2 = 41948, // _Gen_WolfOfStone1->self, 5.0s cast, single-target
+    _Ability_PackPredation = 41932, // _Gen_WolfOfWind2/_Gen_WolfOfStone1->self, 5.0s cast, single-target
+    _Ability_AlphaStone = 41954, // Helper->self, no cast, range 40 ?-degree cone
+    _Ability_StalkingStone = 41956, // Helper->self, no cast, range 40 width 6 rect
+    _Ability_AlphaWind = 41933, // Helper->self, no cast, range 40 ?-degree cone
+    _Ability_StalkingWind = 41935, // Helper->self, no cast, range 40 width 6 rect
+    _AutoAttack_ = 42225, // _Gen_WolfOfWind2->player, no cast, single-target
+    _AutoAttack_1 = 42226, // _Gen_WolfOfStone1->player, no cast, single-target
+    _Ability_WindSurge = 41965, // _Gen_FontOfWindAether->self, no cast, ???
+    _Ability_GaleSurge = 41967, // _Gen_FontOfWindAether->self, no cast, range 40 circle
+    _Ability_StoneSurge = 41968, // _Gen_FontOfEarthAether->self, no cast, range 40 circle
+    _Ability_SandSurge = 41966, // _Gen_FontOfEarthAether->self, no cast, ???
+}
+
+public enum SID : uint
+{
+    _Gen_ = 2056, // Boss->_Gen_WolfOfWind/_Gen_GleamingFang/_Gen_WolfOfStone/_Gen_WolfOfWind2/_Gen_WolfOfStone1/_Gen_WolfOfWind1/Boss, extra=0x367/0x36D/0x368/0x385
+    _Gen_MagicVulnerabilityUp = 2941, // Helper/_Gen_WolfOfWind/_Gen_FontOfWindAether/_Gen_FontOfEarthAether->player, extra=0x0
+    _Gen_PhysicalVulnerabilityUp = 2940, // Helper->player, extra=0x0
+    _Gen_SustainedDamage = 4149, // Helper->player, extra=0x1/0x2
+    _Gen_DamageDown = 2911, // Helper/_Gen_WolfOfWind->player, extra=0x0
+    _Gen_Weakness = 43, // none->player, extra=0x0
+    _Gen_Transcendent = 418, // none->player, extra=0x0
+    _Gen_1 = 4465, // none->_Gen_HowlingBlade, extra=0x32
+    _Gen_DirectionalDisregard = 3808, // none->Boss, extra=0x0
+    _Gen_2 = 2234, // none->_Gen_FontOfEarthAether/_Gen_FontOfWindAether, extra=0x3E
+    _Gen_Windpack = 4389, // none->_Gen_FontOfWindAether/player, extra=0x0
+    _Gen_Stonepack = 4390, // none->_Gen_FontOfEarthAether/player, extra=0x0
+    _Gen_EarthborneEnd = 4391, // none->player, extra=0x0
+    _Gen_WindborneEnd = 4392, // none->player, extra=0x0
+    _Gen_BrinkOfDeath = 44, // none->player, extra=0x0
+
 }
 
 public enum IconID : uint
@@ -102,10 +138,13 @@ public enum IconID : uint
     Gust = 376, // player->self
     TrackingTremors = 316, // player->self
     GreatDivide = 598, // player->self
+    LockOn = 23, // player->self
 }
 
 public enum TetherID : uint
 {
     WindsOfDecayShort = 57, // _Gen_WolfOfWind->player
     WindsOfDecayLong = 1, // _Gen_WolfOfWind->player
+    WolfOfStone = 335, // player->_Gen_WolfOfStone1
+    WolfOfWind = 336, // player->_Gen_WolfOfWind2
 }

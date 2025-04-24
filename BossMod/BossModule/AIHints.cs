@@ -156,7 +156,7 @@ public sealed class AIHints
             h.Priority = Math.Max(h.Priority, 0);
     }
 
-    public void SetPriority(Actor actor, int priority)
+    public void SetPriority(Actor? actor, int priority)
     {
         if (FindEnemy(actor) is { } enemy)
             enemy.Priority = priority;

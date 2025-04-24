@@ -1,424 +1,5 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM08SHowlingBlade;
 
-class WindStonefangCross(BossModule module) : Components.GroupedAOEs(module, [AID.WindfangCards, AID.WindfangIntercards, AID.StonefangCards, AID.StonefangIntercards], new AOEShapeCross(15, 3));
-class WindfangDonut(BossModule module) : Components.StandardAOEs(module, AID.WindfangDonut, new AOEShapeDonut(8, 20));
-class StonefangCircle(BossModule module) : Components.StandardAOEs(module, AID.StonefangCircle, new AOEShapeCircle(9));
-
-class WindStonefang(BossModule module) : Components.CastCounter(module, default)
-{
-    private Actor? _source;
-    private DateTime _activation;
-    private bool _stack;
-
-    private static readonly AOEShapeCone ActiveShape = new(40, 12.5f.Degrees());
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (_source != null)
-        {
-            var pcDir = Angle.FromDirection(actor.Position - _source.Position);
-            var clipped = Raid.WithoutSlot().Exclude(actor).InShape(ActiveShape, _source.Position, pcDir);
-            if (_stack)
-            {
-                var cond = clipped.CountByCondition(a => a.Class.IsSupport() == actor.Class.IsSupport());
-                hints.Add("Stack in pairs!", cond.match != 0 || cond.mismatch != 1);
-            }
-            else
-            {
-                hints.Add("Spread!", clipped.Any());
-            }
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_source != null)
-            hints.PredictedDamage.Add((new(0xff), _activation));
-    }
-
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-        => _source == null ? PlayerPriority.Irrelevant : player.Class.IsSupport() == pc.Class.IsSupport() ? PlayerPriority.Normal : PlayerPriority.Interesting;
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (_source != null)
-        {
-            var pcDir = Angle.FromDirection(pc.Position - _source.Position);
-            ActiveShape.Outline(Arena, _source.Position, pcDir);
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.StonefangCards or AID.WindfangIntercards or AID.StonefangIntercards or AID.WindfangCards)
-        {
-            _source = caster;
-            _stack = (AID)spell.Action.ID is AID.WindfangIntercards or AID.WindfangCards;
-            _activation = Module.CastFinishAt(spell, 0.1f);
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID.StonefangProtean or AID.WindfangProtean)
-        {
-            ++NumCasts;
-            _source = null;
-        }
-    }
-}
-
-class WolvesReign(BossModule module) : Components.GroupedAOEs(module, [AID.WolvesReignClone2, AID.WolvesReignClone1, AID.WolvesReignClone3, AID.EminentReignJump, AID.RevolutionaryReignJump], new AOEShapeCircle(6));
-
-class ReignJumpCounter(BossModule module) : Components.CastCounterMulti(module, [AID.EminentReignJump, AID.RevolutionaryReignJump])
-{
-    private WPos? _predicted;
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (WatchedActions.Contains(spell.Action))
-            _predicted = caster.Position;
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (WatchedActions.Contains(spell.Action))
-        {
-            NumCasts++;
-            _predicted = null;
-        }
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (_predicted is { } p)
-            Arena.ActorOutsideBounds(p, Angle.FromDirection(p - Arena.Center), ArenaColor.Enemy);
-    }
-}
-
-class WolvesReignRect(BossModule module) : Components.GenericAOEs(module)
-{
-    private AOEInstance? Rect;
-
-    public static readonly AOEShapeRect Shape = new(28, 5, 5);
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(Rect);
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.WolvesReignRect1 or AID.WolvesReignRect2)
-            Rect = new(Shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell), ArenaColor.Danger);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID.WolvesReignRect1 or AID.WolvesReignRect2)
-        {
-            NumCasts++;
-            Rect = null;
-        }
-
-        if ((AID)spell.Action.ID == AID.EminentReignJump)
-            Rect = new(Shape, caster.Position, Angle.FromDirection(Arena.Center - caster.Position), Color: ArenaColor.Danger);
-    }
-}
-
-class ReignInout(BossModule module) : Components.GenericAOEs(module)
-{
-    public bool Risky;
-
-    enum Inout { None, In, Out }
-    private Inout Next;
-
-    public WPos? Source { get; private set; }
-    private DateTime Activation;
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.EminentReignVisual1:
-            case AID.EminentReignVisual2:
-                Next = Inout.In;
-                break;
-            case AID.RevolutionaryReignVisual1:
-            case AID.RevolutionaryReignVisual2:
-                Next = Inout.Out;
-                break;
-
-            case AID.WolvesReignRect1:
-            case AID.WolvesReignRect2:
-                var dir = (Arena.Center - caster.Position).Normalized();
-                Activation = WorldState.FutureTime(4.6f);
-                Source = caster.Position + dir * 17.75f;
-                break;
-
-            case AID.WolvesReignCone:
-            case AID.WolvesReignCircle:
-                Source = caster.Position;
-                break;
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID.WolvesReignCone or AID.WolvesReignCircle)
-        {
-            NumCasts++;
-            Source = null;
-        }
-    }
-
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        switch (Next)
-        {
-            case Inout.In:
-                hints.Add("Next: in");
-                break;
-            case Inout.Out:
-                hints.Add("Next: out");
-                break;
-        }
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (Source != null)
-            yield return new AOEInstance(Next == Inout.In ? new AOEShapeCone(40, 60.Degrees()) : new AOEShapeCircle(14), Source.Value, Angle.FromDirection(Arena.Center - Source.Value), Activation, Risky ? ArenaColor.Danger : ArenaColor.AOE, Risky);
-    }
-}
-
-class ReignsEnd : Components.GenericBaitAway
-{
-    public ReignsEnd(BossModule module) : base(module, AID.ReignsEnd)
-    {
-        CurrentBaits.AddRange(Raid.WithoutSlot().Where(r => r.Role == Role.Tank).Select(r => new Bait(Module.PrimaryActor, r, new AOEShapeCone(40, 30.Degrees()), WorldState.FutureTime(3.1f))));
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-        {
-            NumCasts++;
-            CurrentBaits.Clear();
-        }
-    }
-}
-
-class SovereignScar : Components.CastCounter
-{
-    private Actor? Source;
-    private readonly DateTime Activation;
-    private static readonly AOEShape Shape = new AOEShapeCone(40, 15.Degrees());
-
-    public SovereignScar(BossModule module) : base(module, AID.SovereignScar)
-    {
-        Source = module.PrimaryActor;
-        Activation = WorldState.FutureTime(3.1f);
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (Source == null || actor.Role == Role.Tank)
-            return;
-
-        if (actor.Role == Role.Healer)
-        {
-            var stacked = Raid.WithoutSlot().Exclude(actor).InShape(Shape, Source.Position, Source.AngleTo(actor)).ToList();
-            if (stacked.Any(p => p.Role == Role.Healer))
-                hints.Add("GTFO from other healer!");
-
-            hints.Add("Stack with party!", !stacked.Any(p => p.Role != Role.Healer));
-        }
-        else
-        {
-            var healers = Raid.WithoutSlot().Where(x => x.Role == Role.Healer);
-            hints.Add("Stack with healer!", !healers.Any(h => Shape.Check(actor.Position, Source.Position, Source.AngleTo(h))));
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Source != null)
-        {
-            foreach (var h in Raid.WithoutSlot().Where(x => x.Role == Role.Healer))
-                hints.PredictedDamage.Add((Raid.WithSlot().InShape(Shape, Source.Position, Source.AngleTo(h)).Mask(), Activation));
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-        {
-            NumCasts++;
-            Source = null;
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        if (Source == null)
-            return;
-
-        foreach (var h in Raid.WithoutSlot().Where(p => p.Role == Role.Healer))
-        {
-            if (h == pc)
-                Shape.Outline(Arena, Source.Position, Source.AngleTo(h), ArenaColor.Safe);
-            else if (pc.Class.IsSupport())
-                Shape.Draw(Arena, Source.Position, Source.AngleTo(h), ArenaColor.AOE);
-            else
-                Shape.Outline(Arena, Source.Position, Source.AngleTo(h), ArenaColor.Safe);
-        }
-    }
-
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Source == null ? PlayerPriority.Irrelevant : player.Class.IsSupport() == pc.Class.IsSupport() ? PlayerPriority.Interesting : PlayerPriority.Normal;
-}
-
-class MillennialDecay(BossModule module) : Components.RaidwideCast(module, AID.MillennialDecay);
-
-class BreathOfDecay(BossModule module) : Components.StandardAOEs(module, AID.BreathOfDecay, new AOEShapeRect(40, 4))
-{
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        var i = 0;
-        foreach (var aoe in base.ActiveAOEs(slot, actor))
-        {
-            yield return aoe with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 };
-            if (++i > 2)
-                break;
-        }
-    }
-}
-
-class Gust(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Gust, AID.Gust, 5, 5.1f);
-
-class AeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AeroIII, 8);
-
-class ProwlingGale(BossModule module) : Components.CastTowers(module, AID.ProwlingGale, 2, maxSoakers: 1)
-{
-    private BitMask Tethers;
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        if (source.OID == (uint)OID._Gen_WolfOfWind && (TetherID)tether.ID is TetherID.WindsOfDecayShort or TetherID.WindsOfDecayLong)
-            UpdateMask(Raid.FindSlot(tether.Target));
-    }
-
-    private void UpdateMask(int slot = -1)
-    {
-        Tethers.Set(slot);
-
-        for (var i = 0; i < Towers.Count; i++)
-            Towers.Ref(i).ForbiddenSoakers = Tethers;
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        base.OnCastStarted(caster, spell);
-
-        if (spell.Action == WatchedAction)
-            UpdateMask();
-    }
-}
-
-class WindsOfDecay : Components.GenericBaitAway
-{
-    private DateTime Activation;
-
-    public WindsOfDecay(BossModule module) : base(module, AID.WindsOfDecay)
-    {
-        EnableHints = false;
-    }
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        if (source.OID == (uint)OID._Gen_WolfOfWind && (TetherID)tether.ID is TetherID.WindsOfDecayShort or TetherID.WindsOfDecayLong && !CurrentBaits.Any(b => b.Target.InstanceID == tether.Target))
-        {
-            if (Activation == default)
-                Activation = WorldState.FutureTime(7.2f);
-
-            CurrentBaits.Add(new(source, WorldState.Actors.Find(tether.Target)!, new AOEShapeCone(40, 15.Degrees()), Activation));
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-        {
-            NumCasts++;
-            CurrentBaits.Clear();
-        }
-    }
-}
-
-class WindsOfDecayTether(BossModule module) : Components.CastCounter(module, AID.WindsOfDecay)
-{
-    private DateTime Activation;
-
-    private readonly Dictionary<Actor, (ulong Target, bool Stretched)> Tethers = [];
-
-    public bool EnableHints;
-
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
-    {
-        if (source.OID == (uint)OID._Gen_WolfOfWind && (TetherID)tether.ID is TetherID.WindsOfDecayShort or TetherID.WindsOfDecayLong)
-        {
-            if (Activation == default)
-                Activation = WorldState.FutureTime(7.2f);
-
-            Tethers[source] = (tether.Target, (TetherID)tether.ID == TetherID.WindsOfDecayLong);
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-        {
-            NumCasts++;
-            Tethers.Clear();
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (EnableHints)
-            foreach (var (_, to) in Tethers)
-                if (to.Target == actor.InstanceID)
-                    hints.Add("Stretch tether!", !to.Stretched);
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var (from, to) in Tethers)
-            if (to.Target == pc.InstanceID)
-            {
-                if (Arena.Config.ShowOutlinesAndShadows)
-                    Arena.AddLine(from.Position, pc.Position, 0xFF000000, 2);
-                Arena.AddLine(from.Position, pc.Position, to.Stretched ? ArenaColor.Safe : ArenaColor.Danger);
-            }
-    }
-}
-
-class TrackingTremorsStack(BossModule module) : Components.UniformStackSpread(module, 6, 0, 8)
-{
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if ((IconID)iconID == IconID.TrackingTremors)
-            AddStack(actor, WorldState.FutureTime(5.9f));
-    }
-}
-
-class TrackingTremors(BossModule module) : Components.CastCounter(module, AID.TrackingTremors);
-
-class GreatDivide(BossModule module) : Components.CastSharedTankbuster(module, AID.GreatDivide, new AOEShapeRect(60, 3));
-
-class TerrestrialTitans(BossModule module) : Components.StandardAOEs(module, AID.TerrestrialTitans, new AOEShapeCircle(5));
-class TitanicPursuit(BossModule module) : Components.RaidwideCast(module, AID.TitanicPursuit);
-
-class Towerfall(BossModule module) : Components.StandardAOEs(module, AID.Towerfall, new AOEShapeRect(30, 5));
-class FangedCrossing(BossModule module) : Components.StandardAOEs(module, AID.FangedCrossing, new AOEShapeCross(21, 3.5f));
-
 class RM08SHowlingBladeStates : StateMachineBuilder
 {
     public RM08SHowlingBladeStates(BossModule module) : base(module)
@@ -437,6 +18,7 @@ class RM08SHowlingBladeStates : StateMachineBuilder
         ExtraplanarPursuit(id + 0x60000, 1.8f);
         TerrestrialTitans(id + 0x70000, 3.8f);
         RevolutionaryReign(id + 0x80000, 0.3f);
+        TacticalPack(id + 0x90000, 9.2f);
 
         SimpleState(id + 0xFF0000, 10000, "???");
     }
@@ -554,4 +136,292 @@ class RM08SHowlingBladeStates : StateMachineBuilder
             .DeactivateOnExit<FangedCrossing>()
             .DeactivateOnExit<Towerfall>();
     }
+
+    private void TacticalPack(uint id, float delay)
+    {
+        Cast(id, AID.TacticalPackVisual, delay, 3)
+            .ActivateOnEnter<HowlingHavoc>()
+            .ActivateOnEnter<AddsVoidzone>()
+            .ActivateOnEnter<WolfOfWindyStone>()
+            .ActivateOnEnter<StalkingWindyStone>()
+            .ActivateOnEnter<AlphaWindyStone>();
+
+        Targetable(id + 0x10, false, 2, "Boss disappears");
+
+        id += 0x10000;
+
+        ComponentCondition<HowlingHavoc>(id, 7.2f, h => h.NumCasts > 0, "Raidwide")
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ComponentCondition<WolfOfWindyStone>(id + 1, 2, w => w.WolfOfStone != null, "Adds appear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+        ComponentCondition<StalkingWindyStone>(id + 0x10, 8.3f, s => s.NumCasts > 0, "Baits 1")
+            .ActivateOnEnter<EarthyWindborneEnd>();
+
+        ComponentCondition<StalkingWindyStone>(id + 0x20, 14.2f, s => s.NumCasts > 2, "Baits 2");
+
+        Timeout(id + 0xFF00, 30, "IDK");
+    }
+}
+
+class HowlingHavoc(BossModule module) : Components.RaidwideCast(module, AID._Spell_HowlingHavoc1);
+class AddsVoidzone(BossModule module) : Components.GenericAOEs(module)
+{
+    private DateTime _activation;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_activation != default)
+            yield return new(new AOEShapeCircle(8), Arena.Center, Activation: _activation);
+    }
+
+    public override void OnEventEnvControl(byte index, uint state)
+    {
+        if (index == 1 && state == 0x00200010)
+            _activation = WorldState.FutureTime(5.6f); // verify
+        if (index == 1 && state == 0x00020001)
+            _activation = WorldState.CurrentTime;
+    }
+}
+
+public enum Aspect
+{
+    None,
+    Wind,
+    Stone,
+}
+
+class WolfOfWindyStone(BossModule module) : BossComponent(module)
+{
+    public Actor? WolfOfWind { get; private set; }
+    public Actor? WolfOfStone { get; private set; }
+
+    public readonly Aspect[] Aspects = new Aspect[PartyState.MaxPartySize];
+
+    public override void OnTargetable(Actor actor)
+    {
+        switch ((OID)actor.OID)
+        {
+            case OID._Gen_WolfOfWind2:
+                WolfOfWind = actor;
+                break;
+            case OID._Gen_WolfOfStone1:
+                WolfOfStone = actor;
+                break;
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID._Gen_Stonepack:
+                SetAspect(Raid.FindSlot(actor.InstanceID), Aspect.Stone);
+                break;
+            case SID._Gen_Windpack:
+                SetAspect(Raid.FindSlot(actor.InstanceID), Aspect.Wind);
+                break;
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Aspects[slot] == Aspect.Wind)
+            hints.SetPriority(WolfOfWind, AIHints.Enemy.PriorityInvincible);
+        if (Aspects[slot] == Aspect.Stone)
+            hints.SetPriority(WolfOfStone, AIHints.Enemy.PriorityInvincible);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (WolfOfWind != null)
+            Arena.Actor(WolfOfWind, Aspects[pcSlot] == Aspect.Wind ? ArenaColor.Object : ArenaColor.Enemy);
+        if (WolfOfStone != null)
+            Arena.Actor(WolfOfStone, Aspects[pcSlot] == Aspect.Stone ? ArenaColor.Object : ArenaColor.Enemy);
+    }
+
+    private void SetAspect(int slot, Aspect a)
+    {
+        if (slot >= 0)
+            Aspects[slot] = a;
+    }
+
+    public Actor? MatchingWolf(Actor player)
+    {
+        var slot = Raid.FindSlot(player.InstanceID);
+        return slot >= 0
+            ? Aspects[slot] switch
+            {
+                Aspect.Stone => WolfOfStone,
+                Aspect.Wind => WolfOfWind,
+                _ => null
+            }
+            : null;
+    }
+
+    public Actor? OtherWolf(Actor player)
+    {
+        var slot = Raid.FindSlot(player.InstanceID);
+        return slot >= 0
+            ? Aspects[slot] switch
+            {
+                Aspect.Stone => WolfOfWind,
+                Aspect.Wind => WolfOfStone,
+                _ => null
+            }
+            : null;
+    }
+}
+
+class StalkingWindyStone(BossModule module) : Components.CastCounter(module, null)
+{
+    private record struct Bait(Actor Source, Actor Target, DateTime Activation)
+    {
+        public readonly bool Hits(Actor player) => player.Position.InRect(Source.Position, Source.AngleTo(Target), 40, 0, 3);
+    }
+
+    private IEnumerable<Actor> PlayersHitBy(Bait b) => Raid.WithoutSlot().Where(r => r.Role != Role.Tank && b.Hits(r));
+
+    private readonly List<Bait> Baits = [];
+    private readonly WolfOfWindyStone? _wolves = module.FindComponent<WolfOfWindyStone>();
+
+    private void AddBait(Actor target)
+    {
+        if (_wolves?.OtherWolf(target) is { } from)
+            Baits.Add(new(from, target, WorldState.FutureTime(5.1f)));
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID == (uint)IconID.LockOn)
+            AddBait(actor);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Ability_StalkingStone or AID._Ability_StalkingWind)
+        {
+            NumCasts++;
+            Baits.Clear();
+        }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var b in Baits)
+            DrawBait(pc, b);
+    }
+
+    private void DrawBait(Actor pc, Bait b)
+    {
+        if (b.Target == pc)
+            Arena.AddRect(b.Source.Position, b.Source.DirectionTo(pc).Normalized(), 40, 0, 3, ArenaColor.Safe);
+        else
+            Arena.ZoneRect(b.Source.Position, b.Source.AngleTo(b.Target), 40, 0, 3, pc.Role == Role.Tank ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Baits.Count == 0)
+            return;
+
+        if (actor.Role == Role.Tank)
+        {
+            if (Baits.Any(b => b.Hits(actor)))
+                hints.Add("GTFO from stack!");
+        }
+        else
+        {
+            var mine = Baits.FindIndex(b => b.Target == actor);
+            if (mine >= 0)
+                hints.Add("Stack!", !PlayersHitBy(Baits[mine]).Exclude(actor).Any());
+            else
+                hints.Add("Stack!", !Baits.Any(b => b.Hits(actor)));
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var b in Baits)
+            hints.PredictedDamage.Add((Raid.WithSlot().Where(p => b.Hits(p.Item2)).Mask(), b.Activation));
+    }
+}
+
+class AlphaWindyStone(BossModule module) : Components.GenericBaitAway(module)
+{
+    private readonly WolfOfWindyStone? _wolves = module.FindComponent<WolfOfWindyStone>();
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID == (uint)IconID.LockOn && CurrentBaits.Count == 0)
+        {
+            foreach (var t in Raid.WithoutSlot().Where(r => r.Role == Role.Tank))
+                AddBait(t);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Ability_AlphaStone or AID._Ability_AlphaStone)
+        {
+            NumCasts++;
+            CurrentBaits.Clear();
+        }
+    }
+
+    private void AddBait(Actor target)
+    {
+        if (_wolves?.OtherWolf(target) is not { } src)
+            return;
+
+        CurrentBaits.Add(new(src, target, new AOEShapeCone(40, 30.Degrees()), WorldState.FutureTime(5.1f)));
+    }
+}
+
+class EarthyWindborneEnd : BossComponent
+{
+    public record struct Debuff(int Order, Aspect Aspect, DateTime Expire);
+
+    public readonly Debuff[] Debuffs = new Debuff[PartyState.MaxPartySize];
+
+    public EarthyWindborneEnd(BossModule module) : base(module)
+    {
+        foreach (var (slot, player) in Raid.WithSlot())
+        {
+            var ix = Array.FindIndex(player.Statuses, s => (SID)s.ID is SID._Gen_EarthborneEnd or SID._Gen_WindborneEnd);
+            if (ix >= 0)
+            {
+                var status = player.Statuses[ix];
+                var remaining = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds;
+                var order = remaining > 50 ? 3 : remaining > 30 ? 2 : 1;
+                Debuffs[slot] = new(order, status.ID == (uint)SID._Gen_EarthborneEnd ? Aspect.Stone : Aspect.Wind, status.ExpireAt);
+            }
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID is SID._Gen_EarthborneEnd or SID._Gen_WindborneEnd)
+            Debuffs[Raid.FindSlot(actor.InstanceID)] = default;
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Debuffs[slot].Order > 0)
+            hints.Add($"Order: {Debuffs[slot].Order}", false);
+
+        if (ShouldCleanse(slot))
+            hints.Add("Cleanse!");
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var e in Module.Enemies(OID._Gen_FontOfEarthAether))
+            Arena.ZoneCircle(e.Position, 5, ShouldCleanse(pcSlot) && Debuffs[pcSlot].Aspect == Aspect.Stone ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+        foreach (var e in Module.Enemies(OID._Gen_FontOfWindAether))
+            Arena.ZoneCircle(e.Position, 5, ShouldCleanse(pcSlot) && Debuffs[pcSlot].Aspect == Aspect.Wind ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+    }
+
+    private bool ShouldCleanse(int slot) => Debuffs[slot].Order > 0 && Debuffs[slot].Expire < WorldState.FutureTime(10);
 }
