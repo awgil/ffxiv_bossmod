@@ -11,8 +11,9 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Potion = SharedTrack.Count, Heat, Battery, Reassemble, Hypercharge, Drill, Wildfire, BarrelStabilizer, AirAnchor, Chainsaw, GaussRound, DoubleCheck, Ricochet, Checkmate, Flamethrower, Excavator, FullMetalField }
+    public enum Track { Potion = SharedTrack.Count, Opener, Heat, Battery, Reassemble, Hypercharge, Drill, Wildfire, BarrelStabilizer, AirAnchor, Chainsaw, GaussRound, DoubleCheck, Ricochet, Checkmate, Flamethrower, Excavator, FullMetalField }
     public enum PotionStrategy { None, Use, Align }
+    public enum OpenerOption { AirAnchor, Drill, ChainSaw }
     public enum HeatOption { Automatic, OnlyHeatBlast, OnlyAutoCrossbow }
     public enum BatteryStrategy { Automatic, Fifty, Hundred, End, Delay }
     public enum ReassembleStrategy { Automatic, HoldOne, Force, ForceWeave, Delay }
@@ -24,6 +25,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
+        //this is 
         var res = new RotationModuleDefinition("Akechi MCH", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.MCH), 100);
         res.DefineAOE().AddAssociatedActions(
             AID.SplitShot, AID.SlugShot, AID.CleanShot,
@@ -35,6 +37,11 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             .AddOption(PotionStrategy.Use, "Use", "Use Potion when available", 270, 30, ActionTargets.Self)
             .AddOption(PotionStrategy.Align, "Align", "Align Potion with raid buffs", 270, 30, ActionTargets.Self)
             .AddAssociatedAction(ActionDefinitions.IDPotionDex);
+        res.Define(Track.Opener).As<OpenerOption>("Opener", "", 200)
+            .AddOption(OpenerOption.AirAnchor, "Air Anchor", "Use Air Anchor as first Tool in opener", 0, 0, ActionTargets.None, 4)
+            .AddOption(OpenerOption.Drill, "Drill", "Use Drill as first Tool in opener", 0, 0, ActionTargets.None, 58)
+            .AddOption(OpenerOption.ChainSaw, "Chainsaw", "Use ChainSaw as first Tool in opener", 0, 0, ActionTargets.None, 90)
+            .AddAssociatedActions(AID.AirAnchor, AID.Drill, AID.ChainSaw);
         res.Define(Track.Heat).As<HeatOption>("Heat Option", "Heat", 195)
             .AddOption(HeatOption.Automatic, "Automatic", "Automatically use Heat Blast or Auto-Crossbow based on targets nearby")
             .AddOption(HeatOption.OnlyHeatBlast, "Heat Blast", "Only use Heat Blast, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
@@ -225,14 +232,14 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Tools
-    private void Opener(Actor? target)
+    private void Opener(OpenerOption opt, Actor? target)
     {
-        if (Unlocked(AID.AirAnchor))
-            QueueGCD(AID.AirAnchor, target, GCDPriority.VerySevere);
-        if (!Unlocked(AID.AirAnchor) && Unlocked(AID.Drill))
+        if (CanAA && opt == OpenerOption.AirAnchor)
+            QueueGCD(BestAirAnchor, target, GCDPriority.VerySevere);
+        if (CanDrill && opt == OpenerOption.Drill)
             QueueGCD(AID.Drill, target, GCDPriority.VerySevere);
-        if (!Unlocked(AID.Drill))
-            QueueGCD(AID.HotShot, target, GCDPriority.VerySevere);
+        if (CanCS && opt == OpenerOption.ChainSaw)
+            QueueGCD(AID.ChainSaw, target, GCDPriority.VerySevere);
     }
     private GCDPriority BuffedTool()
     {
@@ -462,10 +469,12 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         GaussCharges = MaxChargesIn(BestGauss) <= GCD ? 3 : TotalCD(BestGauss) < 30.6f ? 2 : TotalCD(BestGauss) < 60.6f ? 1 : 0;
 
         #region Strategy Definitions
-        var AOE = strategy.Option(SharedTrack.AOE); //Retrieves AOE track
-        var AOEStrategy = AOE.As<AOEStrategy>(); //Retrieves AOE strategy
-        var pot = strategy.Option(Track.Potion); //Retrieves Potion track
-        var potStrat = pot.As<PotionStrategy>(); //Retrieves Potion strategy
+        var AOE = strategy.Option(SharedTrack.AOE);
+        var AOEStrategy = AOE.As<AOEStrategy>();
+        var pot = strategy.Option(Track.Potion);
+        var potStrat = pot.As<PotionStrategy>();
+        var opener = strategy.Option(Track.Opener);
+        var openerOpt = opener.As<OpenerOption>();
         var assemble = strategy.Option(Track.Reassemble);
         var assembleStrat = assemble.As<ReassembleStrategy>();
         var gauss = strategy.Option(Track.GaussRound);
@@ -489,7 +498,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         var drill = strategy.Option(Track.Drill);
         var drillStrat = drill.As<DrillStrategy>();
         var hsp = strategy.Option(Track.Heat);
-        var hspStrat = hsp.As<HeatOption>();
+        var hspOpt = hsp.As<HeatOption>();
         var hc = strategy.Option(Track.Hypercharge);
         var hcStrat = hc.As<HyperchargeStrategy>();
         var battery = strategy.Option(Track.Battery);
@@ -520,7 +529,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                     if (RAleft == 0 && ActionReady(AID.Reassemble)) //RA first
                         QueueGCD(AID.Reassemble, Player, GCDPriority.Max);
                     if (RAleft > 0)
-                        Opener(primaryTarget?.Actor);
+                        Opener(openerOpt, primaryTarget?.Actor);
                 }
             }
             if (CountdownRemaining > 0)
@@ -530,7 +539,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUsePotion(potStrat) && CountdownRemaining <= 1.99f)
                     Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.VeryHigh + (int)GCDPriority.VeryCritical);
                 if (CountdownRemaining < 1.15f)
-                    Opener(primaryTarget?.Actor);
+                    Opener(openerOpt, primaryTarget?.Actor);
                 if (CountdownRemaining > 0)
                     return;
             }
@@ -605,13 +614,13 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                             QueueOGCD(Unlocked(AID.QueenOverdrive) ? AID.QueenOverdrive : AID.RookOverdrive, Player, OGCDPriority.Critical);
                     }
                 }
-                if (ShouldChooseHeat(hspStrat, primaryTarget?.Actor))
+                if (ShouldChooseHeat(hspOpt, primaryTarget?.Actor))
                 {
-                    if (hspStrat == HeatOption.Automatic)
+                    if (hspOpt == HeatOption.Automatic)
                         QueueGCD(BestHeat, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
-                    if (hspStrat == HeatOption.OnlyHeatBlast)
+                    if (hspOpt == HeatOption.OnlyHeatBlast)
                         QueueGCD(BestHeatBlast, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
-                    if (hspStrat == HeatOption.OnlyAutoCrossbow)
+                    if (hspOpt == HeatOption.OnlyAutoCrossbow)
                         QueueGCD(Unlocked(AID.AutoCrossbow) ? AID.AutoCrossbow : BestHeatBlast, TargetChoice(hsp) ?? BestConeTarget?.Actor, GCDPriority.High);
                 }
             }
