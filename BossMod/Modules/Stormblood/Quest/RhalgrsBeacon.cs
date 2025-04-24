@@ -21,9 +21,9 @@ public enum AID : uint
     ChoppingBlock1 = 8346, // 1A57->location, 3.0s cast, range 5 circle
 }
 
-class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DiffractiveLaser), new AOEShapeCone(18.6f, 30.Degrees()));
+class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiffractiveLaser, new AOEShapeCone(18.6f, 30.Degrees()));
 
-class TerminusEst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.TheOrder))
+class TerminusEst(BossModule module) : Components.GenericAOEs(module, AID.TheOrder)
 {
     private readonly List<Actor> Termini = [];
     private DateTime? CastFinish;
@@ -58,7 +58,7 @@ class TerminusEst(BossModule module) : Components.GenericAOEs(module, ActionID.M
     }
 }
 
-class Gunblade(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Gunblade), stopAtWall: true)
+class Gunblade(BossModule module) : Components.Knockback(module, AID.Gunblade, stopAtWall: true)
 {
     public readonly List<Actor> Casters = [];
 
@@ -103,7 +103,7 @@ class Gunblade(BossModule module) : Components.Knockback(module, ActionID.MakeSp
     }
 }
 
-class ChoppingBlock(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.ChoppingBlock1), m => m.Enemies(OID.ChoppingBlock).Where(x => x.EventState != 7), 0);
+class ChoppingBlock(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.ChoppingBlock1, m => m.Enemies(OID.ChoppingBlock).Where(x => x.EventState != 7), 0);
 
 class FordolaRemLupisStates : StateMachineBuilder
 {
@@ -120,4 +120,3 @@ class FordolaRemLupisStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68064, NameID = 5953)]
 public class FordolaRemLupis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-195.25f, 147.5f), new ArenaBoundsCircle(20));
-

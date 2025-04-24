@@ -53,19 +53,19 @@ public enum SID : uint
     AllaganImmunity = 334, // none->player, extra=0x0
 }
 
-class CleaveCommon(BossModule module, AID aid, float hitboxRadius) : Components.Cleave(module, ActionID.MakeSpell(aid), new AOEShapeCone(6 + hitboxRadius, 60.Degrees()), activeWhileCasting: false);
+class CleaveCommon(BossModule module, AID aid, float hitboxRadius) : Components.Cleave(module, aid, new AOEShapeCone(6 + hitboxRadius, 60.Degrees()), activeWhileCasting: false);
 class CleaveADS(BossModule module) : CleaveCommon(module, AID.CleaveADS, 2.3f);
 class CleaveNode(BossModule module) : CleaveCommon(module, AID.CleaveNode, 1.15f);
 
-class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interruptible");
-class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(8.3f));
-class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 3));
+class HighVoltage(BossModule module) : Components.CastHint(module, AID.HighVoltage, "Interruptible");
+class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, AID.RepellingCannons, new AOEShapeCircle(8.3f));
+class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingLaser, new AOEShapeRect(32.3f, 3));
 // TODO: chain lightning?..
-class Firestream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FirestreamAOE), new AOEShapeRect(35.5f, 3));
-class Ballast1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BallastAOE1), new AOEShapeCone(5.5f, 135.Degrees()));
-class Ballast2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BallastAOE2), new AOEShapeDonutSector(5.5f, 10.5f, 135.Degrees()));
-class Ballast3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BallastAOE3), new AOEShapeDonutSector(10.5f, 15.5f, 135.Degrees()));
-class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 1);
+class Firestream(BossModule module) : Components.SelfTargetedAOEs(module, AID.FirestreamAOE, new AOEShapeRect(35.5f, 3));
+class Ballast1(BossModule module) : Components.SelfTargetedAOEs(module, AID.BallastAOE1, new AOEShapeCone(5.5f, 135.Degrees()));
+class Ballast2(BossModule module) : Components.SelfTargetedAOEs(module, AID.BallastAOE2, new AOEShapeDonutSector(5.5f, 10.5f, 135.Degrees()));
+class Ballast3(BossModule module) : Components.SelfTargetedAOEs(module, AID.BallastAOE3, new AOEShapeDonutSector(10.5f, 15.5f, 135.Degrees()));
+class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.GravityField, m => m.Enemies(OID.GravityField), 1);
 
 class T02AI(BossModule module) : BossComponent(module)
 {

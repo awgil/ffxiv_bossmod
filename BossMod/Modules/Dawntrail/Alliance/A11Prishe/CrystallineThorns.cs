@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A11Prishe;
 
-class CrystallineThorns(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Thornbite))
+class CrystallineThorns(BossModule module) : Components.CastCounter(module, AID.Thornbite)
 {
     public DateTime Activation;
     private RelSimplifiedComplexPolygon? _poly;
@@ -61,7 +61,7 @@ class CrystallineThorns(BossModule module) : Components.CastCounter(module, Acti
     }
 }
 
-class AuroralUppercut(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.AuroralUppercutAOE), true)
+class AuroralUppercut(BossModule module) : Components.Knockback(module, AID.AuroralUppercutAOE, true)
 {
     private readonly CrystallineThorns? _thorns = module.FindComponent<CrystallineThorns>();
     private float _distance;

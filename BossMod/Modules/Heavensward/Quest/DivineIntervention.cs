@@ -19,12 +19,12 @@ public enum AID : uint
     Heartstopper = 866, // 1011->self, 2.5s cast, range 3+R width 3 rect
 }
 
-class LightningBolt(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.LightningBolt), 2);
-class IronTempest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IronTempest), new AOEShapeCircle(5.5f));
-class Overpower(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Overpower), new AOEShapeCone(6.5f, 45.Degrees()));
-class RingOfFrost(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RingOfFrost), new AOEShapeCircle(6.5f));
-class Rive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Rive), new AOEShapeRect(30.5f, 1));
-class Heartstopper(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Heartstopper), new AOEShapeRect(3.5f, 1.5f));
+class LightningBolt(BossModule module) : Components.ChargeAOEs(module, AID.LightningBolt, 2);
+class IronTempest(BossModule module) : Components.SelfTargetedAOEs(module, AID.IronTempest, new AOEShapeCircle(5.5f));
+class Overpower(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overpower, new AOEShapeCone(6.5f, 45.Degrees()));
+class RingOfFrost(BossModule module) : Components.SelfTargetedAOEs(module, AID.RingOfFrost, new AOEShapeCircle(6.5f));
+class Rive(BossModule module) : Components.SelfTargetedAOEs(module, AID.Rive, new AOEShapeRect(30.5f, 1));
+class Heartstopper(BossModule module) : Components.SelfTargetedAOEs(module, AID.Heartstopper, new AOEShapeRect(3.5f, 1.5f));
 class Chain(BossModule module) : Components.Adds(module, (uint)OID.IshgardianSteelChain, 1);
 
 class SerGrinnauxTheBullStates : StateMachineBuilder

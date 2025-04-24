@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class SolarFans(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.SolarFansAOE), 5);
+class SolarFans(BossModule module) : Components.ChargeAOEs(module, AID.SolarFansAOE, 5);
 
 class RadiantRhythm(BossModule module) : Components.GenericAOEs(module)
 {

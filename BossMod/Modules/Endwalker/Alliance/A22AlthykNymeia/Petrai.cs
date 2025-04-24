@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A22AlthykNymeia;
 
-class Petrai(BossModule module) : Components.GenericSharedTankbuster(module, ActionID.MakeSpell(AID.PetraiAOE), 6)
+class Petrai(BossModule module) : Components.GenericSharedTankbuster(module, AID.PetraiAOE, 6)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

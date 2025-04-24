@@ -32,14 +32,14 @@ public enum IconID : uint
     HolyShieldBash = 16, // player
     Execution = 32, // player
 }
-class HoliestOfHoly(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HoliestOfHoly));
-class HeavenlySlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavenlySlash), new AOEShapeCone(8, 45.Degrees()));
-class HolyShieldBash(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HolyShieldBash));
-class SolidAscension(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SolidAscension));
-class SolidAscension2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SolidAscension2));
-//class ShiningBlade(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.ShiningBlade), 3);
-class Bloodstain(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Bloodstain), new AOEShapeCircle(5));
-class Execution(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Execution, ActionID.MakeSpell(AID.Execution), 5, 7.1f)
+class HoliestOfHoly(BossModule module) : Components.RaidwideCast(module, AID.HoliestOfHoly);
+class HeavenlySlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavenlySlash, new AOEShapeCone(8, 45.Degrees()));
+class HolyShieldBash(BossModule module) : Components.SingleTargetCast(module, AID.HolyShieldBash);
+class SolidAscension(BossModule module) : Components.RaidwideCast(module, AID.SolidAscension);
+class SolidAscension2(BossModule module) : Components.RaidwideCast(module, AID.SolidAscension2);
+//class ShiningBlade(BossModule module) : Components.ChargeAOEs(module, AID.ShiningBlade, 3);
+class Bloodstain(BossModule module) : Components.SelfTargetedAOEs(module, AID.Bloodstain, new AOEShapeCircle(5));
+class Execution(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Execution, AID.Execution, 5, 7.1f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -54,7 +54,7 @@ class BrightFlare(BossModule module) : Components.GenericAOEs(module)
     private IEnumerable<Actor> Brightspheres => Module.Enemies(OID.Brightsphere).Where(e => !e.IsDead);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Brightspheres.Select(b => new AOEInstance(new AOEShapeCircle(6f), b.Position));
 }
-class MultiAddsModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.VaultOstiary, (uint)OID.VaultDeacon, (uint)OID.SerAdelphel]);
+class MultiAddsModule(BossModule module) : Components.AddsMulti(module, [OID.VaultOstiary, OID.VaultDeacon, OID.SerAdelphel]);
 class D041SerAdelphelBrightbladeStates : StateMachineBuilder
 {
     public D041SerAdelphelBrightbladeStates(BossModule module) : base(module)

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS8Queen;
 
-class UnluckyLotAetherialSphere(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.UnluckyLotAetherialSphere))
+class UnluckyLotAetherialSphere(BossModule module) : Components.GenericAOEs(module, AID.UnluckyLotAetherialSphere)
 {
     private AOEInstance? _aoe;
 

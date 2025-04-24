@@ -48,10 +48,10 @@ public enum TetherID : uint
     StarTether = 110 // BurningStar/FrozenStar->BurningStar/FrozenStar
 }
 
-class ShadowFlare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ShadowFlare));
-class GripOfNight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GripOfNight), new AOEShapeCone(40, 75.Degrees()));
-class DarkFireIIAOE(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkFireIIAOE), 6);
-class EndofDays(BossModule module) : Components.SimpleLineStack(module, 4.1f, 50, ActionID.MakeSpell(AID.EndOfDaysTargetSelect), ActionID.MakeSpell(AID.EndOfDaysAOE), 0);
+class ShadowFlare(BossModule module) : Components.RaidwideCast(module, AID.ShadowFlare);
+class GripOfNight(BossModule module) : Components.SelfTargetedAOEs(module, AID.GripOfNight, new AOEShapeCone(40, 75.Degrees()));
+class DarkFireIIAOE(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkFireIIAOE, 6);
+class EndofDays(BossModule module) : Components.SimpleLineStack(module, 4.1f, 50, AID.EndOfDaysTargetSelect, AID.EndOfDaysAOE, 0);
 
 class Stars(BossModule module) : Components.GenericAOEs(module)
 {

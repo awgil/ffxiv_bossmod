@@ -79,4 +79,4 @@ class RadicalShift(BossModule module) : BossComponent(module)
         => _triangulation = platform != null ? Arena.Bounds.ClipAndTriangulate(platform.Clipper.Difference(new(CurveApprox.Rect(new(0, 1), platform.Radius, platform.Radius)), new(platform.Poly))) : null;
 }
 
-class RadicalShiftAOE(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.RadicalShiftAOE), 5);
+class RadicalShiftAOE(BossModule module) : Components.SpreadFromCastTargets(module, AID.RadicalShiftAOE, 5);

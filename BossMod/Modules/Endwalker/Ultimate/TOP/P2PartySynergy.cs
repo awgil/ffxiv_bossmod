@@ -163,7 +163,7 @@ class P2PartySynergyOptimizedFire : Components.UniformStackSpread
     }
 }
 
-class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.OpticalLaser))
+class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(module, AID.OpticalLaser)
 {
     private readonly P2PartySynergy? _synergy = module.FindComponent<P2PartySynergy>();
     private readonly Actor? _source = module.Enemies(OID.OpticalUnit).FirstOrDefault();
@@ -207,7 +207,7 @@ class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(mod
     }
 }
 
-class P2PartySynergyDischarger(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.Discharger))
+class P2PartySynergyDischarger(BossModule module) : Components.Knockback(module, AID.Discharger)
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {

@@ -14,8 +14,8 @@ public enum AID : uint
     Rip = 8192, // 1AC0->self, no cast, range 6+R 120-degree cone, always happens directly after Butcher
 }
 
-class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(9.4f));
-class Butcher(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(11.4f, 60.Degrees()));
+class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScytheTail, new AOEShapeCircle(9.4f));
+class Butcher(BossModule module) : Components.SelfTargetedAOEs(module, AID.Butcher, new AOEShapeCone(11.4f, 60.Degrees()));
 
 class Rip(BossModule module) : Components.GenericAOEs(module)
 {
@@ -41,7 +41,7 @@ class Rip(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class RockThrow(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RockThrow), 6);
+class RockThrow(BossModule module) : Components.LocationTargetedAOEs(module, AID.RockThrow, 6);
 
 class AngadaStates : StateMachineBuilder
 {

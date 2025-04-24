@@ -27,7 +27,7 @@ public enum AID : uint
     EmergencyOverride = 1258, // DriveCylinder->self, no cast, soft enrage raidwide
 }
 
-class Rotoswipe(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Rotoswipe), new AOEShapeCone(11, 60.Degrees()), (uint)OID.ClockworkDreadnaught); // TODO: verify angle
+class Rotoswipe(BossModule module) : Components.Cleave(module, AID.Rotoswipe, new AOEShapeCone(11, 60.Degrees()), (uint)OID.ClockworkDreadnaught); // TODO: verify angle
 
 class GravityThrustPox(BossModule module) : Components.GenericAOEs(module, default, "Move behind rook!")
 {
@@ -40,7 +40,7 @@ class GravityThrustPox(BossModule module) : Components.GenericAOEs(module, defau
     }
 }
 
-class EmergencyOverride(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.EmergencyOverride));
+class EmergencyOverride(BossModule module) : Components.CastCounter(module, AID.EmergencyOverride);
 
 class T04GauntletStates : StateMachineBuilder
 {

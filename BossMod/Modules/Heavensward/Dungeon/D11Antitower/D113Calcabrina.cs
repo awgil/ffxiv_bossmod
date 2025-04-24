@@ -27,9 +27,9 @@ public enum IconID : uint
     TerrifyingGlance = 73, // player
 }
 
-class HeatGazeDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeatGazeDonut), new AOEShapeDonut(5, 10));
-class HeatGazeCone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeatGazeCone), new AOEShapeCone(19.9f, 30.Degrees()));
-class Knockout(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Knockout));
+class HeatGazeDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeatGazeDonut, new AOEShapeDonut(5, 10));
+class HeatGazeCone(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeatGazeCone, new AOEShapeCone(19.9f, 30.Degrees()));
+class Knockout(BossModule module) : Components.SingleTargetCast(module, AID.Knockout);
 class Brace(BossModule module) : Components.DirectionalParry(module, (uint)OID.Boss)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -39,7 +39,7 @@ class Brace(BossModule module) : Components.DirectionalParry(module, (uint)OID.B
     }
 }
 
-class TerrifyingGlance(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(40, 60.Degrees()), (uint)IconID.TerrifyingGlance, ActionID.MakeSpell(AID.TerrifyingGlance), 3.5f)
+class TerrifyingGlance(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(40, 60.Degrees()), (uint)IconID.TerrifyingGlance, AID.TerrifyingGlance, 3.5f)
 {
     private bool WillBeHit(Actor actor) => CurrentBaits.Any(b => b.Target == actor || IsClippedBy(actor, b));
     private bool WillBeGazed(Actor actor) => WillBeHit(actor) && actor.Rotation.ToDirection().Dot((CurrentBaits[0].Source.Position - actor.Position).Normalized()) >= 0.707107f;
@@ -103,4 +103,3 @@ public class Calcabrina(WorldState ws, Actor primary) : BossModule(ws, primary, 
 
     protected override bool CheckPull() => PrimaryActor.InCombat;
 }
-

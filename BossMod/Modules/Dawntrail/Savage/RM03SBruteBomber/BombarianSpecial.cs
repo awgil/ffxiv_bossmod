@@ -61,9 +61,9 @@ class BombarianSpecialRaidwide(BossModule module) : Components.CastCounter(modul
     }
 }
 
-class BombarianSpecialOut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BombarianSpecialOut), new AOEShapeCircle(10));
-class BombarianSpecialIn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BombarianSpecialIn), new AOEShapeDonut(6, 40));
-class BombarianSpecialAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BombarianSpecialAOE), new AOEShapeCircle(8));
-class BombarianSpecialKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BombarianSpecialKnockback), 10);
-class SpecialBombarianSpecialOut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpecialBombarianSpecialOut), new AOEShapeCircle(10));
-class SpecialBombarianSpecialIn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpecialBombarianSpecialIn), new AOEShapeDonut(6, 40));
+class BombarianSpecialOut(BossModule module) : Components.SelfTargetedAOEs(module, AID.BombarianSpecialOut, new AOEShapeCircle(10));
+class BombarianSpecialIn(BossModule module) : Components.SelfTargetedAOEs(module, AID.BombarianSpecialIn, new AOEShapeDonut(6, 40));
+class BombarianSpecialAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.BombarianSpecialAOE, new AOEShapeCircle(8));
+class BombarianSpecialKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BombarianSpecialKnockback, 10);
+class SpecialBombarianSpecialOut(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpecialBombarianSpecialOut, new AOEShapeCircle(10));
+class SpecialBombarianSpecialIn(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpecialBombarianSpecialIn, new AOEShapeDonut(6, 40));

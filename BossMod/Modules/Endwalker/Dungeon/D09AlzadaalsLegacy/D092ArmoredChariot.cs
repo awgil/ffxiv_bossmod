@@ -192,9 +192,9 @@ class AssaultCannon(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DiffusionRay(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DiffusionRay));
-class RailCannon(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.RailCannon));
-class GravitonCannon(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.GravitonCannon), 6);
+class DiffusionRay(BossModule module) : Components.RaidwideCast(module, AID.DiffusionRay);
+class RailCannon(BossModule module) : Components.SingleTargetCast(module, AID.RailCannon);
+class GravitonCannon(BossModule module) : Components.SpreadFromCastTargets(module, AID.GravitonCannon, 6);
 
 class D092ArmoredChariotStates : StateMachineBuilder
 {
@@ -211,4 +211,3 @@ class D092ArmoredChariotStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 844, NameID = 11239)]
 public class D092ArmoredChariot(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -182), new ArenaBoundsSquare(19.5f));
-

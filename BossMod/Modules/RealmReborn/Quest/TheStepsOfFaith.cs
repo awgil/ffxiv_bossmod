@@ -26,12 +26,12 @@ public enum AID : uint
 
 }
 
-class RipperClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RipperClaw), new AOEShapeCone(9, 45.Degrees()));
+class RipperClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.RipperClaw, new AOEShapeCone(9, 45.Degrees()));
 
-class EarthShakerAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EarthshakerAOE), new AOEShapeCircle(31));
-class Earthshaker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Earthshaker), new AOEShapeCone(80, 15.Degrees()), maxCasts: 2);
+class EarthShakerAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.EarthshakerAOE, new AOEShapeCircle(31));
+class Earthshaker(BossModule module) : Components.SelfTargetedAOEs(module, AID.Earthshaker, new AOEShapeCone(80, 15.Degrees()), maxCasts: 2);
 
-class EarthrisingAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EarthrisingAOE), new AOEShapeCircle(31));
+class EarthrisingAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.EarthrisingAOE, new AOEShapeCircle(31));
 class Earthrising(BossModule module) : Components.Exaflare(module, 8)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -53,15 +53,15 @@ class Earthrising(BossModule module) : Components.Exaflare(module, 8)
     }
 }
 
-class SidewiseSlice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SidewiseSlice), new AOEShapeCone(50, 60.Degrees()));
+class SidewiseSlice(BossModule module) : Components.SelfTargetedAOEs(module, AID.SidewiseSlice, new AOEShapeCone(50, 60.Degrees()));
 
-class FireballSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Fireball), 6);
+class FireballSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.Fireball, 6);
 
-class Flamisphere(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Flamisphere), new AOEShapeCircle(10));
+class Flamisphere(BossModule module) : Components.SelfTargetedAOEs(module, AID.Flamisphere, new AOEShapeCircle(10));
 
-class BodySlam(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam), 20, kind: Kind.DirForward, stopAtWall: true);
+class BodySlam(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodySlam, 20, kind: Kind.DirForward, stopAtWall: true);
 
-class FlameBreath(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FlameBreathChannel))
+class FlameBreath(BossModule module) : Components.GenericAOEs(module, AID.FlameBreathChannel)
 {
     private AOEInstance? _aoe;
 
@@ -84,7 +84,7 @@ class FlameBreath(BossModule module) : Components.GenericAOEs(module, ActionID.M
     }
 }
 
-class FlameBreath2(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FlameBreathChannel))
+class FlameBreath2(BossModule module) : Components.GenericAOEs(module, AID.FlameBreathChannel)
 {
     private AOEInstance? _aoe;
 
@@ -110,7 +110,7 @@ class FlameBreath2(BossModule module) : Components.GenericAOEs(module, ActionID.
     }
 }
 
-class Cauterize(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Cauterize))
+class Cauterize(BossModule module) : Components.GenericAOEs(module, AID.Cauterize)
 {
     private Actor? Source;
 
@@ -140,7 +140,7 @@ class Cauterize(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     }
 }
 
-class Touchdown(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Touchdown), 10, stopAtWall: true);
+class Touchdown(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Touchdown, 10, stopAtWall: true);
 
 class ScorchingBreath(BossModule module) : Components.GenericAOEs(module)
 {
@@ -260,4 +260,3 @@ public class Vishap(WorldState ws, Actor primary) : BossModule(ws, primary, new(
         Arena.Actor(PrimaryActor, ArenaColor.Enemy, true);
     }
 }
-

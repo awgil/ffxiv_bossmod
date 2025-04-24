@@ -33,10 +33,10 @@ public enum TetherID : uint
     LightningRod = 6,
 }
 
-class ElectricPredation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectricPredation), new AOEShapeCone(8, 45.Degrees()));
-class ElectricCachexia(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectricCachexia), new AOEShapeDonut(7, 60));
-//class IonosphericCharge(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(0), (uint)TetherID.LightningRod, ActionID.MakeSpell(AID.LightningRod));
-class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt), 3);
+class ElectricPredation(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectricPredation, new AOEShapeCone(8, 45.Degrees()));
+class ElectricCachexia(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectricCachexia, new AOEShapeDonut(7, 60));
+//class IonosphericCharge(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(0), (uint)TetherID.LightningRod, AID.LightningRod);
+class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningBolt, 3);
 class LightningRod(BossModule module) : BossComponent(module)
 {
     private IEnumerable<Actor> Statues => Module.Enemies(OID.BlackenedStatue).Where(e => e.FindStatus(GID.LightningRod) == null && !e.IsDead);
@@ -67,10 +67,10 @@ class LightningRod(BossModule module) : BossComponent(module)
                 Arena.AddCircle(enemy.Position, 6, ArenaColor.Safe);
     }
 }
-//class Ground(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Ground), new AOEShapeRect(40, 2));
-class Electrocution(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Electrocution), 17, stopAtWall: true);
-//class Electrocution2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Electrocution2));
-class Reflux(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Reflux));
+//class Ground(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ground, new AOEShapeRect(40, 2));
+class Electrocution(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Electrocution, 17, stopAtWall: true);
+//class Electrocution2(BossModule module) : Components.RaidwideCast(module, AID.Electrocution2);
+class Reflux(BossModule module) : Components.SingleTargetCast(module, AID.Reflux);
 class Adds(BossModule module) : Components.Adds(module, (uint)OID.Leyak)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

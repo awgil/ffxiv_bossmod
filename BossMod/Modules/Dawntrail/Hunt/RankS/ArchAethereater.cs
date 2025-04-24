@@ -46,10 +46,10 @@ public enum IconID : uint
 }
 
 // note: for very first cast, we could predict aoe sequence in advance (not that it matters much...)
-class AethermodynamicsIO(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AethermodynamicsIO), "Raidwide + stay/move debuffs");
-class AethermodynamicsOI(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AethermodynamicsOI), "Raidwide + stay/move debuffs");
-class AethermodynamicsROLI(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AethermodynamicsROLI), "Raidwide + stay/move debuffs");
-class AethermodynamicsLORI(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AethermodynamicsLORI), "Raidwide + stay/move debuffs");
+class AethermodynamicsIO(BossModule module) : Components.RaidwideCast(module, AID.AethermodynamicsIO, "Raidwide + stay/move debuffs");
+class AethermodynamicsOI(BossModule module) : Components.RaidwideCast(module, AID.AethermodynamicsOI, "Raidwide + stay/move debuffs");
+class AethermodynamicsROLI(BossModule module) : Components.RaidwideCast(module, AID.AethermodynamicsROLI, "Raidwide + stay/move debuffs");
+class AethermodynamicsLORI(BossModule module) : Components.RaidwideCast(module, AID.AethermodynamicsLORI, "Raidwide + stay/move debuffs");
 
 class AethermodynamicsStayMove(BossModule module) : Components.StayMove(module, 5)
 {
@@ -123,8 +123,8 @@ class FireBlizzardSoullessStream(BossModule module) : Components.GenericAOEs(mod
     }
 }
 
-class Obliterate(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Obliterate), 6, 4);
-class Meltdown(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Meltdown), new AOEShapeRect(40, 5));
+class Obliterate(BossModule module) : Components.StackWithCastTargets(module, AID.Obliterate, 6, 4);
+class Meltdown(BossModule module) : Components.SelfTargetedAOEs(module, AID.Meltdown, new AOEShapeRect(40, 5));
 
 class ArchAethereaterStates : StateMachineBuilder
 {

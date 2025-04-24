@@ -24,11 +24,11 @@ public enum AID : uint
     WideBlaster = 9395, // SteppeCoeurl->self, 5.5s cast, range 26+R 120-degree cone
 }
 
-class CrumblingCrust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CrumblingCrust), 3);
-class Heave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Heave), new AOEShapeCone(13, 60.Degrees()));
-class WideBlaster(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WideBlaster), new AOEShapeCone(29.15f, 60.Degrees()));
-class Rush(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Rush), 4);
-class RushTether(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.RushYamaa), new AOEShapeCircle(5), true)
+class CrumblingCrust(BossModule module) : Components.LocationTargetedAOEs(module, AID.CrumblingCrust, 3);
+class Heave(BossModule module) : Components.SelfTargetedAOEs(module, AID.Heave, new AOEShapeCone(13, 60.Degrees()));
+class WideBlaster(BossModule module) : Components.SelfTargetedAOEs(module, AID.WideBlaster, new AOEShapeCone(29.15f, 60.Degrees()));
+class Rush(BossModule module) : Components.BaitAwayChargeCast(module, AID.Rush, 4);
+class RushTether(BossModule module) : Components.BaitAwayCast(module, AID.RushYamaa, new AOEShapeCircle(5), true)
 {
     public override void Update()
     {
@@ -37,8 +37,8 @@ class RushTether(BossModule module) : Components.BaitAwayCast(module, ActionID.M
     }
 }
 
-class RushYamaa(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.RushYamaa), 4);
-class Lullaby(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Lullaby), new AOEShapeCircle(3.7f));
+class RushYamaa(BossModule module) : Components.ChargeAOEs(module, AID.RushYamaa, 4);
+class Lullaby(BossModule module) : Components.SelfTargetedAOEs(module, AID.Lullaby, new AOEShapeCircle(3.7f));
 
 class D031GarulaStates : StateMachineBuilder
 {

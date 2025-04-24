@@ -31,7 +31,7 @@ public enum OID : uint
 }
 
 class LockOnPuddle(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.LockOnPuddle));
-class TailLaser(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.TailLaser1))
+class TailLaser(BossModule module) : Components.GenericAOEs(module, AID.TailLaser1)
 {
     private readonly List<AOEInstance> _aoes = [];
     private int eventCastCount;
@@ -58,7 +58,7 @@ class TailLaser(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     }
 }
 
-class TargetSearch(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.TargetSearch))
+class TargetSearch(BossModule module) : Components.GenericAOEs(module, AID.TargetSearch)
 {
     private readonly List<AOEInstance> _aoes = [];
     private DateTime? _time;

@@ -38,7 +38,7 @@ public sealed class RaidCooldowns : IDisposable
         return MathF.Max(0, (float)(firstAvailable - _ws.CurrentTime).TotalSeconds);
     }
 
-    // TODO: why do we need two versions?..
+    // NextDamageBuffIn, but null at fight start before any raidbuffs have been used
     public float? NextDamageBuffIn2()
     {
         if (_damageCooldowns.Count == 0)

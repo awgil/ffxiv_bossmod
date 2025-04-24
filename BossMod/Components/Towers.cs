@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Components;
 
-public class GenericTowers(BossModule module, ActionID aid = default) : CastCounter(module, aid)
+public class GenericTowers(BossModule module, Enum? aid = default) : CastCounter(module, aid)
 {
     public struct Tower(WPos position, float radius, int minSoakers = 1, int maxSoakers = 1, BitMask forbiddenSoakers = default, DateTime activation = default)
     {
@@ -57,6 +57,8 @@ public class GenericTowers(BossModule module, ActionID aid = default) : CastCoun
         var firstActivation = Towers.MinBy(t => t.Activation).Activation;
         var deadline = firstActivation.AddSeconds(0.5f);
 
+        var soakingPlayers = new BitMask();
+
         // first see if we have one or more towers we need to soak - if so, add hints to take one of them
         // if there are no towers to soak, add hints to avoid forbidden ones
         // note that if we're currently inside a tower that has min number of soakers, we can't leave it
@@ -64,6 +66,8 @@ public class GenericTowers(BossModule module, ActionID aid = default) : CastCoun
         bool haveTowersToSoak = false;
         foreach (var t in Towers.Where(t => t.Activation <= deadline))
         {
+            soakingPlayers |= Raid.WithSlot().InRadius(t.Position, t.Radius).Mask();
+
             var effNumSoakers = t.ForbiddenSoakers[slot] ? int.MaxValue : t.NumInside(Module);
             if (effNumSoakers < t.MinSoakers || effNumSoakers == t.MinSoakers && t.IsInside(actor))
             {
@@ -86,6 +90,8 @@ public class GenericTowers(BossModule module, ActionID aid = default) : CastCoun
             var zoneUnion = ShapeContains.Union(zones);
             hints.AddForbiddenZone(haveTowersToSoak ? p => !zoneUnion(p) : zoneUnion, firstActivation);
         }
+        if (soakingPlayers.Any())
+            hints.PredictedDamage.Add((soakingPlayers, firstActivation));
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -95,7 +101,7 @@ public class GenericTowers(BossModule module, ActionID aid = default) : CastCoun
     }
 }
 
-public class CastTowers(BossModule module, ActionID aid, float radius, int minSoakers = 1, int maxSoakers = 1) : GenericTowers(module, aid)
+public class CastTowers(BossModule module, Enum aid, float radius, int minSoakers = 1, int maxSoakers = 1) : GenericTowers(module, aid)
 {
     public float Radius = radius;
     public int MinSoakers = minSoakers;

@@ -30,12 +30,12 @@ public enum SID : uint
     Necrosis = 2965, // Boss/WeepingMiasma->player, extra=0x0
 }
 
-class PoxFlail(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.PoxFlail));
-class BlightedWater(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.BlightedWater1), 6);
-class Befoulment(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Befoulment1), 6);
-class Miasmata(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Miasmata));
+class PoxFlail(BossModule module) : Components.SingleTargetCast(module, AID.PoxFlail);
+class BlightedWater(BossModule module) : Components.StackWithCastTargets(module, AID.BlightedWater1, 6);
+class Befoulment(BossModule module) : Components.SpreadFromCastTargets(module, AID.Befoulment1, 6);
+class Miasmata(BossModule module) : Components.RaidwideCast(module, AID.Miasmata);
 
-class WaveOfNausea(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WaveOfNausea), new AOEShapeDonut(6, 40));
+class WaveOfNausea(BossModule module) : Components.SelfTargetedAOEs(module, AID.WaveOfNausea, new AOEShapeDonut(6, 40));
 
 class CravenCompanionship(BossModule module) : Components.StackTogether(module, 55, 4.9f);
 
@@ -104,7 +104,7 @@ class NecroticFluid(BossModule module) : Components.Exaflare(module, new AOEShap
     }
 }
 
-class CoughUp(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CoughUp1), 6);
+class CoughUp(BossModule module) : Components.LocationTargetedAOEs(module, AID.CoughUp1, 6);
 
 class CausticGrebuloffStates : StateMachineBuilder
 {
@@ -124,4 +124,3 @@ class CausticGrebuloffStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 792, NameID = 10313)]
 public class CausticGrebuloff(WorldState ws, Actor primary) : BossModule(ws, primary, new(266.5f, -178f), new ArenaBoundsCircle(20));
-

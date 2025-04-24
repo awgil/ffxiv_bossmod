@@ -3,11 +3,15 @@
 // generic tank-swap component for multi-hit tankbusters, with optional aoe
 // assume that target of the first hit is locked when mechanic starts, then subsequent targets are selected based on who the boss targets
 // TODO: this version assumes that boss cast and first-hit are potentially from different actors; the target lock could also be things like icons, etc - generalize more...
-public class TankSwap(BossModule module, ActionID bossCast, ActionID firstCast, ActionID subsequentHit, float timeBetweenHits, AOEShape? shape, bool centerAtTarget) : GenericBaitAway(module, centerAtTarget: centerAtTarget)
+public class TankSwap(BossModule module, Enum bossCast, Enum firstCast, Enum subsequentHit, float timeBetweenHits, AOEShape? shape, bool centerAtTarget) : GenericBaitAway(module, centerAtTarget: centerAtTarget)
 {
     private Actor? _source;
     private ulong _prevTarget; // before first cast, this is the target of the first hit
     private DateTime _activation;
+
+    public readonly ActionID BossCast = ActionID.MakeSpell(bossCast);
+    public readonly ActionID FirstCast = ActionID.MakeSpell(firstCast);
+    public readonly ActionID SubsequentHit = ActionID.MakeSpell(subsequentHit);
 
     public override void Update()
     {
@@ -31,11 +35,11 @@ public class TankSwap(BossModule module, ActionID bossCast, ActionID firstCast, 
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == bossCast)
+        if (spell.Action == BossCast)
         {
             _source = caster;
         }
-        if (spell.Action == firstCast)
+        if (spell.Action == FirstCast)
         {
             NumCasts = 0;
             _prevTarget = spell.TargetID;
@@ -45,7 +49,7 @@ public class TankSwap(BossModule module, ActionID bossCast, ActionID firstCast, 
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == firstCast || spell.Action == subsequentHit)
+        if (spell.Action == FirstCast || spell.Action == SubsequentHit)
         {
             ++NumCasts;
             _prevTarget = spell.MainTargetID == caster.InstanceID && spell.Targets.Count != 0 ? spell.Targets[0].ID : spell.MainTargetID;

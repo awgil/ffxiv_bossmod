@@ -180,6 +180,8 @@ public static class BossModuleRegistry
         }
     }
 
+    private static readonly BossModuleConfig _config = Service.Config.Get<BossModuleConfig>();
+
     public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modulesByOID;
 
     public static Info? FindByOID(uint oid) => _modulesByOID.GetValueOrDefault(oid);
@@ -190,6 +192,13 @@ public static class BossModuleRegistry
     public static BossModule? CreateModuleForActor(WorldState ws, Actor primary, BossModuleInfo.Maturity minMaturity)
     {
         var info = primary.Type is ActorType.Enemy or ActorType.EventObj ? FindByOID(primary.OID) : null;
+        if (info is { } inf)
+        {
+            if (_config.DisabledModules.Contains(inf.ModuleType.ToString()))
+                return null;
+            if (_config.DisabledCategories.Contains(inf.Category))
+                return null;
+        }
         return info?.Maturity >= minMaturity ? CreateModule(info, ws, primary) : null;
     }
 

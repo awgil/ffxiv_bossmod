@@ -75,8 +75,11 @@ public readonly record struct ActionID(uint Raw)
 
     public readonly bool IsCasted() => CastTime() > 0;
 
-    public static ActionID MakeSpell<AID>(AID id) where AID : Enum
+    public static ActionID MakeSpell<AID>(AID? id) where AID : Enum
     {
+        if (id == null)
+            return new();
+
         var castID = (uint)(object)id;
         return castID != 0 ? new(ActionType.Spell, castID) : new();
     }

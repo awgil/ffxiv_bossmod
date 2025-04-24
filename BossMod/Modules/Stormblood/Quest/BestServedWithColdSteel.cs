@@ -23,14 +23,14 @@ public enum TetherID : uint
     Mine = 54, // 1A56->player
 }
 
-class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AugmentedUprising), new AOEShapeCone(8.5f, 60.Degrees()));
-class AugmentedSuffering(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AugmentedSuffering), new AOEShapeCircle(6.5f));
-class OpenFire(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.OpenFire1), 6);
+class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, AID.AugmentedUprising, new AOEShapeCone(8.5f, 60.Degrees()));
+class AugmentedSuffering(BossModule module) : Components.SelfTargetedAOEs(module, AID.AugmentedSuffering, new AOEShapeCircle(6.5f));
+class OpenFire(BossModule module) : Components.LocationTargetedAOEs(module, AID.OpenFire1, 6);
 
-class CermetPile(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CermetPile), new AOEShapeRect(42.1f, 3f));
-class Firebomb(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Firebomb), 4);
+class CermetPile(BossModule module) : Components.SelfTargetedAOEs(module, AID.CermetPile, new AOEShapeRect(42.1f, 3f));
+class Firebomb(BossModule module) : Components.LocationTargetedAOEs(module, AID.Firebomb, 4);
 
-class MagitekTurret(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SelfDetonate))
+class MagitekTurret(BossModule module) : Components.GenericAOEs(module, AID.SelfDetonate)
 {
     class Mine(Actor source, Actor target, WPos sourcePosLastFrame, DateTime tethered)
     {
@@ -87,7 +87,7 @@ class MagitekTurret(BossModule module) : Components.GenericAOEs(module, ActionID
     }
 }
 
-class MagitekSelfDetonate(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.SelfDetonate1))
+class MagitekSelfDetonate(BossModule module) : Components.CastCounter(module, AID.SelfDetonate1)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

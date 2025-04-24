@@ -49,9 +49,9 @@ public enum IconID : uint
     TrackingBolt = 196, // player
 }
 
-class Electrowave(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Electrowave));
-class HomingCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HomingCannon), new AOEShapeRect(50, 1));
-class Shock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Shock), 3);
+class Electrowave(BossModule module) : Components.RaidwideCast(module, AID.Electrowave);
+class HomingCannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.HomingCannon, new AOEShapeRect(50, 1));
+class Shock(BossModule module) : Components.LocationTargetedAOEs(module, AID.Shock, 3);
 
 class FulminousFence(BossModule module) : BossComponent(module)
 {
@@ -119,9 +119,9 @@ class FulminousFence(BossModule module) : BossComponent(module)
     private WPos ConvertEndpoint(WDir p) => new(Module.Center.X + p.X, Module.Center.Z + p.Z * _curPatternZMult);
 }
 
-class ElectrowhirlFirst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlFirst), new AOEShapeCircle(6));
-class ElectrowhirlRest(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ElectrowhirlRest), new AOEShapeCircle(6));
-class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Bombardment), 5);
+class ElectrowhirlFirst(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectrowhirlFirst, new AOEShapeCircle(6));
+class ElectrowhirlRest(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectrowhirlRest, new AOEShapeCircle(6));
+class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, AID.Bombardment, 5);
 
 // note: never seen ccw rotation, assume it's not possible
 class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
@@ -149,7 +149,7 @@ class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
     }
 }
 
-class RapidThunder(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.RapidThunder));
+class RapidThunder(BossModule module) : Components.SingleTargetCast(module, AID.RapidThunder);
 
 class MotionSensor(BossModule module) : Components.StayMove(module, 3)
 {
@@ -166,7 +166,7 @@ class MotionSensor(BossModule module) : Components.StayMove(module, 3)
     }
 }
 
-class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlastCannon), new AOEShapeRect(26, 2))
+class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlastCannon, new AOEShapeRect(26, 2))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -176,8 +176,8 @@ class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, Actio
     }
 }
 
-class HeavyBlastCannon(BossModule module) : Components.SimpleLineStack(module, 4, 36, ActionID.MakeSpell(AID.HeavyBlastCannonTargetSelect), ActionID.MakeSpell(AID.HeavyBlastCannon), 8);
-class TrackingBolt(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.TrackingBoltAOE), 8);
+class HeavyBlastCannon(BossModule module) : Components.SimpleLineStack(module, 4, 36, AID.HeavyBlastCannonTargetSelect, AID.HeavyBlastCannon, 8);
+class TrackingBolt(BossModule module) : Components.SpreadFromCastTargets(module, AID.TrackingBoltAOE, 8);
 
 class D042ProtectorStates : StateMachineBuilder
 {

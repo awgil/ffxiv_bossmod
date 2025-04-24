@@ -1,17 +1,27 @@
 ﻿using BossMod.VPR;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using System.Runtime.InteropServices;
 using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
 public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
 {
+    public enum Track { Snap = SharedTrack.Count }
+    public enum SnapStrategy
+    {
+        None,
+        Ranged
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan VPR", "Viper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100);
 
         def.DefineShared().AddAssociatedActions(AID.Reawaken);
+        def.Define(Track.Snap).As<SnapStrategy>("WrithingSnap")
+            .AddOption(SnapStrategy.None, "None", "Don't use")
+            .AddOption(SnapStrategy.Ranged, "Ranged", "Use when out of melee range, if out of Coil stacks")
+            .AddAssociatedActions(AID.WrithingSnap);
 
         return def;
     }
@@ -63,31 +73,31 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
-        var gauge = World.Client.GetGauge<ViperGaugeEx>();
+        var gauge = World.Client.GetGauge<ViperGauge>();
         DreadCombo = gauge.DreadCombo;
         Coil = gauge.RattlingCoilStacks;
         Offering = gauge.SerpentOffering;
         Anguine = gauge.AnguineTribute;
 
-        CurSerpentsTail = (gauge.ComboEx >> 2) switch
+        CurSerpentsTail = gauge.SerpentCombo switch
         {
-            1 => AID.DeathRattle,
-            2 => AID.LastLash,
-            3 => AID.FirstLegacy,
-            4 => AID.SecondLegacy,
-            5 => AID.ThirdLegacy,
-            6 => AID.FourthLegacy,
+            SerpentCombo.DeathRattle => AID.DeathRattle,
+            SerpentCombo.LastLash => AID.LastLash,
+            SerpentCombo.FirstLegacy => AID.FirstLegacy,
+            SerpentCombo.SecondLegacy => AID.SecondLegacy,
+            SerpentCombo.ThirdLegacy => AID.ThirdLegacy,
+            SerpentCombo.FourthLegacy => AID.FourthLegacy,
             _ => AID.SerpentsTail,
         };
         // this doesn't really matter because the GCDs grant unique statuses, but might as well track regardless
-        TwinCombo = (gauge.ComboEx >> 2) switch
+        TwinCombo = (byte)gauge.SerpentCombo switch
         {
             7 => TwinType.SingleTarget,
             8 => TwinType.AOE,
             9 => TwinType.Coil,
             _ => TwinType.None
         };
-        TwinStacks = gauge.ComboEx & 3;
+        TwinStacks = (byte)gauge.SerpentCombo & 3;
 
         FlanksbaneVenom = StatusLeft(SID.FlanksbaneVenom);
         FlankstungVenom = StatusLeft(SID.FlankstungVenom);
@@ -112,11 +122,6 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         BestGenerationTarget = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget).Best;
         NumAOETargets = NumMeleeAOETargets(strategy);
 
-        var pos = GetPositional(strategy);
-        UpdatePositionals(primaryTarget, ref pos);
-
-        OGCD(strategy, primaryTarget);
-
         if (CountdownRemaining > 0 || primaryTarget == null)
             return;
 
@@ -127,9 +132,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
             _ => Anguine > 0 ? 50 : 3
         };
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SteelMaw, aoeBreakpoint, 20);
-
-        if (CombatTimer < 0.5f && Player.DistanceToHitbox(primaryTarget) > 3)
+        if (CombatTimer < 0.7f && Player.DistanceToHitbox(primaryTarget) > 3)
             PushGCD(AID.Slither, primaryTarget);
 
         if (ShouldReawaken(strategy))
@@ -260,6 +263,17 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         // fallback for out of range
         if (Coil > 0)
             PushGCD(AID.UncoiledFury, BestRangedAOETarget);
+
+        // fallback 2 for out of range
+        if (strategy.Option(Track.Snap).As<SnapStrategy>() == SnapStrategy.Ranged)
+            PushGCD(AID.WrithingSnap, primaryTarget);
+
+        var pos = GetPositional(strategy);
+        UpdatePositionals(primaryTarget, ref pos);
+
+        OGCD(strategy, primaryTarget);
+
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SteelMaw, aoeBreakpoint, 20);
     }
 
     private bool ShouldReawaken(StrategyValues strategy)
@@ -327,6 +341,9 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         if (Unlocked(AID.SerpentsIre) && Coil < CoilMax)
             PushOGCD(AID.SerpentsIre, Player);
+
+        if (NextPositionalImminent && !NextPositionalCorrect)
+            PushOGCD(AID.TrueNorth, Player, -10, GCD - 0.8f);
     }
 
     private (Positional, bool) GetPositional(StrategyValues strategy)
@@ -361,19 +378,9 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         var (pos, imm) = getmain();
 
-        if (Anguine > 0 || ShouldReawaken(strategy) || ShouldVice(strategy) || ShouldCoil(strategy))
+        if (NextGCD is not (AID.FlanksbaneFang or AID.FlankstingStrike or AID.HindsbaneFang or AID.HindstingStrike or AID.HuntersCoil or AID.SwiftskinsCoil))
             imm = false;
 
         return (pos, imm);
-    }
-
-    [StructLayout(LayoutKind.Explicit, Size = 0x11)]
-    private struct ViperGaugeEx
-    {
-        [FieldOffset(0x08)] public byte RattlingCoilStacks;
-        [FieldOffset(0x0A)] public byte SerpentOffering;
-        [FieldOffset(0x09)] public byte AnguineTribute;
-        [FieldOffset(0x0B)] public DreadCombo DreadCombo;
-        [FieldOffset(0x10)] public byte ComboEx; // extra combo stuff
     }
 }

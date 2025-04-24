@@ -43,15 +43,15 @@ public enum SID : uint
     Smackdown = 2068,
 }
 
-class KatunCycle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.KatunCycle), new AOEShapeDonut(5, 40));
-class MercilessLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MercilessLeft1), new AOEShapeCone(40, 60.Degrees()));
-class MercilessRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MercilessRight), new AOEShapeCone(40, 60.Degrees()));
-class UnceremoniousBeheading(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.UnceremoniousBeheading), new AOEShapeCircle(10));
-class Evisceration(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Evisceration), new AOEShapeCone(40, 60.Degrees()));
+class KatunCycle(BossModule module) : Components.SelfTargetedAOEs(module, AID.KatunCycle, new AOEShapeDonut(5, 40));
+class MercilessLeft(BossModule module) : Components.SelfTargetedAOEs(module, AID.MercilessLeft1, new AOEShapeCone(40, 60.Degrees()));
+class MercilessRight(BossModule module) : Components.SelfTargetedAOEs(module, AID.MercilessRight, new AOEShapeCone(40, 60.Degrees()));
+class UnceremoniousBeheading(BossModule module) : Components.SelfTargetedAOEs(module, AID.UnceremoniousBeheading, new AOEShapeCircle(10));
+class Evisceration(BossModule module) : Components.SelfTargetedAOEs(module, AID.Evisceration, new AOEShapeCone(40, 60.Degrees()));
 
-class HotPursuit(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HotPursuit1), 5);
-class NexusOfThunder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NexusOfThunder1), new AOEShapeRect(60, 2.5f));
-class CoiledLevin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CoiledLevin1), new AOEShapeCircle(6));
+class HotPursuit(BossModule module) : Components.LocationTargetedAOEs(module, AID.HotPursuit1, 5);
+class NexusOfThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.NexusOfThunder1, new AOEShapeRect(60, 2.5f));
+class CoiledLevin(BossModule module) : Components.SelfTargetedAOEs(module, AID.CoiledLevin1, new AOEShapeCircle(6));
 class LightningVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.LightningVoidzone).Where(x => x.EventState != 7));
 
 class ThancredAI(BossModule module) : RotationModule<AutoThancred>(module);

@@ -30,12 +30,12 @@ public enum IconID : uint
     BuffetTarget = 23, // player
 }
 
-class HurlBoss(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HurlBoss), 6);
-class SpinBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpinBoss), new AOEShapeCone(30, 60.Degrees()));
-class BarbarousScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BarbarousScream), new AOEShapeCircle(13));
-class Huff(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Huff));
+class HurlBoss(BossModule module) : Components.LocationTargetedAOEs(module, AID.HurlBoss, 6);
+class SpinBoss(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpinBoss, new AOEShapeCone(30, 60.Degrees()));
+class BarbarousScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.BarbarousScream, new AOEShapeCircle(13));
+class Huff(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Huff);
 
-class Buffet(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Buffet), 20, kind: Kind.DirForward, stopAtWall: true)
+class Buffet(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Buffet, 20, kind: Kind.DirForward, stopAtWall: true)
 {
     private bool targeted;
     private Actor? target;
@@ -75,7 +75,7 @@ class Buffet(BossModule module) : Components.KnockbackFromCastTarget(module, Act
     }
 }
 
-class Buffet2(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Buffet), new AOEShapeCone(30, 60.Degrees()), true) //Boss jumps on player and does a cone attack, this is supposed to predict the position of the cone attack
+class Buffet2(BossModule module) : Components.BaitAwayCast(module, AID.Buffet, new AOEShapeCone(30, 60.Degrees()), true) //Boss jumps on player and does a cone attack, this is supposed to predict the position of the cone attack
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -101,9 +101,9 @@ class Buffet2(BossModule module) : Components.BaitAwayCast(module, ActionID.Make
     }
 }
 
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class AiravataStates : StateMachineBuilder
 {

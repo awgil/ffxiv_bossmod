@@ -18,12 +18,12 @@ public enum AID : uint
     Uplift2 = 22963, // 233C->self, 10.0s cast, range 20-30 donut
 }
 
-class Torque(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W10TrolleyTorque), new AOEShapeCircle(16));
-class Tap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W10TrolleyTap), new AOEShapeCone(8, 60.Degrees()));
-class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W10TrolleyWallop), new AOEShapeCone(40, 30.Degrees()));
-class Bulldoze(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Bulldoze), 3);
-class Bulldoze2(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Bulldoze1), 3);
-class TunnelShaker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TunnelShaker1), new AOEShapeCone(60, 15.Degrees()));
+class Torque(BossModule module) : Components.SelfTargetedAOEs(module, AID.W10TrolleyTorque, new AOEShapeCircle(16));
+class Tap(BossModule module) : Components.SelfTargetedAOEs(module, AID.W10TrolleyTap, new AOEShapeCone(8, 60.Degrees()));
+class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, AID.W10TrolleyWallop, new AOEShapeCone(40, 30.Degrees()));
+class Bulldoze(BossModule module) : Components.ChargeAOEs(module, AID.Bulldoze, 3);
+class Bulldoze2(BossModule module) : Components.ChargeAOEs(module, AID.Bulldoze1, 3);
+class TunnelShaker(BossModule module) : Components.SelfTargetedAOEs(module, AID.TunnelShaker1, new AOEShapeCone(60, 15.Degrees()));
 class Uplift(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)])
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

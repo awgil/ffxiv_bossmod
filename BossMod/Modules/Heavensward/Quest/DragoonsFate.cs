@@ -23,10 +23,10 @@ public enum SID : uint
     DeepFreeze = 3479, // Boss->10BB/player, extra=0x1
 }
 
-class SheetOfIce(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SheetOfIce), 5);
-class PillarImpact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarImpact), new AOEShapeCircle(6.5f));
-class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarPierce), new AOEShapeRect(82.5f, 2));
-class Cauterize(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(55, 10));
+class SheetOfIce(BossModule module) : Components.LocationTargetedAOEs(module, AID.SheetOfIce, 5);
+class PillarImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarImpact, new AOEShapeCircle(6.5f));
+class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarPierce, new AOEShapeRect(82.5f, 2));
+class Cauterize(BossModule module) : Components.SelfTargetedAOEs(module, AID.Cauterize, new AOEShapeRect(55, 10));
 
 class Prey(BossModule module) : BossComponent(module)
 {

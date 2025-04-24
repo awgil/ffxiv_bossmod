@@ -74,26 +74,26 @@ class CurseOfTheFallen(BossModule module) : Components.UniformStackSpread(module
     }
 }
 
-class RingOfMight1Out(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(8));
+class RingOfMight1Out(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(8));
 class NRingOfMight1Out(BossModule module) : RingOfMight1Out(module, AID.NRingOfMight1Out);
 class SRingOfMight1Out(BossModule module) : RingOfMight1Out(module, AID.SRingOfMight1Out);
 
-class RingOfMight2Out(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(13));
+class RingOfMight2Out(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(13));
 class NRingOfMight2Out(BossModule module) : RingOfMight2Out(module, AID.NRingOfMight2Out);
 class SRingOfMight2Out(BossModule module) : RingOfMight2Out(module, AID.SRingOfMight2Out);
 
-class RingOfMight3Out(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(18));
+class RingOfMight3Out(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(18));
 class NRingOfMight3Out(BossModule module) : RingOfMight3Out(module, AID.NRingOfMight3Out);
 class SRingOfMight3Out(BossModule module) : RingOfMight3Out(module, AID.SRingOfMight3Out);
 
-class RingOfMight1In(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeDonut(8, 30));
+class RingOfMight1In(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeDonut(8, 30));
 class NRingOfMight1In(BossModule module) : RingOfMight1In(module, AID.NRingOfMight1In);
 class SRingOfMight1In(BossModule module) : RingOfMight1In(module, AID.SRingOfMight1In);
 
-class RingOfMight2In(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeDonut(13, 30));
+class RingOfMight2In(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeDonut(13, 30));
 class NRingOfMight2In(BossModule module) : RingOfMight2In(module, AID.NRingOfMight2In);
 class SRingOfMight2In(BossModule module) : RingOfMight2In(module, AID.SRingOfMight2In);
 
-class RingOfMight3In(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeDonut(18, 30));
+class RingOfMight3In(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeDonut(18, 30));
 class NRingOfMight3In(BossModule module) : RingOfMight3In(module, AID.NRingOfMight3In);
 class SRingOfMight3In(BossModule module) : RingOfMight3In(module, AID.SRingOfMight3In);

@@ -9,17 +9,17 @@ public enum OID : uint
 public enum AID : uint
 {
     AncientAero = 11905, // Boss->self, 3.0s cast, range 50+R width 8 rect // casted after the KB
-    AncientAeroII = 11903, // Boss->location, 3.0s cast, range 6 circle 
+    AncientAeroII = 11903, // Boss->location, 3.0s cast, range 6 circle
     AncientAeroIII = 11904, // Boss->self, 5.0s cast, range 50+R circle // KB, not immunable (though shield on hp does block the kb)
     AutoAttack = 6499, // Boss->player, no cast, single-target
     Tornado = 11902, // Boss->player, 3.0s cast, range 6 circle // untelegraph'd circle aoe, mimimum damage
     Windage = 11906, // 23E3->self, 1.0s cast, range 6 circle // need to make this show up as a void zone while it's still up, just because they cast so quickly
 }
 
-class AncientAero(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientAero), new AOEShapeRect(52.4f, 4));
-class AncientAeroII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AncientAeroII), 6, "Get out of the aoe!");
-class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AncientAeroIII), 23.5f, true, stopAtWall: true);
-class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Tornado), 6);
+class AncientAero(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientAero, new AOEShapeRect(52.4f, 4));
+class AncientAeroII(BossModule module) : Components.LocationTargetedAOEs(module, AID.AncientAeroII, 6, "Get out of the aoe!");
+class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 23.5f, true, stopAtWall: true);
+class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, AID.Tornado, 6);
 class Windage(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(z => z.EventState != 7));
 
 class D40BhimaStates : StateMachineBuilder

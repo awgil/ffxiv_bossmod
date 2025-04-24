@@ -15,8 +15,8 @@ public enum AID : uint
     GrandStrike = 14965, // Boss->self, 2.5s cast, range 45+R width 4 rect
 }
 
-class HomingLaser(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HomingLaser), 6);
-class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrandStrike), new AOEShapeRect(48.2f, 2));
+class HomingLaser(BossModule module) : Components.SpreadFromCastTargets(module, AID.HomingLaser, 6);
+class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrandStrike, new AOEShapeRect(48.2f, 2));
 
 class D150ScholaColossusStates : StateMachineBuilder
 {
@@ -28,5 +28,5 @@ class D150ScholaColossusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 611, NameID = 7886)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 611, NameID = 7886, SortOrder = -1)]
 public class D150ScholaColossus(WorldState ws, Actor primary) : BossModule(ws, primary, new(295, -109.79f), new ArenaBoundsCircle(17));

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P4ViscousAetheroplasmApply(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.ViscousAetheroplasmApply), new AOEShapeCircle(2), (uint)OID.UltimaWeapon, originAtTarget: true);
+class P4ViscousAetheroplasmApply(BossModule module) : Components.Cleave(module, AID.ViscousAetheroplasmApply, new AOEShapeCircle(2), (uint)OID.UltimaWeapon, originAtTarget: true);
 
 // TODO: if aetheroplasm target is the same as homing laser target, assume it is being soaked solo; consider merging these two components
 class P4ViscousAetheroplasmResolve(BossModule module) : Components.UniformStackSpread(module, 4, 0, 7)

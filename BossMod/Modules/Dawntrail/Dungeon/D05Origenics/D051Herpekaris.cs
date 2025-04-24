@@ -39,10 +39,10 @@ public enum IconID : uint
     ConvulsiveCrush = 218, // player
 }
 
-class StridentShriek(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.StridentShriek));
-class PoisonHeartVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 2, ActionID.MakeSpell(AID.PoisonHeartVoidzone), m => m.Enemies(OID.VasoconstrictorVoidzone).Where(z => z.EventState != 7), 0.5f);
-class PodBurstFirst(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PodBurstFirst), 6);
-class PodBurstRest(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PodBurstRest), 6);
+class StridentShriek(BossModule module) : Components.RaidwideCast(module, AID.StridentShriek);
+class PoisonHeartVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 2, AID.PoisonHeartVoidzone, m => m.Enemies(OID.VasoconstrictorVoidzone).Where(z => z.EventState != 7), 0.5f);
+class PodBurstFirst(BossModule module) : Components.LocationTargetedAOEs(module, AID.PodBurstFirst, 6);
+class PodBurstRest(BossModule module) : Components.LocationTargetedAOEs(module, AID.PodBurstRest, 6);
 
 class WrithingRiot(BossModule module) : Components.GenericAOEs(module)
 {
@@ -80,9 +80,9 @@ class WrithingRiot(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PoisonHeartSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.PoisonHeartSpread), 5);
-class CollectiveAgony(BossModule module) : Components.SimpleLineStack(module, 4, 50, ActionID.MakeSpell(AID.CollectiveAgonyTargetSelect), ActionID.MakeSpell(AID.CollectiveAgony), 5.6f);
-class ConvulsiveCrush(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ConvulsiveCrush));
+class PoisonHeartSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.PoisonHeartSpread, 5);
+class CollectiveAgony(BossModule module) : Components.SimpleLineStack(module, 4, 50, AID.CollectiveAgonyTargetSelect, AID.CollectiveAgony, 5.6f);
+class ConvulsiveCrush(BossModule module) : Components.SingleTargetCast(module, AID.ConvulsiveCrush);
 
 class D051HerpekarisStates : StateMachineBuilder
 {

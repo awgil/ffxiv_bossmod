@@ -119,7 +119,7 @@ class AetheroChemicalLaserCombo(BossModule module) : Components.GenericAOEs(modu
     }
 }
 
-class AetherochemicalLaserLine(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherochemicalLaserCube1), new AOEShapeRect(40, 2.5f), 4)
+class AetherochemicalLaserLine(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherochemicalLaserCube1, new AOEShapeRect(40, 2.5f), 4)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -130,8 +130,8 @@ class AetherochemicalLaserLine(BossModule module) : Components.SelfTargetedAOEs(
     }
 }
 
-class HomingLasers(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HomingLaserHelper), 6);
-class Laserstream(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Laserstream));
+class HomingLasers(BossModule module) : Components.LocationTargetedAOEs(module, AID.HomingLaserHelper, 6);
+class Laserstream(BossModule module) : Components.RaidwideCast(module, AID.Laserstream);
 
 class SalvoScript(BossModule module) : Components.GenericAOEs(module)
 {
@@ -190,4 +190,3 @@ class D90AdministratorStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 905, NameID = 12102)]
 public class D90Administrator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));
-

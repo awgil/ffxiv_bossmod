@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
 // note: we start showing magic aoe only after double rush resolve
-class RubyGlow2(BossModule module) : RubyGlowCommon(module, ActionID.MakeSpell(AID.DoubleRush))
+class RubyGlow2(BossModule module) : RubyGlowCommon(module, AID.DoubleRush)
 {
     private string _hint = "";
 

@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS7StygimolochLord;
 
-class FoeSplitter(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.FoeSplitter), new AOEShapeCone(9, 45.Degrees())); // TODO: verify angle
-class ThunderousDischarge(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.ThunderousDischargeAOE));
-class ThousandTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThousandTonzeSwing), new AOEShapeCircle(20));
-class Whack(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhackAOE), new AOEShapeCone(40, 30.Degrees()));
-class DevastatingBoltOuter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DevastatingBoltOuter), new AOEShapeDonut(25, 30));
-class DevastatingBoltInner(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DevastatingBoltInner), new AOEShapeDonut(12, 17));
-class Electrocution(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Electrocution), 3);
+class FoeSplitter(BossModule module) : Components.Cleave(module, AID.FoeSplitter, new AOEShapeCone(9, 45.Degrees())); // TODO: verify angle
+class ThunderousDischarge(BossModule module) : Components.CastCounter(module, AID.ThunderousDischargeAOE);
+class ThousandTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThousandTonzeSwing, new AOEShapeCircle(20));
+class Whack(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhackAOE, new AOEShapeCone(40, 30.Degrees()));
+class DevastatingBoltOuter(BossModule module) : Components.SelfTargetedAOEs(module, AID.DevastatingBoltOuter, new AOEShapeDonut(25, 30));
+class DevastatingBoltInner(BossModule module) : Components.SelfTargetedAOEs(module, AID.DevastatingBoltInner, new AOEShapeDonut(12, 17));
+class Electrocution(BossModule module) : Components.LocationTargetedAOEs(module, AID.Electrocution, 3);
 
 // TODO: ManaFlame component - show reflect hints
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9759, PlanLevel = 80)]

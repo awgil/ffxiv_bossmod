@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
-class Gorgospit(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Gorgospit))
+class Gorgospit(BossModule module) : Components.GenericAOEs(module, AID.Gorgospit)
 {
     public List<(Actor caster, DateTime finish)> Casters = [];
 

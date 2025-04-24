@@ -256,18 +256,18 @@ class Combos(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Hellburner(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Hellburner2), new AOEShapeCircle(5), true);
-class HellburnerHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Hellburner2));
-class MissileShower(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.MissileShower), "Raidwide x2");
-class ThermobaricExplosive(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ThermobaricExplosive2), 25);
-class AssaultCarapace(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCarapace), new AOEShapeRect(60, 16, 60));
-class AssaultCarapace2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCarapace2), new AOEShapeRect(60, 16, 60));
-class AssaultCarapace3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AssaultCarapace3), new AOEShapeDonut(16, 60));
-class ForeArms(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForeArms), new AOEShapeCone(45, 90.Degrees()));
-class ForeArms2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ForeArms2), new AOEShapeCone(45, 90.Degrees()));
-class RearGuns(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RearGuns), new AOEShapeCone(45, 90.Degrees()));
-class RearGuns2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RearGuns2), new AOEShapeCone(45, 90.Degrees()));
-class FreeFallBombs(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FreeFallBombs2), 6);
+class Hellburner(BossModule module) : Components.BaitAwayCast(module, AID.Hellburner2, new AOEShapeCircle(5), true);
+class HellburnerHint(BossModule module) : Components.SingleTargetCast(module, AID.Hellburner2);
+class MissileShower(BossModule module) : Components.SingleTargetCast(module, AID.MissileShower, "Raidwide x2");
+class ThermobaricExplosive(BossModule module) : Components.LocationTargetedAOEs(module, AID.ThermobaricExplosive2, 25);
+class AssaultCarapace(BossModule module) : Components.SelfTargetedAOEs(module, AID.AssaultCarapace, new AOEShapeRect(60, 16, 60));
+class AssaultCarapace2(BossModule module) : Components.SelfTargetedAOEs(module, AID.AssaultCarapace2, new AOEShapeRect(60, 16, 60));
+class AssaultCarapace3(BossModule module) : Components.SelfTargetedAOEs(module, AID.AssaultCarapace3, new AOEShapeDonut(16, 60));
+class ForeArms(BossModule module) : Components.SelfTargetedAOEs(module, AID.ForeArms, new AOEShapeCone(45, 90.Degrees()));
+class ForeArms2(BossModule module) : Components.SelfTargetedAOEs(module, AID.ForeArms2, new AOEShapeCone(45, 90.Degrees()));
+class RearGuns(BossModule module) : Components.SelfTargetedAOEs(module, AID.RearGuns, new AOEShapeCone(45, 90.Degrees()));
+class RearGuns2(BossModule module) : Components.SelfTargetedAOEs(module, AID.RearGuns2, new AOEShapeCone(45, 90.Degrees()));
+class FreeFallBombs(BossModule module) : Components.LocationTargetedAOEs(module, AID.FreeFallBombs2, 6);
 
 class ChiStates : StateMachineBuilder
 {

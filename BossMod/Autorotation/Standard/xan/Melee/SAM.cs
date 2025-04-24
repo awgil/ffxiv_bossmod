@@ -30,9 +30,9 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.Ikishoten, AID.HissatsuSenei);
 
         def.Define(Track.Higanbana).As<OffensiveStrategy>("Higanbana")
-            .AddOption(OffensiveStrategy.Automatic, "Auto", "Keep Higanbana uptime against 1 or 2 targets")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Do not apply Higanbana")
-            .AddOption(OffensiveStrategy.Force, "Force", "Always apply Higanbana to target");
+            .AddOption(OffensiveStrategy.Automatic, "Auto", "Refresh every 60s according to standard rotation", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Don't apply")
+            .AddOption(OffensiveStrategy.Force, "Force", "Apply to target ASAP, regardless of remaining duration", supportedTargets: ActionTargets.Hostile);
 
         def.Define(Track.Enpi).As<EnpiStrategy>("Enpi")
             .AddOption(EnpiStrategy.Enhanced, "Enhanced", "Use if Enhanced Enpi is active")
@@ -154,7 +154,9 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         NumTenkaTargets = NumNearbyTargets(strategy, 8);
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, InLineAOE);
 
-        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, HiganbanaLeft, 2);
+        var dotTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Option(Track.Higanbana).Value)) ?? primaryTarget;
+
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, dotTarget, HiganbanaLeft, 2);
 
         switch (strategy.Option(Track.Higanbana).As<OffensiveStrategy>())
         {
@@ -221,10 +223,11 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         PushGCD(AID.Enpi, primaryTarget, enpiprio);
 
-        OGCD(strategy, primaryTarget);
-
         var pos = GetNextPositional(strategy);
         UpdatePositionals(primaryTarget, ref pos);
+
+        OGCD(strategy, primaryTarget);
+
         GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(NumStickers == 2 ? 8 : 5), AID.Fuga, 3, 20);
     }
 
@@ -314,7 +317,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (!HaveFugetsu || NumStickers == 0)
             return;
 
-        if (NumStickers == 1 && TargetDotLeft < 10 && FukaLeft > 0)
+        if (NumStickers == 1 && !CanFitGCD(TargetDotLeft, 1) && FukaLeft > 0)
             PushGCD(AID.Higanbana, BestDotTarget);
 
         void kaeshi()
@@ -368,8 +371,10 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (primaryTarget == null || !HaveFugetsu || !Player.InCombat)
             return;
 
-        if (strategy.BuffsOk())
+        if (strategy.BuffsOk() && Kenki <= 50)
             PushOGCD(AID.Ikishoten, Player);
+
+        Meikyo(strategy);
 
         if (Kenki >= 25 && (RaidBuffsLeft > AnimLock || RaidBuffsIn > (Unlocked(TraitID.EnhancedHissatsu) ? 40 : 100)))
         {
@@ -378,8 +383,10 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
             // queue senei since guren may not be unlocked (gated by job quest)
             PushOGCD(AID.HissatsuSenei, primaryTarget);
+
             // queue guren since senei may not be unlocked (unlocks at level 72)
-            PushOGCD(AID.HissatsuGuren, BestLineTarget);
+            if (!Unlocked(AID.HissatsuSenei))
+                PushOGCD(AID.HissatsuGuren, BestLineTarget);
         }
 
         if (Kenki >= 50 && Zanshin > 0 && ReadyIn(AID.HissatsuSenei) > 30)
@@ -389,9 +396,8 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Shoha, BestLineTarget);
 
         var saveKenki = RaidBuffsLeft <= AnimLock || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
-        var maxKenki = strategy.BuffsOk() && ReadyIn(AID.Ikishoten) < 15 ? 50 : 90;
 
-        if (Kenki >= (saveKenki ? maxKenki : 25))
+        if (Kenki >= (saveKenki ? 90 : 25))
         {
             if (NumAOECircleTargets > 2)
                 PushOGCD(AID.HissatsuKyuten, Player);
@@ -399,7 +405,8 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.HissatsuShinten, primaryTarget);
         }
 
-        Meikyo(strategy);
+        if (NextPositionalImminent && !NextPositionalCorrect)
+            PushOGCD(AID.TrueNorth, Player, -10, GCD - 0.8f);
     }
 
     private bool GrantsMeditation(AID aid) => aid is AID.MidareSetsugekka or AID.TenkaGoken or AID.Higanbana or AID.TendoSetsugekka or AID.TendoGoken or AID.OgiNamikiri;

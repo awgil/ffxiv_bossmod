@@ -28,7 +28,7 @@ class P2LightRampant(BossModule module) : BossComponent(module)
     }
 }
 
-class P2LuminousHammer(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.LuminousHammer, ActionID.MakeSpell(AID.LuminousHammer), 7.1f, true)
+class P2LuminousHammer(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.LuminousHammer, AID.LuminousHammer, 7.1f, true)
 {
     public readonly int[] BaitsPerPlayer = new int[PartyState.MaxPartySize];
     public readonly WDir[] PrevBaitOffset = new WDir[PartyState.MaxPartySize];
@@ -55,7 +55,7 @@ class P2LuminousHammer(BossModule module) : Components.BaitAwayIcon(module, new 
     }
 }
 
-class P2BrightHunger1(BossModule module) : Components.GenericTowers(module, ActionID.MakeSpell(AID.BrightHunger))
+class P2BrightHunger1(BossModule module) : Components.GenericTowers(module, AID.BrightHunger)
 {
     private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private BitMask _forbidden;
@@ -116,7 +116,7 @@ class P2BrightHunger1(BossModule module) : Components.GenericTowers(module, Acti
 }
 
 // note: we can start showing aoes ~3s earlier if we check spawns, but it's not really needed
-class P2HolyLightBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HolyLightBurst), new AOEShapeCircle(11), 3)
+class P2HolyLightBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.HolyLightBurst, new AOEShapeCircle(11), 3)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // there are dedicated components for hints
 }
@@ -138,7 +138,7 @@ class P2PowerfulLight(BossModule module) : Components.UniformStackSpread(module,
     }
 }
 
-class P2BrightHunger2(BossModule module) : Components.GenericTowers(module, ActionID.MakeSpell(AID.BrightHunger))
+class P2BrightHunger2(BossModule module) : Components.GenericTowers(module, AID.BrightHunger)
 {
     private BitMask _forbidden;
 
@@ -241,7 +241,7 @@ class P2LightRampantBanish(BossModule module) : P2Banish(module)
     }
 }
 
-class P2HouseOfLightBoss(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HouseOfLightBossAOE), false)
+class P2HouseOfLightBoss(BossModule module) : Components.GenericBaitAway(module, AID.HouseOfLightBossAOE, false)
 {
     private static readonly AOEShapeCone _shape = new(60, 30.Degrees()); // TODO: verify angle
 

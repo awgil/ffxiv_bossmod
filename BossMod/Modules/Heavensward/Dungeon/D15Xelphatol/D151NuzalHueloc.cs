@@ -28,8 +28,8 @@ public enum SID : uint
     Windburn = 269, // Boss/FloatingTurret->player, extra=0x0
 }
 
-class WindBlast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindBlast), new AOEShapeRect(60, 4));
-class HotBlast(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.HotBlast))
+class WindBlast(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindBlast, new AOEShapeRect(60, 4));
+class HotBlast(BossModule module) : Components.CastCounter(module, AID.HotBlast)
 {
     private readonly List<Actor> Casters = [];
 
@@ -96,4 +96,3 @@ public class NuzalHueloc(WorldState ws, Actor primary) : BossModule(ws, primary,
             Arena.Actor(actor, (OID)actor.OID == OID.FloatingTurret && actor.HPMP.CurHP == 1 ? ArenaColor.PlayerGeneric : ArenaColor.Enemy);
     }
 }
-

@@ -34,9 +34,9 @@ class OminousWind(BossModule module) : BossComponent(module)
     }
 }
 
-class GaleForce(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.Bombogenesis, ActionID.MakeSpell(AID.GaleForce), 8.1f, true);
+class GaleForce(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.Bombogenesis, AID.GaleForce, 8.1f, true);
 
-class VacuumClaw(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.VacuumClaw), "GTFO from voidzone!")
+class VacuumClaw(BossModule module) : Components.GenericAOEs(module, AID.VacuumClaw, "GTFO from voidzone!")
 {
     private readonly IReadOnlyList<Actor> _sources = module.Enemies(OID.VacuumClaw);
 

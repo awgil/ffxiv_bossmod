@@ -171,7 +171,10 @@ public sealed class ReplayManager : IDisposable
                 if (popup)
                 {
                     if (ImGui.MenuItem("Show"))
+                    {
                         e.Show(_rotationDB);
+                        SaveHistory();
+                    }
                     if (ImGui.MenuItem("Convert to verbose"))
                         ConvertLog(e.Replay.Result, ReplayLogFormat.TextVerbose);
                     if (ImGui.MenuItem("Convert to short text"))

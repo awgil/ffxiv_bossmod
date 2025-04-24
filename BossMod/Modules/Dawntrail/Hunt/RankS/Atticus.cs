@@ -136,8 +136,8 @@ class BreathSequence(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PyricBlast(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.PyricBlast), 6, 4);
-class Intimidation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Intimidation));
+class PyricBlast(BossModule module) : Components.StackWithCastTargets(module, AID.PyricBlast, 6, 4);
+class Intimidation(BossModule module) : Components.RaidwideCast(module, AID.Intimidation);
 
 class AtticusStates : StateMachineBuilder
 {

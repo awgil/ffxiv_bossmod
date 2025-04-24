@@ -25,7 +25,7 @@ class AzdajasShadow(BossModule module) : BossComponent(module)
     }
 }
 
-class FlamesOfEventide(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.FlamesOfEventide))
+class FlamesOfEventide(BossModule module) : Components.GenericBaitAway(module, AID.FlamesOfEventide)
 {
     private readonly int[] _playerStacks = new int[PartyState.MaxPartySize];
 

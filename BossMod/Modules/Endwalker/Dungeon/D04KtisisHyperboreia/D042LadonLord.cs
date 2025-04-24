@@ -26,7 +26,7 @@ public enum SID : uint
     Right = 2814, // none->Boss, extra=0x21A8
 }
 
-class Scratch(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Scratch));
+class Scratch(BossModule module) : Components.SingleTargetCast(module, AID.Scratch);
 
 class PyricBreath(BossModule module) : Components.GenericAOEs(module)
 {
@@ -89,9 +89,9 @@ class PyricBreath(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PyricSphere(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PyricSphere), new AOEShapeCross(50, 2));
-class PyricBlast(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.PyricBlast), 6, 4);
-class Intimidation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Intimidation));
+class PyricSphere(BossModule module) : Components.SelfTargetedAOEs(module, AID.PyricSphere, new AOEShapeCross(50, 2));
+class PyricBlast(BossModule module) : Components.StackWithCastTargets(module, AID.PyricBlast, 6, 4);
+class Intimidation(BossModule module) : Components.RaidwideCast(module, AID.Intimidation);
 
 class D042LadonLordStates : StateMachineBuilder
 {

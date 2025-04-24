@@ -30,7 +30,7 @@ public enum SID : uint
     SteelScales = 349, // Boss->Boss, extra=1-8 (num stacks)
 }
 
-class HoodSwing(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.HoodSwing), new AOEShapeCone(11, 60.Degrees()), (uint)OID.Boss) // TODO: verify angle
+class HoodSwing(BossModule module) : Components.Cleave(module, AID.HoodSwing, new AOEShapeCone(11, 60.Degrees()), (uint)OID.Boss) // TODO: verify angle
 {
     private DateTime _lastBossCast; // assume boss/add cleaves are synchronized?..
     public float SecondsUntilNextCast() => Math.Max(0, 18 - (float)(WorldState.CurrentTime - _lastBossCast).TotalSeconds);
@@ -48,9 +48,9 @@ class HoodSwing(BossModule module) : Components.Cleave(module, ActionID.MakeSpel
     }
 }
 
-class WhipBack(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WhipBack), new AOEShapeCone(9, 60.Degrees()));
-class Regorge(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Regorge), m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f);
-class Syrup(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Syrup), m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.3f);
+class WhipBack(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhipBack, new AOEShapeCone(9, 60.Degrees()));
+class Regorge(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, AID.Regorge, m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f);
+class Syrup(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, AID.Syrup, m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.3f);
 
 // TODO: merge happens if bosses are 'close enough' (threshold is >20.82 at least) or have high enough hp difference (>5% at least) and more than 20s passed since split
 class CloneMerge(BossModule module) : BossComponent(module)

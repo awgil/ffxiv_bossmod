@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
-class P2AxeKick(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AxeKick), new AOEShapeCircle(16));
-class P2ScytheKick(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheKick), new AOEShapeDonut(4, 20));
+class P2AxeKick(BossModule module) : Components.SelfTargetedAOEs(module, AID.AxeKick, new AOEShapeCircle(16));
+class P2ScytheKick(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScytheKick, new AOEShapeDonut(4, 20));
 
-class P2IcicleImpact(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.IcicleImpact))
+class P2IcicleImpact(BossModule module) : Components.GenericAOEs(module, AID.IcicleImpact)
 {
     public readonly List<AOEInstance> AOEs = []; // note: we don't remove finished aoes, since we use them in other components to detect safespots
 
@@ -45,12 +45,12 @@ class P2IcicleImpact(BossModule module) : Components.GenericAOEs(module, ActionI
     }
 }
 
-class P2FrigidNeedleCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrigidNeedleCircle), new AOEShapeCircle(5));
-class P2FrigidNeedleCross(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FrigidNeedleCross), new AOEShapeCross(40, 2.5f));
+class P2FrigidNeedleCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrigidNeedleCircle, new AOEShapeCircle(5));
+class P2FrigidNeedleCross(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrigidNeedleCross, new AOEShapeCross(40, 2.5f));
 
 class P2FrigidStone : Components.BaitAwayIcon
 {
-    public P2FrigidStone(BossModule module) : base(module, new AOEShapeCircle(5), (uint)IconID.FrigidStone, ActionID.MakeSpell(AID.FrigidStone), 8.1f, true)
+    public P2FrigidStone(BossModule module) : base(module, new AOEShapeCircle(5), (uint)IconID.FrigidStone, AID.FrigidStone, 8.1f, true)
     {
         EnableHints = false;
         IgnoreOtherBaits = true;
@@ -59,7 +59,7 @@ class P2FrigidStone : Components.BaitAwayIcon
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }
 }
 
-class P2DiamondDustHouseOfLight(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.HouseOfLight))
+class P2DiamondDustHouseOfLight(BossModule module) : Components.GenericBaitAway(module, AID.HouseOfLight)
 {
     private Actor? _source;
     private DateTime _activation;
@@ -209,7 +209,7 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
     private bool IsCardinal(WDir off) => Math.Abs(off.X) < 1 || Math.Abs(off.Z) < 1;
 }
 
-class P2HeavenlyStrike(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.HeavenlyStrike))
+class P2HeavenlyStrike(BossModule module) : Components.Knockback(module, AID.HeavenlyStrike)
 {
     private readonly WDir[] _safeDirs = BuildSafeDirs(module);
     private readonly DateTime _activation = module.WorldState.FutureTime(3.9f);
@@ -351,7 +351,7 @@ class P2SinboundHolyVoidzone(BossModule module) : Components.PersistentVoidzone(
     }
 }
 
-class P2ShiningArmor(BossModule module) : Components.GenericGaze(module, ActionID.MakeSpell(AID.ShiningArmor))
+class P2ShiningArmor(BossModule module) : Components.GenericGaze(module, AID.ShiningArmor)
 {
     private Actor? _source;
     private DateTime _activation;

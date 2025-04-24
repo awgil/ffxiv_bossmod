@@ -29,14 +29,14 @@ public enum AID : uint
     Thunder = 968, // CohortSignifer->player, 1.0s cast, single-target // N/A
 }
 
-class MagitekGunshipAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.CohortSignifer, (uint)OID.CohortSecutor, (uint)OID.CohortLaquearius, (uint)OID.CohortEques, (uint)OID.CohortVanguard]);
-class CarpetBomb(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CarpetBombLinger), 5, "Get out of the puddle, NOW!");
-class GarleanFireVoid(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, ActionID.MakeSpell(AID.GarleanFire), m => m.Enemies(OID.GarleanFireLinger).Where(z => z.EventState != 7), 0.8f);
-class AddDrillCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DrillCannons), new AOEShapeRect(32.8f, 2.5f));
-class AddOvercharge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Overcharge), new AOEShapeCone(10.8f, 60.Degrees()));
+class MagitekGunshipAdds(BossModule module) : Components.AddsMulti(module, [OID.CohortSignifer, OID.CohortSecutor, OID.CohortLaquearius, OID.CohortEques, OID.CohortVanguard]);
+class CarpetBomb(BossModule module) : Components.LocationTargetedAOEs(module, AID.CarpetBombLinger, 5, "Get out of the puddle, NOW!");
+class GarleanFireVoid(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.GarleanFire, m => m.Enemies(OID.GarleanFireLinger).Where(z => z.EventState != 7), 0.8f);
+class AddDrillCannons(BossModule module) : Components.SelfTargetedAOEs(module, AID.DrillCannons, new AOEShapeRect(32.8f, 2.5f));
+class AddOvercharge(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overcharge, new AOEShapeCone(10.8f, 60.Degrees()));
 
-class Flamethrower(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FlameThrower), new AOEShapeCone(18, 60.Degrees()));
-class FlamethrowerAOE(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FlameThrowerLinger))
+class Flamethrower(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlameThrower, new AOEShapeCone(18, 60.Degrees()));
+class FlamethrowerAOE(BossModule module) : Components.GenericAOEs(module, AID.FlameThrowerLinger)
 {
     private AOEInstance? _persistentAOE;
 

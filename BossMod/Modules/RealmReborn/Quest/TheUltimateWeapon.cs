@@ -23,7 +23,7 @@ public enum AID : uint
     GripOfNight = 29337, // Boss->self, 6.0s cast, range 40 150-degree cone
 }
 
-class BurstFlare(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BurstFlare), 10)
+class BurstFlare(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BurstFlare, 10)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -38,15 +38,15 @@ class BurstFlare(BossModule module) : Components.KnockbackFromCastTarget(module,
     }
 }
 
-class GripOfNight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GripOfNight), new AOEShapeCone(40, 75.Degrees()));
+class GripOfNight(BossModule module) : Components.SelfTargetedAOEs(module, AID.GripOfNight, new AOEShapeCone(40, 75.Degrees()));
 
-class AncientCross(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientCross), new AOEShapeCircle(6), maxCasts: 8);
+class AncientCross(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientCross, new AOEShapeCircle(6), maxCasts: 8);
 
-class AncientEruption(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AncientEruption), new AOEShapeCircle(6));
+class AncientEruption(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientEruption, new AOEShapeCircle(6));
 
-class FluidFlare(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FluidFlare), new AOEShapeCone(40, 30.Degrees()));
+class FluidFlare(BossModule module) : Components.SelfTargetedAOEs(module, AID.FluidFlare, new AOEShapeCone(40, 30.Degrees()));
 
-class FireSphere(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Burst))
+class FireSphere(BossModule module) : Components.GenericAOEs(module, AID.Burst)
 {
     private DateTime? _predictedCast;
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -69,9 +69,9 @@ class FireSphere(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
     }
 }
 
-class Nightburn(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Nightburn), "WoLbuster");
+class Nightburn(BossModule module) : Components.SingleTargetCast(module, AID.Nightburn, "WoLbuster");
 
-class AncientFire(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AncientFireIII), hint: "Raidwide + spawn deathwall");
+class AncientFire(BossModule module) : Components.RaidwideCast(module, AID.AncientFireIII, hint: "Raidwide + spawn deathwall");
 
 class DeathWall(BossModule module) : BossComponent(module)
 {
@@ -106,12 +106,12 @@ class DeathWall(BossModule module) : BossComponent(module)
     }
 }
 
-class DarkThunder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkThunder), new AOEShapeCircle(1));
+class DarkThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkThunder, new AOEShapeCircle(1));
 
 class SeaOfPitch(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.SeaOfPitch).Where(x => x.EventState != 7));
 
-class EndOfDays(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EndOfDays), new AOEShapeRect(60, 4));
-class EndOfDaysAdds(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EndOfDaysAdds), new AOEShapeRect(60, 4));
+class EndOfDays(BossModule module) : Components.SelfTargetedAOEs(module, AID.EndOfDays, new AOEShapeRect(60, 4));
+class EndOfDaysAdds(BossModule module) : Components.SelfTargetedAOEs(module, AID.EndOfDaysAdds, new AOEShapeRect(60, 4));
 
 class LahabreaStates : StateMachineBuilder
 {
@@ -137,4 +137,3 @@ class LahabreaStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70058, NameID = 2143)]
 public class Lahabrea(WorldState ws, Actor primary) : BossModule(ws, primary, new(-704, 480), new ArenaBoundsCircle(20));
-

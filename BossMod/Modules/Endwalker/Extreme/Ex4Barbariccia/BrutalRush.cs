@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
 
-class BrutalRush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrutalGust), new AOEShapeRect(40, 2))
+class BrutalRush(BossModule module) : Components.SelfTargetedAOEs(module, AID.BrutalGust, new AOEShapeRect(40, 2))
 {
     private BitMask _pendingRushes;
     public bool HavePendingRushes => _pendingRushes.Any();

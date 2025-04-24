@@ -50,7 +50,7 @@ class BlasphemousHowl(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class PetroEyes(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.PetroEyes));
+class PetroEyes(BossModule module) : Components.CastGaze(module, AID.PetroEyes);
 
 class SupayStates : StateMachineBuilder
 {

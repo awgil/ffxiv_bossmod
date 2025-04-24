@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM05SDancingGreen;
 
-class DeepCut(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 30.Degrees()), 471, ActionID.MakeSpell(AID.DeepCut));
-class DiscoInferno(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DiscoInfernal));
-class CelebrateGoodTimes(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CelebrateGoodTimes));
+class DeepCut(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 30.Degrees()), 471, AID.DeepCut);
+class DiscoInferno(BossModule module) : Components.RaidwideCast(module, AID.DiscoInfernal);
+class CelebrateGoodTimes(BossModule module) : Components.RaidwideCast(module, AID.CelebrateGoodTimes);
 
 class LetsDance(BossModule module) : Components.GenericAOEs(module)
 {
@@ -133,8 +133,8 @@ class RideTheWaves(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class QuarterBeats(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.QuarterBeats), 4, minStackSize: 2, maxStackSize: 2);
-class EighthBeats(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.EighthBeats), 5);
+class QuarterBeats(BossModule module) : Components.StackWithCastTargets(module, AID.QuarterBeats, 4, minStackSize: 2, maxStackSize: 2);
+class EighthBeats(BossModule module) : Components.SpreadFromCastTargets(module, AID.EighthBeats, 5);
 
 class Moonwalk(BossModule module) : Components.GenericAOEs(module)
 {
@@ -266,9 +266,9 @@ class BackupDance(BossModule module) : Components.GenericBaitAway(module)
 class DoTheHustle(BossModule module) : Components.GroupedAOEs(module, [AID.DoTheHustleFrogs1, AID.DoTheHustleFrogs2], new AOEShapeCone(50, 90.Degrees()), maxCasts: 2);
 class DoTheHustleBoss(BossModule module) : Components.GroupedAOEs(module, [AID.DoTheHustleBoss1, AID.DoTheHustleBoss2], new AOEShapeCone(50, 90.Degrees()));
 
-class DancingGreenStates : StateMachineBuilder
+class RM05SDancingGreenStates : StateMachineBuilder
 {
-    public DancingGreenStates(BossModule module) : base(module)
+    public RM05SDancingGreenStates(BossModule module) : base(module)
     {
         DeathPhase(0, SinglePhase)
             .ActivateOnEnter<ABSide>()
@@ -424,7 +424,7 @@ class DancingGreenStates : StateMachineBuilder
 
     private State TwistNDrop(uint id, float delay)
     {
-        CastStartMulti(id, RM05SDancingGreen.TwistNDrop.BossCasts, delay)
+        CastStartMulti(id, Savage.RM05SDancingGreen.TwistNDrop.BossCasts, delay)
             .ActivateOnEnter<TwistNDrop>()
             .ActivateOnEnter<PlayASide>()
             .ActivateOnEnter<PlayBSide>()

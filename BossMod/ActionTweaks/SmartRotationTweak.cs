@@ -6,10 +6,10 @@ class SmartRotationConfig : ConfigNode
     [PropertyDisplay("Enable the feature", tooltip: "Replace in-game 'auto face target' option with a smarter alternative.\nWhen using an action, changes direction only if target is not in frontal cone.\nDuring cast, keep character facing the target.")]
     public bool Enabled = false;
 
-    [PropertyDisplay("Automatically avoid gazes")]
+    [PropertyDisplay("Automatically avoid gazes", depends: nameof(Enabled))]
     public bool AvoidGazes = true;
 
-    [PropertyDisplay("Time before gaze activation to start avoiding")]
+    [PropertyDisplay("Time before gaze activation to start avoiding", depends: nameof(Enabled))]
     [PropertySlider(0, 10, Speed = 0.01f)]
     public float MinTimeToAvoid = 0.5f;
 }

@@ -38,7 +38,7 @@ public enum IconID : uint
     Electrosurge = 315, // player
 }
 
-class Electrowave(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Electrowave));
+class Electrowave(BossModule module) : Components.RaidwideCast(module, AID.Electrowave);
 
 class EnhancedMobility(BossModule module) : Components.GenericAOEs(module)
 {
@@ -79,9 +79,9 @@ class EnhancedMobility(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Rush(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Rush), 2.5f);
-class AerialOffensive(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AerialOffensive), 14, maxCasts: 4);
-class Electrosurge(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.ElectrosurgeAOE), 5);
+class Rush(BossModule module) : Components.ChargeAOEs(module, AID.Rush, 2.5f);
+class AerialOffensive(BossModule module) : Components.LocationTargetedAOEs(module, AID.AerialOffensive, 14, maxCasts: 4);
+class Electrosurge(BossModule module) : Components.SpreadFromCastTargets(module, AID.ElectrosurgeAOE, 5);
 
 class D041VanguardCommanderStates : StateMachineBuilder
 {

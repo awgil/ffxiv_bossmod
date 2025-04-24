@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
-class DancingFlame(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.DancingFlameFirst))
+class DancingFlame(BossModule module) : Components.GenericAOEs(module, AID.DancingFlameFirst)
 {
     public List<AOEInstance> AOEs = [];
 

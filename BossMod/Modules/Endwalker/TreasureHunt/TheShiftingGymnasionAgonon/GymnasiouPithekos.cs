@@ -28,9 +28,9 @@ public enum IconID : uint
     Thundercall = 111, // Thundercall marker
 }
 
-class Spark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30));
-class SweepingGouge(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SweepingGouge));
-class Thundercall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Thundercall), 3);
+class Spark(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spark, new AOEShapeDonut(14, 30));
+class SweepingGouge(BossModule module) : Components.SingleTargetCast(module, AID.SweepingGouge);
+class Thundercall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Thundercall, 3);
 
 class Thundercall2(BossModule module) : Components.GenericBaitAway(module)
 {
@@ -71,10 +71,10 @@ class Thundercall2(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class RockThrow(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RockThrow), 6);
-class LightningBolt2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningBolt2), 6);
-class ThunderIV(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThunderIV), new AOEShapeCircle(18));
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class RockThrow(BossModule module) : Components.LocationTargetedAOEs(module, AID.RockThrow, 6);
+class LightningBolt2(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningBolt2, 6);
+class ThunderIV(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThunderIV, new AOEShapeCircle(18));
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
 
 class PithekosStates : StateMachineBuilder
 {

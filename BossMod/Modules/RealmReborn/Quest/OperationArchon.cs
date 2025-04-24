@@ -24,16 +24,16 @@ public enum AID : uint
     GalesOfTartarus1 = 28876, // Boss->self, 6.0s cast, range 30 width 30 rect
 }
 
-class Adds(BossModule module) : Components.AddsMulti(module, [(uint)OID.ImperialCenturion, (uint)OID.ImperialPilusPrior]);
+class Adds(BossModule module) : Components.AddsMulti(module, [OID.ImperialCenturion, OID.ImperialPilusPrior]);
 
-class MagitekMissiles(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekMissiles), 7);
-class DrillShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DrillShot), new AOEShapeRect(30, 2.5f));
-class TartareanShockwave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanShockwave), new AOEShapeCircle(7));
-class BigTartareanShockwave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanShockwave1), new AOEShapeCircle(14));
-class GalesOfTartarus(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GalesOfTartarus), new AOEShapeRect(30, 2.5f));
-class BigGalesOfTartarus(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GalesOfTartarus1), new AOEShapeRect(30, 15));
+class MagitekMissiles(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekMissiles, 7);
+class DrillShot(BossModule module) : Components.SelfTargetedAOEs(module, AID.DrillShot, new AOEShapeRect(30, 2.5f));
+class TartareanShockwave(BossModule module) : Components.SelfTargetedAOEs(module, AID.TartareanShockwave, new AOEShapeCircle(7));
+class BigTartareanShockwave(BossModule module) : Components.SelfTargetedAOEs(module, AID.TartareanShockwave1, new AOEShapeCircle(14));
+class GalesOfTartarus(BossModule module) : Components.SelfTargetedAOEs(module, AID.GalesOfTartarus, new AOEShapeRect(30, 2.5f));
+class BigGalesOfTartarus(BossModule module) : Components.SelfTargetedAOEs(module, AID.GalesOfTartarus1, new AOEShapeRect(30, 15));
 class DirectionalParry(BossModule module) : Components.DirectionalParry(module, (uint)OID.Boss);
-class TartareanTomb(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanTomb), new AOEShapeCircle(11));
+class TartareanTomb(BossModule module) : Components.SelfTargetedAOEs(module, AID.TartareanTomb, new AOEShapeCircle(11));
 
 class RhitahtynSasArvinaStates : StateMachineBuilder
 {

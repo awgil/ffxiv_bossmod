@@ -11,7 +11,7 @@ class AetherstreamTether(BossModule module) : Components.BaitAwayTethers(module,
 
 class Tracheostomy : Components.SelfTargetedAOEs
 {
-    public Tracheostomy(BossModule module) : base(module, ActionID.MakeSpell(AID.Tracheostomy), new AOEShapeDonut(10, 20))
+    public Tracheostomy(BossModule module) : base(module, AID.Tracheostomy, new AOEShapeDonut(10, 20))
     {
         WorldState.Actors.EventStateChanged.Subscribe((act) =>
         {
@@ -28,18 +28,18 @@ class Tracheostomy : Components.SelfTargetedAOEs
     }
 }
 
-class RightScalpel(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightScalpel), new AOEShapeCone(15, 105.Degrees()));
-class LeftScalpel(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftScalpel), new AOEShapeCone(15, 105.Degrees()));
-class Laparotomy(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Laparotomy), new AOEShapeCone(15, 60.Degrees()));
-class Amputation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Amputation), new AOEShapeCone(20, 60.Degrees()));
+class RightScalpel(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightScalpel, new AOEShapeCone(15, 105.Degrees()));
+class LeftScalpel(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftScalpel, new AOEShapeCone(15, 105.Degrees()));
+class Laparotomy(BossModule module) : Components.SelfTargetedAOEs(module, AID.Laparotomy, new AOEShapeCone(15, 60.Degrees()));
+class Amputation(BossModule module) : Components.SelfTargetedAOEs(module, AID.Amputation, new AOEShapeCone(20, 60.Degrees()));
 
-class Hypothermia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Hypothermia));
-class Cryonics(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Cryonics), 6);
-class Craniotomy(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Craniotomy));
-class RightLeftScalpel1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightLeftScalpel), new AOEShapeCone(15, 105.Degrees()));
-class RightLeftScalpel2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightLeftScalpel1), new AOEShapeCone(15, 105.Degrees()));
-class LeftRightScalpel1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftRightScalpel), new AOEShapeCone(15, 105.Degrees()));
-class LeftRightScalpel2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LeftRightScalpel1), new AOEShapeCone(15, 105.Degrees()));
+class Hypothermia(BossModule module) : Components.RaidwideCast(module, AID.Hypothermia);
+class Cryonics(BossModule module) : Components.StackWithCastTargets(module, AID.Cryonics, 6);
+class Craniotomy(BossModule module) : Components.RaidwideCast(module, AID.Craniotomy);
+class RightLeftScalpel1(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightLeftScalpel, new AOEShapeCone(15, 105.Degrees()));
+class RightLeftScalpel2(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightLeftScalpel1, new AOEShapeCone(15, 105.Degrees()));
+class LeftRightScalpel1(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftRightScalpel, new AOEShapeCone(15, 105.Degrees()));
+class LeftRightScalpel2(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftRightScalpel1, new AOEShapeCone(15, 105.Degrees()));
 
 class EnhancedNoulith(BossModule module) : Components.Adds(module, (uint)OID.EnhancedNoulith)
 {
@@ -62,7 +62,7 @@ class EnhancedNoulith(BossModule module) : Components.Adds(module, (uint)OID.Enh
             Arena.AddLine(t.Item1.Position, t.Item2.Position, ArenaColor.Danger);
     }
 }
-class Frigotherapy(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Frigotherapy1), 5);
+class Frigotherapy(BossModule module) : Components.SpreadFromCastTargets(module, AID.Frigotherapy1, 5);
 
 class GuildivainOfTheTaintedEdgeStates : StateMachineBuilder
 {

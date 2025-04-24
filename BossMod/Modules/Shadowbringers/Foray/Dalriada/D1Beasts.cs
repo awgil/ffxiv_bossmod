@@ -96,10 +96,10 @@ class BeastTracker(BossModule module) : BossComponent(module)
     }
 }
 
-class SuppressiveMagitekRays(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SuppressiveMagitekRays));
-class SanctifiedQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SanctifiedQuakeIIIHelper));
+class SuppressiveMagitekRays(BossModule module) : Components.RaidwideCast(module, AID.SuppressiveMagitekRays);
+class SanctifiedQuake(BossModule module) : Components.RaidwideCast(module, AID.SanctifiedQuakeIIIHelper);
 
-class BallisticImpact(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BallisticImpact))
+class BallisticImpact(BossModule module) : Components.GenericAOEs(module, AID.BallisticImpact)
 {
     private readonly List<WPos> Impacts = [];
     private DateTime Activation;
@@ -130,10 +130,10 @@ class BallisticImpact(BossModule module) : Components.GenericAOEs(module, Action
     }
 }
 
-class TerminusEst(BossModule module) : Components.CastWeakpoint(module, ActionID.MakeSpell(AID.TerminusEst2), new AOEShapeRect(60, 4), 0, (uint)SID.BackUnseen, (uint)SID.LeftUnseen, (uint)SID.RightUnseen);
-class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SurfaceMissile), 6);
+class TerminusEst(BossModule module) : Components.CastWeakpoint(module, AID.TerminusEst2, new AOEShapeRect(60, 4), 0, (uint)SID.BackUnseen, (uint)SID.LeftUnseen, (uint)SID.RightUnseen);
+class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.SurfaceMissile, 6);
 
-class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.TurbineHelper), 15)
+class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TurbineHelper, 15)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -141,8 +141,8 @@ class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, Ac
             Casters.Add(caster);
     }
 }
-class FlamingCyclone(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.FlamingCyclone), new AOEShapeCircle(10));
-class A74Degrees(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.A74Degrees), new AOEShapeDonut(4, 8), centerAtTarget: true, endsOnCastEvent: true);
+class FlamingCyclone(BossModule module) : Components.StandardAOEs(module, AID.FlamingCyclone, new AOEShapeCircle(10));
+class A74Degrees(BossModule module) : Components.BaitAwayCast(module, AID.A74Degrees, new AOEShapeDonut(4, 8), centerAtTarget: true, endsOnCastEvent: true);
 class Pyroplexy(BossModule module) : Components.GenericTowers(module)
 {
     public override void OnActorEAnim(Actor actor, uint state)
@@ -223,7 +223,7 @@ class Stormcall(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class KBAware(BossModule module, ActionID action, AOEShape shape) : Components.StandardAOEs(module, action, shape)
+class KBAware(BossModule module, Enum action, AOEShape shape) : Components.StandardAOEs(module, action, shape)
 {
     private Wind? windComponent;
 
@@ -250,12 +250,12 @@ class KBAware(BossModule module, ActionID action, AOEShape shape) : Components.S
     }
 }
 
-class PainStorm(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.PainStorm), new AOEShapeCone(35, 65.Degrees()));
-class PainStorm2(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.PainStormShadow), new AOEShapeCone(35, 65.Degrees()));
-class FrigidPulse(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.FrigidPulse), new AOEShapeDonut(8, 25));
-class FrigidPulse2(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.FrigidPulseShadow), new AOEShapeDonut(8, 25));
-class BroadsideBarrage(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.BroadsideBarrage), new AOEShapeRect(40, 20));
-class PainfulGust(BossModule module) : KBAware(module, ActionID.MakeSpell(AID.PainfulGust), new AOEShapeCircle(20));
+class PainStorm(BossModule module) : KBAware(module, AID.PainStorm, new AOEShapeCone(35, 65.Degrees()));
+class PainStorm2(BossModule module) : KBAware(module, AID.PainStormShadow, new AOEShapeCone(35, 65.Degrees()));
+class FrigidPulse(BossModule module) : KBAware(module, AID.FrigidPulse, new AOEShapeDonut(8, 25));
+class FrigidPulse2(BossModule module) : KBAware(module, AID.FrigidPulseShadow, new AOEShapeDonut(8, 25));
+class BroadsideBarrage(BossModule module) : KBAware(module, AID.BroadsideBarrage, new AOEShapeRect(40, 20));
+class PainfulGust(BossModule module) : KBAware(module, AID.PainfulGust, new AOEShapeCircle(20));
 
 class FourthLegionAugurStates : StateMachineBuilder
 {
@@ -291,4 +291,3 @@ public class FourthLegionAugur(WorldState ws, Actor primary) : BossModule(ws, pr
 
     public override bool DrawAllPlayers => true;
 }
-

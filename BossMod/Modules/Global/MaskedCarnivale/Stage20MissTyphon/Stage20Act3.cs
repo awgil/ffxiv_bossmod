@@ -21,15 +21,15 @@ public enum AID : uint
     ImpSong = 14744, // 272D->self, 6.0s cast, range 50+R circle
 }
 
-class AquaBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AquaBreath), new AOEShapeCone(13.1f, 45.Degrees()));
-class Megavolt(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Megavolt), new AOEShapeCircle(11.1f));
-class Tentacle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Tentacle), new AOEShapeCircle(8));
-class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(57.2f, 5));
-class WallopKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Wallop), 20, kind: Kind.AwayFromOrigin); //knockback actually delayed by 0.8s
-class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Fireball), 8);
-class ImpSong(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ImpSong), "Interrupt Ultros!");
-class Snort(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Snort), "Use Diamondback!");
-class SnortKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Snort), 30, kind: Kind.AwayFromOrigin);  //knockback actually delayed by 0.7s
+class AquaBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.AquaBreath, new AOEShapeCone(13.1f, 45.Degrees()));
+class Megavolt(BossModule module) : Components.SelfTargetedAOEs(module, AID.Megavolt, new AOEShapeCircle(11.1f));
+class Tentacle(BossModule module) : Components.SelfTargetedAOEs(module, AID.Tentacle, new AOEShapeCircle(8));
+class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Wallop, new AOEShapeRect(57.2f, 5));
+class WallopKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Wallop, 20, kind: Kind.AwayFromOrigin); //knockback actually delayed by 0.8s
+class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, AID.Fireball, 8);
+class ImpSong(BossModule module) : Components.CastHint(module, AID.ImpSong, "Interrupt Ultros!");
+class Snort(BossModule module) : Components.CastHint(module, AID.Snort, "Use Diamondback!");
+class SnortKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Snort, 30, kind: Kind.AwayFromOrigin);  //knockback actually delayed by 0.7s
 
 class Hints(BossModule module) : BossComponent(module)
 {

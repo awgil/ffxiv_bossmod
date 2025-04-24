@@ -15,7 +15,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();
-    private readonly DebugEnvControl _debugEnvControl = new();
+    private readonly DebugEnvControl _debugEnvControl = new(ws);
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new();
@@ -24,14 +24,15 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugAddon _debugAddon = new();
     private readonly DebugTiming _debugTiming = new();
     private readonly DebugQuests _debugQuests = new();
-    //private readonly DebugVfx _debugVfx = new();
+    private readonly DebugVfx _debugVfx = new();
 
     protected override void Dispose(bool disposing)
     {
         _debugAction.Dispose();
         _debugInput.Dispose();
         _debugAddon.Dispose();
-        //_debugVfx.Dispose();
+        _debugEnvControl.Dispose();
+        _debugVfx.Dispose();
         base.Dispose(disposing);
     }
 
@@ -162,10 +163,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             DrawWindowSystem();
         }
-        //if (ImGui.CollapsingHeader("VFX"))
-        //{
-        //    _debugVfx.Draw();
-        //}
+        if (ImGui.CollapsingHeader("VFX"))
+        {
+            _debugVfx.Draw();
+        }
         if (ImGui.CollapsingHeader("Limit break"))
         {
             DrawLimitBreak();

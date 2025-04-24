@@ -35,14 +35,14 @@ public enum IconID : uint
     Spreadmarker = 139, // player
 }
 
-class VenomousBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VenomousBreath), new AOEShapeCone(9, 60.Degrees()));
-class MeteorRain(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MeteorRain), 6);
-class TheFallingSky(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TheFallingSky), 10);
-class CosmicKiss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CosmicKiss), new AOEShapeCircle(10));
-class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Towerfall), new AOEShapeRect(35, 20));
-class Earthquake(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Earthquake), new AOEShapeCircle(10));
-class TheBurningSky1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TheBurningSky1), 6);
-class TheBurningSky2(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.TheBurningSky2), 6);
+class VenomousBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.VenomousBreath, new AOEShapeCone(9, 60.Degrees()));
+class MeteorRain(BossModule module) : Components.LocationTargetedAOEs(module, AID.MeteorRain, 6);
+class TheFallingSky(BossModule module) : Components.LocationTargetedAOEs(module, AID.TheFallingSky, 10);
+class CosmicKiss(BossModule module) : Components.SelfTargetedAOEs(module, AID.CosmicKiss, new AOEShapeCircle(10));
+class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, AID.Towerfall, new AOEShapeRect(35, 20));
+class Earthquake(BossModule module) : Components.SelfTargetedAOEs(module, AID.Earthquake, new AOEShapeCircle(10));
+class TheBurningSky1(BossModule module) : Components.LocationTargetedAOEs(module, AID.TheBurningSky1, 6);
+class TheBurningSky2(BossModule module) : Components.SpreadFromCastTargets(module, AID.TheBurningSky2, 6);
 
 class Meteors(BossModule module) : Components.GenericBaitAway(module)
 {
@@ -81,7 +81,7 @@ class Meteors(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class TheFinalSky(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.TheFinalSky), 70, false)
+class TheFinalSky(BossModule module) : Components.CastLineOfSightAOE(module, AID.TheFinalSky, 70, false)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.FallenStar);
 }

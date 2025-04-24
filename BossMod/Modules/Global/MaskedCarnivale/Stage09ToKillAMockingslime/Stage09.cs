@@ -25,11 +25,11 @@ public enum AID : uint
     Water = 14271, // 2716->player, 1.0s cast, single-target
 }
 
-class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increase its magic damage");
+class GoldenTongue(BossModule module) : Components.CastHint(module, AID.GoldenTongue, "Can be interrupted, increase its magic damage");
 
-class DarkVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, ActionID.MakeSpell(AID.Dark), m => m.Enemies(OID.DarkVoidzone), 0);
+class DarkVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, AID.Dark, m => m.Enemies(OID.DarkVoidzone), 0);
 
-class Dark(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Dark), 5);
+class Dark(BossModule module) : Components.LocationTargetedAOEs(module, AID.Dark, 5);
 
 class Hints(BossModule module) : BossComponent(module)
 {

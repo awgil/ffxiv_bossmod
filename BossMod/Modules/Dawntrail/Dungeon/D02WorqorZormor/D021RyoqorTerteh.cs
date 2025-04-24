@@ -36,9 +36,9 @@ public enum TetherID : uint
     Freeze = 272, // RorrlohTeh/QorrlohTeh->Boss
 }
 
-class FrostingFracas(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FrostingFracasAOE));
+class FrostingFracas(BossModule module) : Components.RaidwideCast(module, AID.FrostingFracasAOE);
 
-abstract class FreezableAOEs(BossModule module, ActionID action, AOEShape shape) : Components.GenericAOEs(module, action)
+abstract class FreezableAOEs(BossModule module, Enum action, AOEShape shape) : Components.GenericAOEs(module, action)
 {
     private readonly List<AOEInstance> _aoes = [];
     private int _numFrozen;
@@ -73,11 +73,11 @@ abstract class FreezableAOEs(BossModule module, ActionID action, AOEShape shape)
         }
     }
 }
-class IceScream(BossModule module) : FreezableAOEs(module, ActionID.MakeSpell(AID.IceScream), new AOEShapeRect(20, 10));
-class FrozenSwirl(BossModule module) : FreezableAOEs(module, ActionID.MakeSpell(AID.FrozenSwirl), new AOEShapeCircle(15)); // note that helpers that cast visual cast are tethered
+class IceScream(BossModule module) : FreezableAOEs(module, AID.IceScream, new AOEShapeRect(20, 10));
+class FrozenSwirl(BossModule module) : FreezableAOEs(module, AID.FrozenSwirl, new AOEShapeCircle(15)); // note that helpers that cast visual cast are tethered
 
-class SnowBoulder(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SnowBoulder), new AOEShapeRect(50, 3), 6);
-class SparklingSprinkling(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.SparklingSprinklingAOE), 5);
+class SnowBoulder(BossModule module) : Components.SelfTargetedAOEs(module, AID.SnowBoulder, new AOEShapeRect(50, 3), 6);
+class SparklingSprinkling(BossModule module) : Components.SpreadFromCastTargets(module, AID.SparklingSprinklingAOE, 5);
 
 class D021RyoqorTertehStates : StateMachineBuilder
 {

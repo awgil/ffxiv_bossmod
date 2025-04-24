@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex2ZoraalJa;
 
-class ChasmOfVollokFangSmall(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ChasmOfVollokFangSmallAOE))
+class ChasmOfVollokFangSmall(BossModule module) : Components.GenericAOEs(module, AID.ChasmOfVollokFangSmallAOE)
 {
     public readonly List<AOEInstance> AOEs = [];
 
@@ -21,7 +21,7 @@ class ChasmOfVollokFangSmall(BossModule module) : Components.GenericAOEs(module,
 }
 
 // note: we can start showing aoes earlier, right when fang actors spawn
-class ChasmOfVollokFangLarge(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ChasmOfVollokFangLargeAOE))
+class ChasmOfVollokFangLarge(BossModule module) : Components.GenericAOEs(module, AID.ChasmOfVollokFangLargeAOE)
 {
     public readonly List<AOEInstance> AOEs = [];
 
@@ -43,7 +43,7 @@ class ChasmOfVollokFangLarge(BossModule module) : Components.GenericAOEs(module,
     }
 }
 
-class ChasmOfVollokPlayer(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.ChasmOfVollokPlayer), "GTFO from occupied cell!")
+class ChasmOfVollokPlayer(BossModule module) : Components.GenericAOEs(module, AID.ChasmOfVollokPlayer, "GTFO from occupied cell!")
 {
     public bool Active;
     private readonly List<Actor> _targets = [];

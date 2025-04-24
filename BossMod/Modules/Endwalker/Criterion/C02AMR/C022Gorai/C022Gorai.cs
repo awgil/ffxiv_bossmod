@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C022Gorai;
 
-class Unenlightenment(BossModule module, AID aid) : Components.CastCounter(module, ActionID.MakeSpell(aid));
+class Unenlightenment(BossModule module, AID aid) : Components.CastCounter(module, aid);
 class NUnenlightenment(BossModule module) : Unenlightenment(module, AID.NUnenlightenmentAOE);
 class SUnenlightenment(BossModule module) : Unenlightenment(module, AID.SUnenlightenmentAOE);
 

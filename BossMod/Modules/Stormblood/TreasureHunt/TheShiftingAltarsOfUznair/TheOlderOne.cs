@@ -42,20 +42,20 @@ public enum AID : uint
     Telega = 9630, // bonusadds->self, no cast, single-target, bonus add disappear
 }
 
-class MysticLight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MysticLight), new AOEShapeCone(45.06f, 30.Degrees()));
-class MysticFlame(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MysticFlame2), 7);
-class MysticHeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MysticHeat), new AOEShapeRect(41.72f, 1.5f));
-class SelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SelfDetonate), new AOEShapeCircle(10.72f));
-class MysticLevin(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MysticLevin));
-class MysticFlash(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.MysticFlash));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
+class MysticLight(BossModule module) : Components.SelfTargetedAOEs(module, AID.MysticLight, new AOEShapeCone(45.06f, 30.Degrees()));
+class MysticFlame(BossModule module) : Components.LocationTargetedAOEs(module, AID.MysticFlame2, 7);
+class MysticHeat(BossModule module) : Components.SelfTargetedAOEs(module, AID.MysticHeat, new AOEShapeRect(41.72f, 1.5f));
+class SelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, AID.SelfDetonate, new AOEShapeCircle(10.72f));
+class MysticLevin(BossModule module) : Components.RaidwideCast(module, AID.MysticLevin);
+class MysticFlash(BossModule module) : Components.SingleTargetDelayableCast(module, AID.MysticFlash);
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class TheOlderOneStates : StateMachineBuilder
 {

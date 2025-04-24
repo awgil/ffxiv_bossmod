@@ -5,7 +5,7 @@
 // 0 1
 // 2 3
 // for diagonal, quadrant for coordinate is whatever cell is fully contained (so e.g. for DiagNW quadrant is either 1 or 2)
-abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = default) : Components.GenericAOEs(module, watchedAction)
+abstract class RubyGlowCommon(BossModule module, Enum? watchedAction = default) : Components.GenericAOEs(module, watchedAction)
 {
     public enum ArenaState { Normal, Cells, DiagNW, DiagNE } // DiagNW == NW to SE, etc
 
@@ -133,7 +133,7 @@ abstract class RubyGlowCommon(BossModule module, ActionID watchedAction = defaul
 // common features for ruby glow 4 & 6 (ones that feature recoloring)
 // this includes venom pools and raging claw/searing ray aoes
 // note: we show circles around healers until cast happens
-abstract class RubyGlowRecolor(BossModule module, int expectedMagicStones) : RubyGlowCommon(module, ActionID.MakeSpell(AID.VenomPoolRecolorAOE))
+abstract class RubyGlowRecolor(BossModule module, int expectedMagicStones) : RubyGlowCommon(module, AID.VenomPoolRecolorAOE)
 {
     public enum RecolorState { BeforeStones, BeforeRecolor, Done }
 

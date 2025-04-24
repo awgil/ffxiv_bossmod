@@ -24,11 +24,11 @@ public enum AID : uint
     Object199 = 1229, // Boss->self, no cast, enrage
 }
 
-class HighVoltage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.HighVoltage), "Interruptible");
-class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RepellingCannons), new AOEShapeCircle(8.3f));
-class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(32.3f, 3));
-class DirtyCannons(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DirtyCannons), new AOEShapeCircle(5.15f));
-class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.GravityField), m => m.Enemies(OID.GravityField), 1);
+class HighVoltage(BossModule module) : Components.CastHint(module, AID.HighVoltage, "Interruptible");
+class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, AID.RepellingCannons, new AOEShapeCircle(8.3f));
+class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingLaser, new AOEShapeRect(32.3f, 3));
+class DirtyCannons(BossModule module) : Components.SelfTargetedAOEs(module, AID.DirtyCannons, new AOEShapeCircle(5.15f));
+class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.GravityField, m => m.Enemies(OID.GravityField), 1);
 
 // TODO: chain lightning?..
 

@@ -19,18 +19,18 @@ public enum AID : uint
     Antipressure = 31208, // Helper->players, 7.0s cast, range 6 circle
 }
 
-class EyeOfTroia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.EyeOfTroia));
-class DeathForeseen(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DeathForeseen));
-class DeathForeseen1(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DeathForeseenRing))
+class EyeOfTroia(BossModule module) : Components.RaidwideCast(module, AID.EyeOfTroia);
+class DeathForeseen(BossModule module) : Components.CastGaze(module, AID.DeathForeseen);
+class DeathForeseen1(BossModule module) : Components.CastGaze(module, AID.DeathForeseenRing)
 {
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor) => base.ActiveEyes(slot, actor).Take(2);
 }
-class BeatificScorn(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BeatificScorn), new AOEShapeCircle(9), maxCasts: 5);
-class Hush(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Hush));
-class Voidshaker(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Voidshaker), new AOEShapeCone(20, 60.Degrees()));
-class VoidNail(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.VoidNail), 6);
-class ToricVoid(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ToricVoid), new AOEShapeDonut(10, 20));
-class Antipressure(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Antipressure), 6);
+class BeatificScorn(BossModule module) : Components.SelfTargetedAOEs(module, AID.BeatificScorn, new AOEShapeCircle(9), maxCasts: 5);
+class Hush(BossModule module) : Components.SingleTargetCast(module, AID.Hush);
+class Voidshaker(BossModule module) : Components.SelfTargetedAOEs(module, AID.Voidshaker, new AOEShapeCone(20, 60.Degrees()));
+class VoidNail(BossModule module) : Components.SpreadFromCastTargets(module, AID.VoidNail, 6);
+class ToricVoid(BossModule module) : Components.SelfTargetedAOEs(module, AID.ToricVoid, new AOEShapeDonut(10, 20));
+class Antipressure(BossModule module) : Components.StackWithCastTargets(module, AID.Antipressure, 6);
 
 class BeatriceStates : StateMachineBuilder
 {
@@ -52,4 +52,3 @@ class BeatriceStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11384)]
 public class Beatrice(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -148), new ArenaBoundsCircle(20));
-

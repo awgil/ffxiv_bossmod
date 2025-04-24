@@ -7,7 +7,7 @@ class OutOfCombatActionsConfig : ConfigNode
     public bool Enabled = false;
 
     // changed name so that it's treated as a new option (that's set to false) since everyone hates this feature and it's extremely hard to find in the settings
-    [PropertyDisplay("Auto use Peloton when moving out of combat", since: "0.0.0.294")]
+    [PropertyDisplay("Auto use Peloton when moving out of combat", since: "0.0.0.294", depends: nameof(Enabled))]
     public bool AutoPeloton2 = false;
 }
 

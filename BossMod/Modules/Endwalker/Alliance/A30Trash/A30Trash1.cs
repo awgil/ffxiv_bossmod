@@ -21,11 +21,11 @@ public enum AID : uint
     DivineBurst = 35441, // DivineSprite->self, no cast, range 40 circle, raidwide when Divine Sprite dies
 }
 
-class WaterIII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WaterIII), 8);
-class PelagicCleaver1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver1), new AOEShapeCone(40, 30.Degrees())); // note: it's interruptible, but that's not worth the hint
-class PelagicCleaver2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PelagicCleaver2), new AOEShapeCone(40, 30.Degrees())); // note: it's interruptible, but that's not worth the hint
-class WaterFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WaterFlood), new AOEShapeCircle(6));
-class DivineFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivineFlood), new AOEShapeCircle(6));
+class WaterIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.WaterIII, 8);
+class PelagicCleaver1(BossModule module) : Components.SelfTargetedAOEs(module, AID.PelagicCleaver1, new AOEShapeCone(40, 30.Degrees())); // note: it's interruptible, but that's not worth the hint
+class PelagicCleaver2(BossModule module) : Components.SelfTargetedAOEs(module, AID.PelagicCleaver2, new AOEShapeCone(40, 30.Degrees())); // note: it's interruptible, but that's not worth the hint
+class WaterFlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.WaterFlood, new AOEShapeCircle(6));
+class DivineFlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineFlood, new AOEShapeCircle(6));
 
 public class A30Trash1States : StateMachineBuilder
 {

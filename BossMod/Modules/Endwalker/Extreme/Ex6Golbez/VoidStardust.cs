@@ -34,4 +34,4 @@ class VoidStardust(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class AbyssalQuasar(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.AbyssalQuasar), 3, 2);
+class AbyssalQuasar(BossModule module) : Components.StackWithCastTargets(module, AID.AbyssalQuasar, 3, 2);

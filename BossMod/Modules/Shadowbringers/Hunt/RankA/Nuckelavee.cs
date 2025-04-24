@@ -14,8 +14,8 @@ public enum AID : uint
     Spite = 18037, // 288F->self, no cast, range 8 circle
 }
 
-class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Torpedo));
-class BogBody(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.BogBody), 5);
+class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Torpedo);
+class BogBody(BossModule module) : Components.SpreadFromCastTargets(module, AID.BogBody, 5);
 
 class Spite(BossModule module) : Components.GenericAOEs(module)
 {

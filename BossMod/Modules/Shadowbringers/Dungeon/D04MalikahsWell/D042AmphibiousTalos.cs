@@ -76,12 +76,12 @@ class SwiftSpillRotation(BossModule module) : Components.GenericRotatingAOE(modu
     }
 }
 
-class Efface(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Efface));
-class HighPressureRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.HighPressure));
-class HighPressureKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HighPressure), 20, stopAtWall: true);
-class GeyserEruption(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GeyserEruption), new AOEShapeCircle(8));
+class Efface(BossModule module) : Components.SingleTargetCast(module, AID.Efface);
+class HighPressureRaidwide(BossModule module) : Components.RaidwideCast(module, AID.HighPressure);
+class HighPressureKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HighPressure, 20, stopAtWall: true);
+class GeyserEruption(BossModule module) : Components.SelfTargetedAOEs(module, AID.GeyserEruption, new AOEShapeCircle(8));
 class Geysers(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Geyser).Where(v => v.EventState != 7));
-class Wellbore(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wellbore), new AOEShapeCircle(15));
+class Wellbore(BossModule module) : Components.SelfTargetedAOEs(module, AID.Wellbore, new AOEShapeCircle(15));
 
 class D042AmphibiousTalosStates : StateMachineBuilder
 {

@@ -20,7 +20,7 @@ public enum AID : uint
     ApplyPrey = 27229, // Boss->player, 0.5s cast, single-target
 }
 
-class Twister(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Twister), 20, shape: new AOEShapeCircle(8))
+class Twister(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Twister, 20, shape: new AOEShapeCircle(8))
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -44,10 +44,10 @@ class Twister(BossModule module) : Components.KnockbackFromCastTarget(module, Ac
     }
 }
 
-class Spark(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spark), new AOEShapeDonut(14, 30));
-class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScytheTail), new AOEShapeCircle(17));
+class Spark(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spark, new AOEShapeDonut(14, 30));
+class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScytheTail, new AOEShapeCircle(17));
 
-class Butcher(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Butcher), new AOEShapeCone(8, 60.Degrees()), endsOnCastEvent: true)
+class Butcher(BossModule module) : Components.BaitAwayCast(module, AID.Butcher, new AOEShapeCone(8, 60.Degrees()), endsOnCastEvent: true)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -56,10 +56,10 @@ class Butcher(BossModule module) : Components.BaitAwayCast(module, ActionID.Make
     }
 }
 
-class Rip(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Rip), new AOEShapeCone(8, 60.Degrees()));
+class Rip(BossModule module) : Components.SelfTargetedAOEs(module, AID.Rip, new AOEShapeCone(8, 60.Degrees()));
 
 // TODO: generalize to baited aoe
-class RockThrow(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.RockThrowRest))
+class RockThrow(BossModule module) : Components.GenericAOEs(module, AID.RockThrowRest)
 {
     private Actor? _target;
     private static readonly AOEShapeCircle _shape = new(6);
@@ -101,7 +101,7 @@ class RockThrow(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     private bool Active() => (Module.PrimaryActor.CastInfo?.IsSpell() ?? false) && (AID)Module.PrimaryActor.CastInfo!.Action.ID is AID.RockThrowFirst or AID.RockThrowRest;
 }
 
-class Crosswind(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Crosswind));
+class Crosswind(BossModule module) : Components.RaidwideCast(module, AID.Crosswind);
 
 class SugrivaStates : StateMachineBuilder
 {

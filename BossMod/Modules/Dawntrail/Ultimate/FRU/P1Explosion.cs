@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
-class P1ExplosionBurntStrikeFire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionBurntStrikeFire), new AOEShapeRect(40, 5, 40));
-class P1ExplosionBurntStrikeLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionBurntStrikeLightning), new AOEShapeRect(40, 5, 40));
-class P1ExplosionBurnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ExplosionBurnout), new AOEShapeRect(40, 10, 40));
+class P1ExplosionBurntStrikeFire(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosionBurntStrikeFire, new AOEShapeRect(40, 5, 40));
+class P1ExplosionBurntStrikeLightning(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosionBurntStrikeLightning, new AOEShapeRect(40, 5, 40));
+class P1ExplosionBurnout(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosionBurnout, new AOEShapeRect(40, 10, 40));
 
 // TODO: non-fixed conga?
 class P1Explosion(BossModule module) : Components.GenericTowers(module)

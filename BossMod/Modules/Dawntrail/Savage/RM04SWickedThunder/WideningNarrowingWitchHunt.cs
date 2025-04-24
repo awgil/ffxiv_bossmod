@@ -33,7 +33,7 @@ class WideningNarrowingWitchHunt(BossModule module) : Components.GenericAOEs(mod
     }
 }
 
-class WideningNarrowingWitchHuntBait(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.WitchHuntAOE), centerAtTarget: true)
+class WideningNarrowingWitchHuntBait(BossModule module) : Components.GenericBaitAway(module, AID.WitchHuntAOE, centerAtTarget: true)
 {
     public enum Mechanic { None, Near, Far }
 

@@ -19,12 +19,12 @@ public enum AID : uint
 
 }
 
-class TheRamsKeeper(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, ActionID.MakeSpell(AID.TheRamsKeeper), m => m.Enemies(OID.Voidzone), 0);
-class TheRamsKeeperHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TheRamsKeeper), "Interrupt");
-class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheRamsVoice), new AOEShapeCircle(9));
-class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDragonsVoice), new AOEShapeDonut(8, 30));
-class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Icefall), 5);
-class VoidBlizzard(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.VoidBlizzard), "Interrupt");
+class TheRamsKeeper(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, AID.TheRamsKeeper, m => m.Enemies(OID.Voidzone), 0);
+class TheRamsKeeperHint(BossModule module) : Components.CastHint(module, AID.TheRamsKeeper, "Interrupt");
+class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(9));
+class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8, 30));
+class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Icefall, 5);
+class VoidBlizzard(BossModule module) : Components.CastHint(module, AID.VoidBlizzard, "Interrupt");
 
 class Hints(BossModule module) : BossComponent(module)
 {

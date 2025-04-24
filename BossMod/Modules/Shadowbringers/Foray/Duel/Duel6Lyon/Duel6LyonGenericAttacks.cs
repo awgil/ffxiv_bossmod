@@ -38,7 +38,7 @@ class OnFire(BossModule module) : BossComponent(module)
     }
 }
 
-class WildfiresFury(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WildfiresFury));
+class WildfiresFury(BossModule module) : Components.RaidwideCast(module, AID.WildfiresFury);
 
 class HeavenAndEarth(BossModule module) : Components.GenericRotatingAOE(module)
 {
@@ -105,9 +105,9 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
     }
 }
 
-class CagedHeartOfNature(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CagedHeartOfNature), new AOEShapeCircle(6));
+class CagedHeartOfNature(BossModule module) : Components.SelfTargetedAOEs(module, AID.CagedHeartOfNature, new AOEShapeCircle(6));
 
-class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5));
+class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindsPeak1, new AOEShapeCircle(5));
 
 class WindsPeakKB(BossModule module) : Components.Knockback(module)
 {
@@ -132,7 +132,7 @@ class WindsPeakKB(BossModule module) : Components.Knockback(module)
     }
 }
 
-class SplittingRage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SplittingRage), "Applies temporary misdirection");
+class SplittingRage(BossModule module) : Components.CastHint(module, AID.SplittingRage, "Applies temporary misdirection");
 
 class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
 {
@@ -170,9 +170,9 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     }
 }
 
-class MoveMountains(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MoveMountains3), new AOEShapeRect(40, 3))
+class MoveMountains(BossModule module) : Components.SelfTargetedAOEs(module, AID.MoveMountains3, new AOEShapeRect(40, 3))
 {
     // TODO predict rotation
 }
 
-class WildfireCrucible(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.WildfireCrucible), "Enrage!", true);
+class WildfireCrucible(BossModule module) : Components.CastHint(module, AID.WildfireCrucible, "Enrage!", true);

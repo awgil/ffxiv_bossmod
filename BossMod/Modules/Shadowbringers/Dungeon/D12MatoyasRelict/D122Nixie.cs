@@ -88,7 +88,7 @@ class Gurgle(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Sputter(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Sputter), 6);
+class Sputter(BossModule module) : Components.SpreadFromCastTargets(module, AID.Sputter, 6);
 
 class Geyser(BossModule module) : BossComponent(module)
 {
@@ -204,4 +204,3 @@ public class Nixie(WorldState ws, Actor primary) : BossModule(ws, primary, Groun
         Arena.Actors(Enemies(OID.UnfinishedNixie), ArenaColor.Enemy);
     }
 }
-

@@ -17,11 +17,11 @@ public enum AID : uint
     WordsOfWoe = 11920, // Boss->self, 3.0s cast, range 45+R width 6 rect // untelegraph'd
 }
 
-class EyeoftheFire(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EyeOfTheFire));
-class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RustingClaw), new AOEShapeCone(11.45f, 60.Degrees()));
-class TheSpin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheSpin), new AOEShapeCircle(20));
+class EyeoftheFire(BossModule module) : Components.CastGaze(module, AID.EyeOfTheFire);
+class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.RustingClaw, new AOEShapeCone(11.45f, 60.Degrees()));
+class TheSpin(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheSpin, new AOEShapeCircle(20));
 class VoidSpark(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Gloom).Where(z => z.EventState != 7));
-class WordsofWoe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WordsOfWoe), new AOEShapeRect(48.45f, 3));
+class WordsofWoe(BossModule module) : Components.SelfTargetedAOEs(module, AID.WordsOfWoe, new AOEShapeRect(48.45f, 3));
 
 class D50GozuStates : StateMachineBuilder
 {

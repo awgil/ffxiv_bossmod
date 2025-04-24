@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A13ArkAngels;
 
-class ArroganceIncarnate(BossModule module) : Components.StackWithIcon(module, (uint)IconID.ArroganceIncarnate, ActionID.MakeSpell(AID.ArroganceIncarnateAOE), 6, 5.8f, 8)
+class ArroganceIncarnate(BossModule module) : Components.StackWithIcon(module, (uint)IconID.ArroganceIncarnate, AID.ArroganceIncarnateAOE, 6, 5.8f, 8)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

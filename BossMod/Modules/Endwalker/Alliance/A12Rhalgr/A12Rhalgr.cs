@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Endwalker.Alliance.A12Rhalgr;
 
-class DestructiveBolt(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DestructiveBoltAOE), 3);
-class StrikingMeteor(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.StrikingMeteor), 6);
-class BronzeLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BronzeLightning), new AOEShapeCone(50, 22.5f.Degrees()), 4);
+class DestructiveBolt(BossModule module) : Components.SpreadFromCastTargets(module, AID.DestructiveBoltAOE, 3);
+class StrikingMeteor(BossModule module) : Components.LocationTargetedAOEs(module, AID.StrikingMeteor, 6);
+class BronzeLightning(BossModule module) : Components.SelfTargetedAOEs(module, AID.BronzeLightning, new AOEShapeCone(50, 22.5f.Degrees()), 4);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11273, SortOrder = 3)]
 public class A12Rhalgr(WorldState ws, Actor primary) : BossModule(ws, primary, new(-15, 275), new ArenaBoundsSquare(30)) // note: arena has a really complex shape...

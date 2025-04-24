@@ -69,12 +69,12 @@ class QueerBubble(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MeaninglessDestruction(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MeaninglessDestruction));
-class PoisonHeartStack(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.PoisonHeartStack), 6, 4, 4);
-class TotalWreck(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TotalWreck));
-class AetherSprayWater(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AetherSprayWater));
-class AetherSprayFire(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AetherSprayFire), "Go into a bubble! (Raidwide)");
-class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.AetherSprayWater), 13)
+class MeaninglessDestruction(BossModule module) : Components.RaidwideCast(module, AID.MeaninglessDestruction);
+class PoisonHeartStack(BossModule module) : Components.StackWithCastTargets(module, AID.PoisonHeartStack, 6, 4, 4);
+class TotalWreck(BossModule module) : Components.SingleTargetCast(module, AID.TotalWreck);
+class AetherSprayWater(BossModule module) : Components.RaidwideCast(module, AID.AetherSprayWater);
+class AetherSprayFire(BossModule module) : Components.RaidwideCast(module, AID.AetherSprayFire, "Go into a bubble! (Raidwide)");
+class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherSprayWater, 13)
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<QueerBubble>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
     private static readonly Dictionary<object, object> cache = [];

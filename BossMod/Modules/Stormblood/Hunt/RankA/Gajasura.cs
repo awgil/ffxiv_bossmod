@@ -13,9 +13,9 @@ public enum AID : uint
     Buffet = 8189, // 1ABF->none, 3.0s cast, single-target, randomly hits a target that isn't tanking, only happens when at least 2 actors are in combat with Gajasura (chocobos count)
 }
 
-class Spin(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(8.23f, 60.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Buffet(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Buffet), "Heavy damage on random target (except tank)");
+class Spin(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spin, new AOEShapeCone(8.23f, 60.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class Buffet(BossModule module) : Components.SingleTargetCast(module, AID.Buffet, "Heavy damage on random target (except tank)");
 
 class GajasuraStates : StateMachineBuilder
 {

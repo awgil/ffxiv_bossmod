@@ -196,11 +196,11 @@ public class UniformStackSpread(BossModule module, float stackRadius, float spre
 }
 
 // spread/stack mechanic that selects targets by casts
-public class CastStackSpread(BossModule module, ActionID stackAID, ActionID spreadAID, float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
+public class CastStackSpread(BossModule module, Enum? stackAID, Enum? spreadAID, float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
     : UniformStackSpread(module, stackRadius, spreadRadius, minStackSize, maxStackSize, alwaysShowSpreads)
 {
-    public ActionID StackAction { get; init; } = stackAID;
-    public ActionID SpreadAction { get; init; } = spreadAID;
+    public ActionID StackAction { get; init; } = ActionID.MakeSpell(stackAID);
+    public ActionID SpreadAction { get; init; } = ActionID.MakeSpell(spreadAID);
     public int NumFinishedStacks { get; protected set; }
     public int NumFinishedSpreads { get; protected set; }
 
@@ -232,19 +232,19 @@ public class CastStackSpread(BossModule module, ActionID stackAID, ActionID spre
 }
 
 // generic 'spread from targets of specific cast' mechanic
-public class SpreadFromCastTargets(BossModule module, ActionID aid, float radius, bool drawAllSpreads = true) : CastStackSpread(module, default, aid, 0, radius, alwaysShowSpreads: drawAllSpreads);
+public class SpreadFromCastTargets(BossModule module, Enum aid, float radius, bool drawAllSpreads = true) : CastStackSpread(module, default, aid, 0, radius, alwaysShowSpreads: drawAllSpreads);
 
 // generic 'stack with targets of specific cast' mechanic
-public class StackWithCastTargets(BossModule module, ActionID aid, float radius, int minStackSize = 2, int maxStackSize = int.MaxValue) : CastStackSpread(module, aid, default, radius, 0, minStackSize, maxStackSize);
+public class StackWithCastTargets(BossModule module, Enum aid, float radius, int minStackSize = 2, int maxStackSize = int.MaxValue) : CastStackSpread(module, aid, default, radius, 0, minStackSize, maxStackSize);
 
 // spread/stack mechanic that selects targets by icon and finishes by cast event
-public class IconStackSpread(BossModule module, uint stackIcon, uint spreadIcon, ActionID stackAID, ActionID spreadAID, float stackRadius, float spreadRadius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
+public class IconStackSpread(BossModule module, uint stackIcon, uint spreadIcon, Enum? stackAID, Enum? spreadAID, float stackRadius, float spreadRadius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
     : UniformStackSpread(module, stackRadius, spreadRadius, minStackSize, maxStackSize, alwaysShowSpreads)
 {
     public uint StackIcon { get; init; } = stackIcon;
     public uint SpreadIcon { get; init; } = spreadIcon;
-    public ActionID StackAction { get; init; } = stackAID;
-    public ActionID SpreadAction { get; init; } = spreadAID;
+    public ActionID StackAction { get; init; } = ActionID.MakeSpell(stackAID);
+    public ActionID SpreadAction { get; init; } = ActionID.MakeSpell(spreadAID);
     public float ActivationDelay { get; init; } = activationDelay;
     public int NumFinishedStacks { get; protected set; }
     public int NumFinishedSpreads { get; protected set; }
@@ -277,7 +277,7 @@ public class IconStackSpread(BossModule module, uint stackIcon, uint spreadIcon,
 }
 
 // generic 'spread from actors with specific icon' mechanic
-public class SpreadFromIcon(BossModule module, uint icon, ActionID aid, float radius, float activationDelay, bool drawAllSpreads = true) : IconStackSpread(module, 0, icon, default, aid, 0, radius, activationDelay, alwaysShowSpreads: drawAllSpreads);
+public class SpreadFromIcon(BossModule module, uint icon, Enum? aid, float radius, float activationDelay, bool drawAllSpreads = true) : IconStackSpread(module, 0, icon, default, aid, 0, radius, activationDelay, alwaysShowSpreads: drawAllSpreads);
 
 // generic 'stack with actors with specific icon' mechanic
-public class StackWithIcon(BossModule module, uint icon, ActionID aid, float radius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue) : IconStackSpread(module, icon, 0, aid, default, radius, 0, activationDelay, minStackSize, maxStackSize);
+public class StackWithIcon(BossModule module, uint icon, Enum aid, float radius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue) : IconStackSpread(module, icon, 0, aid, default, radius, 0, activationDelay, minStackSize, maxStackSize);

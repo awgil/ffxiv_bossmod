@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Endwalker.Alliance.A12Rhalgr;
 
-class RhalgrBeaconAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RhalgrsBeaconAOE), new AOEShapeCircle(10));
+class RhalgrBeaconAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.RhalgrsBeaconAOE, new AOEShapeCircle(10));
 
-class RhalgrBeaconShock(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Shock))
+class RhalgrBeaconShock(BossModule module) : Components.GenericAOEs(module, AID.Shock)
 {
     private readonly List<AOEInstance> _aoes = [];
 
@@ -19,4 +19,4 @@ class RhalgrBeaconShock(BossModule module) : Components.GenericAOEs(module, Acti
 
 // TODO: this is a knockback 50, ignores immunities - but need to clamp to correct fingers
 // there are two possible source locations ([-10.12, 268.50] and [-24.12, 266.50]), two potential fingers for each - one of them is sometimes covered by lightning aoes
-class RhalgrBeaconKnockback(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RhalgrsBeaconKnockback));
+class RhalgrBeaconKnockback(BossModule module) : Components.CastCounter(module, AID.RhalgrsBeaconKnockback);

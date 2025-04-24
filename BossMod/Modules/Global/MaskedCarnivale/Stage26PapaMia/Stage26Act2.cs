@@ -64,10 +64,10 @@ class DadJoke(BossModule module) : Components.Knockback(module)
     }
 }
 
-class VoidThunderII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidThunderII), 4);
-class RawInstinct(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.RawInstinct), "Prepare to dispel buff");
-class VoidThunderIII(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VoidThunderIII), "Raidwide + Electrocution");
-class BodyBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.BodyBlow), "Soft Tankbuster");
+class VoidThunderII(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidThunderII, 4);
+class RawInstinct(BossModule module) : Components.CastHint(module, AID.RawInstinct, "Prepare to dispel buff");
+class VoidThunderIII(BossModule module) : Components.RaidwideCast(module, AID.VoidThunderIII, "Raidwide + Electrocution");
+class BodyBlow(BossModule module) : Components.SingleTargetCast(module, AID.BodyBlow, "Soft Tankbuster");
 
 class Hints(BossModule module) : BossComponent(module)
 {

@@ -13,7 +13,7 @@ public enum AID : uint
     AerialBombardment = 21492, // 233C->location, 2.5s cast, range 12 circle
 }
 
-class AerialBombardment(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AerialBombardment), 12);
+class AerialBombardment(BossModule module) : Components.LocationTargetedAOEs(module, AID.AerialBombardment, 12);
 
 class GWarrior(BossModule module) : QuestBattle.RotationModule<SapphireWeapon>(module);
 

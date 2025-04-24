@@ -51,8 +51,8 @@ class Voidzone(BossModule module) : BossComponent(module)
     }
 }
 
-class SpunLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpunLightning), new AOEShapeRect(30, 4));
-class LightningClaw(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stackmarker, ActionID.MakeSpell(AID.LightningClaw2), 6, 5.2f, 4);
+class SpunLightning(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpunLightning, new AOEShapeRect(30, 4));
+class LightningClaw(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stackmarker, AID.LightningClaw2, 6, 5.2f, 4);
 
 class ForkedFissures(BossModule module) : Components.GenericAOEs(module)
 {
@@ -111,17 +111,17 @@ class ForkedFissures(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ElectricEruption(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElectricEruption));
-class Electrify(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Electrify), 10);
-class LightningLeap1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningLeap1), 10);
-class LightningLeap2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningLeap2), 10);
-class LightningRampage1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningRampage1), 10);
-class LightningRampage2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LightningRampage2), 10);
-class RipperClaw(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.RipperClaw));
-class Shock(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Shock), 6);
-class SpinningClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpinningClaw), new AOEShapeCircle(10));
-class BattleCry1(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BattleCry1));
-class BattleCry2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BattleCry2));
+class ElectricEruption(BossModule module) : Components.RaidwideCast(module, AID.ElectricEruption);
+class Electrify(BossModule module) : Components.LocationTargetedAOEs(module, AID.Electrify, 10);
+class LightningLeap1(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningLeap1, 10);
+class LightningLeap2(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningLeap2, 10);
+class LightningRampage1(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningRampage1, 10);
+class LightningRampage2(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningRampage2, 10);
+class RipperClaw(BossModule module) : Components.SingleTargetCast(module, AID.RipperClaw);
+class Shock(BossModule module) : Components.LocationTargetedAOEs(module, AID.Shock, 6);
+class SpinningClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpinningClaw, new AOEShapeCircle(10));
+class BattleCry1(BossModule module) : Components.RaidwideCast(module, AID.BattleCry1);
+class BattleCry2(BossModule module) : Components.RaidwideCast(module, AID.BattleCry2);
 
 class D122ArkasStates : StateMachineBuilder
 {

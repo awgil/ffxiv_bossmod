@@ -50,10 +50,10 @@ public enum IconID : uint
     ChasingAOE = 197, // player
 }
 
-class CometFirst(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CometFirst), 4);
-class CometRest(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.CometRest), 4);
+class CometFirst(BossModule module) : Components.LocationTargetedAOEs(module, AID.CometFirst, 4);
+class CometRest(BossModule module) : Components.LocationTargetedAOEs(module, AID.CometRest, 4);
 
-class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.MeteorImpact), 50, false)
+class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, AID.MeteorImpact, 50, false)
 {
     private Actor? castActor;
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.StarShard).Where(x => !x.IsDead);
@@ -71,12 +71,12 @@ class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, Ac
     }
 }
 
-class Charge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Charge), new AOEShapeRect(41.25f, 2.5f, 5));
-class EmptyGaze(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EmptyGaze));
-class Sacrifice(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Sacrifice), 3);
-class Reconstruct(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Reconstruct), 5);
-class CometImpact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CometImpact), new AOEShapeCircle(9));
-class BardamsRing(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(10, 20), (uint)IconID.BardamsRing, ActionID.MakeSpell(AID.BardamsRing), 3.5f, true);
+class Charge(BossModule module) : Components.SelfTargetedAOEs(module, AID.Charge, new AOEShapeRect(41.25f, 2.5f, 5));
+class EmptyGaze(BossModule module) : Components.CastGaze(module, AID.EmptyGaze);
+class Sacrifice(BossModule module) : Components.CastTowers(module, AID.Sacrifice, 3);
+class Reconstruct(BossModule module) : Components.LocationTargetedAOEs(module, AID.Reconstruct, 5);
+class CometImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.CometImpact, new AOEShapeCircle(9));
+class BardamsRing(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(10, 20), (uint)IconID.BardamsRing, AID.BardamsRing, 3.5f, true);
 
 class Tremblor(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
@@ -103,7 +103,7 @@ class Tremblor(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     }
 }
 
-class TremblorFinal(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Tremblor2), new AOEShapeDonut(10, 20))
+class TremblorFinal(BossModule module) : Components.SelfTargetedAOEs(module, AID.Tremblor2, new AOEShapeDonut(10, 20))
 {
     private readonly Tremblor _aoe = module.FindComponent<Tremblor>()!;
 

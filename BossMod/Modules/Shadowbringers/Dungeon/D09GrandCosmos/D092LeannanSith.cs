@@ -37,12 +37,12 @@ public enum SID : uint
     Transporting = 404 // none->player, extra=0x15
 }
 
-class OdeToLostLove(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OdeToLostLove));
-class StormOfColor(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.StormOfColor));
-class FarWindSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FarWindSpread), 5);
-class FarWind(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FarWind), 8);
-class OdeToFallenPetals(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OdeToFallenPetals), new AOEShapeDonut(5, 60));
-class IrefulWind(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.IrefulWind), 10, kind: Kind.DirForward, stopAtWall: true);
+class OdeToLostLove(BossModule module) : Components.RaidwideCast(module, AID.OdeToLostLove);
+class StormOfColor(BossModule module) : Components.SingleTargetCast(module, AID.StormOfColor);
+class FarWindSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.FarWindSpread, 5);
+class FarWind(BossModule module) : Components.LocationTargetedAOEs(module, AID.FarWind, 8);
+class OdeToFallenPetals(BossModule module) : Components.SelfTargetedAOEs(module, AID.OdeToFallenPetals, new AOEShapeDonut(5, 60));
+class IrefulWind(BossModule module) : Components.KnockbackFromCastTarget(module, AID.IrefulWind, 10, kind: Kind.DirForward, stopAtWall: true);
 
 class DirectSeeding(BossModule module) : BossComponent(module)
 {

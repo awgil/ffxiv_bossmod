@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Interface.Utility;
+using ImGuiNET;
 
 namespace BossMod;
 
@@ -93,13 +94,13 @@ public class Timeline
     public float MinTime;
     public float MaxTime;
     public float? CurrentTime;
-    public float PixelsPerSecond = 10;
-    public float TopMargin = 20;
-    public float BottomMargin = 5;
+    public float PixelsPerSecond = 10 * ImGuiHelpers.GlobalScale;
+    public float TopMargin = 20 * ImGuiHelpers.GlobalScale;
+    public float BottomMargin = 5 * ImGuiHelpers.GlobalScale;
     public ColumnGroup Columns;
 
     private float _tickFrequency = 5;
-    private readonly float _timeAxisWidth = 35;
+    private readonly float _timeAxisWidth = 35 * ImGuiHelpers.GlobalScale;
 
     // these fields are transient and reinitialized on each draw
     private float _curColumnOffset;

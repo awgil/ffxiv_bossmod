@@ -16,9 +16,9 @@ record class AOEShapeTiles(BitMask Tiles) : AOEShape
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = 0) { }
 }
 
-class FloorCounter(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.FunkyFloorActivate));
+class FloorCounter(BossModule module) : Components.CastCounter(module, AID.FunkyFloorActivate);
 
-class FunkyFloor(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FunkyFloorActivate))
+class FunkyFloor(BossModule module) : Components.GenericAOEs(module, AID.FunkyFloorActivate)
 {
     private static readonly BitMask EvenTiles = new(0xAA55AA55AA55AA55ul);
     private static readonly BitMask InnerTiles = new(0x00003C3C3C3C0000ul);
@@ -169,7 +169,7 @@ class BurnBabyBurn(BossModule module) : BossComponent(module)
             yield return t;
     }
 
-    private readonly DancingGreenConfig _cfg = Service.Config.Get<DancingGreenConfig>();
+    private readonly RM05SDancingGreenConfig _cfg = Service.Config.Get<RM05SDancingGreenConfig>();
 
     private bool Imminent(int slot) => Orders[slot] != Order.None && Timers[slot] < WorldState.FutureTime(_cfg.SpotlightHintSeconds);
 

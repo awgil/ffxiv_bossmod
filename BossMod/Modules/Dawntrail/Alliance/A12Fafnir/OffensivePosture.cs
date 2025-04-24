@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A12Fafnir;
 
-class SpikeFlail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpikeFlail), new AOEShapeCone(80, 135.Degrees()));
-class Touchdown(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Touchdown), new AOEShapeCircle(24));
+class SpikeFlail(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpikeFlail, new AOEShapeCone(80, 135.Degrees()));
+class Touchdown(BossModule module) : Components.SelfTargetedAOEs(module, AID.Touchdown, new AOEShapeCircle(24));
 
-class DragonBreath(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.DragonBreath))
+class DragonBreath(BossModule module) : Components.GenericAOEs(module, AID.DragonBreath)
 {
     private readonly List<AOEInstance> _aoes = [];
     private DateTime _removeNextAOE = DateTime.MaxValue;

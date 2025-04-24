@@ -1,6 +1,6 @@
 ﻿namespace BossMod.RealmReborn.Extreme.Ex3Titan;
 
-class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WeightOfTheLandAOE), 6);
+class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, AID.WeightOfTheLandAOE, 6);
 class GaolerVoidzone(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.GaolerVoidzone).Where(e => e.EventState != 7));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 64, NameID = 1801, PlanLevel = 50)]

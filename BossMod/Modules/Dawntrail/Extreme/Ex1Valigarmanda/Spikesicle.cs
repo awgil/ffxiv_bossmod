@@ -39,7 +39,7 @@ class Spikesicle(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class SphereShatter(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SphereShatter))
+class SphereShatter(BossModule module) : Components.GenericAOEs(module, AID.SphereShatter)
 {
     private readonly List<AOEInstance> _aoes = [];
 

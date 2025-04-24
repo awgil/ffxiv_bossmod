@@ -16,7 +16,7 @@ public enum AID : uint
     RanaasFinish = 15646, // Boss->self, 6.0s cast, range 15 circle
 }
 
-class Foxshot(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Foxshot), 2);
+class Foxshot(BossModule module) : Components.BaitAwayChargeCast(module, AID.Foxshot, 2);
 class FoxshotKB(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
     private readonly List<Actor> Casters = [];
@@ -58,11 +58,11 @@ class FoxshotKB(BossModule module) : Components.Knockback(module, stopAtWall: tr
     }
 }
 class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(x => !x.IsDead));
-class WarDance(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WarDance), new AOEShapeCircle(5));
-class CharmingChasse(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CharmingChasse));
-class HannishFire(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HannishFire1), 6);
-class HannishWaters(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HannishWaters), new AOEShapeCone(40, 15.Degrees()));
-class RanaasFinish(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RanaasFinish), new AOEShapeCircle(15));
+class WarDance(BossModule module) : Components.SelfTargetedAOEs(module, AID.WarDance, new AOEShapeCircle(5));
+class CharmingChasse(BossModule module) : Components.CastGaze(module, AID.CharmingChasse);
+class HannishFire(BossModule module) : Components.LocationTargetedAOEs(module, AID.HannishFire1, 6);
+class HannishWaters(BossModule module) : Components.SelfTargetedAOEs(module, AID.HannishWaters, new AOEShapeCone(40, 15.Degrees()));
+class RanaasFinish(BossModule module) : Components.SelfTargetedAOEs(module, AID.RanaasFinish, new AOEShapeCircle(15));
 
 class RanaaMihgoStates : StateMachineBuilder
 {
@@ -80,9 +80,8 @@ class RanaaMihgoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 670, NameID = 8489)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68786, NameID = 8489)]
 public class RanaaMihgo(WorldState ws, Actor primary) : BossModule(ws, primary, new(520.47f, 124.99f), WeirdBounds)
 {
     public static readonly ArenaBoundsCustom WeirdBounds = new(17.5f, new(CurveApprox.Ellipse(17.5f, 16f, 0.01f)));
 }
-

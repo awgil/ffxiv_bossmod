@@ -1,42 +1,6 @@
 namespace BossMod.Shadowbringers.Foray.Duel.Duel2Lyon;
 
-class Enaero(BossModule module) : BossComponent(module)
-{
-    private bool EnaeroBuff;
-    private bool casting;
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (casting)
-            hints.Add("Applies Enaero to Lyon. Use Dispell to remove it");
-        if (EnaeroBuff)
-            hints.Add("Enaero on Lyon. Use Dispell to remove it! You only need to do this once per duel, so you can switch to a different action after removing his buff.");
-    }
-
-    public override void OnStatusGain(Actor actor, ActorStatus status)
-    {
-        if (actor == Module.PrimaryActor && (SID)status.ID == SID.Enaero)
-            EnaeroBuff = true;
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.RagingWinds1)
-            casting = true;
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.RagingWinds1)
-            casting = false;
-    }
-
-    public override void OnStatusLose(Actor actor, ActorStatus status)
-    {
-        if (actor == Module.PrimaryActor && (SID)status.ID == SID.Enaero)
-            EnaeroBuff = false;
-    }
-}
+class Enaero(BossModule module) : Components.DispelHint(module, (uint)SID.Enaero, AID.RagingWinds1);
 
 class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
@@ -59,91 +23,50 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
                 AID.NaturesPulse3 => 2,
                 _ => -1
             };
-            AdvanceSequence(order, caster.Position);
+            AdvanceSequence(order, caster.Position, WorldState.FutureTime(1.5f));
+            Sequences.RemoveAll(s => s.NumCastsDone >= _shapes.Length);
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        var origins = Sequences.Select(s => s.Origin);
+
+        if (Sequences.All(s => s.NumCastsDone == 0))
+        {
+            // preposition on edge of aoe to make next dodge easier
+            hints.GoalZones.Add(p => origins.Any(o => p.InCircle(o, 12)) ? 5 : 0);
+
+            // for multi-quake, standing inside both donuts will get us killed
+            if (Sequences.Count == 2)
+                hints.AddForbiddenZone(p => origins.All(o => p.InCircle(o, 20)), Sequences[0].NextActivation);
         }
     }
 }
 
-class TasteOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TasteOfBlood), new AOEShapeCone(40, 90.Degrees()));
-class TasteOfBloodHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TasteOfBlood), "Go behind Lyon!");
+class TasteOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.TasteOfBlood, new AOEShapeCone(40, 90.Degrees()));
 
-class RavenousGale(BossModule module) : Components.GenericAOEs(module)
+class RavenousGaleTwister(BossModule module) : Components.CastTwister(module, 1, (uint)OID.RavenousGaleVoidzone, AID.RavenousGale, 0.4f, 0.25f);
+class RavenousGaleHint(BossModule module) : Components.CastHint(module, AID.RavenousGale, "Twisters spawning");
+
+class TwinAgonies(BossModule module) : Components.SingleTargetCast(module, AID.TwinAgonies, "Use Manawall or tank mitigations!");
+class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindsPeak1, new AOEShapeCircle(5));
+
+class WindsPeakKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WindsPeak2, 15)
 {
-    private bool activeTwister;
-    private bool casting;
-    private DateTime _activation;
-    private static readonly AOEShapeCircle circle = new(0.5f);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.PrimaryActor.CastInfo == null && base.DestinationUnsafe(slot, actor, pos);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (casting)
-            yield return new(circle, actor.Position, default, _activation);
-        if (activeTwister)
-            foreach (var p in Module.Enemies(OID.RavenousGaleVoidzone))
-                yield return new(circle, p.Position, default, _activation);
-    }
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID == OID.RavenousGaleVoidzone)
-        {
-            activeTwister = true;
-            casting = false;
-            _activation = WorldState.FutureTime(4.6f);
-        }
-    }
-
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if ((OID)actor.OID == OID.RavenousGaleVoidzone)
-        {
-            activeTwister = false;
-            casting = false;
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.RavenousGale)
-            casting = true;
-    }
-
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        base.AddGlobalHints(hints);
-        if (casting)
-            hints.Add("Move a little to avoid voidzone spawning under you");
+        foreach (var src in Sources(slot, actor))
+            hints.AddForbiddenZone(ShapeContains.Donut(src.Origin, 5, 50), src.Activation);
     }
 }
 
-class TwinAgonies(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TwinAgonies), "Heavy Tankbuster, use Manawall or tank mitigations");
-class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WindsPeak1), new AOEShapeCircle(5));
-
-class WindsPeakKB(BossModule module) : Components.Knockback(module)
-{
-    private DateTime Time;
-    private bool watched;
-    private DateTime _activation;
-
-    public override IEnumerable<Source> Sources(int slot, Actor actor)
-    {
-        if (watched && WorldState.CurrentTime < Time.AddSeconds(4.4f))
-            yield return new(Module.PrimaryActor.Position, 15, _activation);
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.WindsPeak1)
-        {
-            watched = true;
-            Time = WorldState.CurrentTime;
-            _activation = Module.CastFinishAt(spell);
-        }
-    }
-}
-
-class TheKingsNotice(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.TheKingsNotice));
-class SplittingRage(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SplittingRage), "Applies temporary misdirection");
+class TheKingsNotice(BossModule module) : Components.CastGaze(module, AID.TheKingsNotice);
+class SplittingRage(BossModule module) : Components.CastHint(module, AID.SplittingRage, "Applies temporary misdirection");
 
 class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
 {
@@ -181,42 +104,43 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     }
 }
 
-class SpitefulFlameCircleVoidzone(BossModule module) : Components.GenericAOEs(module)
+class VermillionFlame(BossModule module) : Components.GenericAOEs(module)
 {
-    private bool activeOrb;
-    private int casts;
-    private static readonly AOEShapeCircle circle = new(10);
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (activeOrb && casts <= 11 && casts != 0)
-            foreach (var p in Module.Enemies(OID.VermillionFlame))
-                yield return new(circle, p.Position);
-    }
+    private readonly List<(Actor Actor, DateTime Activation, int Casts)> Balls = [];
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID.VermillionFlame)
-            activeOrb = true;
+        if ((OID)actor.OID is OID.VermillionFlame)
+            Balls.Add((actor, WorldState.FutureTime(2.6f), 0));
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.SpitefulFlame1 && Balls.FindIndex(b => b.Actor == caster) is var slot && slot >= 0)
+            Balls.Ref(slot).Activation = Module.CastFinishAt(spell);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.SpitefulFlame1)
-            casts++;
-        if (casts == 12)
+        if ((AID)spell.Action.ID is AID.SpitefulFlame1)
         {
-            casts = 0;
-            activeOrb = false;
+            var ix = Balls.FindIndex(b => b.Actor == caster);
+            if (ix >= 0)
+            {
+                Balls.Ref(ix).Casts++;
+                if (Balls[ix].Casts >= 3)
+                    Balls.RemoveAt(ix);
+            }
         }
     }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Balls.Select(b => new AOEInstance(new AOEShapeCircle(10), b.Actor.Position, Activation: b.Activation));
 }
 
-class SpitefulFlameRect(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SpitefulFlame2), new AOEShapeRect(80, 2));
+class SpitefulFlameRect(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpitefulFlame2, new AOEShapeRect(80, 2));
 
 class DynasticFlame : Components.BaitAwayTethers
 {
-    private ulong target;
     private int orbcount;
 
     public DynasticFlame(BossModule module) : base(module, new AOEShapeCircle(10), (uint)TetherID.fireorbs)
@@ -224,23 +148,10 @@ class DynasticFlame : Components.BaitAwayTethers
         CenterAtTarget = true;
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.DynasticFlame1)
-            target = spell.TargetID;
-    }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 18));
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (target == actor.InstanceID && CurrentBaits.Count > 0)
-            hints.Add("Go to the edge and run until 4 orbs are spawned");
+        if (CurrentBaits.Count > 0)
+            hints.AddForbiddenZone(p => !p.InDonutCone(Arena.Center, 17, 20, Angle.FromDirection(actor.Position - Arena.Center) + 18.Degrees(), 20.Degrees()), orbcount > 0 ? default : DateTime.MaxValue);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -255,4 +166,4 @@ class DynasticFlame : Components.BaitAwayTethers
     }
 }
 
-class SkyrendingStrike(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SkyrendingStrike), "Enrage!", true);
+class SkyrendingStrike(BossModule module) : Components.CastHint(module, AID.SkyrendingStrike, "Enrage!", true);

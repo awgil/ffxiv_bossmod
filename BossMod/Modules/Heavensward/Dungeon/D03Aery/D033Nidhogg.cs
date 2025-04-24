@@ -33,15 +33,15 @@ public enum AID : uint
     Roast = 30209, // 39CC->self, 4.0s cast, range 30 width 8 rect
 }
 
-class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DeafeningBellow));
-class HotTail(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HotTail), new AOEShapeRect(60, 8, 60));
-class HotWing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HotWing), new AOEShapeRect(30, 34, -4));
-class Cauterize(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Cauterize), new AOEShapeRect(80, 11));
-class HorridRoar(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.HorridRoar), 6);
-class HorridRoar2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HorridRoar2), 6);
-class HorridBlaze(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.HorridBlaze), 6, 2);
-class Massacre(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Massacre));
-class Touchdown(BossModule module) : Components.RaidwideInstant(module, ActionID.MakeSpell(AID.Touchdown), 7.3f)
+class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, AID.DeafeningBellow);
+class HotTail(BossModule module) : Components.SelfTargetedAOEs(module, AID.HotTail, new AOEShapeRect(60, 8, 60));
+class HotWing(BossModule module) : Components.SelfTargetedAOEs(module, AID.HotWing, new AOEShapeRect(30, 34, -4));
+class Cauterize(BossModule module) : Components.SelfTargetedAOEs(module, AID.Cauterize, new AOEShapeRect(80, 11));
+class HorridRoar(BossModule module) : Components.SpreadFromCastTargets(module, AID.HorridRoar, 6);
+class HorridRoar2(BossModule module) : Components.LocationTargetedAOEs(module, AID.HorridRoar2, 6);
+class HorridBlaze(BossModule module) : Components.StackWithCastTargets(module, AID.HorridBlaze, 6, 2);
+class Massacre(BossModule module) : Components.RaidwideCast(module, AID.Massacre);
+class Touchdown(BossModule module) : Components.RaidwideInstant(module, AID.Touchdown, 7.3f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -50,9 +50,9 @@ class Touchdown(BossModule module) : Components.RaidwideInstant(module, ActionID
             Activation = WorldState.FutureTime(7.3f);
     }
 }
-class TheScarletPrice(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TheScarletPrice));
+class TheScarletPrice(BossModule module) : Components.SingleTargetCast(module, AID.TheScarletPrice);
 
-class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OID.TheSablePrice, (uint)OID.Liegedrake, (uint)OID.Ahleh])
+class MultiAddModule(BossModule module) : Components.AddsMulti(module, [OID.TheSablePrice, OID.Liegedrake, OID.Ahleh])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -66,7 +66,7 @@ class MultiAddModule(BossModule module) : Components.AddsMulti(module, [(uint)OI
             };
     }
 };
-class Roast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Roast), new AOEShapeRect(30, 4));
+class Roast(BossModule module) : Components.SelfTargetedAOEs(module, AID.Roast, new AOEShapeRect(30, 4));
 
 class D033NidhoggStates : StateMachineBuilder
 {

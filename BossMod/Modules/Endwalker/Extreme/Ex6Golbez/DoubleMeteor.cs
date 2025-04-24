@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
-class DragonsDescent(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.DragonsDescent))
+class DragonsDescent(BossModule module) : Components.Knockback(module, AID.DragonsDescent)
 {
     private Actor? _source;
     private DateTime _activation;
@@ -97,7 +97,7 @@ class Explosion(BossModule module) : BossComponent(module)
     }
 }
 
-class Cauterize(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.Cauterize))
+class Cauterize(BossModule module) : Components.GenericBaitAway(module, AID.Cauterize)
 {
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {

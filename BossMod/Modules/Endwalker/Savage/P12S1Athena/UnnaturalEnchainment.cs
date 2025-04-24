@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
 // TODO: consider using envcontrols instead
-class UnnaturalEnchainment(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Sample))
+class UnnaturalEnchainment(BossModule module) : Components.GenericAOEs(module, AID.Sample)
 {
     private readonly List<AOEInstance> _aoes = [];
 

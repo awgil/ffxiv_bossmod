@@ -116,7 +116,7 @@ class SanctifiedBlizzardChain(BossModule module) : Components.GenericRotatingAOE
     }
 }
 
-class SanctifiedBlizzardChainHint(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SanctifiedBlizzardChain), "Rotation direction undeterminable until start of the 2nd cast");
+class SanctifiedBlizzardChainHint(BossModule module) : Components.RaidwideCast(module, AID.SanctifiedBlizzardChain, "Rotation direction undeterminable until start of the 2nd cast");
 
 class HeavenlyCyclone(BossModule module) : Components.GenericRotatingAOE(module)
 {
@@ -168,11 +168,11 @@ class HeavenlyCyclone(BossModule module) : Components.GenericRotatingAOE(module)
     }
 }
 
-class HeavenlyScythe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavenlyScythe), new AOEShapeCircle(10));
-class RagingFire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingFire), new AOEShapeDonut(5, 40));
-class Interference(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Interference), new AOEShapeCone(28, 90.Degrees()));
-class SanctifiedBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SanctifiedBlizzard), new AOEShapeCone(40, 22.5f.Degrees()));
-class RoyalDecree(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RoyalDecree));
+class HeavenlyScythe(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavenlyScythe, new AOEShapeCircle(10));
+class RagingFire(BossModule module) : Components.SelfTargetedAOEs(module, AID.RagingFire, new AOEShapeDonut(5, 40));
+class Interference(BossModule module) : Components.SelfTargetedAOEs(module, AID.Interference, new AOEShapeCone(28, 90.Degrees()));
+class SanctifiedBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanctifiedBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
+class RoyalDecree(BossModule module) : Components.RaidwideCast(module, AID.RoyalDecree);
 
 class MindJack(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {

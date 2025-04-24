@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
 
 // TODO: not sure how 'spiral arms' are really implemented
-class WindingGale(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.WindingGale))
+class WindingGale(BossModule module) : Components.GenericAOEs(module, AID.WindingGale)
 {
     private readonly List<Actor> _casters = [];
 

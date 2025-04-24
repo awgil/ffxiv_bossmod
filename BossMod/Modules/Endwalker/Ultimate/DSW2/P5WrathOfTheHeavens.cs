@@ -38,7 +38,7 @@ class P5WrathOfTheHeavensSkywardLeap(BossModule module) : Components.UniformStac
     }
 }
 
-class P5WrathOfTheHeavensSpiralPierce(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(50, 8), (uint)TetherID.SpiralPierce, ActionID.MakeSpell(AID.SpiralPierce))
+class P5WrathOfTheHeavensSpiralPierce(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(50, 8), (uint)TetherID.SpiralPierce, AID.SpiralPierce)
 {
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
@@ -164,15 +164,15 @@ class P5WrathOfTheHeavensCauterizeBait(BossModule module) : BossComponent(module
     }
 }
 
-class P5WrathOfTheHeavensAscalonsMercyRevealed(BossModule module) : Components.BaitAwayEveryone(module, module.Enemies(OID.BossP5).FirstOrDefault(), new AOEShapeCone(50, 15.Degrees()), ActionID.MakeSpell(AID.AscalonsMercyRevealedAOE));
+class P5WrathOfTheHeavensAscalonsMercyRevealed(BossModule module) : Components.BaitAwayEveryone(module, module.Enemies(OID.BossP5).FirstOrDefault(), new AOEShapeCone(50, 15.Degrees()), AID.AscalonsMercyRevealedAOE);
 
 // TODO: detect baiter
-class P5WrathOfTheHeavensLiquidHeaven(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.LiquidHeaven), m => m.Enemies(OID.VoidzoneLiquidHeaven).Where(z => z.EventState != 7), 1.1f);
+class P5WrathOfTheHeavensLiquidHeaven(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.LiquidHeaven, m => m.Enemies(OID.VoidzoneLiquidHeaven).Where(z => z.EventState != 7), 1.1f);
 
 // TODO: detect baiter
-class P5WrathOfTheHeavensAltarFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AltarFlareAOE), 8);
+class P5WrathOfTheHeavensAltarFlare(BossModule module) : Components.LocationTargetedAOEs(module, AID.AltarFlareAOE, 8);
 
-class P5WrathOfTheHeavensEmptyDimension(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EmptyDimension), new AOEShapeDonut(6, 70))
+class P5WrathOfTheHeavensEmptyDimension(BossModule module) : Components.SelfTargetedAOEs(module, AID.EmptyDimension, new AOEShapeDonut(6, 70))
 {
     private WPos _predicted;
 

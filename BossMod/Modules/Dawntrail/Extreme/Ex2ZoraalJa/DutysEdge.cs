@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex2ZoraalJa;
 
 // TODO: create and use generic 'line stack' component
-class DutysEdge(BossModule module) : Components.GenericWildCharge(module, 4, ActionID.MakeSpell(AID.DutysEdgeAOE), 100)
+class DutysEdge(BossModule module) : Components.GenericWildCharge(module, 4, AID.DutysEdgeAOE, 100)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

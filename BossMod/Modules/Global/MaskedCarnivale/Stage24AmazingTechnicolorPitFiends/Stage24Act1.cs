@@ -15,9 +15,9 @@ public enum AID : uint
     LightningSpark = 15318, // Boss->player, 6.0s cast, single-target
 }
 
-class Starstorm(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Starstorm), 5);
-class RagingAxe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RagingAxe), new AOEShapeCone(5, 45.Degrees()));
-class LightningSpark(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.LightningSpark), "Interrupt");
+class Starstorm(BossModule module) : Components.LocationTargetedAOEs(module, AID.Starstorm, 5);
+class RagingAxe(BossModule module) : Components.SelfTargetedAOEs(module, AID.RagingAxe, new AOEShapeCone(5, 45.Degrees()));
+class LightningSpark(BossModule module) : Components.CastHint(module, AID.LightningSpark, "Interrupt");
 
 class Hints2(BossModule module) : BossComponent(module)
 {

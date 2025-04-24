@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C032Lala;
 
 // TODO: we could detect aoe positions slightly earlier, when golems spawn
-class ConstructiveFigure(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(50, 4));
+class ConstructiveFigure(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(50, 4));
 class NConstructiveFigure(BossModule module) : ConstructiveFigure(module, AID.NAero);
 class SConstructiveFigure(BossModule module) : ConstructiveFigure(module, AID.SAero);
 
@@ -51,10 +51,10 @@ class ArcanePoint(BossModule module) : BossComponent(module)
     }
 }
 
-class ExplosiveTheorem(BossModule module, AID aid) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(aid), 8);
+class ExplosiveTheorem(BossModule module, AID aid) : Components.SpreadFromCastTargets(module, aid, 8);
 class NExplosiveTheorem(BossModule module) : ExplosiveTheorem(module, AID.NExplosiveTheoremAOE);
 class SExplosiveTheorem(BossModule module) : ExplosiveTheorem(module, AID.SExplosiveTheoremAOE);
 
-class TelluricTheorem(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 8);
+class TelluricTheorem(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 8);
 class NTelluricTheorem(BossModule module) : TelluricTheorem(module, AID.NTelluricTheorem);
 class STelluricTheorem(BossModule module) : TelluricTheorem(module, AID.STelluricTheorem);

@@ -26,7 +26,7 @@ public enum AID : uint
     Flatten = 23384, // Boss->player, 5.0s cast, single-target
 }
 
-class Flatten(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Flatten));
+class Flatten(BossModule module) : Components.SingleTargetCast(module, AID.Flatten);
 class KanRhaiBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     public static readonly AOEShape Cross = new AOEShapeCross(15, 3);
@@ -64,16 +64,16 @@ class KanRhaiRepeat(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class Gigaflare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Gigaflare));
-class LunarFlare1(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LunarFlare1), 11);
-class LunarFlare2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LunarFlare2), 6);
-class MegaflareDive(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MegaflareDive), new AOEShapeRect(41, 6));
-class Megaflare1(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Megaflare1), 5);
-class Megaflare2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Megaflare2), 6);
-class PerigeanBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PerigeanBreath), new AOEShapeCone(30, 45.Degrees()));
-class TwistedScream(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TwistedScream));
-class Upburst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Upburst), new AOEShapeCircle(2));
-class BigBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BigBurst), new AOEShapeCircle(9));
+class Gigaflare(BossModule module) : Components.RaidwideCast(module, AID.Gigaflare);
+class LunarFlare1(BossModule module) : Components.LocationTargetedAOEs(module, AID.LunarFlare1, 11);
+class LunarFlare2(BossModule module) : Components.LocationTargetedAOEs(module, AID.LunarFlare2, 6);
+class MegaflareDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.MegaflareDive, new AOEShapeRect(41, 6));
+class Megaflare1(BossModule module) : Components.SpreadFromCastTargets(module, AID.Megaflare1, 5);
+class Megaflare2(BossModule module) : Components.LocationTargetedAOEs(module, AID.Megaflare2, 6);
+class PerigeanBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.PerigeanBreath, new AOEShapeCone(30, 45.Degrees()));
+class TwistedScream(BossModule module) : Components.RaidwideCast(module, AID.TwistedScream);
+class Upburst(BossModule module) : Components.SelfTargetedAOEs(module, AID.Upburst, new AOEShapeCircle(2));
+class BigBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.BigBurst, new AOEShapeCircle(9));
 class AkhMorn(BossModule module) : Components.UniformStackSpread(module, 4, 0, 4)
 {
     private int Counter;
@@ -121,4 +121,3 @@ class LunarBahamutStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 777, NameID = 10077)]
 public class LunarBahamut(WorldState ws, Actor primary) : BossModule(ws, primary, new(796.5f, -97.5f), new ArenaBoundsCircle(20));
-

@@ -105,17 +105,17 @@ class Slammer(BossModule module) : Components.GenericRotatingAOE(module)
     }
 }
 
-class VolcanicHowl(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VolcanicHowl));
-class Earthbreak(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Earthbreak2), 5);
-class DeadlyHold(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DeadlyHold));
-class TailSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailSwing), new AOEShapeCircle(13));
-class CriticalBite(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CriticalBite), new AOEShapeCone(10, 60.Degrees()));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(7));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(7));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(7));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(7));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(7));
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.HeavySmash), 6);
+class VolcanicHowl(BossModule module) : Components.RaidwideCast(module, AID.VolcanicHowl);
+class Earthbreak(BossModule module) : Components.LocationTargetedAOEs(module, AID.Earthbreak2, 5);
+class DeadlyHold(BossModule module) : Components.SingleTargetCast(module, AID.DeadlyHold);
+class TailSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSwing, new AOEShapeCircle(13));
+class CriticalBite(BossModule module) : Components.SelfTargetedAOEs(module, AID.CriticalBite, new AOEShapeCone(10, 60.Degrees()));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
 
 class AcheloiosStates : StateMachineBuilder
 {

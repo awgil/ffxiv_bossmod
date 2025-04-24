@@ -3,7 +3,7 @@
 // AI idea: we want to run as a group and pop all orbs, without necessarily involving tanks
 // for 1/2 casts, we first try to stack S of boss, since everyone is somewhat close to that point, to get knocked back to the south edge; we then pop S orb and E orb(s) in order S->N
 // for 3 cast, we immune knockbacks and stack where two south orbs spawn to immediately handle two pairs; we then run to pop N orbs
-class AethericBoom(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.AethericBoom), "Knockback + orbs")
+class AethericBoom(BossModule module) : Components.CastHint(module, AID.AethericBoom, "Knockback + orbs")
 {
     private bool _waitingForOrbs;
     private readonly List<Actor> _activeOrbs = [];

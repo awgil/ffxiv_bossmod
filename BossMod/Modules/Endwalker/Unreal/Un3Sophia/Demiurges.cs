@@ -28,12 +28,12 @@ class Demiurges(BossModule module) : Components.DirectionalParry(module, (uint)O
     }
 }
 
-class DivineSpark(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.DivineSpark));
-class GnosticRant(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GnosticRant), new AOEShapeCone(40, 135.Degrees()));
-class GnosticSpear(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GnosticSpear), new AOEShapeRect(20.75f, 2, 0.75f));
-class RingOfPain(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, ActionID.MakeSpell(AID.RingOfPain), m => m.Enemies(OID.RingOfPain).Where(z => z.EventState != 7), 1.7f);
+class DivineSpark(BossModule module) : Components.CastGaze(module, AID.DivineSpark);
+class GnosticRant(BossModule module) : Components.SelfTargetedAOEs(module, AID.GnosticRant, new AOEShapeCone(40, 135.Degrees()));
+class GnosticSpear(BossModule module) : Components.SelfTargetedAOEs(module, AID.GnosticSpear, new AOEShapeRect(20.75f, 2, 0.75f));
+class RingOfPain(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.RingOfPain, m => m.Enemies(OID.RingOfPain).Where(z => z.EventState != 7), 1.7f);
 
-class Infusion(BossModule module) : Components.GenericWildCharge(module, 5, ActionID.MakeSpell(AID.Infusion))
+class Infusion(BossModule module) : Components.GenericWildCharge(module, 5, AID.Infusion)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

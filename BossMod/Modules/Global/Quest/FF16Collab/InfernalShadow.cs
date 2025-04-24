@@ -1,8 +1,8 @@
 namespace BossMod.Global.Quest.FF16Collab.InfernalShadow;
 
-class VulcanBurst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VulcanBurstReal), "Time your dodge correctly");
-class Hellfire(BossModule module) : Components.RaidwideCastDelay(module, ActionID.MakeSpell(AID.HellfireVisual), ActionID.MakeSpell(AID.HellfireRaidwide), 0.6f);
-class Incinerate(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.IncinerateReal), 5);
+class VulcanBurst(BossModule module) : Components.RaidwideCast(module, AID.VulcanBurstReal, "Time your dodge correctly");
+class Hellfire(BossModule module) : Components.RaidwideCastDelay(module, AID.HellfireVisual, AID.HellfireRaidwide, 0.6f);
+class Incinerate(BossModule module) : Components.SpreadFromCastTargets(module, AID.IncinerateReal, 5);
 
 class SpreadingFire(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
@@ -31,8 +31,8 @@ class SpreadingFire(BossModule module) : Components.ConcentricAOEs(module, _shap
     }
 }
 
-class SmolderingClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SmolderingClawReal), new AOEShapeCone(40, 75.Degrees()));
-class TailStrike(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TailStrikeReal), new AOEShapeCone(40, 75.Degrees()));
+class SmolderingClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.SmolderingClawReal, new AOEShapeCone(40, 75.Degrees()));
+class TailStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailStrikeReal, new AOEShapeCone(40, 75.Degrees()));
 
 class FireRampageCleave(BossModule module) : Components.GenericAOEs(module)
 {
@@ -65,11 +65,11 @@ class FireRampageCleave(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FieryRampageCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FieryRampageCircleReal), new AOEShapeCircle(16));
-class FieryRampageRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.FieryRampageRaidwideReal), "Time your dodge correctly");
-class PyrosaultReal(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PyrosaultReal), new AOEShapeCircle(10));
-class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FireballReal), 6);
-class CrimsonRush(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.CrimsonRushReal), 10);
+class FieryRampageCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.FieryRampageCircleReal, new AOEShapeCircle(16));
+class FieryRampageRaidwide(BossModule module) : Components.RaidwideCast(module, AID.FieryRampageRaidwideReal, "Time your dodge correctly");
+class PyrosaultReal(BossModule module) : Components.SelfTargetedAOEs(module, AID.PyrosaultReal, new AOEShapeCircle(10));
+class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, AID.FireballReal, 6);
+class CrimsonRush(BossModule module) : Components.ChargeAOEs(module, AID.CrimsonRushReal, 10);
 
 class CrimsonStreak(BossModule module) : Components.GenericAOEs(module)
 {
@@ -99,7 +99,7 @@ class CrimsonStreak(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.EruptionReal), 8);
+class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.EruptionReal, 8);
 
 class Eruption2(BossModule module) : Components.GenericAOEs(module)
 {

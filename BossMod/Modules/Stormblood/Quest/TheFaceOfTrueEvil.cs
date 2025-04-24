@@ -22,11 +22,11 @@ public enum AID : uint
     ArashiNoMaiogi = 8642, // Boss->self, 3.0s cast, single-target
 }
 
-class Musojin(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Musojin));
-class HissatsuKiku(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HissatsuKiku1), new AOEShapeRect(44.5f, 2));
-class Maiogi(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Maiogi1), new AOEShapeCone(80, 25.Degrees()));
-class HissatsuTo(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HissatsuTo1), new AOEShapeRect(44.5f, 2));
-class HissatsuKyuten(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HissatsuKyuten), new AOEShapeCircle(5.5f));
+class Musojin(BossModule module) : Components.RaidwideCast(module, AID.Musojin);
+class HissatsuKiku(BossModule module) : Components.SelfTargetedAOEs(module, AID.HissatsuKiku1, new AOEShapeRect(44.5f, 2));
+class Maiogi(BossModule module) : Components.SelfTargetedAOEs(module, AID.Maiogi1, new AOEShapeCone(80, 25.Degrees()));
+class HissatsuTo(BossModule module) : Components.SelfTargetedAOEs(module, AID.HissatsuTo1, new AOEShapeRect(44.5f, 2));
+class HissatsuKyuten(BossModule module) : Components.SelfTargetedAOEs(module, AID.HissatsuKyuten, new AOEShapeCircle(5.5f));
 class Arashi(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime? Activation;
@@ -71,4 +71,3 @@ class MusosaiStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68101, NameID = 6111)]
 public class Musosai(WorldState ws, Actor primary) : BossModule(ws, primary, new(-217.27f, -158.31f), new ArenaBoundsSquare(15));
-

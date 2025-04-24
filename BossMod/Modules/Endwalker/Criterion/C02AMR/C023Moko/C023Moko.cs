@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
-class LateralSlice(BossModule module, AID aid) : Components.BaitAwayCast(module, ActionID.MakeSpell(aid), new AOEShapeCone(40, 45.Degrees())); // TODO: verify angle
+class LateralSlice(BossModule module, AID aid) : Components.BaitAwayCast(module, aid, new AOEShapeCone(40, 45.Degrees())); // TODO: verify angle
 class NLateralSlice(BossModule module) : LateralSlice(module, AID.NLateralSlice);
 class SLateralSlice(BossModule module) : LateralSlice(module, AID.SLateralSlice);
 

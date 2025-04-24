@@ -178,7 +178,7 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
     private P4CrystallizeTime.Mechanic AssignPuddle(P4CrystallizeTime.Mechanic first, P4CrystallizeTime.Mechanic second) => _puddles.Any(p => p.soaker == first) ? second : first;
 }
 
-class P4CrystallizeTimeMaelstrom(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrystallizeTimeMaelstrom))
+class P4CrystallizeTimeMaelstrom(BossModule module) : Components.GenericAOEs(module, AID.CrystallizeTimeMaelstrom)
 {
     public readonly List<AOEInstance> AOEs = [];
 
@@ -261,7 +261,7 @@ class P4CrystallizeTimeDarkWater(BossModule module) : Components.UniformStackSpr
     }
 }
 
-class P4CrystallizeTimeDarkEruption(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DarkEruption))
+class P4CrystallizeTimeDarkEruption(BossModule module) : Components.GenericBaitAway(module, AID.DarkEruption)
 {
     private static readonly AOEShapeCircle _shape = new(6);
 
@@ -276,7 +276,7 @@ class P4CrystallizeTimeDarkEruption(BossModule module) : Components.GenericBaitA
     }
 }
 
-class P4CrystallizeTimeDarkAero(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.CrystallizeTimeDarkAero)) // TODO: not sure whether it actually ignores immunes, if so need to warn about immunity
+class P4CrystallizeTimeDarkAero(BossModule module) : Components.Knockback(module, AID.CrystallizeTimeDarkAero) // TODO: not sure whether it actually ignores immunes, if so need to warn about immunity
 {
     private readonly List<Actor> _sources = [];
     private DateTime _activation;
@@ -367,7 +367,7 @@ class P4CrystallizeTimeTidalLight : Components.Exaflare
     }
 }
 
-class P4CrystallizeTimeQuietus(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.Quietus));
+class P4CrystallizeTimeQuietus(BossModule module) : Components.CastCounter(module, AID.Quietus);
 
 class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
 {

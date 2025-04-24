@@ -6,13 +6,22 @@ using System.Runtime.InteropServices;
 
 namespace BossMod;
 
-unsafe class DebugEnvControl
+sealed unsafe class DebugEnvControl : IDisposable
 {
     private delegate void ProcessEnvControlDelegate(void* self, uint index, ushort s1, ushort s2);
     private readonly ProcessEnvControlDelegate ProcessEnvControl = Marshal.GetDelegateForFunctionPointer<ProcessEnvControlDelegate>(Service.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8"));
 
     private readonly List<string> _history = [];
     private string _current = "";
+
+    private readonly EventSubscription _onEnvControl;
+
+    public DebugEnvControl(WorldState ws)
+    {
+        _onEnvControl = ws.EnvControl.Subscribe(OnEventEnvControl);
+    }
+
+    public void Dispose() => _onEnvControl.Dispose();
 
     public void Draw()
     {
@@ -21,12 +30,20 @@ unsafe class DebugEnvControl
         ImGui.SameLine();
         if (ImGui.Button("Execute"))
             ExecuteEnvControl();
+        ImGui.SameLine();
+        if (ImGui.Button("Clear history"))
+            _history.Clear();
 
         using var hist = ImRaii.ListBox("History");
         if (hist)
             foreach (var h in _history)
                 if (ImGui.Selectable(h, h == _current))
                     _current = h;
+    }
+
+    private void OnEventEnvControl(WorldState.OpEnvControl ec)
+    {
+        _history.Insert(0, $"{ec.Index:X2}.{ec.State:X8}");
     }
 
     private void ExecuteEnvControl()

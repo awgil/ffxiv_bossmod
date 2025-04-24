@@ -17,7 +17,7 @@ public enum AID : uint
     SelfDetonate = 8352, // 1BCE->self, 3.0s cast, range 6 circle
     MagitekRay = 8353, // 1BCF->self, 3.0s cast, range 45+R width 2 rect
 }
-class CermetPile(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CermetPile), new AOEShapeRect(40f + 3.5f, 3));
+class CermetPile(BossModule module) : Components.SelfTargetedAOEs(module, AID.CermetPile, new AOEShapeRect(40f + 3.5f, 3));
 class GarleanFire(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -46,8 +46,8 @@ class GarleanFire(BossModule module) : Components.GenericAOEs(module)
         }
     }
 };
-class MagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRay), new AOEShapeRect(45f + 3.5f, 1));
-class SelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SelfDetonate), new AOEShapeCircle(6));
+class MagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRay, new AOEShapeRect(45f + 3.5f, 1));
+class SelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, AID.SelfDetonate, new AOEShapeCircle(6));
 class Mines(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _bits = [];

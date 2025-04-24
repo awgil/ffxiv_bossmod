@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Quest.FadedMemories;
 
-class DragonsGaze(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.TheDragonsGaze));
+class DragonsGaze(BossModule module) : Components.CastGaze(module, AID.TheDragonsGaze);
 
 class KingThordanStates : StateMachineBuilder
 {

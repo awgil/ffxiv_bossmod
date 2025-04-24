@@ -21,17 +21,17 @@ public enum AID : uint
     VoidGravity = 30242, // Helper->players, 5.0s cast, range 6 circle
 }
 
-class VoidGravity(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.VoidGravity), 6);
-class Firedamp(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Firedamp), new AOEShapeCircle(5), true);
-class Nox(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Nox), new AOEShapeCircle(10));
-class VoidVortex(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.VoidVortex), 6);
-class BlightedBladework(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedBladework), new AOEShapeCircle(25));
-class BlightedSweep(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedSweep), new AOEShapeCone(40, 90.Degrees()));
-class BlightedBedevilment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BlightedBedevilment), new AOEShapeCircle(9));
-class CursedEcho(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CursedEcho));
-class RottenRampage(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RottenRampageAOE), 6);
-class RottenRampagePlayer(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.RottenRampageSpread), 6);
-class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.VacuumWave), 30)
+class VoidGravity(BossModule module) : Components.SpreadFromCastTargets(module, AID.VoidGravity, 6);
+class Firedamp(BossModule module) : Components.BaitAwayCast(module, AID.Firedamp, new AOEShapeCircle(5), true);
+class Nox(BossModule module) : Components.SelfTargetedAOEs(module, AID.Nox, new AOEShapeCircle(10));
+class VoidVortex(BossModule module) : Components.StackWithCastTargets(module, AID.VoidVortex, 6);
+class BlightedBladework(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedBladework, new AOEShapeCircle(25));
+class BlightedSweep(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedSweep, new AOEShapeCone(40, 90.Degrees()));
+class BlightedBedevilment(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedBedevilment, new AOEShapeCircle(9));
+class CursedEcho(BossModule module) : Components.RaidwideCast(module, AID.CursedEcho);
+class RottenRampage(BossModule module) : Components.LocationTargetedAOEs(module, AID.RottenRampageAOE, 6);
+class RottenRampagePlayer(BossModule module) : Components.SpreadFromCastTargets(module, AID.RottenRampageSpread, 6);
+class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.VacuumWave, 30)
 {
     private readonly List<(ulong ID, Angle Angle)> Walls = [];
 
@@ -67,7 +67,7 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
             yield return new(c.Position, WallCheck(actor.Position) ? 19 - (actor.Position - Module.Arena.Center).Length() : Distance, Module.CastFinishAt(c.CastInfo));
     }
 
-    private bool WallCheck(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w.Angle, 5.Degrees().Rad));
+    private bool WallCheck(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w.Angle, 3.Degrees().Rad));
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -100,4 +100,3 @@ public class Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary
 {
     protected override void DrawArenaBackground(int pcSlot, Actor pc) => Arena.ZoneDonut(Arena.Center, 21, 25, ArenaColor.AOE);
 }
-

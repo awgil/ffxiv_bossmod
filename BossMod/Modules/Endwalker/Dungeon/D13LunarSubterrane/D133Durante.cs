@@ -46,9 +46,9 @@ class Voidzone(BossModule module) : BossComponent(module)
     }
 }
 
-class ArcaneEdge(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ArcaneEdge));
-class OldMagic(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OldMagic));
-class Contrapasso(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Contrapasso));
+class ArcaneEdge(BossModule module) : Components.RaidwideCast(module, AID.ArcaneEdge);
+class OldMagic(BossModule module) : Components.RaidwideCast(module, AID.OldMagic);
+class Contrapasso(BossModule module) : Components.RaidwideCast(module, AID.Contrapasso);
 
 class DuplicitousBattery(BossModule module) : Components.GenericAOEs(module)
 {
@@ -79,9 +79,9 @@ class DuplicitousBattery(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion), new AOEShapeCircle(11));
-class Explosion2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Explosion2), new AOEShapeCircle(9));
-class FallenGrace(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.FallenGrace), 6);
+class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(11));
+class Explosion2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion2, new AOEShapeCircle(9));
+class FallenGrace(BossModule module) : Components.SpreadFromCastTargets(module, AID.FallenGrace, 6);
 
 // TODO: create and use generic 'line stack' component
 class AntipodalAssault(BossModule module) : Components.GenericBaitAway(module)
@@ -125,11 +125,11 @@ class AntipodalAssault(BossModule module) : Components.GenericBaitAway(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
-class HardSlash(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HardSlash), new AOEShapeCone(50, 45.Degrees()));
-class TwilightPhase(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TwilightPhase2), new AOEShapeRect(30, 10, 30));
-class DarkImpact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkImpact2), new AOEShapeCircle(25));
-class DeathsJourney(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathsJourney), new AOEShapeCircle(8));
-class DeathsJourney2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DeathsJourney2), new AOEShapeCone(30, 15.Degrees()));
+class HardSlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.HardSlash, new AOEShapeCone(50, 45.Degrees()));
+class TwilightPhase(BossModule module) : Components.SelfTargetedAOEs(module, AID.TwilightPhase2, new AOEShapeRect(30, 10, 30));
+class DarkImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkImpact2, new AOEShapeCircle(25));
+class DeathsJourney(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeathsJourney, new AOEShapeCircle(8));
+class DeathsJourney2(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeathsJourney2, new AOEShapeCone(30, 15.Degrees()));
 
 class D133DuranteStates : StateMachineBuilder
 {

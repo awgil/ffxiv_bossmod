@@ -16,9 +16,9 @@ public enum AID : uint
     Burst = 28465, // IchorousDrip->self, 6.0s cast, range 8 aoe
 }
 
-class Syrup(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Syrup), 4);
-class FluidSpread(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.FluidSpread));
-class Divide(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(8));
+class Syrup(BossModule module) : Components.LocationTargetedAOEs(module, AID.Syrup, 4);
+class FluidSpread(BossModule module) : Components.SingleTargetCast(module, AID.FluidSpread);
+class Divide(BossModule module) : Components.SelfTargetedAOEs(module, AID.Burst, new AOEShapeCircle(8));
 
 class D032IchorousIreStates : StateMachineBuilder
 {

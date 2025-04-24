@@ -21,7 +21,7 @@ public enum SID : uint
     Heavy = 14
 }
 
-class DouseCast(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Douse), new AOEShapeCircle(8));
+class DouseCast(BossModule module) : Components.SelfTargetedAOEs(module, AID.Douse, new AOEShapeCircle(8));
 class DousePuddle(BossModule module) : BossComponent(module)
 {
     private IEnumerable<Actor> Puddles => Module.Enemies(OID.Voidzone).Where(z => z.EventState != 7);
@@ -59,7 +59,7 @@ class DousePuddle(BossModule module) : BossComponent(module)
     }
 }
 
-class Electrogenesis(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Electrogenesis), 8);
+class Electrogenesis(BossModule module) : Components.LocationTargetedAOEs(module, AID.Electrogenesis, 8);
 class FangsEnd(BossModule module) : BossComponent(module)
 {
     private BitMask _heavy;

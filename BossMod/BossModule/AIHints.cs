@@ -25,6 +25,9 @@ public sealed class AIHints
         public bool ShouldBeDispelled; // if set, AI will try to cast a dispel action; only relevant for foray content
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
         public bool Spikes; // if set, autoattacks will be prevented
+
+        // easier to read
+        public bool AllowDOTs { get => !ForbidDOTs; set => ForbidDOTs = !value; }
     }
 
     public enum SpecialMode
@@ -153,7 +156,7 @@ public sealed class AIHints
             h.Priority = Math.Max(h.Priority, 0);
     }
 
-    public void SetPriority(Actor actor, int priority)
+    public void SetPriority(Actor? actor, int priority)
     {
         if (FindEnemy(actor) is { } enemy)
             enemy.Priority = priority;

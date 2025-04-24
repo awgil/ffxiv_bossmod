@@ -30,14 +30,14 @@ public enum IconID : uint
     Ingurgitate = 62, // player
 }
 
-class IxaliAeroII(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IxaliAeroII), new AOEShapeRect(40, 3));
-class IxaliAeroIII(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.IxaliAeroIII));
-class MistralSong(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MistralSong), new AOEShapeCone(30, 60.Degrees()));
-class WickedWheel(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WickedWheel), new AOEShapeCircle(7));
-class AerialBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AerialBlast));
-class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EyeOfTheStorm), new AOEShapeDonut(10, 20));
-class Bill(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.Bill), 5);
-class Ingurgitate(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Ingurgitate, ActionID.MakeSpell(AID.IngurgitateCast), 5, 5.4f);
+class IxaliAeroII(BossModule module) : Components.SelfTargetedAOEs(module, AID.IxaliAeroII, new AOEShapeRect(40, 3));
+class IxaliAeroIII(BossModule module) : Components.RaidwideCast(module, AID.IxaliAeroIII);
+class MistralSong(BossModule module) : Components.SelfTargetedAOEs(module, AID.MistralSong, new AOEShapeCone(30, 60.Degrees()));
+class WickedWheel(BossModule module) : Components.SelfTargetedAOEs(module, AID.WickedWheel, new AOEShapeCircle(7));
+class AerialBlast(BossModule module) : Components.RaidwideCast(module, AID.AerialBlast);
+class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(10, 20));
+class Bill(BossModule module) : Components.SpreadFromCastTargets(module, AID.Bill, 5);
+class Ingurgitate(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Ingurgitate, AID.IngurgitateCast, 5, 5.4f);
 
 class TozolHuatotlStates : StateMachineBuilder
 {
@@ -61,4 +61,3 @@ public class TozolHuatotl(WorldState ws, Actor primary) : BossModule(ws, primary
     // position of Garuda casting Eye of the Storm
     public static readonly WPos DefaultCenter = new(317.948f, -416.172f);
 }
-

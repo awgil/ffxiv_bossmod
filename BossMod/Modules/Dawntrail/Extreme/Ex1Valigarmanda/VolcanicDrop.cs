@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex1Valigarmanda;
 
-class VolcanicDrop(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.VolcanicDropAOE))
+class VolcanicDrop(BossModule module) : Components.GenericAOEs(module, AID.VolcanicDropAOE)
 {
     public AOEInstance? AOE;
 
@@ -22,4 +22,4 @@ class VolcanicDrop(BossModule module) : Components.GenericAOEs(module, ActionID.
     }
 }
 
-class VolcanicDropPuddle(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VolcanicDropPuddle), 2);
+class VolcanicDropPuddle(BossModule module) : Components.LocationTargetedAOEs(module, AID.VolcanicDropPuddle, 2);

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
-class MercyFourfold(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MercyFourfoldAOE))
+class MercyFourfold(BossModule module) : Components.GenericAOEs(module, AID.MercyFourfoldAOE)
 {
     public readonly List<AOEInstance> AOEs = [];
     private readonly List<AOEInstance?> _safezones = [];

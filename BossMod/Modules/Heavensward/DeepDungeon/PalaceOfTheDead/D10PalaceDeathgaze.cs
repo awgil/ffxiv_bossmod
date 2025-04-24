@@ -16,10 +16,10 @@ public enum AID : uint
     Whipcrack = 6416, // Boss->player, no cast, single-target
 }
 
-class AeroBlast(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AeroBlast));
-class Bombination(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Bombination), new AOEShapeCircle(12));
-class Lumisphere(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Lumisphere), 6);
-class Stormwind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Stormwind), new AOEShapeCone(18, 45.Degrees()));
+class AeroBlast(BossModule module) : Components.RaidwideCast(module, AID.AeroBlast);
+class Bombination(BossModule module) : Components.SelfTargetedAOEs(module, AID.Bombination, new AOEShapeCircle(12));
+class Lumisphere(BossModule module) : Components.LocationTargetedAOEs(module, AID.Lumisphere, 6);
+class Stormwind(BossModule module) : Components.SelfTargetedAOEs(module, AID.Stormwind, new AOEShapeCone(18, 45.Degrees()));
 
 class D10PalaceDeathgazeStates : StateMachineBuilder
 {
@@ -35,4 +35,3 @@ class D10PalaceDeathgazeStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 174, NameID = 4986)]
 public class D10PalaceDeathgaze(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -220), new ArenaBoundsCircle(24));
-

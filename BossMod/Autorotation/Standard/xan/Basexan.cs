@@ -421,15 +421,14 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     // other classes have timed personal buffs to plan around, like blm leylines, mch overheat, gnb nomercy
     // war could also be here but i dont have a war rotation
-    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE;
+    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE or Class.DRK;
 
     private new (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {
         if (Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel && IsSelfish(Player.Class))
             return (float.MaxValue, 0);
 
-        // level 100 stone sky sea
-        if (primaryTarget?.OID == 0x41CD)
+        if (primaryTarget?.IsStrikingDummy == true)
         {
             // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s
             var cycleTime = CombatTimer - 7.8f;
@@ -446,6 +445,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             if (CombatTimer < 7.8f && World.Party.WithoutSlot(false, true, true).Skip(1).Any(HavePartyBuff))
                 buffsIn = 7.8f - CombatTimer;
             else
+                // no party members with raid buffs, assume we're never getting any
                 buffsIn = float.MaxValue;
         }
 

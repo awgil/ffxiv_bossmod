@@ -26,15 +26,15 @@ public enum AID : uint
     Wallop = 33346, // MammothTentacle->self, 3.0s cast, range 22 width 8 rect
 }
 
-class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Wallop), new AOEShapeRect(22, 4));
-class VividEyes(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VividEyes), new AOEShapeDonut(20, 26));
-class Clearout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Clearout), new AOEShapeCone(16, 60.Degrees()));
-class TidalBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TidalBreath), new AOEShapeCone(35, 90.Degrees()));
-class Breathstroke(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Breathstroke), new AOEShapeCone(35, 90.Degrees()));
-class TidalRoar(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TidalRoar));
-class WaterDrop(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.WaterDrop), 6);
-class SalineSpit(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SalineSpit2), new AOEShapeCircle(8));
-class Telekinesis(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Telekinesis2), new AOEShapeCircle(12));
+class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Wallop, new AOEShapeRect(22, 4));
+class VividEyes(BossModule module) : Components.SelfTargetedAOEs(module, AID.VividEyes, new AOEShapeDonut(20, 26));
+class Clearout(BossModule module) : Components.SelfTargetedAOEs(module, AID.Clearout, new AOEShapeCone(16, 60.Degrees()));
+class TidalBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.TidalBreath, new AOEShapeCone(35, 90.Degrees()));
+class Breathstroke(BossModule module) : Components.SelfTargetedAOEs(module, AID.Breathstroke, new AOEShapeCone(35, 90.Degrees()));
+class TidalRoar(BossModule module) : Components.RaidwideCast(module, AID.TidalRoar);
+class WaterDrop(BossModule module) : Components.SpreadFromCastTargets(module, AID.WaterDrop, 6);
+class SalineSpit(BossModule module) : Components.SelfTargetedAOEs(module, AID.SalineSpit2, new AOEShapeCircle(8));
+class Telekinesis(BossModule module) : Components.SelfTargetedAOEs(module, AID.Telekinesis2, new AOEShapeCircle(12));
 
 class D123OctomammothStates : StateMachineBuilder
 {

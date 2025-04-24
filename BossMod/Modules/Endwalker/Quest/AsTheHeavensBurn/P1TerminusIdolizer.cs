@@ -33,11 +33,11 @@ public enum TetherID : uint
     BombTether = 17, // 35E5->35F5
 }
 
-class DeadlyCharge(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.DeadlyCharge), 5);
-class GriefOfParting(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.GriefOfParting));
-class DeadlyTentacles(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DeadlyTentacles));
-class TentacleWhipR1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TentacleWhipRFirst), new AOEShapeCone(60, 90.Degrees()));
-class TentacleWhipR2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TentacleWhipLSecond), new AOEShapeCone(60, 90.Degrees()))
+class DeadlyCharge(BossModule module) : Components.ChargeAOEs(module, AID.DeadlyCharge, 5);
+class GriefOfParting(BossModule module) : Components.RaidwideCast(module, AID.GriefOfParting);
+class DeadlyTentacles(BossModule module) : Components.SingleTargetCast(module, AID.DeadlyTentacles);
+class TentacleWhipR1(BossModule module) : Components.SelfTargetedAOEs(module, AID.TentacleWhipRFirst, new AOEShapeCone(60, 90.Degrees()));
+class TentacleWhipR2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TentacleWhipLSecond, new AOEShapeCone(60, 90.Degrees()))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -48,8 +48,8 @@ class TentacleWhipR2(BossModule module) : Components.SelfTargetedAOEs(module, Ac
                 yield return h;
     }
 }
-class TentacleWhipL1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TentacleWhipLFirst), new AOEShapeCone(60, 90.Degrees()));
-class TentacleWhipL2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TentacleWhipRSecond), new AOEShapeCone(60, 90.Degrees()))
+class TentacleWhipL1(BossModule module) : Components.SelfTargetedAOEs(module, AID.TentacleWhipLFirst, new AOEShapeCone(60, 90.Degrees()));
+class TentacleWhipL2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TentacleWhipRSecond, new AOEShapeCone(60, 90.Degrees()))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -84,8 +84,8 @@ class SelfDestruct(BossModule module) : Components.GenericStackSpread(module)
         }
     }
 }
-class Petrifaction(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.Petrifaction));
-class Whack(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Whack));
+class Petrifaction(BossModule module) : Components.CastGaze(module, AID.Petrifaction);
+class Whack(BossModule module) : Components.SingleTargetCast(module, AID.Whack);
 
 class AutoAlphi(BossModule module) : QuestBattle.RotationModule<AlphinaudAI>(module);
 

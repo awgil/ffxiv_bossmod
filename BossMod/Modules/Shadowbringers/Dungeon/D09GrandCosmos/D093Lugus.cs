@@ -39,13 +39,13 @@ public enum IconID : uint
     Tankbuster = 218 // player
 }
 
-class CullingBlade(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CullingBlade));
-class CaptiveBolt(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CaptiveBolt));
-class Plummet(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Plummet), new AOEShapeCircle(3));
-class ScorchingRight(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScorchingRight), new AOEShapeCone(40, 90.Degrees()));
-class ScorchingLeft(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ScorchingLeft), new AOEShapeCone(40, 90.Degrees()));
-class OtherworldlyHeat(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OtherworldlyHeat1), new AOEShapeCross(10, 2));
-class FiresIre(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FiresIre), new AOEShapeCone(20, 45.Degrees()));
+class CullingBlade(BossModule module) : Components.RaidwideCast(module, AID.CullingBlade);
+class CaptiveBolt(BossModule module) : Components.SingleTargetCast(module, AID.CaptiveBolt);
+class Plummet(BossModule module) : Components.SelfTargetedAOEs(module, AID.Plummet, new AOEShapeCircle(3));
+class ScorchingRight(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScorchingRight, new AOEShapeCone(40, 90.Degrees()));
+class ScorchingLeft(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScorchingLeft, new AOEShapeCone(40, 90.Degrees()));
+class OtherworldlyHeat(BossModule module) : Components.SelfTargetedAOEs(module, AID.OtherworldlyHeat1, new AOEShapeCross(10, 2));
+class FiresIre(BossModule module) : Components.SelfTargetedAOEs(module, AID.FiresIre, new AOEShapeCone(20, 45.Degrees()));
 class BlackFlame(BossModule module) : BossComponent(module)
 {
     private BitMask targets;

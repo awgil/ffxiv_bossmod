@@ -22,15 +22,15 @@ public enum AID : uint
     Elimination = 25935, // Boss->self/player, 5.0s cast, range 46 width 10 rect
 }
 
-class Elimination(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Elimination), new AOEShapeRect(46, 5), endsOnCastEvent: true);
-class Decimation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Decimation));
-class ElectromagneticRepellant(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, ActionID.MakeSpell(AID.ElectromagneticRepellant), m => m.Enemies(OID.ElectromagneticRepellant).Where(e => e.EventState != 7), 0);
-class NoFutureGround(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NoFutureAOE), new AOEShapeCircle(6));
-class NoFutureSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.NoFutureSpread), 6);
-class Peacefire(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Peacefire), 10);
-class SmallBoreLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SmallBoreLaser), new AOEShapeRect(20, 2));
-class InfantryDeterrent(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.InfantryDeterrent), 6);
-class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.EclipsingExhaust), 11)
+class Elimination(BossModule module) : Components.BaitAwayCast(module, AID.Elimination, new AOEShapeRect(46, 5), endsOnCastEvent: true);
+class Decimation(BossModule module) : Components.RaidwideCast(module, AID.Decimation);
+class ElectromagneticRepellant(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, AID.ElectromagneticRepellant, m => m.Enemies(OID.ElectromagneticRepellant).Where(e => e.EventState != 7), 0);
+class NoFutureGround(BossModule module) : Components.SelfTargetedAOEs(module, AID.NoFutureAOE, new AOEShapeCircle(6));
+class NoFutureSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.NoFutureSpread, 6);
+class Peacefire(BossModule module) : Components.LocationTargetedAOEs(module, AID.Peacefire, 10);
+class SmallBoreLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.SmallBoreLaser, new AOEShapeRect(20, 2));
+class InfantryDeterrent(BossModule module) : Components.SpreadFromCastTargets(module, AID.InfantryDeterrent, 6);
+class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(module, AID.EclipsingExhaust, 11)
 {
     private Peacefire? _peacefire;
 
@@ -100,4 +100,3 @@ class PeacekeeperStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 792, NameID = 10315)]
 public class Peacekeeper(WorldState ws, Actor primary) : BossModule(ws, primary, new(-105, -210), new ArenaBoundsCircle(20));
-

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex6Golbez;
 
-class VoidMeteor(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.VoidMeteorAOE), centerAtTarget: true)
+class VoidMeteor(BossModule module) : Components.GenericBaitAway(module, AID.VoidMeteorAOE, centerAtTarget: true)
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {

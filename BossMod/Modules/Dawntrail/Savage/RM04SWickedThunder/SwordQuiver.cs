@@ -9,7 +9,7 @@ class SwordQuiverRaidwide(BossModule module) : Components.CastCounter(module, de
     }
 }
 
-class SwordQuiverBurst(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SwordQuiverBurst))
+class SwordQuiverBurst(BossModule module) : Components.GenericAOEs(module, AID.SwordQuiverBurst)
 {
     private readonly List<AOEInstance> _aoes = [];
 
@@ -37,7 +37,7 @@ class SwordQuiverBurst(BossModule module) : Components.GenericAOEs(module, Actio
     }
 }
 
-class SwordQuiverLaceration(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.SwordQuiverLaceration))
+class SwordQuiverLaceration(BossModule module) : Components.CastCounter(module, AID.SwordQuiverLaceration)
 {
     private static readonly AOEShapeCone _shape = new(40, 30.Degrees()); // TODO: verify angle
 

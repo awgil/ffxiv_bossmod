@@ -171,9 +171,9 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
 class ClassicalConcepts1(BossModule module) : ClassicalConcepts(module, false);
 class ClassicalConcepts2(BossModule module) : ClassicalConcepts(module, true);
 
-class Implode(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Implode), new AOEShapeCircle(4));
+class Implode(BossModule module) : Components.SelfTargetedAOEs(module, AID.Implode, new AOEShapeCircle(4));
 
-class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.PalladianRayAOEFirst))
+class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, AID.PalladianRayAOEFirst)
 {
     private readonly Actor[] _dummies = [new(0, 0, -1, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0))];
 
@@ -188,7 +188,7 @@ class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, A
     }
 }
 
-class PalladianRayAOE(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.PalladianRayAOERest))
+class PalladianRayAOE(BossModule module) : Components.GenericAOEs(module, AID.PalladianRayAOERest)
 {
     private readonly List<AOEInstance> _aoes = [];
     public int NumConcurrentAOEs => _aoes.Count;

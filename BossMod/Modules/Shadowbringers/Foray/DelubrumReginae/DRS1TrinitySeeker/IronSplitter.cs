@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
-class IronSplitter(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.IronSplitter))
+class IronSplitter(BossModule module) : Components.GenericAOEs(module, AID.IronSplitter)
 {
     private readonly List<AOEInstance> _aoes = [];
 

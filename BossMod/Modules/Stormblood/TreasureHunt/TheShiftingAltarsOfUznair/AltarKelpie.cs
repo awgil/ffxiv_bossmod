@@ -37,8 +37,8 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
-class Innocence(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Innocence), 5);
-class HydroPush(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HydroPush), new AOEShapeRect(49.4f, 22, 5));
+class Innocence(BossModule module) : Components.LocationTargetedAOEs(module, AID.Innocence, 5);
+class HydroPush(BossModule module) : Components.SelfTargetedAOEs(module, AID.HydroPush, new AOEShapeRect(49.4f, 22, 5));
 
 class BloodyPuddle(BossModule module) : Components.GenericAOEs(module)
 {
@@ -68,23 +68,23 @@ class BloodyPuddle(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Torpedo));
-class RisingSeas(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.RisingSeas));
-class HydroPushKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.HydroPush), 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward, stopAtWall: true);
+class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Torpedo);
+class RisingSeas(BossModule module) : Components.RaidwideCast(module, AID.RisingSeas);
+class HydroPushKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPush, 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward, stopAtWall: true);
 
-class RisingSeasKB(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.RisingSeas), 20, stopAtWall: true)
+class RisingSeasKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.RisingSeas, 20, stopAtWall: true)
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<BloodyPuddle>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RaucousScritch), new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hurl), 6);
-class Spin(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.Spin), new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
+class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
 class KelpieStates : StateMachineBuilder
 {

@@ -57,20 +57,20 @@ public enum AID : uint
     TheOrderInstaCast = 14099, // Boss->self, no cast, single-target
 }
 
-class AngrySalamander(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AngrySalamander), new AOEShapeRect(45.6f, 3));
-class ArtificialPlasmaAnnia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ArtificialPlasmaAnnia));
-class ArtificialPlasmaJulia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ArtificialPlasmaJulia));
-class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Bombardment), 10);
-class CoveringFire(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.CoveringFire), 8);
-class DeltaTrance(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DeltaTrance));
-class Heirsbane(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Heirsbane), "Single target, moderate damage"); // wiki says this is targeted, but it's aiming at the tank? Need to source this out more
-class ImperialAuthorityAnnia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ImperialAuthorityAnnia), "Enrage!");
-class ImperialAuthorityJulia(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ImperialAuthorityJulia), "Enrage!");
-class Innocence(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Innocence));
-class MissileImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.MissileImpact), 6);
-class Quaternity1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Quaternity1), new AOEShapeRect(41, 2));
-class Quaternity2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Quaternity2), new AOEShapeRect(26, 2));
-class StunningSweep(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.StunningSweep), new AOEShapeCircle(6.6f));
+class AngrySalamander(BossModule module) : Components.SelfTargetedAOEs(module, AID.AngrySalamander, new AOEShapeRect(45.6f, 3));
+class ArtificialPlasmaAnnia(BossModule module) : Components.RaidwideCast(module, AID.ArtificialPlasmaAnnia);
+class ArtificialPlasmaJulia(BossModule module) : Components.RaidwideCast(module, AID.ArtificialPlasmaJulia);
+class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, AID.Bombardment, 10);
+class CoveringFire(BossModule module) : Components.SpreadFromCastTargets(module, AID.CoveringFire, 8);
+class DeltaTrance(BossModule module) : Components.SingleTargetCast(module, AID.DeltaTrance);
+class Heirsbane(BossModule module) : Components.SingleTargetCast(module, AID.Heirsbane, "Single target, moderate damage"); // wiki says this is targeted, but it's aiming at the tank? Need to source this out more
+class ImperialAuthorityAnnia(BossModule module) : Components.RaidwideCast(module, AID.ImperialAuthorityAnnia, "Enrage!");
+class ImperialAuthorityJulia(BossModule module) : Components.RaidwideCast(module, AID.ImperialAuthorityJulia, "Enrage!");
+class Innocence(BossModule module) : Components.SingleTargetCast(module, AID.Innocence);
+class MissileImpact(BossModule module) : Components.LocationTargetedAOEs(module, AID.MissileImpact, 6);
+class Quaternity1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Quaternity1, new AOEShapeRect(41, 2));
+class Quaternity2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Quaternity2, new AOEShapeRect(26, 2));
+class StunningSweep(BossModule module) : Components.SelfTargetedAOEs(module, AID.StunningSweep, new AOEShapeCircle(6.6f));
 
 class CeruleumTanks(BossModule module) : Components.GenericAOEs(module) //following things were graciously provided by Malediktus
 {
@@ -142,7 +142,7 @@ class Crosshatch(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Crossbones(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.Crossbones), 2);
+class Crossbones(BossModule module) : Components.BaitAwayChargeCast(module, AID.Crossbones, 2);
 class CrossbonesKB(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
     private DateTime _activation;

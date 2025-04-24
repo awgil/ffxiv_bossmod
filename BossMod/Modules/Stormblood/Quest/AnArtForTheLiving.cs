@@ -23,14 +23,14 @@ public enum SID : uint
     Invincibility = 325
 }
 
-class OneOneOneTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W111TonzeSwing), new AOEShapeCircle(12));
-class OneOneTonzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.W11TonzeSwipe), new AOEShapeCone(9, 45.Degrees())); // may be the wrong angle
+class OneOneOneTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.W111TonzeSwing, new AOEShapeCircle(12));
+class OneOneTonzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.W11TonzeSwipe, new AOEShapeCone(9, 45.Degrees())); // may be the wrong angle
 
-class NerveGas1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NerveGas), new AOEShapeCone(35, 60.Degrees()));
-class NerveGas2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NerveGasRight), new AOEShapeCone(35, 90.Degrees()));
-class NerveGas3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NerveGasLeft), new AOEShapeCone(35, 90.Degrees()));
+class NerveGas1(BossModule module) : Components.SelfTargetedAOEs(module, AID.NerveGas, new AOEShapeCone(35, 60.Degrees()));
+class NerveGas2(BossModule module) : Components.SelfTargetedAOEs(module, AID.NerveGasRight, new AOEShapeCone(35, 90.Degrees()));
+class NerveGas3(BossModule module) : Components.SelfTargetedAOEs(module, AID.NerveGasLeft, new AOEShapeCone(35, 90.Degrees()));
 
-class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PiercingLaser), new AOEShapeRect(33.68f, 3));
+class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingLaser, new AOEShapeRect(33.68f, 3));
 
 class AetherochemicalExplosive(BossModule module) : Components.GenericAOEs(module)
 {

@@ -16,10 +16,10 @@ public enum AID : uint
     DragonBreath = 28660, // Boss->self, 3.0s cast, range 30 width 8 rect
 }
 
-class SalivousSnap(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SalivousSnap));
-class ToxicVomit(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ToxicVomitAOE), new AOEShapeCircle(2));
-class Burst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Burst), new AOEShapeCircle(10), 4);
-class DragonBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, ActionID.MakeSpell(AID.DragonBreath), new AOEShapeRect(30, 4));
+class SalivousSnap(BossModule module) : Components.SingleTargetCast(module, AID.SalivousSnap);
+class ToxicVomit(BossModule module) : Components.SelfTargetedAOEs(module, AID.ToxicVomitAOE, new AOEShapeCircle(2));
+class Burst(BossModule module) : Components.SelfTargetedAOEs(module, AID.Burst, new AOEShapeCircle(10), 4);
+class DragonBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.DragonBreath, new AOEShapeRect(30, 4));
 
 class D074AiatarStates : StateMachineBuilder
 {

@@ -62,7 +62,7 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
 // players always need to get hit by this mechanic
 class FusesOfFuryMurderousMist : Components.SelfTargetedAOEs
 {
-    public FusesOfFuryMurderousMist(BossModule module) : base(module, ActionID.MakeSpell(AID.FusesOfFuryMurderousMist), new AOEShapeCone(40, 45.Degrees(), 180.Degrees()))
+    public FusesOfFuryMurderousMist(BossModule module) : base(module, AID.FusesOfFuryMurderousMist, new AOEShapeCone(40, 45.Degrees(), 180.Degrees()))
     {
         WarningText = "Get hit by mist!";
     }

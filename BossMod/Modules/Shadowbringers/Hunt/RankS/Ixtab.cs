@@ -72,16 +72,16 @@ class DualCastTartareanFlameThunder(BossModule module) : Components.GenericAOEs(
     }
 }
 
-class TartareanTwister(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TartareanTwister));
-class TartareanBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanBlizzard), new AOEShapeCone(40, 22.5f.Degrees()));
-class TartareanQuake(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TartareanQuake));
-class TartareanAbyss(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.TartareanAbyss), new AOEShapeCircle(6), true);
-class TartareanAbyssHint(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TartareanAbyss), "Tankbuster circle");
-class TartareanFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TartareanFlare), 18);
-class TartareanMeteor(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TartareanMeteor), 10);
-class ArchaicDualcast(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ArchaicDualcast), "Preparing In/Out or Out/In AOE");
+class TartareanTwister(BossModule module) : Components.CastInterruptHint(module, AID.TartareanTwister);
+class TartareanBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.TartareanBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
+class TartareanQuake(BossModule module) : Components.RaidwideCast(module, AID.TartareanQuake);
+class TartareanAbyss(BossModule module) : Components.BaitAwayCast(module, AID.TartareanAbyss, new AOEShapeCircle(6), true);
+class TartareanAbyssHint(BossModule module) : Components.SingleTargetCast(module, AID.TartareanAbyss, "Tankbuster circle");
+class TartareanFlare(BossModule module) : Components.LocationTargetedAOEs(module, AID.TartareanFlare, 18);
+class TartareanMeteor(BossModule module) : Components.StackWithCastTargets(module, AID.TartareanMeteor, 10);
+class ArchaicDualcast(BossModule module) : Components.CastHint(module, AID.ArchaicDualcast, "Preparing In/Out or Out/In AOE");
 
-class Cryptcall(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.Cryptcall), new AOEShapeCone(38.24f, 60.Degrees()))
+class Cryptcall(BossModule module) : Components.BaitAwayCast(module, AID.Cryptcall, new AOEShapeCone(38.24f, 60.Degrees()))
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell) { }
     public override void OnEventCast(Actor caster, ActorCastEvent spell) //bait resolves on cast event instead of cast finish
@@ -91,7 +91,7 @@ class Cryptcall(BossModule module) : Components.BaitAwayCast(module, ActionID.Ma
     }
 }
 
-class CryptcallHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.Cryptcall), "Cone reduces health to 1 + applies Doom");
+class CryptcallHint(BossModule module) : Components.CastHint(module, AID.Cryptcall, "Cone reduces health to 1 + applies Doom");
 
 class Doom(BossModule module) : BossComponent(module)
 {

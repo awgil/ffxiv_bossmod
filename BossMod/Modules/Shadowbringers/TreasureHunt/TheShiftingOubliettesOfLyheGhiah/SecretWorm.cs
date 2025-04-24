@@ -35,10 +35,10 @@ public enum IconID : uint
     Baitaway = 23, // player
 }
 
-class Hydrocannon(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrocannon), 8);
-class FreshwaterCannon(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FreshwaterCannon), new AOEShapeRect(46, 2));
-class AquaBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AquaBurst), new AOEShapeCircle(10));
-class BrineBreath(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.BrineBreath));
+class Hydrocannon(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hydrocannon, 8);
+class FreshwaterCannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.FreshwaterCannon, new AOEShapeRect(46, 2));
+class AquaBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.AquaBurst, new AOEShapeCircle(10));
+class BrineBreath(BossModule module) : Components.SingleTargetCast(module, AID.BrineBreath);
 class Hydroburst(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Bubble).Where(x => !x.IsDead && !(x.CastInfo != null && x.CastInfo.IsSpell(AID.AquaBurst))));
 
 class Bubble(BossModule module) : Components.GenericBaitAway(module)
@@ -80,11 +80,11 @@ class Bubble(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PluckAndPrune), new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TearyTwirl), new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeirloomScream), new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PungentPirouette), new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pollen), new AOEShapeCircle(6.84f));
+class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
 class WormStates : StateMachineBuilder
 {

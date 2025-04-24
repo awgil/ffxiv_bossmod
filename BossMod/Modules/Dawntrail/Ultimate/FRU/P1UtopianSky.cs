@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
-class P1UtopianSkyBlastingZone(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BlastingZoneAOE))
+class P1UtopianSkyBlastingZone(BossModule module) : Components.GenericAOEs(module, AID.BlastingZoneAOE)
 {
     public readonly List<AOEInstance> AOEs = [];
     public BitMask DangerousSpots; // 0 = N, then CCW

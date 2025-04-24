@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
-class CurseOfDarkness(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.CurseOfDarknessAOE));
+class CurseOfDarkness(BossModule module) : Components.CastCounter(module, AID.CurseOfDarknessAOE);
 
-class DarkEnergyParticleBeam(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DarkEnergyParticleBeam))
+class DarkEnergyParticleBeam(BossModule module) : Components.GenericBaitAway(module, AID.DarkEnergyParticleBeam)
 {
     private readonly DateTime[] _activation = new DateTime[PartyState.MaxAllianceSize];
 

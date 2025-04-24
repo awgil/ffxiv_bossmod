@@ -5,7 +5,7 @@
 // p2 second cast is two charges along both cardinals
 // p2 third cast is four staggered charges, with different patterns depending on whether awakening happened (TODO: we can predict that very early)
 // p4 predation is a single awakened charge along intercardinal
-class CrimsonCyclone(BossModule module, float predictionDelay) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.CrimsonCyclone))
+class CrimsonCyclone(BossModule module, float predictionDelay) : Components.GenericAOEs(module, AID.CrimsonCyclone)
 {
     private readonly float _predictionDelay = predictionDelay;
     private readonly List<(AOEShape shape, WPos pos, Angle rot, DateTime activation)> _predicted = []; // note: there could be 1/2/4 predicted normal charges and 0 or 2 'cross' charges

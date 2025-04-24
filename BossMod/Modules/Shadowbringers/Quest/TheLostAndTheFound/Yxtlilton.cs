@@ -14,8 +14,8 @@ public enum AID : uint
     TheCodexOfGravity = 17014, // Boss->player, 4.5s cast, range 6 circle
 }
 
-class CodexOfDarknessII(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TheCodexOfDarknessII));
-class CodexOfGravity(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.TheCodexOfGravity), 6)
+class CodexOfDarknessII(BossModule module) : Components.RaidwideCast(module, AID.TheCodexOfDarknessII);
+class CodexOfGravity(BossModule module) : Components.StackWithCastTargets(module, AID.TheCodexOfGravity, 6)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

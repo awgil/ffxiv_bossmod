@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S2;
 
-class TyrantsUnholyDarkness(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.TyrantsUnholyDarknessAOE))
+class TyrantsUnholyDarkness(BossModule module) : Components.CastCounter(module, AID.TyrantsUnholyDarknessAOE)
 {
     private const float _radius = 6;
 

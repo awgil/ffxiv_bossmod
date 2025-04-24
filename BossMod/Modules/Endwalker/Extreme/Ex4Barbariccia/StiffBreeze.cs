@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
 
-class StiffBreeze(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Tousle))
+class StiffBreeze(BossModule module) : Components.GenericAOEs(module, AID.Tousle)
 {
     private static readonly AOEShape _shape = new AOEShapeCircle(1); // note: actual aoe, if triggered, has radius 2, but we care about triggering radius
 

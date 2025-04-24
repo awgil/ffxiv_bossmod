@@ -22,14 +22,14 @@ public enum AID : uint
     TrueBravery = 25907, // Boss->self, 5.0s cast, single-target
 }
 
-class Trismegistos(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Trismegistos));
-class TrueTornado(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TrueTornado));
-class TrueTornado2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TrueTornado2), 4);
-class CosmicKiss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CosmicKiss), new AOEShapeCircle(10));
+class Trismegistos(BossModule module) : Components.RaidwideCast(module, AID.Trismegistos);
+class TrueTornado(BossModule module) : Components.SingleTargetCast(module, AID.TrueTornado);
+class TrueTornado2(BossModule module) : Components.LocationTargetedAOEs(module, AID.TrueTornado2, 4);
+class CosmicKiss(BossModule module) : Components.SelfTargetedAOEs(module, AID.CosmicKiss, new AOEShapeCircle(10));
 
-class TrueAeroIV(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroIV), new AOEShapeRect(50, 5));
-class TrueAeroIV2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroIV1), new AOEShapeRect(50, 5), maxCasts: 4);
-class TrueAeroIV3(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroIV2), new AOEShapeRect(50, 5), maxCasts: 4);
+class TrueAeroIV(BossModule module) : Components.SelfTargetedAOEs(module, AID.TrueAeroIV, new AOEShapeRect(50, 5));
+class TrueAeroIV2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TrueAeroIV1, new AOEShapeRect(50, 5), maxCasts: 4);
+class TrueAeroIV3(BossModule module) : Components.SelfTargetedAOEs(module, AID.TrueAeroIV2, new AOEShapeRect(50, 5), maxCasts: 4);
 class WindSafe(BossModule module) : Components.GenericAOEs(module)
 {
     private IEnumerable<Actor> Meteors => Module.Enemies(OID.Meteor);
@@ -87,7 +87,7 @@ class WindSafe(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class TrueAero(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.TrueAero))
+class TrueAero(BossModule module) : Components.GenericBaitAway(module, AID.TrueAero)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -103,10 +103,10 @@ class TrueAero(BossModule module) : Components.GenericBaitAway(module, ActionID.
     }
 }
 
-class TrueAero2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAero2), new AOEShapeRect(40, 3));
-class TrueBravery(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.TrueBravery));
-class TrueAeroII(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.TrueAeroII), 6);
-class TrueAeroII2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TrueAeroII2), 6);
+class TrueAero2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TrueAero2, new AOEShapeRect(40, 3));
+class TrueBravery(BossModule module) : Components.CastInterruptHint(module, AID.TrueBravery);
+class TrueAeroII(BossModule module) : Components.SpreadFromCastTargets(module, AID.TrueAeroII, 6);
+class TrueAeroII2(BossModule module) : Components.LocationTargetedAOEs(module, AID.TrueAeroII2, 6);
 
 class D043HermesStates : StateMachineBuilder
 {

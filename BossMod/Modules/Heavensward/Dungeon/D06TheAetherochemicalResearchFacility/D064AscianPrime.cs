@@ -101,7 +101,7 @@ public enum TetherID : uint
     ArcaneSphere = 197 // ArcaneSphere->Boss
 }
 
-class AncientCircle(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(10, 20), (uint)IconID.AncientCircle, ActionID.MakeSpell(AID.AncientCircle), 8, true);
+class AncientCircle(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(10, 20), (uint)IconID.AncientCircle, AID.AncientCircle, 8, true);
 
 class DarkWhispers(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)
 {
@@ -119,13 +119,13 @@ class DarkWhispers(BossModule module) : Components.UniformStackSpread(module, 0,
     }
 }
 
-class AncientFrost(BossModule module) : Components.StackWithIcon(module, (uint)IconID.AncientFrost, ActionID.MakeSpell(AID.AncientFrost), 6, 5, 4, 4);
-class ShadowFlare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ShadowFlare1));
-class ShadowFlareLBPhase(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ShadowFlare2), "Raidwide x2");
-class Annihilation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.AnnihilationAOE));
-class UniversalManipulation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.UniversalManipulation), "Raidwide + Apply debuffs for later");
+class AncientFrost(BossModule module) : Components.StackWithIcon(module, (uint)IconID.AncientFrost, AID.AncientFrost, 6, 5, 4, 4);
+class ShadowFlare(BossModule module) : Components.RaidwideCast(module, AID.ShadowFlare1);
+class ShadowFlareLBPhase(BossModule module) : Components.RaidwideCast(module, AID.ShadowFlare2, "Raidwide x2");
+class Annihilation(BossModule module) : Components.RaidwideCast(module, AID.AnnihilationAOE);
+class UniversalManipulation(BossModule module) : Components.RaidwideCast(module, AID.UniversalManipulation, "Raidwide + Apply debuffs for later");
 
-class HeightOfChaos(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.HeightOfChaos), new AOEShapeCircle(5), true)
+class HeightOfChaos(BossModule module) : Components.BaitAwayCast(module, AID.HeightOfChaos, new AOEShapeCircle(5), true)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -134,22 +134,22 @@ class HeightOfChaos(BossModule module) : Components.BaitAwayCast(module, ActionI
     }
 }
 
-class AncientEruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AncientEruption), 5);
+class AncientEruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.AncientEruption, 5);
 
-class ChillingCross(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCross(40, 2.5f));
+class ChillingCross(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCross(40, 2.5f));
 class ChillingCross1(BossModule module) : ChillingCross(module, AID.ChillingCross1);
 class ChillingCross2(BossModule module) : ChillingCross(module, AID.ChillingCross2);
 
-class DarkBlizzard(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCone(41, 10.Degrees()));
+class DarkBlizzard(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(41, 10.Degrees()));
 class DarkBlizzardIIIAOE1(BossModule module) : DarkBlizzard(module, AID.DarkBlizzardIII1);
 class DarkBlizzardIIIAOE2(BossModule module) : DarkBlizzard(module, AID.DarkBlizzardIII2);
 class DarkBlizzardIIIAOE3(BossModule module) : DarkBlizzard(module, AID.DarkBlizzardIII3);
 class DarkBlizzardIIIAOE4(BossModule module) : DarkBlizzard(module, AID.DarkBlizzardIII4);
 class DarkBlizzardIIIAOE5(BossModule module) : DarkBlizzard(module, AID.DarkBlizzardIII5);
 
-class DarkFireII(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.DarkFireII), 6);
-class BurningChains(BossModule module) : Components.Chains(module, (uint)TetherID.BurningChains, ActionID.MakeSpell(AID.BurningChains), 15);
-class EntropicFlame(BossModule module) : Components.SimpleLineStack(module, 4, 50, ActionID.MakeSpell(AID.EntropicFlameTargetSelect), ActionID.MakeSpell(AID.EntropicFlameCast), 0);
+class DarkFireII(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkFireII, 6);
+class BurningChains(BossModule module) : Components.Chains(module, (uint)TetherID.BurningChains, AID.BurningChains, 15);
+class EntropicFlame(BossModule module) : Components.SimpleLineStack(module, 4, 50, AID.EntropicFlameTargetSelect, AID.EntropicFlameCast, 0);
 
 class Stars(BossModule module) : Components.GenericAOEs(module)
 {

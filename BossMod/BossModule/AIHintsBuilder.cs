@@ -14,7 +14,44 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape)> _activeGazes = [];
+    private readonly List<Actor> _invincible = [];
     private ArenaBoundsCircle? _activeFateBounds;
+
+    private static readonly List<uint> InvincibleStatuses =
+    [
+        151,
+        198,
+        325,
+        328,
+        385,
+        394,
+        469,
+        529,
+        592,
+        656,
+        671,
+        775,
+        776,
+        895,
+        969,
+        981,
+        1240,
+        1302,
+        1303,
+        1567,
+        1570,
+        1697,
+        1829,
+        1936,
+        2413,
+        2654,
+        3012,
+        3039,
+        3052,
+        3054,
+        4410,
+        4175
+    ];
 
     public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm)
     {
@@ -26,6 +63,8 @@ public sealed class AIHintsBuilder : IDisposable
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
+            ws.Actors.StatusGain.Subscribe(OnStatusGain),
+            ws.Actors.StatusLose.Subscribe(OnStatusLose),
             ws.Client.ActiveFateChanged.Subscribe(_ => _activeFateBounds = null)
         );
     }
@@ -163,6 +202,9 @@ public sealed class AIHintsBuilder : IDisposable
             if (gaze.Shape.Check(player.Position, target, rot))
                 hints.ForbiddenDirections.Add((Angle.FromDirection(target - player.Position), 45.Degrees(), finishAt));
         }
+
+        foreach (var inv in _invincible)
+            hints.SetPriority(inv, AIHints.Enemy.PriorityInvincible);
     }
 
     private void OnCastStarted(Actor actor)
@@ -199,6 +241,18 @@ public sealed class AIHintsBuilder : IDisposable
     {
         _activeAOEs.Remove(actor.InstanceID);
         _activeGazes.Remove(actor.InstanceID);
+    }
+
+    private void OnStatusGain(Actor actor, int index)
+    {
+        if (InvincibleStatuses.Contains(actor.Statuses[index].ID))
+            _invincible.Add(actor);
+    }
+
+    private void OnStatusLose(Actor actor, int index)
+    {
+        if (InvincibleStatuses.Contains(actor.Statuses[index].ID))
+            _invincible.Remove(actor);
     }
 
     private static AOEShape? GuessShape(Lumina.Excel.Sheets.Action data, Actor actor) => data.CastType switch

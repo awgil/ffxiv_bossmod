@@ -25,7 +25,7 @@ public enum IconID : uint
     AmorphicFlail = 1, // player
 }
 
-class Fire(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Fire), "Single-target damage");
+class Fire(BossModule module) : Components.SingleTargetCast(module, AID.Fire, "Single-target damage");
 
 // TODO: verify implementation; find a condition for kite end
 class AmorphicFlail(BossModule module) : BossComponent(module)

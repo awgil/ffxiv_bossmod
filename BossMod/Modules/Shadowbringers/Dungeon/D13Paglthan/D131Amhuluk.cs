@@ -35,8 +35,8 @@ class Levin(BossModule module) : Components.GenericAOEs(module)
 }
 
 // claims to be a 50/40 rect, but hits behind boss, idk man
-class ElectricBurst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElectricBurst));
-class CriticalRip(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CriticalRip));
+class ElectricBurst(BossModule module) : Components.RaidwideCast(module, AID.ElectricBurst);
+class CriticalRip(BossModule module) : Components.SingleTargetCast(module, AID.CriticalRip);
 
 class SpikeBlaster(BossModule module) : Components.GenericAOEs(module)
 {
@@ -183,4 +183,3 @@ class AmhulukStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 777, NameID = 10075)]
 public class Amhuluk(WorldState ws, Actor primary) : BossModule(ws, primary, new(-520, 145), new ArenaBoundsCircle(20));
-

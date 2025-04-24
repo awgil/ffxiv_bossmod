@@ -11,7 +11,7 @@ public enum AID : uint
     Charge = 16999, // 29AB->29A9, 3.0s cast, width 4 rect charge
 }
 
-class Charge(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.Charge), 2);
+class Charge(BossModule module) : Components.ChargeAOEs(module, AID.Charge, 2);
 
 class SophrosyneStates : StateMachineBuilder
 {

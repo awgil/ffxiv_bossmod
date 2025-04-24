@@ -35,7 +35,7 @@ class UpheldOverruling(BossModule module) : Components.UniformStackSpread(module
     }
 }
 
-class LightburstBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightburstBoss), new AOEShapeCircle(13));
-class LightburstClone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightburstClone), new AOEShapeCircle(13));
-class DarkPerimeterBoss(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkPerimeterBoss), new AOEShapeDonut(8, 50));
-class DarkPerimeterClone(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkPerimeterClone), new AOEShapeDonut(8, 50));
+class LightburstBoss(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightburstBoss, new AOEShapeCircle(13));
+class LightburstClone(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightburstClone, new AOEShapeCircle(13));
+class DarkPerimeterBoss(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkPerimeterBoss, new AOEShapeDonut(8, 50));
+class DarkPerimeterClone(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkPerimeterClone, new AOEShapeDonut(8, 50));

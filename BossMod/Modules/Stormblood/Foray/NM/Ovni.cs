@@ -30,13 +30,13 @@ public enum IconID : uint
     IonShower = 111, // player->self
 }
 
-class PullOfTheVoid(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.PullOfTheVoid), 30, shape: new AOEShapeCircle(30), kind: Kind.TowardsOrigin, minDistanceBetweenHitboxes: true);
-class Megastorm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Megastorm), new AOEShapeDonut(5, 40));
-class ConcussiveOscillation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ConcussiveOscillation), new AOEShapeCircle(24));
-class VitriolicBarrage(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.VitriolicBarrage));
-class RockHard(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.RockHard), 8);
-class TorrentialTorment(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TorrentialTorment), new AOEShapeCone(56, 22.5f.Degrees()));
-class Fluorescence(BossModule module) : DispelComponent(module, (uint)SID.DamageUp);
+class PullOfTheVoid(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PullOfTheVoid, 30, shape: new AOEShapeCircle(30), kind: Kind.TowardsOrigin, minDistanceBetweenHitboxes: true);
+class Megastorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.Megastorm, new AOEShapeDonut(5, 40));
+class ConcussiveOscillation(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConcussiveOscillation, new AOEShapeCircle(24));
+class VitriolicBarrage(BossModule module) : Components.RaidwideCast(module, AID.VitriolicBarrage);
+class RockHard(BossModule module) : Components.LocationTargetedAOEs(module, AID.RockHard, 8);
+class TorrentialTorment(BossModule module) : Components.SelfTargetedAOEs(module, AID.TorrentialTorment, new AOEShapeCone(56, 22.5f.Degrees()));
+class Fluorescence(BossModule module) : Components.DispelHint(module, (uint)SID.DamageUp);
 class IonShower(BossModule module) : Components.GenericStackSpread(module, alwaysShowSpreads: true, raidwideOnResolve: false)
 {
     private int _numCasts;
@@ -84,4 +84,3 @@ class OvniStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1424, Contributors = "xan", SortOrder = 11)]
 public class Ovni(WorldState ws, Actor primary) : BossModule(ws, primary, new(266.1068f, -97.09414f), new ArenaBoundsCircle(80, MapResolution: 1));
-

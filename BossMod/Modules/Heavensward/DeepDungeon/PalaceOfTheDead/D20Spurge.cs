@@ -38,11 +38,11 @@ class BossAdds(BossModule module) : Components.Adds(module, (uint)OID.PalaceHorn
         }
     }
 }
-class AcidMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AcidMist), new AOEShapeCircle(9.6f));
-class BloodyCaress(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.BloodyCaress), new AOEShapeCone(11.6f, 60.Degrees()), activeWhileCasting: false);
-class GoldDust(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GoldDust), 8);
-class Leafstorm(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Leafstorm));
-class RottenStench(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RottenStench), new AOEShapeRect(47.6f, 6));
+class AcidMist(BossModule module) : Components.SelfTargetedAOEs(module, AID.AcidMist, new AOEShapeCircle(9.6f));
+class BloodyCaress(BossModule module) : Components.Cleave(module, AID.BloodyCaress, new AOEShapeCone(11.6f, 60.Degrees()), activeWhileCasting: false);
+class GoldDust(BossModule module) : Components.LocationTargetedAOEs(module, AID.GoldDust, 8);
+class Leafstorm(BossModule module) : Components.RaidwideCast(module, AID.Leafstorm);
+class RottenStench(BossModule module) : Components.SelfTargetedAOEs(module, AID.RottenStench, new AOEShapeRect(47.6f, 6));
 
 class D20SpurgeStates : StateMachineBuilder
 {

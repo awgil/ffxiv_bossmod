@@ -29,12 +29,12 @@ public enum IconID : uint
     Stackmarker = 93, // player
 }
 
-class TheDeepSeeks(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.TheDeepSeeks));
-class TheDeepReaches(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDeepReaches), new AOEShapeRect(40, 1));
-class TheDeepBeckons(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TheDeepBeckons));
-class CoinToss(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.CoinToss));
-class TheDeepRends(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheDeepRends), new AOEShapeCone(20, 30.Degrees()));
-class TheDeepRendsHint(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.TheDeepRends), "Targets 5 random players after initial hit");
+class TheDeepSeeks(BossModule module) : Components.SingleTargetCast(module, AID.TheDeepSeeks);
+class TheDeepReaches(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDeepReaches, new AOEShapeRect(40, 1));
+class TheDeepBeckons(BossModule module) : Components.RaidwideCast(module, AID.TheDeepBeckons);
+class CoinToss(BossModule module) : Components.CastGaze(module, AID.CoinToss);
+class TheDeepRends(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDeepRends, new AOEShapeCone(20, 30.Degrees()));
+class TheDeepRendsHint(BossModule module) : Components.CastHint(module, AID.TheDeepRends, "Targets 5 random players after initial hit");
 
 class SwivelGun(BossModule module) : Components.GenericStackSpread(module)
 {

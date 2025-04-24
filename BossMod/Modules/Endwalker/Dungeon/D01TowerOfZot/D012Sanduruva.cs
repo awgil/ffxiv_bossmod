@@ -30,7 +30,7 @@ public enum SID : uint
     WhoIsShe2 = 2654, // none->BerserkerSphere, extra=0x1A8
 }
 
-class IsitvaSiddhi(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.IsitvaSiddhi));
+class IsitvaSiddhi(BossModule module) : Components.SingleTargetCast(module, AID.IsitvaSiddhi);
 
 class SphereShatter(BossModule module) : Components.GenericAOEs(module)
 {
@@ -67,10 +67,10 @@ class SphereShatter(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PraptiSiddhi(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PraptiSiddhi), new AOEShapeRect(40, 2));
-class PrakamyaSiddhi(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PrakamyaSiddhi), new AOEShapeCircle(5));
-class ManusyaConfuse(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ManusyaConfuse), "Applies Manyusa Confusion");
-class ManusyaStop(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.ManusyaStop), "Applies Manyusa Stop");
+class PraptiSiddhi(BossModule module) : Components.SelfTargetedAOEs(module, AID.PraptiSiddhi, new AOEShapeRect(40, 2));
+class PrakamyaSiddhi(BossModule module) : Components.SelfTargetedAOEs(module, AID.PrakamyaSiddhi, new AOEShapeCircle(5));
+class ManusyaConfuse(BossModule module) : Components.CastHint(module, AID.ManusyaConfuse, "Applies Manyusa Confusion");
+class ManusyaStop(BossModule module) : Components.CastHint(module, AID.ManusyaStop, "Applies Manyusa Stop");
 
 class D012SanduruvaStates : StateMachineBuilder
 {

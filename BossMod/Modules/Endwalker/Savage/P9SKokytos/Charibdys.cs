@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
-class Charibdys(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.CharybdisAOE), m => m.Enemies(OID.Charybdis).Where(v => v.EventState != 7), 0.6f);
+class Charibdys(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.CharybdisAOE, m => m.Enemies(OID.Charybdis).Where(v => v.EventState != 7), 0.6f);
 
 class Comet(BossModule module) : Components.Adds(module, (uint)OID.Comet)
 {
@@ -16,8 +16,8 @@ class Comet(BossModule module) : Components.Adds(module, (uint)OID.Comet)
     }
 }
 
-class CometImpact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CometImpact), new AOEShapeCircle(10)); // TODO: verify falloff
-class CometBurst(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CometBurstLong), new AOEShapeCircle(10));
+class CometImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.CometImpact, new AOEShapeCircle(10)); // TODO: verify falloff
+class CometBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.CometBurstLong, new AOEShapeCircle(10));
 
 class BeastlyBile(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4)
 {
@@ -59,7 +59,7 @@ class BeastlyBile(BossModule module) : Components.UniformStackSpread(module, 6, 
     }
 }
 
-class Thunderbolt(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.ThunderboltAOE))
+class Thunderbolt(BossModule module) : Components.GenericBaitAway(module, AID.ThunderboltAOE)
 {
     private readonly Comet? _comet = module.FindComponent<Comet>();
 
@@ -91,7 +91,7 @@ class Thunderbolt(BossModule module) : Components.GenericBaitAway(module, Action
     }
 }
 
-class EclipticMeteor(BossModule module) : Components.GenericLineOfSightAOE(module, ActionID.MakeSpell(AID.EclipticMeteorAOE), 60, false)
+class EclipticMeteor(BossModule module) : Components.GenericLineOfSightAOE(module, AID.EclipticMeteorAOE, 60, false)
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {

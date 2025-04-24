@@ -199,12 +199,6 @@ public class TenebrismTowers(BossModule module) : Components.GenericTowers(modul
         if ((AID)spell.Action.ID is AID.Burst or AID.BigBurst)
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Towers.Count > 0)
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Towers[0].Position, 6));
-    }
 }
 
 class Doom(BossModule module) : BossComponent(module)
@@ -247,7 +241,7 @@ class Doom(BossModule module) : BossComponent(module)
     }
 }
 
-class SoulScythe(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.SoulScythe), 18);
+class SoulScythe(BossModule module) : Components.LocationTargetedAOEs(module, AID.SoulScythe, 18);
 
 class D112GalateaMagnaStates : StateMachineBuilder
 {

@@ -46,7 +46,7 @@ class PalmAttacks(BossModule module) : Components.GenericAOEs(module) //Palm Att
     }
 }
 
-class LightShot(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LightShot), new AOEShapeRect(40, 2));
+class LightShot(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightShot, new AOEShapeRect(40, 2));
 
 class D054ForgivenRevelryStates : StateMachineBuilder
 {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S2;
 
-class EndOfDays(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.EndOfDays))
+class EndOfDays(BossModule module) : Components.GenericAOEs(module, AID.EndOfDays)
 {
     public List<(Actor caster, DateTime finish)> Casters = [];
 

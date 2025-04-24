@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
-class ArmsOfWisdom(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.ArmsOfWisdom))
+class ArmsOfWisdom(BossModule module) : Components.Knockback(module, AID.ArmsOfWisdom)
 {
     private Actor? _caster;
 

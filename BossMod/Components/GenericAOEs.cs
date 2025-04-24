@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Components;
 
 // generic component that shows arbitrary shapes representing avoidable aoes
-public abstract class GenericAOEs(BossModule module, ActionID aid = default, string warningText = "GTFO from aoe!") : CastCounter(module, aid)
+public abstract class GenericAOEs(BossModule module, Enum? aid = default, string warningText = "GTFO from aoe!") : CastCounter(module, aid)
 {
     public record struct AOEInstance(AOEShape Shape, WPos Origin, Angle Rotation = default, DateTime Activation = default, uint Color = 0, bool Risky = true)
     {
@@ -33,7 +33,7 @@ public abstract class GenericAOEs(BossModule module, ActionID aid = default, str
 }
 
 // self-targeted aoe that happens at the end of the cast
-public class SelfTargetedAOEs(BossModule module, ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module, aid)
+public class SelfTargetedAOEs(BossModule module, Enum aid, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module, aid)
 {
     public AOEShape Shape { get; init; } = shape;
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
@@ -59,7 +59,7 @@ public class SelfTargetedAOEs(BossModule module, ActionID aid, AOEShape shape, i
 }
 
 // self-targeted aoe that uses current caster's rotation instead of rotation from cast-info - used by legacy modules written before i've reversed real cast rotation
-public class SelfTargetedLegacyRotationAOEs(BossModule module, ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module, aid)
+public class SelfTargetedLegacyRotationAOEs(BossModule module, Enum aid, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module, aid)
 {
     public AOEShape Shape { get; init; } = shape;
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
@@ -83,7 +83,7 @@ public class SelfTargetedLegacyRotationAOEs(BossModule module, ActionID aid, AOE
 }
 
 // location-targeted aoe that happens at the end of the cast
-public class LocationTargetedAOEs(BossModule module, ActionID aid, float radius, string warningText = "GTFO from puddle!", int maxCasts = int.MaxValue) : GenericAOEs(module, aid, warningText)
+public class LocationTargetedAOEs(BossModule module, Enum aid, float radius, string warningText = "GTFO from puddle!", int maxCasts = int.MaxValue) : GenericAOEs(module, aid, warningText)
 {
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
@@ -109,7 +109,7 @@ public class LocationTargetedAOEs(BossModule module, ActionID aid, float radius,
 }
 
 // 'charge at location' aoes that happen at the end of the cast
-public class ChargeAOEs(BossModule module, ActionID aid, float halfWidth) : GenericAOEs(module, aid)
+public class ChargeAOEs(BossModule module, Enum aid, float halfWidth) : GenericAOEs(module, aid)
 {
     public float HalfWidth { get; init; } = halfWidth;
     public readonly List<(Actor caster, AOEShape shape, Angle direction)> Casters = [];
@@ -132,9 +132,9 @@ public class ChargeAOEs(BossModule module, ActionID aid, float halfWidth) : Gene
     }
 }
 
-public class StandardAOEs(BossModule module, ActionID aid, AOEShape shape, int maxCasts = int.MaxValue) : SelfTargetedAOEs(module, aid, shape, maxCasts)
+public class StandardAOEs(BossModule module, Enum aid, AOEShape shape, int maxCasts = int.MaxValue) : SelfTargetedAOEs(module, aid, shape, maxCasts)
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color, Risky));
 }
 
 public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module)

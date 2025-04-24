@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash2;
 
-class Tornado(BossModule module, AID aid) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(aid), 4);
+class Tornado(BossModule module, AID aid) : Components.SpreadFromCastTargets(module, aid, 4);
 class NTornado(BossModule module) : Tornado(module, AID.NTornado);
 class STornado(BossModule module) : Tornado(module, AID.STornado);
 
-class Ovation(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeRect(12, 2));
+class Ovation(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(12, 2));
 class NOvation(BossModule module) : Ovation(module, AID.NOvation);
 class SOvation(BossModule module) : Ovation(module, AID.SOvation);
 

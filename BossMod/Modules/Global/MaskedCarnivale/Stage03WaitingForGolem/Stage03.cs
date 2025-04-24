@@ -14,11 +14,11 @@ public enum AID : uint
     Obliterate = 14365, // 25D4->self, 6.0s cast, range 60 circle
 }
 
-class BoulderClap(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BoulderClap), new AOEShapeCone(14, 60.Degrees()));
+class BoulderClap(BossModule module) : Components.SelfTargetedAOEs(module, AID.BoulderClap, new AOEShapeCone(14, 60.Degrees()));
 
-class Dreadstorm(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.EarthenHeart), m => m.Enemies(OID.voidzone), 0);
+class Dreadstorm(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.EarthenHeart, m => m.Enemies(OID.voidzone), 0);
 
-class Obliterate(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Obliterate), "Interruptible raidwide");
+class Obliterate(BossModule module) : Components.RaidwideCast(module, AID.Obliterate, "Interruptible raidwide");
 
 class Hints(BossModule module) : BossComponent(module)
 {

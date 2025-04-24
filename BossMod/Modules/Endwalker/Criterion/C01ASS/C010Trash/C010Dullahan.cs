@@ -17,15 +17,15 @@ public enum AID : uint
     SInfernalPain = 31105, // Boss->self, 5.0s cast, raidwide
 }
 
-class BlightedGloom(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(10));
+class BlightedGloom(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(10));
 class NBlightedGloom(BossModule module) : BlightedGloom(module, AID.NBlightedGloom);
 class SBlightedGloom(BossModule module) : BlightedGloom(module, AID.SBlightedGloom);
 
-class KingsWill(BossModule module, AID aid) : Components.CastHint(module, ActionID.MakeSpell(aid), "Damage increase buff");
+class KingsWill(BossModule module, AID aid) : Components.CastHint(module, aid, "Damage increase buff");
 class NKingsWill(BossModule module) : KingsWill(module, AID.NKingsWill);
 class SKingsWill(BossModule module) : KingsWill(module, AID.SKingsWill);
 
-class InfernalPain(BossModule module, AID aid) : Components.RaidwideCast(module, ActionID.MakeSpell(aid));
+class InfernalPain(BossModule module, AID aid) : Components.RaidwideCast(module, aid);
 class NInfernalPain(BossModule module) : InfernalPain(module, AID.NInfernalPain);
 class SInfernalPain(BossModule module) : InfernalPain(module, AID.SInfernalPain);
 

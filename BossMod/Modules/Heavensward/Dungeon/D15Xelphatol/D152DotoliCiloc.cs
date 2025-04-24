@@ -16,8 +16,8 @@ public enum AID : uint
     TerribleFlurry = 6610, // _Gen_Whirlwind->self, no cast, range 6 circle
 }
 
-class Stormcoming(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.Stormcoming), m => m.Enemies(OID.Whirlwind).Where(w => w.EventState != 7), 0);
-class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.Swiftfeather))
+class Stormcoming(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.Stormcoming, m => m.Enemies(OID.Whirlwind).Where(w => w.EventState != 7), 0);
+class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, AID.Swiftfeather)
 {
     // 2.3f delay
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -29,8 +29,8 @@ class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, Actio
             CurrentBaits.Clear();
     }
 }
-class OnLow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.OnLow), new AOEShapeCone(11, 60.Degrees()));
-class OnHigh(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.OnHigh))
+class OnLow(BossModule module) : Components.SelfTargetedAOEs(module, AID.OnLow, new AOEShapeCone(11, 60.Degrees()));
+class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
 {
     private readonly List<Actor> Casters = [];
     private static readonly Angle[] Walls = [default, 90.Degrees(), 180.Degrees(), 270.Degrees()];
@@ -127,4 +127,3 @@ public class DotoliCiloc(WorldState ws, Actor primary) : BossModule(ws, primary,
     // position of boss casting On High (knockback from arena center)
     public static readonly WPos DefaultCenter = new(245.289f, 13.626f);
 }
-

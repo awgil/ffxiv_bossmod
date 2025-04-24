@@ -26,13 +26,13 @@ public enum SID : uint
     EarthenAccord = 778
 }
 
-class DiffractiveLaser(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.DiffractiveLaser), 5);
-class AugmentedSuffering(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AugmentedSuffering), new AOEShapeCircle(6.5f));
-class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AugmentedUprising), new AOEShapeCone(8.5f, 60.Degrees()));
+class DiffractiveLaser(BossModule module) : Components.LocationTargetedAOEs(module, AID.DiffractiveLaser, 5);
+class AugmentedSuffering(BossModule module) : Components.SelfTargetedAOEs(module, AID.AugmentedSuffering, new AOEShapeCircle(6.5f));
+class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, AID.AugmentedUprising, new AOEShapeCone(8.5f, 60.Degrees()));
 
-class ViolentEarth(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.ViolentEarth), 6);
-class DispellingWind(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DispellingWind), new AOEShapeRect(40.5f, 4));
-class Epigraph(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Epigraph), new AOEShapeRect(45, 4));
+class ViolentEarth(BossModule module) : Components.LocationTargetedAOEs(module, AID.ViolentEarth, 6);
+class DispellingWind(BossModule module) : Components.SelfTargetedAOEs(module, AID.DispellingWind, new AOEShapeRect(40.5f, 4));
+class Epigraph(BossModule module) : Components.SelfTargetedAOEs(module, AID.Epigraph, new AOEShapeRect(45, 4));
 
 class DrawOvoo : BossComponent
 {
@@ -139,4 +139,3 @@ public class Ovoo(WorldState ws, Actor primary) : BossModule(ws, primary, new(35
 
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }
-

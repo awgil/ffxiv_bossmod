@@ -20,12 +20,12 @@ public enum AID : uint
     Overcharge = 29146, // Boss->self, 3.0s cast, range 11 120-degree cone aoe
 }
 
-class ThermobaricCharge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ThermobaricCharge), new AOEShapeCircle(20));
-class HyperchargeInner(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HyperchargeInner), new AOEShapeCircle(10));
-class HyperchargeOuter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HyperchargeOuter), new AOEShapeDonut(12.5f, 30));
-class TargetedSupport(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TargetedSupportAOE), new AOEShapeCircle(5));
-class CermetDrill(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CermetDrill));
-class Overcharge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Overcharge), new AOEShapeCone(11, 60.Degrees()));
+class ThermobaricCharge(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThermobaricCharge, new AOEShapeCircle(20));
+class HyperchargeInner(BossModule module) : Components.SelfTargetedAOEs(module, AID.HyperchargeInner, new AOEShapeCircle(10));
+class HyperchargeOuter(BossModule module) : Components.SelfTargetedAOEs(module, AID.HyperchargeOuter, new AOEShapeDonut(12.5f, 30));
+class TargetedSupport(BossModule module) : Components.SelfTargetedAOEs(module, AID.TargetedSupportAOE, new AOEShapeCircle(5));
+class CermetDrill(BossModule module) : Components.SingleTargetCast(module, AID.CermetDrill);
+class Overcharge(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overcharge, new AOEShapeCone(11, 60.Degrees()));
 
 class D132MagitekVanguardF1States : StateMachineBuilder
 {

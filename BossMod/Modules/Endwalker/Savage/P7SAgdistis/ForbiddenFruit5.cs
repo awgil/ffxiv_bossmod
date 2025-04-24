@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P7SAgdistis;
 
 // TODO: improve!
-class ForbiddenFruit5(BossModule module) : ForbiddenFruitCommon(module, ActionID.MakeSpell(AID.Burst))
+class ForbiddenFruit5(BossModule module) : ForbiddenFruitCommon(module, AID.Burst)
 {
     private readonly IReadOnlyList<Actor> _towers = module.Enemies(OID.Tower);
 

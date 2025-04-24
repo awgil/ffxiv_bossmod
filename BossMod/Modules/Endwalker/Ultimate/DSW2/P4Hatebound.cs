@@ -67,7 +67,7 @@ class P4Hatebound(BossModule module) : BossComponent(module)
     private bool OrbReady(Actor orb) => orb.HitboxRadius > 1.501f; // TODO: verify...
 }
 
-class P4MirageDive(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.MirageDiveAOE))
+class P4MirageDive(BossModule module) : Components.CastCounter(module, AID.MirageDiveAOE)
 {
     private readonly List<int> _targets = [];
     private BitMask _forbidden;

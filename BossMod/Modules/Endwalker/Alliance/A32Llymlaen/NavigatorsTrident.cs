@@ -28,7 +28,7 @@ class DireStraits(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class NavigatorsTridentAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.NavigatorsTridentAOE), new AOEShapeRect(20, 5, 20));
+class NavigatorsTridentAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.NavigatorsTridentAOE, new AOEShapeRect(20, 5, 20));
 
 class NavigatorsTridentKnockback(BossModule module) : Components.Knockback(module)
 {

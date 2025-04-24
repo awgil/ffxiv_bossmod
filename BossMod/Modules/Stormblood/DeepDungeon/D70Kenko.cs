@@ -27,8 +27,8 @@ public enum IconID : uint
     Prey = 1, // player->self
 }
 
-class PredatorClaws(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PredatorClaws), new AOEShapeCone(15, 60.Degrees()));
-class Slabber(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Slabber), 8);
+class PredatorClaws(BossModule module) : Components.SelfTargetedAOEs(module, AID.PredatorClaws, new AOEShapeCone(15, 60.Degrees()));
+class Slabber(BossModule module) : Components.LocationTargetedAOEs(module, AID.Slabber, 8);
 class InnerspacePredict(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? Next;
@@ -62,8 +62,8 @@ class Innerspace(BossModule module) : Components.PersistentInvertibleVoidzone(mo
             InvertResolveAt = default;
     }
 }
-class Ululation(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Ululation));
-class HoundOutOfHell(BossModule module) : Components.BaitAwayChargeCast(module, ActionID.MakeSpell(AID.HoundOutOfHell), 7);
+class Ululation(BossModule module) : Components.RaidwideCast(module, AID.Ululation);
+class HoundOutOfHell(BossModule module) : Components.BaitAwayChargeCast(module, AID.HoundOutOfHell, 7);
 
 class KenkoStates : StateMachineBuilder
 {
@@ -81,4 +81,3 @@ class KenkoStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 546, NameID = 7489)]
 public class Kenko(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(24));
-

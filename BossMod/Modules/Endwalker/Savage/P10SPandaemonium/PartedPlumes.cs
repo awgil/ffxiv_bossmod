@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class PartedPlumes(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PartedPlumesAOE), new AOEShapeCone(50, 10.Degrees()), 16)
+class PartedPlumes(BossModule module) : Components.SelfTargetedAOEs(module, AID.PartedPlumesAOE, new AOEShapeCone(50, 10.Degrees()), 16)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
 }

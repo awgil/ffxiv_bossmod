@@ -12,7 +12,7 @@ public enum AID : uint
     Mow = 14879, // Boss->self, 3.0s cast, range 6+R 120-degree cone
 }
 
-class Mow(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Mow), new AOEShapeCone(7.4f, 60.Degrees()));
+class Mow(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mow, new AOEShapeCone(7.4f, 60.Degrees()));
 
 class Hints(BossModule module) : BossComponent(module)
 {

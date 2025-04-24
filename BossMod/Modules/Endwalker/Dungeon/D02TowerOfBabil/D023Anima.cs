@@ -115,7 +115,7 @@ class BoundlessPain(BossModule module) : Components.GenericAOEs(module)
 }
 
 class Gravitons(BossModule module) : Components.PersistentVoidzone(module, 1, m => m.Enemies(OID.MegaGraviton).Where(x => !x.IsDead));
-class AetherialPull(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.AetherialPull))
+class AetherialPull(BossModule module) : Components.GenericBaitAway(module, AID.AetherialPull)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -159,7 +159,7 @@ class AetherialPull(BossModule module) : Components.GenericBaitAway(module, Acti
     }
 }
 
-class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), ActionID.MakeSpell(AID.CoffinScratchFirst), ActionID.MakeSpell(AID.CoffinScratchRest), 6, 2, 5)
+class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), AID.CoffinScratchFirst, AID.CoffinScratchRest, 6, 2, 5)
 {
     private readonly bool ResetExcludedTargets = true;
     private readonly List<Actor> Actors = []; // to keep track of the icon before mechanic starts for handling custom forbidden zones
@@ -225,13 +225,13 @@ class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, 
         }
     }
 }
-class PhantomPain(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PhantomPain2), new AOEShapeRect(10, 10, 10));
-class PaterPatriaeAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PaterPatriaeAOE), new AOEShapeRect(60, 4));
-class CharnelClaw(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CharnelClaw), new AOEShapeRect(40, 2.5f), 5);
-class ErruptingPain(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.EruptingPain), 6);
-class ObliviatingClawSpawnAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ObliviatingClawSpawnAOE), new AOEShapeCircle(3));
-class Oblivion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.OblivionVisual), "Raidwide x16");
-class MegaGraviton(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.MegaGraviton));
+class PhantomPain(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomPain2, new AOEShapeRect(10, 10, 10));
+class PaterPatriaeAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.PaterPatriaeAOE, new AOEShapeRect(60, 4));
+class CharnelClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.CharnelClaw, new AOEShapeRect(40, 2.5f), 5);
+class ErruptingPain(BossModule module) : Components.SpreadFromCastTargets(module, AID.EruptingPain, 6);
+class ObliviatingClawSpawnAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.ObliviatingClawSpawnAOE, new AOEShapeCircle(3));
+class Oblivion(BossModule module) : Components.RaidwideCast(module, AID.OblivionVisual, "Raidwide x16");
+class MegaGraviton(BossModule module) : Components.RaidwideCast(module, AID.MegaGraviton);
 
 class D023AnimaStates : StateMachineBuilder
 {

@@ -33,12 +33,12 @@ public enum IconID : uint
     Wingbeat = 16 // player
 }
 
-class Flutterfall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Flutterfall), 6);
-class Pinion(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Pinion), new AOEShapeRect(40.5f, 1));
-class EyeOfTheFierce(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.EyeOfTheFierce));
-class WindUnbound(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.WindUnbound));
-class Wingbeat(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(42.8f, 45.Degrees()), (uint)IconID.Wingbeat, ActionID.MakeSpell(AID.Wingbeat));
-class FlutterfallSpread(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Flutterfall, ActionID.MakeSpell(AID.FlutterfallSpread), 6, 5.4f);
+class Flutterfall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Flutterfall, 6);
+class Pinion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pinion, new AOEShapeRect(40.5f, 1));
+class EyeOfTheFierce(BossModule module) : Components.CastGaze(module, AID.EyeOfTheFierce);
+class WindUnbound(BossModule module) : Components.RaidwideCast(module, AID.WindUnbound);
+class Wingbeat(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(42.8f, 45.Degrees()), (uint)IconID.Wingbeat, AID.Wingbeat);
+class FlutterfallSpread(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Flutterfall, AID.FlutterfallSpread, 6, 5.4f);
 
 class FeatherSquall(BossModule module) : Components.GenericAOEs(module)
 {

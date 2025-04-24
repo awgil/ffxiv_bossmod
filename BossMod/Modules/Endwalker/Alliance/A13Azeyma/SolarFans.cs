@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
-class SolarFans(BossModule module) : Components.ChargeAOEs(module, ActionID.MakeSpell(AID.SolarFansAOE), 5); // TODO: or SolarFansCharge? not sure which one deals damage...
+class SolarFans(BossModule module) : Components.ChargeAOEs(module, AID.SolarFansAOE, 5); // TODO: or SolarFansCharge? not sure which one deals damage...
 
-class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.RadiantFlight))
+class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, AID.RadiantFlight)
 {
     private readonly IReadOnlyList<Actor> _flames = module.Enemies(OID.WardensFlame);
 
@@ -13,4 +13,4 @@ class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, ActionID
     private IEnumerable<Angle> NextCenterDirections(WPos center) => _flames.Where(f => (f.Position - center).LengthSq() > 25).Select(f => Angle.FromDirection(f.Position - center) + 45.Degrees());
 }
 
-class RadiantFinish(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RadiantFlourish), new AOEShapeCircle(25));
+class RadiantFinish(BossModule module) : Components.SelfTargetedAOEs(module, AID.RadiantFlourish, new AOEShapeCircle(25));

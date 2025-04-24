@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S2;
 
-class TyrantsFlare(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.TyrantsFlareAOE), 6);
+class TyrantsFlare(BossModule module) : Components.LocationTargetedAOEs(module, AID.TyrantsFlareAOE, 6);
 
 // TODO: autoattack component
 // TODO: HC components

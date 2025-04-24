@@ -97,7 +97,7 @@ class Mouser(BossModule module) : Components.GenericAOEs(module)
     };
 }
 
-class ElevateAndEviscerate(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.ElevateAndEviscerateShockwave))
+class ElevateAndEviscerate(BossModule module) : Components.CastCounter(module, AID.ElevateAndEviscerateShockwave)
 {
     private readonly Mouser? _mouser = module.FindComponent<Mouser>();
     private Actor? _nextTarget; // target selection icon appears in random order compared to cast start
@@ -196,16 +196,16 @@ class ElevateAndEviscerate(BossModule module) : Components.CastCounter(module, A
     }
 }
 
-class GrimalkinGaleShockwave(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.GrimalkinGaleShockwaveAOE), 21, true)
+class GrimalkinGaleShockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GrimalkinGaleShockwaveAOE, 21, true)
 {
     private readonly Mouser? _mouser = module.FindComponent<Mouser>();
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || _mouser != null && _mouser.DestroyedCells[_mouser.CellIndex(pos)];
 }
 
-class GrimalkinGaleSpread(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.GrimalkinGaleSpreadAOE), 5);
+class GrimalkinGaleSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.GrimalkinGaleSpreadAOE, 5);
 
-class Overshadow(BossModule module) : Components.GenericWildCharge(module, 2.5f, ActionID.MakeSpell(AID.OvershadowAOE), 100)
+class Overshadow(BossModule module) : Components.GenericWildCharge(module, 2.5f, AID.OvershadowAOE, 100)
 {
     private readonly ElevateAndEviscerate? _jumps = module.FindComponent<ElevateAndEviscerate>();
 
@@ -229,7 +229,7 @@ class Overshadow(BossModule module) : Components.GenericWildCharge(module, 2.5f,
     }
 }
 
-class SplinteringNails(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.SplinteringNailsAOE))
+class SplinteringNails(BossModule module) : Components.CastCounter(module, AID.SplinteringNailsAOE)
 {
     private readonly ElevateAndEviscerate? _jumps = module.FindComponent<ElevateAndEviscerate>();
     private Actor? _source;

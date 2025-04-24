@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
-class P1TurnOfHeavensBurntStrikeFire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TurnOfHeavensBurntStrikeFire), new AOEShapeRect(40, 5, 40));
-class P1TurnOfHeavensBurntStrikeLightning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TurnOfHeavensBurntStrikeLightning), new AOEShapeRect(40, 5, 40));
-class P1TurnOfHeavensBurnout(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TurnOfHeavensBurnout), new AOEShapeRect(40, 10, 40));
-class P1BrightfireSmall(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrightfireSmall), new AOEShapeCircle(5));
-class P1BrightfireLarge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BrightfireLarge), new AOEShapeCircle(10));
+class P1TurnOfHeavensBurntStrikeFire(BossModule module) : Components.SelfTargetedAOEs(module, AID.TurnOfHeavensBurntStrikeFire, new AOEShapeRect(40, 5, 40));
+class P1TurnOfHeavensBurntStrikeLightning(BossModule module) : Components.SelfTargetedAOEs(module, AID.TurnOfHeavensBurntStrikeLightning, new AOEShapeRect(40, 5, 40));
+class P1TurnOfHeavensBurnout(BossModule module) : Components.SelfTargetedAOEs(module, AID.TurnOfHeavensBurnout, new AOEShapeRect(40, 10, 40));
+class P1BrightfireSmall(BossModule module) : Components.SelfTargetedAOEs(module, AID.BrightfireSmall, new AOEShapeCircle(5));
+class P1BrightfireLarge(BossModule module) : Components.SelfTargetedAOEs(module, AID.BrightfireLarge, new AOEShapeCircle(10));
 
 // TODO: fixed tethers strat variant (tether target with clone on safe side goes S, other goes N, if any group has 5 players prio1 adjusts)
 class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, 4)

@@ -104,7 +104,7 @@ class ManaExplosion(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BastingBlade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BastingBlade), new AOEShapeRect(60, 7.5f));
+class BastingBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.BastingBlade, new AOEShapeRect(60, 7.5f));
 
 class SpikeTraps(BossModule module) : Components.GenericAOEs(module)
 {
@@ -126,11 +126,11 @@ class SpikeTraps(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BorderChange(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BorderChange), new AOEShapeRect(5, 20));
-class MagnitudeOpus(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.MagnitudeOpus), 6, 4, 4);
-class RotaryGale(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.RotaryGale), 5);
-class CrewelSlice(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.CrewelSlice));
-class BillowingBolts(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.BillowingBolts));
+class BorderChange(BossModule module) : Components.SelfTargetedAOEs(module, AID.BorderChange, new AOEShapeRect(5, 20));
+class MagnitudeOpus(BossModule module) : Components.StackWithCastTargets(module, AID.MagnitudeOpus, 6, 4, 4);
+class RotaryGale(BossModule module) : Components.SpreadFromCastTargets(module, AID.RotaryGale, 5);
+class CrewelSlice(BossModule module) : Components.SingleTargetDelayableCast(module, AID.CrewelSlice);
+class BillowingBolts(BossModule module) : Components.RaidwideCast(module, AID.BillowingBolts);
 
 class D093KapikuluStates : StateMachineBuilder
 {
@@ -151,4 +151,3 @@ class D093KapikuluStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 844, NameID = 11238)]
 public class D093Kapikulu(WorldState ws, Actor primary) : BossModule(ws, primary, new(110, -68), new ArenaBoundsRect(19.5f, 24.5f));
-

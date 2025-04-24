@@ -1,6 +1,6 @@
 namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class P2WanderingShot(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.GreatWhirlwind))
+class P2WanderingShot(BossModule module) : Components.GenericAOEs(module, AID.GreatWhirlwind)
 {
     private AOEInstance? _aoe;
     private static readonly AOEShapeCircle _shape = new(23);

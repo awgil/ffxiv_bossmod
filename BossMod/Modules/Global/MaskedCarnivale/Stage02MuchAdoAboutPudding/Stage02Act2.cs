@@ -16,7 +16,7 @@ public enum AID : uint
     GoldenTongue = 14265, // 25C5/25C3/25C1->self, 5.0s cast, single-target
 }
 
-class GoldenTongue(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.GoldenTongue), "Can be interrupted, increases its magic damage.");
+class GoldenTongue(BossModule module) : Components.CastHint(module, AID.GoldenTongue, "Can be interrupted, increases its magic damage.");
 
 class Hints(BossModule module) : BossComponent(module)
 {

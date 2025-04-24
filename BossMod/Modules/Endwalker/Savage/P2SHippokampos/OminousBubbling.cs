@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P2SHippokampos;
 
-class OminousBubbling(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.OminousBubblingAOE))
+class OminousBubbling(BossModule module) : Components.CastCounter(module, AID.OminousBubblingAOE)
 {
     private const float _radius = 6;
 

@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM02SHoneyBLovely;
 
-class RottenHeart(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RottenHeartAOE));
+class RottenHeart(BossModule module) : Components.CastCounter(module, AID.RottenHeartAOE);
 
-class RottenHeartBigBurst(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.RottenHeartBigBurst))
+class RottenHeartBigBurst(BossModule module) : Components.CastCounter(module, AID.RottenHeartBigBurst)
 {
     private int _numRaidwides;
     private readonly int[] _order = new int[PartyState.MaxPartySize];

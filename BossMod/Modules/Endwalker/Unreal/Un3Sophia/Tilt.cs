@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un3Sophia;
 
-class Tilt(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.QuasarTilt))
+class Tilt(BossModule module) : Components.Knockback(module, AID.QuasarTilt)
 {
     public const float DistanceShort = 28;
     public const float DistanceLong = 37;

@@ -21,19 +21,19 @@ public enum AID : uint
     SUproot = 31090, // SOdqan->self, 3.0s cast, range 6 circle
 }
 
-class ArborealStorm(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(12));
+class ArborealStorm(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(12));
 class NArborealStorm(BossModule module) : ArborealStorm(module, AID.NArborealStorm);
 class SArborealStorm(BossModule module) : ArborealStorm(module, AID.SArborealStorm);
 
-class AcornBomb(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 6);
+class AcornBomb(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 6);
 class NAcornBomb(BossModule module) : AcornBomb(module, AID.NAcornBomb);
 class SAcornBomb(BossModule module) : AcornBomb(module, AID.SAcornBomb);
 
-class GelidGale(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(aid), 6);
+class GelidGale(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 6);
 class NGelidGale(BossModule module) : GelidGale(module, AID.NGelidGale);
 class SGelidGale(BossModule module) : GelidGale(module, AID.SGelidGale);
 
-class Uproot(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(aid), new AOEShapeCircle(6));
+class Uproot(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(6));
 class NUproot(BossModule module) : Uproot(module, AID.NUproot);
 class SUproot(BossModule module) : Uproot(module, AID.SUproot);
 

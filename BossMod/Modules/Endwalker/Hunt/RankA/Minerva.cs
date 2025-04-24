@@ -87,9 +87,9 @@ class BallisticMissile(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Hyperflame(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Hyperflame), new AOEShapeCone(60, 30.Degrees()));
-class SonicAmplifier(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SonicAmplifier));
-class HammerKnuckles(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.HammerKnuckles));
+class Hyperflame(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hyperflame, new AOEShapeCone(60, 30.Degrees()));
+class SonicAmplifier(BossModule module) : Components.RaidwideCast(module, AID.SonicAmplifier);
+class HammerKnuckles(BossModule module) : Components.SingleTargetCast(module, AID.HammerKnuckles);
 
 class MinervaStates : StateMachineBuilder
 {

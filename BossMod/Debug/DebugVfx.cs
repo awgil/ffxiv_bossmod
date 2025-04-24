@@ -1,58 +1,73 @@
-﻿//using ImGuiNET;
-//using System.Runtime.InteropServices;
+﻿using Dalamud.Interface.Utility.Raii;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Vfx;
+using FFXIVClientStructs.Interop;
+using ImGuiNET;
+using System.Runtime.InteropServices;
 
-//namespace BossMod;
+namespace BossMod;
 
-//[StructLayout(LayoutKind.Explicit, Size = 0x1A0)]
-//public unsafe struct VfxInitData
-//{
-//}
+[StructLayout(LayoutKind.Explicit, Size = 0x1A0)]
+public unsafe struct VfxInitData
+{
+}
 
-//[StructLayout(LayoutKind.Explicit, Size = 0x1D0)]
-//public unsafe struct VfxInstance
-//{
-//}
+public sealed unsafe class DebugVfx : IDisposable
+{
+    private delegate VfxInitData* VfxInitDataCtorDelegate(VfxInitData* self);
+    private readonly VfxInitDataCtorDelegate VfxInitDataCtor;
+    private delegate void ClearVfxDataDelegate(VfxData* self);
 
-//public unsafe sealed class DebugVfx : IDisposable
-//{
-//    private delegate VfxInitData* VfxInitDataCtorDelegate(VfxInitData* self);
-//    private readonly VfxInitDataCtorDelegate VfxInitDataCtor;
+    // StartOmen: a3=2, a4=0, a13=-1
+    private delegate VfxData* CreateVfxDelegate(byte* path, VfxInitData* init, byte a3, byte a4, float originX, float originY, float originZ, float sizeX, float sizeY, float sizeZ, float angle, float duration, int a13);
+    private readonly CreateVfxDelegate CreateVfx;
+    private readonly ClearVfxDataDelegate ClearVfx;
 
-//    // StartOmen: a3=2, a4=0, a13=-1
-//    private delegate VfxInstance* CreateVfxDelegate(byte* path, VfxInitData* init, byte a3, byte a4, float originX, float originY, float originZ, float sizeX, float sizeY, float sizeZ, float angle, float duration, int a13);
-//    private readonly CreateVfxDelegate CreateVfx;
+    private readonly List<Pointer<VfxData>> _spawnedVfx = [];
 
-//    public DebugVfx()
-//    {
-//        VfxInitDataCtor = Marshal.GetDelegateForFunctionPointer<VfxInitDataCtorDelegate>(Service.SigScanner.ScanText("0F 28 05 ?? ?? ?? ?? 49 83 CA FF"));
-//        CreateVfx = Marshal.GetDelegateForFunctionPointer<CreateVfxDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 8D 95"));
-//    }
+    public DebugVfx()
+    {
+        VfxInitDataCtor = Marshal.GetDelegateForFunctionPointer<VfxInitDataCtorDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8D 57 06 48 8D 4C 24 ??"));
+        CreateVfx = Marshal.GetDelegateForFunctionPointer<CreateVfxDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 8D 95"));
+        ClearVfx = Marshal.GetDelegateForFunctionPointer<ClearVfxDataDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 4D 89 A4 DE ?? ?? ?? ??"));
+    }
 
-//    public void Dispose()
-//    {
-//    }
+    public void Dispose()
+    {
+    }
 
-//    public void Draw()
-//    {
-//        if (ImGui.Button("Create!"))
-//        {
-//            CreateTestVfx();
-//        }
-//    }
+    public void Draw()
+    {
+        if (ImGui.Button("Create!"))
+        {
+            CreateTestVfx();
+        }
 
-//    private void CreateTestVfx()
-//    {
-//        var pos = Service.ClientState.LocalPlayer?.Position ?? new();
-//        var path = "vfx/omen/eff/general_1bf.avfx";
-//        var pathBytes = System.Text.Encoding.UTF8.GetBytes(path);
+        using var v = ImRaii.ListBox("VFX");
+        if (v)
+            for (var i = 0; i < _spawnedVfx.Count; i++)
+            {
+                var f = _spawnedVfx[i];
+                if (ImGui.Selectable($"{(nint)f.Value:X}"))
+                {
+                    ClearVfx.Invoke(f.Value);
+                    _spawnedVfx.RemoveAt(i);
+                    break;
+                }
+            }
+    }
 
-//        var init = new VfxInitData();
-//        VfxInitDataCtor(&init);
+    private void CreateTestVfx()
+    {
+        var pos = Service.ClientState.LocalPlayer?.Position ?? new();
+        var path = "vfx/omen/eff/general_1bf.avfx";
+        var pathBytes = System.Text.Encoding.UTF8.GetBytes(path);
 
-//        fixed (byte* pathPtr = pathBytes)
-//        {
-//            var vfx = CreateVfx(pathPtr, &init, 2, 0, pos.X, pos.Y, pos.Z, 10, 5, 10, 0, 20, -1);
-//            Service.Log($"vfx: {(nint)vfx:X}");
-//        }
-//    }
-//}
+        var init = new VfxInitData();
+        VfxInitDataCtor(&init);
+
+        fixed (byte* pathPtr = pathBytes)
+        {
+            _spawnedVfx.Add(CreateVfx(pathPtr, &init, 2, 0, pos.X, pos.Y, pos.Z, 10, 5, 10, 0, 1, -1));
+        }
+    }
+}

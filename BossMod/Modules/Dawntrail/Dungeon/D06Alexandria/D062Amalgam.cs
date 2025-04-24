@@ -38,13 +38,13 @@ public enum IconID : uint
     Superbolt = 161, // player
 }
 
-class Electrowave(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElectrowaveAOE));
-class Disassembly(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Disassembly));
-class SupercellMatrix(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SupercellMatrix), new AOEShapeRect(28.2843f, 28.2843f));
-class SupercellMatrixRect(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.SupercellMatrixRect), new AOEShapeRect(55, 4));
-class CentralizedCurrent(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CentralizedCurrent), new AOEShapeRect(45, 7.5f, 45));
+class Electrowave(BossModule module) : Components.RaidwideCast(module, AID.ElectrowaveAOE);
+class Disassembly(BossModule module) : Components.RaidwideCast(module, AID.Disassembly);
+class SupercellMatrix(BossModule module) : Components.SelfTargetedAOEs(module, AID.SupercellMatrix, new AOEShapeRect(28.2843f, 28.2843f));
+class SupercellMatrixRect(BossModule module) : Components.SelfTargetedAOEs(module, AID.SupercellMatrixRect, new AOEShapeRect(55, 4));
+class CentralizedCurrent(BossModule module) : Components.SelfTargetedAOEs(module, AID.CentralizedCurrent, new AOEShapeRect(45, 7.5f, 45));
 
-class SplitCurrent(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SplitCurrent))
+class SplitCurrent(BossModule module) : Components.GenericAOEs(module, AID.SplitCurrent)
 {
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeRect _shape = new(45, 12.5f, 45);
@@ -68,7 +68,7 @@ class SplitCurrent(BossModule module) : Components.GenericAOEs(module, ActionID.
     }
 }
 
-class StaticSpark(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.StaticSpark), 6)
+class StaticSpark(BossModule module) : Components.SpreadFromCastTargets(module, AID.StaticSpark, 6)
 {
     private readonly SupercellMatrixRect? _supercell = module.FindComponent<SupercellMatrixRect>();
 
@@ -80,9 +80,9 @@ class StaticSpark(BossModule module) : Components.SpreadFromCastTargets(module, 
     }
 }
 
-class Amalgamight(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Amalgamight));
-class Voltburst(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Voltburst), 6);
-class Superbolt(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SuperboltAOE), 6, 4);
+class Amalgamight(BossModule module) : Components.SingleTargetCast(module, AID.Amalgamight);
+class Voltburst(BossModule module) : Components.LocationTargetedAOEs(module, AID.Voltburst, 6);
+class Superbolt(BossModule module) : Components.StackWithCastTargets(module, AID.SuperboltAOE, 6, 4);
 
 class TernaryCharge(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)])
 {

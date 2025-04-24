@@ -60,4 +60,4 @@ class PureOfHeartSkyblindBait(BossModule module) : BossComponent(module)
     }
 }
 
-class PureOfHeartSkyblind(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Skyblind), 3);
+class PureOfHeartSkyblind(BossModule module) : Components.LocationTargetedAOEs(module, AID.Skyblind, 3);

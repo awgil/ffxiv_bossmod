@@ -38,7 +38,7 @@ class P5DeathOfTheHeavensLightningStorm : Components.UniformStackSpread
     }
 }
 
-class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(module, ActionID.MakeSpell(AID.HeavensflameAOE))
+class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(module, AID.HeavensflameAOE)
 {
     public bool KnockbackDone { get; private set; }
     private readonly WPos[] _playerAdjustedPositions = new WPos[PartyState.MaxPartySize];

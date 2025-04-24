@@ -36,11 +36,11 @@ class BladeOfTheTengu(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class WrathOfTheTengu(BossModule module, AID aid) : Components.RaidwideCast(module, ActionID.MakeSpell(aid), "Raidwide with bleed");
+class WrathOfTheTengu(BossModule module, AID aid) : Components.RaidwideCast(module, aid, "Raidwide with bleed");
 class NWrathOfTheTengu(BossModule module) : WrathOfTheTengu(module, AID.NWrathOfTheTengu);
 class SWrathOfTheTengu(BossModule module) : WrathOfTheTengu(module, AID.SWrathOfTheTengu);
 
-class GazeOfTheTengu(BossModule module, AID aid) : Components.CastGaze(module, ActionID.MakeSpell(aid));
+class GazeOfTheTengu(BossModule module, AID aid) : Components.CastGaze(module, aid);
 class NGazeOfTheTengu(BossModule module) : GazeOfTheTengu(module, AID.NGazeOfTheTengu);
 class SGazeOfTheTengu(BossModule module) : GazeOfTheTengu(module, AID.SGazeOfTheTengu);
 

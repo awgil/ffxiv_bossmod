@@ -45,12 +45,12 @@ public enum TetherID : uint
 {
     Dash = 12,
 }
-class VacuumBlade(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VacuumBlade), new AOEShapeCircle(15));
-class VacuumBlade2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VacuumBlade2), new AOEShapeCircle(15));
-class SpectralDream(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpectralDream));
-class SpectralWhirlwind(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.SpectralWhirlwind));
-class SpectralGust(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), (uint)IconID.SpectralGust, ActionID.MakeSpell(AID.SpectralGust2), centerAtTarget: true);
-class CowardsCunning(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.CowardsCunning), new AOEShapeRect(60, 1, 10));
+class VacuumBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.VacuumBlade, new AOEShapeCircle(15));
+class VacuumBlade2(BossModule module) : Components.SelfTargetedAOEs(module, AID.VacuumBlade2, new AOEShapeCircle(15));
+class SpectralDream(BossModule module) : Components.SingleTargetCast(module, AID.SpectralDream);
+class SpectralWhirlwind(BossModule module) : Components.RaidwideCast(module, AID.SpectralWhirlwind);
+class SpectralGust(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), (uint)IconID.SpectralGust, AID.SpectralGust2, centerAtTarget: true);
+class CowardsCunning(BossModule module) : Components.SelfTargetedAOEs(module, AID.CowardsCunning, new AOEShapeRect(60, 1, 10));
 class PapercutterTest(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -140,8 +140,8 @@ class PapercutterTest2(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class Papercutter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Papercutter), new AOEShapeRect(80, 7));
-class Papercutter2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Papercutter2), new AOEShapeRect(80, 7));
+class Papercutter(BossModule module) : Components.SelfTargetedAOEs(module, AID.Papercutter, new AOEShapeRect(80, 7));
+class Papercutter2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Papercutter2, new AOEShapeRect(80, 7));
 class D111SpectralThiefStates : StateMachineBuilder
 {
     public D111SpectralThiefStates(BossModule module) : base(module)

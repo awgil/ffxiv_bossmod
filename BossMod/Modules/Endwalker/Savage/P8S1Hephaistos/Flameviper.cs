@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P8S1Hephaistos;
 
-class Flameviper(BossModule module) : Components.CastCounter(module, ActionID.MakeSpell(AID.FlameviperSecond))
+class Flameviper(BossModule module) : Components.CastCounter(module, AID.FlameviperSecond)
 {
     private ulong _firstTarget;
 

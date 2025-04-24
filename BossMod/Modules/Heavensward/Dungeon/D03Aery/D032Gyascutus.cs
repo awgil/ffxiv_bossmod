@@ -20,14 +20,14 @@ public enum AID : uint
     CripplingBlow = 30193, // 3970->player, 5.0s cast, single-target
 }
 
-class ProximityPyre(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ProximityPyre), new AOEShapeCircle(12));
-class InflammableFumes(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.InflammableFumes));
-class Burst(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Burst), 10);
-class Burst2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Burst2), 10);
-class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.DeafeningBellow));
-class AshenOuroboros(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AshenOuroboros), new AOEShapeDonut(11, 20));
-class BodySlam(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.BodySlam), 10, stopAtWall: false);
-class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CripplingBlow));
+class ProximityPyre(BossModule module) : Components.SelfTargetedAOEs(module, AID.ProximityPyre, new AOEShapeCircle(12));
+class InflammableFumes(BossModule module) : Components.SingleTargetCast(module, AID.InflammableFumes);
+class Burst(BossModule module) : Components.LocationTargetedAOEs(module, AID.Burst, 10);
+class Burst2(BossModule module) : Components.LocationTargetedAOEs(module, AID.Burst2, 10);
+class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, AID.DeafeningBellow);
+class AshenOuroboros(BossModule module) : Components.SelfTargetedAOEs(module, AID.AshenOuroboros, new AOEShapeDonut(11, 20));
+class BodySlam(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodySlam, 10, stopAtWall: false);
+class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, AID.CripplingBlow);
 class D032GyascutusStates : StateMachineBuilder
 {
     public D032GyascutusStates(BossModule module) : base(module)
@@ -47,4 +47,3 @@ class D032GyascutusStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3455)]
 public class D032Gyascutus(WorldState ws, Actor primary) : BossModule(ws, primary, new(11.9f, 68f), new ArenaBoundsCircle(19.5f));
-

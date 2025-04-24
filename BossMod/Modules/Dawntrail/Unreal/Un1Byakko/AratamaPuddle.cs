@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Unreal.Un1Byakko;
 
-class AratamaPuddleBait(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.AratamaPuddle, ActionID.MakeSpell(AID.AratamaPuddle), 4, 5.1f)
+class AratamaPuddleBait(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.AratamaPuddle, AID.AratamaPuddle, 4, 5.1f)
 {
     private DateTime _nextSpread;
 

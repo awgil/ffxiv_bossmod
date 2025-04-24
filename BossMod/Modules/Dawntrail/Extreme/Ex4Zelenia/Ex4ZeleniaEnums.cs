@@ -98,7 +98,7 @@ public enum IconID : uint
     ThunderCCW = 168, // Boss->self
     _Gen_Icon_23 = 23, // player->self
     AlexandrianThunderIII = 596, // player->self
-    _Gen_Icon_592 = 592, // player->self
+    Rose = 592, // player->self
     _Gen_Icon_93 = 93, // player->self
     _Gen_Icon_12 = 12, // player->self
     _Gen_Icon_597 = 597, // player->self

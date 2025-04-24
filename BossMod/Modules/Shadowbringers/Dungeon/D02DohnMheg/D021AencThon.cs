@@ -16,11 +16,11 @@ public enum AID : uint
     Geyser = 8800, // Helper->self, no cast, range 6 circle
 }
 
-class CandyCane(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CandyCane));
-class Hydrofall(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Hydrofall), 6);
-class LaughingLeap(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.LaughingLeap), 4);
-class LaughingLeapStack(BossModule module) : Components.StackWithIcon(module, 62, ActionID.MakeSpell(AID.LaughingLeapStack), 4, 5.15f);
-class Landsblood(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Landsblood));
+class CandyCane(BossModule module) : Components.SingleTargetCast(module, AID.CandyCane);
+class Hydrofall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hydrofall, 6);
+class LaughingLeap(BossModule module) : Components.LocationTargetedAOEs(module, AID.LaughingLeap, 4);
+class LaughingLeapStack(BossModule module) : Components.StackWithIcon(module, 62, AID.LaughingLeapStack, 4, 5.15f);
+class Landsblood(BossModule module) : Components.RaidwideCast(module, AID.Landsblood);
 
 class Geyser(BossModule module) : Components.GenericAOEs(module)
 {
@@ -72,4 +72,3 @@ class AencThonLordOfTheLingeringGazeStates : StateMachineBuilder
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8141)]
 public class AencThonLordOfTheLingeringGaze(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 30), new ArenaBoundsCircle(19.5f));
-

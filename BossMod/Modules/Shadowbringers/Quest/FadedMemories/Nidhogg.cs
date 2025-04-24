@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Quest.FadedMemories;
 
-class HighJump(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HighJump), new AOEShapeCircle(8));
-class Geirskogul(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Geirskogul), new AOEShapeRect(62, 4));
+class HighJump(BossModule module) : Components.SelfTargetedAOEs(module, AID.HighJump, new AOEShapeCircle(8));
+class Geirskogul(BossModule module) : Components.SelfTargetedAOEs(module, AID.Geirskogul, new AOEShapeRect(62, 4));
 
 class NidhoggStates : StateMachineBuilder
 {

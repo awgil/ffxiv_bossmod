@@ -28,9 +28,9 @@ public enum SID : uint
     ForcedMarch = 1257, // Boss->player, extra=0x4/0x2/0x8/0x1
 }
 
-class Scatterscourge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Scatterscourge), new AOEShapeDonut(10, 40));
-class BodyPress1(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BodyPress1), new AOEShapeCircle(15));
-class BodyPress2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BodyPress2), new AOEShapeCircle(15));
+class Scatterscourge(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scatterscourge, new AOEShapeDonut(10, 40));
+class BodyPress1(BossModule module) : Components.SelfTargetedAOEs(module, AID.BodyPress1, new AOEShapeCircle(15));
+class BodyPress2(BossModule module) : Components.SelfTargetedAOEs(module, AID.BodyPress2, new AOEShapeCircle(15));
 
 class SlipperyScatterscourge(BossModule module) : Components.GenericAOEs(module)
 {
@@ -57,10 +57,10 @@ class SlipperyScatterscourge(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PoisonGasRaidwide(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.PoisonGas), "Raidwide + apply forced march");
+class PoisonGasRaidwide(BossModule module) : Components.RaidwideCast(module, AID.PoisonGas, "Raidwide + apply forced march");
 class PoisonGasMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace, (uint)SID.ForcedMarch, 5.5f);
-class MalignantMucus(BossModule module) : Components.CastInterruptHint(module, ActionID.MakeSpell(AID.MalignantMucus));
-class PoisonMucus(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.PoisonMucus), 6);
+class MalignantMucus(BossModule module) : Components.CastInterruptHint(module, AID.MalignantMucus);
+class PoisonMucus(BossModule module) : Components.LocationTargetedAOEs(module, AID.PoisonMucus, 6);
 
 class KeheniheyamewiStates : StateMachineBuilder
 {

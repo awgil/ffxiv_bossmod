@@ -18,12 +18,12 @@ public enum AID : uint
     SeaOfPitch = 962, // VoidPitch->location, no cast, range 4 circle
 }
 
-class GrimFate(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.GrimFate), new AOEShapeCone(12.6f, 60.Degrees())); // TODO: verify angle
-class Desolation(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Desolation), new AOEShapeRect(60, 3));
-class AetherialSurge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AetherialSurge), new AOEShapeCircle(6));
+class GrimFate(BossModule module) : Components.Cleave(module, AID.GrimFate, new AOEShapeCone(12.6f, 60.Degrees())); // TODO: verify angle
+class Desolation(BossModule module) : Components.SelfTargetedAOEs(module, AID.Desolation, new AOEShapeRect(60, 3));
+class AetherialSurge(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherialSurge, new AOEShapeCircle(6));
 
 // note: actor 'dies' immediately after casting
-class SeaOfPitch(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SeaOfPitch))
+class SeaOfPitch(BossModule module) : Components.GenericAOEs(module, AID.SeaOfPitch)
 {
     private readonly AOEShape _shape = new AOEShapeCircle(4);
 

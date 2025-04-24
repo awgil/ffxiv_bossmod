@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P2SuperJump(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.SuperJumpAOE), centerAtTarget: true)
+class P2SuperJump(BossModule module) : Components.GenericBaitAway(module, AID.SuperJumpAOE, centerAtTarget: true)
 {
     private static readonly AOEShapeCircle _shape = new(10);
 

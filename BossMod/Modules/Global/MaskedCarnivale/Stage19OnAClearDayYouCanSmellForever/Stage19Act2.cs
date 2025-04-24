@@ -33,7 +33,7 @@ public enum SID : uint
     Stun = 149, // 2729->player, extra=0x0
 }
 
-class ExplosiveDehiscence(BossModule module) : Components.CastGaze(module, ActionID.MakeSpell(AID.ExplosiveDehiscence))
+class ExplosiveDehiscence(BossModule module) : Components.CastGaze(module, AID.ExplosiveDehiscence)
 {
     public bool casting;
     public BitMask _blinded;
@@ -103,9 +103,9 @@ class Reflect(BossModule module) : BossComponent(module)
     }
 }
 
-class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BadBreath), new AOEShapeCone(17.775f, 60.Degrees()));
-class VineProbe(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.VineProbe), new AOEShapeRect(11.775f, 4));
-class OffalBreath(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, ActionID.MakeSpell(AID.OffalBreath), m => m.Enemies(OID.voidzone), 0);
+class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.BadBreath, new AOEShapeCone(17.775f, 60.Degrees()));
+class VineProbe(BossModule module) : Components.SelfTargetedAOEs(module, AID.VineProbe, new AOEShapeRect(11.775f, 4));
+class OffalBreath(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.OffalBreath, m => m.Enemies(OID.voidzone), 0);
 
 class Hints(BossModule module) : BossComponent(module)
 {

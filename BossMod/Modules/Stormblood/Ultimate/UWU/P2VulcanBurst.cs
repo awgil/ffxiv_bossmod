@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class VulcanBurst(BossModule module, AID aid, Actor? source) : Components.Knockback(module, ActionID.MakeSpell(aid))
+class VulcanBurst(BossModule module, AID aid, Actor? source) : Components.Knockback(module, aid)
 {
     protected Actor? SourceActor = source;
 

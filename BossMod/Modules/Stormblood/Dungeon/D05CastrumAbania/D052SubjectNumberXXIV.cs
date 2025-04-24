@@ -53,14 +53,14 @@ public enum IconID : uint
     Spread = 376,
     Huh = 326,
 }
-class ElementalOverload1(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElementalOverload1));
-class ElementalOverload2(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElementalOverload2));
-class ElementalOverload3(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElementalOverload3));
-class ElementalOverload4(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElementalOverload4));
-class ElementalOverload5(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElementalOverload5));
-class ElementalOverload6(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ElementalOverload6));
+class ElementalOverload1(BossModule module) : Components.RaidwideCast(module, AID.ElementalOverload1);
+class ElementalOverload2(BossModule module) : Components.RaidwideCast(module, AID.ElementalOverload2);
+class ElementalOverload3(BossModule module) : Components.RaidwideCast(module, AID.ElementalOverload3);
+class ElementalOverload4(BossModule module) : Components.RaidwideCast(module, AID.ElementalOverload4);
+class ElementalOverload5(BossModule module) : Components.RaidwideCast(module, AID.ElementalOverload5);
+class ElementalOverload6(BossModule module) : Components.RaidwideCast(module, AID.ElementalOverload6);
 
-class DiscreteMagick6(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DiscreteMagick6), true)
+class DiscreteMagick6(BossModule module) : Components.GenericBaitAway(module, AID.DiscreteMagick6, true)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -79,8 +79,8 @@ class DiscreteMagick6(BossModule module) : Components.GenericBaitAway(module, Ac
         }
     }
 }
-class FireII(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Stack, 0, ActionID.MakeSpell(AID.FireII), default, 6, 0, 5.1f);
-class ThunderII(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.ThunderII), 5, 1, 1)
+class FireII(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Stack, 0, AID.FireII, default, 6, 0, 5.1f);
+class ThunderII(BossModule module) : Components.CastTowers(module, AID.ThunderII, 5, 1, 1)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -104,9 +104,9 @@ class ThunderII(BossModule module) : Components.CastTowers(module, ActionID.Make
         }
     }
 };
-class BlizzardII(BossModule module) : Components.CastStackSpread(module, default, ActionID.MakeSpell(AID.BlizzardII), 0, 5);
-class Triflame(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Triflame), new AOEShapeCone(60, 30.Degrees()));
-class IceGrid(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.IceGrid), new AOEShapeRect(40, 2f));
+class BlizzardII(BossModule module) : Components.CastStackSpread(module, default, AID.BlizzardII, 0, 5);
+class Triflame(BossModule module) : Components.SelfTargetedAOEs(module, AID.Triflame, new AOEShapeCone(60, 30.Degrees()));
+class IceGrid(BossModule module) : Components.SelfTargetedAOEs(module, AID.IceGrid, new AOEShapeRect(40, 2f));
 class D052SubjectNumberXXIVStates : StateMachineBuilder
 {
     public D052SubjectNumberXXIVStates(BossModule module) : base(module)

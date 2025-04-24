@@ -16,8 +16,8 @@ public enum AID : uint
     BitterLove = 15650, // 2AC9->self, 3.0s cast, range 12 120-degree cone
 }
 
-class Dread(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.Dread), 5);
-class BitterLove(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.BitterLove), new AOEShapeCone(12, 60.Degrees()));
+class Dread(BossModule module) : Components.LocationTargetedAOEs(module, AID.Dread, 5);
+class BitterLove(BossModule module) : Components.SelfTargetedAOEs(module, AID.BitterLove, new AOEShapeCone(12, 60.Degrees()));
 class WhelmingLoss(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(5))
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -50,7 +50,7 @@ class WhelmingLoss(BossModule module) : Components.Exaflare(module, new AOEShape
     }
 }
 class Adds(BossModule module) : Components.Adds(module, (uint)OID.ShadowySpume);
-class Anguish(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.Anguish), 6);
+class Anguish(BossModule module) : Components.StackWithCastTargets(module, AID.Anguish, 6);
 class ForebodingAura(BossModule module) : Components.GenericAOEs(module)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Module.Enemies(OID.ForebodingAura).Where(e => !e.IsDead).Select(e => new AOEInstance(new AOEShapeCircle(8), e.Position));
@@ -81,4 +81,3 @@ public class AethericShadow(WorldState ws, Actor primary) : BossModule(ws, prima
         }
     }
 }
-

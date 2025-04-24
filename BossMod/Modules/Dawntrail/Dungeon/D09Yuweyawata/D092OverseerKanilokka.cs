@@ -55,8 +55,8 @@ class BoundsChange(BossModule module) : BossComponent(module)
     }
 }
 
-class DarkSouls(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.DarkSouls));
-class FreeSpirits(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.FreeSpiritsAOE), new AOEShapeDonut(15, 20));
+class DarkSouls(BossModule module) : Components.SingleTargetCast(module, AID.DarkSouls);
+class FreeSpirits(BossModule module) : Components.SelfTargetedAOEs(module, AID.FreeSpiritsAOE, new AOEShapeDonut(15, 20));
 
 class Soulweave(BossModule module) : Components.GenericAOEs(module)
 {
@@ -79,7 +79,7 @@ class Soulweave(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PhantomFlood(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PhantomFloodAOE), new AOEShapeDonut(5, 20));
+class PhantomFlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomFloodAOE, new AOEShapeDonut(5, 20));
 
 class DarkII(BossModule module) : Components.GenericAOEs(module)
 {
@@ -107,13 +107,13 @@ class DarkII(BossModule module) : Components.GenericAOEs(module)
 
 class TelltaleTears : Components.SpreadFromCastTargets
 {
-    public TelltaleTears(BossModule module) : base(module, ActionID.MakeSpell(AID.TelltaleTears), 5)
+    public TelltaleTears(BossModule module) : base(module, AID.TelltaleTears, 5)
     {
         ExtraAISpreadThreshold = 0;
     }
 }
 
-class Necrohazard(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Necrohazard), new AOEShapeCircle(18)) // TODO: verify falloff
+class Necrohazard(BossModule module) : Components.SelfTargetedAOEs(module, AID.Necrohazard, new AOEShapeCircle(18)) // TODO: verify falloff
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -123,8 +123,8 @@ class Necrohazard(BossModule module) : Components.SelfTargetedAOEs(module, Actio
     }
 }
 
-class Bloodburst(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Bloodburst));
-class SoulDouse(BossModule module) : Components.StackWithCastTargets(module, ActionID.MakeSpell(AID.SoulDouse), 6, 4);
+class Bloodburst(BossModule module) : Components.RaidwideCast(module, AID.Bloodburst);
+class SoulDouse(BossModule module) : Components.StackWithCastTargets(module, AID.SoulDouse, 6, 4);
 
 class D092OverseerKanilokkaStates : StateMachineBuilder
 {

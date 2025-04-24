@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class P1SwingingDraw(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.SwingingDrawAOE))
+class P1SwingingDraw(BossModule module) : Components.GenericAOEs(module, AID.SwingingDrawAOE)
 {
     public readonly List<AOEInstance> AOEs = [];
     private static readonly AOEShapeCone _shape = new(60, 60.Degrees());

@@ -23,12 +23,12 @@ public enum AID : uint
     HurricaneWing = 15619, // 233C->self, 5.0s cast, range 10 circle
 }
 
-class Rake(BossModule module) : Components.SingleTargetDelayableCast(module, ActionID.MakeSpell(AID.Rake));
-class CycloneWing(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.CycloneWing2));
-class LumenInfinitum(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.LumenInfinitum), new AOEShapeRect(40, 2.5f));
-class HurricaneWing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HurricaneWing), new AOEShapeCircle(10));
-class TyphoonWing(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TyphoonWing), new AOEShapeCone(25, 30.Degrees()));
-class TyphoonWing2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TyphoonWing2), new AOEShapeCone(25, 30.Degrees()));
+class Rake(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Rake);
+class CycloneWing(BossModule module) : Components.RaidwideCast(module, AID.CycloneWing2);
+class LumenInfinitum(BossModule module) : Components.SelfTargetedAOEs(module, AID.LumenInfinitum, new AOEShapeRect(40, 2.5f));
+class HurricaneWing(BossModule module) : Components.SelfTargetedAOEs(module, AID.HurricaneWing, new AOEShapeCircle(10));
+class TyphoonWing(BossModule module) : Components.SelfTargetedAOEs(module, AID.TyphoonWing, new AOEShapeCone(25, 30.Degrees()));
+class TyphoonWing2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TyphoonWing2, new AOEShapeCone(25, 30.Degrees()));
 
 class D051ForgivenCrueltyStates : StateMachineBuilder
 {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S1Athena;
 
-class EngravementOfSouls3Shock(BossModule module) : Components.CastTowers(module, ActionID.MakeSpell(AID.Shock), 3)
+class EngravementOfSouls3Shock(BossModule module) : Components.CastTowers(module, AID.Shock, 3)
 {
     private BitMask _towers;
     private BitMask _plus;
@@ -73,8 +73,8 @@ class EngravementOfSouls3Spread(BossModule module) : Components.UniformStackSpre
     }
 }
 
-class TheosCross(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheosCross), new AOEShapeCross(40, 3));
-class TheosSaltire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TheosSaltire), new AOEShapeCross(40, 3));
+class TheosCross(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheosCross, new AOEShapeCross(40, 3));
+class TheosSaltire(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheosSaltire, new AOEShapeCross(40, 3));
 
 // TODO: this assumes standard strats, there could be variations i guess...
 class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)

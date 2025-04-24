@@ -13,9 +13,9 @@ public enum AID : uint
     DarkMist = 705, // Boss->self, 4.0s cast, range 9.4 aoe
 }
 
-class SweetSteel(BossModule module) : Components.Cleave(module, ActionID.MakeSpell(AID.SweetSteel), new AOEShapeCone(7.4f, 45.Degrees())); // TODO: verify angle
-class VoidFire2(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.VoidFire2), 5);
-class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DarkMist), new AOEShapeCircle(9.4f));
+class SweetSteel(BossModule module) : Components.Cleave(module, AID.SweetSteel, new AOEShapeCone(7.4f, 45.Degrees())); // TODO: verify angle
+class VoidFire2(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFire2, 5);
+class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkMist, new AOEShapeCircle(9.4f));
 
 class D061ManorClavigerStates : StateMachineBuilder
 {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A11Byregot;
 
-class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.DestroySideTiles), "GTFO from dangerous cell!")
+class HammersCells(BossModule module) : Components.GenericAOEs(module, AID.DestroySideTiles, "GTFO from dangerous cell!")
 {
     public bool Active { get; private set; }
     public bool MovementPending { get; private set; }
@@ -92,5 +92,5 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, ActionID.
     }
 }
 
-class HammersLevinforge(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.Levinforge), new AOEShapeRect(50, 5));
-class HammersSpire(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.ByregotSpire), new AOEShapeRect(50, 15));
+class HammersLevinforge(BossModule module) : Components.SelfTargetedAOEs(module, AID.Levinforge, new AOEShapeRect(50, 5));
+class HammersSpire(BossModule module) : Components.SelfTargetedAOEs(module, AID.ByregotSpire, new AOEShapeRect(50, 15));

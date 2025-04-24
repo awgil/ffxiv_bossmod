@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex3Sphene;
 
-class DivideAndConquerBait(BossModule module) : Components.GenericBaitAway(module, ActionID.MakeSpell(AID.DivideAndConquerBait))
+class DivideAndConquerBait(BossModule module) : Components.GenericBaitAway(module, AID.DivideAndConquerBait)
 {
     private static readonly AOEShapeRect _shape = new(60, 2.5f);
 
@@ -21,4 +21,4 @@ class DivideAndConquerBait(BossModule module) : Components.GenericBaitAway(modul
     }
 }
 
-class DivideAndConquerAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.DivideAndConquerAOE), new AOEShapeRect(60, 2.5f));
+class DivideAndConquerAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivideAndConquerAOE, new AOEShapeRect(60, 2.5f));

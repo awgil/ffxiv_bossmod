@@ -31,12 +31,12 @@ class Adds(BossModule module) : Components.Adds(module, (uint)OID.DeepPalaceFoll
             };
     }
 }
-class AccursedPox(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AccursedPox), 8);
-class AncientEruption(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.AncientEruption), 4);
+class AccursedPox(BossModule module) : Components.LocationTargetedAOEs(module, AID.AccursedPox, 8);
+class AncientEruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.AncientEruption, 4);
 class AncientEruptionZone(BossModule module) : Components.PersistentInvertibleVoidzone(module, 4, m => m.Enemies(OID.AccursedPoxVoidZone).Where(z => z.EventState != 7));
-class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.EntropicFlame), new AOEShapeRect(53.8f, 4));
-class Scream(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Scream), "Raidwide + Fear, Adds need to be dead by now");
-class ShadowFlare(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.ShadowFlare));
+class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, AID.EntropicFlame, new AOEShapeRect(53.8f, 4));
+class Scream(BossModule module) : Components.RaidwideCast(module, AID.Scream, "Raidwide + Fear, Adds need to be dead by now");
+class ShadowFlare(BossModule module) : Components.RaidwideCast(module, AID.ShadowFlare);
 
 class D140AhPuchStates : StateMachineBuilder
 {

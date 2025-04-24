@@ -28,15 +28,15 @@ public enum IconID : uint
 {
     TankLockon = 218,
 }
-class PillarImpact(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarImpact), new AOEShapeCircle(4));
-class PillarShatterEarly(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarShatterEarly), new AOEShapeCircle(8));
-class PillarShatterLate(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.PillarShatterLate), new AOEShapeCircle(8));
-class LunarCry(BossModule module) : Components.CastLineOfSightAOE(module, ActionID.MakeSpell(AID.LunarCry), 80f, false)
+class PillarImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarImpact, new AOEShapeCircle(4));
+class PillarShatterEarly(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarShatterEarly, new AOEShapeCircle(8));
+class PillarShatterLate(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarShatterLate, new AOEShapeCircle(8));
+class LunarCry(BossModule module) : Components.CastLineOfSightAOE(module, AID.LunarCry, 80f, false)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Icicle).Where(e => e.ModelState.AnimState1 == 0);
 }
-class EclipticBite(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.EclipticBite));
-class HeavenswardRoar(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.HeavenswardRoar), new AOEShapeCone(50, 30.Degrees()));
+class EclipticBite(BossModule module) : Components.SingleTargetCast(module, AID.EclipticBite);
+class HeavenswardRoar(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavenswardRoar, new AOEShapeCone(50, 30.Degrees()));
 class D263FenrirStates : StateMachineBuilder
 {
     public D263FenrirStates(BossModule module) : base(module)

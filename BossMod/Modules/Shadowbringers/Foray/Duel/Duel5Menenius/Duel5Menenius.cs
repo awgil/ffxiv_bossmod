@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel5Menenius;
 
-class SpiralScourge(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.SpiralScourge), "Use Manawall, Excellence, or Invuln.");
-class CallousCrossfire(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.CallousCrossfire), "Use Light Curtain / Reflect.");
+class SpiralScourge(BossModule module) : Components.SingleTargetCast(module, AID.SpiralScourge, "Use Manawall, Excellence, or Invuln.");
+class CallousCrossfire(BossModule module) : Components.SingleTargetCast(module, AID.CallousCrossfire, "Use Light Curtain / Reflect.");
 
 class ReactiveMunition(BossModule module) : Components.StayMove(module)
 {
@@ -46,7 +46,7 @@ class SenseWeakness(BossModule module) : Components.StayMove(module)
 }
 
 class MagitekImpetus(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace, activationLimit: 1);
-class ProactiveMunition(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), ActionID.MakeSpell(AID.ProactiveMunitionTrackingStart), ActionID.MakeSpell(AID.ProactiveMunitionTrackingMove), 6, 1, 5);
+class ProactiveMunition(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), AID.ProactiveMunitionTrackingStart, AID.ProactiveMunitionTrackingMove, 6, 1, 5);
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "SourP", GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 778, NameID = 23)] // bnpcname=9695
 public class Duel5Menenius(WorldState ws, Actor primary) : BossModule(ws, primary, new(-810, 520 /*y=260.3*/), new ArenaBoundsSquare(20));

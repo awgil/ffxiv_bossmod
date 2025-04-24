@@ -22,7 +22,6 @@ public enum AID : uint
     LightningShowerBoss = 21444, // Boss->self, 4.0s cast, single-target
     LightningShower = 21445, // Helper->self, 5.0s cast, range 60 circle
     EnergyGeneration = 20944, // Boss->self, 3.0s cast, single-target
-    MagitekMissiles = 20991, // Helper->player, 5.0s cast, single-target
     Lightburst = 20945, // Lightsphere->self, 2.0s cast, range 5-20 donut
     InfraredBlast = 20974, // Helper->player, no cast, single-target
     ShadowBurst = 20946, // Shadowsphere->self, 2.0s cast, range 12 circle
@@ -54,9 +53,9 @@ public enum IconID : uint
     BallMinus = 163,
 }
 
-class ElectricAnvil(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.ElectricAnvil));
+class ElectricAnvil(BossModule module) : Components.SingleTargetCast(module, AID.ElectricAnvil);
 class FalseThunder(BossModule module) : Components.GroupedAOEs(module, [AID.FalseThunder, AID._Weaponskill_FalseThunder], new AOEShapeCone(47, 65.Degrees()));
-class LightningShower(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.LightningShower));
+class LightningShower(BossModule module) : Components.RaidwideCast(module, AID.LightningShower);
 
 class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {
@@ -258,7 +257,7 @@ class Balls(BossModule module) : Components.GenericAOEs(module)
 }
 
 class MagitekCore(BossModule module) : Components.Adds(module, (uint)OID.MagitekCore, 1);
-class Voltstream(BossModule module) : Components.StandardAOEs(module, ActionID.MakeSpell(AID.Voltstream), new AOEShapeRect(40, 5), maxCasts: 3);
+class Voltstream(BossModule module) : Components.StandardAOEs(module, AID.Voltstream, new AOEShapeRect(40, 5), maxCasts: 3);
 
 class BrionacStates : StateMachineBuilder
 {
@@ -277,5 +276,8 @@ class BrionacStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9436)]
-public class Brionac(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, -222), new ArenaBoundsRect(29.5f, 14.5f));
+public class Brionac(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, -222), new ArenaBoundsRect(29.5f, 14.5f))
+{
+    protected override bool CheckPull() => PrimaryActor.InCombat && WorldState.Party.Player() is { } player && Bounds.Contains(player.Position - Arena.Center);
+}
 #endif

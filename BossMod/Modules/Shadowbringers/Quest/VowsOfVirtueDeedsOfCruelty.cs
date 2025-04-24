@@ -35,9 +35,9 @@ public enum AID : uint
     SelfDetonate = 18792, // MagitekBit->self, 7.0s cast, range 40+R circle, enrage if bits are not killed before cast
 }
 
-class MagitekRayRightArm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayRightArm), new AOEShapeRect(45, 4));
-class MagitekRayLeftArm(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayLeftArm), new AOEShapeRect(45, 4));
-class AngrySalamander(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AngrySalamander), new AOEShapeRect(40, 3));
+class MagitekRayRightArm(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRayRightArm, new AOEShapeRect(45, 4));
+class MagitekRayLeftArm(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRayLeftArm, new AOEShapeRect(45, 4));
+class AngrySalamander(BossModule module) : Components.SelfTargetedAOEs(module, AID.AngrySalamander, new AOEShapeRect(40, 3));
 class TerminusEstRects(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -66,13 +66,13 @@ class TerminusEstRects(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class TerminusEstCircle(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.TerminusEstLocationHelper), new AOEShapeCircle(3));
-class FireII(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.FireII), 5);
-class GarleanFire(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.GarleanFire), 5);
-class MetalCutter(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MetalCutter), new AOEShapeCone(30, 10.Degrees()));
-class MagitekRayBits(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.MagitekRayBit), new AOEShapeRect(50, 1));
-class AtomicRay(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.AtomicRay), new AOEShapeCircle(10));
-class SelfDetonate(BossModule module) : Components.CastHint(module, ActionID.MakeSpell(AID.SelfDetonate), "Enrage if bits are not killed before cast");
+class TerminusEstCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.TerminusEstLocationHelper, new AOEShapeCircle(3));
+class FireII(BossModule module) : Components.LocationTargetedAOEs(module, AID.FireII, 5);
+class GarleanFire(BossModule module) : Components.LocationTargetedAOEs(module, AID.GarleanFire, 5);
+class MetalCutter(BossModule module) : Components.SelfTargetedAOEs(module, AID.MetalCutter, new AOEShapeCone(30, 10.Degrees()));
+class MagitekRayBits(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRayBit, new AOEShapeRect(50, 1));
+class AtomicRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.AtomicRay, new AOEShapeCircle(10));
+class SelfDetonate(BossModule module) : Components.CastHint(module, AID.SelfDetonate, "Enrage if bits are not killed before cast");
 
 class EstinienAI(WorldState ws) : UnmanagedRotation(ws, 3)
 {

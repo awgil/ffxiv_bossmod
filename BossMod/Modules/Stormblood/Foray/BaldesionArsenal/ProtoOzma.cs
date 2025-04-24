@@ -76,7 +76,7 @@ class MeteorStack(BossModule module) : Components.UniformStackSpread(module, 10,
     }
 }
 
-class MourningStar(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.MourningStar1))
+class MourningStar(BossModule module) : Components.GenericAOEs(module, AID.MourningStar1)
 {
     private readonly List<(Actor Source, DateTime Activation)> Casts = [];
 
@@ -91,7 +91,7 @@ class MourningStar(BossModule module) : Components.GenericAOEs(module, ActionID.
     }
 }
 
-class Execration(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Execration1))
+class Execration(BossModule module) : Components.GenericAOEs(module, AID.Execration1)
 {
     private readonly List<(WPos Origin, Angle Rotation, DateTime Activation)> Casts = [];
 
@@ -117,7 +117,7 @@ class Execration(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
     }
 }
 
-class FlareStar(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.FlareStar1))
+class FlareStar(BossModule module) : Components.GenericAOEs(module, AID.FlareStar1)
 {
     private readonly List<(Actor Source, DateTime Activation)> Casts = [];
 
@@ -132,7 +132,7 @@ class FlareStar(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     }
 }
 
-class ShootingStar(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.ShootingStar1), 8, shape: new AOEShapeCircle(26))
+class ShootingStar(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ShootingStar1, 8, shape: new AOEShapeCircle(26))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -329,10 +329,10 @@ class MeteorBait(BossModule module) : Components.SpreadFromIcon(module, (uint)Ic
         }
     }
 }
-class MeteorImpact(BossModule module) : Components.SpreadFromCastTargets(module, ActionID.MakeSpell(AID.MeteorImpact), 15);
+class MeteorImpact(BossModule module) : Components.SpreadFromCastTargets(module, AID.MeteorImpact, 15);
 class Urolith(BossModule module) : Components.Adds(module, (uint)OID.ArsenalUrolith, 1);
 
-class Ozmasphere(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Explosion))
+class Ozmasphere(BossModule module) : Components.GenericAOEs(module, AID.Explosion)
 {
     private readonly List<Actor> Balls = [];
 
@@ -351,7 +351,7 @@ class Ozmasphere(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Balls.Select(b => new AOEInstance(new AOEShapeCircle(6), b.Position));
 }
 
-class Holy(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.Holy), 3)
+class Holy(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Holy, 3)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -424,4 +424,3 @@ public class ProtoOzma(WorldState ws, Actor primary) : BAModule(ws, primary, Are
         Arena.ActorInsideBounds(Center, PrimaryActor.Rotation, ArenaColor.Enemy);
     }
 }
-

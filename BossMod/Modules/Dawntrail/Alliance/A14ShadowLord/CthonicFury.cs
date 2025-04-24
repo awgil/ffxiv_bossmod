@@ -111,7 +111,7 @@ class DarkNebula(BossModule module) : Components.Knockback(module)
     }
 }
 
-class EchoesOfAgony(BossModule module) : Components.StackWithIcon(module, (uint)IconID.EchoesOfAgony, ActionID.MakeSpell(AID.EchoesOfAgonyAOE), 5, 9.2f, 8)
+class EchoesOfAgony(BossModule module) : Components.StackWithIcon(module, (uint)IconID.EchoesOfAgony, AID.EchoesOfAgonyAOE, 5, 9.2f, 8)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

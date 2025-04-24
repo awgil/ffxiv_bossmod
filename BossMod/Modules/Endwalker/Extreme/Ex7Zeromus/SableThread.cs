@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
-class SableThread(BossModule module) : Components.GenericWildCharge(module, 6, ActionID.MakeSpell(AID.SableThreadAOE), 60)
+class SableThread(BossModule module) : Components.GenericWildCharge(module, 6, AID.SableThreadAOE, 60)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

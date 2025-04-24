@@ -65,4 +65,4 @@ class GrimEmbraceBait(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class GrimEmbraceAOE(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.GrimEmbraceAOE), new AOEShapeRect(8, 4));
+class GrimEmbraceAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrimEmbraceAOE, new AOEShapeRect(8, 4));

@@ -51,7 +51,7 @@ public enum IconID : uint
     Stack = 93,
     FallingRock = 229,
 }
-class BeastlyFury(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.BeastlyFury))
+class BeastlyFury(BossModule module) : Components.GenericAOEs(module, AID.BeastlyFury)
 {
     private readonly List<AOEInstance> _arenaVoidZones = [];
     private static readonly AOEShapeRect rect = new(10, 10, 10);
@@ -85,10 +85,10 @@ class BeastlyFury(BossModule module) : Components.GenericAOEs(module, ActionID.M
         base.OnEventCast(caster, spell);
     }
 }
-class WildRageKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, ActionID.MakeSpell(AID.WildRage), 16);
-class WildRageImpact(BossModule module) : Components.LocationTargetedAOEs(module, ActionID.MakeSpell(AID.WildRage2), 8);
-class WildRageDonut(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildRage3), new AOEShapeDonut(10, 50)); //Unneeded
-class FallingRock(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Stack, (uint)IconID.FallingRock, ActionID.MakeSpell(AID.WildAnguish2), ActionID.MakeSpell(AID.FallingRock), 6, 8, 1f, 2, 2, true)
+class WildRageKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WildRage, 16);
+class WildRageImpact(BossModule module) : Components.LocationTargetedAOEs(module, AID.WildRage2, 8);
+class WildRageDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.WildRage3, new AOEShapeDonut(10, 50)); //Unneeded
+class FallingRock(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Stack, (uint)IconID.FallingRock, AID.WildAnguish2, AID.FallingRock, 6, 8, 1f, 2, 2, true)
 {
     private IEnumerable<Actor> Rubbles => Module.Enemies(OID.Rubble).Where(e => e.IsTargetable);
     private IEnumerable<Actor> VulnDebuffTargets => WorldState.Party.WithoutSlot().Where(x => x.FindStatus(SID.MagicVulnUp) != null);
@@ -209,8 +209,8 @@ class FallingRock(BossModule module) : Components.IconStackSpread(module, (uint)
         Arena.Actors(Rubbles, ArenaColor.Object, true);
     }
 }
-class Jump(BossModule module) : Components.SingleTargetCast(module, ActionID.MakeSpell(AID.Jump));
-class WildRampage(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WildRampage2), new AOEShapeRect(50, 25, 3)); //Ended up not using, maybe someone can union it I cba anymore.
+class Jump(BossModule module) : Components.SingleTargetCast(module, AID.Jump);
+class WildRampage(BossModule module) : Components.SelfTargetedAOEs(module, AID.WildRampage2, new AOEShapeRect(50, 25, 3)); //Ended up not using, maybe someone can union it I cba anymore.
 class WildRageVoidZone(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _craters = [];
@@ -327,8 +327,8 @@ class WildRampageTower(BossModule module) : BossComponent(module)
         hints.AddForbiddenZone(new AOEShapeDonut(6, 50), bestTower.Position);
     }
 }
-class RagingSlice(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.RagingSliceInitial), new AOEShapeRect(50, 3));
-class RagingSliceFollowup(BossModule module) : Components.BaitAwayCast(module, ActionID.MakeSpell(AID.RagingSliceFollowup), new AOEShapeRect(50, 3));
+class RagingSlice(BossModule module) : Components.BaitAwayCast(module, AID.RagingSliceInitial, new AOEShapeRect(50, 3));
+class RagingSliceFollowup(BossModule module) : Components.BaitAwayCast(module, AID.RagingSliceFollowup, new AOEShapeRect(50, 3));
 
 class D113SpectralBerserkerStates : StateMachineBuilder
 {

@@ -29,11 +29,11 @@ public enum IconID : uint
     Nuisance = 514, // player
 }
 
-class Immersion(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.Immersion));
-class TroublesomeTail(BossModule module) : Components.RaidwideCast(module, ActionID.MakeSpell(AID.TroublesomeTail));
-class WorrisomeWave(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.WorrisomeWave), new AOEShapeCone(24, 15.Degrees()));
+class Immersion(BossModule module) : Components.RaidwideCast(module, AID.Immersion);
+class TroublesomeTail(BossModule module) : Components.RaidwideCast(module, AID.TroublesomeTail);
+class WorrisomeWave(BossModule module) : Components.SelfTargetedAOEs(module, AID.WorrisomeWave, new AOEShapeCone(24, 15.Degrees()));
 
-class WorrisomeWaveNuisance(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(24, 15.Degrees()), (uint)IconID.Nuisance, ActionID.MakeSpell(AID.WorrisomeWaveNuisance), 5.4f)
+class WorrisomeWaveNuisance(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(24, 15.Degrees()), (uint)IconID.Nuisance, AID.WorrisomeWaveNuisance, 5.4f)
 {
     public override Actor? BaitSource(Actor target) => target;
 
@@ -46,7 +46,7 @@ class WorrisomeWaveNuisance(BossModule module) : Components.BaitAwayIcon(module,
     }
 }
 
-class HydroRing(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.HydroRing))
+class HydroRing(BossModule module) : Components.GenericAOEs(module, AID.HydroRing)
 {
     private AOEInstance? _aoe;
 
@@ -100,7 +100,7 @@ class AiryBubbles(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BubbleBomb(BossModule module) : Components.GenericAOEs(module, ActionID.MakeSpell(AID.Burst))
+class BubbleBomb(BossModule module) : Components.GenericAOEs(module, AID.Burst)
 {
     private readonly List<AOEInstance> _aoes = [];
     private bool _directionKnown;
