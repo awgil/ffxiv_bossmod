@@ -6,7 +6,7 @@ class SpearpointBait(BossModule module) : Components.GenericBaitAway(module)
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID.AddsTether && WorldState.Actors.Find(tether.Target) is { } player)
+        if ((TetherID)tether.ID == TetherID.SpearpointPush && WorldState.Actors.Find(tether.Target) is { } player)
             tethers[source.InstanceID] = player;
     }
 
@@ -39,11 +39,22 @@ class SpearpointBait(BossModule module) : Components.GenericBaitAway(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_SpearpointPush or AID._Weaponskill_SpearpointPush1)
+        if ((AID)spell.Action.ID is AID.SpearpointPushSide1 or AID.SpearpointPushSide2)
         {
             CurrentBaits.RemoveAll(t => t.Source == caster);
             tethers.Remove(caster.InstanceID);
         }
     }
 }
-class SpearpointAOE(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_SpearpointPush, AID._Weaponskill_SpearpointPush1], new AOEShapeRect(33, 37));
+class SpearpointAOE(BossModule module) : Components.GroupedAOEs(module, [AID.SpearpointPushSide1, AID.SpearpointPushSide2], new AOEShapeRect(33, 37));
+
+class AddsEnrage(BossModule module) : BossComponent(module)
+{
+    public bool Active;
+
+    public override void OnEventDirectorUpdate(uint updateID, uint param1, uint param2, uint param3, uint param4)
+    {
+        if (updateID == 0x8000000C && param1 == 0x56 && param2 == 0x2710)
+            Active = true;
+    }
+}

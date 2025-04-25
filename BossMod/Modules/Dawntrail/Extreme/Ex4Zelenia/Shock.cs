@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
-class ShockDonutBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(1, 6), (uint)IconID.ShockDonut, AID._Weaponskill_ShockDonut1, centerAtTarget: true);
-class ShockCircleBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.ShockCircle, AID._Weaponskill_ShockCircle1, centerAtTarget: true);
+class ShockDonutBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(1, 6), (uint)IconID.ShockDonut, AID.ShockDonut1, centerAtTarget: true);
+class ShockCircleBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.ShockCircle, AID.ShockCircle1, centerAtTarget: true);
 
 class ShockAOEs(BossModule module) : Components.GenericAOEs(module)
 {
@@ -13,27 +13,27 @@ class ShockAOEs(BossModule module) : Components.GenericAOEs(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_ShockDonut1:
+            case AID.ShockDonut1:
                 Casters.Add((caster.Position, 11, true));
                 NumCasts++;
                 break;
-            case AID._Weaponskill_ShockCircle1:
+            case AID.ShockCircle1:
                 if (!Increment(caster))
                     Casters.Add((caster.Position, 11, false));
                 NumCasts++;
                 break;
 
-            case AID._Weaponskill_ShockCircle2:
-            case AID._Weaponskill_ShockCircle3:
-            case AID._Weaponskill_ShockCircle4:
-            case AID._Weaponskill_ShockCircle5:
-            case AID._Weaponskill_ShockCircle6:
+            case AID.ShockCircle2:
+            case AID.ShockCircle3:
+            case AID.ShockCircle4:
+            case AID.ShockCircle5:
+            case AID.ShockCircle6:
                 if (!Increment(caster))
                     ReportError($"no circle caster at {caster.Position}");
                 NumCasts++;
                 break;
 
-            case AID._Weaponskill_ShockDonut2:
+            case AID.ShockDonut2:
                 NumCasts++;
                 if (!Increment(caster))
                     ReportError($"no donut caster at {caster.Position}");

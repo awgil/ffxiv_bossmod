@@ -18,20 +18,20 @@ class EscelonsFall : Components.GenericBaitAway
     private readonly DateTime[] Vulns = new DateTime[PartyState.MaxPartySize];
     private DateTime NextActivation; // 13.9s from boss cast, then every 3.1s
 
-    public EscelonsFall(BossModule module) : base(module, AID._Ability_EscelonsFall)
+    public EscelonsFall(BossModule module) : base(module, AID.EscelonsFall)
     {
         AllowDeadTargets = false;
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((OID)actor.OID == OID.Boss && status.ID == (uint)SID._Gen_)
+        if ((OID)actor.OID == OID.Boss && status.ID == (uint)SID.WitchHunt)
         {
             Order.Add(status.Extra == 0x2F6 ? Proximity.Close : Proximity.Far);
             HintOrder.Add(Order[^1]);
         }
 
-        if (status.ID == (uint)SID._Gen_SlashingResistanceDown && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (status.ID == (uint)SID.SlashingResistanceDown && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
             Vulns[slot] = status.ExpireAt;
     }
 
@@ -53,7 +53,7 @@ class EscelonsFall : Components.GenericBaitAway
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_EscelonsFall)
+        if ((AID)spell.Action.ID == AID.EscelonsFallVisual)
             NextActivation = WorldState.FutureTime(13.9f);
     }
 

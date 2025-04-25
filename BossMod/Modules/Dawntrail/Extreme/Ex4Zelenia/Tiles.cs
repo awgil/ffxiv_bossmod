@@ -57,13 +57,21 @@ class Tiles : BossComponent
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (ShouldDraw)
-            foreach (var tile in Mask.SetBits())
-                ZoneTile(Arena, tile, ArenaColor.AOE);
+            ZoneTiles(Arena, Mask, ArenaColor.AOE);
     }
 
     public static void ZoneTile(MiniArena arena, int tile, uint color) => arena.ZoneCone(new(100, 100), tile < 8 ? 0 : 8, tile < 8 ? 8 : 16, 157.5f.Degrees() - 45.Degrees() * (tile % 8), 22.5f.Degrees(), color);
 
+    public static void ZoneTiles(MiniArena arena, BitMask tiles, uint color)
+    {
+        foreach (var t in tiles.SetBits())
+            ZoneTile(arena, t, color);
+    }
+
     public static void DrawTile(MiniArena arena, int tile, uint color) => arena.AddDonutCone(new(100, 100), tile < 8 ? 0 : 8, tile < 8 ? 8 : 16, 157.5f.Degrees() - 45.Degrees() * (tile % 8), 22.5f.Degrees(), color);
+
+    public static void TextTile(MiniArena arena, int tile, uint color)
+        => arena.TextWorld(arena.Center + GetTileCenter(tile), tile.ToString(), color);
 
     public static int GetTile(WPos position)
     {
@@ -75,11 +83,12 @@ class Tiles : BossComponent
     }
     public static int GetTile(Actor actor) => GetTile(actor.Position);
 
+    public static Angle GetTileOrientation(int tile) => 157.5f.Degrees() - 45.Degrees() * (tile % 8);
+    public static WDir GetTileCenter(int tile) => GetTileOrientation(tile).ToDirection() * (tile < 8 ? 4 : 12);
+
     public bool InActiveTile(Actor actor) => Mask[GetTile(actor)];
 
     public Func<WPos, bool> TileShape() => p => Mask[GetTile(p)];
-
-    public IEnumerable<int> ActiveTiles => Mask.SetBits();
 
     public BitMask GetConnectedTiles(int tile)
     {
