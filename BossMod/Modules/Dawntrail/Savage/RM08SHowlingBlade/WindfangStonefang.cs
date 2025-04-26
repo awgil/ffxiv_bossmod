@@ -72,7 +72,7 @@ class WindfangStonefang(BossModule module) : Components.CastCounter(module, defa
 class WindfangStonefangAI(BossModule module) : BossComponent(module)
 {
     private readonly RM08SConfig _config = Service.Config.Get<RM08SConfig>();
-    private WindfangStonefang _ws = module.FindComponent<WindfangStonefang>()!;
+    private readonly WindfangStonefang _ws = module.FindComponent<WindfangStonefang>()!;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -82,6 +82,7 @@ class WindfangStonefangAI(BossModule module) : BossComponent(module)
 
         if (_ws.Stack)
         {
+            // TODO
         }
     }
 }

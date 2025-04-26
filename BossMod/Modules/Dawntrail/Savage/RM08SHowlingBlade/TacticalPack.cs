@@ -20,12 +20,14 @@ class AddsVoidzone(BossModule module) : Components.GenericAOEs(module)
                 case 0x00200010:
                     _activation = WorldState.FutureTime(5.6f); // verify
                     break;
+#if DEBUG
                 case 0x00020001:
                     Arena.Bounds = new ArenaBoundsCustom(12, new(CurveApprox.Donut(8, 12, 1 / 90f)), RM08SHowlingBlade.MapResolution);
                     break;
                 case 0x00080004:
                     Arena.Bounds = new ArenaBoundsCircle(12, RM08SHowlingBlade.MapResolution);
                     break;
+#endif
             }
         }
     }

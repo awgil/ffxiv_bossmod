@@ -3,7 +3,7 @@
 class Bloom4Emblazon(BossModule module) : Components.CastCounter(module, AID.Emblazon)
 {
     public BitMask Baiters;
-    private DateTime Activation;
+    public DateTime Activation;
     private readonly Tiles Tiles = module.FindComponent<Tiles>()!;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Savage.RM08SHowlingBlade;
+﻿namespace BossMod.Dawntrail.Savage.RM08SHowlingBlade;
 
 class FangedCharge(BossModule module) : Components.StandardAOEs(module, AID.FangedCharge, new AOEShapeRect(30, 3), maxCasts: 2);
 
