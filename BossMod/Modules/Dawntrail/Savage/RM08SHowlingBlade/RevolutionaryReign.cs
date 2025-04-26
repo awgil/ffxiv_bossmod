@@ -63,6 +63,7 @@ class ReignInout(BossModule module) : Components.GenericAOEs(module)
     private Inout Next;
 
     public WPos? Source { get; private set; }
+    private WPos _prevSource;
     private DateTime Activation;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -80,13 +81,20 @@ class ReignInout(BossModule module) : Components.GenericAOEs(module)
 
             case AID.WolvesReignRect1:
             case AID.WolvesReignRect2:
+                _prevSource = caster.Position;
                 var dir = (Arena.Center - caster.Position).Normalized();
                 Activation = WorldState.FutureTime(4.6f);
-                Source = caster.Position + dir * 17.75f;
+                var dist = caster.Position.X < 92 ? 17.25f : 17.75f;
+                Source = caster.Position + dir * dist;
                 break;
 
             case AID.WolvesReignCone:
             case AID.WolvesReignCircle:
+                if (Source?.AlmostEqual(caster.Position, 0.05f) == false)
+                {
+                    var actual = caster.Position - _prevSource;
+                    ReportError($"predicted in/out source too far off - expected {Source}, got {caster.Position}, angle {Angle.FromDirection(actual)} dist {actual.Length()} from {_prevSource}");
+                }
                 Source = caster.Position;
                 break;
         }

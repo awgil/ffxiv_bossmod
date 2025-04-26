@@ -7,7 +7,7 @@ class StonefangCircle(BossModule module) : Components.StandardAOEs(module, AID.S
 class WindfangStonefang(BossModule module) : Components.CastCounter(module, default)
 {
     private Actor? _source;
-    private DateTime _activation;
+    public DateTime Activation { get; private set; }
     public bool Stack { get; private set; }
     public bool Active => _source != null;
 
@@ -34,7 +34,7 @@ class WindfangStonefang(BossModule module) : Components.CastCounter(module, defa
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_source != null)
-            hints.PredictedDamage.Add((new(0xff), _activation));
+            hints.PredictedDamage.Add((new(0xff), Activation));
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -55,7 +55,7 @@ class WindfangStonefang(BossModule module) : Components.CastCounter(module, defa
         {
             _source = caster;
             Stack = (AID)spell.Action.ID is AID.WindfangIntercards or AID.WindfangCards;
-            _activation = Module.CastFinishAt(spell, 0.1f);
+            Activation = Module.CastFinishAt(spell, 0.1f);
         }
     }
 
@@ -71,18 +71,43 @@ class WindfangStonefang(BossModule module) : Components.CastCounter(module, defa
 
 class WindfangStonefangAI(BossModule module) : BossComponent(module)
 {
-    private readonly RM08SConfig _config = Service.Config.Get<RM08SConfig>();
+    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
     private readonly WindfangStonefang _ws = module.FindComponent<WindfangStonefang>()!;
+    private bool _intercard;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.WindfangCards:
+            case AID.StonefangCards:
+                _intercard = true;
+                break;
+        }
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var clock = _config.WindfangStonefangSpots[assignment];
-        if (clock < 0 || !_ws.Active)
+        var clockspot = _config.WindfangStonefangSpots[assignment];
+        if (clockspot < 0 || !_ws.Active)
             return;
 
-        if (_ws.Stack)
-        {
-            // TODO
-        }
+        var isSupport = actor.Class.IsSupport();
+
+        var assignedQuad = (clockspot + 1) / 2;
+        var assignedDirection = (180 - 90 * assignedQuad).Degrees();
+        if (_intercard)
+            assignedDirection += 45.Degrees();
+
+        hints.AddForbiddenZone(ShapeContains.InvertedCone(Module.PrimaryActor.Position, 12, assignedDirection, 45.Degrees()), _ws.Activation);
+
+        var closestPartner = Module.Raid.WithoutSlot().Where(p => p.Class.IsSupport() != isSupport).Closest(actor.Position);
+        if (closestPartner == null)
+            return;
+
+        var partnerShape = ShapeContains.Cone(Module.PrimaryActor.Position, 12, Module.PrimaryActor.AngleTo(closestPartner), 15.Degrees());
+
+        if (_ws.Activation < WorldState.FutureTime(0.5f))
+            hints.AddForbiddenZone(p => _ws.Stack ? !partnerShape(p) : partnerShape(p), _ws.Activation);
     }
 }

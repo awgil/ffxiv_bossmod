@@ -40,13 +40,15 @@ class RM08SHowlingBladeStates : StateMachineBuilder
             .ActivateOnEnter<WindfangStonefangCross>()
             .ActivateOnEnter<WindfangDonut>()
             .ActivateOnEnter<StonefangCircle>()
-            .ActivateOnEnter<WindfangStonefang>();
+            .ActivateOnEnter<WindfangStonefang>()
+            .ActivateOnEnter<WindfangStonefangAI>();
 
         ComponentCondition<WindfangStonefang>(id + 2, 0.1f, w => w.NumCasts > 0, "Stack/spread")
             .DeactivateOnExit<WindfangStonefangCross>()
             .DeactivateOnExit<WindfangDonut>()
             .DeactivateOnExit<StonefangCircle>()
-            .DeactivateOnExit<WindfangStonefang>();
+            .DeactivateOnExit<WindfangStonefang>()
+            .DeactivateOnExit<WindfangStonefangAI>();
     }
 
     private void RevolutionaryReign(uint id, float delay)
