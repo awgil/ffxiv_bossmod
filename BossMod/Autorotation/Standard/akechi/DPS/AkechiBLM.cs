@@ -22,13 +22,14 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Module Definitions
+    //TODO: Update me
     public static RotationModuleDefinition Definition()
     {
         var res = new RotationModuleDefinition("Akechi BLM", //Title
             "Standard Rotation Module", //Description
             "Standard rotation (Akechi)|DPS", //Category
             "Akechi", //Contributor
-            RotationModuleQuality.Ok, //Quality
+            RotationModuleQuality.WIP, //Quality
             BitMask.Build(Class.THM, Class.BLM), //Job
             100); //Level supported
 
