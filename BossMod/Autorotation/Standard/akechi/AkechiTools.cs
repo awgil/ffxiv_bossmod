@@ -322,10 +322,10 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
     /// <summary>Checks if user can <b>Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.6f;
+    protected bool CanWeaveIn => GCD >= 0.6f;
 
     /// <summary>Checks if user can <b>Early Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanEarlyWeaveIn => GCD is <= 2.49f and >= 1.26f;
+    protected bool CanEarlyWeaveIn => GCD >= 1.26f;
 
     /// <summary>Checks if user can <b>Late Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.6f;
@@ -344,11 +344,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Returns the <b>charge cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float ChargeCD(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
+    protected float ChargeCD(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
     /// <summary>Checks if <b>action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool ActionReady(AID aid) => Unlocked(aid) && !IsOnCooldown(aid);
+    protected bool ActionReady(AID aid) => Unlocked(aid) && IsOffCooldown(aid);
 
     /// <summary>Checks if <b>action</b> has any <b>charges</b> remaining. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
@@ -368,12 +368,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true;
+    protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);
 
     /// <summary>Retrieves time remaining until specified <b>action</b> is at <b>max charges</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float MaxChargesIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
-
     #endregion
 
     #region Status
