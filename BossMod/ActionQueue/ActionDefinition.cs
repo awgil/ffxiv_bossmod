@@ -302,13 +302,13 @@ public sealed class ActionDefinitions : IDisposable
 
     private static bool IsDashDangerous(WPos from, WPos to, AIHints hints)
     {
+        var center = hints.PathfindMapCenter;
+        if (!hints.PathfindMapBounds.Contains(to - center))
+            return true;
+
         // if arena is a weird shape, try to ensure player won't dash out of it
-        if (from != to && hints.PathfindMapBounds is ArenaBoundsCustom)
-        {
-            var center = hints.PathfindMapCenter;
-            if (hints.PathfindMapBounds.IntersectRay(from - center, to - from) is >= 0 and < float.MaxValue)
-                return true;
-        }
+        if (from != to && hints.PathfindMapBounds is ArenaBoundsCustom && hints.PathfindMapBounds.IntersectRay(from - center, to - from) is >= 0 and < float.MaxValue)
+            return true;
 
         return hints.ForbiddenZones.Any(d => d.containsFn(to));
     }
