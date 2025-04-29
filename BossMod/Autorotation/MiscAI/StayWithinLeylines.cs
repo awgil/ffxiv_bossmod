@@ -37,6 +37,9 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (!Player.InCombat)
+            return;
+
         bool InLeyLines = Player.FindStatus(BLM.SID.CircleOfPower) != null;
 
         if (!InLeyLines)
