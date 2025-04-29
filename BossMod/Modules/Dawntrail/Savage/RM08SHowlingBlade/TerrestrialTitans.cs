@@ -7,4 +7,4 @@ class TitanicPursuit(BossModule module) : Components.RaidwideCast(module, AID.Ti
 
 class Towerfall(BossModule module) : Components.StandardAOEs(module, AID.Towerfall, new AOEShapeRect(30, 5));
 
-class FangedCrossing(BossModule module) : PlayActionAOEs(module, (uint)OID._Gen_GleamingFang, 0x11D1, new AOEShapeCross(21, 3.5f), AID.FangedCrossing, 6.1f);
+class FangedCrossing(BossModule module) : PlayActionAOEs(module, (uint)OID.GleamingFangCrossing, 0x11D1, new AOEShapeCross(21, 3.5f), AID.FangedCrossing, 6.1f);

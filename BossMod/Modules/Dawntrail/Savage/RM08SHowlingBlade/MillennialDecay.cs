@@ -20,13 +20,13 @@ class Gust(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.G
 
 class AeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AeroIII, 8);
 
-class ProwlingGale(BossModule module) : Components.CastTowers(module, AID.ProwlingGale, 2, maxSoakers: 1)
+class ProwlingGale(BossModule module) : Components.CastTowers(module, AID.ProwlingGale1, 2, maxSoakers: 1)
 {
     private BitMask Tethers;
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.WindsOfDecayShort or TetherID.WindsOfDecayLong)
+        if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.Danger or TetherID.Generic)
             UpdateMask(Raid.FindSlot(tether.Target));
     }
 
@@ -58,7 +58,7 @@ class WindsOfDecay : Components.GenericBaitAway
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.WindsOfDecayShort or TetherID.WindsOfDecayLong && !CurrentBaits.Any(b => b.Target.InstanceID == tether.Target))
+        if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.Danger or TetherID.Generic && !CurrentBaits.Any(b => b.Target.InstanceID == tether.Target))
         {
             if (Activation == default)
                 Activation = WorldState.FutureTime(7.2f);
@@ -87,12 +87,12 @@ class WindsOfDecayTether(BossModule module) : Components.CastCounter(module, AID
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.WindsOfDecayShort or TetherID.WindsOfDecayLong)
+        if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.Danger or TetherID.Generic)
         {
             if (Activation == default)
                 Activation = WorldState.FutureTime(7.2f);
 
-            Tethers[source] = (tether.Target, (TetherID)tether.ID == TetherID.WindsOfDecayLong);
+            Tethers[source] = (tether.Target, (TetherID)tether.ID == TetherID.Generic);
         }
     }
 

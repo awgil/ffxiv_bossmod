@@ -395,7 +395,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (Meditation == 3 && (RaidBuffsLeft > AnimLock || GrantsMeditation(NextGCD)))
             PushOGCD(AID.Shoha, BestLineTarget);
 
-        var saveKenki = RaidBuffsLeft <= AnimLock || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
+        var saveKenki = RaidBuffsLeft <= AnimLock && RaidBuffsIn < 1000 || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
 
         if (Kenki >= (saveKenki ? 90 : 25))
         {

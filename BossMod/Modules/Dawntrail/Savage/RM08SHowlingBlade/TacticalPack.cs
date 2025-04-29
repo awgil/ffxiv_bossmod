@@ -53,10 +53,10 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
     {
         switch ((OID)actor.OID)
         {
-            case OID.TacticalPackWind:
+            case OID.WolfOfWindTactical:
                 WolfOfWind = actor;
                 break;
-            case OID.TacticalPackStone:
+            case OID.WolfOfStoneTactical:
                 WolfOfStone = actor;
                 break;
         }
@@ -66,10 +66,10 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
     {
         switch ((SID)status.ID)
         {
-            case SID._Gen_Stonepack:
+            case SID.Stonepack:
                 SetAspect(Raid.FindSlot(actor.InstanceID), Aspect.Stone);
                 break;
-            case SID._Gen_Windpack:
+            case SID.Windpack:
                 SetAspect(Raid.FindSlot(actor.InstanceID), Aspect.Wind);
                 break;
         }
@@ -79,10 +79,10 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
     {
         switch ((SID)status.ID)
         {
-            case SID._Gen_Stonepack:
+            case SID.Stonepack:
                 ClearAspect(Raid.FindSlot(actor.InstanceID), Aspect.Stone);
                 break;
-            case SID._Gen_Windpack:
+            case SID.Windpack:
                 ClearAspect(Raid.FindSlot(actor.InstanceID), Aspect.Wind);
                 break;
         }
@@ -163,7 +163,7 @@ class StalkingWindStone(BossModule module) : Components.CastCounter(module, null
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID == (uint)IconID.StalkingWindStone)
+        if (iconID == (uint)IconID.Target)
             AddBait(actor);
     }
 
@@ -226,7 +226,7 @@ class AlphaWindStone(BossModule module) : Components.GenericBaitAway(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID == (uint)IconID.StalkingWindStone && CurrentBaits.Count == 0)
+        if (iconID == (uint)IconID.Target && CurrentBaits.Count == 0)
         {
             foreach (var t in Raid.WithoutSlot().Where(r => r.Role == Role.Tank))
                 AddBait(t);
@@ -266,13 +266,13 @@ class EarthyWindborneEnd : BossComponent
     {
         foreach (var (slot, player) in Raid.WithSlot())
         {
-            var ix = Array.FindIndex(player.Statuses, s => (SID)s.ID is SID._Gen_EarthborneEnd or SID._Gen_WindborneEnd);
+            var ix = Array.FindIndex(player.Statuses, s => (SID)s.ID is SID.EarthborneEnd or SID.WindborneEnd);
             if (ix >= 0)
             {
                 var status = player.Statuses[ix];
                 var remaining = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds;
                 var order = remaining > 50 ? 3 : remaining > 30 ? 2 : 1;
-                Debuffs[slot] = new(order, status.ID == (uint)SID._Gen_EarthborneEnd ? Aspect.Stone : Aspect.Wind, status.ExpireAt);
+                Debuffs[slot] = new(order, status.ID == (uint)SID.EarthborneEnd ? Aspect.Stone : Aspect.Wind, status.ExpireAt);
             }
         }
     }
@@ -285,7 +285,7 @@ class EarthyWindborneEnd : BossComponent
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID._Gen_EarthborneEnd or SID._Gen_WindborneEnd)
+        if ((SID)status.ID is SID.EarthborneEnd or SID.WindborneEnd)
             Debuffs[Raid.FindSlot(actor.InstanceID)] = default;
     }
 
@@ -311,7 +311,7 @@ class EarthyWindborneEnd : BossComponent
     private bool ShouldCleanse(int slot) => Debuffs[slot].Order > 0 && Debuffs[slot].Expire < WorldState.FutureTime(10);
 }
 
-class ForlornWindStone(BossModule module) : Components.CastCounterMulti(module, [AID.ForlornStone, AID.ForlornWind])
+class ForlornWindStone(BossModule module) : Components.CastCounterMulti(module, [AID.ForlornStoneCast, AID.ForlornWind])
 {
     public readonly List<Actor> Casters = [];
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
