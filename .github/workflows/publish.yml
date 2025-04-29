@@ -26,7 +26,7 @@ jobs:
           
       - name: Download Dalamud Latest
         run: |
-          wget https://goatcorp.github.io/dalamud-distrib/stg/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
+          wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
           unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
 
       - name: Restore Project
