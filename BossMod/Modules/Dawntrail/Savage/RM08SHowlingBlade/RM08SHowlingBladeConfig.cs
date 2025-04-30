@@ -3,8 +3,19 @@
 [ConfigDisplay(Order = 0x300, Parent = typeof(DawntrailConfig))]
 public class RM08SHowlingBladeConfig : ConfigNode
 {
-    [PropertyDisplay("Beckon Moonlight: highlight first and third safe quadrants on minimap (for \"quad moonlight\")")]
+    [PropertyDisplay("Beckon Moonlight: highlight first and third safe quadrants on minimap (aka \"quad moonlight\")")]
     public bool QuadMoonlightHints = false;
+
+    public enum LamentTowerStrategy
+    {
+        [PropertyDisplay("No hints")]
+        None,
+        [PropertyDisplay("Rinon strat: healers S, long tank SW, long tank partner SE, long healer partner N, short tank and partner N")]
+        Rinon,
+    }
+
+    [PropertyDisplay("Lone Wolf's Lament tower hints")]
+    public LamentTowerStrategy TowerHints = LamentTowerStrategy.Rinon;
 
     [PropertyDisplay("Windfang/Stonefang clock spots", tooltip: "Only used by AI")]
     [GroupDetails(["N", "NE", "E", "SE", "S", "SW", "W", "NW"])]

@@ -425,13 +425,13 @@ class RM08SHowlingBladeStates : StateMachineBuilder
         ActorCast(id, _module.BossP2, AID.RiseOfTheHuntersBlade, delay, 7, true);
 
         ActorCastStart(id + 0x10, _module.BossP2, AID.LoneWolfsLament, 2.2f, true)
-            .ActivateOnEnter<LoneWolfsLament>()
+            .ActivateOnEnter<LoneWolfTethers>()
             .ActivateOnEnter<LoneWolfTowers>();
 
-        ComponentCondition<LoneWolfsLament>(id + 0x20, 3.7f, l => l.Assignments.Any(r => r != default), "Tethers appear");
+        ComponentCondition<LoneWolfTethers>(id + 0x20, 3.7f, l => l.Assignments.Any(r => r != default), "Tethers appear");
 
         ComponentCondition<LoneWolfTowers>(id + 0x30, 18.3f, w => w.NumCasts > 0, "Towers")
-            .DeactivateOnExit<LoneWolfsLament>()
+            .DeactivateOnExit<LoneWolfTethers>()
             .DeactivateOnExit<LoneWolfTowers>();
 
         HerosBlow(id + 0x100, 2.4f);
