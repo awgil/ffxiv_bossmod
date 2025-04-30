@@ -174,6 +174,9 @@ public sealed class AIHintsBuilder : IDisposable
 
         foreach (var aoe in _activeAOEs.Values)
         {
+            if (aoe.Caster.IsAlly)
+                continue;
+
             var target = aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ;
             var rot = aoe.Caster.CastInfo!.Rotation;
             var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);

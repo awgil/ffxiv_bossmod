@@ -1,36 +1,24 @@
 namespace BossMod.Shadowbringers.Dungeon.D11HeroesGauntlet.D111SpectralThief;
+
 public enum OID : uint
 {
     Boss = 0x2DEC, // R0.875, x? 
-    SpectralThiefHelper = 0x2DED, // R0.875, x?
+    Shadow = 0x2DED, // R0.875, x?
     ChickenKnife = 0x2E71, // R1.000, x?
-    DashHelper = 0x1EAED9, // Circles?
+    DashMarker = 0x1EAED9, // Circles?
     Helper = 0x233C,
-
 }
+
 public enum AID : uint
 {
-    SpectralDream = 20427, // 2DEC->players, 4.0s cast, single-target
-    SpectralWhirlwind = 20428, // 2DEC->self, 4.0s cast, range 60 circle
-    SpectralGust = 21454, // 2DEC->self, no cast, single-target
-    SpectralGust2 = 21455, // 233C->player, 6.0s cast, range 5 circle
-
-    ChickenKnife = 20438, // 2DEC->self, 2.0s cast, single-target
-    CowardsCunning = 20439, // 2E71->self, 3.0s cast, range 60 width 2 rect
-
-    Dash = 20435, // 2DEC->self, 3.0s cast, single-target
-    Shadowdash = 20436, // 2DEC->self, 3.0s cast, single-target
-    VacuumBlade = 20577, // 233C->self, no cast, range 15 circle
-    VacuumBlade2 = 20578, // 233C->self, no cast, range 15 circle
-    Papercutter = 20433, // 233C->self, no cast, range 80 width 14 rect
-    Papercutter2 = 20434, // 233C->self, no cast, range 80 width 14 rect
-
-    A = 20437, // 2DEC->location, no cast, single-target
-    B = 20429, // 2DEC->self, no cast, single-target
-    C = 20501, // 2DED->location, no cast, single-target
-    D = 20432, // 2DED->self, no cast, single-target
-    E = 20431, // 2DEC->self, no cast, single-target
-    F = 20430, // 2DED->self, no cast, single-target
+    SpectralDream = 20427, // Boss->players, 4.0s cast, single-target
+    SpectralWhirlwind = 20428, // Boss->self, 4.0s cast, range 60 circle
+    SpectralGust2 = 21455, // Helper->player, 6.0s cast, range 5 circle
+    CowardsCunning = 20439, // ChickenKnife->self, 3.0s cast, range 60 width 2 rect
+    VacuumBlade1 = 20577, // Helper->self, no cast, range 15 circle
+    VacuumBlade2 = 20578, // Helper->self, no cast, range 15 circle
+    Papercutter1 = 20433, // Helper->self, no cast, range 80 width 14 rect
+    Papercutter2 = 20434, // Helper->self, no cast, range 80 width 14 rect
 }
 public enum SID : uint
 {
@@ -45,117 +33,64 @@ public enum TetherID : uint
 {
     Dash = 12,
 }
-class VacuumBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.VacuumBlade, new AOEShapeCircle(15));
-class VacuumBlade2(BossModule module) : Components.SelfTargetedAOEs(module, AID.VacuumBlade2, new AOEShapeCircle(15));
 class SpectralDream(BossModule module) : Components.SingleTargetCast(module, AID.SpectralDream);
 class SpectralWhirlwind(BossModule module) : Components.RaidwideCast(module, AID.SpectralWhirlwind);
-class SpectralGust(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), (uint)IconID.SpectralGust, AID.SpectralGust2, centerAtTarget: true);
+class SpectralGust(BossModule module) : Components.SpreadFromCastTargets(module, AID.SpectralGust2, 6);
 class CowardsCunning(BossModule module) : Components.SelfTargetedAOEs(module, AID.CowardsCunning, new AOEShapeRect(60, 1, 10));
-class PapercutterTest(BossModule module) : Components.GenericAOEs(module)
+
+class Markers(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> _aoes = [];
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_aoes.Count > 0)
-        {
-            for (var i = 0; i < _aoes.Count; i++)
-            {
-                yield return _aoes[i] with { Color = ArenaColor.AOE };
-            }
-        }
-    }
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID is OID.DashHelper)
-        {
-            _aoes.Add(new AOEInstance(new AOEShapeCircle(15), actor.Position));
-            _aoes.Add(new AOEInstance(new AOEShapeCross(60, 7), actor.Position));
-        }
-    }
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID.Papercutter or AID.Papercutter2 or AID.VacuumBlade or AID.VacuumBlade2)
-        {
-            _aoes.Clear();
-        }
-    }
-}
-class PapercutterTest2(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<AOEInstance> _aoes = [];
-    public readonly List<Actor> _daggers = [];
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_aoes.Count > 0)
-        {
-            for (var i = 0; i < _aoes.Count; i++)
-            {
-                yield return _aoes[i] with { Color = ArenaColor.AOE };
-            }
-        }
-    }
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID is OID.DashHelper)
-        {
-            _daggers.Add(actor);
-        }
-    }
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if ((OID)actor.OID is OID.DashHelper)
-        {
-            _daggers.Clear();
-        }
-    }
+    private readonly List<Actor> _actors = [];
+
+    private AOEShape? _nextShape = null;
+    private DateTime _activation;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _nextShape is { } s ? _actors.Select(m => new AOEInstance(_nextShape, m.Position, default, _activation)) : [];
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((OID)actor.OID is OID.Boss or OID.SpectralThiefHelper)
+        if ((SID)status.ID == SID.DashStatus)
         {
-            if ((SID)status.ID == SID.DashStatus)
+            _nextShape = status.Extra switch
             {
-                foreach (var e in _daggers)
-                {
-                    if (status.Extra is 0xB0 or 0xB3) //Circle
-                    {
-                        _aoes.Add(new AOEInstance(new AOEShapeCircle(15), e.Position));
-                    }
-                    else if (status.Extra is 0xB1 or 0xB4) //Vert Rect
-                    {
-                        _aoes.Add(new AOEInstance(new AOEShapeRect(60, 7, 60), e.Position));
-                    }
-                    else if (status.Extra is 0xB2 or 0xB5) //Horizontal Rect
-                    {
-                        _aoes.Add(new AOEInstance(new AOEShapeRect(60, 7, 60), e.Position, 90.Degrees()));
-                    }
-                }
-            }
+                0xB0 or 0xB3 => new AOEShapeCircle(15),
+                0xB1 or 0xB4 => new AOEShapeRect(60, 7, 60),
+                0xB2 or 0xB5 => new AOEShapeRect(7, 60, 7),
+                _ => null
+            };
         }
     }
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.Dash && tether.Target == Module.PrimaryActor.InstanceID && !_actors.Contains(source))
+        {
+            _activation = WorldState.FutureTime(8.3f);
+            _actors.Add(source);
+        }
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.Papercutter or AID.Papercutter2 or AID.VacuumBlade or AID.VacuumBlade2)
+        if ((AID)spell.Action.ID is AID.VacuumBlade1 or AID.VacuumBlade2 or AID.Papercutter1 or AID.Papercutter2)
         {
-            _aoes.Clear();
+            _actors.Clear();
+            _nextShape = null;
+            _activation = default;
         }
     }
 }
-class Papercutter(BossModule module) : Components.SelfTargetedAOEs(module, AID.Papercutter, new AOEShapeRect(80, 7));
-class Papercutter2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Papercutter2, new AOEShapeRect(80, 7));
+
 class D111SpectralThiefStates : StateMachineBuilder
 {
     public D111SpectralThiefStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<VacuumBlade>()
-            .ActivateOnEnter<VacuumBlade2>()
+            .ActivateOnEnter<Markers>()
             .ActivateOnEnter<SpectralDream>()
             .ActivateOnEnter<SpectralWhirlwind>()
             .ActivateOnEnter<SpectralGust>()
-            .ActivateOnEnter<CowardsCunning>()
-            .ActivateOnEnter<PapercutterTest2>()
-            .ActivateOnEnter<Papercutter>()
-            .ActivateOnEnter<Papercutter2>();
+            .ActivateOnEnter<CowardsCunning>();
     }
 }
 

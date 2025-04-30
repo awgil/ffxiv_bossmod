@@ -451,7 +451,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void T2(StrategyValues strategy, bool useForInstant = false)
     {
-        var wantStandard = NumAOEDotTargets > 2;
+        var wantStandard = NumAOEDotTargets >= AOEBreakpoint;
         var wantInstant = useForInstant && NumAOETargets >= AOEBreakpoint;
 
         var canUse = Thunderhead && strategy.Option(Track.Thunder).As<ThunderStrategy>() switch
