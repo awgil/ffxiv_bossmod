@@ -30,6 +30,7 @@ public sealed class Plugin : IDalamudPlugin
     private TimeSpan _prevUpdateTime;
     private DateTime _throttleJump;
     private DateTime _throttleInteract;
+    private readonly ICommandManager _cmd;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
@@ -106,12 +107,19 @@ public sealed class Plugin : IDalamudPlugin
         dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
         RegisterSlashCommands();
 
+        _cmd = commandManager;
+        _cmd.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(VbmaiHandler)
+        {
+            HelpMessage = "Deprecated"
+        });
+
         _ = new ConfigChangelogWindow();
     }
 
     public void Dispose()
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
+        _cmd.RemoveHandler("/vbmai");
         _wndDebug.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
@@ -196,6 +204,11 @@ public sealed class Plugin : IDalamudPlugin
             SetOrToggleByName(preset, true);
             return true;
         });
+    }
+
+    private void VbmaiHandler(string _, string __)
+    {
+        Service.ChatGui.PrintError("/vbmai: Legacy AI mode has been removed. See https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide for migration instructions. This command will be removed in a future update.");
     }
 
     private void OpenConfigUI(string showTab = "")
