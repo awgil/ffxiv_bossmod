@@ -1,5 +1,4 @@
 ﻿#if DEBUG
-using BossMod.AI;
 using BossMod.Autorotation;
 
 namespace BossMod.Dawntrail.Savage.RM02SHoneyBLovely.AI;

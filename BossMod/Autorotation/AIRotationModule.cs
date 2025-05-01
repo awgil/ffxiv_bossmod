@@ -1,7 +1,6 @@
-﻿using BossMod.Autorotation;
-using BossMod.Pathfinding;
+﻿using BossMod.Pathfinding;
 
-namespace BossMod.AI;
+namespace BossMod.Autorotation;
 
 public abstract class AIRotationModule(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {

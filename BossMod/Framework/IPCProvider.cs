@@ -1,5 +1,4 @@
-﻿using BossMod.AI;
-using BossMod.Autorotation;
+﻿using BossMod.Autorotation;
 using System.Text.Json;
 
 namespace BossMod;
@@ -8,7 +7,7 @@ sealed class IPCProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex, MovementOverride movement, AIManager ai)
+    public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex, MovementOverride movement)
     {
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));

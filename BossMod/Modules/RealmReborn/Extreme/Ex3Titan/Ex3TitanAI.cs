@@ -1,5 +1,4 @@
-﻿using BossMod.AI;
-using BossMod.Autorotation;
+﻿using BossMod.Autorotation;
 using BossMod.Pathfinding;
 
 namespace BossMod.RealmReborn.Extreme.Ex3Titan;
