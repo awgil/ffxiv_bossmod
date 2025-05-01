@@ -37,6 +37,9 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (!Player.InCombat)
+            return;
+
         bool InLeyLines = Player.FindStatus(BLM.SID.CircleOfPower) != null;
 
         if (!InLeyLines)
@@ -52,7 +55,7 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
                 var btlStrat = strategy.Option(Tracks.UseBetweenTheLines).As<BetweenTheLinesDefinition>();
 
                 //BTL first, followed by retrace, then walk
-                if (btlStrat == BetweenTheLinesDefinition.Yes && ActionUnlocked(btl) && btlCd.HasValue && World.Client.Cooldowns[btlCd.Value].Elapsed <= 2f && !isMoving)
+                if (btlStrat == BetweenTheLinesDefinition.Yes && ActionUnlocked(btl) && btlCd.HasValue && World.Client.Cooldowns[btlCd.Value].Elapsed <= 2f && !isMoving && !Hints.ForbiddenZones.Any(z => z.containsFn(zone.Position)))
                     Hints.ActionsToExecute.Push(btl, Player, ActionQueue.Priority.Low, targetPos: zone.PosRot.XYZ());
                 else if (retraceStrat == RetraceDefinition.Yes && ActionUnlocked(retrace) && retraceCd.HasValue && World.Client.Cooldowns[retraceCd.Value].Elapsed <= 2f && !isMoving)
                     Hints.ActionsToExecute.Push(retrace, null, ActionQueue.Priority.Low, targetPos: Player.PosRot.XYZ());

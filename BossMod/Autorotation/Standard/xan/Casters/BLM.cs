@@ -70,6 +70,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     public float TargetThunderLeft;
 
+    public const int AOEBreakpoint = 2;
+
     protected override float GetCastTime(AID aid)
     {
         if (TriplecastLeft > GCD)
@@ -109,7 +111,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     private float GetTargetThunderLeft(Actor? t) => t == null ? float.MaxValue : EnemyDotTimers.BoundSafeAt(t.CharacterSpawnIndex);
 
     private bool DotExpiring(Actor? t) => DotExpiring(GetTargetThunderLeft(t));
-    private bool DotExpiring(float timer) => !CanFitGCD(timer);
+    private bool DotExpiring(float timer) => !CanFitGCD(timer, 1);
 
     public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
@@ -158,8 +160,12 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (primaryTarget == null)
         {
-            if (Fire > 0 && AstralSoul == 0 && Firestarter && Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) == 0)
-                PushOGCD(AID.Transpose, Player);
+            if (Fire > 0 && Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) == 0)
+            {
+                var canFS = AstralSoul == 6 || AstralSoul >= 3 && MP >= 800;
+                if (!canFS)
+                    PushOGCD(AID.Transpose, Player);
+            }
 
             if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts))
                 PushGCD(AID.UmbralSoul, Player);
@@ -201,7 +207,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (Polyglot > 0)
         {
-            if (NumAOETargets > 2)
+            if (NumAOETargets >= AOEBreakpoint)
                 PushGCD(AID.Foul, BestAOETarget);
 
             PushGCD(AID.Xenoglossy, primaryTarget);
@@ -213,7 +219,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void FirePhase(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (NumAOETargets > 2)
+        if (NumAOETargets >= AOEBreakpoint)
         {
             if (Unlocked(TraitID.UmbralHeart))
                 FirePhaseAOE(strategy);
@@ -263,11 +269,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
                     PushGCD(AID.Fire4, primaryTarget);
                 }
 
-                if (Paradox)
+                if (Paradox && MP >= 1600)
                     PushGCD(AID.Paradox, primaryTarget);
-
-                if (Firestarter)
-                    PushGCD(AID.Fire3, primaryTarget);
 
                 // fallback for F4 not being unlocked yet
                 if (MP >= 1600)
@@ -278,6 +281,10 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
                     PushGCD(AID.Despair, primaryTarget);
 
                 PushGCD(AID.Blizzard3, primaryTarget);
+
+                // use as instant cast, otherwise save for UI switch
+                if (Firestarter)
+                    PushGCD(AID.Fire3, primaryTarget);
             }
         }
         else if (Unlocked(AID.Fire3))
@@ -339,7 +346,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void IcePhase(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (NumAOETargets > 2 && Unlocked(AID.Blizzard2))
+        if (NumAOETargets >= AOEBreakpoint && Unlocked(AID.Blizzard2))
         {
             if (Unlocked(TraitID.UmbralHeart))
                 IcePhaseAOE(strategy, primaryTarget);
@@ -389,7 +396,13 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Blizzard2, BestAOETarget);
         }
         else if (Hearts < MaxHearts)
-            PushGCD(AID.Freeze, BestAOETarget);
+        {
+            // freeze gain on 3, everything else gain on 2
+            if (NumAOETargets > 2)
+                PushGCD(AID.Freeze, BestAOETarget);
+            else
+                PushGCD(AID.Blizzard4, primaryTarget);
+        }
 
         TryInstantCast(strategy, primaryTarget);
     }
@@ -414,6 +427,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void T1(StrategyValues strategy, bool useForInstant = false)
     {
+        // TODO we can also use thunder proc to weave manafont which grants thunderhead
+
         var wantStandard = DotExpiring(TargetThunderLeft);
         var wantInstant = useForInstant;
 
@@ -437,7 +452,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     private void T2(StrategyValues strategy, bool useForInstant = false)
     {
         var wantStandard = NumAOEDotTargets > 2;
-        var wantInstant = useForInstant && NumAOETargets > 2;
+        var wantInstant = useForInstant && NumAOETargets >= AOEBreakpoint;
 
         var canUse = Thunderhead && strategy.Option(Track.Thunder).As<ThunderStrategy>() switch
         {
@@ -446,7 +461,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             // only use to refresh normally
             ThunderStrategy.ForbidInstant => wantStandard,
             // ignore timer, just check if we have enough AOE targets
-            ThunderStrategy.Force => NumAOETargets > 2,
+            ThunderStrategy.Force => NumAOETargets >= AOEBreakpoint,
             // only use for utility, ignore timer
             ThunderStrategy.InstantOnly => wantInstant,
             _ => false
@@ -458,7 +473,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void Choose(AID st, AID aoe, Enemy? primaryTarget, int additionalPrio = 0)
     {
-        if (NumAOETargets > 2 && Unlocked(aoe))
+        if (NumAOETargets >= AOEBreakpoint && Unlocked(aoe))
             PushGCD(aoe, BestAOETarget, additionalPrio + 1);
         else
             PushGCD(st, primaryTarget, additionalPrio + 1);
@@ -466,17 +481,17 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void TryInstantCast(StrategyValues strategy, Enemy? primaryTarget, bool useFirestarter = true, bool useThunderhead = true, bool usePolyglot = true)
     {
-        if (useThunderhead)
-        {
-            T2(strategy, true);
-            T1(strategy, true);
-        }
-
         if (usePolyglot && Polyglot > 0)
             Choose(AID.Xenoglossy, AID.Foul, primaryTarget);
 
         if (useFirestarter && Firestarter)
             PushGCD(AID.Fire3, primaryTarget);
+
+        if (useThunderhead)
+        {
+            T2(strategy, true);
+            T1(strategy, true);
+        }
     }
 
     private void TryInstantOrTranspose(StrategyValues strategy, Enemy? primaryTarget, bool useThunderhead = true)
@@ -494,10 +509,10 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Transpose, Player);
     }
 
-    private bool ShouldTriplecast(StrategyValues strategy) => false; // add strategy track, triplecast is no longer a gain during burst
+    private bool ShouldTriplecast(StrategyValues strategy) => CanWeave(MaxChargesIn(AID.Triplecast), 0.6f); // add strategy track, triplecast is no longer a gain during burst
 
     private bool ShouldUseLeylines(StrategyValues strategy, int extraGCDs = 0)
-        => CanWeave(MaxChargesIn(AID.LeyLines), extraGCDs)
+        => CanWeave(MaxChargesIn(AID.LeyLines), 0.6f, extraGCDs)
         && strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
 
     private bool ShouldTranspose(StrategyValues strategy)
@@ -505,7 +520,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (!Unlocked(AID.Fire3))
             return Fire > 0 && MP < 1600 || Ice > 0 && MP > 9000;
 
-        if (NumAOETargets > 2)
+        if (NumAOETargets >= AOEBreakpoint)
             return Fire > 0 && MP < 800 || Ice > 0 && Hearts > 0 && MP >= 2400;
         else
             return Firestarter && Ice > 0 && Hearts == MaxHearts;
