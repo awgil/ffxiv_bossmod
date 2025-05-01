@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
+public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
     public enum Track { Motif = SharedTrack.Count, Holy, Hammer }
     public enum MotifStrategy { Combat, Downtime, Instant }

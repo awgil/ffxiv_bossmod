@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
+public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Mind)
 {
     public enum Track { Assize = SharedTrack.Count, Misery }
     public enum AssizeStrategy { None, HitSomething, HitEverything }

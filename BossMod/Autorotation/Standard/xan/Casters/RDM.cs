@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
+public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
     public enum Track { Combo = SharedTrack.Count, Dash }
     public enum ComboStrategy

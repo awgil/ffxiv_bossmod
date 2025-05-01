@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
+public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Mind)
 {
     public enum Track { Kardia = SharedTrack.Count, Druo }
     public enum KardiaStrategy { Auto, Manual }

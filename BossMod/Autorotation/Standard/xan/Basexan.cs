@@ -9,21 +9,23 @@ public enum AOEStrategy { AOE, ST, ForceAOE, ForceST }
 
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
 
-public abstract class Attackxan<AID, TraitID>(RotationModuleManager manager, Actor player) : Basexan<AID, TraitID>(manager, player)
+public abstract class Attackxan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
     where AID : struct, Enum where TraitID : Enum
 {
     protected sealed override float GCDLength => AttackGCDLength;
 }
 
-public abstract class Castxan<AID, TraitID>(RotationModuleManager manager, Actor player) : Basexan<AID, TraitID>(manager, player)
+public abstract class Castxan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
     where AID : struct, Enum where TraitID : Enum
 {
     protected sealed override float GCDLength => SpellGCDLength;
 }
 
-public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType) : RotationModule(manager, player)
     where AID : struct, Enum where TraitID : Enum
 {
+    public PotionType PotionType { get; init; } = potType;
+
     protected float PelotonLeft { get; private set; }
     protected float SwiftcastLeft { get; private set; }
     protected float TrueNorthLeft { get; private set; }
@@ -35,6 +37,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected float? UptimeIn { get; private set; }
     protected Enemy? PlayerTarget { get; private set; }
     protected bool IsMoving { get; private set; }
+    protected float PotionLeft { get; private set; }
 
     protected float? CountdownRemaining => World.Client.CountdownRemaining;
     protected float AnimLock => World.Client.AnimationLock;
@@ -409,11 +412,15 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             UptimeIn = null;
         }
 
-        // TODO max MP can be higher in eureka/bozja
-        MP = (uint)Math.Clamp(Player.PredictedMPRaw, 0, 10000);
+        MP = (uint)Math.Clamp(Player.PredictedMPRaw, 0, Player.HPMP.MaxMP);
 
         if (_cdLockout > World.CurrentTime)
             return;
+
+        if (Player.FindStatus(49) is ActorStatus st && Food.GetPotionType(st.Extra) == PotionType)
+            PotionLeft = StatusDuration(st.ExpireAt);
+        else
+            PotionLeft = 0;
 
         if (Player.MountId is not (103 or 117 or 128))
             Exec(strategy, PlayerTarget);
