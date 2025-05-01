@@ -254,19 +254,17 @@ class RM08SHowlingBladeStates : StateMachineBuilder
     {
         Cast(id, AID.TerrestrialRage, delay, 3)
             .ActivateOnEnter<FangedCharge>()
-            .ActivateOnEnter<Heavensearth>()
-            .ActivateOnEnter<SuspendedStone>()
+            .ActivateOnEnter<HeavensearthSuspendedStone>()
             .ActivateOnEnter<Shadowchase>()
             .ActivateOnEnter<RoaringWind>();
 
         ComponentCondition<FangedCharge>(id + 0x10, 7, f => f.NumCasts > 0, "Lines 1");
-        ComponentCondition<Heavensearth>(id + 0x20, 1.4f, s => s.NumFinishedStacks > 0, "Stack/spread 1");
+        ComponentCondition<HeavensearthSuspendedStone>(id + 0x20, 1.4f, s => s.NumFinishedStacks > 0, "Stack/spread 1");
         ComponentCondition<FangedCharge>(id + 0x30, 1.2f, f => f.NumCasts > 2, "Lines 2")
             .DeactivateOnExit<FangedCharge>();
         Targetable(id + 0x32, false, 0.9f, "Boss disappears");
-        ComponentCondition<Heavensearth>(id + 0x40, 4.5f, h => h.NumFinishedStacks > 1, "Stack/spread 2")
-            .DeactivateOnExit<Heavensearth>()
-            .DeactivateOnExit<SuspendedStone>();
+        ComponentCondition<HeavensearthSuspendedStone>(id + 0x40, 4.5f, h => h.NumFinishedStacks > 1, "Stack/spread 2")
+            .DeactivateOnExit<HeavensearthSuspendedStone>();
         ComponentCondition<Shadowchase>(id + 0x50, 0.3f, s => s.NumCasts > 0, "Lines 3")
             .DeactivateOnExit<Shadowchase>()
             .ExecOnExit<RoaringWind>(r => r.Enabled = true);
@@ -280,20 +278,18 @@ class RM08SHowlingBladeStates : StateMachineBuilder
             .ActivateOnEnter<MoonbeamsBite>()
             .ActivateOnEnter<QuadHints>()
             .ActivateOnEnter<WealOfStone2>()
-            .ActivateOnEnter<Heavensearth>()
-            .ActivateOnEnter<SuspendedStone>();
+            .ActivateOnEnter<HeavensearthSuspendedStone>();
 
-        ComponentCondition<Heavensearth>(id + 0x10, 12.7f, s => s.NumFinishedStacks > 0, "Stack/spread 1");
+        ComponentCondition<HeavensearthSuspendedStone>(id + 0x10, 12.7f, s => s.NumFinishedStacks > 0, "Stack/spread 1");
         ComponentCondition<MoonbeamsBite>(id + 0x11, 1.4f, m => m.NumCasts > 0, "Cleave 1")
             .ExecOnExit<QuadHints>(q => q.Advance());
         ComponentCondition<MoonbeamsBite>(id + 0x12, 2, m => m.NumCasts > 1, "Cleave 2");
         ComponentCondition<MoonbeamsBite>(id + 0x13, 2, m => m.NumCasts > 2, "Cleave 3")
             .DeactivateOnExit<QuadHints>();
         ComponentCondition<MoonbeamsBite>(id + 0x14, 2, m => m.NumCasts > 3, "Cleave 4");
-        ComponentCondition<Heavensearth>(id + 0x15, 1.1f, s => s.NumFinishedStacks > 1, "Stack/spread 2")
+        ComponentCondition<HeavensearthSuspendedStone>(id + 0x15, 1.1f, s => s.NumFinishedStacks > 1, "Stack/spread 2")
             .DeactivateOnExit<MoonbeamsBite>()
-            .DeactivateOnExit<Heavensearth>()
-            .DeactivateOnExit<SuspendedStone>();
+            .DeactivateOnExit<HeavensearthSuspendedStone>();
 
         ComponentCondition<WealOfStone2>(id + 0x20, 4.3f, w => w.NumCasts > 0, "Safe corner")
             .ExecOnEnter<WealOfStone2>(w => w.Risky = true)

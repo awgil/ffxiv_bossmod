@@ -2,8 +2,7 @@
 
 class FangedCharge(BossModule module) : Components.StandardAOEs(module, AID.FangedCharge, new AOEShapeRect(30, 3), maxCasts: 2);
 
-class Heavensearth(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.Heavensearth, 6, 5.1f);
-class SuspendedStone(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spread, AID.SuspendedStone, 6, 5.1f);
+class HeavensearthSuspendedStone(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Stack, (uint)IconID.Spread, AID.Heavensearth, AID.SuspendedStone, 6, 6, 5.1f, alwaysShowSpreads: true);
 
 class Shadowchase(BossModule module) : PlayActionAOEs(module, (uint)OID.Shadow, 0x11D1, new AOEShapeRect(40, 4), AID.Shadowchase, 3.15f);
 

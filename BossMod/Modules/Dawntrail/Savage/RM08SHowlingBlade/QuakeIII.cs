@@ -5,13 +5,12 @@ class QuakeIII(BossModule module) : Components.CastCounter(module, AID.QuakeIIIS
     public readonly List<Actor> Baits = [];
     private DateTime _activation;
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((AID)spell.Action.ID == AID.QuakeIIICast)
+        if ((IconID)iconID == IconID.Stack)
         {
-            _activation = Module.CastFinishAt(spell, 0.1f);
-
-            Baits.AddRange(Raid.WithoutSlot().Where(r => r.Role == Role.Healer).Take(2));
+            _activation = WorldState.FutureTime(5.1f);
+            Baits.Add(actor);
         }
     }
 
@@ -64,12 +63,12 @@ class QuakeIII(BossModule module) : Components.CastCounter(module, AID.QuakeIIIS
         if (isBait)
         {
             if (otherBaits.OnSamePlatform(actor).Any())
-                hints.Add("GTFO from other healer!");
+                hints.Add("GTFO from other stack!");
 
             hints.Add("Stack with party!", Raid.WithoutSlot().OnSamePlatform(actor).Count() != 4);
         }
         else
-            hints.Add("Stack with healer!", !Baits.OnSamePlatform(actor).Any());
+            hints.Add("Stack!", !Baits.OnSamePlatform(actor).Any());
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

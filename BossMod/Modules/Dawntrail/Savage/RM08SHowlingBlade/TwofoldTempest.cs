@@ -21,6 +21,7 @@ class TwofoldTether(BossModule module) : Components.GenericStackSpread(module)
         if ((AID)spell.Action.ID == AID.TwofoldTempestStack)
         {
             NumFinishedStacks++;
+            _activation = default;
             // in case tether pass is affected by network latency and the cast target isn't the tether target on our end
             Stacks.Clear();
         }
@@ -31,7 +32,7 @@ class TwofoldTether(BossModule module) : Components.GenericStackSpread(module)
         foreach (var s in ActiveStacks)
         {
             Arena.AddLine(Module.PrimaryActor.Position, s.Target.Position, ArenaColor.Danger);
-            Arena.AddCircle(s.Target.Position, 9, ArenaColor.Danger);
+            Arena.AddCircle(s.Target.Position, 9, ArenaColor.Danger); // visual helper for max voidzone size
         }
     }
 
