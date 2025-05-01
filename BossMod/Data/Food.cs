@@ -14,7 +14,7 @@ public enum PotionType : uint
 
 public static class Food
 {
-    public static readonly PotionType[] PotionTypesByFoodId;
+    public static readonly PotionType[] PotionTypesByFoodId = CollectPotionTypes();
 
     public static PotionType GetPotionType(ushort statusParam)
     {
@@ -24,24 +24,25 @@ public static class Food
         return PotionTypesByFoodId.BoundSafeAt(statusParam);
     }
 
-    static Food()
+    private static PotionType[] CollectPotionTypes()
     {
         var itemFoodSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ItemFood>();
         if (itemFoodSheet == null)
         {
             Service.Log("[AD] Unable to load food sheet, potions will not behave correctly!");
-            PotionTypesByFoodId = [];
-            return;
+            return [];
         }
 
         var foodCount = itemFoodSheet.Count;
 
-        PotionTypesByFoodId = new PotionType[foodCount];
+        var types = new PotionType[foodCount];
         for (var i = 0; i < foodCount; i++)
         {
             var primaryBaseParam = itemFoodSheet[(uint)i].Params[0].BaseParam.RowId;
             if (primaryBaseParam is 1 or 2 or 4 or 5)
-                PotionTypesByFoodId[i] = (PotionType)primaryBaseParam;
+                types[i] = (PotionType)primaryBaseParam;
         }
+
+        return types;
     }
 }

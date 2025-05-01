@@ -42,7 +42,7 @@ class Markers(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _actors = [];
 
-    private AOEShape? _nextShape = null;
+    private AOEShape? _nextShape;
     private DateTime _activation;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _nextShape is { } s ? _actors.Select(m => new AOEInstance(_nextShape, m.Position, default, _activation)) : [];
