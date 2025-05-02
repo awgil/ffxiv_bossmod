@@ -13,18 +13,18 @@ abstract class ChangelogNotice
 {
     public abstract Version Since { get; }
     public abstract void Draw();
-
-    protected void Bullet(string txt)
-    {
-        ImGui.Bullet();
-        ImGui.SameLine();
-        ImGui.TextWrapped(txt);
-    }
 }
 
 class AIMigrationNotice : ChangelogNotice
 {
     public override Version Since => new(0, 0, 0, 289);
+
+    private void Bullet(string txt)
+    {
+        ImGui.Bullet();
+        ImGui.SameLine();
+        ImGui.TextWrapped(txt);
+    }
 
     public override void Draw()
     {
@@ -34,31 +34,6 @@ class AIMigrationNotice : ChangelogNotice
         Bullet("The replacement is simple and much more flexible and powerful.");
         Bullet($"See wiki ({link}) for details.");
         if (ImGui.Button("Open wiki"))
-        {
-            try
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(link) { UseShellExecute = true });
-            }
-            catch (Exception e)
-            {
-                Service.Log($"Error opening link: {e}");
-            }
-        }
-    }
-}
-
-class AIRemovalNotice : ChangelogNotice
-{
-    public override Version Since => new(0, 2, 0, 0);
-
-    public override void Draw()
-    {
-        var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide";
-        ImGui.TextUnformatted($"AI mode (legacy) has been removed.");
-        Bullet("Automatic targeting and AOE avoidance aren't going anywhere! These features are now provided by specialized rotation modules.");
-        Bullet("If you only use VBM with AutoDuty, you don't need to change anything. Just make sure that your AutoDuty version is 0.0.0.207 or later.");
-        Bullet($"Otherwise, check out the AI migration guide on the wiki at {link}.");
-        if (ImGui.Button("Open wiki in browser"))
         {
             try
             {
@@ -193,7 +168,7 @@ public class ConfigChangelogWindow : UIWindow
     {
 #if DEBUG
         // version is always 0.0.0.0 in debug, making it useless for testing
-        return new(0, 999, 0, 0);
+        return new(0, 0, 0, 999);
 #else
         return Assembly.GetExecutingAssembly().GetName().Version!;
 #endif
@@ -204,7 +179,7 @@ public class ConfigChangelogWindow : UIWindow
     {
 #if DEBUG
         // change value to something sensible if you want to test the changelog stuff
-        return new(0, 999, 0, 0);
+        return new(0, 0, 0, 999);
 #else
         return Service.Config.AssemblyVersion;
 #endif

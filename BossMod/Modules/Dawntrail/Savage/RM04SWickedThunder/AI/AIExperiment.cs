@@ -1,4 +1,5 @@
 ﻿#if DEBUG
+using BossMod.AI;
 using BossMod.Autorotation;
 
 namespace BossMod.Dawntrail.Savage.RM04SWickedThunder.AI;

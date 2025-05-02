@@ -24,6 +24,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ActionManagerEx _amex;
     private readonly WorldStateGameSync _wsSync;
     private readonly RotationModuleManager _rotation;
+    private readonly AI.AIManager _ai;
     private readonly IPCProvider _ipc;
     private readonly DTRProvider _dtr;
     private readonly SlashCommandProvider _slashCmd;
@@ -39,6 +40,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ZoneModuleWindow _wndZone;
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;
+    private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow _wndDebug;
 
     public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
@@ -88,8 +90,9 @@ public sealed class Plugin : IDalamudPlugin
         _amex = new(_ws, _hints, _movementOverride);
         _wsSync = new(_ws, _amex);
         _rotation = new(_rotationDB, _bossmod, _hints);
-        _ipc = new(_rotation, _amex, _movementOverride);
-        _dtr = new(_rotation);
+        _ai = new(_rotation, _amex, _movementOverride);
+        _ipc = new(_rotation, _amex, _movementOverride, _ai);
+        _dtr = new(_rotation, _ai);
         _slashCmd = new(commandManager, "/vbm");
 
         var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
@@ -99,6 +102,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndZone = new(_zonemod);
         _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
+        _wndAI = new(_ai);
         _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud);
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
@@ -121,6 +125,7 @@ public sealed class Plugin : IDalamudPlugin
         Service.Condition.ConditionChange -= OnConditionChanged;
         _cmd.RemoveHandler("/vbmai");
         _wndDebug.Dispose();
+        _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
         _wndZone.Dispose();
@@ -130,6 +135,7 @@ public sealed class Plugin : IDalamudPlugin
         _slashCmd.Dispose();
         _dtr.Dispose();
         _ipc.Dispose();
+        _ai.Dispose();
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();
@@ -145,6 +151,7 @@ public sealed class Plugin : IDalamudPlugin
         _slashCmd.SetSimpleHandler("show boss mod settings UI", () => OpenConfigUI());
         _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => _wndReplay.SetVisible(!_wndReplay.IsOpen));
         RegisterAutorotationSlashCommands(_slashCmd.AddSubcommand("ar"));
+        RegisterAISlashCommands(_slashCmd.AddSubcommand("ai"));
         _slashCmd.AddSubcommand("cfg").SetComplexHandler("<config-type> <field> [<value>]", "query or modify configuration setting", args =>
         {
             var output = Service.Config.ConsoleCommand(args);
@@ -161,6 +168,7 @@ public sealed class Plugin : IDalamudPlugin
         });
 
         _slashCmd.Register();
+        _slashCmd.RegisterAlias("/vbmai", "ai"); // TODO: deprecated
     }
 
     private void RegisterAutorotationSlashCommands(SlashCommandHandler cmd)
@@ -206,9 +214,55 @@ public sealed class Plugin : IDalamudPlugin
         });
     }
 
+    private void RegisterAISlashCommands(SlashCommandHandler cmd)
+    {
+        cmd.SetSimpleHandler("toggle AI ui", () => _wndAI.SetVisible(!_wndAI.IsOpen));
+        cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () => _ai.Enabled = true);
+        cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () => _ai.Enabled = false);
+        cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () => _ai.Enabled ^= true);
+        cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable AI mode and follow party member with specified name or at specified slot", masterString =>
+        {
+            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : _ws.Party.FindSlot(masterString);
+            if (_ws.Party[masterSlot] != null)
+            {
+                _ai.SwitchToFollow(masterSlot);
+                _ai.Enabled = true;
+            }
+            else
+            {
+                Service.ChatGui.PrintError($"[AI] [Follow] Error: can't find {masterString} in our party");
+            }
+            return true;
+        });
+
+        // TODO: this should really be removed, it's a weird synonym for /vbm cfg AIConfig ...
+        cmd.SetComplexHandler("", "", args =>
+        {
+            Span<Range> ranges = stackalloc Range[2];
+            var numRanges = args.Split(ranges, ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (numRanges == 1)
+            {
+                // toggle
+                var value = Service.Config.ConsoleCommand($"AIConfig {args}");
+                return bool.TryParse(value[0], out var boolValue) && Service.Config.ConsoleCommand($"AIConfig {args} {!boolValue}").Count == 0;
+            }
+            else if (numRanges == 2)
+            {
+                // set
+                var value = args[ranges[1]];
+                if (value.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+                    value = "true";
+                else if (value.Equals("off", StringComparison.InvariantCultureIgnoreCase))
+                    value = "false";
+                return Service.Config.ConsoleCommand($"AIConfig {args[ranges[0]]} {value}").Count == 0;
+            }
+            return false;
+        });
+    }
+
     private void VbmaiHandler(string _, string __)
     {
-        Service.ChatGui.PrintError("/vbmai: Legacy AI mode has been removed. See https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide for migration instructions. This command will be removed in a future update.");
+        Service.ChatGui.PrintError("/vbmai: Legacy AI mode is deprecated. Please use /vbm cfg AIConfig (args...) instead. This command will be removed in a future update.");
     }
 
     private void OpenConfigUI(string showTab = "")
@@ -230,6 +284,7 @@ public sealed class Plugin : IDalamudPlugin
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot, moveImminent);
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving());
+        _ai.Update();
         _amex.FinishActionGather();
 
         bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];

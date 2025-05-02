@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+﻿using BossMod.AI;
+using BossMod.Autorotation;
 using BossMod.Pathfinding;
 
 namespace BossMod.Dawntrail.Ultimate.FRU;
