@@ -317,22 +317,23 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         HealSingleNow((target, ratio) =>
         {
             if (ratio < 0.3)
-                UseOGCD(BossMod.AST.AID.EssentialDignity, target);
+                UseGCD(BossMod.AST.AID.EssentialDignity, target);
         });
 
         HealSingleSoon((target, ratio) =>
         {
             if (ratio < 0.3)
-            {
                 UseOGCD(BossMod.AST.AID.CelestialIntersection, target);
 
+            if (ratio < 0.5)
+            {
                 foreach (var (card, action) in SupportCards)
                     if (gauge.CurrentCards.Contains(card))
                         UseOGCD(action, target);
-            }
 
-            if (ratio < 0.5 && !Unlocked(BossMod.AST.AID.CelestialIntersection) && NextChargeIn(BossMod.AST.AID.EssentialDignity) > 2.5f)
-                UseGCD(BossMod.AST.AID.Benefic, target);
+                if (!Unlocked(BossMod.AST.AID.CelestialIntersection) && NextChargeIn(BossMod.AST.AID.EssentialDignity) > 2.5f)
+                    UseGCD(BossMod.AST.AID.Benefic, target);
+            }
         });
 
         if (ShouldHealInAreaNow(Player.Position, 15, 0.7f))
