@@ -293,7 +293,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             if (gauge.Lily > 0)
                 UseGCD(BossMod.WHM.AID.AfflatusRapture, Player);
             else if (Unlocked(BossMod.WHM.AID.CureIII))
+            {
+                if (Player.FindStatus(BossMod.WHM.SID.ThinAir) == null)
+                    UseGCD(BossMod.WHM.AID.ThinAir, Player, 1);
                 UseGCD(BossMod.WHM.AID.CureIII, Player);
+            }
             else
                 UseGCD(BossMod.WHM.AID.Medica, Player);
 
