@@ -72,6 +72,11 @@ class QuadHints(BossModule module) : Components.CastCounterMulti(module, [AID.Mo
             return;
 
         foreach (var (i, spot) in Enumerable.Reverse(SafeSpots.Select((i, s) => (s, i))))
-            Arena.AddCircle(Arena.Center + spot.ToDirection() * 11, 0.5f, i == 0 ? ArenaColor.Safe : ArenaColor.Object);
+        {
+            var pos = Arena.Center + spot.ToDirection() * 13.5f;
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(pos, 0.5f, 0xFF000000, 2);
+            Arena.AddCircle(pos, 0.5f, i == 0 ? ArenaColor.Safe : ArenaColor.Danger);
+        }
     }
 }

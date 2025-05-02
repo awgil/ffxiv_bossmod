@@ -6,15 +6,27 @@ public class RM08SHowlingBladeConfig : ConfigNode
     [PropertyDisplay("Beckon Moonlight: highlight first and third safe quadrants on minimap (aka \"quad moonlight\")")]
     public bool QuadMoonlightHints = false;
 
-    public enum LamentTowerStrategy
+    public enum TerrestrialRageStrategy
     {
         [PropertyDisplay("No hints")]
         None,
-        [PropertyDisplay("Rinon strat: healers S, long tank SW, long tank partner SE, long healer partner N, short tank and partner N")]
+        [PropertyDisplay("Clocks - stack marker goes to N/NE safe spot, spreads adjust")]
+        Clock,
+        // Toxic, DN TODO
+    }
+
+    [PropertyDisplay("Terrestrial Rage")]
+    public TerrestrialRageStrategy TRHints = TerrestrialRageStrategy.None;
+
+    public enum LamentTowerStrategy
+    {
+        [PropertyDisplay("No tower hints")]
+        None,
+        [PropertyDisplay("Rinon - healers S, long tank SW, long tank partner SE, long healer partner N, short tank and partner N")]
         Rinon,
     }
 
-    [PropertyDisplay("Lone Wolf's Lament tower hints")]
+    [PropertyDisplay("Lone Wolf's Lament")]
     public LamentTowerStrategy TowerHints = LamentTowerStrategy.Rinon;
 
     [PropertyDisplay("Windfang/Stonefang clock spots", tooltip: "Only used by AI")]

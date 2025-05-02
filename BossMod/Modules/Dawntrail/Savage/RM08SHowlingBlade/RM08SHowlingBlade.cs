@@ -16,12 +16,14 @@ class ExtraplanarPursuit(BossModule module) : Components.RaidwideCastDelay(modul
 abstract class PlayActionAOEs(BossModule module, uint oid, ushort eventId, AOEShape shape, AID action, float activationDelay, bool actorIsCaster = true) : Components.GenericAOEs(module, action)
 {
     public bool Risky = true;
-    protected readonly List<(Actor Actor, DateTime Activation)> Casters = [];
+    protected readonly List<(Actor Actor, DateTime Activation)> _casters = [];
+
+    public IEnumerable<Actor> Casters => _casters.Select(c => c.Actor);
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (actor.OID == oid && id == eventId)
-            Casters.Add((actor, WorldState.FutureTime(activationDelay)));
+            _casters.Add((actor, WorldState.FutureTime(activationDelay)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -30,13 +32,13 @@ abstract class PlayActionAOEs(BossModule module, uint oid, ushort eventId, AOESh
         {
             NumCasts++;
             if (actorIsCaster)
-                Casters.RemoveAll(c => c.Actor == caster);
+                _casters.RemoveAll(c => c.Actor == caster);
             else
-                Casters.RemoveAt(0);
+                _casters.RemoveAt(0);
         }
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(shape, c.Actor.Position, c.Actor.Rotation, c.Activation, Risky: Risky));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(shape, c.Actor.Position, c.Actor.Rotation, c.Activation, Risky: Risky));
 }
 
 class ProwlingGale2(BossModule module) : Components.CastTowers(module, AID.ProwlingGale2, 2, 2, 2);

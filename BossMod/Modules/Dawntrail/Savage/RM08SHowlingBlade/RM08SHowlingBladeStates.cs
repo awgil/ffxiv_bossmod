@@ -264,7 +264,9 @@ class RM08SHowlingBladeStates : StateMachineBuilder
             .DeactivateOnExit<FangedCharge>();
         Targetable(id + 0x32, false, 0.9f, "Boss disappears");
         ComponentCondition<HeavensearthSuspendedStone>(id + 0x40, 4.5f, h => h.NumFinishedStacks > 1, "Stack/spread 2")
-            .DeactivateOnExit<HeavensearthSuspendedStone>();
+            .ActivateOnEnter<TRHints>()
+            .DeactivateOnExit<HeavensearthSuspendedStone>()
+            .DeactivateOnExit<TRHints>();
         ComponentCondition<Shadowchase>(id + 0x50, 0.3f, s => s.NumCasts > 0, "Lines 3")
             .DeactivateOnExit<Shadowchase>()
             .ExecOnExit<RoaringWind>(r => r.Enabled = true);
