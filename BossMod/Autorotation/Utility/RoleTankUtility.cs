@@ -16,9 +16,9 @@ public abstract class RoleTankUtility(RotationModuleManager manager, Actor playe
             .AddAssociatedAction(lb3);
 
         DefineSimpleConfig(def, SharedTrack.Rampart, "Rampart", "", 500, ClassShared.AID.Rampart, 20);
-        DefineSimpleConfig(def, SharedTrack.LowBlow, "LowBlow", "Stun", -100, ClassShared.AID.LowBlow, 5);
+        DefineSimpleConfig(def, SharedTrack.LowBlow, "LowBlow", "Stun", 100, ClassShared.AID.LowBlow, 5);
         DefineSimpleConfig(def, SharedTrack.Provoke, "Provoke", "", 200, ClassShared.AID.Provoke);
-        DefineSimpleConfig(def, SharedTrack.Interject, "Interject", "Interrupt", -50, ClassShared.AID.Interject);
+        DefineSimpleConfig(def, SharedTrack.Interject, "Interject", "Interrupt", 50, ClassShared.AID.Interject);
 
         // TODO: combine standard/ex options
         // TODO: add 'if-not-active' strategy with configurable min-time-left
