@@ -350,7 +350,13 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     {
         var trueNorth = TrueNorthLeft > GCD;
         var target = enemy?.Actor;
-        if ((target?.Omnidirectional ?? true) || target?.TargetID == Player.InstanceID && target?.CastInfo == null && positional.pos != Positional.Front && target?.NameID != 541)
+        if (
+            // positionals irrelevant
+            target is { Omnidirectional: true }
+            // enemy is targeting us and is not busy casting, so we assume they will turn to face the player
+            // (excluding striking dummies, which don't move)
+            || target is { TargetID: var t, CastInfo: null, IsStrikingDummy: false } && t == Player.InstanceID
+        )
             positional = (Positional.Any, false);
 
         NextPositionalImminent = !trueNorth && positional.imm;
@@ -456,7 +462,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
                 buffsIn = float.MaxValue;
         }
 
-        return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), buffsIn.Value);
+        return (Bossmods.RaidCooldowns.DamageBuffLeft(Player, primaryTarget), buffsIn.Value);
     }
 
     private bool HavePartyBuff(Actor player) => player.Class switch

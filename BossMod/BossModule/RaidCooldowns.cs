@@ -53,12 +53,18 @@ public sealed class RaidCooldowns : IDisposable
         or (uint)BRD.SID.BattleVoice or (uint)DNC.SID.TechnicalFinish or (uint)SMN.SID.SearingLight or (uint)RDM.SID.Embolden
         or (uint)PCT.SID.StarryMuse;
 
-    public float DamageBuffLeft(Actor target)
+    public static bool IsDamageDebuff(uint statusID) => statusID is (uint)SCH.SID.ChainStratagem or (uint)NIN.SID.Dokumori or (uint)NIN.SID.VulnerabilityUp;
+
+    public float DamageBuffLeft(Actor player, Actor? target)
     {
         DateTime expireMax = _ws.CurrentTime;
-        foreach (var status in target.Statuses.Where(s => IsDamageBuff(s.ID)))
+        foreach (var status in player.Statuses.Where(s => IsDamageBuff(s.ID)))
             if (status.ExpireAt > expireMax)
                 expireMax = status.ExpireAt;
+        if (target is { } t)
+            foreach (var status in t.Statuses.Where(s => IsDamageDebuff(s.ID)))
+                if (status.ExpireAt > expireMax)
+                    expireMax = status.ExpireAt;
         return (float)(expireMax - _ws.CurrentTime).TotalSeconds;
     }
 
@@ -77,12 +83,12 @@ public sealed class RaidCooldowns : IDisposable
         // TODO: AST card buffs?, all non-damage buffs
         _ = cast.Action.ID switch
         {
-            //(uint)SCH.AID.ChainStratagem => UpdateDamageCooldown(actor.InstanceID, cast.Action), // note that this results in debuff on enemy, which isn't handled properly for now
+            (uint)SCH.AID.ChainStratagem => UpdateDamageCooldown(actor.InstanceID, cast.Action),
             (uint)AST.AID.Divination => UpdateDamageCooldown(actor.InstanceID, cast.Action),
             (uint)DRG.AID.BattleLitany => UpdateDamageCooldown(actor.InstanceID, cast.Action),
             (uint)RPR.AID.ArcaneCircle => UpdateDamageCooldown(actor.InstanceID, cast.Action),
             (uint)MNK.AID.Brotherhood => UpdateDamageCooldown(actor.InstanceID, cast.Action),
-            //(uint)NIN.AID.TrickAttack => UpdateDamageCooldown(actor.InstanceID, cast.Action, 15, 60), // NIN trick attack - note that this results in debuff on enemy, which isn't handled properly for now
+            (uint)NIN.AID.Mug or (uint)NIN.AID.Dokumori => UpdateDamageCooldown(actor.InstanceID, cast.Action),
             (uint)BRD.AID.BattleVoice => UpdateDamageCooldown(actor.InstanceID, cast.Action),
             //(uint)BRD.AID.RadiantFinale => UpdateDamageCooldown(actor.InstanceID, cast.Action), // note that even though CD is 110, it's used together with other 2min cds
             (uint)DNC.AID.QuadrupleTechnicalFinish => UpdateDamageCooldown(actor.InstanceID, cast.Action), // DNC technical finish
