@@ -256,8 +256,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
         var overall = _partyHealth.PartyHealth;
 
-        ImGui.TextUnformatted($"Avg: {overall.Avg * 100:f1}");
-        ImGui.TextUnformatted($"StD: {overall.StdDev:f3}");
+        ImGui.TextUnformatted($"Avg: {overall.AvgCurrent * 100:f1} (current) / {overall.AvgPredicted * 100:f1} (predicted)");
+        ImGui.TextUnformatted($"StD: {overall.StdDevCurrent:f3} (current) / {overall.StdDevCurrent:f3} (predicted)");
 
         ImGui.BeginTable("partyhealth", 4, ImGuiTableFlags.Resizable);
         ImGui.TableSetupColumn("Name");
@@ -269,7 +269,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(actor.Name);
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted($"{actor.HPMP.CurHP} ({actor.PendingHPDiffence}) / {actor.HPMP.MaxHP} ({actor.HPRatio * 100:f1}% / {actor.PredictedHPRatio * 100:f1}%)");
+            ImGui.TextUnformatted($"{actor.HPMP.CurHP} ({actor.PendingHPDifference:+#;-#;+0}) / {actor.HPMP.MaxHP} ({actor.HPRatio:#0.#%} / {actor.PendingHPRatio:#0.#%})");
             ImGui.TableNextColumn();
             ImGui.TextUnformatted($"{actor.Type}");
             ImGui.TableNextRow();

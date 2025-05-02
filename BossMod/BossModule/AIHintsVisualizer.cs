@@ -45,9 +45,11 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         foreach (var _1 in tree.Node("Party health"))
         {
             var ph = _partyHealth.PartyHealth;
-            ImGui.TextUnformatted($"Total: {ph.Count}");
-            ImGui.TextUnformatted($"Average: {ph.Avg * 100:f2} / stddev {ph.StdDev * 100:f2}");
-            ImGui.TextUnformatted($"Lowest HP ally: {ws.Party[ph.LowestHPSlot]}");
+            tree.LeafNode($"Total: {ph.Count}");
+            tree.LeafNode($"Average (current): {ph.AvgCurrent * 100:f2} / stddev {ph.StdDevCurrent * 100:f2}");
+            tree.LeafNode($"Lowest HP ally (current): {ws.Party[ph.LowestHPSlotCurrent]}");
+            tree.LeafNode($"Average (predicted): {ph.AvgPredicted * 100:f2} / stddev {ph.StdDevPredicted * 100:f2}");
+            tree.LeafNode($"Lowest HP ally (predicted): {ws.Party[ph.LowestHPSlotPredicted]}");
         }
         foreach (var _1 in tree.Node("Planned actions", hints.ActionsToExecute.Entries.Count == 0))
         {

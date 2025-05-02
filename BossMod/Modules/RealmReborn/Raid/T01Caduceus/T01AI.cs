@@ -112,7 +112,7 @@ class T01AI(BossModule module) : BossComponent(module)
             else if ((OID)e.Actor.OID == OID.DarkMatterSlime)
             {
                 // for now, let kiter damage it until 20%
-                var predictedHP = e.Actor.PredictedHPRaw;
+                var predictedHP = e.Actor.PendingHPRaw;
                 //e.Priority = predictedHP > 0.7f * e.Actor.HPMP.MaxHP ? (actor.Role is Role.Ranged or Role.Melee ? 3 : AIHints.Enemy.PriorityForbidAI) : AIHints.Enemy.PriorityForbidAI;
                 e.Priority = predictedHP > 0.2f * e.Actor.HPMP.MaxHP ? (e.Actor.TargetID == actor.InstanceID ? 3 : AIHints.Enemy.PriorityPointless) : AIHints.Enemy.PriorityPointless;
                 e.ShouldBeTanked = false;

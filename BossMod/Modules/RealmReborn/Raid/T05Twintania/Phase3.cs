@@ -54,7 +54,7 @@ class P3Adds(BossModule module) : BossComponent(module)
             switch ((OID)e.Actor.OID)
             {
                 case OID.Hygieia:
-                    var predictedHP = e.Actor.PredictedHPRaw;
+                    var predictedHP = e.Actor.PendingHPRaw;
                     e.Priority = e.Actor.HPMP.CurHP == 1 ? 0
                         : killHygieia && e.Actor == nextHygieia ? 2
                         : predictedHP < 0.3f * e.Actor.HPMP.MaxHP ? -1

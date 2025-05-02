@@ -65,10 +65,16 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         return def;
     }
 
-    private void HealSingle(Action<Actor, PartyMemberState> healFun)
+    private void HealSingleSoon(Action<Actor, float> healFun)
+    {
+        if (Health.BestSTHealTargetPredicted is (var a, var b))
+            healFun(a, b.PredictedHPRatio);
+    }
+
+    private void HealSingleNow(Action<Actor, float> healFun)
     {
         if (Health.BestSTHealTarget is (var a, var b))
-            healFun(a, b);
+            healFun(a, b.CurrentHPRatio);
     }
 
     /// <summary>
@@ -92,6 +98,19 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     }
 
     private IEnumerable<Actor> LightParty => Health.TrackedMembers.Select(x => x.Item2);
+
+    private Vector3? ArenaCenter
+    {
+        get
+        {
+            if (Bossmods.ActiveModule is BossModule m)
+            {
+                var center = m.Arena.Center;
+                return new Vector3(center.X, Player.PosRot.Y, center.Z);
+            }
+            return null;
+        }
+    }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -235,7 +254,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     private static bool BeingRaised(Actor actor) => actor.Statuses.Any(s => s.ID is 148 or 1140 or 2648);
 
-    private bool ShouldHealInArea(WPos pos, float radius, float ratio) => Health.ShouldHealInArea(pos, radius, ratio);
+    private bool ShouldHealInAreaSoon(WPos pos, float radius, float ratio) => Health.PredictShouldHealInArea(pos, radius, ratio);
+    private bool ShouldHealInAreaNow(WPos pos, float radius, float ratio) => Health.ShouldHealInArea(pos, radius, ratio);
 
     private void AutoWHM(StrategyValues strategy)
     {
@@ -244,25 +264,30 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         var bestC2 = BestActionUnlocked(BossMod.WHM.AID.CureII, BossMod.WHM.AID.Cure);
         var bestM2 = BestActionUnlocked(BossMod.WHM.AID.MedicaIII, BossMod.WHM.AID.MedicaII);
 
-        HealSingle((target, state) =>
+        HealSingleNow((target, ratio) =>
         {
             // TODO add a track for this kind of stuff
             //if (state.PredictedHPRatio < 1 && target.FindStatus(BossMod.WHM.SID.Regen) == null)
             //    UseGCD(BossMod.WHM.AID.Regen, target);
 
-            if (state.PredictedHPRatio < 0.5)
+            if (ratio < 0.5)
             {
                 if (gauge.Lily > 0)
                     UseGCD(BossMod.WHM.AID.AfflatusSolace, target);
                 else
                     UseGCD(bestC2, target);
-            }
 
-            if (state.PredictedHPRatio < 0.25)
                 UseOGCD(BossMod.WHM.AID.Tetragrammaton, target);
+            }
         });
 
-        if (ShouldHealInArea(Player.Position, 15, 0.75f))
+        HealSingleSoon((target, ratio) =>
+        {
+            if (ratio < 0.75f && target.FindStatus(BossMod.WHM.SID.DivineBenison) == null)
+                UseOGCD(BossMod.WHM.AID.DivineBenison, target);
+        });
+
+        if (ShouldHealInAreaNow(Player.Position, 15, 0.75f))
         {
             // do actual heals
             if (gauge.Lily > 0)
@@ -289,29 +314,32 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     {
         var gauge = World.Client.GetGauge<AstrologianGauge>();
 
-        HealSingle((target, state) =>
+        HealSingleNow((target, ratio) =>
         {
-            if (state.PendingHPRatio < 0.3)
+            if (ratio < 0.3)
                 UseOGCD(BossMod.AST.AID.EssentialDignity, target);
+        });
 
-            if (state.PredictedHPRatio < 0.3)
+        HealSingleSoon((target, ratio) =>
+        {
+            if (ratio < 0.3)
             {
                 UseOGCD(BossMod.AST.AID.CelestialIntersection, target);
-
-                if (gauge.CurrentArcana == AstrologianCard.Lady)
-                    UseOGCD(BossMod.AST.AID.LadyOfCrowns, Player);
 
                 foreach (var (card, action) in SupportCards)
                     if (gauge.CurrentCards.Contains(card))
                         UseOGCD(action, target);
             }
 
-            if (state.PredictedHPRatio < 0.5 && !Unlocked(BossMod.AST.AID.CelestialIntersection) && NextChargeIn(BossMod.AST.AID.EssentialDignity) > 2.5f)
+            if (ratio < 0.5 && !Unlocked(BossMod.AST.AID.CelestialIntersection) && NextChargeIn(BossMod.AST.AID.EssentialDignity) > 2.5f)
                 UseGCD(BossMod.AST.AID.Benefic, target);
         });
 
-        if (ShouldHealInArea(Player.Position, 15, 0.7f))
+        if (ShouldHealInAreaNow(Player.Position, 15, 0.7f))
         {
+            if (gauge.CurrentArcana == AstrologianCard.Lady)
+                UseOGCD(BossMod.AST.AID.LadyOfCrowns, Player);
+
             if (Player.FindStatus(Unlocked(BossMod.AST.AID.HeliosConjunction) ? BossMod.AST.SID.HeliosConjunction : BossMod.AST.SID.AspectedHelios, World.FutureTime(15)) == null)
                 UseGCD(BossMod.AST.AID.AspectedHelios, Player);
 
@@ -321,19 +349,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         if (Player.InCombat)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.EarthlyStar), Player, ActionQueue.Priority.Medium, targetPos: Player.PosRot.XYZ());
-    }
-
-    private Vector3? ArenaCenter
-    {
-        get
-        {
-            if (Bossmods.ActiveModule is BossModule m)
-            {
-                var center = m.Arena.Center;
-                return new Vector3(center.X, Player.PosRot.Y, center.Z);
-            }
-            return null;
-        }
     }
 
     private void AutoSCH(StrategyValues strategy, Actor? primaryTarget)
@@ -354,37 +369,46 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         var aetherflow = gauge.Aetherflow > 0;
 
-        if (aetherflow && ShouldHealInArea(Player.Position, 15, 0.5f))
+        if (aetherflow && ShouldHealInAreaNow(Player.Position, 15, 0.5f))
             UseOGCD(BossMod.SCH.AID.Indomitability, Player);
 
         if (pet != null)
         {
-            if (ShouldHealInArea(pet.Position, 30, 0.5f))
+            if (ShouldHealInAreaSoon(pet.Position, 30, 0.5f))
             {
                 if (haveSeraph)
                     UseOGCD(BossMod.SCH.AID.Consolation, Player);
                 else if (NextChargeIn(BossMod.SCH.AID.SummonSeraph) == 0)
                     UseOGCD(BossMod.SCH.AID.SummonSeraph, Player);
-                else
-                    UseOGCD(BossMod.SCH.AID.FeyBlessing, Player);
             }
 
-            if (ShouldHealInArea(pet.Position, 15, 0.8f))
+            if (ShouldHealInAreaNow(pet.Position, 20, 0.5f))
+                UseOGCD(BossMod.SCH.AID.FeyBlessing, Player);
+
+            if (ShouldHealInAreaSoon(pet.Position, 15, 0.8f))
                 UseOGCD(BossMod.SCH.AID.WhisperingDawn, Player);
         }
 
-        HealSingle((target, state) =>
+        HealSingleNow((target, ratio) =>
         {
-            if (state.PredictedHPRatio < 0.3)
+            if (ratio < 0.5)
             {
                 var canLustrate = gauge.Aetherflow > 0 && Unlocked(BossMod.SCH.AID.Lustrate);
                 if (canLustrate)
-                {
-                    UseOGCD(BossMod.SCH.AID.Excogitation, target);
                     UseOGCD(BossMod.SCH.AID.Lustrate, target);
-                }
                 else
                     UseGCD(BossMod.SCH.AID.Adloquium, target);
+            }
+        });
+
+        HealSingleSoon((target, ratio) =>
+        {
+            if (ratio < 0.5)
+            {
+                if (gauge.Aetherflow > 0)
+                    UseOGCD(BossMod.SCH.AID.Excogitation, target);
+                if (gauge.FairyGauge > 0)
+                    UseOGCD(BossMod.SCH.AID.Aetherpact, target);
             }
         });
 
@@ -416,26 +440,27 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         var haveBalls = gauge.Addersgall > 0;
 
-        if (haveBalls && ShouldHealInArea(Player.Position, 15, 0.5f))
+        if (haveBalls && ShouldHealInAreaNow(Player.Position, 15, 0.5f))
             UseOGCD(BossMod.SGE.AID.Ixochole, Player);
 
-        if (ShouldHealInArea(Player.Position, 30, 0.8f))
+        if (ShouldHealInAreaSoon(Player.Position, 30, 0.8f))
         {
             UseOGCD(Unlocked(BossMod.SGE.AID.PhysisII) ? BossMod.SGE.AID.PhysisII : BossMod.SGE.AID.Physis, Player);
         }
 
-        HealSingle((target, state) =>
+        HealSingleNow((target, ratio) =>
         {
-            if (haveBalls && state.PredictedHPRatio < 0.5)
+            if (ratio < 0.5)
             {
                 UseOGCD(BossMod.SGE.AID.Taurochole, target);
                 UseOGCD(BossMod.SGE.AID.Druochole, target);
             }
+        });
 
-            if (state.PredictedHPRatio < 0.3)
-            {
+        HealSingleSoon((target, ratio) =>
+        {
+            if (ratio < 0.5)
                 UseOGCD(BossMod.SGE.AID.Haima, target);
-            }
         });
 
         foreach (var rw in Raidwides)

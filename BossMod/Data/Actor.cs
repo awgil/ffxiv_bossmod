@@ -135,13 +135,13 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, string nam
     public bool IsStrikingDummy => NameID == 541; // this is a hack, but striking dummies are special in some ways
     public int CharacterSpawnIndex => SpawnIndex < 200 && (SpawnIndex & 1) == 0 ? (SpawnIndex >> 1) : -1; // [0,100) for 'real' characters, -1 otherwise
     public float HPRatio => (float)HPMP.CurHP / HPMP.MaxHP;
-    public int PendingHPDiffence => PendingHPDifferences.Sum(p => p.Value);
-    public int PendingMPDiffence => PendingMPDifferences.Sum(p => p.Value);
-    public int PredictedHPRaw => (int)HPMP.CurHP + PendingHPDiffence;
-    public int PredictedMPRaw => (int)HPMP.CurMP + PendingMPDiffence;
-    public int PredictedHPClamped => Math.Clamp(PredictedHPRaw, 0, (int)HPMP.MaxHP);
-    public bool PredictedDead => PredictedHPRaw <= 1 && !IsStrikingDummy;
-    public float PredictedHPRatio => (float)PredictedHPRaw / HPMP.MaxHP;
+    public int PendingHPDifference => PendingHPDifferences.Sum(p => p.Value);
+    public int PendingMPDifference => PendingMPDifferences.Sum(p => p.Value);
+    public int PendingHPRaw => (int)HPMP.CurHP + PendingHPDifference;
+    public int PendingMPRaw => (int)HPMP.CurMP + PendingMPDifference;
+    public int PendingHPClamped => Math.Clamp(PendingHPRaw, 0, (int)HPMP.MaxHP);
+    public bool PendingDead => PendingHPRaw <= 1 && !IsStrikingDummy;
+    public float PendingHPRatio => (float)PendingHPRaw / HPMP.MaxHP;
 
     // if expirationForPredicted is not null, search pending first, and return one if found; in that case only low byte of extra will be set
     public ActorStatus? FindStatus(uint sid, DateTime? expirationForPending = null)

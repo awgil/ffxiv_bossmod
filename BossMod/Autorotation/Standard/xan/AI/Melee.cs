@@ -21,11 +21,11 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
             return;
 
         // second wind
-        if (strategy.Enabled(Track.SecondWind) && Player.InCombat && Player.PredictedHPRatio <= 0.5)
+        if (strategy.Enabled(Track.SecondWind) && Player.InCombat && Player.PendingHPRatio <= 0.5)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SecondWind), Player, ActionQueue.Priority.Medium);
 
         // bloodbath
-        if (strategy.Enabled(Track.Bloodbath) && Player.InCombat && Player.PredictedHPRatio <= 0.3)
+        if (strategy.Enabled(Track.Bloodbath) && Player.InCombat && Player.PendingHPRatio <= 0.3)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Bloodbath), Player, ActionQueue.Priority.Medium);
 
         // low blow

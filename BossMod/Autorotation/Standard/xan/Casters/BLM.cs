@@ -521,7 +521,11 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             return Fire > 0 && MP < 1600 || Ice > 0 && MP > 9000;
 
         if (NumAOETargets >= AOEBreakpoint)
-            return Fire > 0 && MP < 800 || Ice > 0 && Hearts > 0 && MP >= 2400;
+            return
+                // AF: transpose if we can't flare or flare star
+                AstralSoul < 6 && Fire > 0 && MP < 800
+                // UI: transpose with at least one heart and enough MP to double flare
+                || Ice > 0 && Hearts > 0 && MP >= 2400;
         else
             return Firestarter && Ice > 0 && Hearts == MaxHearts;
     }

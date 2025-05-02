@@ -47,10 +47,10 @@ public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(mana
         if (strategy.Enabled(Track.Dispel) && HaveLogos(EurekaActionID.DispelL) && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.DispelL), primaryTarget, ActionQueue.Priority.VeryHigh);
 
-        if (strategy.Enabled(Track.Bloodbath) && HaveLogos(EurekaActionID.BloodbathL) && Player.InCombat && Player.PredictedHPRatio < 0.5f)
+        if (strategy.Enabled(Track.Bloodbath) && HaveLogos(EurekaActionID.BloodbathL) && Player.InCombat && Player.PendingHPRatio < 0.5f)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.BloodbathL), Player, ActionQueue.Priority.Medium);
 
-        if (strategy.Enabled(Track.Potion) && InEureka && Player.InCombat && Player.PredictedHPRatio < 0.75f)
+        if (strategy.Enabled(Track.Potion) && InEureka && Player.InCombat && Player.PendingHPRatio < 0.75f)
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionEureka, Player, ActionQueue.Priority.VeryLow);
     }
 

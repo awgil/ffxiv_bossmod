@@ -79,7 +79,7 @@ class AutoYshtola(WorldState ws) : UnmanagedRotation(ws, 25)
             ? 28000
             : 10000;
 
-        if (Hien.PredictedHPRaw < hienMinHP)
+        if (Hien.PendingHPRaw < hienMinHP)
         {
             if (Player.DistanceToHitbox(Hien) > 25)
                 Hints.ForcedMovement = Player.DirectionTo(Hien).ToVec3();

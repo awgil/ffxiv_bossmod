@@ -418,7 +418,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             UptimeIn = null;
         }
 
-        MP = (uint)Math.Clamp(Player.PredictedMPRaw, 0, Player.HPMP.MaxMP);
+        MP = (uint)Math.Clamp(Player.PendingMPRaw, 0, Player.HPMP.MaxMP);
 
         if (_cdLockout > World.CurrentTime)
             return;
@@ -494,7 +494,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected float HPRatio(Actor actor) => (float)actor.HPMP.CurHP / Player.HPMP.MaxHP;
     protected float HPRatio() => HPRatio(Player);
 
-    protected uint PredictedHP(Actor actor) => (uint)actor.PredictedHPClamped;
+    protected uint PredictedHP(Actor actor) => (uint)actor.PendingHPClamped;
     protected float PredictedHPRatio(Actor actor) => (float)PredictedHP(actor) / actor.HPMP.MaxHP;
 }
 
