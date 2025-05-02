@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
+public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Dexterity)
 {
     public static RotationModuleDefinition Definition()
     {

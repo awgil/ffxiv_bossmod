@@ -25,13 +25,13 @@ public sealed class Plugin : IDalamudPlugin
     private readonly WorldStateGameSync _wsSync;
     private readonly RotationModuleManager _rotation;
     private readonly AI.AIManager _ai;
-    private readonly AI.Broadcast _broadcast;
     private readonly IPCProvider _ipc;
     private readonly DTRProvider _dtr;
     private readonly SlashCommandProvider _slashCmd;
     private TimeSpan _prevUpdateTime;
     private DateTime _throttleJump;
     private DateTime _throttleInteract;
+    private readonly ICommandManager _cmd;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
@@ -91,7 +91,6 @@ public sealed class Plugin : IDalamudPlugin
         _wsSync = new(_ws, _amex);
         _rotation = new(_rotationDB, _bossmod, _hints);
         _ai = new(_rotation, _amex, _movementOverride);
-        _broadcast = new();
         _ipc = new(_rotation, _amex, _movementOverride, _ai);
         _dtr = new(_rotation, _ai);
         _slashCmd = new(commandManager, "/vbm");
@@ -112,12 +111,19 @@ public sealed class Plugin : IDalamudPlugin
         dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
         RegisterSlashCommands();
 
+        _cmd = commandManager;
+        _cmd.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(VbmaiHandler)
+        {
+            HelpMessage = "Deprecated"
+        });
+
         _ = new ConfigChangelogWindow();
     }
 
     public void Dispose()
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
+        _cmd.RemoveHandler("/vbmai");
         _wndDebug.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
@@ -254,6 +260,11 @@ public sealed class Plugin : IDalamudPlugin
         });
     }
 
+    private void VbmaiHandler(string _, string __)
+    {
+        Service.ChatGui.PrintError("/vbmai: Legacy AI mode is deprecated. Please use /vbm cfg AIConfig (args...) instead. This command will be removed in a future update.");
+    }
+
     private void OpenConfigUI(string showTab = "")
     {
         _configUI.ShowTab(showTab);
@@ -274,7 +285,6 @@ public sealed class Plugin : IDalamudPlugin
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving());
         _ai.Update();
-        _broadcast.Update();
         _amex.FinishActionGather();
 
         bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];

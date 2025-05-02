@@ -28,6 +28,48 @@ class ReignJumpCounter(BossModule module) : Components.CastCounterMulti(module, 
     }
 }
 
+#if DEBUG
+class ReignHints(BossModule module) : BossComponent(module)
+{
+    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
+    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
+
+    private WPos? _source;
+    private bool _in;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.EminentReignJump or AID.RevolutionaryReignJump)
+        {
+            var dir = (Arena.Center - caster.Position).Normalized();
+            var dist = caster.Position.X < 92 ? 17.25f : 17.75f;
+            _source = caster.Position + dir * dist;
+            _in = spell.Action.ID == (uint)AID.EminentReignJump;
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (_source == null || _config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Disabled)
+            return;
+
+        var assignment = _prc[WorldState.Party.Members[pcSlot].ContentId];
+        int lp;
+        if (_config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Any)
+            lp = 0;
+        else
+            lp = assignment switch
+            {
+                PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.H1 => 1,
+                PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.R2 or PartyRolesConfig.Assignment.H2 => 2,
+                _ => 0
+            };
+
+        // TODO
+    }
+}
+#endif
+
 class WolvesReignRect(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? Rect;
@@ -59,8 +101,8 @@ class ReignInout(BossModule module) : Components.GenericAOEs(module)
 {
     public bool Risky;
 
-    enum Inout { None, In, Out }
-    private Inout Next;
+    public enum Inout { None, In, Out }
+    public Inout Next { get; private set; }
 
     public WPos? Source { get; private set; }
     private WPos _prevSource;

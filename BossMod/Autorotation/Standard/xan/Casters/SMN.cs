@@ -41,7 +41,7 @@ public enum Trance
     Lightwyrm
 }
 
-public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player)
+public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
     public enum Track { Cyclone = SharedTrack.Count }
     public enum CycloneUse

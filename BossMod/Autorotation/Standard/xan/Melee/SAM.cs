@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
+public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
 {
     public enum Track { Higanbana = SharedTrack.Count, Enpi, Meikyo, Opener }
 
@@ -39,18 +39,21 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         def.Define(Track.Higanbana).As<OffensiveStrategy>("Higanbana")
             .AddOption(OffensiveStrategy.Automatic, "Auto", "Refresh every 60s according to standard rotation", supportedTargets: ActionTargets.Hostile)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Don't apply")
-            .AddOption(OffensiveStrategy.Force, "Force", "Apply to target ASAP, regardless of remaining duration", supportedTargets: ActionTargets.Hostile);
+            .AddOption(OffensiveStrategy.Force, "Force", "Apply to target ASAP, regardless of remaining duration", supportedTargets: ActionTargets.Hostile)
+            .AddAssociatedActions(AID.Higanbana);
 
         def.Define(Track.Enpi).As<EnpiStrategy>("Enpi")
             .AddOption(EnpiStrategy.Enhanced, "Enhanced", "Use if Enhanced Enpi is active")
             .AddOption(EnpiStrategy.None, "None", "Do not use")
-            .AddOption(EnpiStrategy.Ranged, "Ranged", "Use when out of range");
+            .AddOption(EnpiStrategy.Ranged, "Ranged", "Use when out of range")
+            .AddAssociatedActions(AID.Enpi);
 
         def.Define(Track.Meikyo).As<MeikyoStrategy>("Meikyo")
             .AddOption(MeikyoStrategy.Auto, "Auto", "Use every minute or so")
             .AddOption(MeikyoStrategy.Delay, "Delay", "Don't use")
             .AddOption(MeikyoStrategy.Force, "Force", "Use ASAP (unless already active)")
-            .AddOption(MeikyoStrategy.HoldOne, "HoldOne", "Only use if charges are capped");
+            .AddOption(MeikyoStrategy.HoldOne, "HoldOne", "Only use if charges are capped")
+            .AddAssociatedActions(AID.MeikyoShisui);
 
         def.Define(Track.Opener).As<OpenerStrategy>("Opener")
             .AddOption(OpenerStrategy.Standard, "Standard", "Standard opener; Gekko (damage buff), Kasha, Midare, Higanbana, Ogi")
@@ -317,7 +320,9 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (aid == default)
             return;
 
-        if (RaidBuffsLeft > GCD || !CanFitGCD(KaeshiAction.Left, 1))
+        if (RaidBuffsLeft > GCD
+            || !CanFitGCD(KaeshiAction.Left, 1)
+            || PotionLeft > GCD && !CanFitGCD(PotionLeft, 1))
             PushGCD(aid, target);
     }
 

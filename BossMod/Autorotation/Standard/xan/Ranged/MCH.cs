@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
+public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Dexterity)
 {
     public enum Track { Queen = SharedTrack.Count, Wildfire, Hypercharge, Tools }
     public enum QueenStrategy

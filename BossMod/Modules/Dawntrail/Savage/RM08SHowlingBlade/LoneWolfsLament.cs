@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM08SHowlingBlade;
 
-class LoneWolfsLament(BossModule module) : BossComponent(module)
+class LoneWolfTethers(BossModule module) : BossComponent(module)
 {
     private readonly List<(Actor, Actor)> _close = [];
     private readonly List<(Actor, Actor)> _distant = [];
@@ -43,7 +43,8 @@ class LoneWolfsLament(BossModule module) : BossComponent(module)
 
 class LoneWolfTowers(BossModule module) : Components.GenericTowers(module)
 {
-    private readonly LoneWolfsLament _tethers = module.FindComponent<LoneWolfsLament>()!;
+    private readonly LoneWolfTethers _tethers = module.FindComponent<LoneWolfTethers>()!;
+    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -62,23 +63,30 @@ class LoneWolfTowers(BossModule module) : Components.GenericTowers(module)
             {
                 var assignment = _tethers.Assignments[slot];
 
-                if (count == 3)
-                    permitted[slot] = player.Role == Role.Healer || assignment.Partner == Role.Healer && assignment.Close;
+                if (_config.TowerHints == RM08SHowlingBladeConfig.LamentTowerStrategy.Rinon)
+                {
+                    if (count == 3)
+                        permitted[slot] = player.Role == Role.Healer || assignment.Partner == Role.Healer && assignment.Close;
 
-                else if (count == 2)
-                    permitted[slot] = (player.Role == Role.Tank || assignment.Partner == Role.Tank) && assignment.Close;
+                    else if (count == 2)
+                        permitted[slot] = (player.Role == Role.Tank || assignment.Partner == Role.Tank) && assignment.Close;
 
+                    else
+                    {
+                        // north tower
+                        if (caster.Position.Z < 100)
+                            permitted[slot] = assignment.Partner == Role.Healer && !assignment.Close;
+                        // east tower
+                        else if (caster.Position.X > 100)
+                            permitted[slot] = assignment.Partner == Role.Tank && !assignment.Close;
+                        // west tower
+                        else
+                            permitted[slot] = player.Role == Role.Tank && !assignment.Close;
+                    }
+                }
                 else
                 {
-                    // north tower
-                    if (caster.Position.Z < 100)
-                        permitted[slot] = assignment.Partner == Role.Healer && !assignment.Close;
-                    // east tower
-                    else if (caster.Position.X > 100)
-                        permitted[slot] = assignment.Partner == Role.Tank && !assignment.Close;
-                    // west tower
-                    else
-                        permitted[slot] = player.Role == Role.Tank && !assignment.Close;
+                    permitted[slot] = true;
                 }
             }
 

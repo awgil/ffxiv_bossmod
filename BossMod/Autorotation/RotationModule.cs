@@ -168,7 +168,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     protected (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
     {
         if (primaryTarget == null || !primaryTarget.IsStrikingDummy)
-            return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), Bossmods.RaidCooldowns.NextDamageBuffIn());
+            return (Bossmods.RaidCooldowns.DamageBuffLeft(Player, primaryTarget), Bossmods.RaidCooldowns.NextDamageBuffIn());
 
         // hack for a dummy: expect that raidbuffs appear at 7.8s and then every 120s
         var cycleTime = (float)(Player.InCombat ? (World.CurrentTime - Manager.CombatStart).TotalSeconds : 0) - 7.8f;

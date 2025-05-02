@@ -165,7 +165,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
             {
                 if (Arena.Config.ShowOutlinesAndShadows)
                     Arena.AddCircle(s.Target.Position, s.Radius, 0xFF000000, 2);
-                Arena.AddCircle(s.Target.Position, s.Radius, ArenaColor.Safe);
+                Arena.AddCircle(s.Target.Position, s.Radius, s.ForbiddenPlayers[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe);
             }
             foreach (var s in ActiveSpreads)
             {

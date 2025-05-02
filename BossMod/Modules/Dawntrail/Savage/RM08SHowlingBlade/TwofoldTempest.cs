@@ -21,6 +21,7 @@ class TwofoldTether(BossModule module) : Components.GenericStackSpread(module)
         if ((AID)spell.Action.ID == AID.TwofoldTempestStack)
         {
             NumFinishedStacks++;
+            _activation = default;
             // in case tether pass is affected by network latency and the cast target isn't the tether target on our end
             Stacks.Clear();
         }
@@ -31,7 +32,7 @@ class TwofoldTether(BossModule module) : Components.GenericStackSpread(module)
         foreach (var s in ActiveStacks)
         {
             Arena.AddLine(Module.PrimaryActor.Position, s.Target.Position, ArenaColor.Danger);
-            Arena.AddCircle(s.Target.Position, 9, ArenaColor.Danger);
+            Arena.AddCircle(s.Target.Position, 9, ArenaColor.Danger); // visual helper for max voidzone size
         }
     }
 
@@ -89,8 +90,8 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
     {
         if (_nextActivation > WorldState.CurrentTime)
         {
-            var closest = Raid.WithoutSlot().Closest(Module.PrimaryActor.Position)!;
-            NextBait = P2Platforms.GetPlatform(closest);
+            var closest = Raid.WithoutSlot().Closest(Module.PrimaryActor.Position);
+            NextBait = closest == null ? -1 : P2Platforms.GetPlatform(closest);
         }
     }
 
@@ -101,11 +102,8 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
 
         if (NextBait >= 0)
         {
-            var dir = 72.Degrees() * NextBait;
-            if (P2Platforms.GetPlatform(pc) == NextBait)
-                Arena.AddRect(Module.PrimaryActor.Position, dir.ToDirection(), 35, 0, 8, ArenaColor.Danger);
-            else
-                Arena.ZoneRect(Module.PrimaryActor.Position, dir.ToDirection(), 35, 0, 8, ArenaColor.AOE);
+            var dir = -72.Degrees() * NextBait;
+            Arena.AddRect(Module.PrimaryActor.Position, dir.ToDirection(), 35.5f, 0, 8, ArenaColor.Danger);
         }
     }
 
