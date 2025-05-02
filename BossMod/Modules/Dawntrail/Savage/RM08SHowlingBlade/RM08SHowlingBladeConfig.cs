@@ -3,8 +3,22 @@
 [ConfigDisplay(Order = 0x300, Parent = typeof(DawntrailConfig))]
 public class RM08SHowlingBladeConfig : ConfigNode
 {
-    [PropertyDisplay("Beckon Moonlight: highlight first and third safe quadrants on minimap (aka \"quad moonlight\")")]
-    public bool QuadMoonlightHints = false;
+#if DEBUG
+    public enum ReignStrategy
+    {
+        [PropertyDisplay("Show both safespots for current role")]
+        Any,
+        [PropertyDisplay("Assume G1 left, G2 right when looking at boss from arena center")]
+        Standard,
+        [PropertyDisplay("Assume G1 right, G2 left when looking at boss from arena center")]
+        Inverse,
+        [PropertyDisplay("None")]
+        Disabled
+    }
+
+    [PropertyDisplay("Revolutionary Reign positioning hints")]
+    public ReignStrategy ReignHints = ReignStrategy.Standard;
+#endif
 
     public enum TerrestrialRageStrategy
     {
@@ -17,6 +31,9 @@ public class RM08SHowlingBladeConfig : ConfigNode
 
     [PropertyDisplay("Terrestrial Rage")]
     public TerrestrialRageStrategy TRHints = TerrestrialRageStrategy.None;
+
+    [PropertyDisplay("Beckon Moonlight: highlight first and third safe quadrants on minimap (aka \"quad moonlight\")")]
+    public bool QuadMoonlightHints = false;
 
     public enum LamentTowerStrategy
     {
