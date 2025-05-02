@@ -2,9 +2,6 @@
 using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.MCH;
-using static BossMod.ActorCastEvent;
-using static BossMod.Autorotation.akechi.AkechiMCH;
-using static FFXIVClientStructs.FFXIV.Component.GUI.AtkEventDispatcher;
 #endregion
 
 namespace BossMod.Autorotation.akechi;
@@ -339,7 +336,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         var afterAA = LastActionUsed(BestAirAnchor) || AAcd > 36;
         var start = CombatTimer < 90 && (CombatTimer < 30 ? afterEV : Battery >= 90);
         var risk = (Battery >= 90 && (TotalCD(BestAirAnchor) <= GCD || CScd <= GCD || EVleft > GCD)) || (Battery == 100 && ComboLastMove is AID.SlugShot or AID.HeatedSlugShot);
-        var rest = CombatTimer >= 90 && (BScd is > 45 && ((afterAA || afterEV) || risk));
+        var rest = CombatTimer >= 90 && ((BScd is > 45 && (afterAA || afterEV)) || risk);
         return strategy switch
         {
             BatteryStrategy.Automatic => CanSummon && (start || rest),
@@ -353,35 +350,31 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Other
-    private (bool, OGCDPriority) ShouldUseDoubleCheck(OGCDStrategy strategy, Actor? target)
+    private (bool, OGCDPriority) ShouldUseOGCD(OGCDStrategy strategy, Actor? target, Func<bool> unlocked, Func<int> charges, Func<float> cooldown, Func<bool> condition)
     {
-        if (!Unlocked(AID.GaussRound))
+        if (!unlocked())
             return (false, OGCDPriority.None);
-
+        var prio = CMDCPriority(charges());
         return strategy switch
         {
-            OGCDStrategy.Automatic => (In25y(target) && CanWeaveIn && (WFleft > 0 || RaidBuffsLeft > 0 || OverheatActive || (BScd > 30 ? TotalCD(BestGauss) < 30.6f : TotalCD(BestGauss) < 0.6f)), CMDCPriority(GaussCharges)),
-            OGCDStrategy.AnyWeave => (CanWeaveIn, CMDCPriority(GaussCharges) + 900),
-            OGCDStrategy.EarlyWeave => (CanEarlyWeaveIn, CMDCPriority(GaussCharges) + 900),
-            OGCDStrategy.LateWeave => (CanLateWeaveIn, CMDCPriority(GaussCharges) + 900),
-            OGCDStrategy.Force => (true, CMDCPriority(GaussCharges) + 900),
-            OGCDStrategy.Delay or _ => (false, OGCDPriority.None),
+            OGCDStrategy.Automatic => (In25y(target) && CanWeaveIn && condition(), prio),
+            OGCDStrategy.AnyWeave => (CanWeaveIn, prio + 900),
+            OGCDStrategy.EarlyWeave => (CanEarlyWeaveIn, prio + 900),
+            OGCDStrategy.LateWeave => (CanLateWeaveIn, prio + 900),
+            OGCDStrategy.Force => (true, prio + 900),
+            _ => (false, OGCDPriority.None),
         };
     }
-    private (bool, OGCDPriority) ShouldUseCheckmate(OGCDStrategy strategy, Actor? target)
-    {
-        if (!Unlocked(AID.Ricochet))
-            return (false, OGCDPriority.None);
-        return strategy switch
-        {
-            OGCDStrategy.Automatic => (In25y(target) && CanWeaveIn && (WFleft > 0 || RaidBuffsLeft > 0 || OverheatActive || (BScd > 30 ? TotalCD(BestRicochet) < 30.6f : TotalCD(BestRicochet) < 0.6f)), CMDCPriority(RicoCharges)),
-            OGCDStrategy.AnyWeave => (CanWeaveIn, CMDCPriority(RicoCharges) + 900),
-            OGCDStrategy.EarlyWeave => (CanEarlyWeaveIn, CMDCPriority(RicoCharges) + 900),
-            OGCDStrategy.LateWeave => (CanLateWeaveIn, CMDCPriority(RicoCharges) + 900),
-            OGCDStrategy.Force => (true, CMDCPriority(RicoCharges) + 900),
-            OGCDStrategy.Delay or _ => (false, OGCDPriority.None),
-        };
-    }
+    private (bool, OGCDPriority) ShouldUseDoubleCheck(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target,
+            () => Unlocked(AID.GaussRound),
+            () => GaussCharges,
+            () => TotalCD(BestGauss),
+            () => WFleft > 0 || RaidBuffsLeft > 0 || OverheatActive || (BScd > 30 ? TotalCD(BestGauss) < 30.6f : TotalCD(BestGauss) < 0.6f));
+    private (bool, OGCDPriority) ShouldUseCheckmate(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target,
+            () => Unlocked(AID.Ricochet),
+            () => RicoCharges,
+            () => TotalCD(BestRicochet),
+            () => WFleft > 0 || RaidBuffsLeft > 0 || OverheatActive || (BScd > 30 ? TotalCD(BestRicochet) < 30.6f : TotalCD(BestRicochet) < 0.6f));
     private OGCDPriority CMDCPriority(int charges) => charges switch
     {
         3 => OGCDPriority.ExtremelyHigh + 1,
@@ -418,7 +411,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         Heat = gauge.Heat;
         Battery = gauge.Battery;
         OverheatActive = Player.FindStatus(SID.Overheated) != null;
-        MinionActive = (gauge.SummonTimeRemaining / 1000f != 0);
+        MinionActive = gauge.SummonTimeRemaining != 0;
         RAleft = StatusRemaining(Player, SID.Reassembled);
         HCleft = StatusRemaining(Player, SID.Hypercharged);
         WFleft = StatusRemaining(Player, SID.WildfirePlayer);
@@ -440,7 +433,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         CanWF = ActionReady(AID.Wildfire);
         CanBS = ActionReady(AID.BarrelStabilizer);
         CanRA = Unlocked(AID.Reassemble) && ChargeCD(AID.Reassemble) <= GCD && !OverheatActive && RAleft == 0;
-        CanDrill = Unlocked(AID.Drill) && ChargeCD(AID.Drill) < GCD + 0.25 && !OverheatActive;
+        CanDrill = Unlocked(AID.Drill) && ChargeCD(AID.Drill) < GCD + 0.25;
         CanBB = Unlocked(AID.Bioblaster) && ChargeCD(AID.Bioblaster) < GCD && !OverheatActive;
         CanAA = Unlocked(BestAirAnchor) && AAcd < GCD + 0.25 && !OverheatActive;
         CanCS = Unlocked(AID.ChainSaw) && CScd < GCD + 0.25 && !OverheatActive;
