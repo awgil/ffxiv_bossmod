@@ -90,8 +90,8 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
     {
         if (_nextActivation > WorldState.CurrentTime)
         {
-            var closest = Raid.WithoutSlot().Closest(Module.PrimaryActor.Position)!;
-            NextBait = P2Platforms.GetPlatform(closest);
+            var closest = Raid.WithoutSlot().Closest(Module.PrimaryActor.Position);
+            NextBait = closest == null ? -1 : P2Platforms.GetPlatform(closest);
         }
     }
 
@@ -102,11 +102,8 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
 
         if (NextBait >= 0)
         {
-            var dir = 72.Degrees() * NextBait;
-            if (P2Platforms.GetPlatform(pc) == NextBait)
-                Arena.AddRect(Module.PrimaryActor.Position, dir.ToDirection(), 35, 0, 8, ArenaColor.Danger);
-            else
-                Arena.ZoneRect(Module.PrimaryActor.Position, dir.ToDirection(), 35, 0, 8, ArenaColor.AOE);
+            var dir = -72.Degrees() * NextBait;
+            Arena.AddRect(Module.PrimaryActor.Position, dir.ToDirection(), 35.5f, 0, 8, ArenaColor.Danger);
         }
     }
 
