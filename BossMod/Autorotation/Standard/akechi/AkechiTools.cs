@@ -254,9 +254,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks the <b>last combo action</b> is what the user is specifying.</summary>
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
-    /// <summary>Checks the <b>time left remaining</b> inside current combo before expiration.</summary>
-    protected float ComboTimer => (float)(object)World.Client.ComboState.Remaining;
-
     /// <summary>Retrieves <b>actual cast time</b> of a specified <b>action</b>.</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected virtual float ActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime;
@@ -772,6 +769,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Time remaining on pre-pull (or any) <b>Countdown Timer</b>.</summary>
     protected float? CountdownRemaining { get; private set; }
+    protected float? ComboTimer { get; private set; }
 
     /// <summary>Checks if player is currently <b>moving</b>.</summary>
     protected bool IsMoving { get; private set; }
@@ -891,6 +889,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         IsMoving = isMoving;
         DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
+        ComboTimer = (float)(object)World.Client.ComboState.Remaining;
         CountdownRemaining = World.Client.CountdownRemaining;
         HasTrueNorth = StatusRemaining(Player, ClassShared.SID.TrueNorth, 15) > 0.1f;
         CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
