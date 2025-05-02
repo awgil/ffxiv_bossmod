@@ -254,9 +254,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks the <b>last combo action</b> is what the user is specifying.</summary>
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
-    /// <summary>Checks the <b>time left remaining</b> inside current combo before expiration.</summary>
-    protected float ComboTimer => (float)(object)World.Client.ComboState.Remaining;
-
     /// <summary>Retrieves <b>actual cast time</b> of a specified <b>action</b>.</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected virtual float ActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime;
@@ -322,10 +319,10 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
 
     /// <summary>Checks if user can <b>Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.6f;
+    protected bool CanWeaveIn => GCD >= 0.6f;
 
     /// <summary>Checks if user can <b>Early Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanEarlyWeaveIn => GCD is <= 2.49f and >= 1.26f;
+    protected bool CanEarlyWeaveIn => GCD >= 1.26f;
 
     /// <summary>Checks if user can <b>Late Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.6f;
@@ -344,11 +341,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Returns the <b>charge cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float ChargeCD(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
+    protected float ChargeCD(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
     /// <summary>Checks if <b>action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool ActionReady(AID aid) => Unlocked(aid) && !IsOnCooldown(aid);
+    protected bool ActionReady(AID aid) => Unlocked(aid) && IsOffCooldown(aid);
 
     /// <summary>Checks if <b>action</b> has any <b>charges</b> remaining. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
@@ -368,12 +365,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true;
+    protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);
 
     /// <summary>Retrieves time remaining until specified <b>action</b> is at <b>max charges</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float MaxChargesIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
-
     #endregion
 
     #region Status
@@ -773,6 +769,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Time remaining on pre-pull (or any) <b>Countdown Timer</b>.</summary>
     protected float? CountdownRemaining { get; private set; }
+    protected float? ComboTimer { get; private set; }
 
     /// <summary>Checks if player is currently <b>moving</b>.</summary>
     protected bool IsMoving { get; private set; }
@@ -892,6 +889,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         IsMoving = isMoving;
         DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
+        ComboTimer = (float)(object)World.Client.ComboState.Remaining;
         CountdownRemaining = World.Client.CountdownRemaining;
         HasTrueNorth = StatusRemaining(Player, ClassShared.SID.TrueNorth, 15) > 0.1f;
         CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
