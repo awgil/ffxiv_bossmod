@@ -78,8 +78,9 @@ public class TrackPartyHealth(WorldState World)
         float minCur = float.MaxValue;
         int minSlotCur = -1;
 
-        foreach (var p in PartyMemberStates)
+        foreach (var slot in _trackedActors.SetBits())
         {
+            var p = PartyMemberStates[slot];
             var act = World.Party[p.Slot];
             if (act == null || !filter(act))
                 continue;
@@ -175,51 +176,52 @@ public class TrackPartyHealth(WorldState World)
             }
 
             var actor = World.Party[i];
-            ref var state = ref PartyMemberStates[i];
-            state.Slot = i;
+            _haveRealPartyMembers |= actor?.Type == ActorType.Player;
+
             if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || actor.FateID > 0 || shouldSkip)
             {
-                state.PredictedHP = state.PredictedHPMissing = 0;
-                state.PredictedHPRatio = 1;
+                PartyMemberStates[i] = new() { Slot = i };
+                continue;
             }
+
+            _trackedActors[i] = true;
+
+            ref var state = ref PartyMemberStates[i];
+            state.Slot = i;
+            state.PredictedHP = actor.PendingHPRaw;
+            state.PredictedHPMissing = (int)actor.HPMP.MaxHP - actor.PendingHPRaw;
+            state.PredictedHPRatio = actor.PendingHPRatio;
+            // include pending heals, but not pending damage - used for stuff like essential dignity, where the actor's actual HP ratio is important
+            state.CurrentHPRatio = MathF.Max(actor.HPRatio, actor.PendingHPRatio);
+            state.AttackerStrength = 0;
+            state.EsunableStatusRemaining = 0;
+            state.DoomRemaining = 0;
+            state.NoHealStatusRemaining = 0;
+            var canEsuna = actor.IsTargetable && !esunas[i];
+            foreach (var s in actor.Statuses)
+            {
+                if (canEsuna && StatusIsRemovable(s.ID))
+                    state.EsunableStatusRemaining = Math.Max(StatusDuration(s.ExpireAt), state.EsunableStatusRemaining);
+
+                if (NoHealStatuses.Contains(s.ID))
+                    state.NoHealStatusRemaining = StatusDuration(s.ExpireAt);
+
+                if (s.ID == 1769)
+                    state.DoomRemaining = StatusDuration(s.ExpireAt);
+            }
+
+            if (actor.InCombat)
+                state.LastCombat = World.CurrentTime;
+
+            var pos = actor.Position.ToVec2();
+            if (state.AveragePosition == default)
+                state.AveragePosition = pos;
             else
             {
-                _trackedActors[i] = true;
-                state.PredictedHP = actor.PendingHPRaw;
-                state.PredictedHPMissing = (int)actor.HPMP.MaxHP - actor.PendingHPRaw;
-                state.PredictedHPRatio = actor.PendingHPRatio;
-                // include pending heals, but not pending damage - used for stuff like essential dignity, where the actor's actual HP ratio is important
-                state.CurrentHPRatio = MathF.Max(actor.HPRatio, actor.PendingHPRatio);
-                state.AttackerStrength = 0;
-                state.EsunableStatusRemaining = 0;
-                state.DoomRemaining = 0;
-                state.NoHealStatusRemaining = 0;
-                var canEsuna = actor.IsTargetable && !esunas[i];
-                foreach (var s in actor.Statuses)
-                {
-                    if (canEsuna && StatusIsRemovable(s.ID))
-                        state.EsunableStatusRemaining = Math.Max(StatusDuration(s.ExpireAt), state.EsunableStatusRemaining);
-
-                    if (NoHealStatuses.Contains(s.ID))
-                        state.NoHealStatusRemaining = StatusDuration(s.ExpireAt);
-
-                    if (s.ID == 1769)
-                        state.DoomRemaining = StatusDuration(s.ExpireAt);
-                }
-
-                if (actor.InCombat)
-                    state.LastCombat = World.CurrentTime;
-
-                var pos = actor.Position.ToVec2();
-                if (state.AveragePosition == default)
-                    state.AveragePosition = pos;
-                else
-                {
-                    state.AveragePosition -= state.AveragePosition * World.Frame.Duration;
-                    state.AveragePosition += pos * World.Frame.Duration;
-                }
-                state.MoveDelta = (state.AveragePosition - pos).Length();
+                state.AveragePosition -= state.AveragePosition * World.Frame.Duration;
+                state.AveragePosition += pos * World.Frame.Duration;
             }
+            state.MoveDelta = (state.AveragePosition - pos).Length();
         }
 
         foreach (var enemy in Hints.PotentialTargets)
