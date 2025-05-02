@@ -51,8 +51,13 @@ public sealed class ActionQueue
                 break; // this and further actions are something we don't really want to execute (prio < minimal)
 
             var def = ActionDefinitions.Instance[candidate.Action];
-            if (def == null || !def.IsUnlocked(ws, player))
-                continue; // unregistered or locked action
+            if (def == null)
+            {
+                Service.Log($"[ActionQueue] unregistered action {candidate.Action} queued and will be discarded, this is a bug");
+                continue;
+            }
+            if (!def.IsUnlocked(ws, player))
+                continue;
 
             if (candidate.CastTime > hints.MaxCastTime)
                 continue; // this cast can't be finished in time, look for something else
