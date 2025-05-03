@@ -149,10 +149,11 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         if (Darkside > 0 && strategy.BuffsOk())
             PushOGCD(AID.LivingShadow, Player, OGCDPriority.LivingShadow);
 
-        if (Blood > 0 || !Unlocked(AID.Delirium))
-        {
-            PushOGCD(Unlocked(AID.Delirium) ? AID.Delirium : AID.BloodWeapon, Player, OGCDPriority.Delirium);
-        }
+        if (!Unlocked(AID.Delirium))
+            PushOGCD(AID.BloodWeapon, Player, OGCDPriority.Delirium);
+
+        if (Blood > 0 || CombatTimer > 30)
+            PushOGCD(AID.Delirium, Player, OGCDPriority.Delirium);
 
         if (!CanWeave(AID.Delirium))
         {
