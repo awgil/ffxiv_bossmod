@@ -107,7 +107,7 @@ public class DSW2Config() : ConfigNode()
     [PropertyCombo("CCW", "CW")]
     public bool P2Sanctity2NonPreyTowerCW = false;
 
-    [PropertyDisplay("P3 Dive from Grace: look west for arrows rather than east (so forward arrow takes E spot, backward arrow takes W spot")]
+    [PropertyDisplay("P3 Dive from Grace: look west for arrows rather than east (so forward arrow takes E spot, backward arrow takes W spot)")]
     public bool P3DiveFromGraceLookWest = false;
 
     [PropertyDisplay("P3 enumeration towers: assignments")]

@@ -611,9 +611,11 @@ class DSW2States : StateMachineBuilder
         ActorTargetable(id + 1, _module.NidhoggP6, true, 1.3f); // both
         ActorCast(id + 0x10, _module.NidhoggP6, AID.CauterizeN, 1.2f, 5, true, "Wild charges")
             .ActivateOnEnter<P6TouchdownCauterize>()
+            .ActivateOnEnter<P6TouchdownPyretic>()
             .DeactivateOnExit<P6TouchdownCauterize>();
         ComponentCondition<P6Touchdown>(id + 0x20, 7.0f, comp => comp.NumCasts > 0, "Proximity")
             .ActivateOnEnter<P6Touchdown>()
+            .DeactivateOnExit<P6TouchdownPyretic>()
             .DeactivateOnExit<P6Touchdown>();
 
         ActorCastStart(id + 0x100, _module.NidhoggP6, AID.RevengeOfTheHordeP6, 1.2f, true)

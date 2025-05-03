@@ -2,7 +2,7 @@
 
 class P5DeathOfTheHeavensHeavyImpact(BossModule module) : HeavyImpact(module, 10.5f);
 
-class P5DeathOfTheHeavensGaze(BossModule module) : DragonsGaze(module, OID.BossP5);
+class P5DeathOfTheHeavensGaze(BossModule module) : DragonsGaze(module, OID.BossP5, 23.5f);
 
 // TODO: make more meaningful somehow
 class P5DeathOfTheHeavensDooms(BossModule module) : BossComponent(module)
