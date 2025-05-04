@@ -126,6 +126,13 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, AID.Dar
             hints.Add($"Arrows for: {(_ordersWithArrows.Any() ? string.Join(", ", _ordersWithArrows.SetBits()) : "none")}");
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // TODO: forbidden directions
+    }
+
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => _playerStates[playerSlot].JumpOrder == CurrentBaitOrder() ? PlayerPriority.Interesting : PlayerPriority.Normal;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
