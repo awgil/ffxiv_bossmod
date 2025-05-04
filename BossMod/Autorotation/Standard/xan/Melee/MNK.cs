@@ -596,7 +596,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         switch (strategy.Simple(Track.BH))
         {
             case OffensiveStrategy.Automatic:
-                if (HaveTarget && (CombatTimer > 10 || BeastCount == 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
+                if (HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
                     PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
                 break;
             case OffensiveStrategy.Force:
