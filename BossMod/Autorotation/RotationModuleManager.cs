@@ -95,7 +95,7 @@ public sealed class RotationModuleManager : IDisposable
         }
 
         // rebuild modules if needed
-        _activeModules ??= Presets.Count > 0 ? Presets.SelectMany((p, i) => RebuildActiveModules(p.Modules, i)).ToList() : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules, 0) : [];
+        _activeModules ??= Presets.Count > 0 ? [.. Presets.SelectMany((p, i) => RebuildActiveModules(p.Modules, i))] : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules, 0) : [];
 
         _activeModules?.SortBy(m => m.module.Definition.Order);
 
