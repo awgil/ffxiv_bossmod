@@ -263,8 +263,12 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
                 if (MP >= f4Cost)
                 {
-                    if (MP < f4Cost * 2 && Paradox)
+                    if (MP < f4Cost * 2 && Paradox && AstralSoul < 5)
                         PushGCD(AID.Paradox, primaryTarget);
+
+                    // TODO despair used to be optimal at <2400 MP, but now we have to worry about losing an astral soul stack
+                    //if (MP < f4Cost + 800 && !CanWeave(AID.Manafont, 1))
+                    //    PushGCD(AID.Despair, primaryTarget);
 
                     PushGCD(AID.Fire4, primaryTarget);
                 }
@@ -474,9 +478,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     private void Choose(AID st, AID aoe, Enemy? primaryTarget, int additionalPrio = 0)
     {
         if (NumAOETargets >= AOEBreakpoint && Unlocked(aoe))
-            PushGCD(aoe, BestAOETarget, additionalPrio + 1);
+            PushGCD(aoe, BestAOETarget, additionalPrio + 2);
         else
-            PushGCD(st, primaryTarget, additionalPrio + 1);
+            PushGCD(st, primaryTarget, additionalPrio + 2);
     }
 
     private void TryInstantCast(StrategyValues strategy, Enemy? primaryTarget, bool useFirestarter = true, bool useThunderhead = true, bool usePolyglot = true)

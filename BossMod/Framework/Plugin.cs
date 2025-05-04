@@ -175,9 +175,17 @@ public sealed class Plugin : IDalamudPlugin
     {
         void SetOrToggle(Preset preset, bool toggle)
         {
-            var newPreset = toggle && _rotation.Preset == preset ? null : preset;
-            Service.Log($"Console: {(toggle ? "toggle" : "set")} changes preset from '{_rotation.Preset?.Name ?? "<n/a>"}' to '{newPreset?.Name ?? "<n/a>"}'");
-            _rotation.Preset = newPreset;
+            if (toggle)
+            {
+                var verb = _rotation.Presets.Contains(preset) ? "disables" : "enables";
+                Service.Log($"Console: toggle {verb} preset '{preset.Name}'");
+                _rotation.Toggle(preset);
+            }
+            else
+            {
+                Service.Log($"Console: set activates preset '{preset.Name}'");
+                _rotation.Activate(preset);
+            }
         }
 
         void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle)
@@ -189,20 +197,37 @@ public sealed class Plugin : IDalamudPlugin
                 Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
         }
 
+        void ClearByName(ReadOnlySpan<char> presetName)
+        {
+            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
+            if (preset != null)
+            {
+                Service.Log($"Console: unset deactivates preset '{preset.Name}'");
+                _rotation.Deactivate(preset);
+            }
+            else
+                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
+        }
+
         cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
         cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
         {
-            Service.Log($"Console: clearing autorotation preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
-            _rotation.Preset = null;
+            Service.Log($"Console: clearing autorotation preset(s) '{_rotation.PresetNames}'");
+            _rotation.Clear();
         });
         cmd.AddSubcommand("disable").SetSimpleHandler("force disable autorotation; no actions will be executed automatically even if plan is active", () =>
         {
-            Service.Log($"Console: force-disabling from preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
-            _rotation.Preset = RotationModuleManager.ForceDisable;
+            Service.Log($"Console: force-disabling from presets '{_rotation.PresetNames}'");
+            _rotation.SetForceDisabled();
         });
         cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset", preset =>
         {
             SetOrToggleByName(preset, false);
+            return true;
+        });
+        cmd.AddSubcommand("unset").SetComplexHandler("<preset>", "stop executing specified preset", preset =>
+        {
+            ClearByName(preset);
             return true;
         });
         var toggle = cmd.AddSubcommand("toggle");

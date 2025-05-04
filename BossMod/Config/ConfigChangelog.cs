@@ -13,18 +13,18 @@ abstract class ChangelogNotice
 {
     public abstract Version Since { get; }
     public abstract void Draw();
-}
 
-class AIMigrationNotice : ChangelogNotice
-{
-    public override Version Since => new(0, 0, 0, 289);
-
-    private void Bullet(string txt)
+    protected void Bullet(string txt)
     {
         ImGui.Bullet();
         ImGui.SameLine();
         ImGui.TextWrapped(txt);
     }
+}
+
+class AIMigrationNotice : ChangelogNotice
+{
+    public override Version Since => new(0, 0, 0, 289);
 
     public override void Draw()
     {
@@ -44,6 +44,17 @@ class AIMigrationNotice : ChangelogNotice
                 Service.Log($"Error opening link: {e}");
             }
         }
+    }
+}
+
+class MultiPresetNotice : ChangelogNotice
+{
+    public override Version Since => new(0, 2, 2, 0);
+
+    public override void Draw()
+    {
+        ImGui.TextWrapped("You can now enable multiple presets at once.");
+        Bullet("A new built-in preset has been added - VBM AI. This provides the same functionality as the legacy AI feature. It will try to dodge AOEs and automatically target enemies.");
     }
 }
 

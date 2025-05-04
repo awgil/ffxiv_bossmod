@@ -71,8 +71,8 @@ class Hellpounce(BossModule module) : Components.GenericAOEs(module, AID.Hellpou
 }
 
 class LionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.LionsBreathAOE, new AOEShapeCone(60, 45.Degrees()));
-class DragonsBreathR(BossModule module) : Components.SelfTargetedAOEs(module, AID.DragonsBreathAOER, new AOEShapeCone(60, 36.Degrees(), -10.Degrees())); // TODO: verify; there should not be an offset in reality here...
-class DragonsBreathL(BossModule module) : Components.SelfTargetedAOEs(module, AID.DragonsBreathAOEL, new AOEShapeCone(60, 36.Degrees(), 10.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class DragonsBreathR(BossModule module) : Components.StandardAOEs(module, AID.DragonsBreathAOER, new AOEShapeCone(60, 30.Degrees()));
+class DragonsBreathL(BossModule module) : Components.StandardAOEs(module, AID.DragonsBreathAOEL, new AOEShapeCone(60, 30.Degrees()));
 class VoidTornado(BossModule module) : Components.CastHint(module, AID.VoidTornado, "Set hp to 1");
 
 class VoidQuake(BossModule module) : Components.GenericAOEs(module) //this concentric AOE can happen forwards or backwards in order with the same AID as the starter

@@ -152,7 +152,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         // other utils
         def.Define(Track.TC).As<TCStrategy>("TC", uiPriority: 69)
             .AddOption(TCStrategy.None, "Do not use", minLevel: 35)
-            .AddOption(TCStrategy.GapClose, "Use if outside melee range", minLevel: 35)
+            .AddOption(TCStrategy.GapClose, "Use if outside melee range", minLevel: 35, supportedTargets: ActionTargets.Party | ActionTargets.Hostile)
             .AddAssociatedActions(AID.Thunderclap);
 
         def.Define(Track.Potion).As<PotionStrategy>("Pot", uiPriority: 59)
@@ -582,8 +582,13 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC);
         }
 
-        if (strategy.Option(Track.TC).As<TCStrategy>() == TCStrategy.GapClose && Player.DistanceToHitbox(primaryTarget) is > 3 and < 25)
-            PushOGCD(AID.Thunderclap, primaryTarget, OGCDPriority.TrueNorth);
+        var tc = strategy.Option(Track.TC);
+        if (tc.As<TCStrategy>() == TCStrategy.GapClose)
+        {
+            var tcTarget = ResolveTargetOverride(tc.Value) ?? primaryTarget?.Actor;
+            if (Player.DistanceToHitbox(tcTarget) is > 3 and < 25)
+                PushOGCD(AID.Thunderclap, tcTarget, OGCDPriority.TrueNorth);
+        }
     }
 
     private void Brotherhood(StrategyValues strategy, Enemy? primaryTarget)
@@ -591,7 +596,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         switch (strategy.Simple(Track.BH))
         {
             case OffensiveStrategy.Automatic:
-                if (HaveTarget && (CombatTimer > 10 || BeastCount == 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
+                if (HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
                     PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
                 break;
             case OffensiveStrategy.Force:
