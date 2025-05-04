@@ -32,11 +32,11 @@ public sealed class StayAwayFromTarget(RotationModuleManager manager, Actor play
         if (primaryTarget != null)
         {
             var realDistance = strategy.Option(Tracks.Distance).Value.Option / 10f + primaryTarget.HitboxRadius;
-            var sqDist = 4 * realDistance * realDistance; // 4x to make .25 prio
+            var sqDist = 2 * realDistance * realDistance; // 2x to make .5 prio
             var tagetPosition = primaryTarget.Position;
             // No hard cut because this can conflict with stay close to target.
             // by assigning a smaller scaling amount to the middle it will still attempt to get near the edge.
-            Hints.GoalZones.Add(p => MathF.Min(.25f, (tagetPosition - p).LengthSq() / sqDist));
+            Hints.GoalZones.Add(p => MathF.Min(.5f, MathF.Round((tagetPosition - p).LengthSq() / sqDist, 1)));
         }
     }
 }
