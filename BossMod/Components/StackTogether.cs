@@ -20,6 +20,7 @@ public class StackTogether(BossModule module, uint iconId, float activationDelay
         }
     }
 
+    // this type of mechanic is usually only indicated by an icon (which has a fixed animation length) and we only get a cast event from the server if someone fails the mechanic, so we just have to make an educated guess of when the mechanic has resolved
     public override void Update()
     {
         if (Activation != default && Activation < WorldState.CurrentTime)
