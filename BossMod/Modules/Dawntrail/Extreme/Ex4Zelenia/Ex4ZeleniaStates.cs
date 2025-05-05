@@ -6,7 +6,7 @@ class ZeleniaStates : StateMachineBuilder
     {
         SimplePhase(0, Phase1, "P1")
             .ActivateOnEnter<ThornedCatharsis>()
-            .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => !Module.PrimaryActor.IsTargetable || Module.PrimaryActor.IsDeadOrDestroyed;
 
         SimplePhase(1, AddsPhase, "Adds")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
