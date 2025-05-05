@@ -173,26 +173,26 @@ public sealed class Plugin : IDalamudPlugin
 
     private void RegisterAutorotationSlashCommands(SlashCommandHandler cmd)
     {
-        void SetOrToggle(Preset preset, bool toggle)
+        void SetOrToggle(Preset preset, bool toggle, bool exclusive)
         {
             if (toggle)
             {
                 var verb = _rotation.Presets.Contains(preset) ? "disables" : "enables";
                 Service.Log($"Console: toggle {verb} preset '{preset.Name}'");
-                _rotation.Toggle(preset);
+                _rotation.Toggle(preset, exclusive);
             }
             else
             {
                 Service.Log($"Console: set activates preset '{preset.Name}'");
-                _rotation.Activate(preset);
+                _rotation.Activate(preset, exclusive);
             }
         }
 
-        void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle)
+        void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle, bool exclusive)
         {
             var preset = _rotation.Database.Presets.FindPresetByName(presetName);
             if (preset != null)
-                SetOrToggle(preset, toggle);
+                SetOrToggle(preset, toggle, exclusive);
             else
                 Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
         }
@@ -220,21 +220,32 @@ public sealed class Plugin : IDalamudPlugin
             Service.Log($"Console: force-disabling from presets '{_rotation.PresetNames}'");
             _rotation.SetForceDisabled();
         });
-        cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset", preset =>
+        cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset, and deactivate others", preset =>
         {
-            SetOrToggleByName(preset, false);
+            SetOrToggleByName(preset, false, true);
             return true;
         });
-        cmd.AddSubcommand("unset").SetComplexHandler("<preset>", "stop executing specified preset", preset =>
+        var toggle = cmd.AddSubcommand("toggle");
+        toggle.SetSimpleHandler("force disable autorotation if not already; otherwise clear overrides", () => SetOrToggle(RotationModuleManager.ForceDisable, true, true));
+        toggle.SetComplexHandler("<preset>", "start executing specified preset unless it's already active; clear otherwise", preset =>
+        {
+            SetOrToggleByName(preset, true, true);
+            return true;
+        });
+
+        cmd.AddSubcommand("activate").SetComplexHandler("<preset>", "add specified preset to active list", preset =>
+        {
+            SetOrToggleByName(preset, false, false);
+            return true;
+        });
+        cmd.AddSubcommand("deactivate").SetComplexHandler("<preset>", "remove specified preset from active list", preset =>
         {
             ClearByName(preset);
             return true;
         });
-        var toggle = cmd.AddSubcommand("toggle");
-        toggle.SetSimpleHandler("force disable autorotation if not already; otherwise clear overrides", () => SetOrToggle(RotationModuleManager.ForceDisable, true));
-        toggle.SetComplexHandler("<preset>", "start executing specified preset unless it's already active; clear otherwise", preset =>
+        cmd.AddSubcommand("togglemulti").SetComplexHandler("<preset>", "if specified preset is in active list, disable it, otherwise enable it", preset =>
         {
-            SetOrToggleByName(preset, true);
+            SetOrToggleByName(preset, true, false);
             return true;
         });
     }
