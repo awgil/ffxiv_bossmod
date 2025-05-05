@@ -138,9 +138,11 @@ public sealed class RotationModuleManager : IDisposable
 
     public IEnumerable<Type> DuplicateModules => ActiveModulesFlat.GroupBy(m => m.Module.GetType()).Where(x => x.Skip(1).Any()).Select(p => p.Key);
 
-    public void Activate(Preset p)
+    public void Activate(Preset p, bool exclusive = false)
     {
         var dirty = Presets.Remove(ForceDisable);
+        if (exclusive)
+            Presets.Clear();
         if (!Presets.Contains(p))
         {
             Presets.Add(p);
@@ -155,11 +157,15 @@ public sealed class RotationModuleManager : IDisposable
             DirtyActiveModules(true);
     }
 
-    public void Toggle(Preset p)
+    public void Toggle(Preset p, bool exclusive = false)
     {
         Presets.Remove(ForceDisable);
         if (!Presets.Remove(p))
+        {
+            if (exclusive)
+                Presets.Clear();
             Presets.Add(p);
+        }
         DirtyActiveModules(true);
     }
 

@@ -49,12 +49,13 @@ class AIMigrationNotice : ChangelogNotice
 
 class MultiPresetNotice : ChangelogNotice
 {
-    public override Version Since => new(0, 2, 2, 0);
+    public override Version Since => new(0, 2, 3, 0);
 
     public override void Draw()
     {
         ImGui.TextWrapped("You can now enable multiple presets at once.");
         Bullet("A new built-in preset has been added - VBM AI. This provides the same functionality as the legacy AI feature. It will try to dodge AOEs and automatically target enemies.");
+        Bullet("The existing /vbm ar commands have unchanged behavior. For example, /vbm ar set <preset> will enable the given preset and disable all others. To use multi-preset functionality, you can use the new subcommands 'activate', 'deactivate', and 'togglemulti'.");
     }
 }
 
