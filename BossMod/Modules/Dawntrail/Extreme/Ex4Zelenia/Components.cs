@@ -88,16 +88,20 @@ class AlexandrianThunderII(BossModule module) : Components.GenericRotatingAOE(mo
         {
             case IconID.ThunderCCW:
                 Rotation = 10.Degrees();
+                for (var i = 0; i < Sequences.Count; i++)
+                    Sequences.Ref(i).Rotation = Rotation;
                 break;
             case IconID.ThunderCW:
                 Rotation = -10.Degrees();
+                for (var i = 0; i < Sequences.Count; i++)
+                    Sequences.Ref(i).Rotation = Rotation;
                 break;
         }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.AlexandrianThunderIIStart && Rotation != default)
+        if ((AID)spell.Action.ID == AID.AlexandrianThunderIIStart)
             Sequences.Add(new(new AOEShapeCone(24, 22.5f.Degrees()), caster.Position, caster.Rotation, Rotation, Module.CastFinishAt(spell), 1, 15));
     }
 
