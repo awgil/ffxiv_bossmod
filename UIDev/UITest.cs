@@ -45,7 +45,7 @@ class UITest
         using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, windowInfo);
         scene.Renderer.ClearColor = new Vector4(0, 0, 0, 0);
 
-        InitializeDalamudStyle();
+        InitDalamud();
 
         Service.LogHandlerDebug = msg => Debug.WriteLine(msg);
         Service.LogHandlerVerbose = msg => Debug.WriteLine(msg);
@@ -93,8 +93,17 @@ class UITest
         ActionDefinitions.Instance.Dispose();
     }
 
-    private static unsafe void InitializeDalamudStyle()
+    private static unsafe void InitDalamud()
     {
+        // we have to manually provide a singleton instance of ServiceContainer, otherwise WindowSystem.Draw() will deadlock
+        var dala = Assembly.GetAssembly(typeof(Dalamud.Game.ActionKind))!;
+        var wrapper = dala.GetType("Dalamud.Service`1[Dalamud.IoC.Internal.ServiceContainer]")!;
+        var cont = dala.GetType("Dalamud.IoC.Internal.ServiceContainer")!;
+
+        var provideFn = wrapper.GetMethod("Provide", BindingFlags.Static | BindingFlags.Public);
+        var inst = Activator.CreateInstance(cont);
+        provideFn!.Invoke(null, [inst]);
+
         // all of this is taken straight from dalamud
         ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
         fontConfig.MergeMode = true;
