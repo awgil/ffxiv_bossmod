@@ -111,19 +111,12 @@ public sealed class Plugin : IDalamudPlugin
         dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
         RegisterSlashCommands();
 
-        _cmd = commandManager;
-        _cmd.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(VbmaiHandler)
-        {
-            HelpMessage = "Deprecated"
-        });
-
         _ = new ConfigChangelogWindow();
     }
 
     public void Dispose()
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
-        _cmd.RemoveHandler("/vbmai");
         _wndDebug.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
