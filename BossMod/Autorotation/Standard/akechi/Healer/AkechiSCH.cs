@@ -95,7 +95,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         var gauge = World.Client.GetGauge<ScholarGauge>(); //Retrieve Scholar gauge
         Aetherflow.Stacks = gauge.Aetherflow; //Current Aetherflow stacks
         Aetherflow.IsActive = Aetherflow.Stacks > 0; //Checks if Aetherflow is available
-        Aetherflow.CD = TotalCD(AID.Aetherflow);
+        Aetherflow.CD = CDRemaining(AID.Aetherflow);
         bioLeft = StatusRemaining(BestDOTTargets?.Actor, BestDOT);
         stratagemLeft = StatusRemaining(BestDOTTargets?.Actor, SID.ChainStratagem);
         canCS = ActionReady(AID.ChainStratagem); //Chain Stratagem is available
@@ -152,7 +152,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             QueueOGCD(AID.EnergyDrain, TargetChoice(ed) ?? primaryTarget?.Actor, edStrat is EnergyStrategy.Force ? OGCDPriority.Forced : OGCDPriority.Average);
         if (MP <= 9000 && CanWeaveIn && ActionReady(AID.LucidDreaming))
             QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average);
-        if ((potion is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.ChainStratagem) < 5) || potion is PotionStrategy.Immediate)
+        if ((potion is PotionStrategy.AlignWithRaidBuffs && CDRemaining(AID.ChainStratagem) < 5) || potion is PotionStrategy.Immediate)
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
         #endregion
 

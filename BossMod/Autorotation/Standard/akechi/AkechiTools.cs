@@ -311,8 +311,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         var res = ActionDefinitions.Instance[ActionID.MakeSpell(aid)]!;
         return SkS > 100
-            ? CanSpellWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay)
-            : SpS > 100 && CanWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
+            ? CanSpellWeave(ReadyIn(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay)
+            : SpS > 100 && CanWeave(ReadyIn(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
     }
 
     /// <summary>Checks if user is in <b>pre-pull</b> stage.</summary>
@@ -331,33 +331,29 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool CanQuarterWeaveIn => GCD is < 1f and >= 0.6f;
 
     /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
-    protected bool InOddWindow(AID aid) => TotalCD(aid) is < 90 and > 30;
+    protected bool InOddWindow(AID aid) => CDRemaining(aid) is < 90 and > 30;
     #endregion
 
     #region Cooldown
     /// <summary>Retrieves the total <b>cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float TotalCD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    protected float CDRemaining(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
     /// <summary>Returns the <b>charge cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float ChargeCD(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
+    protected float ReadyIn(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
     /// <summary>Checks if <b>action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool ActionReady(AID aid) => Unlocked(aid) && IsOffCooldown(aid);
+    protected bool ActionReady(AID aid) => Unlocked(aid) && CDRemaining(aid) < 0.6f; //deprecated
 
-    /// <summary>Checks if <b>action</b> has any <b>charges</b> remaining. </summary>
+    /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool HasCharges(AID aid) => ChargeCD(aid) < 0.6f;
+    protected bool GCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) < GCD;
 
-    /// <summary>Checks if <b>action</b> is on <b>cooldown</b> based on its <b>total cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool IsOnCooldown(AID aid) => TotalCD(aid) > 0.6f;
-
-    /// <summary>Checks if <b>action</b> is off <b>cooldown</b> based on its <b>total cooldown timer</b>. </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool IsOffCooldown(AID aid) => !IsOnCooldown(aid);
+    protected bool OGCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 2.0f;
 
     /// <summary>Checks if <b>action</b> is off <b>cooldown</b> based on its <b>charge cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>

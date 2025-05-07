@@ -72,10 +72,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Xenoglossy, AID.Foul);
         res.Define(Track.Manafont).As<ManafontStrategy>("Manafont", "M.font", uiPriority: 165)
             .AddOption(ManafontStrategy.Automatic, "Auto", "Automatically decide when to use Manafont", 0, 0, ActionTargets.Self, 30)
-            .AddOption(ManafontStrategy.Force, "Force", "Force the use of Manafont (180s TotalCD), regardless of weaving conditions", 180, 0, ActionTargets.Self, 30, 83)
-            .AddOption(ManafontStrategy.ForceWeave, "ForceWeave", "Force the use of Manafont (180s TotalCD) in any next possible weave slot", 180, 0, ActionTargets.Self, 30, 83)
-            .AddOption(ManafontStrategy.ForceEX, "ForceEX", "Force the use of Manafont (100s TotalCD), regardless of weaving conditions", 100, 0, ActionTargets.Self, 84)
-            .AddOption(ManafontStrategy.ForceWeaveEX, "ForceWeaveEX", "Force the use of Manafont (100s TotalCD) in any next possible weave slot", 100, 0, ActionTargets.Self, 84)
+            .AddOption(ManafontStrategy.Force, "Force", "Force the use of Manafont (180s CDRemaining), regardless of weaving conditions", 180, 0, ActionTargets.Self, 30, 83)
+            .AddOption(ManafontStrategy.ForceWeave, "ForceWeave", "Force the use of Manafont (180s CDRemaining) in any next possible weave slot", 180, 0, ActionTargets.Self, 30, 83)
+            .AddOption(ManafontStrategy.ForceEX, "ForceEX", "Force the use of Manafont (100s CDRemaining), regardless of weaving conditions", 100, 0, ActionTargets.Self, 84)
+            .AddOption(ManafontStrategy.ForceWeaveEX, "ForceWeaveEX", "Force the use of Manafont (100s CDRemaining) in any next possible weave slot", 100, 0, ActionTargets.Self, 84)
             .AddOption(ManafontStrategy.Delay, "Delay", "Delay the use of Manafont for strategic reasons", 0, 0, ActionTargets.Self, 30)
             .AddAssociatedActions(AID.Manafont);
         res.Define(Track.Triplecast).As<TriplecastStrategy>("T.cast", uiPriority: 170)
@@ -267,9 +267,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         canFoul = Unlocked(AID.Foul) && Polyglots > 0; //Can use Foul
         canXeno = Unlocked(AID.Xenoglossy) && Polyglots > 0; //Can use Xenoglossy
         canParadox = Unlocked(AID.Paradox) && ParadoxActive; //Can use Paradox
-        canLL = Unlocked(AID.LeyLines) && TotalCD(AID.LeyLines) <= 120 && SelfStatusLeft(SID.LeyLines, 30) == 0; //Can use Ley Lines
+        canLL = Unlocked(AID.LeyLines) && CDRemaining(AID.LeyLines) <= 120 && SelfStatusLeft(SID.LeyLines, 30) == 0; //Can use Ley Lines
         canAmp = ActionReady(AID.Amplifier); //Can use Amplifier
-        canTC = Unlocked(AID.Triplecast) && TotalCD(AID.Triplecast) <= 60 && SelfStatusLeft(SID.Triplecast) == 0; //Can use Triplecast
+        canTC = Unlocked(AID.Triplecast) && CDRemaining(AID.Triplecast) <= 60 && SelfStatusLeft(SID.Triplecast) == 0; //Can use Triplecast
         canMF = ActionReady(AID.Manafont); //Can use Manafont
         canRetrace = ActionReady(AID.Retrace) && PlayerHasEffect(SID.LeyLines, 30); //Can use Retrace
         canBTL = ActionReady(AID.BetweenTheLines) && PlayerHasEffect(SID.LeyLines, 30); //Can use Between the Lines
@@ -288,10 +288,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         (BestDOTTargets, thunderLeft) = GetDOTTarget(primaryTarget, ThunderRemaining, 2);
         BestSplashTarget = ShouldUseAOE ? BestSplashTargets : primaryTarget;
         BestDOTTarget = ShouldUseAOEDOT ? BestSplashTargets : ShouldUseSTDOT ? BestDOTTargets : primaryTarget;
-        canOpen = TotalCD(AID.LeyLines) <= 120
-                && TotalCD(AID.Triplecast) <= 0.1f
-                && TotalCD(AID.Manafont) <= 0.1f
-                && TotalCD(AID.Amplifier) <= 0.1f;
+        canOpen = CDRemaining(AID.LeyLines) <= 120
+                && CDRemaining(AID.Triplecast) <= 0.1f
+                && CDRemaining(AID.Manafont) <= 0.1f
+                && CDRemaining(AID.Amplifier) <= 0.1f;
 
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE); //AOE track
@@ -379,7 +379,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             {
                 if (!Unlocked(AID.UmbralSoul))
                 {
-                    if (TotalCD(AID.Transpose) < 0.6f &&
+                    if (CDRemaining(AID.Transpose) < 0.6f &&
                         (InAstralFire || InUmbralIce))
                         QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose);
                 }
@@ -518,7 +518,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 Player,
                 NewOGCDPriority.ForcedOGCD);
         //Potion
-        if (potionStrat is PotionStrategy.AlignWithRaidBuffs && TotalCD(AID.LeyLines) < 5 ||
+        if (potionStrat is PotionStrategy.AlignWithRaidBuffs && CDRemaining(AID.LeyLines) < 5 ||
             potionStrat is PotionStrategy.Immediate)
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.VeryHigh + (int)NewOGCDPriority.Potion, 0, GCD - 0.9f);
         #endregion
@@ -549,7 +549,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     if (MP < 9600 && Player.InCombat) //if Blizzard III is unlocked
                         QueueGCD(AID.Blizzard3, target, NewGCDPriority.NeedB3); //Queue Blizzard III
                     if (Unlocked(AID.Fire3) &&
-                        (TotalCD(AID.Manafont) < 5 && TotalCD(AID.LeyLines) <= 121 && MP >= 10000 || !Player.InCombat && World.Client.CountdownRemaining <= 4)) //F3 opener
+                        (CDRemaining(AID.Manafont) < 5 && CDRemaining(AID.LeyLines) <= 121 && MP >= 10000 || !Player.InCombat && World.Client.CountdownRemaining <= 4)) //F3 opener
                         QueueGCD(AID.Fire3, target, canOpen ? NewGCDPriority.Opener : NewGCDPriority.NeedB3);
                 }
             }
@@ -1044,7 +1044,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         PolyglotStrategy.AutoSpendAll => target != null && UsePolyglots(),
         PolyglotStrategy.AutoHold1 => target != null && Polyglots > 1 && UsePolyglots(),
         PolyglotStrategy.AutoHold2 => target != null && Polyglots > 2 && UsePolyglots(),
-        PolyglotStrategy.AutoHold3 => Player.InCombat && target != null && Polyglots == MaxPolyglots && (EnochianTimer <= 10000f || TotalCD(AID.Amplifier) < GCD),
+        PolyglotStrategy.AutoHold3 => Player.InCombat && target != null && Polyglots == MaxPolyglots && (EnochianTimer <= 10000f || CDRemaining(AID.Amplifier) < GCD),
         _ => false
     };
     private bool UsePolyglots()
@@ -1052,10 +1052,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         if (Polyglots > 0)
         {
             if (Player.InCombat &&
-                ((TotalCD(AID.Triplecast) < 5 || TotalCD(AID.Triplecast) <= 60 && TotalCD(AID.Triplecast) >= 65) && PlayerHasEffect(SID.LeyLines, 30) || //Triplecast prep
-                TotalCD(AID.LeyLines) < 5 || TotalCD(AID.LeyLines) == 0 || TotalCD(AID.LeyLines) <= 125 && TotalCD(AID.LeyLines) >= 119 || //Ley Lines prep
-                TotalCD(AID.Amplifier) < 0.6f || //Amplifier prep
-                TotalCD(AID.Manafont) < 0.6f && MP < 1600)) //Manafont prep
+                ((CDRemaining(AID.Triplecast) < 5 || CDRemaining(AID.Triplecast) <= 60 && CDRemaining(AID.Triplecast) >= 65) && PlayerHasEffect(SID.LeyLines, 30) || //Triplecast prep
+                CDRemaining(AID.LeyLines) < 5 || CDRemaining(AID.LeyLines) == 0 || CDRemaining(AID.LeyLines) <= 125 && CDRemaining(AID.LeyLines) >= 119 || //Ley Lines prep
+                CDRemaining(AID.Amplifier) < 0.6f || //Amplifier prep
+                CDRemaining(AID.Manafont) < 0.6f && MP < 1600)) //Manafont prep
                 return true;
         }
         return false;
@@ -1075,9 +1075,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     {
         LeyLinesStrategy.Automatic => Player.InCombat && target != null && canLL && CanWeaveIn,
         LeyLinesStrategy.Force => Player.InCombat && canLL,
-        LeyLinesStrategy.Force1 => Player.InCombat && canLL && TotalCD(AID.LeyLines) < SpSGCDLength * 2,
+        LeyLinesStrategy.Force1 => Player.InCombat && canLL && CDRemaining(AID.LeyLines) < SpSGCDLength * 2,
         LeyLinesStrategy.ForceWeave => Player.InCombat && canLL && CanWeaveIn,
-        LeyLinesStrategy.ForceWeave1 => Player.InCombat && canLL && CanWeaveIn && TotalCD(AID.LeyLines) < SpSGCDLength * 2,
+        LeyLinesStrategy.ForceWeave1 => Player.InCombat && canLL && CanWeaveIn && CDRemaining(AID.LeyLines) < SpSGCDLength * 2,
         _ => false
     };
     private bool ShouldUseAmplifier(Actor? target, OGCDStrategy strategy) => strategy switch
@@ -1118,9 +1118,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     {
         TriplecastStrategy.Automatic => Player.InCombat && target != null && canTC && CanWeaveIn && InAstralFire && PlayerHasEffect(SID.LeyLines, 30),
         TriplecastStrategy.Force => Player.InCombat && canTC,
-        TriplecastStrategy.Force1 => Player.InCombat && canTC && TotalCD(AID.Triplecast) < SpSGCDLength * 2,
+        TriplecastStrategy.Force1 => Player.InCombat && canTC && CDRemaining(AID.Triplecast) < SpSGCDLength * 2,
         TriplecastStrategy.ForceWeave => Player.InCombat && canTC && CanWeaveIn,
-        TriplecastStrategy.ForceWeave1 => Player.InCombat && canTC && CanWeaveIn && TotalCD(AID.Triplecast) < SpSGCDLength * 2,
+        TriplecastStrategy.ForceWeave1 => Player.InCombat && canTC && CanWeaveIn && CDRemaining(AID.Triplecast) < SpSGCDLength * 2,
         _ => false
     };
     #endregion

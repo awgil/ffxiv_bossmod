@@ -131,7 +131,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         #region Variables
         var gauge = World.Client.GetGauge<GunbreakerGauge>();
         var GunStep = gauge.AmmoComboStep;
-        rdCD = TotalCD(AID.RoughDividePvP);
+        rdCD = CDRemaining(AID.RoughDividePvP);
         nmLeft = StatusRemaining(Player, SID.NoMercyPvP, 7);
         hasNM = nmLeft > 0;
         hasBlast = PlayerHasEffect(SID.ReadyToBlastPvP);
@@ -160,9 +160,9 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         var burst = strategy.Option(Track.Burst);
         var burstStrategy = burst.As<BurstStrategy>();
         var hold = burstStrategy == BurstStrategy.Hold;
-        canGF = IsOffCooldown(AID.GnashingFangPvP);
-        canFC = IsOffCooldown(AID.GnashingFangPvP);
-        canZone = IsOffCooldown(AID.BlastingZonePvP);
+        canGF = GCDReady(AID.GnashingFangPvP);
+        canFC = GCDReady(AID.GnashingFangPvP);
+        canZone = GCDReady(AID.BlastingZonePvP);
         canHyper = hasBlast && In5y(PlayerTarget?.Actor);
         canBrand = hasRaze && In5y(PlayerTarget?.Actor);
         canRip = hasRip && In5y(PlayerTarget?.Actor);

@@ -189,7 +189,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var open = ((fast && CombatTimer < 30 && ComboLastMove is AID.BrutalShell) ||
                    (slow && CombatTimer < 30 && ComboLastMove is AID.KeenEdge) ||
                    CombatTimer >= 30);
-        var burst = speed && Ammo >= 2 && (((Unlocked(AID.DoubleDown) && TotalCD(AID.DoubleDown) <= 3) || !Unlocked(AID.DoubleDown)) && ((Unlocked(AID.GnashingFang) && TotalCD(AID.GnashingFang) <= 1) || !Unlocked(AID.GnashingFang)));
+        var burst = speed && Ammo >= 2 && (((Unlocked(AID.DoubleDown) && CDRemaining(AID.DoubleDown) <= 3) || !Unlocked(AID.DoubleDown)) && ((Unlocked(AID.GnashingFang) && CDRemaining(AID.GnashingFang) <= 1) || !Unlocked(AID.GnashingFang)));
         return strategy switch
         {
             NoMercyStrategy.Automatic => InsideCombatWith(target) && In5y(target) && open && (Unlocked(AID.DoubleDown) ? lv90plus : lv1to89),
@@ -382,8 +382,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         Ammo = gauge.Ammo;
         GunComboStep = gauge.AmmoComboStep;
         MaxCartridges = Unlocked(TraitID.CartridgeChargeII) ? 3 : 2;
-        BFcd = TotalCD(AID.Bloodfest);
-        NMcd = TotalCD(AID.NoMercy);
+        BFcd = CDRemaining(AID.Bloodfest);
+        NMcd = CDRemaining(AID.NoMercy);
         HasNM = NMcd is >= 39.5f and <= 60;
         HasBlast = Unlocked(AID.Hypervelocity) && PlayerHasEffect(SID.ReadyToBlast, 10f) && !LastActionUsed(AID.Hypervelocity);
         HasRaze = Unlocked(AID.FatedBrand) && PlayerHasEffect(SID.ReadyToRaze, 10f) && !LastActionUsed(AID.FatedBrand);

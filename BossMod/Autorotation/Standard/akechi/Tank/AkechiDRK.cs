@@ -101,7 +101,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private (float CD, bool IsReady) CarveAndSpit;
     private (ushort Step, float Left, int Stacks, float CD, bool IsActive, bool IsReady) Delirium;
     private (float Timer, float CD, bool IsActive, bool IsReady) LivingShadow;
-    private (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Shadowbringer;
+    private (float CDRemaining, float ReadyIn, bool HasCharges, bool IsReady) Shadowbringer;
     private (float Left, bool IsActive, bool IsReady) Disesteem;
     private bool Opener;
     private bool ShouldUseAOE;
@@ -233,7 +233,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseSaltAndDarkness(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target?.Actor != null && CanWeaveIn && TotalCD(AID.SaltAndDarkness) < 0.6f && SaltedEarth.IsActive,
+        OGCDStrategy.Automatic => Player.InCombat && target?.Actor != null && CanWeaveIn && CDRemaining(AID.SaltAndDarkness) < 0.6f && SaltedEarth.IsActive,
         OGCDStrategy.Force => SaltedEarth.IsActive,
         OGCDStrategy.AnyWeave => SaltedEarth.IsActive && CanWeaveIn,
         OGCDStrategy.EarlyWeave => SaltedEarth.IsActive && CanEarlyWeaveIn,
@@ -337,12 +337,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         RiskingBlood = ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80 || Delirium.CD <= 3 && Blood >= 70; //Checks if we are risking Blood
         RiskingMP = MP >= 10000 || Darkside.NeedsRefresh;
         SaltedEarth.Left = StatusRemaining(Player, SID.SaltedEarth, 15); //Retrieve current Salted Earth time left
-        SaltedEarth.CD = TotalCD(AID.SaltedEarth); //Retrieve current Salted Earth cooldown
+        SaltedEarth.CD = CDRemaining(AID.SaltedEarth); //Retrieve current Salted Earth cooldown
         SaltedEarth.IsActive = SaltedEarth.Left > 0.1f; //Checks if Salted Earth is active
         SaltedEarth.IsReady = Unlocked(AID.SaltedEarth) && SaltedEarth.CD < 0.6f; //Salted Earth ability
-        AbyssalDrain.CD = TotalCD(AID.AbyssalDrain); //Retrieve current Abyssal Drain cooldown
+        AbyssalDrain.CD = CDRemaining(AID.AbyssalDrain); //Retrieve current Abyssal Drain cooldown
         AbyssalDrain.IsReady = Unlocked(AID.AbyssalDrain) && AbyssalDrain.CD < 0.6f; //Abyssal Drain ability
-        CarveAndSpit.CD = TotalCD(AID.CarveAndSpit); //Retrieve current Carve and Spit cooldown
+        CarveAndSpit.CD = CDRemaining(AID.CarveAndSpit); //Retrieve current Carve and Spit cooldown
         CarveAndSpit.IsReady = Unlocked(AID.CarveAndSpit) && CarveAndSpit.CD < 0.6f; //Carve and Spit ability
         Disesteem.Left = StatusRemaining(Player, SID.Scorn, 30); //Retrieve current Disesteem time left
         Disesteem.IsActive = Disesteem.Left > 0.1f; //Checks if Disesteem is active
@@ -350,16 +350,16 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Delirium.Step = gauge.DeliriumStep; //Retrieve current Delirium combo step
         Delirium.Left = StatusRemaining(Player, BestBloodWeapon, 15); //Retrieve current Delirium time left
         Delirium.Stacks = StacksRemaining(Player, BestBloodWeapon, 15); //Retrieve current Delirium stacks
-        Delirium.CD = TotalCD(BestDelirium); //Retrieve current Delirium cooldown
+        Delirium.CD = CDRemaining(BestDelirium); //Retrieve current Delirium cooldown
         Delirium.IsActive = Delirium.Left > 0.1f; //Checks if Delirium is active
         Delirium.IsReady = Unlocked(BestDelirium) && Delirium.CD < 0.6f; //Delirium ability
         LivingShadow.Timer = gauge.ShadowTimer / 1000f; //Retrieve current Living Shadow timer
-        LivingShadow.CD = TotalCD(AID.LivingShadow); //Retrieve current Living Shadow cooldown
+        LivingShadow.CD = CDRemaining(AID.LivingShadow); //Retrieve current Living Shadow cooldown
         LivingShadow.IsActive = LivingShadow.Timer > 0; //Checks if Living Shadow is active
         LivingShadow.IsReady = Unlocked(AID.LivingShadow) && LivingShadow.CD < 0.6f; //Living Shadow ability
-        Shadowbringer.TotalCD = TotalCD(AID.Shadowbringer); //Retrieve current Shadowbringer cooldown
-        Shadowbringer.ChargeCD = ChargeCD(AID.Shadowbringer); //Retrieve current Shadowbringer charge cooldown
-        Shadowbringer.HasCharges = TotalCD(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
+        Shadowbringer.CDRemaining = CDRemaining(AID.Shadowbringer); //Retrieve current Shadowbringer cooldown
+        Shadowbringer.ReadyIn = ReadyIn(AID.Shadowbringer); //Retrieve current Shadowbringer charge cooldown
+        Shadowbringer.HasCharges = CDRemaining(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
         Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
         Opener = (CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30;
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;

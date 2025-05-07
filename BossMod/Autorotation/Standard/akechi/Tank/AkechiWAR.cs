@@ -118,15 +118,15 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             return NewGCDPriority.LastChanceFC;
 
         var needFCBeforeInf = ncActive || BeastGauge > 50;
-        if (needFCBeforeInf && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) - SkSGCDLength, 1))
+        if (needFCBeforeInf && !CanFitSkSGCD(Infuriate.CDRemaining - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) - SkSGCDLength, 1))
             return NewGCDPriority.AvoidOvercapInfuriateNext;
 
         var numFCBeforeInf = InnerRelease.Stacks + ((ncActive || BeastGauge > 50) ? 1 : 0);
-        if (irActive && !CanFitSkSGCD(InnerRelease.Left, numFCBeforeInf + 1) && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * numFCBeforeInf - SkSGCDLength, numFCBeforeInf))
+        if (irActive && !CanFitSkSGCD(InnerRelease.Left, numFCBeforeInf + 1) && !CanFitSkSGCD(Infuriate.CDRemaining - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * numFCBeforeInf - SkSGCDLength, numFCBeforeInf))
             return NewGCDPriority.AvoidOvercapInfuriateIR;
 
         var imminentIRStacks = ncActive ? 4 : 3;
-        if (needFCBeforeInf && !CanFitSkSGCD(InnerRelease.CD, 1) && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * imminentIRStacks - SkSGCDLength, imminentIRStacks))
+        if (needFCBeforeInf && !CanFitSkSGCD(InnerRelease.CD, 1) && !CanFitSkSGCD(Infuriate.CDRemaining - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * imminentIRStacks - SkSGCDLength, imminentIRStacks))
             return NewGCDPriority.AvoidOvercapInfuriateIR;
 
         if (CanFitSkSGCD(BurstWindowLeft))
@@ -220,7 +220,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public (float Left, bool IsActive, bool IsReady) PrimalWrath;
     public (float Left, bool IsActive, bool IsReady) PrimalRuination;
     public (float Left, bool IsActive, bool NeedsRefresh, bool KeepAt30s) SurgingTempest;
-    public (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Infuriate;
+    public (float CDRemaining, float ReadyIn, bool HasCharges, bool IsReady) Infuriate;
     public (float Left, int Stacks, float CD, bool IsActive, bool IsReady) InnerRelease;
     #endregion
 
@@ -346,7 +346,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             return false;
         if (strategy == InfuriateStrategy.Force)
             return true;
-        if (strategy == InfuriateStrategy.ForceOvercap && Infuriate.TotalCD <= World.Client.AnimationLock)
+        if (strategy == InfuriateStrategy.ForceOvercap && Infuriate.CDRemaining <= World.Client.AnimationLock)
             return true;
 
         if (BeastGauge > 50)
@@ -360,7 +360,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             if (irActive)
                 return true;
 
-            if (!CanFitSkSGCD(Infuriate.TotalCD, 4))
+            if (!CanFitSkSGCD(Infuriate.CDRemaining, 4))
                 return true;
 
             return false;
@@ -384,7 +384,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         {
             maxInfuriateCD += (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0);
         }
-        if (Infuriate.TotalCD < maxInfuriateCD)
+        if (Infuriate.CDRemaining < maxInfuriateCD)
             return true;
 
         if (irActive && unlockedNC)
@@ -470,9 +470,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         SurgingTempest.IsActive = SurgingTempest.Left > 0.1f; //Checks if SurgingTempest is active
         SurgingTempest.KeepAt30s = SurgingTempest.Left <= 30; //Checks if SurgingTempest needs to be refreshed once less than 30s
         SurgingTempest.NeedsRefresh = ShouldRefreshTempest(strategy.Option(Track.SurgingTempest).As<SurgingTempestStrategy>()); //Checks if SurgingTempest needs to be refreshed, roughly 4 GCDs to refresh it 
-        Upheaval.CD = TotalCD(AID.Upheaval); //Retrieve current Upheaval cooldown
+        Upheaval.CD = CDRemaining(AID.Upheaval); //Retrieve current Upheaval cooldown
         Upheaval.IsReady = Unlocked(AID.Upheaval) && Upheaval.CD < 0.6f; //Upheaval ability
-        Orogeny.CD = TotalCD(AID.Orogeny); //Retrieve current Orogeny cooldown
+        Orogeny.CD = CDRemaining(AID.Orogeny); //Retrieve current Orogeny cooldown
         Orogeny.IsReady = Unlocked(AID.Orogeny) && Orogeny.CD < 0.6f; //Orogeny ability
         BurgeoningFury.Stacks = StacksRemaining(Player, SID.BurgeoningFury, 30); //Retrieve current BurgeoningFury stacks
         PrimalRend.Left = StatusRemaining(Player, SID.PrimalRend, 20); //Retrieve current Primal Rend time left
@@ -485,17 +485,17 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         PrimalRuination.IsActive = PrimalRuination.Left > 0.1f; //Checks if Primal Ruination is active
         PrimalRuination.IsReady = Unlocked(AID.PrimalRuination) && PrimalRuination.Left > 0.1f; //Primal Ruination ability
         InnerRelease.Stacks = StacksRemaining(Player, BestBerserk, 15); //Retrieve current InnerRelease stacks
-        InnerRelease.CD = TotalCD(BestInnerRelease); //Retrieve current InnerRelease cooldown
+        InnerRelease.CD = CDRemaining(BestInnerRelease); //Retrieve current InnerRelease cooldown
         InnerRelease.IsActive = InnerRelease.Stacks > 0; //Checks if InnerRelease is active
         InnerRelease.IsReady = Unlocked(BestInnerRelease) && InnerRelease.CD < 0.6f; //InnerRelease ability
         NascentChaos.Left = StatusRemaining(Player, SID.NascentChaos, 30);
         NascentChaos.IsActive = NascentChaos.Left > 0.1f;
-        Onslaught.CD = TotalCD(AID.Onslaught); //Retrieve current Onslaught cooldown
+        Onslaught.CD = CDRemaining(AID.Onslaught); //Retrieve current Onslaught cooldown
         Onslaught.IsReady = Unlocked(AID.Onslaught) && Onslaught.CD < 60.6f; //Onslaught ability
-        Infuriate.TotalCD = TotalCD(AID.Infuriate); //Retrieve current Infuriate cooldown
-        Infuriate.HasCharges = Infuriate.TotalCD <= 60; //Checks if Infuriate has charges
+        Infuriate.CDRemaining = CDRemaining(AID.Infuriate); //Retrieve current Infuriate cooldown
+        Infuriate.HasCharges = Infuriate.CDRemaining <= 60; //Checks if Infuriate has charges
         Infuriate.IsReady = Unlocked(AID.Infuriate) && Infuriate.HasCharges && !PlayerHasEffect(SID.NascentChaos, 30); //Infuriate ability
-        Infuriate.ChargeCD = Infuriate.TotalCD * 0.5f;  // This gives 60s for one charge
+        Infuriate.ReadyIn = Infuriate.CDRemaining * 0.5f;  // This gives 60s for one charge
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
         BurstWindowLeft = (InnerRelease.CD >= 40) ? 1.0f : 0.0f;
         BurstWindowIn = (InnerRelease.CD == 0) ? 1.0f : 0.0f;
@@ -540,10 +540,10 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                 LastActionUsed(AID.Decimate) ||
                 LastActionUsed(AID.InnerChaos) ||
                 LastActionUsed(AID.ChaoticCyclone))
-                Infuriate.TotalCD -= 5f;
-            if (Infuriate.ChargeCD <= 0 &&
-                Infuriate.TotalCD > 0)
-                Infuriate.ChargeCD = 60f;
+                Infuriate.CDRemaining -= 5f;
+            if (Infuriate.ReadyIn <= 0 &&
+                Infuriate.CDRemaining > 0)
+                Infuriate.ReadyIn = 60f;
         }
 
         if (!strategy.HoldEverything())

@@ -319,7 +319,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var lv6to17 = ComboLastMove is AID.TrueThrust;
         var lv18to25 = !Unlocked(AID.FullThrust) && (Unlocked(AID.Disembowel) ? (lv6to17 && !NeedPower) : lv6to17);
         var lv26to88 = (Unlocked(AID.FullThrust) && ComboLastMove is AID.VorpalThrust or AID.LanceBarrage) || (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
-        var lv88plus = HasLC && (TotalCD(AID.LifeSurge) < 40 || TotalCD(AID.BattleLitany) > 50) && lv26to88;
+        var lv88plus = HasLC && (CDRemaining(AID.LifeSurge) < 40 || CDRemaining(AID.BattleLitany) > 50) && lv26to88;
         var st = Unlocked(TraitID.EnhancedLifeSurge) ? lv88plus : (lv26to88 || lv18to25);
         var tt = (CanLC ? HasLC : CanLS) && (Unlocked(AID.ChaosThrust) ? (Unlocked(TraitID.EnhancedLifeSurge) ? ComboLastMove is AID.FangAndClaw or AID.WheelingThrust or AID.Drakesbane : ComboLastMove is AID.FangAndClaw or AID.WheelingThrust) : lv26to88);
         var aoe = Unlocked(AID.CoerthanTorment) ? ComboLastMove is AID.SonicThrust : Unlocked(AID.SonicThrust) ? ComboLastMove is AID.DoomSpike : Unlocked(AID.DoomSpike) && !NeedPower;
@@ -544,8 +544,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         FirstmindsFocus = gauge.FirstmindsFocusCount;
         HasPower = PowerLeft > 0;
         HasLOTD = gauge.LotdTimer > 0;
-        BLcd = TotalCD(AID.BattleLitany);
-        LCcd = TotalCD(AID.LanceCharge);
+        BLcd = CDRemaining(AID.BattleLitany);
+        LCcd = CDRemaining(AID.LanceCharge);
         PowerLeft = StatusRemaining(Player, SID.PowerSurge, 30);
         ChaosLeft = MathF.Max(StatusDetails(primaryTarget?.Actor, SID.ChaosThrust, Player.InstanceID).Left, StatusDetails(primaryTarget?.Actor, SID.ChaoticSpring, Player.InstanceID).Left);
         HasMD = PlayerHasEffect(SID.DiveReady);
@@ -556,7 +556,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         HasSC = PlayerHasEffect(SID.StarcrossReady);
         CanLC = ActionReady(AID.LanceCharge);
         CanBL = ActionReady(AID.BattleLitany);
-        CanLS = Unlocked(AID.LifeSurge) && !PlayerHasEffect(SID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? TotalCD(AID.LifeSurge) < 40.6f : ChargeCD(AID.LifeSurge) < 0.6f);
+        CanLS = Unlocked(AID.LifeSurge) && !PlayerHasEffect(SID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? CDRemaining(AID.LifeSurge) < 40.6f : ReadyIn(AID.LifeSurge) < 0.6f);
         CanJump = ActionReady(AID.Jump);
         CanDD = ActionReady(AID.DragonfireDive);
         CanGeirskogul = ActionReady(AID.Geirskogul);
