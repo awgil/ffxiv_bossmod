@@ -1,4 +1,7 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+﻿using Dalamud.Game.ClientState.JobGauge.Enums;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using System.Diagnostics.Metrics;
+using static BossMod.ClientState;
 
 namespace BossMod.ReplayVisualization;
 
@@ -11,7 +14,7 @@ public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColum
 
     public static ColumnPlayerGauge? Create(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass) => playerClass switch
     {
-        //Class.PLD => new ColumnPlayerGaugePLD(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.PLD => new ColumnPlayerGaugePLD(timeline, tree, phaseBranches, replay, enc, player), 
         Class.WAR => new ColumnPlayerGaugeWAR(timeline, tree, phaseBranches, replay, enc, player),
         //Class.DRK => new ColumnPlayerGaugeDRK(timeline, tree, phaseBranches, replay, enc, player),
         Class.GNB => new ColumnPlayerGaugeGNB(timeline, tree, phaseBranches, replay, enc, player),
@@ -19,7 +22,7 @@ public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColum
         //Class.SCH => new ColumnPlayerGaugeSCH(timeline, tree, phaseBranches, replay, enc, player),
         //Class.AST => new ColumnPlayerGaugeAST(timeline, tree, phaseBranches, replay, enc, player),
         //Class.SGE => new ColumnPlayerGaugeSGE(timeline, tree, phaseBranches, replay, enc, player),
-        //Class.MNK => new ColumnPlayerGaugeMNK(timeline, tree, phaseBranches, replay, enc, player),
+        Class.MNK => new ColumnPlayerGaugeMNK(timeline, tree, phaseBranches, replay, enc, player),
         //Class.DRG => new ColumnPlayerGaugeDRG(timeline, tree, phaseBranches, replay, enc, player),
         //Class.NIN => new ColumnPlayerGaugeNIN(timeline, tree, phaseBranches, replay, enc, player),
         //Class.SAM => new ColumnPlayerGaugeSAM(timeline, tree, phaseBranches, replay, enc, player),
@@ -164,7 +167,129 @@ public class ColumnPlayerGaugeGNB : ColumnPlayerGauge
 #endregion
 
 #region MNK
-// TODO: add MNK gauge
+public class ColumnPlayerGaugeMNK : ColumnPlayerGauge
+{
+    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+    private readonly ColumnGenericHistory _chakras;
+    private readonly ColumnGenericHistory _beast1;
+    private readonly ColumnGenericHistory _beast2;
+    private readonly ColumnGenericHistory _beast3;
+    private readonly ColumnGenericHistory _nadi;
+
+    public override bool Visible
+    {
+        get => _chakras.Width > 0 || _beast1.Width > 0 || _beast2.Width > 0 || _beast3.Width > 0 || _nadi.Width > 0;
+        set
+        {
+            var width = value ? ColumnGenericHistory.DefaultWidth : 0;
+            _chakras.Width = width;
+            _beast1.Width = width;
+            _beast2.Width = width;
+            _beast3.Width = width;
+            _nadi.Width = width;
+        }
+    }
+    public ColumnPlayerGaugeMNK(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+        : base(timeline, tree, phaseBranches, replay, enc, player)
+    {
+        _chakras = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _chakras.Name = "Chakras";
+        _beast1 = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _beast1.Name = "Beast Chakra 1";
+        _beast2 = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _beast2.Name = "Beast Chakra 2";
+        _beast3 = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _beast3.Name = "Beast Chakra 3";
+        _nadi = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _nadi.Name = "Nadi";
+        var prevChakras = 0;
+        var prevBeast1 = default(BeastChakraType);
+        var prevBeast2 = default(BeastChakraType);
+        var prevBeast3 = default(BeastChakraType);
+        var prevNadi = default(NadiFlags);
+        var prevChakraTime = MinTime();
+        var prevBeastChakra1Time = MinTime();
+        var prevBeastChakra2Time = MinTime();
+        var prevBeastChakra3Time = MinTime();
+        var prevNadiTime = MinTime();
+        foreach (var (time, gauge) in EnumerateGauge<MonkGauge>())
+        {
+            if (gauge.Chakra != prevChakras)
+            {
+                AddChakraRange(_chakras, prevChakraTime, time, prevChakras, _chakras.Name);
+                prevChakras = gauge.Chakra;
+                prevChakraTime = time;
+            }
+            if (gauge.BeastChakra1 != prevBeast1)
+            {
+                AddBeastChakraRange(_beast1, prevBeastChakra1Time, time, prevBeast1, _beast1.Name);
+                prevBeast1 = gauge.BeastChakra1;
+                prevBeastChakra1Time = time;
+            }
+            if (gauge.BeastChakra2 != prevBeast2)
+            {
+                AddBeastChakraRange(_beast2, prevBeastChakra2Time, time, prevBeast2, _beast2.Name);
+                prevBeast2 = gauge.BeastChakra2;
+                prevBeastChakra2Time = time;
+            }
+            if (gauge.BeastChakra3 != prevBeast3)
+            {
+                AddBeastChakraRange(_beast3, prevBeastChakra3Time, time, prevBeast3, _beast3.Name);
+                prevBeast3 = gauge.BeastChakra3;
+                prevBeastChakra3Time = time;
+            }
+            if (gauge.Nadi != prevNadi)
+            {
+                AddNadiRange(_nadi, prevNadiTime, time, prevNadi, _nadi.Name);
+                prevNadi = gauge.Nadi;
+                prevNadiTime = time;
+            }
+        }
+        AddChakraRange(_chakras, prevChakraTime, enc.Time.End, prevChakras, _chakras.Name);
+        AddBeastChakraRange(_beast1, prevBeastChakra1Time, enc.Time.End, prevBeast1, _beast1.Name);
+        AddBeastChakraRange(_beast2, prevBeastChakra2Time, enc.Time.End, prevBeast2, _beast2.Name);
+        AddBeastChakraRange(_beast3, prevBeastChakra3Time, enc.Time.End, prevBeast3, _beast3.Name);
+        AddNadiRange(_nadi, prevNadiTime, enc.Time.End, prevNadi, _nadi.Name);
+    }
+    private void AddChakraRange(ColumnGenericHistory col, DateTime from, DateTime to, int gauge, string label)
+    {
+        if (to > from)
+        {
+            var color = gauge switch
+            {
+                5 => _colors.PlannerWindow[2],
+                4 => new(0xFFE8FAFF),
+                3 => new(0xFFBEEFFF),
+                2 => new(0xFF90E0FF),
+                1 => new(0xFFB0E0E6),
+                _ => new(0x80808080)
+            };
+            col.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{label}: {gauge}", color.ABGR, gauge * 0.2f);
+        }
+    }
+    private void AddBeastChakraRange(ColumnGenericHistory col, DateTime from, DateTime to, BeastChakraType count, string label)
+    {
+        if (count != BeastChakraType.None && to > from)
+        {
+            var color = count == BeastChakraType.None ? _colors.PlannerWindow[2] : new(0xFF0066FF);
+            col.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{label}: {count}", color.ABGR);
+        }
+    }
+    private void AddNadiRange(ColumnGenericHistory col, DateTime from, DateTime to, NadiFlags nadi, string label)
+    {
+        if (to > from)
+        {
+            var color = nadi switch
+            {
+                NadiFlags.Solar => new(0xFF90E0FF),
+                NadiFlags.Lunar => new(0xFFFFA500),
+                0 => new(0x80808080),
+                _ => _colors.PlannerWindow[2]
+            };
+            col.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{label}: {nadi}", color.ABGR, 100);
+        }
+    }
+}
 #endregion
 
 #region DRG
