@@ -248,6 +248,22 @@ public sealed class ActionDefinitions : IDisposable
         foreach (var act in typeof(EurekaActionID).GetEnumValues())
             if ((uint)act > 0)
                 RegisterSpell((EurekaActionID)act);
+
+        for (var i = 1u; i <= 6u; i++)
+        {
+            var petAction = new ActionID(ActionType.PetAction, i);
+            var def = new ActionDefinition(petAction)
+            {
+                CastAnimLock = 0,
+                InstantAnimLock = 0,
+            };
+            if (i == 3) // PetAction 3 "Place" is area-targeted
+            {
+                def.Range = 30;
+                def.AllowedTargets = ActionTargets.Area;
+            }
+            Register(def.ID, def);
+        }
     }
 
     public void Dispose()
