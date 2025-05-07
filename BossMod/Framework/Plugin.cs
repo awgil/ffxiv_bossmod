@@ -31,7 +31,6 @@ public sealed class Plugin : IDalamudPlugin
     private TimeSpan _prevUpdateTime;
     private DateTime _throttleJump;
     private DateTime _throttleInteract;
-    private readonly ICommandManager _cmd;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
