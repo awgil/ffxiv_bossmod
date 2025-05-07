@@ -22,7 +22,7 @@ public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColum
         Class.MNK => new ColumnPlayerGaugeMNK(timeline, tree, phaseBranches, replay, enc, player),
         //Class.DRG => new ColumnPlayerGaugeDRG(timeline, tree, phaseBranches, replay, enc, player),
         //Class.NIN => new ColumnPlayerGaugeNIN(timeline, tree, phaseBranches, replay, enc, player),
-        //Class.SAM => new ColumnPlayerGaugeSAM(timeline, tree, phaseBranches, replay, enc, player),
+        Class.SAM => new ColumnPlayerGaugeSAM(timeline, tree, phaseBranches, replay, enc, player),
         //Class.RPR => new ColumnPlayerGaugeRPR(timeline, tree, phaseBranches, replay, enc, player),
         //Class.VPR => new ColumnPlayerGaugeVPR(timeline, tree, phaseBranches, replay, enc, player),
         Class.BRD => new ColumnPlayerGaugeBRD(timeline, tree, phaseBranches, replay, enc, player),
@@ -298,7 +298,107 @@ public class ColumnPlayerGaugeMNK : ColumnPlayerGauge
 #endregion
 
 #region SAM
-// TODO: add SAM gauge
+public class ColumnPlayerGaugeSAM : ColumnPlayerGauge
+{
+    private readonly ColumnGenericHistory _kenki;
+    private readonly ColumnGenericHistory _sen;
+    private readonly ColumnGenericHistory _meditation;
+    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+
+    public override bool Visible
+    {
+        get => _kenki.Width > 0 || _meditation.Width > 0 || _sen.Width > 0;
+        set
+        {
+            var width = value ? ColumnGenericHistory.DefaultWidth : 0;
+            _kenki.Width = width;
+            _sen.Width = width;
+            _meditation.Width = width;
+        }
+    }
+    public ColumnPlayerGaugeSAM(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+        : base(timeline, tree, phaseBranches, replay, enc, player)
+    {
+        _kenki = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _sen = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _meditation = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+
+        var prevKenki = 0;
+        var prevSen = default(SenFlags);
+        var prevKa = default(SenFlags);
+        var prevGetsu = default(SenFlags);
+        var prevSetsu = default(SenFlags);
+        var prevMeditation = 0;
+        var prevKenkiTime = MinTime();
+        var prevSenTime = MinTime();
+        var prevKaTime = MinTime();
+        var prevGetsuTime = MinTime();
+        var prevSetsuTime = MinTime();
+        var prevMeditationTime = MinTime();
+        foreach (var (time, gauge) in EnumerateGauge<SamuraiGauge>())
+        {
+            if (gauge.Kenki != prevKenki)
+            {
+                AddKenkiRange(prevKenkiTime, time, prevKenki);
+                prevKenki = gauge.Kenki;
+                prevKenkiTime = time;
+            }
+            if (gauge.SenFlags != prevSen)
+            {
+                AddSenRange(prevSenTime, time, prevSen);
+                prevSen = gauge.SenFlags;
+                prevSenTime = time;
+            }
+            if (gauge.MeditationStacks != prevMeditation)
+            {
+                AddMeditationRange(prevMeditationTime, time, prevMeditation);
+                prevMeditation = gauge.MeditationStacks;
+                prevMeditationTime = time;
+            }
+        }
+        AddKenkiRange(prevKenkiTime, enc.Time.End, prevKenki);
+        AddSenRange(prevKaTime, enc.Time.End, prevKa);
+        AddSenRange(prevGetsuTime, enc.Time.End, prevGetsu);
+        AddSenRange(prevSetsuTime, enc.Time.End, prevSetsu);
+        AddMeditationRange(prevMeditationTime, enc.Time.End, prevMeditation);
+    }
+    private void AddKenkiRange(DateTime from, DateTime to, int Kenki)
+    {
+        if (Kenki != 0 && to > from)
+        {
+            var color = Kenki == 100 ? _colors.PlannerWindow[2] : new(0xFF90E0FF);
+            _kenki.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{Kenki} Kenki", color.ABGR, Kenki < 10 ? Kenki * 0.02f : Kenki * 0.01f);
+        }
+    }
+    private int GetSenCount(SenFlags sen)
+    {
+        var senCount = 0;
+        if (sen.HasFlag(SenFlags.Setsu))
+            senCount++;
+        if (sen.HasFlag(SenFlags.Getsu))
+            senCount++;
+        if (sen.HasFlag(SenFlags.Ka))
+            senCount++;
+
+        return senCount;
+    }
+    private void AddSenRange(DateTime from, DateTime to, SenFlags sen)
+    {
+        if (sen != SenFlags.None && to > from)
+        {
+            var color = GetSenCount(sen) == 3 ? _colors.PlannerWindow[2] : new(0xFFFFAACC);
+            _sen.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{sen}", color.ABGR, GetSenCount(sen) == 3 ? 1f : GetSenCount(sen) == 2 ? 0.6f : GetSenCount(sen) == 1 ? 0.3f : 1f);
+        }
+    }
+    private void AddMeditationRange(DateTime from, DateTime to, int mediStacks)
+    {
+        if (mediStacks != 0 && to > from)
+        {
+            var color = mediStacks == 3 ? _colors.PlannerWindow[2] : new(0xFF8080FF);
+            _meditation.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{mediStacks} Meditation stack{(mediStacks == 1 ? "" : "s")}", color.ABGR, mediStacks * 0.31f);
+        }
+    }
+}
 #endregion
 
 #region RPR
