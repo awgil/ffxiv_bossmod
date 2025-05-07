@@ -2,6 +2,7 @@
 
 namespace BossMod.ReplayVisualization;
 
+#region Base
 public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColumn
 {
     public abstract bool Visible { get; set; }
@@ -12,6 +13,7 @@ public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColum
     {
         Class.WAR => new ColumnPlayerGaugeWAR(timeline, tree, phaseBranches, replay, enc, player),
         Class.BRD => new ColumnPlayerGaugeBRD(timeline, tree, phaseBranches, replay, enc, player),
+        Class.MCH => new ColumnPlayerGaugeMCH(timeline, tree, phaseBranches, replay, enc, player),
         _ => null
     };
 
@@ -32,7 +34,13 @@ public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColum
             yield return (frame.Timestamp, ClientState.GetGauge<T>(frame.GaugePayload));
     }
 }
+#endregion
 
+#region PLD
+// TODO: add PLD gauge
+#endregion
+
+#region WAR
 public class ColumnPlayerGaugeWAR : ColumnPlayerGauge
 {
     private readonly ColumnGenericHistory _gauge;
@@ -72,7 +80,57 @@ public class ColumnPlayerGaugeWAR : ColumnPlayerGauge
         }
     }
 }
+#endregion
 
+#region DRK
+// TODO: add DRK gauge
+#endregion
+
+#region GNB
+// TODO: add GNB gauge
+#endregion
+
+#region WHM
+// TODO: add WHM gauge
+#endregion
+
+#region SCH
+// TODO: add SCH gauge
+#endregion
+
+#region AST
+// TODO: add AST gauge
+#endregion
+
+#region SGE
+// TODO: add SGE gauge
+#endregion
+
+#region MNK
+// TODO: add MNK gauge
+#endregion
+
+#region DRG
+// TODO: add DRG gauge
+#endregion
+
+#region NIN
+// TODO: add NIN gauge
+#endregion
+
+#region SAM
+// TODO: add SAM gauge
+#endregion
+
+#region RPR
+// TODO: add RPR gauge
+#endregion
+
+#region VPR
+// TODO: add VPR gauge
+#endregion
+
+#region BRD
 public class ColumnPlayerGaugeBRD : ColumnPlayerGauge
 {
     private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
@@ -146,3 +204,93 @@ public class ColumnPlayerGaugeBRD : ColumnPlayerGauge
         }
     }
 }
+#endregion
+
+#region MCH
+public class ColumnPlayerGaugeMCH : ColumnPlayerGauge
+{
+    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+    private readonly ColumnGenericHistory _heat;
+    private readonly ColumnGenericHistory _battery;
+
+    public override bool Visible
+    {
+        get => _heat.Width > 0 || _battery.Width > 0;
+        set
+        {
+            var width = value ? ColumnGenericHistory.DefaultWidth : 0;
+            _heat.Width = width;
+            _battery.Width = width;
+        }
+    }
+
+    public ColumnPlayerGaugeMCH(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+        : base(timeline, tree, phaseBranches, replay, enc, player)
+    {
+        _heat = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _heat.Name = "Heat";
+        _battery = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _battery.Name = "Battery";
+
+        var prevHeat = 0;
+        var prevBattery = 0;
+        var prevHeatTime = MinTime();
+        var prevBatteryTime = prevHeatTime;
+        foreach (var (time, gauge) in EnumerateGauge<MachinistGauge>())
+        {
+            if (gauge.Heat != prevHeat)
+            {
+                AddGaugeRange(_heat, prevHeatTime, time, prevHeat, _heat.Name);
+                prevHeat = gauge.Heat;
+                prevHeatTime = time;
+            }
+            if (gauge.Battery != prevBattery)
+            {
+                AddGaugeRange(_battery, prevBatteryTime, time, prevBattery, _battery.Name);
+                prevBattery = gauge.Battery;
+                prevBatteryTime = time;
+            }
+        }
+        AddGaugeRange(_heat, prevHeatTime, enc.Time.End, prevHeat, _heat.Name);
+        AddGaugeRange(_battery, prevBatteryTime, enc.Time.End, prevBattery, _battery.Name);
+    }
+
+    private void AddGaugeRange(ColumnGenericHistory col, DateTime from, DateTime to, int gauge, string label)
+    {
+        if (to > from)
+        {
+            var color = (gauge == 100) ? _colors.PlannerWindow[2] : label switch
+            {
+                "Heat" => new(0xFF90E0FF),
+                "Battery" => new(0xFFFFA500),
+                _ => new(0x08080808)
+            };
+
+            var scale = gauge * 0.01f;
+            var text = $"{label}: {gauge}";
+
+            col.AddHistoryEntryRange(Encounter.Time.Start, from, to, text, color.ABGR, scale);
+        }
+    }
+}
+#endregion
+
+#region DNC
+// TODO: add DNC gauge
+#endregion
+
+#region BLM
+// TODO: add BLM gauge
+#endregion
+
+#region SMN
+// TODO: add SMN gauge
+#endregion
+
+#region RDM
+// TODO: add RDM gauge
+#endregion
+
+#region PCT
+// TODO: add PCT gauge
+#endregion
