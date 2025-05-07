@@ -11,9 +11,27 @@ public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColum
 
     public static ColumnPlayerGauge? Create(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass) => playerClass switch
     {
+        //Class.PLD => new ColumnPlayerGaugePLD(timeline, tree, phaseBranches, replay, enc, player),
         Class.WAR => new ColumnPlayerGaugeWAR(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.DRK => new ColumnPlayerGaugeDRK(timeline, tree, phaseBranches, replay, enc, player),
+        Class.GNB => new ColumnPlayerGaugeGNB(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.WHM => new ColumnPlayerGaugeWHM(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.SCH => new ColumnPlayerGaugeSCH(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.AST => new ColumnPlayerGaugeAST(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.SGE => new ColumnPlayerGaugeSGE(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.MNK => new ColumnPlayerGaugeMNK(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.DRG => new ColumnPlayerGaugeDRG(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.NIN => new ColumnPlayerGaugeNIN(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.SAM => new ColumnPlayerGaugeSAM(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.RPR => new ColumnPlayerGaugeRPR(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.VPR => new ColumnPlayerGaugeVPR(timeline, tree, phaseBranches, replay, enc, player),
         Class.BRD => new ColumnPlayerGaugeBRD(timeline, tree, phaseBranches, replay, enc, player),
         Class.MCH => new ColumnPlayerGaugeMCH(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.DNC => new ColumnPlayerGaugeDNC(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.BLM => new ColumnPlayerGaugeBLM(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.SMN => new ColumnPlayerGaugeSMN(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.RDM => new ColumnPlayerGaugeRDM(timeline, tree, phaseBranches, replay, enc, player),
+        //Class.PCT => new ColumnPlayerGaugePCT(timeline, tree, phaseBranches, replay, enc, player),
         _ => null
     };
 
@@ -87,7 +105,47 @@ public class ColumnPlayerGaugeWAR : ColumnPlayerGauge
 #endregion
 
 #region GNB
-// TODO: add GNB gauge
+public class ColumnPlayerGaugeGNB : ColumnPlayerGauge
+{
+    private readonly ColumnGenericHistory _gauge;
+    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+
+    public override bool Visible
+    {
+        get => _gauge.Width > 0;
+        set => _gauge.Width = value ? ColumnGenericHistory.DefaultWidth : 0;
+    }
+
+    public ColumnPlayerGaugeGNB(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+        : base(timeline, tree, phaseBranches, replay, enc, player)
+    {
+        _gauge = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
+        _gauge.Name = "Ammo";
+
+        var prevGauge = 0;
+        var prevTime = MinTime();
+        foreach (var (time, gauge) in EnumerateGauge<GunbreakerGauge>())
+        {
+            var count = gauge.Ammo;
+            if (count != prevGauge)
+            {
+                AddGaugeRange(prevTime, time, prevGauge);
+                prevGauge = count;
+                prevTime = time;
+            }
+        }
+        AddGaugeRange(prevTime, enc.Time.End, prevGauge);
+    }
+
+    private void AddGaugeRange(DateTime from, DateTime to, int gauge)
+    {
+        if (to > from)
+        {
+            var color = (gauge == 3) ? _colors.PlannerWindow[2] : (gauge == 2) ? new(0xFF90E0FF) : (gauge == 1) ? new(0xFFD6F5FF) : new(0x80808080);
+            _gauge.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{gauge} Cartridge{(gauge == 1 ? "" : "s")}", color.ABGR, gauge * 0.31f);
+        }
+    }
+}
 #endregion
 
 #region WHM
@@ -265,7 +323,8 @@ public class ColumnPlayerGaugeMCH : ColumnPlayerGauge
                 "Battery" => new(0xFFFFA500),
                 _ => new(0x08080808)
             };
-            col.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{label}: {gauge}", color.ABGR, gauge * 0.01f);
+            var width = gauge < 10 ? gauge * 0.02f : gauge * 0.01f; //if Heat = 5, it will not show on Visualizer, instead showing as 0.. so here's a small hack-around to make it visible
+            col.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{label}: {gauge}", color.ABGR, width);
         }
     }
 }
