@@ -265,11 +265,7 @@ public class ColumnPlayerGaugeMCH : ColumnPlayerGauge
                 "Battery" => new(0xFFFFA500),
                 _ => new(0x08080808)
             };
-
-            var scale = gauge * 0.01f;
-            var text = $"{label}: {gauge}";
-
-            col.AddHistoryEntryRange(Encounter.Time.Start, from, to, text, color.ABGR, scale);
+            col.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{label}: {gauge}", color.ABGR, gauge * 0.01f);
         }
     }
 }
