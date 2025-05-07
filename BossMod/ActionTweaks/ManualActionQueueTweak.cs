@@ -130,7 +130,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         target = null;
         targetPos = default;
 
-        // BTL is a ground targeted action with only one valid target position, which is wherever player leylines happen to be
+        // ground targeted actions that must target specific objects
         if (def.ID.ID == (uint)BLM.AID.BetweenTheLines)
         {
             var playerLL = ws.Actors.FirstOrDefault(act => act.OwnerID == player.InstanceID && act.OID == 0x179);
@@ -138,6 +138,16 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
                 return false;
 
             targetPos = playerLL.PosRot.XYZ();
+            return true;
+        }
+
+        if (def.ID.ID == (uint)RPR.AID.Regress)
+        {
+            var playerGate = ws.Actors.FirstOrDefault(act => act.OwnerID == player.InstanceID && act.OID == 0x4C3);
+            if (playerGate == null)
+                return false;
+
+            targetPos = playerGate.PosRot.XYZ();
             return true;
         }
 
