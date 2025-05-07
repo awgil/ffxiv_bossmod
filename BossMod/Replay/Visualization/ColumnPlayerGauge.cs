@@ -235,7 +235,7 @@ public class ColumnPlayerGaugeMCH : ColumnPlayerGauge
         var prevHeat = 0;
         var prevBattery = 0;
         var prevHeatTime = MinTime();
-        var prevBatteryTime = prevHeatTime;
+        var prevBatteryTime = MinTime();
         foreach (var (time, gauge) in EnumerateGauge<MachinistGauge>())
         {
             if (gauge.Heat != prevHeat)
