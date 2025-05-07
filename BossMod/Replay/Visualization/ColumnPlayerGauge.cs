@@ -120,7 +120,6 @@ public class ColumnPlayerGaugeGNB : ColumnPlayerGauge
         : base(timeline, tree, phaseBranches, replay, enc, player)
     {
         _gauge = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
-        _gauge.Name = "Ammo";
 
         var prevGauge = 0;
         var prevTime = MinTime();
