@@ -1,4 +1,5 @@
-﻿using static BossMod.AIHints;
+﻿using BossMod.AST;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
@@ -11,8 +12,11 @@ public enum SharedTrack
     /// <summary> Tracks <b>single-target</b> and <b>AOE</b> rotations. </summary>
     AOE,
 
-    /// <summary> Tracks holding <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b> for optimal usage. </summary>
+    /// <summary> Tracks holding user's <b>rotation</b>, <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b> for optimal usage. </summary>
     Hold,
+
+    /// <summary> Tracks use of <b>Potions</b>. </summary>
+    Potion,
 
     /// <summary> Represents the total count of strategies in this track. </summary>
     Count
@@ -61,6 +65,21 @@ public enum HoldStrategy
 
     /// <summary> Holds <b>ALL</b> actions entirely. </summary>
     HoldEverything
+}
+
+public enum PotionStrategy
+{
+    /// <summary> Do <b>NOT</b> use <b>potions</b> automatically. </summary>
+    Manual,
+
+    /// <summary> Uses <b>potions</b> automatically when <b>personal buffs</b> are imminent. </summary>
+    AlignWithBuffs,
+
+    /// <summary> Uses <b>potions</b> automatically when <b>party raid buffs</b> are imminent. </summary>
+    AlignWithRaidBuffs,
+
+    /// <summary> Uses <b>potions</b> as soon as possible without restriction. </summary>
+    Immediate
 }
 
 /// <summary>
@@ -915,8 +934,8 @@ static class ModuleExtensions
         return res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
             .AddOption(AOEStrategy.AutoFinish, "Auto (Finish combo)", "Automatically execute optimal rotation based on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreak, "Auto (Break combo)", "Automatically execute optimal rotation based on targets; breaks combo if necessary", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceST, "ForceST", "Force Single-Target rotation execution", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force AOE rotation execution", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
+            .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation execution", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation execution", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
     }
 
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
@@ -924,12 +943,24 @@ static class ModuleExtensions
     public static RotationModuleDefinition.ConfigRef<HoldStrategy> DefineHold(this RotationModuleDefinition res)
     {
         return res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold", uiPriority: 290)
-            .AddOption(HoldStrategy.DontHold, "DontHold", "Allow use of all cooldowns, buffs, or gauge abilities")
+            .AddOption(HoldStrategy.DontHold, "Dont Hold", "Allow use of all cooldowns, buffs, or gauge abilities")
             .AddOption(HoldStrategy.HoldCooldowns, "Hold", "Forbid use of all cooldowns only")
-            .AddOption(HoldStrategy.HoldGauge, "HoldGauge", "Forbid use of all gauge abilities only")
-            .AddOption(HoldStrategy.HoldBuffs, "HoldBuffs", "Forbid use of all raidbuffs or buff-related abilities only")
-            .AddOption(HoldStrategy.HoldAbilities, "HoldAbilities", "Forbid use of all cooldowns, buffs, and gauge abilities")
-            .AddOption(HoldStrategy.HoldEverything, "HoldEverything", "Forbid complete use of ALL actions; rotations included");
+            .AddOption(HoldStrategy.HoldGauge, "Hold Gauge", "Forbid use of all gauge abilities only")
+            .AddOption(HoldStrategy.HoldBuffs, "Hold Buffs", "Forbid use of all raidbuffs or buff-related abilities only")
+            .AddOption(HoldStrategy.HoldAbilities, "Hold Abilities", "Forbid use of all cooldowns, buffs, and gauge abilities")
+            .AddOption(HoldStrategy.HoldEverything, "Hold Everything", "Forbid complete use of ALL actions; rotations included");
+    }
+
+    /// <summary>Defines our shared <b>Potion</b> strategies.</summary>
+    /// <param name="res">The definitions of our base module's strategies.</param>
+    public static RotationModuleDefinition.ConfigRef<PotionStrategy> DefinePotion(this RotationModuleDefinition res, ActionID pot)
+    {
+        return res.Define(SharedTrack.Potion).As<PotionStrategy>("Potion", uiPriority: 280)
+            .AddOption(PotionStrategy.Manual, "Manual", "Use potion manually")
+            .AddOption(PotionStrategy.AlignWithBuffs, "With Buffs", "Use potion when personal buffs are imminent or active")
+            .AddOption(PotionStrategy.AlignWithRaidBuffs, "With RaidBuffs", "Use potion when party raid buffs are imminent or active")
+            .AddOption(PotionStrategy.Immediate, "Immediate", "Use potion immediately without restriction", 270, 30)
+            .AddAssociatedAction(pot);
     }
 
     /// <summary>A quick and easy helper for shortcutting how we define our <b>GCD</b> abilities.</summary>
@@ -1013,5 +1044,11 @@ static class ModuleExtensions
 
     /// <summary>A global helper for allowing ALL available abilities that are buff, gauge, or cooldown related. This is the default option for this strategy. See <seealso cref="HoldStrategy"/> for more details.</summary>
     public static bool DontHold(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.DontHold;
+
+    public static PotionStrategy Potion(this StrategyValues strategy) => strategy.Option(SharedTrack.Potion).As<PotionStrategy>();
+    public static bool AlignPotionWithBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithBuffs;
+    public static bool AlignPotionWithRaidBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithRaidBuffs;
+    public static bool UsePotionImmediately(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Immediate;
+    public static bool UsePotionManually(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Manual;
     #endregion
 }

@@ -11,8 +11,7 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Potion = SharedTrack.Count, Opener, Heat, Battery, Reassemble, Hypercharge, Drill, Wildfire, BarrelStabilizer, AirAnchor, ChainSaw, GaussRound, DoubleCheck, Ricochet, Checkmate, Flamethrower, Excavator, FullMetalField }
-    public enum PotionStrategy { None, Use, Align }
+    public enum Track { Opener = SharedTrack.Count, Heat, Battery, Reassemble, Hypercharge, Drill, Wildfire, BarrelStabilizer, AirAnchor, ChainSaw, GaussRound, DoubleCheck, Ricochet, Checkmate, Flamethrower, Excavator, FullMetalField }
     public enum OpenerOption { AirAnchor, Drill, ChainSaw }
     public enum HeatOption { Automatic, OnlyHeatBlast, OnlyAutoCrossbow }
     public enum BatteryStrategy { Automatic, Fifty, Hundred, RaidBuffs, End, Delay }
@@ -31,11 +30,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             AID.HeatedSplitShot, AID.HeatedSlugShot, AID.HeatedCleanShot,
             AID.SpreadShot, AID.Scattergun);
         res.DefineHold();
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", "", 200)
-            .AddOption(PotionStrategy.None, "None", "Do not use Potion")
-            .AddOption(PotionStrategy.Use, "Use", "Use Potion when available", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Align, "Align", "Align Potion with raid buffs", 270, 30, ActionTargets.Self)
-            .AddAssociatedAction(ActionDefinitions.IDPotionDex);
+        res.DefinePotion(ActionDefinitions.IDPotionDex);
         res.Define(Track.Opener).As<OpenerOption>("Opener", "Opener", 199)
             .AddOption(OpenerOption.AirAnchor, "Air Anchor", "Use Hot Shot / Air Anchor as first tool in opener", minLevel: 4)
             .AddOption(OpenerOption.Drill, "Drill", "Use Drill as first tool in opener", minLevel: 58)
@@ -393,11 +388,12 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         };
     }
     private bool StopForFlamethrower => Service.Config.Get<MCHConfig>().PauseForFlamethrower && FTleft > 0;
-    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
-        PotionStrategy.Use => true,
-        PotionStrategy.Align => Player.InCombat && BScd < 5f,
-        _ => false,
+        PotionStrategy.AlignWithBuffs => Player.InCombat && BScd <= 6f,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
+        PotionStrategy.Immediate => true,
+        _ => false
     };
     #endregion
 
@@ -457,8 +453,6 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE);
         var AOEStrategy = AOE.As<AOEStrategy>();
-        var pot = strategy.Option(Track.Potion);
-        var potStrat = pot.As<PotionStrategy>();
         var opener = strategy.Option(Track.Opener);
         var openerOpt = opener.As<OpenerOption>();
         var assemble = strategy.Option(Track.Reassemble);
@@ -521,15 +515,15 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             {
                 if (CountdownRemaining < 5 && RAleft == 0 && OGCDReady(AID.Reassemble))
                     QueueGCD(AID.Reassemble, Player);
-                if (ShouldUsePotion(potStrat) && CountdownRemaining <= 1.99f)
-                    Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.VeryHigh + (int)GCDPriority.VeryCritical);
+                if (ShouldUsePotion(strategy) && CountdownRemaining <= 1.99f)
+                    Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
                 if (CountdownRemaining < 1.15f)
                     Opener(openerOpt, primaryTarget?.Actor);
                 if (CountdownRemaining > 0)
                     return;
             }
-            if (ShouldUsePotion(potStrat))
-                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.VeryHigh + (int)GCDPriority.VeryCritical);
+            if (ShouldUsePotion(strategy))
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
 
             #endregion
 

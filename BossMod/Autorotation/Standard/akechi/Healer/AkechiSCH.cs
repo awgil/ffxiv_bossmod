@@ -9,10 +9,9 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { AOE, Bio, Potion, EnergyDrain, ChainStratagem, Aetherflow }
-    public enum AOEStrategy { Auto, Ruin2, Broil, ArtOfWar }
+    public enum Track { ST = SharedTrack.Count, Bio, EnergyDrain, ChainStratagem, Aetherflow }
+    public enum STOption { Ruin2, Broil }
     public enum BioStrategy { Bio3, Bio6, Bio9, Bio0, Force, Delay }
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum EnergyStrategy { Use3, Use2, Use1, Force, Delay }
     #endregion
 
@@ -21,12 +20,13 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     {
         var res = new RotationModuleDefinition("Akechi SCH", "Standard Rotation Module", "Standard rotation (Akechi)|Healer", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
 
-        res.Define(Track.AOE).As<AOEStrategy>("AOE", "AOE", uiPriority: 200)
-            .AddOption(AOEStrategy.Auto, "Auto", "Automatically decide when to use ST or AOE abilities")
-            .AddOption(AOEStrategy.Ruin2, "Ruin II", "Force use of Ruin II only (instant cast ST, less DPS)", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.Broil, "Broil", "Force use of Broil only (hardcast ST, more DPS)", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ArtOfWar, "Art of War", "Force use of Art of War only (instant cast AOE)", supportedTargets: ActionTargets.Hostile)
-            .AddAssociatedActions(AID.Ruin2, AID.Broil1, AID.Broil2, AID.Broil3, AID.Broil4, AID.ArtOfWar1, AID.ArtOfWar2);
+        res.DefineAOE().AddAssociatedActions(AID.Ruin1, AID.Ruin2, AID.Broil1, AID.Broil2, AID.Broil3, AID.Broil4, AID.ArtOfWar1, AID.ArtOfWar2);
+        res.DefineHold();
+        res.DefinePotion(ActionDefinitions.IDPotionMnd);
+        res.Define(Track.ST).As<STOption>("Single Target", "ST", uiPriority: 200)
+            .AddOption(STOption.Ruin2, "Ruin2", "Use Ruin if single target is forced")
+            .AddOption(STOption.Broil, "Broil", "Use Broil if single target is forced")
+            .AddAssociatedActions(AID.Ruin1, AID.Ruin2, AID.Broil1, AID.Broil2, AID.Broil3, AID.Broil4);
         res.Define(Track.Bio).As<BioStrategy>("Damage Over Time", "Bio", uiPriority: 190)
             .AddOption(BioStrategy.Bio3, "Bio3", "Use Bio if target has 3s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
             .AddOption(BioStrategy.Bio6, "Bio6", "Use Bio if target has 6s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
@@ -35,11 +35,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BioStrategy.Force, "Force", "Force use of Bio regardless of DoT effect", 0, 30, ActionTargets.Hostile, 2)
             .AddOption(BioStrategy.Delay, "Delay", "Delay the use of Bio for manual or strategic usage", 0, 0, ActionTargets.Hostile, 2)
             .AddAssociatedActions(AID.Bio1, AID.Bio2, AID.Biolysis);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 180)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with No Mercy & Bloodfest together (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
-            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.EnergyDrain).As<EnergyStrategy>("Energy Drain", "E.Drain", uiPriority: 150)
             .AddOption(EnergyStrategy.Use3, "UseAll", "Uses all stacks of Aetherflow for Energy Drain; conserves no stacks for manual usage", 0, 0, ActionTargets.Hostile, 45)
             .AddOption(EnergyStrategy.Use2, "Use2", "Uses 2 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage, but consumes any remaining when Aetherflow ability is about to be up", 0, 0, ActionTargets.Hostile, 45)
@@ -106,11 +101,12 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         BestDOTTarget = Unlocked(AID.Bio1) ? BestDOTTargets : primaryTarget;
 
         #region Strategy Definitions
-        var AOE = strategy.Option(Track.AOE); //AOE track
-        var AOEStrategy = AOE.As<AOEStrategy>(); //AOE strategy
+        var AOE = strategy.Option(SharedTrack.AOE);
+        var st = strategy.Option(Track.ST); //Single Target track
+        var stStrat = st.As<STOption>(); //Single Target strategy
+
         var Bio = strategy.Option(Track.Bio); //Bio track
         var BioStrategy = Bio.As<BioStrategy>(); //Bio strategy
-        var potion = strategy.Option(Track.Potion).As<PotionStrategy>(); //Potion strategy
         var cs = strategy.Option(Track.ChainStratagem); //Chain Stratagem track
         var csStrat = cs.As<OGCDStrategy>(); //Chain Stratagem strategy
         var af = strategy.Option(Track.Aetherflow); //Aetherflow track
@@ -124,19 +120,22 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         #region Full Rotation Execution
 
         #region Standard Rotation
-        if (AOEStrategy == AOEStrategy.Auto)
+        if (strategy.AutoFinish() || strategy.AutoBreak())
         {
             if (ShouldUseAOE)
                 QueueGCD(BestAOE, Player, GCDPriority.Low);
             if (In25y(TargetChoice(AOE) ?? primaryTarget?.Actor) && (!ShouldUseAOE || IsFirstGCD()))
                 QueueGCD(IsMoving ? BestRuin : BestST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
         }
-        if (AOEStrategy is AOEStrategy.Ruin2)
-            QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Forced);
-        if (AOEStrategy is AOEStrategy.Broil)
-            QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Forced);
-        if (AOEStrategy is AOEStrategy.ArtOfWar)
-            QueueGCD(BestAOE, Player, GCDPriority.Forced);
+        if (strategy.ForceST())
+        {
+            if (stStrat is STOption.Ruin2)
+                QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+            if (stStrat is STOption.Broil)
+                QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+        }
+        if (strategy.ForceAOE())
+            QueueGCD(BestAOE, Player, GCDPriority.Low);
         if (ShouldUseBio(primaryTarget?.Actor, BioStrategy))
             QueueGCD(BestBio, TargetChoice(Bio) ?? BestDOTTarget?.Actor, GCDPriority.Average);
         #endregion
@@ -152,8 +151,8 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             QueueOGCD(AID.EnergyDrain, TargetChoice(ed) ?? primaryTarget?.Actor, edStrat is EnergyStrategy.Force ? OGCDPriority.Forced : OGCDPriority.Average);
         if (MP <= 9000 && CanWeaveIn && ActionReady(AID.LucidDreaming))
             QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average);
-        if ((potion is PotionStrategy.AlignWithRaidBuffs && CDRemaining(AID.ChainStratagem) < 5) || potion is PotionStrategy.Immediate)
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
+        if (ShouldUsePotion(strategy))
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.Medium);
         #endregion
 
         #endregion
@@ -218,5 +217,13 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             _ => false
         };
     }
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
+    {
+        PotionStrategy.AlignWithBuffs => Player.InCombat && CDRemaining(AID.ChainStratagem) <= 4f,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
+        PotionStrategy.Immediate => true,
+        _ => false
+    };
+
     #endregion
 }

@@ -6,10 +6,11 @@ namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
+//TODO: this module is kinda borked, update me
 public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Gauge = SharedTrack.Count, SurgingTempest, Infuriate, PrimalRend, Upheaval, Onslaught, Tomahawk, Potion, InnerRelease, PrimalWrath, PrimalRuination }
+    public enum Track { Gauge = SharedTrack.Count, SurgingTempest, Infuriate, PrimalRend, Upheaval, Onslaught, Tomahawk, InnerRelease, PrimalWrath, PrimalRuination }
     public enum GaugeStrategy { Automatic, OnlyST, OnlyAOE, ForceST, ForceAOE, Conserve }
     public enum SurgingTempestStrategy { Automatic, At30s, ForceEye, ForcePath, Delay }
     public enum InfuriateStrategy { Automatic, Force, ForceOvercap, Delay }
@@ -17,7 +18,6 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public enum UpheavalStrategy { Automatic, OnlyUpheaval, OnlyOrogeny, ForceUpheaval, ForceOrogeny, Delay }
     public enum OnslaughtStrategy { Automatic, Force, Hold0, Hold1, Hold2, GapClose, Delay }
     public enum TomahawkStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
-    public enum PotionStrategy { Manual, AlignWithInnerRelease, Immediate }
     #endregion
 
     #region Module Definitions
@@ -27,12 +27,13 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             "Standard Rotation Module", //Description
             "Standard rotation (Akechi)|Tank", //Category
             "Akechi", //Contributor
-            RotationModuleQuality.Ok, //Quality
+            RotationModuleQuality.WIP, //Quality
             BitMask.Build(Class.MRD, Class.WAR), //Job
             100); //Level supported
 
         res.DefineAOE().AddAssociatedActions(AID.HeavySwing, AID.Maim, AID.StormEye, AID.StormPath, AID.Overpower, AID.MythrilTempest);
         res.DefineHold();
+        res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Gauge).As<GaugeStrategy>("Gauge", "Gauge", uiPriority: 200)
             .AddOption(GaugeStrategy.Automatic, "Automatic", "Automatically use Gauge-related abilities optimally", minLevel: 35)
             .AddOption(GaugeStrategy.OnlyST, "Only ST", "Uses Inner Beast / Fell Cleave / Inner Chaos optimally as Beast Gauge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
@@ -87,11 +88,6 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             .AddOption(TomahawkStrategy.Allow, "Allow", "Allow use of Tomahawk when out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(TomahawkStrategy.Forbid, "Forbid", "Prohibit use of Tomahawk")
             .AddAssociatedActions(AID.Tomahawk);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithInnerRelease, "AlignWithInnerRelease", "Align with Inner Release", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
-            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.DefineOGCD(Track.InnerRelease, AID.InnerRelease, "Inner Release", "InnerR.", uiPriority: 170, 60, 15, ActionTargets.Self, 6).AddAssociatedActions(AID.InnerRelease);
         res.DefineOGCD(Track.PrimalWrath, AID.PrimalWrath, "Primal Wrath", "P.Wrath", uiPriority: 135, 20, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.PrimalWrath);
         res.DefineGCD(Track.PrimalRuination, AID.PrimalRuination, "PrimalRuination", "P.Ruin.", uiPriority: 150, supportedTargets: ActionTargets.Hostile, minLevel: 100).AddAssociatedActions(AID.PrimalRuination);
@@ -453,9 +449,10 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         TomahawkStrategy.Forbid => false,
         _ => false
     };
-    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
-        PotionStrategy.AlignWithInnerRelease => InnerRelease.CD < 5,
+        PotionStrategy.AlignWithBuffs => Player.InCombat && InnerRelease.CD <= 4f,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
         PotionStrategy.Immediate => true,
         _ => false
     };
@@ -683,12 +680,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                 QueueGCD(AID.Tomahawk,
                     TargetChoice(Tomahawk) ?? primaryTarget?.Actor,
                     NewGCDPriority.Standard);
-            if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,
-                    Player,
-                    ActionQueue.Priority.VeryHigh + (int)NewOGCDPriority.ForcedOGCD,
-                    0,
-                    GCD - 0.9f);
+            if (ShouldUsePotion(strategy))
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium);
             #endregion
         }
 

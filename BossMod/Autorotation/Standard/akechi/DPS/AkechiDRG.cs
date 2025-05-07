@@ -11,10 +11,9 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Combo = SharedTrack.Count, Dives, Potion, ElusiveJump, LanceCharge, BattleLitany, LifeSurge, PiercingTalon, TrueNorth, DragonfireDive, Geirskogul, Stardiver, Jump, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
+    public enum Track { Combo = SharedTrack.Count, Dives, ElusiveJump, LanceCharge, BattleLitany, LifeSurge, PiercingTalon, TrueNorth, DragonfireDive, Geirskogul, Stardiver, Jump, MirageDive, Nastrond, WyrmwindThrust, RiseOfTheDragon, Starcross }
     public enum SingleTargetOption { FullST, Force123ST, ForceBuffsST }
     public enum DivesStrategy { AllowMaxMelee, AllowCloseMelee, Allow, Forbid }
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum SurgeStrategy { Automatic, WhenBuffed, Force, ForceWeave, ForceNextOpti, ForceNextOptiWeave, Delay }
     public enum PiercingTalonStrategy { AllowEX, Allow, Force, ForceEX, Forbid }
     public enum TrueNorthStrategy { Automatic, ASAP, Rear, Flank, Force, Delay }
@@ -35,6 +34,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             AID.WheelingThrust, AID.FangAndClaw,
             AID.Drakesbane, AID.CoerthanTorment);
         res.DefineHold();
+        res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Combo).As<SingleTargetOption>("Combo", uiPriority: 200)
             .AddOption(SingleTargetOption.FullST, "FullST", "Force full single target combo if 'Force Single-Target' option in is selected")
             .AddOption(SingleTargetOption.Force123ST, "Force Normal ST", "Force normal single target combo if 'Force Single-Target' option is selected")
@@ -45,11 +45,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(DivesStrategy.Allow, "Allow", "Allow the use of Jump, Stardiver, & Dragonfire Dive at any distance")
             .AddOption(DivesStrategy.Forbid, "Forbid", "Forbid the use of Jump, Stardiver, & Dragonfire Dive")
             .AddAssociatedActions(AID.Jump, AID.HighJump, AID.DragonfireDive, AID.Stardiver);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 90)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use potions automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "Align With Raid Buffs", "Use potion in sync with 2-minute raid buffs (e.g., 0/6, 2/8)")
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use potion as soon as possible, regardless of any buffs")
-            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.ElusiveJump).As<ElusiveDirection>("Elusive Jump", uiPriority: -1)
             .AddOption(ElusiveDirection.None, "None", "Do not use Elusive Jump")
             .AddOption(ElusiveDirection.CharacterForward, "Character Forward", "Jump into the direction forward of the character", 30, 15, ActionTargets.Self, 35)
@@ -511,10 +506,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         };
 
     }
-    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
-        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && LCcd <= SkSGCDLength * 2 && BLcd <= SkSGCDLength * 2, //attempts to align pots with when both buffs are about to be up
-        PotionStrategy.Immediate => true, //force
+        PotionStrategy.AlignWithBuffs => Player.InCombat && LCcd <= 4 && BLcd <= 5,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
+        PotionStrategy.Immediate => true,
         _ => false
     };
     private bool ShouldUseTrueNorth(TrueNorthStrategy strategy, Actor? target)
@@ -700,8 +696,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             }
             if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))
                 QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.SlightlyLow);
-            if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
+            if (ShouldUsePotion(strategy))
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium);
             ShouldUseElusive(strategy.Option(Track.ElusiveJump).As<ElusiveDirection>(), primaryTarget?.Actor);
             #endregion
         }

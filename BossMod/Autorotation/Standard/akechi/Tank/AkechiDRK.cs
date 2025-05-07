@@ -9,12 +9,11 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Blood = SharedTrack.Count, MP, Carve, DeliriumCombo, Potion, Unmend, Delirium, SaltedEarth, SaltAndDarkness, LivingShadow, Shadowbringer, Disesteem }
+    public enum Track { Blood = SharedTrack.Count, MP, Carve, DeliriumCombo, Unmend, Delirium, SaltedEarth, SaltAndDarkness, LivingShadow, Shadowbringer, Disesteem }
     public enum BloodStrategy { Automatic, OnlyBloodspiller, OnlyQuietus, ForceBloodspiller, ForceQuietus, Conserve }
     public enum MPStrategy { Optimal, Auto3k, Auto6k, Auto9k, AutoRefresh, Edge3k, Edge6k, Edge9k, EdgeRefresh, Flood3k, Flood6k, Flood9k, FloodRefresh, ForceEdge, ForceFlood, Delay }
     public enum CarveStrategy { Automatic, OnlyCarve, OnlyDrain, ForceCarve, ForceDrain, Delay }
     public enum DeliriumComboStrategy { Automatic, ScarletDelirum, Comeuppance, Torcleaver, Impalement, Delay }
-    public enum PotionStrategy { Manual, AlignWithLivingShadow, Immediate }
     public enum UnmendStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
     #endregion
 
@@ -25,6 +24,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
         res.DefineAOE().AddAssociatedActions(AID.HardSlash, AID.SyphonStrike, AID.Souleater, AID.Unleash, AID.StalwartSoul);
         res.DefineHold();
+        res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Blood", uiPriority: 200)
             .AddOption(BloodStrategy.Automatic, "Automatic", "Automatically use Blood-related abilities optimally")
             .AddOption(BloodStrategy.OnlyBloodspiller, "Only Bloodspiller", "Uses Bloodspiller optimally as Blood spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 62)
@@ -67,11 +67,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(DeliriumComboStrategy.Impalement, "Impalement", "Force use Impalement ASAP", 0, 0, ActionTargets.Hostile, 96)
             .AddOption(DeliriumComboStrategy.Delay, "Delay", "Delay use of Scarlet combo for strategic reasons", 0, 0, ActionTargets.Hostile, 96)
             .AddAssociatedActions(AID.ScarletDelirium, AID.Comeuppance, AID.Torcleaver, AID.Impalement);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithLivingShadow, "AlignWithLivingShadow", "Align with Living Shadow (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
-            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.Unmend).As<UnmendStrategy>("Ranged", "Ranged", uiPriority: 30)
             .AddOption(UnmendStrategy.OpenerFar, "Far (Opener)", "Use Unmend in pre-pull & out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(UnmendStrategy.OpenerForce, "Force (Opener)", "Force use Unmend in pre-pull in any range", supportedTargets: ActionTargets.Hostile)
@@ -316,9 +311,10 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         UnmendStrategy.Forbid => false,
         _ => false
     };
-    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
-        PotionStrategy.AlignWithLivingShadow => LivingShadow.CD < 5,
+        PotionStrategy.AlignWithBuffs => Player.InCombat && LivingShadow.CD <= 4f,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
         PotionStrategy.Immediate => true,
         _ => false
     };
@@ -390,9 +386,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         var deStrat = de.As<GCDStrategy>(); //Retrieve Disesteem strategy
         var unmend = strategy.Option(Track.Unmend);
         var unmendStrat = unmend.As<UnmendStrategy>(); //Retrieve Unmend strategy
-        #endregion
-
-        #region Misc
         #endregion
 
         #endregion
@@ -516,7 +509,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                 QueueOGCD(AID.SaltAndDarkness, Player, OGCDPriority.AboveAverage);
             if (ShouldUseUnmend(unmendStrat, primaryTarget))
                 QueueGCD(AID.Unmend, TargetChoice(unmend) ?? primaryTarget?.Actor, GCDPriority.Low);
-            if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
+            if (ShouldUsePotion(strategy))
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Forced, 0, GCD - 0.9f);
             #endregion
         }

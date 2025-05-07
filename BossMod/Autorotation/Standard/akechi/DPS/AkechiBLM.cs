@@ -9,14 +9,13 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Movement = SharedTrack.Count, Thunder, Polyglot, Manafont, Triplecast, LeyLines, Potion, TPUS, Casting, Transpose, Amplifier, Retrace, BTL }
+    public enum Track { Movement = SharedTrack.Count, Thunder, Polyglot, Manafont, Triplecast, LeyLines, TPUS, Casting, Transpose, Amplifier, Retrace, BTL }
     public enum MovementStrategy { Allow, AllowNoScathe, OnlyGCDs, OnlyOGCDs, OnlyScathe, Forbid }
     public enum ThunderStrategy { Thunder3, Thunder6, Thunder9, Thunder0, Force, Delay }
     public enum PolyglotStrategy { AutoSpendAll, AutoHold1, AutoHold2, AutoHold3, XenoSpendAll, XenoHold1, XenoHold2, XenoHold3, FoulSpendAll, FoulHold1, FoulHold2, FoulHold3, ForceXeno, ForceFoul, Delay }
     public enum ManafontStrategy { Automatic, Force, ForceWeave, ForceEX, ForceWeaveEX, Delay }
     public enum TriplecastStrategy { Automatic, Force, Force1, ForceWeave, ForceWeave1, Delay }
     public enum LeyLinesStrategy { Automatic, Force, Force1, ForceWeave, ForceWeave1, Delay }
-    public enum PotionStrategy { Manual, AlignWithRaidBuffs, Immediate }
     public enum TPUSStrategy { Allow, OOConly, Forbid }
     public enum CastingOption { Allow, Forbid }
     #endregion
@@ -38,6 +37,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             AID.Blizzard1, AID.Blizzard2, AID.Blizzard3, AID.Freeze, AID.Blizzard4, AID.HighBlizzard2,
             AID.Flare, AID.Despair, AID.FlareStar);
         res.DefineHold();
+        res.DefinePotion(ActionDefinitions.IDPotionInt);
         res.Define(Track.Movement).As<MovementStrategy>("Movement", uiPriority: 195)
             .AddOption(MovementStrategy.Allow, "Allow", "Allow the use of all appropriate abilities for movement")
             .AddOption(MovementStrategy.AllowNoScathe, "AllowNoScathe", "Allow the use of all appropriate abilities for movement except for Scathe")
@@ -94,11 +94,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(LeyLinesStrategy.ForceWeave1, "ForceWeave1", "Force the use of Ley Lines in any next possible weave slot; holds one charge for manual usage", 120, 30, ActionTargets.Self, 2)
             .AddOption(LeyLinesStrategy.Delay, "Delay", "Delay the use of Ley Lines", 0, 0, ActionTargets.Self, 2)
             .AddAssociatedActions(AID.LeyLines);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 160)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "AlignWithRaidBuffs", "Align with buffs (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
-            .AddAssociatedAction(ActionDefinitions.IDPotionInt);
         res.Define(Track.TPUS).As<TPUSStrategy>("Transpose & Umbral Soul", "TP/US", uiPriority: 160)
             .AddOption(TPUSStrategy.Allow, "Allow", "Allow Transpose & Umbral Soul combo when out of combat or no targetable enemy is nearby", 0, 0, ActionTargets.Self, 35)
             .AddOption(TPUSStrategy.OOConly, "OOConly", "Only use Transpose & Umbral Soul combo when fully out of combat", 0, 0, ActionTargets.Self, 35)
@@ -312,7 +307,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         var retraceStrat = retrace.As<OGCDStrategy>(); //Retrace strategy
         var btl = strategy.Option(Track.BTL); //Between the Lines track
         var btlStrat = btl.As<OGCDStrategy>(); //Between the Lines strategy
-        var potionStrat = strategy.Option(Track.Potion).As<PotionStrategy>(); //Potion strategy
         var tpusStrat = strategy.Option(Track.TPUS).As<TPUSStrategy>(); //Transpose/Umbral Soul strategy
         var movingOption = strategy.Option(Track.Casting).As<CastingOption>(); //Casting while moving strategy
         #endregion
@@ -518,9 +512,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 Player,
                 NewOGCDPriority.ForcedOGCD);
         //Potion
-        if (potionStrat is PotionStrategy.AlignWithRaidBuffs && CDRemaining(AID.LeyLines) < 5 ||
-            potionStrat is PotionStrategy.Immediate)
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.VeryHigh + (int)NewOGCDPriority.Potion, 0, GCD - 0.9f);
+        if (ShouldUsePotion(strategy))
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.Medium);
         #endregion
 
         #endregion
@@ -1123,5 +1116,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         TriplecastStrategy.ForceWeave1 => Player.InCombat && canTC && CanWeaveIn && CDRemaining(AID.Triplecast) < SpSGCDLength * 2,
         _ => false
     };
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
+    {
+        PotionStrategy.AlignWithBuffs or PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
+        PotionStrategy.Immediate => true,
+        _ => false
+    };
+
     #endregion
 }
