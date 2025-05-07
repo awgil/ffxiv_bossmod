@@ -115,7 +115,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
                 break;
         }
 
-        if (MP <= 7000)
+        if (MP <= Player.HPMP.MaxMP * 0.7f)
             PushOGCD(AID.LucidDreaming, Player);
     }
 

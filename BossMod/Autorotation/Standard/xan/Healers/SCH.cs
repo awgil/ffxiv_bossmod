@@ -141,7 +141,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         if (ImpactImminent > 0)
             PushOGCD(AID.BanefulImpaction, BestRangedAOETarget);
 
-        if (MP <= 7000)
+        if (MP <= Player.HPMP.MaxMP * 0.7f)
             PushOGCD(AID.LucidDreaming, Player);
     }
 
