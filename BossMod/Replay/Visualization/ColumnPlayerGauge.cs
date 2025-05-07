@@ -1,7 +1,4 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Enums;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using System.Diagnostics.Metrics;
-using static BossMod.ClientState;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.ReplayVisualization;
 
