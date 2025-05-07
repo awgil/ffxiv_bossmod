@@ -36,7 +36,7 @@ class ThunderSlash(BossModule module) : Components.StandardAOEs(module, AID.Thun
         for (var i = 0; i < Math.Min(2, Casters.Count); i++)
         {
             var caster = Casters[i];
-            yield return new AOEInstance(Shape, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation, Module.CastFinishAt(caster.CastInfo), Color: i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky: i == 0);
+            yield return new AOEInstance(Shape, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation, Module.CastFinishAt(caster.CastInfo), Color: i == 0 ? ArenaColor.Danger : ArenaColor.AOE);
         }
     }
 

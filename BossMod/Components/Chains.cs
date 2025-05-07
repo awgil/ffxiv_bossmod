@@ -1,11 +1,12 @@
 namespace BossMod.Components;
 
 // component for breakable chains - Note that chainLength for AI considers the minimum distance needed for a chain-pair to be broken (assuming perfectly stacked at cast)
-public class Chains(BossModule module, uint tetherID, Enum? aid = default, float chainLength = 0, bool spreadChains = true) : CastCounter(module, aid)
+public class Chains(BossModule module, uint tetherID, Enum? aid = default, float chainLength = 0, bool spreadChains = true, float activationDelay = 0) : CastCounter(module, aid)
 {
     public uint TID { get; init; } = tetherID;
     public bool TethersAssigned { get; private set; }
     protected readonly (Actor? Partner, float InitialDistance)[] Partners = new (Actor? Partner, float InitialDistance)[PartyState.MaxAllies];
+    private DateTime _activation;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -26,7 +27,7 @@ public class Chains(BossModule module, uint tetherID, Enum? aid = default, float
         if (partner.Partner != null)
         {
             var forbiddenZone = spreadChains ? ShapeContains.Circle(partner.Partner.Position, partner.InitialDistance + chainLength) : ShapeContains.InvertedCircle(partner.Partner.Position, chainLength);
-            hints.AddForbiddenZone(forbiddenZone);
+            hints.AddForbiddenZone(forbiddenZone, _activation);
         }
     }
 
@@ -45,6 +46,7 @@ public class Chains(BossModule module, uint tetherID, Enum? aid = default, float
             var target = WorldState.Actors.Find(tether.Target);
             if (target != null)
             {
+                _activation = WorldState.FutureTime(activationDelay);
                 var initialDistance = (source.Position - target.Position).Length();
                 SetPartner(source.InstanceID, target, initialDistance);
                 SetPartner(target.InstanceID, source, initialDistance);

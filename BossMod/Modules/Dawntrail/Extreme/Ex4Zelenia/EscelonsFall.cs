@@ -2,6 +2,7 @@
 
 namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
+// TODO: add "you should bait now!" hints
 class EscelonsFall : Components.GenericBaitAway
 {
     enum Proximity
@@ -87,3 +88,5 @@ class EscelonsFall : Components.GenericBaitAway
         }
     }
 }
+
+class PowerBreak(BossModule module) : Components.GroupedAOEs(module, [AID.PowerBreak1, AID.PowerBreak2], new AOEShapeRect(24, 32));

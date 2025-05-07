@@ -1,5 +1,40 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
+class AddsExplosion(BossModule module) : Components.CastTowers(module, AID.AddsExplosion, 3, minSoakers: 3, maxSoakers: 4)
+{
+    private BitMask TetheredPlayers;
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.SpearpointPush && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+            TetheredPlayers.Set(slot);
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.SpearpointPush && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+            TetheredPlayers.Clear(slot);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+        if (spell.Action == WatchedAction)
+            for (var i = 0; i < Towers.Count; i++)
+                Towers.Ref(i).ForbiddenSoakers |= TetheredPlayers;
+    }
+}
+
+class RosebloodDrop(BossModule module) : Components.Adds(module, (uint)OID.RosebloodDrop1, 1)
+{
+    public bool Spawned { get; private set; }
+
+    public override void Update()
+    {
+        Spawned |= ActiveActors.Any();
+    }
+}
+
 class SpearpointBait(BossModule module) : Components.GenericBaitAway(module)
 {
     private readonly Dictionary<ulong, Actor> tethers = [];
