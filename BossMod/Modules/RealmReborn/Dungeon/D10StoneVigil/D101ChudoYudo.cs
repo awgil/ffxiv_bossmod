@@ -22,7 +22,7 @@ class Positioning(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (actor.Role != Role.Tank)
-            hints.AddForbiddenZone(ShapeContains.Cone(Module.PrimaryActor.Position, 10, Module.PrimaryActor.Rotation, 90.Degrees()));
+            hints.AddForbiddenZone(ShapeContains.Cone(Module.PrimaryActor.Position, 100, Module.PrimaryActor.Rotation, 90.Degrees()), DateTime.MaxValue);
     }
 }
 
