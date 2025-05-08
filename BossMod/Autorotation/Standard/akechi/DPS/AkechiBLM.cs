@@ -195,7 +195,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private int AstralStacks; //Astral Fire Stacks
     private int AstralSoulStacks; //Stacks for Flare Star (Lv100)
     private int EnochianTimer; //Enochian timer
-    private float ElementTimer; //Time remaining on Enochian
     private bool ParadoxActive; //Paradox is active
     private bool canFoul; //Can use Foul
     private bool canXeno; //Can use Xenoglossy
@@ -207,8 +206,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private bool canRetrace; //Can use Retrace
     private bool canBTL; //Can use Between the Lines
     private bool hasThunderhead; //Has Thunderhead buff
+    private bool hasFirestarter; //Has Firestarter buff
     private float thunderLeft; //Time left on DOT effect (30s base)
-    private bool canOpen; //Can use opener
     private bool ShouldUseAOE;
     private bool ShouldUseSTDOT;
     private bool ShouldUseAOEDOT;
@@ -257,18 +256,18 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         AstralSoulStacks = gauge.AstralSoulStacks; //Stacks for Flare Star (Lv100)
         ParadoxActive = gauge.ParadoxActive; //Paradox is active
         EnochianTimer = gauge.EnochianTimer; //Enochian timer
-        ElementTimer = float.MaxValue; //TODO (akechi): remove
         MaxPolyglots = Unlocked(TraitID.EnhancedPolyglotII) ? 3 : Unlocked(TraitID.EnhancedPolyglot) ? 2 : 1;
         canFoul = Unlocked(AID.Foul) && Polyglots > 0; //Can use Foul
         canXeno = Unlocked(AID.Xenoglossy) && Polyglots > 0; //Can use Xenoglossy
         canParadox = Unlocked(AID.Paradox) && ParadoxActive; //Can use Paradox
-        canLL = Unlocked(AID.LeyLines) && CDRemaining(AID.LeyLines) <= 120 && SelfStatusLeft(SID.LeyLines, 30) == 0; //Can use Ley Lines
-        canAmp = ActionReady(AID.Amplifier); //Can use Amplifier
-        canTC = Unlocked(AID.Triplecast) && CDRemaining(AID.Triplecast) <= 60 && SelfStatusLeft(SID.Triplecast) == 0; //Can use Triplecast
-        canMF = ActionReady(AID.Manafont); //Can use Manafont
-        canRetrace = ActionReady(AID.Retrace) && PlayerHasEffect(SID.LeyLines, 30); //Can use Retrace
-        canBTL = ActionReady(AID.BetweenTheLines) && PlayerHasEffect(SID.LeyLines, 30); //Can use Between the Lines
-        hasThunderhead = PlayerHasEffect(SID.Thunderhead, 30); //Has Thunderhead buff
+        canLL = Unlocked(AID.LeyLines) && CDRemaining(AID.LeyLines) <= 120 && Player.FindStatus(SID.LeyLines) == null; //Can use Ley Lines
+        canAmp = OGCDReady(AID.Amplifier); //Can use Amplifier
+        canTC = Unlocked(AID.Triplecast) && CDRemaining(AID.Triplecast) <= 60 && Player.FindStatus(SID.Triplecast) == null; //Can use Triplecast
+        canMF = OGCDReady(AID.Manafont); //Can use Manafont
+        canRetrace = OGCDReady(AID.Retrace) && Player.FindStatus(SID.LeyLines) != null; //Can use Retrace
+        canBTL = OGCDReady(AID.BetweenTheLines) && Player.FindStatus(SID.LeyLines) != null; //Can use Between the Lines
+        hasThunderhead = Player.FindStatus(SID.Thunderhead) != null; //Has Thunderhead buff
+        hasFirestarter = Player.FindStatus(SID.Firestarter) != null; //Has Firestarter buff
         thunderLeft = Utils.MaxAll( //Time left on DOT effect
             StatusDetails(BestSplashTarget?.Actor, SID.Thunder, Player.InstanceID, 24).Left,
             StatusDetails(BestSplashTarget?.Actor, SID.ThunderII, Player.InstanceID, 18).Left,
@@ -283,10 +282,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         (BestDOTTargets, thunderLeft) = GetDOTTarget(primaryTarget, ThunderRemaining, 2);
         BestSplashTarget = ShouldUseAOE ? BestSplashTargets : primaryTarget;
         BestDOTTarget = ShouldUseAOEDOT ? BestSplashTargets : ShouldUseSTDOT ? BestDOTTargets : primaryTarget;
-        canOpen = CDRemaining(AID.LeyLines) <= 120
-                && CDRemaining(AID.Triplecast) <= 0.1f
-                && CDRemaining(AID.Manafont) <= 0.1f
-                && CDRemaining(AID.Amplifier) <= 0.1f;
 
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE); //AOE track
@@ -348,7 +343,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 or MovementStrategy.OnlyOGCDs)
             {
                 //OGCDs
-                if (ActionReady(AID.Swiftcast) &&
+                if (OGCDReady(AID.Swiftcast) &&
                     !PlayerHasEffect(SID.Triplecast, 15))
                     QueueOGCD(AID.Swiftcast, Player, NewGCDPriority.Moving2);
                 if (canTC &&
@@ -382,7 +377,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     if (InAstralFire)
                         QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose);
                     if (InUmbralIce &&
-                        (ElementTimer <= 14 || UmbralStacks < 3 || UmbralHearts != MaxUmbralHearts))
+                        (UmbralStacks < 3 || UmbralHearts != MaxUmbralHearts))
                         QueueGCD(AID.UmbralSoul, Player, NewGCDPriority.Standard);
                 }
             }
@@ -395,7 +390,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             (!IsMoving || //if not moving
             PlayerHasEffect(SID.Swiftcast, 10) || //or has Swiftcast
             PlayerHasEffect(SID.Triplecast, 15) || //or has Triplecast
-            canParadox && ElementTimer < SpSGCDLength * 3 && MP >= 1600 || LastActionUsed(AID.Blizzard4) || //or can use Paradox
+            canParadox && MP >= 1600 || LastActionUsed(AID.Blizzard4) || //or can use Paradox
             SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 || //or can use F3P
             Unlocked(TraitID.EnhancedAstralFire) && MP is < 1600 and not 0)) //instant cast Despair 
         {
@@ -491,14 +486,14 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 : NewOGCDPriority.Amplifier);
         //Manafont
         if (ShouldUseManafont(BestSplashTarget?.Actor, mfStrat))
-            QueueOGCD(AID.Manafont,
+            QueueGCD(AID.Manafont,
                 Player,
                 mfStrat is ManafontStrategy.Force
                 or ManafontStrategy.ForceWeave
                 or ManafontStrategy.ForceEX
                 or ManafontStrategy.ForceWeaveEX
-                ? NewOGCDPriority.ForcedOGCD
-                : NewOGCDPriority.Manafont);
+                ? NewGCDPriority.ForcedGCD
+                : NewGCDPriority.FlareStar);
         //Retrace
         //TODO: more options?
         if (ShouldUseRetrace(retraceStrat))
@@ -543,7 +538,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                         QueueGCD(AID.Blizzard3, target, NewGCDPriority.NeedB3); //Queue Blizzard III
                     if (Unlocked(AID.Fire3) &&
                         (CDRemaining(AID.Manafont) < 5 && CDRemaining(AID.LeyLines) <= 121 && MP >= 10000 || !Player.InCombat && World.Client.CountdownRemaining <= 4)) //F3 opener
-                        QueueGCD(AID.Fire3, target, canOpen ? NewGCDPriority.Opener : NewGCDPriority.NeedB3);
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.NeedB3);
                 }
             }
             if (Player.Level is >= 1 and <= 34 || !Unlocked(AID.Blizzard3))
@@ -558,7 +553,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 if (InUmbralIce && MP < 9500) //if Umbral Ice is active and MP is not max
                     QueueGCD(AID.Blizzard1, target, NewGCDPriority.Standard); //Queue Blizzard
                 //Transpose 
-                if (ActionReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
+                if (OGCDReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
                     InAstralFire && MP < 1600 || //if Astral Fire is active and MP is less than 1600
                     InUmbralIce && MP == 10000) //or if Umbral Ice is active and MP is max
                     QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose); //Queue Transpose
@@ -613,16 +608,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 }
                 if (InAstralFire) //if Astral Fire is active
                 {
-                    //Step 1-3-7 - Fire IV
+                    //Step 1-7 - Fire IV
                     if (MP >= 1600) //and MP is 1600 or more
                         QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep); //Queue Fire IV
-                    //Step 4A - Fire 1
-                    if (ElementTimer <= SpSGCDLength * 3 && //if time remaining on current element is less than 3x GCDs
-                        MP >= 4000) //and MP is 4000 or more
-                        QueueGCD(AID.Fire1, target, ElementTimer <= 5 && MP >= 4000 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
-                    //Step 4B - F3P 
-                    if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
-                        AstralStacks == 3) //and Umbral Hearts are 0
+                    //Step (whenever) - F3P 
+                    if (PlayerHasEffect(SID.Firestarter) && //if Firestarter buff is active and not 0
+                        AstralStacks == 3)
                         QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - swap from AF to UI
                     if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
@@ -645,22 +636,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 }
                 if (InAstralFire) //if Astral Fire is active
                 {
-                    //Step 1-3-7 - Fire IV
+                    //Step 1-7 - Fire IV
                     if (MP >= 1600) //and MP is 1600 or more
                         QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep); //Queue Fire IV
-                    //Step 4A - Fire 1
-                    if (ElementTimer <= GetCastTime(AID.Fire1) * 3 && //if time remaining on current element is less than 3x GCDs
-                        MP >= 4000) //and MP is 4000 or more
-                        QueueGCD(AID.Fire1, target, ElementTimer <= GetCastTime(AID.Fire1) * 3 && MP >= 4000 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep); //Queue Fire I, increase priority if less than 3s left on element
-                    //Step 4B - F3P 
-                    if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
-                        AstralStacks == 3) //and Umbral Hearts are 0
+                    //Step (whenever) - F3P 
+                    if (PlayerHasEffect(SID.Firestarter) && //if Firestarter buff is active and not 0
+                        AstralStacks == 3)
                         QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair 
                     if (Unlocked(AID.Despair) && //if Despair is unlocked
-                        (MP is < 1600 and >= 800 || //if MP is less than 1600 and not 0
-                        MP is <= 4000 and >= 800 && ElementTimer <= GetCastTime(AID.Despair) * 2)) //or if we dont have enough time for last F4s
-                        QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? NewGCDPriority.ForcedGCD : NewGCDPriority.ThirdStep); //Queue Despair
+                        (MP is < 1600 and >= 800)) //if MP is less than 1600 and not 0
+                        QueueGCD(AID.Despair, target, NewGCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - swap from AF to UI 
                     if (MP <= 400) //and MP is less than 400
                         QueueGCD(AID.Blizzard3, target, NewGCDPriority.FourthStep); //Queue Blizzard III
@@ -690,18 +676,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                         QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep); //Queue Fire IV
                     //Step 5A - Paradox
                     if (canParadox && //if Paradox is unlocked and Paradox is active
-                        ElementTimer < SpSGCDLength * 3 && //and time remaining on current element is less than 3x GCDs
                         MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
-                    //Step 4B - F3P 
-                    if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
-                        AstralStacks == 3) //and Umbral Hearts are 0
+                        QueueGCD(AID.Paradox, target, NewGCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
+                    if (PlayerHasEffect(SID.Firestarter) && //if Firestarter buff is active and not 0
+                        AstralStacks == 3)
                         QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
                     //Step 8 - Despair 
                     if (Unlocked(AID.Despair) && //if Despair is unlocked
-                        (MP is < 1600 and >= 800 || //if MP is less than 1600 and not 0
-                        MP is <= 4000 and >= 800 && ElementTimer <= GetCastTime(AID.Despair) * 2)) //or if we dont have enough time for last F4s
-                        QueueGCD(AID.Despair, target, ElementTimer <= GetCastTime(AID.Despair) * 2 ? NewGCDPriority.ForcedGCD : NewGCDPriority.ThirdStep); //Queue Despair
+                        (MP is < 1600 and >= 800)) //if MP is less than 1600 and not 0
+                        QueueGCD(AID.Despair, target, NewGCDPriority.ThirdStep); //Queue Despair
                     //Step 9 - swap from AF to UI
                     if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
                         MP <= 400) //and MP is less than 400
@@ -710,58 +693,36 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             }
             if (Player.Level is 100)
             {
-                if (InUmbralIce) //if Umbral Ice is active
+                if (InUmbralIce) //Ice phase
                 {
-                    //Step 1 - max stacks in UI
-                    if (Unlocked(AID.Blizzard4) && //if Blizzard IV is unlocked
-                        LastActionUsed(AID.Blizzard3) || UmbralHearts != MaxUmbralHearts) //and Blizzard III was just used or Umbral Hearts are not max
-                        QueueGCD(AID.Blizzard4, target, NewGCDPriority.FirstStep); //Queue Blizzard IV
-                    //Step 2 - Ice Paradox
-                    if (canParadox && //if Paradox is unlocked and Paradox is active
-                        LastActionUsed(AID.Blizzard4)) //and Blizzard IV was just used
-                        QueueGCD(AID.Paradox, target, NewGCDPriority.SecondStep); //Queue Paradox
-                    //Step 3 - swap from UI to AF
-                    if (Unlocked(AID.Fire3) && //if Fire III is unlocked
-                        UmbralHearts == MaxUmbralHearts) //and Umbral Hearts are max
-                        QueueGCD(AID.Fire3, target, NewGCDPriority.ThirdStep); //Queue Fire III
+                    if (MP <= 200 && UmbralStacks != 3)
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.FirstStep + 1);
+                    if (LastActionUsed(AID.Blizzard3) || UmbralHearts != MaxUmbralHearts)
+                        QueueGCD(AID.Blizzard4, target, NewGCDPriority.FirstStep);
+                    if (canParadox && (LastActionUsed(AID.Blizzard4) || UmbralHearts == MaxUmbralHearts))
+                        QueueGCD(AID.Paradox, target, NewGCDPriority.SecondStep);
+                    if (LastActionUsed(AID.Paradox) && !ParadoxActive)
+                        QueueGCD(AID.Transpose, target, NewGCDPriority.ThirdStep);
                 }
-                if (InAstralFire) //if Astral Fire is active
+                if (InAstralFire)
                 {
-                    //Step 1-4, 6 & 7 - Fire IV
-                    if (AstralSoulStacks != 6 && //and Astral Soul stacks are not max
-                        MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep); //Queue Fire IV
-                    //Step 5A - Paradox
-                    if (ParadoxActive && //if Paradox is active
-                        ElementTimer < SpSGCDLength * 3 && //and time remaining on current element is less than 3x GCDs
-                        MP >= 1600) //and MP is 1600 or more
-                        QueueGCD(AID.Paradox, target, ElementTimer <= 3 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep); //Queue Paradox, increase priority if less than 3s left on element
-                    //Step 4B - F3P 
-                    if (SelfStatusLeft(SID.Firestarter, 30) is < 25 and not 0 && //if Firestarter buff is active and not 0
-                        AstralStacks == 3) //and Umbral Hearts are 0
-                        QueueGCD(AID.Fire3, target, NewGCDPriority.ForcedStep); //Queue Fire III (AF3 F3P)
-                    //Step 8 - Despair
-                    if (Unlocked(AID.Despair) &&
-                        (MP is < 1600 and not 0 || MP <= 1600 && ElementTimer <= 4)) //if MP is less than 1600 and not 0
-                        QueueGCD(AID.Despair, target, MP <= 1600 && ElementTimer <= 4 ? NewGCDPriority.NeedPolyglot : NewGCDPriority.ThirdStep); //Queue Despair
-                    //Step 9 - Flare Star
-                    if (AstralSoulStacks == 6) //if Astral Soul stacks are max
-                        QueueGCD(AID.FlareStar, target, NewGCDPriority.FourthStep); //Queue Flare Star
-                    //Step 10A - skip Flare Star if we cant use it (cryge)
-                    if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
-                        MP <= 400 && //and MP is less than 400
-                        AstralSoulStacks is < 6 and > 0) //and Astral Soul stacks are less than 6 but greater than 0
-                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.FifthStep); //Queue Blizzard III
-                    //Step 10B - swap from AF to UI
-                    if (Unlocked(AID.Blizzard3) && //if Blizzard III is unlocked
-                        MP <= 400 && //and MP is less than 400
-                        AstralSoulStacks == 0) //and Astral Soul stacks are 0
-                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.FifthStep); //Queue Blizzard III
+                    if (hasFirestarter && AstralStacks != 3)
+                        QueueGCD(AID.Fire3, target, NewGCDPriority.FirstStep + 1);
+                    if (AstralSoulStacks != 6 && MP >= 1600)
+                        QueueGCD(AID.Fire4, target, NewGCDPriority.FirstStep);
+                    if (ParadoxActive && (CDRemaining(AID.Manafont) is <= 2f or > 100f ? (AstralStacks == 0 && MP == 0) : (AstralStacks == 3 && MP >= 1600)))
+                        QueueGCD(AID.Paradox, target, AstralSoulStacks == 3 ? NewGCDPriority.Paradox : NewGCDPriority.SecondStep);
+                    if (AstralSoulStacks == 6)
+                        QueueGCD(AID.FlareStar, target, NewGCDPriority.ThirdStep);
+                    if (CDRemaining(AID.Manafont) < 110 && (LastActionUsed(AID.FlareStar) || MP < 1600) && MP != 0)
+                        QueueGCD(AID.Despair, target, NewGCDPriority.FourthStep);
+                    if (MP <= 200)
+                        QueueGCD(AID.Blizzard3, target, NewGCDPriority.FirstStep + 1);
                 }
             }
         }
     }
-    private void BestAOE(Actor? target) //AOE rotation based on level
+    private void BestAOE(Actor? target) //AOE rotation based on level 
     {
         if (In25y(target))
         {
@@ -794,7 +755,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     MP <= 9600)
                     QueueGCD(AID.Blizzard2, target, NewGCDPriority.Standard); //Queue Blizzard II
                 //Transpose 
-                if (ActionReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
+                if (OGCDReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
                     (InAstralFire && MP < 3000 || //if Astral Fire is active and MP is less than 1600
                     InUmbralIce && MP > 9600)) //or if Umbral Ice is active and MP is max
                     QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose); //Queue Transpose
@@ -1013,6 +974,48 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             }
         }
     }
+
+    public (bool, GCDPriority) ShouldBlizzardIorIV(int extraPrio)
+    {
+        //Blizzard 1 essentially becomes Blizzard IV at 58
+        //this can go through throughout the entire rotation on all levels
+        if (InUmbralIce && (MP != 10000 || UmbralHearts != MaxUmbralHearts))
+            return (true, GCDPriority.SlightlyLow + extraPrio);
+
+        return (false, GCDPriority.None);
+    }
+    public (bool, GCDPriority) ShouldUseFireI()
+    {
+        //as of 7.2, Fire I is pretty much useless when Fire IV is unlocked
+        //so we'll only cover that here
+        if (Player.Level is >= 2 and < 60 || !Unlocked(AID.Fire4))
+        {
+            if (InAstralFire && MP >= 1600)
+                return (true, GCDPriority.SlightlyLow);
+        }
+
+        return (false, GCDPriority.None);
+    }
+    public (bool, GCDPriority) ShouldUseFireII()
+    {
+        //Fire II is only used in AOE situations
+        if (Player.Level is >= 12 and < 60 || !Unlocked(AID.Fire4))
+        {
+            if (InAstralFire && MP >= 3000)
+                return (true, GCDPriority.SlightlyLow);
+        }
+        return (false, GCDPriority.None);
+    }
+    public (bool, GCDPriority) ShouldUseFireIII()
+    {
+        //Fire III is only used in AOE situations
+        if (Player.Level is >= 12 and < 60 || !Unlocked(AID.Fire4))
+        {
+            if (InAstralFire && MP >= 3000)
+                return (true, GCDPriority.SlightlyLow);
+        }
+        return (false, GCDPriority.None);
+    }
     #endregion
 
     #region Cooldown Helpers
@@ -1022,9 +1025,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private float ThunderRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
     private bool ShouldUseThunder(Actor? target, ThunderStrategy strategy) => strategy switch
     {
-        ThunderStrategy.Thunder3 => Player.InCombat && target != null && hasThunderhead && thunderLeft <= 3 && In25y(target),
-        ThunderStrategy.Thunder6 => Player.InCombat && target != null && hasThunderhead && thunderLeft <= 6 && In25y(target),
-        ThunderStrategy.Thunder9 => Player.InCombat && target != null && hasThunderhead && thunderLeft <= 9 && In25y(target),
+        ThunderStrategy.Thunder3 => Player.InCombat && target != null && hasThunderhead && CanFitSpSGCD(thunderLeft) && In25y(target),
+        ThunderStrategy.Thunder6 => Player.InCombat && target != null && hasThunderhead && CanFitSpSGCD(thunderLeft, 1) && In25y(target),
+        ThunderStrategy.Thunder9 => Player.InCombat && target != null && hasThunderhead && CanFitSpSGCD(thunderLeft, 2) && In25y(target),
         ThunderStrategy.Thunder0 => Player.InCombat && target != null && hasThunderhead && thunderLeft is 0 && In25y(target),
         ThunderStrategy.Force => hasThunderhead,
         ThunderStrategy.Delay => false,
@@ -1045,10 +1048,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         if (Polyglots > 0)
         {
             if (Player.InCombat &&
-                ((CDRemaining(AID.Triplecast) < 5 || CDRemaining(AID.Triplecast) <= 60 && CDRemaining(AID.Triplecast) >= 65) && PlayerHasEffect(SID.LeyLines, 30) || //Triplecast prep
-                CDRemaining(AID.LeyLines) < 5 || CDRemaining(AID.LeyLines) == 0 || CDRemaining(AID.LeyLines) <= 125 && CDRemaining(AID.LeyLines) >= 119 || //Ley Lines prep
-                CDRemaining(AID.Amplifier) < 0.6f || //Amplifier prep
-                CDRemaining(AID.Manafont) < 0.6f && MP < 1600)) //Manafont prep
+                (CDRemaining(AID.LeyLines) < 5 || CDRemaining(AID.LeyLines) == 0) ||
+                (CDRemaining(AID.Amplifier) <= GCD && Polyglots == MaxPolyglots) ||
+                (CDRemaining(AID.Manafont) <= GCD && MP < 1600))
                 return true;
         }
         return false;
@@ -1100,7 +1102,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseManafont(Actor? target, ManafontStrategy strategy) => strategy switch
     {
-        ManafontStrategy.Automatic => Player.InCombat && target != null && canMF && CanWeaveIn && MP == 0,
+        ManafontStrategy.Automatic => Player.InCombat && target != null && canMF && MP < 1600,
         ManafontStrategy.Force => canMF,
         ManafontStrategy.ForceWeave => canMF && CanWeaveIn,
         ManafontStrategy.ForceEX => canMF,
