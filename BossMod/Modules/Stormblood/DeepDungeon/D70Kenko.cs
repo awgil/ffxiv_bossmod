@@ -27,8 +27,8 @@ public enum IconID : uint
     Prey = 1, // player->self
 }
 
-class PredatorClaws(BossModule module) : Components.SelfTargetedAOEs(module, AID.PredatorClaws, new AOEShapeCone(15, 60.Degrees()));
-class Slabber(BossModule module) : Components.LocationTargetedAOEs(module, AID.Slabber, 8);
+class PredatorClaws(BossModule module) : Components.StandardAOEs(module, AID.PredatorClaws, new AOEShapeCone(15, 60.Degrees()));
+class Slabber(BossModule module) : Components.StandardAOEs(module, AID.Slabber, 8);
 class InnerspacePredict(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? Next;

@@ -30,7 +30,7 @@ public enum AID : uint
     SentinelRoar = 39491, // Boss->self, 5.0s cast, range 40 circle, raidwide
 }
 
-class WordOfTheWood(BossModule module) : Components.SelfTargetedAOEs(module, AID.WordOfTheWood, new AOEShapeCone(30, 90.Degrees()));
+class WordOfTheWood(BossModule module) : Components.StandardAOEs(module, AID.WordOfTheWood, new AOEShapeCone(30, 90.Degrees()));
 
 class WhisperOfTheWood(BossModule module) : Components.GenericAOEs(module)
 {

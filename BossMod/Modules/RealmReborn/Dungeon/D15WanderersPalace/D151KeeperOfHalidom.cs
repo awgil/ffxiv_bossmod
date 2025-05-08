@@ -62,7 +62,7 @@ class InhaleGoobbuesGrief(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MoldyPhlegm(BossModule module) : Components.LocationTargetedAOEs(module, AID.MoldyPhlegm, 6);
+class MoldyPhlegm(BossModule module) : Components.StandardAOEs(module, AID.MoldyPhlegm, 6);
 
 class D151KeeperOfHalidomStates : StateMachineBuilder
 {

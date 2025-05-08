@@ -29,7 +29,7 @@ class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, AID.S
             CurrentBaits.Clear();
     }
 }
-class OnLow(BossModule module) : Components.SelfTargetedAOEs(module, AID.OnLow, new AOEShapeCone(11, 60.Degrees()));
+class OnLow(BossModule module) : Components.StandardAOEs(module, AID.OnLow, new AOEShapeCone(11, 60.Degrees()));
 class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
 {
     private readonly List<Actor> Casters = [];

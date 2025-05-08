@@ -20,8 +20,8 @@ public enum AID : uint
     SelfDetonate = 15329, // 273A->player, 3.0s cast, single-target
 }
 
-class MagicHammer(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagicHammer, 8);
-class PageTear(BossModule module) : Components.SelfTargetedAOEs(module, AID.PageTear, new AOEShapeCone(8, 45.Degrees()));
+class MagicHammer(BossModule module) : Components.StandardAOEs(module, AID.MagicHammer, 8);
+class PageTear(BossModule module) : Components.StandardAOEs(module, AID.PageTear, new AOEShapeCone(8, 45.Degrees()));
 
 class VacuumBlade(BossModule module) : Components.GenericAOEs(module)
 {

@@ -38,7 +38,7 @@ class GobthunderIII(BossModule module) : Components.SpreadFromCastTargets(module
 class GobthunderIIIHint(BossModule module) : Components.CastInterruptHint(module, AID.GobthunderIII);
 class GoblinPunch(BossModule module) : Components.SingleTargetCast(module, AID.GoblinPunch);
 class Gobhaste(BossModule module) : Components.CastHint(module, AID.Gobhaste, "Attack speed buff");
-class GobthunderII(BossModule module) : Components.LocationTargetedAOEs(module, AID.GobthunderII, 8);
+class GobthunderII(BossModule module) : Components.StandardAOEs(module, AID.GobthunderII, 8);
 
 class LilMurdererStates : StateMachineBuilder
 {

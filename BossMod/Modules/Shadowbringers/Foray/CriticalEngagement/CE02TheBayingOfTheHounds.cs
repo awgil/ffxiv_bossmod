@@ -33,9 +33,9 @@ public enum AID : uint
 }
 
 class Hellclaw(BossModule module) : Components.SingleTargetCast(module, AID.Hellclaw);
-class TailBlow(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailBlow, new AOEShapeCone(19, 45.Degrees()));
-class LavaSpit(BossModule module) : Components.LocationTargetedAOEs(module, AID.LavaSpitAOE, 5);
-class ScorchingLash(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScorchingLash, new AOEShapeRect(50, 5));
+class TailBlow(BossModule module) : Components.StandardAOEs(module, AID.TailBlow, new AOEShapeCone(19, 45.Degrees()));
+class LavaSpit(BossModule module) : Components.StandardAOEs(module, AID.LavaSpitAOE, 5);
+class ScorchingLash(BossModule module) : Components.StandardAOEs(module, AID.ScorchingLash, new AOEShapeRect(50, 5));
 
 class Hellpounce(BossModule module) : Components.GenericAOEs(module, AID.Hellpounce, "GTFO from charge!")
 {
@@ -70,7 +70,7 @@ class Hellpounce(BossModule module) : Components.GenericAOEs(module, AID.Hellpou
     }
 }
 
-class LionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.LionsBreathAOE, new AOEShapeCone(60, 45.Degrees()));
+class LionsBreath(BossModule module) : Components.StandardAOEs(module, AID.LionsBreathAOE, new AOEShapeCone(60, 45.Degrees()));
 class DragonsBreathR(BossModule module) : Components.StandardAOEs(module, AID.DragonsBreathAOER, new AOEShapeCone(60, 30.Degrees()));
 class DragonsBreathL(BossModule module) : Components.StandardAOEs(module, AID.DragonsBreathAOEL, new AOEShapeCone(60, 30.Degrees()));
 class VoidTornado(BossModule module) : Components.CastHint(module, AID.VoidTornado, "Set hp to 1");

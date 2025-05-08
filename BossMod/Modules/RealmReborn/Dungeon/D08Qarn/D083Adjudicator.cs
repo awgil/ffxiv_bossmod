@@ -20,8 +20,8 @@ public enum AID : uint
     VergePulse = 930, // MythrilVerge->self, 10.0s cast, range 60 ???
 }
 
-class Darkness(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.Darkness, new AOEShapeCone(7.5f, 60.Degrees()));
-class VergeLine(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.VergeLine, new AOEShapeRect(60, 2));
+class Darkness(BossModule module) : Components.StandardAOEs(module, AID.Darkness, new AOEShapeCone(7.5f, 60.Degrees()));
+class VergeLine(BossModule module) : Components.StandardAOEs(module, AID.VergeLine, new AOEShapeRect(60, 2));
 
 class D083AdjudicatorStates : StateMachineBuilder
 {

@@ -69,4 +69,4 @@ class ChillingCataclysm(BossModule module) : Components.GenericAOEs(module, AID.
     }
 }
 
-class CracklingCataclysm(BossModule module) : Components.LocationTargetedAOEs(module, AID.CracklingCataclysm, 6);
+class CracklingCataclysm(BossModule module) : Components.StandardAOEs(module, AID.CracklingCataclysm, 6);

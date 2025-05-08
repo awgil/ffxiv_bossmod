@@ -45,9 +45,9 @@ class LeafstormRimestorm(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Snowball(BossModule module) : Components.LocationTargetedAOEs(module, AID.Snowball, 8);
+class Snowball(BossModule module) : Components.StandardAOEs(module, AID.Snowball, 8);
 class Canopy(BossModule module) : Components.Cleave(module, AID.Canopy, new AOEShapeCone(12, 60.Degrees()), activeWhileCasting: false);
-class BackhandBlow(BossModule module) : Components.SelfTargetedAOEs(module, AID.BackhandBlow, new AOEShapeCone(12, 60.Degrees()));
+class BackhandBlow(BossModule module) : Components.StandardAOEs(module, AID.BackhandBlow, new AOEShapeCone(12, 60.Degrees()));
 
 class AegeirosStates : StateMachineBuilder
 {

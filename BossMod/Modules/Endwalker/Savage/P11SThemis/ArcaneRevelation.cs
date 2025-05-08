@@ -77,5 +77,5 @@ class DismissalOverruling(BossModule module) : Components.Knockback(module)
     }
 }
 
-class InnerLight(BossModule module) : Components.SelfTargetedAOEs(module, AID.InnerLight, new AOEShapeCircle(13));
-class OuterDark(BossModule module) : Components.SelfTargetedAOEs(module, AID.OuterDark, new AOEShapeDonut(8, 50));
+class InnerLight(BossModule module) : Components.StandardAOEs(module, AID.InnerLight, new AOEShapeCircle(13));
+class OuterDark(BossModule module) : Components.StandardAOEs(module, AID.OuterDark, new AOEShapeDonut(8, 50));

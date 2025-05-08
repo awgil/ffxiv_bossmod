@@ -36,20 +36,20 @@ public enum IconID : uint
     EnervatingGloom = 161, // player
 }
 
-class FullmoonFury(BossModule module) : Components.SelfTargetedAOEs(module, AID.FullmoonFury, new AOEShapeCircle(20));
-class FullmoonFuryHonor(BossModule module) : Components.SelfTargetedAOEs(module, AID.FullmoonFuryHonor, new AOEShapeCircle(20));
-class FullmoonFuryDishonor(BossModule module) : Components.SelfTargetedAOEs(module, AID.FullmoonFuryDishonor, new AOEShapeDonut(10, 40));
-class DiscordantMoon(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiscordantMoon, new AOEShapeDonut(10, 40));
-class DiscordantMoonHonor(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiscordantMoonHonor, new AOEShapeDonut(10, 40));
-class DiscordantMoonDishonor(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiscordantMoonDishonor, new AOEShapeCircle(20));
-class FightersFlourish(BossModule module) : Components.SelfTargetedAOEs(module, AID.FightersFlourish, new AOEShapeCone(40, 135.Degrees()));
-class FightersFlourishHonor(BossModule module) : Components.SelfTargetedAOEs(module, AID.FightersFlourishHonor, new AOEShapeCone(40, 135.Degrees()));
-class FightersFlourishDishonor(BossModule module) : Components.SelfTargetedAOEs(module, AID.FightersFlourishDishonor, new AOEShapeCone(40, 135.Degrees()));
-class DiscordantFlourish(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiscordantFlourish, new AOEShapeCone(40, 135.Degrees()));
-class DiscordantFlourishHonor(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiscordantFlourishHonor, new AOEShapeCone(40, 135.Degrees()));
-class DiscordantFlourishDishonor(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiscordantFlourishDishonor, new AOEShapeCone(40, 135.Degrees()));
+class FullmoonFury(BossModule module) : Components.StandardAOEs(module, AID.FullmoonFury, new AOEShapeCircle(20));
+class FullmoonFuryHonor(BossModule module) : Components.StandardAOEs(module, AID.FullmoonFuryHonor, new AOEShapeCircle(20));
+class FullmoonFuryDishonor(BossModule module) : Components.StandardAOEs(module, AID.FullmoonFuryDishonor, new AOEShapeDonut(10, 40));
+class DiscordantMoon(BossModule module) : Components.StandardAOEs(module, AID.DiscordantMoon, new AOEShapeDonut(10, 40));
+class DiscordantMoonHonor(BossModule module) : Components.StandardAOEs(module, AID.DiscordantMoonHonor, new AOEShapeDonut(10, 40));
+class DiscordantMoonDishonor(BossModule module) : Components.StandardAOEs(module, AID.DiscordantMoonDishonor, new AOEShapeCircle(20));
+class FightersFlourish(BossModule module) : Components.StandardAOEs(module, AID.FightersFlourish, new AOEShapeCone(40, 135.Degrees()));
+class FightersFlourishHonor(BossModule module) : Components.StandardAOEs(module, AID.FightersFlourishHonor, new AOEShapeCone(40, 135.Degrees()));
+class FightersFlourishDishonor(BossModule module) : Components.StandardAOEs(module, AID.FightersFlourishDishonor, new AOEShapeCone(40, 135.Degrees()));
+class DiscordantFlourish(BossModule module) : Components.StandardAOEs(module, AID.DiscordantFlourish, new AOEShapeCone(40, 135.Degrees()));
+class DiscordantFlourishHonor(BossModule module) : Components.StandardAOEs(module, AID.DiscordantFlourishHonor, new AOEShapeCone(40, 135.Degrees()));
+class DiscordantFlourishDishonor(BossModule module) : Components.StandardAOEs(module, AID.DiscordantFlourishDishonor, new AOEShapeCone(40, 135.Degrees()));
 class EnervatingGloom(BossModule module) : Components.StackWithCastTargets(module, AID.EnervatingGloom, 6, 4);
-class FlyingFist(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlyingFist, new AOEShapeRect(40, 4));
+class FlyingFist(BossModule module) : Components.StandardAOEs(module, AID.FlyingFist, new AOEShapeRect(40, 4));
 class OdiousUproar(BossModule module) : Components.RaidwideCast(module, AID.OdiousUproar);
 
 class KirlirgerStates : StateMachineBuilder

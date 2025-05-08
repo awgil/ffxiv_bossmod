@@ -25,7 +25,7 @@ public enum TetherID : uint
     WhaleOilTether = 3,
 }
 
-class PageTear(BossModule module) : Components.SelfTargetedAOEs(module, AID.PageTear, new AOEShapeCone(5f + 3f, 45.Degrees()));
+class PageTear(BossModule module) : Components.StandardAOEs(module, AID.PageTear, new AOEShapeCone(5f + 3f, 45.Degrees()));
 class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, AID.HeadDown, 4)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -85,8 +85,8 @@ class Bibliocide(BossModule module) : Components.BaitAwayTethers(module, new AOE
     }
 };
 class GaleCut(BossModule module) : Components.SingleTargetCast(module, AID.GaleCut);
-class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSmash, new AOEShapeCone(9f + 3f, 45.Degrees()));
-class DeathRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeathRay, new AOEShapeRect(23f + 3f, 1.5f));
+class TailSmash(BossModule module) : Components.StandardAOEs(module, AID.TailSmash, new AOEShapeCone(9f + 3f, 45.Degrees()));
+class DeathRay(BossModule module) : Components.StandardAOEs(module, AID.DeathRay, new AOEShapeRect(23f + 3f, 1.5f));
 class TomeWind(BossModule module) : BossComponent(module)
 {
     private IEnumerable<Actor> TomeWinds => Module.Enemies(OID.TomeWind).Where(e => !e.IsDead);

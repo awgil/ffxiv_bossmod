@@ -76,7 +76,7 @@ abstract class FreezableAOEs(BossModule module, Enum action, AOEShape shape) : C
 class IceScream(BossModule module) : FreezableAOEs(module, AID.IceScream, new AOEShapeRect(20, 10));
 class FrozenSwirl(BossModule module) : FreezableAOEs(module, AID.FrozenSwirl, new AOEShapeCircle(15)); // note that helpers that cast visual cast are tethered
 
-class SnowBoulder(BossModule module) : Components.SelfTargetedAOEs(module, AID.SnowBoulder, new AOEShapeRect(50, 3), 6);
+class SnowBoulder(BossModule module) : Components.StandardAOEs(module, AID.SnowBoulder, new AOEShapeRect(50, 3), 6);
 class SparklingSprinkling(BossModule module) : Components.SpreadFromCastTargets(module, AID.SparklingSprinklingAOE, 5);
 
 class D021RyoqorTertehStates : StateMachineBuilder

@@ -29,9 +29,9 @@ public enum IOD : uint
 {
     Stack = 62
 }
-class ConcussiveOscillationBoss(BossModule module) : LocationTargetedAOEs(module, AID.ConcussiveOscillationBoss, 7);
-class ConcussiveOscillation(BossModule module) : LocationTargetedAOEs(module, AID.ConcussiveOscillation, 8);
-class AmorphousApplause(BossModule module) : SelfTargetedAOEs(module, AID.AmorphousApplause, new AOEShapeCone(30, 90.Degrees()));
+class ConcussiveOscillationBoss(BossModule module) : StandardAOEs(module, AID.ConcussiveOscillationBoss, 7);
+class ConcussiveOscillation(BossModule module) : StandardAOEs(module, AID.ConcussiveOscillation, 8);
+class AmorphousApplause(BossModule module) : StandardAOEs(module, AID.AmorphousApplause, new AOEShapeCone(30, 90.Degrees()));
 
 class Hydroball(BossModule module) : StackWithCastTargets(module, AID.Hydroball, 5, 4)
 {

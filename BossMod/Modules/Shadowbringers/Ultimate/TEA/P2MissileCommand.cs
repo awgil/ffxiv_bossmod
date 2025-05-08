@@ -51,7 +51,7 @@ class P2Enumeration(BossModule module) : Components.UniformStackSpread(module, 5
     }
 }
 
-class P2HiddenMinefield(BossModule module) : Components.SelfTargetedAOEs(module, AID.HiddenMinefield, new AOEShapeCircle(5))
+class P2HiddenMinefield(BossModule module) : Components.StandardAOEs(module, AID.HiddenMinefield, new AOEShapeCircle(5))
 {
     private readonly List<WPos> _mines = [];
 

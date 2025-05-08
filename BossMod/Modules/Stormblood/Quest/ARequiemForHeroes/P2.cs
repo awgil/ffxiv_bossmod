@@ -29,15 +29,15 @@ class StormUnbound(BossModule module) : Components.Exaflare(module, 5)
     }
 }
 
-class LightlessSpark2(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightlessSparkAdds, new AOEShapeCone(40, 45.Degrees()));
+class LightlessSpark2(BossModule module) : Components.StandardAOEs(module, AID.LightlessSparkAdds, new AOEShapeCone(40, 45.Degrees()));
 
-class ArtOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArtOfTheStorm, new AOEShapeCircle(8));
-class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, AID.EntropicFlame, new AOEShapeRect(50, 4));
+class ArtOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.ArtOfTheStorm, new AOEShapeCircle(8));
+class EntropicFlame(BossModule module) : Components.StandardAOEs(module, AID.EntropicFlame, new AOEShapeRect(50, 4));
 
-class FloodOfDarkness(BossModule module) : Components.SelfTargetedAOEs(module, AID.FloodOfDarkness, new AOEShapeCircle(6), maxCasts: 6);
-class VeinSplitter(BossModule module) : Components.SelfTargetedAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
-class LightlessSpark(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightlessSpark, new AOEShapeCone(40, 45.Degrees()));
-class SwellUnbound(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheSwellUnbound, new AOEShapeDonut(8, 20));
+class FloodOfDarkness(BossModule module) : Components.StandardAOEs(module, AID.FloodOfDarkness, new AOEShapeCircle(6), maxCasts: 6);
+class VeinSplitter(BossModule module) : Components.StandardAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
+class LightlessSpark(BossModule module) : Components.StandardAOEs(module, AID.LightlessSpark, new AOEShapeCone(40, 45.Degrees()));
+class SwellUnbound(BossModule module) : Components.StandardAOEs(module, AID.TheSwellUnbound, new AOEShapeDonut(8, 20));
 class Swell(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ArtOfTheSwell, 8)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -46,9 +46,9 @@ class Swell(BossModule module) : Components.KnockbackFromCastTarget(module, AID.
             hints.AddForbiddenZone(new AOEShapeDonut(8, 50), Arena.Center);
     }
 }
-class ArtOfTheSword1(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArtOfTheSword1, new AOEShapeRect(40, 3));
-class ArtOfTheSword2(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArtOfTheSword2, new AOEShapeRect(40, 3));
-class ArtOfTheSword3(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArtOfTheSword3, new AOEShapeRect(40, 3));
+class ArtOfTheSword1(BossModule module) : Components.StandardAOEs(module, AID.ArtOfTheSword1, new AOEShapeRect(40, 3));
+class ArtOfTheSword2(BossModule module) : Components.StandardAOEs(module, AID.ArtOfTheSword2, new AOEShapeRect(40, 3));
+class ArtOfTheSword3(BossModule module) : Components.StandardAOEs(module, AID.ArtOfTheSword3, new AOEShapeRect(40, 3));
 
 class DarkAether(BossModule module) : Components.GenericAOEs(module)
 {

@@ -11,8 +11,8 @@ public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast
     LionsBreath = 1101, // Boss->self, no cast, range 9.7 ?-degree cleave
-    RamsBreath = 1102, // Boss->self, 2.0s cast, range 9.7 120-degree cone, -45 degree offset
-    DragonsBreath = 1103, // Boss->self, 2.0s cast, range 9.7 120-degree cone, +45 degree offset
+    RamsBreath = 1102, // Boss->self, 2.0s cast, range 9.7 120-degree cone
+    DragonsBreath = 1103, // Boss->self, 2.0s cast, range 9.7 120-degree cone
     RamsVoice = 1104, // Boss->self, 3.0s cast, range 9.7 aoe
     DragonsVoice = 1442, // Boss->self, 4.5s cast, range 7-30 donut aoe
     RamsKeeper = 1106, // Boss->location, 3.0s cast, range 6 voidzone
@@ -21,11 +21,11 @@ public enum AID : uint
 }
 
 class LionsBreath(BossModule module) : Components.Cleave(module, AID.LionsBreath, new AOEShapeCone(9.7f, 60.Degrees())); // TODO: verify angle
-class RamsBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.RamsBreath, new AOEShapeCone(9.7f, 60.Degrees(), -45.Degrees()));
-class DragonsBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.DragonsBreath, new AOEShapeCone(9.7f, 60.Degrees(), 45.Degrees()));
-class RamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.RamsVoice, new AOEShapeCircle(9.7f));
-class DragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.DragonsVoice, new AOEShapeDonut(7, 30));
-class RamsKeeper(BossModule module) : Components.LocationTargetedAOEs(module, AID.RamsKeeper, 6);
+class RamsBreath(BossModule module) : Components.StandardAOEs(module, AID.RamsBreath, new AOEShapeCone(9.7f, 60.Degrees()));
+class DragonsBreath(BossModule module) : Components.StandardAOEs(module, AID.DragonsBreath, new AOEShapeCone(9.7f, 60.Degrees()));
+class RamsVoice(BossModule module) : Components.StandardAOEs(module, AID.RamsVoice, new AOEShapeCircle(9.7f));
+class DragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.DragonsVoice, new AOEShapeDonut(7, 30));
+class RamsKeeper(BossModule module) : Components.StandardAOEs(module, AID.RamsKeeper, 6);
 class RamsKeeperVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.RamsKeeper));
 
 class ChaoticChorus(BossModule module) : Components.GenericAOEs(module, AID.ChaoticChorus)

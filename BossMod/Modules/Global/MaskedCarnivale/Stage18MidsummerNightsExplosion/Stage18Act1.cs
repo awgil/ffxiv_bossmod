@@ -16,10 +16,10 @@ public enum AID : uint
     TailSmash = 15052, // 2724->self, 4.0s cast, range 12+R 90-degree cone
 }
 
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(10));
-class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, AID.Fireball, 6);
-class RipperClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.RipperClaw, new AOEShapeCone(8, 45.Degrees()));
-class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSmash, new AOEShapeCone(15, 45.Degrees()));
+class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeCircle(10));
+class Fireball(BossModule module) : Components.StandardAOEs(module, AID.Fireball, 6);
+class RipperClaw(BossModule module) : Components.StandardAOEs(module, AID.RipperClaw, new AOEShapeCone(8, 45.Degrees()));
+class TailSmash(BossModule module) : Components.StandardAOEs(module, AID.TailSmash, new AOEShapeCone(15, 45.Degrees()));
 
 class WildCharge(BossModule module) : Components.BaitAwayChargeCast(module, AID.WildCharge, 4)
 {

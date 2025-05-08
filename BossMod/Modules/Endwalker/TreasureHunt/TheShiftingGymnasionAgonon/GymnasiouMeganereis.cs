@@ -47,18 +47,18 @@ class WaveOfTurmoil(BossModule module) : Components.KnockbackFromCastTarget(modu
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Hydrobomb>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
-class Hydrobomb(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hydrobomb, 10);
-class Waterspout(BossModule module) : Components.LocationTargetedAOEs(module, AID.Waterspout2, 8);
-class Hydrocannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrocannon, new AOEShapeRect(17, 1.5f));
-class Hydrocannon2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrocannon2, new AOEShapeRect(27, 3));
+class Hydrobomb(BossModule module) : Components.StandardAOEs(module, AID.Hydrobomb, 10);
+class Waterspout(BossModule module) : Components.StandardAOEs(module, AID.Waterspout2, 8);
+class Hydrocannon(BossModule module) : Components.StandardAOEs(module, AID.Hydrocannon, new AOEShapeRect(17, 1.5f));
+class Hydrocannon2(BossModule module) : Components.StandardAOEs(module, AID.Hydrocannon2, new AOEShapeRect(27, 3));
 class FallingWater(BossModule module) : Components.SpreadFromCastTargets(module, AID.FallingWater, 8);
 class Immersion(BossModule module) : Components.RaidwideCast(module, AID.Immersion);
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.StandardAOEs(module, AID.HeavySmash, 6);
 
 class MeganereisStates : StateMachineBuilder
 {

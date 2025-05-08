@@ -26,7 +26,7 @@ public enum IconID : uint
     Stack = 161, // player->self
 }
 
-class ChocoMeteoruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.ChocoMeteoruption, 6);
+class ChocoMeteoruption(BossModule module) : Components.StandardAOEs(module, AID.ChocoMeteoruption, 6);
 class ChocoMeteorain(BossModule module) : Components.StandardAOEs(module, AID.ChocoMeteorain, new AOEShapeCircle(21), maxCasts: 2);
 class ChocoMeteorImpact(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.ChocoMeteorImpact, 5, 5.1f);
 class ChocoSlash(BossModule module) : Components.SingleTargetCast(module, AID.ChocoSlash);
@@ -58,7 +58,7 @@ class ChocoMeteorStrike(BossModule module) : Components.Exaflare(module, new AOE
     }
 }
 
-class ChocoMeteorStreamFirst(BossModule module) : Components.LocationTargetedAOEs(module, AID.ChocoMeteorStreamSlow, 8);
+class ChocoMeteorStreamFirst(BossModule module) : Components.StandardAOEs(module, AID.ChocoMeteorStreamSlow, 8);
 
 class ChocoMeteorStream(BossModule module) : Components.GenericAOEs(module)
 {

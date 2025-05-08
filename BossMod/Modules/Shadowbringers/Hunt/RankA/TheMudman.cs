@@ -19,9 +19,9 @@ public enum IconID : uint
     Baitaway = 140, // player
 }
 
-class BogBequest(BossModule module) : Components.SelfTargetedAOEs(module, AID.BogBequest, new AOEShapeDonut(5, 20));
-class FeculentFlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.FeculentFlood, new AOEShapeCone(40, 30.Degrees()));
-class RoyalFlush(BossModule module) : Components.SelfTargetedAOEs(module, AID.RoyalFlush, new AOEShapeCircle(8));
+class BogBequest(BossModule module) : Components.StandardAOEs(module, AID.BogBequest, new AOEShapeDonut(5, 20));
+class FeculentFlood(BossModule module) : Components.StandardAOEs(module, AID.FeculentFlood, new AOEShapeCone(40, 30.Degrees()));
+class RoyalFlush(BossModule module) : Components.StandardAOEs(module, AID.RoyalFlush, new AOEShapeCircle(8));
 
 class GravityForce(BossModule module) : Components.GenericBaitAway(module)
 {

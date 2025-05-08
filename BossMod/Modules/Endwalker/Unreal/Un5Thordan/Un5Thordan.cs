@@ -1,11 +1,11 @@
 namespace BossMod.Endwalker.Unreal.Un5Thordan;
 
 class AscalonsMight(BossModule module) : Components.Cleave(module, AID.AscalonsMight, new AOEShapeCone(8 + 3.8f, 45.Degrees()));
-class Meteorain(BossModule module) : Components.LocationTargetedAOEs(module, AID.MeteorainAOE, 6);
-class AscalonsMercy(BossModule module) : Components.SelfTargetedAOEs(module, AID.AscalonsMercy, new AOEShapeCone(34.8f, 10.Degrees()));
-class AscalonsMercyHelper(BossModule module) : Components.SelfTargetedAOEs(module, AID.AscalonsMercyAOE, new AOEShapeCone(34.5f, 10.Degrees()));
+class Meteorain(BossModule module) : Components.StandardAOEs(module, AID.MeteorainAOE, 6);
+class AscalonsMercy(BossModule module) : Components.StandardAOEs(module, AID.AscalonsMercy, new AOEShapeCone(34.8f, 10.Degrees()));
+class AscalonsMercyHelper(BossModule module) : Components.StandardAOEs(module, AID.AscalonsMercyAOE, new AOEShapeCone(34.5f, 10.Degrees()));
 class DragonsRage(BossModule module) : Components.StackWithCastTargets(module, AID.DragonsRage, 6, 6);
-class Heavensflame(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavensflameAOE, 6);
+class Heavensflame(BossModule module) : Components.StandardAOEs(module, AID.HeavensflameAOE, 6);
 class Conviction(BossModule module) : Components.CastTowers(module, AID.ConvictionAOE, 3);
 class BurningChains(BossModule module) : Components.Chains(module, (uint)TetherID.BurningChains, AID.HolyChain);
 class SerZephirin(BossModule module) : Components.Adds(module, (uint)OID.Zephirin);

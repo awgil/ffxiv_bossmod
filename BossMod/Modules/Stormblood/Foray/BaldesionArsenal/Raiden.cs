@@ -36,11 +36,11 @@ public enum IconID : uint
     StreakLightning = 138, // player->self
 }
 
-class BoomingLament(BossModule module) : Components.LocationTargetedAOEs(module, AID.BoomingLament, 10);
+class BoomingLament(BossModule module) : Components.StandardAOEs(module, AID.BoomingLament, 10);
 class SpiritsOfTheFallen(BossModule module) : Components.RaidwideCast(module, AID.SpiritsOfTheFallen);
-class AmeNoSakahoko(BossModule module) : Components.SelfTargetedAOEs(module, AID.AmeNoSakahoko1, new AOEShapeCircle(25));
-class WhirlingZantetsuken(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhirlingZantetsuken, new AOEShapeDonut(5, 60));
-class Shock(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shock, new AOEShapeCircle(8));
+class AmeNoSakahoko(BossModule module) : Components.StandardAOEs(module, AID.AmeNoSakahoko1, new AOEShapeCircle(25));
+class WhirlingZantetsuken(BossModule module) : Components.StandardAOEs(module, AID.WhirlingZantetsuken, new AOEShapeDonut(5, 60));
+class Shock(BossModule module) : Components.StandardAOEs(module, AID.Shock, new AOEShapeCircle(8));
 class LateralZantetsuken(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> Casters = [];

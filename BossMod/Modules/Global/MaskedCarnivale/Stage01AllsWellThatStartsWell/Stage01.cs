@@ -14,7 +14,7 @@ public enum AID : uint
     IronJustice = 14199, // 25BE->self, 2.5s cast, range 8+R 120-degree cone
 }
 
-class IronJustice(BossModule module) : Components.SelfTargetedAOEs(module, AID.IronJustice, new AOEShapeCone(9.5f, 60.Degrees()));
+class IronJustice(BossModule module) : Components.StandardAOEs(module, AID.IronJustice, new AOEShapeCone(9.5f, 60.Degrees()));
 
 class Hints(BossModule module) : BossComponent(module)
 {

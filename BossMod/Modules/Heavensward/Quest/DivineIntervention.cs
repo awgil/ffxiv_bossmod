@@ -20,11 +20,11 @@ public enum AID : uint
 }
 
 class LightningBolt(BossModule module) : Components.ChargeAOEs(module, AID.LightningBolt, 2);
-class IronTempest(BossModule module) : Components.SelfTargetedAOEs(module, AID.IronTempest, new AOEShapeCircle(5.5f));
-class Overpower(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overpower, new AOEShapeCone(6.5f, 45.Degrees()));
-class RingOfFrost(BossModule module) : Components.SelfTargetedAOEs(module, AID.RingOfFrost, new AOEShapeCircle(6.5f));
-class Rive(BossModule module) : Components.SelfTargetedAOEs(module, AID.Rive, new AOEShapeRect(30.5f, 1));
-class Heartstopper(BossModule module) : Components.SelfTargetedAOEs(module, AID.Heartstopper, new AOEShapeRect(3.5f, 1.5f));
+class IronTempest(BossModule module) : Components.StandardAOEs(module, AID.IronTempest, new AOEShapeCircle(5.5f));
+class Overpower(BossModule module) : Components.StandardAOEs(module, AID.Overpower, new AOEShapeCone(6.5f, 45.Degrees()));
+class RingOfFrost(BossModule module) : Components.StandardAOEs(module, AID.RingOfFrost, new AOEShapeCircle(6.5f));
+class Rive(BossModule module) : Components.StandardAOEs(module, AID.Rive, new AOEShapeRect(30.5f, 1));
+class Heartstopper(BossModule module) : Components.StandardAOEs(module, AID.Heartstopper, new AOEShapeRect(3.5f, 1.5f));
 class Chain(BossModule module) : Components.Adds(module, (uint)OID.IshgardianSteelChain, 1);
 
 class SerGrinnauxTheBullStates : StateMachineBuilder

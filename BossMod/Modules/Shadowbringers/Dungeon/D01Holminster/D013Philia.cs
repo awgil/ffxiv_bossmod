@@ -192,9 +192,9 @@ class PendulumFlare(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class PendulumAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.PendulumAOE3, 15);
-class LeftKnout(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftKnout, new AOEShapeCone(24, 105.Degrees()));
-class RightKnout(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightKnout, new AOEShapeCone(24, 105.Degrees()));
+class PendulumAOE(BossModule module) : Components.StandardAOEs(module, AID.PendulumAOE3, 15);
+class LeftKnout(BossModule module) : Components.StandardAOEs(module, AID.LeftKnout, new AOEShapeCone(24, 105.Degrees()));
+class RightKnout(BossModule module) : Components.StandardAOEs(module, AID.RightKnout, new AOEShapeCone(24, 105.Degrees()));
 class Taphephobia(BossModule module) : Components.SpreadFromCastTargets(module, AID.Taphephobia2, 6);
 
 // TODO: create and use generic 'line stack' component

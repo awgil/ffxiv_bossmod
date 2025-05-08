@@ -77,5 +77,5 @@ class GreatWhirlwind(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class HorridRoarPuddle(BossModule module) : Components.LocationTargetedAOEs(module, AID.HorridRoarPuddle, 4);
+class HorridRoarPuddle(BossModule module) : Components.StandardAOEs(module, AID.HorridRoarPuddle, 4);
 class HorridRoarSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.HorridRoarSpread, 8);

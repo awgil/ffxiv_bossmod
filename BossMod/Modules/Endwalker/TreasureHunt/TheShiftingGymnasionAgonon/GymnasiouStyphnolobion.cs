@@ -40,7 +40,7 @@ public enum AID : uint
 
 class Rake(BossModule module) : Components.SingleTargetCast(module, AID.Rake);
 class Tiiimbeeer(BossModule module) : Components.RaidwideCast(module, AID.Tiiimbeeer);
-class StoneIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.StoneIII2, 6);
+class StoneIII(BossModule module) : Components.StandardAOEs(module, AID.StoneIII2, 6);
 class EarthShaker(BossModule module) : Components.BaitAwayCast(module, AID.EarthShaker2, new AOEShapeCone(60, 15.Degrees()), endsOnCastEvent: true);
 
 class EarthQuaker(BossModule module) : Components.ConcentricAOEs(module, _shapes)
@@ -68,12 +68,12 @@ class EarthQuaker(BossModule module) : Components.ConcentricAOEs(module, _shapes
     }
 }
 
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.StandardAOEs(module, AID.HeavySmash, 6);
 
 class StyphnolobionStates : StateMachineBuilder
 {

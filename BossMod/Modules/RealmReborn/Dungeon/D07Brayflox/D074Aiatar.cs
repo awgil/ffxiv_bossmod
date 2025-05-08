@@ -17,9 +17,9 @@ public enum AID : uint
 }
 
 class SalivousSnap(BossModule module) : Components.SingleTargetCast(module, AID.SalivousSnap);
-class ToxicVomit(BossModule module) : Components.SelfTargetedAOEs(module, AID.ToxicVomitAOE, new AOEShapeCircle(2));
-class Burst(BossModule module) : Components.SelfTargetedAOEs(module, AID.Burst, new AOEShapeCircle(10), 4);
-class DragonBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.DragonBreath, new AOEShapeRect(30, 4));
+class ToxicVomit(BossModule module) : Components.StandardAOEs(module, AID.ToxicVomitAOE, new AOEShapeCircle(2));
+class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, new AOEShapeCircle(10), 4);
+class DragonBreath(BossModule module) : Components.StandardAOEs(module, AID.DragonBreath, new AOEShapeRect(30, 4));
 
 class D074AiatarStates : StateMachineBuilder
 {

@@ -37,9 +37,9 @@ class WheiMorn(BossModule module) : Components.StandardChasingAOEs(module, new A
             ExcludedTargets.Reset();
     }
 }
-class DarkMegaflare(BossModule module) : Components.LocationTargetedAOEs(module, AID.DarkMegaflare2, 6);
-class DarkWyrmwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkWyrmwing2, new AOEShapeRect(40, 8));
-class DarkWyrmtail(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkWyrmtail2, new AOEShapeRect(40, 8));
+class DarkMegaflare(BossModule module) : Components.StandardAOEs(module, AID.DarkMegaflare2, 6);
+class DarkWyrmwing(BossModule module) : Components.StandardAOEs(module, AID.DarkWyrmwing2, new AOEShapeRect(40, 8));
+class DarkWyrmtail(BossModule module) : Components.StandardAOEs(module, AID.DarkWyrmtail2, new AOEShapeRect(40, 8));
 
 class CreatureOfDarkness(BossModule module) : Components.GenericAOEs(module)
 {

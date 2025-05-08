@@ -44,11 +44,11 @@ class ExtremeCaution(BossModule module) : Components.StayMove(module)
             PlayerStates[slot] = default;
     }
 }
-class IronTempest(BossModule module) : Components.SelfTargetedAOEs(module, AID.IronTempest, new AOEShapeCircle(5.5f));
+class IronTempest(BossModule module) : Components.StandardAOEs(module, AID.IronTempest, new AOEShapeCircle(5.5f));
 class FireII(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.FireII, m => m.Enemies(OID.FireII).Where(x => x.EventState != 7), 0);
-class Overpower(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overpower, new AOEShapeCone(6.5f, 45.Degrees()));
-class Rive(BossModule module) : Components.SelfTargetedAOEs(module, AID.Rive, new AOEShapeRect(30.5f, 1));
-class DiffractiveLaser(BossModule module) : Components.LocationTargetedAOEs(module, AID.DiffractiveLaser, 5);
+class Overpower(BossModule module) : Components.StandardAOEs(module, AID.Overpower, new AOEShapeCone(6.5f, 45.Degrees()));
+class Rive(BossModule module) : Components.StandardAOEs(module, AID.Rive, new AOEShapeRect(30.5f, 1));
+class DiffractiveLaser(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser, 5);
 
 class IoStates : StateMachineBuilder
 {

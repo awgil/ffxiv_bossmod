@@ -89,7 +89,7 @@ class PyricBreath(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PyricSphere(BossModule module) : Components.SelfTargetedAOEs(module, AID.PyricSphere, new AOEShapeCross(50, 2));
+class PyricSphere(BossModule module) : Components.StandardAOEs(module, AID.PyricSphere, new AOEShapeCross(50, 2));
 class PyricBlast(BossModule module) : Components.StackWithCastTargets(module, AID.PyricBlast, 6, 4);
 class Intimidation(BossModule module) : Components.RaidwideCast(module, AID.Intimidation);
 

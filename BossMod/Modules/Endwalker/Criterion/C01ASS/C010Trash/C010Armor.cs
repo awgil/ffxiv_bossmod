@@ -17,7 +17,7 @@ public enum AID : uint
     SHellsNebula = 31108, // Boss->self, 4.0s cast, raidwide set hp to 1
 }
 
-class DominionSlash(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(12, 45.Degrees()));
+class DominionSlash(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(12, 45.Degrees()));
 class NDominionSlash(BossModule module) : DominionSlash(module, AID.NDominionSlash);
 class SDominionSlash(BossModule module) : DominionSlash(module, AID.SDominionSlash);
 

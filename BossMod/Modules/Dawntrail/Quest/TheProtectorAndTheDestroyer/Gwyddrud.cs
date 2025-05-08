@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Quest.TheProtectorAndTheDestroyer;
 
-class RollingThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.RollingThunder, new AOEShapeCone(20, 22.5f.Degrees()))
+class RollingThunder(BossModule module) : Components.StandardAOEs(module, AID.RollingThunder, new AOEShapeCone(20, 22.5f.Degrees()))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

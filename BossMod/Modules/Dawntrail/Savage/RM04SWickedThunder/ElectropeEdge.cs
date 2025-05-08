@@ -15,10 +15,10 @@ class ElectropeEdgeWitchgleam(BossModule module) : Components.GenericAOEs(module
     }
 }
 
-class ElectropeEdgeSpark1(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectropeEdgeSpark1, new AOEShapeRect(5, 5, 5));
-class ElectropeEdgeSpark2(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectropeEdgeSpark2, new AOEShapeRect(15, 15, 15));
-class ElectropeEdgeSidewiseSparkR(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectropeEdgeSidewiseSparkR, new AOEShapeCone(60, 90.Degrees()));
-class ElectropeEdgeSidewiseSparkL(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectropeEdgeSidewiseSparkL, new AOEShapeCone(60, 90.Degrees()));
+class ElectropeEdgeSpark1(BossModule module) : Components.StandardAOEs(module, AID.ElectropeEdgeSpark1, new AOEShapeRect(5, 5, 5));
+class ElectropeEdgeSpark2(BossModule module) : Components.StandardAOEs(module, AID.ElectropeEdgeSpark2, new AOEShapeRect(15, 15, 15));
+class ElectropeEdgeSidewiseSparkR(BossModule module) : Components.StandardAOEs(module, AID.ElectropeEdgeSidewiseSparkR, new AOEShapeCone(60, 90.Degrees()));
+class ElectropeEdgeSidewiseSparkL(BossModule module) : Components.StandardAOEs(module, AID.ElectropeEdgeSidewiseSparkL, new AOEShapeCone(60, 90.Degrees()));
 
 class ElectropeEdgeStar(BossModule module) : Components.UniformStackSpread(module, 6, 6, alwaysShowSpreads: true)
 {

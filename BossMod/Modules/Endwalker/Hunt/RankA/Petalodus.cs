@@ -18,8 +18,8 @@ public enum AID : uint
 
 class MarineMayhem(BossModule module) : Components.CastInterruptHint(module, AID.MarineMayhem, hintExtra: "Raidwide x3");
 class Waterga(BossModule module) : Components.SpreadFromCastTargets(module, AID.Waterga, 6);
-class TidalGuillotine(BossModule module) : Components.SelfTargetedAOEs(module, AID.TidalGuillotine, new AOEShapeCircle(13));
-class AncientBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
+class TidalGuillotine(BossModule module) : Components.StandardAOEs(module, AID.TidalGuillotine, new AOEShapeCircle(13));
+class AncientBlizzard(BossModule module) : Components.StandardAOEs(module, AID.AncientBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
 
 class PetalodusStates : StateMachineBuilder
 {

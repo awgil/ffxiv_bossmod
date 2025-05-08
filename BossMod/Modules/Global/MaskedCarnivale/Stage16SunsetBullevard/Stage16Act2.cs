@@ -23,11 +23,11 @@ public enum AID : uint
 }
 
 class OneOneOneOneTonzeSwing(BossModule module) : Components.RaidwideCast(module, AID.OneOneOneOneTonzeSwing, "Use Diamondback!");
-class TenTonzeSlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.TenTonzeSlash, new AOEShapeCone(44, 30.Degrees()));
-class OneOneOneTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.OneOneOneTonzeSwing, new AOEShapeCircle(12));
+class TenTonzeSlash(BossModule module) : Components.StandardAOEs(module, AID.TenTonzeSlash, new AOEShapeCone(44, 30.Degrees()));
+class OneOneOneTonzeSwing(BossModule module) : Components.StandardAOEs(module, AID.OneOneOneTonzeSwing, new AOEShapeCircle(12));
 class CryOfRage(BossModule module) : Components.CastGaze(module, AID.CryOfRage);
-class TenTonzeWave(BossModule module) : Components.SelfTargetedAOEs(module, AID.TenTonzeWave, new AOEShapeCone(44, 30.Degrees()));
-class TenTonzeWave2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TenTonzeWave2, new AOEShapeDonut(10, 20));
+class TenTonzeWave(BossModule module) : Components.StandardAOEs(module, AID.TenTonzeWave, new AOEShapeCone(44, 30.Degrees()));
+class TenTonzeWave2(BossModule module) : Components.StandardAOEs(module, AID.TenTonzeWave2, new AOEShapeDonut(10, 20));
 class OneOneOneTonzeSwingKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.OneOneOneTonzeSwing, 20, shape: new AOEShapeCircle(12)); // actual knockback happens ~1.45s after snapshot
 class ZoomIn(BossModule module) : Components.BaitAwayChargeCast(module, AID.ZoomIn, 4);
 

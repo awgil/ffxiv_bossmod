@@ -58,11 +58,11 @@ class FoxshotKB(BossModule module) : Components.Knockback(module, stopAtWall: tr
     }
 }
 class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(x => !x.IsDead));
-class WarDance(BossModule module) : Components.SelfTargetedAOEs(module, AID.WarDance, new AOEShapeCircle(5));
+class WarDance(BossModule module) : Components.StandardAOEs(module, AID.WarDance, new AOEShapeCircle(5));
 class CharmingChasse(BossModule module) : Components.CastGaze(module, AID.CharmingChasse);
-class HannishFire(BossModule module) : Components.LocationTargetedAOEs(module, AID.HannishFire1, 6);
-class HannishWaters(BossModule module) : Components.SelfTargetedAOEs(module, AID.HannishWaters, new AOEShapeCone(40, 15.Degrees()));
-class RanaasFinish(BossModule module) : Components.SelfTargetedAOEs(module, AID.RanaasFinish, new AOEShapeCircle(15));
+class HannishFire(BossModule module) : Components.StandardAOEs(module, AID.HannishFire1, 6);
+class HannishWaters(BossModule module) : Components.StandardAOEs(module, AID.HannishWaters, new AOEShapeCone(40, 15.Degrees()));
+class RanaasFinish(BossModule module) : Components.StandardAOEs(module, AID.RanaasFinish, new AOEShapeCircle(15));
 
 class RanaaMihgoStates : StateMachineBuilder
 {

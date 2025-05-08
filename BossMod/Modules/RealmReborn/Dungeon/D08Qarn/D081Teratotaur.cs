@@ -27,8 +27,8 @@ public enum SID : uint
 }
 
 class Triclip(BossModule module) : Components.Cleave(module, AID.Triclip, new AOEShapeRect(5.25f, 2));
-class Mow(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.Mow, new AOEShapeCone(8.25f, 60.Degrees()));
-class FrightfulRoar(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(8.25f));
+class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(8.25f, 60.Degrees()));
+class FrightfulRoar(BossModule module) : Components.StandardAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(8.25f));
 
 class MortalRay(BossModule module) : BossComponent(module)
 {

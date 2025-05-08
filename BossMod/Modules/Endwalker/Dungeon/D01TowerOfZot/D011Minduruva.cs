@@ -115,10 +115,10 @@ class Dhrupad(BossModule module) : BossComponent(module)
     }
 }
 
-class ManusyaThunderIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.ManusyaThunderIII2, new AOEShapeCircle(3));
-class ManusyaBioIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.ManusyaBioIII2, new AOEShapeCone(40.5f, 90.Degrees()));
-class ManusyaBlizzardIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.ManusyaBlizzardIII2, new AOEShapeCone(40.5f, 10.Degrees()));
-class ManusyaFireIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.ManusyaFireIII2, new AOEShapeDonut(5, 60));
+class ManusyaThunderIII(BossModule module) : Components.StandardAOEs(module, AID.ManusyaThunderIII2, new AOEShapeCircle(3));
+class ManusyaBioIII(BossModule module) : Components.StandardAOEs(module, AID.ManusyaBioIII2, new AOEShapeCone(40.5f, 90.Degrees()));
+class ManusyaBlizzardIII(BossModule module) : Components.StandardAOEs(module, AID.ManusyaBlizzardIII2, new AOEShapeCone(40.5f, 10.Degrees()));
+class ManusyaFireIII(BossModule module) : Components.StandardAOEs(module, AID.ManusyaFireIII2, new AOEShapeDonut(5, 60));
 
 class D011MinduruvaStates : StateMachineBuilder
 {

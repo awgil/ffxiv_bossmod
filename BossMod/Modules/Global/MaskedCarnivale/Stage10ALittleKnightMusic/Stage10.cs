@@ -20,12 +20,12 @@ public enum AID : uint
     BlackNebula = 14724, // Boss->self, 6.0s cast, range 50+R circle, interruptible enrage after 3 King's Will casts
 }
 
-class IronJustice1(BossModule module) : Components.SelfTargetedAOEs(module, AID.IronJustice1, new AOEShapeCone(9, 60.Degrees()));
-class IronJustice2(BossModule module) : Components.SelfTargetedAOEs(module, AID.IronJustice2, new AOEShapeCone(9.5f, 60.Degrees()));
-class IronJustice3(BossModule module) : Components.SelfTargetedAOEs(module, AID.IronJustice3, new AOEShapeCone(10, 60.Degrees()));
-class IronJustice4(BossModule module) : Components.SelfTargetedAOEs(module, AID.IronJustice4, new AOEShapeCone(10.5f, 60.Degrees()));
+class IronJustice1(BossModule module) : Components.StandardAOEs(module, AID.IronJustice1, new AOEShapeCone(9, 60.Degrees()));
+class IronJustice2(BossModule module) : Components.StandardAOEs(module, AID.IronJustice2, new AOEShapeCone(9.5f, 60.Degrees()));
+class IronJustice3(BossModule module) : Components.StandardAOEs(module, AID.IronJustice3, new AOEShapeCone(10, 60.Degrees()));
+class IronJustice4(BossModule module) : Components.StandardAOEs(module, AID.IronJustice4, new AOEShapeCone(10.5f, 60.Degrees()));
 class BlackNebula(BossModule module) : Components.CastHint(module, AID.BlackNebula, "Interrupt or wipe!");
-class Cloudcover1(BossModule module) : Components.LocationTargetedAOEs(module, AID.Cloudcover1, 6);
+class Cloudcover1(BossModule module) : Components.StandardAOEs(module, AID.Cloudcover1, 6);
 class KingsWill1(BossModule module) : Components.CastHint(module, AID.KingsWill, "Interrupt if not going for the achievement");
 class KingsWill2(BossModule module) : Components.CastHint(module, AID.KingsWill2, "Interrupt if not going for the achievement");
 class KingsWill3(BossModule module) : Components.CastHint(module, AID.KingsWill3, "Interrupt if not going for the achievement");

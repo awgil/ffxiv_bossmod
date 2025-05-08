@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Quest.FadedMemories;
 
-class FlamingTizona(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlamingTizona, 6);
+class FlamingTizona(BossModule module) : Components.StandardAOEs(module, AID.FlamingTizona, 6);
 
 class FlameGeneralAldynnStates : StateMachineBuilder
 {

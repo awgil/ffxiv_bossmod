@@ -58,13 +58,13 @@ class CleaveADS(BossModule module) : CleaveCommon(module, AID.CleaveADS, 2.3f);
 class CleaveNode(BossModule module) : CleaveCommon(module, AID.CleaveNode, 1.15f);
 
 class HighVoltage(BossModule module) : Components.CastHint(module, AID.HighVoltage, "Interruptible");
-class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, AID.RepellingCannons, new AOEShapeCircle(8.3f));
-class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingLaser, new AOEShapeRect(32.3f, 3));
+class RepellingCannons(BossModule module) : Components.StandardAOEs(module, AID.RepellingCannons, new AOEShapeCircle(8.3f));
+class PiercingLaser(BossModule module) : Components.StandardAOEs(module, AID.PiercingLaser, new AOEShapeRect(32.3f, 3));
 // TODO: chain lightning?..
-class Firestream(BossModule module) : Components.SelfTargetedAOEs(module, AID.FirestreamAOE, new AOEShapeRect(35.5f, 3));
-class Ballast1(BossModule module) : Components.SelfTargetedAOEs(module, AID.BallastAOE1, new AOEShapeCone(5.5f, 135.Degrees()));
-class Ballast2(BossModule module) : Components.SelfTargetedAOEs(module, AID.BallastAOE2, new AOEShapeDonutSector(5.5f, 10.5f, 135.Degrees()));
-class Ballast3(BossModule module) : Components.SelfTargetedAOEs(module, AID.BallastAOE3, new AOEShapeDonutSector(10.5f, 15.5f, 135.Degrees()));
+class Firestream(BossModule module) : Components.StandardAOEs(module, AID.FirestreamAOE, new AOEShapeRect(35.5f, 3));
+class Ballast1(BossModule module) : Components.StandardAOEs(module, AID.BallastAOE1, new AOEShapeCone(5.5f, 135.Degrees()));
+class Ballast2(BossModule module) : Components.StandardAOEs(module, AID.BallastAOE2, new AOEShapeDonutSector(5.5f, 10.5f, 135.Degrees()));
+class Ballast3(BossModule module) : Components.StandardAOEs(module, AID.BallastAOE3, new AOEShapeDonutSector(10.5f, 15.5f, 135.Degrees()));
 class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.GravityField, m => m.Enemies(OID.GravityField), 1);
 
 class T02AI(BossModule module) : BossComponent(module)

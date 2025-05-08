@@ -116,7 +116,7 @@ class P2BrightHunger1(BossModule module) : Components.GenericTowers(module, AID.
 }
 
 // note: we can start showing aoes ~3s earlier if we check spawns, but it's not really needed
-class P2HolyLightBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.HolyLightBurst, new AOEShapeCircle(11), 3)
+class P2HolyLightBurst(BossModule module) : Components.StandardAOEs(module, AID.HolyLightBurst, new AOEShapeCircle(11), 3)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // there are dedicated components for hints
 }

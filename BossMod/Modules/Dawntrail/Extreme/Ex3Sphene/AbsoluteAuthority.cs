@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex3Sphene;
 
-class AbsoluteAuthorityPuddles(BossModule module) : Components.LocationTargetedAOEs(module, AID.AbsoluteAuthorityPuddlesAOE, 8);
+class AbsoluteAuthorityPuddles(BossModule module) : Components.StandardAOEs(module, AID.AbsoluteAuthorityPuddlesAOE, 8);
 
 class AbsoluteAuthorityExpansionBoot(BossModule module) : Components.UniformStackSpread(module, 6, 15, 4, alwaysShowSpreads: true) // TODO: verify falloff
 {

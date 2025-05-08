@@ -92,5 +92,5 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, AID.Destr
     }
 }
 
-class HammersLevinforge(BossModule module) : Components.SelfTargetedAOEs(module, AID.Levinforge, new AOEShapeRect(50, 5));
-class HammersSpire(BossModule module) : Components.SelfTargetedAOEs(module, AID.ByregotSpire, new AOEShapeRect(50, 15));
+class HammersLevinforge(BossModule module) : Components.StandardAOEs(module, AID.Levinforge, new AOEShapeRect(50, 5));
+class HammersSpire(BossModule module) : Components.StandardAOEs(module, AID.ByregotSpire, new AOEShapeRect(50, 15));

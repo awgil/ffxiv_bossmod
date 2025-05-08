@@ -21,4 +21,4 @@ class DivideAndConquerBait(BossModule module) : Components.GenericBaitAway(modul
     }
 }
 
-class DivideAndConquerAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivideAndConquerAOE, new AOEShapeRect(60, 2.5f));
+class DivideAndConquerAOE(BossModule module) : Components.StandardAOEs(module, AID.DivideAndConquerAOE, new AOEShapeRect(60, 2.5f));

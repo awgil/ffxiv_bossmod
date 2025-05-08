@@ -43,7 +43,7 @@ public enum IconID : uint
     ChainCannon = 164, // player
 }
 
-class DiveFormation(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiveFormation, new AOEShapeRect(60, 3));
+class DiveFormation(BossModule module) : Components.StandardAOEs(module, AID.DiveFormation, new AOEShapeRect(60, 3));
 
 class AntiPersonnelMissile(BossModule module) : Components.GenericAOEs(module, AID.BallisticImpact)
 {
@@ -140,7 +140,7 @@ class ChainCannonBoss(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.SurfaceMissileAOE, 6);
+class SurfaceMissile(BossModule module) : Components.StandardAOEs(module, AID.SurfaceMissileAOE, 6);
 class SuppressiveMagitekRays(BossModule module) : Components.RaidwideCast(module, AID.SuppressiveMagitekRays);
 class Analysis(BossModule module) : Components.CastHint(module, AID.Analysis, "Face open weakpoint to charging adds");
 class PreciseStrike(BossModule module) : Components.CastWeakpoint(module, AID.PreciseStrike, new AOEShapeRect(60, 3), (uint)SID.FrontUnseen, (uint)SID.BackUnseen, 0, 0);

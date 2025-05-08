@@ -98,7 +98,7 @@ class WildRageKnockback(BossModule module) : Components.KnockbackFromCastTarget(
             }
     }
 }
-class WildRageImpact(BossModule module) : Components.LocationTargetedAOEs(module, AID.WildRage2, 8);
+class WildRageImpact(BossModule module) : Components.StandardAOEs(module, AID.WildRage2, 8);
 
 class RagingSlice(BossModule module) : Components.GroupedAOEs(module, [AID.RagingSliceInitial, AID.RagingSliceFollowup], new AOEShapeRect(50, 3));
 

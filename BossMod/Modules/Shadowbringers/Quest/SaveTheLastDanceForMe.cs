@@ -16,8 +16,8 @@ public enum AID : uint
     BitterLove = 15650, // 2AC9->self, 3.0s cast, range 12 120-degree cone
 }
 
-class Dread(BossModule module) : Components.LocationTargetedAOEs(module, AID.Dread, 5);
-class BitterLove(BossModule module) : Components.SelfTargetedAOEs(module, AID.BitterLove, new AOEShapeCone(12, 60.Degrees()));
+class Dread(BossModule module) : Components.StandardAOEs(module, AID.Dread, 5);
+class BitterLove(BossModule module) : Components.StandardAOEs(module, AID.BitterLove, new AOEShapeCone(12, 60.Degrees()));
 class WhelmingLoss(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(5))
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -49,8 +49,8 @@ class Hints(BossModule module) : BossComponent(module)
 // also handles rockbuster, which is just a smaller cleave...
 class MountainBuster(BossModule module) : Components.Cleave(module, AID.MountainBuster, new AOEShapeCone(21.25f, 60.Degrees())); // TODO: verify angle
 
-class WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, AID.WeightOfTheLandAOE, 6);
-class Landslide(BossModule module) : Components.SelfTargetedAOEs(module, AID.Landslide, new AOEShapeRect(40.25f, 3));
+class WeightOfTheLand(BossModule module) : Components.StandardAOEs(module, AID.WeightOfTheLandAOE, 6);
+class Landslide(BossModule module) : Components.StandardAOEs(module, AID.Landslide, new AOEShapeRect(40.25f, 3));
 
 class Geocrush(BossModule module) : Components.GenericAOEs(module, AID.Geocrush)
 {
@@ -93,7 +93,7 @@ class Geocrush(BossModule module) : Components.GenericAOEs(module, AID.Geocrush)
     }
 }
 
-class Burst(BossModule module) : Components.SelfTargetedAOEs(module, AID.Burst, new AOEShapeCircle(6.3f))
+class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, new AOEShapeCircle(6.3f))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

@@ -37,7 +37,7 @@ class P2HeavensfallPillar(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P2ThermionicBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThermionicBurst, new AOEShapeCone(24.5f, 11.25f.Degrees()));
+class P2ThermionicBurst(BossModule module) : Components.StandardAOEs(module, AID.ThermionicBurst, new AOEShapeCone(24.5f, 11.25f.Degrees()));
 
 class P2MeteorStream : Components.UniformStackSpread
 {

@@ -91,7 +91,7 @@ class HigherPower(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningBolt, 5);
+class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, 5);
 class ElectricalOverload(BossModule module) : Components.RaidwideCast(module, AID.ElectricalOverload);
 
 class HeshualaStates : StateMachineBuilder

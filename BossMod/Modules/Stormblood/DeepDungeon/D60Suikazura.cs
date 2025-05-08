@@ -17,11 +17,11 @@ public enum AID : uint
     AncientFlare = 11928, // Boss->self, 5.0s cast, range 50 circle
 }
 
-class Firewalker(BossModule module) : Components.SelfTargetedAOEs(module, AID.Firewalker, new AOEShapeCone(10, 45.Degrees()));
-class InfiniteAnguish(BossModule module) : Components.SelfTargetedAOEs(module, AID.InfiniteAnguish, new AOEShapeDonut(6.5f, 12));
-class FireII(BossModule module) : Components.LocationTargetedAOEs(module, AID.FireII, 5);
-class Topple(BossModule module) : Components.SelfTargetedAOEs(module, AID.Topple, new AOEShapeCircle(5.5f));
-class SearingChain(BossModule module) : Components.SelfTargetedAOEs(module, AID.SearingChain, new AOEShapeRect(61, 2));
+class Firewalker(BossModule module) : Components.StandardAOEs(module, AID.Firewalker, new AOEShapeCone(10, 45.Degrees()));
+class InfiniteAnguish(BossModule module) : Components.StandardAOEs(module, AID.InfiniteAnguish, new AOEShapeDonut(6.5f, 12));
+class FireII(BossModule module) : Components.StandardAOEs(module, AID.FireII, 5);
+class Topple(BossModule module) : Components.StandardAOEs(module, AID.Topple, new AOEShapeCircle(5.5f));
+class SearingChain(BossModule module) : Components.StandardAOEs(module, AID.SearingChain, new AOEShapeRect(61, 2));
 class AncientFlare(BossModule module) : Components.RaidwideCast(module, AID.AncientFlare, "Raidwide, watch your feet after it goes off");
 
 class D60SuikazuraStates : StateMachineBuilder

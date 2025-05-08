@@ -131,7 +131,7 @@ class BallisticImpact(BossModule module) : Components.GenericAOEs(module, AID.Ba
 }
 
 class TerminusEst(BossModule module) : Components.CastWeakpoint(module, AID.TerminusEst2, new AOEShapeRect(60, 4), 0, (uint)SID.BackUnseen, (uint)SID.LeftUnseen, (uint)SID.RightUnseen);
-class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.SurfaceMissile, 6);
+class SurfaceMissile(BossModule module) : Components.StandardAOEs(module, AID.SurfaceMissile, 6);
 
 class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TurbineHelper, 15)
 {

@@ -60,10 +60,10 @@ class SeductiveSonata(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DeathlyVerse(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeathlyVerse, new AOEShapeCircle(6));
-class Tornado(BossModule module) : Components.LocationTargetedAOEs(module, AID.Tornado, 6);
-class FourfoldSuffering(BossModule module) : Components.SelfTargetedAOEs(module, AID.FourfoldSuffering, new AOEShapeDonut(5, 50));
-class AncientAero(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientAero, new AOEShapeRect(42.4f, 3));
+class DeathlyVerse(BossModule module) : Components.StandardAOEs(module, AID.DeathlyVerse, new AOEShapeCircle(6));
+class Tornado(BossModule module) : Components.StandardAOEs(module, AID.Tornado, 6);
+class FourfoldSuffering(BossModule module) : Components.StandardAOEs(module, AID.FourfoldSuffering, new AOEShapeDonut(5, 50));
+class AncientAero(BossModule module) : Components.StandardAOEs(module, AID.AncientAero, new AOEShapeRect(42.4f, 3));
 class AncientAeroIII(BossModule module) : Components.RaidwideCast(module, AID.AncientAeroIII);
 class AncientAeroIIIKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 10, shape: new AOEShapeCircle(30));
 

@@ -43,9 +43,9 @@ public enum AID : uint
     PungentPirouette = 6450, // 2A08->self, 3.5s cast, range 6+R circle
 }
 
-class BrewingStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.BrewingStorm, new AOEShapeCone(5, 30.Degrees()));
-class HarrowingDream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HarrowingDream, new AOEShapeCircle(6));
-class BecloudingDust(BossModule module) : Components.LocationTargetedAOEs(module, AID.BecloudingDust2, 6);
+class BrewingStorm(BossModule module) : Components.StandardAOEs(module, AID.BrewingStorm, new AOEShapeCone(5, 30.Degrees()));
+class HarrowingDream(BossModule module) : Components.StandardAOEs(module, AID.HarrowingDream, new AOEShapeCircle(6));
+class BecloudingDust(BossModule module) : Components.StandardAOEs(module, AID.BecloudingDust2, 6);
 
 class Sweep(BossModule module) : Components.Exaflare(module, 6)
 {
@@ -67,14 +67,14 @@ class Sweep(BossModule module) : Components.Exaflare(module, 6)
     }
 }
 
-class Spin(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spin, new AOEShapeCircle(11));
-class Mash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
-class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
+class Spin(BossModule module) : Components.StandardAOEs(module, AID.Spin, new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.StandardAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.StandardAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
 class PorxieStates : StateMachineBuilder
 {

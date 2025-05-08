@@ -25,10 +25,10 @@ public enum AID : uint
 
 class Rake(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Rake);
 class CycloneWing(BossModule module) : Components.RaidwideCast(module, AID.CycloneWing2);
-class LumenInfinitum(BossModule module) : Components.SelfTargetedAOEs(module, AID.LumenInfinitum, new AOEShapeRect(40, 2.5f));
-class HurricaneWing(BossModule module) : Components.SelfTargetedAOEs(module, AID.HurricaneWing, new AOEShapeCircle(10));
-class TyphoonWing(BossModule module) : Components.SelfTargetedAOEs(module, AID.TyphoonWing, new AOEShapeCone(25, 30.Degrees()));
-class TyphoonWing2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TyphoonWing2, new AOEShapeCone(25, 30.Degrees()));
+class LumenInfinitum(BossModule module) : Components.StandardAOEs(module, AID.LumenInfinitum, new AOEShapeRect(40, 2.5f));
+class HurricaneWing(BossModule module) : Components.StandardAOEs(module, AID.HurricaneWing, new AOEShapeCircle(10));
+class TyphoonWing(BossModule module) : Components.StandardAOEs(module, AID.TyphoonWing, new AOEShapeCone(25, 30.Degrees()));
+class TyphoonWing2(BossModule module) : Components.StandardAOEs(module, AID.TyphoonWing2, new AOEShapeCone(25, 30.Degrees()));
 
 class D051ForgivenCrueltyStates : StateMachineBuilder
 {

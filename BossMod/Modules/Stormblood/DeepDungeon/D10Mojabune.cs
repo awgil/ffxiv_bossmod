@@ -14,9 +14,9 @@ public enum AID : uint
     Overtow = 11877, // Boss->location, 3.0s cast, range 60 circle
 }
 
-class ConcussiveOscillationAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.ConcussiveOscillation, 7, "Get out of the AOE!");
+class ConcussiveOscillationAOE(BossModule module) : Components.StandardAOEs(module, AID.ConcussiveOscillation, 7);
 class OvertowKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Overtow, 23.7f, stopAtWall: true);
-class AmorphousApplauseAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.AmorphousApplause, new AOEShapeCone(27.4f, 90.Degrees()));
+class AmorphousApplauseAOE(BossModule module) : Components.StandardAOEs(module, AID.AmorphousApplause, new AOEShapeCone(27.4f, 90.Degrees()));
 
 class D10MojabuneStates : StateMachineBuilder
 {

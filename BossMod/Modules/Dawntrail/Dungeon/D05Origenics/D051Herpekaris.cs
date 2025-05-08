@@ -41,8 +41,8 @@ public enum IconID : uint
 
 class StridentShriek(BossModule module) : Components.RaidwideCast(module, AID.StridentShriek);
 class PoisonHeartVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 2, AID.PoisonHeartVoidzone, m => m.Enemies(OID.VasoconstrictorVoidzone).Where(z => z.EventState != 7), 0.5f);
-class PodBurstFirst(BossModule module) : Components.LocationTargetedAOEs(module, AID.PodBurstFirst, 6);
-class PodBurstRest(BossModule module) : Components.LocationTargetedAOEs(module, AID.PodBurstRest, 6);
+class PodBurstFirst(BossModule module) : Components.StandardAOEs(module, AID.PodBurstFirst, 6);
+class PodBurstRest(BossModule module) : Components.StandardAOEs(module, AID.PodBurstRest, 6);
 
 class WrithingRiot(BossModule module) : Components.GenericAOEs(module)
 {

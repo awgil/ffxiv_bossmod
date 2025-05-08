@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
-class Phaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.Phaser, new AOEShapeCone(23, 30.Degrees())) // TODO: verify angle
+class Phaser(BossModule module) : Components.StandardAOEs(module, AID.Phaser, new AOEShapeCone(23, 30.Degrees())) // TODO: verify angle
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

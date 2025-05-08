@@ -93,8 +93,8 @@ class MagitekBitLasers(BossModule module) : Components.GenericAOEs(module)
 }
 
 class Rush(BossModule module) : Components.BaitAwayChargeCast(module, AID.Rush, 7);
-class LaserShower(BossModule module) : Components.LocationTargetedAOEs(module, AID.LaserShower2, 10);
-class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiffractiveLaser, new AOEShapeCone(60, 75.Degrees()));
+class LaserShower(BossModule module) : Components.StandardAOEs(module, AID.LaserShower2, 10);
+class DiffractiveLaser(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser, new AOEShapeCone(60, 75.Degrees()));
 class SatelliteLaser(BossModule module) : Components.RaidwideCast(module, AID.SatelliteLaser, "Raidwide + all lasers fire at the same time");
 
 class DainsleifStates : StateMachineBuilder

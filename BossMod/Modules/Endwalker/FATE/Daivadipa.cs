@@ -202,12 +202,12 @@ class Burn(BossModule module) : Components.GenericAOEs(module)
 }
 
 class Drumbeat(BossModule module) : Components.SingleTargetCast(module, AID.Drumbeat);
-class LeftwardTrisula(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftwardTrisula, new AOEShapeCone(65, 90.Degrees()));
-class RightwardParasu(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightwardParasu, new AOEShapeCone(65, 90.Degrees()));
-class ErrantAkasa(BossModule module) : Components.SelfTargetedAOEs(module, AID.ErrantAkasa, new AOEShapeCone(60, 45.Degrees()));
-class CosmicWeave(BossModule module) : Components.SelfTargetedAOEs(module, AID.CosmicWeave, new AOEShapeCircle(18));
-class KarmicFlames(BossModule module) : Components.SelfTargetedAOEs(module, AID.KarmicFlames2, new AOEShapeCircle(20));
-class YawningHells(BossModule module) : Components.LocationTargetedAOEs(module, AID.YawningHells2, 8);
+class LeftwardTrisula(BossModule module) : Components.StandardAOEs(module, AID.LeftwardTrisula, new AOEShapeCone(65, 90.Degrees()));
+class RightwardParasu(BossModule module) : Components.StandardAOEs(module, AID.RightwardParasu, new AOEShapeCone(65, 90.Degrees()));
+class ErrantAkasa(BossModule module) : Components.StandardAOEs(module, AID.ErrantAkasa, new AOEShapeCone(60, 45.Degrees()));
+class CosmicWeave(BossModule module) : Components.StandardAOEs(module, AID.CosmicWeave, new AOEShapeCircle(18));
+class KarmicFlames(BossModule module) : Components.StandardAOEs(module, AID.KarmicFlames2, new AOEShapeCircle(20));
+class YawningHells(BossModule module) : Components.StandardAOEs(module, AID.YawningHells2, 8);
 class InfernalRedemption(BossModule module) : Components.RaidwideCastDelay(module, AID.InfernalRedemption, AID.InfernalRedemption2, 1);
 
 class DivineCall(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)

@@ -24,15 +24,15 @@ public enum AID : uint
     MagitekRay = 21268, // MagitekBit->self, 2.5s cast, range 50 width 4 rect
 }
 
-class LightLeap(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightLeap, 10);
-class ChemicalMissile(BossModule module) : Components.SelfTargetedAOEs(module, AID.ChemicalMissile, new AOEShapeCircle(12), maxCasts: 2);
-class TailMissile(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailMissileAOE, new AOEShapeCircle(30));
-class Shockwave(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shockwave, new AOEShapeCircle(16));
-class ExplosiveFlare(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosiveFlare, new AOEShapeCircle(10));
+class LightLeap(BossModule module) : Components.StandardAOEs(module, AID.LightLeap, 10);
+class ChemicalMissile(BossModule module) : Components.StandardAOEs(module, AID.ChemicalMissile, new AOEShapeCircle(12), maxCasts: 2);
+class TailMissile(BossModule module) : Components.StandardAOEs(module, AID.TailMissileAOE, new AOEShapeCircle(30));
+class Shockwave(BossModule module) : Components.StandardAOEs(module, AID.Shockwave, new AOEShapeCircle(16));
+class ExplosiveFlare(BossModule module) : Components.StandardAOEs(module, AID.ExplosiveFlare, new AOEShapeCircle(10));
 class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, AID.CripplingBlow);
 class PlasmaField(BossModule module) : Components.RaidwideCast(module, AID.PlasmaField);
 class Towers(BossModule module) : Components.CastTowers(module, AID.Explosion, 6);
-class MagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRay, new AOEShapeRect(50, 2));
+class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(50, 2));
 
 class VigiliaStates : StateMachineBuilder
 {

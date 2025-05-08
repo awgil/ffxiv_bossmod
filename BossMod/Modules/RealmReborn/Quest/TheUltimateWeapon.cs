@@ -38,13 +38,13 @@ class BurstFlare(BossModule module) : Components.KnockbackFromCastTarget(module,
     }
 }
 
-class GripOfNight(BossModule module) : Components.SelfTargetedAOEs(module, AID.GripOfNight, new AOEShapeCone(40, 75.Degrees()));
+class GripOfNight(BossModule module) : Components.StandardAOEs(module, AID.GripOfNight, new AOEShapeCone(40, 75.Degrees()));
 
-class AncientCross(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientCross, new AOEShapeCircle(6), maxCasts: 8);
+class AncientCross(BossModule module) : Components.StandardAOEs(module, AID.AncientCross, new AOEShapeCircle(6), maxCasts: 8);
 
-class AncientEruption(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientEruption, new AOEShapeCircle(6));
+class AncientEruption(BossModule module) : Components.StandardAOEs(module, AID.AncientEruption, new AOEShapeCircle(6));
 
-class FluidFlare(BossModule module) : Components.SelfTargetedAOEs(module, AID.FluidFlare, new AOEShapeCone(40, 30.Degrees()));
+class FluidFlare(BossModule module) : Components.StandardAOEs(module, AID.FluidFlare, new AOEShapeCone(40, 30.Degrees()));
 
 class FireSphere(BossModule module) : Components.GenericAOEs(module, AID.Burst)
 {
@@ -106,12 +106,12 @@ class DeathWall(BossModule module) : BossComponent(module)
     }
 }
 
-class DarkThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkThunder, new AOEShapeCircle(1));
+class DarkThunder(BossModule module) : Components.StandardAOEs(module, AID.DarkThunder, new AOEShapeCircle(1));
 
 class SeaOfPitch(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.SeaOfPitch).Where(x => x.EventState != 7));
 
-class EndOfDays(BossModule module) : Components.SelfTargetedAOEs(module, AID.EndOfDays, new AOEShapeRect(60, 4));
-class EndOfDaysAdds(BossModule module) : Components.SelfTargetedAOEs(module, AID.EndOfDaysAdds, new AOEShapeRect(60, 4));
+class EndOfDays(BossModule module) : Components.StandardAOEs(module, AID.EndOfDays, new AOEShapeRect(60, 4));
+class EndOfDaysAdds(BossModule module) : Components.StandardAOEs(module, AID.EndOfDaysAdds, new AOEShapeRect(60, 4));
 
 class LahabreaStates : StateMachineBuilder
 {

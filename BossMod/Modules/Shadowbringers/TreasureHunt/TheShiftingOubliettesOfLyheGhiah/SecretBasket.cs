@@ -39,7 +39,7 @@ public enum AID : uint
 
 class Earthquake(BossModule module) : Components.RaidwideCast(module, AID.Earthquake);
 
-class HeavyStrike1 : Components.SelfTargetedAOEs
+class HeavyStrike1 : Components.StandardAOEs
 {
     public HeavyStrike1(BossModule module) : base(module, AID.HeavyStrike1, new AOEShapeDonutSector(0.5f, 6.5f, 135.Degrees()))
     {
@@ -47,7 +47,7 @@ class HeavyStrike1 : Components.SelfTargetedAOEs
     }
 }
 
-class HeavyStrike2(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavyStrike2, new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees()))
+class HeavyStrike2(BossModule module) : Components.StandardAOEs(module, AID.HeavyStrike2, new AOEShapeDonutSector(6.5f, 12.5f, 135.Degrees()))
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
@@ -59,7 +59,7 @@ class HeavyStrike2(BossModule module) : Components.SelfTargetedAOEs(module, AID.
     }
 }
 
-class HeavyStrike3(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavyStrike3, new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees()))
+class HeavyStrike3(BossModule module) : Components.StandardAOEs(module, AID.HeavyStrike3, new AOEShapeDonutSector(12.5f, 18.5f, 135.Degrees()))
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
@@ -71,15 +71,15 @@ class HeavyStrike3(BossModule module) : Components.SelfTargetedAOEs(module, AID.
     }
 }
 
-class PollenCorona(BossModule module) : Components.SelfTargetedAOEs(module, AID.PollenCorona, new AOEShapeCircle(8));
+class PollenCorona(BossModule module) : Components.StandardAOEs(module, AID.PollenCorona, new AOEShapeCircle(8));
 class StraightPunch(BossModule module) : Components.SingleTargetCast(module, AID.StraightPunch);
-class Leafcutter(BossModule module) : Components.SelfTargetedAOEs(module, AID.Leafcutter, new AOEShapeRect(15, 2));
-class EarthCrusher(BossModule module) : Components.SelfTargetedAOEs(module, AID.EarthCrusher2, new AOEShapeDonut(10, 20));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
+class Leafcutter(BossModule module) : Components.StandardAOEs(module, AID.Leafcutter, new AOEShapeRect(15, 2));
+class EarthCrusher(BossModule module) : Components.StandardAOEs(module, AID.EarthCrusher2, new AOEShapeDonut(10, 20));
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
 class BasketStates : StateMachineBuilder
 {

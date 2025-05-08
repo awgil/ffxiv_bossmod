@@ -14,7 +14,7 @@ public enum AID : uint
     Obliterate = 14365, // 25D4->self, 6.0s cast, range 60 circle
 }
 
-class BoulderClap(BossModule module) : Components.SelfTargetedAOEs(module, AID.BoulderClap, new AOEShapeCone(14, 60.Degrees()));
+class BoulderClap(BossModule module) : Components.StandardAOEs(module, AID.BoulderClap, new AOEShapeCone(14, 60.Degrees()));
 
 class Dreadstorm(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.EarthenHeart, m => m.Enemies(OID.voidzone), 0);
 

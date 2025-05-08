@@ -26,10 +26,10 @@ public enum AID : uint
 
 class HolyStorm(BossModule module) : Components.RaidwideCast(module, AID.HolyStorm);
 class DiamondStorm(BossModule module) : Components.RaidwideCast(module, AID.DiamondStorm);
-class FrigidDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrigidDive, new AOEShapeRect(40, 10));
-class HallowedDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.HallowedDive, new AOEShapeRect(40, 10));
+class FrigidDive(BossModule module) : Components.StandardAOEs(module, AID.FrigidDive, new AOEShapeRect(40, 10));
+class HallowedDive(BossModule module) : Components.StandardAOEs(module, AID.HallowedDive, new AOEShapeRect(40, 10));
 class Wyrmclaw(BossModule module) : Components.SingleTargetCast(module, AID.Wyrmclaw);
-class FrostedOrb(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrostedOrb, new AOEShapeCircle(6));
+class FrostedOrb(BossModule module) : Components.StandardAOEs(module, AID.FrostedOrb, new AOEShapeCircle(6));
 class HolyBreath(BossModule module) : Components.SpreadFromIcon(module, 311, AID.HolyBreath, 6, 6);
 class HallowedWings(BossModule module) : Components.GenericAOEs(module)
 {

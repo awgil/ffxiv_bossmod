@@ -185,14 +185,14 @@ class GoldChaser(BossModule module) : Components.GenericAOEs(module)
 
 class SacramentSforzando(BossModule module) : Components.SingleTargetCastDelay(module, AID.SacramentSforzando, AID.SacramentSforzando2, 0.8f);
 class OrisonFortissimo(BossModule module) : Components.RaidwideCastDelay(module, AID.OrisonFortissimo, AID.OrisonFortissimo2, 0.8f);
-class DivineDiminuendo(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo, new AOEShapeCircle(8));
-class DivineDiminuendo1(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo1, new AOEShapeCircle(8));
-class DivineDiminuendo2(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo2, new AOEShapeDonut(10, 16));
-class DivineDiminuendo3(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo3, new AOEShapeDonut(18, 32));
-class DivineDiminuendo4(BossModule module) : Components.SelfTargetedAOEs(module, AID.DivineDiminuendo4, new AOEShapeCircle(8));
-class ConvictionMarcato(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConvictionMarcato, new AOEShapeRect(40, 2.5f));
-class ConvictionMarcato2(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConvictionMarcato2, new AOEShapeRect(40, 2.5f));
-class ConvictionMarcato3(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConvictionMarcato3, new AOEShapeRect(40, 2.5f));
+class DivineDiminuendo(BossModule module) : Components.StandardAOEs(module, AID.DivineDiminuendo, new AOEShapeCircle(8));
+class DivineDiminuendo1(BossModule module) : Components.StandardAOEs(module, AID.DivineDiminuendo1, new AOEShapeCircle(8));
+class DivineDiminuendo2(BossModule module) : Components.StandardAOEs(module, AID.DivineDiminuendo2, new AOEShapeDonut(10, 16));
+class DivineDiminuendo3(BossModule module) : Components.StandardAOEs(module, AID.DivineDiminuendo3, new AOEShapeDonut(18, 32));
+class DivineDiminuendo4(BossModule module) : Components.StandardAOEs(module, AID.DivineDiminuendo4, new AOEShapeCircle(8));
+class ConvictionMarcato(BossModule module) : Components.StandardAOEs(module, AID.ConvictionMarcato, new AOEShapeRect(40, 2.5f));
+class ConvictionMarcato2(BossModule module) : Components.StandardAOEs(module, AID.ConvictionMarcato2, new AOEShapeRect(40, 2.5f));
+class ConvictionMarcato3(BossModule module) : Components.StandardAOEs(module, AID.ConvictionMarcato3, new AOEShapeRect(40, 2.5f));
 
 class Voidzone(BossModule module) : BossComponent(module)
 {

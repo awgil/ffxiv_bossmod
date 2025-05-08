@@ -33,7 +33,7 @@ class P4WaveCannonProtean(BossModule module) : Components.GenericBaitAway(module
     }
 }
 
-class P4WaveCannonProteanAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.P4WaveCannonProteanAOE, new AOEShapeRect(100, 3));
+class P4WaveCannonProteanAOE(BossModule module) : Components.StandardAOEs(module, AID.P4WaveCannonProteanAOE, new AOEShapeRect(100, 3));
 
 // TODO: generalize (line stack)
 class P4WaveCannonStack : BossComponent

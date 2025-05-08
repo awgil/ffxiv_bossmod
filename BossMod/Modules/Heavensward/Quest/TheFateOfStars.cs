@@ -17,8 +17,8 @@ public enum AID : uint
     MagitekSpread = 6027, // Boss->self, 3.0s cast, range 20+R 240-degree cone
 }
 
-class MagitekSlug(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekSlug, new AOEShapeRect(60, 2));
-class AetherochemicalGrenado(BossModule module) : Components.LocationTargetedAOEs(module, AID.AetherochemicalGrenado, 8);
+class MagitekSlug(BossModule module) : Components.StandardAOEs(module, AID.MagitekSlug, new AOEShapeRect(60, 2));
+class AetherochemicalGrenado(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalGrenado, 8);
 class SelfDetonate(BossModule module) : Components.CastHint(module, AID.SelfDetonate, "Kill turret before detonation!", true)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -28,7 +28,7 @@ class SelfDetonate(BossModule module) : Components.CastHint(module, AID.SelfDeto
                 h.Priority = 5;
     }
 }
-class MagitekSpread(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekSpread, new AOEShapeCone(20.55f, 120.Degrees()));
+class MagitekSpread(BossModule module) : Components.StandardAOEs(module, AID.MagitekSpread, new AOEShapeCone(20.55f, 120.Degrees()));
 
 class RegulaVanHydrusStates : StateMachineBuilder
 {

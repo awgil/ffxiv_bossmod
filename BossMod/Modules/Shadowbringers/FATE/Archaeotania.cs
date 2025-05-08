@@ -48,9 +48,9 @@ public enum IconID : uint
     Megaflare = 62, // player
 }
 
-class BlizzardBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlizzardBreath, new AOEShapeCone(60, 22.5f.Degrees()));
-class FlamesOfTheApocalypse(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlamesOfTheApocalypse, new AOEShapeDonut(15, 30));
-class MindBlast(BossModule module) : Components.SelfTargetedAOEs(module, AID.MindBlast, new AOEShapeCircle(21));
+class BlizzardBreath(BossModule module) : Components.StandardAOEs(module, AID.BlizzardBreath, new AOEShapeCone(60, 22.5f.Degrees()));
+class FlamesOfTheApocalypse(BossModule module) : Components.StandardAOEs(module, AID.FlamesOfTheApocalypse, new AOEShapeDonut(15, 30));
+class MindBlast(BossModule module) : Components.StandardAOEs(module, AID.MindBlast, new AOEShapeCircle(21));
 
 // note: helpers target their corresponding target for the duration of their life
 class Megaflare(BossModule module) : Components.UniformStackSpread(module, 6, 0)
@@ -78,15 +78,15 @@ class Megaflare(BossModule module) : Components.UniformStackSpread(module, 6, 0)
 }
 
 class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWaveVisual, 48, kind: Kind.DirForward);
-class WindSlash(BossModule module) : Components.LocationTargetedAOEs(module, AID.WindSlashAOE, 8);
+class WindSlash(BossModule module) : Components.StandardAOEs(module, AID.WindSlashAOE, 8);
 class Windwinder(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.Twister).Where(a => !a.IsDead));
-class CivilizationBuster1(BossModule module) : Components.SelfTargetedAOEs(module, AID.CivilizationBuster1, new AOEShapeRect(62, 7.5f));
-class CivilizationBuster2(BossModule module) : Components.SelfTargetedAOEs(module, AID.CivilizationBuster2, new AOEShapeRect(62, 7.5f));
-class Touchdown(BossModule module) : Components.SelfTargetedAOEs(module, AID.Touchdown, new AOEShapeCircle(30)); // TODO: verify falloff
-class PillarImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarImpact, new AOEShapeCircle(7));
-class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarPierce, new AOEShapeRect(65, 4));
+class CivilizationBuster1(BossModule module) : Components.StandardAOEs(module, AID.CivilizationBuster1, new AOEShapeRect(62, 7.5f));
+class CivilizationBuster2(BossModule module) : Components.StandardAOEs(module, AID.CivilizationBuster2, new AOEShapeRect(62, 7.5f));
+class Touchdown(BossModule module) : Components.StandardAOEs(module, AID.Touchdown, new AOEShapeCircle(30)); // TODO: verify falloff
+class PillarImpact(BossModule module) : Components.StandardAOEs(module, AID.PillarImpact, new AOEShapeCircle(7));
+class PillarPierce(BossModule module) : Components.StandardAOEs(module, AID.PillarPierce, new AOEShapeRect(65, 4));
 class AncientAevis(BossModule module) : Components.Adds(module, (uint)OID.AncientAevis);
-class HeadlongRush(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeadlongRush, new AOEShapeRect(13.2f, 5, 4.2f));
+class HeadlongRush(BossModule module) : Components.StandardAOEs(module, AID.HeadlongRush, new AOEShapeRect(13.2f, 5, 4.2f));
 class Aether(BossModule module) : Components.Adds(module, (uint)OID.Aether);
 
 class ArchaeotaniaStates : StateMachineBuilder

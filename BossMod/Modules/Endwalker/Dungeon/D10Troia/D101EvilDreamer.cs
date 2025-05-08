@@ -17,9 +17,9 @@ public enum AID : uint
     EndlessNightmare = 29630, // 3988->self, 60.0s cast, range 20 circle
 }
 
-class DarkVision(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkVision, new AOEShapeRect(40, 2.5f));
-class DarkVision1(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkVision1, new AOEShapeRect(41, 2.5f));
-class UniteMare(BossModule module) : Components.SelfTargetedAOEs(module, AID.UniteMare, new AOEShapeCircle(12))
+class DarkVision(BossModule module) : Components.StandardAOEs(module, AID.DarkVision, new AOEShapeRect(40, 2.5f));
+class DarkVision1(BossModule module) : Components.StandardAOEs(module, AID.DarkVision1, new AOEShapeRect(41, 2.5f));
+class UniteMare(BossModule module) : Components.StandardAOEs(module, AID.UniteMare, new AOEShapeCircle(12))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -27,8 +27,8 @@ class UniteMare(BossModule module) : Components.SelfTargetedAOEs(module, AID.Uni
             base.AddAIHints(slot, actor, assignment, hints);
     }
 }
-class UniteMare1(BossModule module) : Components.SelfTargetedAOEs(module, AID.UniteMareNormal, new AOEShapeCircle(6));
-class UniteMare2(BossModule module) : Components.SelfTargetedAOEs(module, AID.UniteMareBig, new AOEShapeCircle(18));
+class UniteMare1(BossModule module) : Components.StandardAOEs(module, AID.UniteMareNormal, new AOEShapeCircle(6));
+class UniteMare2(BossModule module) : Components.StandardAOEs(module, AID.UniteMareBig, new AOEShapeCircle(18));
 class VoidGravity(BossModule module) : Components.SpreadFromCastTargets(module, AID.VoidGravity, 6);
 class EndlessNightmare(BossModule module) : Components.CastHint(module, AID.EndlessNightmare, "Kill before enrage!", showCastTimeLeft: true);
 

@@ -170,9 +170,9 @@ class P5WrathOfTheHeavensAscalonsMercyRevealed(BossModule module) : Components.B
 class P5WrathOfTheHeavensLiquidHeaven(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.LiquidHeaven, m => m.Enemies(OID.VoidzoneLiquidHeaven).Where(z => z.EventState != 7), 1.1f);
 
 // TODO: detect baiter
-class P5WrathOfTheHeavensAltarFlare(BossModule module) : Components.LocationTargetedAOEs(module, AID.AltarFlareAOE, 8);
+class P5WrathOfTheHeavensAltarFlare(BossModule module) : Components.StandardAOEs(module, AID.AltarFlareAOE, 8);
 
-class P5WrathOfTheHeavensEmptyDimension(BossModule module) : Components.SelfTargetedAOEs(module, AID.EmptyDimension, new AOEShapeDonut(6, 70))
+class P5WrathOfTheHeavensEmptyDimension(BossModule module) : Components.StandardAOEs(module, AID.EmptyDimension, new AOEShapeDonut(6, 70))
 {
     private WPos _predicted;
 

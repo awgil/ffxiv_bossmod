@@ -22,13 +22,13 @@ public enum AID : uint
 }
 
 class Thunderbolt(BossModule module) : Components.SpreadFromCastTargets(module, AID.Thunderbolt1, 5);
-class BalamBlaster(BossModule module) : Components.SelfTargetedAOEs(module, AID.BalamBlaster, new AOEShapeCone(38.05f, 135.Degrees()));
-class BalamBlasterRear(BossModule module) : Components.SelfTargetedAOEs(module, AID.BalamBlasterRear, new AOEShapeCone(38.05f, 135.Degrees()));
-class ElectricWhisker(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectricWhisker, new AOEShapeCone(16.05f, 45.Degrees()));
-class RoaringThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.RoaringThunder, new AOEShapeDonut(8, 30));
-class StreakLightning(BossModule module) : Components.LocationTargetedAOEs(module, AID.StreakLightning, 3);
-class StreakLightning1(BossModule module) : Components.LocationTargetedAOEs(module, AID.StreakLightning1, 3);
-class AlternatingCurrent(BossModule module) : Components.SelfTargetedAOEs(module, AID.AlternatingCurrent1, new AOEShapeRect(60, 2.5f));
+class BalamBlaster(BossModule module) : Components.StandardAOEs(module, AID.BalamBlaster, new AOEShapeCone(38.05f, 135.Degrees()));
+class BalamBlasterRear(BossModule module) : Components.StandardAOEs(module, AID.BalamBlasterRear, new AOEShapeCone(38.05f, 135.Degrees()));
+class ElectricWhisker(BossModule module) : Components.StandardAOEs(module, AID.ElectricWhisker, new AOEShapeCone(16.05f, 45.Degrees()));
+class RoaringThunder(BossModule module) : Components.StandardAOEs(module, AID.RoaringThunder, new AOEShapeDonut(8, 30));
+class StreakLightning(BossModule module) : Components.StandardAOEs(module, AID.StreakLightning, 3);
+class StreakLightning1(BossModule module) : Components.StandardAOEs(module, AID.StreakLightning1, 3);
+class AlternatingCurrent(BossModule module) : Components.StandardAOEs(module, AID.AlternatingCurrent1, new AOEShapeRect(60, 2.5f));
 class RumblingThunder(BossModule module) : Components.StackWithCastTargets(module, AID.RumblingThunderStack, 5, 1);
 
 class RendaRae(WorldState ws) : UnmanagedRotation(ws, 20)

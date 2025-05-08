@@ -29,11 +29,11 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
-class StormWing(BossModule module) : Components.SelfTargetedAOEs(module, AID.StormWing2, new AOEShapeCone(40, 45.Degrees()));
-class FlashGale(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlashGale, 6);
+class HeavySmash(BossModule module) : Components.StandardAOEs(module, AID.HeavySmash, 6);
+class StormWing(BossModule module) : Components.StandardAOEs(module, AID.StormWing2, new AOEShapeCone(40, 45.Degrees()));
+class FlashGale(BossModule module) : Components.StandardAOEs(module, AID.FlashGale, 6);
 class WindCutter(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.StormsGrip));
-class Wingblow(BossModule module) : Components.SelfTargetedAOEs(module, AID.Wingblow2, new AOEShapeCircle(15));
+class Wingblow(BossModule module) : Components.StandardAOEs(module, AID.Wingblow2, new AOEShapeCircle(15));
 class DreadDive(BossModule module) : Components.SingleTargetCast(module, AID.DreadDive);
 
 class SatyrosStates : StateMachineBuilder

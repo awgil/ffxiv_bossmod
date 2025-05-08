@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex4Barbariccia;
 
 // initial aoe + tethers
-class Tangle(BossModule module) : Components.SelfTargetedAOEs(module, AID.Tangle, new AOEShapeCircle(6))
+class Tangle(BossModule module) : Components.StandardAOEs(module, AID.Tangle, new AOEShapeCircle(6))
 {
     public int NumTethers { get; private set; }
     private readonly Actor?[] _tethers = new Actor?[PartyState.MaxPartySize];

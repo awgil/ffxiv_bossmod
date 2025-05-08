@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW1;
 
-class EmptyDimension(BossModule module) : Components.SelfTargetedAOEs(module, AID.EmptyDimension, new AOEShapeDonut(6, 70));
-class FullDimension(BossModule module) : Components.SelfTargetedAOEs(module, AID.FullDimension, new AOEShapeCircle(6));
+class EmptyDimension(BossModule module) : Components.StandardAOEs(module, AID.EmptyDimension, new AOEShapeDonut(6, 70));
+class FullDimension(BossModule module) : Components.StandardAOEs(module, AID.FullDimension, new AOEShapeCircle(6));
 class HoliestHallowing(BossModule module) : Components.CastHint(module, AID.HoliestHallowing, "Interrupt!");
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SerAdelphel, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788, PlanLevel = 90)]

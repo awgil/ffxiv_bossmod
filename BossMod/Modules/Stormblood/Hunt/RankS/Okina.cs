@@ -17,12 +17,12 @@ public enum AID : uint
     RubyTide = 7992, // Boss->self, 2.0s cast, single-target, boss gives itself Dmg up buff
 }
 
-class Hydrocannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrocannon, new AOEShapeRect(30, 3));
-class ElectricWhorl(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectricWhorl, new AOEShapeDonut(8, 60));
-class Expulsion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Expulsion, new AOEShapeCircle(14));
+class Hydrocannon(BossModule module) : Components.StandardAOEs(module, AID.Hydrocannon, new AOEShapeRect(30, 3));
+class ElectricWhorl(BossModule module) : Components.StandardAOEs(module, AID.ElectricWhorl, new AOEShapeDonut(8, 60));
+class Expulsion(BossModule module) : Components.StandardAOEs(module, AID.Expulsion, new AOEShapeCircle(14));
 class ExpulsionKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Expulsion, 30, shape: new AOEShapeCircle(14));
-class ElectricSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectricSwipe, new AOEShapeCone(25, 30.Degrees()));
-class BodySlam(BossModule module) : Components.LocationTargetedAOEs(module, AID.BodySlam, 10);
+class ElectricSwipe(BossModule module) : Components.StandardAOEs(module, AID.ElectricSwipe, new AOEShapeCone(25, 30.Degrees()));
+class BodySlam(BossModule module) : Components.StandardAOEs(module, AID.BodySlam, 10);
 class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodySlam, 20, shape: new AOEShapeCircle(10));
 class Immersion(BossModule module) : Components.RaidwideCast(module, AID.Immersion);
 class RubyTide(BossModule module) : Components.CastHint(module, AID.RubyTide, "Applies damage buff to self");

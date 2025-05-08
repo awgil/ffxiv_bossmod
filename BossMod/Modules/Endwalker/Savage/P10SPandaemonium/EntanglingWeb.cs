@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class EntanglingWebAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.EntanglingWebAOE, 5);
+class EntanglingWebAOE(BossModule module) : Components.StandardAOEs(module, AID.EntanglingWebAOE, 5);
 
 class EntanglingWebHints(BossModule module) : BossComponent(module)
 {

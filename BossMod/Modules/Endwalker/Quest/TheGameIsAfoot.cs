@@ -21,7 +21,7 @@ public enum AID : uint
 class PeckingFlurry(BossModule module) : Components.RaidwideCast(module, AID.PeckingFlurry);
 class WindUnbound(BossModule module) : Components.RaidwideCast(module, AID.WindUnbound);
 class SnatchMorsel(BossModule module) : Components.SingleTargetCast(module, AID.SnatchMorsel, "Wukbuster");
-class FallingRock(BossModule module) : Components.LocationTargetedAOEs(module, AID.FallingRock, 6, maxCasts: 8);
+class FallingRock(BossModule module) : Components.StandardAOEs(module, AID.FallingRock, 6, maxCasts: 8);
 class StickySpit(BossModule module) : Components.StackWithCastTargets(module, AID.StickySpit, 6);
 class Swoop(BossModule module) : Components.ChargeAOEs(module, AID.Swoop, 8);
 class FurlingFlapping(BossModule module) : Components.SpreadFromCastTargets(module, AID.FurlingFlapping, 8);

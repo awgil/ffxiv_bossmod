@@ -24,13 +24,13 @@ public enum SID : uint
     Doom = 910, // Boss->player, extra=0x0
 }
 
-class ApocalypticBolt(BossModule module) : Components.SelfTargetedAOEs(module, AID.ApocalypticBolt, new AOEShapeRect(51.2f, 4));
-class ApocalypticRoar(BossModule module) : Components.SelfTargetedAOEs(module, AID.ApocalypticRoar, new AOEShapeCone(36.2f, 60.Degrees()));
-class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(8));
-class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(6, 30));
-class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, AID.Plaincracker, new AOEShapeCircle(7.2f));
-class TremblingEarth(BossModule module) : Components.SelfTargetedAOEs(module, AID.TremblingEarth, new AOEShapeDonut(10, 20));
-class TremblingEarth2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TremblingEarth2, new AOEShapeDonut(20, 30));
+class ApocalypticBolt(BossModule module) : Components.StandardAOEs(module, AID.ApocalypticBolt, new AOEShapeRect(51.2f, 4));
+class ApocalypticRoar(BossModule module) : Components.StandardAOEs(module, AID.ApocalypticRoar, new AOEShapeCone(36.2f, 60.Degrees()));
+class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(8));
+class TheDragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(6, 30));
+class Plaincracker(BossModule module) : Components.StandardAOEs(module, AID.Plaincracker, new AOEShapeCircle(7.2f));
+class TremblingEarth(BossModule module) : Components.StandardAOEs(module, AID.TremblingEarth, new AOEShapeDonut(10, 20));
+class TremblingEarth2(BossModule module) : Components.StandardAOEs(module, AID.TremblingEarth2, new AOEShapeDonut(20, 30));
 
 class Hints(BossModule module) : BossComponent(module)
 {

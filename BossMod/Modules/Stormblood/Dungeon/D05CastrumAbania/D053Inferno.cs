@@ -35,14 +35,14 @@ public enum TetherID : uint
 }
 class KetuSlash(BossModule module) : Components.SingleTargetCast(module, AID.KetuSlash);
 class KetuSlash2(BossModule module) : Components.SingleTargetCast(module, AID.KetuSlash2);
-class KetuCutter(BossModule module) : Components.SelfTargetedAOEs(module, AID.KetuCutter, new AOEShapeCone(20, 10.Degrees()));
-class KetuWave(BossModule module) : Components.LocationTargetedAOEs(module, AID.KetuWave, 10);
-class KetuRahu(BossModule module) : Components.SelfTargetedAOEs(module, AID.KetuRahu, new AOEShapeCone(20, 10.Degrees()));
-class RahuBlaster(BossModule module) : Components.SelfTargetedAOEs(module, AID.RahuBlaster, new AOEShapeRect(44.5f, 3));
-class RahuBlaster2(BossModule module) : Components.SelfTargetedAOEs(module, AID.RahuBlaster2, new AOEShapeRect(44.5f, 3));
+class KetuCutter(BossModule module) : Components.StandardAOEs(module, AID.KetuCutter, new AOEShapeCone(20, 10.Degrees()));
+class KetuWave(BossModule module) : Components.StandardAOEs(module, AID.KetuWave, 10);
+class KetuRahu(BossModule module) : Components.StandardAOEs(module, AID.KetuRahu, new AOEShapeCone(20, 10.Degrees()));
+class RahuBlaster(BossModule module) : Components.StandardAOEs(module, AID.RahuBlaster, new AOEShapeRect(44.5f, 3));
+class RahuBlaster2(BossModule module) : Components.StandardAOEs(module, AID.RahuBlaster2, new AOEShapeRect(44.5f, 3));
 class RahuRay(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(10), (uint)IconID.Ray, AID.RahuRay, centerAtTarget: true);
-class RahuComet(BossModule module) : Components.LocationTargetedAOEs(module, AID.RahuComet, 20);
-class RahuComet2(BossModule module) : Components.LocationTargetedAOEs(module, AID.RahuComet2, 20);
+class RahuComet(BossModule module) : Components.StandardAOEs(module, AID.RahuComet, 20);
+class RahuComet2(BossModule module) : Components.StandardAOEs(module, AID.RahuComet2, 20);
 class MultiAdds(BossModule module) : Components.AddsMulti(module, [OID.LegionDeathClaw, OID.LegionPacker])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

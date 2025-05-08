@@ -29,7 +29,7 @@ public enum TetherID : uint
 {
     ChainMine = 60,
 }
-class CircleOfDeath(BossModule module) : Components.SelfTargetedAOEs(module, AID.CircleOfDeath, new AOEShapeCircle(4f + 4.24f));
+class CircleOfDeath(BossModule module) : Components.StandardAOEs(module, AID.CircleOfDeath, new AOEShapeCircle(4f + 4.24f));
 class TwoTonzeMagitekMissile(BossModule module) : Components.IconStackSpread(module, 62, default, AID.TwoTonzeMagitekMissile, default, 6, 0, 0)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

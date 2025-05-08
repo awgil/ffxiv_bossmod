@@ -30,9 +30,9 @@ public enum IconID : uint
     BuffetTarget = 23, // player
 }
 
-class HurlBoss(BossModule module) : Components.LocationTargetedAOEs(module, AID.HurlBoss, 6);
-class SpinBoss(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpinBoss, new AOEShapeCone(30, 60.Degrees()));
-class BarbarousScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.BarbarousScream, new AOEShapeCircle(13));
+class HurlBoss(BossModule module) : Components.StandardAOEs(module, AID.HurlBoss, 6);
+class SpinBoss(BossModule module) : Components.StandardAOEs(module, AID.SpinBoss, new AOEShapeCone(30, 60.Degrees()));
+class BarbarousScream(BossModule module) : Components.StandardAOEs(module, AID.BarbarousScream, new AOEShapeCircle(13));
 class Huff(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Huff);
 
 class Buffet(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Buffet, 20, kind: Kind.DirForward, stopAtWall: true)
@@ -101,8 +101,8 @@ class Buffet2(BossModule module) : Components.BaitAwayCast(module, AID.Buffet, n
     }
 }
 
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class RaucousScritch(BossModule module) : Components.StandardAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.StandardAOEs(module, AID.Hurl, 6);
 class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class AiravataStates : StateMachineBuilder

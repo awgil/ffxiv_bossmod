@@ -94,7 +94,7 @@ class Throttles(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class SelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, AID.SelfDetonate, new AOEShapeCircle(5));
+class SelfDetonate(BossModule module) : Components.StandardAOEs(module, AID.SelfDetonate, new AOEShapeCircle(5));
 class AditDriver(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];

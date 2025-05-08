@@ -23,12 +23,12 @@ public enum TetherID : uint
     Mine = 54, // 1A56->player
 }
 
-class AugmentedUprising(BossModule module) : Components.SelfTargetedAOEs(module, AID.AugmentedUprising, new AOEShapeCone(8.5f, 60.Degrees()));
-class AugmentedSuffering(BossModule module) : Components.SelfTargetedAOEs(module, AID.AugmentedSuffering, new AOEShapeCircle(6.5f));
-class OpenFire(BossModule module) : Components.LocationTargetedAOEs(module, AID.OpenFire1, 6);
+class AugmentedUprising(BossModule module) : Components.StandardAOEs(module, AID.AugmentedUprising, new AOEShapeCone(8.5f, 60.Degrees()));
+class AugmentedSuffering(BossModule module) : Components.StandardAOEs(module, AID.AugmentedSuffering, new AOEShapeCircle(6.5f));
+class OpenFire(BossModule module) : Components.StandardAOEs(module, AID.OpenFire1, 6);
 
-class CermetPile(BossModule module) : Components.SelfTargetedAOEs(module, AID.CermetPile, new AOEShapeRect(42.1f, 3f));
-class Firebomb(BossModule module) : Components.LocationTargetedAOEs(module, AID.Firebomb, 4);
+class CermetPile(BossModule module) : Components.StandardAOEs(module, AID.CermetPile, new AOEShapeRect(42.1f, 3f));
+class Firebomb(BossModule module) : Components.StandardAOEs(module, AID.Firebomb, 4);
 
 class MagitekTurret(BossModule module) : Components.GenericAOEs(module, AID.SelfDetonate)
 {

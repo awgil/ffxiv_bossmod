@@ -106,16 +106,16 @@ class Slammer(BossModule module) : Components.GenericRotatingAOE(module)
 }
 
 class VolcanicHowl(BossModule module) : Components.RaidwideCast(module, AID.VolcanicHowl);
-class Earthbreak(BossModule module) : Components.LocationTargetedAOEs(module, AID.Earthbreak2, 5);
+class Earthbreak(BossModule module) : Components.StandardAOEs(module, AID.Earthbreak2, 5);
 class DeadlyHold(BossModule module) : Components.SingleTargetCast(module, AID.DeadlyHold);
-class TailSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSwing, new AOEShapeCircle(13));
-class CriticalBite(BossModule module) : Components.SelfTargetedAOEs(module, AID.CriticalBite, new AOEShapeCone(10, 60.Degrees()));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(7));
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
+class TailSwing(BossModule module) : Components.StandardAOEs(module, AID.TailSwing, new AOEShapeCircle(13));
+class CriticalBite(BossModule module) : Components.StandardAOEs(module, AID.CriticalBite, new AOEShapeCone(10, 60.Degrees()));
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(7));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(7));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(7));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(7));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(7));
+class HeavySmash(BossModule module) : Components.StandardAOEs(module, AID.HeavySmash, 6);
 
 class AcheloiosStates : StateMachineBuilder
 {

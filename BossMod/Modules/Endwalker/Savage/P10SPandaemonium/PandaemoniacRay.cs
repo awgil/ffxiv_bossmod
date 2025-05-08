@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P10SPandaemonium;
 
-class PandaemoniacRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.PandaemoniacRayAOE, new AOEShapeRect(30, 25));
+class PandaemoniacRay(BossModule module) : Components.StandardAOEs(module, AID.PandaemoniacRayAOE, new AOEShapeRect(30, 25));
 
 class JadePassage(BossModule module) : Components.GenericAOEs(module, AID.JadePassage)
 {

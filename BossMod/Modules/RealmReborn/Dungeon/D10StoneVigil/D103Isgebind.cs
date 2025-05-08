@@ -19,9 +19,9 @@ public enum AID : uint
 
 class RimeWreath(BossModule module) : Components.RaidwideCast(module, AID.RimeWreath);
 class FrostBreath(BossModule module) : Components.Cleave(module, AID.FrostBreath, new AOEShapeCone(27, 60.Degrees())); // TODO: verify angle
-class SheetOfIce(BossModule module) : Components.LocationTargetedAOEs(module, AID.SheetOfIce, 5);
-class SheetOfIce2(BossModule module) : Components.LocationTargetedAOEs(module, AID.SheetOfIce2, 5);
-class Cauterize(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.Cauterize, new AOEShapeRect(48, 10));
+class SheetOfIce(BossModule module) : Components.StandardAOEs(module, AID.SheetOfIce, 5);
+class SheetOfIce2(BossModule module) : Components.StandardAOEs(module, AID.SheetOfIce2, 5);
+class Cauterize(BossModule module) : Components.StandardAOEs(module, AID.Cauterize, new AOEShapeRect(48, 10));
 
 class Touchdown(BossModule module) : Components.GenericAOEs(module, AID.Touchdown)
 {

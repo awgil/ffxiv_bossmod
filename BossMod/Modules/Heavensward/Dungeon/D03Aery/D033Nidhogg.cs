@@ -34,11 +34,11 @@ public enum AID : uint
 }
 
 class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, AID.DeafeningBellow);
-class HotTail(BossModule module) : Components.SelfTargetedAOEs(module, AID.HotTail, new AOEShapeRect(60, 8, 60));
-class HotWing(BossModule module) : Components.SelfTargetedAOEs(module, AID.HotWing, new AOEShapeRect(30, 34, -4));
-class Cauterize(BossModule module) : Components.SelfTargetedAOEs(module, AID.Cauterize, new AOEShapeRect(80, 11));
+class HotTail(BossModule module) : Components.StandardAOEs(module, AID.HotTail, new AOEShapeRect(60, 8, 60));
+class HotWing(BossModule module) : Components.StandardAOEs(module, AID.HotWing, new AOEShapeRect(30, 34, -4));
+class Cauterize(BossModule module) : Components.StandardAOEs(module, AID.Cauterize, new AOEShapeRect(80, 11));
 class HorridRoar(BossModule module) : Components.SpreadFromCastTargets(module, AID.HorridRoar, 6);
-class HorridRoar2(BossModule module) : Components.LocationTargetedAOEs(module, AID.HorridRoar2, 6);
+class HorridRoar2(BossModule module) : Components.StandardAOEs(module, AID.HorridRoar2, 6);
 class HorridBlaze(BossModule module) : Components.StackWithCastTargets(module, AID.HorridBlaze, 6, 2);
 class Massacre(BossModule module) : Components.RaidwideCast(module, AID.Massacre);
 class Touchdown(BossModule module) : Components.RaidwideInstant(module, AID.Touchdown, 7.3f)
@@ -66,7 +66,7 @@ class MultiAddModule(BossModule module) : Components.AddsMulti(module, [OID.TheS
             };
     }
 };
-class Roast(BossModule module) : Components.SelfTargetedAOEs(module, AID.Roast, new AOEShapeRect(30, 4));
+class Roast(BossModule module) : Components.StandardAOEs(module, AID.Roast, new AOEShapeRect(30, 4));
 
 class D033NidhoggStates : StateMachineBuilder
 {

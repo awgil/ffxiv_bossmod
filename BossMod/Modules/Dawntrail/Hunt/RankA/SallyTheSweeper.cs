@@ -76,7 +76,7 @@ class ExecutionModel(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class TargetedAdvance(BossModule module) : Components.LocationTargetedAOEs(module, AID.TargetedAdvance, 18, "GTFO from jump!");
+class TargetedAdvance(BossModule module) : Components.StandardAOEs(module, AID.TargetedAdvance, 18, warningText: "GTFO from jump!");
 
 class SallyTheSweeperStates : StateMachineBuilder
 {

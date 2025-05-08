@@ -25,9 +25,9 @@ public enum AID : uint
 }
 
 class HighVoltage(BossModule module) : Components.CastHint(module, AID.HighVoltage, "Interruptible");
-class RepellingCannons(BossModule module) : Components.SelfTargetedAOEs(module, AID.RepellingCannons, new AOEShapeCircle(8.3f));
-class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingLaser, new AOEShapeRect(32.3f, 3));
-class DirtyCannons(BossModule module) : Components.SelfTargetedAOEs(module, AID.DirtyCannons, new AOEShapeCircle(5.15f));
+class RepellingCannons(BossModule module) : Components.StandardAOEs(module, AID.RepellingCannons, new AOEShapeCircle(8.3f));
+class PiercingLaser(BossModule module) : Components.StandardAOEs(module, AID.PiercingLaser, new AOEShapeRect(32.3f, 3));
+class DirtyCannons(BossModule module) : Components.StandardAOEs(module, AID.DirtyCannons, new AOEShapeCircle(5.15f));
 class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.GravityField, m => m.Enemies(OID.GravityField), 1);
 
 // TODO: chain lightning?..

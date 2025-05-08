@@ -16,8 +16,8 @@ class Comet(BossModule module) : Components.Adds(module, (uint)OID.Comet)
     }
 }
 
-class CometImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.CometImpact, new AOEShapeCircle(10)); // TODO: verify falloff
-class CometBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.CometBurstLong, new AOEShapeCircle(10));
+class CometImpact(BossModule module) : Components.StandardAOEs(module, AID.CometImpact, new AOEShapeCircle(10)); // TODO: verify falloff
+class CometBurst(BossModule module) : Components.StandardAOEs(module, AID.CometBurstLong, new AOEShapeCircle(10));
 
 class BeastlyBile(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4)
 {

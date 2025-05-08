@@ -21,8 +21,8 @@ public enum AID : uint
     ArtOfTheSword1 = 8993, // 1CEE->self, 3.0s cast, range 40+R width 6 rect
 }
 
-class ArtOfTheSword(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArtOfTheSword1, new AOEShapeRect(41, 3));
-class VeinSplitter(BossModule module) : Components.SelfTargetedAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
+class ArtOfTheSword(BossModule module) : Components.StandardAOEs(module, AID.ArtOfTheSword1, new AOEShapeRect(41, 3));
+class VeinSplitter(BossModule module) : Components.StandardAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
 class Concentrativity(BossModule module) : Components.RaidwideCast(module, AID.Concentrativity);
 class LightlessFlame(BossModule module) : Components.GenericAOEs(module, AID.LightlessFlame)
 {
@@ -48,7 +48,7 @@ class LightlessFlame(BossModule module) : Components.GenericAOEs(module, AID.Lig
             Flames.Remove(caster.InstanceID);
     }
 }
-class LightlessSpark(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightlessSpark, new AOEShapeCone(40.92f, 45.Degrees()));
+class LightlessSpark(BossModule module) : Components.StandardAOEs(module, AID.LightlessSpark, new AOEShapeCone(40.92f, 45.Degrees()));
 class P2Boss(BossModule module) : BossComponent(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)

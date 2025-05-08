@@ -34,14 +34,14 @@ public enum SID : uint
     Invincibility = 775, // none->Boss, extra=0x0
 }
 
-class DispellingWind(BossModule module) : Components.SelfTargetedAOEs(module, AID.DispellingWind, new AOEShapeRect(40, 4));
-class Epigraph(BossModule module) : Components.SelfTargetedAOEs(module, AID.Epigraph, new AOEShapeRect(45, 4));
-class Whisper(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhisperOfLivesPast, new AOEShapeDonut(6, 12));
-class Blizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
-class Tornado(BossModule module) : Components.LocationTargetedAOEs(module, AID.Tornado, 6);
-class Epigraph1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Epigraph2, new AOEShapeRect(45, 4));
+class DispellingWind(BossModule module) : Components.StandardAOEs(module, AID.DispellingWind, new AOEShapeRect(40, 4));
+class Epigraph(BossModule module) : Components.StandardAOEs(module, AID.Epigraph, new AOEShapeRect(45, 4));
+class Whisper(BossModule module) : Components.StandardAOEs(module, AID.WhisperOfLivesPast, new AOEShapeDonut(6, 12));
+class Blizzard(BossModule module) : Components.StandardAOEs(module, AID.AncientBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
+class Tornado(BossModule module) : Components.StandardAOEs(module, AID.Tornado, 6);
+class Epigraph1(BossModule module) : Components.StandardAOEs(module, AID.Epigraph2, new AOEShapeRect(45, 4));
 
-public class FlatlandFury(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlatlandFury, new AOEShapeCircle(10))
+public class FlatlandFury(BossModule module) : Components.StandardAOEs(module, AID.FlatlandFury, new AOEShapeCircle(10))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -53,7 +53,7 @@ public class FlatlandFury(BossModule module) : Components.SelfTargetedAOEs(modul
     }
 }
 
-public class FlatlandFuryEnrage(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlatlandFuryEnrage, new AOEShapeCircle(10))
+public class FlatlandFuryEnrage(BossModule module) : Components.StandardAOEs(module, AID.FlatlandFuryEnrage, new AOEShapeCircle(10))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -62,8 +62,8 @@ public class FlatlandFuryEnrage(BossModule module) : Components.SelfTargetedAOEs
     }
 }
 
-public class ViolentEarth(BossModule module) : Components.LocationTargetedAOEs(module, AID.ViolentEarth, 6);
-public class WindChisel(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindChisel, new AOEShapeCone(34, 10.Degrees()));
+public class ViolentEarth(BossModule module) : Components.StandardAOEs(module, AID.ViolentEarth, 6);
+public class WindChisel(BossModule module) : Components.StandardAOEs(module, AID.WindChisel, new AOEShapeCone(34, 10.Degrees()));
 
 public class Scales(BossModule module) : Components.Adds(module, (uint)OID.TheScaleOfTheFather);
 

@@ -31,9 +31,9 @@ public enum AID : uint
 }
 
 class ShrillShriek(BossModule module) : Components.RaidwideCast(module, AID.ShrillShriek);
-class Aetherspike(BossModule module) : Components.SelfTargetedAOEs(module, AID.Aetherspike, new AOEShapeRect(40, 4));
-class Comet(BossModule module) : Components.LocationTargetedAOEs(module, AID.Comet, 4);
-class SicklyInferno(BossModule module) : Components.LocationTargetedAOEs(module, AID.SicklyInferno, 5);
+class Aetherspike(BossModule module) : Components.StandardAOEs(module, AID.Aetherspike, new AOEShapeRect(40, 4));
+class Comet(BossModule module) : Components.StandardAOEs(module, AID.Comet, 4);
+class SicklyInferno(BossModule module) : Components.StandardAOEs(module, AID.SicklyInferno, 5);
 class Burst(BossModule module) : Components.CastHint(module, AID.BurstEnrage, "Enrage!", true);
 
 class D062BellwetherStates : StateMachineBuilder

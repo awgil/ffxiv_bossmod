@@ -15,8 +15,8 @@ public enum AID : uint
     InflammableFumes = 14753, // 271B->self, 15.0s cast, range 50 circle
 }
 
-class WildHorn(BossModule module) : Components.SelfTargetedAOEs(module, AID.WildHorn, new AOEShapeCone(16.96f, 60.Degrees()));
-class Trounce(BossModule module) : Components.SelfTargetedAOEs(module, AID.Trounce, new AOEShapeCone(46.96f, 30.Degrees()));
+class WildHorn(BossModule module) : Components.StandardAOEs(module, AID.WildHorn, new AOEShapeCone(16.96f, 60.Degrees()));
+class Trounce(BossModule module) : Components.StandardAOEs(module, AID.Trounce, new AOEShapeCone(46.96f, 30.Degrees()));
 class SporeSac(BossModule module) : Components.CastHint(module, AID.SporeSac, "Calls Roselets. Prepare Ice Spikes if available.");
 class InflammableFumes(BossModule module) : Components.CastHint(module, AID.InflammableFumes, "Stun Boss with Bomb Toss. High damage but suriveable.");
 

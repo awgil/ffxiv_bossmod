@@ -52,10 +52,10 @@ public enum IconID : uint
 class TenderLoin(BossModule module) : Components.RaidwideCastDelay(module, AID.TenderLoinVisual, AID.TenderLoin, 0.8f);
 class MincedMeat(BossModule module) : Components.SingleTargetCastDelay(module, AID.MincedMeatVisual, AID.MincedMeat, 0.9f);
 class OpenFlame(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spreadmarker, AID.OpenFlame, 5, 6.7f);
-class MeatMallet(BossModule module) : Components.LocationTargetedAOEs(module, AID.MeatMallet, 30);
-class BarbequeCircle(BossModule module) : Components.LocationTargetedAOEs(module, AID.BarbequeCircle, 5);
-class BarbequeRect(BossModule module) : Components.SelfTargetedAOEs(module, AID.BarbequeRect, new AOEShapeRect(50, 2.5f));
-class Buffet(BossModule module) : Components.SelfTargetedAOEs(module, AID.Buffet, new AOEShapeRect(40, 3));
+class MeatMallet(BossModule module) : Components.StandardAOEs(module, AID.MeatMallet, 30);
+class BarbequeCircle(BossModule module) : Components.StandardAOEs(module, AID.BarbequeCircle, 5);
+class BarbequeRect(BossModule module) : Components.StandardAOEs(module, AID.BarbequeRect, new AOEShapeRect(50, 2.5f));
+class Buffet(BossModule module) : Components.StandardAOEs(module, AID.Buffet, new AOEShapeRect(40, 3));
 
 class HuffAndPuff(BossModule module) : Components.Knockback(module, stopAtWall: true)
 {

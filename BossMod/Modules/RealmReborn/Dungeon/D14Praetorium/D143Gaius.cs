@@ -36,13 +36,13 @@ public enum AID : uint
     VeniVidiViciEnrage = 28500, // Boss->self, no cast, enrage (if adds aren't killed in 90s)
 }
 
-class TerminusEstTriple(BossModule module) : Components.SelfTargetedAOEs(module, AID.TerminusEstTriple, new AOEShapeRect(40, 2));
-class TerminusEstQuintuple(BossModule module) : Components.SelfTargetedAOEs(module, AID.TerminusEstQuintuple, new AOEShapeRect(40, 2));
+class TerminusEstTriple(BossModule module) : Components.StandardAOEs(module, AID.TerminusEstTriple, new AOEShapeRect(40, 2));
+class TerminusEstQuintuple(BossModule module) : Components.StandardAOEs(module, AID.TerminusEstQuintuple, new AOEShapeRect(40, 2));
 class HandOfTheEmpire(BossModule module) : Components.SpreadFromCastTargets(module, AID.HandOfTheEmpireAOE, 5, false);
 class FestinaLente(BossModule module) : Components.StackWithCastTargets(module, AID.FestinaLente, 6, 4);
 class Innocence(BossModule module) : Components.SingleTargetCast(module, AID.Innocence);
 class HorridaBella(BossModule module) : Components.RaidwideCast(module, AID.HorridaBella);
-class Ductus(BossModule module) : Components.LocationTargetedAOEs(module, AID.DuctusAOE, 8);
+class Ductus(BossModule module) : Components.StandardAOEs(module, AID.DuctusAOE, 8);
 
 class AddEnrage(BossModule module) : BossComponent(module)
 {

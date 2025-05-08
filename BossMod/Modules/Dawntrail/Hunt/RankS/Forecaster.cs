@@ -176,7 +176,7 @@ class Forecast(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FloodConditions(BossModule module) : Components.LocationTargetedAOEs(module, AID.FloodConditions, 6);
+class FloodConditions(BossModule module) : Components.StandardAOEs(module, AID.FloodConditions, 6);
 
 class ForecasterStates : StateMachineBuilder
 {

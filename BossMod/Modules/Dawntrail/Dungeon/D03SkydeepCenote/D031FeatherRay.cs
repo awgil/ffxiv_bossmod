@@ -31,7 +31,7 @@ public enum IconID : uint
 
 class Immersion(BossModule module) : Components.RaidwideCast(module, AID.Immersion);
 class TroublesomeTail(BossModule module) : Components.RaidwideCast(module, AID.TroublesomeTail);
-class WorrisomeWave(BossModule module) : Components.SelfTargetedAOEs(module, AID.WorrisomeWave, new AOEShapeCone(24, 15.Degrees()));
+class WorrisomeWave(BossModule module) : Components.StandardAOEs(module, AID.WorrisomeWave, new AOEShapeCone(24, 15.Degrees()));
 
 class WorrisomeWaveNuisance(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(24, 15.Degrees()), (uint)IconID.Nuisance, AID.WorrisomeWaveNuisance, 5.4f)
 {

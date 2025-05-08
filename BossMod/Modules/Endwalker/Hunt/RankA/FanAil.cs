@@ -17,11 +17,10 @@ public enum AID : uint
     AutoAttack = 27381, // Boss->player, no cast, single-target
 }
 
-// TODO: ok, this needs investigation...
-class Divebomb(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.Divebomb, new AOEShapeRect(30, 5.5f));
-
-class LiquidHell(BossModule module) : Components.LocationTargetedAOEs(module, AID.LiquidHell, 6);
-class Plummet(BossModule module) : Components.SelfTargetedAOEs(module, AID.Plummet, new AOEShapeCone(8, 45.Degrees()));
+// wiki says divebomb snapshots the target when the icon appears, but that doesn't seem to be the case
+class Divebomb(BossModule module) : Components.BaitAwayCast(module, AID.Divebomb, new AOEShapeRect(30, 5.5f));
+class LiquidHell(BossModule module) : Components.StandardAOEs(module, AID.LiquidHell, 6);
+class Plummet(BossModule module) : Components.StandardAOEs(module, AID.Plummet, new AOEShapeCone(8, 45.Degrees()));
 class DeathSentence(BossModule module) : Components.SingleTargetCast(module, AID.DeathSentence);
 class CycloneWing(BossModule module) : Components.RaidwideCast(module, AID.CycloneWing);
 

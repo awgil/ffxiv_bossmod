@@ -15,8 +15,8 @@ public enum AID : uint
     Repel = 1047, // Boss->self, 3.0s cast, range 40+R 180?-degree cone knockback 20 (non-immunable)
 }
 
-class LiquefyCenter(BossModule module) : Components.SelfTargetedAOEs(module, AID.LiquefyCenter, new AOEShapeRect(50, 4));
-class LiquefySides(BossModule module) : Components.SelfTargetedAOEs(module, AID.LiquefySides, new AOEShapeRect(50, 3.5f));
+class LiquefyCenter(BossModule module) : Components.StandardAOEs(module, AID.LiquefyCenter, new AOEShapeRect(50, 4));
+class LiquefySides(BossModule module) : Components.StandardAOEs(module, AID.LiquefySides, new AOEShapeRect(50, 3.5f));
 
 class Repel(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Repel, 20, true)
 {

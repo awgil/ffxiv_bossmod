@@ -51,9 +51,9 @@ class Seafoam(BossModule module) : Components.RaidwideCast(module, AID.Seafoam);
 class Bonebreaker(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Bonebreaker);
 class FallingWater(BossModule module) : Components.SpreadFromCastTargets(module, AID.FallingWater, 8);
 class FlyingFount(BossModule module) : Components.StackWithCastTargets(module, AID.FlyingFount, 6);
-class CommandCurrent(BossModule module) : Components.SelfTargetedAOEs(module, AID.CommandCurrent, new AOEShapeCone(40, 15.Degrees()));
-class CoralTrident(BossModule module) : Components.SelfTargetedAOEs(module, AID.CoralTrident, new AOEShapeCone(6, 45.Degrees()));
-class RisingTide(BossModule module) : Components.SelfTargetedAOEs(module, AID.RisingTide, new AOEShapeCross(50, 3));
+class CommandCurrent(BossModule module) : Components.StandardAOEs(module, AID.CommandCurrent, new AOEShapeCone(40, 15.Degrees()));
+class CoralTrident(BossModule module) : Components.StandardAOEs(module, AID.CoralTrident, new AOEShapeCone(6, 45.Degrees()));
+class RisingTide(BossModule module) : Components.StandardAOEs(module, AID.RisingTide, new AOEShapeCross(50, 3));
 
 class Voidzones(BossModule module) : BossComponent(module)
 {

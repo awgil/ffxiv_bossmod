@@ -29,13 +29,13 @@ public enum TetherID : uint
     BaitAway = 17 // MagitekTurretI->player
 }
 
-class AetherochemicalGrenado(BossModule module) : Components.LocationTargetedAOEs(module, AID.AetherochemicalGrenado, 8);
+class AetherochemicalGrenado(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalGrenado, 8);
 class AetherochemicalLaser(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(50, 2), (uint)TetherID.BaitAway, AID.AetherochemicalLaser);
-class AetherochemicalLaserAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherochemicalLaser, new AOEShapeRect(50, 2));
-class JudgmentAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.JudgmentAOE, new AOEShapeCircle(8));
+class AetherochemicalLaserAOE(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaser, new AOEShapeRect(50, 2));
+class JudgmentAOE(BossModule module) : Components.StandardAOEs(module, AID.JudgmentAOE, new AOEShapeCircle(8));
 class MagiteckTurrents(BossModule module) : Components.AddsMulti(module, [OID.MagitekTurretI, OID.MagitekTurretII]);
-class MagitekSlug(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekSlug, new AOEShapeRect(61.65f, 2));
-class MagitekSpread(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekSpread, new AOEShapeCone(31.65f, 120.Degrees()));
+class MagitekSlug(BossModule module) : Components.StandardAOEs(module, AID.MagitekSlug, new AOEShapeRect(61.65f, 2));
+class MagitekSpread(BossModule module) : Components.StandardAOEs(module, AID.MagitekSpread, new AOEShapeCone(31.65f, 120.Degrees()));
 class SelfDetonate(BossModule module) : Components.RaidwideCast(module, AID.SelfDetonate);
 
 class D061RegulaVanHydrusStates : StateMachineBuilder

@@ -47,8 +47,8 @@ public enum TetherID : uint
 
 class PsychicWave(BossModule module) : Components.RaidwideCast(module, AID.PsychicWave);
 class VoltaicSlash(BossModule module) : Components.SingleTargetCast(module, AID.VoltaicSlash);
-class OverwhelmingChargeSolo(BossModule module) : Components.SelfTargetedAOEs(module, AID.OverwhelmingChargeSolo, new AOEShapeCone(26, 90.Degrees()));
-class PsychokinesisDoors(BossModule module) : Components.SelfTargetedAOEs(module, AID.PsychokinesisDoorsAOE, new AOEShapeRect(70, 6.5f));
+class OverwhelmingChargeSolo(BossModule module) : Components.StandardAOEs(module, AID.OverwhelmingChargeSolo, new AOEShapeCone(26, 90.Degrees()));
+class PsychokinesisDoors(BossModule module) : Components.StandardAOEs(module, AID.PsychokinesisDoorsAOE, new AOEShapeRect(70, 6.5f));
 class Adds(BossModule module) : Components.AddsMulti(module, [OID.OrigenicsEyeborg, OID.Superfluity]);
 
 class ExtrasensoryExpulsion(BossModule module) : Components.Knockback(module)
@@ -100,14 +100,14 @@ class ExtrasensoryExpulsion(BossModule module) : Components.Knockback(module)
     }
 }
 
-class OverwhelmingChargeKnockback(BossModule module) : Components.SelfTargetedAOEs(module, AID.OverwhelmingChargeKnockbackAOE, new AOEShapeCone(26, 90.Degrees()))
+class OverwhelmingChargeKnockback(BossModule module) : Components.StandardAOEs(module, AID.OverwhelmingChargeKnockbackAOE, new AOEShapeCone(26, 90.Degrees()))
 {
     private readonly ExtrasensoryExpulsion? _knockback = module.FindComponent<ExtrasensoryExpulsion>();
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _knockback?.AOEs.Count > 0 ? [] : base.ActiveAOEs(slot, actor);
 }
 
-class Electrolance(BossModule module) : Components.LocationTargetedAOEs(module, AID.Electrolance, 22);
+class Electrolance(BossModule module) : Components.StandardAOEs(module, AID.Electrolance, 22);
 
 class PsychokinesisLance(BossModule module) : Components.GenericAOEs(module)
 {

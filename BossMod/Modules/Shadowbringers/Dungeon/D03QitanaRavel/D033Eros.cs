@@ -122,10 +122,10 @@ class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module
 }
 
 class ViperPoisonPatterns(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.ViperPoisonPatterns, m => m.Enemies(OID.PoisonVoidzone).Where(z => z.EventState != 7), 0);
-class ConfessionOfFaithLeft(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConfessionOfFaithLeft, new AOEShapeCone(60, 46.Degrees(), 20.Degrees())); // TODO: verify; there should not be an offset in reality here...
-class ConfessionOfFaithRight(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConfessionOfFaithRight, new AOEShapeCone(60, 46.Degrees(), -20.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class ConfessionOfFaithLeft(BossModule module) : Components.StandardAOEs(module, AID.ConfessionOfFaithLeft, new AOEShapeCone(60, 46.Degrees(), 20.Degrees())); // TODO: verify; there should not be an offset in reality here...
+class ConfessionOfFaithRight(BossModule module) : Components.StandardAOEs(module, AID.ConfessionOfFaithRight, new AOEShapeCone(60, 46.Degrees(), -20.Degrees())); // TODO: verify; there should not be an offset in reality here...
 class ConfessionOfFaithStack(BossModule module) : Components.StackWithCastTargets(module, AID.ConfessionOfFaithStack, 6);
-class ConfessionOfFaithCenter(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConfessionOfFaithCenter, new AOEShapeCone(60, 40.Degrees()));
+class ConfessionOfFaithCenter(BossModule module) : Components.StandardAOEs(module, AID.ConfessionOfFaithCenter, new AOEShapeCone(60, 40.Degrees()));
 class ConfessionOfFaithSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.ConfessionOfFaithSpread, 5);
 
 class ViperPoisonBait(BossModule module) : Components.GenericBaitAway(module)

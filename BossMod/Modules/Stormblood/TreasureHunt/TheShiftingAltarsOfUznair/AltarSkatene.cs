@@ -17,8 +17,8 @@ public enum AID : uint
     Chirp = 13310, // Boss->self, 3.5s cast, range 8+R circle
 }
 
-class Chirp(BossModule module) : Components.SelfTargetedAOEs(module, AID.Chirp, new AOEShapeCircle(12.48f));
-class Tornado(BossModule module) : Components.LocationTargetedAOEs(module, AID.Tornado, 6);
+class Chirp(BossModule module) : Components.StandardAOEs(module, AID.Chirp, new AOEShapeCircle(12.48f));
+class Tornado(BossModule module) : Components.StandardAOEs(module, AID.Tornado, 6);
 class VoidCall(BossModule module) : Components.CastHint(module, AID.VoidCall, "Calls adds");
 class RecklessAbandon(BossModule module) : Components.SingleTargetDelayableCast(module, AID.RecklessAbandon);
 

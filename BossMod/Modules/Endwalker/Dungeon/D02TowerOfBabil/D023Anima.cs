@@ -225,11 +225,11 @@ class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, 
         }
     }
 }
-class PhantomPain(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomPain2, new AOEShapeRect(10, 10, 10));
-class PaterPatriaeAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.PaterPatriaeAOE, new AOEShapeRect(60, 4));
-class CharnelClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.CharnelClaw, new AOEShapeRect(40, 2.5f), 5);
+class PhantomPain(BossModule module) : Components.StandardAOEs(module, AID.PhantomPain2, new AOEShapeRect(10, 10, 10));
+class PaterPatriaeAOE(BossModule module) : Components.StandardAOEs(module, AID.PaterPatriaeAOE, new AOEShapeRect(60, 4));
+class CharnelClaw(BossModule module) : Components.StandardAOEs(module, AID.CharnelClaw, new AOEShapeRect(40, 2.5f), 5);
 class ErruptingPain(BossModule module) : Components.SpreadFromCastTargets(module, AID.EruptingPain, 6);
-class ObliviatingClawSpawnAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.ObliviatingClawSpawnAOE, new AOEShapeCircle(3));
+class ObliviatingClawSpawnAOE(BossModule module) : Components.StandardAOEs(module, AID.ObliviatingClawSpawnAOE, new AOEShapeCircle(3));
 class Oblivion(BossModule module) : Components.RaidwideCast(module, AID.OblivionVisual, "Raidwide x16");
 class MegaGraviton(BossModule module) : Components.RaidwideCast(module, AID.MegaGraviton);
 

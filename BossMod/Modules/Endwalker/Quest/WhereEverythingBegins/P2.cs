@@ -23,10 +23,10 @@ public enum AID : uint
 
 class VoidVortex(BossModule module) : Components.StackWithCastTargets(module, AID.VoidVortex, 6, minStackSize: 1);
 class RottenRampageSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.RottenRampageSpread, 6);
-class RottenRampage(BossModule module) : Components.LocationTargetedAOEs(module, AID.RottenRampage, 6);
-class BlightedSwathe(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedSwathe, new AOEShapeCone(40, 90.Degrees()));
-class BlightedSweep(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedSweep, new AOEShapeCone(40, 90.Degrees()));
-class BlightedBuffet(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedBuffet, new AOEShapeCircle(9));
+class RottenRampage(BossModule module) : Components.StandardAOEs(module, AID.RottenRampage, 6);
+class BlightedSwathe(BossModule module) : Components.StandardAOEs(module, AID.BlightedSwathe, new AOEShapeCone(40, 90.Degrees()));
+class BlightedSweep(BossModule module) : Components.StandardAOEs(module, AID.BlightedSweep, new AOEShapeCone(40, 90.Degrees()));
+class BlightedBuffet(BossModule module) : Components.StandardAOEs(module, AID.BlightedBuffet, new AOEShapeCircle(9));
 class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.VacuumWave, 5)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -35,7 +35,7 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
             hints.AddForbiddenZone(new AOEShapeDonut(13, 60), c.Position, activation: Module.CastFinishAt(c.CastInfo));
     }
 }
-class VoidQuakeIII(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidQuakeIII, new AOEShapeCross(40, 5));
+class VoidQuakeIII(BossModule module) : Components.StandardAOEs(module, AID.VoidQuakeIII, new AOEShapeCross(40, 5));
 class DeathWall(BossModule module) : Components.GenericAOEs(module, AID.CursedNoise)
 {
     private DateTime? WallActivate;

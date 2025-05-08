@@ -51,14 +51,14 @@ public enum AID : uint
 class BestialLoyalty(BossModule module) : Components.CastHint(module, AID.BestialLoyalty, "Summon crows");
 class RunWild(BossModule module) : Components.CastHint(module, AID.RunWild, "Interrupt beastmaster");
 class HardBeak(BossModule module) : Components.SingleTargetCast(module, AID.HardBeak);
-class PiercingBarrageBoss(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingBarrageBoss, new AOEShapeRect(40, 4));
+class PiercingBarrageBoss(BossModule module) : Components.StandardAOEs(module, AID.PiercingBarrageBoss, new AOEShapeRect(40, 4));
 class Helldive(BossModule module) : Components.StackWithCastTargets(module, AID.Helldive, 6);
-class BroadsideBarrage(BossModule module) : Components.SelfTargetedAOEs(module, AID.BroadsideBarrage, new AOEShapeRect(40, 20));
+class BroadsideBarrage(BossModule module) : Components.StandardAOEs(module, AID.BroadsideBarrage, new AOEShapeRect(40, 20));
 class BlindsideBarrage(BossModule module) : Components.RaidwideCast(module, AID.BlindsideBarrage, "Raidwide + deathwall appears");
-class RollingBarrage(BossModule module) : Components.SelfTargetedAOEs(module, AID.RollingBarrageAOE, new AOEShapeCircle(8));
+class RollingBarrage(BossModule module) : Components.StandardAOEs(module, AID.RollingBarrageAOE, new AOEShapeCircle(8));
 class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Whirlwind));
 class Wind(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WindVisual, 30, kind: Kind.DirForward);
-class PiercingBarrageCrow(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingBarrageCrow, new AOEShapeRect(40, 4));
+class PiercingBarrageCrow(BossModule module) : Components.StandardAOEs(module, AID.PiercingBarrageCrow, new AOEShapeRect(40, 4));
 
 class TamedCarrionCrowStates : StateMachineBuilder
 {

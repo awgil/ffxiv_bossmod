@@ -33,10 +33,10 @@ public enum TetherID : uint
     LightningRod = 6,
 }
 
-class ElectricPredation(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectricPredation, new AOEShapeCone(8, 45.Degrees()));
-class ElectricCachexia(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectricCachexia, new AOEShapeDonut(7, 60));
+class ElectricPredation(BossModule module) : Components.StandardAOEs(module, AID.ElectricPredation, new AOEShapeCone(8, 45.Degrees()));
+class ElectricCachexia(BossModule module) : Components.StandardAOEs(module, AID.ElectricCachexia, new AOEShapeDonut(7, 60));
 //class IonosphericCharge(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(0), (uint)TetherID.LightningRod, AID.LightningRod);
-class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningBolt, 3);
+class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, 3);
 class LightningRod(BossModule module) : BossComponent(module)
 {
     private IEnumerable<Actor> Statues => Module.Enemies(OID.BlackenedStatue).Where(e => e.FindStatus(GID.LightningRod) == null && !e.IsDead);

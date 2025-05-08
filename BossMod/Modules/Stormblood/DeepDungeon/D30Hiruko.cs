@@ -16,9 +16,9 @@ public enum AID : uint
     Supercell = 11293, // Boss->self, 7.0s cast, range 50+R width 100 rect
 }
 
-class LightningStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightningStrike, new AOEShapeRect(55.25f, 3));
-class Shiko(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shiko, new AOEShapeCircle(10));
-class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightningBolt, new AOEShapeCircle(8))
+class LightningStrike(BossModule module) : Components.StandardAOEs(module, AID.LightningStrike, new AOEShapeRect(55.25f, 3));
+class Shiko(BossModule module) : Components.StandardAOEs(module, AID.Shiko, new AOEShapeCircle(10));
+class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, new AOEShapeCircle(8))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -35,7 +35,7 @@ class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, AID
         }
     }
 }
-class Supercell(BossModule module) : Components.SelfTargetedAOEs(module, AID.Supercell, new AOEShapeRect(50, 50));
+class Supercell(BossModule module) : Components.StandardAOEs(module, AID.Supercell, new AOEShapeRect(50, 50));
 
 class D30HirukoStates : StateMachineBuilder
 {

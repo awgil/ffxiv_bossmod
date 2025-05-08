@@ -32,11 +32,11 @@ public enum AID : uint
 }
 
 class VoidSpark(BossModule module) : Components.SingleTargetCast(module, AID.VoidSpark);
-class VoidSpark2(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidSpark2, new AOEShapeCircle(7f + 1f));
+class VoidSpark2(BossModule module) : Components.StandardAOEs(module, AID.VoidSpark2, new AOEShapeCircle(7f + 1f));
 //class VoidCall(BossModule module) : Components.RaidwideCast(module, AID.VoidCall);
-class DeepDarkness(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeepDarkness, new AOEShapeDonut(10.5f + 1f, 25));
-class MagicBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagicBurst, new AOEShapeCircle(15));
-class VoidBlizzardIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidBlizzardIII, 5);
+class DeepDarkness(BossModule module) : Components.StandardAOEs(module, AID.DeepDarkness, new AOEShapeDonut(10.5f + 1f, 25));
+class MagicBurst(BossModule module) : Components.StandardAOEs(module, AID.MagicBurst, new AOEShapeCircle(15));
+class VoidBlizzardIII(BossModule module) : Components.StandardAOEs(module, AID.VoidBlizzardIII, 5);
 class AbyssalSwing(BossModule module) : Components.Cleave(module, AID.AbyssalSwing, new AOEShapeCone(6f + 1.5f, 45.Degrees()))
 {
     private readonly List<Actor> _biblioklepts = [];
@@ -88,8 +88,8 @@ class AbyssalSwing(BossModule module) : Components.Cleave(module, AID.AbyssalSwi
     }
 };
 
-class AbyssalCharge(BossModule module) : Components.SelfTargetedAOEs(module, AID.AbyssalCharge, new AOEShapeRect(40f + 1f, 2));
-class AbyssalCharge2(BossModule module) : Components.SelfTargetedAOEs(module, AID.AbyssalCharge2, new AOEShapeRect(40f + 1f, 2));
+class AbyssalCharge(BossModule module) : Components.StandardAOEs(module, AID.AbyssalCharge, new AOEShapeRect(40f + 1f, 2));
+class AbyssalCharge2(BossModule module) : Components.StandardAOEs(module, AID.AbyssalCharge2, new AOEShapeRect(40f + 1f, 2));
 
 class VoidCall(BossModule module) : BossComponent(module)
 {

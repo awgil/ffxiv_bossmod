@@ -27,13 +27,13 @@ class RawRockbreaker(BossModule module) : Components.ConcentricAOEs(module, [new
     }
 }
 class ChiBlast(BossModule module) : Components.RaidwideCast(module, AID.ChiBlast1);
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(6));
-class ArmOfTheScholar(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArmOfTheScholar, new AOEShapeCircle(5));
+class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeCircle(6));
+class ArmOfTheScholar(BossModule module) : Components.StandardAOEs(module, AID.ArmOfTheScholar, new AOEShapeCircle(5));
 
 class ClassicalFire(BossModule module) : Components.StackWithCastTargets(module, AID.ClassicalFire, 6);
 class ClassicalThunder(BossModule module) : Components.SpreadFromCastTargets(module, AID.ClassicalThunder, 6);
-class ClassicalBlizzard(BossModule module) : Components.LocationTargetedAOEs(module, AID.ClassicalBlizzard, 6);
-class ClassicalStone(BossModule module) : Components.SelfTargetedAOEs(module, AID.ClassicalStone, new AOEShapeCircle(15));
+class ClassicalBlizzard(BossModule module) : Components.StandardAOEs(module, AID.ClassicalBlizzard, 6);
+class ClassicalStone(BossModule module) : Components.StandardAOEs(module, AID.ClassicalStone, new AOEShapeCircle(15));
 
 class AncelRockfistStates : StateMachineBuilder
 {

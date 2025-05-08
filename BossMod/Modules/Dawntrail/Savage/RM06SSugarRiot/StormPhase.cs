@@ -49,7 +49,7 @@ class TasteOfLightningDelayed(BossModule module) : Components.GenericAOEs(module
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Baits.Select(b => new AOEInstance(new AOEShapeCircle(3), b, default, Activation));
 }
 
-class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningBolt, 4);
+class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, 4);
 
 // strikes about every 10.5s
 class TempestPiece(BossModule module) : Components.GenericAOEs(module)

@@ -103,8 +103,8 @@ class Reflect(BossModule module) : BossComponent(module)
     }
 }
 
-class BadBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.BadBreath, new AOEShapeCone(17.775f, 60.Degrees()));
-class VineProbe(BossModule module) : Components.SelfTargetedAOEs(module, AID.VineProbe, new AOEShapeRect(11.775f, 4));
+class BadBreath(BossModule module) : Components.StandardAOEs(module, AID.BadBreath, new AOEShapeCone(17.775f, 60.Degrees()));
+class VineProbe(BossModule module) : Components.StandardAOEs(module, AID.VineProbe, new AOEShapeRect(11.775f, 4));
 class OffalBreath(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.OffalBreath, m => m.Enemies(OID.voidzone), 0);
 
 class Hints(BossModule module) : BossComponent(module)

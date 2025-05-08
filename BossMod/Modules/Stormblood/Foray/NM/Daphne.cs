@@ -19,9 +19,9 @@ public enum AID : uint
 }
 
 class Spellwind(BossModule module) : Components.RaidwideCast(module, AID.SpellwindCast);
-class Upburst(BossModule module) : Components.SelfTargetedAOEs(module, AID.Upburst, new AOEShapeCircle(8));
-class RoilingReach(BossModule module) : Components.SelfTargetedAOEs(module, AID.RoilingReach, new AOEShapeCross(32, 3.5f));
-class Wallop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Wallop, new AOEShapeRect(50, 3.5f));
+class Upburst(BossModule module) : Components.StandardAOEs(module, AID.Upburst, new AOEShapeCircle(8));
+class RoilingReach(BossModule module) : Components.StandardAOEs(module, AID.RoilingReach, new AOEShapeCross(32, 3.5f));
+class Wallop(BossModule module) : Components.StandardAOEs(module, AID.Wallop, new AOEShapeRect(50, 3.5f));
 class ChillingGlare(BossModule module) : Components.CastGaze(module, AID.ChillingGlare);
 
 class DaphneStates : StateMachineBuilder

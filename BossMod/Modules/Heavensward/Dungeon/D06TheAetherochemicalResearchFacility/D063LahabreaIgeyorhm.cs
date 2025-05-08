@@ -49,7 +49,7 @@ public enum TetherID : uint
 }
 
 class ShadowFlare(BossModule module) : Components.RaidwideCast(module, AID.ShadowFlare);
-class GripOfNight(BossModule module) : Components.SelfTargetedAOEs(module, AID.GripOfNight, new AOEShapeCone(40, 75.Degrees()));
+class GripOfNight(BossModule module) : Components.StandardAOEs(module, AID.GripOfNight, new AOEShapeCone(40, 75.Degrees()));
 class DarkFireIIAOE(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkFireIIAOE, 6);
 class EndofDays(BossModule module) : Components.SimpleLineStack(module, 4.1f, 50, AID.EndOfDaysTargetSelect, AID.EndOfDaysAOE, 0);
 

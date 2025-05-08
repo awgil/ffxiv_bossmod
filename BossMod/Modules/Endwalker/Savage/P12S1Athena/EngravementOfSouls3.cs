@@ -73,8 +73,8 @@ class EngravementOfSouls3Spread(BossModule module) : Components.UniformStackSpre
     }
 }
 
-class TheosCross(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheosCross, new AOEShapeCross(40, 3));
-class TheosSaltire(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheosSaltire, new AOEShapeCross(40, 3));
+class TheosCross(BossModule module) : Components.StandardAOEs(module, AID.TheosCross, new AOEShapeCross(40, 3));
+class TheosSaltire(BossModule module) : Components.StandardAOEs(module, AID.TheosSaltire, new AOEShapeCross(40, 3));
 
 // TODO: this assumes standard strats, there could be variations i guess...
 class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)

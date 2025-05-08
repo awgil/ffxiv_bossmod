@@ -40,9 +40,9 @@ public enum IconID : uint
 
 class Electrowave(BossModule module) : Components.RaidwideCast(module, AID.ElectrowaveAOE);
 class Disassembly(BossModule module) : Components.RaidwideCast(module, AID.Disassembly);
-class SupercellMatrix(BossModule module) : Components.SelfTargetedAOEs(module, AID.SupercellMatrix, new AOEShapeRect(28.2843f, 28.2843f));
-class SupercellMatrixRect(BossModule module) : Components.SelfTargetedAOEs(module, AID.SupercellMatrixRect, new AOEShapeRect(55, 4));
-class CentralizedCurrent(BossModule module) : Components.SelfTargetedAOEs(module, AID.CentralizedCurrent, new AOEShapeRect(45, 7.5f, 45));
+class SupercellMatrix(BossModule module) : Components.StandardAOEs(module, AID.SupercellMatrix, new AOEShapeRect(28.2843f, 28.2843f));
+class SupercellMatrixRect(BossModule module) : Components.StandardAOEs(module, AID.SupercellMatrixRect, new AOEShapeRect(55, 4));
+class CentralizedCurrent(BossModule module) : Components.StandardAOEs(module, AID.CentralizedCurrent, new AOEShapeRect(45, 7.5f, 45));
 
 class SplitCurrent(BossModule module) : Components.GenericAOEs(module, AID.SplitCurrent)
 {
@@ -81,7 +81,7 @@ class StaticSpark(BossModule module) : Components.SpreadFromCastTargets(module, 
 }
 
 class Amalgamight(BossModule module) : Components.SingleTargetCast(module, AID.Amalgamight);
-class Voltburst(BossModule module) : Components.LocationTargetedAOEs(module, AID.Voltburst, 6);
+class Voltburst(BossModule module) : Components.StandardAOEs(module, AID.Voltburst, 6);
 class Superbolt(BossModule module) : Components.StackWithCastTargets(module, AID.SuperboltAOE, 6, 4);
 
 class TernaryCharge(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)])

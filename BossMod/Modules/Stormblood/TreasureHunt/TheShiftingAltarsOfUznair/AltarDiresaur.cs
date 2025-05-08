@@ -36,12 +36,12 @@ public enum IconID : uint
 }
 
 class DeadlyHold(BossModule module) : Components.SingleTargetDelayableCast(module, AID.DeadlyHold);
-class HeatBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeatBreath, new AOEShapeCone(14.6f, 45.Degrees()));
-class TailSmash(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSmash, new AOEShapeCone(26.6f, 45.Degrees()));
+class HeatBreath(BossModule module) : Components.StandardAOEs(module, AID.HeatBreath, new AOEShapeCone(14.6f, 45.Degrees()));
+class TailSmash(BossModule module) : Components.StandardAOEs(module, AID.TailSmash, new AOEShapeCone(26.6f, 45.Degrees()));
 class RagingInferno(BossModule module) : Components.RaidwideCast(module, AID.RagingInferno);
-class Comet(BossModule module) : Components.LocationTargetedAOEs(module, AID.Comet, 4);
-class HardStomp(BossModule module) : Components.SelfTargetedAOEs(module, AID.HardStomp, new AOEShapeCircle(10));
-class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, AID.Fireball, 6);
+class Comet(BossModule module) : Components.StandardAOEs(module, AID.Comet, 4);
+class HardStomp(BossModule module) : Components.StandardAOEs(module, AID.HardStomp, new AOEShapeCircle(10));
+class Fireball(BossModule module) : Components.StandardAOEs(module, AID.Fireball, 6);
 
 class FireballBait(BossModule module) : Components.GenericBaitAway(module)
 {
@@ -85,8 +85,8 @@ class FireballBait(BossModule module) : Components.GenericBaitAway(module)
 }
 
 class FireballVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.FireVoidzone).Where(z => z.EventState != 7));
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class RaucousScritch(BossModule module) : Components.StandardAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.StandardAOEs(module, AID.Hurl, 6);
 class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class DiresaurStates : StateMachineBuilder

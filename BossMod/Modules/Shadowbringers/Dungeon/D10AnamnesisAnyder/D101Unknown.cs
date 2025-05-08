@@ -29,17 +29,17 @@ public enum AID : uint
     EctoplasmicRay2 = 19313, // Boss->self, no cast, range 50 width 8 rect
 }
 
-class Clearout(BossModule module) : Components.SelfTargetedAOEs(module, AID.Clearout, new AOEShapeCone(9, 60.Degrees()));
-class Clearout1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Clearout1, new AOEShapeCone(9, 60.Degrees()));
-class Setback(BossModule module) : Components.SelfTargetedAOEs(module, AID.Setback, new AOEShapeCone(9, 60.Degrees()));
-class Setback1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Setback1, new AOEShapeCone(9, 60.Degrees()));
+class Clearout(BossModule module) : Components.StandardAOEs(module, AID.Clearout, new AOEShapeCone(9, 60.Degrees()));
+class Clearout1(BossModule module) : Components.StandardAOEs(module, AID.Clearout1, new AOEShapeCone(9, 60.Degrees()));
+class Setback(BossModule module) : Components.StandardAOEs(module, AID.Setback, new AOEShapeCone(9, 60.Degrees()));
+class Setback1(BossModule module) : Components.StandardAOEs(module, AID.Setback1, new AOEShapeCone(9, 60.Degrees()));
 class FetidFang(BossModule module) : Components.SingleTargetCast(module, AID.FetidFang);
 class FetidFang1(BossModule module) : Components.SingleTargetCast(module, AID.FetidFang1);
-class LuminousRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.LuminousRay, new AOEShapeRect(50, 4));
-class LuminousRay1(BossModule module) : Components.SelfTargetedAOEs(module, AID.LuminousRay1, new AOEShapeRect(50, 4));
+class LuminousRay(BossModule module) : Components.StandardAOEs(module, AID.LuminousRay, new AOEShapeRect(50, 4));
+class LuminousRay1(BossModule module) : Components.StandardAOEs(module, AID.LuminousRay1, new AOEShapeRect(50, 4));
 class Inscrutability(BossModule module) : Components.RaidwideCast(module, AID.Inscrutability);
 class Inscrutability1(BossModule module) : Components.RaidwideCast(module, AID.Inscrutability1);
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(8));
+class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeCircle(8));
 class EctoplasmicRay(BossModule module) : Components.SimpleLineStack(module, 4, 50, AID.EctoplasmicMark1, AID.EctoplasmicRay1, 5.2f);
 class EctoplasmicRay2(BossModule module) : Components.SimpleLineStack(module, 4, 50, AID.EctoplasmicMark2, AID.EctoplasmicRay2, 5.2f);
 

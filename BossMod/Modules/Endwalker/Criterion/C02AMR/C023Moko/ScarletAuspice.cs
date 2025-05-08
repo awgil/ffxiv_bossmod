@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
-class ScarletAuspice(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(6));
+class ScarletAuspice(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCircle(6));
 class NScarletAuspice(BossModule module) : ScarletAuspice(module, AID.NScarletAuspice);
 class SScarletAuspice(BossModule module) : ScarletAuspice(module, AID.SScarletAuspice);
 
-class BoundlessScarletFirst(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(30, 5, 30));
+class BoundlessScarletFirst(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(30, 5, 30));
 class NBoundlessScarletFirst(BossModule module) : BoundlessScarletFirst(module, AID.NBoundlessScarletAOE);
 class SBoundlessScarletFirst(BossModule module) : BoundlessScarletFirst(module, AID.SBoundlessScarletAOE);
 
-class BoundlessScarletRest(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(30, 15, 30), 2);
+class BoundlessScarletRest(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(30, 15, 30), 2);
 class NBoundlessScarletRest(BossModule module) : BoundlessScarletRest(module, AID.NBoundlessScarletExplosion);
 class SBoundlessScarletRest(BossModule module) : BoundlessScarletRest(module, AID.SBoundlessScarletExplosion);
 
