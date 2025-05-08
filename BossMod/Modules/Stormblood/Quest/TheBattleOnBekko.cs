@@ -12,11 +12,11 @@ public enum AID : uint
 {
     HissatsuKyuten = 8433, // Boss->self, 3.0s cast, range 5+R circle
     TenkaGoken = 9145, // Boss->self, 3.0s cast, range 8+R 120-degree cone
-    ShinGetsubaku = 8437, // 1BF9->location, 3.0s cast, range 6 circle
-    MijinGiri = 8435, // 1BF9->self, 2.5s cast, range 80+R width 10 rect
-    Ugetsuzan = 8439, // 1BF9->self, 2.5s cast, range -7 donut
-    Ugetsuzan2 = 8440, // 1BF9->self, 2.5s cast, range -12 donut
-    Ugetsuzan3 = 8441, // 1BF9->self, 2.5s cast, range -17 donut
+    ShinGetsubaku = 8437, // UgetsuSlayerOfAThousandSouls->location, 3.0s cast, range 6 circle
+    MijinGiri = 8435, // UgetsuSlayerOfAThousandSouls->self, 2.5s cast, range 80+R width 10 rect
+    Ugetsuzan = 8439, // UgetsuSlayerOfAThousandSouls->self, 2.5s cast, range 2-7 90-degree donut sector
+    Ugetsuzan2 = 8440, // UgetsuSlayerOfAThousandSouls->self, 2.5s cast, range 7-12 90-degree donut sector
+    Ugetsuzan3 = 8441, // UgetsuSlayerOfAThousandSouls->self, 2.5s cast, range 12-17 90-degree donut sector
     KuruiYukikaze = 8446, // UgetsuSlayerOfAThousandSouls->self, 2.5s cast, range 44+R width 4 rect
     KuruiGekko1 = 8447, // UgetsuSlayerOfAThousandSouls->self, 2.0s cast, range 30 circle
     KuruiKasha1 = 8448, // UgetsuSlayerOfAThousandSouls->self, 2.5s cast, range 8+R ?-degree cone
