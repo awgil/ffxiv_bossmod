@@ -62,24 +62,7 @@ class VioletVoltage(BossModule module) : Components.GenericAOEs(module)
             aoes.RemoveAt(0);
     }
 }
-class UntamedCurrent(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<Actor> Casters = [];
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(new AOEShapeCircle(5), c.CastInfo!.LocXZ, default, Module.CastFinishAt(c.CastInfo)));
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.UntamedCurrent1 or AID.UntamedCurrent2 or AID.UntamedCurrent3 or AID.UntamedCurrent4 or AID.UntamedCurrent5 or AID.UntamedCurrent6 or AID.UntamedCurrent7 or AID.UnnamedCurrent1 or AID.UnnamedCurrent2)
-            Casters.Add(caster);
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.UntamedCurrent1 or AID.UntamedCurrent2 or AID.UntamedCurrent3 or AID.UntamedCurrent4 or AID.UntamedCurrent5 or AID.UntamedCurrent6 or AID.UntamedCurrent7 or AID.UnnamedCurrent1 or AID.UnnamedCurrent2)
-            Casters.Remove(caster);
-    }
-}
+class UntamedCurrent(BossModule module) : Components.GroupedAOEs(module, [AID.UntamedCurrent1, AID.UntamedCurrent2, AID.UntamedCurrent4, AID.UntamedCurrent5, AID.UntamedCurrent6, AID.UntamedCurrent7, AID.UnnamedCurrent1, AID.UnnamedCurrent2], new AOEShapeCircle(5));
 
 class UntamedCurrentSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.UntamedCurrentSpread, 5);
 

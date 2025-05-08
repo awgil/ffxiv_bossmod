@@ -41,24 +41,7 @@ class SpiritsOfTheFallen(BossModule module) : Components.RaidwideCast(module, AI
 class AmeNoSakahoko(BossModule module) : Components.StandardAOEs(module, AID.AmeNoSakahoko1, new AOEShapeCircle(25));
 class WhirlingZantetsuken(BossModule module) : Components.StandardAOEs(module, AID.WhirlingZantetsuken, new AOEShapeDonut(5, 60));
 class Shock(BossModule module) : Components.StandardAOEs(module, AID.Shock, new AOEShapeCircle(8));
-class LateralZantetsuken(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<Actor> Casters = [];
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(new AOEShapeRect(75, 19.5f), c.CastInfo!.LocXZ, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo)));
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.LateralZantetsukenLeft or AID.LateralZantetsukenRight)
-            Casters.Add(caster);
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.LateralZantetsukenLeft or AID.LateralZantetsukenRight)
-            Casters.Remove(caster);
-    }
-}
+class LateralZantetsuken(BossModule module) : Components.GroupedAOEs(module, [AID.LateralZantetsukenLeft, AID.LateralZantetsukenRight], new AOEShapeRect(75, 19.5f));
 class StreakLightning(BossModule module) : Components.GenericStackSpread(module, true)
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

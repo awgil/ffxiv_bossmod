@@ -36,10 +36,10 @@ class Ugetsuzan(BossModule module) : Components.ConcentricAOEs(module, [new AOES
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.Ugetsuzan)
-            AddSequence(caster.Position - caster.Rotation.ToDirection() * 4, Module.CastFinishAt(spell), caster.Rotation);
+            AddSequence(spell.LocXZ, Module.CastFinishAt(spell), caster.Rotation);
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         var idx = (AID)spell.Action.ID switch
         {
@@ -49,7 +49,7 @@ class Ugetsuzan(BossModule module) : Components.ConcentricAOEs(module, [new AOES
             AID.Ugetsuzan4 => 3,
             _ => -1
         };
-        AdvanceSequence(idx, caster.Position - caster.Rotation.ToDirection() * 4, WorldState.FutureTime(2.5f), caster.Rotation);
+        AdvanceSequence(idx, spell.LocXZ, WorldState.FutureTime(2.5f), caster.Rotation);
     }
 }
 

@@ -69,25 +69,7 @@ class LunarGungnir2(BossModule module) : Components.StackWithCastTargets(module,
 class Gungnir(BossModule module) : Components.StandardAOEs(module, AID.GungnirAOE, new AOEShapeCircle(10));
 class Gagnrath(BossModule module) : Components.StandardAOEs(module, AID.Gagnrath, new AOEShapeRect(50, 2));
 class GungnirSpread(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(10), 189, AID.GungnirSpread, 5.3f, centerAtTarget: true);
-
-class Zantetsuken(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<Actor> Casters = [];
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.Select(c => new AOEInstance(new AOEShapeRect(70, 19.5f), c.CastInfo!.LocXZ, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo)));
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.RightZantetsuken or AID.LeftZantetsuken)
-            Casters.Add(caster);
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.RightZantetsuken or AID.LeftZantetsuken)
-            Casters.Remove(caster);
-    }
-}
+class Zantetsuken(BossModule module) : Components.GroupedAOEs(module, [AID.RightZantetsuken, AID.LeftZantetsuken], new AOEShapeRect(70, 19.5f));
 
 public class LunarOdinStates : StateMachineBuilder
 {
