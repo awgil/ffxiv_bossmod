@@ -14,7 +14,7 @@ public enum AID : uint
     HeadmansDelight = 9298, // 1C5F->player/1C5C, no cast, single-target
 }
 
-class SpiralHell(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpiralHell, new AOEShapeRect(40, 2));
+class SpiralHell(BossModule module) : Components.StandardAOEs(module, AID.SpiralHell, new AOEShapeRect(40, 2));
 class HeadsmansDelight(BossModule module) : Components.GenericStackSpread(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -29,7 +29,7 @@ class HeadsmansDelight(BossModule module) : Components.GenericStackSpread(module
             Stacks.Clear();
     }
 }
-class ShadowOfDeath(BossModule module) : Components.LocationTargetedAOEs(module, AID.ShadowOfDeath1, 5);
+class ShadowOfDeath(BossModule module) : Components.StandardAOEs(module, AID.ShadowOfDeath1, 5);
 class DarkChain(BossModule module) : Components.Adds(module, 0x1C60)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

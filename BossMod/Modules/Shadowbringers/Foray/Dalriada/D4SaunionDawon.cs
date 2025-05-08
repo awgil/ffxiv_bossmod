@@ -188,7 +188,7 @@ class SpiralScourge(BossModule module) : Components.GenericAOEs(module)
 
 class MagitekHalo(BossModule module) : Components.StandardAOEs(module, AID.MagitekHalo, new AOEShapeDonut(9, 60));
 class MagitekCrossray(BossModule module) : Components.StandardAOEs(module, AID.MagitekCrossray, new AOEShapeCross(60, 9.5f));
-class SurfaceMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.SurfaceMissile, 6);
+class SurfaceMissile(BossModule module) : Components.StandardAOEs(module, AID.SurfaceMissile, 6);
 class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets(module, AID.AntiPersonnelMissile, 6);
 class MissileSalvo(BossModule module) : Components.StackWithCastTargets(module, AID.MissileSalvo, 6);
 
@@ -319,7 +319,7 @@ class Feathers(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class SwoopingFrenzy(BossModule module) : Components.LocationTargetedAOEs(module, AID.SwoopingFrenzy, 12);
+class SwoopingFrenzy(BossModule module) : Components.StandardAOEs(module, AID.SwoopingFrenzy, 12);
 class FrigidPulse(BossModule module) : Components.StandardAOEs(module, AID.FrigidPulse, new AOEShapeDonut(12, 180));
 
 class Obey(BossModule module) : Components.GenericAOEs(module)

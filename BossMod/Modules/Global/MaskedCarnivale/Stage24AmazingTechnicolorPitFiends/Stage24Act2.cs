@@ -20,9 +20,9 @@ public enum AID : uint
     Silence = 15321, // 2736->player, 5.0s cast, single-target
 }
 
-class Starstorm(BossModule module) : Components.LocationTargetedAOEs(module, AID.Starstorm, 5);
-class Mechanogravity(BossModule module) : Components.LocationTargetedAOEs(module, AID.Mechanogravity, 6);
-class RagingAxe(BossModule module) : Components.SelfTargetedAOEs(module, AID.RagingAxe, new AOEShapeCone(5, 45.Degrees()));
+class Starstorm(BossModule module) : Components.StandardAOEs(module, AID.Starstorm, 5);
+class Mechanogravity(BossModule module) : Components.StandardAOEs(module, AID.Mechanogravity, 6);
+class RagingAxe(BossModule module) : Components.StandardAOEs(module, AID.RagingAxe, new AOEShapeCone(5, 45.Degrees()));
 class CondensedLibra(BossModule module) : Components.SingleTargetCast(module, AID.CondensedLibra, "Use Diamondback!");
 class TripleHit(BossModule module) : Components.SingleTargetCast(module, AID.TripleHit, "Use Diamondback!");
 class Silence(BossModule module) : Components.CastHint(module, AID.Silence, "Interrupt");

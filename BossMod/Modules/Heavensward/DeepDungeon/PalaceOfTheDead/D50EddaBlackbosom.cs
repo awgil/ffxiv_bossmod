@@ -31,10 +31,10 @@ public enum AID : uint
 class BlackHoneymoon(BossModule module) : Components.RaidwideCast(module, AID.BlackHoneymoon);
 class ColdFeet(BossModule module) : Components.CastGaze(module, AID.ColdFeet);
 class DarkHarvest(BossModule module) : Components.SingleTargetCast(module, AID.DarkHarvest, "Tankbuster");
-class Desolation(BossModule module) : Components.SelfTargetedAOEs(module, AID.Desolation, new AOEShapeRect(57.3f, 3));
-class InHeathCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.InHealthCircle, new AOEShapeCircle(16));
-class InHeathDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.InHealthDonut, new AOEShapeDonut(2.5f, 50));
-class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, AID.TerrorEye, 6);
+class Desolation(BossModule module) : Components.StandardAOEs(module, AID.Desolation, new AOEShapeRect(57.3f, 3));
+class InHeathCircle(BossModule module) : Components.StandardAOEs(module, AID.InHealthCircle, new AOEShapeCircle(16));
+class InHeathDonut(BossModule module) : Components.StandardAOEs(module, AID.InHealthDonut, new AOEShapeDonut(2.5f, 50));
+class TerrorEye(BossModule module) : Components.StandardAOEs(module, AID.TerrorEye, 6);
 
 class D50EddaBlackbosomStates : StateMachineBuilder
 {

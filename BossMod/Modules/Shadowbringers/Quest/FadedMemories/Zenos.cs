@@ -2,8 +2,8 @@
 
 class Swords(BossModule module) : Components.AddsMulti(module, [0x2F2A, 0x2F2B, 0x2F2C]);
 
-class EntropicFlame(BossModule module) : Components.SelfTargetedAOEs(module, AID.EntropicFlame, new AOEShapeRect(50, 4));
-class VeinSplitter(BossModule module) : Components.SelfTargetedAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
+class EntropicFlame(BossModule module) : Components.StandardAOEs(module, AID.EntropicFlame, new AOEShapeRect(50, 4));
+class VeinSplitter(BossModule module) : Components.StandardAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
 
 class ZenosYaeGalvusStates : StateMachineBuilder
 {

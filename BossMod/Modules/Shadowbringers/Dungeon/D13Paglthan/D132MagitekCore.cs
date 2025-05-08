@@ -18,10 +18,10 @@ public enum AID : uint
 }
 
 class DefensiveReaction(BossModule module) : Components.RaidwideCast(module, AID.DefensiveReaction);
-class Aethershot(BossModule module) : Components.LocationTargetedAOEs(module, AID.Aethershot, 6);
-class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, AID.Exhaust, new AOEShapeRect(40, 3.5f));
+class Aethershot(BossModule module) : Components.StandardAOEs(module, AID.Aethershot, 6);
+class Exhaust(BossModule module) : Components.StandardAOEs(module, AID.Exhaust, new AOEShapeRect(40, 3.5f));
 
-class C2TonzeMagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.W2TonzeMagitekMissile, 12);
+class C2TonzeMagitekMissile(BossModule module) : Components.StandardAOEs(module, AID.W2TonzeMagitekMissile, 12);
 
 class StableCannon(BossModule module) : Components.GenericAOEs(module)
 {

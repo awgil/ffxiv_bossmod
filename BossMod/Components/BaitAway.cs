@@ -190,7 +190,7 @@ public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, Enum? 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == IID && BaitSource(actor) is var source && source != null)
-            CurrentBaits.Add(new(source, actor, Shape, WorldState.FutureTime(ActivationDelay)));
+            CurrentBaits.Add(new(source, WorldState.Actors.Find(targetID) ?? actor, Shape, WorldState.FutureTime(ActivationDelay)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

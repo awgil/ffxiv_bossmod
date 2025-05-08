@@ -65,4 +65,4 @@ class P1MistralSongAdds(BossModule module) : Components.CastCounter(module, AID.
     bool IsClosest(Actor actor) => ActiveAOEs().Any(aoe => Raid.WithoutSlot().InShape(_shape, aoe.origin, aoe.rotation).Closest(aoe.origin) == actor);
 }
 
-class P1GreatWhirlwind(BossModule module) : Components.LocationTargetedAOEs(module, AID.GreatWhirlwind, 8);
+class P1GreatWhirlwind(BossModule module) : Components.StandardAOEs(module, AID.GreatWhirlwind, 8);

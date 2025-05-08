@@ -46,9 +46,9 @@ class MarrowOfFlame(BossModule module) : Components.SpreadFromCastTargets(module
 class GraceOfCalamity(BossModule module) : Components.StackWithCastTargets(module, AID.TheGraceOfCalamity, 6);
 class BurningBeamNPC(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(40, 2), (uint)TetherID.NPCBaitAway);
 class BurningBeamPlayer(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(40, 2), (uint)TetherID.BaitAway);
-class SoundOfHeat(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheSoundOfHeat, new AOEShapeCone(60, 30.Degrees()));
-class DeceitOfPain(BossModule module) : Components.LocationTargetedAOEs(module, AID.TheDeceitOfPain, 14);
-class BalmOfDisgrace(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheBalmOfDisgrace, new AOEShapeCircle(12));
+class SoundOfHeat(BossModule module) : Components.StandardAOEs(module, AID.TheSoundOfHeat, new AOEShapeCone(60, 30.Degrees()));
+class DeceitOfPain(BossModule module) : Components.StandardAOEs(module, AID.TheDeceitOfPain, 14);
+class BalmOfDisgrace(BossModule module) : Components.StandardAOEs(module, AID.TheBalmOfDisgrace, new AOEShapeCircle(12));
 
 class ASleepDisturbedStates : StateMachineBuilder
 {

@@ -22,17 +22,17 @@ public enum AID : uint
 
 }
 
-class MagitekMissiles(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekMissiles, 15);
-class ShrapnelShell(BossModule module) : Components.LocationTargetedAOEs(module, AID.ShrapnelShell, 6);
+class MagitekMissiles(BossModule module) : Components.StandardAOEs(module, AID.MagitekMissiles, 15);
+class ShrapnelShell(BossModule module) : Components.StandardAOEs(module, AID.ShrapnelShell, 6);
 class Firebomb(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(0x1E86DF).Where(e => e.EventState != 7));
 
-class Uprising(BossModule module) : Components.SelfTargetedAOEs(module, AID.AugmentedUprising, new AOEShapeCone(8.5f, 60.Degrees()));
-class Suffering(BossModule module) : Components.SelfTargetedAOEs(module, AID.AugmentedSuffering, new AOEShapeCircle(6.5f));
-class Heartstopper(BossModule module) : Components.SelfTargetedAOEs(module, AID.Heartstopper, new AOEShapeRect(3.5f, 1.5f));
-class Overpower(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overpower, new AOEShapeCone(6, 45.Degrees()));
-class GrandSword(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrandSword, new AOEShapeCone(21, 60.Degrees()));
-class MagitekRay(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekRay, 6);
-class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrandStrike, new AOEShapeRect(48, 2));
+class Uprising(BossModule module) : Components.StandardAOEs(module, AID.AugmentedUprising, new AOEShapeCone(8.5f, 60.Degrees()));
+class Suffering(BossModule module) : Components.StandardAOEs(module, AID.AugmentedSuffering, new AOEShapeCircle(6.5f));
+class Heartstopper(BossModule module) : Components.StandardAOEs(module, AID.Heartstopper, new AOEShapeRect(3.5f, 1.5f));
+class Overpower(BossModule module) : Components.StandardAOEs(module, AID.Overpower, new AOEShapeCone(6, 45.Degrees()));
+class GrandSword(BossModule module) : Components.StandardAOEs(module, AID.GrandSword, new AOEShapeCone(21, 60.Degrees()));
+class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, 6);
+class GrandStrike(BossModule module) : Components.StandardAOEs(module, AID.GrandStrike, new AOEShapeRect(48, 2));
 
 class Adds(BossModule module) : Components.AddsMulti(module, [0x1960, 0x1961, 0x1962, 0x1963, 0x1964, 0x1965, 0x1966])
 {

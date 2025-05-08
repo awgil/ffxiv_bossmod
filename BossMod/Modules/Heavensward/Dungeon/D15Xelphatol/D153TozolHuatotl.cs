@@ -30,12 +30,12 @@ public enum IconID : uint
     Ingurgitate = 62, // player
 }
 
-class IxaliAeroII(BossModule module) : Components.SelfTargetedAOEs(module, AID.IxaliAeroII, new AOEShapeRect(40, 3));
+class IxaliAeroII(BossModule module) : Components.StandardAOEs(module, AID.IxaliAeroII, new AOEShapeRect(40, 3));
 class IxaliAeroIII(BossModule module) : Components.RaidwideCast(module, AID.IxaliAeroIII);
-class MistralSong(BossModule module) : Components.SelfTargetedAOEs(module, AID.MistralSong, new AOEShapeCone(30, 60.Degrees()));
-class WickedWheel(BossModule module) : Components.SelfTargetedAOEs(module, AID.WickedWheel, new AOEShapeCircle(7));
+class MistralSong(BossModule module) : Components.StandardAOEs(module, AID.MistralSong, new AOEShapeCone(30, 60.Degrees()));
+class WickedWheel(BossModule module) : Components.StandardAOEs(module, AID.WickedWheel, new AOEShapeCircle(7));
 class AerialBlast(BossModule module) : Components.RaidwideCast(module, AID.AerialBlast);
-class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(10, 20));
+class EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(10, 20));
 class Bill(BossModule module) : Components.SpreadFromCastTargets(module, AID.Bill, 5);
 class Ingurgitate(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Ingurgitate, AID.IngurgitateCast, 5, 5.4f);
 

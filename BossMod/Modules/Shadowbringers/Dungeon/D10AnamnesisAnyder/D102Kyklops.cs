@@ -20,12 +20,12 @@ public enum AID : uint
 }
 
 class FinalVerse(BossModule module) : Components.RaidwideCast(module, AID.TheFinalVerse);
-class C2000MinaSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.W2000MinaSwing, new AOEShapeCircle(12));
+class C2000MinaSwing(BossModule module) : Components.StandardAOEs(module, AID.W2000MinaSwing, new AOEShapeCircle(12));
 class WanderersPyre(BossModule module) : Components.SpreadFromCastTargets(module, AID.WanderersPyre, 5);
 class OpenHearth(BossModule module) : Components.StackWithCastTargets(module, AID.OpenHearth, 6);
-class RagingGlower(BossModule module) : Components.SelfTargetedAOEs(module, AID.RagingGlower, new AOEShapeRect(45, 3));
-class C2000MinaSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.W2000MinaSwipe, new AOEShapeCone(12, 60.Degrees()));
-class EyeOfTheCyclone(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheCyclone, new AOEShapeDonut(8, 25));
+class RagingGlower(BossModule module) : Components.StandardAOEs(module, AID.RagingGlower, new AOEShapeRect(45, 3));
+class C2000MinaSwipe(BossModule module) : Components.StandardAOEs(module, AID.W2000MinaSwipe, new AOEShapeCone(12, 60.Degrees()));
+class EyeOfTheCyclone(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheCyclone, new AOEShapeDonut(8, 25));
 class Terrible(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<List<AOEInstance>> aoes = [];

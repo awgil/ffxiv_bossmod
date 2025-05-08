@@ -252,6 +252,8 @@ public sealed class Definitions : IDisposable
 
         d.Spell(AID.LightningShot)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
 
+        d.Spell(AID.Trajectory)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
+
         //d.Spell(AID.Aurora)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use at full hp
 
         // upgrades (TODO: don't think we actually care...)

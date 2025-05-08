@@ -30,13 +30,13 @@ public enum AID : uint
 
 class DarkSpike(BossModule module) : Components.SingleTargetDelayableCast(module, AID.DarkSpike);
 class FrondAffeared(BossModule module) : Components.CastGaze(module, AID.FrondAffeared);
-class SilkenSpray(BossModule module) : Components.SelfTargetedAOEs(module, AID.SilkenSpray, new AOEShapeCone(24, 30.Degrees()));
+class SilkenSpray(BossModule module) : Components.StandardAOEs(module, AID.SilkenSpray, new AOEShapeCone(24, 30.Degrees()));
 class Implosion(BossModule module) : Components.RaidwideCast(module, AID.Implosion);
-class Earthquake1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Earthquake1, new AOEShapeCircle(10.5f));
-class Earthquake2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Earthquake2, new AOEShapeDonut(10, 20));
-class Earthquake3(BossModule module) : Components.SelfTargetedAOEs(module, AID.Earthquake3, new AOEShapeDonut(20, 30));
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class Earthquake1(BossModule module) : Components.StandardAOEs(module, AID.Earthquake1, new AOEShapeCircle(10.5f));
+class Earthquake2(BossModule module) : Components.StandardAOEs(module, AID.Earthquake2, new AOEShapeDonut(10, 20));
+class Earthquake3(BossModule module) : Components.StandardAOEs(module, AID.Earthquake3, new AOEShapeDonut(20, 30));
+class RaucousScritch(BossModule module) : Components.StandardAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.StandardAOEs(module, AID.Hurl, 6);
 class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class ArachneStates : StateMachineBuilder

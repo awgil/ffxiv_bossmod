@@ -116,8 +116,8 @@ class FormNaga(BossModule module) : Components.RaidwideCast(module, AID.Weighing
 class FormMachina(BossModule module) : Components.RaidwideCast(module, AID.WeighingOfTheHeartMachina, "Machina form, 2 Player Enum/Stack -> Party Stack");
 class FormCobra(BossModule module) : Components.RaidwideCast(module, AID.WeighingOfTheHeartCobra, "Cobra form, damage up + cleave");
 class GasousBomb(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.GaseousBomb, 5, 4.1f, 4, 4);
-class Ka(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ka, new AOEShapeCone(45, 30.Degrees()));
-class Paradox(BossModule module) : Components.LocationTargetedAOEs(module, AID.Paradox, 5);
+class Ka(BossModule module) : Components.StandardAOEs(module, AID.Ka, new AOEShapeCone(45, 30.Degrees()));
+class Paradox(BossModule module) : Components.StandardAOEs(module, AID.Paradox, 5);
 class Petrifaction(BossModule module) : Components.CastGaze(module, AID.Petrifaction);
 
 class D062HarmachisStates : StateMachineBuilder

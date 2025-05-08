@@ -43,7 +43,7 @@ abstract class PlayActionAOEs(BossModule module, uint oid, ushort eventId, AOESh
 
 class ProwlingGale2(BossModule module) : Components.CastTowers(module, AID.ProwlingGale2, 2, 2, 2);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1026, NameID = 13843, PlanLevel = 100)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1026, NameID = 13843, PlanLevel = 100)]
 public class RM08SHowlingBlade(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(12, MapResolution))
 {
     public const float MapResolution = 0.25f;

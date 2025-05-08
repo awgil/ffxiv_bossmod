@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P1BallisticImpact(BossModule module) : Components.LocationTargetedAOEs(module, AID.BallisticImpact, 5);
+class P1BallisticImpact(BossModule module) : Components.StandardAOEs(module, AID.BallisticImpact, 5);
 
 class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
 {

@@ -25,8 +25,8 @@ public enum AID : uint
 
 class TridirectionalFlame(BossModule module) : Components.StandardAOEs(module, AID.TridirectionalFlame, new AOEShapeRect(60, 4));
 class Exhaust(BossModule module) : Components.StandardAOEs(module, AID.Exhaust, new AOEShapeRect(40, 5));
-class MagitekRay(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekRay, 6);
-class ThermalShock(BossModule module) : Components.LocationTargetedAOEs(module, AID.ThermalShock, 10)
+class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, 6);
+class ThermalShock(BossModule module) : Components.StandardAOEs(module, AID.ThermalShock, 10)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -36,8 +36,8 @@ class ThermalShock(BossModule module) : Components.LocationTargetedAOEs(module, 
             hints.PredictedDamage.Add((Raid.WithSlot().InRadius(Casters[0].CastInfo!.LocXZ, 30).Mask(), Module.CastFinishAt(Casters[0].CastInfo)));
     }
 }
-class PyreticEruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.PyreticEruption, 8);
-class Pyroscatter(BossModule module) : Components.LocationTargetedAOEs(module, AID.Pyroscatter, 8);
+class PyreticEruption(BossModule module) : Components.StandardAOEs(module, AID.PyreticEruption, 8);
+class Pyroscatter(BossModule module) : Components.StandardAOEs(module, AID.Pyroscatter, 8);
 class Pyroburst(BossModule module) : Components.StandardAOEs(module, AID.Pyroburst, new AOEShapeCircle(10));
 class GrandCrossflame(BossModule module) : Components.StandardAOEs(module, AID.GrandCrossflame1, new AOEShapeCross(40, 9));
 class AtomicRay(BossModule module) : Components.RaidwideCast(module, AID.AtomicRay);

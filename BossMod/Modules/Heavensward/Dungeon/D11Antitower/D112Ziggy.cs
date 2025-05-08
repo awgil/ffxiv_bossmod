@@ -30,7 +30,7 @@ public enum TetherID : uint
     JitteringJounce = 2, // Boss->player/Stardust
 }
 
-class JitteringGlare(BossModule module) : Components.SelfTargetedAOEs(module, AID.JitteringGlare, new AOEShapeCone(40, 15.Degrees()));
+class JitteringGlare(BossModule module) : Components.StandardAOEs(module, AID.JitteringGlare, new AOEShapeCone(40, 15.Degrees()));
 class JitteringJab(BossModule module) : Components.SingleTargetCast(module, AID.JitteringJab);
 
 class JitteringJounceAOE(BossModule module) : Components.GenericLineOfSightAOE(module, AID.JitteringJounceCharge, 100, false)
@@ -99,9 +99,9 @@ class Stardust(BossModule module) : BossComponent(module)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc) => Arena.Actors(Module.Enemies(OID.Stardust).Where(x => !x.IsDead), ArenaColor.Object, true);
 }
-class DeepFracture(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeepFracture, new AOEShapeCircle(11));
+class DeepFracture(BossModule module) : Components.StandardAOEs(module, AID.DeepFracture, new AOEShapeCircle(11));
 class GyratingGlare(BossModule module) : Components.RaidwideCast(module, AID.GyratingGlare);
-class MysticLight(BossModule module) : Components.SelfTargetedAOEs(module, AID.MysticLight, new AOEShapeCircle(12));
+class MysticLight(BossModule module) : Components.StandardAOEs(module, AID.MysticLight, new AOEShapeCircle(12));
 
 class ZiggyStates : StateMachineBuilder
 {

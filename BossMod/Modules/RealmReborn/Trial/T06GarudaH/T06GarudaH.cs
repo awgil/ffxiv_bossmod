@@ -50,7 +50,7 @@ class Friction(BossModule module) : BossComponent(module)
 }
 
 class Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 60.Degrees()));
-class Slipstream(BossModule module) : Components.SelfTargetedAOEs(module, AID.Slipstream, new AOEShapeCone(11.7f, 45.Degrees()));
+class Slipstream(BossModule module) : Components.StandardAOEs(module, AID.Slipstream, new AOEShapeCone(11.7f, 45.Degrees()));
 
 class MistralShriek(BossModule module) : Components.CastLineOfSightAOE(module, AID.MistralShriek, 24.7f, true)
 {
@@ -63,8 +63,8 @@ class MistralSong(BossModule module) : Components.CastLineOfSightAOE(module, AID
 }
 
 class AerialBlast(BossModule module) : Components.RaidwideCast(module, AID.AerialBlast);
-class GreatWhirlwind(BossModule module) : Components.LocationTargetedAOEs(module, AID.GreatWhirlwind, 8);
-class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(12, 25));
+class GreatWhirlwind(BossModule module) : Components.StandardAOEs(module, AID.GreatWhirlwind, 8);
+class EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(12, 25));
 
 class T06GarudaHStates : StateMachineBuilder
 {

@@ -17,7 +17,7 @@ public enum AID : uint
     SInfernalPain = 31105, // Boss->self, 5.0s cast, raidwide
 }
 
-class BlightedGloom(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(10));
+class BlightedGloom(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCircle(10));
 class NBlightedGloom(BossModule module) : BlightedGloom(module, AID.NBlightedGloom);
 class SBlightedGloom(BossModule module) : BlightedGloom(module, AID.SBlightedGloom);
 

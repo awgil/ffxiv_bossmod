@@ -1,6 +1,6 @@
 namespace BossMod.RealmReborn.Trial.T09WhorleaterH;
 
-class GrandFall(BossModule module) : Components.LocationTargetedAOEs(module, AID.GrandFall, 8);
+class GrandFall(BossModule module) : Components.StandardAOEs(module, AID.GrandFall, 8);
 class Hydroshot(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.Hydroshot, m => m.Enemies(OID.HydroshotZone).Where(z => z.EventState != 7), 0);
 class Dreadstorm(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.Dreadstorm, m => m.Enemies(OID.DreadstormZone).Where(z => z.EventState != 7), 0);
 

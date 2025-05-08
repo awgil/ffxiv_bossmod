@@ -39,15 +39,15 @@ public enum AID : uint
     UnknownAbility = 30226, // 392D/392E->self, no cast, single-target
 }
 
-class Adonishment(BossModule module) : Components.SelfTargetedAOEs(module, AID.Admonishment, new AOEShapeRect(40, 6));
+class Adonishment(BossModule module) : Components.StandardAOEs(module, AID.Admonishment, new AOEShapeRect(40, 6));
 class MidgarAdds(BossModule module) : Components.AddsMulti(module, [OID.MirageDragonC, OID.MirageDragonD]);
 class Animadversion(BossModule module) : Components.RaidwideCast(module, AID.Animadversion, "Raidwide");
 class Condescension(BossModule module) : Components.SingleTargetCast(module, AID.Condescension); // tank buster
 class Disgust(BossModule module) : Components.RaidwideCast(module, AID.Disgust, "Raidwide");
-class InnerTurmoil(BossModule module) : Components.SelfTargetedAOEs(module, AID.InnerTurmoil, new AOEShapeCircle(22));
-class PhandomAdomishment(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomAdmonishment, new AOEShapeRect(40, 6));
-class PhantomInner(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomInnerTurmoil, new AOEShapeCircle(22));
-class PhantomOuter(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomOuterTurmoil, new AOEShapeDonutSector(22, 40, 90.Degrees()));
+class InnerTurmoil(BossModule module) : Components.StandardAOEs(module, AID.InnerTurmoil, new AOEShapeCircle(22));
+class PhandomAdomishment(BossModule module) : Components.StandardAOEs(module, AID.PhantomAdmonishment, new AOEShapeRect(40, 6));
+class PhantomInner(BossModule module) : Components.StandardAOEs(module, AID.PhantomInnerTurmoil, new AOEShapeCircle(22));
+class PhantomOuter(BossModule module) : Components.StandardAOEs(module, AID.PhantomOuterTurmoil, new AOEShapeDonutSector(22, 40, 90.Degrees()));
 
 class MirageAdmonishment(BossModule module) : Components.GenericAOEs(module)
 {

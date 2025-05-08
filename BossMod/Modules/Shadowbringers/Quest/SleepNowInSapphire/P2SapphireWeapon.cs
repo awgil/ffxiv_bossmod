@@ -25,12 +25,12 @@ public enum SID : uint
     Invincibility = 775, // none->Boss, extra=0x0
 }
 
-class MagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRay, new AOEShapeRect(100, 3));
-class ServantRoar(BossModule module) : Components.SelfTargetedAOEs(module, AID.ServantRoar, new AOEShapeRect(100, 4));
-class TailSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSwing, new AOEShapeCircle(46));
-class OptimizedJudgment(BossModule module) : Components.SelfTargetedAOEs(module, AID.OptimizedJudgment, new AOEShapeDonut(21, 60));
-class MagitekSpread(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekSpread, new AOEShapeCone(43, 120.Degrees()));
-class SapphireRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.SapphireRay, new AOEShapeRect(120, 20));
+class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(100, 3));
+class ServantRoar(BossModule module) : Components.StandardAOEs(module, AID.ServantRoar, new AOEShapeRect(100, 4));
+class TailSwing(BossModule module) : Components.StandardAOEs(module, AID.TailSwing, new AOEShapeCircle(46));
+class OptimizedJudgment(BossModule module) : Components.StandardAOEs(module, AID.OptimizedJudgment, new AOEShapeDonut(21, 60));
+class MagitekSpread(BossModule module) : Components.StandardAOEs(module, AID.MagitekSpread, new AOEShapeCone(43, 120.Degrees()));
+class SapphireRay(BossModule module) : Components.StandardAOEs(module, AID.SapphireRay, new AOEShapeRect(120, 20));
 class Siderays(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(Actor, WPos)> Casters = [];

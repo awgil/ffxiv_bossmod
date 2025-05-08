@@ -39,7 +39,7 @@ public enum TetherID : uint
     Unfreezable = 17, // GraspingRancor->player (appears if hand wasn't hit by aoe)
 }
 
-class GraspingRancor : Components.LocationTargetedAOEs
+class GraspingRancor : Components.StandardAOEs
 {
     private readonly IReadOnlyList<Actor> _hands;
 
@@ -58,7 +58,7 @@ class GraspingRancor : Components.LocationTargetedAOEs
             var hand = _hands.FirstOrDefault(h => h.Tether.Target == actor.InstanceID);
             if (hand != null)
             {
-                bool shouldBeFrozen = Shape.Check(hand.Position, Casters[0].CastInfo!.LocXZ);
+                bool shouldBeFrozen = ((AOEShapeCircle)Shape).Check(hand.Position, Casters[0].CastInfo!.LocXZ);
                 bool isFrozen = hand.Tether.ID == (uint)TetherID.Frozen;
                 hints.Add(shouldBeFrozen ? "Face the hand!" : "Look away from hand and kite into safezone!", shouldBeFrozen != isFrozen);
             }
@@ -78,13 +78,13 @@ class GraspingRancor : Components.LocationTargetedAOEs
 }
 
 class HatefulMiasma(BossModule module) : Components.StackWithCastTargets(module, AID.HatefulMiasma, 6);
-class PoisonedWords(BossModule module) : Components.LocationTargetedAOEs(module, AID.PoisonedWords, 6);
+class PoisonedWords(BossModule module) : Components.StandardAOEs(module, AID.PoisonedWords, 6);
 class TalonedGaze(BossModule module) : Components.CastHint(module, AID.TalonedGaze, "AOE front/back --> sides");
 class TalonedWings(BossModule module) : Components.CastHint(module, AID.TalonedWings, "AOE sides --> front/back");
-class CoffinNails(BossModule module) : Components.SelfTargetedAOEs(module, AID.CoffinNails, new AOEShapeCone(60, 45.Degrees()), 2);
+class CoffinNails(BossModule module) : Components.StandardAOEs(module, AID.CoffinNails, new AOEShapeCone(60, 45.Degrees()), 2);
 class Stab(BossModule module) : Components.SingleTargetCast(module, AID.Stab);
 class GripOfPoison(BossModule module) : Components.RaidwideCast(module, AID.GripOfPoison);
-class StepsOfDestruction(BossModule module) : Components.LocationTargetedAOEs(module, AID.StepsOfDestructionAOE, 6);
+class StepsOfDestruction(BossModule module) : Components.StandardAOEs(module, AID.StepsOfDestructionAOE, 6);
 
 class SpartoiStates : StateMachineBuilder
 {

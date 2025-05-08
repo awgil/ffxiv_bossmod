@@ -100,6 +100,6 @@ public sealed class ActionQueue
             if (distSq > effRange * effRange)
                 return false;
         }
-        return def.ForbidExecute == null || !def.ForbidExecute.Invoke(ws, player, entry.Target, hints);
+        return def.ForbidExecute == null || !def.ForbidExecute.Invoke(ws, player, entry, hints);
     }
 }

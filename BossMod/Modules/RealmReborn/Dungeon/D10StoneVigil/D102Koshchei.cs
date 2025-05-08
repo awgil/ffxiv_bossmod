@@ -17,7 +17,7 @@ public enum AID : uint
 }
 
 class SpikedTail(BossModule module) : Components.SingleTargetCast(module, AID.SpikedTail);
-class SonicStorm(BossModule module) : Components.LocationTargetedAOEs(module, AID.SonicStorm, 6);
+class SonicStorm(BossModule module) : Components.StandardAOEs(module, AID.SonicStorm, 6);
 
 class Typhoon(BossModule module) : Components.Exaflare(module, 3)
 {

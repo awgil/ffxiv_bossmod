@@ -1,5 +1,4 @@
 ﻿using Dalamud.Interface;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
@@ -93,7 +92,7 @@ public static class UIMisc
     public static void HelpMarker(Func<string> helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle)
     {
         IconText(icon, "(?)");
-        if (ImGui.IsItemHovered())
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
         {
             using var tooltip = ImRaii.Tooltip();
             using var wrap = ImRaii.TextWrapPos(ImGui.GetFontSize() * 35f);

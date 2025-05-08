@@ -26,7 +26,7 @@ class RegulaVanHydrusStates : StateMachineBuilder
     }
 }
 
-class HandOfTheEmpire(BossModule module) : Components.LocationTargetedAOEs(module, AID.HandOfTheEmpire, 2);
+class HandOfTheEmpire(BossModule module) : Components.StandardAOEs(module, AID.HandOfTheEmpire, 2);
 
 class Voidzone(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Puddle));
 

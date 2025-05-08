@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.Duel.Duel4Dabog;
 
-class RightArmRayNormal(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightArmRayNormalAOE, new AOEShapeCircle(10));
+class RightArmRayNormal(BossModule module) : Components.StandardAOEs(module, AID.RightArmRayNormalAOE, new AOEShapeCircle(10));
 
 class RightArmRayBuffed(BossModule module) : Components.GenericAOEs(module)
 {

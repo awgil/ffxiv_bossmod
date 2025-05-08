@@ -24,7 +24,7 @@ class HandOfTheDestroyer(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BrokenWorld(BossModule module) : Components.SelfTargetedAOEs(module, AID.BrokenWorldAOE, new AOEShapeCircle(30)); // TODO: determine falloff
+class BrokenWorld(BossModule module) : Components.StandardAOEs(module, AID.BrokenWorldAOE, new AOEShapeCircle(30)); // TODO: determine falloff
 
 // this is not an official mechanic name - it refers to broken world + hand of the destroyer combo, which creates multiple small aoes
 class BrokenShards(BossModule module) : Components.GenericAOEs(module)

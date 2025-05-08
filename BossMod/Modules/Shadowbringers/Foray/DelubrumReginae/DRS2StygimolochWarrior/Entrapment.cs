@@ -248,6 +248,6 @@ class EntrapmentInescapable(BossModule module) : Entrapment(module, _allowedPatt
     }
 }
 
-class LethalBlow(BossModule module) : Components.SelfTargetedAOEs(module, AID.LethalBlow, new AOEShapeRect(44, 24));
+class LethalBlow(BossModule module) : Components.StandardAOEs(module, AID.LethalBlow, new AOEShapeRect(44, 24));
 class LeapingSpark(BossModule module) : Components.CastCounter(module, AID.LeapingSparkAOE);
-class Devour(BossModule module) : Components.SelfTargetedAOEs(module, AID.Devour, new AOEShapeCone(6, 60.Degrees()));
+class Devour(BossModule module) : Components.StandardAOEs(module, AID.Devour, new AOEShapeCone(6, 60.Degrees()));

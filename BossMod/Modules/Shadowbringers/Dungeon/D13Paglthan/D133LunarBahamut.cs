@@ -65,15 +65,15 @@ class KanRhaiRepeat(BossModule module) : Components.GenericAOEs(module)
     }
 }
 class Gigaflare(BossModule module) : Components.RaidwideCast(module, AID.Gigaflare);
-class LunarFlare1(BossModule module) : Components.LocationTargetedAOEs(module, AID.LunarFlare1, 11);
-class LunarFlare2(BossModule module) : Components.LocationTargetedAOEs(module, AID.LunarFlare2, 6);
-class MegaflareDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.MegaflareDive, new AOEShapeRect(41, 6));
+class LunarFlare1(BossModule module) : Components.StandardAOEs(module, AID.LunarFlare1, 11);
+class LunarFlare2(BossModule module) : Components.StandardAOEs(module, AID.LunarFlare2, 6);
+class MegaflareDive(BossModule module) : Components.StandardAOEs(module, AID.MegaflareDive, new AOEShapeRect(41, 6));
 class Megaflare1(BossModule module) : Components.SpreadFromCastTargets(module, AID.Megaflare1, 5);
-class Megaflare2(BossModule module) : Components.LocationTargetedAOEs(module, AID.Megaflare2, 6);
-class PerigeanBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.PerigeanBreath, new AOEShapeCone(30, 45.Degrees()));
+class Megaflare2(BossModule module) : Components.StandardAOEs(module, AID.Megaflare2, 6);
+class PerigeanBreath(BossModule module) : Components.StandardAOEs(module, AID.PerigeanBreath, new AOEShapeCone(30, 45.Degrees()));
 class TwistedScream(BossModule module) : Components.RaidwideCast(module, AID.TwistedScream);
-class Upburst(BossModule module) : Components.SelfTargetedAOEs(module, AID.Upburst, new AOEShapeCircle(2));
-class BigBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.BigBurst, new AOEShapeCircle(9));
+class Upburst(BossModule module) : Components.StandardAOEs(module, AID.Upburst, new AOEShapeCircle(2));
+class BigBurst(BossModule module) : Components.StandardAOEs(module, AID.BigBurst, new AOEShapeCircle(9));
 class AkhMorn(BossModule module) : Components.UniformStackSpread(module, 4, 0, 4)
 {
     private int Counter;

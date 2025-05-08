@@ -4,10 +4,10 @@ class Katarraktes(BossModule module) : Components.CastCounter(module, AID.Katarr
 class Thlipsis(BossModule module) : Components.StackWithCastTargets(module, AID.ThlipsisAOE, 6, 8);
 class Hydroptosis(BossModule module) : Components.SpreadFromCastTargets(module, AID.HydroptosisAOE, 6);
 class Rhyton(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(70, 3), (uint)IconID.Rhyton, AID.RhytonAOE, 6);
-class LeftBank(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftBank, new AOEShapeCone(60, 90.Degrees()));
-class RightBank(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightBank, new AOEShapeCone(60, 90.Degrees()));
-class HieroglyphikaLeftBank(BossModule module) : Components.SelfTargetedAOEs(module, AID.HieroglyphikaLeftBank, new AOEShapeCone(60, 90.Degrees()));
-class HieroglyphikaRightBank(BossModule module) : Components.SelfTargetedAOEs(module, AID.HieroglyphikaRightBank, new AOEShapeCone(60, 90.Degrees()));
+class LeftBank(BossModule module) : Components.StandardAOEs(module, AID.LeftBank, new AOEShapeCone(60, 90.Degrees()));
+class RightBank(BossModule module) : Components.StandardAOEs(module, AID.RightBank, new AOEShapeCone(60, 90.Degrees()));
+class HieroglyphikaLeftBank(BossModule module) : Components.StandardAOEs(module, AID.HieroglyphikaLeftBank, new AOEShapeCone(60, 90.Degrees()));
+class HieroglyphikaRightBank(BossModule module) : Components.StandardAOEs(module, AID.HieroglyphikaRightBank, new AOEShapeCone(60, 90.Degrees()));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11298, SortOrder = 2)]
 public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, new(-945, 945), NormalBounds)

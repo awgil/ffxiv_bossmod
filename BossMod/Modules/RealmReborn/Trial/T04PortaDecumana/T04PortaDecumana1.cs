@@ -51,15 +51,15 @@ public enum SID : uint
 }
 
 class EarthenFury(BossModule module) : Components.RaidwideCast(module, AID.EarthenFuryAOE);
-class Geocrush(BossModule module) : Components.SelfTargetedAOEs(module, AID.Geocrush, new AOEShapeCircle(25)); // TODO: verify falloff...
-class Landslide1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Landslide1, new AOEShapeRect(40, 3));
-class Landslide2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Landslide2, new AOEShapeRect(40, 3));
-class WeightOfTheLand(BossModule module) : Components.SelfTargetedAOEs(module, AID.WeightOfTheLand, new AOEShapeCircle(6));
+class Geocrush(BossModule module) : Components.StandardAOEs(module, AID.Geocrush, new AOEShapeCircle(25)); // TODO: verify falloff...
+class Landslide1(BossModule module) : Components.StandardAOEs(module, AID.Landslide1, new AOEShapeRect(40, 3));
+class Landslide2(BossModule module) : Components.StandardAOEs(module, AID.Landslide2, new AOEShapeRect(40, 3));
+class WeightOfTheLand(BossModule module) : Components.StandardAOEs(module, AID.WeightOfTheLand, new AOEShapeCircle(6));
 class AerialBlast(BossModule module) : Components.RaidwideCast(module, AID.AerialBlastAOE);
-class EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheStormAOE, new AOEShapeDonut(12.5f, 25));
-class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, AID.MistralShriek, new AOEShapeCircle(23));
+class EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheStormAOE, new AOEShapeDonut(12.5f, 25));
+class MistralShriek(BossModule module) : Components.StandardAOEs(module, AID.MistralShriek, new AOEShapeCircle(23));
 class Hellfire(BossModule module) : Components.RaidwideCast(module, AID.HellfireAOE);
-class RadiantPlume(BossModule module) : Components.SelfTargetedAOEs(module, AID.RadiantPlumeAOE, new AOEShapeCircle(8));
+class RadiantPlume(BossModule module) : Components.StandardAOEs(module, AID.RadiantPlumeAOE, new AOEShapeCircle(8));
 
 class VulcanBurst(BossModule module) : Components.KnockbackFromCastTarget(module, AID.VulcanBurst, 15)
 {

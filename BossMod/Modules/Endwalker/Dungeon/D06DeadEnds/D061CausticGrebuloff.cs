@@ -35,7 +35,7 @@ class BlightedWater(BossModule module) : Components.StackWithCastTargets(module,
 class Befoulment(BossModule module) : Components.SpreadFromCastTargets(module, AID.Befoulment1, 6);
 class Miasmata(BossModule module) : Components.RaidwideCast(module, AID.Miasmata);
 
-class WaveOfNausea(BossModule module) : Components.SelfTargetedAOEs(module, AID.WaveOfNausea, new AOEShapeDonut(6, 40));
+class WaveOfNausea(BossModule module) : Components.StandardAOEs(module, AID.WaveOfNausea, new AOEShapeDonut(6, 40));
 
 class CravenCompanionship(BossModule module) : Components.StackTogether(module, 55, 4.9f);
 
@@ -104,7 +104,7 @@ class NecroticFluid(BossModule module) : Components.Exaflare(module, new AOEShap
     }
 }
 
-class CoughUp(BossModule module) : Components.LocationTargetedAOEs(module, AID.CoughUp1, 6);
+class CoughUp(BossModule module) : Components.StandardAOEs(module, AID.CoughUp1, 6);
 
 class CausticGrebuloffStates : StateMachineBuilder
 {

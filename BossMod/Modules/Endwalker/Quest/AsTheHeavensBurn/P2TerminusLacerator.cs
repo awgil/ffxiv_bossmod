@@ -21,11 +21,11 @@ public enum AID : uint
 }
 
 class Burst(BossModule module) : Components.CastTowers(module, AID.Burst, 5);
-class DeadlyImpact(BossModule module) : Components.LocationTargetedAOEs(module, AID.DeadlyImpact, 10, maxCasts: 6);
+class DeadlyImpact(BossModule module) : Components.StandardAOEs(module, AID.DeadlyImpact, 10, maxCasts: 6);
 class BlackStar(BossModule module) : Components.RaidwideCast(module, AID.BlackStar);
-class DeadlyImpactProximity(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeadlyImpactMeteorite, new AOEShapeCircle(8));
-class DeadlyImpactProximity2(BossModule module) : Components.SelfTargetedAOEs(module, AID.DeadlyImpactMeteorite2, new AOEShapeCircle(10));
-class MeteorExplosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(6));
+class DeadlyImpactProximity(BossModule module) : Components.StandardAOEs(module, AID.DeadlyImpactMeteorite, new AOEShapeCircle(8));
+class DeadlyImpactProximity2(BossModule module) : Components.StandardAOEs(module, AID.DeadlyImpactMeteorite2, new AOEShapeCircle(10));
+class MeteorExplosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeCircle(6));
 class Meteor(BossModule module) : Components.GenericLineOfSightAOE(module, default, 100, false)
 {
     public record MeteorObj(Actor Actor, DateTime Explosion);

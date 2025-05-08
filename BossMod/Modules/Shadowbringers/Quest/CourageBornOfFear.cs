@@ -23,16 +23,16 @@ public enum AID : uint
     BodkinVolley1 = 17189, // Andreia->29DF, 6.0s cast, range 5 circle
 }
 
-class ArrowOfFortitude(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArrowOfFortitude, new AOEShapeRect(30, 4));
+class ArrowOfFortitude(BossModule module) : Components.StandardAOEs(module, AID.ArrowOfFortitude, new AOEShapeRect(30, 4));
 class BodkinVolley(BossModule module) : Components.StackWithCastTargets(module, AID.BodkinVolley1, 5, minStackSize: 1);
-class RainOfLight(BossModule module) : Components.LocationTargetedAOEs(module, AID.RainOfLight, 4);
-class ThePathOfLight(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThePathOfLight, new AOEShapeCircle(15));
-class InquisitorsBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.InquisitorsBlade, new AOEShapeCone(40, 90.Degrees()));
+class RainOfLight(BossModule module) : Components.StandardAOEs(module, AID.RainOfLight, 4);
+class ThePathOfLight(BossModule module) : Components.StandardAOEs(module, AID.ThePathOfLight, new AOEShapeCircle(15));
+class InquisitorsBlade(BossModule module) : Components.StandardAOEs(module, AID.InquisitorsBlade, new AOEShapeCone(40, 90.Degrees()));
 class MythrilCycloneKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.MythrilCyclone1, 18, stopAtWall: true);
-class MythrilCycloneDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.MythrilCyclone2, new AOEShapeDonut(8, 20));
+class MythrilCycloneDonut(BossModule module) : Components.StandardAOEs(module, AID.MythrilCyclone2, new AOEShapeDonut(8, 20));
 class SanctifiedMeltdown(BossModule module) : Components.SpreadFromCastTargets(module, AID.SanctifiedMeltdown, 6);
-class UncloudedAscension(BossModule module) : Components.SelfTargetedAOEs(module, AID.UncloudedAscension1, new AOEShapeCircle(10));
-class Overcome(BossModule module) : Components.SelfTargetedAOEs(module, AID.Overcome, new AOEShapeCone(8.5f, 60.Degrees()));
+class UncloudedAscension(BossModule module) : Components.StandardAOEs(module, AID.UncloudedAscension1, new AOEShapeCircle(10));
+class Overcome(BossModule module) : Components.StandardAOEs(module, AID.Overcome, new AOEShapeCone(8.5f, 60.Degrees()));
 
 class SanctifiedFireII(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), 23, centerAtTarget: true)
 {

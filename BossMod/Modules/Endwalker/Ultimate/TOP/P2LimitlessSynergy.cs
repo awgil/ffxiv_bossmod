@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P2OptimizedSagittariusArrow(BossModule module) : Components.SelfTargetedAOEs(module, AID.OptimizedSagittariusArrow, new AOEShapeRect(100, 5));
+class P2OptimizedSagittariusArrow(BossModule module) : Components.StandardAOEs(module, AID.OptimizedSagittariusArrow, new AOEShapeRect(100, 5));
 
 class P2OptimizedBladedance : Components.BaitAwayTethers
 {

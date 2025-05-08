@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
 class P3WormholeLimitCut(BossModule module) : LimitCut(module, 2.7f);
-class P3WormholeSacrament(BossModule module) : Components.SelfTargetedAOEs(module, AID.SacramentWormhole, new AOEShapeCross(100, 8));
+class P3WormholeSacrament(BossModule module) : Components.StandardAOEs(module, AID.SacramentWormhole, new AOEShapeCross(100, 8));
 
 class P3WormholeRepentance(BossModule module) : BossComponent(module)
 {

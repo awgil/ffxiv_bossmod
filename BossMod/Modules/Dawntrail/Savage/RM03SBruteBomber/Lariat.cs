@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM03SBruteBomber;
 
-class OctupleLariatOut(BossModule module) : Components.SelfTargetedAOEs(module, AID.OctupleLariatOutAOE, new AOEShapeCircle(10));
-class OctupleLariatIn(BossModule module) : Components.SelfTargetedAOEs(module, AID.OctupleLariatInAOE, new AOEShapeDonut(10, 60));
-class QuadrupleLariatOut(BossModule module) : Components.SelfTargetedAOEs(module, AID.QuadrupleLariatOutAOE, new AOEShapeCircle(10));
-class QuadrupleLariatIn(BossModule module) : Components.SelfTargetedAOEs(module, AID.QuadrupleLariatInAOE, new AOEShapeDonut(10, 60));
+class OctupleLariatOut(BossModule module) : Components.StandardAOEs(module, AID.OctupleLariatOutAOE, new AOEShapeCircle(10));
+class OctupleLariatIn(BossModule module) : Components.StandardAOEs(module, AID.OctupleLariatInAOE, new AOEShapeDonut(10, 60));
+class QuadrupleLariatOut(BossModule module) : Components.StandardAOEs(module, AID.QuadrupleLariatOutAOE, new AOEShapeCircle(10));
+class QuadrupleLariatIn(BossModule module) : Components.StandardAOEs(module, AID.QuadrupleLariatInAOE, new AOEShapeDonut(10, 60));
 
 // TODO: generalize to a conal stack/spread with role-based targets
 class BlazingLariat(BossModule module) : Components.CastCounter(module, default)

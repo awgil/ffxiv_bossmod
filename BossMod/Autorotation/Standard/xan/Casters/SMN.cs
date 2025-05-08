@@ -389,7 +389,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         if (SearingFlash > 0)
             PushOGCD(AID.SearingFlash, BestAOETarget);
 
-        if (MP <= 7000)
+        if (MP <= Player.HPMP.MaxMP * 0.7f)
             PushOGCD(AID.LucidDreaming, Player);
 
         if (RefulgentLux is > 0 and < 2.5f)

@@ -17,7 +17,7 @@ public enum AID : uint
 
 class TremblingEpigraph(BossModule module) : Components.RaidwideCast(module, AID.TremblingEpigraph, "Raidwide x4");
 class FlaringEpigraph(BossModule module) : Components.RaidwideCast(module, AID.FlaringEpigraph);
-class Epigraph(BossModule module) : Components.SelfTargetedAOEs(module, AID.Epigraph, new AOEShapeRect(55.04f, 4));
+class Epigraph(BossModule module) : Components.StandardAOEs(module, AID.Epigraph, new AOEShapeRect(55.04f, 4));
 
 class OrghanaStates : StateMachineBuilder
 {

@@ -28,7 +28,7 @@ public enum AID : uint
 }
 
 class ScaldingTank(BossModule module) : Components.StackWithCastTargets(module, AID.ScaldingTank1, 6);
-class ToTheSlaughter(BossModule module) : Components.SelfTargetedAOEs(module, AID.ToTheSlaughter, new AOEShapeCone(40, 90.Degrees()));
+class ToTheSlaughter(BossModule module) : Components.StandardAOEs(module, AID.ToTheSlaughter, new AOEShapeCone(40, 90.Degrees()));
 class Exsanguination(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(Actor Actor, float Inner)> Casters = [];
@@ -55,11 +55,11 @@ class Exsanguination(BossModule module) : Components.GenericAOEs(module)
             Casters.RemoveAll(c => c.Actor == caster);
     }
 }
-class CaptiveBolt(BossModule module) : Components.SelfTargetedAOEs(module, AID.CaptiveBolt, new AOEShapeRect(50, 5), maxCasts: 4);
-class AetherochemicalGrenado(BossModule module) : Components.LocationTargetedAOEs(module, AID.AetherochemicalGrenado, 8);
-class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiffractiveLaser, new AOEShapeRect(45, 2));
-class SnakeShot(BossModule module) : Components.SelfTargetedAOEs(module, AID.SnakeShot, new AOEShapeCone(20, 120.Degrees()));
-class CullingBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.CullingBlade1, new AOEShapeCone(60, 15.Degrees()))
+class CaptiveBolt(BossModule module) : Components.StandardAOEs(module, AID.CaptiveBolt, new AOEShapeRect(50, 5), maxCasts: 4);
+class AetherochemicalGrenado(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalGrenado, 8);
+class DiffractiveLaser(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser, new AOEShapeRect(45, 2));
+class SnakeShot(BossModule module) : Components.StandardAOEs(module, AID.SnakeShot, new AOEShapeCone(20, 120.Degrees()));
+class CullingBlade(BossModule module) : Components.StandardAOEs(module, AID.CullingBlade1, new AOEShapeCone(60, 15.Degrees()))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

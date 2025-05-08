@@ -75,11 +75,11 @@ public enum IconID : uint
     RotateCCW = 541, // Boss
 }
 
-class Devour(BossModule module) : Components.LocationTargetedAOEs(module, AID.Devour, 8);
+class Devour(BossModule module) : Components.StandardAOEs(module, AID.Devour, 8);
 class Touchdown(BossModule module) : Components.RaidwideCast(module, AID.Touchdown);
-class SummoningSands(BossModule module) : Components.SelfTargetedAOEs(module, AID.SummoningSands, new AOEShapeCircle(6));
-class SandburstLong(BossModule module) : Components.LocationTargetedAOEs(module, AID.SandburstLong, 12);
-class SandburstShort(BossModule module) : Components.LocationTargetedAOEs(module, AID.SandburstShort, 12);
+class SummoningSands(BossModule module) : Components.StandardAOEs(module, AID.SummoningSands, new AOEShapeCircle(6));
+class SandburstLong(BossModule module) : Components.StandardAOEs(module, AID.SandburstLong, 12);
+class SandburstShort(BossModule module) : Components.StandardAOEs(module, AID.SandburstShort, 12);
 
 class SandspoutDustdevil(BossModule module) : Components.GenericAOEs(module)
 {

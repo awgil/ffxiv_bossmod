@@ -14,8 +14,8 @@ public enum AID : uint
 }
 
 class WindsOfWinter(BossModule module) : Components.RaidwideCast(module, AID.WindsOfWinter, "Stun Albus Griffin, Raidwide");
-class GoldenTalons(BossModule module) : Components.SelfTargetedAOEs(module, AID.GoldenTalons, new AOEShapeCone(8, 45.Degrees()));
-class Freefall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Freefall, 8);
+class GoldenTalons(BossModule module) : Components.StandardAOEs(module, AID.GoldenTalons, new AOEShapeCone(8, 45.Degrees()));
+class Freefall(BossModule module) : Components.StandardAOEs(module, AID.Freefall, 8);
 
 class D110AlbusGriffinStates : StateMachineBuilder
 {

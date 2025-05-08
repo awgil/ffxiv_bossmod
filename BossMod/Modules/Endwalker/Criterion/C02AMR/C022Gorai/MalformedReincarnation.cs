@@ -133,6 +133,6 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
     }
 }
 
-class FlickeringFlame(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(46, 2.5f), 8);
+class FlickeringFlame(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(46, 2.5f), 8);
 class NFlickeringFlame(BossModule module) : FlickeringFlame(module, AID.NFireSpreadCross);
 class SFlickeringFlame(BossModule module) : FlickeringFlame(module, AID.SFireSpreadCross);

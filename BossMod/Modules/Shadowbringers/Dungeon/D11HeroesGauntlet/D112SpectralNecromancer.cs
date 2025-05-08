@@ -65,8 +65,8 @@ public enum TetherID : uint
     CrawlingNecrobombs = 79 // Necrobomb7/Necrobomb8/Necrobomb5/Necrobomb6->player/2753/2757/2752
 }
 
-class AbsoluteDarkII(BossModule module) : Components.SelfTargetedAOEs(module, AID.AbsoluteDarkII, new AOEShapeCone(40, 60.Degrees()));
-class PainMire(BossModule module) : Components.LocationTargetedAOEs(module, AID.PainMire, 9)
+class AbsoluteDarkII(BossModule module) : Components.StandardAOEs(module, AID.AbsoluteDarkII, new AOEShapeCone(40, 60.Degrees()));
+class PainMire(BossModule module) : Components.StandardAOEs(module, AID.PainMire, 9)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -80,7 +80,7 @@ class PainMire(BossModule module) : Components.LocationTargetedAOEs(module, AID.
 class BleedVoidzone(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.BleedVoidzone).Where(x => x.EventState != 7));
 class TwistedTouch(BossModule module) : Components.SingleTargetCast(module, AID.TwistedTouch);
 class ChaosStorm(BossModule module) : Components.RaidwideCast(module, AID.ChaosStorm);
-class DarkDeluge(BossModule module) : Components.LocationTargetedAOEs(module, AID.DarkDeluge, 5);
+class DarkDeluge(BossModule module) : Components.StandardAOEs(module, AID.DarkDeluge, 5);
 class NecrobombBaitAway(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(9.25f), (uint)IconID.Baitaway, AID.DeathThroes, centerAtTarget: true); // note: explosion is not always exactly the position of player, if zombie teleports to player it is player + zombie hitboxradius = 1.25 away
 
 class Necrobombs(BossModule module) : BossComponent(module)

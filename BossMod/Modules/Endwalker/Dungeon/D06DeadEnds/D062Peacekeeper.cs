@@ -25,10 +25,10 @@ public enum AID : uint
 class Elimination(BossModule module) : Components.BaitAwayCast(module, AID.Elimination, new AOEShapeRect(46, 5), endsOnCastEvent: true);
 class Decimation(BossModule module) : Components.RaidwideCast(module, AID.Decimation);
 class ElectromagneticRepellant(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, AID.ElectromagneticRepellant, m => m.Enemies(OID.ElectromagneticRepellant).Where(e => e.EventState != 7), 0);
-class NoFutureGround(BossModule module) : Components.SelfTargetedAOEs(module, AID.NoFutureAOE, new AOEShapeCircle(6));
+class NoFutureGround(BossModule module) : Components.StandardAOEs(module, AID.NoFutureAOE, new AOEShapeCircle(6));
 class NoFutureSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.NoFutureSpread, 6);
-class Peacefire(BossModule module) : Components.LocationTargetedAOEs(module, AID.Peacefire, 10);
-class SmallBoreLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.SmallBoreLaser, new AOEShapeRect(20, 2));
+class Peacefire(BossModule module) : Components.StandardAOEs(module, AID.Peacefire, 10);
+class SmallBoreLaser(BossModule module) : Components.StandardAOEs(module, AID.SmallBoreLaser, new AOEShapeRect(20, 2));
 class InfantryDeterrent(BossModule module) : Components.SpreadFromCastTargets(module, AID.InfantryDeterrent, 6);
 class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(module, AID.EclipsingExhaust, 11)
 {

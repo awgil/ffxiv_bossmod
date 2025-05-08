@@ -25,7 +25,7 @@ class FlareScald(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ProminenceSpine(BossModule module) : Components.SelfTargetedAOEs(module, AID.ProminenceSpine, new AOEShapeRect(60, 5));
+class ProminenceSpine(BossModule module) : Components.StandardAOEs(module, AID.ProminenceSpine, new AOEShapeRect(60, 5));
 class SparklingBrandingFlare(BossModule module) : Components.CastStackSpread(module, AID.BrandingFlareAOE, AID.SparkingFlareAOE, 4, 4);
 
 class Nox : Components.StandardChasingAOEs

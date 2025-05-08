@@ -15,10 +15,10 @@ public enum AID : uint
     UnbridledWrath = 18036, // 299E->self, 5.5s cast, range 90 width 90 rect
 }
 
-class HotPursuit(BossModule module) : Components.LocationTargetedAOEs(module, AID.HotPursuit1, 5);
-class NexusOfThunder1(BossModule module) : Components.SelfTargetedAOEs(module, AID.NexusOfThunder1, new AOEShapeRect(60, 2.5f));
-class NexusOfThunder2(BossModule module) : Components.SelfTargetedAOEs(module, AID.NexusOfThunder2, new AOEShapeRect(60, 2.5f));
-class Burn(BossModule module) : Components.SelfTargetedAOEs(module, AID.Burn, new AOEShapeCircle(8), maxCasts: 8);
+class HotPursuit(BossModule module) : Components.StandardAOEs(module, AID.HotPursuit1, 5);
+class NexusOfThunder1(BossModule module) : Components.StandardAOEs(module, AID.NexusOfThunder1, new AOEShapeRect(60, 2.5f));
+class NexusOfThunder2(BossModule module) : Components.StandardAOEs(module, AID.NexusOfThunder2, new AOEShapeRect(60, 2.5f));
+class Burn(BossModule module) : Components.StandardAOEs(module, AID.Burn, new AOEShapeCircle(8), maxCasts: 8);
 class UnbridledWrath(BossModule module) : Components.KnockbackFromCastTarget(module, AID.UnbridledWrath, 20, kind: Kind.DirForward, stopAtWall: true);
 
 class RanjitStates : StateMachineBuilder

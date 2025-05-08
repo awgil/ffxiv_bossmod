@@ -29,15 +29,15 @@ public enum AID : uint
 }
 
 class DemifireSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.DemifireII1, 5);
-class DemifireII(BossModule module) : Components.LocationTargetedAOEs(module, AID.DemifireII2, 14);
+class DemifireII(BossModule module) : Components.StandardAOEs(module, AID.DemifireII2, 14);
 class DemifireIII(BossModule module) : Components.RaidwideCast(module, AID.DemifireIII1);
-class Noubelea(BossModule module) : Components.SelfTargetedAOEs(module, AID.Noubelea1, new AOEShapeRect(50, 2));
-class Demigravity(BossModule module) : Components.LocationTargetedAOEs(module, AID.Demigravity, 6);
-class Demigravity1(BossModule module) : Components.LocationTargetedAOEs(module, AID.Demigravity1, 6);
-class Demiblizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.DemiblizzardIII1, new AOEShapeDonut(10, 40));
+class Noubelea(BossModule module) : Components.StandardAOEs(module, AID.Noubelea1, new AOEShapeRect(50, 2));
+class Demigravity(BossModule module) : Components.StandardAOEs(module, AID.Demigravity, 6);
+class Demigravity1(BossModule module) : Components.StandardAOEs(module, AID.Demigravity1, 6);
+class Demiblizzard(BossModule module) : Components.StandardAOEs(module, AID.DemiblizzardIII1, new AOEShapeDonut(10, 40));
 class TripleThreat(BossModule module) : Components.SingleTargetCast(module, AID.TripleThreat);
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(6));
-class ArmOfTheScholar(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArmOfTheScholar, new AOEShapeCircle(5));
+class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeCircle(6));
+class ArmOfTheScholar(BossModule module) : Components.StandardAOEs(module, AID.ArmOfTheScholar, new AOEShapeCircle(5));
 
 class AncelRockfistStates : StateMachineBuilder
 {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
-class ArchaicRockbreakerCenter(BossModule module) : Components.LocationTargetedAOEs(module, AID.ArchaicRockbreakerCenter, 6);
+class ArchaicRockbreakerCenter(BossModule module) : Components.StandardAOEs(module, AID.ArchaicRockbreakerCenter, 6);
 
 class ArchaicRockbreakerShockwave(BossModule module) : Components.Knockback(module, AID.ArchaicRockbreakerShockwave, true)
 {
@@ -37,7 +37,7 @@ class ArchaicRockbreakerPairs : Components.UniformStackSpread
     }
 }
 
-class ArchaicRockbreakerLine(BossModule module) : Components.LocationTargetedAOEs(module, AID.ArchaicRockbreakerLine, 8, maxCasts: 8);
+class ArchaicRockbreakerLine(BossModule module) : Components.StandardAOEs(module, AID.ArchaicRockbreakerLine, 8, maxCasts: 8);
 
 class ArchaicRockbreakerCombination(BossModule module) : Components.GenericAOEs(module)
 {
@@ -107,7 +107,7 @@ class ArchaicRockbreakerCombination(BossModule module) : Components.GenericAOEs(
         {
             var safespots = new ArcList(_aoes[0].Origin, _shapeOut.Radius + 0.25f);
             foreach (var f in forbidden.ActiveCasters)
-                safespots.ForbidCircle(f.Position, forbidden.Shape.Radius);
+                safespots.ForbidCircle(f.Position, ((AOEShapeCircle)forbidden.Shape).Radius);
             if (safespots.Forbidden.Segments.Count > 0)
             {
                 foreach (var a in safespots.Allowed(default))

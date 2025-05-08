@@ -68,9 +68,9 @@ class PathoPurge(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ImmuneResponseFront(BossModule module) : Components.SelfTargetedAOEs(module, AID.ImmuneResponseFrontAOE, new AOEShapeCone(40, 60.Degrees())); // TODO: verify angle
+class ImmuneResponseFront(BossModule module) : Components.StandardAOEs(module, AID.ImmuneResponseFrontAOE, new AOEShapeCone(40, 60.Degrees())); // TODO: verify angle
 
-class ImmuneResponseBack(BossModule module) : Components.SelfTargetedAOEs(module, AID.ImmuneResponseBackAOE, new AOEShapeCone(40, 120.Degrees())) // TODO: verify angle
+class ImmuneResponseBack(BossModule module) : Components.StandardAOEs(module, AID.ImmuneResponseBackAOE, new AOEShapeCone(40, 120.Degrees())) // TODO: verify angle
 {
     private readonly PathoPurge? _purge = module.FindComponent<PathoPurge>();
 

@@ -24,13 +24,13 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
-class BurningBright(BossModule module) : Components.SelfTargetedAOEs(module, AID.BurningBright, new AOEShapeRect(47, 3));
-class Nicker(BossModule module) : Components.SelfTargetedAOEs(module, AID.Nicker, new AOEShapeCircle(12));
+class BurningBright(BossModule module) : Components.StandardAOEs(module, AID.BurningBright, new AOEShapeRect(47, 3));
+class Nicker(BossModule module) : Components.StandardAOEs(module, AID.Nicker, new AOEShapeCircle(12));
 class CloudCall(BossModule module) : Components.CastHint(module, AID.CloudCall, "Calls thunderclouds");
-class LightningBolt(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightningBolt, new AOEShapeCircle(8));
-class Spin(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spin, new AOEShapeCircle(11));
-class Mash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
-class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
+class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, new AOEShapeCircle(8));
+class Spin(BossModule module) : Components.StandardAOEs(module, AID.Spin, new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.StandardAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.StandardAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
 
 class PegasusStates : StateMachineBuilder
 {

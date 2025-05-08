@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
-class P2AxeKick(BossModule module) : Components.SelfTargetedAOEs(module, AID.AxeKick, new AOEShapeCircle(16));
-class P2ScytheKick(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScytheKick, new AOEShapeDonut(4, 20));
+class P2AxeKick(BossModule module) : Components.StandardAOEs(module, AID.AxeKick, new AOEShapeCircle(16));
+class P2ScytheKick(BossModule module) : Components.StandardAOEs(module, AID.ScytheKick, new AOEShapeDonut(4, 20));
 
 class P2IcicleImpact(BossModule module) : Components.GenericAOEs(module, AID.IcicleImpact)
 {
@@ -45,8 +45,8 @@ class P2IcicleImpact(BossModule module) : Components.GenericAOEs(module, AID.Ici
     }
 }
 
-class P2FrigidNeedleCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrigidNeedleCircle, new AOEShapeCircle(5));
-class P2FrigidNeedleCross(BossModule module) : Components.SelfTargetedAOEs(module, AID.FrigidNeedleCross, new AOEShapeCross(40, 2.5f));
+class P2FrigidNeedleCircle(BossModule module) : Components.StandardAOEs(module, AID.FrigidNeedleCircle, new AOEShapeCircle(5));
+class P2FrigidNeedleCross(BossModule module) : Components.StandardAOEs(module, AID.FrigidNeedleCross, new AOEShapeCross(40, 2.5f));
 
 class P2FrigidStone : Components.BaitAwayIcon
 {

@@ -28,8 +28,8 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 
-class HeavySmash2(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash2, 6);
-class FrigidStone2(BossModule module) : Components.LocationTargetedAOEs(module, AID.FrigidStone2, 5);
+class HeavySmash2(BossModule module) : Components.StandardAOEs(module, AID.HeavySmash2, 6);
+class FrigidStone2(BossModule module) : Components.StandardAOEs(module, AID.FrigidStone2, 5);
 
 class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
@@ -81,7 +81,7 @@ class InOutAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     }
 }
 
-class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarPierce, new AOEShapeRect(80, 2));
+class PillarPierce(BossModule module) : Components.StandardAOEs(module, AID.PillarPierce, new AOEShapeRect(80, 2));
 class SkullDasher(BossModule module) : Components.SingleTargetCast(module, AID.SkullDasher);
 class HeavySmash(BossModule module) : Components.StackWithCastTargets(module, AID.HeavySmash, 6);
 

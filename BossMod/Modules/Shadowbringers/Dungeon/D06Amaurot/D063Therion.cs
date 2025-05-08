@@ -29,7 +29,7 @@ public enum AID : uint
 }
 
 class ShadowWreck(BossModule module) : Components.RaidwideCast(module, AID.ShadowWreck);
-class Misfortune(BossModule module) : Components.LocationTargetedAOEs(module, AID.Misfortune, 6);
+class Misfortune(BossModule module) : Components.StandardAOEs(module, AID.Misfortune, 6);
 
 class Apokalypsis(BossModule module) : Components.GenericAOEs(module)
 {

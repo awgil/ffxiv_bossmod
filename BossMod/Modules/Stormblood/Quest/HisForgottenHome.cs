@@ -15,8 +15,8 @@ public enum AID : uint
     BlizzardIII = 10874, // Boss->location, 3.0s cast, range 5 circle
 }
 
-class Kasaya(BossModule module) : Components.SelfTargetedAOEs(module, AID.Kasaya, new AOEShapeCone(7.6f, 60.Degrees()));
-class WaterIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.WaterIII, 8);
+class Kasaya(BossModule module) : Components.StandardAOEs(module, AID.Kasaya, new AOEShapeCone(7.6f, 60.Degrees()));
+class WaterIII(BossModule module) : Components.StandardAOEs(module, AID.WaterIII, 8);
 
 class BlizzardIIIIcon(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5), 26, centerAtTarget: true)
 {

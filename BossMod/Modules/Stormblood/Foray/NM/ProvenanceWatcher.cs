@@ -33,8 +33,8 @@ public enum AID : uint
 }
 
 class TheScarletPrice(BossModule module) : Components.BaitAwayCast(module, AID.TheScarletPrice, new AOEShapeCircle(3), true, true);
-class TheScarletWhisper(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheScarletWhisper, new AOEShapeCone(22, 60.Degrees()));
-class EuhedralSwat(BossModule module) : Components.SelfTargetedAOEs(module, AID.EuhedralSwat, new AOEShapeRect(100, 13, 20));
+class TheScarletWhisper(BossModule module) : Components.StandardAOEs(module, AID.TheScarletWhisper, new AOEShapeCone(22, 60.Degrees()));
+class EuhedralSwat(BossModule module) : Components.StandardAOEs(module, AID.EuhedralSwat, new AOEShapeRect(100, 13, 20));
 class Touchdown(BossModule module) : Components.RaidwideInstant(module, AID.Touchdown, 3.1f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -45,9 +45,9 @@ class Touchdown(BossModule module) : Components.RaidwideInstant(module, AID.Touc
             Activation = WorldState.FutureTime(Delay);
     }
 }
-class PillarImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarImpact, new AOEShapeCircle(6.5f));
-class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarPierce, new AOEShapeRect(52.5f, 5));
-class Thunderstorm(BossModule module) : Components.LocationTargetedAOEs(module, AID.Thunderstorm, 5);
+class PillarImpact(BossModule module) : Components.StandardAOEs(module, AID.PillarImpact, new AOEShapeCircle(6.5f));
+class PillarPierce(BossModule module) : Components.StandardAOEs(module, AID.PillarPierce, new AOEShapeRect(52.5f, 5));
+class Thunderstorm(BossModule module) : Components.StandardAOEs(module, AID.Thunderstorm, 5);
 class IceAndLevin(BossModule module) : Components.GenericAOEs(module, AID.Chillstorm)
 {
     private AOEInstance? _aoe;
@@ -89,7 +89,7 @@ class Charybdis(BossModule module) : Components.GenericAOEs(module, AID.Charybdi
         }
     }
 }
-class HotTail(BossModule module) : Components.SelfTargetedAOEs(module, AID.HotTailFirst, new AOEShapeRect(77, 8, 77));
+class HotTail(BossModule module) : Components.StandardAOEs(module, AID.HotTailFirst, new AOEShapeRect(77, 8, 77));
 class HotTailSecond(BossModule module) : Components.GenericAOEs(module)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);

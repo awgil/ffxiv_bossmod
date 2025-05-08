@@ -19,13 +19,13 @@ public enum AID : uint
 }
 
 class AvertYourEyes(BossModule module) : Components.CastGaze(module, AID.AvertYourEyes);
-class YouMayApproach(BossModule module) : Components.SelfTargetedAOEs(module, AID.YouMayApproach, new AOEShapeDonut(6, 40));
-class AwayWithYou(BossModule module) : Components.SelfTargetedAOEs(module, AID.AwayWithYou, new AOEShapeCircle(15));
-class Needles(BossModule module) : Components.SelfTargetedAOEs(module, AID.Needles, new AOEShapeCircle(6));
+class YouMayApproach(BossModule module) : Components.StandardAOEs(module, AID.YouMayApproach, new AOEShapeDonut(6, 40));
+class AwayWithYou(BossModule module) : Components.StandardAOEs(module, AID.AwayWithYou, new AOEShapeCircle(15));
+class Needles(BossModule module) : Components.StandardAOEs(module, AID.Needles, new AOEShapeCircle(6));
 class WickedWhim(BossModule module) : Components.CastHint(module, AID.WickedWhim, "Invert next cast");
 class AvertYourEyesInverted(BossModule module) : Components.CastGaze(module, AID.AvertYourEyesInverted, true);
-class YouMayApproachInverted(BossModule module) : Components.SelfTargetedAOEs(module, AID.YouMayApproachInverted, new AOEShapeCircle(15));
-class AwayWithYouInverted(BossModule module) : Components.SelfTargetedAOEs(module, AID.AwayWithYouInverted, new AOEShapeDonut(6, 40));
+class YouMayApproachInverted(BossModule module) : Components.StandardAOEs(module, AID.YouMayApproachInverted, new AOEShapeCircle(15));
+class AwayWithYouInverted(BossModule module) : Components.StandardAOEs(module, AID.AwayWithYouInverted, new AOEShapeDonut(6, 40));
 
 class LunatenderQueenStates : StateMachineBuilder
 {

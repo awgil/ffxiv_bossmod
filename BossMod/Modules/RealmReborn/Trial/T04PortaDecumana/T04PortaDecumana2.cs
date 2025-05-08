@@ -43,9 +43,9 @@ public enum AID : uint
 
 class TankPurge(BossModule module) : Components.RaidwideCast(module, AID.TankPurge);
 class HomingLasers(BossModule module) : Components.SingleTargetCast(module, AID.HomingLasers);
-class MagitekRayF(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRayAOEForward, new AOEShapeRect(40, 3));
-class MagitekRayR(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRayAOERight, new AOEShapeRect(40, 3));
-class MagitekRayL(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRayAOELeft, new AOEShapeRect(40, 3));
+class MagitekRayF(BossModule module) : Components.StandardAOEs(module, AID.MagitekRayAOEForward, new AOEShapeRect(40, 3));
+class MagitekRayR(BossModule module) : Components.StandardAOEs(module, AID.MagitekRayAOERight, new AOEShapeRect(40, 3));
+class MagitekRayL(BossModule module) : Components.StandardAOEs(module, AID.MagitekRayAOELeft, new AOEShapeRect(40, 3));
 class HomingRay(BossModule module) : Components.SpreadFromCastTargets(module, AID.HomingRayAOE, 6);
 class LaserFocus(BossModule module) : Components.StackWithCastTargets(module, AID.LaserFocusAOE, 6);
 
@@ -96,10 +96,10 @@ class Aetheroplasm(BossModule module) : BossComponent(module)
     }
 }
 
-class AssaultCannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.AssaultCannon, new AOEShapeRect(40, 2));
-class CitadelBuster(BossModule module) : Components.SelfTargetedAOEs(module, AID.CitadelBuster, new AOEShapeRect(40, 6));
+class AssaultCannon(BossModule module) : Components.StandardAOEs(module, AID.AssaultCannon, new AOEShapeRect(40, 2));
+class CitadelBuster(BossModule module) : Components.StandardAOEs(module, AID.CitadelBuster, new AOEShapeRect(40, 6));
 
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCircle(16)) // TODO: verify falloff
+class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeCircle(16)) // TODO: verify falloff
 {
     // there is an overlap with another mechanic which has to be resolved first
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

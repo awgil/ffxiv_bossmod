@@ -31,11 +31,11 @@ public enum IconID : uint
 }
 
 class PullOfTheVoid(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PullOfTheVoid, 30, shape: new AOEShapeCircle(30), kind: Kind.TowardsOrigin, minDistanceBetweenHitboxes: true);
-class Megastorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.Megastorm, new AOEShapeDonut(5, 40));
-class ConcussiveOscillation(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConcussiveOscillation, new AOEShapeCircle(24));
+class Megastorm(BossModule module) : Components.StandardAOEs(module, AID.Megastorm, new AOEShapeDonut(5, 40));
+class ConcussiveOscillation(BossModule module) : Components.StandardAOEs(module, AID.ConcussiveOscillation, new AOEShapeCircle(24));
 class VitriolicBarrage(BossModule module) : Components.RaidwideCast(module, AID.VitriolicBarrage);
-class RockHard(BossModule module) : Components.LocationTargetedAOEs(module, AID.RockHard, 8);
-class TorrentialTorment(BossModule module) : Components.SelfTargetedAOEs(module, AID.TorrentialTorment, new AOEShapeCone(56, 22.5f.Degrees()));
+class RockHard(BossModule module) : Components.StandardAOEs(module, AID.RockHard, 8);
+class TorrentialTorment(BossModule module) : Components.StandardAOEs(module, AID.TorrentialTorment, new AOEShapeCone(56, 22.5f.Degrees()));
 class Fluorescence(BossModule module) : Components.DispelHint(module, (uint)SID.DamageUp);
 class IonShower(BossModule module) : Components.GenericStackSpread(module, alwaysShowSpreads: true, raidwideOnResolve: false)
 {

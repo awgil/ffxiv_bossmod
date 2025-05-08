@@ -46,9 +46,9 @@ public enum TetherID : uint
     DragonicRegard = 85,
 }
 class RimeWreath(BossModule module) : Components.RaidwideCast(module, AID.RimeWreath);
-class FogPlumeImpact(BossModule module) : Components.SelfTargetedAOEs(module, AID.FogPlumeImpact, new AOEShapeCircle(6));
-class FogPlumeBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.FogPlumeBurst, new AOEShapeCross(40, 2.5f));
-class ColdFog(BossModule module) : Components.SelfTargetedAOEs(module, AID.ColdFog, new AOEShapeCircle(4));
+class FogPlumeImpact(BossModule module) : Components.StandardAOEs(module, AID.FogPlumeImpact, new AOEShapeCircle(6));
+class FogPlumeBurst(BossModule module) : Components.StandardAOEs(module, AID.FogPlumeBurst, new AOEShapeCross(40, 2.5f));
+class ColdFog(BossModule module) : Components.StandardAOEs(module, AID.ColdFog, new AOEShapeCircle(4));
 class ColdFogGrowth(BossModule module) : Components.GenericAOEs(module, AID.ColdFogGrowth)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -88,8 +88,8 @@ class ColdFogGrowth(BossModule module) : Components.GenericAOEs(module, AID.Cold
 class ChillingAspiration(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(40, 3), (uint)IconID.ChillingAspiration, AID.ChillingAspiration);
 class ChillingPuddles(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7));
 class FrostBreath(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(20, 45.Degrees()), (uint)IconID.FrostBreathCleave, AID.FrostBreath);
-class CauterizeDB(BossModule module) : Components.SelfTargetedAOEs(module, AID.Cauterize, new AOEShapeRect(40, 8, 5));
-class CauterizeDB2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Cauterize2, new AOEShapeRect(40, 8, 5));
+class CauterizeDB(BossModule module) : Components.StandardAOEs(module, AID.Cauterize, new AOEShapeRect(40, 8, 5));
+class CauterizeDB2(BossModule module) : Components.StandardAOEs(module, AID.Cauterize2, new AOEShapeRect(40, 8, 5));
 class CauterizeConceal(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -116,7 +116,7 @@ class CauterizeConceal(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class TouchDown(BossModule module) : Components.SelfTargetedAOEs(module, AID.Touchdown, new AOEShapeCircle(15));
+class TouchDown(BossModule module) : Components.StandardAOEs(module, AID.Touchdown, new AOEShapeCircle(15));
 class Adds(BossModule module) : Components.AddsMulti(module, [OID.DraconicRegard, OID.Mist])
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

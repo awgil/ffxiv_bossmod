@@ -47,7 +47,7 @@ public enum IconID : uint
     RotateCCW = 168, // Boss
 }
 
-class NoxiousSap(BossModule module) : Components.SelfTargetedAOEs(module, AID.NoxiousSap, new AOEShapeCone(30, 60.Degrees()));
+class NoxiousSap(BossModule module) : Components.StandardAOEs(module, AID.NoxiousSap, new AOEShapeCone(30, 60.Degrees()));
 
 class SapSpiller(BossModule module) : Components.GenericAOEs(module)
 {

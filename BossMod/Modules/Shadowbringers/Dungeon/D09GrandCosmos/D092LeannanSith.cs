@@ -40,8 +40,8 @@ public enum SID : uint
 class OdeToLostLove(BossModule module) : Components.RaidwideCast(module, AID.OdeToLostLove);
 class StormOfColor(BossModule module) : Components.SingleTargetCast(module, AID.StormOfColor);
 class FarWindSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.FarWindSpread, 5);
-class FarWind(BossModule module) : Components.LocationTargetedAOEs(module, AID.FarWind, 8);
-class OdeToFallenPetals(BossModule module) : Components.SelfTargetedAOEs(module, AID.OdeToFallenPetals, new AOEShapeDonut(5, 60));
+class FarWind(BossModule module) : Components.StandardAOEs(module, AID.FarWind, 8);
+class OdeToFallenPetals(BossModule module) : Components.StandardAOEs(module, AID.OdeToFallenPetals, new AOEShapeDonut(5, 60));
 class IrefulWind(BossModule module) : Components.KnockbackFromCastTarget(module, AID.IrefulWind, 10, kind: Kind.DirForward, stopAtWall: true);
 
 class DirectSeeding(BossModule module) : BossComponent(module)

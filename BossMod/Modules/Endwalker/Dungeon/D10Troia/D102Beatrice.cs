@@ -25,11 +25,11 @@ class DeathForeseen1(BossModule module) : Components.CastGaze(module, AID.DeathF
 {
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor) => base.ActiveEyes(slot, actor).Take(2);
 }
-class BeatificScorn(BossModule module) : Components.SelfTargetedAOEs(module, AID.BeatificScorn, new AOEShapeCircle(9), maxCasts: 5);
+class BeatificScorn(BossModule module) : Components.StandardAOEs(module, AID.BeatificScorn, new AOEShapeCircle(9), maxCasts: 5);
 class Hush(BossModule module) : Components.SingleTargetCast(module, AID.Hush);
-class Voidshaker(BossModule module) : Components.SelfTargetedAOEs(module, AID.Voidshaker, new AOEShapeCone(20, 60.Degrees()));
+class Voidshaker(BossModule module) : Components.StandardAOEs(module, AID.Voidshaker, new AOEShapeCone(20, 60.Degrees()));
 class VoidNail(BossModule module) : Components.SpreadFromCastTargets(module, AID.VoidNail, 6);
-class ToricVoid(BossModule module) : Components.SelfTargetedAOEs(module, AID.ToricVoid, new AOEShapeDonut(10, 20));
+class ToricVoid(BossModule module) : Components.StandardAOEs(module, AID.ToricVoid, new AOEShapeDonut(10, 20));
 class Antipressure(BossModule module) : Components.StackWithCastTargets(module, AID.Antipressure, 6);
 
 class BeatriceStates : StateMachineBuilder

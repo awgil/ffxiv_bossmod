@@ -70,7 +70,7 @@ class LightningBoltDistantClap(BossModule module) : Components.GenericAOEs(modul
     }
 }
 
-class TwistingWinds(BossModule module) : Components.SelfTargetedAOEs(module, AID.TwistingWinds, new AOEShapeRect(40, 5, 40));
+class TwistingWinds(BossModule module) : Components.StandardAOEs(module, AID.TwistingWinds, new AOEShapeRect(40, 5, 40));
 
 class CloudToGround(BossModule module) : Components.Exaflare(module, 5)
 {
@@ -138,8 +138,8 @@ class Burn(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Forelash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Forelash, new AOEShapeCone(40, 90.Degrees()));
-class Backlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Backlash, new AOEShapeCone(40, 90.Degrees()));
+class Forelash(BossModule module) : Components.StandardAOEs(module, AID.Forelash, new AOEShapeCone(40, 90.Degrees()));
+class Backlash(BossModule module) : Components.StandardAOEs(module, AID.Backlash, new AOEShapeCone(40, 90.Degrees()));
 class Charybdis(BossModule module) : Components.CastHint(module, AID.Charybdis, "Set hp to 1");
 class Roar(BossModule module) : Components.RaidwideCast(module, AID.Roar);
 class Levinbolt(BossModule module) : Components.SpreadFromCastTargets(module, AID.LevinboltAOE, 6);

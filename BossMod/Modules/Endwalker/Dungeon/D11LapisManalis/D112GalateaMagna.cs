@@ -241,7 +241,7 @@ class Doom(BossModule module) : BossComponent(module)
     }
 }
 
-class SoulScythe(BossModule module) : Components.LocationTargetedAOEs(module, AID.SoulScythe, 18);
+class SoulScythe(BossModule module) : Components.StandardAOEs(module, AID.SoulScythe, 18);
 
 class D112GalateaMagnaStates : StateMachineBuilder
 {

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
-class P3Geirskogul(BossModule module) : Components.SelfTargetedAOEs(module, AID.Geirskogul, new AOEShapeRect(62, 4))
+class P3Geirskogul(BossModule module) : Components.StandardAOEs(module, AID.Geirskogul, new AOEShapeRect(62, 4))
 {
     private readonly List<Actor> _predicted = [];
 

@@ -29,7 +29,7 @@ class GoldenTongue(BossModule module) : Components.CastHint(module, AID.GoldenTo
 
 class DarkVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 4, AID.Dark, m => m.Enemies(OID.DarkVoidzone), 0);
 
-class Dark(BossModule module) : Components.LocationTargetedAOEs(module, AID.Dark, 5);
+class Dark(BossModule module) : Components.StandardAOEs(module, AID.Dark, 5);
 
 class Hints(BossModule module) : BossComponent(module)
 {

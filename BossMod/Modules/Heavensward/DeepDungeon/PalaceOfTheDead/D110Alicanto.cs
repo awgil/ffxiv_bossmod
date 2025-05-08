@@ -16,9 +16,9 @@ public enum AID : uint
 }
 
 class AeroBlast(BossModule module) : Components.RaidwideCast(module, AID.AeroBlast);
-class Bombination(BossModule module) : Components.SelfTargetedAOEs(module, AID.Bombination, new AOEShapeCircle(12));
-class Lumisphere(BossModule module) : Components.LocationTargetedAOEs(module, AID.Lumisphere, 6);
-class Stormwind(BossModule module) : Components.SelfTargetedAOEs(module, AID.Stormwind, new AOEShapeCone(18, 45.Degrees()));
+class Bombination(BossModule module) : Components.StandardAOEs(module, AID.Bombination, new AOEShapeCircle(12));
+class Lumisphere(BossModule module) : Components.StandardAOEs(module, AID.Lumisphere, 6);
+class Stormwind(BossModule module) : Components.StandardAOEs(module, AID.Stormwind, new AOEShapeCone(18, 45.Degrees()));
 
 class D110AlicantoStates : StateMachineBuilder
 {

@@ -34,7 +34,7 @@ public enum IconID : uint
 }
 
 class CeruleumVent(BossModule module) : Components.RaidwideCast(module, AID.CeruleumVent);
-class Exhaust(BossModule module) : Components.SelfTargetedAOEs(module, AID.Exhaust, new AOEShapeRect(43.5f, 5));
+class Exhaust(BossModule module) : Components.StandardAOEs(module, AID.Exhaust, new AOEShapeRect(43.5f, 5));
 class JarringBlow(BossModule module) : Components.SingleTargetDelayableCast(module, AID.JarringBlow);
 class MagitekRay(BossModule module) : Components.StackWithCastTargets(module, AID.MagitekRay, 6, 4, 4);
 class WildFireBeam(BossModule module) : Components.SpreadFromCastTargets(module, AID.WildFireBeamHelper, 6);

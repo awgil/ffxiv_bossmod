@@ -28,13 +28,13 @@ public enum AID : uint
 }
 
 class VoidFireCleave(BossModule module) : Components.Cleave(module, AID.VoidFireCleave, new AOEShapeCircle(5), originAtTarget: true);
-class VoidFireAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireAOE, 5);
+class VoidFireAOE(BossModule module) : Components.StandardAOEs(module, AID.VoidFireAOE, 5);
 class VoidThunder(BossModule module) : Components.SingleTargetCast(module, AID.VoidThunder, "Interruptible tankbuster");
 class MindMelt(BossModule module) : Components.RaidwideCast(module, AID.MindMelt, "Interruptible raidwide");
 class Canker(BossModule module) : Components.CastHint(module, AID.Canker, "Interruptible debuff");
-class Rockslide(BossModule module) : Components.SelfTargetedAOEs(module, AID.Rockslide, new AOEShapeRect(12.76f, 4));
+class Rockslide(BossModule module) : Components.StandardAOEs(module, AID.Rockslide, new AOEShapeRect(12.76f, 4));
 class Obliterate(BossModule module) : Components.RaidwideCast(module, AID.Obliterate);
-class Plaincracker(BossModule module) : Components.SelfTargetedAOEs(module, AID.Plaincracker, new AOEShapeCircle(30.5f));
+class Plaincracker(BossModule module) : Components.StandardAOEs(module, AID.Plaincracker, new AOEShapeCircle(30.5f));
 
 class D161PsycheflayerStates : StateMachineBuilder
 {

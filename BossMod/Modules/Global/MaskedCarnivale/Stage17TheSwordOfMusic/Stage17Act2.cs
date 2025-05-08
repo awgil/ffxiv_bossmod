@@ -19,11 +19,11 @@ public enum AID : uint
     MagitekRay = 15048, // 2721->location, 3.0s cast, range 6 circle, voidzone, interruptible
 }
 
-class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrandStrike, new AOEShapeRect(77.5f, 2));
+class GrandStrike(BossModule module) : Components.StandardAOEs(module, AID.GrandStrike, new AOEShapeRect(77.5f, 2));
 class MagitekField(BossModule module) : Components.CastHint(module, AID.MagitekField, "Interruptible, increases its defenses");
 class MagitekRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.MagitekRay, m => m.Enemies(OID.MagitekRayVoidzone), 0);
-class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheHand, new AOEShapeCone(8, 60.Degrees()));
-class Shred(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shred, new AOEShapeRect(6, 2));
+class TheHand(BossModule module) : Components.StandardAOEs(module, AID.TheHand, new AOEShapeCone(8, 60.Degrees()));
+class Shred(BossModule module) : Components.StandardAOEs(module, AID.Shred, new AOEShapeRect(6, 2));
 class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TheHand, 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0.9s after snapshot
 
 class Hints2(BossModule module) : BossComponent(module)

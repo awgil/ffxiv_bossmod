@@ -168,10 +168,10 @@ class HeavenlyCyclone(BossModule module) : Components.GenericRotatingAOE(module)
     }
 }
 
-class HeavenlyScythe(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavenlyScythe, new AOEShapeCircle(10));
-class RagingFire(BossModule module) : Components.SelfTargetedAOEs(module, AID.RagingFire, new AOEShapeDonut(5, 40));
-class Interference(BossModule module) : Components.SelfTargetedAOEs(module, AID.Interference, new AOEShapeCone(28, 90.Degrees()));
-class SanctifiedBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanctifiedBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
+class HeavenlyScythe(BossModule module) : Components.StandardAOEs(module, AID.HeavenlyScythe, new AOEShapeCircle(10));
+class RagingFire(BossModule module) : Components.StandardAOEs(module, AID.RagingFire, new AOEShapeDonut(5, 40));
+class Interference(BossModule module) : Components.StandardAOEs(module, AID.Interference, new AOEShapeCone(28, 90.Degrees()));
+class SanctifiedBlizzard(BossModule module) : Components.StandardAOEs(module, AID.SanctifiedBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
 class RoyalDecree(BossModule module) : Components.RaidwideCast(module, AID.RoyalDecree);
 
 class MindJack(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)

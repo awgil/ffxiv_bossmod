@@ -39,7 +39,7 @@ public enum TetherID : uint
 {
     ChainMine = 60,
 }
-class Chainsaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.Chainsaw, new AOEShapeRect(4f + 0.6f, 1f));
+class Chainsaw(BossModule module) : Components.StandardAOEs(module, AID.Chainsaw, new AOEShapeRect(4f + 0.6f, 1f));
 class Chainsaw2(BossModule module) : Components.GenericAOEs(module, AID.Chainsaw2)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -81,7 +81,7 @@ class ChainMines(BossModule module) : Components.GenericAOEs(module)
             _tethers.Remove(source);
     }
 };
-class Gunsaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.Gunsaw, new AOEShapeRect(60.5f, 1f));
+class Gunsaw(BossModule module) : Components.StandardAOEs(module, AID.Gunsaw, new AOEShapeRect(60.5f, 1f));
 class GunsawFollow(BossModule module) : Components.GenericBaitAway(module, AID.GunsawFollow)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

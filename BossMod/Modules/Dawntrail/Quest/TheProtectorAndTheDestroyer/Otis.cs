@@ -1,18 +1,18 @@
 ﻿namespace BossMod.Dawntrail.Quest.TheProtectorAndTheDestroyer;
 
 class ValorousAscension(BossModule module) : Components.RaidwideCast(module, AID.ValorousAscension);
-class RendPower(BossModule module) : Components.SelfTargetedAOEs(module, AID.RendPower, new AOEShapeCone(40, 15.Degrees()), 6);
+class RendPower(BossModule module) : Components.StandardAOEs(module, AID.RendPower, new AOEShapeCone(40, 15.Degrees()), 6);
 class SteadfastWill(BossModule module) : Components.SingleTargetCast(module, AID.SteadfastWill);
 class Rush(BossModule module) : Components.ChargeAOEs(module, AID.Rush, 2.5f)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).Take(4);
 }
 class StormlitShockwave(BossModule module) : Components.RaidwideCast(module, AID.StormlitShockwave);
-class Electrobeam(BossModule module) : Components.SelfTargetedAOEs(module, AID.Electrobeam, new AOEShapeRect(40, 2));
+class Electrobeam(BossModule module) : Components.StandardAOEs(module, AID.Electrobeam, new AOEShapeRect(40, 2));
 class HolyBlade(BossModule module) : Components.StackWithCastTargets(module, AID.HolyBlade, 6);
 class BastionBreaker(BossModule module) : Components.SpreadFromCastTargets(module, AID.BastionBreaker, 6);
-class ThrownFlames(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThrownFlames, new AOEShapeCircle(8));
-class SearingSlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.SearingSlash, new AOEShapeCircle(8));
+class ThrownFlames(BossModule module) : Components.StandardAOEs(module, AID.ThrownFlames, new AOEShapeCircle(8));
+class SearingSlash(BossModule module) : Components.StandardAOEs(module, AID.SearingSlash, new AOEShapeCircle(8));
 
 class OtisOathbrokenStates : StateMachineBuilder
 {

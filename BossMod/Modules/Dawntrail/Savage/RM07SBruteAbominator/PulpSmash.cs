@@ -45,4 +45,4 @@ class PulpSmashProtean(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class ItCameFromTheDirt(BossModule module) : Components.LocationTargetedAOEs(module, AID.ItCameFromTheDirt, 6);
+class ItCameFromTheDirt(BossModule module) : Components.StandardAOEs(module, AID.ItCameFromTheDirt, 6);

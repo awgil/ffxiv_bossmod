@@ -99,9 +99,9 @@ class NobleTrail(BossModule module) : Components.ChargeAOEs(module, AID.NobleTra
     }
 }
 class OathOfFire(BossModule module) : Components.Adds(module, (uint)OID.OathOfFire);
-class InnerWake(BossModule module) : Components.SelfTargetedAOEs(module, AID.InnerWake, new AOEShapeCircle(10));
-class DualPyres1First(BossModule module) : Components.SelfTargetedAOEs(module, AID.DualPyres1First, new AOEShapeCone(30, 90.Degrees()));
-class DualPyres1Second(BossModule module) : Components.SelfTargetedAOEs(module, AID.DualPyres1Second, new AOEShapeCone(30, 90.Degrees()))
+class InnerWake(BossModule module) : Components.StandardAOEs(module, AID.InnerWake, new AOEShapeCircle(10));
+class DualPyres1First(BossModule module) : Components.StandardAOEs(module, AID.DualPyres1First, new AOEShapeCone(30, 90.Degrees()));
+class DualPyres1Second(BossModule module) : Components.StandardAOEs(module, AID.DualPyres1Second, new AOEShapeCone(30, 90.Degrees()))
 {
     private DualPyres1First? DP1;
 
@@ -115,8 +115,8 @@ class DualPyres1Second(BossModule module) : Components.SelfTargetedAOEs(module, 
             yield return e;
     }
 }
-class DualPyres2First(BossModule module) : Components.SelfTargetedAOEs(module, AID.DualPyres2First, new AOEShapeCone(30, 90.Degrees()));
-class DualPyres2Second(BossModule module) : Components.SelfTargetedAOEs(module, AID.DualPyres2Second, new AOEShapeCone(30, 90.Degrees()))
+class DualPyres2First(BossModule module) : Components.StandardAOEs(module, AID.DualPyres2First, new AOEShapeCone(30, 90.Degrees()));
+class DualPyres2Second(BossModule module) : Components.StandardAOEs(module, AID.DualPyres2Second, new AOEShapeCone(30, 90.Degrees()))
 {
     private DualPyres2First? DP2;
 
@@ -131,13 +131,13 @@ class DualPyres2Second(BossModule module) : Components.SelfTargetedAOEs(module, 
     }
 }
 class RoaringStar(BossModule module) : Components.RaidwideCast(module, AID.RoaringStarRaidwide);
-class RoaringStar1(BossModule module) : Components.SelfTargetedAOEs(module, AID.RoaringStarLine, new AOEShapeRect(50, 5));
-class CoiledStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.CoiledStrike, new AOEShapeCone(30, 75.Degrees()));
-class SublimeHeat(BossModule module) : Components.SelfTargetedAOEs(module, AID.SublimeHeat, new AOEShapeCircle(10));
-class Burn(BossModule module) : Components.SelfTargetedAOEs(module, AID.Burn, new AOEShapeRect(46, 2.5f), maxCasts: 8);
-class FirstLight(BossModule module) : Components.LocationTargetedAOEs(module, AID.FirstLight, 6);
-class SteelfoldStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.SteelfoldStrike, new AOEShapeCross(30, 4));
-class OuterWake(BossModule module) : Components.SelfTargetedAOEs(module, AID.OuterWake, new AOEShapeDonut(6, 40));
+class RoaringStar1(BossModule module) : Components.StandardAOEs(module, AID.RoaringStarLine, new AOEShapeRect(50, 5));
+class CoiledStrike(BossModule module) : Components.StandardAOEs(module, AID.CoiledStrike, new AOEShapeCone(30, 75.Degrees()));
+class SublimeHeat(BossModule module) : Components.StandardAOEs(module, AID.SublimeHeat, new AOEShapeCircle(10));
+class Burn(BossModule module) : Components.StandardAOEs(module, AID.Burn, new AOEShapeRect(46, 2.5f), maxCasts: 8);
+class FirstLight(BossModule module) : Components.StandardAOEs(module, AID.FirstLight, 6);
+class SteelfoldStrike(BossModule module) : Components.StandardAOEs(module, AID.SteelfoldStrike, new AOEShapeCross(30, 4));
+class OuterWake(BossModule module) : Components.StandardAOEs(module, AID.OuterWake, new AOEShapeDonut(6, 40));
 class FallenStar(BossModule module) : Components.SpreadFromCastTargets(module, AID.FallenStar, 6);
 class DawnAndDuty(BossModule module) : Components.GenericAOEs(module)
 {

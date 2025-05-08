@@ -100,8 +100,8 @@ class Fracture3 : Fracture
     protected override BitMask UpdateForbidden() => _defamations;
 }
 
-class Loveseeker(BossModule module) : Components.SelfTargetedAOEs(module, AID.LoveseekerAOE, new AOEShapeCircle(10));
-class HeartStruck(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeartStruck, 6);
+class Loveseeker(BossModule module) : Components.StandardAOEs(module, AID.LoveseekerAOE, new AOEShapeCircle(10));
+class HeartStruck(BossModule module) : Components.StandardAOEs(module, AID.HeartStruck, 6);
 class Heartsore(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Heartsore, AID.Heartsore, 6, 7.1f);
 
 class Sweetheart(BossModule module) : Components.GenericAOEs(module)

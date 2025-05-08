@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash1;
 
-class Tornado(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 6);
+class Tornado(BossModule module, AID aid) : Components.StandardAOEs(module, aid, 6);
 class NTornado(BossModule module) : Tornado(module, AID.NTornado);
 class STornado(BossModule module) : Tornado(module, AID.STornado);
 
-class ScytheTail(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCircle(10));
+class ScytheTail(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCircle(10));
 class NScytheTail(BossModule module) : ScytheTail(module, AID.NScytheTail);
 class SScytheTail(BossModule module) : ScytheTail(module, AID.SScytheTail);
 

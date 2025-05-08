@@ -17,13 +17,13 @@ public enum AID : uint
     AssaultCannon = 10823, // 21B5->self, 2.5s cast, range 75+R width 2 rect
 }
 
-class AssaultCannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.AssaultCannon, new AOEShapeRect(75, 1));
-class CircleOfDeath(BossModule module) : Components.SelfTargetedAOEs(module, AID.CircleOfDeath, new AOEShapeCircle(10.24f));
-class TwoTonzeMagitekMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.W2TonzeMagitekMissile, 6);
-class MagitekMissileProximity(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekMissile1, 11.75f);
-class CermetPile(BossModule module) : Components.SelfTargetedAOEs(module, AID.CermetPile, new AOEShapeRect(42, 3));
+class AssaultCannon(BossModule module) : Components.StandardAOEs(module, AID.AssaultCannon, new AOEShapeRect(75, 1));
+class CircleOfDeath(BossModule module) : Components.StandardAOEs(module, AID.CircleOfDeath, new AOEShapeCircle(10.24f));
+class TwoTonzeMagitekMissile(BossModule module) : Components.StandardAOEs(module, AID.W2TonzeMagitekMissile, 6);
+class MagitekMissileProximity(BossModule module) : Components.StandardAOEs(module, AID.MagitekMissile1, 11.75f);
+class CermetPile(BossModule module) : Components.StandardAOEs(module, AID.CermetPile, new AOEShapeRect(42, 3));
 class SelfDetonate(BossModule module) : Components.CastHint(module, AID.SelfDetonate, "Kill before detonation!", true);
-class MineSelfDetonate(BossModule module) : Components.SelfTargetedAOEs(module, AID.SelfDetonate1, new AOEShapeCircle(6));
+class MineSelfDetonate(BossModule module) : Components.StandardAOEs(module, AID.SelfDetonate1, new AOEShapeCircle(6));
 
 class Adds(BossModule module) : BossComponent(module)
 {

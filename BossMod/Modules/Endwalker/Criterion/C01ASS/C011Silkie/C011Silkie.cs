@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Criterion.C01ASS.C011Silkie;
 
-class FizzlingDuster(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, C011Silkie.ShapeYellow);
+class FizzlingDuster(BossModule module, AID aid) : Components.StandardAOEs(module, aid, C011Silkie.ShapeYellow);
 class NFizzlingDuster(BossModule module) : FizzlingDuster(module, AID.NFizzlingDusterAOE);
 class SFizzlingDuster(BossModule module) : FizzlingDuster(module, AID.SFizzlingDusterAOE);
 
@@ -8,23 +8,23 @@ class DustBluster(BossModule module, AID aid) : Components.KnockbackFromCastTarg
 class NDustBluster(BossModule module) : DustBluster(module, AID.NDustBluster);
 class SDustBluster(BossModule module) : DustBluster(module, AID.SDustBluster);
 
-class SqueakyCleanE(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(60, 112.5f.Degrees()));
+class SqueakyCleanE(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(60, 112.5f.Degrees()));
 class NSqueakyCleanE(BossModule module) : SqueakyCleanE(module, AID.NSqueakyCleanAOE3E);
 class SSqueakyCleanE(BossModule module) : SqueakyCleanE(module, AID.SSqueakyCleanAOE3E);
 
-class SqueakyCleanW(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(60, 112.5f.Degrees()));
+class SqueakyCleanW(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(60, 112.5f.Degrees()));
 class NSqueakyCleanW(BossModule module) : SqueakyCleanW(module, AID.NSqueakyCleanAOE3W);
 class SSqueakyCleanW(BossModule module) : SqueakyCleanW(module, AID.SSqueakyCleanAOE3W);
 
-class ChillingDusterPuff(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, C011Silkie.ShapeBlue);
+class ChillingDusterPuff(BossModule module, AID aid) : Components.StandardAOEs(module, aid, C011Silkie.ShapeBlue);
 class NChillingDusterPuff(BossModule module) : ChillingDusterPuff(module, AID.NChillingDusterPuff);
 class SChillingDusterPuff(BossModule module) : ChillingDusterPuff(module, AID.SChillingDusterPuff);
 
-class BracingDusterPuff(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, C011Silkie.ShapeGreen);
+class BracingDusterPuff(BossModule module, AID aid) : Components.StandardAOEs(module, aid, C011Silkie.ShapeGreen);
 class NBracingDusterPuff(BossModule module) : BracingDusterPuff(module, AID.NBracingDusterPuff);
 class SBracingDusterPuff(BossModule module) : BracingDusterPuff(module, AID.SBracingDusterPuff);
 
-class FizzlingDusterPuff(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, C011Silkie.ShapeYellow);
+class FizzlingDusterPuff(BossModule module, AID aid) : Components.StandardAOEs(module, aid, C011Silkie.ShapeYellow);
 class NFizzlingDusterPuff(BossModule module) : FizzlingDusterPuff(module, AID.NFizzlingDusterPuff);
 class SFizzlingDusterPuff(BossModule module) : FizzlingDusterPuff(module, AID.SFizzlingDusterPuff);
 

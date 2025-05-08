@@ -1,13 +1,13 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A13ArkAngels;
 
 class Cloudsplitter(BossModule module) : Components.BaitAwayCast(module, AID.CloudsplitterAOE, new AOEShapeCircle(6), true);
-class TachiYukikaze(BossModule module) : Components.SelfTargetedAOEs(module, AID.TachiYukikaze, new AOEShapeRect(50, 2.5f));
+class TachiYukikaze(BossModule module) : Components.StandardAOEs(module, AID.TachiYukikaze, new AOEShapeRect(50, 2.5f));
 class TachiGekko(BossModule module) : Components.CastGaze(module, AID.TachiGekko);
-class TachiKasha(BossModule module) : Components.SelfTargetedAOEs(module, AID.TachiKasha, new AOEShapeCircle(20));
-class ConcertedDissolution(BossModule module) : Components.SelfTargetedAOEs(module, AID.ConcertedDissolution, new AOEShapeCone(40, 15.Degrees())); // TODO: verify angle
-class LightsChain(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightsChain, new AOEShapeDonut(3, 40)); // TODO: verify inner radius
+class TachiKasha(BossModule module) : Components.StandardAOEs(module, AID.TachiKasha, new AOEShapeCircle(20));
+class ConcertedDissolution(BossModule module) : Components.StandardAOEs(module, AID.ConcertedDissolution, new AOEShapeCone(40, 15.Degrees())); // TODO: verify angle
+class LightsChain(BossModule module) : Components.StandardAOEs(module, AID.LightsChain, new AOEShapeDonut(3, 40)); // TODO: verify inner radius
 class Meteor(BossModule module) : Components.CastInterruptHint(module, AID.Meteor);
-class CrossReaver(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrossReaverAOE, new AOEShapeCross(50, 6));
+class CrossReaver(BossModule module) : Components.StandardAOEs(module, AID.CrossReaverAOE, new AOEShapeCross(50, 6));
 class ArkShield(BossModule module) : Components.Adds(module, (uint)OID.ArkShield);
 class CriticalReaverRaidwide(BossModule module) : Components.CastCounter(module, AID.CriticalReaverRaidwide);
 class CriticalReaverEnrage(BossModule module) : Components.CastInterruptHint(module, AID.CriticalReaverEnrage);

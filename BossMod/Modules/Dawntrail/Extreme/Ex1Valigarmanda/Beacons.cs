@@ -50,4 +50,4 @@ class CalamitousCry : Components.GenericWildCharge
     }
 }
 
-class CalamitousEcho(BossModule module) : Components.SelfTargetedAOEs(module, AID.CalamitousEcho, new AOEShapeCone(40, 10.Degrees()));
+class CalamitousEcho(BossModule module) : Components.StandardAOEs(module, AID.CalamitousEcho, new AOEShapeCone(40, 10.Degrees()));

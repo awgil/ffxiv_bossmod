@@ -24,11 +24,11 @@ public enum AID : uint
 class SickleStrike(BossModule module) : Components.SingleTargetCast(module, AID.SickleStrike);
 class PetrifactionBoss(BossModule module) : Components.CastGaze(module, AID.PetrifactionBoss, range: 50);
 class PetrifactionAdds(BossModule module) : Components.CastGaze(module, AID.PetrifactionAdds, range: 50);
-class AbyssalReaper(BossModule module) : Components.SelfTargetedAOEs(module, AID.AbyssalReaper, new AOEShapeCircle(18));
-class CircleOfFlames(BossModule module) : Components.LocationTargetedAOEs(module, AID.CircleOfFlames, 5);
-class TailSlap(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSlap, new AOEShapeCone(12, 60.Degrees()));
+class AbyssalReaper(BossModule module) : Components.StandardAOEs(module, AID.AbyssalReaper, new AOEShapeCircle(18));
+class CircleOfFlames(BossModule module) : Components.StandardAOEs(module, AID.CircleOfFlames, 5);
+class TailSlap(BossModule module) : Components.StandardAOEs(module, AID.TailSlap, new AOEShapeCone(12, 60.Degrees()));
 class Petrattraction(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Petrattraction, 50, kind: Kind.TowardsOrigin);
-class CircleBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.CircleBlade, new AOEShapeCircle(7));
+class CircleBlade(BossModule module) : Components.StandardAOEs(module, AID.CircleBlade, new AOEShapeCircle(7));
 class Adds(BossModule module) : Components.AddsPointless(module, (uint)OID.FaithlessGuard);
 
 class CetoStates : StateMachineBuilder

@@ -23,10 +23,10 @@ public enum AID : uint
 
 class Thumbscrew(BossModule module) : Components.ChargeAOEs(module, AID.Thumbscrew, 4);
 class ThePathofLight(BossModule module) : Components.RaidwideCast(module, AID.ThePathOfLight);
-class GibbetCage(BossModule module) : Components.SelfTargetedAOEs(module, AID.GibbetCage, new AOEShapeCircle(8));
-class HereticsFork(BossModule module) : Components.SelfTargetedAOEs(module, AID.HereticsFork, new AOEShapeCross(40, 3));
-class LightShot(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightShot, new AOEShapeRect(40, 2));
-class WoodenHorse(BossModule module) : Components.SelfTargetedAOEs(module, AID.WoodenHorse, new AOEShapeCone(40, 45.Degrees()));
+class GibbetCage(BossModule module) : Components.StandardAOEs(module, AID.GibbetCage, new AOEShapeCircle(8));
+class HereticsFork(BossModule module) : Components.StandardAOEs(module, AID.HereticsFork, new AOEShapeCross(40, 3));
+class LightShot(BossModule module) : Components.StandardAOEs(module, AID.LightShot, new AOEShapeRect(40, 2));
+class WoodenHorse(BossModule module) : Components.StandardAOEs(module, AID.WoodenHorse, new AOEShapeCone(40, 45.Degrees()));
 class Pillory(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Pillory);
 
 class D011ForgivenDissonanceStates : StateMachineBuilder

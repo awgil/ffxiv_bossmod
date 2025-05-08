@@ -45,9 +45,9 @@ public enum AID : uint
     ActivateImaginifer = 23623, // Imaginifer->self, no cast, single-target, visual
 }
 
-class IcePillar(BossModule module) : Components.SelfTargetedAOEs(module, AID.IcePillarAOE, new AOEShapeCircle(4));
-class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarPierce, new AOEShapeRect(80, 2));
-class Shatter(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shatter, new AOEShapeCircle(8));
+class IcePillar(BossModule module) : Components.StandardAOEs(module, AID.IcePillarAOE, new AOEShapeCircle(4));
+class PillarPierce(BossModule module) : Components.StandardAOEs(module, AID.PillarPierce, new AOEShapeRect(80, 2));
+class Shatter(BossModule module) : Components.StandardAOEs(module, AID.Shatter, new AOEShapeCircle(8));
 
 class BracingWind(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BracingWind, 40, false, 1, new AOEShapeRect(60, 6), Kind.DirForward)
 {
@@ -171,9 +171,9 @@ class AgeOfEndlessFrost(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class StormWithout(BossModule module) : Components.SelfTargetedAOEs(module, AID.StormWithout, new AOEShapeDonut(10, 40));
-class StormWithin(BossModule module) : Components.SelfTargetedAOEs(module, AID.StormWithin, new AOEShapeCircle(10));
-class AncientGlacier(BossModule module) : Components.LocationTargetedAOEs(module, AID.AncientGlacierAOE, 6);
+class StormWithout(BossModule module) : Components.StandardAOEs(module, AID.StormWithout, new AOEShapeDonut(10, 40));
+class StormWithin(BossModule module) : Components.StandardAOEs(module, AID.StormWithin, new AOEShapeCircle(10));
+class AncientGlacier(BossModule module) : Components.StandardAOEs(module, AID.AncientGlacierAOE, 6);
 class Glaciation(BossModule module) : Components.RaidwideCast(module, AID.Glaciation);
 
 class HrodvitnirStates : StateMachineBuilder

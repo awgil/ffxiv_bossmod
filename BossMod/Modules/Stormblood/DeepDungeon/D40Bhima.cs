@@ -16,8 +16,8 @@ public enum AID : uint
     Windage = 11906, // 23E3->self, 1.0s cast, range 6 circle // need to make this show up as a void zone while it's still up, just because they cast so quickly
 }
 
-class AncientAero(BossModule module) : Components.SelfTargetedAOEs(module, AID.AncientAero, new AOEShapeRect(52.4f, 4));
-class AncientAeroII(BossModule module) : Components.LocationTargetedAOEs(module, AID.AncientAeroII, 6, "Get out of the aoe!");
+class AncientAero(BossModule module) : Components.StandardAOEs(module, AID.AncientAero, new AOEShapeRect(52.4f, 4));
+class AncientAeroII(BossModule module) : Components.StandardAOEs(module, AID.AncientAeroII, 6);
 class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 23.5f, true, stopAtWall: true);
 class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, AID.Tornado, 6);
 class Windage(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(z => z.EventState != 7));

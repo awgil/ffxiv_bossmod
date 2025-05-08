@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A33Oschon;
 
-class P2WanderingVolleyDownhill(BossModule module) : Components.LocationTargetedAOEs(module, AID.WanderingVolleyDownhillAOE, 8);
+class P2WanderingVolleyDownhill(BossModule module) : Components.StandardAOEs(module, AID.WanderingVolleyDownhillAOE, 8);
 
 class P2WanderingVolleyKnockback(BossModule module) : Components.Knockback(module)
 {

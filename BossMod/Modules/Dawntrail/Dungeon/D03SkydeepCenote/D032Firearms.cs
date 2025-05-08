@@ -35,11 +35,11 @@ public enum IconID : uint
 }
 
 class DynamicDominance(BossModule module) : Components.RaidwideCast(module, AID.DynamicDominance);
-class ThunderlightBurstRect1(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThunderlightBurstAOERect1, new AOEShapeRect(42, 4));
-class ThunderlightBurstRect2(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThunderlightBurstAOERect2, new AOEShapeRect(49, 4));
-class ThunderlightBurstRect3(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThunderlightBurstAOERect3, new AOEShapeRect(35, 4));
-class ThunderlightBurstRect4(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThunderlightBurstAOERect4, new AOEShapeRect(36, 4));
-class ThunderlightBurstCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.ThunderlightBurstAOECircle, new AOEShapeCircle(35));
+class ThunderlightBurstRect1(BossModule module) : Components.StandardAOEs(module, AID.ThunderlightBurstAOERect1, new AOEShapeRect(42, 4));
+class ThunderlightBurstRect2(BossModule module) : Components.StandardAOEs(module, AID.ThunderlightBurstAOERect2, new AOEShapeRect(49, 4));
+class ThunderlightBurstRect3(BossModule module) : Components.StandardAOEs(module, AID.ThunderlightBurstAOERect3, new AOEShapeRect(35, 4));
+class ThunderlightBurstRect4(BossModule module) : Components.StandardAOEs(module, AID.ThunderlightBurstAOERect4, new AOEShapeRect(36, 4));
+class ThunderlightBurstCircle(BossModule module) : Components.StandardAOEs(module, AID.ThunderlightBurstAOECircle, new AOEShapeCircle(35));
 
 class Artillery(BossModule module) : Components.GenericAOEs(module)
 {

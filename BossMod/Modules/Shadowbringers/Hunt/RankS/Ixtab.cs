@@ -73,11 +73,11 @@ class DualCastTartareanFlameThunder(BossModule module) : Components.GenericAOEs(
 }
 
 class TartareanTwister(BossModule module) : Components.CastInterruptHint(module, AID.TartareanTwister);
-class TartareanBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.TartareanBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
+class TartareanBlizzard(BossModule module) : Components.StandardAOEs(module, AID.TartareanBlizzard, new AOEShapeCone(40, 22.5f.Degrees()));
 class TartareanQuake(BossModule module) : Components.RaidwideCast(module, AID.TartareanQuake);
 class TartareanAbyss(BossModule module) : Components.BaitAwayCast(module, AID.TartareanAbyss, new AOEShapeCircle(6), true);
 class TartareanAbyssHint(BossModule module) : Components.SingleTargetCast(module, AID.TartareanAbyss, "Tankbuster circle");
-class TartareanFlare(BossModule module) : Components.LocationTargetedAOEs(module, AID.TartareanFlare, 18);
+class TartareanFlare(BossModule module) : Components.StandardAOEs(module, AID.TartareanFlare, 18);
 class TartareanMeteor(BossModule module) : Components.StackWithCastTargets(module, AID.TartareanMeteor, 10);
 class ArchaicDualcast(BossModule module) : Components.CastHint(module, AID.ArchaicDualcast, "Preparing In/Out or Out/In AOE");
 

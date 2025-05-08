@@ -375,7 +375,7 @@ class P5DeltaOpticalLaser(BossModule module) : Components.GenericAOEs(module, AI
     }
 }
 
-class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(module, AID.DeltaExplosion, 3)
+class P5DeltaExplosion(BossModule module) : Components.StandardAOEs(module, AID.DeltaExplosion, 3)
 {
     private readonly P5Delta? _delta = module.FindComponent<P5Delta>();
 
@@ -386,7 +386,7 @@ class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(modu
         var ps = _delta.Players[pcSlot];
         var partner = Raid.WithSlot(true).WhereSlot(i => _delta.Players[i].IsLocal == ps.IsLocal && i != ps.PartnerSlot && _delta.Players[i].RocketPunch?.OID != ps.RocketPunch?.OID).FirstOrDefault().Item2;
         if (partner != null)
-            Arena.AddCircle(partner.Position, Shape.Radius, ArenaColor.Safe);
+            Arena.AddCircle(partner.Position, ((AOEShapeCircle)Shape).Radius, ArenaColor.Safe);
     }
 }
 

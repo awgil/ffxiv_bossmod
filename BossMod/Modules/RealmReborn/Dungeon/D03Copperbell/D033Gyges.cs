@@ -16,11 +16,11 @@ public enum AID : uint
     ColossalSlam = 28763, // Boss->self, 4.0s cast, range 40 60-degree cone aoe
 }
 
-class GiganticSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.GiganticSwing, new AOEShapeDonut(4, 40));
-class GiganticSmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.GiganticSmash, 10);
-class GiganticBlast(BossModule module) : Components.SelfTargetedAOEs(module, AID.GiganticBlast, new AOEShapeCircle(8));
+class GiganticSwing(BossModule module) : Components.StandardAOEs(module, AID.GiganticSwing, new AOEShapeDonut(4, 40));
+class GiganticSmash(BossModule module) : Components.StandardAOEs(module, AID.GiganticSmash, 10);
+class GiganticBlast(BossModule module) : Components.StandardAOEs(module, AID.GiganticBlast, new AOEShapeCircle(8));
 class GrandSlam(BossModule module) : Components.SingleTargetCast(module, AID.GrandSlam);
-class ColossalSlam(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.ColossalSlam, new AOEShapeCone(40, 30.Degrees()));
+class ColossalSlam(BossModule module) : Components.StandardAOEs(module, AID.ColossalSlam, new AOEShapeCone(40, 30.Degrees()));
 
 class D033GygesStates : StateMachineBuilder
 {

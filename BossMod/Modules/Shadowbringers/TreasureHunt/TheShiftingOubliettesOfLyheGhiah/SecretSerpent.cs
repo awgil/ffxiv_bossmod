@@ -33,14 +33,14 @@ public enum AID : uint
 
 class Douse(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.Douse, m => m.Enemies(OID.WaterVoidzone).Where(z => z.EventState != 7), 0);
 class FangsEnd(BossModule module) : Components.SingleTargetCast(module, AID.FangsEnd);
-class Drench(BossModule module) : Components.SelfTargetedAOEs(module, AID.Drench, new AOEShapeCone(15.29f, 45.Degrees()));
-class Drench2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Drench2, new AOEShapeCone(13.45f, 45.Degrees()));
-class ScaleRipple(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScaleRipple, new AOEShapeCircle(8));
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
+class Drench(BossModule module) : Components.StandardAOEs(module, AID.Drench, new AOEShapeCone(15.29f, 45.Degrees()));
+class Drench2(BossModule module) : Components.StandardAOEs(module, AID.Drench2, new AOEShapeCone(13.45f, 45.Degrees()));
+class ScaleRipple(BossModule module) : Components.StandardAOEs(module, AID.ScaleRipple, new AOEShapeCircle(8));
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
 class SerpentStates : StateMachineBuilder
 {

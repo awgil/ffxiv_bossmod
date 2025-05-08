@@ -42,14 +42,14 @@ public enum IconID : uint
 }
 
 //class DreamsOfIce(BossModule module) : Components.SelfTargetedAOEs(module, AID.DreamsOfIce, new AOEShapeCircle(6));
-class Epode(BossModule module) : Components.SelfTargetedAOEs(module, AID.Epode, new AOEShapeRect(70, 6, 70));
+class Epode(BossModule module) : Components.StandardAOEs(module, AID.Epode, new AOEShapeRect(70, 6, 70));
 
-class EruptionForteAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.EruptionForteAOE, 8);
+class EruptionForteAOE(BossModule module) : Components.StandardAOEs(module, AID.EruptionForteAOE, 8);
 
-class LeftFiragaForte(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftFiragaForte, new AOEShapeRect(40, 40, DirectionOffset: 90.Degrees()));
-class RightFiragaForte(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightFiragaForte, new AOEShapeRect(40, 40, DirectionOffset: -90.Degrees()));
+class LeftFiragaForte(BossModule module) : Components.StandardAOEs(module, AID.LeftFiragaForte, new AOEShapeRect(40, 40, DirectionOffset: 90.Degrees()));
+class RightFiragaForte(BossModule module) : Components.StandardAOEs(module, AID.RightFiragaForte, new AOEShapeRect(40, 40, DirectionOffset: -90.Degrees()));
 
-class ThundagaForte1(BossModule module) : Components.LocationTargetedAOEs(module, AID.ThundagaForte1, 15);
+class ThundagaForte1(BossModule module) : Components.StandardAOEs(module, AID.ThundagaForte1, 15);
 
 class DarkForte(BossModule module) : Components.SingleTargetCast(module, AID.DarkForte);
 class Entracte(BossModule module) : Components.RaidwideCast(module, AID.Entracte);

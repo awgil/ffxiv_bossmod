@@ -99,8 +99,8 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
                 {
                     (true, true) => 9,
                     (false, true) => 10,
-                    (true, false) => 13,
-                    (false, false) => 14
+                    (true, false) => 14,
+                    (false, false) => 13
                 };
                 Tiles.ZoneTile(Arena, badTile, ArenaColor.Danger);
             }

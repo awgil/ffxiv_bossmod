@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
-class FlowOfTheAbyssDimensionalSurge(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlowOfTheAbyssDimensionalSurge, new AOEShapeRect(60, 7));
+class FlowOfTheAbyssDimensionalSurge(BossModule module) : Components.StandardAOEs(module, AID.FlowOfTheAbyssDimensionalSurge, new AOEShapeRect(60, 7));
 
 class FlowOfTheAbyssSpreadStack(BossModule module) : Components.GenericStackSpread(module)
 {

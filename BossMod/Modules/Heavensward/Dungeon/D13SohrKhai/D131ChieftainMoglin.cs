@@ -39,7 +39,7 @@ public enum SID : uint
     Poison = 18, // PomguardPompincher->player, extra=0x0
 }
 
-class Mogshield(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpinningMogshield, new AOEShapeCircle(6.9f));
+class Mogshield(BossModule module) : Components.StandardAOEs(module, AID.SpinningMogshield, new AOEShapeCircle(6.9f));
 class ThousandKuponzeCharge(BossModule module) : Components.GenericBaitAway(module)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -59,9 +59,9 @@ class ThousandKuponzeCharge(BossModule module) : Components.GenericBaitAway(modu
         CurrentBaits.RemoveAll(b => (WorldState.CurrentTime - b.Activation).TotalSeconds > 6);
     }
 }
-class PomFlare(BossModule module) : Components.SelfTargetedAOEs(module, AID.PomFlare, new AOEShapeCircle(21.9f));
+class PomFlare(BossModule module) : Components.StandardAOEs(module, AID.PomFlare, new AOEShapeCircle(21.9f));
 class PomHoly(BossModule module) : Components.RaidwideCast(module, AID.PomHoly);
-class Swipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.HundredKuponzeSwipe, new AOEShapeCone(20.9f, 45.Degrees()));
+class Swipe(BossModule module) : Components.StandardAOEs(module, AID.HundredKuponzeSwipe, new AOEShapeCone(20.9f, 45.Degrees()));
 // pombom 6.4f
 class PomBom(BossModule module) : Components.GenericAOEs(module)
 {

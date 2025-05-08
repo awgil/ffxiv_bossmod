@@ -55,7 +55,7 @@ class P2MirrorMirrorReflectedScytheKickBlue : Components.GenericAOEs
     }
 }
 
-class P2MirrorMirrorReflectedScytheKickRed(BossModule module) : Components.SelfTargetedAOEs(module, AID.ReflectedScytheKickRed, new AOEShapeDonut(4, 20))
+class P2MirrorMirrorReflectedScytheKickRed(BossModule module) : Components.StandardAOEs(module, AID.ReflectedScytheKickRed, new AOEShapeDonut(4, 20))
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

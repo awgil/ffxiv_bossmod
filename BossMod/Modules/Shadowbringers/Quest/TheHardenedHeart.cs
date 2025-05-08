@@ -27,7 +27,7 @@ class SanctifiedFireIII(BossModule module) : Components.StackWithCastTargets(mod
 }
 
 class TwistedTalent(BossModule module) : Components.SpreadFromCastTargets(module, AID.TwistedTalent1, 5);
-class AbyssalCharge(BossModule module) : Components.SelfTargetedAOEs(module, AID.AbyssalCharge1, new AOEShapeRect(40, 2));
+class AbyssalCharge(BossModule module) : Components.StandardAOEs(module, AID.AbyssalCharge1, new AOEShapeRect(40, 2));
 
 class AutoBranden(WorldState ws) : UnmanagedRotation(ws, 3)
 {
@@ -105,7 +105,7 @@ class TankbusterTether(BossModule module) : BossComponent(module)
 
 class BrandenAI(BossModule module) : RotationModule<AutoBranden>(module);
 
-class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.RustingClaw, new AOEShapeCone(10.3f, 45.Degrees()));
+class RustingClaw(BossModule module) : Components.StandardAOEs(module, AID.RustingClaw, new AOEShapeCone(10.3f, 45.Degrees()));
 
 class TadricTheVaingloriousStates : StateMachineBuilder
 {

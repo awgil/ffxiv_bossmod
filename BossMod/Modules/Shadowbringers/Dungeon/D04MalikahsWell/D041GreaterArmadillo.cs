@@ -23,10 +23,10 @@ public enum AID : uint
 }
 
 class StoneFlail(BossModule module) : Components.SingleTargetCast(module, AID.StoneFlail);
-class FallingRock(BossModule module) : Components.LocationTargetedAOEs(module, AID.FallingRock, 4);
-class FlailSmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlailSmash, 10);
+class FallingRock(BossModule module) : Components.StandardAOEs(module, AID.FallingRock, 4);
+class FlailSmash(BossModule module) : Components.StandardAOEs(module, AID.FlailSmash, 10);
 class HeadToss(BossModule module) : Components.StackWithCastTargets(module, AID.HeadToss, 6, 4, 4);
-class Earthshake(BossModule module) : Components.SelfTargetedAOEs(module, AID.Earthshake, new AOEShapeDonut(10, 20));
+class Earthshake(BossModule module) : Components.StandardAOEs(module, AID.Earthshake, new AOEShapeDonut(10, 20));
 class Rehydration(BossModule module) : Components.CastInterruptHint(module, AID.Rehydration, showNameInHint: true);
 
 class RightRound(BossModule module) : Components.GenericAOEs(module)

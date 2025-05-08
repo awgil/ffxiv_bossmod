@@ -13,4 +13,4 @@ class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, AID.Radi
     private IEnumerable<Angle> NextCenterDirections(WPos center) => _flames.Where(f => (f.Position - center).LengthSq() > 25).Select(f => Angle.FromDirection(f.Position - center) + 45.Degrees());
 }
 
-class RadiantFinish(BossModule module) : Components.SelfTargetedAOEs(module, AID.RadiantFlourish, new AOEShapeCircle(25));
+class RadiantFinish(BossModule module) : Components.StandardAOEs(module, AID.RadiantFlourish, new AOEShapeCircle(25));

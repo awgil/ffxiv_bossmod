@@ -56,15 +56,15 @@ public enum IconID : uint
     spreadmarker = 194,
 }
 
-class LeftInTheDark1(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftInTheDark, new AOEShapeCone(20, 90.Degrees()));
-class LeftInTheDark2(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftInTheDark2, new AOEShapeCone(20, 90.Degrees()));
-class RightInTheDark1(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightInTheDark1, new AOEShapeCone(20, 90.Degrees()));
-class RightInTheDark2(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightInTheDark2, new AOEShapeCone(20, 90.Degrees()));
-class QuakeInYourBoots1(BossModule module) : Components.SelfTargetedAOEs(module, AID.QuakeInYourBoots, new AOEShapeCircle(10));
-class QuakeInYourBoots2(BossModule module) : Components.SelfTargetedAOEs(module, AID.QuakeInYourBoots2, new AOEShapeDonut(10, 20));
-class QuakeMeAway1(BossModule module) : Components.SelfTargetedAOEs(module, AID.QuakeMeAway, new AOEShapeDonut(10, 20));
-class QuakeMeAway2(BossModule module) : Components.SelfTargetedAOEs(module, AID.QuakeMeAway2, new AOEShapeCircle(10));
-class HeartOnFireII(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeartOnFireII, 6);
+class LeftInTheDark1(BossModule module) : Components.StandardAOEs(module, AID.LeftInTheDark, new AOEShapeCone(20, 90.Degrees()));
+class LeftInTheDark2(BossModule module) : Components.StandardAOEs(module, AID.LeftInTheDark2, new AOEShapeCone(20, 90.Degrees()));
+class RightInTheDark1(BossModule module) : Components.StandardAOEs(module, AID.RightInTheDark1, new AOEShapeCone(20, 90.Degrees()));
+class RightInTheDark2(BossModule module) : Components.StandardAOEs(module, AID.RightInTheDark2, new AOEShapeCone(20, 90.Degrees()));
+class QuakeInYourBoots1(BossModule module) : Components.StandardAOEs(module, AID.QuakeInYourBoots, new AOEShapeCircle(10));
+class QuakeInYourBoots2(BossModule module) : Components.StandardAOEs(module, AID.QuakeInYourBoots2, new AOEShapeDonut(10, 20));
+class QuakeMeAway1(BossModule module) : Components.StandardAOEs(module, AID.QuakeMeAway, new AOEShapeDonut(10, 20));
+class QuakeMeAway2(BossModule module) : Components.StandardAOEs(module, AID.QuakeMeAway2, new AOEShapeCircle(10));
+class HeartOnFireII(BossModule module) : Components.StandardAOEs(module, AID.HeartOnFireII, 6);
 class HeartOnFireIV(BossModule module) : Components.SingleTargetCast(module, AID.HeartOnFireIV);
 
 class HeartOnFireIII(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)
@@ -83,11 +83,11 @@ class HeartOnFireIII(BossModule module) : Components.UniformStackSpread(module, 
 }
 
 class TempersFlare(BossModule module) : Components.RaidwideCast(module, AID.TempersFlare);
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
 class LuckyFaceStates : StateMachineBuilder
 {

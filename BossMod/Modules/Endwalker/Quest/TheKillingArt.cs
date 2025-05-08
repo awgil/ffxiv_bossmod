@@ -31,9 +31,9 @@ public enum AID : uint
     VoidMortar1 = 27605, // Helper->self, 5.0s cast, range 13 circle
 }
 
-class VoidMortar(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidMortar1, new AOEShapeCircle(13));
+class VoidMortar(BossModule module) : Components.StandardAOEs(module, AID.VoidMortar1, new AOEShapeCircle(13));
 class FocusInferi(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.FocusInferi1, m => m.Enemies(OID.Voidzone).Where(x => x.EventState != 7), 0);
-class CarnemLevareCross(BossModule module) : Components.SelfTargetedAOEs(module, AID.CarnemLevare1, new AOEShapeCross(40, 4));
+class CarnemLevareCross(BossModule module) : Components.StandardAOEs(module, AID.CarnemLevare1, new AOEShapeCross(40, 4));
 class CarnemLevareDonut(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(Actor, AOEShape)> Casters = [];
@@ -61,9 +61,9 @@ class CarnemLevareDonut(BossModule module) : Components.GenericAOEs(module)
             Casters.RemoveAll(x => x.Item1 == caster);
     }
 }
-class MeatySlice(BossModule module) : Components.SelfTargetedAOEs(module, AID.MeatySlice1, new AOEShapeRect(50, 6));
-class Cleaver(BossModule module) : Components.SelfTargetedAOEs(module, AID.Cleaver1, new AOEShapeCone(40, 60.Degrees()));
-class FlankCleaver(BossModule module) : Components.SelfTargetedAOEs(module, AID.FlankCleaver1, new AOEShapeCone(40, 60.Degrees()));
+class MeatySlice(BossModule module) : Components.StandardAOEs(module, AID.MeatySlice1, new AOEShapeRect(50, 6));
+class Cleaver(BossModule module) : Components.StandardAOEs(module, AID.Cleaver1, new AOEShapeCone(40, 60.Degrees()));
+class FlankCleaver(BossModule module) : Components.StandardAOEs(module, AID.FlankCleaver1, new AOEShapeCone(40, 60.Degrees()));
 class Adds(BossModule module) : Components.AddsMulti(module, [OID.VoidHecteyes, OID.VoidPersona], 1);
 
 class OrcusStates : StateMachineBuilder

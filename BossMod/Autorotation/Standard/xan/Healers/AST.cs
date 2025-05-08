@@ -103,7 +103,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         if (Divining > 0 && NumAOETargets > 0)
             PushOGCD(AID.Oracle, BestAOETarget);
 
-        if (MP <= 7000)
+        if (MP <= Player.HPMP.MaxMP * 0.7f)
             PushOGCD(AID.LucidDreaming, Player);
     }
 

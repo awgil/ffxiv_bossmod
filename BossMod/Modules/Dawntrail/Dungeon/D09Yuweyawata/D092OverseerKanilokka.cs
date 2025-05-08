@@ -56,7 +56,7 @@ class BoundsChange(BossModule module) : BossComponent(module)
 }
 
 class DarkSouls(BossModule module) : Components.SingleTargetCast(module, AID.DarkSouls);
-class FreeSpirits(BossModule module) : Components.SelfTargetedAOEs(module, AID.FreeSpiritsAOE, new AOEShapeDonut(15, 20));
+class FreeSpirits(BossModule module) : Components.StandardAOEs(module, AID.FreeSpiritsAOE, new AOEShapeDonut(15, 20));
 
 class Soulweave(BossModule module) : Components.GenericAOEs(module)
 {
@@ -79,7 +79,7 @@ class Soulweave(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class PhantomFlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.PhantomFloodAOE, new AOEShapeDonut(5, 20));
+class PhantomFlood(BossModule module) : Components.StandardAOEs(module, AID.PhantomFloodAOE, new AOEShapeDonut(5, 20));
 
 class DarkII(BossModule module) : Components.GenericAOEs(module)
 {
@@ -113,7 +113,7 @@ class TelltaleTears : Components.SpreadFromCastTargets
     }
 }
 
-class Necrohazard(BossModule module) : Components.SelfTargetedAOEs(module, AID.Necrohazard, new AOEShapeCircle(18)) // TODO: verify falloff
+class Necrohazard(BossModule module) : Components.StandardAOEs(module, AID.Necrohazard, new AOEShapeCircle(18)) // TODO: verify falloff
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

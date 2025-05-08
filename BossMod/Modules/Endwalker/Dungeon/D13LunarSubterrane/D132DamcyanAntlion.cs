@@ -85,7 +85,7 @@ class Landslip(BossModule module) : Components.Knockback(module)
 
 class EarthenGeyser(BossModule module) : Components.StackWithCastTargets(module, AID.EarthenGeyser2, 10);
 class QuicksandVoidzone(BossModule module) : Components.PersistentVoidzone(module, 10, m => m.Enemies(OID.QuicksandVoidzone).Where(z => z.EventState != 7));
-class PoundSand(BossModule module) : Components.LocationTargetedAOEs(module, AID.PoundSand, 12);
+class PoundSand(BossModule module) : Components.StandardAOEs(module, AID.PoundSand, 12);
 
 class AntlionMarch(BossModule module) : Components.GenericAOEs(module)
 {

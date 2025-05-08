@@ -118,7 +118,7 @@ class GobfireShootypops(BossModule module) : Components.GenericRotatingAOE(modul
     }
 }
 
-class IronKiss(BossModule module) : Components.LocationTargetedAOEs(module, AID.IronKiss, 7);
+class IronKiss(BossModule module) : Components.StandardAOEs(module, AID.IronKiss, 7);
 
 class GoblinMercenaryStates : StateMachineBuilder
 {

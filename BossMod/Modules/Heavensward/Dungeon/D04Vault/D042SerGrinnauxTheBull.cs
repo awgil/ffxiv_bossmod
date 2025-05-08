@@ -33,14 +33,14 @@ public enum TetherID : uint
     DimensionalTorsion = 9,
 }
 
-class DimensionalCollapse2(BossModule module) : Components.SelfTargetedAOEs(module, AID.DimensionalCollapse2, new AOEShapeDonutSector(3, 7.5f, 90.Degrees()));
-class DimensionalCollapse3(BossModule module) : Components.SelfTargetedAOEs(module, AID.DimensionalCollapse3, new AOEShapeDonutSector(8, 12.5f, 90.Degrees()));
-class DimensionalCollapse4(BossModule module) : Components.SelfTargetedAOEs(module, AID.DimensionalCollapse4, new AOEShapeDonutSector(13, 17.5f, 90.Degrees()));
+class DimensionalCollapse2(BossModule module) : Components.StandardAOEs(module, AID.DimensionalCollapse2, new AOEShapeDonutSector(3, 7.5f, 90.Degrees()));
+class DimensionalCollapse3(BossModule module) : Components.StandardAOEs(module, AID.DimensionalCollapse3, new AOEShapeDonutSector(8, 12.5f, 90.Degrees()));
+class DimensionalCollapse4(BossModule module) : Components.StandardAOEs(module, AID.DimensionalCollapse4, new AOEShapeDonutSector(13, 17.5f, 90.Degrees()));
 //class HeavySwing(BossModule module) : Components.Cleave(module, AID.HeavySwing, new AOEShapeCone(8.5f, 45.Degrees()));
-class HyperdimensionalSlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.HyperdimensionalSlash, new AOEShapeRect(45, 4));
+class HyperdimensionalSlash(BossModule module) : Components.StandardAOEs(module, AID.HyperdimensionalSlash, new AOEShapeRect(45, 4));
 class FaithUnmoving(BossModule module) : Components.KnockbackFromCastTarget(module, AID.FaithUnmoving, 13, stopAtWall: true);
 class DimensionalRip(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.DimensionalRip, m => m.Enemies(OID.DimensionalRipVoidzone).Where(x => x.EventState != 7), 0.8f);
-class Rive(BossModule module) : Components.SelfTargetedAOEs(module, AID.Rive, new AOEShapeRect(30, 1));
+class Rive(BossModule module) : Components.StandardAOEs(module, AID.Rive, new AOEShapeRect(30, 1));
 class AetherialTear(BossModule module) : Components.GenericAOEs(module)
 {
     private IEnumerable<Actor> AetherialTears => Module.Enemies(OID.AetherialTear).Where(e => !e.IsDead);

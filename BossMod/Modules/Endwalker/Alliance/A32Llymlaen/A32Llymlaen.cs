@@ -1,13 +1,13 @@
 ﻿namespace BossMod.Endwalker.Alliance.A32Llymlaen;
 
-class WindRose(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindRose, new AOEShapeCircle(12));
-class SeafoamSpiral(BossModule module) : Components.SelfTargetedAOEs(module, AID.SeafoamSpiral, new AOEShapeDonut(6, 70));
+class WindRose(BossModule module) : Components.StandardAOEs(module, AID.WindRose, new AOEShapeCircle(12));
+class SeafoamSpiral(BossModule module) : Components.StandardAOEs(module, AID.SeafoamSpiral, new AOEShapeDonut(6, 70));
 class DeepDiveNormal(BossModule module) : Components.StackWithCastTargets(module, AID.DeepDiveNormal, 6, 8);
 class TorrentialTridentLanding(BossModule module) : Components.CastCounter(module, AID.TorrentialTridentLanding);
-class TorrentialTridentAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.TorrentialTridentAOE, new AOEShapeCircle(18), 5);
-class Stormwhorl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Stormwhorl, 6);
+class TorrentialTridentAOE(BossModule module) : Components.StandardAOEs(module, AID.TorrentialTridentAOE, new AOEShapeCircle(18), 5);
+class Stormwhorl(BossModule module) : Components.StandardAOEs(module, AID.Stormwhorl, 6);
 class Stormwinds(BossModule module) : Components.SpreadFromCastTargets(module, AID.Stormwinds, 6);
-class Maelstrom(BossModule module) : Components.LocationTargetedAOEs(module, AID.Maelstrom, 6);
+class Maelstrom(BossModule module) : Components.StandardAOEs(module, AID.Maelstrom, 6);
 class Godsbane(BossModule module) : Components.CastCounter(module, AID.GodsbaneAOE);
 class DeepDiveHardWater(BossModule module) : Components.StackWithCastTargets(module, AID.DeepDiveHardWater, 6);
 

@@ -14,7 +14,10 @@ class TwistNDrop(BossModule module) : Components.GroupedAOEs(module, [.. BossCas
         AID.W2SnapAOE1, AID.W2SnapAOELast, AID.W3SnapAOE1, AID.W3SnapAOE2, AID.W3SnapAOELast, AID.W4SnapAOE1, AID.W4SnapAOE2, AID.W4SnapAOE3, AID.W4SnapAOELast,
     ];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters.OrderBy(c => Module.CastFinishAt(c.CastInfo)).Take(1).Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color, Risky));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Casters
+        .OrderBy(c => Module.CastFinishAt(c.CastInfo)) // only show AOE that will resolve last so we don't clog up the minimap with 4 of the same rect
+        .Take(1)
+        .Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color, Risky));
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

@@ -21,9 +21,9 @@ public enum AID : uint
 
 class TheRamsKeeper(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, AID.TheRamsKeeper, m => m.Enemies(OID.Voidzone), 0);
 class TheRamsKeeperHint(BossModule module) : Components.CastHint(module, AID.TheRamsKeeper, "Interrupt");
-class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(9));
-class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8, 30));
-class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Icefall, 5);
+class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(9));
+class TheDragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8, 30));
+class Icefall(BossModule module) : Components.StandardAOEs(module, AID.Icefall, 5);
 class VoidBlizzard(BossModule module) : Components.CastHint(module, AID.VoidBlizzard, "Interrupt");
 
 class Hints(BossModule module) : BossComponent(module)

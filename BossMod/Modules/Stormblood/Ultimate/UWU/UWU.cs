@@ -1,24 +1,24 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P1Slipstream(BossModule module) : Components.SelfTargetedAOEs(module, AID.Slipstream, new AOEShapeCone(11.7f, 45.Degrees()));
+class P1Slipstream(BossModule module) : Components.StandardAOEs(module, AID.Slipstream, new AOEShapeCone(11.7f, 45.Degrees()));
 class P1Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 45.Degrees()));
-class P1EyeOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(12, 25));
-class P1Gigastorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.Gigastorm, new AOEShapeCircle(6.5f));
-class P2RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, AID.RadiantPlumeAOE, 8);
+class P1EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(12, 25));
+class P1Gigastorm(BossModule module) : Components.StandardAOEs(module, AID.Gigastorm, new AOEShapeCircle(6.5f));
+class P2RadiantPlume(BossModule module) : Components.StandardAOEs(module, AID.RadiantPlumeAOE, 8);
 class P2Incinerate(BossModule module) : Components.Cleave(module, AID.Incinerate, new AOEShapeCone(15, 60.Degrees()), (uint)OID.Ifrit);
 class P3RockBuster(BossModule module) : Components.Cleave(module, AID.RockBuster, new AOEShapeCone(10.55f, 60.Degrees()), (uint)OID.Titan); // TODO: verify angle
 class P3MountainBuster(BossModule module) : Components.Cleave(module, AID.MountainBuster, new AOEShapeCone(15.55f, 45.Degrees()), (uint)OID.Titan); // TODO: verify angle
-class P3WeightOfTheLand(BossModule module) : Components.LocationTargetedAOEs(module, AID.WeightOfTheLandAOE, 6);
+class P3WeightOfTheLand(BossModule module) : Components.StandardAOEs(module, AID.WeightOfTheLandAOE, 6);
 class P3Upheaval(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Upheaval, 24, true);
 class P3Tumult(BossModule module) : Components.CastCounter(module, AID.Tumult);
 class P4Blight(BossModule module) : Components.CastCounter(module, AID.Blight);
 class P4HomingLasers(BossModule module) : Components.SpreadFromCastTargets(module, AID.HomingLasers, 4);
 class P4DiffractiveLaser(BossModule module) : Components.Cleave(module, AID.DiffractiveLaser, new AOEShapeCone(18, 45.Degrees()), (uint)OID.UltimaWeapon); // TODO: verify angle
-class P5MistralSongCone(BossModule module) : Components.SelfTargetedAOEs(module, AID.MistralSongCone, new AOEShapeCone(21.7f, 75.Degrees()));
-class P5AetherochemicalLaserCenter(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherochemicalLaserCenter, new AOEShapeRect(46, 4, 6));
-class P5AetherochemicalLaserRight(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherochemicalLaserRight, new AOEShapeRect(46, 4, 6));
-class P5AetherochemicalLaserLeft(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherochemicalLaserLeft, new AOEShapeRect(46, 4, 6));
-class P5LightPillar(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightPillarAOE, 3); // TODO: consider showing circle around baiter
+class P5MistralSongCone(BossModule module) : Components.StandardAOEs(module, AID.MistralSongCone, new AOEShapeCone(21.7f, 75.Degrees()));
+class P5AetherochemicalLaserCenter(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserCenter, new AOEShapeRect(46, 4, 6));
+class P5AetherochemicalLaserRight(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserRight, new AOEShapeRect(46, 4, 6));
+class P5AetherochemicalLaserLeft(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserLeft, new AOEShapeRect(46, 4, 6));
+class P5LightPillar(BossModule module) : Components.StandardAOEs(module, AID.LightPillarAOE, 3); // TODO: consider showing circle around baiter
 class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AethericBoom, 10);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539, PlanLevel = 70)]

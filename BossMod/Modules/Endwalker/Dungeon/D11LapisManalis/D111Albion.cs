@@ -223,10 +223,10 @@ class Icebreaker(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class IcyThroes2(BossModule module) : Components.SelfTargetedAOEs(module, AID.IcyThroes4, new AOEShapeCircle(6));
-class KnockOnIce(BossModule module) : Components.SelfTargetedAOEs(module, AID.KnockOnIce2, new AOEShapeCircle(5));
-class RightSlam(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightSlam, new AOEShapeRect(20, 80, 0, -90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
-class LeftSlam(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftSlam, new AOEShapeRect(20, 80, 0, 90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
+class IcyThroes2(BossModule module) : Components.StandardAOEs(module, AID.IcyThroes4, new AOEShapeCircle(6));
+class KnockOnIce(BossModule module) : Components.StandardAOEs(module, AID.KnockOnIce2, new AOEShapeCircle(5));
+class RightSlam(BossModule module) : Components.StandardAOEs(module, AID.RightSlam, new AOEShapeRect(20, 80, 0, -90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
+class LeftSlam(BossModule module) : Components.StandardAOEs(module, AID.LeftSlam, new AOEShapeRect(20, 80, 0, 90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
 class AlbionsEmbrace(BossModule module) : Components.SingleTargetCast(module, AID.AlbionsEmbrace);
 
 class RoarOfAlbion(BossModule module) : Components.CastLineOfSightAOE(module, AID.RoarOfAlbion, 60, false)

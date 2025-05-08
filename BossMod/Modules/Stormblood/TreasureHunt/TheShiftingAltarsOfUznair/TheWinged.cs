@@ -37,19 +37,19 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
-class Filoplumes(BossModule module) : Components.SelfTargetedAOEs(module, AID.Filoplumes, new AOEShapeRect(11.36f, 2));
-class Wingbeat(BossModule module) : Components.SelfTargetedAOEs(module, AID.Wingbeat, new AOEShapeCone(43.36f, 30.Degrees()));
+class Filoplumes(BossModule module) : Components.StandardAOEs(module, AID.Filoplumes, new AOEShapeRect(11.36f, 2));
+class Wingbeat(BossModule module) : Components.StandardAOEs(module, AID.Wingbeat, new AOEShapeCone(43.36f, 30.Degrees()));
 class WingbeatKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Wingbeat, 20, false, 1, new AOEShapeCone(43.36f, 30.Degrees()), stopAtWall: true);
-class FeatherSquall(BossModule module) : Components.LocationTargetedAOEs(module, AID.FeatherSquall2, 6);
-class Pinion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pinion, new AOEShapeRect(40.5f, 1.5f));
+class FeatherSquall(BossModule module) : Components.StandardAOEs(module, AID.FeatherSquall2, 6);
+class Pinion(BossModule module) : Components.StandardAOEs(module, AID.Pinion, new AOEShapeRect(40.5f, 1.5f));
 class Sideslip(BossModule module) : Components.RaidwideCast(module, AID.Sideslip);
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
-class RaucousScritch(BossModule module) : Components.SelfTargetedAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
-class Hurl(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hurl, 6);
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
+class RaucousScritch(BossModule module) : Components.StandardAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
+class Hurl(BossModule module) : Components.StandardAOEs(module, AID.Hurl, 6);
 class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);
 
 class TheWingedStates : StateMachineBuilder

@@ -171,7 +171,7 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
 class ClassicalConcepts1(BossModule module) : ClassicalConcepts(module, false);
 class ClassicalConcepts2(BossModule module) : ClassicalConcepts(module, true);
 
-class Implode(BossModule module) : Components.SelfTargetedAOEs(module, AID.Implode, new AOEShapeCircle(4));
+class Implode(BossModule module) : Components.StandardAOEs(module, AID.Implode, new AOEShapeCircle(4));
 
 class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, AID.PalladianRayAOEFirst)
 {

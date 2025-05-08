@@ -21,7 +21,7 @@ public enum AID : uint
     ChoppingBlock1 = 8346, // 1A57->location, 3.0s cast, range 5 circle
 }
 
-class DiffractiveLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.DiffractiveLaser, new AOEShapeCone(18.6f, 30.Degrees()));
+class DiffractiveLaser(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser, new AOEShapeCone(18.6f, 30.Degrees()));
 
 class TerminusEst(BossModule module) : Components.GenericAOEs(module, AID.TheOrder)
 {

@@ -9,7 +9,7 @@ class BlazingBenifice(BossModule module, AID aid) : Components.CastCounter(modul
 class NBlazingBenifice(BossModule module) : BlazingBenifice(module, AID.NBlazingBenifice);
 class SBlazingBenifice(BossModule module) : BlazingBenifice(module, AID.SBlazingBenifice);
 
-class PureFire(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 6);
+class PureFire(BossModule module, AID aid) : Components.StandardAOEs(module, aid, 6);
 class NPureFire(BossModule module) : PureFire(module, AID.NPureFireAOE);
 class SPureFire(BossModule module) : PureFire(module, AID.SPureFireAOE);
 

@@ -28,7 +28,7 @@ public enum SID : uint
     Windburn = 269, // Boss/FloatingTurret->player, extra=0x0
 }
 
-class WindBlast(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindBlast, new AOEShapeRect(60, 4));
+class WindBlast(BossModule module) : Components.StandardAOEs(module, AID.WindBlast, new AOEShapeRect(60, 4));
 class HotBlast(BossModule module) : Components.CastCounter(module, AID.HotBlast)
 {
     private readonly List<Actor> Casters = [];

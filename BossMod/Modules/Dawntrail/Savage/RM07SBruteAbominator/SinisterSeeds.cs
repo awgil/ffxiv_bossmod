@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM07SBruteAbominator;
 
-class SporeSac(BossModule module) : Components.LocationTargetedAOEs(module, AID.SporeSac, 8);
-class Pollen(BossModule module) : Components.LocationTargetedAOEs(module, AID.Pollen, 8);
+class SporeSac(BossModule module) : Components.StandardAOEs(module, AID.SporeSac, 8);
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, 8);
 class SinisterSeedsSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.SinisterSeedsSpread, 6);
-class SinisterSeedsChase(BossModule module) : Components.LocationTargetedAOEs(module, AID.SinisterSeedsChase, 7);
+class SinisterSeedsChase(BossModule module) : Components.StandardAOEs(module, AID.SinisterSeedsChase, 7);
 
 class SinisterSeedsStored(BossModule module) : Components.GenericAOEs(module, default, "GTFO from puddle!")
 {
@@ -33,7 +33,7 @@ class SinisterSeedsStored(BossModule module) : Components.GenericAOEs(module, de
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Active ? Casts.Select(s => new AOEInstance(new AOEShapeCircle(12), s, default, Activation)) : [];
 }
 
-class RootsOfEvil(BossModule module) : Components.LocationTargetedAOEs(module, AID.RootsOfEvil, 12);
+class RootsOfEvil(BossModule module) : Components.StandardAOEs(module, AID.RootsOfEvil, 12);
 
 class Impact : Components.UniformStackSpread
 {

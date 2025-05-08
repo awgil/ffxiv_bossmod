@@ -20,11 +20,11 @@ public enum SID : uint
     TemporaryMisdirection = 3909, // Boss->player, extra=0x168
 }
 
-class WingsbreadthWinds(BossModule module) : Components.SelfTargetedAOEs(module, AID.WingsbreadthWinds, new AOEShapeCircle(8));
-class StormwallWinds(BossModule module) : Components.SelfTargetedAOEs(module, AID.StormwallWinds, new AOEShapeDonut(8, 25));
+class WingsbreadthWinds(BossModule module) : Components.StandardAOEs(module, AID.WingsbreadthWinds, new AOEShapeCircle(8));
+class StormwallWinds(BossModule module) : Components.StandardAOEs(module, AID.StormwallWinds, new AOEShapeDonut(8, 25));
 class DirgeOfTheLost(BossModule module) : Components.CastHint(module, AID.DirgeOfTheLost, "Apply temporary misdirection");
 class AeroIV(BossModule module) : Components.RaidwideCast(module, AID.AeroIV);
-class SwiftwindSerenade(BossModule module) : Components.SelfTargetedAOEs(module, AID.SwiftwindSerenade, new AOEShapeRect(40, 4));
+class SwiftwindSerenade(BossModule module) : Components.StandardAOEs(module, AID.SwiftwindSerenade, new AOEShapeRect(40, 4));
 
 class StarcrierStates : StateMachineBuilder
 {

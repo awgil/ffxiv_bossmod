@@ -16,8 +16,8 @@ public enum AID : uint
     VictorySlash = 8134, // Boss->self, 3.0s cast, range 6+R 120-degree cone
 }
 
-class VictorySlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.VictorySlash, new AOEShapeCone(6.5f, 60.Degrees()));
-class ShudderingSwipeCone(BossModule module) : Components.SelfTargetedAOEs(module, AID.ShudderingSwipeAOE, new AOEShapeCone(60, 15.Degrees()));
+class VictorySlash(BossModule module) : Components.StandardAOEs(module, AID.VictorySlash, new AOEShapeCone(6.5f, 60.Degrees()));
+class ShudderingSwipeCone(BossModule module) : Components.StandardAOEs(module, AID.ShudderingSwipeAOE, new AOEShapeCone(60, 15.Degrees()));
 class ShudderingSwipeKB(BossModule module) : Components.Knockback(module, AID.ShudderingSwipeCast, stopAtWall: true)
 {
     private TheFourWinds? winds;
@@ -55,7 +55,7 @@ class ShudderingSwipeKB(BossModule module) : Components.Knockback(module, AID.Sh
             }, Module.CastFinishAt(c.CastInfo));
     }
 }
-class NaldsWhisper(BossModule module) : Components.SelfTargetedAOEs(module, AID.NaldsWhisper, new AOEShapeCircle(20));
+class NaldsWhisper(BossModule module) : Components.StandardAOEs(module, AID.NaldsWhisper, new AOEShapeCircle(20));
 class TheFourWinds(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.TaintedWindSprite).Where(x => x.EventState != 7));
 
 class AldisSwordOfNaldStates : StateMachineBuilder

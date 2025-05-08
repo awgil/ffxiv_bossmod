@@ -20,7 +20,7 @@ public enum AID : uint
     OrderRelay = 32545, // Boss->self, 8.0s cast, single-target // problematic child
     PiercingLaser = 32547, // Boss->self, 2.5s cast, range 40 width 5 rect
 }
-class PiercingLaser(BossModule module) : Components.SelfTargetedAOEs(module, AID.PiercingLaser, new AOEShapeRect(40, 2.5f));
+class PiercingLaser(BossModule module) : Components.StandardAOEs(module, AID.PiercingLaser, new AOEShapeRect(40, 2.5f));
 class FlameBreath(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];

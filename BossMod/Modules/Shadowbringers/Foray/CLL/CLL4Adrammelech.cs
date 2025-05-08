@@ -55,7 +55,7 @@ public enum AID : uint
 
 class AeroIV(BossModule module) : Components.GroupedAOEs(module, [AID.AeroIV1, AID.AeroIV2], new AOEShapeDonut(15, 30));
 class ThunderIV(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderIV1, AID.ThunderIV2], new AOEShapeCircle(18));
-class BurstII(BossModule module) : Components.LocationTargetedAOEs(module, AID.BurstII, 6);
+class BurstII(BossModule module) : Components.StandardAOEs(module, AID.BurstII, 6);
 class BlizzardIV(BossModule module) : Components.StayMove(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

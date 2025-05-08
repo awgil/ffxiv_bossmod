@@ -17,8 +17,8 @@ public enum AID : uint
 }
 
 class CandyCane(BossModule module) : Components.SingleTargetCast(module, AID.CandyCane);
-class Hydrofall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hydrofall, 6);
-class LaughingLeap(BossModule module) : Components.LocationTargetedAOEs(module, AID.LaughingLeap, 4);
+class Hydrofall(BossModule module) : Components.StandardAOEs(module, AID.Hydrofall, 6);
+class LaughingLeap(BossModule module) : Components.StandardAOEs(module, AID.LaughingLeap, 4);
 class LaughingLeapStack(BossModule module) : Components.StackWithIcon(module, 62, AID.LaughingLeapStack, 4, 5.15f);
 class Landsblood(BossModule module) : Components.RaidwideCast(module, AID.Landsblood);
 

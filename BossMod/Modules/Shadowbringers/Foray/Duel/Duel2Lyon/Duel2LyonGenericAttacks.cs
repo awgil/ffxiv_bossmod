@@ -46,13 +46,13 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
     }
 }
 
-class TasteOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.TasteOfBlood, new AOEShapeCone(40, 90.Degrees()));
+class TasteOfBlood(BossModule module) : Components.StandardAOEs(module, AID.TasteOfBlood, new AOEShapeCone(40, 90.Degrees()));
 
 class RavenousGaleTwister(BossModule module) : Components.CastTwister(module, 1, (uint)OID.RavenousGaleVoidzone, AID.RavenousGale, 0.4f, 0.25f);
 class RavenousGaleHint(BossModule module) : Components.CastHint(module, AID.RavenousGale, "Twisters spawning");
 
 class TwinAgonies(BossModule module) : Components.SingleTargetCast(module, AID.TwinAgonies, "Use Manawall or tank mitigations!");
-class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindsPeak1, new AOEShapeCircle(5));
+class WindsPeak(BossModule module) : Components.StandardAOEs(module, AID.WindsPeak1, new AOEShapeCircle(5));
 
 class WindsPeakKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WindsPeak2, 15)
 {
@@ -137,7 +137,7 @@ class VermillionFlame(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Balls.Select(b => new AOEInstance(new AOEShapeCircle(10), b.Actor.Position, Activation: b.Activation));
 }
 
-class SpitefulFlameRect(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpitefulFlame2, new AOEShapeRect(80, 2));
+class SpitefulFlameRect(BossModule module) : Components.StandardAOEs(module, AID.SpitefulFlame2, new AOEShapeRect(80, 2));
 
 class DynasticFlame : Components.BaitAwayTethers
 {

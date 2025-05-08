@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P6WaveCannonPuddle(BossModule module) : Components.SelfTargetedAOEs(module, AID.P6WaveCannonPuddle, new AOEShapeCircle(6));
+class P6WaveCannonPuddle(BossModule module) : Components.StandardAOEs(module, AID.P6WaveCannonPuddle, new AOEShapeCircle(6));
 
 class P6WaveCannonExaflare(BossModule module) : Components.Exaflare(module, 8)
 {

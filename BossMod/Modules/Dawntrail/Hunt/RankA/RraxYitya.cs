@@ -81,7 +81,7 @@ class Wingblade(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class LaughingLeap(BossModule module) : Components.SelfTargetedAOEs(module, AID.LaughingLeap, new AOEShapeRect(15, 2.5f));
+class LaughingLeap(BossModule module) : Components.StandardAOEs(module, AID.LaughingLeap, new AOEShapeRect(15, 2.5f));
 
 class RraxYityaStates : StateMachineBuilder
 {

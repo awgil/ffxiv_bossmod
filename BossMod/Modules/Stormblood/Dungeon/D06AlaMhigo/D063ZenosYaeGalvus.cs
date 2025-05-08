@@ -62,12 +62,12 @@ class LightlessSparkTether(BossModule module) : Components.GenericBaitAway(modul
             CurrentBaits.Clear();
     }
 }
-class LightlessSpark(BossModule module) : Components.SelfTargetedAOEs(module, AID.LightlessSpark, new AOEShapeCone(40.5f, 45.Degrees()));
-class VeinSplitter(BossModule module) : Components.SelfTargetedAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
-class VeinSplitter1(BossModule module) : Components.SelfTargetedAOEs(module, AID.VeinSplitter1, new AOEShapeCircle(10));
-class UnmovingTroika1(BossModule module) : Components.SelfTargetedAOEs(module, AID.UnmovingTroika1, new AOEShapeCone(9.5f, 45.Degrees()));
-class UnmovingTroika2(BossModule module) : Components.SelfTargetedAOEs(module, AID.UnmovingTroika2, new AOEShapeCone(9.5f, 45.Degrees()));
-class ArtOfTheStorm(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArtOfTheStorm, new AOEShapeCircle(8));
+class LightlessSpark(BossModule module) : Components.StandardAOEs(module, AID.LightlessSpark, new AOEShapeCone(40.5f, 45.Degrees()));
+class VeinSplitter(BossModule module) : Components.StandardAOEs(module, AID.VeinSplitter, new AOEShapeCircle(10));
+class VeinSplitter1(BossModule module) : Components.StandardAOEs(module, AID.VeinSplitter1, new AOEShapeCircle(10));
+class UnmovingTroika1(BossModule module) : Components.StandardAOEs(module, AID.UnmovingTroika1, new AOEShapeCone(9.5f, 45.Degrees()));
+class UnmovingTroika2(BossModule module) : Components.StandardAOEs(module, AID.UnmovingTroika2, new AOEShapeCone(9.5f, 45.Degrees()));
+class ArtOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.ArtOfTheStorm, new AOEShapeCircle(8));
 class ArtOfTheSwell(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ArtOfTheSwell, 15);
 class ArtOfTheSword(BossModule module) : Components.GenericBaitAway(module)
 {
@@ -85,7 +85,7 @@ class ArtOfTheSword(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 class Concentrativity(BossModule module) : Components.RaidwideCast(module, AID.Concentrativity);
-class ArtOfTheStorm1(BossModule module) : Components.SelfTargetedAOEs(module, AID.ArtOfTheStorm1, new AOEShapeCircle(8));
+class ArtOfTheStorm1(BossModule module) : Components.StandardAOEs(module, AID.ArtOfTheStorm1, new AOEShapeCircle(8));
 class ArtOfTheSwell1(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ArtOfTheSwell1, 15)
 {
     private ArtOfTheStorm1? storm;

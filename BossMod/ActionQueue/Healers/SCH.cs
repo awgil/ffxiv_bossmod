@@ -165,9 +165,9 @@ public sealed class Definitions : IDisposable
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Broil1)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyBroil && !player.InCombat && ws.Client.CountdownRemaining > 1.5f;
-        d.Spell(AID.Broil2)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyBroil && !player.InCombat && ws.Client.CountdownRemaining > 1.5f;
-        d.Spell(AID.Broil3)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyBroil && !player.InCombat && ws.Client.CountdownRemaining > 1.5f;
+        d.Spell(AID.Broil1)!.ForbidExecute =
+        d.Spell(AID.Broil2)!.ForbidExecute =
+        d.Spell(AID.Broil3)!.ForbidExecute =
         d.Spell(AID.Broil4)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyBroil && !player.InCombat && ws.Client.CountdownRemaining > 1.5f;
     }
 }

@@ -51,7 +51,7 @@ class Ex4IfritAICommon(BossModule module) : BossComponent(module)
         // avoid non-baiters (TODO: should this be done by eruption component itself?)
         if (_eruption != null)
             foreach (var (i, p) in Raid.WithSlot().ExcludedFromMask(_eruption.Baiters))
-                hints.AddForbiddenZone(ShapeContains.Circle(p.Position, _eruption.Shape.Radius));
+                hints.AddForbiddenZone(ShapeContains.Circle(p.Position, ((AOEShapeCircle)_eruption.Shape).Radius));
     }
 
     // TODO: this shouldn't be here...

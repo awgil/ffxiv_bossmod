@@ -105,9 +105,9 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
     }
 }
 
-class CagedHeartOfNature(BossModule module) : Components.SelfTargetedAOEs(module, AID.CagedHeartOfNature, new AOEShapeCircle(6));
+class CagedHeartOfNature(BossModule module) : Components.StandardAOEs(module, AID.CagedHeartOfNature, new AOEShapeCircle(6));
 
-class WindsPeak(BossModule module) : Components.SelfTargetedAOEs(module, AID.WindsPeak1, new AOEShapeCircle(5));
+class WindsPeak(BossModule module) : Components.StandardAOEs(module, AID.WindsPeak1, new AOEShapeCircle(5));
 
 class WindsPeakKB(BossModule module) : Components.Knockback(module)
 {
@@ -170,7 +170,7 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     }
 }
 
-class MoveMountains(BossModule module) : Components.SelfTargetedAOEs(module, AID.MoveMountains3, new AOEShapeRect(40, 3))
+class MoveMountains(BossModule module) : Components.StandardAOEs(module, AID.MoveMountains3, new AOEShapeRect(40, 3))
 {
     // TODO predict rotation
 }

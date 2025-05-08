@@ -2,14 +2,14 @@
 
 class P1FluidSwing(BossModule module) : Components.Cleave(module, AID.FluidSwing, new AOEShapeCone(11.5f, 45.Degrees()));
 class P1FluidStrike(BossModule module) : Components.Cleave(module, AID.FluidSwing, new AOEShapeCone(11.6f, 45.Degrees()), (uint)OID.LiquidHand);
-class P1Sluice(BossModule module) : Components.LocationTargetedAOEs(module, AID.Sluice, 5);
+class P1Sluice(BossModule module) : Components.StandardAOEs(module, AID.Sluice, 5);
 class P1Splash(BossModule module) : Components.CastCounter(module, AID.Splash);
 class P1Drainage(BossModule module) : Components.TankbusterTether(module, AID.DrainageP1, (uint)TetherID.Drainage, 6);
 class P2JKick(BossModule module) : Components.CastCounter(module, AID.JKick);
-class P2EyeOfTheChakram(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheChakram, new AOEShapeRect(73, 3, 3));
-class P2HawkBlasterOpticalSight(BossModule module) : Components.LocationTargetedAOEs(module, AID.HawkBlasterP2, 10);
+class P2EyeOfTheChakram(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheChakram, new AOEShapeRect(73, 3, 3));
+class P2HawkBlasterOpticalSight(BossModule module) : Components.StandardAOEs(module, AID.HawkBlasterP2, 10);
 class P2Photon(BossModule module) : Components.CastCounter(module, AID.PhotonAOE);
-class P2SpinCrusher(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpinCrusher, new AOEShapeCone(10, 45.Degrees()));
+class P2SpinCrusher(BossModule module) : Components.StandardAOEs(module, AID.SpinCrusher, new AOEShapeCone(10, 45.Degrees()));
 class P2Drainage(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.LiquidRage)); // TODO: verify distance
 
 class P2PropellerWind(BossModule module) : Components.CastLineOfSightAOE(module, AID.PropellerWind, 50, false)

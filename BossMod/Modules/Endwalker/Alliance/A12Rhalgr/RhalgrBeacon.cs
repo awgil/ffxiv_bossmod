@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A12Rhalgr;
 
-class RhalgrBeaconAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.RhalgrsBeaconAOE, new AOEShapeCircle(10));
+class RhalgrBeaconAOE(BossModule module) : Components.StandardAOEs(module, AID.RhalgrsBeaconAOE, new AOEShapeCircle(10));
 
 class RhalgrBeaconShock(BossModule module) : Components.GenericAOEs(module, AID.Shock)
 {

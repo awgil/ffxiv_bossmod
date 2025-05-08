@@ -33,7 +33,7 @@ public enum TetherID : uint
 }
 
 class Neutralization(BossModule module) : Components.StandardAOEs(module, AID.Neutralization, new AOEShapeCone(30, 60.Degrees()));
-class OrderedFire(BossModule module) : Components.LocationTargetedAOEs(module, AID.OrderedFire, 10);
+class OrderedFire(BossModule module) : Components.StandardAOEs(module, AID.OrderedFire, 10);
 class ElectrifyingConduction(BossModule module) : Components.RaidwideCast(module, AID.ElectrifyingConduction);
 class SearingConduction(BossModule module) : Components.StandardAOEs(module, AID.SearingConduction1, new AOEShapeCircle(15));
 

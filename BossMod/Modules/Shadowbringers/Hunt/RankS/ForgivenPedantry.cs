@@ -68,8 +68,8 @@ class LeftRightCheek(BossModule module) : Components.GenericAOEs(module)
 }
 
 class TerrifyingGlance(BossModule module) : Components.CastGaze(module, AID.TerrifyingGlance);
-class TheStake(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheStake, new AOEShapeCircle(18));
-class SecondCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.SecondCircle, new AOEShapeRect(40, 4));
+class TheStake(BossModule module) : Components.StandardAOEs(module, AID.TheStake, new AOEShapeCircle(18));
+class SecondCircle(BossModule module) : Components.StandardAOEs(module, AID.SecondCircle, new AOEShapeRect(40, 4));
 class CleansingFire(BossModule module) : Components.CastGaze(module, AID.CleansingFire);
 
 class FeveredFlagellation(BossModule module) : Components.BaitAwayCast(module, AID.FeveredFlagellation, new AOEShapeCone(15, 45.Degrees()))

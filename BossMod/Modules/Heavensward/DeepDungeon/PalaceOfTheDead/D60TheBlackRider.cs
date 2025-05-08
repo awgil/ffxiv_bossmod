@@ -18,7 +18,7 @@ public enum AID : uint
 }
 
 class CleaveAuto(BossModule module) : Components.Cleave(module, default, new AOEShapeCone(11.92f, 45.Degrees()), activeWhileCasting: false);
-class Infatuation(BossModule module) : Components.SelfTargetedAOEs(module, AID.Infatuation, new AOEShapeCircle(7));
+class Infatuation(BossModule module) : Components.StandardAOEs(module, AID.Infatuation, new AOEShapeCircle(7));
 class HallOfSorrow(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, AID.HallOfSorrow, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7), 1.3f);
 class Valfodr(BossModule module) : Components.BaitAwayChargeCast(module, AID.Valfodr, 3);
 class ValfodrKB(BossModule module) : Components.Knockback(module, AID.Valfodr, stopAtWall: true) // note actual knockback is delayed by upto 1.2s in replay

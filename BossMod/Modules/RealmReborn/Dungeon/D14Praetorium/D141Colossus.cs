@@ -20,10 +20,10 @@ public enum AID : uint
 }
 
 class CeruleumVent(BossModule module) : Components.RaidwideCast(module, AID.CeruleumVent);
-class PrototypeLaserAlpha1(BossModule module) : Components.LocationTargetedAOEs(module, AID.IronKissAlpha1, 6);
-class PrototypeLaserAlpha2(BossModule module) : Components.LocationTargetedAOEs(module, AID.IronKissAlpha2, 6);
+class PrototypeLaserAlpha1(BossModule module) : Components.StandardAOEs(module, AID.IronKissAlpha1, 6);
+class PrototypeLaserAlpha2(BossModule module) : Components.StandardAOEs(module, AID.IronKissAlpha2, 6);
 class PrototypeLaserBeta(BossModule module) : Components.SpreadFromCastTargets(module, AID.IronKissBeta, 5, false);
-class GrandSword(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrandSword, new AOEShapeCone(25, 45.Degrees()));
+class GrandSword(BossModule module) : Components.StandardAOEs(module, AID.GrandSword, new AOEShapeCone(25, 45.Degrees()));
 
 class D141ColossusStates : StateMachineBuilder
 {

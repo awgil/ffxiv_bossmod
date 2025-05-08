@@ -30,15 +30,15 @@ public enum TetherID : uint
 }
 
 class TheLook(BossModule module) : Components.Cleave(module, AID.TheLook, new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
-class RottenBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.RottenBreath, new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
-class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailDrive, new AOEShapeCone(35.5f, 45.Degrees()));
+class RottenBreath(BossModule module) : Components.StandardAOEs(module, AID.RottenBreath, new AOEShapeCone(11.5f, 45.Degrees())); // TODO: verify angle
+class TailDrive(BossModule module) : Components.StandardAOEs(module, AID.TailDrive, new AOEShapeCone(35.5f, 45.Degrees()));
 
 class ImminentCatastrophe(BossModule module) : Components.CastLineOfSightAOE(module, AID.ImminentCatastrophe, 100, true)
 {
     public override IEnumerable<Actor> BlockerActors() => ((D163Anantaboga)Module).ActivePillars();
 }
 
-class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, AID.TerrorEye, 6);
+class TerrorEye(BossModule module) : Components.StandardAOEs(module, AID.TerrorEye, 6);
 
 class PlagueDance(BossModule module) : BossComponent(module)
 {

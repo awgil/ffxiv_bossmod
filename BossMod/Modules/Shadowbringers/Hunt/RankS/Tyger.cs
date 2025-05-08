@@ -17,7 +17,7 @@ public enum AID : uint
     TheRamsVoice = 16962, // Boss->self, 4.0s cast, range 9 circle
 }
 
-class TheLionsBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheLionsBreath, new AOEShapeCone(30, 60.Degrees()));
+class TheLionsBreath(BossModule module) : Components.StandardAOEs(module, AID.TheLionsBreath, new AOEShapeCone(30, 60.Degrees()));
 
 class TheScorpionsSting(BossModule module) : Components.GenericAOEs(module)
 {
@@ -49,12 +49,12 @@ class TheScorpionsSting(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class TheDragonsBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDragonsBreath, new AOEShapeCone(30, 60.Degrees()));
-class TheRamsBreath(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheRamsBreath, new AOEShapeCone(30, 60.Degrees()));
-class TheRamsEmbrace(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheRamsEmbrace, new AOEShapeCircle(9));
-class TheRamsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(9));
+class TheDragonsBreath(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsBreath, new AOEShapeCone(30, 60.Degrees()));
+class TheRamsBreath(BossModule module) : Components.StandardAOEs(module, AID.TheRamsBreath, new AOEShapeCone(30, 60.Degrees()));
+class TheRamsEmbrace(BossModule module) : Components.StandardAOEs(module, AID.TheRamsEmbrace, new AOEShapeCircle(9));
+class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(9));
 class TheRamsVoiceHint(BossModule module) : Components.CastInterruptHint(module, AID.TheRamsVoice);
-class TheDragonsVoice(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8, 30));
+class TheDragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8, 30));
 class TheDragonsVoiceHint(BossModule module) : Components.CastInterruptHint(module, AID.TheDragonsVoice, hintExtra: "Donut Raidwide");
 
 class TygerStates : StateMachineBuilder

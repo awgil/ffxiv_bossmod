@@ -28,9 +28,9 @@ public enum AID : uint
 }
 
 class IntestinalCrank(BossModule module) : Components.RaidwideCast(module, AID.IntestinalCrank);
-class BreakingWheel(BossModule module) : Components.SelfTargetedAOEs(module, AID.BreakingWheel1, new AOEShapeDonut(5, 60));
-class HereticsFork(BossModule module) : Components.SelfTargetedAOEs(module, AID.HereticsFork1, new AOEShapeCross(60, 5));
-class CrystalNail(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrystalNail, new AOEShapeCircle(5));
+class BreakingWheel(BossModule module) : Components.StandardAOEs(module, AID.BreakingWheel1, new AOEShapeDonut(5, 60));
+class HereticsFork(BossModule module) : Components.StandardAOEs(module, AID.HereticsFork1, new AOEShapeCross(60, 5));
+class CrystalNail(BossModule module) : Components.StandardAOEs(module, AID.CrystalNail, new AOEShapeCircle(5));
 
 class HereticsForkBreakingWheelStreak(BossModule module) : Components.GenericAOEs(module)
 {

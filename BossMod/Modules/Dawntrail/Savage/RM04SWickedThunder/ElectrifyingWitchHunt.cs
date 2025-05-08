@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM04SWickedThunder;
 
-class ElectrifyingWitchHuntBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectrifyingWitchHuntBurst, new AOEShapeRect(40, 8));
+class ElectrifyingWitchHuntBurst(BossModule module) : Components.StandardAOEs(module, AID.ElectrifyingWitchHuntBurst, new AOEShapeRect(40, 8));
 
 class ElectrifyingWitchHuntSpread(BossModule module) : Components.UniformStackSpread(module, 0, 6)
 {

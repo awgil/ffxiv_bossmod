@@ -60,7 +60,7 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
 }
 
 // players always need to get hit by this mechanic
-class FusesOfFuryMurderousMist : Components.SelfTargetedAOEs
+class FusesOfFuryMurderousMist : Components.StandardAOEs
 {
     public FusesOfFuryMurderousMist(BossModule module) : base(module, AID.FusesOfFuryMurderousMist, new AOEShapeCone(40, 45.Degrees(), 180.Degrees()))
     {
