@@ -24,13 +24,51 @@ public enum AID : uint
 }
 
 class AerialAmbush(BossModule module) : Components.StandardAOEs(module, AID.AerialAmbush, new AOEShapeRect(30, 7.5f));
+class AlmightyRacket(BossModule module) : Components.StandardAOEs(module, AID.AlmightyRacket, new AOEShapeRect(30, 15));
+class FoundationalDebris(BossModule module) : Components.StandardAOEs(module, AID.FoundationalDebris, 10);
+class SedimentaryDebris(BossModule module) : Components.SpreadFromCastTargets(module, AID.SedimentaryDebris, 5);
+class Earthsong(BossModule module) : Components.RaidwideCast(module, AID.Earthsong);
+class ChillingChirp(BossModule module) : Components.RaidwideCast(module, AID.ChillingChirp);
+class TrapJaws(BossModule module) : Components.SingleTargetDelayableCast(module, AID.TrapJaws);
+class SphereShatter(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<(Actor Caster, DateTime Activation)> _spheres = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_spheres.Count == 0)
+            return [];
+
+        var act1 = _spheres[0].Activation;
+        return _spheres.TakeWhile(s => s.Activation < act1.AddSeconds(1)).Select(s => new AOEInstance(new AOEShapeCircle(6), s.Caster.Position, Activation: act1));
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.SandSphere)
+            _spheres.Add((actor, WorldState.FutureTime(7.6f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.SphereShatter1 or AID.SphereShatter2)
+            _spheres.RemoveAll(s => s.Caster == caster);
+    }
+}
 
 class D101GargantStates : StateMachineBuilder
 {
     public D101GargantStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<AerialAmbush>();
+            .ActivateOnEnter<AerialAmbush>()
+            .ActivateOnEnter<AlmightyRacket>()
+            .ActivateOnEnter<FoundationalDebris>()
+            .ActivateOnEnter<SedimentaryDebris>()
+            .ActivateOnEnter<Earthsong>()
+            .ActivateOnEnter<ChillingChirp>()
+            .ActivateOnEnter<TrapJaws>()
+            .ActivateOnEnter<SphereShatter>();
     }
 }
 
