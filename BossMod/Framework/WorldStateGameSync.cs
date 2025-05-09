@@ -195,10 +195,10 @@ sealed class WorldStateGameSync : IDisposable
         {
             _ws.Execute(new WorldState.OpZoneChange(Service.ClientState.TerritoryType, GameMain.Instance()->CurrentContentFinderConditionId));
         }
-        if (_ws.Network.IDScramble != Network.IDScramble.Delta)
-        {
-            _ws.Execute(new NetworkState.OpIDScramble(Network.IDScramble.Delta));
-        }
+        var proxy = fwk->NetworkModuleProxy->ReceiverCallback;
+        var scramble = Network.IDScramble.Get();
+        if (_ws.Network.IDScramble != scramble)
+            _ws.Execute(new NetworkState.OpIDScramble(scramble));
 
         foreach (var op in _globalOps)
         {

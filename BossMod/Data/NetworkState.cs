@@ -7,24 +7,48 @@ public sealed class NetworkState
         public readonly byte[] Payload = Payload;
     };
 
-    public uint IDScramble;
+    public readonly record struct IDScrambleFields(uint GameSessionRandom, uint ZoneRandom, uint Key0, uint Key1, uint Key2)
+    {
+        public uint Decode(ushort opcode, uint value)
+        {
+            var key = (new uint[] { Key0, Key1, Key2 })[opcode % 3];
+            return value - (key - GameSessionRandom - ZoneRandom);
+        }
+    }
+
+    public IDScrambleFields IDScramble;
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
-        if (IDScramble != 0)
+        if (IDScramble != default)
             yield return new OpIDScramble(IDScramble);
+    }
+
+    public Event<OpLegacyIDScramble> LegacyIDScrambleChanged = new();
+    public sealed record class OpLegacyIDScramble(uint Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Network.LegacyIDScrambleChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("IPCI"u8).Emit(Value);
     }
 
     // implementation of operations
     public Event<OpIDScramble> IDScrambleChanged = new();
-    public sealed record class OpIDScramble(uint Value) : WorldState.Operation
+    public sealed record class OpIDScramble(IDScrambleFields Fields) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
-            ws.Network.IDScramble = Value;
+            ws.Network.IDScramble = Fields;
             ws.Network.IDScrambleChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("IPCI"u8).Emit(Value);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("IPCX"u8)
+            .Emit(Fields.GameSessionRandom)
+            .Emit(Fields.ZoneRandom)
+            .Emit(Fields.Key0)
+            .Emit(Fields.Key1)
+            .Emit(Fields.Key2);
     }
 
     public Event<OpServerIPC> ServerIPCReceived = new();
