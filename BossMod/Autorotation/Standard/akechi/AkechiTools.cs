@@ -411,7 +411,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if a specific <b>status effect</b> on the <b>Player</b> exists.
     /// <para><b>NOTE:</b> The effect can be owned by <b>anyone</b>; Player, Party, Alliance, NPCs, or even enemies.</para></summary>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    protected bool PlayerHasAnyEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
+    protected bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
 
     /// <summary>Checks if a specific <b>status effect</b> on any specified <b>Target</b> exists.
     /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
@@ -910,7 +910,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
         HasSwiftcast = StatusRemaining(Player, ClassShared.SID.Swiftcast, 10) > 0.1f;
         CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
-        HasPeloton = PlayerHasAnyEffect(ClassShared.SID.Peloton);
+        HasPeloton = HasEffect(ClassShared.SID.Peloton);
         CanPeloton = !Player.InCombat && !HasPeloton && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
 
