@@ -223,7 +223,8 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         if (OgiLeft > GCD && CanFitGCD(TargetDotLeft, 1) && HaveDmg && HaveHaste && (RaidBuffsLeft > GCD || RaidBuffsIn > 1000))
         {
-            if (Meikyo.Left == 0 || CanFitGCD(Meikyo.Left, 2 + (Meikyo.Stacks - 1)))
+            // technically the remaining duration we need is ((1 + stacks) * GCD) + (application delay for next GCD) but that's at the mercy of network latency
+            if (Meikyo.Left == 0 || CanFitGCD(Meikyo.Left, 2 + Meikyo.Stacks))
                 PushGCD(AID.OgiNamikiri, BestOgiTarget, GCDPriority.Ogi1);
         }
 
@@ -443,7 +444,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         if (Kenki >= 25 && (RaidBuffsLeft > AnimLock || RaidBuffsIn > (Unlocked(TraitID.EnhancedHissatsu) ? 40 : 100)))
         {
-            if (NumLineTargets > 1)
+            if (NumLineTargets > 2)
                 PushOGCD(AID.HissatsuGuren, BestLineTarget);
 
             // queue senei since guren may not be unlocked (gated by job quest)
@@ -459,7 +460,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         var saveKenki = RaidBuffsLeft <= AnimLock && RaidBuffsIn < 1000 || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
 
-        if (Kenki >= (saveKenki ? 90 : 25))
+        if (Kenki >= (saveKenki ? 80 : 25))
         {
             if (NumAOECircleTargets > 2)
                 PushOGCD(AID.HissatsuKyuten, Player);
