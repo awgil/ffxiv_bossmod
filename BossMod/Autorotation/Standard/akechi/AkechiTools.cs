@@ -228,8 +228,14 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Retrieves the <b>current HP</b> value of the player.</summary>
     protected uint HP { get; private set; }
 
+    /// <summary>Retrieves the <b>maximum HP</b> value of the player.</summary>
+    protected uint MaxHP { get; private set; }
+
     /// <summary>Retrieves the <b>current MP</b> value of the player.</summary>
     protected uint MP { get; private set; }
+
+    /// <summary>Retrieves the <b>maximum MP</b> value of the player.</summary>
+    protected uint MaxMP { get; private set; }
 
     /// <summary>Retrieves the <b>current Shield</b> value of the player.</summary>
     protected uint Shield { get; private set; }
@@ -897,7 +903,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         NextGCD = default;
         NextGCDPrio = 0;
         HP = Player.HPMP.CurHP;
+        MaxHP = Player.HPMP.MaxHP;
         MP = Player.HPMP.CurMP;
+        MaxMP = Player.HPMP.MaxMP;
         Shield = Player.HPMP.Shield;
         PlayerTarget = Hints.FindEnemy(primaryTarget);
         AnimationLockDelay = estimatedAnimLockDelay;
