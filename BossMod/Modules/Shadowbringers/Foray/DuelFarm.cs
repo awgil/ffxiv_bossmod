@@ -16,6 +16,8 @@ public sealed class DuelAttribute(uint nameID, uint prepNameID, uint fateID = 0)
 [ConfigDisplay(Name = "Bozja duel farming", Parent = typeof(ShadowbringersConfig))]
 public class DuelFarmConfig : ConfigNode
 {
+    public bool Enabled = true;
+
     [PropertyDisplay("Max range to look for new mobs to pull")]
     [PropertySlider(20, 100, Speed = 0.1f)]
     public float MaxPullDistance = 30f;
@@ -59,7 +61,7 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
         base.Dispose(disposing);
     }
 
-    public override bool WantDrawExtra() => true;
+    public override bool WantDrawExtra() => _globalConfig.Enabled;
 
     public override string WindowName() => $"{Zone}###Eureka module";
 
@@ -67,6 +69,9 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
+        if (!_globalConfig.Enabled)
+            return;
+
         AddAIHints(playerSlot, player, hints);
 
         var farmNameID = GetPrepID(FarmTarget);
@@ -98,13 +103,16 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
 
     public override void DrawExtra()
     {
+        var modified = false;
+
+        ImGui.SetNextItemWidth(200);
+        modified |= ImGui.Checkbox("Enable", ref _globalConfig.Enabled);
+
         var tar = FarmTarget;
         if (UICombo.Enum("Prep", ref tar, t => GetAttr(t)?.Label ?? t.ToString()))
             FarmTarget = tar;
 
         ImGui.Spacing();
-
-        var modified = false;
 
         ImGui.SetNextItemWidth(200);
         modified |= ImGui.DragFloat("Max distance to look for new mobs", ref _globalConfig.MaxPullDistance, 1, 20, 120);
