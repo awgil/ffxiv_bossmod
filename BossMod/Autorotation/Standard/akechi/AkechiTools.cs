@@ -341,7 +341,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
 
     /// <summary>Checks if user is in <b>pre-pull</b> stage.</summary>
-    protected bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
+    protected bool IsFirstGCD() => !Player.InCombat || CombatTimer < 0.1f;
 
     /// <summary>Checks if user can <b>Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanWeaveIn => GCD >= 0.6f;

@@ -1,7 +1,6 @@
 ﻿using BossMod.BLM;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
-using static BossMod.StrikingDummy.StrikingDummyRotation;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -10,13 +9,13 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Movement = SharedTrack.Count, Thunder, Polyglot, Manafont, Triplecast, Swiftcast, LeyLines, TPUS, Casting, Amplifier, Retrace, BTL }
-    public enum MovementStrategy { Allow, AllowNoScathe, OnlyGCDs, OnlyOGCDs, OnlyScathe, Forbid }
+    public enum Track { Thunder = SharedTrack.Count, Polyglot, Manafont, Triplecast, Swiftcast, LeyLines, TPUS, Movement, Casting, Amplifier, Retrace, BTL }
     public enum ThunderStrategy { Allow3, Allow6, Allow9, AllowNoDOT, ForceAny, ForceST, ForceAOE, Forbid }
     public enum PolyglotStrategy { AutoSpendAll, AutoHold1, AutoHold2, AutoHold3, XenoSpendAll, XenoHold1, XenoHold2, XenoHold3, FoulSpendAll, FoulHold1, FoulHold2, FoulHold3, ForceXeno, ForceFoul, Delay }
-    public enum ManafontStrategy { Automatic, Force, ForceWeave, ForceEX, ForceWeaveEX, Delay }
-    public enum CommonStrategy { Automatic, Force, Force1, ForceWeave, ForceWeave1, Delay }
+    public enum UpgradeStrategy { Automatic, Force, ForceWeave, ForceEX, ForceWeaveEX, Delay }
+    public enum ChargeStrategy { Automatic, Force, Force1, ForceWeave, ForceWeave1, Delay }
     public enum TPUSStrategy { Allow, OOConly, Forbid }
+    public enum MovementStrategy { Allow, AllowNoScathe, OnlyGCDs, OnlyOGCDs, OnlyScathe, Forbid }
     public enum CastingOption { Allow, Forbid }
     #endregion
 
@@ -30,21 +29,14 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             AID.Flare, AID.Freeze, AID.Despair, AID.FlareStar); //Other
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionInt);
-        res.Define(Track.Movement).As<MovementStrategy>("Movement", uiPriority: 195)
-            .AddOption(MovementStrategy.Allow, "Allow", "Allow the use of all appropriate abilities for use while moving")
-            .AddOption(MovementStrategy.AllowNoScathe, "AllowNoScathe", "Allow the use of all appropriate abilities for use while moving except for Scathe")
-            .AddOption(MovementStrategy.OnlyGCDs, "OnlyGCDs", "Only use instant cast GCDs for movement; Polyglots->Firestarter->Thunder->Scathe if nothing left")
-            .AddOption(MovementStrategy.OnlyOGCDs, "OnlyOGCDs", "Only use OGCDs for movement; Swiftcast->Triplecast")
-            .AddOption(MovementStrategy.OnlyScathe, "OnlyScathe", "Only use Scathe for use while moving")
-            .AddOption(MovementStrategy.Forbid, "Forbid", "Forbid the use of any abilities for use while moving");
         res.Define(Track.Thunder).As<ThunderStrategy>("Thunder", "DOT", uiPriority: 190)
             .AddOption(ThunderStrategy.Allow3, "Allow3", "Allow the use Thunder if target Has 3s or less remaining on DoT effect", 0, 0, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.Allow6, "Allow6", "Allow the use Thunder if target Has 6s or less remaining on DoT effect", 0, 0, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.Allow9, "Allow9", "Allow the use Thunder if target Has 9s or less remaining on DoT effect", 0, 0, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.AllowNoDOT, "AllowNoDOT", "Allow the use Thunder only if target does not have DoT effect", 0, 0, ActionTargets.Hostile, 6)
-            .AddOption(ThunderStrategy.ForceAny, "Force", "Force use of best Thunder regardless of DoT effect", 0, 30, ActionTargets.Hostile, 6)
-            .AddOption(ThunderStrategy.ForceST, "Force", "Force use of single-target Thunder regardless of DoT effect", 0, 30, ActionTargets.Hostile, 6)
-            .AddOption(ThunderStrategy.ForceAOE, "Force", "Force use of AOE Thunder regardless of DoT effect", 0, 24, ActionTargets.Hostile, 6)
+            .AddOption(ThunderStrategy.ForceAny, "ForceAny", "Force use of best Thunder regardless of DoT effect", 0, 30, ActionTargets.Hostile, 6)
+            .AddOption(ThunderStrategy.ForceST, "ForceST", "Force use of single-target Thunder regardless of DoT effect", 0, 30, ActionTargets.Hostile, 6)
+            .AddOption(ThunderStrategy.ForceAOE, "ForceAOE", "Force use of AOE Thunder regardless of DoT effect", 0, 24, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.Forbid, "Forbid", "Forbid the use of Thunder for manual or strategic usage", 0, 0, ActionTargets.Hostile, 6)
             .AddAssociatedActions(AID.Thunder1, AID.Thunder2, AID.Thunder3, AID.Thunder4, AID.HighThunder, AID.HighThunder2);
         res.Define(Track.Polyglot).As<PolyglotStrategy>("Polyglot", "Polyglot", uiPriority: 180)
@@ -64,44 +56,56 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(PolyglotStrategy.ForceFoul, "Force Foul", "Force use of Foul", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.Delay, "Delay", "Delay the use of Polyglot abilities for manual or strategic usage", 0, 0, ActionTargets.Hostile, 70)
             .AddAssociatedActions(AID.Xenoglossy, AID.Foul);
-
-        res.Define(Track.Manafont).As<ManafontStrategy>("Manafont", "M.font", uiPriority: 165)
-            .AddOption(ManafontStrategy.Automatic, "Auto", "Automatically use Manafont optimally", 0, 0, ActionTargets.Self, 30)
-            .AddOption(ManafontStrategy.Force, "Force", "Force the use of Manafont (180s CDRemaining), regardless of weaving conditions", 180, 0, ActionTargets.Self, 30, 83)
-            .AddOption(ManafontStrategy.ForceWeave, "ForceWeave", "Force the use of Manafont (180s CDRemaining) in any next possible weave slot", 180, 0, ActionTargets.Self, 30, 83)
-            .AddOption(ManafontStrategy.ForceEX, "ForceEX", "Force the use of Manafont (100s CDRemaining), regardless of weaving conditions", 100, 0, ActionTargets.Self, 84)
-            .AddOption(ManafontStrategy.ForceWeaveEX, "ForceWeaveEX", "Force the use of Manafont (100s CDRemaining) in any next possible weave slot", 100, 0, ActionTargets.Self, 84)
-            .AddOption(ManafontStrategy.Delay, "Delay", "Delay the use of Manafont for strategic reasons", 0, 0, ActionTargets.Self, 30)
+        res.Define(Track.Manafont).As<UpgradeStrategy>("Manafont", "M.font", uiPriority: 165)
+            .AddOption(UpgradeStrategy.Automatic, "Auto", "Automatically use Manafont optimally", 0, 0, ActionTargets.Self, 30)
+            .AddOption(UpgradeStrategy.Force, "Force", "Force the use of Manafont (180s cooldown), regardless of weaving conditions", 180, 0, ActionTargets.Self, 30, 83)
+            .AddOption(UpgradeStrategy.ForceWeave, "ForceWeave", "Force the use of Manafont (180s cooldown) in any next possible weave slot", 180, 0, ActionTargets.Self, 30, 83)
+            .AddOption(UpgradeStrategy.ForceEX, "ForceEX", "Force the use of Manafont (100s cooldown), regardless of weaving conditions", 100, 0, ActionTargets.Self, 84)
+            .AddOption(UpgradeStrategy.ForceWeaveEX, "ForceWeaveEX", "Force the use of Manafont (100s cooldown) in any next possible weave slot", 100, 0, ActionTargets.Self, 84)
+            .AddOption(UpgradeStrategy.Delay, "Delay", "Delay the use of Manafont for strategic reasons", 0, 0, ActionTargets.Self, 30)
             .AddAssociatedActions(AID.Manafont);
-
-        res.Define(Track.Triplecast).As<CommonStrategy>("T.cast", uiPriority: 170)
-            .AddOption(CommonStrategy.Automatic, "Auto", "Use any charges available during Ley Lines window or every 2 minutes (NOTE: does not take into account charge overcap, will wait for 2 minute windows to spend both)", 0, 0, ActionTargets.Self, 66)
-            .AddOption(CommonStrategy.Force, "Force", "Force the use of Triplecast; uses all charges", 60, 15, ActionTargets.Self, 66)
-            .AddOption(CommonStrategy.Force1, "Force1", "Force the use of Triplecast; holds one charge for manual usage", 60, 15, ActionTargets.Self, 66)
-            .AddOption(CommonStrategy.ForceWeave, "ForceWeave", "Force the use of Triplecast in any next possible weave slot", 60, 15, ActionTargets.Self, 66)
-            .AddOption(CommonStrategy.ForceWeave1, "ForceWeave1", "Force the use of Triplecast in any next possible weave slot; holds one charge for manual usage", 60, 15, ActionTargets.Self, 66)
-            .AddOption(CommonStrategy.Delay, "Delay", "Delay the use of Triplecast", 0, 0, ActionTargets.Self, 66)
+        res.Define(Track.Triplecast).As<ChargeStrategy>("T.cast", uiPriority: 170)
+            .AddOption(ChargeStrategy.Automatic, "Auto", "Use any charges available to maintain swift rotation by instant-casting Blizzard III after Fire Phase (e.g. Despair->Transpose->Triplecast->B3 etc.)", 0, 0, ActionTargets.Self, 66)
+            .AddOption(ChargeStrategy.Force, "Force", "Force the use of Triplecast; uses all charges", 60, 15, ActionTargets.Self, 66)
+            .AddOption(ChargeStrategy.Force1, "Force1", "Force the use of Triplecast; holds one charge for manual usage", 60, 15, ActionTargets.Self, 66)
+            .AddOption(ChargeStrategy.ForceWeave, "ForceWeave", "Force the use of Triplecast in any next possible weave slot", 60, 15, ActionTargets.Self, 66)
+            .AddOption(ChargeStrategy.ForceWeave1, "ForceWeave1", "Force the use of Triplecast in any next possible weave slot; holds one charge for manual usage", 60, 15, ActionTargets.Self, 66)
+            .AddOption(ChargeStrategy.Delay, "Delay", "Delay the use of Triplecast", 0, 0, ActionTargets.Self, 66)
             .AddAssociatedActions(AID.Triplecast);
-        res.DefineOGCD(Track.Swiftcast, AID.Swiftcast, "Swiftcast", "Swiftcast", uiPriority: 171, 5, 0, ActionTargets.Self, 4);
-        res.Define(Track.LeyLines).As<CommonStrategy>("L.Lines", uiPriority: 170)
-            .AddOption(CommonStrategy.Automatic, "Auto", "Automatically decide when to use Ley Lines", 0, 0, ActionTargets.Self, 2)
-            .AddOption(CommonStrategy.Force, "Force", "Force the use of Ley Lines, regardless of weaving conditions", 120, 30, ActionTargets.Self, 2)
-            .AddOption(CommonStrategy.Force1, "Force1", "Force the use of Ley Lines; holds one charge for manual usage", 120, 30, ActionTargets.Self, 2)
-            .AddOption(CommonStrategy.ForceWeave, "ForceWeave", "Force the use of Ley Lines in any next possible weave slot", 120, 30, ActionTargets.Self, 2)
-            .AddOption(CommonStrategy.ForceWeave1, "ForceWeave1", "Force the use of Ley Lines in any next possible weave slot; holds one charge for manual usage", 120, 30, ActionTargets.Self, 2)
-            .AddOption(CommonStrategy.Delay, "Delay", "Delay the use of Ley Lines", 0, 0, ActionTargets.Self, 2)
+        res.Define(Track.Swiftcast).As<UpgradeStrategy>("Swiftcast", "S.cast", uiPriority: 170)
+            .AddOption(UpgradeStrategy.Automatic, "Auto", "Use Swiftcast to maintain swift rotation by instant-casting Blizzard III after Fire Phase (e.g. Despair->Transpose->Swiftcast->B3 etc.)", 0, 0, ActionTargets.Self, 66)
+            .AddOption(UpgradeStrategy.Force, "Force", "Force the use of Swiftcast (60s cooldown), regardless of weaving conditions", 60, 10, ActionTargets.Self, 18, 93)
+            .AddOption(UpgradeStrategy.ForceWeave, "ForceWeave", "Force the use of Swiftcast (60s cooldown) in any next possible weave slot", 180, 10, ActionTargets.Self, 18, 93)
+            .AddOption(UpgradeStrategy.ForceEX, "ForceEX", "Force the use of Swiftcast (40s cooldown), regardless of weaving conditions", 40, 10, ActionTargets.Self, 94)
+            .AddOption(UpgradeStrategy.ForceWeaveEX, "ForceWeaveEX", "Force the use of Swiftcast (40s cooldown) in any next possible weave slot", 40, 10, ActionTargets.Self, 94)
+            .AddOption(UpgradeStrategy.Delay, "Delay", "Delay the use of Swiftcast for strategic reasons", 0, 0, ActionTargets.Self, 18)
+            .AddAssociatedActions(AID.Swiftcast);
+        res.Define(Track.LeyLines).As<ChargeStrategy>("L.Lines", uiPriority: 170)
+            .AddOption(ChargeStrategy.Automatic, "Auto", "Automatically decide when to use Ley Lines", 0, 0, ActionTargets.Self, 2)
+            .AddOption(ChargeStrategy.Force, "Force", "Force the use of Ley Lines, regardless of weaving conditions", 120, 30, ActionTargets.Self, 2)
+            .AddOption(ChargeStrategy.Force1, "Force1", "Force the use of Ley Lines; holds one charge for manual usage", 120, 30, ActionTargets.Self, 2)
+            .AddOption(ChargeStrategy.ForceWeave, "ForceWeave", "Force the use of Ley Lines in any next possible weave slot", 120, 30, ActionTargets.Self, 2)
+            .AddOption(ChargeStrategy.ForceWeave1, "ForceWeave1", "Force the use of Ley Lines in any next possible weave slot; holds one charge for manual usage", 120, 30, ActionTargets.Self, 2)
+            .AddOption(ChargeStrategy.Delay, "Delay", "Delay the use of Ley Lines", 0, 0, ActionTargets.Self, 2)
             .AddAssociatedActions(AID.LeyLines);
         res.Define(Track.TPUS).As<TPUSStrategy>("Transpose & Umbral Soul", "TP/US", uiPriority: 160)
-            .AddOption(TPUSStrategy.Allow, "Allow", "Allow Transpose & Umbral Soul combo when out of combat or no targetable enemy is nearby", 0, 0, ActionTargets.Self, 35)
-            .AddOption(TPUSStrategy.OOConly, "OOConly", "Only use Transpose & Umbral Soul combo when fully out of combat", 0, 0, ActionTargets.Self, 35)
-            .AddOption(TPUSStrategy.Forbid, "Forbid", "Forbid Transpose & Umbral Soul combo", 0, 0, ActionTargets.Self, 35)
+            .AddOption(TPUSStrategy.Allow, "Allow", "Allow Transpose & Umbral Soul combo when either out of combat or no targetable enemy is nearby", minLevel: 35)
+            .AddOption(TPUSStrategy.OOConly, "OOConly", "Only use Transpose & Umbral Soul combo when fully out of combat", minLevel: 35)
+            .AddOption(TPUSStrategy.Forbid, "Forbid", "Forbid Transpose & Umbral Soul combo", minLevel: 35)
             .AddAssociatedActions(AID.Transpose, AID.UmbralSoul);
-        res.Define(Track.Casting).As<CastingOption>("Casting", uiPriority: 155)
+        res.Define(Track.Movement).As<MovementStrategy>("Moving", uiPriority: 195)
+            .AddOption(MovementStrategy.Allow, "Allow", "Allow the use of all appropriate abilities for use while moving")
+            .AddOption(MovementStrategy.AllowNoScathe, "AllowNoScathe", "Allow the use of all appropriate abilities for use while moving except for Scathe")
+            .AddOption(MovementStrategy.OnlyGCDs, "OnlyGCDs", "Only use instant cast GCDs for use while moving; Polyglots->Thunder->Scathe if nothing left")
+            .AddOption(MovementStrategy.OnlyOGCDs, "OnlyOGCDs", "Only use OGCDs for use while moving; Swiftcast->Triplecast (NOTE: This will most likely cause you to enter UI3 without Transpose if moving frequently)")
+            .AddOption(MovementStrategy.OnlyScathe, "OnlyScathe", "Only use Scathe for use while moving")
+            .AddOption(MovementStrategy.Forbid, "Forbid", "Forbid the use of any abilities for use while moving");
+        res.Define(Track.Casting).As<CastingOption>("Cast", uiPriority: 155)
             .AddOption(CastingOption.Allow, "Allow", "Allow casting while moving")
             .AddOption(CastingOption.Forbid, "Forbid", "Forbid casting while moving");
-        res.DefineOGCD(Track.Amplifier, AID.Amplifier, "Amplifier", "Amplifier", uiPriority: 170, 120, 0, ActionTargets.Self, 86);
+        res.DefineOGCD(Track.Amplifier, AID.Amplifier, "Amplifier", "Amp.", uiPriority: 170, 120, 0, ActionTargets.Self, 86);
         res.DefineOGCD(Track.Retrace, AID.Retrace, "Retrace", "Retrace", uiPriority: 170, 40, 0, ActionTargets.Self, 96);
-        res.DefineOGCD(Track.BTL, AID.BetweenTheLines, "BTL", "Between the Lines", uiPriority: 170, 40, 0, ActionTargets.Self, 62);
+        res.DefineOGCD(Track.BTL, AID.BetweenTheLines, "BTL", "BTL", uiPriority: 170, 40, 0, ActionTargets.Self, 62);
 
         return res;
     }
@@ -192,7 +196,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private bool HasParadox; //Paradox is active
     private bool HasThunderhead; //Has Thunderhead buff
     private bool HasFirestarter; //Has Firestarter buff
-
     private byte Polyglots; //Polyglot Stacks
     private int MaxPolyglots; //Max Polyglot Stacks
     private bool HasMaxPolyglots;
@@ -240,305 +243,148 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Rotation Helpers
-    public void BestST(Actor? target)
+    public void BestST(Actor? target, GCDPriority prio)
     {
         if (HasAF) //Fire
         {
             if ((UmbralHearts > 0 ? MP >= 800 : MP >= 1600) && AstralSouls != 6)
-                QueueGCD(Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1, target, GCDPriority.Low);
+                QueueGCD(Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1, target, prio);
             if (Unlocked(AID.Blizzard3) && (((!Unlocked(AID.Despair) || LastActionUsed(AID.Despair)) || MP == 0) && ((!HasEffect(SID.Swiftcast) && !Unlocked(AID.Triplecast)) || (!HasEffect(SID.Swiftcast) || !HasEffect(SID.Triplecast)))))
-                QueueGCD(AID.Blizzard3, target, GCDPriority.Low);
+                QueueGCD(AID.Blizzard3, target, prio);
         }
         if (HasUI) //Ice
         {
             if (Unlocked(AID.Blizzard3) && UmbralIce != 3 && ((HasEffect(SID.Swiftcast) || !Unlocked(AID.Triplecast)) || (HasEffect(SID.Swiftcast) || HasEffect(SID.Triplecast))))
-                QueueGCD(AID.Blizzard3, target, GCDPriority.Low);
+                QueueGCD(AID.Blizzard3, target, prio);
             if (LastActionUsed(AID.Blizzard3) || (Unlocked(TraitID.UmbralHeart) ? (UmbralIce == 3 && !HasMaxHearts) : MP != MaxMP))
-                QueueGCD(Unlocked(AID.Blizzard4) ? AID.Blizzard4 : AID.Blizzard1, target, GCDPriority.Low);
+                QueueGCD(Unlocked(AID.Blizzard4) ? AID.Blizzard4 : AID.Blizzard1, target, prio);
         }
     }
-    private void BestRotation(Actor? target)
+    private void BestRotation(Actor? target, GCDPriority prio, StrategyValues strategy)
     {
-        if (ShouldUseAOE)
-            BestAOE(target);
-        else
-            BestST(target);
+        if (ShouldUseAOE || strategy.ForceAOE())
+            BestAOE(target, prio);
+        if (!ShouldUseAOE || strategy.ForceST())
+            BestST(target, prio);
     }
-    private void BestAOE(Actor? target) //AOE rotation based on level 
+    private void BestAOE(Actor? target, GCDPriority prio)
     {
         if (In25y(target))
         {
-            if (NoUIorAF)
+            if (!Unlocked(AID.FlareStar))
             {
-                if (Unlocked(AID.Blizzard2) && !Unlocked(AID.HighBlizzard2))
-                {
-                    if (MP >= 10000)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.NeedB3);
-                    if (MP < 10000 && Player.InCombat)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.NeedB3);
-                }
-                if (Unlocked(AID.HighBlizzard2))
-                {
-                    if (MP >= 10000)
-                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.NeedB3);
-                    if (MP < 10000 && Player.InCombat)
-                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.NeedB3);
-                }
-            }
-            if (Player.Level is >= 12 and <= 35)
-            {
-                //Fire
-                if (Unlocked(AID.Fire2) && //if Fire is unlocked
-                    HasAF && MP >= 3000) //or if Astral Fire is active and MP is 1600 or more
-                    QueueGCD(AID.Fire2, target, NewGCDPriority.Standard); //Queue Fire II
-                //Ice
-                //TODO: MP tick is not fast enough before next cast, this will cause an extra unnecessary cast
-                if (HasUI &&
-                    MP <= 9600)
-                    QueueGCD(AID.Blizzard2, target, NewGCDPriority.Standard); //Queue Blizzard II
-                //Transpose 
-                if (OGCDReady(AID.Transpose) && //if Transpose is unlocked & off cooldown
-                    (HasAF && MP < 3000 || //if Astral Fire is active and MP is less than 1600
-                    HasUI && MP > 9600)) //or if Umbral Ice is active and MP is max
-                    QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose); //Queue Transpose
-                //if in AF but no F2 yet, TP back to UI for B2 spam
-                if (HasAF && !Unlocked(AID.Fire2))
-                    QueueOGCD(AID.Transpose, Player, NewOGCDPriority.Transpose);
-            }
-            if (Player.Level is >= 35 and <= 39)
-            {
+                if (Unlocked(AID.Fire2) && ((HasUI && (MP == 10000 && UmbralIce == 3)) || (HasAF && (Unlocked(TraitID.UmbralHeart) ? MP > 5500 : MP >= 3000))))
+                    QueueGCD(Unlocked(AID.HighFire2) ? AID.HighFire2 : AID.Fire2, target, prio);
+
                 if (HasUI)
                 {
-                    //Step 1 - max stacks in UI
-                    //TODO: MP tick is not fast enough before next cast, this will cause an extra unnecessary cast
-                    if (Unlocked(AID.Blizzard2) &&
-                        MP < 9600)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - swap from UI to AF
-                    if (Unlocked(AID.Fire2) &&
-                        MP >= 9600 &&
-                        UmbralIce == 3)
-                        QueueGCD(AID.Fire2, target, NewGCDPriority.SecondStep);
-                }
-                if (HasAF)
-                {
-                    if (MP >= 3000)
-                        QueueGCD(AID.Fire2, target, NewGCDPriority.FirstStep);
-                    if (Unlocked(AID.Blizzard2) &&
-                        MP < 3000)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.SecondStep);
+                    if (Unlocked(AID.Blizzard2) && ((HasUI && UmbralIce < 3) || (HasAF && MP < 400)))
+                        QueueGCD(Unlocked(AID.HighBlizzard2) ? AID.HighBlizzard2 : AID.Blizzard2, target, prio);
+                    if (!LastActionUsed(AID.Freeze) && UmbralIce == 3 && MP < 10000)
+                        QueueGCD(Unlocked(AID.Freeze) ? AID.Freeze : AID.Blizzard2, target, prio);
                 }
             }
-            if (Player.Level is >= 40 and <= 49)
+            if (Unlocked(AID.FlareStar))
             {
+                if (NoUIorAF) //start AOE with HB2
+                    QueueGCD(AID.HighBlizzard2, target, prio);
                 if (HasUI)
                 {
-                    //Step 1 - max stacks in UI
-                    if (Unlocked(AID.Blizzard2) &&
-                        UmbralIce < 3)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - Freeze
-                    if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
-                        (LastActionUsed(AID.Blizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
-                    //Step 3 - swap from UI to AF
-                    if (Unlocked(AID.Fire2) &&
-                        MP >= 10000 &&
-                        UmbralIce == 3)
-                        QueueGCD(AID.Fire2, target, NewGCDPriority.ThirdStep);
-                }
-                if (HasAF)
-                {
-                    if (MP >= 3000)
-                        QueueGCD(AID.Fire2, target, NewGCDPriority.FirstStep);
-                    if (Unlocked(AID.Blizzard2) &&
-                        MP < 3000)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.SecondStep);
-                }
-            }
-            if (Player.Level is >= 50 and <= 57)
-            {
-                if (HasUI)
-                {
-                    //Step 1 - max stacks in UI
-                    if (Unlocked(AID.Blizzard2) &&
-                        UmbralIce < 3)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - Freeze
-                    if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
-                        (LastActionUsed(AID.Blizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
-                    //Step 3 - swap from UI to AF
-                    if (Unlocked(AID.Fire2) &&
-                        MP >= 10000 &&
-                        UmbralIce == 3)
-                        QueueGCD(AID.Fire2, target, NewGCDPriority.ThirdStep);
-                }
-                if (HasAF)
-                {
-                    //Step 1 - spam Fire 2
-                    if (MP >= 3000)
-                        QueueGCD(AID.Fire2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - Flare
-                    if (Unlocked(AID.Flare) &&
-                        MP < 3000)
-                        QueueGCD(AID.Flare, target, NewGCDPriority.SecondStep);
-                    //Step 3 - swap from AF to UI
-                    if (Unlocked(AID.Blizzard2) &&
-                        !Unlocked(AID.Flare) && MP < 3000 || //do your job quests, fool
-                        Unlocked(AID.Flare) && MP < 400)
-                        QueueGCD(AID.Blizzard2, target, MP < 400 ? NewGCDPriority.ForcedStep : NewGCDPriority.ThirdStep);
-                }
-            }
-            if (Player.Level is >= 58 and <= 81)
-            {
-                if (HasUI)
-                {
-                    //Step 1 - max stacks in UI
-                    if (Unlocked(AID.Blizzard2) &&
-                        UmbralIce < 3)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - Freeze
-                    if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
-                        (LastActionUsed(AID.Blizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
-                    //Step 3 - swap from UI to AF
-                    if (Unlocked(AID.Fire2) &&
-                        MP >= 10000 &&
-                        UmbralIce == 3)
-                        QueueGCD(AID.Fire2, target, NewGCDPriority.ThirdStep);
-                }
-                if (HasAF)
-                {
-                    //Step 1 - spam Fire 2
-                    if (UmbralHearts > 1)
-                        QueueGCD(AID.Fire2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - Flare
-                    if (Unlocked(AID.Flare))
+                    if (!HasMaxHearts)
+                        QueueGCD(AID.Freeze, target, prio);
+                    if (HasMaxHearts)
                     {
-                        //first cast
-                        if (UmbralHearts == 1)
-                            QueueGCD(AID.Flare, target, NewGCDPriority.SecondStep);
-                        //second cast
-                        if (UmbralHearts == 0 &&
-                            MP >= 800)
-                            QueueGCD(AID.Flare, target, NewGCDPriority.ThirdStep);
+                        AOEfiller(target, prio);
                     }
-                    //Step 3 - swap from AF to UI
-                    if (Unlocked(AID.Blizzard2) &&
-                        MP < 400)
-                        QueueGCD(AID.Blizzard2, target, NewGCDPriority.FourthStep);
-                }
-            }
-            if (Player.Level is >= 82 and <= 99)
-            {
-                if (HasUI)
-                {
-                    //Step 1 - max stacks in UI
-                    if (Unlocked(AID.HighBlizzard2) &&
-                        UmbralIce < 3)
-                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - Freeze
-                    if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
-                        (LastActionUsed(AID.HighBlizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
-                    //Step 3 - swap from UI to AF
-                    if (Unlocked(AID.HighFire2) &&
-                        MP >= 10000 &&
-                        UmbralIce == 3)
-                        QueueGCD(AID.HighFire2, target, NewGCDPriority.ThirdStep);
                 }
                 if (HasAF)
                 {
-                    //Step 1 - spam Fire 2
-                    if (MP > 5500)
-                        QueueGCD(AID.HighFire2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - Flare
-                    if (Unlocked(AID.Flare))
+                    if (MP < 800 && AstralSouls == 0)
                     {
-                        //first cast
-                        if (UmbralHearts == 1)
-                            QueueGCD(AID.Flare, target, NewGCDPriority.SecondStep);
-                        //second cast
-                        if (UmbralHearts == 0 &&
-                            MP >= 800)
-                            QueueGCD(AID.Flare, target, NewGCDPriority.ThirdStep);
+                        AOEfiller(target, prio);
                     }
-                    //Step 3 - swap from AF to UI
-                    if (Unlocked(AID.HighBlizzard2) &&
-                        MP < 400)
-                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.ThirdStep);
-                }
-            }
-            if (Player.Level is 100)
-            {
-                if (HasUI)
-                {
-                    //Step 1 - max stacks in UI
-                    if (Unlocked(AID.HighBlizzard2) &&
-                        UmbralIce < 3)
-                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.FirstStep);
-                    //Step 2 - Freeze
-                    if (Unlocked(AID.Freeze) && !LastActionUsed(AID.Freeze) &&
-                        (LastActionUsed(AID.HighBlizzard2) || MP < 10000))
-                        QueueGCD(AID.Freeze, target, NewGCDPriority.SecondStep);
-                    //Step 3 - swap from UI to AF
-                    if (Unlocked(AID.HighFire2) &&
-                        MP >= 10000 &&
-                        UmbralIce == 3)
-                        QueueGCD(AID.HighFire2, target, NewGCDPriority.ThirdStep);
-                }
-                if (HasAF)
-                {
-                    //Step 0 - if forced over from ST
-                    if (Unlocked(AID.HighFire2) &&
-                        MP >= 8001)
-                        QueueGCD(AID.HighFire2, target, NewGCDPriority.FirstStep);
-                    //Step 1 - Flare
-                    if (Unlocked(AID.Flare))
-                    {
-                        //first cast
-                        if (UmbralHearts == 1)
-                            QueueGCD(AID.Flare, target, NewGCDPriority.FirstStep);
-                        //second cast
-                        if (UmbralHearts == 0 &&
-                            MP >= 800)
-                            QueueGCD(AID.Flare, target, NewGCDPriority.SecondStep);
-                    }
-                    //Step 2 - Flare Star
-                    if (AstralSouls == 6) //if Astral Soul stacks are max
-                        QueueGCD(AID.FlareStar, target, NewGCDPriority.ThirdStep); //Queue Flare Star
-                    //Step 3 - swap from AF to UI
-                    if (Unlocked(AID.HighBlizzard2) &&
-                        MP < 400)
-                        QueueGCD(AID.HighBlizzard2, target, NewGCDPriority.FourthStep);
+                    //desync or swap from ST
+                    if (MP > 800)
+                        QueueGCD(AID.Flare, target, prio);
                 }
             }
         }
+    }
+
+    private void AOEfiller(Actor? target, GCDPriority prio)
+    {
+        if (HasThunderhead && thunderLeft < 15)
+            QueueGCD(BestThunderAOE, target, prio + 2);
+        if (Polyglots > 0)
+            QueueGCD(AID.Foul, target, prio + 1);
+        if (LastActionUsed(BestThunderAOE) || LastActionUsed(AID.Foul) ||
+            (!HasThunderhead && Polyglots == 0)) //this will clip
+            QueueOGCD(AID.Transpose, target, prio - 1000);
     }
     #endregion
-
     #region Cooldown Helpers
-
-    #region GCD
     public void ShouldOpen(Actor? target)
     {
-        if (NoUIorAF)
+        if (!ShouldUseAOE)
         {
-            //Opener - F3
-            if (IsFirstGCD() && target != null)
+            if (NoUIorAF)
             {
-                if (CountdownRemaining <= GetCastTime(AID.Fire3) + 0.5f) //cast time + app delay
-                    QueueGCD(AID.Fire3, target, GCDPriority.SlightlyHigh);
+                //Opener - F3
+                if (IsFirstGCD() && target != null)
+                {
+                    if (CountdownRemaining <= GetCastTime(AID.Fire3) + 0.5f) //cast time + app delay
+                        QueueGCD(AID.Fire3, target, GCDPriority.SlightlyHigh);
+                }
+                //Recovery - B3
+                if (target != null && (Player.InCombat || CombatTimer >= 0.1f))
+                {
+                    if (Unlocked(AID.Blizzard3) && UmbralIce < 3)
+                        QueueGCD(OGCDReady(AID.Swiftcast) && !HasEffect(SID.Triplecast) ? AID.Swiftcast : CanTC && !HasEffect(SID.Swiftcast) ? AID.Triplecast : AID.Blizzard3, target, GCDPriority.SlightlyHigh);
+                    if (HasAF)
+                        BestST(target, GCDPriority.Low);
+                }
             }
-            //Recovery - B3
-            if (target != null && (Player.InCombat || CombatTimer >= 0.1f))
+        }
+        if (ShouldUseAOE)
+        {
+            if (NoUIorAF || (HasUI && UmbralIce < 3))
             {
-                if (Unlocked(AID.Blizzard3) && UmbralIce < 3 && Player.InCombat)
-                    QueueGCD(OGCDReady(AID.Swiftcast) && !HasEffect(SID.Triplecast) ? AID.Swiftcast : CanTC && !HasEffect(SID.Swiftcast) ? AID.Triplecast : AID.Blizzard3, target, GCDPriority.SlightlyHigh);
+                if (IsFirstGCD() && target != null)
+                {
+                    if (CountdownRemaining <= GetCastTime(Unlocked(AID.HighBlizzard2) ? AID.HighBlizzard2 : AID.Blizzard2))
+                        QueueGCD(AID.HighBlizzard2, target, GCDPriority.SlightlyHigh);
+                }
             }
         }
     }
+    public void ShouldUseMovement(Actor? target, StrategyValues strategy)
+    {
+        var m = strategy.Option(Track.Movement).As<MovementStrategy>();
+        if (m is MovementStrategy.Allow or MovementStrategy.AllowNoScathe or MovementStrategy.OnlyGCDs)
+        {
+            if (!HasEffect(AID.Swiftcast) || !HasEffect(SID.Triplecast))
+            {
+                if (Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0)
+                    QueueGCD(strategy.ForceST() ? BestXenoglossy : strategy.ForceAOE() ? AID.Foul : BestPolyglot, TargetChoice(strategy.Option(Track.Polyglot)) ?? (strategy.ForceST() ? target : BestSplashTarget?.Actor), GCDPriority.Severe);
+                if (HasThunderhead)
+                    QueueGCD(strategy.ForceST() ? BestThunderST : strategy.ForceAOE() ? BestThunderAOE : BestThunder, TargetChoice(strategy.Option(Track.Thunder)) ?? (strategy.ForceST() ? target : BestSplashTarget?.Actor), GCDPriority.Severe);
+            }
+        }
+        if (m is MovementStrategy.Allow or MovementStrategy.AllowNoScathe or MovementStrategy.OnlyOGCDs)
+        {
+            if (OGCDReady(AID.Swiftcast) && !HasEffect(SID.Triplecast))
+                QueueOGCD(AID.Swiftcast, Player, OGCDPriority.Severe + 1);
+            if (CanTC && !HasEffect(AID.Swiftcast))
+                QueueOGCD(AID.Triplecast, Player, OGCDPriority.Severe);
+        }
+        if (m is MovementStrategy.Allow or MovementStrategy.OnlyScathe)
+        {
+            if (Unlocked(AID.Scathe) && MP >= 800)
+                QueueGCD(AID.Scathe, TargetChoice(strategy.Option(SharedTrack.AOE)) ?? target, GCDPriority.Severe);
+        }
+    }
+
+    #region GCD
     private (bool, GCDPriority) ShouldUsePolyglot(Actor? target, PolyglotStrategy strategy)
     {
         var max = HasMaxPolyglots;
@@ -582,93 +428,96 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     }
     #endregion
 
-    private bool ShouldUseF3P => Unlocked(AID.Fire3) && HasFirestarter && HasAF && AstralFire < 3;
-    private bool ShouldUseParadox => CanParadox && CombatTimer > 35 && ((HasUI && UmbralHearts == MaxUmbralHearts) || (HasAF && !HasFirestarter));
-    private bool ShouldUseDespair => Unlocked(AID.Despair) && HasAF && MP is < 1600 and >= 800;
+    private bool ShouldUseF3P => Unlocked(AID.Fire3) && !ShouldUseAOE && HasFirestarter && HasAF && AstralFire < 3;
+    private bool ShouldUseParadox => CanParadox && !ShouldUseAOE && (AstralFire == 3 ? CombatTimer > 35 : CombatTimer >= 0) && ((HasUI && UmbralHearts == MaxUmbralHearts) || (HasAF && !HasFirestarter));
+    private bool ShouldUseDespair => Unlocked(AID.Despair) && !ShouldUseAOE && HasAF && MP is < 1600 and >= 800;
     private bool ShouldUseFlareStar => Unlocked(AID.FlareStar) && AstralSouls == 6;
+    private bool ShouldUseFlare => Unlocked(AID.Flare) && ShouldUseAOE && HasAF && (Unlocked(AID.FlareStar) ? (HasAF && AstralSouls != 6 && MP >= 800) : (Unlocked(TraitID.UmbralHeart) ? (UmbralHearts > 0 || (UmbralHearts == 0 && MP >= 800)) : MP is < 3000 and >= 800));
     #endregion
 
     #region OGCD
-    private (bool, OGCDPriority) ShouldUseTranspose => ((HasUI && UmbralIce == 3 && UmbralHearts == MaxUmbralHearts && !HasParadox) || (HasAF && AstralFire == 3 && (LastActionUsed(AID.Despair) || MP == 0)), OGCDPriority.ExtremelyHigh);
-    private (bool, OGCDPriority) ShouldUseManafont(Actor? target, ManafontStrategy strategy)
+    private (bool, OGCDPriority) ShouldUseTranspose => (Unlocked(AID.Transpose) && ((HasUI && UmbralIce == 3 && UmbralHearts == MaxUmbralHearts && !HasParadox) || (HasAF && AstralFire == 3 && (LastActionUsed(AID.Despair) || (MP == 0 && AstralSouls == 0)))), OGCDPriority.ExtremelyHigh);
+    private (bool, OGCDPriority) ShouldUseManafont(Actor? target, UpgradeStrategy strategy)
     {
         if (!CanMF)
             return (false, OGCDPriority.None);
 
-        var condition = InsideCombatWith(target) && HasAF && !HasParadox && MP < 800;
+        var condition = InsideCombatWith(target) && HasAF && (ShouldUseAOE ? HasParadox : !HasParadox) && MP < 800;
         return strategy switch
         {
-            ManafontStrategy.Automatic => (condition, OGCDPriority.Severe),
-            ManafontStrategy.Force or ManafontStrategy.ForceEX => (CanMF, OGCDPriority.Severe),
-            ManafontStrategy.ForceWeave or ManafontStrategy.ForceWeaveEX => (CanMF && CanWeaveIn, OGCDPriority.Severe),
+            UpgradeStrategy.Automatic => (condition, OGCDPriority.Severe),
+            UpgradeStrategy.Force or UpgradeStrategy.ForceEX => (CanMF, OGCDPriority.Severe),
+            UpgradeStrategy.ForceWeave or UpgradeStrategy.ForceWeaveEX => (CanMF && CanWeaveIn, OGCDPriority.Severe),
             _ => (false, OGCDPriority.None)
         };
     }
-    private (bool, OGCDPriority) ShouldUseLeyLines(Actor? target, CommonStrategy strategy)
+    private (bool, OGCDPriority) ShouldUseLeyLines(Actor? target, ChargeStrategy strategy)
     {
         if (!CanLL)
             return (false, OGCDPriority.None);
 
         return strategy switch
         {
-            CommonStrategy.Automatic => (InsideCombatWith(target) && (RaidBuffsLeft > 0f || RaidBuffsIn < 3000f), OGCDPriority.Average + 1),
-            CommonStrategy.Force => (true, OGCDPriority.Average + 1),
-            CommonStrategy.Force1 => (CDRemaining(AID.LeyLines) <= 5, OGCDPriority.Average + 1),
-            CommonStrategy.ForceWeave => (CanWeaveIn, OGCDPriority.Average + 1),
-            CommonStrategy.ForceWeave1 => (CanWeaveIn && CDRemaining(AID.LeyLines) <= 5, OGCDPriority.Average + 1),
+            ChargeStrategy.Automatic => (InsideCombatWith(target) && (RaidBuffsLeft > 0f || RaidBuffsIn < 3000f), OGCDPriority.Average + 1),
+            ChargeStrategy.Force => (true, OGCDPriority.Average + 1),
+            ChargeStrategy.Force1 => (CDRemaining(AID.LeyLines) <= 5, OGCDPriority.Average + 1),
+            ChargeStrategy.ForceWeave => (CanWeaveIn, OGCDPriority.Average + 1),
+            ChargeStrategy.ForceWeave1 => (CanWeaveIn && CDRemaining(AID.LeyLines) <= 5, OGCDPriority.Average + 1),
             _ => (false, OGCDPriority.None)
         };
     }
-    private bool ShouldUseTriplecast(Actor? target, CommonStrategy strategy)
+    private bool ShouldUseTriplecast(Actor? target, ChargeStrategy strategy)
     {
         if (!CanTC)
             return false;
 
         return strategy switch
         {
-            CommonStrategy.Automatic => InsideCombatWith(target) && CanTC && HasUI && UmbralIce < 3 && !HasEffect(SID.Swiftcast) && CDRemaining(AID.Swiftcast) > 0.6f,
-            CommonStrategy.Force => true,
-            CommonStrategy.Force1 => CDRemaining(AID.Triplecast) <= 5f,
-            CommonStrategy.ForceWeave => CanWeaveIn,
-            CommonStrategy.ForceWeave1 => CanWeaveIn && CDRemaining(AID.Triplecast) <= 5f,
+            ChargeStrategy.Automatic => InsideCombatWith(target) && CanTC && HasUI && UmbralIce < 3 && !HasEffect(SID.Swiftcast) && CDRemaining(AID.Swiftcast) > 0.6f,
+            ChargeStrategy.Force => true,
+            ChargeStrategy.Force1 => CDRemaining(AID.Triplecast) <= 5f,
+            ChargeStrategy.ForceWeave => CanWeaveIn,
+            ChargeStrategy.ForceWeave1 => CanWeaveIn && CDRemaining(AID.Triplecast) <= 5f,
             _ => false
         };
     }
-    private bool ShouldUseSwiftcast(Actor? target, OGCDStrategy strategy)
+    private bool ShouldUseSwiftcast(Actor? target, UpgradeStrategy strategy)
     {
         if (!CanSwiftcast)
             return false;
 
         return strategy switch
         {
-            OGCDStrategy.Automatic => InsideCombatWith(target) && HasUI && UmbralIce < 3 && !HasEffect(SID.Triplecast),
-            OGCDStrategy.Force => true,
-            OGCDStrategy.AnyWeave => CanWeaveIn,
-            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
-            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            UpgradeStrategy.Automatic => InsideCombatWith(target) && HasUI && UmbralIce < 3 && !HasEffect(SID.Triplecast),
+            UpgradeStrategy.Force or UpgradeStrategy.ForceEX => true,
+            UpgradeStrategy.ForceWeave or UpgradeStrategy.ForceWeaveEX => CanWeaveIn,
             _ => false
         };
     }
     private (bool, OGCDPriority) TriggerInstantCasts(Actor? target, StrategyValues strategy)
     {
+        if (ShouldUseAOE)
+            return (false, OGCDPriority.None);
+
         //we want Swiftcast first primarily.. and if not up, send Triplecast
         if (HasUI && (UmbralIce < 3 || LastActionUsed(AID.Transpose)))
         {
-            if (ShouldUseSwiftcast(target, strategy.Option(Track.Swiftcast).As<OGCDStrategy>()))
+            if (ShouldUseSwiftcast(target, strategy.Option(Track.Swiftcast).As<UpgradeStrategy>()))
                 return (true, OGCDPriority.Average + 1);
-            if (ShouldUseTriplecast(target, strategy.Option(Track.Triplecast).As<CommonStrategy>()))
+            if (ShouldUseTriplecast(target, strategy.Option(Track.Triplecast).As<ChargeStrategy>()))
                 return (true, OGCDPriority.Average);
         }
 
         return (false, OGCDPriority.None);
     }
-    private bool ShouldUseOGCD(bool canUse, OGCDStrategy strategy)
+    private bool ShouldUseOGCD(bool minimum, bool condition, OGCDStrategy strategy)
     {
-        if (!canUse)
+        if (!minimum)
             return false;
 
         return strategy switch
         {
+            OGCDStrategy.Automatic => condition,
             OGCDStrategy.Force => true,
             OGCDStrategy.AnyWeave => CanWeaveIn,
             OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
@@ -676,9 +525,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             _ => false
         };
     }
-    private bool ShouldUseAmplifier(Actor? target, OGCDStrategy strategy) => strategy == OGCDStrategy.Automatic ? (InsideCombatWith(target) && !HasMaxPolyglots) : ShouldUseOGCD(CanAmplify, strategy);
-    private bool ShouldUseRetrace(OGCDStrategy strategy) => ShouldUseOGCD(CanRetrace, strategy);
-    private bool ShouldUseBTL(OGCDStrategy strategy) => ShouldUseOGCD(CanBTL, strategy);
+    private bool ShouldUseAmplifier(OGCDStrategy strategy) => ShouldUseOGCD(CanAmplify, !HasMaxPolyglots, strategy);
+    private bool ShouldUseRetrace(OGCDStrategy strategy) => ShouldUseOGCD(CanRetrace, false, strategy);
+    private bool ShouldUseBTL(OGCDStrategy strategy) => ShouldUseOGCD(CanBTL, false, strategy);
     private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
         PotionStrategy.AlignWithBuffs or PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
@@ -727,7 +576,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             StatusDetails(BestSplashTarget?.Actor, SID.ThunderIV, Player.InstanceID, 21).Left,
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunder, Player.InstanceID, 30).Left,
             StatusDetails(BestSplashTarget?.Actor, SID.HighThunderII, Player.InstanceID, 24).Left);
-        ShouldUseAOE = Unlocked(AID.Blizzard2) && NumSplashTargets > 2;
+        ShouldUseAOE = strategy.ForceAOE() || (Unlocked(AID.Blizzard2) && NumSplashTargets > 2);
         ShouldUseSTDOT = Unlocked(AID.Thunder1) && NumSplashTargets <= 2;
         ShouldUseAOEDOT = Unlocked(AID.Thunder2) && NumSplashTargets > 2;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
@@ -743,13 +592,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         var polyglot = strategy.Option(Track.Polyglot); //Polyglot track
         var polyglotStrat = polyglot.As<PolyglotStrategy>(); //Polyglot strategy
         var mf = strategy.Option(Track.Manafont); //Manafont track
-        var mfStrat = mf.As<ManafontStrategy>(); //Manafont strategy
+        var mfStrat = mf.As<UpgradeStrategy>(); //Manafont strategy
         var tc = strategy.Option(Track.Triplecast); //Triplecast track
-        var tcStrat = tc.As<CommonStrategy>(); //Triplecast strategy
+        var tcStrat = tc.As<ChargeStrategy>(); //Triplecast strategy
         var sc = strategy.Option(Track.Swiftcast); //Swiftcast track
-        var scStrat = sc.As<OGCDStrategy>(); //Swiftcast strategy
+        var scStrat = sc.As<UpgradeStrategy>(); //Swiftcast strategy
         var ll = strategy.Option(Track.LeyLines); //Ley Lines track
-        var llStrat = ll.As<CommonStrategy>(); //Ley Lines strategy
+        var llStrat = ll.As<ChargeStrategy>(); //Ley Lines strategy
         var amp = strategy.Option(Track.Amplifier); //Amplifier track
         var ampStrat = amp.As<OGCDStrategy>(); //Amplifier strategy
         var retrace = strategy.Option(Track.Retrace); //Retrace track
@@ -764,55 +613,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region Full Rotation Execution
-
-        #region Movement
-        if (Player.InCombat &&
-            BestSplashTarget?.Actor != null &&
-            IsMoving)
-        {
-            if (movementStrat is MovementStrategy.Allow
-                or MovementStrategy.AllowNoScathe
-                or MovementStrategy.OnlyGCDs)
-            {
-                // GCDs
-                if (!HasEffect(AID.Swiftcast) || !HasEffect(SID.Triplecast))
-                {
-                    if (Unlocked(TraitID.EnhancedPolyglot) && Polyglots > 0)
-                        QueueGCD(strategy.ForceST() ? BestXenoglossy : strategy.ForceAOE() ? AID.Foul : BestPolyglot,
-                                 TargetChoice(polyglot) ?? (strategy.ForceST() ? primaryTarget?.Actor : BestSplashTarget?.Actor),
-                                 NewGCDPriority.Moving1);
-
-                    if (PlayerHasEffect(SID.Firestarter, 30))
-                        QueueGCD(AID.Fire3,
-                                 TargetChoice(AOE) ?? primaryTarget?.Actor,
-                                 NewGCDPriority.Moving1);
-
-                    if (HasThunderhead)
-                        QueueGCD(strategy.ForceST() ? BestThunderST : strategy.ForceAOE() ? BestThunderAOE : BestThunder,
-                                 TargetChoice(thunder) ?? (strategy.ForceST() ? primaryTarget?.Actor : BestSplashTarget?.Actor),
-                                 NewGCDPriority.Moving1);
-                }
-            }
-            if (movementStrat is MovementStrategy.Allow
-                or MovementStrategy.AllowNoScathe
-                or MovementStrategy.OnlyOGCDs)
-            {
-                //OGCDs
-                if (OGCDReady(AID.Swiftcast) &&
-                    !PlayerHasEffect(SID.Triplecast, 15))
-                    QueueOGCD(AID.Swiftcast, Player, NewGCDPriority.Moving2);
-                if (CanTC &&
-                    !HasEffect(AID.Swiftcast))
-                    QueueOGCD(AID.Triplecast, Player, NewGCDPriority.Moving3);
-            }
-            if (movementStrat is MovementStrategy.Allow
-                or MovementStrategy.OnlyScathe)
-            {
-                if (Unlocked(AID.Scathe) && MP >= 800)
-                    QueueGCD(AID.Scathe, TargetChoice(AOE) ?? primaryTarget?.Actor, NewGCDPriority.Moving1);
-            }
-        }
-        #endregion
 
         #region Out of Combat
         if (BestSplashTarget?.Actor == null &&
@@ -837,10 +637,19 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             }
         }
 
-        if (CountdownRemaining > 0 || (CountdownRemaining == null || CombatTimer == 0))
+        if (CountdownRemaining > 0)
         {
             ShouldOpen(primaryTarget?.Actor);
         }
+        if (CountdownRemaining == null && CombatTimer == 0)
+        {
+            ShouldOpen(primaryTarget?.Actor);
+        }
+        if (InsideCombatWith(primaryTarget?.Actor) && IsMoving)
+        {
+            ShouldUseMovement(primaryTarget?.Actor, strategy);
+        }
+
         #endregion
 
         #region Standard Rotations
@@ -849,15 +658,16 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             (!IsMoving || HasEffect(SID.Swiftcast) || HasEffect(SID.Triplecast) || ShouldUseParadox || ShouldUseF3P || (Unlocked(TraitID.EnhancedAstralFire) && HasAF && MP is <= 800 and not 0)))
         {
             if (strategy.AutoFinish() || strategy.AutoBreak())
-                BestRotation(TargetChoice(AOE) ?? BestSplashTarget?.Actor);
+                BestRotation(TargetChoice(AOE) ?? BestSplashTarget?.Actor, GCDPriority.Low, strategy);
             if (strategy.ForceST())
-                BestST(TargetChoice(AOE) ?? primaryTarget?.Actor);
+                BestST(TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
             if (strategy.ForceAOE())
-                BestAOE(TargetChoice(AOE) ?? BestSplashTarget?.Actor);
+                BestAOE(TargetChoice(AOE) ?? BestSplashTarget?.Actor, GCDPriority.Low);
         }
         #endregion
 
         #region Cooldowns
+
         #region GCD
         //Thunder
         var (tCondition, tPrio) = ShouldUseThunder(primaryTarget?.Actor, thunderStrat);
@@ -878,12 +688,15 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         //Paradox
         if (InsideCombatWith(primaryTarget?.Actor) && ShouldUseParadox)
             QueueGCD(AID.Paradox, primaryTarget?.Actor, GCDPriority.Average);
-        //FlareStar
-        if (InsideCombatWith(BestSplashTarget?.Actor) && ShouldUseFlareStar)
-            QueueGCD(AID.FlareStar, BestSplashTarget?.Actor, GCDPriority.Average + 6);
         //Despair
         if (InsideCombatWith(primaryTarget?.Actor) && ShouldUseDespair)
             QueueGCD(AID.Despair, primaryTarget?.Actor, GCDPriority.Average + 1);
+        //FlareStar
+        if (InsideCombatWith(BestSplashTarget?.Actor) && ShouldUseFlareStar)
+            QueueGCD(AID.FlareStar, BestSplashTarget?.Actor, GCDPriority.Average + 6);
+        //Flare
+        if (InsideCombatWith(BestSplashTarget?.Actor) && ShouldUseFlare)
+            QueueGCD(AID.Flare, BestSplashTarget?.Actor, GCDPriority.Average);
         //Polyglots
         var (pgCondition, pgPrio) = ShouldUsePolyglot(primaryTarget?.Actor, polyglotStrat);
         if (pgCondition)
