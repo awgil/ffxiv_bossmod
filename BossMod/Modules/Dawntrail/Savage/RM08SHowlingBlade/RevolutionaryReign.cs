@@ -109,9 +109,9 @@ class ReignHints(BossModule module) : BossComponent(module)
             else
             {
                 if (lp != 2)
-                    yield return (_source.Value + bossFacing.Rotate(-75.Degrees()) * 7);
+                    yield return _source.Value + bossFacing.Rotate(-75.Degrees()) * 7;
                 if (lp != 1)
-                    yield return (_source.Value + bossFacing.Rotate(75.Degrees()) * 7);
+                    yield return _source.Value + bossFacing.Rotate(75.Degrees()) * 7;
             }
         }
         else
@@ -239,7 +239,7 @@ class ReignsEnd : Components.GenericBaitAway
 {
     public ReignsEnd(BossModule module) : base(module, AID.ReignsEnd)
     {
-        CurrentBaits.AddRange(Raid.WithoutSlot().Where(r => r.Role == Role.Tank).Select(r => new Bait(Module.PrimaryActor, r, new AOEShapeCone(40, 30.Degrees()), WorldState.FutureTime(3.1f))));
+        CurrentBaits.AddRange(Raid.WithoutSlot().SortedByHate(WorldState, Module.PrimaryActor).Take(2).Select(r => new Bait(Module.PrimaryActor, r, new AOEShapeCone(40, 30.Degrees()), WorldState.FutureTime(3.1f))));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

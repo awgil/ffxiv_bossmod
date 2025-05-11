@@ -244,13 +244,15 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (AstralSoul == 6)
             PushGCD(AID.FlareStar, BestAOETarget);
 
+        var haveInstant = GetCastTime(AID.Fire4) == 0;
+
         if (Unlocked(AID.Fire4))
         {
             var f4Cost = Hearts > 0 ? 800 : 1600;
 
             if (Fire == 3)
             {
-                if (ShouldUseLeylines(strategy, 1) && GetCastTime(AID.Fire4) > 0)
+                if (ShouldUseLeylines(strategy, 1) && !haveInstant)
                     TryInstantCast(strategy, primaryTarget);
 
                 // despair requires 800 MP
@@ -274,6 +276,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
                     PushGCD(AID.Fire4, primaryTarget);
                 }
+
+                if (Polyglot > 0 && !haveInstant)
+                    PushGCD(AID.Xenoglossy, primaryTarget);
 
                 if (Paradox && MP >= 1600)
                     PushGCD(AID.Paradox, primaryTarget);

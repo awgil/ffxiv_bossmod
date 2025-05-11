@@ -138,6 +138,30 @@ public static class ActorEnumeration
             .Select(indexPlayerDist => (indexPlayerDist.Item1, indexPlayerDist.Item2));
     }
 
+    public static IEnumerable<Actor> SortedByHate(this IEnumerable<Actor> range, WorldState ws, Actor primaryTarget)
+    {
+        if (ws.Client.CurrentTargetHate.InstanceID != primaryTarget.InstanceID)
+            return [];
+
+        return range
+            .Select(actor => (actor, Array.IndexOf(ws.Client.CurrentTargetHate.Targets, actor.InstanceID)))
+            .Where(a => a.Item2 >= 0)
+            .OrderByDescending(a => a.Item2)
+            .Select(a => a.actor);
+    }
+
+    public static IEnumerable<(int, Actor)> SortedByHate(this IEnumerable<(int, Actor)> range, WorldState ws, Actor primaryTarget)
+    {
+        if (ws.Client.CurrentTargetHate.InstanceID != primaryTarget.InstanceID)
+            return [];
+
+        return range
+            .Select(indexPlayer => (indexPlayer, Array.IndexOf(ws.Client.CurrentTargetHate.Targets, indexPlayer.Item2.InstanceID)))
+            .Where(a => a.Item2 >= 0)
+            .OrderByDescending(a => a.Item2)
+            .Select(a => a.indexPlayer);
+    }
+
     // find closest actor to point
     public static Actor? Closest(this IEnumerable<Actor> range, WPos origin) => range.MinBy(a => (a.Position - origin).LengthSq());
     public static (int, Actor) Closest(this IEnumerable<(int, Actor)> range, WPos origin) => range.MinBy(ia => (ia.Item2.Position - origin).LengthSq());

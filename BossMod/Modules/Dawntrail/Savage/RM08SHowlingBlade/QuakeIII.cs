@@ -87,7 +87,7 @@ class Twinbite(BossModule module) : Components.CastCounter(module, AID.Twinbite)
     {
         if ((AID)spell.Action.ID == AID.TwinbiteCast)
         {
-            Baits.AddRange(Raid.WithoutSlot().Where(r => r.Role == Role.Tank).Take(2));
+            Baits.AddRange(Raid.WithoutSlot().SortedByHate(WorldState, caster).Take(2));
             _activation = Module.CastFinishAt(spell, 0.1f);
         }
     }
