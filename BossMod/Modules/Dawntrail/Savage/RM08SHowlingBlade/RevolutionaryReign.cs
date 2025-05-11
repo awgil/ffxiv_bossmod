@@ -28,7 +28,6 @@ class ReignJumpCounter(BossModule module) : Components.CastCounterMulti(module, 
     }
 }
 
-#if DEBUG
 class ReignHints(BossModule module) : BossComponent(module)
 {
     private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
@@ -132,10 +131,8 @@ class ReignHints(BossModule module) : BossComponent(module)
                     yield return _source.Value + bossFacing.Rotate(12.Degrees()) * 18;
             }
         }
-
     }
 }
-#endif
 
 class WolvesReignRect(BossModule module) : Components.GenericAOEs(module)
 {
