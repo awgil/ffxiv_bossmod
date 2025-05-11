@@ -93,6 +93,12 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
+    public override string DescribeState()
+    {
+        var gauge = World.Client.GetGauge<PaladinGauge>();
+        return $"{{ Oath = {gauge.OathGauge}, C = {gauge.ConfiteorComboStep} / {gauge.ConfiteorComboTimer} }}";
+    }
+
     public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
@@ -108,7 +114,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         SepulchreReady = StatusLeft(SID.SepulchreReady);
         BladeOfHonorReady = StatusLeft(SID.BladeOfHonorReady);
         Requiescat = Status(SID.Requiescat);
-        ConfiteorCombo = gauge.ConfiteorComboStep switch
+        ConfiteorCombo = (gauge.ConfiteorComboStep & 0xFF) switch
         {
             0 => StatusLeft(SID.ConfiteorReady) > GCD ? AID.Confiteor : AID.None,
             1 => AID.BladeOfFaith,

@@ -3,7 +3,6 @@
 [ConfigDisplay(Order = 0x300, Parent = typeof(DawntrailConfig))]
 public class RM08SHowlingBladeConfig : ConfigNode
 {
-#if DEBUG
     public enum ReignStrategy
     {
         [PropertyDisplay("Show both safespots for current role")]
@@ -18,7 +17,6 @@ public class RM08SHowlingBladeConfig : ConfigNode
 
     [PropertyDisplay("Revolutionary Reign positioning hints")]
     public ReignStrategy ReignHints = ReignStrategy.Standard;
-#endif
 
     public enum TerrestrialRageStrategy
     {

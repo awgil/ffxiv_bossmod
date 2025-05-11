@@ -102,6 +102,7 @@ class RM08SHowlingBladeStates : StateMachineBuilder
     {
         CastMulti(id, [AID.EminentReignVisual1, AID.RevolutionaryReignVisual1, AID.EminentReignVisual2, AID.RevolutionaryReignVisual2], delay, castRemaining)
             .ActivateOnEnter<ReignJumpCounter>()
+            .ActivateOnEnter<ReignHints>()
             .ActivateOnEnter<WolvesReign>()
             .ActivateOnEnter<ReignInout>()
             .ActivateOnEnter<WolvesReignRect>();

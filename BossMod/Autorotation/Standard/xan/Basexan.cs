@@ -336,12 +336,14 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
 
-    protected Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
-    {
-        < -0.7071068f => Positional.Rear,
-        < 0.7071068f => Positional.Flank,
-        _ => Positional.Front
-    };
+    protected Positional GetCurrentPositional(Actor target) => target.Omnidirectional
+        ? Positional.Any
+        : (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
+        {
+            < -0.7071068f => Positional.Rear,
+            < 0.7071068f => Positional.Flank,
+            _ => Positional.Front
+        };
 
     protected bool NextPositionalImminent;
     protected bool NextPositionalCorrect;
@@ -487,9 +489,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     public abstract void Exec(StrategyValues strategy, Enemy? primaryTarget);
 
-    protected (float Left, int Stacks) Status<SID>(SID status) where SID : Enum => Player.FindStatus(status) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
-    protected float StatusLeft<SID>(SID status) where SID : Enum => Status(status).Left;
-    protected int StatusStacks<SID>(SID status) where SID : Enum => Status(status).Stacks;
+    protected (float Left, int Stacks) Status<SID>(SID status, float? pendingDuration = null) where SID : Enum => Player.FindStatus(status, pendingDuration == null ? null : World.FutureTime(pendingDuration.Value)) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
+    protected float StatusLeft<SID>(SID status, float? pendingDuration = null) where SID : Enum => Status(status, pendingDuration).Left;
+    protected int StatusStacks<SID>(SID status, float? pendingDuration = null) where SID : Enum => Status(status, pendingDuration).Stacks;
 
     protected float HPRatio(Actor actor) => (float)actor.HPMP.CurHP / Player.HPMP.MaxHP;
     protected float HPRatio() => HPRatio(Player);

@@ -362,7 +362,8 @@ public sealed class ReplayParserLog : IDisposable
             [new("DDIT"u8)] = ParseDeepDungeonPomanders,
             [new("DDCT"u8)] = ParseDeepDungeonChests,
             [new("DDMG"u8)] = ParseDeepDungeonMagicite,
-            [new("IPCI"u8)] = ParseNetworkIDScramble,
+            [new("IPCI"u8)] = ParseNetworkLegacyIDScramble,
+            [new("IPCX"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
         };
     }
@@ -761,7 +762,8 @@ public sealed class ReplayParserLog : IDisposable
     }
     private DeepDungeonState.OpMagiciteChange ParseDeepDungeonMagicite() => new(_input.ReadBytes());
 
-    private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(_input.ReadUInt(false));
+    private NetworkState.OpLegacyIDScramble ParseNetworkLegacyIDScramble() => new(_input.ReadUInt(false));
+    private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false)));
     private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));
 
     private ActorHPMP ReadActorHPMP()

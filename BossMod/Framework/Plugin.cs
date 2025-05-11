@@ -65,7 +65,6 @@ public sealed class Plugin : IDalamudPlugin
         //Service.Device = pluginInterface.UiBuilder.Device;
         Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
-        Network.IDScramble.Initialize();
         Camera.Instance = new();
 
         Service.Config.Initialize();
