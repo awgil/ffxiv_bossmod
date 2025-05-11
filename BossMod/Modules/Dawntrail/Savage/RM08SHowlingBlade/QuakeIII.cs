@@ -96,7 +96,7 @@ class Twinbite(BossModule module) : Components.CastCounter(module, AID.Twinbite)
     {
         base.OnEventCast(caster, spell);
 
-        if (spell.Action == WatchedAction)
+        if (spell.Action == WatchedAction && Baits.Count > 0)
             Baits.RemoveAt(0);
     }
 

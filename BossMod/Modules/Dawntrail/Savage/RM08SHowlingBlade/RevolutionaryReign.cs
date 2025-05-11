@@ -36,6 +36,7 @@ class ReignHints(BossModule module) : BossComponent(module)
 
     private WPos? _source;
     private bool _in;
+    private bool _jumped;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -48,12 +49,37 @@ class ReignHints(BossModule module) : BossComponent(module)
         }
     }
 
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.WolvesReignRect1 or AID.WolvesReignRect2)
+            _jumped = true;
+
+        if ((AID)spell.Action.ID is AID.WolvesReignCone or AID.WolvesReignCircle)
+        {
+            _source = null;
+            _in = false;
+            _jumped = false;
+        }
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_source == null || _config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Disabled)
-            return;
+        foreach (var spot in EnumerateSafeSpots(pcSlot, pc))
+            Arena.AddCircle(spot, 0.5f, _jumped ? ArenaColor.Safe : ArenaColor.Danger);
+    }
 
-        var assignment = _prc[WorldState.Party.Members[pcSlot].ContentId];
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        foreach (var spot in EnumerateSafeSpots(slot, actor))
+            movementHints.Add(actor.Position, spot, _jumped ? ArenaColor.Safe : ArenaColor.Danger);
+    }
+
+    private IEnumerable<WPos> EnumerateSafeSpots(int slot, Actor actor)
+    {
+        if (_source == null || _config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Disabled)
+            yield break;
+
+        var assignment = _prc[WorldState.Party.Members[slot].ContentId];
         int lp;
         if (_config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Any)
             lp = 0;
@@ -65,7 +91,48 @@ class ReignHints(BossModule module) : BossComponent(module)
                 _ => 0
             };
 
-        // TODO
+        if (_config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Inverse)
+            lp = lp == 1 ? 2 : 1;
+
+        var isTank = actor.Class.GetRole() == Role.Tank || assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT;
+
+        var bossFacing = (Arena.Center - _source.Value).Normalized();
+
+        if (_in)
+        {
+            if (isTank)
+            {
+                if (lp != 2)
+                    yield return _source.Value + bossFacing.Rotate(-145.Degrees()) * 4;
+                if (lp != 1)
+                    yield return _source.Value + bossFacing.Rotate(145.Degrees()) * 4;
+            }
+            else
+            {
+                if (lp != 2)
+                    yield return (_source.Value + bossFacing.Rotate(-75.Degrees()) * 7);
+                if (lp != 1)
+                    yield return (_source.Value + bossFacing.Rotate(75.Degrees()) * 7);
+            }
+        }
+        else
+        {
+            if (isTank)
+            {
+                if (lp != 2)
+                    yield return _source.Value + bossFacing.Rotate(-53.Degrees()) * 14.4f;
+                if (lp != 1)
+                    yield return _source.Value + bossFacing.Rotate(53.Degrees()) * 14.4f;
+            }
+            else
+            {
+                if (lp != 2)
+                    yield return _source.Value + bossFacing.Rotate(-12.Degrees()) * 18;
+                if (lp != 1)
+                    yield return _source.Value + bossFacing.Rotate(12.Degrees()) * 18;
+            }
+        }
+
     }
 }
 #endif

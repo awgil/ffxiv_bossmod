@@ -383,20 +383,14 @@ public sealed class ReplayBuilder : IDisposable
         if (forSource)
         {
             if (t.ConfirmationSource == default)
-            {
-                Service.Log($"Confirmed #{seq}/{targetIndex} for {source.InstanceID:X}");
                 t.ConfirmationSource = _ws.CurrentTime;
-            }
             else
                 Service.Log($"Double confirmation ${seq}/{targetIndex} for {source.InstanceID:X} (source)");
         }
         if (forTarget)
         {
             if (t.ConfirmationTarget == default)
-            {
-                Service.Log($"Confirmed #{seq}/{targetIndex} for {t.Target.InstanceID:X}");
                 t.ConfirmationTarget = _ws.CurrentTime;
-            }
             else
                 Service.Log($"Double confirmation ${seq}/{targetIndex} for {source.InstanceID:X} (target)");
         }
