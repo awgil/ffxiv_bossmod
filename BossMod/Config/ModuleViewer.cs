@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -30,7 +31,7 @@ public sealed class ModuleViewer : IDisposable
     private readonly uint _iconFATE;
     private readonly uint _iconHunt;
     private readonly List<ModuleGroup>[,] _groups;
-    private readonly Vector2 _iconSize = new(30, 30);
+    private readonly Vector2 _iconSize = new Vector2(32, 32) * ImGuiHelpers.GlobalScale;
 
     private string _searchText = "";
 
@@ -124,41 +125,37 @@ public sealed class ModuleViewer : IDisposable
 
     public void Draw(UITree tree, WorldState ws)
     {
-        using (var group = ImRaii.Group())
+        var c1 = ImGui.GetCursorPos();
+        using (ImRaii.Child("##filters", new(200 * ImGuiHelpers.GlobalScale, -1)))
             DrawFilters();
-        ImGui.SameLine();
-        using (var group = ImRaii.Group())
+        ImGui.SetCursorPos(new(c1.X + 205 * ImGuiHelpers.GlobalScale, c1.Y));
+        using (ImRaii.Child("##modules"))
             DrawModules(tree, ws);
     }
 
     private void DrawFilters()
     {
-        using var table = ImRaii.Table("Filters", 1, ImGuiTableFlags.BordersOuter | ImGuiTableFlags.NoHostExtendX | ImGuiTableFlags.SizingFixedSame | ImGuiTableFlags.ScrollY);
-        if (!table)
-            return;
-
-        ImGui.TableNextColumn();
-        ImGui.TableNextColumn(); //spacing with only one seemed to be a bit small on certain window sizes
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Search:");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
         DrawSearchBar();
-        ImGui.TableNextColumn();
+        ImGui.Separator();
 
-        ImGui.TableNextColumn();
-        ImGui.TableHeader("Expansion");
-        ImGui.TableNextRow(ImGuiTableRowFlags.None);
-        ImGui.TableNextColumn();
-        DrawExpansionFilters();
+        using (ImRaii.Child("##belowsearch"))
+        {
+            DrawFiltersTable("Expansion", DrawExpansionFilters);
+            DrawFiltersTable("Category", DrawContentTypeFilters);
+        }
+    }
 
-        ImGui.TableNextRow();
-
-        ImGui.TableNextColumn();
-        ImGui.TableHeader("Content");
-        ImGui.TableNextRow(ImGuiTableRowFlags.None);
-        ImGui.TableNextColumn();
-        DrawContentTypeFilters();
+    private void DrawFiltersTable(string label, System.Action drawTable)
+    {
+        ImGui.TextUnformatted(label);
+        ImGui.Separator();
+        using var _ = ImRaii.Table(label, 2, ImGuiTableFlags.SizingStretchProp);
+        ImGui.TableSetupColumn("icon", ImGuiTableColumnFlags.WidthFixed, _iconSize.X);
+        drawTable.Invoke();
     }
 
     private void DrawSearchBar()
@@ -175,36 +172,28 @@ public sealed class ModuleViewer : IDisposable
 
     private void DrawExpansionFilters()
     {
-        var shift = ImGui.GetIO().KeyShift;
         for (var e = BossModuleInfo.Expansion.RealmReborn; e < BossModuleInfo.Expansion.Count; ++e)
         {
+            using var _ = ImRaii.PushId($"expac_{e}");
             var bit = (int)e;
             ref var expansion = ref _expansions[bit];
-            using (var _ = ImRaii.Group())
-            {
-                UIMisc.ImageWithText(Service.Texture?.GetFromGameIcon(expansion.icon), _iconSize, !_filterExpansions[bit], expansion.name);
-            }
-            if (ImGui.IsItemClicked())
-            {
-                _filterExpansions.Toggle(bit);
-            }
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && shift)
-            {
-                ToggleFocus(ref _filterExpansions, bit);
-            }
-            if (!shift)
-            {
-                using var ctx = ImRaii.ContextPopupItem($"###popup_expac_{e}");
-                if (!ctx)
-                    continue;
 
-                if (ImGui.MenuItem($"Hide expansion", "LMB", selected: _filterExpansions[bit]))
-                    _filterExpansions.Toggle(bit);
+            DrawFilter(
+                expansion.name,
+                expansion.icon,
+                _filterExpansions[bit],
+                click: () => _filterExpansions.Toggle(bit),
+                shiftRmb: () => ToggleFocus(ref _filterExpansions, bit),
+                context: () =>
+                {
+                    if (ImGui.MenuItem($"Hide expansion", "LMB", selected: _filterExpansions[bit]))
+                        _filterExpansions.Toggle(bit);
 
-                var isFocused = _filterExpansions == ~BitMask.Build(bit);
-                if (ImGui.MenuItem($"Hide other expansions", "Shift + RMB", selected: isFocused))
-                    ToggleFocus(ref _filterExpansions, bit);
-            }
+                    var isFocused = _filterExpansions == ~BitMask.Build(bit);
+                    if (ImGui.MenuItem($"Hide other expansions", "Shift + RMB", selected: isFocused))
+                        ToggleFocus(ref _filterExpansions, bit);
+                }
+            );
         }
     }
 
@@ -212,53 +201,41 @@ public sealed class ModuleViewer : IDisposable
     {
         var modified = false;
 
-        var shift = ImGui.GetIO().KeyShift;
         for (var c = BossModuleInfo.Category.Uncategorized; c < BossModuleInfo.Category.Count; ++c)
         {
+            using var _ = ImRaii.PushId($"cat_{c}");
             var isDisabledCategory = _bmConfig.DisabledCategories.Contains(c);
             var bit = (int)c;
             ref var category = ref _categories[bit];
-            using (var _ = ImRaii.Group())
-            {
-                UIMisc.ImageWithText(Service.Texture?.GetFromGameIcon(category.icon), _iconSize, !_filterCategories[bit], category.name);
-                if (isDisabledCategory)
+
+            DrawFilter(
+                category.name,
+                category.icon,
+                _filterCategories[bit],
+                disabled: isDisabledCategory,
+                click: () => _filterCategories.Toggle(bit),
+                shiftRmb: () => ToggleFocus(ref _filterCategories, bit),
+                context: () =>
                 {
-                    ImGui.SameLine();
-                    UIMisc.IconText(FontAwesomeIcon.Ban, "!!");
+                    if (ImGui.MenuItem($"Hide category", "LMB", selected: _filterCategories[bit]))
+                        _filterCategories.Toggle(bit);
+
+                    var isFocused = _filterCategories == ~BitMask.Build(bit);
+                    if (ImGui.MenuItem($"Hide other categories", "Shift + RMB", selected: isFocused))
+                        ToggleFocus(ref _filterCategories, bit);
+
+                    ImGui.Separator();
+
+                    if (ImGui.MenuItem("Disable all modules in this category", "", isDisabledCategory))
+                    {
+                        modified = true;
+                        if (isDisabledCategory)
+                            _bmConfig.DisabledCategories.Remove(c);
+                        else
+                            _bmConfig.DisabledCategories.Add(c);
+                    }
                 }
-            }
-            if (ImGui.IsItemClicked())
-            {
-                _filterCategories.Toggle(bit);
-            }
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && shift)
-            {
-                ToggleFocus(ref _filterCategories, bit);
-            }
-            if (!shift)
-            {
-                using var ctx = ImRaii.ContextPopupItem($"###popup_cat_{c}");
-                if (!ctx)
-                    continue;
-
-                if (ImGui.MenuItem($"Hide category", "LMB", selected: _filterCategories[bit]))
-                    _filterCategories.Toggle(bit);
-
-                var isFocused = _filterCategories == ~BitMask.Build(bit);
-                if (ImGui.MenuItem($"Hide other categories", "Shift + RMB", selected: isFocused))
-                    ToggleFocus(ref _filterCategories, bit);
-
-                ImGui.Separator();
-
-                if (ImGui.MenuItem("Disable all modules in this category", "", isDisabledCategory))
-                {
-                    modified = true;
-                    if (isDisabledCategory)
-                        _bmConfig.DisabledCategories.Remove(c);
-                    else
-                        _bmConfig.DisabledCategories.Add(c);
-                }
-            }
+            );
         }
 
         if (modified)
@@ -274,9 +251,58 @@ public sealed class ModuleViewer : IDisposable
             filter = focused;
     }
 
+    private void DrawFilter(string label, uint iconId, bool filtered, bool disabled = false, System.Action? click = null, System.Action? context = null, System.Action? shiftRmb = null)
+    {
+        var shift = ImGui.GetIO().KeyShift;
+        Vector4 tintCol = filtered ? new(0.5f, 0.5f, 0.5f, 0.85f) : new(1);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        if (Service.Texture.GetFromGameIcon(iconId).TryGetWrap(out var tex, out var _e))
+            ImGui.Image(tex.ImGuiHandle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
+
+        ImGui.TableNextColumn();
+        var c = ImGui.GetCursorPos();
+        ImGui.SetCursorPos(new Vector2(c.X, c.Y + (_iconSize.Y - ImGui.GetFontSize()) / 2));
+        var s = ImGui.GetCursorScreenPos();
+        var textCol = ImGui.GetColorU32(filtered || disabled ? ImGuiCol.TextDisabled : ImGuiCol.Text);
+        using (ImRaii.PushColor(ImGuiCol.Text, textCol))
+            ImGui.TextUnformatted(label);
+
+        if (disabled)
+        {
+            s.Y += ImGui.GetFontSize() * 0.5f;
+            var width = ImGui.CalcTextSize(label);
+            ImGui.GetWindowDrawList().AddLine(s, new(s.X + width.X, s.Y), textCol);
+        }
+
+        ImGui.SetCursorPos(c);
+        var hdr = ImGui.GetColorU32(ImGuiCol.Header);
+        using (ImRaii.PushColor(ImGuiCol.HeaderActive, hdr))
+        {
+            using (ImRaii.PushColor(ImGuiCol.HeaderHovered, hdr))
+            {
+                ImGui.Selectable("", false, ImGuiSelectableFlags.SpanAllColumns, new(0, _iconSize.Y));
+            }
+        }
+
+        if (ImGui.IsItemHovered() && disabled)
+            ImGui.SetTooltip("All modules in this category are disabled. Individual module settings are ignored.");
+        if (ImGui.IsItemClicked())
+            click?.Invoke();
+        if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && shift)
+            shiftRmb?.Invoke();
+        if (!shift)
+        {
+            using var ctx = ImRaii.ContextPopupItem("");
+            if (ctx)
+                context?.Invoke();
+        }
+    }
+
     private void DrawModules(UITree tree, WorldState ws)
     {
-        using var table = ImRaii.Table("ModulesTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersV | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.NoHostExtendX);
+        using var table = ImRaii.Table("ModulesTable", 2, ImGuiTableFlags.RowBg);
+        ImGui.TableSetupColumn("icons", ImGuiTableColumnFlags.WidthFixed, _iconSize.X * 2 + ImGui.GetStyle().FramePadding.X * 2);
         if (!table)
             return;
 
@@ -298,9 +324,9 @@ public sealed class ModuleViewer : IDisposable
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    UIMisc.Image(Service.Texture?.GetFromGameIcon(_expansions[i].icon), new(36));
+                    UIMisc.Image(Service.Texture?.GetFromGameIcon(_expansions[i].icon), _iconSize);
                     ImGui.SameLine();
-                    UIMisc.Image(Service.Texture?.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), new(36));
+                    UIMisc.Image(Service.Texture?.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), _iconSize);
                     ImGui.TableNextColumn();
 
                     foreach (var ng in tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))

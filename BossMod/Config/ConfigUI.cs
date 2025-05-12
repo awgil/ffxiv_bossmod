@@ -71,12 +71,7 @@ public sealed class ConfigUI : IDisposable
         _tabs.Draw();
     }
 
-    private void DrawSettings()
-    {
-        using var child = ImRaii.Child("SettingsWindow", new Vector2(0, 0), true);
-        if (child)
-            DrawNodes(_roots);
-    }
+    private void DrawSettings() => DrawNodes(_roots);
 
     public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)
     {

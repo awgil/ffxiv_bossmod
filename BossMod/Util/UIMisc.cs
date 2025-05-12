@@ -49,11 +49,9 @@ public static class UIMisc
 
     public static void ImageWithText(ISharedImmediateTexture? icon, Vector2 size, bool state, string text)
     {
-        var cursor = ImGui.GetCursorPos();
-        var padding = ImGui.GetStyle().FramePadding;
-        ImGui.SetCursorPos(new(cursor.X + size.X + 2 * padding.X, cursor.Y + 0.5f * (size.Y - ImGui.GetFontSize())));
-        ImGui.TextUnformatted(text);
-        ImGui.SetCursorPos(cursor);
+        var c = ImGui.GetCursorPos();
+        ImGui.Selectable($"##sel{text}", false, ImGuiSelectableFlags.None, new(ImGui.GetContentRegionAvail().X, size.Y));
+        ImGui.SetCursorPos(c);
 
         var wrap = icon?.GetWrapOrDefault();
         if (wrap != null)
@@ -65,6 +63,11 @@ public static class UIMisc
         {
             ImGui.Dummy(size);
         }
+
+        ImGui.SameLine();
+        var cursor = ImGui.GetCursorPos();
+        ImGui.SetCursorPos(new(cursor.X, cursor.Y + 0.5f * (size.Y - ImGui.GetFontSize())));
+        ImGui.TextUnformatted(text);
     }
 
     // works around issues with fonts in uidev
