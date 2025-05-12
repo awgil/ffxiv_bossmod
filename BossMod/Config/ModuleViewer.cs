@@ -20,6 +20,8 @@ public sealed class ModuleViewer : IDisposable
     private readonly PlanDatabase? _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
 
+    private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
+
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
 
@@ -173,38 +175,103 @@ public sealed class ModuleViewer : IDisposable
 
     private void DrawExpansionFilters()
     {
+        var shift = ImGui.GetIO().KeyShift;
         for (var e = BossModuleInfo.Expansion.RealmReborn; e < BossModuleInfo.Expansion.Count; ++e)
         {
-            ref var expansion = ref _expansions[(int)e];
-            UIMisc.ImageToggleButton(Service.Texture?.GetFromGameIcon(expansion.icon), _iconSize, !_filterExpansions[(int)e], expansion.name);
+            var bit = (int)e;
+            ref var expansion = ref _expansions[bit];
+            using (var _ = ImRaii.Group())
+            {
+                UIMisc.ImageItem(Service.Texture?.GetFromGameIcon(expansion.icon), _iconSize, !_filterExpansions[bit], expansion.name);
+            }
             if (ImGui.IsItemClicked())
             {
-                _filterExpansions.Toggle((int)e);
+                _filterExpansions.Toggle(bit);
             }
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && shift)
             {
-                _filterExpansions = ~_filterExpansions;
-                _filterExpansions.Toggle((int)e);
+                ToggleFocus(ref _filterExpansions, bit);
+            }
+            if (!shift)
+            {
+                using var ctx = ImRaii.ContextPopupItem($"###popup_expac_{e}");
+                if (!ctx)
+                    continue;
+
+                if (ImGui.MenuItem($"Hide expansion", "LMB", selected: _filterExpansions[bit]))
+                    _filterExpansions.Toggle(bit);
+
+                var isFocused = _filterExpansions == ~BitMask.Build(bit);
+                if (ImGui.MenuItem($"Hide other expansions", "Shift + RMB", selected: isFocused))
+                    ToggleFocus(ref _filterExpansions, bit);
             }
         }
     }
 
     private void DrawContentTypeFilters()
     {
+        var modified = false;
+
+        var shift = ImGui.GetIO().KeyShift;
         for (var c = BossModuleInfo.Category.Uncategorized; c < BossModuleInfo.Category.Count; ++c)
         {
-            ref var category = ref _categories[(int)c];
-            UIMisc.ImageToggleButton(Service.Texture?.GetFromGameIcon(category.icon), _iconSize, !_filterCategories[(int)c], category.name);
+            var isDisabledCategory = _bmConfig.DisabledCategories.Contains(c);
+            var bit = (int)c;
+            ref var category = ref _categories[bit];
+            using (var _ = ImRaii.Group())
+            {
+                UIMisc.ImageToggleButton(Service.Texture?.GetFromGameIcon(category.icon), _iconSize, !_filterCategories[bit], category.name);
+                if (isDisabledCategory)
+                {
+                    ImGui.SameLine();
+                    UIMisc.IconText(FontAwesomeIcon.Ban, "!!");
+                }
+            }
             if (ImGui.IsItemClicked())
             {
-                _filterCategories.Toggle((int)c);
+                _filterCategories.Toggle(bit);
             }
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && shift)
             {
-                _filterCategories = ~_filterCategories;
-                _filterCategories.Toggle((int)c);
+                ToggleFocus(ref _filterCategories, bit);
+            }
+            if (!shift)
+            {
+                using var ctx = ImRaii.ContextPopupItem($"###popup_cat_{c}");
+                if (!ctx)
+                    continue;
+
+                if (ImGui.MenuItem($"Hide category", "LMB", selected: _filterCategories[bit]))
+                    _filterCategories.Toggle(bit);
+
+                var isFocused = _filterCategories == ~BitMask.Build(bit);
+                if (ImGui.MenuItem($"Hide other categories", "Shift + RMB", selected: isFocused))
+                    ToggleFocus(ref _filterCategories, bit);
+
+                ImGui.Separator();
+
+                if (ImGui.MenuItem("Disable all modules in this category", "", isDisabledCategory))
+                {
+                    modified = true;
+                    if (isDisabledCategory)
+                        _bmConfig.DisabledCategories.Remove(c);
+                    else
+                        _bmConfig.DisabledCategories.Add(c);
+                }
             }
         }
+
+        if (modified)
+            _bmConfig.Modified.Fire();
+    }
+
+    private void ToggleFocus(ref BitMask filter, int bit)
+    {
+        var focused = ~BitMask.Build(bit);
+        if (filter == focused)
+            filter.Reset();
+        else
+            filter = focused;
     }
 
     private void DrawModules(UITree tree, WorldState ws)
@@ -212,6 +279,8 @@ public sealed class ModuleViewer : IDisposable
         using var table = ImRaii.Table("ModulesTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersV | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.NoHostExtendX);
         if (!table)
             return;
+
+        var modified = false;
 
         for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
         {
@@ -238,6 +307,17 @@ public sealed class ModuleViewer : IDisposable
                     {
                         foreach (var mod in group.Modules)
                         {
+                            var identifier = mod.Info.ModuleType.ToString();
+                            var isEnabled = !_bmConfig.DisabledModules.Contains(identifier);
+                            if (ImGui.Checkbox($"###enabled{mod.Info.ModuleType}", ref isEnabled))
+                            {
+                                modified = true;
+                                if (isEnabled)
+                                    _bmConfig.DisabledModules.Remove(identifier);
+                                else
+                                    _bmConfig.DisabledModules.Add(identifier);
+                            }
+                            ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
                                 if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}_cfg"))
                                     _ = new BossModuleConfigWindow(mod.Info, ws);
@@ -265,6 +345,9 @@ public sealed class ModuleViewer : IDisposable
                 }
             }
         }
+
+        if (modified)
+            _bmConfig.Modified.Fire();
     }
 
     private void Customize(BossModuleInfo.Expansion expansion, uint iconId, ReadOnlySeString name) => _expansions[(int)expansion] = (name.ToString(), iconId);
