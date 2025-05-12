@@ -1,5 +1,4 @@
-﻿#if DEBUG
-using BossMod.AI;
+﻿using BossMod.AI;
 using BossMod.Autorotation;
 
 namespace BossMod.Dawntrail.Savage.RM04SWickedThunder.AI;
@@ -13,7 +12,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(RM04SWickedThunder));
+        var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(RM04SWickedThunder), DevMode: true);
         res.Define(Track.ElectrifyingWitchHunt).As<ElectrifyingWitchHuntStrategy>("ElectrifyingWitchHunt", "EWH")
             .AddOption(ElectrifyingWitchHuntStrategy.None, "None", "Do nothing")
             .AddOption(ElectrifyingWitchHuntStrategy.NWNear, "NWNear", "NW prefer near (MT spot)");
@@ -190,4 +189,3 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
         return module.Center + new WDir(offset * 10.4f, -6.2f);
     }
 }
-#endif

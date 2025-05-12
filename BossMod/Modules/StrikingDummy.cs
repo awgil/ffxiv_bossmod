@@ -1,5 +1,4 @@
-﻿#if DEBUG
-using BossMod.Autorotation;
+﻿using BossMod.Autorotation;
 
 namespace BossMod.StrikingDummy;
 
@@ -17,7 +16,7 @@ class StrikingDummyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, PlanLevel = 100)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, PlanLevel = 100, DevOnly = true)]
 public class StrikingDummy(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(10));
 
 public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
@@ -42,4 +41,3 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
         }
     }
 }
-#endif

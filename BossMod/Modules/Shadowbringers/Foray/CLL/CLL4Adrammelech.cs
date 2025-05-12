@@ -1,5 +1,4 @@
-﻿#if DEBUG
-namespace BossMod.Shadowbringers.Foray.CLL.CLL4Adrammelech;
+﻿namespace BossMod.Shadowbringers.Foray.CLL.CLL4Adrammelech;
 
 public enum OID : uint
 {
@@ -190,9 +189,8 @@ class AdrammelechStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9442)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9442, DevOnly = true)]
 public class Adrammelech(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, -606), new ArenaBoundsCircle(29.5f))
 {
     public override bool DrawAllPlayers => true;
 }
-#endif

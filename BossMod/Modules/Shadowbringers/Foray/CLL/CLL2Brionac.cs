@@ -1,5 +1,4 @@
-﻿#if DEBUG
-namespace BossMod.Shadowbringers.Foray.CLL.CLL2Brionac;
+﻿namespace BossMod.Shadowbringers.Foray.CLL.CLL2Brionac;
 
 public enum OID : uint
 {
@@ -275,9 +274,8 @@ class BrionacStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9436)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9436, DevOnly = true)]
 public class Brionac(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, -222), new ArenaBoundsRect(29.5f, 14.5f))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat && WorldState.Party.Player() is { } player && Bounds.Contains(player.Position - Arena.Center);
 }
-#endif

@@ -58,6 +58,7 @@ public sealed class Plugin : IDalamudPlugin
 #endif
 
         dalamud.Create<Service>();
+        Service.IsDev = dalamud.IsDev;
         Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
         Service.LogHandlerVerbose = (string msg) => Service.Logger.Verbose(msg);
         Service.LuminaGameData = dataManager.GameData;

@@ -1,5 +1,4 @@
-﻿#if DEBUG
-namespace BossMod.Shadowbringers.Foray.CLL.CLL1CastrumGate;
+﻿namespace BossMod.Shadowbringers.Foray.CLL.CLL1CastrumGate;
 
 public enum OID : uint
 {
@@ -64,4 +63,3 @@ public class CastrumGate(WorldState ws, Actor primary) : BossModule(ws, primary,
         hints.SetPriority(PrimaryActor, AIHints.Enemy.PriorityInvincible);
     }
 }
-#endif
