@@ -40,6 +40,8 @@ public sealed class ClientState
     public record struct DutyAction(ActionID Action, byte CurCharges, byte MaxCharges);
     public record struct HateInfo(ulong InstanceID, Hate[] Targets)
     {
+        // targets are sorted by enmity order, except that player is always first
+        // nonzero entries are always at the front of the array - there is space for 32 entries, but a maximum of 8 are currently used
         public readonly Hate[] Targets = Targets;
     }
     public record struct Hate(ulong InstanceID, int Enmity);
@@ -429,7 +431,7 @@ public sealed class ClientState
         public override void Write(ReplayRecorder.Output output)
         {
             output.EmitFourCC("HATE"u8).EmitActor(InstanceID);
-            var countNonEmpty = Array.FindIndex(Targets, t => t != default) + 1;
+            var countNonEmpty = Array.IndexOf(Targets, default);
             output.Emit(countNonEmpty);
             for (var i = 0; i < countNonEmpty; i++)
                 output.EmitActor(Targets[i].InstanceID).Emit(Targets[i].Enmity);

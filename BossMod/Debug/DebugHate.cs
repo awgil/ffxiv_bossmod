@@ -56,12 +56,13 @@ public unsafe struct HaterInfo
     [FieldOffset(0x44)] public int Enmity;
 }
 
-class DebugHate
+class DebugHate(WorldState ws)
 {
     public unsafe void Draw()
     {
         var uistate = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance();
 
+        ImGui.TextUnformatted($"Haters (UIState)");
         // aggro list of current target
         var hate = (Hate*)((IntPtr)uistate + 0x08);
         ImGui.BeginTable("hate", 3);
@@ -81,6 +82,7 @@ class DebugHate
         }
         ImGui.EndTable();
 
+        ImGui.TextUnformatted("Hate (UIState)");
         // list of actors aggroed to player
         var hater = (Hater*)((IntPtr)uistate + 0x110);
         ImGui.BeginTable("hater", 3);
@@ -98,6 +100,26 @@ class DebugHate
             ImGui.TextUnformatted(MemoryHelper.ReadSeString((IntPtr)h, 64).ToString());
             ImGui.TableNextColumn();
             ImGui.TextUnformatted($"{h->Enmity}");
+        }
+        ImGui.EndTable();
+
+        ImGui.Separator();
+
+        ImGui.TextUnformatted("Haters (WorldState)");
+        ImGui.BeginTable("hate", 3);
+        ImGui.TableSetupColumn("ObjectID");
+        ImGui.TableSetupColumn("Name");
+        ImGui.TableSetupColumn("Enmity");
+        ImGui.TableHeadersRow();
+        foreach (var t in ws.Client.CurrentTargetHate.Targets.TakeWhile(t => t.InstanceID > 0))
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{t.InstanceID:X}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(Utils.ObjectString(t.InstanceID));
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{t.Enmity}");
         }
         ImGui.EndTable();
     }
