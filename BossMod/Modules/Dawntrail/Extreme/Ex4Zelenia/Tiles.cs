@@ -201,5 +201,8 @@ abstract class Emblazon(BossModule module) : Components.CastCounter(module, AID.
                 hints.AddForbiddenZone(p => Tiles.GetTile(p) == t, Activation);
             }
         }
+
+        if (Baiters.Any())
+            hints.PredictedDamage.Add((Baiters, Activation));
     }
 }
