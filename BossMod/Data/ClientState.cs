@@ -38,7 +38,10 @@ public sealed class ClientState
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
     public record struct Pet(ulong InstanceID, byte Order, byte Stance);
     public record struct DutyAction(ActionID Action, byte CurCharges, byte MaxCharges);
-    public record struct HateInfo(ulong InstanceID, Hate[] Targets);
+    public record struct HateInfo(ulong InstanceID, Hate[] Targets)
+    {
+        public readonly Hate[] Targets = Targets;
+    }
     public record struct Hate(ulong InstanceID, int Enmity);
 
     public const int NumCooldownGroups = 82;
@@ -417,6 +420,7 @@ public sealed class ClientState
     public Event<OpHateChange> HateChanged = new();
     public sealed record class OpHateChange(ulong InstanceID, Hate[] Targets) : WorldState.Operation
     {
+        public readonly Hate[] Targets = Targets;
         protected override void Exec(WorldState ws)
         {
             ws.Client.CurrentTargetHate = new(InstanceID, Targets);

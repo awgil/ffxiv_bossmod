@@ -1,5 +1,6 @@
 ﻿using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace BossMod;
@@ -181,6 +182,7 @@ public class ConfigChangelogWindow : UIWindow
         return Service.IsDev ? new(999, 0, 0, 0) : Assembly.GetExecutingAssembly().GetName().Version!;
     }
 
+    [SuppressMessage("Design", "CA1024:Use properties where appropriate", Justification = "fuck it")]
     private static Version GetPreviousPluginVersion()
     {
         // change to a smaller value to test changelog

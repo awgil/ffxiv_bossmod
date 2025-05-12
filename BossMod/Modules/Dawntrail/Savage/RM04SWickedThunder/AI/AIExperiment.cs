@@ -104,7 +104,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
         var burst = module.FindComponent<ElectrifyingWitchHuntBurst>();
         var resolve = module.FindComponent<ElectrifyingWitchHuntResolve>();
         var defaultPos = ElectrifyingWitchHuntInitialPosition(module, strategy);
-        if (burst?.Casters.Count() > 0 && resolve?.CurMechanic > ElectrifyingWitchHuntResolve.Mechanic.None)
+        if (burst?.Casters.Count > 0 && resolve?.CurMechanic > ElectrifyingWitchHuntResolve.Mechanic.None)
         {
             var wantBait = !resolve.ForbidBait[Manager.PlayerSlot];
             var baitFar = resolve.CurMechanic == ElectrifyingWitchHuntResolve.Mechanic.Far;
