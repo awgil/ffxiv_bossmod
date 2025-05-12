@@ -47,7 +47,7 @@ public static class UIMisc
             ImGui.Dummy(size);
     }
 
-    public static bool ImageToggleButton(ISharedImmediateTexture? icon, Vector2 size, bool state, string text)
+    public static void ImageWithText(ISharedImmediateTexture? icon, Vector2 size, bool state, string text)
     {
         var cursor = ImGui.GetCursorPos();
         var padding = ImGui.GetStyle().FramePadding;
@@ -59,11 +59,11 @@ public static class UIMisc
         if (wrap != null)
         {
             Vector4 tintColor = state ? new(1f, 1f, 1f, 1f) : new(0.5f, 0.5f, 0.5f, 0.85f);
-            return ImGui.ImageButton(wrap.ImGuiHandle, size, Vector2.Zero, Vector2.One, 1, Vector4.Zero, tintColor);
+            ImGui.Image(wrap.ImGuiHandle, size, Vector2.Zero, Vector2.One, tintColor);
         }
         else
         {
-            return ImGui.Button("", size);
+            ImGui.Dummy(size);
         }
     }
 

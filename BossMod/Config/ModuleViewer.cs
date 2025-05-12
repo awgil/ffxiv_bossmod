@@ -182,7 +182,7 @@ public sealed class ModuleViewer : IDisposable
             ref var expansion = ref _expansions[bit];
             using (var _ = ImRaii.Group())
             {
-                UIMisc.ImageItem(Service.Texture?.GetFromGameIcon(expansion.icon), _iconSize, !_filterExpansions[bit], expansion.name);
+                UIMisc.ImageWithText(Service.Texture?.GetFromGameIcon(expansion.icon), _iconSize, !_filterExpansions[bit], expansion.name);
             }
             if (ImGui.IsItemClicked())
             {
@@ -220,7 +220,7 @@ public sealed class ModuleViewer : IDisposable
             ref var category = ref _categories[bit];
             using (var _ = ImRaii.Group())
             {
-                UIMisc.ImageToggleButton(Service.Texture?.GetFromGameIcon(category.icon), _iconSize, !_filterCategories[bit], category.name);
+                UIMisc.ImageWithText(Service.Texture?.GetFromGameIcon(category.icon), _iconSize, !_filterCategories[bit], category.name);
                 if (isDisabledCategory)
                 {
                     ImGui.SameLine();
