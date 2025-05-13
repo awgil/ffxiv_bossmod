@@ -514,7 +514,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             if (CountdownRemaining > 0)
             {
                 if (CountdownRemaining < 5 && RAleft == 0 && OGCDReady(AID.Reassemble))
-                    QueueGCD(AID.Reassemble, Player);
+                    QueueGCD(AID.Reassemble, Player, GCDPriority.Max);
                 if (ShouldUsePotion(strategy) && CountdownRemaining <= 1.99f)
                     Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
                 if (CountdownRemaining < 1.15f)

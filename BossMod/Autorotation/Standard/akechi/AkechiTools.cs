@@ -137,6 +137,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>The <b>Next GCD</b> being queued's <b>Priority</b>.</summary>
     protected int NextGCDPrio;
 
+    /// <summary>The last used <b>GCD</b> ability.</summary>
+    protected AID LastGCDUsed;
+
+    /// <summary>The last used <b>OGCD</b> ability.</summary>
+    protected AID LastOGCDUsed;
+
     #region Queuing
 
     #region GCD
@@ -152,8 +158,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="targetPos">The user's specified <b>Target Position</b> for the ability.</param>
     /// <param name="facingAngle">The user's specified <b>Angle facing Target</b> for the ability.</param>
     protected void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) where P : Enum
-                => QueueGCD(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
-    protected void QueueGCD(AID aid, Actor? target, int priority = 2, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
+                => QueueGCDs(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
+    protected void QueueGCDs(AID aid, Actor? target, int priority = 0, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         if (priority == 0)
             return;
@@ -179,8 +185,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="targetPos">The user's specified <b>Target Position</b> for the ability.</param>
     /// <param name="facingAngle">The user's specified <b>Angle facing Target</b> for the ability.</param>
     protected void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) where P : Enum
-                => QueueOGCD(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
-    protected void QueueOGCD(AID aid, Actor? target, int priority = 1, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
+                => QueueOGCDs(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
+    protected void QueueOGCDs(AID aid, Actor? target, int priority = 1, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         if (priority == 0)
             return;
@@ -191,33 +197,39 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime, Vector3 targetPos = default, Angle? facingAngle = null)
     {
-        var def = ActionDefinitions.Instance.Spell(aid);
+        var ability = ActionDefinitions.Instance.Spell(aid);
 
         if ((uint)(object)aid == 0)
             return false;
-
-        if (def == null)
+        if (ability == null)
             return false;
-
-        if (def.Range != 0 && target == null)
+        if (ability.Range != 0 && target == null)
         {
             return false;
         }
-
-        //Ground Targeting abilities
-        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
+        if (ability.AllowedTargets.HasFlag(ActionTargets.Area))
         {
-            if (def.Range == 0)
+            if (ability.Range == 0)
                 targetPos = Player.PosRot.XYZ();
             else if (target != null)
                 targetPos = target.PosRot.XYZ();
         }
-
-        //TODO: is this necessary? idk maybe for melees
         if (castTime == 0)
             castTime = 0;
 
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, castTime: castTime, targetPos: targetPos, facingAngle: facingAngle);
+
+        if (LastActionUsed(aid))
+        {
+            if (priority >= 4000)
+                LastGCDUsed = aid;
+            Service.Log($"Last GCD = {aid}; Priority = {priority}; Target = {target?.Name}");
+
+            if (priority < 4000)
+                LastOGCDUsed = aid;
+            Service.Log($"Last OGCD = {aid}; Priority = {priority}; Target = {target?.Name}");
+        }
+
         return true;
     }
     #endregion
