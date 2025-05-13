@@ -217,11 +217,17 @@ public sealed class UIRotationWindow : UIWindow
         {
             foreach (var e in queue)
             {
-                ImGui.TextUnformatted("> [");
-                ImGui.SameLine(0f, 0f);
-                ImGui.TextUnformatted(e.Action.CDType());
-                ImGui.SameLine(0f, 0f);
-                ImGui.TextUnformatted("] ");
+                if (_config.ShowGCDs)
+                {
+                    ImGui.TextUnformatted("> [");
+                    ImGui.SameLine(0f, 0f);
+                    ImGui.TextUnformatted(e.Action.CDType());
+                    ImGui.SameLine(0f, 0f);
+                    ImGui.TextUnformatted("] ");
+                    ImGui.SameLine(0f, 0f);
+                }
+                if (!_config.ShowGCDs)
+                    ImGui.TextUnformatted("> ");
                 ImGui.SameLine(0f, 0f);
                 ImGui.TextColored(new Vector4(1.0f, 0.843f, 0.0f, 1.0f), e.Action.Name());
                 ImGui.SameLine(0f, 0f);

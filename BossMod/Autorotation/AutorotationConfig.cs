@@ -9,6 +9,8 @@ public sealed class AutorotationConfig : ConfigNode
     public bool DisableTimers = false;
     [PropertyDisplay("Show explicitly which GCD & OGCD is being queued next as well as last action used inside Autorotation window")]
     public bool EnableGCDs = false;
+    [PropertyDisplay("Show if ability is a GCD or an OGCD when queuing actions inside Autorotation window")]
+    public bool ShowGCDs = false;
 
     public enum DtrStatus
     {

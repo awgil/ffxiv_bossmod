@@ -66,7 +66,8 @@ public readonly record struct ActionID(uint Raw)
         _ => 0
     };
 
-    public bool IsGCD() => Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.CooldownGroup == 58;
+    public byte? CDGroupCheck() => Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.CooldownGroup;
+    public bool IsGCD() => CDGroupCheck() == 58; //TODO: this isnt entirely accurate, as certain actions like Drill and ChainSaw are not 58
     public readonly string? CDType() => IsGCD() ? "GCD" : "OGCD";
 
     public readonly float CastTime() => Type switch
