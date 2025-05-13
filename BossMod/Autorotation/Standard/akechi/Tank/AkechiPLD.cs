@@ -140,8 +140,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
     private bool ShouldUseRangedLob(Actor? target, RangedStrategy strategy) => strategy switch
     {
-        RangedStrategy.OpenerRanged => IsFirstGCD() && !In3y(target),
-        RangedStrategy.Opener => IsFirstGCD(),
+        RangedStrategy.OpenerRanged => IsFirstGCD && !In3y(target),
+        RangedStrategy.Opener => IsFirstGCD,
         RangedStrategy.Force => true,
         RangedStrategy.Ranged => !In3y(target),
         RangedStrategy.Forbid => false,
@@ -149,8 +149,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseRangedCast(Actor? target, RangedStrategy strategy) => strategy switch
     {
-        RangedStrategy.OpenerRangedCast => IsFirstGCD() && !In3y(target),
-        RangedStrategy.OpenerCast => IsFirstGCD(),
+        RangedStrategy.OpenerRangedCast => IsFirstGCD && !In3y(target),
+        RangedStrategy.OpenerCast => IsFirstGCD,
         RangedStrategy.ForceCast => true,
         RangedStrategy.RangedCast => !In3y(target),
         _ => false

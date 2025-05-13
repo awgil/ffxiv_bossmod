@@ -232,9 +232,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     };
 
     #region Upgrade Paths
-    private AID BestTrueThrust => PlayerHasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
+    private AID BestTrueThrust => HasEffect(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
     private AID BestDisembowel => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : AID.Disembowel;
-    private AID BestDoomSpike => PlayerHasEffect(SID.DraconianFire) ? AID.DraconianFury : Unlocked(AID.DoomSpike) ? AID.DoomSpike : FullST;
+    private AID BestDoomSpike => HasEffect(SID.DraconianFire) ? AID.DraconianFury : Unlocked(AID.DoomSpike) ? AID.DoomSpike : FullST;
     #endregion
 
     #region DOT
@@ -475,7 +475,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (!Unlocked(AID.ElusiveJump))
             return;
 
-        if (ActionReady(AID.ElusiveJump))
+        if (OGCDReady(AID.ElusiveJump))
         {
             if (strategy != ElusiveDirection.None)
             {
@@ -497,10 +497,10 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var allow = InsideCombatWith(target) && OutsideRange;
         return strategy switch
         {
-            PiercingTalonStrategy.AllowEX => allow && PlayerHasEffect(SID.EnhancedPiercingTalon),
+            PiercingTalonStrategy.AllowEX => allow && HasEffect(SID.EnhancedPiercingTalon),
             PiercingTalonStrategy.Allow => allow,
             PiercingTalonStrategy.Force => true,
-            PiercingTalonStrategy.ForceEX => PlayerHasEffect(SID.EnhancedPiercingTalon),
+            PiercingTalonStrategy.ForceEX => HasEffect(SID.EnhancedPiercingTalon),
             PiercingTalonStrategy.Forbid => false,
             _ => false
         };
@@ -526,7 +526,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             TrueNorthStrategy.ASAP => condition,
             TrueNorthStrategy.Flank => condition && CanLateWeaveIn && needFlank,
             TrueNorthStrategy.Rear => condition && CanLateWeaveIn && needRear,
-            TrueNorthStrategy.Force => !PlayerHasEffect(SID.TrueNorth),
+            TrueNorthStrategy.Force => !HasEffect(SID.TrueNorth),
             TrueNorthStrategy.Delay => false,
             _ => false
         };
@@ -544,22 +544,22 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         LCcd = CDRemaining(AID.LanceCharge);
         PowerLeft = StatusRemaining(Player, SID.PowerSurge, 30);
         ChaosLeft = MathF.Max(StatusDetails(primaryTarget?.Actor, SID.ChaosThrust, Player.InstanceID).Left, StatusDetails(primaryTarget?.Actor, SID.ChaoticSpring, Player.InstanceID).Left);
-        HasMD = PlayerHasEffect(SID.DiveReady);
-        HasNastrond = PlayerHasEffect(SID.NastrondReady);
+        HasMD = HasEffect(SID.DiveReady);
+        HasNastrond = HasEffect(SID.NastrondReady);
         HasLC = LCcd is >= 40 and <= 60;
         HasBL = BLcd is >= 100 and <= 120;
-        HasROTD = PlayerHasEffect(SID.DragonsFlight);
-        HasSC = PlayerHasEffect(SID.StarcrossReady);
-        CanLC = ActionReady(AID.LanceCharge);
-        CanBL = ActionReady(AID.BattleLitany);
-        CanLS = Unlocked(AID.LifeSurge) && !PlayerHasEffect(SID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? CDRemaining(AID.LifeSurge) < 40.6f : ReadyIn(AID.LifeSurge) < 0.6f);
-        CanJump = ActionReady(AID.Jump);
-        CanDD = ActionReady(AID.DragonfireDive);
-        CanGeirskogul = ActionReady(AID.Geirskogul);
+        HasROTD = HasEffect(SID.DragonsFlight);
+        HasSC = HasEffect(SID.StarcrossReady);
+        CanLC = OGCDReady(AID.LanceCharge);
+        CanBL = OGCDReady(AID.BattleLitany);
+        CanLS = Unlocked(AID.LifeSurge) && !HasEffect(SID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? CDRemaining(AID.LifeSurge) < 40.6f : ReadyIn(AID.LifeSurge) < 0.6f);
+        CanJump = OGCDReady(AID.Jump);
+        CanDD = OGCDReady(AID.DragonfireDive);
+        CanGeirskogul = OGCDReady(AID.Geirskogul);
         CanMD = Unlocked(AID.MirageDive) && HasMD;
         CanNastrond = Unlocked(AID.Nastrond) && HasNastrond;
-        CanSD = ActionReady(AID.Stardiver);
-        CanWT = ActionReady(AID.WyrmwindThrust) && FirstmindsFocus == 2;
+        CanSD = OGCDReady(AID.Stardiver);
+        CanWT = OGCDReady(AID.WyrmwindThrust) && FirstmindsFocus == 2;
         CanROTD = Unlocked(AID.RiseOfTheDragon) && HasROTD;
         CanSC = Unlocked(AID.Starcross) && HasSC;
         NeedPower = PowerLeft <= SkSGCDLength * 2;
@@ -691,7 +691,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 if (!strategy.HoldGauge())
                 {
                     if (ShouldUseWyrmwindThrust(wtStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.WyrmwindThrust, TargetChoice(wt) ?? BestSpearTarget?.Actor, wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : PlayerHasEffect(SID.LanceCharge) ? OGCDPriority.ModeratelyHigh : OGCDPriority.Average);
+                        QueueOGCD(AID.WyrmwindThrust, TargetChoice(wt) ?? BestSpearTarget?.Actor, wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : HasEffect(SID.LanceCharge) ? OGCDPriority.ModeratelyHigh : OGCDPriority.Average);
                 }
             }
             if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))

@@ -182,7 +182,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         {
             WildfireStrategy.Automatic => (condition, OGCDPriority.Severe),
             WildfireStrategy.AlignWithBurst => (BScd > 90 && condition, OGCDPriority.Severe),
-            WildfireStrategy.End => (PlayerHasEffect(SID.WildfirePlayer), OGCDPriority.Max),
+            WildfireStrategy.End => (HasEffect(SID.WildfirePlayer), OGCDPriority.Max),
             WildfireStrategy.Force => (CanWF, OGCDPriority.Forced),
             WildfireStrategy.ForceWeave => (CanWF && CanWeaveIn, OGCDPriority.Forced),
             WildfireStrategy.Delay or _ => (false, OGCDPriority.None),

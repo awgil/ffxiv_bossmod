@@ -169,7 +169,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         {
             if ((Hearts > 0 ? MP >= 800 : MP >= 1600) && Souls != 6)
                 QueueGCD(Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1, target, prio);
-            if (Unlocked(AID.Blizzard3) && (((!Unlocked(AID.Despair) || LastActionUsed(AID.Despair)) || MP == 0) && ((!HasEffect(SID.Swiftcast) && !Unlocked(AID.Triplecast)) || (!HasEffect(SID.Swiftcast) || !HasEffect(SID.Triplecast)))))
+            if (Unlocked(AID.Blizzard3) && (((!Unlocked(AID.Despair) || LastActionUsed(AID.Despair)) || MP == 0 && !HasMaxSouls) && ((!HasEffect(SID.Swiftcast) && !Unlocked(AID.Triplecast)) || (!HasEffect(SID.Swiftcast) || !HasEffect(SID.Triplecast)))))
                 QueueGCD(AID.Blizzard3, target, prio);
         }
         if (InUI)
@@ -250,7 +250,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     QueueGCD(AID.Fire3, target, GCDPriority.SlightlyHigh);
 
                 //Recovery - B3
-                if (!IsFirstGCD())
+                if (!IsFirstGCD)
                 {
                     if (Unlocked(AID.Blizzard3) && UI < 3)
                         QueueGCD(OGCDReady(AID.Swiftcast) && !HasEffect(SID.Triplecast) ? AID.Swiftcast : CanTC && !HasEffect(SID.Swiftcast) ? AID.Triplecast : AID.Blizzard3, target, GCDPriority.SlightlyHigh);
@@ -305,6 +305,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         var max = HasMaxPolyglots;
         var veryclose = PolyglotTimer <= 3000f && max;
         var overcap = PolyglotTimer <= 7500f && max;
+        var openMF = CombatTimer < 40 && CDRemaining(AID.Manafont) <= 1.5f && InAF && MP <= 400;
         var condition = Polyglots > 0 && InsideCombatWith(target) && (overcap ||
                 (CDRemaining(AID.LeyLines) < 5 || CDRemaining(AID.LeyLines) == 0) || //LL overcap prep
                 (CDRemaining(AID.Manafont) <= 1.5f && InAF && MP <= 400) || //MF prep
@@ -313,9 +314,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         return strategy switch
         {
             PolyglotStrategy.AutoSpendAll or PolyglotStrategy.XenoSpendAll or PolyglotStrategy.FoulSpendAll => (Polyglots > 0 && condition, prio),
-            PolyglotStrategy.AutoHold1 or PolyglotStrategy.XenoHold1 or PolyglotStrategy.FoulHold1 => (Polyglots > 1 && condition, prio),
-            PolyglotStrategy.AutoHold2 or PolyglotStrategy.XenoHold2 or PolyglotStrategy.FoulHold2 => (Polyglots > 2 && condition, prio),
-            PolyglotStrategy.AutoHold3 or PolyglotStrategy.XenoHold3 or PolyglotStrategy.FoulHold3 => (HasMaxPolyglots && overcap, prio),
+            PolyglotStrategy.AutoHold1 or PolyglotStrategy.XenoHold1 or PolyglotStrategy.FoulHold1 => (openMF || (Polyglots > 1 && condition), prio),
+            PolyglotStrategy.AutoHold2 or PolyglotStrategy.XenoHold2 or PolyglotStrategy.FoulHold2 => (openMF || (Polyglots > 2 && condition), prio),
+            PolyglotStrategy.AutoHold3 or PolyglotStrategy.XenoHold3 or PolyglotStrategy.FoulHold3 => (openMF || (HasMaxPolyglots && overcap), prio),
             PolyglotStrategy.ForceXeno => (CanXG, GCDPriority.Forced),
             PolyglotStrategy.ForceFoul => (CanFoul, GCDPriority.Forced),
             _ => (false, GCDPriority.None),

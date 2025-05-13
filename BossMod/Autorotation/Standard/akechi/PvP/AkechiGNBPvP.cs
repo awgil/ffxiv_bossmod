@@ -134,11 +134,11 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         rdCD = CDRemaining(AID.RoughDividePvP);
         nmLeft = StatusRemaining(Player, SID.NoMercyPvP, 7);
         hasNM = nmLeft > 0;
-        hasBlast = PlayerHasEffect(SID.ReadyToBlastPvP);
-        hasRaze = PlayerHasEffect(SID.ReadyToRazePvP);
-        hasRip = PlayerHasEffect(SID.ReadyToRipPvP) || GunStep == 1;
-        hasTear = PlayerHasEffect(SID.ReadyToTearPvP) || GunStep == 2;
-        hasGouge = PlayerHasEffect(SID.ReadyToGougePvP);
+        hasBlast = HasEffect(SID.ReadyToBlastPvP);
+        hasRaze = HasEffect(SID.ReadyToRazePvP);
+        hasRip = HasEffect(SID.ReadyToRipPvP) || GunStep == 1;
+        hasTear = HasEffect(SID.ReadyToTearPvP) || GunStep == 2;
+        hasGouge = HasEffect(SID.ReadyToGougePvP);
         LBready = World.Party.LimitBreakLevel >= 1;
         GFcomboStep = ComboLastMove switch
         {
@@ -241,7 +241,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     };
     private bool ShouldUseRoughDivide(OffensiveStrategy strategy, Actor? target) => strategy switch
     {
-        OffensiveStrategy.Automatic => target != null && (!hasNM && rdCD <= 14 || !OnCooldown(AID.RoughDividePvP)),
+        OffensiveStrategy.Automatic => target != null && (!hasNM && ReadyIn(AID.RoughDividePvP) <= 2),
         OffensiveStrategy.Force => rdCD <= 14.5f,
         OffensiveStrategy.Delay => false,
         _ => false
@@ -276,8 +276,8 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     };
     private bool ShouldUseTT(TriggerStrategy strategy, Actor? target) => strategy switch
     {
-        TriggerStrategy.Automatic => StacksRemaining(target, SID.RelentlessShrapnelPvP) > 0 && PlayerHasEffect(SID.RelentlessRushPvP),
-        TriggerStrategy.Force => PlayerHasEffect(SID.RelentlessRushPvP),
+        TriggerStrategy.Automatic => StacksRemaining(target, SID.RelentlessShrapnelPvP) > 0 && HasEffect(SID.RelentlessRushPvP),
+        TriggerStrategy.Force => HasEffect(SID.RelentlessRushPvP),
         TriggerStrategy.Hold => false,
         _ => false
     };

@@ -281,8 +281,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         GaugeStrategy.Automatic => ShouldSpendGauge(GaugeStrategy.Automatic, target),
         GaugeStrategy.OnlyST => ShouldSpendGauge(GaugeStrategy.Automatic, target),
         GaugeStrategy.OnlyAOE => ShouldSpendGauge(GaugeStrategy.Automatic, target),
-        GaugeStrategy.ForceST => Unlocked(AID.FellCleave) && (BeastGauge >= 50 || InnerRelease.IsActive || PlayerHasEffect(SID.NascentChaos, 30)),
-        GaugeStrategy.ForceAOE => Unlocked(AID.Decimate) && (BeastGauge >= 50 || InnerRelease.IsActive || PlayerHasEffect(SID.NascentChaos, 30)),
+        GaugeStrategy.ForceST => Unlocked(AID.FellCleave) && (BeastGauge >= 50 || InnerRelease.IsActive || HasEffect(SID.NascentChaos)),
+        GaugeStrategy.ForceAOE => Unlocked(AID.Decimate) && (BeastGauge >= 50 || InnerRelease.IsActive || HasEffect(SID.NascentChaos)),
         GaugeStrategy.Conserve => false,
         _ => false
     };
@@ -442,8 +442,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseTomahawk(TomahawkStrategy strategy, Enemy? target) => strategy switch
     {
-        TomahawkStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !In3y(target?.Actor),
-        TomahawkStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD(),
+        TomahawkStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD && !In3y(target?.Actor),
+        TomahawkStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD,
         TomahawkStrategy.Force => true,
         TomahawkStrategy.Allow => !In3y(target?.Actor),
         TomahawkStrategy.Forbid => false,
@@ -491,7 +491,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         Onslaught.IsReady = Unlocked(AID.Onslaught) && Onslaught.CD < 60.6f; //Onslaught ability
         Infuriate.CDRemaining = CDRemaining(AID.Infuriate); //Retrieve current Infuriate cooldown
         Infuriate.HasCharges = Infuriate.CDRemaining <= 60; //Checks if Infuriate has charges
-        Infuriate.IsReady = Unlocked(AID.Infuriate) && Infuriate.HasCharges && !PlayerHasEffect(SID.NascentChaos, 30); //Infuriate ability
+        Infuriate.IsReady = Unlocked(AID.Infuriate) && Infuriate.HasCharges && !HasEffect(SID.NascentChaos); //Infuriate ability
         Infuriate.ReadyIn = Infuriate.CDRemaining * 0.5f;  // This gives 60s for one charge
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
         BurstWindowLeft = (InnerRelease.CD >= 40) ? 1.0f : 0.0f;

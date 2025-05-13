@@ -173,7 +173,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
     private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target)
     {
-        if (!ActionReady(AID.NoMercy))
+        if (!OGCDReady(AID.NoMercy))
             return false;
 
         var slow = SkSGCDLength >= 2.4800f && CanWeaveIn;
@@ -233,7 +233,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseBowShock(OGCDStrategy strategy, Actor? target)
     {
-        if (!ActionReady(AID.BowShock))
+        if (!OGCDReady(AID.BowShock))
             return false;
         return strategy switch
         {
@@ -262,7 +262,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseBloodfest(BloodfestStrategy strategy, Actor? target)
     {
-        if (!ActionReady(AID.Bloodfest))
+        if (!OGCDReady(AID.Bloodfest))
             return false;
         return strategy switch
         {
@@ -276,7 +276,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseZone(OGCDStrategy strategy, Actor? target)
     {
-        if (!ActionReady(AID.DangerZone))
+        if (!OGCDReady(AID.DangerZone))
             return false;
         //we usually use this in two ways: inside & outside No Mercy, whilst trying to keep it aligned with Burst
         return strategy switch
@@ -353,8 +353,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseLightningShot(LightningShotStrategy strategy, Actor? target) => strategy switch
     {
-        LightningShotStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !In3y(target),
-        LightningShotStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD(),
+        LightningShotStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD && !In3y(target),
+        LightningShotStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD,
         LightningShotStrategy.Force => true,
         LightningShotStrategy.Allow => !In3y(target),
         LightningShotStrategy.Forbid or _ => false,
@@ -378,20 +378,20 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         BFcd = CDRemaining(AID.Bloodfest);
         NMcd = CDRemaining(AID.NoMercy);
         HasNM = NMcd is >= 39.5f and <= 60;
-        HasBlast = Unlocked(AID.Hypervelocity) && PlayerHasEffect(SID.ReadyToBlast, 10f) && !LastActionUsed(AID.Hypervelocity);
-        HasRaze = Unlocked(AID.FatedBrand) && PlayerHasEffect(SID.ReadyToRaze, 10f) && !LastActionUsed(AID.FatedBrand);
-        HasRip = PlayerHasEffect(SID.ReadyToRip, 10f) && !LastActionUsed(AID.JugularRip);
-        HasTear = PlayerHasEffect(SID.ReadyToTear, 10f) && !LastActionUsed(AID.AbdomenTear);
-        HasGouge = PlayerHasEffect(SID.ReadyToGouge, 10f) && !LastActionUsed(AID.EyeGouge);
+        HasBlast = Unlocked(AID.Hypervelocity) && HasEffect(SID.ReadyToBlast) && !LastActionUsed(AID.Hypervelocity);
+        HasRaze = Unlocked(AID.FatedBrand) && HasEffect(SID.ReadyToRaze) && !LastActionUsed(AID.FatedBrand);
+        HasRip = HasEffect(SID.ReadyToRip) && !LastActionUsed(AID.JugularRip);
+        HasTear = HasEffect(SID.ReadyToTear) && !LastActionUsed(AID.AbdomenTear);
+        HasGouge = HasEffect(SID.ReadyToGouge) && !LastActionUsed(AID.EyeGouge);
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3.5f, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
         CanBS = Unlocked(AID.BurstStrike) && Ammo > 0;
-        CanGF = ActionReady(AID.GnashingFang) && Ammo > 0;
+        CanGF = GCDReady(AID.GnashingFang) && Ammo > 0;
         CanFC = Unlocked(AID.FatedCircle) && Ammo > 0;
-        CanDD = ActionReady(AID.DoubleDown) && Ammo > 0;
-        CanBreak = Unlocked(AID.SonicBreak) && PlayerHasEffect(SID.ReadyToBreak, 30);
-        CanReign = Unlocked(AID.ReignOfBeasts) && PlayerHasEffect(SID.ReadyToReign, 30);
+        CanDD = GCDReady(AID.DoubleDown) && Ammo > 0;
+        CanBreak = Unlocked(AID.SonicBreak) && HasEffect(SID.ReadyToBreak);
+        CanReign = Unlocked(AID.ReignOfBeasts) && HasEffect(SID.ReadyToReign);
 
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE);
