@@ -1,5 +1,4 @@
-﻿#if DEBUG
-namespace BossMod.Shadowbringers.Foray.CLL.CLL2Brionac;
+﻿namespace BossMod.Shadowbringers.Foray.CLL.CLL2Brionac;
 
 public enum OID : uint
 {
@@ -16,7 +15,8 @@ public enum AID : uint
     AutoAttack = 21446, // Boss->player, no cast, single-target
     ElectricAnvilBoss = 20956, // Boss->self, 4.0s cast, single-target
     ElectricAnvil = 20957, // Helper->player, 5.0s cast, single-target
-    FalseThunder = 20943, // Boss->self, 8.0s cast, range 47 ?-degree cone
+    FalseThunder1 = 20942, // Boss->self, 8.0s cast, range 47 ?-degree cone
+    FalseThunder2 = 20943, // Boss->self, 8.0s cast, range 47 ?-degree cone
     AntiWarmachinaWeaponry = 20941, // Boss->self, 5.0s cast, single-target
     MagitekThunder = 20993, // Brionac->2ED7, no cast, single-target
     LightningShowerBoss = 21444, // Boss->self, 4.0s cast, single-target
@@ -30,13 +30,12 @@ public enum AID : uint
     PoleShiftBoss = 20947, // Boss->self, 8.0s cast, single-target
     PoleShift = 20948, // Helper->Lightsphere/Shadowsphere, no cast, single-target
 
-    _Weaponskill_FalseThunder = 20942, // Boss->self, 8.0s cast, range 47 ?-degree cone
-    _Weaponskill_MagitekMagnetism = 20949, // Boss->self, 6.0s cast, single-target
-    _Weaponskill_MagneticJolt = 20951, // Helper->self, no cast, ???
-    _Weaponskill_PolarMagnetism = 20953, // Boss->self, 6.0s cast, single-target
+    MagitekMagnetism = 20949, // Boss->self, 6.0s cast, single-target
+    MagneticJolt = 20951, // Helper->self, no cast, ???
+    PolarMagnetism = 20953, // Boss->self, 6.0s cast, single-target
 
-    _Weaponskill_PolarMagnetismAttract = 20950, // Helper->self, no cast, ???
-    _Weaponskill_PolarMagnetismKnockback = 20952, // Helper->self, no cast, ???
+    PolarMagnetismAttract = 20950, // Helper->self, no cast, ???
+    PolarMagnetismKnockback = 20952, // Helper->self, no cast, ???
 }
 
 public enum TetherID : uint
@@ -54,7 +53,7 @@ public enum IconID : uint
 }
 
 class ElectricAnvil(BossModule module) : Components.SingleTargetCast(module, AID.ElectricAnvil);
-class FalseThunder(BossModule module) : Components.GroupedAOEs(module, [AID.FalseThunder, AID._Weaponskill_FalseThunder], new AOEShapeCone(47, 65.Degrees()));
+class FalseThunder(BossModule module) : Components.GroupedAOEs(module, [AID.FalseThunder2, AID.FalseThunder1], new AOEShapeCone(47, 65.Degrees()));
 class LightningShower(BossModule module) : Components.RaidwideCast(module, AID.LightningShower);
 
 class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall: true)
@@ -149,7 +148,7 @@ class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_PolarMagnetismAttract or AID._Weaponskill_PolarMagnetismKnockback)
+        if ((AID)spell.Action.ID is AID.PolarMagnetismAttract or AID.PolarMagnetismKnockback)
         {
             Array.Fill(tetheredTo, null);
             charges.Clear();
@@ -280,4 +279,3 @@ public class Brionac(WorldState ws, Actor primary) : BossModule(ws, primary, new
 {
     protected override bool CheckPull() => PrimaryActor.InCombat && WorldState.Party.Player() is { } player && Bounds.Contains(player.Position - Arena.Center);
 }
-#endif

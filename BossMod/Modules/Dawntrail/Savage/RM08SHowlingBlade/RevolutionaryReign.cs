@@ -109,9 +109,9 @@ class ReignHints(BossModule module) : BossComponent(module)
             else
             {
                 if (lp != 2)
-                    yield return (_source.Value + bossFacing.Rotate(-75.Degrees()) * 7);
+                    yield return _source.Value + bossFacing.Rotate(-75.Degrees()) * 7;
                 if (lp != 1)
-                    yield return (_source.Value + bossFacing.Rotate(75.Degrees()) * 7);
+                    yield return _source.Value + bossFacing.Rotate(75.Degrees()) * 7;
             }
         }
         else
@@ -235,11 +235,30 @@ class ReignInout(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ReignsEnd : Components.GenericBaitAway
+class ReignsEnd(BossModule module) : Components.GenericBaitAway(module, AID.ReignsEnd)
 {
-    public ReignsEnd(BossModule module) : base(module, AID.ReignsEnd)
+    public override void Update()
     {
-        CurrentBaits.AddRange(Raid.WithoutSlot().Where(r => r.Role == Role.Tank).Select(r => new Bait(Module.PrimaryActor, r, new AOEShapeCone(40, 30.Degrees()), WorldState.FutureTime(3.1f))));
+        CurrentBaits.Clear();
+        CurrentBaits.AddRange(RaidByEnmity(Module.PrimaryActor).Take(2).Select(r => new Bait(Module.PrimaryActor, r, new AOEShapeCone(40, 30.Degrees()))));
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (actor.Role == Role.Tank)
+        {
+            var shouldVoke = false;
+            foreach (var b in CurrentBaits)
+            {
+                if (b.Target == actor)
+                    // we are baiting, all good
+                    return;
+                else if (b.Target.Role != Role.Tank)
+                    shouldVoke = true;
+            }
+            if (shouldVoke)
+                hints.Add("Provoke!");
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

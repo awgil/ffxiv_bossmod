@@ -104,4 +104,5 @@ public sealed class ModuleInfoAttribute(BossModuleInfo.Maturity maturity) : Attr
     public uint NameID { get; set; } // usually BNpcName row, unless GroupType uses it differently
     public int SortOrder { get; set; } // default: first number in type name
     public int PlanLevel { get; set; } // if > 0, module supports plans for this level
+    public bool DevOnly { get; set; } // if true, only loaded from dev plugin (or uidev)
 }

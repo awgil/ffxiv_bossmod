@@ -317,9 +317,8 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnActionRequested(ClientState.OpActionRequest op)
     {
-#if DEBUG
-        Service.Log($"[RMM] Exec #{op.Request.SourceSequence} {op.Request.Action} @ {op.Request.TargetID:X} [{string.Join(" --- ", ActiveModulesFlat.Select(m => m.Module.DescribeState()))}]");
-#endif
+        if (Service.IsDev)
+            Service.Log($"[RMM] Exec #{op.Request.SourceSequence} {op.Request.Action} @ {op.Request.TargetID:X} [{string.Join(" --- ", ActiveModulesFlat.Select(m => m.Module.DescribeState()))}]");
     }
 
     private void OnCastEvent(Actor actor, ActorCastEvent cast)
@@ -327,9 +326,8 @@ public sealed class RotationModuleManager : IDisposable
         if (cast.SourceSequence != 0 && WorldState.Party.Members[PlayerSlot].InstanceId == actor.InstanceID)
         {
             LastCast = (WorldState.CurrentTime, cast);
-#if DEBUG
-            Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", ActiveModulesFlat.Select(m => m.Module.DescribeState()))}]");
-#endif
+            if (Service.IsDev)
+                Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", ActiveModulesFlat.Select(m => m.Module.DescribeState()))}]");
         }
     }
 }

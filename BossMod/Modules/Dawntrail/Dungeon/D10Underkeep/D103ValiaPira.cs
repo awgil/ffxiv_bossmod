@@ -243,10 +243,11 @@ class CoordinateMarch(BossModule module) : Components.GenericAOEs(module, AID.En
             var ix = _crosses.FindIndex(c => c.Source.AlmostEqual(caster.Position, 1));
             if (ix >= 0)
             {
-#if DEBUG
-                var cross = _crosses[ix];
-                Service.Log($"predicted activation {cross.Activation}, actual activation {WorldState.CurrentTime}, difference {(cross.Activation - WorldState.CurrentTime).TotalSeconds:f3}");
-#endif
+                if (Service.IsDev)
+                {
+                    var cross = _crosses[ix];
+                    Service.Log($"predicted activation {cross.Activation}, actual activation {WorldState.CurrentTime}, difference {(cross.Activation - WorldState.CurrentTime).TotalSeconds:f3}");
+                }
                 _crosses.RemoveAt(ix);
             }
         }
@@ -255,7 +256,6 @@ class CoordinateMarch(BossModule module) : Components.GenericAOEs(module, AID.En
 
 class Debugger(BossModule module) : BossComponent(module)
 {
-#if DEBUG
     private readonly List<Actor> _orbs = [];
     private readonly List<Actor> _bits = [];
     private readonly List<(Actor From, Actor To)> _links = [];
@@ -363,7 +363,6 @@ class Debugger(BossModule module) : BossComponent(module)
         var off = new WDir(-13.5f, -13.5f) + new WDir(9 * col, 9 * row);
         return Arena.Center + off;
     }
-#endif
 }
 
 class D103ValiaPiraStates : StateMachineBuilder
@@ -379,7 +378,7 @@ class D103ValiaPiraStates : StateMachineBuilder
             .ActivateOnEnter<DeterrentPulse>()
             .ActivateOnEnter<HyperchargedLight>()
             .ActivateOnEnter<CoordinateMarch>()
-            .ActivateOnEnter<Debugger>();
+            .ActivateOnEnter<Debugger>(Service.IsDev);
     }
 }
 

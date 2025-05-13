@@ -35,6 +35,85 @@ class DelugeOfDarkness2(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class Phase2AIHints(BossModule module) : BossComponent(module)
+{
+    [Flags]
+    enum Position
+    {
+        None,
+        Inside,
+        Outside
+    }
+
+    private readonly Position[] _playerPositions = new Position[PartyState.MaxAllianceSize];
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var pos = _playerPositions[slot];
+        foreach (var enemy in hints.PotentialTargets)
+        {
+            switch ((OID)enemy.Actor.OID)
+            {
+                case OID.Atomos:
+                    if (pos.HasFlag(Position.Inside))
+                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
+                    else if (actor.Class.GetRole() == Role.Ranged)
+                        enemy.Priority = 5;
+                    break;
+                case OID.StygianShadow:
+                    if (pos.HasFlag(Position.Inside))
+                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
+                    break;
+                case OID.Boss:
+                    if (pos.HasFlag(Position.Outside))
+                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
+                    break;
+
+            }
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID.InnerDarkness:
+                SetState(actor, Position.Inside);
+                break;
+            case SID.OuterDarkness:
+                SetState(actor, Position.Outside);
+                break;
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID.InnerDarkness:
+                ClearState(actor, Position.Inside);
+                break;
+            case SID.OuterDarkness:
+                ClearState(actor, Position.Outside);
+                break;
+        }
+    }
+
+    private void SetState(Actor a, Position flag)
+    {
+        var slot = Raid.FindSlot(a.InstanceID);
+        if (slot >= 0)
+            _playerPositions[slot] |= flag;
+    }
+
+    private void ClearState(Actor a, Position flag)
+    {
+        var slot = Raid.FindSlot(a.InstanceID);
+        if (slot >= 0)
+            _playerPositions[slot] &= ~flag;
+    }
+}
+
 class Phase2OuterRing(BossModule module) : Components.GenericAOEs(module)
 {
     public bool Dangerous;

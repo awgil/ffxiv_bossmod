@@ -126,14 +126,16 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     public enum GCDPriority
     {
         None = 0,
+        Enpi = 50,
         Standard = 100,
         Combo = 150,
         ComboEnd = 200,
         Iaijutsu = 700,
         Tsubame = 750,
         Ogi1 = 800,
+        PreDotRefresh = 830,
         Ogi2 = 850,
-        DotRefresh = 900
+        Higanbana = 900
     }
 
     private (float Left, IaiRepeat Action) GetTsubameAction()
@@ -206,10 +208,10 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (CountdownRemaining > 0)
         {
             if (Meikyo.Left == 0 && CountdownRemaining < meikyoCutoff)
-                PushGCD(AID.MeikyoShisui, Player);
+                PushGCD(AID.MeikyoShisui, Player, GCDPriority.Standard);
 
             if (TrueNorthLeft == 0 && Hints.PotentialTargets.Any(x => !x.Actor.Omnidirectional) && CountdownRemaining < 5)
-                PushGCD(AID.TrueNorth, Player);
+                PushGCD(AID.TrueNorth, Player, GCDPriority.Standard);
 
             if (Meikyo.Left > CountdownRemaining && CountdownRemaining < 0.76f)
                 PushGCD(opener.EarlyKasha() ? AID.Kasha : AID.Gekko, primaryTarget, GCDPriority.ComboEnd);
@@ -229,35 +231,40 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         if (Meikyo.Left > GCD)
-            PushGCD(GetMeikyoAction(strategy), NumAOECircleTargets > 2 ? null : primaryTarget);
+            PushGCD(GetMeikyoAction(strategy), NumAOECircleTargets > 2 ? null : primaryTarget, GCDPriority.Standard);
 
         if (ComboLastMove == AOEStarter && NumAOECircleTargets > 0)
         {
             if (DamageUpLeft <= HasteLeft)
-                PushGCD(AID.Mangetsu, Player);
+                PushGCD(AID.Mangetsu, Player, GCDPriority.Standard);
             if (HasteLeft <= DamageUpLeft)
-                PushGCD(AID.Oka, Player);
+                PushGCD(AID.Oka, Player, GCDPriority.Standard);
         }
 
+        var comboEndPrio = CanFitGCD(TargetDotLeft, 2) ? GCDPriority.Standard : GCDPriority.PreDotRefresh;
+
         if (ComboLastMove == AID.Jinpu)
-            PushGCD(AID.Gekko, primaryTarget);
+            PushGCD(AID.Gekko, primaryTarget, comboEndPrio);
         if (ComboLastMove == AID.Shifu)
-            PushGCD(AID.Kasha, primaryTarget);
+            PushGCD(AID.Kasha, primaryTarget, comboEndPrio);
 
         if (ComboLastMove == STStarter)
-            PushGCD(GetHakazeComboAction(strategy), primaryTarget);
+        {
+            var act = GetHakazeComboAction(strategy);
+            PushGCD(act, primaryTarget, act == AID.Yukikaze ? comboEndPrio : GCDPriority.Standard);
+        }
 
         // note that this is intentionally checking for number of "nearby" targets even if our AOE starter is a cone AOE
         if (NumAOECircleTargets > 2 && Unlocked(AID.Fuga))
-            PushGCD(AOEStarter, BestAOETarget);
+            PushGCD(AOEStarter, BestAOETarget, GCDPriority.Standard);
         else
-            PushGCD(AID.Hakaze, primaryTarget);
+            PushGCD(AID.Hakaze, primaryTarget, GCDPriority.Standard);
 
         var enpiprio = strategy.Option(Track.Enpi).As<EnpiStrategy>() switch
         {
-            EnpiStrategy.Enhanced => EnhancedEnpi > GCD ? 2 : 0,
-            EnpiStrategy.Ranged => 2,
-            _ => 0,
+            EnpiStrategy.Enhanced => EnhancedEnpi > GCD ? GCDPriority.Enpi : GCDPriority.None,
+            EnpiStrategy.Ranged => GCDPriority.Enpi,
+            _ => GCDPriority.None,
         };
 
         PushGCD(AID.Enpi, primaryTarget, enpiprio);
@@ -347,7 +354,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         if (RaidBuffsLeft > GCD
             || !CanFitGCD(Tsubame.Left, 1)
             || PotionLeft > GCD && !CanFitGCD(PotionLeft, 1))
-            PushGCD(aid, target);
+            PushGCD(aid, target, GCDPriority.Tsubame);
     }
 
     private (AID, Enemy?) TsubameAction(Enemy? primaryTarget, IaiRepeat k) => k switch
@@ -369,7 +376,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
                 HaveHaste && HaveDmg // standard buffs
                 || opener.EarlyBana() && CombatTimer < 10 // forced early bana
             ))
-            PushGCD(AID.Higanbana, BestDotTarget, GCDPriority.DotRefresh);
+            PushGCD(AID.Higanbana, BestDotTarget, GCDPriority.Higanbana);
 
         // we don't cast any other iaijutsu without having fugetsu up first, since it takes max 2 GCDs to apply
         if (!HaveDmg)
@@ -400,7 +407,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     {
         // special case for if we got thrust into combat with no prep
         if (Meikyo.Left == 0 && !HaveDmg && CombatTimer < 5 && primaryTarget != null)
-            PushGCD(AID.MeikyoShisui, Player);
+            PushGCD(AID.MeikyoShisui, Player, GCDPriority.Higanbana);
     }
 
     private (Positional, bool) GetNextPositional(StrategyValues strategy)

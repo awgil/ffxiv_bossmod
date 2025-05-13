@@ -18,7 +18,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugEnvControl _debugEnvControl = new(ws);
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
-    private readonly DebugHate _debugHate = new();
+    private readonly DebugHate _debugHate = new(ws);
     private readonly DebugInput _debugInput = new(autorot, move);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
     private readonly DebugAddon _debugAddon = new();

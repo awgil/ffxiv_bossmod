@@ -219,6 +219,7 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<StygianShadow>(id + 0x10, 4.2f, comp => comp.ActiveActors.Any(), "Platform adds")
             .ActivateOnEnter<StygianShadow>()
+            .ActivateOnEnter<Phase2AIHints>()
             .ActivateOnEnter<Atomos>()
             .ActivateOnEnter<Phase2OuterRing>()
             .ActivateOnEnter<Phase2InnerCells>()
@@ -387,6 +388,7 @@ class Ch01CloudOfDarknessStates : StateMachineBuilder
         CastStart(id, AID.FloodOfDarkness2, delay, "Adds disappear")
             .DeactivateOnExit<StygianShadow>()
             .DeactivateOnExit<Atomos>()
+            .DeactivateOnExit<Phase2AIHints>()
             .DeactivateOnExit<Phase2OuterRing>()
             .DeactivateOnExit<Phase2InnerCells>()
             .DeactivateOnExit<DarkEnergyParticleBeam>();

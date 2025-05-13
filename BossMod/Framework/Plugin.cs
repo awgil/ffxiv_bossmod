@@ -58,6 +58,7 @@ public sealed class Plugin : IDalamudPlugin
 #endif
 
         dalamud.Create<Service>();
+        Service.IsDev = dalamud.IsDev;
         Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
         Service.LogHandlerVerbose = (string msg) => Service.Logger.Verbose(msg);
         Service.LuminaGameData = dataManager.GameData;
@@ -101,7 +102,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new(_ai);
-        _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud);
+        _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = Service.IsDev };
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
