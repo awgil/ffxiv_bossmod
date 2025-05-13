@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
-class ZeleniaStates : StateMachineBuilder
+class Ex4ZeleniaStates : StateMachineBuilder
 {
-    public ZeleniaStates(BossModule module) : base(module)
+    public Ex4ZeleniaStates(BossModule module) : base(module)
     {
         SimplePhase(0, Phase1, "P1")
             .ActivateOnEnter<ThornedCatharsis>()
