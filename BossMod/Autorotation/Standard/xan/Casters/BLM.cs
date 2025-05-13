@@ -207,11 +207,19 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (primaryTarget == null)
         {
-            if (Fire > 0 && Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) == 0)
+            if (ReadyIn(AID.Transpose) == 0)
             {
-                var canFS = AstralSoul == 6 || AstralSoul >= 3 && MP >= 800;
-                if (!canFS && Player.HPMP.CurMP < Player.HPMP.MaxMP)
-                    PushOGCD(AID.Transpose, Player, GCDPriority.Standard);
+                // swap back to ice in downtime if we can't fit in another FS
+                if (Fire > 0)
+                {
+                    var canFS = AstralSoul == 6 || AstralSoul >= 3 && MP >= 800;
+                    if (!canFS && Player.HPMP.CurMP < Player.HPMP.MaxMP)
+                        PushOGCD(AID.Transpose, Player);
+                }
+
+                // at max MP, switch back to AF1 to use firestarter
+                if (Ice > 0 && Firestarter && Player.HPMP.CurMP == Player.HPMP.MaxMP)
+                    PushOGCD(AID.Transpose, Player);
             }
 
             if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts || Player.HPMP.CurMP < Player.HPMP.MaxMP))
@@ -554,6 +562,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         => CanWeave(MaxChargesIn(AID.LeyLines), 0.6f, extraGCDs)
         && strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
 
+    // TODO: in downtime, transpose to AF1 and stay there if we have firestarter
     private bool ShouldTranspose(StrategyValues strategy)
     {
         if (!Unlocked(AID.Fire3))
