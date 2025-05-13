@@ -22,7 +22,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi BLM", "Standard Rotation Module", "Akechi|DPS", "Akechi", RotationModuleQuality.Basic, BitMask.Build(Class.THM, Class.BLM), 100);
+        var res = new RotationModuleDefinition("Akechi BLM", "Standard Rotation Module", "Akechi|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.THM, Class.BLM), 100);
         res.DefineAOE().AddAssociatedActions(
             AID.Fire1, AID.Fire2, AID.Fire3, AID.Fire4, AID.HighFire2, //Fire
             AID.Blizzard1, AID.Blizzard2, AID.Blizzard3, AID.Blizzard4, AID.HighBlizzard2, //Blizzard
@@ -345,7 +345,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
     private bool ShouldUseF3P => Unlocked(AID.Fire3) && !ShouldUseAOE && HasFirestarter && InAF && AF < 3;
     private bool ShouldUseParadox => CanParadox && !ShouldUseAOE && (AF == 3 ? CombatTimer > 35 : CombatTimer >= 0) && ((InUI && Hearts == MaxHearts) || (InAF && !HasFirestarter));
-    private bool ShouldUseFlare => Unlocked(AID.Flare) && (ShouldUseAOE ? (InAF && (Unlocked(AID.FlareStar) ? (InAF && Souls != 6 && MP >= 800) : (Unlocked(TraitID.UmbralHeart) ? (Hearts > 0 || (Hearts == 0 && MP >= 800)) : MP is < 3000 and >= 800))) : (DowntimeIn <= 6 && InAF && Souls >= 3));
+    private bool ShouldUseFlare => Unlocked(AID.Flare) && (ShouldUseAOE ? (InAF && (Unlocked(AID.FlareStar) ? (InAF && Souls != 6 && MP >= 800) : (Unlocked(TraitID.UmbralHeart) ? (Hearts > 0 || (Hearts == 0 && MP >= 800)) : MP is < 3000 and >= 800))) : (InAF && ((Souls != 6 && MP is < 1600 and >= 800) || (DowntimeIn <= 6 && Souls >= 3))));
     #endregion
 
     #region OGCD
