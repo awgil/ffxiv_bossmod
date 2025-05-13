@@ -287,7 +287,7 @@ public sealed class ActionDefinitions : IDisposable
     {
         var cfg = Service.Config.Get<ActionTweaksConfig>();
         var target = action.Target;
-        if (target == null || !cfg.PreventDangerousDash)
+        if (target == null || !cfg.DashSafety)
             return false;
 
         // if there are pending knockbacks, god only knows where we would be sent after using a gapcloser
@@ -305,7 +305,7 @@ public sealed class ActionDefinitions : IDisposable
     public static bool DashToPositionCheck(WorldState _, Actor player, ActionQueue.Entry action, AIHints hints)
     {
         var cfg = Service.Config.Get<ActionTweaksConfig>();
-        if (action.TargetPos == default || !cfg.PreventDangerousDash || !cfg.PreventDangerousDashExtra)
+        if (action.TargetPos == default || !cfg.DashSafety || !cfg.DashSafetyExtra)
             return false;
 
         if (player.PendingKnockbacks.Count > 0)
@@ -318,7 +318,7 @@ public sealed class ActionDefinitions : IDisposable
         => (ws, player, act, hints) =>
         {
             var cfg = Service.Config.Get<ActionTweaksConfig>();
-            if (!cfg.PreventDangerousDash || !cfg.PreventDangerousDashExtra)
+            if (!cfg.DashSafety || !cfg.DashSafetyExtra)
                 return false;
 
             if (player.PendingKnockbacks.Count > 0)
@@ -335,7 +335,7 @@ public sealed class ActionDefinitions : IDisposable
          => (ws, player, act, hints) =>
         {
             var cfg = Service.Config.Get<ActionTweaksConfig>();
-            if (act.Target == null || !cfg.PreventDangerousDash || !cfg.PreventDangerousDashExtra)
+            if (act.Target == null || !cfg.DashSafety || !cfg.DashSafetyExtra)
                 return false;
 
             if (player.PendingKnockbacks.Count > 0)

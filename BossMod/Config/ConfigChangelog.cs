@@ -60,6 +60,16 @@ class MultiPresetNotice : ChangelogNotice
     }
 }
 
+class DashSafetyNotice : ChangelogNotice
+{
+    public override Version Since => new(0, 2, 5, 1);
+
+    public override void Draw()
+    {
+        ImGui.TextWrapped($"The option \"Try to prevent dashing into AOEs\" is now enabled by default. You can disable it in Settings -> Action Tweaks.");
+    }
+}
+
 public class ConfigChangelogWindow : UIWindow
 {
     private readonly Version PreviousVersion;
