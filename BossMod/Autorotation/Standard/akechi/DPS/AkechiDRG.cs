@@ -707,7 +707,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (ComboLastMove is AID.Disembowel or AID.SpiralBlow &&
             BestDOTTargets != null)
         {
-            Hints.ForcedTarget = BestDOTTargets.Actor;
+            if (InMeleeRange(BestDOTTargets.Actor))
+                Hints.ForcedTarget = BestDOTTargets.Actor;
         }
         if (BestDOTTargets == null || (ShouldUseAOE ? !In10y(BestAOETarget?.Actor) : !In3y(BestDOTTarget?.Actor)))
         {
