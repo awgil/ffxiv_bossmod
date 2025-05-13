@@ -1,5 +1,4 @@
-﻿using BossMod.AST;
-using static BossMod.AIHints;
+﻿using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
@@ -285,7 +284,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Retrieves <b>effective cast time</b> of a specified <b>action</b>.</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected virtual float EffectiveCastTime(AID aid) => HasEffect(SID.Swiftcast) ? 0 : ActualCastTime(aid) * SpSGCDLength / 2.5f;
+    protected virtual float EffectiveCastTime(AID aid) => HasEffect(ClassShared.SID.Swiftcast) ? 0 : ActualCastTime(aid) * SpSGCDLength / 2.5f;
 
     /// <summary>Retrieves player's <b>GCD length</b> based on <b>Skill-Speed</b>.</summary>
     protected float SkSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
