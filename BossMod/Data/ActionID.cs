@@ -66,6 +66,9 @@ public readonly record struct ActionID(uint Raw)
         _ => 0
     };
 
+    public bool IsGCD() => Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.CooldownGroup == 58;
+    public readonly string? CDType() => IsGCD() ? "GCD" : "OGCD";
+
     public readonly float CastTime() => Type switch
     {
         ActionType.Spell => (Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.Cast100ms ?? 0) * 0.1f,
