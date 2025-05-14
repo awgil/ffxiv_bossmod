@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A13ArkAngels;
 
-class DecisiveBattle(BossModule module) : BossComponent(module)
+class DecisiveBattle(BossModule module) : Components.GenericInvincible(module, "Target correct boss!")
 {
-    enum Buff
+    enum Color
     {
         None,
         Epic,
@@ -11,34 +11,40 @@ class DecisiveBattle(BossModule module) : BossComponent(module)
     }
 
     private readonly Actor?[] _bosses = new Actor?[4];
-    private readonly Buff[] _buffs = new Buff[PartyState.MaxAllianceSize];
+    private readonly Color[] _colors = new Color[PartyState.MaxAllianceSize];
+
+    protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor)
+    {
+        var color = GetColor(slot);
+        if (color == Color.None)
+            yield break;
+
+        for (var c = Color.Epic; c <= Color.Vaunted; c++)
+            if (c != color && _bosses[(int)c] is { } boss)
+                yield return boss;
+    }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-
         switch ((SID)status.ID)
         {
             case SID.EpicHero:
-                if (slot >= 0)
-                    _buffs[slot] = Buff.Epic;
+                Assign(actor, Color.Epic);
                 break;
             case SID.FatedHero:
-                if (slot >= 0)
-                    _buffs[slot] = Buff.Fated;
+                Assign(actor, Color.Fated);
                 break;
             case SID.VauntedHero:
-                if (slot >= 0)
-                    _buffs[slot] = Buff.Vaunted;
+                Assign(actor, Color.Vaunted);
                 break;
             case SID.EpicVillain:
-                _bosses[(int)Buff.Epic] = actor;
+                _bosses[(int)Color.Epic] = actor;
                 break;
             case SID.FatedVillain:
-                _bosses[(int)Buff.Fated] = actor;
+                _bosses[(int)Color.Fated] = actor;
                 break;
             case SID.VauntedVillain:
-                _bosses[(int)Buff.Vaunted] = actor;
+                _bosses[(int)Color.Vaunted] = actor;
                 break;
         }
     }
@@ -50,35 +56,16 @@ class DecisiveBattle(BossModule module) : BossComponent(module)
             case SID.EpicHero:
             case SID.FatedHero:
             case SID.VauntedHero:
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
-                    _buffs[slot] = Buff.None;
+                Assign(actor, Color.None);
                 break;
         }
     }
 
-    public override void AddHints(int slot, Actor actor, TextHints hints)
+    private void Assign(Actor a, Color c)
     {
-        var assigned = AssignedBoss(slot);
-        if (assigned != null)
-        {
-            var target = WorldState.Actors.Find(actor.TargetID);
-            if (target != null && !target.IsAlly && target != assigned)
-                hints.Add("Target correct boss!");
-        }
+        if (Raid.TryGetSlot(a, out var slot))
+            _colors[slot] = c;
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var buff = GetBuff(slot);
-        if (buff == Buff.None)
-            return;
-
-        for (var b = Buff.Epic; b <= Buff.Vaunted; b++)
-            if (b != buff)
-                hints.SetPriority(_bosses[(int)b], AIHints.Enemy.PriorityInvincible);
-    }
-
-    private Buff GetBuff(int slot) => slot < _buffs.Length ? _buffs[slot] : Buff.None;
-    private Actor? AssignedBoss(int slot) => _bosses[(int)GetBuff(slot)];
+    private Color GetColor(int slot) => _colors.BoundSafeAt(slot, Color.None);
 }

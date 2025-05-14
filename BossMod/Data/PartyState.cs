@@ -93,6 +93,20 @@ public sealed class PartyState
         return -1;
     }
 
+    public bool TryGetSlot(ulong instanceID, out int slot)
+    {
+        slot = FindSlot(instanceID);
+        return slot >= 0;
+    }
+
+    public bool TryGetSlot(Actor actor, out int slot) => TryGetSlot(actor.InstanceID, out slot);
+
+    public bool TryGetSlot(ReadOnlySpan<char> name, out int slot, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
+    {
+        slot = FindSlot(name, cmp);
+        return slot >= 0;
+    }
+
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
         for (int i = 0; i < Members.Length; ++i)
