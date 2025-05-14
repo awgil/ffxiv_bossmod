@@ -372,18 +372,20 @@ class RM08SHowlingBladeStates : StateMachineBuilder
             .ActivateOnEnter<ProwlingGale2>()
             .DeactivateOnExit<ProwlingGale2>();
 
-        ComponentCondition<TwofoldTether>(id + 0x10, 11.6f, t => t.NumFinishedStacks > 0, "Stack + line 1")
+        ComponentCondition<TwofoldStack>(id + 0x10, 11.6f, t => t.NumFinishedStacks > 0, "Stack + line 1")
+            .ActivateOnEnter<TwofoldStack>()
             .ActivateOnEnter<TwofoldTether>()
             .ActivateOnEnter<TwofoldLineBait>()
             .ActivateOnEnter<TwofoldVoidzone>();
 
-        ComponentCondition<TwofoldTether>(id + 0x20, 7.1f, t => t.NumFinishedStacks > 1, "Stack + line 2");
-        ComponentCondition<TwofoldTether>(id + 0x30, 7.1f, t => t.NumFinishedStacks > 2, "Stack + line 3");
-        ComponentCondition<TwofoldTether>(id + 0x40, 7.1f, t => t.NumFinishedStacks > 3, "Stack + line 4");
+        ComponentCondition<TwofoldStack>(id + 0x20, 7.1f, t => t.NumFinishedStacks > 1, "Stack + line 2");
+        ComponentCondition<TwofoldStack>(id + 0x30, 7.1f, t => t.NumFinishedStacks > 2, "Stack + line 3");
+        ComponentCondition<TwofoldStack>(id + 0x40, 7.1f, t => t.NumFinishedStacks > 3, "Stack + line 4")
+            .DeactivateOnExit<TwofoldTether>()
+            .DeactivateOnExit<TwofoldStack>()
+            .DeactivateOnExit<TwofoldLineBait>();
 
         ComponentCondition<DestructiblePlatforms>(id + 0x50, 5.9f, d => d.ReappearCounter > 0, "Platform reappear")
-            .DeactivateOnExit<TwofoldTether>()
-            .DeactivateOnExit<TwofoldLineBait>()
             .DeactivateOnExit<TwofoldVoidzone>();
     }
 
