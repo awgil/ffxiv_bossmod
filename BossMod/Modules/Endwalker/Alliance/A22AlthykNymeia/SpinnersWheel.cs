@@ -53,11 +53,11 @@ class SpinnersWheelStayMove(BossModule module) : Components.StayMove(module)
         switch ((SID)status.ID)
         {
             case SID.ArcaneFever:
-                if (Raid.FindSlot(actor.InstanceID) is var feverSlot && feverSlot >= 0)
+                if (Raid.TryFindSlot(actor.InstanceID, out var feverSlot))
                     PlayerStates[feverSlot] = new(Requirement.Stay, status.ExpireAt);
                 break;
             case SID.FeverReversed:
-                if (Raid.FindSlot(actor.InstanceID) is var revSlot && revSlot >= 0)
+                if (Raid.TryFindSlot(actor.InstanceID, out var revSlot))
                     PlayerStates[revSlot] = new(Requirement.Move, status.ExpireAt);
                 break;
             case SID.Pyretic:
@@ -72,7 +72,7 @@ class SpinnersWheelStayMove(BossModule module) : Components.StayMove(module)
         if ((SID)status.ID is SID.Pyretic or SID.FreezingUp)
         {
             --ActiveDebuffs;
-            if (Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+            if (Raid.TryFindSlot(actor.InstanceID, out var slot))
                 PlayerStates[slot] = default;
         }
     }

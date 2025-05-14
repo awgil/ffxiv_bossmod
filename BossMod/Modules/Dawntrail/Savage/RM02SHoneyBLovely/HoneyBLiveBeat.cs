@@ -11,14 +11,14 @@ class HoneyBLiveHearts(BossModule module) : BossComponent(module)
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var hearts = NumHearts((SID)status.ID);
-        if (hearts >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (hearts >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
             Hearts[slot] = hearts;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         var hearts = NumHearts((SID)status.ID);
-        if (hearts >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && Hearts[slot] == hearts)
+        if (hearts >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot) && Hearts[slot] == hearts)
             Hearts[slot] = 0;
     }
 

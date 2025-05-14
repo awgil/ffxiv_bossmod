@@ -90,7 +90,7 @@ class LightningCage(BossModule module) : Components.GenericAOEs(module, AID.Ligh
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.ElectricalCondenser && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.ElectricalCondenser && Raid.TryFindSlot(actor.InstanceID, out var slot))
             Order[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 30 ? 1 : 2;
     }
 
@@ -119,7 +119,7 @@ class LightningCage(BossModule module) : Components.GenericAOEs(module, AID.Ligh
             case AID.LightningCageWitchgleamAOE:
                 ++NumGleams;
                 foreach (var t in spell.Targets)
-                    if (Raid.FindSlot(t.ID) is var slot && slot >= 0)
+                    if (Raid.TryFindSlot(t.ID, out var slot))
                         ++_gleams[slot];
                 break;
             case AID.LightningCageSpark2:

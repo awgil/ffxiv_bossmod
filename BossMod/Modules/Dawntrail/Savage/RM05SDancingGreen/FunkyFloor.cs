@@ -242,7 +242,7 @@ class BurnBabyBurn2(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.BurnBabyBurn && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.BurnBabyBurn && Raid.TryFindSlot(actor.InstanceID, out var slot))
             orders[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 14 ? 1 : 2;
     }
 

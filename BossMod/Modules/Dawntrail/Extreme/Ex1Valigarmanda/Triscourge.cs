@@ -59,7 +59,7 @@ class FireScourgeOfIce(BossModule module) : Components.StayMove(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID == (uint)IconID.CalamitysChill && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (iconID == (uint)IconID.CalamitysChill && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             PlayerStates[slot] = new(Requirement.Move, WorldState.FutureTime(7));
             ++NumImminent;

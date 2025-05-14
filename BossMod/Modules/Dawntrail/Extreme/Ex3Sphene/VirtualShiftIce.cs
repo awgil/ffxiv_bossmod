@@ -184,13 +184,13 @@ class RaisedTribute(BossModule module) : Components.GenericWildCharge(module, 4,
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.IceDart && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0 && PlayerRoles[slot] != PlayerRole.Target)
+        if (tether.ID == (uint)TetherID.IceDart && Raid.TryFindSlot(source.InstanceID, out var slot) && PlayerRoles[slot] != PlayerRole.Target)
             PlayerRoles[slot] = PlayerRole.Avoid;
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.IceDart && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0 && PlayerRoles[slot] != PlayerRole.Target)
+        if (tether.ID == (uint)TetherID.IceDart && Raid.TryFindSlot(source.InstanceID, out var slot) && PlayerRoles[slot] != PlayerRole.Target)
             PlayerRoles[slot] = PlayerRole.Share;
     }
 }
