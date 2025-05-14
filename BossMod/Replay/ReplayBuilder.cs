@@ -314,8 +314,7 @@ public sealed class ReplayBuilder : IDisposable
     private void StatusGain(Actor actor, int index)
     {
         var r = _statuses.GetValueOrDefault((actor.InstanceID, index));
-        if (r != null)
-            r.Time.End = _ws.CurrentTime;
+        r?.Time.End = _ws.CurrentTime;
 
         var s = actor.Statuses[index];
         var tgt = _participants[actor.InstanceID];
