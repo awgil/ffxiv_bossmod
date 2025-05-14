@@ -100,7 +100,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     public (float CD, bool IsReady) SpiritsWithin; //Conditions for Spirits Within ability
     public (float CD, bool IsReady) CircleOfScorn; //Conditions for Circle of Scorn ability
     public (float CD, float Left, bool IsReady, bool IsActive) GoringBlade; //Conditions for Goring Blade ability
-    public (float TotalCD, bool HasCharges, bool IsReady) Intervene; //Conditions for Intervene ability
+    public (float CDRemaining, bool HasCharges, bool IsReady) Intervene; //Conditions for Intervene ability
     public (float CD, float Left, bool IsReady, bool IsActive) Requiescat; //Conditions for Requiescat ability
     public (float Left, bool IsReady, bool IsActive) Atonement; //Conditions for Atonement ability
     public (float Left, bool IsReady, bool IsActive) Supplication; //Conditions for Supplication ability
@@ -140,8 +140,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
     private bool ShouldUseRangedLob(Actor? target, RangedStrategy strategy) => strategy switch
     {
-        RangedStrategy.OpenerRanged => IsFirstGCD() && !In3y(target),
-        RangedStrategy.Opener => IsFirstGCD(),
+        RangedStrategy.OpenerRanged => IsFirstGCD && !In3y(target),
+        RangedStrategy.Opener => IsFirstGCD,
         RangedStrategy.Force => true,
         RangedStrategy.Ranged => !In3y(target),
         RangedStrategy.Forbid => false,
@@ -149,8 +149,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseRangedCast(Actor? target, RangedStrategy strategy) => strategy switch
     {
-        RangedStrategy.OpenerRangedCast => IsFirstGCD() && !In3y(target),
-        RangedStrategy.OpenerCast => IsFirstGCD(),
+        RangedStrategy.OpenerRangedCast => IsFirstGCD && !In3y(target),
+        RangedStrategy.OpenerCast => IsFirstGCD,
         RangedStrategy.ForceCast => true,
         RangedStrategy.RangedCast => !In3y(target),
         _ => false
@@ -248,9 +248,9 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     {
         DashStrategy.Automatic => Player.InCombat && target != null && In3y(target) && Intervene.IsReady && FightOrFlight.IsActive,
         DashStrategy.Force => true,
-        DashStrategy.Force1 => Intervene.TotalCD < 1f,
+        DashStrategy.Force1 => Intervene.CDRemaining < 1f,
         DashStrategy.GapClose => !In3y(target),
-        DashStrategy.GapClose1 => Intervene.TotalCD < 1f && !In3y(target),
+        DashStrategy.GapClose1 => Intervene.CDRemaining < 1f && !In3y(target),
         _ => false
     };
     private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
@@ -269,22 +269,22 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         BladeComboStep = gauge.ConfiteorComboStep; //Retrieve current step in the Confiteor/Blades combo
         DivineMight.Left = SelfStatusLeft(SID.DivineMight, 30); //Remaining duration of the Divine Might buff
         DivineMight.IsActive = DivineMight.Left > 0; //Check if the Divine Might buff is active
-        FightOrFlight.CD = TotalCD(AID.FightOrFlight); //Remaining cooldown for the Fight or Flight ability
+        FightOrFlight.CD = CDRemaining(AID.FightOrFlight); //Remaining cooldown for the Fight or Flight ability
         FightOrFlight.Left = SelfStatusLeft(SID.FightOrFlight, 20); //Remaining duration of the Fight or Flight buff
         FightOrFlight.IsActive = FightOrFlight.CD is >= 39.5f and <= 60; //Check if the Fight or Flight buff is active 
         FightOrFlight.IsReady = FightOrFlight.CD < 0.6f; //Fight or Flight ability
-        SpiritsWithin.CD = TotalCD(BestSpirits); //Remaining cooldown for the Spirits Within ability
+        SpiritsWithin.CD = CDRemaining(BestSpirits); //Remaining cooldown for the Spirits Within ability
         SpiritsWithin.IsReady = Unlocked(AID.SpiritsWithin) && SpiritsWithin.CD < 0.6f; //Spirits Within ability
-        CircleOfScorn.CD = TotalCD(AID.CircleOfScorn); //Remaining cooldown for the Circle of Scorn ability
+        CircleOfScorn.CD = CDRemaining(AID.CircleOfScorn); //Remaining cooldown for the Circle of Scorn ability
         CircleOfScorn.IsReady = Unlocked(AID.CircleOfScorn) && CircleOfScorn.CD < 0.6f; //Circle of Scorn ability
-        GoringBlade.CD = TotalCD(AID.GoringBlade); //Remaining cooldown for the Goring Blade ability
+        GoringBlade.CD = CDRemaining(AID.GoringBlade); //Remaining cooldown for the Goring Blade ability
         GoringBlade.Left = SelfStatusLeft(SID.GoringBladeReady, 30); //Remaining duration of the Goring Blade buff
         GoringBlade.IsActive = GoringBlade.Left > 0; //Check if the Goring Blade buff is active
         GoringBlade.IsReady = Unlocked(AID.GoringBlade) && GoringBlade.IsActive; //Goring Blade ability
-        Intervene.TotalCD = TotalCD(AID.Intervene); //Total cooldown for the Intervene ability (60s)
-        Intervene.HasCharges = Intervene.TotalCD <= 30f; //Check if the player has charges of Intervene
+        Intervene.CDRemaining = CDRemaining(AID.Intervene); //Total cooldown for the Intervene ability (60s)
+        Intervene.HasCharges = Intervene.CDRemaining <= 30f; //Check if the player has charges of Intervene
         Intervene.IsReady = Unlocked(AID.Intervene) && Intervene.HasCharges; //Intervene ability
-        Requiescat.CD = TotalCD(BestRequiescat); //Remaining cooldown for the Requiescat ability
+        Requiescat.CD = CDRemaining(BestRequiescat); //Remaining cooldown for the Requiescat ability
         Requiescat.Left = SelfStatusLeft(SID.Requiescat, 30); //Get the current number of Requiescat stacks 
         Requiescat.IsActive = Requiescat.Left > 0; //Check if the Requiescat buff is active
         Requiescat.IsReady = Unlocked(AID.Requiescat) && Requiescat.CD < 0.6f; //Requiescat ability
