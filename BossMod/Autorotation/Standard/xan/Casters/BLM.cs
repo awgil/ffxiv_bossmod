@@ -330,6 +330,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             if (MP < FireSpellCost * 2 && AstralSoul < 5)
                 paraPrio = GCDPriority.High;
 
+            // spend this F3 before we get another free one
+            if (Firestarter)
+                PushGCD(AID.Fire3, primaryTarget, paraPrio + 1);
             PushGCD(AID.Paradox, primaryTarget, paraPrio);
         }
 
