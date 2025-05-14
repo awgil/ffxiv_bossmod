@@ -32,6 +32,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             100); //Level supported
 
         res.DefineAOE().AddAssociatedActions(AID.HeavySwing, AID.Maim, AID.StormEye, AID.StormPath, AID.Overpower, AID.MythrilTempest);
+        res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Gauge).As<GaugeStrategy>("Gauge", "Gauge", uiPriority: 200)

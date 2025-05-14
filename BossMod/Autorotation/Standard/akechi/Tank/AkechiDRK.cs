@@ -23,6 +23,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DRK), 100);
 
         res.DefineAOE().AddAssociatedActions(AID.HardSlash, AID.SyphonStrike, AID.Souleater, AID.Unleash, AID.StalwartSoul);
+        res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Blood", uiPriority: 200)

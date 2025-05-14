@@ -24,11 +24,12 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi MCH", "Standard Rotation Module", "Akechi|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.MCH), 100);
+        var res = new RotationModuleDefinition("Akechi MCH", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.MCH), 100);
         res.DefineAOE().AddAssociatedActions(
             AID.SplitShot, AID.SlugShot, AID.CleanShot,
             AID.HeatedSplitShot, AID.HeatedSlugShot, AID.HeatedCleanShot,
             AID.SpreadShot, AID.Scattergun);
+        res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionDex);
         res.Define(Track.Opener).As<OpenerOption>("Opener", "Opener", 199)
@@ -535,7 +536,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                 if (AOEStrategy == AOEStrategy.AutoBreak)
                     QueueGCD(AutoBreak, TargetChoice(AOE) ?? BestConeTarget?.Actor, CombatTimer > 90 && ComboTimer is < 8f and not 0 ? GCDPriority.High + 1 : GCDPriority.Low);
                 if (AOEStrategy == AOEStrategy.ForceST)
-                    QueueGCD(ST, TargetChoice(AOE) ?? primaryTarget?.Actor, CombatTimer > 90 && ComboTimer is < 8f and not 0 ? GCDPriority.High + 1 : GCDPriority.Low);
+                    QueueGCD(ST, SingleTargetChoice(primaryTarget?.Actor, AOE), CombatTimer > 90 && ComboTimer is < 8f and not 0 ? GCDPriority.High + 1 : GCDPriority.Low);
                 if (AOEStrategy == AOEStrategy.ForceAOE)
                     QueueGCD(BestSpreadShot, TargetChoice(AOE) ?? BestConeTarget?.Actor, CombatTimer > 90 && ComboTimer is < 8f and not 0 ? GCDPriority.High + 1 : GCDPriority.Low);
             }

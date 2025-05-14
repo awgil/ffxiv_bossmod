@@ -21,6 +21,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         var res = new RotationModuleDefinition("Akechi SCH", "Standard Rotation Module", "Standard rotation (Akechi)|Healer", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
 
         res.DefineAOE().AddAssociatedActions(AID.Ruin1, AID.Ruin2, AID.Broil1, AID.Broil2, AID.Broil3, AID.Broil4, AID.ArtOfWar1, AID.ArtOfWar2);
+        res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionMnd);
         res.Define(Track.ST).As<STOption>("Single Target", "ST", uiPriority: 200)
@@ -124,15 +125,15 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         {
             if (ShouldUseAOE)
                 QueueGCD(BestAOE, Player, GCDPriority.Low);
-            if (In25y(TargetChoice(AOE) ?? primaryTarget?.Actor) && (!ShouldUseAOE || IsFirstGCD))
-                QueueGCD(IsMoving ? BestRuin : BestST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+            if (In25y(SingleTargetChoice(primaryTarget?.Actor, AOE)) && (!ShouldUseAOE || IsFirstGCD))
+                QueueGCD(IsMoving ? BestRuin : BestST, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low);
         }
         if (strategy.ForceST())
         {
             if (stStrat is STOption.Ruin2)
-                QueueGCD(BestRuin, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+                QueueGCD(BestRuin, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low);
             if (stStrat is STOption.Broil)
-                QueueGCD(BestBroil, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+                QueueGCD(BestBroil, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low);
         }
         if (strategy.ForceAOE())
             QueueGCD(BestAOE, Player, GCDPriority.Low);

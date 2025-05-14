@@ -31,6 +31,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             AID.FullThrust, AID.HeavensThrust, AID.ChaosThrust, AID.ChaoticSpring,
             AID.WheelingThrust, AID.FangAndClaw,
             AID.Drakesbane, AID.CoerthanTorment);
+        res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Combo).As<SingleTargetOption>("Combo", uiPriority: 200)
@@ -634,20 +635,20 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
             #region Standard Rotations
             if (strategy.AutoFinish())
-                QueueGCD(AutoFinish, TargetChoice(AOE) ?? BestAOETarget?.Actor, GCDPriority.Low);
+                QueueGCD(AutoFinish, AOETargetChoice(primaryTarget?.Actor, BestAOETarget?.Actor, AOE, strategy), GCDPriority.Low);
             if (strategy.AutoBreak())
-                QueueGCD(AutoBreak, TargetChoice(AOE) ?? BestAOETarget?.Actor, GCDPriority.Low);
+                QueueGCD(AutoBreak, AOETargetChoice(primaryTarget?.Actor, BestAOETarget?.Actor, AOE, strategy), GCDPriority.Low);
             if (strategy.ForceST())
             {
                 if (comboStrat == SingleTargetOption.FullST)
-                    QueueGCD(FullST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.VeryHigh);
+                    QueueGCD(FullST, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low + 1);
                 if (comboStrat == SingleTargetOption.Force123ST)
-                    QueueGCD(NormalST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.VeryHigh);
+                    QueueGCD(NormalST, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low + 1);
                 if (comboStrat == SingleTargetOption.ForceBuffsST)
-                    QueueGCD(BuffsST, TargetChoice(AOE) ?? BestDOTTarget?.Actor, GCDPriority.VeryHigh);
+                    QueueGCD(BuffsST, AOETargetChoice(primaryTarget?.Actor, BestDOTTarget?.Actor, AOE, strategy), GCDPriority.Low + 1);
             }
             if (strategy.ForceAOE())
-                QueueGCD(FullAOE, TargetChoice(AOE) ?? (NumAOETargets > 1 ? BestAOETargets?.Actor : primaryTarget?.Actor), GCDPriority.High);
+                QueueGCD(FullAOE, AOETargetChoice(primaryTarget?.Actor, BestAOETarget?.Actor, AOE, strategy), GCDPriority.Low + 1);
             #endregion
 
             #region Cooldowns
@@ -667,33 +668,33 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     if (divesGood)
                     {
                         if (ShouldUseJump(jumpStrat, primaryTarget?.Actor))
-                            QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, TargetChoice(jump) ?? primaryTarget?.Actor, jumpStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.SlightlyHigh);
+                            QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, SingleTargetChoice(primaryTarget?.Actor, jump), jumpStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.SlightlyHigh);
                         if (ShouldUseDragonfireDive(ddStrat, primaryTarget?.Actor))
-                            QueueOGCD(AID.DragonfireDive, TargetChoice(dd) ?? BestDiveTarget?.Actor, ddStrat is CommonStrategy.Force or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.High);
+                            QueueOGCD(AID.DragonfireDive, AOETargetChoice(primaryTarget?.Actor, BestDiveTarget?.Actor, dd, strategy), ddStrat is CommonStrategy.Force or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.High);
                         if (ShouldUseStardiver(sdStrat, primaryTarget?.Actor))
-                            QueueOGCD(AID.Stardiver, TargetChoice(sd) ?? BestDiveTarget?.Actor, sdStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.Low);
+                            QueueOGCD(AID.Stardiver, AOETargetChoice(primaryTarget?.Actor, BestDiveTarget?.Actor, sd, strategy), sdStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.Low);
                     }
                     if (ShouldUseGeirskogul(geirskogulStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.Geirskogul, TargetChoice(geirskogul) ?? BestSpearTarget?.Actor, geirskogulStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.VeryHigh);
+                        QueueOGCD(AID.Geirskogul, AOETargetChoice(primaryTarget?.Actor, BestSpearTarget?.Actor, geirskogul, strategy), geirskogulStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.VeryHigh);
                     if (ShouldUseMirageDive(mdStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.MirageDive, TargetChoice(md) ?? primaryTarget?.Actor, OGCDPrio(mdStrat, OGCDPriority.ExtremelyLow));
+                        QueueOGCD(AID.MirageDive, SingleTargetChoice(primaryTarget?.Actor, AOE), OGCDPrio(mdStrat, OGCDPriority.ExtremelyLow));
                     if (ShouldUseNastrond(nastrondStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.Nastrond, TargetChoice(nastrond) ?? BestSpearTarget?.Actor, OGCDPrio(nastrondStrat, OGCDPriority.VeryLow));
+                        QueueOGCD(AID.Nastrond, AOETargetChoice(primaryTarget?.Actor, BestSpearTarget?.Actor, nastrond, strategy), OGCDPrio(nastrondStrat, OGCDPriority.VeryLow));
                     if (ShouldUseRiseOfTheDragon(rotdStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.RiseOfTheDragon, TargetChoice(rotd) ?? BestDiveTarget?.Actor, OGCDPrio(rotdStrat, OGCDPriority.BelowAverage));
+                        QueueOGCD(AID.RiseOfTheDragon, AOETargetChoice(primaryTarget?.Actor, BestDiveTarget?.Actor, rotd, strategy), OGCDPrio(rotdStrat, OGCDPriority.BelowAverage));
                     if (ShouldUseStarcross(scStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.Starcross, TargetChoice(sc) ?? BestDiveTarget?.Actor, OGCDPrio(scStrat, OGCDPriority.BelowAverage));
+                        QueueOGCD(AID.Starcross, AOETargetChoice(primaryTarget?.Actor, BestDiveTarget?.Actor, sc, strategy), OGCDPrio(scStrat, OGCDPriority.BelowAverage));
                     if (ShouldUseTrueNorth(strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>(), primaryTarget?.Actor))
                         QueueOGCD(AID.TrueNorth, Player, OGCDPriority.AboveAverage);
                 }
                 if (!strategy.HoldGauge())
                 {
                     if (ShouldUseWyrmwindThrust(wtStrat, primaryTarget?.Actor))
-                        QueueOGCD(AID.WyrmwindThrust, TargetChoice(wt) ?? BestSpearTarget?.Actor, wtStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : HasEffect(SID.LanceCharge) ? OGCDPriority.ModeratelyHigh : OGCDPriority.Average);
+                        QueueOGCD(AID.WyrmwindThrust, AOETargetChoice(primaryTarget?.Actor, BestSpearTarget?.Actor, wt, strategy), OGCDPrio(wtStrat, OGCDPriority.Average));
                 }
             }
             if (ShouldUsePiercingTalon(primaryTarget?.Actor, ptStrat))
-                QueueGCD(AID.PiercingTalon, TargetChoice(pt) ?? primaryTarget?.Actor, ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.SlightlyLow);
+                QueueGCD(AID.PiercingTalon, SingleTargetChoice(primaryTarget?.Actor, AOE), ptStrat is PiercingTalonStrategy.Force or PiercingTalonStrategy.ForceEX ? GCDPriority.Forced : GCDPriority.SlightlyLow);
             if (ShouldUsePotion(strategy))
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium);
             ShouldUseElusive(strategy.Option(Track.ElusiveJump).As<ElusiveDirection>(), primaryTarget?.Actor);

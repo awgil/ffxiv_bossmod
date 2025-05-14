@@ -22,11 +22,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi BLM", "Standard Rotation Module", "Akechi|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.THM, Class.BLM), 100);
+        var res = new RotationModuleDefinition("Akechi BLM", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.THM, Class.BLM), 100);
         res.DefineAOE().AddAssociatedActions(
             AID.Fire1, AID.Fire2, AID.Fire3, AID.Fire4, AID.HighFire2, //Fire
             AID.Blizzard1, AID.Blizzard2, AID.Blizzard3, AID.Blizzard4, AID.HighBlizzard2, //Blizzard
             AID.Flare, AID.Freeze, AID.Despair, AID.FlareStar); //Other
+        res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionInt);
         res.Define(Track.Thunder).As<ThunderStrategy>("Thunder", "DOT", uiPriority: 198)
@@ -180,7 +181,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 QueueGCD(Unlocked(AID.Blizzard4) ? AID.Blizzard4 : AID.Blizzard1, target, prio);
         }
     }
-    private void BestAOE(Actor? target, GCDPriority prio)
+    private void BestAOE(Actor? target, GCDPriority prio, StrategyValues strategy)
     {
         if (!In25y(target))
             return;
@@ -208,14 +209,14 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     QueueGCD(AID.Freeze, target, prio);
                 if (HasMaxHearts)
                 {
-                    AOEfiller(target, prio);
+                    AOEfiller(target, prio, strategy);
                 }
             }
             if (InAF)
             {
                 if (MP < 800 && Souls == 0)
                 {
-                    AOEfiller(target, prio);
+                    AOEfiller(target, prio, strategy);
                 }
                 //desync or swap from ST
                 if (MP > 800)
@@ -223,12 +224,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             }
         }
     }
-    private void AOEfiller(Actor? target, GCDPriority prio)
+    private void AOEfiller(Actor? target, GCDPriority prio, StrategyValues strategy)
     {
         if (HasThunderhead && (ThunderLeft < 15 || Polyglots == 0))
-            QueueGCD(BestThunderAOE, target, prio + 2);
+            QueueGCD(BestThunderAOE, strategy.AutoTarget() ? BestSplashTargets?.Actor : target, prio + 2);
         if (Polyglots > 0)
-            QueueGCD(AID.Foul, target, prio + 1);
+            QueueGCD(AID.Foul, strategy.AutoTarget() ? BestSplashTargets?.Actor : target, prio + 1);
         if (LastActionUsed(BestThunderAOE) || LastActionUsed(AID.Foul) ||
             (!HasThunderhead && Polyglots == 0)) //this will clip, but doing this raw is rare
             QueueOGCD(AID.Transpose, target, prio - 1000);
@@ -566,14 +567,14 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             if (strategy.AutoFinish() || strategy.AutoBreak())
             {
                 if (ShouldUseAOE)
-                    BestAOE(TargetChoice(AOE) ?? BestSplashTarget?.Actor, GCDPriority.Low);
+                    BestAOE(AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, AOE, strategy), GCDPriority.Low, strategy);
                 else
-                    BestST(TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+                    BestST(SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low);
             }
             if (strategy.ForceST())
-                BestST(TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+                BestST(SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low);
             if (strategy.ForceAOE())
-                BestAOE(TargetChoice(AOE) ?? BestSplashTarget?.Actor, GCDPriority.Low);
+                BestAOE(AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, AOE, strategy), GCDPriority.Low, strategy);
         }
         #endregion
 
@@ -591,7 +592,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 ThunderStrategy.ForceAOE => BestThunderAOE,
                 _ => AID.None
             };
-            QueueGCD(action, TargetChoice(thunder) ?? BestDOTTarget?.Actor, tPrio);
+            QueueGCD(action, AOETargetChoice(primaryTarget?.Actor, BestDOTTarget?.Actor, thunder, strategy), tPrio);
         }
         //F3P
         if (InsideCombatWith(primaryTarget?.Actor) && ShouldUseF3P)
@@ -604,10 +605,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             QueueGCD(AID.Despair, primaryTarget?.Actor, GCDPriority.Average + 1);
         //FlareStar
         if (InsideCombatWith(BestSplashTarget?.Actor) && Unlocked(AID.FlareStar) && HasMaxSouls)
-            QueueGCD(AID.FlareStar, BestSplashTarget?.Actor, GCDPriority.Average + 6);
+            QueueGCD(AID.FlareStar, strategy.AutoTarget() ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.Average + 6);
         //Flare
         if (InsideCombatWith(BestSplashTarget?.Actor) && ShouldUseFlare)
-            QueueGCD(AID.Flare, BestSplashTarget?.Actor, GCDPriority.Average);
+            QueueGCD(AID.Flare, strategy.AutoTarget() ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.Average);
         //Polyglots
         var (pgCondition, pgPrio) = ShouldUsePolyglot(primaryTarget?.Actor, polyglotStrat);
         if (pgCondition)
@@ -619,7 +620,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 PolyglotStrategy.FoulSpendAll or PolyglotStrategy.FoulHold1 or PolyglotStrategy.FoulHold2 or PolyglotStrategy.FoulHold3 or PolyglotStrategy.ForceFoul => AID.Foul,
                 _ => AID.None
             };
-            QueueGCD(action, TargetChoice(polyglot) ?? BestSplashTarget?.Actor, pgPrio);
+            QueueGCD(action, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, thunder, strategy), pgPrio);
         }
 
         #endregion
@@ -644,10 +645,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         var (llCondition, llPrio) = ShouldUseLeyLines(primaryTarget?.Actor, llStrat);
         if (llCondition)
             QueueOGCD(AID.LeyLines, Player, llPrio);
-
         //Amplifier
         if (ShouldUseAmplifier(ampStrat))
-            QueueOGCD(AID.Amplifier, Player, ampStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.High);
+            QueueOGCD(AID.Amplifier, Player, OGCDPrio(ampStrat, OGCDPriority.High));
+        //Retrace
         if (ShouldUseRetrace(retraceStrat))
             QueueOGCD(AID.Retrace, Player, OGCDPriority.Forced);
         //Between the Lines

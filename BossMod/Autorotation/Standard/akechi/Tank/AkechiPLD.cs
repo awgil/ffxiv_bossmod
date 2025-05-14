@@ -349,11 +349,11 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         #region Standard Rotation
         if (AOEStrategy == AOEStrategy.AutoFinish)
-            QueueGCD(AutoFinish, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+            QueueGCD(AutoFinish, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low);
         if (AOEStrategy == AOEStrategy.AutoBreak)
-            QueueGCD(AutoBreak, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+            QueueGCD(AutoBreak, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low);
         if (AOEStrategy == AOEStrategy.ForceST)
-            QueueGCD(FullST, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Low);
+            QueueGCD(FullST, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Low);
         if (AOEStrategy == AOEStrategy.ForceAOE)
             QueueGCD(FullAOE, Player, GCDPriority.Low);
         #endregion

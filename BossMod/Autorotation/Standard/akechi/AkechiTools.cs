@@ -11,6 +11,9 @@ public enum SharedTrack
     /// <summary> Tracks <b>single-target</b> and <b>AOE</b> rotations. </summary>
     AOE,
 
+    /// <summary> Tracks which <b>targeting</b> strategy the user would like to use. </summary>
+    Targeting,
+
     /// <summary> Tracks holding user's <b>rotation</b>, <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b> for optimal usage. </summary>
     Hold,
 
@@ -40,6 +43,18 @@ public enum AOEStrategy
 
     /// <summary> Forces execution of the <b>AOE rotation</b>. </summary>
     ForceAOE
+}
+
+/// <summary>
+/// <b>SoftTargetStrategy</b> enum for tracking which <b>targeting</b> strategy the user would like to use.<para/>
+/// <b>NOTE</b>: This does <b>NOT</b> take priority over <seealso cref="StrategyTarget"/>.
+/// </summary>
+public enum SoftTargetStrategy
+{
+    /// <summary> <b>Automatic</b> selection of user's target for abilities executed.</summary>
+    Automatic,
+    /// <summary> <b>Manual</b> selection of user's target for abilities executed.</summary>
+    Manual,
 }
 
 /// <summary>
@@ -613,6 +628,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         return (newTarget, newTimer);
     }
+
+    protected Actor? SingleTargetChoice(Actor? manual, StrategyValues.OptionRef track) => TargetChoice(track) ?? manual;
+    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => TargetChoice(track) ?? (strategy.Targeting() == SoftTargetStrategy.Automatic ? auto : manual);
     #endregion
 
     #endregion
@@ -882,6 +900,14 @@ static class ModuleExtensions
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation execution", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
     }
 
+    /// <summary>Defines our shared <b>soft-Targeting</b> strategies.</summary>
+    public static RotationModuleDefinition.ConfigRef<SoftTargetStrategy> DefineTargeting(this RotationModuleDefinition res)
+    {
+        return res.Define(SharedTrack.Targeting).As<SoftTargetStrategy>("SoftTarget", uiPriority: 295)
+            .AddOption(SoftTargetStrategy.Automatic, "Automatic", "Auto-select best target for maximum optimal DPS output")
+            .AddOption(SoftTargetStrategy.Manual, "Manual", "Do not auto-select best target, instead executing only on whichever target is currently selected");
+    }
+
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
     /// <param name="res">The definitions of our base module's strategies.</param>
     public static RotationModuleDefinition.ConfigRef<HoldStrategy> DefineHold(this RotationModuleDefinition res)
@@ -956,43 +982,61 @@ static class ModuleExtensions
     #endregion
 
     #region Global Helpers
+
+    #region ST/AOE
     /// <summary>A global helper for easily retrieving the user's <b>Rotation</b> strategy. See <seealso cref="AOEStrategy"/> for more details.</summary>
     public static AOEStrategy Rotation(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
 
     /// <summary>A global helper for automatically executing the best optimal rotation; finishes combo if possible. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool AutoFinish(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.AutoFinish;
+    public static bool AutoFinish(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.AutoFinish;
 
     /// <summary>A global helper for automatically executing the best optimal rotation; breaks combo if necessary. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool AutoBreak(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.AutoBreak;
+    public static bool AutoBreak(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.AutoBreak;
 
     /// <summary>A global helper for force-executing the single-target rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool ForceST(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.ForceST;
+    public static bool ForceST(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.ForceST;
 
     /// <summary>A global helper for force-executing the AOE rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool ForceAOE(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() == AOEStrategy.ForceAOE;
+    public static bool ForceAOE(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.ForceAOE;
+    #endregion
+
+    #region Targeting
+    /// <summary>A global helper for easily retrieving the user's <b>Targeting</b> strategy. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
+    public static SoftTargetStrategy Targeting(this StrategyValues strategy) => strategy.Option(SharedTrack.Targeting).As<SoftTargetStrategy>();
+
+    /// <summary>A global helper for automatically selecting the best target. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
+    public static bool AutoTarget(this StrategyValues strategy) => strategy.Targeting() == SoftTargetStrategy.Automatic;
+
+    /// <summary>A global helper for manually selecting the best target. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
+    public static bool ManualTarget(this StrategyValues strategy) => strategy.Targeting() == SoftTargetStrategy.Manual;
+    #endregion
+
+    #region Hold
+    public static HoldStrategy Hold(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>();
 
     /// <summary>A global helper for forbidding ALL actions, rotations <em>and</em> abilities. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldEverything(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldEverything;
+    public static bool HoldEverything(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldEverything;
 
     /// <summary>A global helper for forbidding ALL available abilities that are buff, gauge, or cooldown related. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldAbilities(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldAbilities;
+    public static bool HoldAbilities(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldAbilities;
 
     /// <summary>A global helper for forbidding ALL available abilities that are related to raidbuffs. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldBuffs(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldBuffs;
+    public static bool HoldBuffs(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldBuffs;
 
     /// <summary>A global helper for forbidding ALL available abilities that have any sort of cooldown attached to it. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldCDs(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldCooldowns;
+    public static bool HoldCDs(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldCooldowns;
 
     /// <summary>A global helper for forbidding ALL available abilities that are related to the job's gauge. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldGauge(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldGauge;
+    public static bool HoldGauge(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldGauge;
+    #endregion
 
-    /// <summary>A global helper for allowing ALL available abilities that are buff, gauge, or cooldown related. This is the default option for this strategy. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool DontHold(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.DontHold;
-
+    #region Potion
     public static PotionStrategy Potion(this StrategyValues strategy) => strategy.Option(SharedTrack.Potion).As<PotionStrategy>();
     public static bool AlignPotionWithBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithBuffs;
     public static bool AlignPotionWithRaidBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithRaidBuffs;
     public static bool UsePotionImmediately(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Immediate;
     public static bool UsePotionManually(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Manual;
+    #endregion
+
     #endregion
 }

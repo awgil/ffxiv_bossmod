@@ -28,6 +28,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var res = new RotationModuleDefinition("Akechi GNB", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.GNB), 100);
 
         res.DefineAOE().AddAssociatedActions(AID.KeenEdge, AID.BrutalShell, AID.SolidBarrel, AID.DemonSlice, AID.DemonSlaughter);
+        res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Combo).As<ComboStrategy>("Combo", uiPriority: 200)
@@ -426,15 +427,15 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 
         #region Standard Rotations
         if (strategy.AutoFinish() && InsideCombatWith(primaryTarget?.Actor))
-            QueueGCD(AutoFinish, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ExtremelyLow);
+            QueueGCD(AutoFinish, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.ExtremelyLow);
         if (strategy.AutoBreak() && InsideCombatWith(primaryTarget?.Actor))
-            QueueGCD(AutoBreak, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.ExtremelyLow);
+            QueueGCD(AutoBreak, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.ExtremelyLow);
         if (strategy.ForceST() && InsideCombatWith(primaryTarget?.Actor))
         {
             if (comboStrat != ComboStrategy.ForceSTwithoutO)
-                QueueGCD(STwithOvercap, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.BelowAverage);
+                QueueGCD(STwithOvercap, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.BelowAverage);
             if (comboStrat != ComboStrategy.ForceSTwithO)
-                QueueGCD(STwithoutOvercap, TargetChoice(AOE) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                QueueGCD(STwithoutOvercap, SingleTargetChoice(primaryTarget?.Actor, AOE), GCDPriority.Forced);
         }
         if (strategy.ForceAOE() && InsideCombatWith(primaryTarget?.Actor))
         {
