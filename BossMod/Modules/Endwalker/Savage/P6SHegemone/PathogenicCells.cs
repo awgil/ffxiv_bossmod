@@ -15,8 +15,7 @@ class PathogenicCells(BossModule module) : Components.CastCounter(module, AID.Pa
     {
         if (iconID is >= (uint)IconID.Pathogenic1 and <= (uint)IconID.Pathogenic8)
         {
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
                 _order[slot] = (int)iconID - (int)IconID.Pathogenic1 + 1;
         }
     }

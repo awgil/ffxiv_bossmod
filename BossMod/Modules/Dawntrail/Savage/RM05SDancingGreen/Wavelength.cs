@@ -16,8 +16,7 @@ class Wavelength(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot < 0)
+        if (!Raid.TryFindSlot(actor.InstanceID, out var slot))
             return;
 
         var order = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds switch

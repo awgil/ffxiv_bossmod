@@ -64,8 +64,7 @@ class Transmission(BossModule module) : Components.CastCounter(module, AID.ReekH
         {
             case SID.Glossomorph:
             case SID.Chelomorph:
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                     _infectionExpire[slot] = status.ExpireAt;
                 break;
             case SID.OutOfControlSnake:

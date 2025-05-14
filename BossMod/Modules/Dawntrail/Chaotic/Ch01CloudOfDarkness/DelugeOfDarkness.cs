@@ -35,7 +35,7 @@ class DelugeOfDarkness2(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Phase2AIHints(BossModule module) : BossComponent(module)
+class Phase2AIHints(BossModule module) : Components.GenericInvincible(module)
 {
     [Flags]
     enum Position
@@ -47,30 +47,29 @@ class Phase2AIHints(BossModule module) : BossComponent(module)
 
     private readonly Position[] _playerPositions = new Position[PartyState.MaxAllianceSize];
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor)
     {
         var pos = _playerPositions[slot];
-        foreach (var enemy in hints.PotentialTargets)
-        {
-            switch ((OID)enemy.Actor.OID)
-            {
-                case OID.Atomos:
-                    if (pos.HasFlag(Position.Inside))
-                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
-                    else if (actor.Class.GetRole() == Role.Ranged)
-                        enemy.Priority = 5;
-                    break;
-                case OID.StygianShadow:
-                    if (pos.HasFlag(Position.Inside))
-                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
-                    break;
-                case OID.Boss:
-                    if (pos.HasFlag(Position.Outside))
-                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
-                    break;
+        var e = Enumerable.Empty<Actor>();
 
-            }
-        }
+        if (pos.HasFlag(Position.Inside))
+            e = e.Concat(Module.Enemies(OID.Atomos)).Concat(Module.Enemies(OID.StygianShadow));
+
+        if (pos.HasFlag(Position.Outside))
+            e = e.Concat([Module.PrimaryActor]);
+
+        return e;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // ranged DPS should kill atomos ASAP, they have very little health and apply a painful dot to healers on inside ring
+        if (!_playerPositions[slot].HasFlag(Position.Inside) && actor.Role == Role.Ranged)
+            foreach (var atomos in Module.Enemies(OID.Atomos))
+                if (actor.DistanceToHitbox(atomos) <= 25)
+                    hints.SetPriority(atomos, 5);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -101,15 +100,13 @@ class Phase2AIHints(BossModule module) : BossComponent(module)
 
     private void SetState(Actor a, Position flag)
     {
-        var slot = Raid.FindSlot(a.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(a, out var slot))
             _playerPositions[slot] |= flag;
     }
 
     private void ClearState(Actor a, Position flag)
     {
-        var slot = Raid.FindSlot(a.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(a, out var slot))
             _playerPositions[slot] &= ~flag;
     }
 }

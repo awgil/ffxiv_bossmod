@@ -84,8 +84,7 @@ class ThunderScourgeOfIceThunder(BossModule module) : Components.UniformStackSpr
         if ((IconID)iconID is IconID.CalamitysBolt or IconID.CalamitysChill)
         {
             AddSpread(actor, WorldState.FutureTime(7.1f));
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0 && _platform != null)
+            if (_platform != null && Raid.TryFindSlot(actor, out var slot))
             {
                 _platform.RequireHint[slot] = true;
                 _platform.RequireLevitating[slot] = iconID == (uint)IconID.CalamitysChill;

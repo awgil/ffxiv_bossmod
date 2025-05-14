@@ -39,11 +39,11 @@ class HighConceptCommon(BossModule module) : BossComponent(module)
 
         if (role != PlayerRole.Unassigned)
         {
-            var slot = Raid.FindSlot(actor.InstanceID);
             ++NumAssignedRoles;
-            _roleSlots[(int)role] = slot;
-            if (slot >= 0 && _playerRoles[slot] < role) // priority order: letters > stacks (important for HC2)
+            if (Raid.TryFindSlot(actor, out var slot) && _playerRoles[slot] < role) // priority order: letters > stacks (important for HC2)
                 _playerRoles[slot] = role;
+
+            _roleSlots[(int)role] = slot;
         }
     }
 

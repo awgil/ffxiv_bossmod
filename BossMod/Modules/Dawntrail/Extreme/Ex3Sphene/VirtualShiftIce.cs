@@ -112,8 +112,7 @@ class Rush(BossModule module) : Components.GenericBaitAway(module)
             CurrentBaits.RemoveAll(b => b.Source == source);
             CurrentBaits.Add(new(source, target, _shapeTether, Activation));
 
-            var slot = Raid.FindSlot(tether.Target);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(tether.Target, out var slot))
                 _unstretched[slot] = (TetherID)tether.ID == TetherID.RushShort;
         }
     }

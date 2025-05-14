@@ -94,9 +94,7 @@ class P5Delta(BossModule module) : BossComponent(module)
         {
             case TetherID.HWPrepLocalTether:
             case TetherID.HWPrepRemoteTether:
-                var s1 = Raid.FindSlot(source.InstanceID);
-                var s2 = Raid.FindSlot(tether.Target);
-                if (s1 >= 0 && s2 >= 0)
+                if (Raid.TryFindSlot(source.InstanceID, out var s1) && Raid.TryFindSlot(tether.Target, out var s2))
                 {
                     var isLocal = tether.ID == (uint)TetherID.HWPrepLocalTether;
                     Players[s1].PartnerSlot = s2;
@@ -116,9 +114,7 @@ class P5Delta(BossModule module) : BossComponent(module)
     {
         if ((TetherID)tether.ID is TetherID.HWLocalTether or TetherID.HWRemoteTether)
         {
-            var s1 = Raid.FindSlot(source.InstanceID);
-            var s2 = Raid.FindSlot(tether.Target);
-            if (s1 >= 0 && s2 >= 0)
+            if (Raid.TryFindSlot(source.InstanceID, out var s1) && Raid.TryFindSlot(tether.Target, out var s2))
             {
                 Players[s1].TetherBroken = Players[s2].TetherBroken = true;
                 ++NumTethersBroken;

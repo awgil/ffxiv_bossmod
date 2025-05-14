@@ -38,8 +38,7 @@ class KampeosHarma(BossModule module) : Components.CastCounter(module, AID.Kampe
         {
             _startingOffset = Module.PrimaryActor.Position - Module.Center;
 
-            int slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
                 _playerOrder[slot] = (int)(iconID - 144);
         }
     }

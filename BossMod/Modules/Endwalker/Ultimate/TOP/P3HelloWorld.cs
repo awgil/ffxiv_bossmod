@@ -225,8 +225,7 @@ class P3HelloWorld(BossModule module) : Components.GenericTowers(module)
 
     private void AssignRole(Actor actor, PlayerRole role)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot < 0)
+        if (!Raid.TryFindSlot(actor, out var slot))
         {
             ReportError($"Failed to find slot for {actor.InstanceID:X}");
             return;
@@ -245,8 +244,7 @@ class P3HelloWorld(BossModule module) : Components.GenericTowers(module)
 
     private void AssignRot(Actor actor, TowerColor color)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot < 0)
+        if (!Raid.TryFindSlot(actor, out var slot))
         {
             ReportError($"Failed to find slot for {actor.InstanceID:X}");
             return;

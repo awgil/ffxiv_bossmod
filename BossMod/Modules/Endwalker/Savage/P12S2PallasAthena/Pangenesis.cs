@@ -110,8 +110,7 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
             // note: tower will assign new color in ~0.4s; clear previous colors immediately, since new towers will start before debuffs are gone
             foreach (var t in spell.Targets)
             {
-                var slot = Raid.FindSlot(t.ID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(t.ID, out var slot))
                 {
                     _states[slot].Color = Color.None;
                     _states[slot].AssignedSide = caster.Position.X < Module.Center.X ? -1 : 1; // ensure correct side is assigned

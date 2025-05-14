@@ -212,8 +212,7 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, AID.Dar
 
     private void AssignJumpOrder(Actor actor, int order)
     {
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
         {
             _playerStates[slot].JumpOrder = order;
             _orderPlayers[order - 1].Set(slot);
@@ -223,8 +222,7 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, AID.Dar
     private void AssignJumpDirection(Actor actor, int direction)
     {
         _haveDirections = true;
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
         {
             _playerStates[slot].JumpDirection = direction;
             if (direction != 0 && _playerStates[slot].JumpOrder is var order && order > 0)
@@ -240,8 +238,7 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, AID.Dar
 
     private void AssignLateSpot(ulong target, WPos pos)
     {
-        var slot = Raid.FindSlot(target);
-        if (slot >= 0 && _playerStates[slot].AssignedSpot == 0)
+        if (Raid.TryFindSlot(target, out var slot) && _playerStates[slot].AssignedSpot == 0)
             _playerStates[slot].AssignedSpot = TowerSpot(pos);
     }
 

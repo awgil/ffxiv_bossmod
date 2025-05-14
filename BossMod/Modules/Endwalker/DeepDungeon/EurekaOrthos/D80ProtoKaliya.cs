@@ -68,8 +68,7 @@ class Aetheromagnetism(BossModule module) : Components.Knockback(module, ignoreI
     {
         if (tether.ID == (uint)TetherID.Magnet)
         {
-            var slot = Raid.FindSlot(tether.Target);
-            if (slot < 0)
+            if (!Raid.TryFindSlot(tether.Target, out var slot))
                 return;
 
             var target = Raid[slot]!;
@@ -86,8 +85,7 @@ class Aetheromagnetism(BossModule module) : Components.Knockback(module, ignoreI
     {
         if ((AID)spell.Action.ID is AID.AetheromagnetismPull or AID.AetheromagnetismPush)
         {
-            var slot = Raid.FindSlot(spell.MainTargetID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(spell.MainTargetID, out var slot))
                 _sources[slot] = null;
         }
     }

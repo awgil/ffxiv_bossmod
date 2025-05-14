@@ -167,8 +167,7 @@ class HoneyBLiveBeat3BigBurst(BossModule module) : Components.UniformStackSpread
         {
             var order = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds > 30 ? 1 : 0;
             Activation[order] = status.ExpireAt;
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
                 Order[slot] = order + 1;
         }
     }

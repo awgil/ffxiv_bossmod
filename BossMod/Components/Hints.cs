@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Components;
 
-abstract class GenericInvincible(BossModule module, string hint = "Attacking invincible target!") : BossComponent(module)
+abstract class GenericInvincible(BossModule module, string hint = "Attacking invincible target!", int priority = AIHints.Enemy.PriorityInvincible) : BossComponent(module)
 {
     public bool EnableHints = true;
 
@@ -15,7 +15,7 @@ abstract class GenericInvincible(BossModule module, string hint = "Attacking inv
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var a in ForbiddenTargets(slot, actor))
-            hints.SetPriority(a, AIHints.Enemy.PriorityInvincible);
+            hints.SetPriority(a, priority);
     }
 }
 
