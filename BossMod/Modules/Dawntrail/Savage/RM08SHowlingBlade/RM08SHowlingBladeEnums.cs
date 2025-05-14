@@ -90,11 +90,10 @@ public enum AID : uint
 
     BareFangs1 = 42187, // Boss->self, no cast, single-target
     BareFangs2 = 42188, // Boss->self, no cast, single-target
-    Unk1 = 42886, // Boss->self, no cast, single-target
-    Unk2 = 41871, // Boss->location, no cast, single-target
-    Unk3 = 41929, // Boss->self, no cast, single-target
-    Unk4 = 43053, // Helper->self, no cast, range 60 circle
-    Unk5 = 42228, // HowlingBladePart->player, no cast, single-target
+    Unk1 = 42886, // Boss->self, no cast, single-target, cast after certain reign mechanics but not all, probably some visual
+    Unk2 = 41871, // Boss->location, no cast, single-target, dash?
+    TacticalPackBossDisappear = 41929, // Boss->self, no cast, single-target
+    P2TransitionStun = 43053, // Helper->self, no cast, range 60 circle
 
     TacticalPack = 41928, // Boss->self, 3.0s cast, single-target
 
@@ -152,7 +151,8 @@ public enum AID : uint
 
     ExtraplanarFeast = 41969, // Boss->self, 4.0s cast, range 40 circle, P1 enrage
 
-    AutoP2 = 42227, // BossP2->player, no cast, single-target
+    P2AutoAttack = 42227, // BossP2->player, no cast, single-target
+    P2AutoAttackOfftank = 42228, // HowlingBladePart->player, no cast, single-target
 
     QuakeIIICast = 42074, // BossP2->self, 5.0s cast, single-target
     QuakeIIIStack = 42075, // Helper->self, no cast, hits a specific platform (circle vfx)
@@ -211,7 +211,7 @@ public enum AID : uint
     ProwlingGaleOneTower = 42118, // Helper->self, 8.0s cast, range 2 circle
     ProwlingGaleTwoTower = 42119, // Helper->self, 8.0s cast, range 2 circle
     ProwlingGaleThreeTower = 42120, // Helper->self, 8.0s cast, range 2 circle
-    HowlingAgony = 43140, // Helper->self, no cast, range 100 circle, maybe tower failure?
+    WolfsLamentGreatWhirlwind = 42121, // Helper->self, no cast, range 60 circle, tower failure
 
     MooncleaverEnrageCast = 42828, // BossP2->self, 3.0+1.0s cast, single-target
     MooncleaverEnrage = 42829, // Helper->self, 4.0s cast, range 8 circle
@@ -233,6 +233,10 @@ public enum AID : uint
     HowlingEightRest6 = 42138, // Helper->self, 9.9s cast, range 8 circle
     HowlingEightRest7 = 42139, // Helper->self, 10.3s cast, range 8 circle
     HowlingEightRest8 = 42140, // Helper->self, 12.1s cast, range 8 circle
+    HowlingAgony = 43140, // Helper->self, no cast, range 100 circle, howling eight tower failure
+
+    StarcleaverVisual = 42141, // BossP2->self, 10.0s cast, single-target
+    Starcleaver = 42142, // Helper->self, 11.0s cast, range 8 circle, enrage
 }
 
 public enum SID : uint
