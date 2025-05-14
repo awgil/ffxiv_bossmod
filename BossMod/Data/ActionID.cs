@@ -1,7 +1,4 @@
-﻿using BossMod.ReplayAnalysis;
-using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // matches FFXIVClientStructs.FFXIV.Client.Game.ActionType, with some custom additions
 public enum ActionType : byte
