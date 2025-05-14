@@ -152,7 +152,7 @@ public sealed class UIRotationWindow : UIWindow
         if (_config.EnableGCDs)
         {
             #region Next GCD
-            var isGCD = _mgr.Hints.ActionsToExecute.Entries.FirstOrDefault(a => a.Action.IsGCD());
+            var isGCD = _mgr.Hints.ActionsToExecute.Entries.FirstOrDefault(a => a.Action.IsGCD);
             if (isGCD.Action)
             {
                 ImGui.TextUnformatted("Next GCD: ");
@@ -168,7 +168,7 @@ public sealed class UIRotationWindow : UIWindow
             #endregion
 
             #region Next OGCD
-            var isOGCD = _mgr.Hints.ActionsToExecute.Entries.FirstOrDefault(a => !a.Action.IsGCD());
+            var isOGCD = _mgr.Hints.ActionsToExecute.Entries.FirstOrDefault(a => !a.Action.IsGCD);
             if (isOGCD.Action)
             {
                 ImGui.TextUnformatted("Next OGCD: ");
@@ -217,11 +217,15 @@ public sealed class UIRotationWindow : UIWindow
         {
             foreach (var e in queue)
             {
+                var weird =
+                    ActionID.MakeSpell(MCH.AID.Drill) ||
+                    ActionID.MakeSpell(MCH.AID.AirAnchor) ||
+                    ActionID.MakeSpell(MCH.AID.ChainSaw);
                 if (_config.ShowGCDs)
                 {
                     ImGui.TextUnformatted("> [");
                     ImGui.SameLine(0f, 0f);
-                    ImGui.TextUnformatted(e.Action.CDType());
+                    ImGui.TextUnformatted(e.Action.CDType);
                     ImGui.SameLine(0f, 0f);
                     ImGui.TextUnformatted("] ");
                     ImGui.SameLine(0f, 0f);

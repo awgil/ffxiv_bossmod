@@ -1,4 +1,7 @@
-﻿namespace BossMod;
+﻿using BossMod.ReplayAnalysis;
+using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+
+namespace BossMod;
 
 // matches FFXIVClientStructs.FFXIV.Client.Game.ActionType, with some custom additions
 public enum ActionType : byte
@@ -66,9 +69,10 @@ public readonly record struct ActionID(uint Raw)
         _ => 0
     };
 
-    public readonly byte? CDGroupCheck() => Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.CooldownGroup;
-    public readonly bool IsGCD() => CDGroupCheck() == 58; //TODO: this isnt entirely accurate, as certain actions like Drill and ChainSaw are not 58
-    public readonly string? CDType() => IsGCD() ? "GCD" : "OGCD";
+    public readonly bool CDGroupCheck() => Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.CooldownGroup == ActionDefinitions.GCDGroup + 1;
+    public readonly bool AdditionalCDGroupCheck() => Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.AdditionalCooldownGroup == ActionDefinitions.GCDGroup + 1;
+    public readonly bool IsGCD => CDGroupCheck() || AdditionalCDGroupCheck();
+    public readonly string? CDType => IsGCD ? "GCD" : "OGCD";
 
     public readonly float CastTime() => Type switch
     {
