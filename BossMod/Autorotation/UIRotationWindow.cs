@@ -217,10 +217,6 @@ public sealed class UIRotationWindow : UIWindow
         {
             foreach (var e in queue)
             {
-                var weird =
-                    ActionID.MakeSpell(MCH.AID.Drill) ||
-                    ActionID.MakeSpell(MCH.AID.AirAnchor) ||
-                    ActionID.MakeSpell(MCH.AID.ChainSaw);
                 if (_config.ShowGCDs)
                 {
                     ImGui.TextUnformatted("> [");
