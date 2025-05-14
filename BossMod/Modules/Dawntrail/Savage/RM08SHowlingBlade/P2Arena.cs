@@ -27,7 +27,10 @@ class DestructiblePlatforms(BossModule module) : BossComponent(module)
             {
                 DisappearCounter++;
                 MissingPlatforms.Set(ix);
-                Arena.Bounds = RM08SHowlingBlade.MakeBoundsP2(MissingPlatforms);
+
+                // fallback: enrage ends with destroying last platform, but we can't make an arena with no bounds, framework doesn't like that
+                var safePlatforms = MissingPlatforms.NumSetBits() >= 5 ? MissingPlatforms.WithoutBit(ix) : MissingPlatforms;
+                Arena.Bounds = RM08SHowlingBlade.MakeBoundsP2(safePlatforms);
             }
 
             if (state == 0x00020001)

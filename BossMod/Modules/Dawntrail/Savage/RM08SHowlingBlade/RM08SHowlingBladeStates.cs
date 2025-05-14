@@ -34,7 +34,7 @@ class RM08SHowlingBladeStates : StateMachineBuilder
         ComponentCondition<WealOfStone>(id + 0xB0100, 2.9f, w => w.NumCasts > 0, "Line AOEs")
             .DeactivateOnExit<WealOfStone>();
         GreatDivide(id + 0xB0110, 5.4f);
-        BeckonMoonlight(id + 0xC0000, 11.6f);
+        BeckonMoonlight(id + 0xC0000, 11.4f);
         WindStonefang(id + 0xD0000, 0, castRemaining: 4.9f);
         TrackingTremors(id + 0xE0000, 4.1f);
         ExtraplanarPursuit(id + 0xF0000, 1.8f);
@@ -45,20 +45,20 @@ class RM08SHowlingBladeStates : StateMachineBuilder
 
     private void Phase2(uint id)
     {
-        ComponentCondition<P2Arena>(id, 24, p => p.Active)
+        ComponentCondition<P2Arena>(id, 22, p => p.Active)
             .ActivateOnEnter<P2Arena>()
             .ActivateOnEnter<DestructiblePlatforms>()
             .DeactivateOnExit<P2Arena>()
             .OnExit(() => Module.Arena.Bounds = RM08SHowlingBlade.BoundsP2);
 
-        ActorTargetable(id + 1, _module.BossP2, true, 24, "Boss reappears")
+        ActorTargetable(id + 1, _module.BossP2, true, 24.4f, "Boss reappears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
         QuakeIII(id + 0x100, 7.3f);
         UltraviolentRay(id + 0x200, 6.1f);
         Twinbite(id + 0x300, 4.1f);
 
-        HerosBlow(id + 0x10000, 10);
+        HerosBlow(id + 0x10000, 5.1f);
         UltraviolentRay(id + 0x10100, 4.1f);
         QuakeIII(id + 0x10200, 6.1f);
 
@@ -69,7 +69,8 @@ class RM08SHowlingBladeStates : StateMachineBuilder
 
         HowlingEight(id + 0x60000, 7);
 
-        SimpleState(id + 0xFF0000, 10000, "???");
+        ActorCast(id + 0x61000, _module.BossP2, AID.StarcleaverVisual, 0.4f, 10);
+        Timeout(id + 0x61010, 1, "Enrage");
     }
 
     private void ExtraplanarPursuit(uint id, float delay)
@@ -137,7 +138,7 @@ class RM08SHowlingBladeStates : StateMachineBuilder
 
         ComponentCondition<BreathOfDecay>(id + 0x11, 1.5f, b => b.NumCasts > 0, "Line AOE 1");
 
-        ComponentCondition<Gust>(id + 0x12, 0.4f, g => g.NumFinishedSpreads > 0, "Spreads 1");
+        ComponentCondition<Gust>(id + 0x12, 0.5f, g => g.NumFinishedSpreads > 0, "Spreads 1");
         Timeout(id + 0x13, 5.1f, "Spreads 2")
             .DeactivateOnExit<Gust>();
         ComponentCondition<BreathOfDecay>(id + 0x14, 2.5f, b => b.NumCasts > 4, "Line AOE 5")
@@ -265,7 +266,7 @@ class RM08SHowlingBladeStates : StateMachineBuilder
         ComponentCondition<FangedCharge>(id + 0x30, 1.2f, f => f.NumCasts > 2, "Lines 2")
             .DeactivateOnExit<FangedCharge>();
         Targetable(id + 0x32, false, 0.9f, "Boss disappears");
-        ComponentCondition<HeavensearthSuspendedStone>(id + 0x40, 4.5f, h => h.NumFinishedStacks > 1, "Stack/spread 2")
+        ComponentCondition<HeavensearthSuspendedStone>(id + 0x40, 4.7f, h => h.NumFinishedStacks > 1, "Stack/spread 2")
             .ActivateOnEnter<TRHints>()
             .DeactivateOnExit<HeavensearthSuspendedStone>()
             .DeactivateOnExit<TRHints>();
@@ -357,7 +358,7 @@ class RM08SHowlingBladeStates : StateMachineBuilder
             .ActivateOnEnter<ElementalPurgeBind>()
             .DeactivateOnExit<Mooncleaver>();
 
-        ComponentCondition<ElementalPurgeBind>(id + 0x20, 7.2f, e => e.Bound, "Bind tank")
+        ComponentCondition<ElementalPurgeBind>(id + 0x20, 7.1f, e => e.Bound, "Bind tank")
             .DeactivateOnExit<ElementalPurgeBind>();
 
         ComponentCondition<TemporalBlast>(id + 0x30, 5.1f, t => t.NumFinishedSpreads > 0 && t.NumFinishedStacks > 0, "Stack + spread + bait")
@@ -456,14 +457,18 @@ class RM08SHowlingBladeStates : StateMachineBuilder
             .ActivateOnEnter<HowlingEight>()
             .ActivateOnEnter<MooncleaverEnrage>();
         HowlingEightTower(id + 0x70, 6.2f);
+        ActorCastStart(id + 0x80, _module.BossP2, AID.HowlingEightRestCast, 3.2f, true)
+            .ActivateOnEnter<HowlingEight>();
+        HowlingEightTower(id + 0x90, 6.2f, destroy: false);
     }
 
-    private void HowlingEightTower(uint id, float delay)
+    private void HowlingEightTower(uint id, float delay, bool destroy = true)
     {
         ComponentCondition<HowlingEight>(id, delay, e => e.NumCasts == 1, "Stack 1");
-        ComponentCondition<HowlingEight>(id + 1, 6, e => e.NumCasts == 8, "Stack 8");
-        ComponentCondition<MooncleaverEnrage>(id + 2, 4.3f, m => m.NumCasts > 0, "Destroy platform")
-            .DeactivateOnExit<HowlingEight>()
-            .DeactivateOnExit<MooncleaverEnrage>();
+        ComponentCondition<HowlingEight>(id + 1, 6, e => e.NumCasts == 8, "Stack 8")
+            .DeactivateOnExit<HowlingEight>();
+        if (destroy)
+            ComponentCondition<MooncleaverEnrage>(id + 2, 4.3f, m => m.NumCasts > 0, "Destroy platform")
+                .DeactivateOnExit<MooncleaverEnrage>();
     }
 }
