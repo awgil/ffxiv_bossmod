@@ -118,7 +118,8 @@ class RM08SHowlingBladeStates : StateMachineBuilder
             .ExecOnEnter<ReignInout>(r => r.Risky = true)
             .DeactivateOnExit<ReignInout>()
             .DeactivateOnExit<SovereignScar>()
-            .DeactivateOnExit<ReignsEnd>();
+            .DeactivateOnExit<ReignsEnd>()
+            .DeactivateOnExit<ReignHints>();
     }
 
     private void MillennialDecay(uint id, float delay)
