@@ -155,14 +155,14 @@ class MotionSensor(BossModule module) : Components.StayMove(module, 3)
 {
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2 && Raid.TryFindSlot(actor.InstanceID, out var slot))
-            PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
+        if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2)
+            SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2 && Raid.TryFindSlot(actor.InstanceID, out var slot))
-            PlayerStates[slot] = default;
+        if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2)
+            ClearState(Raid.FindSlot(actor.InstanceID));
     }
 }
 

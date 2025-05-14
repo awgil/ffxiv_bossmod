@@ -8,19 +8,13 @@ class ReactiveMunition(BossModule module) : Components.StayMove(module)
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.AccelerationBomb)
-        {
-            if (Raid.TryFindSlot(actor.InstanceID, out var slot))
-                PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
-        }
+            SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID is SID.AccelerationBomb)
-        {
-            if (Raid.TryFindSlot(actor.InstanceID, out var slot))
-                PlayerStates[slot] = default;
-        }
+            ClearState(Raid.FindSlot(actor.InstanceID));
     }
 }
 
@@ -29,19 +23,13 @@ class SenseWeakness(BossModule module) : Components.StayMove(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.SenseWeakness)
-        {
-            if (Raid.TryFindSlot(caster.TargetID, out var slot))
-                PlayerStates[slot] = new(Requirement.Move, Module.CastFinishAt(spell));
-        }
+            SetState(Raid.FindSlot(spell.TargetID), new(Requirement.Move, Module.CastFinishAt(spell)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SenseWeakness)
-        {
-            if (Raid.TryFindSlot(caster.TargetID, out var slot))
-                PlayerStates[slot] = default;
-        }
+            ClearState(Raid.FindSlot(spell.MainTargetID));
     }
 }
 
