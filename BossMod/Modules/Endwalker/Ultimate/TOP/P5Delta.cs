@@ -496,7 +496,7 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             SID.OversampledWaveCannonLoadingR => -90.Degrees(),
             _ => default
         };
-        if (angle != default && Raid.TryFindSlot(actor.InstanceID, out var slot))
+        if (angle != default && Raid.FindSlot(actor.InstanceID) >= 0)
         {
             _player = actor;
             _playerAngle = angle;

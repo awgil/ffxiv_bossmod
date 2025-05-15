@@ -190,8 +190,8 @@ class StarAutos(BossModule module) : Components.GenericStackSpread(module)
 }
 
 /*
-// TODO make this work better, the targeted tank is just whoever is on platform with highest enmity and may not be in the party, meaning we draw a phony bait on the party's tank(s) and fuck up positioning
-// we need to look at ozma's actual enmity table to see who the targets are
+// TODO figure out a way to make this work decently without having access to ozma's full enmity table
+
 class CubeAutos(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool Enabled;

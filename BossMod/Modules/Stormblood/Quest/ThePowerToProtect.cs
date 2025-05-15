@@ -41,7 +41,7 @@ class ExtremeCaution(BossModule module) : Components.StayMove(module)
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.ExtremeCaution)
-            ClearState(Raid.FindSlot(actor.InstanceID))
+            ClearState(Raid.FindSlot(actor.InstanceID));
     }
 }
 class IronTempest(BossModule module) : Components.StandardAOEs(module, AID.IronTempest, new AOEShapeCircle(5.5f));
