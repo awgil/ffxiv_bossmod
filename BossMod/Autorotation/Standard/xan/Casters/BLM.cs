@@ -295,7 +295,19 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     private void FirePhaseST(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Fire < 3)
-            PushGCD(AID.Fire3, primaryTarget, GCDPriority.High); // technically this prioritizes F3 over FS but i'm pretty sure it's impossible to use flare star without being in AF3
+        {
+            if (!Firestarter)
+            {
+                // generate firestarter via paradox, then use fs to get f3
+                // this results in us not getting another free paradox until next manafont
+                if (Paradox)
+                    PushGCD(AID.Paradox, primaryTarget, GCDPriority.High);
+                else if (!CanFitGCD(InstantCastLeft) && Unlocked(AID.Fire3))
+                    PushGCD(AID.Swiftcast, Player, GCDPriority.High);
+            }
+
+            PushGCD(AID.Fire3, primaryTarget, GCDPriority.High);
+        }
 
         if (AstralSoul == 6)
             PushGCD(AID.FlareStar, BestAOETarget, GCDPriority.Max);
