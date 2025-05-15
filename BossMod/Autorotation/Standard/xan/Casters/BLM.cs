@@ -155,7 +155,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         TP = 0,
         Paradox = 5,
         Firestarter = 10,
-        Polyglot = 15
+        Polyglot = 15,
+        Despair = 20
     }
 
     private static GCDPriority ForMove(InstantCastPriority p) => GCDPriority.InstantMove + (int)p;
@@ -548,6 +549,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (Firestarter && useFirestarter)
             PushGCD(AID.Fire3, primaryTarget, prioBase + (int)InstantCastPriority.Firestarter);
+
+        if (Fire > 0 && Unlocked(TraitID.EnhancedAstralFire))
+            PushGCD(AID.Despair, primaryTarget, prioBase + (int)InstantCastPriority.Despair, mpCutoff: FireSpellCost);
 
         if (useThunderhead)
         {
