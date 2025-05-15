@@ -96,11 +96,7 @@ public class T04PortaDecumana1(WorldState ws, Actor primary) : BossModule(ws, pr
     {
         if (PrimaryActor.FindStatus(SID.Invincibility) != null || PrimaryActor.FindStatus(SID.VortexBarrier) != null)
         {
-            var e = hints.FindEnemy(PrimaryActor);
-            if (e != null)
-            {
-                e.Priority = AIHints.Enemy.PriorityInvincible;
-            }
+            hints.SetPriority(PrimaryActor, AIHints.Enemy.PriorityInvincible);
         }
     }
 }

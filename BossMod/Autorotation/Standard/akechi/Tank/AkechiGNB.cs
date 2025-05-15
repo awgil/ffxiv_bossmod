@@ -9,13 +9,12 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Combo = SharedTrack.Count, Cartridges, Potion, LightningShot, Zone, NoMercy, SonicBreak, GnashingFang, BowShock, Continuation, Bloodfest, DoubleDown, Reign, }
+    public enum Track { Combo = SharedTrack.Count, Cartridges, LightningShot, Zone, NoMercy, SonicBreak, GnashingFang, BowShock, Continuation, Bloodfest, DoubleDown, Reign }
     public enum ComboStrategy { ForceSTwithO, ForceSTwithoutO, ForceAOEwithO, ForceAOEwithoutO }
     public enum CartridgeStrategy { Automatic, OnlyBS, OnlyFC, ForceBS, ForceBS1, ForceBS2, ForceBS3, ForceFC, ForceFC1, ForceFC2, ForceFC3, Delay }
-    public enum PotionStrategy { Manual, AlignWithBloodfest, Immediate }
     public enum LightningShotStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
     public enum NoMercyStrategy { Automatic, BurstReady, Force, ForceW, ForceQW, Force1, Force1W, Force1QW, Force2, Force2W, Force2QW, Force3, Force3W, Force3QW, Delay }
-    public enum SonicBreakStrategy { Automatic, Force, Early, Late, Delay }
+    public enum SonicBreakStrategy { Automatic, Early, Late, Force, Delay }
     public enum GnashingStrategy { Automatic, ForceGnash, ForceGnash1, ForceGnash2, ForceGnash3, ForceClaw, ForceTalon, Delay }
     public enum ContinuationStrategy { Automatic, Early, Late }
     public enum BloodfestStrategy { Automatic, Force, ForceW, Force0, Force0W, Delay }
@@ -30,15 +29,16 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 
         res.DefineAOE().AddAssociatedActions(AID.KeenEdge, AID.BrutalShell, AID.SolidBarrel, AID.DemonSlice, AID.DemonSlaughter);
         res.DefineHold();
+        res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Combo).As<ComboStrategy>("Combo", uiPriority: 200)
             .AddOption(ComboStrategy.ForceSTwithO, "Force ST with Overcap", "if 'Force Single-Target Rotation' is selected, it will prevent overcapping cartridges with Burst Strike (if available)")
             .AddOption(ComboStrategy.ForceSTwithoutO, "Force ST without Overcap", "if 'Force Single-Target Rotation' is selected, it will not prevent overcapping cartridges")
             .AddOption(ComboStrategy.ForceAOEwithO, "Force AOE with Overcap", "if 'Force AOE Rotation' is selected, it will prevent overcapping cartridges with Fated Circle (if available)")
             .AddOption(ComboStrategy.ForceAOEwithoutO, "Force AOE without Overcap", "if 'Force AOE Rotation' is selected, it will not prevent overcapping cartridges");
         res.Define(Track.Cartridges).As<CartridgeStrategy>("Cartridges", "Carts", uiPriority: 180)
-            .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally")
-            .AddOption(CartridgeStrategy.OnlyBS, "Only Burst Strike", "Uses Burst Strike optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 30)
-            .AddOption(CartridgeStrategy.OnlyFC, "Only Fated Circle", "Uses Fated Circle optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Self, 72)
+            .AddOption(CartridgeStrategy.Automatic, "Automatic", "Automatically decide when to use cartridges; uses them optimally", supportedTargets: ActionTargets.Hostile, minLevel: 30)
+            .AddOption(CartridgeStrategy.OnlyBS, "Only Burst Strike", "Uses Burst Strike optimally as cartridge spender only, regardless of targets", supportedTargets: ActionTargets.Hostile, minLevel: 30)
+            .AddOption(CartridgeStrategy.OnlyFC, "Only Fated Circle", "Uses Fated Circle optimally as cartridge spender only, regardless of targets", supportedTargets: ActionTargets.Hostile, minLevel: 72)
             .AddOption(CartridgeStrategy.ForceBS, "Force Burst Strike", "Force use of Burst Strike regardless of cartridge count", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(CartridgeStrategy.ForceBS1, "Force Burst Strike (1 cart)", "Force use of Burst Strike when only 1 cartridge is available", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(CartridgeStrategy.ForceBS2, "Force Burst Strike (2 cart)", "Force use of Burst Strike when only 2 cartridges are available", 0, 0, ActionTargets.Hostile, 30)
@@ -47,13 +47,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CartridgeStrategy.ForceFC1, "Force Fated Circle (1 cart)", "Force use of Fated Circle when only 1 cartridge is available", 0, 0, ActionTargets.Self, 72)
             .AddOption(CartridgeStrategy.ForceFC2, "Force Fated Circle (2 cart)", "Force use of Fated Circle when only 2 cartridges are available", 0, 0, ActionTargets.Self, 72)
             .AddOption(CartridgeStrategy.ForceFC3, "Force Fated Circle (3 cart)", "Force use of Fated Circle when only 3 cartridges are available", 0, 0, ActionTargets.Self, 72)
-            .AddOption(CartridgeStrategy.Delay, "Delay", "Forbid use of Burst Strike & Fated Circle", 0, 0, ActionTargets.None, 30)
+            .AddOption(CartridgeStrategy.Delay, "Delay", "Forbid use of Burst Strike & Fated Circle", minLevel: 30)
             .AddAssociatedActions(AID.BurstStrike, AID.FatedCircle);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 90)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithBloodfest, "AlignWithBloodfest", "Align with No Mercy & Bloodfest together (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
-            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.LightningShot).As<LightningShotStrategy>("Lightning Shot", "L.Shot", uiPriority: 100)
             .AddOption(LightningShotStrategy.OpenerFar, "Far (Opener)", "Use Lightning Shot in pre-pull & out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(LightningShotStrategy.OpenerForce, "Force (Opener)", "Force use Lightning Shot in pre-pull in any range", supportedTargets: ActionTargets.Hostile)
@@ -63,8 +58,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.LightningShot);
         res.DefineOGCD(Track.Zone, AID.DangerZone, "Zone", "Zone", uiPriority: 135, 30, 0, ActionTargets.Hostile, 18).AddAssociatedActions(AID.BlastingZone, AID.DangerZone);
         res.Define(Track.NoMercy).As<NoMercyStrategy>("No Mercy", "N.Mercy", uiPriority: 160)
-            .AddOption(NoMercyStrategy.Automatic, "Auto", "Normal use of No Mercy")
-            .AddOption(NoMercyStrategy.BurstReady, "Burst Ready", "Use No Mercy only when burst is ready; will delay if necessary", 60, 20, ActionTargets.Self, 2)
+            .AddOption(NoMercyStrategy.Automatic, "Auto", "Normal use of No Mercy", supportedTargets: ActionTargets.Self)
+            .AddOption(NoMercyStrategy.BurstReady, "Burst Ready", "Use No Mercy only when burst is ready; will delay if necessary", supportedTargets: ActionTargets.Self)
             .AddOption(NoMercyStrategy.Force, "Force", "Force use of No Mercy, regardless of weaving", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceW, "Force (Weave)", "Force use of No Mercy in next possible weave slot", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceQW, "Force (Q.Weave)", "Force use of No Mercy in next possible last second weave slot", 60, 20, ActionTargets.Self, 2)
@@ -77,17 +72,17 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddOption(NoMercyStrategy.Force3, "Force (3 carts)", "Force use of No Mercy when only 3 cartridges are available, regardless of weaving", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.Force3W, "Force (3 carts, Weave)", "Force use of No Mercy when only 3 cartridges are available & in next possible weave slot", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.Force3QW, "Force (3 carts, Q.Weave)", "Force use of No Mercy when only 3 cartridges are available & in next possible last-second weave slot", 60, 20, ActionTargets.Self, 2)
-            .AddOption(NoMercyStrategy.Delay, "Delay", "Delay use of No Mercy", 0, 0, ActionTargets.None, 2)
+            .AddOption(NoMercyStrategy.Delay, "Delay", "Delay use of No Mercy")
             .AddAssociatedActions(AID.NoMercy);
         res.Define(Track.SonicBreak).As<SonicBreakStrategy>("Sonic Break", "S.Break", uiPriority: 145)
-            .AddOption(SonicBreakStrategy.Automatic, "Auto", "Normal use of Sonic Break")
+            .AddOption(SonicBreakStrategy.Automatic, "Auto", "Normal use of Sonic Break", supportedTargets: ActionTargets.Hostile, minLevel: 54)
+            .AddOption(SonicBreakStrategy.Early, "Early Sonic Break", "Uses Sonic Break as the very first GCD when in No Mercy", supportedTargets: ActionTargets.Hostile, minLevel: 54)
+            .AddOption(SonicBreakStrategy.Late, "Late Sonic Break", "Uses Sonic Break as the very last GCD when in No Mercy", supportedTargets: ActionTargets.Hostile, minLevel: 54)
             .AddOption(SonicBreakStrategy.Force, "Force", "Force use of Sonic Break", 0, 30, ActionTargets.Hostile, 54)
-            .AddOption(SonicBreakStrategy.Early, "Early Sonic Break", "Uses Sonic Break as the very first GCD when in No Mercy", 0, 30, ActionTargets.Hostile, 54)
-            .AddOption(SonicBreakStrategy.Late, "Late Sonic Break", "Uses Sonic Break as the very last GCD when in No Mercy", 0, 30, ActionTargets.Hostile, 54)
-            .AddOption(SonicBreakStrategy.Delay, "Delay", "Delay use of Sonic Break", 0, 0, ActionTargets.None, 54)
+            .AddOption(SonicBreakStrategy.Delay, "Delay", "Delay use of Sonic Break", minLevel: 54)
             .AddAssociatedActions(AID.SonicBreak);
         res.Define(Track.GnashingFang).As<GnashingStrategy>("Gnashing Fang", "G.Fang", uiPriority: 150)
-            .AddOption(GnashingStrategy.Automatic, "Auto", "Normal use of Gnashing Fang")
+            .AddOption(GnashingStrategy.Automatic, "Auto", "Normal use of Gnashing Fang", supportedTargets: ActionTargets.Hostile, minLevel: 60)
             .AddOption(GnashingStrategy.ForceGnash, "Force", "Force use of Gnashing Fang", 30, 0, ActionTargets.Hostile, 60)
             .AddOption(GnashingStrategy.ForceGnash1, "Force (1 cart)", "Force use of Gnashing Fang when only 1 cartridge is available", 30, 0, ActionTargets.Hostile, 60)
             .AddOption(GnashingStrategy.ForceGnash2, "Force (2 carts)", "Force use of Gnashing Fang when only 2 cartridges are available", 30, 0, ActionTargets.Hostile, 60)
@@ -98,32 +93,32 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.GnashingFang, AID.SavageClaw, AID.WickedTalon);
         res.DefineOGCD(Track.BowShock, AID.BowShock, "BowShock", "B.Shock", uiPriority: 140, 60, 15, ActionTargets.Self, 62).AddAssociatedActions(AID.BowShock);
         res.Define(Track.Continuation).As<ContinuationStrategy>("Continuation", "Cont.", uiPriority: 135)
-            .AddOption(ContinuationStrategy.Automatic, "Auto", "Normal use of Continuation")
-            .AddOption(ContinuationStrategy.Early, "Early", "Use Continuation procs as early as possible", 0, 0, ActionTargets.Hostile, 70)
-            .AddOption(ContinuationStrategy.Late, "Late", "Use Continuation procs as late as possible", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(ContinuationStrategy.Automatic, "Auto", "Normal use of Continuation", supportedTargets: ActionTargets.Hostile, minLevel: 70)
+            .AddOption(ContinuationStrategy.Early, "Early", "Use Continuation procs as early as possible", supportedTargets: ActionTargets.Hostile, minLevel: 70)
+            .AddOption(ContinuationStrategy.Late, "Late", "Use Continuation procs as late as possible", supportedTargets: ActionTargets.Hostile, minLevel: 70)
             .AddAssociatedActions(AID.EyeGouge, AID.AbdomenTear, AID.JugularRip, AID.Hypervelocity, AID.FatedBrand);
         res.Define(Track.Bloodfest).As<BloodfestStrategy>("Bloodfest", "Fest", uiPriority: 150)
-            .AddOption(BloodfestStrategy.Automatic, "Auto", "Normal use of Bloodfest")
+            .AddOption(BloodfestStrategy.Automatic, "Auto", "Normal use of Bloodfest", supportedTargets: ActionTargets.Hostile, minLevel: 80)
             .AddOption(BloodfestStrategy.Force, "Force", "Force use of Bloodfest, regardless of ammo count & weaving", 120, 0, ActionTargets.Hostile, 80)
             .AddOption(BloodfestStrategy.ForceW, "Force (Weave)", "Force use of Bloodfest in next possible weave slot, regardless of ammo count", 120, 0, ActionTargets.Hostile, 80)
             .AddOption(BloodfestStrategy.Force0, "Force (0 cart)", "Force use of Bloodfest only if empty on cartridges", 120, 0, ActionTargets.Hostile, 80)
             .AddOption(BloodfestStrategy.Force0W, "Force (0 cart, Weave)", "Force use of Bloodfest only if empty on cartridges & in next possible weave slot", 120, 0, ActionTargets.Hostile, 80)
-            .AddOption(BloodfestStrategy.Delay, "Delay", "Delay use of Bloodfest", 0, 0, ActionTargets.None, 80)
+            .AddOption(BloodfestStrategy.Delay, "Delay", "Delay use of Bloodfest", minLevel: 80)
             .AddAssociatedActions(AID.Bloodfest);
         res.Define(Track.DoubleDown).As<DoubleDownStrategy>("DoubleDown", "D.Down", uiPriority: 130)
-            .AddOption(DoubleDownStrategy.Automatic, "Automatic", "Normal use of Double Down")
-            .AddOption(DoubleDownStrategy.Force, "Force Double Down", "Force use of Double Down regardless of cartridge count", 60, 0, ActionTargets.Hostile, 90)
-            .AddOption(DoubleDownStrategy.Force1, "Force Double Down (1 cart)", "Force use of Double Down when only 1 cartridge is available", 60, 0, ActionTargets.Hostile, 90)
-            .AddOption(DoubleDownStrategy.Force2, "Force Double Down (2 cart)", "Force use of Double Down when only 2 cartridges are available", 60, 0, ActionTargets.Hostile, 90)
-            .AddOption(DoubleDownStrategy.Force3, "Force Double Down (3 cart)", "Force use of Double Down when only 3 cartridges are available", 60, 0, ActionTargets.Hostile, 90)
-            .AddOption(DoubleDownStrategy.Delay, "Delay", "Delay use of Double Down", 0, 0, ActionTargets.None, 90)
+            .AddOption(DoubleDownStrategy.Automatic, "Automatic", "Normal use of Double Down", supportedTargets: ActionTargets.Self, minLevel: 90)
+            .AddOption(DoubleDownStrategy.Force, "Force Double Down", "Force use of Double Down regardless of cartridge count", 60, 0, ActionTargets.Self, 90)
+            .AddOption(DoubleDownStrategy.Force1, "Force Double Down (1 cart)", "Force use of Double Down when only 1 cartridge is available", 60, 0, ActionTargets.Self, 90)
+            .AddOption(DoubleDownStrategy.Force2, "Force Double Down (2 cart)", "Force use of Double Down when only 2 cartridges are available", 60, 0, ActionTargets.Self, 90)
+            .AddOption(DoubleDownStrategy.Force3, "Force Double Down (3 cart)", "Force use of Double Down when only 3 cartridges are available", 60, 0, ActionTargets.Self, 90)
+            .AddOption(DoubleDownStrategy.Delay, "Delay", "Delay use of Double Down", minLevel: 90)
             .AddAssociatedActions(AID.DoubleDown);
         res.Define(Track.Reign).As<ReignStrategy>("Reign of Beasts", "Reign", uiPriority: 125)
-            .AddOption(ReignStrategy.Automatic, "Auto", "Normal use of Reign of Beasts")
-            .AddOption(ReignStrategy.ForceReign, "Force", "Force use of Reign of Beasts", 0, 0, ActionTargets.Hostile, 100)
-            .AddOption(ReignStrategy.ForceNoble, "Force", "Force use of Noble Blood", 0, 0, ActionTargets.Hostile, 100)
-            .AddOption(ReignStrategy.ForceLion, "Force", "Force use of Lion Heart", 0, 0, ActionTargets.Hostile, 100)
-            .AddOption(ReignStrategy.Delay, "Delay", "Delay use of Reign of Beasts", 0, 0, ActionTargets.None, 100)
+            .AddOption(ReignStrategy.Automatic, "Auto", "Normal use of Reign of Beasts", supportedTargets: ActionTargets.Hostile, minLevel: 100)
+            .AddOption(ReignStrategy.ForceReign, "Force", "Force use of Reign of Beasts", supportedTargets: ActionTargets.Hostile, minLevel: 100)
+            .AddOption(ReignStrategy.ForceNoble, "Force", "Force use of Noble Blood", supportedTargets: ActionTargets.Hostile, minLevel: 100)
+            .AddOption(ReignStrategy.ForceLion, "Force", "Force use of Lion Heart", supportedTargets: ActionTargets.Hostile, minLevel: 100)
+            .AddOption(ReignStrategy.Delay, "Delay", "Delay use of Reign of Beasts", minLevel: 100)
             .AddAssociatedActions(AID.ReignOfBeasts, AID.NobleBlood, AID.LionHeart);
 
         return res;
@@ -178,7 +173,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
     private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target)
     {
-        if (!ActionReady(AID.NoMercy))
+        if (!OGCDReady(AID.NoMercy))
             return false;
 
         var slow = SkSGCDLength >= 2.4800f && CanWeaveIn;
@@ -189,7 +184,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var open = ((fast && CombatTimer < 30 && ComboLastMove is AID.BrutalShell) ||
                    (slow && CombatTimer < 30 && ComboLastMove is AID.KeenEdge) ||
                    CombatTimer >= 30);
-        var burst = speed && Ammo >= 2 && (((Unlocked(AID.DoubleDown) && TotalCD(AID.DoubleDown) <= 3) || !Unlocked(AID.DoubleDown)) && ((Unlocked(AID.GnashingFang) && TotalCD(AID.GnashingFang) <= 1) || !Unlocked(AID.GnashingFang)));
+        var burst = speed && Ammo >= 2 && (((Unlocked(AID.DoubleDown) && CDRemaining(AID.DoubleDown) <= 3) || !Unlocked(AID.DoubleDown)) && ((Unlocked(AID.GnashingFang) && CDRemaining(AID.GnashingFang) <= 1) || !Unlocked(AID.GnashingFang)));
         return strategy switch
         {
             NoMercyStrategy.Automatic => InsideCombatWith(target) && In5y(target) && open && (Unlocked(AID.DoubleDown) ? lv90plus : lv1to89),
@@ -238,7 +233,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseBowShock(OGCDStrategy strategy, Actor? target)
     {
-        if (!ActionReady(AID.BowShock))
+        if (!OGCDReady(AID.BowShock))
             return false;
         return strategy switch
         {
@@ -267,7 +262,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseBloodfest(BloodfestStrategy strategy, Actor? target)
     {
-        if (!ActionReady(AID.Bloodfest))
+        if (!OGCDReady(AID.Bloodfest))
             return false;
         return strategy switch
         {
@@ -281,7 +276,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseZone(OGCDStrategy strategy, Actor? target)
     {
-        if (!ActionReady(AID.DangerZone))
+        if (!OGCDReady(AID.DangerZone))
             return false;
         //we usually use this in two ways: inside & outside No Mercy, whilst trying to keep it aligned with Burst
         return strategy switch
@@ -342,34 +337,32 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var condition = Unlocked(AID.FatedCircle) ? lv72plus : lv30to71;
         var slow = SkSGCDLength >= 2.4800f;
         var fast = SkSGCDLength <= 2.4799f;
-
-        var open = ((fast && CombatTimer < 30 && ComboLastMove is AID.BrutalShell) ||
-                   (slow && CombatTimer < 30 && ComboLastMove is AID.KeenEdge) ||
-                   CombatTimer >= 30);
-
+        var open = (fast && CombatTimer < 30 && ComboLastMove is AID.BrutalShell) || (slow && CombatTimer < 30 && ComboLastMove is AID.KeenEdge) || CombatTimer >= 30;
         return strategy == CartridgeStrategy.Automatic &&
             //minimal
             (InsideCombatWith(target) && condition && open &&
             //if we have No Mercy, spend as much as possible
             ((HasNM ||
-            //when Lv90+, if we enter No Mercy with 3 Ammo it is a loss, as we Cannot get 9 GCDs inside a 20 second window
-            //technically we Can with Skill Speed, but we're not working around that here
+            //when Lv90+, if we enter No Mercy with 3 Ammo it is a loss, as we cannot get 9 GCDs inside a 20 second window
+            //technically is it feasible with Skill Speed, but we're not working around that in this moment
             //so, if Bloodfest & No Mercy are imminent and Ammo is 3, burn a cartridge to enter Burst with 2
+            //this works with skill speed as well apparently, since my other logic forces a lateweave from No Mercy with sks, which ig works
             (!InOddWindow(AID.Bloodfest) && NMcd < 1 && Ammo == 3)) ||
-            //overcap protection
+            //else, overcap protection
             (Ammo == MaxCartridges && ComboLastMove is AID.BrutalShell or AID.DemonSlice)));
     }
     private bool ShouldUseLightningShot(LightningShotStrategy strategy, Actor? target) => strategy switch
     {
-        LightningShotStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !In3y(target),
-        LightningShotStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD(),
+        LightningShotStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD && !In3y(target),
+        LightningShotStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD,
         LightningShotStrategy.Force => true,
         LightningShotStrategy.Allow => !In3y(target),
         LightningShotStrategy.Forbid or _ => false,
     };
-    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
-        PotionStrategy.AlignWithBloodfest => NMcd < 5 && BFcd < 15,
+        PotionStrategy.AlignWithBuffs => Player.InCombat && BFcd <= 4f,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
         PotionStrategy.Immediate => true,
         _ => false
     };
@@ -382,23 +375,23 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         Ammo = gauge.Ammo;
         GunComboStep = gauge.AmmoComboStep;
         MaxCartridges = Unlocked(TraitID.CartridgeChargeII) ? 3 : 2;
-        BFcd = TotalCD(AID.Bloodfest);
-        NMcd = TotalCD(AID.NoMercy);
+        BFcd = CDRemaining(AID.Bloodfest);
+        NMcd = CDRemaining(AID.NoMercy);
         HasNM = NMcd is >= 39.5f and <= 60;
-        HasBlast = Unlocked(AID.Hypervelocity) && PlayerHasEffect(SID.ReadyToBlast, 10f) && !LastActionUsed(AID.Hypervelocity);
-        HasRaze = Unlocked(AID.FatedBrand) && PlayerHasEffect(SID.ReadyToRaze, 10f) && !LastActionUsed(AID.FatedBrand);
-        HasRip = PlayerHasEffect(SID.ReadyToRip, 10f) && !LastActionUsed(AID.JugularRip);
-        HasTear = PlayerHasEffect(SID.ReadyToTear, 10f) && !LastActionUsed(AID.AbdomenTear);
-        HasGouge = PlayerHasEffect(SID.ReadyToGouge, 10f) && !LastActionUsed(AID.EyeGouge);
+        HasBlast = Unlocked(AID.Hypervelocity) && HasEffect(SID.ReadyToBlast) && !LastActionUsed(AID.Hypervelocity);
+        HasRaze = Unlocked(AID.FatedBrand) && HasEffect(SID.ReadyToRaze) && !LastActionUsed(AID.FatedBrand);
+        HasRip = HasEffect(SID.ReadyToRip) && !LastActionUsed(AID.JugularRip);
+        HasTear = HasEffect(SID.ReadyToTear) && !LastActionUsed(AID.AbdomenTear);
+        HasGouge = HasEffect(SID.ReadyToGouge) && !LastActionUsed(AID.EyeGouge);
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3.5f, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
         CanBS = Unlocked(AID.BurstStrike) && Ammo > 0;
-        CanGF = ActionReady(AID.GnashingFang) && Ammo > 0;
+        CanGF = GCDReady(AID.GnashingFang) && Ammo > 0;
         CanFC = Unlocked(AID.FatedCircle) && Ammo > 0;
-        CanDD = ActionReady(AID.DoubleDown) && Ammo > 0;
-        CanBreak = Unlocked(AID.SonicBreak) && PlayerHasEffect(SID.ReadyToBreak, 30);
-        CanReign = Unlocked(AID.ReignOfBeasts) && PlayerHasEffect(SID.ReadyToReign, 30);
+        CanDD = GCDReady(AID.DoubleDown) && Ammo > 0;
+        CanBreak = Unlocked(AID.SonicBreak) && HasEffect(SID.ReadyToBreak);
+        CanReign = Unlocked(AID.ReignOfBeasts) && HasEffect(SID.ReadyToReign);
 
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE);
@@ -522,7 +515,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 
         if (ShouldUseLightningShot(lsStrat, primaryTarget?.Actor))
             QueueGCD(AID.LightningShot, TargetChoice(ls) ?? primaryTarget?.Actor, lsStrat is >= LightningShotStrategy.Force ? GCDPriority.Forced : GCDPriority.ExtremelyLow);
-        if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
+        if (ShouldUsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
         #endregion
 

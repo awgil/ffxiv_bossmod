@@ -6,10 +6,11 @@ namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
 //Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
+//TODO: this module is kinda borked, update me
 public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Gauge = SharedTrack.Count, SurgingTempest, Infuriate, PrimalRend, Upheaval, Onslaught, Tomahawk, Potion, InnerRelease, PrimalWrath, PrimalRuination }
+    public enum Track { Gauge = SharedTrack.Count, SurgingTempest, Infuriate, PrimalRend, Upheaval, Onslaught, Tomahawk, InnerRelease, PrimalWrath, PrimalRuination }
     public enum GaugeStrategy { Automatic, OnlyST, OnlyAOE, ForceST, ForceAOE, Conserve }
     public enum SurgingTempestStrategy { Automatic, At30s, ForceEye, ForcePath, Delay }
     public enum InfuriateStrategy { Automatic, Force, ForceOvercap, Delay }
@@ -17,7 +18,6 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public enum UpheavalStrategy { Automatic, OnlyUpheaval, OnlyOrogeny, ForceUpheaval, ForceOrogeny, Delay }
     public enum OnslaughtStrategy { Automatic, Force, Hold0, Hold1, Hold2, GapClose, Delay }
     public enum TomahawkStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
-    public enum PotionStrategy { Manual, AlignWithInnerRelease, Immediate }
     #endregion
 
     #region Module Definitions
@@ -27,12 +27,13 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             "Standard Rotation Module", //Description
             "Standard rotation (Akechi)|Tank", //Category
             "Akechi", //Contributor
-            RotationModuleQuality.Ok, //Quality
+            RotationModuleQuality.WIP, //Quality
             BitMask.Build(Class.MRD, Class.WAR), //Job
             100); //Level supported
 
         res.DefineAOE().AddAssociatedActions(AID.HeavySwing, AID.Maim, AID.StormEye, AID.StormPath, AID.Overpower, AID.MythrilTempest);
         res.DefineHold();
+        res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Gauge).As<GaugeStrategy>("Gauge", "Gauge", uiPriority: 200)
             .AddOption(GaugeStrategy.Automatic, "Automatic", "Automatically use Gauge-related abilities optimally", minLevel: 35)
             .AddOption(GaugeStrategy.OnlyST, "Only ST", "Uses Inner Beast / Fell Cleave / Inner Chaos optimally as Beast Gauge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
@@ -87,11 +88,6 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             .AddOption(TomahawkStrategy.Allow, "Allow", "Allow use of Tomahawk when out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(TomahawkStrategy.Forbid, "Forbid", "Prohibit use of Tomahawk")
             .AddAssociatedActions(AID.Tomahawk);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithInnerRelease, "AlignWithInnerRelease", "Align with Inner Release", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
-            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.DefineOGCD(Track.InnerRelease, AID.InnerRelease, "Inner Release", "InnerR.", uiPriority: 170, 60, 15, ActionTargets.Self, 6).AddAssociatedActions(AID.InnerRelease);
         res.DefineOGCD(Track.PrimalWrath, AID.PrimalWrath, "Primal Wrath", "P.Wrath", uiPriority: 135, 20, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.PrimalWrath);
         res.DefineGCD(Track.PrimalRuination, AID.PrimalRuination, "PrimalRuination", "P.Ruin.", uiPriority: 150, supportedTargets: ActionTargets.Hostile, minLevel: 100).AddAssociatedActions(AID.PrimalRuination);
@@ -118,15 +114,15 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             return NewGCDPriority.LastChanceFC;
 
         var needFCBeforeInf = ncActive || BeastGauge > 50;
-        if (needFCBeforeInf && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) - SkSGCDLength, 1))
+        if (needFCBeforeInf && !CanFitSkSGCD(Infuriate.CDRemaining - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) - SkSGCDLength, 1))
             return NewGCDPriority.AvoidOvercapInfuriateNext;
 
         var numFCBeforeInf = InnerRelease.Stacks + ((ncActive || BeastGauge > 50) ? 1 : 0);
-        if (irActive && !CanFitSkSGCD(InnerRelease.Left, numFCBeforeInf + 1) && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * numFCBeforeInf - SkSGCDLength, numFCBeforeInf))
+        if (irActive && !CanFitSkSGCD(InnerRelease.Left, numFCBeforeInf + 1) && !CanFitSkSGCD(Infuriate.CDRemaining - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * numFCBeforeInf - SkSGCDLength, numFCBeforeInf))
             return NewGCDPriority.AvoidOvercapInfuriateIR;
 
         var imminentIRStacks = ncActive ? 4 : 3;
-        if (needFCBeforeInf && !CanFitSkSGCD(InnerRelease.CD, 1) && !CanFitSkSGCD(Infuriate.TotalCD - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * imminentIRStacks - SkSGCDLength, imminentIRStacks))
+        if (needFCBeforeInf && !CanFitSkSGCD(InnerRelease.CD, 1) && !CanFitSkSGCD(Infuriate.CDRemaining - (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0) * imminentIRStacks - SkSGCDLength, imminentIRStacks))
             return NewGCDPriority.AvoidOvercapInfuriateIR;
 
         if (CanFitSkSGCD(BurstWindowLeft))
@@ -220,7 +216,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     public (float Left, bool IsActive, bool IsReady) PrimalWrath;
     public (float Left, bool IsActive, bool IsReady) PrimalRuination;
     public (float Left, bool IsActive, bool NeedsRefresh, bool KeepAt30s) SurgingTempest;
-    public (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Infuriate;
+    public (float CDRemaining, float ReadyIn, bool HasCharges, bool IsReady) Infuriate;
     public (float Left, int Stacks, float CD, bool IsActive, bool IsReady) InnerRelease;
     #endregion
 
@@ -285,8 +281,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         GaugeStrategy.Automatic => ShouldSpendGauge(GaugeStrategy.Automatic, target),
         GaugeStrategy.OnlyST => ShouldSpendGauge(GaugeStrategy.Automatic, target),
         GaugeStrategy.OnlyAOE => ShouldSpendGauge(GaugeStrategy.Automatic, target),
-        GaugeStrategy.ForceST => Unlocked(AID.FellCleave) && (BeastGauge >= 50 || InnerRelease.IsActive || PlayerHasEffect(SID.NascentChaos, 30)),
-        GaugeStrategy.ForceAOE => Unlocked(AID.Decimate) && (BeastGauge >= 50 || InnerRelease.IsActive || PlayerHasEffect(SID.NascentChaos, 30)),
+        GaugeStrategy.ForceST => Unlocked(AID.FellCleave) && (BeastGauge >= 50 || InnerRelease.IsActive || HasEffect(SID.NascentChaos)),
+        GaugeStrategy.ForceAOE => Unlocked(AID.Decimate) && (BeastGauge >= 50 || InnerRelease.IsActive || HasEffect(SID.NascentChaos)),
         GaugeStrategy.Conserve => false,
         _ => false
     };
@@ -346,7 +342,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             return false;
         if (strategy == InfuriateStrategy.Force)
             return true;
-        if (strategy == InfuriateStrategy.ForceOvercap && Infuriate.TotalCD <= World.Client.AnimationLock)
+        if (strategy == InfuriateStrategy.ForceOvercap && Infuriate.CDRemaining <= World.Client.AnimationLock)
             return true;
 
         if (BeastGauge > 50)
@@ -360,7 +356,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
             if (irActive)
                 return true;
 
-            if (!CanFitSkSGCD(Infuriate.TotalCD, 4))
+            if (!CanFitSkSGCD(Infuriate.CDRemaining, 4))
                 return true;
 
             return false;
@@ -384,7 +380,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         {
             maxInfuriateCD += (Unlocked(TraitID.EnhancedInfuriate) ? 5 : 0);
         }
-        if (Infuriate.TotalCD < maxInfuriateCD)
+        if (Infuriate.CDRemaining < maxInfuriateCD)
             return true;
 
         if (irActive && unlockedNC)
@@ -446,16 +442,17 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseTomahawk(TomahawkStrategy strategy, Enemy? target) => strategy switch
     {
-        TomahawkStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !In3y(target?.Actor),
-        TomahawkStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD(),
+        TomahawkStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD && !In3y(target?.Actor),
+        TomahawkStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD,
         TomahawkStrategy.Force => true,
         TomahawkStrategy.Allow => !In3y(target?.Actor),
         TomahawkStrategy.Forbid => false,
         _ => false
     };
-    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
-        PotionStrategy.AlignWithInnerRelease => InnerRelease.CD < 5,
+        PotionStrategy.AlignWithBuffs => Player.InCombat && InnerRelease.CD <= 4f,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
         PotionStrategy.Immediate => true,
         _ => false
     };
@@ -470,9 +467,9 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         SurgingTempest.IsActive = SurgingTempest.Left > 0.1f; //Checks if SurgingTempest is active
         SurgingTempest.KeepAt30s = SurgingTempest.Left <= 30; //Checks if SurgingTempest needs to be refreshed once less than 30s
         SurgingTempest.NeedsRefresh = ShouldRefreshTempest(strategy.Option(Track.SurgingTempest).As<SurgingTempestStrategy>()); //Checks if SurgingTempest needs to be refreshed, roughly 4 GCDs to refresh it 
-        Upheaval.CD = TotalCD(AID.Upheaval); //Retrieve current Upheaval cooldown
+        Upheaval.CD = CDRemaining(AID.Upheaval); //Retrieve current Upheaval cooldown
         Upheaval.IsReady = Unlocked(AID.Upheaval) && Upheaval.CD < 0.6f; //Upheaval ability
-        Orogeny.CD = TotalCD(AID.Orogeny); //Retrieve current Orogeny cooldown
+        Orogeny.CD = CDRemaining(AID.Orogeny); //Retrieve current Orogeny cooldown
         Orogeny.IsReady = Unlocked(AID.Orogeny) && Orogeny.CD < 0.6f; //Orogeny ability
         BurgeoningFury.Stacks = StacksRemaining(Player, SID.BurgeoningFury, 30); //Retrieve current BurgeoningFury stacks
         PrimalRend.Left = StatusRemaining(Player, SID.PrimalRend, 20); //Retrieve current Primal Rend time left
@@ -485,17 +482,17 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
         PrimalRuination.IsActive = PrimalRuination.Left > 0.1f; //Checks if Primal Ruination is active
         PrimalRuination.IsReady = Unlocked(AID.PrimalRuination) && PrimalRuination.Left > 0.1f; //Primal Ruination ability
         InnerRelease.Stacks = StacksRemaining(Player, BestBerserk, 15); //Retrieve current InnerRelease stacks
-        InnerRelease.CD = TotalCD(BestInnerRelease); //Retrieve current InnerRelease cooldown
+        InnerRelease.CD = CDRemaining(BestInnerRelease); //Retrieve current InnerRelease cooldown
         InnerRelease.IsActive = InnerRelease.Stacks > 0; //Checks if InnerRelease is active
         InnerRelease.IsReady = Unlocked(BestInnerRelease) && InnerRelease.CD < 0.6f; //InnerRelease ability
         NascentChaos.Left = StatusRemaining(Player, SID.NascentChaos, 30);
         NascentChaos.IsActive = NascentChaos.Left > 0.1f;
-        Onslaught.CD = TotalCD(AID.Onslaught); //Retrieve current Onslaught cooldown
+        Onslaught.CD = CDRemaining(AID.Onslaught); //Retrieve current Onslaught cooldown
         Onslaught.IsReady = Unlocked(AID.Onslaught) && Onslaught.CD < 60.6f; //Onslaught ability
-        Infuriate.TotalCD = TotalCD(AID.Infuriate); //Retrieve current Infuriate cooldown
-        Infuriate.HasCharges = Infuriate.TotalCD <= 60; //Checks if Infuriate has charges
-        Infuriate.IsReady = Unlocked(AID.Infuriate) && Infuriate.HasCharges && !PlayerHasEffect(SID.NascentChaos, 30); //Infuriate ability
-        Infuriate.ChargeCD = Infuriate.TotalCD * 0.5f;  // This gives 60s for one charge
+        Infuriate.CDRemaining = CDRemaining(AID.Infuriate); //Retrieve current Infuriate cooldown
+        Infuriate.HasCharges = Infuriate.CDRemaining <= 60; //Checks if Infuriate has charges
+        Infuriate.IsReady = Unlocked(AID.Infuriate) && Infuriate.HasCharges && !HasEffect(SID.NascentChaos); //Infuriate ability
+        Infuriate.ReadyIn = Infuriate.CDRemaining * 0.5f;  // This gives 60s for one charge
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
         BurstWindowLeft = (InnerRelease.CD >= 40) ? 1.0f : 0.0f;
         BurstWindowIn = (InnerRelease.CD == 0) ? 1.0f : 0.0f;
@@ -540,10 +537,10 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                 LastActionUsed(AID.Decimate) ||
                 LastActionUsed(AID.InnerChaos) ||
                 LastActionUsed(AID.ChaoticCyclone))
-                Infuriate.TotalCD -= 5f;
-            if (Infuriate.ChargeCD <= 0 &&
-                Infuriate.TotalCD > 0)
-                Infuriate.ChargeCD = 60f;
+                Infuriate.CDRemaining -= 5f;
+            if (Infuriate.ReadyIn <= 0 &&
+                Infuriate.CDRemaining > 0)
+                Infuriate.ReadyIn = 60f;
         }
 
         if (!strategy.HoldEverything())
@@ -683,12 +680,8 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
                 QueueGCD(AID.Tomahawk,
                     TargetChoice(Tomahawk) ?? primaryTarget?.Actor,
                     NewGCDPriority.Standard);
-            if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
-                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr,
-                    Player,
-                    ActionQueue.Priority.VeryHigh + (int)NewOGCDPriority.ForcedOGCD,
-                    0,
-                    GCD - 0.9f);
+            if (ShouldUsePotion(strategy))
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium);
             #endregion
         }
 

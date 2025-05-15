@@ -32,9 +32,9 @@ class WealOfStone2 : PlayActionAOEs
 class QuadHints(BossModule module) : Components.CastCounterMulti(module, [AID.MoonbeamsBiteLeft, AID.MoonbeamsBiteRight])
 {
     private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
-    private readonly ArcList Forbidden = new(module.Arena.Center, 11);
-    private readonly List<Angle> SafeSpots = [];
-    private int StartCounter;
+    private readonly ArcList _forbidden = new(module.Arena.Center, 11);
+    private readonly List<Angle> _safeSpots = [];
+    private int _startCounter;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -43,27 +43,27 @@ class QuadHints(BossModule module) : Components.CastCounterMulti(module, [AID.Mo
         switch ((AID)spell.Action.ID)
         {
             case AID.MoonbeamPreLeft:
-                StartCounter++;
-                Forbidden.ForbidArcByLength(Angle.FromDirection(spell.TargetXZ - Arena.Center) - 90.Degrees(), 90.Degrees());
+                _startCounter++;
+                _forbidden.ForbidArcByLength(Angle.FromDirection(spell.TargetXZ - Arena.Center) - 90.Degrees(), 90.Degrees());
                 break;
             case AID.MoonbeamPreRight:
-                StartCounter++;
-                Forbidden.ForbidArcByLength(Angle.FromDirection(spell.TargetXZ - Arena.Center) + 90.Degrees(), 90.Degrees());
+                _startCounter++;
+                _forbidden.ForbidArcByLength(Angle.FromDirection(spell.TargetXZ - Arena.Center) + 90.Degrees(), 90.Degrees());
                 break;
         }
 
-        if (StartCounter == 2)
+        if (_startCounter == 2)
         {
-            foreach (var (min, max) in Forbidden.Allowed(default))
-                SafeSpots.Add((min + max) * 0.5f);
-            Forbidden.Forbidden.Clear();
-            StartCounter = 0;
+            foreach (var (min, max) in _forbidden.Allowed(default))
+                _safeSpots.Add((min + max) * 0.5f);
+            _forbidden.Forbidden.Clear();
+            _startCounter = 0;
         }
     }
 
     public void Advance()
     {
-        SafeSpots.RemoveAt(0);
+        _safeSpots.RemoveAt(0);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -71,7 +71,7 @@ class QuadHints(BossModule module) : Components.CastCounterMulti(module, [AID.Mo
         if (!_config.QuadMoonlightHints)
             return;
 
-        foreach (var (i, spot) in Enumerable.Reverse(SafeSpots.Select((i, s) => (s, i))))
+        foreach (var (i, spot) in Enumerable.Reverse(_safeSpots.Select((i, s) => (s, i))))
         {
             var pos = Arena.Center + spot.ToDirection() * 13.5f;
             Arena.AddCircleFilled(pos, 1, ArenaColor.Background);

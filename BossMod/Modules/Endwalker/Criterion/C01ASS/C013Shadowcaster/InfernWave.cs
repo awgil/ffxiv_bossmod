@@ -89,8 +89,7 @@ class InfernWave(BossModule module, bool savage, bool showHints, int maxActive) 
         if (spell.Action == WatchedAction)
         {
             var beacon = _beacons.Find(b => b.Source.Position.AlmostEqual(caster.Position, 1));
-            if (beacon != null)
-                beacon.Activation = new();
+            beacon?.Activation = new();
         }
     }
 
