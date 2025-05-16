@@ -12,14 +12,19 @@ class TOPStates : StateMachineBuilder
         SimplePhase(0, Phase1, "P1: Beetle")
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, Phase2, "P2: M/F")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || IsEffectivelyDead(_module.BossP2M()) && IsEffectivelyDead(_module.BossP2F());
         SimplePhase(2, Phase3, "P3: Final")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || IsEffectivelyDead(_module.BossP3());
         SimplePhase(3, Phase4, "P4: Blue Screen")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || _module.FindComponent<P4BlueScreen>()?.NumCasts > 0;
         SimplePhase(4, Phase5, "P5: M/F Repeat")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => (_module.OpticalUnit()?.IsDestroyed ?? true) || (_module.FindComponent<P5BlindFaith>()?.Active ?? false);
         SimplePhase(5, Phase6, "P6: Alpha")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => _module.OpticalUnit()?.IsDestroyed ?? true;
     }
 
@@ -54,7 +59,8 @@ class TOPStates : StateMachineBuilder
 
     private void Phase5(uint id)
     {
-        ActorTargetable(id, _module.BossP5, true, 15.5f, "Boss appears");
+        ActorTargetable(id, _module.BossP5, true, 15.5f, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         P5SolarRay(id + 0x10000, 3.1f, false);
         P5RunMiDelta(id + 0x20000, 8.4f);
         P5SolarRay(id + 0x30000, 9.2f, false);
@@ -128,7 +134,8 @@ class TOPStates : StateMachineBuilder
 
     private void P2FirewallSolarRay(uint id, float delay)
     {
-        ActorTargetable(id, _module.BossP2M, true, delay, "M/F appear");
+        ActorTargetable(id, _module.BossP2M, true, delay, "M/F appear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x10, _module.BossP2M, AID.FirewallM, 1.2f, 3);
         ActorCast(id + 0x20, _module.BossP2M, AID.SolarRayM, 3.2f, 5, false, "Tankbusters")
             .ActivateOnEnter<SolarRayM>()
@@ -229,6 +236,7 @@ class TOPStates : StateMachineBuilder
             .DeactivateOnExit<P3ColossalBlow>();
 
         ActorTargetable(id + 0x100, _module.BossP3, true, 3.5f, "Boss reappears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd)
             .DeactivateOnExit<P3IntermissionVoidzone>(); // voidzone disappears ~1.6s before boss appears
     }
 
@@ -273,7 +281,8 @@ class TOPStates : StateMachineBuilder
 
     private void P4WaveCannon(uint id, float delay)
     {
-        ActorTargetable(id, _module.BossP3, true, delay, "Boss reappear");
+        ActorTargetable(id, _module.BossP3, true, delay, "Boss reappear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x10, _module.BossP3, AID.P4WaveCannonVisualStart, 9.3f, 5, true)
             .ActivateOnEnter<P4WaveCannonProtean>()
             .ActivateOnEnter<P4WaveCannonStack>(); // ~2.5s into cast: targets for stacks 1
@@ -478,7 +487,8 @@ class TOPStates : StateMachineBuilder
 
     private void P6CosmoMemory(uint id, float delay)
     {
-        ActorTargetable(id, _module.BossP6, true, delay, "Boss appears");
+        ActorTargetable(id, _module.BossP6, true, delay, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x1000, _module.BossP6, AID.P6CosmoMemory, 7.2f, 6, true, "Raidwide (tank LB3)")
             .SetHint(StateMachine.StateHint.Raidwide);
     }
