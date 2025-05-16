@@ -67,7 +67,8 @@ class Ex4ZeleniaStates : StateMachineBuilder
             .ActivateOnEnter<AddsExplosion>()
             .ActivateOnEnter<SpearpointAOE>()
             .ActivateOnEnter<SpearpointBait>()
-            .ActivateOnEnter<AddsEnrage>();
+            .ActivateOnEnter<AddsEnrage>()
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
 
         ComponentCondition<AddsExplosion>(id + 0x10, 10.8f, e => e.NumCasts >= 2, "Towers 1");
         ComponentCondition<AddsExplosion>(id + 0x12, 12, e => e.NumCasts >= 4, "Towers 2");
