@@ -59,7 +59,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
 
     public bool Enabled => _config.UseManualQueue;
 
-    public bool Push(ActionID action, ulong targetId, float castTime, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget)
+    public bool Push(ActionID action, ulong targetId, float castTime, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest)
     {
         if (!Enabled)
             return false; // we don't use queue at all
@@ -77,7 +77,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (def.ReadyIn(ws.Client.Cooldowns, ws.Client.DutyActions) > expire)
             return false; // don't bother trying to queue something that's on cd
 
-        if (!ResolveTarget(def, player, targetId, getAreaTarget, allowTargetOverride, out var target, out var targetPos))
+        if (!ResolveTarget(def, player, targetId, getAreaTarget, targetNearest, allowTargetOverride, out var target, out var targetPos))
             return false; // failed to resolve target
 
         Angle? angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
@@ -127,7 +127,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             _emergencyMode = false;
     }
 
-    private bool ResolveTarget(ActionDefinition def, Actor player, ulong targetId, Func<(ulong, Vector3?)> getAreaTarget, bool allowSmartTarget, out Actor? target, out Vector3 targetPos)
+    private bool ResolveTarget(ActionDefinition def, Actor player, ulong targetId, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest, bool allowSmartTarget, out Actor? target, out Vector3 targetPos)
     {
         target = null;
         targetPos = default;
@@ -202,7 +202,14 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (allowSmartTarget && _config.SmartTargets && def.SmartTarget != null)
             target = def.SmartTarget(ws, player, target, hints);
 
-        // smart-targeting fallback: cast on self is target is not valid
+        // fallback: if requested, use native "target nearest" function to try to find a valid hostile target
+        if (target == null && !def.AllowedTargets.HasFlag(ActionTargets.Self))
+        {
+            target = ws.Actors.Find(targetNearest());
+            return true;
+        }
+
+        // smart-targeting fallback: cast on self if target is not valid
         var targetInvalid = target == null || !def.AllowedTargets.HasFlag(ActionTargets.Hostile) && !target.IsAlly;
         if (targetInvalid && def.AllowedTargets.HasFlag(ActionTargets.Self))
             target = player;

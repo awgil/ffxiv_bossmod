@@ -485,29 +485,21 @@ public sealed unsafe class ActionManagerEx : IDisposable
         (ulong, Vector3?) getAreaTarget() => targetOverridden ? (targetId, null) :
             (Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget ? targetId : 0xE0000000, Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtCursor ? GetWorldPosUnderCursor() : null);
 
-        // note: only standard mode can be filtered
-        var filter = mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item;
-
-        // native auto-target only activates if the player is targeting nothing, so we need to do the same here (check that target is null and spell cannot be used on self)
-        if (
-            targetId == 0xE0000000
-            && _manualQueue.Enabled
-            && filter
-            && !ActionManager.CanUseActionOnTarget(spellId, GameObjectManager.Instance()->Objects.IndexSorted[0])
-            && Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoNearestTarget)->Value.UInt == 1
-            )
+        ulong findNearestTarget()
         {
-            Service.Log($"[AMEx] UA: auto-target nearest for {action}");
-            _autoSelectTarget(targetSystem);
-            if (targetSystem->Target != null)
+            if (Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoNearestTarget)->Value.UInt == 1)
             {
-                targetId = targetSystem->Target->GetGameObjectId();
-                targetOverridden = true;
+                _autoSelectTarget(targetSystem);
+                if (targetSystem->Target != null)
+                    return targetSystem->Target->GetGameObjectId();
             }
+
+            return 0xE0000000;
         }
 
+        // note: only standard mode can be filtered
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
-        if (filter && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget))
+        if (mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, findNearestTarget))
             return false;
 
         bool areaTargeted = false;
