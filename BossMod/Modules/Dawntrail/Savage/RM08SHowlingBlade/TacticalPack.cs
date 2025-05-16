@@ -116,8 +116,7 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
 
     public Actor? MatchingWolf(Actor player)
     {
-        var slot = Raid.FindSlot(player.InstanceID);
-        return slot >= 0
+        return Raid.TryFindSlot(player, out var slot)
             ? Aspects[slot] switch
             {
                 Aspect.Stone => WolfOfStone,
@@ -129,8 +128,7 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
 
     public Actor? OtherWolf(Actor player)
     {
-        var slot = Raid.FindSlot(player.InstanceID);
-        return slot >= 0
+        return Raid.TryFindSlot(player, out var slot)
             ? Aspects[slot] switch
             {
                 Aspect.Stone => WolfOfWind,

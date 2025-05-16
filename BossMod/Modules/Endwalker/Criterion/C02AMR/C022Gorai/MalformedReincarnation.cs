@@ -83,7 +83,7 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
             SID.OdderIncarnation3 => 3,
             _ => -1
         };
-        if (blueSlot >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (blueSlot >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _playerBlue[slot, blueSlot] = true;
     }
 

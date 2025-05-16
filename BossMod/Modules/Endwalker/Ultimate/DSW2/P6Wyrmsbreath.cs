@@ -76,9 +76,8 @@ class P6Wyrmsbreath(BossModule module, bool allowIntersect) : Components.Generic
     {
         if ((TetherID)tether.ID is TetherID.FlameBreath or TetherID.IceBreath or TetherID.FlameIceBreathNear)
         {
-            var slot = Raid.FindSlot(source.InstanceID);
             var boss = WorldState.Actors.Find(tether.Target);
-            if (slot >= 0 && boss != null)
+            if (Raid.TryFindSlot(source, out var slot) && boss != null)
             {
                 if (_tetheredTo[slot] == null)
                     CurrentBaits.Add(new(boss, source, _shape));

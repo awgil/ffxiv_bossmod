@@ -109,9 +109,7 @@ class P3AethericProfusion(BossModule module) : Components.CastCounter(module, AI
         }
 
         // let MT taunt boss if needed
-        var boss = hints.FindEnemy(Module.PrimaryActor);
-        if (boss != null)
-            boss.PreferProvoking = true;
+        hints.FindEnemy(Module.PrimaryActor)?.PreferProvoking = true;
 
         // mitigate heavy raidwide
         hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _activation));

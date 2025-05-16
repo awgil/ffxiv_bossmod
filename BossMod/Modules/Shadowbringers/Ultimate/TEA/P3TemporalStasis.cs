@@ -111,8 +111,7 @@ class P3TemporalStasis(BossModule module) : Components.GenericBaitAway(module, A
 
     private void AssignMechanic(Actor actor, Mechanic mechanic)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             _playerMechanics[slot] = mechanic;
     }
 

@@ -52,11 +52,8 @@ class UpliftStompDead : Components.UniformStackSpread
         {
             case AID.Uplift:
                 Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
-                int slot = Raid.FindSlot(spell.MainTargetID);
-                if (slot >= 0)
-                {
+                if (Raid.TryFindSlot(spell.MainTargetID, out var slot))
                     OrderPerSlot[slot] = 4 - Spreads.Count / 2;
-                }
                 ++NumUplifts;
                 break;
             case AID.StompDeadAOE:

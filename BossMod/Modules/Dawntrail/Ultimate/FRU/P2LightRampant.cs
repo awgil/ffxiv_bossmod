@@ -17,13 +17,13 @@ class P2LightRampant(BossModule module) : BossComponent(module)
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID is TetherID.LightRampantChains or TetherID.LightRampantCurse && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0)
+        if ((TetherID)tether.ID is TetherID.LightRampantChains or TetherID.LightRampantCurse && Raid.TryFindSlot(source.InstanceID, out var slot))
             _tetherTargets[slot] = WorldState.Actors.Find(tether.Target);
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID is TetherID.LightRampantChains or TetherID.LightRampantCurse && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0)
+        if ((TetherID)tether.ID is TetherID.LightRampantChains or TetherID.LightRampantCurse && Raid.TryFindSlot(source.InstanceID, out var slot))
             _tetherTargets[slot] = null;
     }
 }
@@ -45,7 +45,7 @@ class P2LuminousHammer(BossModule module) : Components.BaitAwayIcon(module, new 
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == WatchedAction && Raid.FindSlot(spell.MainTargetID) is var slot && slot >= 0)
+        if (spell.Action == WatchedAction && Raid.TryFindSlot(spell.MainTargetID, out var slot))
         {
             ++NumCasts;
             PrevBaitOffset[slot] = (Raid[slot]?.Position ?? Module.Center) - Module.Center;

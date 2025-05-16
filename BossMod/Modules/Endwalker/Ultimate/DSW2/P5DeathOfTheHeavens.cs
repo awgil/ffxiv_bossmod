@@ -148,8 +148,7 @@ class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(
         };
         if (icon != 0)
         {
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
                 _playerIcons[slot] = icon;
         }
     }

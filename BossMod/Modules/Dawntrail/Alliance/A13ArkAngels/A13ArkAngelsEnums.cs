@@ -89,6 +89,8 @@ public enum SID : uint
     FatedVillain = 4195, // none->BossGK, extra=0x335
     VauntedHero = 4196, // none->player, extra=0x0
     VauntedVillain = 4197, // none->BossTT, extra=0x336
+    Invincibility = 4410, // none->BossHM, extra=0x0
+    Uninterrupted = 4416, // none->BossHM, extra=0x0
 }
 
 public enum IconID : uint

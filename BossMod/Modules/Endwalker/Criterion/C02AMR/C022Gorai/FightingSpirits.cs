@@ -43,7 +43,7 @@ class WorldlyPursuitBait(BossModule module) : Components.GenericBaitAway(module,
             IconID.Order4 => 3,
             _ => -1,
         };
-        if (order >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (order >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             _order[slot] = order;
         }

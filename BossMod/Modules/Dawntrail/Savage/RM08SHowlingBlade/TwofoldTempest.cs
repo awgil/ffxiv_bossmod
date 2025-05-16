@@ -1,18 +1,55 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM08SHowlingBlade;
 
-class TwofoldTether(BossModule module) : Components.GenericStackSpread(module)
+class TwofoldTether(BossModule module) : BossComponent(module)
+{
+    public readonly List<(Actor, Actor)> Tethers = [];
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.GenericPassable && WorldState.Actors.Find(tether.Target) is { } target)
+            Tethers.Add((source, target));
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.GenericPassable)
+            Tethers.RemoveAll(t => t.Item1 == source);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var (a, b) in Tethers)
+            Arena.AddLine(a.Position, b.Position, ArenaColor.Danger);
+    }
+}
+
+class TwofoldStack(BossModule module) : Components.GenericStackSpread(module)
 {
     private DateTime _activation;
     public int NumFinishedStacks;
+    private bool _tetherAppeared;
+
+    private Actor? _target;
+
+    public override void Update()
+    {
+        Stacks.Clear();
+        if (_target is { } t)
+        {
+            Stacks.Add(new(t, 6, 2, 2, _activation, forbiddenPlayers: Raid.WithSlot().Where(r => r.Item2.FindStatus(SID.MagicVulnerabilityUp)?.ExpireAt > _activation).Mask()));
+        }
+    }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GenericPassable && WorldState.Actors.Find(tether.Target) is { } target)
         {
-            if (_activation == default)
+            if (!_tetherAppeared)
+            {
+                _tetherAppeared = true;
                 _activation = WorldState.FutureTime(7.1f);
-            Stacks.Clear();
-            Stacks.Add(new(target, 6, 2, 2, _activation, forbiddenPlayers: Raid.WithSlot().Where(r => r.Item2.FindStatus(SID.MagicVulnerabilityUp)?.ExpireAt > _activation).Mask()));
+            }
+            _target = target;
         }
     }
 
@@ -21,19 +58,16 @@ class TwofoldTether(BossModule module) : Components.GenericStackSpread(module)
         if ((AID)spell.Action.ID == AID.TwofoldTempestStack)
         {
             NumFinishedStacks++;
-            _activation = default;
-            // in case tether pass is affected by network latency and the cast target isn't the tether target on our end
-            Stacks.Clear();
+            _activation = WorldState.FutureTime(7.1f);
         }
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
+        base.DrawArenaBackground(pcSlot, pc);
         foreach (var s in ActiveStacks)
-        {
-            Arena.AddLine(Module.PrimaryActor.Position, s.Target.Position, ArenaColor.Danger);
-            Arena.AddCircle(s.Target.Position, 9, ArenaColor.Danger); // visual helper for max voidzone size
-        }
+            if (P2Platforms.SamePlatform(s.Target, pc))
+                Arena.AddCircle(s.Target.Position, 9, ArenaColor.Danger); // visual helper for max voidzone size
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -76,13 +110,13 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _vulns[slot] = status.ExpireAt;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _vulns[slot] = default;
     }
 

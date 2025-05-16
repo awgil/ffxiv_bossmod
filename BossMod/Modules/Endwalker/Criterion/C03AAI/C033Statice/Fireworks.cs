@@ -23,7 +23,7 @@ class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID.Follow && Raid.FindSlot(tether.Target) is var slot && slot >= 0 && slot < TetheredAdds.Length)
+        if ((TetherID)tether.ID == TetherID.Follow && Raid.TryFindSlot(tether.Target, out var slot) && slot < TetheredAdds.Length)
             TetheredAdds[slot] = source;
     }
 

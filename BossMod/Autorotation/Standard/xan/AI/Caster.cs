@@ -48,6 +48,9 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
             return;
 
         var target = GetRaiseTarget(strategy);
+        if (target == null)
+            return; // nobody to raise
+
         var swiftcastCD = NextChargeIn(ClassShared.AID.Swiftcast);
         var swiftcast = StatusDetails(Player, (uint)ClassShared.SID.Swiftcast, Player.InstanceID, 15).Left;
 

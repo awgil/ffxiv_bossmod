@@ -13,7 +13,7 @@ class SunriseSabbath(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.Positron or SID.Negatron && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID is SID.Positron or SID.Negatron && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             Positron[slot] = (SID)status.ID == SID.Positron;
             BaitOrder[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 30 ? 1 : 2;

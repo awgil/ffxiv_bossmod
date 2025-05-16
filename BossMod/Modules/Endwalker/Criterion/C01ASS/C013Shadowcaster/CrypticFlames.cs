@@ -74,8 +74,7 @@ class CrypticFlames(BossModule module) : BossComponent(module)
 
     private void SetPlayerOrder(Actor player, int order)
     {
-        int slot = Raid.FindSlot(player.InstanceID);
-        if (slot >= 0 && slot < _playerOrder.Length)
+        if (Raid.TryFindSlot(player, out var slot) && slot < _playerOrder.Length)
             _playerOrder[slot] = order;
     }
 

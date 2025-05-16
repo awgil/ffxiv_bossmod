@@ -59,8 +59,7 @@ public sealed class ActorState : IEnumerable<Actor>
         foreach (var act in this)
         {
             act.PrevPosRot = act.PosRot;
-            if (act.CastInfo != null)
-                act.CastInfo.ElapsedTime = Math.Min(act.CastInfo.ElapsedTime + frame.Duration, act.CastInfo.AdjustedTotalTime);
+            act.CastInfo?.ElapsedTime = Math.Min(act.CastInfo.ElapsedTime + frame.Duration, act.CastInfo.AdjustedTotalTime);
             RemovePendingEffects(act, (in PendingEffect p) => p.Expiration < ts);
         }
     }

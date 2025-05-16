@@ -9,6 +9,7 @@ class LightsChain(BossModule module) : Components.StandardAOEs(module, AID.Light
 class Meteor(BossModule module) : Components.CastInterruptHint(module, AID.Meteor);
 class CrossReaver(BossModule module) : Components.StandardAOEs(module, AID.CrossReaverAOE, new AOEShapeCross(50, 6));
 class ArkShield(BossModule module) : Components.Adds(module, (uint)OID.ArkShield);
+class MijinGakure(BossModule module) : Components.InvincibleStatus(module, (uint)SID.Invincibility);
 class CriticalReaverRaidwide(BossModule module) : Components.CastCounter(module, AID.CriticalReaverRaidwide);
 class CriticalReaverEnrage(BossModule module) : Components.CastInterruptHint(module, AID.CriticalReaverEnrage);
 

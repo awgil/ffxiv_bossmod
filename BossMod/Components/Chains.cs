@@ -65,10 +65,7 @@ public class Chains(BossModule module, uint tetherID, Enum? aid = default, float
 
     private void SetPartner(ulong source, Actor? target, float initialDistance)
     {
-        var slot = Raid.FindSlot(source);
-        if (slot >= 0)
-        {
+        if (Raid.TryFindSlot(source, out var slot))
             Partners[slot] = (target, initialDistance);
-        }
     }
 }

@@ -44,7 +44,7 @@ class EngravementOfSoulsTethers(BossModule module) : Components.GenericBaitAway(
             TetherID.DarkFar => (TetherType.Dark, false),
             _ => (TetherType.None, false)
         };
-        if (type != TetherType.None && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+        if (type != TetherType.None && Raid.TryFindSlot(tether.Target, out var slot))
         {
             if (States[slot].Source == null)
             {

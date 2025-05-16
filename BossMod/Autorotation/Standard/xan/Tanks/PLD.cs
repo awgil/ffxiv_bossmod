@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
 {
-    public enum Track { Intervene = SharedTrack.Count, HolySpirit, Atonement }
+    public enum Track { Intervene = SharedTrack.Count, HolySpirit, Atonement, Combo }
 
     public enum HSStrategy
     {
@@ -28,18 +28,11 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         GapCloser,
         Delay
     }
-
-    public enum GCDPriority
+    public enum ComboStrategy
     {
-        None = 0,
-        HS = 100,
-        Standard = 500,
-        Atonement = 600,
-        DMHS = 650,
-        AtonementCombo = 700,
-        BladeCombo = 750,
-        GoringBlade = 800,
-        Force = 900
+        FinishAOE,
+        BreakCombo,
+        FinishAlways
     }
 
     public static RotationModuleDefinition Definition()
@@ -64,6 +57,11 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         def.DefineSimple(Track.Atonement, "Atone", minLevel: 76)
             .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
+
+        def.Define(Track.Combo).As<ComboStrategy>("Combo")
+            .AddOption(ComboStrategy.FinishAOE, "FinishAOE", "Finish AOE combo, even on 1 target, if it would grant Divine Might")
+            .AddOption(ComboStrategy.BreakCombo, "Break", "Break AOE/single-target combo if number of targets changes")
+            .AddOption(ComboStrategy.FinishAlways, "FinishAlways", "Finish AOE or single target combo if it would grant Divine Might, even if number of targets changes");
 
         return def;
     }
@@ -99,6 +97,23 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         return $"{{ Oath = {gauge.OathGauge}, C = {gauge.ConfiteorComboStep} / {gauge.ConfiteorComboTimer} }}";
     }
 
+    public enum GCDPriority
+    {
+        None = 0,
+        HS = 100,
+        Standard = 500,
+        StandardAOE = 510,
+        FinishCombo = 550,
+        Atonement = 600,
+        DMHS = 650,
+        AtonementCombo = 700,
+        BladeCombo = 750,
+        GoringBlade = 800,
+        Force = 900
+    }
+
+    private bool NextGCDDivineMight => NextGCD is AID.RageOfHalone or AID.RoyalAuthority or AID.Prominence;
+
     public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
@@ -127,6 +142,8 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         NumAOETargets = NumMeleeAOETargets(strategy);
 
+        var shouldAOE = NumAOETargets > 2;
+
         if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < GetCastTime(AID.HolySpirit) + 0.76f)
@@ -145,25 +162,19 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         if (GoringBladeReady > GCD)
             PushGCD(AID.GoringBlade, primaryTarget, GCDPriority.GoringBlade);
 
-        if (NumAOETargets >= 3 && Unlocked(AID.TotalEclipse))
-        {
-            if ((Requiescat.Left > GCD || DivineMight > GCD && FightOrFlight > GCD) && MP >= 1000)
-                PushGCD(AID.HolyCircle, Player, GCDPriority.Standard);
+        var comboStrategy = strategy.Option(Track.Combo).As<ComboStrategy>();
 
-            if (ComboLastMove == AID.TotalEclipse)
-            {
-                if (DivineMight > GCD && MP >= 1000)
-                    PushGCD(AID.HolyCircle, Player, GCDPriority.Standard);
+        var aoeComboPriority = comboStrategy is ComboStrategy.FinishAOE or ComboStrategy.FinishAlways
+            ? GCDPriority.FinishCombo
+            : shouldAOE ? GCDPriority.StandardAOE : GCDPriority.None;
 
-                PushGCD(AID.Prominence, Player, GCDPriority.Standard);
-            }
+        var stComboPriority = comboStrategy == ComboStrategy.FinishAlways ? GCDPriority.FinishCombo : GCDPriority.Standard;
 
-            PushGCD(AID.TotalEclipse, Player, GCDPriority.Standard);
-            return;
-        }
+        if (ComboLastMove == AID.TotalEclipse)
+            PushGCD(AID.Prominence, Player, aoeComboPriority);
 
-        UseHS(strategy, primaryTarget);
-        UseAtone(strategy, primaryTarget);
+        if (shouldAOE)
+            PushGCD(AID.TotalEclipse, Player, GCDPriority.StandardAOE);
 
         if (SepulchreReady > GCD)
             PushGCD(AID.Sepulchre, primaryTarget, GCDPriority.AtonementCombo);
@@ -172,12 +183,16 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.Supplication, primaryTarget, GCDPriority.AtonementCombo);
 
         if (ComboLastMove == AID.RiotBlade)
-            PushGCD(AID.RageOfHalone, primaryTarget, GCDPriority.Standard);
+            PushGCD(AID.RageOfHalone, primaryTarget, stComboPriority);
 
         if (ComboLastMove == AID.FastBlade)
-            PushGCD(AID.RiotBlade, primaryTarget, GCDPriority.Standard);
+            PushGCD(AID.RiotBlade, primaryTarget, stComboPriority);
 
         PushGCD(AID.FastBlade, primaryTarget, GCDPriority.Standard);
+
+        UseHolyCircle();
+        UseHolySpirit(strategy, primaryTarget);
+        UseAtone(strategy, primaryTarget);
     }
 
     private void CalcNextBestOGCD(StrategyValues strategy, Enemy? primaryTarget)
@@ -220,7 +235,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void UseHS(StrategyValues strategy, Enemy? primaryTarget)
+    private void UseHolySpirit(StrategyValues strategy, Enemy? primaryTarget)
     {
         var track = strategy.Option(Track.HolySpirit).As<HSStrategy>();
 
@@ -231,11 +246,13 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         var divineMight = DivineMight > GCD;
         var fof = FightOrFlight > GCD;
 
-        var useStandard = divineMight && fof || requiescat || divineMight && ComboLastMove == AID.RiotBlade;
+        var useStandard = divineMight && (fof || NextGCDDivineMight) || requiescat;
 
         var prio = strategy.Option(Track.HolySpirit).As<HSStrategy>() switch
         {
-            HSStrategy.Standard => useStandard ? GCDPriority.DMHS : divineMight ? GCDPriority.HS : GCDPriority.None,
+            HSStrategy.Standard => useStandard
+                ? GCDPriority.DMHS
+                : divineMight ? GCDPriority.HS : GCDPriority.None,
             HSStrategy.ForceDM => divineMight ? GCDPriority.Force : GCDPriority.None,
             HSStrategy.Force => GCDPriority.Force,
             HSStrategy.Ranged => useStandard ? GCDPriority.DMHS : GCDPriority.HS,
@@ -243,6 +260,18 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         };
 
         PushGCD(AID.HolySpirit, primaryTarget, prio);
+    }
+
+    private void UseHolyCircle()
+    {
+        if (MP < 1000 || NumAOETargets < 3)
+            return;
+
+        var shouldUse = Requiescat.Left > GCD
+            || DivineMight > GCD && (FightOrFlight > GCD || NextGCDDivineMight);
+
+        if (shouldUse)
+            PushGCD(AID.HolyCircle, Player, GCDPriority.DMHS);
     }
 
     private void UseAtone(StrategyValues strategy, Enemy? primaryTarget)
@@ -253,16 +282,11 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         switch (strategy.Simple(Track.Atonement))
         {
             case OffensiveStrategy.Automatic:
-                if (FightOrFlight > GCD)
-                    // use after DMHS, which is higher potency
+                if (FightOrFlight > GCD || NextGCD is AID.RageOfHalone or AID.Prominence)
                     PushGCD(AID.Atonement, primaryTarget, GCDPriority.Atonement);
-
-                if (ComboLastMove == AID.RiotBlade)
-                    PushGCD(AID.Atonement, primaryTarget, GCDPriority.AtonementCombo);
                 break;
             case OffensiveStrategy.Force:
-                if (AtonementReady > GCD)
-                    PushGCD(AID.Atonement, primaryTarget, GCDPriority.Force);
+                PushGCD(AID.Atonement, primaryTarget, GCDPriority.Force);
                 break;
         }
     }

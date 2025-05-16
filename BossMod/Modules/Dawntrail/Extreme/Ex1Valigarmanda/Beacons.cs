@@ -31,8 +31,7 @@ class CalamitousCry : Components.GenericWildCharge
             case AID.CalamitousCryTargetFirst:
             case AID.CalamitousCryTargetRest:
                 Source = Module.PrimaryActor;
-                var slot = Raid.FindSlot(spell.MainTargetID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(spell.MainTargetID, out var slot))
                     PlayerRoles[slot] = PlayerRole.Target;
                 break;
             case AID.CalamitousCryAOE:

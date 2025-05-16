@@ -69,8 +69,7 @@ class DeepClean(BossModule module) : Components.GenericAOEs(module)
         if (modelState == 27 && animState1 == 1)
         {
             var c = Cleanings.MinBy(e => (e.Actor.Position - actor.Position).Length());
-            if (c != null)
-                c.CleanedAt = WorldState.CurrentTime;
+            c?.CleanedAt = WorldState.CurrentTime;
         }
     }
 

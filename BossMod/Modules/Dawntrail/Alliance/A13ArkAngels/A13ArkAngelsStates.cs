@@ -181,8 +181,10 @@ class A13ArkAngelsStates : StateMachineBuilder
     private void MijinGakure(uint id, float delay)
     {
         ActorTargetable(id, _module.BossEV, false, delay, "Shield")
+            .ActivateOnEnter<MijinGakure>()
             .ActivateOnEnter<ArkShield>();
         ActorCast(id + 0x10, _module.BossHM, AID.MijinGakure, 1, 30, true, "Interrupt", true)
+            .DeactivateOnExit<MijinGakure>()
             .DeactivateOnExit<ArkShield>();
     }
 

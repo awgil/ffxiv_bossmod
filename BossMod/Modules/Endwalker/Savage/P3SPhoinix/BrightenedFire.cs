@@ -49,8 +49,7 @@ class BrightenedFire(BossModule module) : Components.CastCounter(module, AID.Bri
     {
         if (iconID is >= 268 and <= 275)
         {
-            int slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
                 _playerOrder[slot] = (int)iconID - 267;
         }
     }

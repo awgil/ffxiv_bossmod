@@ -72,7 +72,10 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
             var allowFate = Utils.IsPlayerSyncedToFate(World) && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize;
             if (allowFate)
                 foreach (var e in Hints.PotentialTargets.Where(t => t.Actor.FateID == World.Client.ActiveFate.ID))
-                    prioritize(e, 1);
+                {
+                    var isForlorn = e.Actor.NameID is 6737 or 6738;
+                    prioritize(e, isForlorn ? 2 : 1);
+                }
 
             var specific = strategy.Option(Track.Specific);
             if (specific.As<PriorityStrategy>() == PriorityStrategy.Prioritize && Hints.FindEnemy(ResolveTargetOverride(specific.Value)) is var target && target != null)
