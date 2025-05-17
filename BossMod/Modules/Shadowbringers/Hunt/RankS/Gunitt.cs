@@ -30,10 +30,10 @@ public enum IconID : uint
 }
 
 class TheDeepSeeks(BossModule module) : Components.SingleTargetCast(module, AID.TheDeepSeeks);
-class TheDeepReaches(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDeepReaches, new AOEShapeRect(40, 1));
+class TheDeepReaches(BossModule module) : Components.StandardAOEs(module, AID.TheDeepReaches, new AOEShapeRect(40, 1));
 class TheDeepBeckons(BossModule module) : Components.RaidwideCast(module, AID.TheDeepBeckons);
 class CoinToss(BossModule module) : Components.CastGaze(module, AID.CoinToss);
-class TheDeepRends(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheDeepRends, new AOEShapeCone(20, 30.Degrees()));
+class TheDeepRends(BossModule module) : Components.StandardAOEs(module, AID.TheDeepRends, new AOEShapeCone(20, 30.Degrees()));
 class TheDeepRendsHint(BossModule module) : Components.CastHint(module, AID.TheDeepRends, "Targets 5 random players after initial hit");
 
 class SwivelGun(BossModule module) : Components.GenericStackSpread(module)

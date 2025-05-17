@@ -61,12 +61,12 @@ class VoidTorrent(BossModule module) : Components.BaitAwayCast(module, AID.VoidT
 class VoidTorrentHint(BossModule module) : Components.SingleTargetCast(module, AID.VoidTorrent, "Tankbuster cleave");
 class Voidcleaver(BossModule module) : Components.RaidwideCast(module, AID.Voidcleaver);
 class VoidMiasmaBait(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(50, 15.Degrees()), (uint)TetherID.BaitAway);
-class VoidMiasma(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidMiasma, new AOEShapeCone(50, 15.Degrees()));
-class Lifescleaver(BossModule module) : Components.SelfTargetedAOEs(module, AID.Lifescleaver2, new AOEShapeCone(50, 15.Degrees()));
+class VoidMiasma(BossModule module) : Components.StandardAOEs(module, AID.VoidMiasma, new AOEShapeCone(50, 15.Degrees()));
+class Lifescleaver(BossModule module) : Components.StandardAOEs(module, AID.Lifescleaver2, new AOEShapeCone(50, 15.Degrees()));
 class Tsunami(BossModule module) : Components.RaidwideAfterNPCYell(module, AID.Tsunami, (uint)NPCYell.LimitBreakStart, 4.5f);
 class StygianDeluge(BossModule module) : Components.RaidwideCast(module, AID.StygianDeluge);
-class Antediluvian(BossModule module) : Components.SelfTargetedAOEs(module, AID.Antediluvian2, new AOEShapeCircle(15));
-class BodySlam(BossModule module) : Components.SelfTargetedAOEs(module, AID.BodySlam3, new AOEShapeCircle(8));
+class Antediluvian(BossModule module) : Components.StandardAOEs(module, AID.Antediluvian2, new AOEShapeCircle(15));
+class BodySlam(BossModule module) : Components.StandardAOEs(module, AID.BodySlam3, new AOEShapeCircle(8));
 class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodySlam2, 10);
 
 class HydraulicRam(BossModule module) : Components.GenericAOEs(module)
@@ -130,7 +130,7 @@ class Hydrobomb(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Hydrovent(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hydrovent, 6);
+class Hydrovent(BossModule module) : Components.StandardAOEs(module, AID.Hydrovent, 6);
 
 class NeapTide(BossModule module) : Components.UniformStackSpread(module, 0, 6, alwaysShowSpreads: true)
 {

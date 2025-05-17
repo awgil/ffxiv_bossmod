@@ -345,6 +345,7 @@ public enum SID : uint
     EntangledFlames = 2759, // none->player, extra=0x0
     Boiling = 2898, // Helper->player, extra=0x0
     Freezing = 2899, // Helper->player, extra=0x0
+    Pyretic = 960,
     GenericMechanic = 2056, // none->SerAdelphel/Haurchefant/DragonKingThordan, extra=0x1B6/0x127/0x12A (fire sword)/0x12B (ice sword)
 }
 

@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+﻿using BossMod.AI;
+using BossMod.Autorotation;
 using System.Text.Json;
 
 namespace BossMod;
@@ -7,7 +8,7 @@ sealed class IPCProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex, MovementOverride movement)
+    public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex, MovementOverride movement, AIManager ai)
     {
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
@@ -37,28 +38,67 @@ sealed class IPCProvider : IDisposable
             return true;
         });
 
-        Register("Presets.GetActive", () => autorotation.Preset?.Name);
+        Register("Presets.GetActive", () => autorotation.Presets.Count == 1 ? autorotation.Presets[0].Name : null);
         Register("Presets.SetActive", (string name) =>
         {
             var preset = autorotation.Database.Presets.FindPresetByName(name);
             if (preset == null)
                 return false;
-            autorotation.Preset = preset;
+            autorotation.Clear();
+            autorotation.Activate(preset);
             return true;
         });
         Register("Presets.ClearActive", () =>
         {
-            if (autorotation.Preset == null)
+            if (autorotation.Presets.Count == 0)
                 return false;
-            autorotation.Preset = null;
+            autorotation.Clear();
             return true;
         });
-        Register("Presets.GetForceDisabled", () => autorotation.Preset == RotationModuleManager.ForceDisable);
+        Register("Presets.GetForceDisabled", () => autorotation.IsForceDisabled);
         Register("Presets.SetForceDisabled", () =>
         {
-            if (autorotation.Preset == RotationModuleManager.ForceDisable)
+            if (autorotation.IsForceDisabled)
                 return false;
-            autorotation.Preset = RotationModuleManager.ForceDisable;
+            autorotation.SetForceDisabled();
+            return true;
+        });
+
+        Register("Presets.Activate", (string name) =>
+        {
+            var preset = autorotation.Database.Presets.FindPresetByName(name);
+            if (preset == null || autorotation.Presets.Contains(preset))
+                return false;
+            autorotation.Activate(preset);
+            return true;
+        });
+        Register("Presets.Deactivate", (string name) =>
+        {
+            var preset = autorotation.Database.Presets.FindPresetByName(name);
+            if (preset == null || !autorotation.Presets.Contains(preset))
+                return false;
+            autorotation.Deactivate(preset);
+            return true;
+        });
+
+        Register("Presets.GetActiveList", () => autorotation.Presets.Select(p => p.Name).ToList());
+        Register("Presets.SetActiveList", (List<string> names) =>
+        {
+            List<Preset> presets = [];
+            foreach (var name in names)
+            {
+                var p = autorotation.Database.Presets.FindPresetByName(name);
+                if (p == null)
+                {
+                    Service.Log($"Presets.SetActiveList: input contained unrecognized preset name {name} - giving up");
+                    return false;
+                }
+                presets.Add(p);
+            }
+
+            autorotation.Clear();
+            foreach (var p in presets)
+                autorotation.Activate(p);
             return true;
         });
 

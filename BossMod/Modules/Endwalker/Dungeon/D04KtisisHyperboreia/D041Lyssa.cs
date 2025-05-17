@@ -55,8 +55,8 @@ class PunishingSlice(BossModule module) : Components.GenericAOEs(module, AID.Pun
 }
 
 class FrigidStomp(BossModule module) : Components.RaidwideCast(module, AID.FrigidStomp);
-class IcePillar(BossModule module) : Components.SelfTargetedAOEs(module, AID.IcePillar, new AOEShapeCircle(4));
-class PillarPierce(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarPierce, new AOEShapeRect(80, 2));
+class IcePillar(BossModule module) : Components.StandardAOEs(module, AID.IcePillar, new AOEShapeCircle(4));
+class PillarPierce(BossModule module) : Components.StandardAOEs(module, AID.PillarPierce, new AOEShapeRect(80, 2));
 class HeavySmash(BossModule module) : Components.StackWithCastTargets(module, AID.HeavySmash, 6, 4);
 
 class D041LyssaStates : StateMachineBuilder

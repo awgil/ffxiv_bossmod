@@ -20,11 +20,11 @@ public enum AID : uint
 }
 
 class GigaTempest(BossModule module) : Components.RaidwideCast(module, AID.GigaTempest);
-class Ruination(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ruination1, new AOEShapeCross(40, 4));
-class Ruination2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ruination2, new AOEShapeRect(30, 4));
+class Ruination(BossModule module) : Components.StandardAOEs(module, AID.Ruination1, new AOEShapeCross(40, 4));
+class Ruination2(BossModule module) : Components.StandardAOEs(module, AID.Ruination2, new AOEShapeRect(30, 4));
 class ResinBomb(BossModule module) : Components.SpreadFromCastTargets(module, AID.ResinBomb, 5);
 class MagitekCannon(BossModule module) : Components.SpreadFromCastTargets(module, AID.MagitekCannon, 6);
-class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, AID.Bombardment, 6);
+class Bombardment(BossModule module) : Components.StandardAOEs(module, AID.Bombardment, 6);
 
 class LockOn(BossModule module) : Components.GenericAOEs(module)
 {

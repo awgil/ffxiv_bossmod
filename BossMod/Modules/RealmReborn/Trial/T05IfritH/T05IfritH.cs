@@ -40,7 +40,7 @@ class Hints(BossModule module) : BossComponent(module)
 }
 
 class Incinerate(BossModule module) : Components.Cleave(module, AID.Incinerate, new AOEShapeCone(15, 60.Degrees()));
-class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.EruptionAOE, 8);
+class Eruption(BossModule module) : Components.StandardAOEs(module, AID.EruptionAOE, 8);
 
 class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, AID.CrimsonCyclone)
 {
@@ -66,7 +66,7 @@ class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module, AID.Cri
     }
 }
 
-class RadiantPlume(BossModule module) : Components.LocationTargetedAOEs(module, AID.RadiantPlumeAOE, 8);
+class RadiantPlume(BossModule module) : Components.StandardAOEs(module, AID.RadiantPlumeAOE, 8);
 
 class T05IfritHStates : StateMachineBuilder
 {

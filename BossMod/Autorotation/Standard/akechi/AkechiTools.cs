@@ -11,8 +11,11 @@ public enum SharedTrack
     /// <summary> Tracks <b>single-target</b> and <b>AOE</b> rotations. </summary>
     AOE,
 
-    /// <summary> Tracks holding <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b> for optimal usage. </summary>
+    /// <summary> Tracks holding user's <b>rotation</b>, <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b> for optimal usage. </summary>
     Hold,
+
+    /// <summary> Tracks use of <b>Potions</b>. </summary>
+    Potion,
 
     /// <summary> Represents the total count of strategies in this track. </summary>
     Count
@@ -61,6 +64,21 @@ public enum HoldStrategy
 
     /// <summary> Holds <b>ALL</b> actions entirely. </summary>
     HoldEverything
+}
+
+public enum PotionStrategy
+{
+    /// <summary> Do <b>NOT</b> use <b>potions</b> automatically. </summary>
+    Manual,
+
+    /// <summary> Uses <b>potions</b> automatically when <b>personal buffs</b> are imminent. </summary>
+    AlignWithBuffs,
+
+    /// <summary> Uses <b>potions</b> automatically when <b>party raid buffs</b> are imminent. </summary>
+    AlignWithRaidBuffs,
+
+    /// <summary> Uses <b>potions</b> as soon as possible without restriction. </summary>
+    Immediate
 }
 
 /// <summary>
@@ -118,6 +136,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>The <b>Next GCD</b> being queued's <b>Priority</b>.</summary>
     protected int NextGCDPrio;
 
+    /// <summary>The last used <b>GCD</b> ability.</summary>
+    protected AID LastGCDUsed;
+
+    /// <summary>The last used <b>OGCD</b> ability.</summary>
+    protected AID LastOGCDUsed;
+
     #region Queuing
 
     #region GCD
@@ -133,8 +157,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="targetPos">The user's specified <b>Target Position</b> for the ability.</param>
     /// <param name="facingAngle">The user's specified <b>Angle facing Target</b> for the ability.</param>
     protected void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) where P : Enum
-                => QueueGCD(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
-    protected void QueueGCD(AID aid, Actor? target, int priority = 2, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
+                => QueueGCDs(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
+    protected void QueueGCDs(AID aid, Actor? target, int priority = 0, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         if (priority == 0)
             return;
@@ -160,8 +184,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="targetPos">The user's specified <b>Target Position</b> for the ability.</param>
     /// <param name="facingAngle">The user's specified <b>Angle facing Target</b> for the ability.</param>
     protected void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) where P : Enum
-                => QueueOGCD(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
-    protected void QueueOGCD(AID aid, Actor? target, int priority = 1, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
+                => QueueOGCDs(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
+    protected void QueueOGCDs(AID aid, Actor? target, int priority = 1, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         if (priority == 0)
             return;
@@ -172,29 +196,23 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime, Vector3 targetPos = default, Angle? facingAngle = null)
     {
-        var def = ActionDefinitions.Instance.Spell(aid);
+        var ability = ActionDefinitions.Instance.Spell(aid);
 
         if ((uint)(object)aid == 0)
             return false;
-
-        if (def == null)
+        if (ability == null)
             return false;
-
-        if (def.Range != 0 && target == null)
+        if (ability.Range != 0 && target == null)
         {
             return false;
         }
-
-        //Ground Targeting abilities
-        if (def.AllowedTargets.HasFlag(ActionTargets.Area))
+        if (ability.AllowedTargets.HasFlag(ActionTargets.Area))
         {
-            if (def.Range == 0)
+            if (ability.Range == 0)
                 targetPos = Player.PosRot.XYZ();
             else if (target != null)
                 targetPos = target.PosRot.XYZ();
         }
-
-        //TODO: is this necessary? idk maybe for melees
         if (castTime == 0)
             castTime = 0;
 
@@ -209,8 +227,14 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Retrieves the <b>current HP</b> value of the player.</summary>
     protected uint HP { get; private set; }
 
+    /// <summary>Retrieves the <b>maximum HP</b> value of the player.</summary>
+    protected uint MaxHP { get; private set; }
+
     /// <summary>Retrieves the <b>current MP</b> value of the player.</summary>
     protected uint MP { get; private set; }
+
+    /// <summary>Retrieves the <b>maximum MP</b> value of the player.</summary>
+    protected uint MaxMP { get; private set; }
 
     /// <summary>Retrieves the <b>current Shield</b> value of the player.</summary>
     protected uint Shield { get; private set; }
@@ -228,7 +252,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool TargetHasShield(Actor actor) => actor.HPMP.Shield > 0.1f;
 
     /// <summary>Retrieves the <b>player's current HP percentage</b>.</summary>
-    protected float PlayerHPP() => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
+    protected float PlayerHPP => TargetHPP(Player);
 
     /// <summary>Retrieves the <b>current HP percentage</b> of a specified actor.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
@@ -254,16 +278,13 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks the <b>last combo action</b> is what the user is specifying.</summary>
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
-    /// <summary>Checks the <b>time left remaining</b> inside current combo before expiration.</summary>
-    protected float ComboTimer => (float)(object)World.Client.ComboState.Remaining;
-
     /// <summary>Retrieves <b>actual cast time</b> of a specified <b>action</b>.</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected virtual float ActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime;
 
     /// <summary>Retrieves <b>effective cast time</b> of a specified <b>action</b>.</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected virtual float EffectiveCastTime(AID aid) => PlayerHasEffect(ClassShared.SID.Swiftcast, 10) ? 0 : ActualCastTime(aid) * SpSGCDLength / 2.5f;
+    protected virtual float EffectiveCastTime(AID aid) => HasEffect(ClassShared.SID.Swiftcast) ? 0 : ActualCastTime(aid) * SpSGCDLength / 2.5f;
 
     /// <summary>Retrieves player's <b>GCD length</b> based on <b>Skill-Speed</b>.</summary>
     protected float SkSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
@@ -287,45 +308,14 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     protected bool CanFitSpSGCD(float duration, int extraGCDs = 0) => GCD + SpSGCDLength * extraGCDs < duration;
 
-    /// <summary>Checks if player is available to weave in any <b>abilities</b>.</summary>
-    /// <param name="cooldown">The <b>cooldown</b> time of the action specified.</param>
-    /// <param name="actionLock">The <b>animation lock</b> time of the action specified.</param>
-    /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
-    /// <param name="extraFixedDelay">How much <b>extra delay</b> the user can add in, in seconds.</param>
-    protected bool CanWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
-        => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + SkSGCDLength * extraGCDs + extraFixedDelay;
-
-    /// <summary>Checks if player is available to weave in any <b>spells</b>.</summary>
-    /// <param name="cooldown">The <b>cooldown</b> time of the action specified.</param>
-    /// <param name="actionLock">The <b>animation lock</b> time of the action specified.</param>
-    /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
-    /// <param name="extraFixedDelay">How much <b>extra delay</b> the user can add in, in seconds.</param>
-    protected bool CanSpellWeave(float cooldown, float actionLock, int extraGCDs = 0, float extraFixedDelay = 0)
-        => MathF.Max(cooldown, World.Client.AnimationLock) + actionLock + AnimationLockDelay <= GCD + SpSGCDLength * extraGCDs + extraFixedDelay;
-
-    /// <summary>Checks if player is available to weave in any <b>abilities</b>.</summary>
-    /// <param name="aid">The <b>Action ID</b> being checked.</param>
-    /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
-    /// <param name="extraFixedDelay">How much <b>extra delay</b> the user can add in, in seconds.</param>
-    protected bool CanWeave(AID aid, int extraGCDs = 0, float extraFixedDelay = 0)
-    {
-        if (!Unlocked(aid))
-            return false;
-
-        var res = ActionDefinitions.Instance[ActionID.MakeSpell(aid)]!;
-        return SkS > 100
-            ? CanSpellWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay)
-            : SpS > 100 && CanWeave(ChargeCD(aid), res.InstantAnimLock, extraGCDs, extraFixedDelay);
-    }
-
     /// <summary>Checks if user is in <b>pre-pull</b> stage.</summary>
-    protected bool IsFirstGCD() => !Player.InCombat || (World.CurrentTime - Manager.CombatStart).TotalSeconds < 0.1f;
+    protected bool IsFirstGCD => !Player.InCombat || CombatTimer < 0.1f;
 
     /// <summary>Checks if user can <b>Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanWeaveIn => GCD is <= 2.49f and >= 0.6f;
+    protected bool CanWeaveIn => GCD >= 0.6f;
 
     /// <summary>Checks if user can <b>Early Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanEarlyWeaveIn => GCD is <= 2.49f and >= 1.26f;
+    protected bool CanEarlyWeaveIn => GCD >= 1.26f;
 
     /// <summary>Checks if user can <b>Late Weave in</b> any <b>abilities</b>.</summary>
     protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.6f;
@@ -334,46 +324,33 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool CanQuarterWeaveIn => GCD is < 1f and >= 0.6f;
 
     /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
-    protected bool InOddWindow(AID aid) => TotalCD(aid) is < 90 and > 30;
+    protected bool InOddWindow(AID aid) => CDRemaining(aid) is < 90 and > 30;
     #endregion
 
     #region Cooldown
     /// <summary>Retrieves the total <b>cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float TotalCD(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    protected float CDRemaining(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
 
     /// <summary>Returns the <b>charge cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float ChargeCD(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
+    protected float ReadyIn(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
-    /// <summary>Checks if <b>action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool ActionReady(AID aid) => Unlocked(aid) && !IsOnCooldown(aid);
+    protected bool GCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) < GCD;
 
-    /// <summary>Checks if <b>action</b> has any <b>charges</b> remaining. </summary>
+    /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool HasCharges(AID aid) => ChargeCD(aid) < 0.6f;
-
-    /// <summary>Checks if <b>action</b> is on <b>cooldown</b> based on its <b>total cooldown timer</b>. </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool IsOnCooldown(AID aid) => TotalCD(aid) > 0.6f;
-
-    /// <summary>Checks if <b>action</b> is off <b>cooldown</b> based on its <b>total cooldown timer</b>. </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool IsOffCooldown(AID aid) => !IsOnCooldown(aid);
-
-    /// <summary>Checks if <b>action</b> is off <b>cooldown</b> based on its <b>charge cooldown timer</b>. </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool OnCooldown(AID aid) => MaxChargesIn(aid) > 0;
+    protected bool OGCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 2.0f;
 
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true;
+    protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);
 
     /// <summary>Retrieves time remaining until specified <b>action</b> is at <b>max charges</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float MaxChargesIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
-
     #endregion
 
     #region Status
@@ -392,34 +369,16 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected float StatusRemaining<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusDetails(target, sid, Player.InstanceID, duration).Left;
 
     /// <summary>Checks if a specific <b>status effect</b> on the <b>Player</b> exists.
-    /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
-    /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
-    protected bool PlayerHasEffect<SID>(SID sid, float duration = 1000f) where SID : Enum => StatusRemaining(Player, sid, duration) > 0.1f;
-
-    /// <summary>Checks if a specific <b>status effect</b> on the <b>Player</b> exists.
     /// <para><b>NOTE:</b> The effect can be owned by <b>anyone</b>; Player, Party, Alliance, NPCs, or even enemies.</para></summary>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    protected bool PlayerHasAnyEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
+    protected bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
 
     /// <summary>Checks if a specific <b>status effect</b> on any specified <b>Target</b> exists.
     /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
-    protected bool TargetHasEffect<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusRemaining(target, sid, duration) > 0.1f;
-
-    /// <summary>Checks if a specific <b>status effect</b> on any specified <b>Target</b> exists.
-    /// <para><b>NOTE:</b> The effect can be owned by <b>anyone</b>; Player, Party, Alliance, NPCs, or even enemies.</para></summary>
-    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    protected bool TargetHasAnyEffect<SID>(Actor? target, SID sid) where SID : Enum => target?.FindStatus(sid) != null;
-
-    /// <summary>Checks if <b>Player</b> has any <b>stacks</b> of a specific <b>status effect</b>.
-    /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
-    /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    protected bool PlayerHasStacks<SID>(SID sid) where SID : Enum => StacksRemaining(Player, sid) > 0;
-
+    protected bool TargetHasEffect<SID>(Actor? target, SID sid) where SID : Enum => target?.FindStatus(sid) != null;
     #endregion
 
     #region Targeting
@@ -567,7 +526,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 .FirstOrDefault();
         }
     }
-    #endregion
 
     /// <summary>Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.</summary>
     /// <param name="range">The radius of the <b>AOE Circle</b> ability from the Player.</param>
@@ -657,6 +615,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
     #endregion
 
+    #endregion
+
     #region Positionals
     protected bool NextPositionalImminent;
     protected bool NextPositionalCorrect;
@@ -680,8 +640,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Updates the positional recommendations based on the current target and the positional requirement.</summary>
     /// <param name="enemy">The user's current enemy scanned for user's current positional.</param>
-    /// <param name="pos">User's current positional (Front, Flank, or Rear)</param>
-    /// <param name="imm">The next incoming positional for User (Front, Flank, or Rear)</param>
     protected void UpdatePositionals(Enemy? enemy, ref (Positional pos, bool imm) positional)
     {
         var tn = HasTrueNorth;
@@ -768,11 +726,15 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Estimates the time remaining until the <b>next Down-time phase</b>.</summary>
     protected float DowntimeIn { get; private set; }
 
+    /// <summary>Estimates the time remaining until the <b>next Up-time phase</b>.</summary>
+    protected float? UptimeIn { get; private set; }
+
     /// <summary>Elapsed time in <b>seconds</b> since the start of combat.</summary>
     protected float CombatTimer { get; private set; }
 
     /// <summary>Time remaining on pre-pull (or any) <b>Countdown Timer</b>.</summary>
     protected float? CountdownRemaining { get; private set; }
+    protected float? ComboTimer { get; private set; }
 
     /// <summary>Checks if player is currently <b>moving</b>.</summary>
     protected bool IsMoving { get; private set; }
@@ -783,27 +745,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if player is inside combat and has a primary target.</summary>
     protected bool InsideCombatWith(Actor? target) => Player.InCombat && target != null;
 
+    /// <summary>Checks if party-wide <b>Raid Buffs </b> are imminent.</summary>
     protected float RaidBuffsIn { get; private set; }
-    protected float RaidBuffsLeft { get; private set; }
 
-    //TODO: new stuff
-    /*
-    protected DateTime? movementStartTime;
-    protected void HandleMovement()
-    {
-        if (IsMoving)
-        {
-            if (movementStartTime == null)
-                movementStartTime = DateTime.Now;
-            if (movementStartTime.HasValue && (DateTime.Now - movementStartTime.Value).TotalSeconds >= 1)
-                movementStartTime = null;
-        }
-        else
-        {
-            movementStartTime = null;
-        }
-    }
-    */
+    /// <summary>Checks time remaining on party-wide <b>Raid Buffs</b>.</summary>
+    protected float RaidBuffsLeft { get; private set; }
     #endregion
 
     #region Shared Abilities
@@ -885,22 +831,33 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         NextGCD = default;
         NextGCDPrio = 0;
         HP = Player.HPMP.CurHP;
+        MaxHP = Player.HPMP.MaxHP;
         MP = Player.HPMP.CurMP;
+        MaxMP = Player.HPMP.MaxMP;
         Shield = Player.HPMP.Shield;
         PlayerTarget = Hints.FindEnemy(primaryTarget);
         AnimationLockDelay = estimatedAnimLockDelay;
         IsMoving = isMoving;
-        DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime().Item2 ?? float.MaxValue;
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
+        ComboTimer = (float)(object)World.Client.ComboState.Remaining;
         CountdownRemaining = World.Client.CountdownRemaining;
         HasTrueNorth = StatusRemaining(Player, ClassShared.SID.TrueNorth, 15) > 0.1f;
         CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
         HasSwiftcast = StatusRemaining(Player, ClassShared.SID.Swiftcast, 10) > 0.1f;
         CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
-        HasPeloton = PlayerHasAnyEffect(ClassShared.SID.Peloton);
+        HasPeloton = HasEffect(ClassShared.SID.Peloton);
         CanPeloton = !Player.InCombat && !HasPeloton && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
-
+        if (Manager.Planner?.EstimateTimeToNextDowntime() is (var downtimeNow, var stateLeft))
+        {
+            DowntimeIn = downtimeNow ? 0 : stateLeft;
+            UptimeIn = downtimeNow ? stateLeft : 0;
+        }
+        else
+        {
+            DowntimeIn = float.MaxValue;
+            UptimeIn = null;
+        }
         if (Player.MountId is not (103 or 117 or 128))
             Execution(strategy, PlayerTarget);
     }
@@ -921,8 +878,8 @@ static class ModuleExtensions
         return res.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 300)
             .AddOption(AOEStrategy.AutoFinish, "Auto (Finish combo)", "Automatically execute optimal rotation based on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)
             .AddOption(AOEStrategy.AutoBreak, "Auto (Break combo)", "Automatically execute optimal rotation based on targets; breaks combo if necessary", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceST, "ForceST", "Force Single-Target rotation execution", supportedTargets: ActionTargets.Hostile)
-            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Force AOE rotation execution", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
+            .AddOption(AOEStrategy.ForceST, "Force ST", "Force Single-Target rotation execution", supportedTargets: ActionTargets.Hostile)
+            .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation execution", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
     }
 
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
@@ -930,12 +887,24 @@ static class ModuleExtensions
     public static RotationModuleDefinition.ConfigRef<HoldStrategy> DefineHold(this RotationModuleDefinition res)
     {
         return res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold", uiPriority: 290)
-            .AddOption(HoldStrategy.DontHold, "DontHold", "Allow use of all cooldowns, buffs, or gauge abilities")
+            .AddOption(HoldStrategy.DontHold, "Dont Hold", "Allow use of all cooldowns, buffs, or gauge abilities")
             .AddOption(HoldStrategy.HoldCooldowns, "Hold", "Forbid use of all cooldowns only")
-            .AddOption(HoldStrategy.HoldGauge, "HoldGauge", "Forbid use of all gauge abilities only")
-            .AddOption(HoldStrategy.HoldBuffs, "HoldBuffs", "Forbid use of all raidbuffs or buff-related abilities only")
-            .AddOption(HoldStrategy.HoldAbilities, "HoldAbilities", "Forbid use of all cooldowns, buffs, and gauge abilities")
-            .AddOption(HoldStrategy.HoldEverything, "HoldEverything", "Forbid complete use of ALL actions; rotations included");
+            .AddOption(HoldStrategy.HoldGauge, "Hold Gauge", "Forbid use of all gauge abilities only")
+            .AddOption(HoldStrategy.HoldBuffs, "Hold Buffs", "Forbid use of all raidbuffs or buff-related abilities only")
+            .AddOption(HoldStrategy.HoldAbilities, "Hold Abilities", "Forbid use of all cooldowns, buffs, and gauge abilities")
+            .AddOption(HoldStrategy.HoldEverything, "Hold Everything", "Forbid complete use of ALL actions; rotations included");
+    }
+
+    /// <summary>Defines our shared <b>Potion</b> strategies.</summary>
+    /// <param name="res">The definitions of our base module's strategies.</param>
+    public static RotationModuleDefinition.ConfigRef<PotionStrategy> DefinePotion(this RotationModuleDefinition res, ActionID pot)
+    {
+        return res.Define(SharedTrack.Potion).As<PotionStrategy>("Potion", uiPriority: 280)
+            .AddOption(PotionStrategy.Manual, "Manual", "Use potion manually")
+            .AddOption(PotionStrategy.AlignWithBuffs, "With Buffs", "Use potion when personal buffs are imminent or active")
+            .AddOption(PotionStrategy.AlignWithRaidBuffs, "With RaidBuffs", "Use potion when party raid buffs are imminent or active")
+            .AddOption(PotionStrategy.Immediate, "Immediate", "Use potion immediately without restriction", 270, 30)
+            .AddAssociatedAction(pot);
     }
 
     /// <summary>A quick and easy helper for shortcutting how we define our <b>GCD</b> abilities.</summary>
@@ -1019,5 +988,11 @@ static class ModuleExtensions
 
     /// <summary>A global helper for allowing ALL available abilities that are buff, gauge, or cooldown related. This is the default option for this strategy. See <seealso cref="HoldStrategy"/> for more details.</summary>
     public static bool DontHold(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.DontHold;
+
+    public static PotionStrategy Potion(this StrategyValues strategy) => strategy.Option(SharedTrack.Potion).As<PotionStrategy>();
+    public static bool AlignPotionWithBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithBuffs;
+    public static bool AlignPotionWithRaidBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithRaidBuffs;
+    public static bool UsePotionImmediately(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Immediate;
+    public static bool UsePotionManually(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Manual;
     #endregion
 }

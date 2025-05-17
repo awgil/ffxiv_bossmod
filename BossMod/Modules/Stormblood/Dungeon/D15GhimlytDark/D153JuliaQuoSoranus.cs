@@ -57,20 +57,20 @@ public enum AID : uint
     TheOrderInstaCast = 14099, // Boss->self, no cast, single-target
 }
 
-class AngrySalamander(BossModule module) : Components.SelfTargetedAOEs(module, AID.AngrySalamander, new AOEShapeRect(45.6f, 3));
+class AngrySalamander(BossModule module) : Components.StandardAOEs(module, AID.AngrySalamander, new AOEShapeRect(45.6f, 3));
 class ArtificialPlasmaAnnia(BossModule module) : Components.RaidwideCast(module, AID.ArtificialPlasmaAnnia);
 class ArtificialPlasmaJulia(BossModule module) : Components.RaidwideCast(module, AID.ArtificialPlasmaJulia);
-class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, AID.Bombardment, 10);
+class Bombardment(BossModule module) : Components.StandardAOEs(module, AID.Bombardment, 10);
 class CoveringFire(BossModule module) : Components.SpreadFromCastTargets(module, AID.CoveringFire, 8);
 class DeltaTrance(BossModule module) : Components.SingleTargetCast(module, AID.DeltaTrance);
 class Heirsbane(BossModule module) : Components.SingleTargetCast(module, AID.Heirsbane, "Single target, moderate damage"); // wiki says this is targeted, but it's aiming at the tank? Need to source this out more
 class ImperialAuthorityAnnia(BossModule module) : Components.RaidwideCast(module, AID.ImperialAuthorityAnnia, "Enrage!");
 class ImperialAuthorityJulia(BossModule module) : Components.RaidwideCast(module, AID.ImperialAuthorityJulia, "Enrage!");
 class Innocence(BossModule module) : Components.SingleTargetCast(module, AID.Innocence);
-class MissileImpact(BossModule module) : Components.LocationTargetedAOEs(module, AID.MissileImpact, 6);
-class Quaternity1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Quaternity1, new AOEShapeRect(41, 2));
-class Quaternity2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Quaternity2, new AOEShapeRect(26, 2));
-class StunningSweep(BossModule module) : Components.SelfTargetedAOEs(module, AID.StunningSweep, new AOEShapeCircle(6.6f));
+class MissileImpact(BossModule module) : Components.StandardAOEs(module, AID.MissileImpact, 6);
+class Quaternity1(BossModule module) : Components.StandardAOEs(module, AID.Quaternity1, new AOEShapeRect(41, 2));
+class Quaternity2(BossModule module) : Components.StandardAOEs(module, AID.Quaternity2, new AOEShapeRect(26, 2));
+class StunningSweep(BossModule module) : Components.StandardAOEs(module, AID.StunningSweep, new AOEShapeCircle(6.6f));
 
 class CeruleumTanks(BossModule module) : Components.GenericAOEs(module) //following things were graciously provided by Malediktus
 {

@@ -21,7 +21,7 @@ public enum SID : uint
     Windburn = 269, // Boss->player, extra=0x0
 }
 
-class Gust(BossModule module) : Components.LocationTargetedAOEs(module, AID.Gust, 3);
+class Gust(BossModule module) : Components.StandardAOEs(module, AID.Gust, 3);
 class AlternatePlumage(BossModule module) : Components.CastHint(module, AID.AlternatePlumage, "Prepare to dispel buff");
 class CaberToss(BossModule module) : Components.CastHint(module, AID.CaberToss, "Interrupt or wipe!");
 

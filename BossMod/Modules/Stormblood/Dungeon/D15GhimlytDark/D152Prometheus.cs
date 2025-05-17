@@ -21,10 +21,10 @@ public enum AID : uint
     UnbreakableCermetDrill = 13401, // Boss->player, 3.0s cast, single-target
 }
 
-class FreezingMissile(BossModule module) : Components.LocationTargetedAOEs(module, AID.FreezingMissileHelper, 8);
-class NeedleGun(BossModule module) : Components.SelfTargetedAOEs(module, AID.NeedleGun, new AOEShapeCone(47.8f, 45.Degrees()));
+class FreezingMissile(BossModule module) : Components.StandardAOEs(module, AID.FreezingMissileHelper, 8);
+class NeedleGun(BossModule module) : Components.StandardAOEs(module, AID.NeedleGun, new AOEShapeCone(47.8f, 45.Degrees()));
 class Nitrospin(BossModule module) : Components.RaidwideCast(module, AID.Nitrospin);
-class OilShower(BossModule module) : Components.SelfTargetedAOEs(module, AID.OilShower, new AOEShapeCone(47.8f, 135.Degrees()));
+class OilShower(BossModule module) : Components.StandardAOEs(module, AID.OilShower, new AOEShapeCone(47.8f, 135.Degrees()));
 class UnbreakableCermetDrill(BossModule module) : Components.SingleTargetDelayableCast(module, AID.UnbreakableCermetDrill);
 
 class Heat(BossModule module) : Components.GenericAOEs(module) // borrowed this from the fork team, credit where it's due

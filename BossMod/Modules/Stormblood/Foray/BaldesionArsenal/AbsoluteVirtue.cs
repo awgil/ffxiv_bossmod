@@ -56,13 +56,13 @@ public enum TetherID : uint
 
 class Meteor(BossModule module) : Components.RaidwideCast(module, AID.Meteor);
 class AuroralWind(BossModule module) : Components.BaitAwayCast(module, AID.AuroralWind, new AOEShapeCircle(5), centerAtTarget: true, endsOnCastEvent: true);
-class MedusaJavelin(BossModule module) : Components.SelfTargetedAOEs(module, AID.MedusaJavelin, new AOEShapeCone(65, 45.Degrees()));
-class AstralRays(BossModule module) : Components.SelfTargetedAOEs(module, AID.AstralRaysSmall, new AOEShapeCircle(8));
-class UmbralRays(BossModule module) : Components.SelfTargetedAOEs(module, AID.UmbralRaysSmall, new AOEShapeCircle(8));
-class AstralRaysBig(BossModule module) : Components.SelfTargetedAOEs(module, AID.AstralRaysBig, new AOEShapeCircle(15));
-class UmbralRaysBig(BossModule module) : Components.SelfTargetedAOEs(module, AID.UmbralRaysBig, new AOEShapeCircle(15));
-class ExplosiveImpulse(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosiveImpulse, new AOEShapeCircle(18));
-class ExplosiveImpulseClone(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosiveImpulseClone, new AOEShapeCircle(18));
+class MedusaJavelin(BossModule module) : Components.StandardAOEs(module, AID.MedusaJavelin, new AOEShapeCone(65, 45.Degrees()));
+class AstralRays(BossModule module) : Components.StandardAOEs(module, AID.AstralRaysSmall, new AOEShapeCircle(8));
+class UmbralRays(BossModule module) : Components.StandardAOEs(module, AID.UmbralRaysSmall, new AOEShapeCircle(8));
+class AstralRaysBig(BossModule module) : Components.StandardAOEs(module, AID.AstralRaysBig, new AOEShapeCircle(15));
+class UmbralRaysBig(BossModule module) : Components.StandardAOEs(module, AID.UmbralRaysBig, new AOEShapeCircle(15));
+class ExplosiveImpulse(BossModule module) : Components.StandardAOEs(module, AID.ExplosiveImpulse, new AOEShapeCircle(18));
+class ExplosiveImpulseClone(BossModule module) : Components.StandardAOEs(module, AID.ExplosiveImpulseClone, new AOEShapeCircle(18));
 
 class Aurora(BossModule module) : Components.GenericAOEs(module)
 {
@@ -132,8 +132,7 @@ class Balls(BossModule module) : BossComponent(module)
             {
                 var color = tether.ID == (uint)TetherID.DarkTether ? Color.Dark : Color.Light;
                 Tethers.Add((source, actor, color));
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                     TetherColors[slot] = color;
             }
         }
@@ -142,8 +141,7 @@ class Balls(BossModule module) : BossComponent(module)
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         Tethers.RemoveAll(t => t.Source == source);
-        var slot = Raid.FindSlot(tether.Target);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(tether.Target, out var slot))
             TetherColors[slot] = default;
 
         if (Tethers.Count == 0)

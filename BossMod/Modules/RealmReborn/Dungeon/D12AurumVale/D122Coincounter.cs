@@ -17,10 +17,10 @@ public enum AID : uint
 }
 
 class TenTonzeSwipe(BossModule module) : Components.Cleave(module, AID.TenTonzeSwipe, new AOEShapeCone(10, 60.Degrees())); // TODO: verify angle
-class HundredTonzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.HundredTonzeSwipe, new AOEShapeCone(10, 60.Degrees()));
-class HundredTonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.HundredTonzeSwing, new AOEShapeCircle(12));
-class Glower(BossModule module) : Components.SelfTargetedAOEs(module, AID.Glower, new AOEShapeRect(21, 3.5f));
-class EyeOfTheBeholder(BossModule module) : Components.SelfTargetedAOEs(module, AID.EyeOfTheBeholder, new AOEShapeDonutSector(8, 19, 135.Degrees()));
+class HundredTonzeSwipe(BossModule module) : Components.StandardAOEs(module, AID.HundredTonzeSwipe, new AOEShapeCone(10, 60.Degrees()));
+class HundredTonzeSwing(BossModule module) : Components.StandardAOEs(module, AID.HundredTonzeSwing, new AOEShapeCircle(12));
+class Glower(BossModule module) : Components.StandardAOEs(module, AID.Glower, new AOEShapeRect(21, 3.5f));
+class EyeOfTheBeholder(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheBeholder, new AOEShapeDonutSector(8, 19, 135.Degrees()));
 
 class D122CoincounterStates : StateMachineBuilder
 {

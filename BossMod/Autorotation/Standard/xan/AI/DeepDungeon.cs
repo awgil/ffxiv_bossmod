@@ -193,6 +193,6 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return false;
 
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.4f : 0.6f;
-        return Player.PredictedHPRatio < ratio && Player.FindStatus(648) == null && Player.InCombat;
+        return Player.PendingHPRatio < ratio && Player.FindStatus(648) == null && Player.InCombat;
     }
 }

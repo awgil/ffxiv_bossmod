@@ -48,7 +48,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
-        var currentHP = Player.PredictedHPRaw;
+        var currentHP = Player.PendingHPRaw;
 
         Mimic = CurrentMimic();
 

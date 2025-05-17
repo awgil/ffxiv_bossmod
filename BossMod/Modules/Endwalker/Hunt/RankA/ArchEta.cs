@@ -16,9 +16,9 @@ public enum AID : uint
     FangedLunge = 27274, // Boss->player, no cast, single-target
 }
 
-class EnergyWave(BossModule module) : Components.SelfTargetedAOEs(module, AID.EnergyWave, new AOEShapeRect(40, 7));
-class TailSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailSwipe, new AOEShapeCone(25, 45.Degrees()));
-class HeavyStomp(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeavyStomp, new AOEShapeCircle(17));
+class EnergyWave(BossModule module) : Components.StandardAOEs(module, AID.EnergyWave, new AOEShapeRect(40, 7));
+class TailSwipe(BossModule module) : Components.StandardAOEs(module, AID.TailSwipe, new AOEShapeCone(25, 45.Degrees()));
+class HeavyStomp(BossModule module) : Components.StandardAOEs(module, AID.HeavyStomp, new AOEShapeCircle(17));
 class SonicHowl(BossModule module) : Components.RaidwideCast(module, AID.SonicHowl);
 class SteelFang(BossModule module) : Components.SingleTargetCast(module, AID.SteelFang);
 

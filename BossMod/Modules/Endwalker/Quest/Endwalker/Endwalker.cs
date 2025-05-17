@@ -38,34 +38,34 @@ class EndwalkerStates : StateMachineBuilder
     }
 }
 
-class Megaflare(BossModule module) : Components.LocationTargetedAOEs(module, AID.Megaflare, 6);
+class Megaflare(BossModule module) : Components.StandardAOEs(module, AID.Megaflare, 6);
 class Puddles(BossModule module) : Components.PersistentInvertibleVoidzoneByCast(module, 5, m => m.Enemies(OID.Puddles).Where(e => e.EventState != 7), AID.Hellfire);
 class JudgementBolt(BossModule module) : Components.RaidwideCast(module, AID.JudgementBoltVisual);
 class Hellfire(BossModule module) : Components.RaidwideCast(module, AID.HellfireVisual);
-class StarBeyondStars(BossModule module) : Components.SelfTargetedAOEs(module, AID.StarBeyondStarsHelper, new AOEShapeCone(50, 15.Degrees()), 6);
-class TheEdgeUnbound(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheEdgeUnbound, new AOEShapeCircle(10));
-class WyrmsTongue(BossModule module) : Components.SelfTargetedAOEs(module, AID.WyrmsTongueHelper, new AOEShapeCone(40, 30.Degrees()));
+class StarBeyondStars(BossModule module) : Components.StandardAOEs(module, AID.StarBeyondStarsHelper, new AOEShapeCone(50, 15.Degrees()), 6);
+class TheEdgeUnbound(BossModule module) : Components.StandardAOEs(module, AID.TheEdgeUnbound, new AOEShapeCircle(10));
+class WyrmsTongue(BossModule module) : Components.StandardAOEs(module, AID.WyrmsTongueHelper, new AOEShapeCone(40, 30.Degrees()));
 
-class NineNightsAvatar : Components.SelfTargetedAOEs
+class NineNightsAvatar : Components.StandardAOEs
 {
     public NineNightsAvatar(BossModule module) : base(module, AID.NineNightsAvatar, new AOEShapeCircle(10)) { Color = ArenaColor.Danger; }
 }
 
-class NineNightsHelpers(BossModule module) : Components.SelfTargetedAOEs(module, AID.NineNightsHelpers, new AOEShapeCircle(10), 6)
+class NineNightsHelpers(BossModule module) : Components.StandardAOEs(module, AID.NineNightsHelpers, new AOEShapeCircle(10), 6)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
 }
 
-class VeilAsunder(BossModule module) : Components.LocationTargetedAOEs(module, AID.VeilAsunderHelper, 6);
-class MortalCoil(BossModule module) : Components.SelfTargetedAOEs(module, AID.MortalCoilVisual, new AOEShapeDonut(8, 20));
+class VeilAsunder(BossModule module) : Components.StandardAOEs(module, AID.VeilAsunderHelper, 6);
+class MortalCoil(BossModule module) : Components.StandardAOEs(module, AID.MortalCoilVisual, new AOEShapeDonut(8, 20));
 class DiamondDust(BossModule module) : Components.RaidwideCast(module, AID.DiamondDustVisual, "Raidwide. Turns floor to ice.");
 class DeadGaze(BossModule module) : Components.CastGaze(module, AID.DeadGazeVisual);
 class TidalWave2(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWaveVisual2, 25, kind: Kind.DirForward, stopAtWall: true);
 class SwiftAsShadow(BossModule module) : Components.ChargeAOEs(module, AID.SwiftAsShadow, 1);
-class Extinguishment(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExtinguishmentVisual, new AOEShapeDonut(10, 30));
-class TheEdgeUnbound2(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheEdgeUnbound2, new AOEShapeCircle(10));
+class Extinguishment(BossModule module) : Components.StandardAOEs(module, AID.ExtinguishmentVisual, new AOEShapeDonut(10, 30));
+class TheEdgeUnbound2(BossModule module) : Components.StandardAOEs(module, AID.TheEdgeUnbound2, new AOEShapeCircle(10));
 
-class UnmovingDvenadkatik(BossModule module) : Components.SelfTargetedAOEs(module, AID.UnmovingDvenadkatikVisual, new AOEShapeCone(50, 15.Degrees()), 10)
+class UnmovingDvenadkatik(BossModule module) : Components.StandardAOEs(module, AID.UnmovingDvenadkatikVisual, new AOEShapeCone(50, 15.Degrees()), 10)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select((c, i) => new AOEInstance(Shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), i < 2 ? ArenaColor.Danger : ArenaColor.AOE));
 }

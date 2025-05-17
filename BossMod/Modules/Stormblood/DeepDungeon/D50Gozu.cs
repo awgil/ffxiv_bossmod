@@ -18,10 +18,10 @@ public enum AID : uint
 }
 
 class EyeoftheFire(BossModule module) : Components.CastGaze(module, AID.EyeOfTheFire);
-class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.RustingClaw, new AOEShapeCone(11.45f, 60.Degrees()));
-class TheSpin(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheSpin, new AOEShapeCircle(20));
+class RustingClaw(BossModule module) : Components.StandardAOEs(module, AID.RustingClaw, new AOEShapeCone(11.45f, 60.Degrees()));
+class TheSpin(BossModule module) : Components.StandardAOEs(module, AID.TheSpin, new AOEShapeCircle(20));
 class VoidSpark(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Gloom).Where(z => z.EventState != 7));
-class WordsofWoe(BossModule module) : Components.SelfTargetedAOEs(module, AID.WordsOfWoe, new AOEShapeRect(48.45f, 3));
+class WordsofWoe(BossModule module) : Components.StandardAOEs(module, AID.WordsOfWoe, new AOEShapeRect(48.45f, 3));
 
 class D50GozuStates : StateMachineBuilder
 {

@@ -190,8 +190,8 @@ class StarAutos(BossModule module) : Components.GenericStackSpread(module)
 }
 
 /*
-// TODO make this work better, the targeted tank is just whoever is on platform with highest enmity and may not be in the party, meaning we draw a phony bait on the party's tank(s) and fuck up positioning
-// we need to look at ozma's actual enmity table to see who the targets are
+// TODO figure out a way to make this work decently without having access to ozma's full enmity table
+
 class CubeAutos(BossModule module) : Components.GenericBaitAway(module)
 {
     private bool Enabled;
@@ -226,14 +226,14 @@ class AccelerationBomb(BossModule module) : Components.StayMove(module)
 {
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.AccelerationBomb && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
+        if ((SID)status.ID is SID.AccelerationBomb)
+            SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.AccelerationBomb && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = default;
+        if ((SID)status.ID is SID.AccelerationBomb)
+            ClearState(Raid.FindSlot(actor.InstanceID));
     }
 }
 

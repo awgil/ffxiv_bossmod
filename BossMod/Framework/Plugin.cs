@@ -24,13 +24,13 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ActionManagerEx _amex;
     private readonly WorldStateGameSync _wsSync;
     private readonly RotationModuleManager _rotation;
+    private readonly AI.AIManager _ai;
     private readonly IPCProvider _ipc;
     private readonly DTRProvider _dtr;
     private readonly SlashCommandProvider _slashCmd;
     private TimeSpan _prevUpdateTime;
     private DateTime _throttleJump;
     private DateTime _throttleInteract;
-    private readonly ICommandManager _cmd;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
@@ -39,6 +39,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ZoneModuleWindow _wndZone;
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;
+    private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow _wndDebug;
 
     public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
@@ -57,6 +58,7 @@ public sealed class Plugin : IDalamudPlugin
 #endif
 
         dalamud.Create<Service>();
+        Service.IsDev = dalamud.IsDev;
         Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
         Service.LogHandlerVerbose = (string msg) => Service.Logger.Verbose(msg);
         Service.LuminaGameData = dataManager.GameData;
@@ -64,7 +66,6 @@ public sealed class Plugin : IDalamudPlugin
         //Service.Device = pluginInterface.UiBuilder.Device;
         Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
-        Network.IDScramble.Initialize();
         Camera.Instance = new();
 
         Service.Config.Initialize();
@@ -88,8 +89,9 @@ public sealed class Plugin : IDalamudPlugin
         _amex = new(_ws, _hints, _movementOverride);
         _wsSync = new(_ws, _amex);
         _rotation = new(_rotationDB, _bossmod, _hints);
-        _ipc = new(_rotation, _amex, _movementOverride);
-        _dtr = new(_rotation);
+        _ai = new(_rotation, _amex, _movementOverride);
+        _ipc = new(_rotation, _amex, _movementOverride, _ai);
+        _dtr = new(_rotation, _ai);
         _slashCmd = new(commandManager, "/vbm");
 
         var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
@@ -99,7 +101,8 @@ public sealed class Plugin : IDalamudPlugin
         _wndZone = new(_zonemod);
         _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
-        _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud);
+        _wndAI = new(_ai);
+        _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = Service.IsDev };
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
@@ -107,20 +110,14 @@ public sealed class Plugin : IDalamudPlugin
         dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
         RegisterSlashCommands();
 
-        _cmd = commandManager;
-        _cmd.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(VbmaiHandler)
-        {
-            HelpMessage = "Deprecated"
-        });
-
         _ = new ConfigChangelogWindow();
     }
 
     public void Dispose()
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
-        _cmd.RemoveHandler("/vbmai");
         _wndDebug.Dispose();
+        _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
         _wndZone.Dispose();
@@ -130,6 +127,7 @@ public sealed class Plugin : IDalamudPlugin
         _slashCmd.Dispose();
         _dtr.Dispose();
         _ipc.Dispose();
+        _ai.Dispose();
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();
@@ -145,6 +143,7 @@ public sealed class Plugin : IDalamudPlugin
         _slashCmd.SetSimpleHandler("show boss mod settings UI", () => OpenConfigUI());
         _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => _wndReplay.SetVisible(!_wndReplay.IsOpen));
         RegisterAutorotationSlashCommands(_slashCmd.AddSubcommand("ar"));
+        RegisterAISlashCommands(_slashCmd.AddSubcommand("ai"));
         _slashCmd.AddSubcommand("cfg").SetComplexHandler("<config-type> <field> [<value>]", "query or modify configuration setting", args =>
         {
             var output = Service.Config.ConsoleCommand(args);
@@ -161,22 +160,43 @@ public sealed class Plugin : IDalamudPlugin
         });
 
         _slashCmd.Register();
+        _slashCmd.RegisterAlias("/vbmai", "ai"); // TODO: deprecated
     }
 
     private void RegisterAutorotationSlashCommands(SlashCommandHandler cmd)
     {
-        void SetOrToggle(Preset preset, bool toggle)
+        void SetOrToggle(Preset preset, bool toggle, bool exclusive)
         {
-            var newPreset = toggle && _rotation.Preset == preset ? null : preset;
-            Service.Log($"Console: {(toggle ? "toggle" : "set")} changes preset from '{_rotation.Preset?.Name ?? "<n/a>"}' to '{newPreset?.Name ?? "<n/a>"}'");
-            _rotation.Preset = newPreset;
+            if (toggle)
+            {
+                var verb = _rotation.Presets.Contains(preset) ? "disables" : "enables";
+                Service.Log($"Console: toggle {verb} preset '{preset.Name}'");
+                _rotation.Toggle(preset, exclusive);
+            }
+            else
+            {
+                Service.Log($"Console: set activates preset '{preset.Name}'");
+                _rotation.Activate(preset, exclusive);
+            }
         }
 
-        void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle)
+        void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle, bool exclusive)
         {
             var preset = _rotation.Database.Presets.FindPresetByName(presetName);
             if (preset != null)
-                SetOrToggle(preset, toggle);
+                SetOrToggle(preset, toggle, exclusive);
+            else
+                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
+        }
+
+        void ClearByName(ReadOnlySpan<char> presetName)
+        {
+            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
+            if (preset != null)
+            {
+                Service.Log($"Console: unset deactivates preset '{preset.Name}'");
+                _rotation.Deactivate(preset);
+            }
             else
                 Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
         }
@@ -184,31 +204,93 @@ public sealed class Plugin : IDalamudPlugin
         cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
         cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
         {
-            Service.Log($"Console: clearing autorotation preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
-            _rotation.Preset = null;
+            Service.Log($"Console: clearing autorotation preset(s) '{_rotation.PresetNames}'");
+            _rotation.Clear();
         });
         cmd.AddSubcommand("disable").SetSimpleHandler("force disable autorotation; no actions will be executed automatically even if plan is active", () =>
         {
-            Service.Log($"Console: force-disabling from preset '{_rotation.Preset?.Name ?? "<n/a>"}'");
-            _rotation.Preset = RotationModuleManager.ForceDisable;
+            Service.Log($"Console: force-disabling from presets '{_rotation.PresetNames}'");
+            _rotation.SetForceDisabled();
         });
-        cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset", preset =>
+        cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset, and deactivate others", preset =>
         {
-            SetOrToggleByName(preset, false);
+            SetOrToggleByName(preset, false, true);
             return true;
         });
         var toggle = cmd.AddSubcommand("toggle");
-        toggle.SetSimpleHandler("force disable autorotation if not already; otherwise clear overrides", () => SetOrToggle(RotationModuleManager.ForceDisable, true));
+        toggle.SetSimpleHandler("force disable autorotation if not already; otherwise clear overrides", () => SetOrToggle(RotationModuleManager.ForceDisable, true, true));
         toggle.SetComplexHandler("<preset>", "start executing specified preset unless it's already active; clear otherwise", preset =>
         {
-            SetOrToggleByName(preset, true);
+            SetOrToggleByName(preset, true, true);
             return true;
+        });
+
+        cmd.AddSubcommand("activate").SetComplexHandler("<preset>", "add specified preset to active list", preset =>
+        {
+            SetOrToggleByName(preset, false, false);
+            return true;
+        });
+        cmd.AddSubcommand("deactivate").SetComplexHandler("<preset>", "remove specified preset from active list", preset =>
+        {
+            ClearByName(preset);
+            return true;
+        });
+        cmd.AddSubcommand("togglemulti").SetComplexHandler("<preset>", "if specified preset is in active list, disable it, otherwise enable it", preset =>
+        {
+            SetOrToggleByName(preset, true, false);
+            return true;
+        });
+    }
+
+    private void RegisterAISlashCommands(SlashCommandHandler cmd)
+    {
+        cmd.SetSimpleHandler("toggle AI ui", () => _wndAI.SetVisible(!_wndAI.IsOpen));
+        cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () => _ai.Enabled = true);
+        cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () => _ai.Enabled = false);
+        cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () => _ai.Enabled ^= true);
+        cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable AI mode and follow party member with specified name or at specified slot", masterString =>
+        {
+            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : _ws.Party.FindSlot(masterString);
+            if (_ws.Party[masterSlot] != null)
+            {
+                _ai.SwitchToFollow(masterSlot);
+                _ai.Enabled = true;
+            }
+            else
+            {
+                Service.ChatGui.PrintError($"[AI] [Follow] Error: can't find {masterString} in our party");
+            }
+            return true;
+        });
+
+        // TODO: this should really be removed, it's a weird synonym for /vbm cfg AIConfig ...
+        cmd.SetComplexHandler("", "", args =>
+        {
+            Span<Range> ranges = stackalloc Range[2];
+            var numRanges = args.Split(ranges, ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (numRanges == 1)
+            {
+                // toggle
+                var value = Service.Config.ConsoleCommand($"AIConfig {args}");
+                return bool.TryParse(value[0], out var boolValue) && Service.Config.ConsoleCommand($"AIConfig {args} {!boolValue}").Count == 0;
+            }
+            else if (numRanges == 2)
+            {
+                // set
+                var value = args[ranges[1]];
+                if (value.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+                    value = "true";
+                else if (value.Equals("off", StringComparison.InvariantCultureIgnoreCase))
+                    value = "false";
+                return Service.Config.ConsoleCommand($"AIConfig {args[ranges[0]]} {value}").Count == 0;
+            }
+            return false;
         });
     }
 
     private void VbmaiHandler(string _, string __)
     {
-        Service.ChatGui.PrintError("/vbmai: Legacy AI mode has been removed. See https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide for migration instructions. This command will be removed in a future update.");
+        Service.ChatGui.PrintError("/vbmai: Legacy AI mode is deprecated. Please use /vbm cfg AIConfig (args...) instead. This command will be removed in a future update.");
     }
 
     private void OpenConfigUI(string showTab = "")
@@ -230,6 +312,7 @@ public sealed class Plugin : IDalamudPlugin
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot, moveImminent);
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving());
+        _ai.Update();
         _amex.FinishActionGather();
 
         bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];

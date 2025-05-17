@@ -45,13 +45,13 @@ public enum IconID : uint
 }
 
 class Uppercut(BossModule module) : Components.SingleTargetCast(module, AID.Uppercut);
-class Arise(BossModule module) : Components.SelfTargetedAOEs(module, AID.Arise, new AOEShapeCircle(8));
-class WallopNarrow(BossModule module) : Components.SelfTargetedAOEs(module, AID.WallopNarrow, new AOEShapeRect(40, 5));
-class WallopWide(BossModule module) : Components.SelfTargetedAOEs(module, AID.WallopWide, new AOEShapeRect(40, 8));
-class Sneeze(BossModule module) : Components.SelfTargetedAOEs(module, AID.Sneeze, new AOEShapeCone(60, 75.Degrees()));
+class Arise(BossModule module) : Components.StandardAOEs(module, AID.Arise, new AOEShapeCircle(8));
+class WallopNarrow(BossModule module) : Components.StandardAOEs(module, AID.WallopNarrow, new AOEShapeRect(40, 5));
+class WallopWide(BossModule module) : Components.StandardAOEs(module, AID.WallopWide, new AOEShapeRect(40, 8));
+class Sneeze(BossModule module) : Components.StandardAOEs(module, AID.Sneeze, new AOEShapeCone(60, 75.Degrees()));
 class Mimiclots(BossModule module) : Components.AddsMulti(module, [OID.MimiclotGreen1, OID.MimiclotGreen2, OID.MimiclotBlue1, OID.MimiclotBlue2, OID.MimiclotBlue3, OID.MimiclotRed]);
 class FlagrantSpreadBlue(BossModule module) : Components.SpreadFromCastTargets(module, AID.FlagrantSpreadBlue, 6);
-class FlagrantSpreadGreen(BossModule module) : Components.LocationTargetedAOEs(module, AID.FlagrantSpreadGreen, 6);
+class FlagrantSpreadGreen(BossModule module) : Components.StandardAOEs(module, AID.FlagrantSpreadGreen, 6);
 
 class D012DrowsieStates : StateMachineBuilder
 {

@@ -212,8 +212,7 @@ class Shackles(BossModule module) : BossComponent(module)
         var d1 = (w1 - Module.Center).LengthSq();
         var d2 = (w2 - Module.Center).LengthSq();
         bool use1 = far ? d1 > d2 : d1 < d2;
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor.InstanceID, out var slot))
             _preferredPositions[slot] = use1 ? w1 : w2;
     }
 }

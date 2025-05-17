@@ -13,8 +13,8 @@ public enum AID : uint
     Shred = 14759, // 2720/271F->self, 2.5s cast, range 4+R width 4 rect, stuns player
 }
 
-class TheHand(BossModule module) : Components.SelfTargetedAOEs(module, AID.TheHand, new AOEShapeCone(8, 60.Degrees()));
-class Shred(BossModule module) : Components.SelfTargetedAOEs(module, AID.Shred, new AOEShapeRect(6, 2));
+class TheHand(BossModule module) : Components.StandardAOEs(module, AID.TheHand, new AOEShapeCone(8, 60.Degrees()));
+class Shred(BossModule module) : Components.StandardAOEs(module, AID.Shred, new AOEShapeRect(6, 2));
 class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TheHand, 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0.9s after snapshot
 
 class Hints2(BossModule module) : BossComponent(module)

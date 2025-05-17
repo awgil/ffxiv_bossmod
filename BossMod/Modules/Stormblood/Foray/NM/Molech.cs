@@ -19,10 +19,10 @@ public enum AID : uint
 }
 
 class Adds(BossModule module) : Components.AddsPointless(module, (uint)OID.Adulator);
-class W11TonzeSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.W11TonzeSwipe, new AOEShapeCone(9, 75.Degrees()));
-class W111TonzeSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.W111TonzeSwing, new AOEShapeCircle(13));
-class W111TonzeSwingAdds(BossModule module) : Components.SelfTargetedAOEs(module, AID.W111TonzeSwingAdds, new AOEShapeCircle(13));
-class W111TonzeSwingBig(BossModule module) : Components.SelfTargetedAOEs(module, AID.W111TonzeSwingBig, new AOEShapeCircle(20));
+class W11TonzeSwipe(BossModule module) : Components.StandardAOEs(module, AID.W11TonzeSwipe, new AOEShapeCone(9, 75.Degrees()));
+class W111TonzeSwing(BossModule module) : Components.StandardAOEs(module, AID.W111TonzeSwing, new AOEShapeCircle(13));
+class W111TonzeSwingAdds(BossModule module) : Components.StandardAOEs(module, AID.W111TonzeSwingAdds, new AOEShapeCircle(13));
+class W111TonzeSwingBig(BossModule module) : Components.StandardAOEs(module, AID.W111TonzeSwingBig, new AOEShapeCircle(20));
 class ZoomIn(BossModule module) : Components.ChargeAOEs(module, AID.ZoomIn, 4);
 
 class MolechStates : StateMachineBuilder

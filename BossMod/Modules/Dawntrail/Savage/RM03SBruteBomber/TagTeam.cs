@@ -20,7 +20,7 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.ChainDeathmatch && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+        if (tether.ID == (uint)TetherID.ChainDeathmatch && Raid.TryFindSlot(tether.Target, out var slot))
         {
             _tetherSource[slot] = source;
         }
@@ -60,7 +60,7 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
 }
 
 // players always need to get hit by this mechanic
-class FusesOfFuryMurderousMist : Components.SelfTargetedAOEs
+class FusesOfFuryMurderousMist : Components.StandardAOEs
 {
     public FusesOfFuryMurderousMist(BossModule module) : base(module, AID.FusesOfFuryMurderousMist, new AOEShapeCone(40, 45.Degrees(), 180.Degrees()))
     {

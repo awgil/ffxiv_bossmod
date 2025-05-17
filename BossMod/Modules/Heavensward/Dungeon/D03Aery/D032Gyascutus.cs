@@ -20,12 +20,12 @@ public enum AID : uint
     CripplingBlow = 30193, // 3970->player, 5.0s cast, single-target
 }
 
-class ProximityPyre(BossModule module) : Components.SelfTargetedAOEs(module, AID.ProximityPyre, new AOEShapeCircle(12));
+class ProximityPyre(BossModule module) : Components.StandardAOEs(module, AID.ProximityPyre, new AOEShapeCircle(12));
 class InflammableFumes(BossModule module) : Components.SingleTargetCast(module, AID.InflammableFumes);
-class Burst(BossModule module) : Components.LocationTargetedAOEs(module, AID.Burst, 10);
-class Burst2(BossModule module) : Components.LocationTargetedAOEs(module, AID.Burst2, 10);
+class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, 10);
+class Burst2(BossModule module) : Components.StandardAOEs(module, AID.Burst2, 10);
 class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, AID.DeafeningBellow);
-class AshenOuroboros(BossModule module) : Components.SelfTargetedAOEs(module, AID.AshenOuroboros, new AOEShapeDonut(11, 20));
+class AshenOuroboros(BossModule module) : Components.StandardAOEs(module, AID.AshenOuroboros, new AOEShapeDonut(11, 20));
 class BodySlam(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodySlam, 10, stopAtWall: false);
 class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, AID.CripplingBlow);
 class D032GyascutusStates : StateMachineBuilder

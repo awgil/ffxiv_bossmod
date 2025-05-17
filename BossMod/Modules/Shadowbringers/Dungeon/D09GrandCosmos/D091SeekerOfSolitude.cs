@@ -22,7 +22,7 @@ class Tribulation(BossModule module) : Components.PersistentVoidzoneAtCastTarget
 class ImmortalAnathema(BossModule module) : Components.RaidwideCast(module, AID.ImmortalAnathema);
 class DarkPulse(BossModule module) : Components.StackWithCastTargets(module, AID.DarkPulse, 6);
 class DarkWell(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkWell, 5);
-class DarkShock(BossModule module) : Components.LocationTargetedAOEs(module, AID.DarkShock, 6);
+class DarkShock(BossModule module) : Components.StandardAOEs(module, AID.DarkShock, 6);
 class Shadowbolt(BossModule module) : Components.SingleTargetCast(module, AID.Shadowbolt);
 
 // not sure about radius, sweep trigger is incredibly janky
@@ -69,8 +69,7 @@ class DeepClean(BossModule module) : Components.GenericAOEs(module)
         if (modelState == 27 && animState1 == 1)
         {
             var c = Cleanings.MinBy(e => (e.Actor.Position - actor.Position).Length());
-            if (c != null)
-                c.CleanedAt = WorldState.CurrentTime;
+            c?.CleanedAt = WorldState.CurrentTime;
         }
     }
 

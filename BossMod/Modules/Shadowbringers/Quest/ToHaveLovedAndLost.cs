@@ -26,10 +26,10 @@ public enum AID : uint
     SanctifiedHoly1 = 17431, // 2AB3/2AB2->players/2928, 5.0s cast, range 6 circle
 }
 
-class HereticsFork(BossModule module) : Components.SelfTargetedAOEs(module, AID.HereticsFork, new AOEShapeCross(40, 3));
-class SpiritsWithout(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpiritsWithout, new AOEShapeRect(3.5f, 1.5f));
-class SeraphBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.SeraphBlade, new AOEShapeCone(40, 90.Degrees()));
-class HereticsQuoit(BossModule module) : Components.SelfTargetedAOEs(module, AID.HereticsQuoit, new AOEShapeDonut(5, 15));
+class HereticsFork(BossModule module) : Components.StandardAOEs(module, AID.HereticsFork, new AOEShapeCross(40, 3));
+class SpiritsWithout(BossModule module) : Components.StandardAOEs(module, AID.SpiritsWithout, new AOEShapeRect(3.5f, 1.5f));
+class SeraphBlade(BossModule module) : Components.StandardAOEs(module, AID.SeraphBlade, new AOEShapeCone(40, 90.Degrees()));
+class HereticsQuoit(BossModule module) : Components.StandardAOEs(module, AID.HereticsQuoit, new AOEShapeDonut(5, 15));
 class SanctifiedHoly(BossModule module) : Components.SpreadFromCastTargets(module, AID.SanctifiedHoly1, 6);
 
 class Fracture(BossModule module) : Components.GenericTowers(module)
@@ -50,11 +50,11 @@ class Fracture(BossModule module) : Components.GenericTowers(module)
             Towers.RemoveAll(t => t.Position.AlmostEqual(spell.LocXZ, 1));
     }
 }
-class Bloodstain(BossModule module) : Components.SelfTargetedAOEs(module, AID.Bloodstain, new AOEShapeCircle(5));
+class Bloodstain(BossModule module) : Components.StandardAOEs(module, AID.Bloodstain, new AOEShapeCircle(5));
 class BrandOfSin(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BrandOfSin, 10);
 class BladeOfJustice(BossModule module) : Components.StackWithCastTargets(module, AID.BladeOfJustice, 6, minStackSize: 1);
-class SanctifiedHolyII(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanctifiedHolyII, new AOEShapeCircle(5));
-class SanctifiedHolyIII(BossModule module) : Components.LocationTargetedAOEs(module, AID.SanctifiedHolyIII, 6);
+class SanctifiedHolyII(BossModule module) : Components.StandardAOEs(module, AID.SanctifiedHolyII, new AOEShapeCircle(5));
+class SanctifiedHolyIII(BossModule module) : Components.StandardAOEs(module, AID.SanctifiedHolyIII, 6);
 
 class DikaiosyneStates : StateMachineBuilder
 {

@@ -72,7 +72,7 @@ class AbyssalSmogAetherstock(BossModule module) : Components.GenericAOEs(module)
 
 class ChaoticStormRaidwide(BossModule module) : Components.RaidwideCast(module, AID.ChaoticStorm, "Raidwide + apply forced march");
 class ChaoticStormMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace);
-class RazorZephyr(BossModule module) : Components.SelfTargetedAOEs(module, AID.RazorZephyr, new AOEShapeRect(50, 6));
+class RazorZephyr(BossModule module) : Components.StandardAOEs(module, AID.RazorZephyr, new AOEShapeRect(50, 6));
 class Blade(BossModule module) : Components.SingleTargetCast(module, AID.Blade);
 
 class IhnuxokiyStates : StateMachineBuilder

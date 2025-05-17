@@ -15,6 +15,11 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
             var adjNow = p == null ? Now : Now < p.EffectiveExistence.Start ? p.EffectiveExistence.Start : Now > p.EffectiveExistence.End ? p.EffectiveExistence.End : Now;
             return p != null || instanceID == 0 ? ReplayUtils.ParticipantPosRotString(p, adjNow) : $"<unknown> {instanceID:X}";
         }
+
+        protected override NetworkState.IDScrambleFields GetScramble()
+        {
+            return replay.Ops.OfType<NetworkState.OpIDScramble>().TakeWhile(p => p.Timestamp <= Now).LastOrDefault()?.Fields ?? default;
+        }
     }
 
     public readonly Replay.Encounter? Encounter = enc;

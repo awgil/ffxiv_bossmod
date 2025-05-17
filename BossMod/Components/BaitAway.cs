@@ -3,7 +3,7 @@
 // generic component for mechanics that require baiting some aoe (by proximity, by tether, etc) away from raid
 // some players can be marked as 'forbidden' - if any of them is baiting, they are warned
 // otherwise we show own bait as as outline (and warn if player is clipping someone) and other baits as filled (and warn if player is being clipped)
-public class GenericBaitAway(BossModule module, Enum? aid = default, bool alwaysDrawOtherBaits = true, bool centerAtTarget = false) : CastCounter(module, aid)
+public class GenericBaitAway(BossModule module, Enum? aid = default, bool alwaysDrawOtherBaits = true, bool centerAtTarget = false, bool damageOnResolve = true) : CastCounter(module, aid)
 {
     public record struct Bait(Actor Source, Actor Target, AOEShape Shape, DateTime Activation = default, bool IgnoreRotation = false)
     {
@@ -51,7 +51,8 @@ public class GenericBaitAway(BossModule module, Enum? aid = default, bool always
         var predictedDamage = new BitMask();
         foreach (var b in ActiveBaits)
         {
-            predictedDamage.Set(Raid.FindSlot(b.Target.InstanceID));
+            if (damageOnResolve)
+                predictedDamage.Set(Raid.FindSlot(b.Target.InstanceID));
 
             if (b.Target != actor)
             {
@@ -110,7 +111,7 @@ public class GenericBaitAway(BossModule module, Enum? aid = default, bool always
 // bait on all players, requiring everyone to spread out
 public class BaitAwayEveryone : GenericBaitAway
 {
-    public BaitAwayEveryone(BossModule module, Actor? source, AOEShape shape, Enum? aid = default) : base(module, aid)
+    public BaitAwayEveryone(BossModule module, Actor? source, AOEShape shape, Enum? aid = default, bool damageOnResolve = true) : base(module, aid, damageOnResolve: damageOnResolve)
     {
         AllowDeadTargets = false;
         if (source != null)
@@ -119,7 +120,7 @@ public class BaitAwayEveryone : GenericBaitAway
 }
 
 // component for mechanics requiring tether targets to bait their aoe away from raid
-public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, Enum? aid = default, bool centerAtTarget = false) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget)
+public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, Enum? aid = default, bool centerAtTarget = false, bool damageOnResolve = true) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget, damageOnResolve: damageOnResolve)
 {
     public AOEShape Shape = shape;
     public uint TID = tetherID;
@@ -179,7 +180,7 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, E
 }
 
 // component for mechanics requiring icon targets to bait their aoe away from raid
-public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, Enum? aid = default, float activationDelay = 5.1f, bool centerAtTarget = false) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget)
+public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, Enum? aid = default, float activationDelay = 5.1f, bool centerAtTarget = false, bool damageOnResolve = true) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget, damageOnResolve: damageOnResolve)
 {
     public AOEShape Shape = shape;
     public uint IID = iconID;
@@ -190,7 +191,7 @@ public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, Enum? 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == IID && BaitSource(actor) is var source && source != null)
-            CurrentBaits.Add(new(source, actor, Shape, WorldState.FutureTime(ActivationDelay)));
+            CurrentBaits.Add(new(source, WorldState.Actors.Find(targetID) ?? actor, Shape, WorldState.FutureTime(ActivationDelay)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -202,7 +203,7 @@ public class BaitAwayIcon(BossModule module, AOEShape shape, uint iconID, Enum? 
 }
 
 // component for mechanics requiring cast targets to gtfo from raid (aoe tankbusters etc)
-public class BaitAwayCast(BossModule module, Enum? aid, AOEShape shape, bool centerAtTarget = false, bool endsOnCastEvent = false) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget)
+public class BaitAwayCast(BossModule module, Enum? aid, AOEShape shape, bool centerAtTarget = false, bool endsOnCastEvent = false, bool damageOnResolve = true) : GenericBaitAway(module, aid, centerAtTarget: centerAtTarget, damageOnResolve: damageOnResolve)
 {
     public AOEShape Shape = shape;
     public bool EndsOnCastEvent = endsOnCastEvent;
@@ -228,7 +229,7 @@ public class BaitAwayCast(BossModule module, Enum? aid, AOEShape shape, bool cen
 }
 
 // a variation of BaitAwayCast for charges that end at target
-public class BaitAwayChargeCast(BossModule module, Enum? aid, float halfWidth) : GenericBaitAway(module, aid)
+public class BaitAwayChargeCast(BossModule module, Enum? aid, float halfWidth, bool damageOnResolve = true) : GenericBaitAway(module, aid, damageOnResolve: damageOnResolve)
 {
     public float HalfWidth = halfWidth;
 

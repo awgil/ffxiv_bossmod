@@ -44,8 +44,8 @@ class Twister(BossModule module) : Components.KnockbackFromCastTarget(module, AI
     }
 }
 
-class Spark(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spark, new AOEShapeDonut(14, 30));
-class ScytheTail(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScytheTail, new AOEShapeCircle(17));
+class Spark(BossModule module) : Components.StandardAOEs(module, AID.Spark, new AOEShapeDonut(14, 30));
+class ScytheTail(BossModule module) : Components.StandardAOEs(module, AID.ScytheTail, new AOEShapeCircle(17));
 
 class Butcher(BossModule module) : Components.BaitAwayCast(module, AID.Butcher, new AOEShapeCone(8, 60.Degrees()), endsOnCastEvent: true)
 {
@@ -56,7 +56,7 @@ class Butcher(BossModule module) : Components.BaitAwayCast(module, AID.Butcher, 
     }
 }
 
-class Rip(BossModule module) : Components.SelfTargetedAOEs(module, AID.Rip, new AOEShapeCone(8, 60.Degrees()));
+class Rip(BossModule module) : Components.StandardAOEs(module, AID.Rip, new AOEShapeCone(8, 60.Degrees()));
 
 // TODO: generalize to baited aoe
 class RockThrow(BossModule module) : Components.GenericAOEs(module, AID.RockThrowRest)

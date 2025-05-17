@@ -51,7 +51,7 @@ class P4Hatebound(BossModule module) : BossComponent(module)
             SID.Fangbound => Color.Blue,
             _ => Color.None
         };
-        if (color != Color.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (color != Color.None && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             ColorsAssigned = true;
             _playerColors[slot] = color;

@@ -35,6 +35,71 @@ class DelugeOfDarkness2(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class Phase2AIHints(BossModule module) : Components.GenericInvincible(module)
+{
+    [Flags]
+    enum Position
+    {
+        None,
+        Inside,
+        Outside
+    }
+
+    private readonly Position[] _playerPositions = new Position[PartyState.MaxAllianceSize];
+
+    protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor)
+    {
+        var pos = _playerPositions[slot];
+        var e = Enumerable.Empty<Actor>();
+
+        if (pos.HasFlag(Position.Inside))
+            e = e.Concat(Module.Enemies(OID.Atomos)).Concat(Module.Enemies(OID.StygianShadow));
+
+        if (pos.HasFlag(Position.Outside))
+            e = e.Concat([Module.PrimaryActor]);
+
+        return e;
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID.InnerDarkness:
+                SetState(actor, Position.Inside);
+                break;
+            case SID.OuterDarkness:
+                SetState(actor, Position.Outside);
+                break;
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID.InnerDarkness:
+                ClearState(actor, Position.Inside);
+                break;
+            case SID.OuterDarkness:
+                ClearState(actor, Position.Outside);
+                break;
+        }
+    }
+
+    private void SetState(Actor a, Position flag)
+    {
+        if (Raid.TryFindSlot(a, out var slot))
+            _playerPositions[slot] |= flag;
+    }
+
+    private void ClearState(Actor a, Position flag)
+    {
+        if (Raid.TryFindSlot(a, out var slot))
+            _playerPositions[slot] &= ~flag;
+    }
+}
+
 class Phase2OuterRing(BossModule module) : Components.GenericAOEs(module)
 {
     public bool Dangerous;

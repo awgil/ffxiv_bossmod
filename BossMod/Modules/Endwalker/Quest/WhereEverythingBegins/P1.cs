@@ -12,7 +12,7 @@ public enum AID : uint
     VoidGravity = 30023, // Helper->player/39BC/39BF/39BE, 5.0s cast, range 6 circle
 }
 
-class Nox(BossModule module) : Components.SelfTargetedAOEs(module, AID.Nox, new AOEShapeCircle(10), maxCasts: 5);
+class Nox(BossModule module) : Components.StandardAOEs(module, AID.Nox, new AOEShapeCircle(10), maxCasts: 5);
 class VoidGravity(BossModule module) : Components.SpreadFromCastTargets(module, AID.VoidGravity, 6);
 class VoidVortex(BossModule module) : Components.StackWithCastTargets(module, AID.VoidVortex, 6);
 

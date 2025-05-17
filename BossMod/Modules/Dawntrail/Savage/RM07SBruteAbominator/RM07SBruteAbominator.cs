@@ -8,7 +8,7 @@ class TendrilsOfTerror(BossModule module) : Components.GroupedAOEs(module, [AID.
     }
 }
 
-class Explosion(BossModule module) : Components.LocationTargetedAOEs(module, AID.Explosion, 22, "GTFO from aoe!", 2)
+class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, 22, 2)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -65,7 +65,7 @@ class StrangeSeedsCounter(BossModule module) : BossComponent(module)
 class KillerSeeds(BossModule module) : Components.StackWithCastTargets(module, AID.KillerSeeds, 6, 2, 2);
 
 class Powerslam(BossModule module) : Components.RaidwideCast(module, AID.Powerslam);
-class Sporesplosion(BossModule module) : Components.LocationTargetedAOEs(module, AID.Sporesplosion, 8, maxCasts: 12);
+class Sporesplosion(BossModule module) : Components.StandardAOEs(module, AID.Sporesplosion, 8, maxCasts: 12);
 
 class Lariat(BossModule module) : Components.GroupedAOEs(module, [AID.LashingLariat1, AID.LashingLariat2], new AOEShapeRect(70, 16));
 class Slaminator(BossModule module) : Components.CastTowers(module, AID.Slaminator, 8, maxSoakers: 8);

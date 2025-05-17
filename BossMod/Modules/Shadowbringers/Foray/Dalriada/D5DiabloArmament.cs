@@ -185,9 +185,9 @@ class PseudomenBounds(BossModule module) : Components.GenericAOEs(module)
 
 class UltimatePseudoterror(BossModule module) : Components.StandardAOEs(module, AID.UltimatePseudoterror, new AOEShapeDonut(15, 70));
 class AssaultCannon(BossModule module) : Components.StandardAOEs(module, AID.AssaultCannon, new AOEShapeRect(100, 3));
-class AdvancedDeath(BossModule module) : Components.LocationTargetedAOEs(module, AID.AdvancedDeathIV1, 10);
-class LightPseudopillar(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightPseudopillar1, 10);
-class DeadlyDealing(BossModule module) : Components.LocationTargetedAOEs(module, AID.DeadlyDealingAOE, 6);
+class AdvancedDeath(BossModule module) : Components.StandardAOEs(module, AID.AdvancedDeathIV1, 10);
+class LightPseudopillar(BossModule module) : Components.StandardAOEs(module, AID.LightPseudopillar1, 10);
+class DeadlyDealing(BossModule module) : Components.StandardAOEs(module, AID.DeadlyDealingAOE, 6);
 class DeadlyDealingKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DeadlyDealingKB, 30, stopAtWall: true);
 class VoidSystemsOverload(BossModule module) : Components.RaidwideCast(module, AID.VoidSystemsOverload);
 class PillarOfShamashCone(BossModule module) : Components.GenericAOEs(module)

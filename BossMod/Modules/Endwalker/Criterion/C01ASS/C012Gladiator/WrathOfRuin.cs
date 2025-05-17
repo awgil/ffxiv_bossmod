@@ -39,8 +39,7 @@ class GoldenSilverFlame(BossModule module) : BossComponent(module)
 
         if (debuff == 0)
             return;
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             _debuffs[slot] |= debuff;
     }
 
@@ -78,7 +77,7 @@ class GoldenSilverFlame(BossModule module) : BossComponent(module)
 
 // note: actual spell targets location, but it seems to be incorrect...
 // note: we can predict cast start during Regret actor spawn...
-class RackAndRuin(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(40, 2.5f), 8);
+class RackAndRuin(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(40, 2.5f), 8);
 class NRackAndRuin(BossModule module) : RackAndRuin(module, AID.NRackAndRuin);
 class SRackAndRuin(BossModule module) : RackAndRuin(module, AID.SRackAndRuin);
 

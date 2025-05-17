@@ -98,7 +98,7 @@ class BarbarousBarrageKnockback(BossModule module) : Components.Knockback(module
     }
 }
 
-class BarbarousBarrageMurderousMist(BossModule module) : Components.SelfTargetedAOEs(module, AID.BarbarousBarrageMurderousMist, new AOEShapeCone(40, 135.Degrees()));
+class BarbarousBarrageMurderousMist(BossModule module) : Components.StandardAOEs(module, AID.BarbarousBarrageMurderousMist, new AOEShapeCone(40, 135.Degrees()));
 
 class BarbarousBarrageLariatCombo(BossModule module) : Components.GenericAOEs(module)
 {

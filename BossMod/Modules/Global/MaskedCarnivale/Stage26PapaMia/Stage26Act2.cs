@@ -64,7 +64,7 @@ class DadJoke(BossModule module) : Components.Knockback(module)
     }
 }
 
-class VoidThunderII(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidThunderII, 4);
+class VoidThunderII(BossModule module) : Components.StandardAOEs(module, AID.VoidThunderII, 4);
 class RawInstinct(BossModule module) : Components.CastHint(module, AID.RawInstinct, "Prepare to dispel buff");
 class VoidThunderIII(BossModule module) : Components.RaidwideCast(module, AID.VoidThunderIII, "Raidwide + Electrocution");
 class BodyBlow(BossModule module) : Components.SingleTargetCast(module, AID.BodyBlow, "Soft Tankbuster");

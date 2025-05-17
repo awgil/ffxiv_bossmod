@@ -18,8 +18,8 @@ public enum AID : uint
     WordsOfWinterVisual = 3517, // E82->self, 4.0s cast, single-target
 }
 
-class LiquefyInner(BossModule module) : Components.SelfTargetedAOEs(module, AID.LiquefyInner, new AOEShapeRect(50f + 7.84f, 4));
-class LiquefyOuter(BossModule module) : Components.SelfTargetedAOEs(module, AID.LiquefyOuter, new AOEShapeRect(50f + 7.84f, 3.5f));
+class LiquefyInner(BossModule module) : Components.StandardAOEs(module, AID.LiquefyInner, new AOEShapeRect(50f + 7.84f, 4));
+class LiquefyOuter(BossModule module) : Components.StandardAOEs(module, AID.LiquefyOuter, new AOEShapeRect(50f + 7.84f, 3.5f));
 class Repel(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Repel, 20, true, kind: Kind.DirForward, stopAtWall: true);
 class Disclosure(BossModule module) : BossComponent(module)
 {

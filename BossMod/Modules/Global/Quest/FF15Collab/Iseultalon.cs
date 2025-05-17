@@ -91,7 +91,7 @@ class Electrocution2(BossModule module) : Components.CastTowers(module, AID.Elec
 
 class Stomp(BossModule module) : Components.RaidwideCast(module, AID.Stomp);
 
-class DeathRay : Components.SelfTargetedAOEs
+class DeathRay : Components.StandardAOEs
 {
     public DeathRay(BossModule module) : base(module, AID.DeathRay2, new AOEShapeRect(40, 1))
     {
@@ -99,7 +99,7 @@ class DeathRay : Components.SelfTargetedAOEs
     }
 }
 
-class TailWhip(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailWhip, new AOEShapeCone(12, 135.Degrees()));
+class TailWhip(BossModule module) : Components.StandardAOEs(module, AID.TailWhip, new AOEShapeCone(12, 135.Degrees()));
 
 class DeathRay2(BossModule module) : Components.GenericAOEs(module)
 {

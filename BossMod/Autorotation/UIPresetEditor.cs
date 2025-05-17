@@ -367,6 +367,8 @@ public sealed class UIPresetEditor
         ModuleCategory res = new();
         foreach (var m in RotationModuleRegistry.Modules)
         {
+            if (m.Value.Definition.DevMode && !Service.IsDev)
+                continue; // skip dev-mode-only module in "production"
             if (m.Value.Definition.RelatedBossModule != null)
                 continue; // don't care about boss-specific modules for presets
             if (FindModuleByType(m.Key) >= 0)

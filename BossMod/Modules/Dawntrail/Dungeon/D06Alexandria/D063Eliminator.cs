@@ -68,13 +68,13 @@ public enum IconID : uint
 }
 
 class Disruption(BossModule module) : Components.RaidwideCast(module, AID.Disruption);
-class PartitionShortR(BossModule module) : Components.SelfTargetedAOEs(module, AID.PartitionShortAOER, new AOEShapeCone(40, 90.Degrees()));
-class PartitionShortL(BossModule module) : Components.SelfTargetedAOEs(module, AID.PartitionShortAOEL, new AOEShapeCone(40, 90.Degrees()));
-class PartitionLongR(BossModule module) : Components.SelfTargetedAOEs(module, AID.PartitionLongAOER, new AOEShapeCone(40, 90.Degrees()));
-class PartitionLongL(BossModule module) : Components.SelfTargetedAOEs(module, AID.PartitionLongAOEL, new AOEShapeCone(40, 90.Degrees()));
-class HaloOfDestruction(BossModule module) : Components.SelfTargetedAOEs(module, AID.HaloOfDestructionAOE, new AOEShapeDonut(6, 40));
+class PartitionShortR(BossModule module) : Components.StandardAOEs(module, AID.PartitionShortAOER, new AOEShapeCone(40, 90.Degrees()));
+class PartitionShortL(BossModule module) : Components.StandardAOEs(module, AID.PartitionShortAOEL, new AOEShapeCone(40, 90.Degrees()));
+class PartitionLongR(BossModule module) : Components.StandardAOEs(module, AID.PartitionLongAOER, new AOEShapeCone(40, 90.Degrees()));
+class PartitionLongL(BossModule module) : Components.StandardAOEs(module, AID.PartitionLongAOEL, new AOEShapeCone(40, 90.Degrees()));
+class HaloOfDestruction(BossModule module) : Components.StandardAOEs(module, AID.HaloOfDestructionAOE, new AOEShapeDonut(6, 40));
 
-class Terminate(BossModule module) : Components.SelfTargetedAOEs(module, AID.TerminateAOE, new AOEShapeRect(40, 5))
+class Terminate(BossModule module) : Components.StandardAOEs(module, AID.TerminateAOE, new AOEShapeRect(40, 5))
 {
     private readonly HaloOfDestruction? _halo = module.FindComponent<HaloOfDestruction>();
     private static readonly AOEShapeRect _shapeOverlap = new(40, 4);
@@ -115,7 +115,7 @@ class Electray(BossModule module) : Components.SpreadFromCastTargets(module, AID
 
 class Overexposure(BossModule module) : Components.SimpleLineStack(module, 3, 40, AID.OverexposureTargetSelect, AID.OverexposureAOE, 5.1f);
 
-class CompressionAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.CompressionAOE, new AOEShapeCircle(6));
+class CompressionAOE(BossModule module) : Components.StandardAOEs(module, AID.CompressionAOE, new AOEShapeCircle(6));
 class CompressionImpact(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CompressionImpact, 15)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -159,7 +159,7 @@ class LightOfDevotion(BossModule module) : Components.SimpleLineStack(module, 3,
     }
 }
 
-class EliminationExplosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.EliminationExplosion, new AOEShapeRect(25, 4, 25), 4);
+class EliminationExplosion(BossModule module) : Components.StandardAOEs(module, AID.EliminationExplosion, new AOEShapeRect(25, 4, 25), 4);
 
 class D063EliminatorStates : StateMachineBuilder
 {

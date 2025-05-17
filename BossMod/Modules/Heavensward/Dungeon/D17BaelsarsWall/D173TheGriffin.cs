@@ -32,9 +32,9 @@ public enum IconID : uint
 };
 class BeakOfTheGriffin(BossModule module) : Components.RaidwideCast(module, AID.BeakOfTheGriffin);
 class FlashPowder(BossModule module) : Components.CastGaze(module, AID.FlashPowder);
-class SanguineBlade(BossModule module) : Components.SelfTargetedAOEs(module, AID.SanguineBlade, new AOEShapeCone(41.5f, 90.Degrees()));
+class SanguineBlade(BossModule module) : Components.StandardAOEs(module, AID.SanguineBlade, new AOEShapeCone(41.5f, 90.Degrees()));
 class ClawOfTheGriffin(BossModule module) : Components.SingleTargetCast(module, AID.ClawOfTheGriffin);
-class GullDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.GullDive, new AOEShapeCircle(80));
+class GullDive(BossModule module) : Components.StandardAOEs(module, AID.GullDive, new AOEShapeCircle(80));
 class BigBoot(BossModule module) : Components.Knockback(module, AID.BigBoot, stopAtWall: true)
 {
     private Actor? _kbTarget;
@@ -69,7 +69,7 @@ class BigBoot(BossModule module) : Components.Knockback(module, AID.BigBoot, sto
                 DrawKnockback(e.from, e.to, pc.Rotation, Arena);
     }
 };
-class Corrosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Corrosion, new AOEShapeCircle(9));
+class Corrosion(BossModule module) : Components.StandardAOEs(module, AID.Corrosion, new AOEShapeCircle(9));
 class RestraintCollar(BossModule module) : BossComponent(module)
 {
     private Actor? _fetterTarget;

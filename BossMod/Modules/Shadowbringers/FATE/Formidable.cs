@@ -50,8 +50,8 @@ public enum SID : uint
     ExtremeCaution = 1269, // Boss->players
 }
 
-class Spincrush(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spincrush, new AOEShapeCone(15, 60.Degrees()));
-class FireShot(BossModule module) : Components.LocationTargetedAOEs(module, AID.FireShot, 7);
+class Spincrush(BossModule module) : Components.StandardAOEs(module, AID.Spincrush, new AOEShapeCone(15, 60.Degrees()));
+class FireShot(BossModule module) : Components.StandardAOEs(module, AID.FireShot, 7);
 
 class FiresOfMtGulg(BossModule module) : Components.GenericAOEs(module)
 {
@@ -141,7 +141,7 @@ class ExplosionMissile(BossModule module) : BossComponent(module)
     }
 }
 
-class ExplosionGrenade(BossModule module) : Components.SelfTargetedAOEs(module, AID.ExplosionGrenade, new AOEShapeCircle(12));
+class ExplosionGrenade(BossModule module) : Components.StandardAOEs(module, AID.ExplosionGrenade, new AOEShapeCircle(12));
 
 class DwarvenDischarge(BossModule module, AOEShape shape, OID oid, AID aid, float delay) : Components.GenericAOEs(module)
 {

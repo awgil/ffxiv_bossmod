@@ -14,9 +14,9 @@ public enum AID : uint
     TheSpin = 16833, // 2820->self, 3.0s cast, range 40 circle
 }
 
-class RustingClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.RustingClaw, new AOEShapeCone(12.025f, 60.Degrees()));
-class TailDrive(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailDrive, new AOEShapeCone(34.025f, 60.Degrees()));
-class WordsOfWoe(BossModule module) : Components.SelfTargetedAOEs(module, AID.WordsOfWoe, new AOEShapeRect(49.025f, 3));
+class RustingClaw(BossModule module) : Components.StandardAOEs(module, AID.RustingClaw, new AOEShapeCone(12.025f, 60.Degrees()));
+class TailDrive(BossModule module) : Components.StandardAOEs(module, AID.TailDrive, new AOEShapeCone(34.025f, 60.Degrees()));
+class WordsOfWoe(BossModule module) : Components.StandardAOEs(module, AID.WordsOfWoe, new AOEShapeRect(49.025f, 3));
 class TheSpin(BossModule module) : Components.RaidwideCast(module, AID.TheSpin);
 
 class OPoorestPauldiaStates : StateMachineBuilder

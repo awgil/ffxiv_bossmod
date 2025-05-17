@@ -9,12 +9,11 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     #region Enums: Abilities / Strategies
-    public enum Track { Blood = SharedTrack.Count, MP, Carve, DeliriumCombo, Potion, Unmend, Delirium, SaltedEarth, SaltAndDarkness, LivingShadow, Shadowbringer, Disesteem }
+    public enum Track { Blood = SharedTrack.Count, MP, Carve, DeliriumCombo, Unmend, Delirium, SaltedEarth, SaltAndDarkness, LivingShadow, Shadowbringer, Disesteem }
     public enum BloodStrategy { Automatic, OnlyBloodspiller, OnlyQuietus, ForceBloodspiller, ForceQuietus, Conserve }
     public enum MPStrategy { Optimal, Auto3k, Auto6k, Auto9k, AutoRefresh, Edge3k, Edge6k, Edge9k, EdgeRefresh, Flood3k, Flood6k, Flood9k, FloodRefresh, ForceEdge, ForceFlood, Delay }
     public enum CarveStrategy { Automatic, OnlyCarve, OnlyDrain, ForceCarve, ForceDrain, Delay }
     public enum DeliriumComboStrategy { Automatic, ScarletDelirum, Comeuppance, Torcleaver, Impalement, Delay }
-    public enum PotionStrategy { Manual, AlignWithLivingShadow, Immediate }
     public enum UnmendStrategy { OpenerFar, OpenerForce, Force, Allow, Forbid }
     #endregion
 
@@ -25,6 +24,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
         res.DefineAOE().AddAssociatedActions(AID.HardSlash, AID.SyphonStrike, AID.Souleater, AID.Unleash, AID.StalwartSoul);
         res.DefineHold();
+        res.DefinePotion(ActionDefinitions.IDPotionStr);
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Blood", uiPriority: 200)
             .AddOption(BloodStrategy.Automatic, "Automatic", "Automatically use Blood-related abilities optimally")
             .AddOption(BloodStrategy.OnlyBloodspiller, "Only Bloodspiller", "Uses Bloodspiller optimally as Blood spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 62)
@@ -67,11 +67,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(DeliriumComboStrategy.Impalement, "Impalement", "Force use Impalement ASAP", 0, 0, ActionTargets.Hostile, 96)
             .AddOption(DeliriumComboStrategy.Delay, "Delay", "Delay use of Scarlet combo for strategic reasons", 0, 0, ActionTargets.Hostile, 96)
             .AddAssociatedActions(AID.ScarletDelirium, AID.Comeuppance, AID.Torcleaver, AID.Impalement);
-        res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 20)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.AlignWithLivingShadow, "AlignWithLivingShadow", "Align with Living Shadow (to ensure use on 2-minute windows)", 270, 30, ActionTargets.Self)
-            .AddOption(PotionStrategy.Immediate, "Immediate", "Use ASAP, regardless of any buffs", 270, 30, ActionTargets.Self)
-            .AddAssociatedAction(ActionDefinitions.IDPotionStr);
         res.Define(Track.Unmend).As<UnmendStrategy>("Ranged", "Ranged", uiPriority: 30)
             .AddOption(UnmendStrategy.OpenerFar, "Far (Opener)", "Use Unmend in pre-pull & out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(UnmendStrategy.OpenerForce, "Force (Opener)", "Force use Unmend in pre-pull in any range", supportedTargets: ActionTargets.Hostile)
@@ -101,7 +96,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private (float CD, bool IsReady) CarveAndSpit;
     private (ushort Step, float Left, int Stacks, float CD, bool IsActive, bool IsReady) Delirium;
     private (float Timer, float CD, bool IsActive, bool IsReady) LivingShadow;
-    private (float TotalCD, float ChargeCD, bool HasCharges, bool IsReady) Shadowbringer;
+    private (float CDRemaining, float ReadyIn, bool HasCharges, bool IsReady) Shadowbringer;
     private (float Left, bool IsActive, bool IsReady) Disesteem;
     private bool Opener;
     private bool ShouldUseAOE;
@@ -233,7 +228,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseSaltAndDarkness(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target?.Actor != null && CanWeaveIn && TotalCD(AID.SaltAndDarkness) < 0.6f && SaltedEarth.IsActive,
+        OGCDStrategy.Automatic => Player.InCombat && target?.Actor != null && CanWeaveIn && CDRemaining(AID.SaltAndDarkness) < 0.6f && SaltedEarth.IsActive,
         OGCDStrategy.Force => SaltedEarth.IsActive,
         OGCDStrategy.AnyWeave => SaltedEarth.IsActive && CanWeaveIn,
         OGCDStrategy.EarlyWeave => SaltedEarth.IsActive && CanEarlyWeaveIn,
@@ -263,7 +258,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
         return strategy switch
         {
-            OGCDStrategy.Automatic => InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.IsReady : ActionReady(AID.BloodWeapon) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0)),
+            OGCDStrategy.Automatic => InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.IsReady : OGCDReady(AID.BloodWeapon) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0)),
             OGCDStrategy.Force => true,
             OGCDStrategy.AnyWeave => CanWeaveIn,
             OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
@@ -309,16 +304,17 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseUnmend(UnmendStrategy strategy, Enemy? target) => strategy switch
     {
-        UnmendStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD() && !In3y(target?.Actor),
-        UnmendStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD(),
+        UnmendStrategy.OpenerFar => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD && !In3y(target?.Actor),
+        UnmendStrategy.OpenerForce => (Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD,
         UnmendStrategy.Force => true,
         UnmendStrategy.Allow => !In3y(target?.Actor),
         UnmendStrategy.Forbid => false,
         _ => false
     };
-    private bool ShouldUsePotion(PotionStrategy strategy) => strategy switch
+    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
-        PotionStrategy.AlignWithLivingShadow => LivingShadow.CD < 5,
+        PotionStrategy.AlignWithBuffs => Player.InCombat && LivingShadow.CD <= 4f,
+        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
         PotionStrategy.Immediate => true,
         _ => false
     };
@@ -337,12 +333,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         RiskingBlood = ComboLastMove is AID.SyphonStrike or AID.Unleash && Blood >= 80 || Delirium.CD <= 3 && Blood >= 70; //Checks if we are risking Blood
         RiskingMP = MP >= 10000 || Darkside.NeedsRefresh;
         SaltedEarth.Left = StatusRemaining(Player, SID.SaltedEarth, 15); //Retrieve current Salted Earth time left
-        SaltedEarth.CD = TotalCD(AID.SaltedEarth); //Retrieve current Salted Earth cooldown
+        SaltedEarth.CD = CDRemaining(AID.SaltedEarth); //Retrieve current Salted Earth cooldown
         SaltedEarth.IsActive = SaltedEarth.Left > 0.1f; //Checks if Salted Earth is active
         SaltedEarth.IsReady = Unlocked(AID.SaltedEarth) && SaltedEarth.CD < 0.6f; //Salted Earth ability
-        AbyssalDrain.CD = TotalCD(AID.AbyssalDrain); //Retrieve current Abyssal Drain cooldown
+        AbyssalDrain.CD = CDRemaining(AID.AbyssalDrain); //Retrieve current Abyssal Drain cooldown
         AbyssalDrain.IsReady = Unlocked(AID.AbyssalDrain) && AbyssalDrain.CD < 0.6f; //Abyssal Drain ability
-        CarveAndSpit.CD = TotalCD(AID.CarveAndSpit); //Retrieve current Carve and Spit cooldown
+        CarveAndSpit.CD = CDRemaining(AID.CarveAndSpit); //Retrieve current Carve and Spit cooldown
         CarveAndSpit.IsReady = Unlocked(AID.CarveAndSpit) && CarveAndSpit.CD < 0.6f; //Carve and Spit ability
         Disesteem.Left = StatusRemaining(Player, SID.Scorn, 30); //Retrieve current Disesteem time left
         Disesteem.IsActive = Disesteem.Left > 0.1f; //Checks if Disesteem is active
@@ -350,16 +346,16 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Delirium.Step = gauge.DeliriumStep; //Retrieve current Delirium combo step
         Delirium.Left = StatusRemaining(Player, BestBloodWeapon, 15); //Retrieve current Delirium time left
         Delirium.Stacks = StacksRemaining(Player, BestBloodWeapon, 15); //Retrieve current Delirium stacks
-        Delirium.CD = TotalCD(BestDelirium); //Retrieve current Delirium cooldown
+        Delirium.CD = CDRemaining(BestDelirium); //Retrieve current Delirium cooldown
         Delirium.IsActive = Delirium.Left > 0.1f; //Checks if Delirium is active
         Delirium.IsReady = Unlocked(BestDelirium) && Delirium.CD < 0.6f; //Delirium ability
         LivingShadow.Timer = gauge.ShadowTimer / 1000f; //Retrieve current Living Shadow timer
-        LivingShadow.CD = TotalCD(AID.LivingShadow); //Retrieve current Living Shadow cooldown
+        LivingShadow.CD = CDRemaining(AID.LivingShadow); //Retrieve current Living Shadow cooldown
         LivingShadow.IsActive = LivingShadow.Timer > 0; //Checks if Living Shadow is active
         LivingShadow.IsReady = Unlocked(AID.LivingShadow) && LivingShadow.CD < 0.6f; //Living Shadow ability
-        Shadowbringer.TotalCD = TotalCD(AID.Shadowbringer); //Retrieve current Shadowbringer cooldown
-        Shadowbringer.ChargeCD = ChargeCD(AID.Shadowbringer); //Retrieve current Shadowbringer charge cooldown
-        Shadowbringer.HasCharges = TotalCD(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
+        Shadowbringer.CDRemaining = CDRemaining(AID.Shadowbringer); //Retrieve current Shadowbringer cooldown
+        Shadowbringer.ReadyIn = ReadyIn(AID.Shadowbringer); //Retrieve current Shadowbringer charge cooldown
+        Shadowbringer.HasCharges = CDRemaining(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
         Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
         Opener = (CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30;
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
@@ -390,9 +386,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         var deStrat = de.As<GCDStrategy>(); //Retrieve Disesteem strategy
         var unmend = strategy.Option(Track.Unmend);
         var unmendStrat = unmend.As<UnmendStrategy>(); //Retrieve Unmend strategy
-        #endregion
-
-        #region Misc
         #endregion
 
         #endregion
@@ -516,7 +509,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                 QueueOGCD(AID.SaltAndDarkness, Player, OGCDPriority.AboveAverage);
             if (ShouldUseUnmend(unmendStrat, primaryTarget))
                 QueueGCD(AID.Unmend, TargetChoice(unmend) ?? primaryTarget?.Actor, GCDPriority.Low);
-            if (ShouldUsePotion(strategy.Option(Track.Potion).As<PotionStrategy>()))
+            if (ShouldUsePotion(strategy))
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Forced, 0, GCD - 0.9f);
             #endregion
         }

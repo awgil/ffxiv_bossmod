@@ -28,6 +28,112 @@ class ReignJumpCounter(BossModule module) : Components.CastCounterMulti(module, 
     }
 }
 
+class ReignHints(BossModule module) : BossComponent(module)
+{
+    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
+    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
+
+    private WPos? _source;
+    private bool _in;
+    private bool _jumped;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.EminentReignJump or AID.RevolutionaryReignJump)
+        {
+            var dir = (Arena.Center - caster.Position).Normalized();
+            var dist = caster.Position.X < 92 ? 17.25f : 17.75f;
+            _source = caster.Position + dir * dist;
+            _in = spell.Action.ID == (uint)AID.EminentReignJump;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.WolvesReignRect1 or AID.WolvesReignRect2)
+            _jumped = true;
+
+        if ((AID)spell.Action.ID is AID.WolvesReignCone or AID.WolvesReignCircle)
+        {
+            _source = null;
+            _in = false;
+            _jumped = false;
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var spot in EnumerateSafeSpots(pcSlot, pc))
+            Arena.AddCircle(spot, 0.5f, _jumped ? ArenaColor.Safe : ArenaColor.Danger);
+    }
+
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        foreach (var spot in EnumerateSafeSpots(slot, actor))
+            movementHints.Add(actor.Position, spot, _jumped ? ArenaColor.Safe : ArenaColor.Danger);
+    }
+
+    private IEnumerable<WPos> EnumerateSafeSpots(int slot, Actor actor)
+    {
+        if (_source == null || _config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Disabled)
+            yield break;
+
+        var assignment = _prc[WorldState.Party.Members[slot].ContentId];
+        int lp;
+        if (_config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Any)
+            lp = 0;
+        else
+            lp = assignment switch
+            {
+                PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.H1 => 1,
+                PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.R2 or PartyRolesConfig.Assignment.H2 => 2,
+                _ => 0
+            };
+
+        if (_config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Inverse)
+            lp = lp == 1 ? 2 : 1;
+
+        var isTank = actor.Class.GetRole() == Role.Tank || assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT;
+
+        var bossFacing = (Arena.Center - _source.Value).Normalized();
+
+        if (_in)
+        {
+            if (isTank)
+            {
+                if (lp != 2)
+                    yield return _source.Value + bossFacing.Rotate(-145.Degrees()) * 4;
+                if (lp != 1)
+                    yield return _source.Value + bossFacing.Rotate(145.Degrees()) * 4;
+            }
+            else
+            {
+                if (lp != 2)
+                    yield return _source.Value + bossFacing.Rotate(-75.Degrees()) * 7;
+                if (lp != 1)
+                    yield return _source.Value + bossFacing.Rotate(75.Degrees()) * 7;
+            }
+        }
+        else
+        {
+            if (isTank)
+            {
+                if (lp != 2)
+                    yield return _source.Value + bossFacing.Rotate(-53.Degrees()) * 14.4f;
+                if (lp != 1)
+                    yield return _source.Value + bossFacing.Rotate(53.Degrees()) * 14.4f;
+            }
+            else
+            {
+                if (lp != 2)
+                    yield return _source.Value + bossFacing.Rotate(-12.Degrees()) * 18;
+                if (lp != 1)
+                    yield return _source.Value + bossFacing.Rotate(12.Degrees()) * 18;
+            }
+        }
+    }
+}
+
 class WolvesReignRect(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? Rect;
@@ -59,8 +165,8 @@ class ReignInout(BossModule module) : Components.GenericAOEs(module)
 {
     public bool Risky;
 
-    enum Inout { None, In, Out }
-    private Inout Next;
+    public enum Inout { None, In, Out }
+    public Inout Next { get; private set; }
 
     public WPos? Source { get; private set; }
     private WPos _prevSource;
@@ -129,11 +235,30 @@ class ReignInout(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ReignsEnd : Components.GenericBaitAway
+class ReignsEnd(BossModule module) : Components.GenericBaitAway(module, AID.ReignsEnd)
 {
-    public ReignsEnd(BossModule module) : base(module, AID.ReignsEnd)
+    public override void Update()
     {
-        CurrentBaits.AddRange(Raid.WithoutSlot().Where(r => r.Role == Role.Tank).Select(r => new Bait(Module.PrimaryActor, r, new AOEShapeCone(40, 30.Degrees()), WorldState.FutureTime(3.1f))));
+        CurrentBaits.Clear();
+        CurrentBaits.AddRange(RaidByEnmity(Module.PrimaryActor).Take(2).Select(r => new Bait(Module.PrimaryActor, r, new AOEShapeCone(40, 30.Degrees()))));
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (actor.Role == Role.Tank)
+        {
+            var shouldVoke = false;
+            foreach (var b in CurrentBaits)
+            {
+                if (b.Target == actor)
+                    // we are baiting, all good
+                    return;
+                else if (b.Target.Role != Role.Tank)
+                    shouldVoke = true;
+            }
+            if (shouldVoke)
+                hints.Add("Provoke!");
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

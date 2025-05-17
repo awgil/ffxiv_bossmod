@@ -22,7 +22,7 @@ public enum AID : uint
 class GreyBomb(BossModule module) : Components.Adds(module, (uint)OID.GreyBomb, 5);
 class Burst(BossModule module) : Components.RaidwideCast(module, AID.Burst, "Kill the Grey Bomb! or take 80% of your Max HP");
 // future thing to do: maybe add a tether between bomb/boss to show it needs to show the aoe needs to explode on them. . . 
-class HypothermalCombustion(BossModule module) : Components.SelfTargetedAOEs(module, AID.HypothermalCombustion, new AOEShapeCircle(7.2f))
+class HypothermalCombustion(BossModule module) : Components.StandardAOEs(module, AID.HypothermalCombustion, new AOEShapeCircle(7.2f))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -64,7 +64,7 @@ class GiddyBomb(BossModule module) : BossComponent(module)
     }
 }
 class MassiveBurst(BossModule module) : Components.RaidwideCast(module, AID.MassiveBurst, "Knock the Giddy bomb into the boss and let it explode on the boss. \n or else take 99% damage!");
-class Sap(BossModule module) : Components.LocationTargetedAOEs(module, AID.Sap, 8);
+class Sap(BossModule module) : Components.StandardAOEs(module, AID.Sap, 8);
 class ScaldingScolding(BossModule module) : Components.Cleave(module, AID.ScaldingScolding, new AOEShapeCone(11.75f, 45.Degrees()))
 {
     private readonly MassiveBurst _raidwide1 = module.FindComponent<MassiveBurst>()!;

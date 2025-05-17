@@ -12,7 +12,7 @@ public enum AID : uint
     PetrifyingEye = 18041, // Boss->self, 3.0s cast, range 40 circle
 }
 
-class Icefall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Icefall, 5);
+class Icefall(BossModule module) : Components.StandardAOEs(module, AID.Icefall, 5);
 class PetrifyingEye(BossModule module) : Components.CastGaze(module, AID.PetrifyingEye);
 
 class ForgivenGossipStates : StateMachineBuilder

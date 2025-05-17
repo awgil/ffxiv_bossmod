@@ -16,7 +16,7 @@ public enum AID : uint
 }
 
 class HomingLaser(BossModule module) : Components.SpreadFromCastTargets(module, AID.HomingLaser, 6);
-class GrandStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrandStrike, new AOEShapeRect(48.2f, 2));
+class GrandStrike(BossModule module) : Components.StandardAOEs(module, AID.GrandStrike, new AOEShapeRect(48.2f, 2));
 
 class D150ScholaColossusStates : StateMachineBuilder
 {

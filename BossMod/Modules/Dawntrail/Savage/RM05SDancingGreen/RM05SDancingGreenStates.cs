@@ -242,7 +242,7 @@ class BackupDance(BossModule module) : Components.GenericBaitAway(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.FrogtourageFan && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.FrogtourageFan && Raid.TryFindSlot(actor.InstanceID, out var slot))
             ForbiddenPlayers.Set(slot);
     }
 

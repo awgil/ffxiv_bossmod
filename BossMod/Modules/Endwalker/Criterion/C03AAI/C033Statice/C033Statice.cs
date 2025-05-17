@@ -6,7 +6,7 @@ class SSurpriseBalloon(BossModule module) : SurpriseBalloon(module, AID.SPop);
 
 class BeguilingGlitter(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace, activationLimit: 8);
 
-class FaerieRing(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeDonut(6, 12)); // TODO: verify inner radius
+class FaerieRing(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeDonut(6, 12)); // TODO: verify inner radius
 class NFaerieRing(BossModule module) : FaerieRing(module, AID.NFaerieRing);
 class SFaerieRing(BossModule module) : FaerieRing(module, AID.SFaerieRing);
 

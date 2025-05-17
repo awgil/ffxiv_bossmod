@@ -70,14 +70,8 @@ class HuntersHarvest(BossModule module) : Components.GenericBaitAway(module, AID
         if (Active)
         {
             var boss = Module.Enemies(OID.BossP2).FirstOrDefault();
-            if (boss != null)
-            {
-                var tar = Raid.FindSlot(boss.TargetID);
-                if (tar >= 0)
-                {
-                    CurrentBaits.Add(new(boss, Raid[tar]!, new AOEShapeCone(40, 100.Degrees())));
-                }
-            }
+            if (boss != null && Raid.TryFindSlot(boss.TargetID, out var tar))
+                CurrentBaits.Add(new(boss, Raid[tar]!, new AOEShapeCone(40, 100.Degrees())));
         }
     }
 

@@ -29,8 +29,8 @@ public enum AID : uint
 
 class Cacophony(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Cacophony).Where(e => e.EventState != 7), 6);
 
-class RightbreathedCold(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightbreathedCold, new AOEShapeCone(40, 90.Degrees()));
-class LeftbreathedThunder(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftbreathedThunder, new AOEShapeCone(40, 90.Degrees()));
+class RightbreathedCold(BossModule module) : Components.StandardAOEs(module, AID.RightbreathedCold, new AOEShapeCone(40, 90.Degrees()));
+class LeftbreathedThunder(BossModule module) : Components.StandardAOEs(module, AID.LeftbreathedThunder, new AOEShapeCone(40, 90.Degrees()));
 
 abstract class StretchTether(BossModule module, AID action) : Components.BaitAwayChargeCast(module, action, 4)
 {

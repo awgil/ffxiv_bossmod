@@ -20,10 +20,10 @@ public enum AID : uint
 class Hellfire(BossModule module) : Components.RaidwideCast(module, AID.Hellfire);
 class Hellfire1(BossModule module) : Components.RaidwideCast(module, AID.Hellfire1);
 class AgonyOfTheDamned(BossModule module) : Components.RaidwideCast(module, AID.AgonyOfTheDamned1);
-class RadiantPlume(BossModule module) : Components.SelfTargetedAOEs(module, AID.RadiantPlume1, new AOEShapeCircle(8));
-class CrimsonCyclone(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrimsonCyclone, new AOEShapeRect(49, 9), maxCasts: 3);
+class RadiantPlume(BossModule module) : Components.StandardAOEs(module, AID.RadiantPlume1, new AOEShapeCircle(8));
+class CrimsonCyclone(BossModule module) : Components.StandardAOEs(module, AID.CrimsonCyclone, new AOEShapeRect(49, 9), maxCasts: 3);
 class InfernalNail(BossModule module) : Components.Adds(module, (uint)OID.InfernalNail, 5);
-class Explosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.Explosion, new AOEShapeCross(80, 5), maxCasts: 2);
+class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeCross(80, 5), maxCasts: 2);
 
 class LunarIfritStates : StateMachineBuilder
 {

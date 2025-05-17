@@ -38,6 +38,13 @@ public sealed class ClientState
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
     public record struct Pet(ulong InstanceID, byte Order, byte Stance);
     public record struct DutyAction(ActionID Action, byte CurCharges, byte MaxCharges);
+    public record struct HateInfo(ulong InstanceID, Hate[] Targets)
+    {
+        // targets are sorted by enmity order, except that player is always first
+        // nonzero entries are always at the front of the array - there is space for 32 entries, but a maximum of 8 are currently used
+        public readonly Hate[] Targets = Targets;
+    }
+    public record struct Hate(ulong InstanceID, int Enmity);
 
     public const int NumCooldownGroups = 82;
     public const int NumClassLevels = 32; // see ClassJob.ExpArrayIndex
@@ -60,6 +67,7 @@ public sealed class ClientState
     public ulong FocusTargetId;
     public Angle ForcedMovementDirection; // used for temporary misdirection and spinning states
     public uint[] ContentKeyValueData = new uint[6]; // used for content-specific persistent player attributes, like bozja resistance rank
+    public HateInfo CurrentTargetHate = new(0, new Hate[32]);
 
     public uint GetContentValue(uint key) => ContentKeyValueData[0] == key
         ? ContentKeyValueData[1]
@@ -135,6 +143,9 @@ public sealed class ClientState
 
         if (ForcedMovementDirection != default)
             yield return new OpForcedMovementDirectionChange(ForcedMovementDirection);
+
+        if (CurrentTargetHate.InstanceID != 0 || CurrentTargetHate.Targets.Any(t => t != default))
+            yield return new OpHateChange(CurrentTargetHate.InstanceID, CurrentTargetHate.Targets);
     }
 
     public void Tick(float dt)
@@ -406,5 +417,24 @@ public sealed class ClientState
     {
         protected override void Exec(WorldState ws) => ws.Client.FateInfo.Fire(this);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("FATE"u8).Emit(FateId).Emit(StartTime.Ticks);
+    }
+
+    public Event<OpHateChange> HateChanged = new();
+    public sealed record class OpHateChange(ulong InstanceID, Hate[] Targets) : WorldState.Operation
+    {
+        public readonly Hate[] Targets = Targets;
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.CurrentTargetHate = new(InstanceID, Targets);
+            ws.Client.HateChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("HATE"u8).EmitActor(InstanceID);
+            var countNonEmpty = Array.IndexOf(Targets, default);
+            output.Emit(countNonEmpty);
+            for (var i = 0; i < countNonEmpty; i++)
+                output.EmitActor(Targets[i].InstanceID).Emit(Targets[i].Enmity);
+        }
     }
 }

@@ -13,8 +13,8 @@ public enum AID : uint
     Swinge = 903, // Boss->self, 4.0s cast, range 40 ?-degree cone aoe
 }
 
-class LionsBreath(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.LionsBreath, new AOEShapeCone(10.25f, 60.Degrees())); // TODO: verify angle
-class Swinge(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.Swinge, new AOEShapeCone(40, 30.Degrees())); // TODO: verify angle
+class LionsBreath(BossModule module) : Components.StandardAOEs(module, AID.LionsBreath, new AOEShapeCone(10.25f, 60.Degrees())); // TODO: verify angle
+class Swinge(BossModule module) : Components.StandardAOEs(module, AID.Swinge, new AOEShapeCone(40, 30.Degrees())); // TODO: verify angle
 
 // due to relatively short casts and the fact that boss likes moving across arena to cast swinge, we always want non-tanks to be positioned slightly behind
 class Positioning(BossModule module) : BossComponent(module)
@@ -22,7 +22,7 @@ class Positioning(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (actor.Role != Role.Tank)
-            hints.AddForbiddenZone(ShapeContains.Cone(Module.PrimaryActor.Position, 10, Module.PrimaryActor.Rotation, 90.Degrees()));
+            hints.AddForbiddenZone(ShapeContains.Cone(Module.PrimaryActor.Position, 100, Module.PrimaryActor.Rotation, 45.Degrees()), DateTime.MaxValue);
     }
 }
 

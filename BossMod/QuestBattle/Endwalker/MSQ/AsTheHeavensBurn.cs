@@ -36,7 +36,7 @@ class AlphinaudAI(WorldState ws) : UnmanagedRotation(ws, 25)
                 if (StatusDetails(player, 2844, Player.InstanceID).Left == 0)
                     UseAction(RID.LeveilleurDiagnosis, player);
 
-        if (PartyHealth.ShouldHealInArea(Player.Position, 15, 0.6f))
+        if (PartyHealth.PredictShouldHealInArea(Player.Position, 15, 0.6f))
             UseAction(RID.Prognosis, Player);
 
         if (PartyHealth.BestSTHealTarget is (Actor a, var st))

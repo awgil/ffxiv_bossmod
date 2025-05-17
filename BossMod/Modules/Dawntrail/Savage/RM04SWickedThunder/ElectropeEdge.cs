@@ -15,10 +15,10 @@ class ElectropeEdgeWitchgleam(BossModule module) : Components.GenericAOEs(module
     }
 }
 
-class ElectropeEdgeSpark1(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectropeEdgeSpark1, new AOEShapeRect(5, 5, 5));
-class ElectropeEdgeSpark2(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectropeEdgeSpark2, new AOEShapeRect(15, 15, 15));
-class ElectropeEdgeSidewiseSparkR(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectropeEdgeSidewiseSparkR, new AOEShapeCone(60, 90.Degrees()));
-class ElectropeEdgeSidewiseSparkL(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectropeEdgeSidewiseSparkL, new AOEShapeCone(60, 90.Degrees()));
+class ElectropeEdgeSpark1(BossModule module) : Components.StandardAOEs(module, AID.ElectropeEdgeSpark1, new AOEShapeRect(5, 5, 5));
+class ElectropeEdgeSpark2(BossModule module) : Components.StandardAOEs(module, AID.ElectropeEdgeSpark2, new AOEShapeRect(15, 15, 15));
+class ElectropeEdgeSidewiseSparkR(BossModule module) : Components.StandardAOEs(module, AID.ElectropeEdgeSidewiseSparkR, new AOEShapeCone(60, 90.Degrees()));
+class ElectropeEdgeSidewiseSparkL(BossModule module) : Components.StandardAOEs(module, AID.ElectropeEdgeSidewiseSparkL, new AOEShapeCone(60, 90.Degrees()));
 
 class ElectropeEdgeStar(BossModule module) : Components.UniformStackSpread(module, 6, 6, alwaysShowSpreads: true)
 {
@@ -90,7 +90,7 @@ class LightningCage(BossModule module) : Components.GenericAOEs(module, AID.Ligh
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.ElectricalCondenser && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.ElectricalCondenser && Raid.TryFindSlot(actor.InstanceID, out var slot))
             Order[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 30 ? 1 : 2;
     }
 
@@ -119,7 +119,7 @@ class LightningCage(BossModule module) : Components.GenericAOEs(module, AID.Ligh
             case AID.LightningCageWitchgleamAOE:
                 ++NumGleams;
                 foreach (var t in spell.Targets)
-                    if (Raid.FindSlot(t.ID) is var slot && slot >= 0)
+                    if (Raid.TryFindSlot(t.ID, out var slot))
                         ++_gleams[slot];
                 break;
             case AID.LightningCageSpark2:

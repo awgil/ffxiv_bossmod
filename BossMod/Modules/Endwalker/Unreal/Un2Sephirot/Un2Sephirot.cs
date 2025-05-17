@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.Unreal.Un2Sephirot;
 
 class P1TripleTrial(BossModule module) : Components.Cleave(module, AID.TripleTrial, new AOEShapeCone(18.5f, 30.Degrees())); // TODO: verify angle
-class P1Ein(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ein, new AOEShapeRect(50, 22.5f));
+class P1Ein(BossModule module) : Components.StandardAOEs(module, AID.Ein, new AOEShapeRect(50, 22.5f));
 class P2GenesisCochma(BossModule module) : Components.CastCounter(module, AID.GenesisCochma);
 class P2GenesisBinah(BossModule module) : Components.CastCounter(module, AID.GenesisBinah);
 class P3EinSofOhr(BossModule module) : Components.CastCounter(module, AID.EinSofOhrAOE);
-class P3Yesod(BossModule module) : Components.SelfTargetedAOEs(module, AID.Yesod, new AOEShapeCircle(4));
-class P3PillarOfMercyAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.PillarOfMercyAOE, new AOEShapeCircle(5));
+class P3Yesod(BossModule module) : Components.StandardAOEs(module, AID.Yesod, new AOEShapeCircle(4));
+class P3PillarOfMercyAOE(BossModule module) : Components.StandardAOEs(module, AID.PillarOfMercyAOE, new AOEShapeCircle(5));
 class P3PillarOfMercyKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PillarOfMercyAOE, 17);
 class P3Malkuth(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Malkuth, 25);
 class P3Ascension(BossModule module) : Components.CastCounter(module, AID.Ascension); // TODO: show safe spot?..

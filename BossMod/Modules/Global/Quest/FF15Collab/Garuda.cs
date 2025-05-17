@@ -43,7 +43,7 @@ class GustFront(BossModule module) : Components.UniformStackSpread(module, 1.2f,
     }
 }
 
-class Microburst(BossModule module) : Components.SelfTargetedAOEs(module, AID.Microburst, new AOEShapeCircle(18))
+class Microburst(BossModule module) : Components.StandardAOEs(module, AID.Microburst, new AOEShapeCircle(18))
 {
     private bool casting;
 
@@ -75,7 +75,7 @@ class Microburst(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mi
     }
 }
 
-class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, AID.MistralShriek, new AOEShapeCircle(30))
+class MistralShriek(BossModule module) : Components.StandardAOEs(module, AID.MistralShriek, new AOEShapeCircle(30))
 {
     private bool casting;
     private DateTime done;
@@ -111,8 +111,8 @@ class MistralShriek(BossModule module) : Components.SelfTargetedAOEs(module, AID
     }
 }
 
-class MistralSong(BossModule module) : Components.SelfTargetedAOEs(module, AID.MistralSong, new AOEShapeCone(20, 75.Degrees()));
-class WickedTornado(BossModule module) : Components.SelfTargetedAOEs(module, AID.WickedTornado, new AOEShapeDonut(8, 20));
+class MistralSong(BossModule module) : Components.StandardAOEs(module, AID.MistralSong, new AOEShapeCone(20, 75.Degrees()));
+class WickedTornado(BossModule module) : Components.StandardAOEs(module, AID.WickedTornado, new AOEShapeDonut(8, 20));
 
 // TODO: create and use generic 'line stack' component
 class MiniSupercell(BossModule module) : Components.GenericBaitAway(module)

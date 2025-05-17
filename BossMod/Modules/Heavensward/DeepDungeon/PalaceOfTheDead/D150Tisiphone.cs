@@ -49,14 +49,14 @@ class BossAdds(BossModule module) : Components.AddsMulti(module, [OID.FanaticZom
         }
     }
 }
-class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkMist, new AOEShapeCircle(10));
-class Desolation(BossModule module) : Components.SelfTargetedAOEs(module, AID.Desolation, new AOEShapeRect(57.3f, 3));
+class DarkMist(BossModule module) : Components.StandardAOEs(module, AID.DarkMist, new AOEShapeCircle(10));
+class Desolation(BossModule module) : Components.StandardAOEs(module, AID.Desolation, new AOEShapeRect(57.3f, 3));
 class FatalAllure(BossModule module) : Components.SingleTargetCast(module, AID.FatalAllure, "Boss is life stealing from the succubus");
-class SweetSteel(BossModule module) : Components.SelfTargetedAOEs(module, AID.SweetSteel, new AOEShapeCone(7, 45.Degrees()));
-class TerrorEye(BossModule module) : Components.LocationTargetedAOEs(module, AID.TerrorEye, 6);
-class VoidAero(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidAero, new AOEShapeRect(42.3f, 4));
-class VoidFireII(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireII, 5);
-class VoidFireIV(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireIV, 10);
+class SweetSteel(BossModule module) : Components.StandardAOEs(module, AID.SweetSteel, new AOEShapeCone(7, 45.Degrees()));
+class TerrorEye(BossModule module) : Components.StandardAOEs(module, AID.TerrorEye, 6);
+class VoidAero(BossModule module) : Components.StandardAOEs(module, AID.VoidAero, new AOEShapeRect(42.3f, 4));
+class VoidFireII(BossModule module) : Components.StandardAOEs(module, AID.VoidFireII, 5);
+class VoidFireIV(BossModule module) : Components.StandardAOEs(module, AID.VoidFireIV, 10);
 
 class EncounterHints(BossModule module) : BossComponent(module)
 {

@@ -24,6 +24,8 @@ public abstract unsafe class PacketDecoder
         public TextNode AddChild(string text) => AddChild(new TextNode(text));
     }
 
+    protected abstract NetworkState.IDScrambleFields GetScramble();
+
     public TextNode Decode(NetworkState.ServerIPC ipc, DateTime now)
     {
         Now = now;
@@ -31,7 +33,7 @@ public abstract unsafe class PacketDecoder
         foreach (byte b in ipc.Payload)
             sb.Append($"{b:X2}");
         var node = new TextNode(sb.ToString());
-        var child = DecodePacket(ipc.ID, (byte*)Unsafe.AsPointer(ref ipc.Payload[0]));
+        var child = DecodePacket(ipc.ID, ipc.Opcode, (byte*)Unsafe.AsPointer(ref ipc.Payload[0]));
         if (child != null)
             node.AddChild(child);
         return node;
@@ -49,7 +51,7 @@ public abstract unsafe class PacketDecoder
 
     protected abstract string DecodeActor(ulong instanceID);
 
-    private TextNode? DecodePacket(PacketID id, byte* payload) => id switch
+    private TextNode? DecodePacket(PacketID id, ushort opcode, byte* payload) => id switch
     {
         PacketID.RSVData when (RSVData*)payload is var p => new($"{MemoryHelper.ReadStringNullTerminated((nint)p->Key)} = {MemoryHelper.ReadString((nint)p->Value, p->ValueLength)} [{p->ValueLength}]"),
         PacketID.Countdown when (Countdown*)payload is var p => new($"{p->Time}s from {DecodeActor(p->SenderID)}{(p->FailedInCombat != 0 ? " fail-in-combat" : "")} '{MemoryHelper.ReadStringNullTerminated((nint)p->Text)}' u={p->u4:X4} {p->u9:X2} {p->u10:X2}"),
@@ -78,17 +80,17 @@ public abstract unsafe class PacketDecoder
         PacketID.ActorControlSelf when (ActorControlSelf*)payload is var p => DecodeActorControl(p->category, p->param1, p->param2, p->param3, p->param4, p->param5, p->param6, 0xE0000000),
         PacketID.ActorControlTarget when (ActorControlTarget*)payload is var p => DecodeActorControl(p->category, p->param1, p->param2, p->param3, p->param4, 0, 0, p->TargetID),
         PacketID.UpdateHpMpTp when (UpdateHpMpTp*)payload is var p => new($"hp={p->HP}, mp={p->MP}, gp={p->GP}"),
-        PacketID.ActionEffect1 when (ActionEffect1*)payload is var p => DecodeActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 1, new()),
-        PacketID.ActionEffect8 when (ActionEffect8*)payload is var p => DecodeActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 8, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
-        PacketID.ActionEffect16 when (ActionEffect16*)payload is var p => DecodeActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 16, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
-        PacketID.ActionEffect24 when (ActionEffect24*)payload is var p => DecodeActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 24, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
-        PacketID.ActionEffect32 when (ActionEffect32*)payload is var p => DecodeActionEffect(&p->Header, (ActionEffect*)p->Effects, p->TargetID, 32, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
+        PacketID.ActionEffect1 when (ActionEffect1*)payload is var p => DecodeActionEffect(opcode, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 1, new()),
+        PacketID.ActionEffect8 when (ActionEffect8*)payload is var p => DecodeActionEffect(opcode, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 8, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
+        PacketID.ActionEffect16 when (ActionEffect16*)payload is var p => DecodeActionEffect(opcode, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 16, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
+        PacketID.ActionEffect24 when (ActionEffect24*)payload is var p => DecodeActionEffect(opcode, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 24, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
+        PacketID.ActionEffect32 when (ActionEffect32*)payload is var p => DecodeActionEffect(opcode, &p->Header, (ActionEffect*)p->Effects, p->TargetID, 32, IntToFloatCoords(p->TargetX, p->TargetY, p->TargetZ)),
         PacketID.StatusEffectListPlayer when (StatusEffectListPlayer*)payload is var p => DecodeStatusEffectListPlayer(p),
         PacketID.UpdateRecastTimes when (UpdateRecastTimes*)payload is var p => DecodeUpdateRecastTimes(new(p->Elapsed, 80), new(p->Total, 80)),
         PacketID.UpdateDutyRecastTimes when (UpdateDutyRecastTimes*)payload is var p => DecodeUpdateRecastTimes(new(p->Elapsed, 2), new(p->Total, 2)),
         PacketID.ActorMove when (ActorMove*)payload is var p => new($"{Utils.Vec3String(IntToFloatCoords(p->X, p->Y, p->Z))} {IntToFloatAngle(p->Rotation)}, anim={p->AnimationFlags:X4}/{p->AnimationSpeed}, u={p->UnknownRotation:X2} {p->Unknown:X8}"),
         PacketID.ActorSetPos when (ActorSetPos*)payload is var p => new($"{Utils.Vec3String(new(p->X, p->Y, p->Z))} {IntToFloatAngle(p->Rotation)}, u={p->u2:X2} {p->u3:X2} {p->u4:X8} {p->u14:X8}"),
-        PacketID.ActorCast when (ActorCast*)payload is var p => DecodeActorCast(p),
+        PacketID.ActorCast when (ActorCast*)payload is var p => DecodeActorCast(opcode, p),
         PacketID.UpdateHate when (UpdateHate*)payload is var p => DecodeUpdateHate(p),
         PacketID.UpdateHater when (UpdateHater*)payload is var p => DecodeUpdateHater(p),
         PacketID.SpawnObject when (SpawnObject*)payload is var p => DecodeSpawnObject(p),
@@ -245,10 +247,10 @@ public abstract unsafe class PacketDecoder
         return new TextNode($"{category} {details} ({p1:X8} {p2:X8} {p3:X8} {p4:X8} {p5:X8} {p6:X8} {DecodeActor(targetID)})");
     }
 
-    private TextNode DecodeActionEffect(ActionEffectHeader* data, ActionEffect* effects, ulong* targetIDs, uint maxTargets, Vector3 targetPos)
+    private TextNode DecodeActionEffect(ushort opcode, ActionEffectHeader* data, ActionEffect* effects, ulong* targetIDs, uint maxTargets, Vector3 targetPos)
     {
         var rot = IntToFloatAngle(data->rotation);
-        var aid = data->actionId - IDScramble.Delta;
+        var aid = GetScramble().Decode(opcode, data->actionId);
         var res = new TextNode($"#{data->globalEffectCounter} ({data->SourceSequence}) {new ActionID(data->actionType, aid)} ({data->actionId}/{data->actionAnimationId}), animTarget={DecodeActor(data->animationTargetId)}, animLock={data->animationLockTime:f3}, rot={rot}, pos={Utils.Vec3String(targetPos)}, var={data->variation}, ballista={DecodeActor(data->BallistaEntityId)}, flags={data->Flags:X2} pad={data->padding21:X4}");
         var targets = Math.Min(data->NumTargets, maxTargets);
         for (int i = 0; i < targets; ++i)
@@ -268,9 +270,9 @@ public abstract unsafe class PacketDecoder
         return res;
     }
 
-    private TextNode DecodeActorCast(ActorCast* p)
+    private TextNode DecodeActorCast(ushort opcode, ActorCast* p)
     {
-        uint aid = p->ActionID - IDScramble.Delta;
+        uint aid = GetScramble().Decode(opcode, p->ActionID);
         return new($"{new ActionID(p->ActionType, aid)} ({new ActionID(ActionType.Spell, p->SpellID)}) @ {DecodeActor(p->TargetID)}, time={p->CastTime:f3} ({p->BaseCastTime100ms * 0.1f:f1}), rot={IntToFloatAngle(p->Rotation)}, targetpos={Utils.Vec3String(IntToFloatCoords(p->PosX, p->PosY, p->PosZ))}, interruptible={p->Interruptible}, ballista={DecodeActor(p->BallistaEntityId)}, u1={p->u1:X2}, u3={p->u3:X4}");
     }
 
@@ -387,4 +389,5 @@ public abstract unsafe class PacketDecoder
 public sealed class PacketDecoderGame : PacketDecoder
 {
     protected override string DecodeActor(ulong instanceID) => Utils.ObjectString(instanceID);
+    protected override NetworkState.IDScrambleFields GetScramble() => IDScramble.Get();
 }

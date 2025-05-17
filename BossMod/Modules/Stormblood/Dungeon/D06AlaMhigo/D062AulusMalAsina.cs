@@ -46,7 +46,7 @@ public enum TetherID : uint
     MindjackTether = 45, // 1BAF->player
 }
 
-class AetherochemicalGrenado(BossModule module) : Components.LocationTargetedAOEs(module, AID.AetherochemicalGrenado, 8);
+class AetherochemicalGrenado(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalGrenado, 8);
 class IntegratedAetheromodulator(BossModule module) : Components.GenericAOEs(module, AID.IntegratedAetheromodulator)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -64,7 +64,7 @@ class IntegratedAetheromodulator(BossModule module) : Components.GenericAOEs(mod
             _aoes.RemoveAll(x => DateTime.Now >= x.Activation);
     }
 }
-class MagitekRay(BossModule module) : Components.SelfTargetedAOEs(module, AID.MagitekRay, new AOEShapeRect(45, 2, 45));
+class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(45, 2, 45));
 class Demimagicks(BossModule module) : Components.SpreadFromCastTargets(module, AID.Demimagicks, 5);
 class Mindjack(BossModule module) : Components.Chains(module, (uint)TetherID.MindjackTether, AID.Mindjack, 1, false);
 

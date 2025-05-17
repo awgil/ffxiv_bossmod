@@ -9,7 +9,7 @@ class LeadHook(BossModule module) : Components.CastCounter(module, default)
     }
 }
 
-class TailScrew(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 4);
+class TailScrew(BossModule module, AID aid) : Components.StandardAOEs(module, aid, 4);
 class NTailScrew(BossModule module) : TailScrew(module, AID.NTailScrew);
 class STailScrew(BossModule module) : TailScrew(module, AID.STailScrew);
 

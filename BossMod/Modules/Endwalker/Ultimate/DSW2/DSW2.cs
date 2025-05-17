@@ -1,18 +1,18 @@
 ﻿namespace BossMod.Endwalker.Ultimate.DSW2;
 
-class P2AscalonsMercyConcealed(BossModule module) : Components.SelfTargetedAOEs(module, AID.AscalonsMercyConcealedAOE, new AOEShapeCone(50, 15.Degrees()));
+class P2AscalonsMercyConcealed(BossModule module) : Components.StandardAOEs(module, AID.AscalonsMercyConcealedAOE, new AOEShapeCone(50, 15.Degrees()));
 class P2AscalonMight(BossModule module) : Components.Cleave(module, AID.AscalonsMight, new AOEShapeCone(50, 30.Degrees()), (uint)OID.BossP2);
 class P2UltimateEnd(BossModule module) : Components.CastCounter(module, AID.UltimateEndAOE);
-class P3Drachenlance(BossModule module) : Components.SelfTargetedAOEs(module, AID.DrachenlanceAOE, new AOEShapeCone(13, 45.Degrees()));
+class P3Drachenlance(BossModule module) : Components.StandardAOEs(module, AID.DrachenlanceAOE, new AOEShapeCone(13, 45.Degrees()));
 class P3SoulTether(BossModule module) : Components.TankbusterTether(module, AID.SoulTether, (uint)TetherID.HolyShieldBash, 5);
 class P4Resentment(BossModule module) : Components.CastCounter(module, AID.Resentment);
-class P5TwistingDive(BossModule module) : Components.SelfTargetedAOEs(module, AID.TwistingDive, new AOEShapeRect(60, 5));
-class P5Cauterize1(BossModule module) : Components.SelfTargetedAOEs(module, AID.Cauterize1, new AOEShapeRect(48, 10));
-class P5Cauterize2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Cauterize2, new AOEShapeRect(48, 10));
-class P5SpearOfTheFury(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpearOfTheFuryP5, new AOEShapeRect(50, 5));
+class P5TwistingDive(BossModule module) : Components.StandardAOEs(module, AID.TwistingDive, new AOEShapeRect(60, 5));
+class P5Cauterize1(BossModule module) : Components.StandardAOEs(module, AID.Cauterize1, new AOEShapeRect(48, 10));
+class P5Cauterize2(BossModule module) : Components.StandardAOEs(module, AID.Cauterize2, new AOEShapeRect(48, 10));
+class P5SpearOfTheFury(BossModule module) : Components.StandardAOEs(module, AID.SpearOfTheFuryP5, new AOEShapeRect(50, 5));
 class P5AscalonMight(BossModule module) : Components.Cleave(module, AID.AscalonsMight, new AOEShapeCone(50, 30.Degrees()), (uint)OID.BossP5);
 class P5Surrender(BossModule module) : Components.CastCounter(module, AID.Surrender);
-class P6SwirlingBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.SwirlingBlizzard, new AOEShapeDonut(20, 35));
+class P6SwirlingBlizzard(BossModule module) : Components.StandardAOEs(module, AID.SwirlingBlizzard, new AOEShapeDonut(20, 35));
 class P7Shockwave(BossModule module) : Components.CastCounter(module, AID.ShockwaveP7);
 class P7AlternativeEnd(BossModule module) : Components.CastCounter(module, AID.AlternativeEnd);
 

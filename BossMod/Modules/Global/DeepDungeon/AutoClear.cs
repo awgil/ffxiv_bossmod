@@ -157,20 +157,17 @@ public abstract class AutoClear : ZoneModule
         {
             case (uint)WHM.SID.Surecast:
             case (uint)WAR.SID.ArmsLength:
-                var slot1 = World.Party.FindSlot(actor.InstanceID);
-                if (slot1 >= 0)
+                if (World.Party.TryFindSlot(actor.InstanceID, out var slot1))
                     _playerImmunes[slot1].RoleBuffExpire = status.ExpireAt;
                 break;
             case (uint)WAR.SID.InnerStrength:
-                var slot2 = World.Party.FindSlot(actor.InstanceID);
-                if (slot2 >= 0)
+                if (World.Party.TryFindSlot(actor.InstanceID, out var slot2))
                     _playerImmunes[slot2].JobBuffExpire = status.ExpireAt;
                 break;
             // Knockback Penalty floor effect
             case 1096:
             case 1512:
-                var slot3 = World.Party.FindSlot(actor.InstanceID);
-                if (slot3 >= 0)
+                if (World.Party.TryFindSlot(actor.InstanceID, out var slot3))
                     _playerImmunes[slot3].KnockbackPenalty = true;
                 break;
         }

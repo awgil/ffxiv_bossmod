@@ -35,11 +35,11 @@ public enum TetherID : uint
     HolyChain = 9,
 }
 
-class Heavensflame(BossModule module) : Components.LocationTargetedAOEs(module, AID.Heavensflame, 5);
+class Heavensflame(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame, 5);
 class HolyChain(BossModule module) : Components.Chains(module, (uint)TetherID.HolyChain, AID.HolyChain2, 13);
 class AltarPyre(BossModule module) : Components.RaidwideCast(module, AID.AltarPyre);
-class BlackKnightsTour(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlackKnightsTour, new AOEShapeRect(40, 2));
-class WhiteKnightsTour(BossModule module) : Components.SelfTargetedAOEs(module, AID.WhiteKnightsTour, new AOEShapeRect(40, 2));
+class BlackKnightsTour(BossModule module) : Components.StandardAOEs(module, AID.BlackKnightsTour, new AOEShapeRect(40, 2));
+class WhiteKnightsTour(BossModule module) : Components.StandardAOEs(module, AID.WhiteKnightsTour, new AOEShapeRect(40, 2));
 class PureOfHeart(BossModule module) : Components.RaidwideCast(module, AID.PureOfHeart);
 class SacredFlame(BossModule module) : Components.RaidwideCast(module, AID.SacredFlame);
 class March(BossModule module) : Components.GenericAOEs(module)

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "payload": [
     {
       "Name": "VBM Default",
@@ -401,6 +401,18 @@
           {
             "Track": "Targeting",
             "Option": "Auto"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "VBM AI",
+      "Modules": {
+        "BossMod.Autorotation.MiscAI.AutoFarm": [],
+        "BossMod.Autorotation.MiscAI.NormalMovement": [
+          {
+            "Track": "Destination",
+            "Option": "Pathfind"
           }
         ]
       }

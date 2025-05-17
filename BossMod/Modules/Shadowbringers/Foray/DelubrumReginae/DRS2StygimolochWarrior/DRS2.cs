@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2StygimolochWarrior;
 
-class ViciousSwipe(BossModule module) : Components.SelfTargetedAOEs(module, AID.ViciousSwipe, new AOEShapeCircle(15));
+class ViciousSwipe(BossModule module) : Components.StandardAOEs(module, AID.ViciousSwipe, new AOEShapeCircle(15));
 class CrazedRampage(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CrazedRampage, 13);
 class Coerce(BossModule module) : Components.StatusDrivenForcedMarch(module, 4, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace);
 

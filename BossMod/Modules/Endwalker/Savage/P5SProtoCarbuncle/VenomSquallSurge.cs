@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P5SProtoCarbuncle;
 
-class VenomDrops(BossModule module) : Components.LocationTargetedAOEs(module, AID.VenomDrops, 5);
+class VenomDrops(BossModule module) : Components.StandardAOEs(module, AID.VenomDrops, 5);
 
 class VenomSquallSurge(BossModule module) : BossComponent(module)
 {

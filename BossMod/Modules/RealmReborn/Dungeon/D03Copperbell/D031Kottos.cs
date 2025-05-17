@@ -18,8 +18,8 @@ public enum AID : uint
 }
 
 class GrandSlam(BossModule module) : Components.SingleTargetCast(module, AID.GrandSlam);
-class LumberingLeap(BossModule module) : Components.SelfTargetedAOEs(module, AID.LumberingLeapAOE, new AOEShapeCircle(12));
-class ColossalSlam(BossModule module) : Components.SelfTargetedLegacyRotationAOEs(module, AID.ColossalSlam, new AOEShapeCone(30, 30.Degrees()));
+class LumberingLeap(BossModule module) : Components.StandardAOEs(module, AID.LumberingLeapAOE, new AOEShapeCircle(12));
+class ColossalSlam(BossModule module) : Components.StandardAOEs(module, AID.ColossalSlam, new AOEShapeCone(30, 30.Degrees()));
 class Catapult(BossModule module) : Components.SingleTargetCast(module, AID.Catapult, "Single-target damage");
 
 class D031KottosStates : StateMachineBuilder

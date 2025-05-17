@@ -36,21 +36,21 @@ public enum AID : uint
     Spin = 17854, // 2A05->self, 2.5s cast, range 11 circle
 }
 
-class Wellbore(BossModule module) : Components.SelfTargetedAOEs(module, AID.Wellbore, new AOEShapeCircle(15));
-class Compress(BossModule module) : Components.SelfTargetedAOEs(module, AID.Compress, new AOEShapeCross(100, 3.5f));
-class Compress2(BossModule module) : Components.SelfTargetedAOEs(module, AID.Compress2, new AOEShapeRect(102.1f, 3.5f));
+class Wellbore(BossModule module) : Components.StandardAOEs(module, AID.Wellbore, new AOEShapeCircle(15));
+class Compress(BossModule module) : Components.StandardAOEs(module, AID.Compress, new AOEShapeCross(100, 3.5f));
+class Compress2(BossModule module) : Components.StandardAOEs(module, AID.Compress2, new AOEShapeRect(102.1f, 3.5f));
 class Accelerate(BossModule module) : Components.StackWithCastTargets(module, AID.Accelerate, 6);
 class Incinerate(BossModule module) : Components.RaidwideCast(module, AID.Incinerate);
-class Fount(BossModule module) : Components.LocationTargetedAOEs(module, AID.Fount, 4);
+class Fount(BossModule module) : Components.StandardAOEs(module, AID.Fount, 4);
 class MechanicalBlow(BossModule module) : Components.SingleTargetCast(module, AID.MechanicalBlow);
-class PluckAndPrune(BossModule module) : Components.SelfTargetedAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
-class TearyTwirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
-class HeirloomScream(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
-class PungentPirouette(BossModule module) : Components.SelfTargetedAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
-class Pollen(BossModule module) : Components.SelfTargetedAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
-class Spin(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spin, new AOEShapeCircle(11));
-class Mash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mash, new AOEShapeRect(15.23f, 2));
-class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
+class PluckAndPrune(BossModule module) : Components.StandardAOEs(module, AID.PluckAndPrune, new AOEShapeCircle(6.84f));
+class TearyTwirl(BossModule module) : Components.StandardAOEs(module, AID.TearyTwirl, new AOEShapeCircle(6.84f));
+class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.HeirloomScream, new AOEShapeCircle(6.84f));
+class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
+class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
+class Spin(BossModule module) : Components.StandardAOEs(module, AID.Spin, new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.StandardAOEs(module, AID.Mash, new AOEShapeRect(15.23f, 2));
+class Scoop(BossModule module) : Components.StandardAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
 
 class GoliathStates : StateMachineBuilder
 {

@@ -23,10 +23,10 @@ public enum AID : uint
     DefilersDeserts = 14643, // Helper->self, 3.5s cast, range 35+R width 8 rect
 }
 
-class DefilersDeserts(BossModule module) : Components.SelfTargetedAOEs(module, AID.DefilersDeserts, new AOEShapeRect(36, 4));
+class DefilersDeserts(BossModule module) : Components.StandardAOEs(module, AID.DefilersDeserts, new AOEShapeRect(36, 4));
 class AcallamNaSenorach(BossModule module) : Components.RaidwideCast(module, AID.AcallamNaSenorach);
 class Thricecull(BossModule module) : Components.SingleTargetCast(module, AID.Thricecull);
-class Legendcarver(BossModule module) : Components.SelfTargetedAOEs(module, AID.Legendcarver, new AOEShapeCircle(15))
+class Legendcarver(BossModule module) : Components.StandardAOEs(module, AID.Legendcarver, new AOEShapeCircle(15))
 {
     private Mythcarver? mc;
 
@@ -36,7 +36,7 @@ class Legendcarver(BossModule module) : Components.SelfTargetedAOEs(module, AID.
         Color = mc?.Casters.Count > 0 ? ArenaColor.Danger : ArenaColor.AOE;
     }
 }
-class Legendspinner(BossModule module) : Components.SelfTargetedAOEs(module, AID.Legendspinner, new AOEShapeDonut(7, 22))
+class Legendspinner(BossModule module) : Components.StandardAOEs(module, AID.Legendspinner, new AOEShapeDonut(7, 22))
 {
     private Mythspinner? ms;
 
@@ -76,7 +76,7 @@ abstract class SpearAOEs(BossModule module, Enum bossCast, AOEShape shape) : Com
 
 class Mythcarver(BossModule module) : SpearAOEs(module, AID.Legendcarver, new AOEShapeCircle(15));
 class Mythspinner(BossModule module) : SpearAOEs(module, AID.Legendspinner, new AOEShapeDonut(7, 22));
-class LegendaryGeas(BossModule module) : Components.LocationTargetedAOEs(module, AID.LegendaryGeas, 8);
+class LegendaryGeas(BossModule module) : Components.StandardAOEs(module, AID.LegendaryGeas, 8);
 
 class ArtStates : StateMachineBuilder
 {

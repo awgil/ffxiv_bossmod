@@ -23,10 +23,10 @@ public enum AID : uint
 }
 
 class Musojin(BossModule module) : Components.RaidwideCast(module, AID.Musojin);
-class HissatsuKiku(BossModule module) : Components.SelfTargetedAOEs(module, AID.HissatsuKiku1, new AOEShapeRect(44.5f, 2));
-class Maiogi(BossModule module) : Components.SelfTargetedAOEs(module, AID.Maiogi1, new AOEShapeCone(80, 25.Degrees()));
-class HissatsuTo(BossModule module) : Components.SelfTargetedAOEs(module, AID.HissatsuTo1, new AOEShapeRect(44.5f, 2));
-class HissatsuKyuten(BossModule module) : Components.SelfTargetedAOEs(module, AID.HissatsuKyuten, new AOEShapeCircle(5.5f));
+class HissatsuKiku(BossModule module) : Components.StandardAOEs(module, AID.HissatsuKiku1, new AOEShapeRect(44.5f, 2));
+class Maiogi(BossModule module) : Components.StandardAOEs(module, AID.Maiogi1, new AOEShapeCone(80, 25.Degrees()));
+class HissatsuTo(BossModule module) : Components.StandardAOEs(module, AID.HissatsuTo1, new AOEShapeRect(44.5f, 2));
+class HissatsuKyuten(BossModule module) : Components.StandardAOEs(module, AID.HissatsuKyuten, new AOEShapeCircle(5.5f));
 class Arashi(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime? Activation;

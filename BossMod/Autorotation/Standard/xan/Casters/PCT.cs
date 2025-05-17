@@ -187,7 +187,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
             PushOGCD(BestPortrait, BestLineTarget);
 
-            if (Player.HPMP.CurMP <= 7000)
+            if (MP <= Player.HPMP.MaxMP * 0.7f)
                 PushOGCD(AID.LucidDreaming, Player);
         }
 

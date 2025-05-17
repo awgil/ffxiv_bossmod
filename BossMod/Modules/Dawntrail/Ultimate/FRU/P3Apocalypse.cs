@@ -120,7 +120,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.SpellInWaitingDarkWater && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.SpellInWaitingDarkWater && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             States[slot].Expiration = status.ExpireAt;
             States[slot].Order = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds switch

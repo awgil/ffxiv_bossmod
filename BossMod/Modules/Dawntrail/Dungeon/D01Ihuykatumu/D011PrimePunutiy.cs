@@ -53,7 +53,7 @@ public enum TetherID : uint
 }
 
 class PunutiyFlop(BossModule module) : Components.RaidwideCast(module, AID.PunutiyPress);
-class Hydrowave(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrowave, new AOEShapeCone(60, 15.Degrees()));
+class Hydrowave(BossModule module) : Components.StandardAOEs(module, AID.Hydrowave, new AOEShapeCone(60, 15.Degrees()));
 
 class Resurface(BossModule module) : Components.GenericAOEs(module)
 {
@@ -108,7 +108,7 @@ class Bury(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Decay(BossModule module) : Components.SelfTargetedAOEs(module, AID.Decay, new AOEShapeDonut(5, 40))
+class Decay(BossModule module) : Components.StandardAOEs(module, AID.Decay, new AOEShapeDonut(5, 40))
 {
     private readonly IReadOnlyList<Actor> _flytrap = module.Enemies(OID.IhuykatumuFlytrap);
 

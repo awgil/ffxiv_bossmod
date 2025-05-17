@@ -1,46 +1,31 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
-class Tiles : BossComponent
+class Voidzone(BossModule module) : Components.GenericAOEs(module)
+{
+    private DateTime NextActivation;
+
+    public override void OnEventEnvControl(byte index, uint state)
+    {
+        if (index == 1 && state == 0x00020001)
+            NextActivation = WorldState.CurrentTime;
+        if (index == 1 && state == 0x00080004)
+            NextActivation = default;
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (NextActivation != default)
+            yield return new AOEInstance(new AOEShapeCircle(2), Arena.Center, Activation: NextActivation);
+    }
+}
+
+class Tiles(BossModule module) : BossComponent(module)
 {
     public BitMask Mask;
 
     public bool ShouldDraw;
 
     public bool this[int index] => Mask[index];
-
-    public Tiles(BossModule module) : base(module)
-    {
-#if DEBUG
-        WorldState.Network.ServerIPCReceived.Subscribe(OnIPCReceived);
-    }
-
-    private unsafe void OnIPCReceived(NetworkState.OpServerIPC packet)
-    {
-        switch (packet.Packet.ID)
-        {
-            case Network.ServerIPC.PacketID.EnvControl4:
-                fixed (byte* payload = packet.Packet.Payload)
-                    for (var i = 0; i < *payload; i++)
-                        ApplyMapEffect(payload[i + 18], *(ushort*)(payload + 2 * i + 10), *(ushort*)(payload + 2 * i + 2));
-                break;
-            case Network.ServerIPC.PacketID.EnvControl8:
-                fixed (byte* payload = packet.Packet.Payload)
-                    for (var i = 0; i < *payload; i++)
-                        ApplyMapEffect(payload[i + 34], *(ushort*)(payload + 2 * i + 18), *(ushort*)(payload + 2 * i + 2));
-                break;
-            case Network.ServerIPC.PacketID.EnvControl12:
-                fixed (byte* payload = packet.Packet.Payload)
-                    for (var i = 0; i < *payload; i++)
-                        ApplyMapEffect(payload[i + 50], *(ushort*)(payload + 2 * i + 26), *(ushort*)(payload + 2 * i + 2));
-                break;
-        }
-    }
-
-    private void ApplyMapEffect(byte index, ushort s1, ushort s2)
-    {
-        OnEventEnvControl(index, s1 | ((uint)s2 << 16));
-#endif
-    }
 
     public override void OnEventEnvControl(byte index, uint state)
     {
@@ -111,7 +96,7 @@ class Tiles : BossComponent
         return mask;
     }
 
-    private static IEnumerable<int> Edges(int tile)
+    public static IEnumerable<int> Edges(int tile)
     {
         switch (tile)
         {
@@ -144,3 +129,80 @@ class Tiles : BossComponent
     }
 }
 
+abstract class Emblazon(BossModule module) : Components.CastCounter(module, AID.Emblazon)
+{
+    public BitMask Baiters;
+    public DateTime Activation { get; private set; }
+    protected readonly Tiles _tiles = module.FindComponent<Tiles>()!;
+
+    protected bool DrawTiles = true;
+
+    protected IEnumerable<Actor> OtherBaits(Actor actor) => Raid.WithSlot().IncludedInMask(Baiters).Exclude(actor).Select(p => p.Item2);
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.Rose)
+        {
+            Baiters.Set(Raid.FindSlot(actor.InstanceID));
+            Activation = WorldState.FutureTime(6.7f);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            DrawTiles = false;
+            Baiters.Clear(Raid.FindSlot(spell.MainTargetID));
+            if (!Baiters.Any())
+                Activation = default;
+        }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var (slot, player) in Raid.WithSlot().IncludedInMask(Baiters))
+        {
+            var tile = Tiles.GetTile(player);
+            if (slot == pcSlot)
+                Tiles.DrawTile(Arena, tile, ArenaColor.Danger);
+            else
+                Tiles.ZoneTile(Arena, tile, ArenaColor.AOE);
+        }
+
+        if (DrawTiles)
+            Tiles.ZoneTiles(Arena, _tiles.Mask, ArenaColor.AOE);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Baiters[slot])
+        {
+            var tile = Tiles.GetTile(actor);
+
+            if (_tiles[tile])
+                hints.Add("GTFO from tile!");
+
+            if (OtherBaits(actor).Any(p => Tiles.GetTile(p) == tile))
+                hints.Add("GTFO from spreads!");
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Baiters[slot])
+        {
+            hints.AddForbiddenZone(_tiles.TileShape(), Activation);
+
+            foreach (var b in OtherBaits(actor))
+            {
+                var t = Tiles.GetTile(b);
+                hints.AddForbiddenZone(p => Tiles.GetTile(p) == t, Activation);
+            }
+        }
+
+        if (Baiters.Any())
+            hints.PredictedDamage.Add((Baiters, Activation));
+    }
+}

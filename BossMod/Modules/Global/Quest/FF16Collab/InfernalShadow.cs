@@ -31,8 +31,8 @@ class SpreadingFire(BossModule module) : Components.ConcentricAOEs(module, _shap
     }
 }
 
-class SmolderingClaw(BossModule module) : Components.SelfTargetedAOEs(module, AID.SmolderingClawReal, new AOEShapeCone(40, 75.Degrees()));
-class TailStrike(BossModule module) : Components.SelfTargetedAOEs(module, AID.TailStrikeReal, new AOEShapeCone(40, 75.Degrees()));
+class SmolderingClaw(BossModule module) : Components.StandardAOEs(module, AID.SmolderingClawReal, new AOEShapeCone(40, 75.Degrees()));
+class TailStrike(BossModule module) : Components.StandardAOEs(module, AID.TailStrikeReal, new AOEShapeCone(40, 75.Degrees()));
 
 class FireRampageCleave(BossModule module) : Components.GenericAOEs(module)
 {
@@ -65,10 +65,10 @@ class FireRampageCleave(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FieryRampageCircle(BossModule module) : Components.SelfTargetedAOEs(module, AID.FieryRampageCircleReal, new AOEShapeCircle(16));
+class FieryRampageCircle(BossModule module) : Components.StandardAOEs(module, AID.FieryRampageCircleReal, new AOEShapeCircle(16));
 class FieryRampageRaidwide(BossModule module) : Components.RaidwideCast(module, AID.FieryRampageRaidwideReal, "Time your dodge correctly");
-class PyrosaultReal(BossModule module) : Components.SelfTargetedAOEs(module, AID.PyrosaultReal, new AOEShapeCircle(10));
-class Fireball(BossModule module) : Components.LocationTargetedAOEs(module, AID.FireballReal, 6);
+class PyrosaultReal(BossModule module) : Components.StandardAOEs(module, AID.PyrosaultReal, new AOEShapeCircle(10));
+class Fireball(BossModule module) : Components.StandardAOEs(module, AID.FireballReal, 6);
 class CrimsonRush(BossModule module) : Components.ChargeAOEs(module, AID.CrimsonRushReal, 10);
 
 class CrimsonStreak(BossModule module) : Components.GenericAOEs(module)
@@ -99,7 +99,7 @@ class CrimsonStreak(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.EruptionReal, 8);
+class Eruption(BossModule module) : Components.StandardAOEs(module, AID.EruptionReal, 8);
 
 class Eruption2(BossModule module) : Components.GenericAOEs(module)
 {

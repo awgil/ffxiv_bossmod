@@ -19,13 +19,13 @@ public enum AID : uint
     Towerfall = 15512, // 233C->self, 3.0s cast, range 15 30-degree cone
 }
 
-class Towerfall(BossModule module) : Components.SelfTargetedAOEs(module, AID.Towerfall, new AOEShapeCone(15, 15.Degrees()));
+class Towerfall(BossModule module) : Components.StandardAOEs(module, AID.Towerfall, new AOEShapeCone(15, 15.Degrees()));
 class Soundwave(BossModule module) : Components.RaidwideCast(module, AID.Soundwave, "Raidwide + towers fall");
 class Subsonics(BossModule module) : Components.RaidwideCast(module, AID.Subsonics, "Raidwide x11");
 class RipperFang(BossModule module) : Components.SingleTargetDelayableCast(module, AID.RipperFang);
-class FallingBoulder(BossModule module) : Components.SelfTargetedAOEs(module, AID.FallingBoulder, new AOEShapeCircle(4));
-class FallingRock(BossModule module) : Components.SelfTargetedAOEs(module, AID.FallingRock, new AOEShapeCircle(3));
-class FallingRock2(BossModule module) : Components.SelfTargetedAOEs(module, AID.FallingRock2, new AOEShapeCircle(2));
+class FallingBoulder(BossModule module) : Components.StandardAOEs(module, AID.FallingBoulder, new AOEShapeCircle(4));
+class FallingRock(BossModule module) : Components.StandardAOEs(module, AID.FallingRock, new AOEShapeCircle(3));
+class FallingRock2(BossModule module) : Components.StandardAOEs(module, AID.FallingRock2, new AOEShapeCircle(2));
 
 class D032BatsquatchStates : StateMachineBuilder
 {

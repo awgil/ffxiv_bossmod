@@ -50,8 +50,8 @@ public enum IconID : uint
 }
 
 class Electrowave(BossModule module) : Components.RaidwideCast(module, AID.Electrowave);
-class HomingCannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.HomingCannon, new AOEShapeRect(50, 1));
-class Shock(BossModule module) : Components.LocationTargetedAOEs(module, AID.Shock, 3);
+class HomingCannon(BossModule module) : Components.StandardAOEs(module, AID.HomingCannon, new AOEShapeRect(50, 1));
+class Shock(BossModule module) : Components.StandardAOEs(module, AID.Shock, 3);
 
 class FulminousFence(BossModule module) : BossComponent(module)
 {
@@ -119,9 +119,9 @@ class FulminousFence(BossModule module) : BossComponent(module)
     private WPos ConvertEndpoint(WDir p) => new(Module.Center.X + p.X, Module.Center.Z + p.Z * _curPatternZMult);
 }
 
-class ElectrowhirlFirst(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectrowhirlFirst, new AOEShapeCircle(6));
-class ElectrowhirlRest(BossModule module) : Components.SelfTargetedAOEs(module, AID.ElectrowhirlRest, new AOEShapeCircle(6));
-class Bombardment(BossModule module) : Components.LocationTargetedAOEs(module, AID.Bombardment, 5);
+class ElectrowhirlFirst(BossModule module) : Components.StandardAOEs(module, AID.ElectrowhirlFirst, new AOEShapeCircle(6));
+class ElectrowhirlRest(BossModule module) : Components.StandardAOEs(module, AID.ElectrowhirlRest, new AOEShapeCircle(6));
+class Bombardment(BossModule module) : Components.StandardAOEs(module, AID.Bombardment, 5);
 
 // note: never seen ccw rotation, assume it's not possible
 class BatteryCircuit(BossModule module) : Components.GenericRotatingAOE(module)
@@ -155,18 +155,18 @@ class MotionSensor(BossModule module) : Components.StayMove(module, 3)
 {
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
+        if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2)
+            SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = default;
+        if ((SID)status.ID is SID.AccelerationBomb1 or SID.AccelerationBomb2)
+            ClearState(Raid.FindSlot(actor.InstanceID));
     }
 }
 
-class BlastCannon(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlastCannon, new AOEShapeRect(26, 2))
+class BlastCannon(BossModule module) : Components.StandardAOEs(module, AID.BlastCannon, new AOEShapeRect(26, 2))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

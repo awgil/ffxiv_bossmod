@@ -23,19 +23,19 @@ public enum AID : uint
     SBloodyCaress = 31095, // SSapria->self, 3.0s cast, range 12 120-degree cone
 }
 
-class HoneyedLeft(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(30, 90.Degrees()));
+class HoneyedLeft(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(30, 90.Degrees()));
 class NHoneyedLeft(BossModule module) : HoneyedLeft(module, AID.NHoneyedLeft);
 class SHoneyedLeft(BossModule module) : HoneyedLeft(module, AID.SHoneyedLeft);
 
-class HoneyedRight(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(30, 90.Degrees()));
+class HoneyedRight(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(30, 90.Degrees()));
 class NHoneyedRight(BossModule module) : HoneyedRight(module, AID.NHoneyedRight);
 class SHoneyedRight(BossModule module) : HoneyedRight(module, AID.SHoneyedRight);
 
-class HoneyedFront(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(30, 60.Degrees()));
+class HoneyedFront(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(30, 60.Degrees()));
 class NHoneyedFront(BossModule module) : HoneyedFront(module, AID.NHoneyedFront);
 class SHoneyedFront(BossModule module) : HoneyedFront(module, AID.SHoneyedFront);
 
-class BloodyCaress(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(12, 60.Degrees()));
+class BloodyCaress(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(12, 60.Degrees()));
 class NBloodyCaress(BossModule module) : BloodyCaress(module, AID.NBloodyCaress);
 class SBloodyCaress(BossModule module) : BloodyCaress(module, AID.SBloodyCaress);
 

@@ -21,7 +21,7 @@ public enum SID : uint
     Haste = 8, // Boss->Boss, extra=0x0
 }
 
-class DiffractiveLaser(BossModule module) : Components.LocationTargetedAOEs(module, AID.DiffractiveLaser, 5);
+class DiffractiveLaser(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser, 5);
 class MagitekFlamehook(BossModule module) : Components.RaidwideCast(module, AID.MagitekFlamehook, "Raidwide + Pyretic");
 class Launcher(BossModule module) : Components.RaidwideCast(module, AID.Launcher, "Raidwide (%HP based)");
 

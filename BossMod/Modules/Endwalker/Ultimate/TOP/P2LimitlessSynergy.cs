@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-class P2OptimizedSagittariusArrow(BossModule module) : Components.SelfTargetedAOEs(module, AID.OptimizedSagittariusArrow, new AOEShapeRect(100, 5));
+class P2OptimizedSagittariusArrow(BossModule module) : Components.StandardAOEs(module, AID.OptimizedSagittariusArrow, new AOEShapeRect(100, 5));
 
 class P2OptimizedBladedance : Components.BaitAwayTethers
 {
@@ -84,9 +84,7 @@ class P2OptimizedPassageOfArms(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var e = hints.FindEnemy(_invincible);
-        if (e != null)
-            e.Priority = AIHints.Enemy.PriorityInvincible;
+        hints.SetPriority(_invincible, AIHints.Enemy.PriorityInvincible);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

@@ -54,15 +54,15 @@ class GrimEmbraceBait(BossModule module) : Components.GenericBaitAway(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.DeadlyEmbrace && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _states.Length)
+        if ((SID)status.ID == SID.DeadlyEmbrace && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot < _states.Length)
             _states[slot].Activation = status.ExpireAt;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.DeadlyEmbrace && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _states.Length)
+        if ((SID)status.ID == SID.DeadlyEmbrace && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot < _states.Length)
             _states[slot] = default;
     }
 }
 
-class GrimEmbraceAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.GrimEmbraceAOE, new AOEShapeRect(8, 4));
+class GrimEmbraceAOE(BossModule module) : Components.StandardAOEs(module, AID.GrimEmbraceAOE, new AOEShapeRect(8, 4));

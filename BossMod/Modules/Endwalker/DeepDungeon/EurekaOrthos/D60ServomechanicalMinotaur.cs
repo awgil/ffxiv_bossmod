@@ -25,8 +25,8 @@ public enum AID : uint
     OctupleSwipeTelegraph = 31867, // Helper->self, 1.0s cast, range 40 ?-degree cone // Displays the order of the aoe's going off
 }
 
-class BullishSwing(BossModule module) : Components.SelfTargetedAOEs(module, AID.BullishSwing, new AOEShapeCircle(13));
-class BullishSwipeSingle(BossModule module) : Components.SelfTargetedAOEs(module, AID.BullishSwipeSingle, new AOEShapeCone(40, 45.Degrees()));
+class BullishSwing(BossModule module) : Components.StandardAOEs(module, AID.BullishSwing, new AOEShapeCircle(13));
+class BullishSwipeSingle(BossModule module) : Components.StandardAOEs(module, AID.BullishSwipeSingle, new AOEShapeCone(40, 45.Degrees()));
 class DisorientingGroan(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DisorientingGroan, 15, true);
 class Shock(BossModule module) : Components.GenericAOEs(module)
 {

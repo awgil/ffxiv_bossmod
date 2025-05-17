@@ -36,7 +36,7 @@ class VisceralWhirl(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class MiasmicBlast(BossModule module) : Components.SelfTargetedAOEs(module, AID.MiasmicBlast, new AOEShapeCross(60, 5));
+class MiasmicBlast(BossModule module) : Components.StandardAOEs(module, AID.MiasmicBlast, new AOEShapeCross(60, 5));
 
 class VoidBio(BossModule module) : Components.GenericAOEs(module)
 {
@@ -71,9 +71,7 @@ class BondsOfDarkness(BossModule module) : BossComponent(module)
     {
         if (tether.ID == (uint)TetherID.BondsOfDarkness)
         {
-            var slot1 = Raid.FindSlot(source.InstanceID);
-            var slot2 = Raid.FindSlot(tether.Target);
-            if (slot1 >= 0 && slot2 >= 0)
+            if (Raid.TryFindSlot(source.InstanceID, out var slot1) && Raid.TryFindSlot(tether.Target, out var slot2))
             {
                 ++NumTethers;
                 _partners[slot1] = slot2;
@@ -86,9 +84,7 @@ class BondsOfDarkness(BossModule module) : BossComponent(module)
     {
         if (tether.ID == (uint)TetherID.BondsOfDarkness)
         {
-            var slot1 = Raid.FindSlot(source.InstanceID);
-            var slot2 = Raid.FindSlot(tether.Target);
-            if (slot1 >= 0 && slot2 >= 0)
+            if (Raid.TryFindSlot(source.InstanceID, out var slot1) && Raid.TryFindSlot(tether.Target, out var slot2))
             {
                 --NumTethers;
                 _partners[slot1] = -1;

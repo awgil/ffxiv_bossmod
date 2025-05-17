@@ -10,8 +10,8 @@ public class TrackPartyHealth(WorldState World)
         public float AttackerStrength;
         // predicted ratio including pending HP loss and current attacker strength
         public float PredictedHPRatio;
-        // *actual* ratio including pending HP loss, used mainly just for essential dignity
-        public float PendingHPRatio;
+        // current ratio execluding pending HP loss
+        public float CurrentHPRatio;
         // remaining time on cleansable status, to avoid casting it on a target that will lose the status by the time we finish
         public float EsunableStatusRemaining;
         // tank invulns go here, but also statuses like Excog that give burst heal below a certain HP threshold
@@ -26,10 +26,13 @@ public class TrackPartyHealth(WorldState World)
 
     public record PartyHealthState
     {
-        public int LowestHPSlot;
+        public int LowestHPSlotCurrent;
+        public int LowestHPSlotPredicted;
         public int Count;
-        public float Avg;
-        public float StdDev;
+        public float AvgCurrent;
+        public float StdDevCurrent;
+        public float AvgPredicted;
+        public float StdDevPredicted;
     }
 
     public const float AOEBreakpointHPVariance = 0.25f;
@@ -66,13 +69,18 @@ public class TrackPartyHealth(WorldState World)
     private PartyHealthState CalculatePartyHealthState(Func<Actor, bool> filter)
     {
         int count = 0;
-        float mean = 0;
-        float m2 = 0;
-        float min = float.MaxValue;
-        int minSlot = -1;
+        float meanPred = 0;
+        float meanPred2 = 0;
+        float minPred = float.MaxValue;
+        int minSlotPred = -1;
+        float meanCur = 0;
+        float meanCur2 = 0;
+        float minCur = float.MaxValue;
+        int minSlotCur = -1;
 
-        foreach (var p in PartyMemberStates)
+        foreach (var slot in _trackedActors.SetBits())
         {
+            var p = PartyMemberStates[slot];
             var act = World.Party[p.Slot];
             if (act == null || !filter(act))
                 continue;
@@ -85,38 +93,61 @@ public class TrackPartyHealth(WorldState World)
             if (act.PendingHPDifferences.Any(p => -p.Value >= act.HPMP.MaxHP))
                 continue;
 
-            var pred = p.DoomRemaining > 0 ? 0 : p.PredictedHPRatio;
-            if (pred < min)
-            {
-                min = pred;
-                minSlot = p.Slot;
-            }
             count++;
-            var delta = pred - mean;
-            mean += delta / count;
-            var delta2 = pred - mean;
-            m2 += delta * delta2;
+
+            var valCurrent = p.DoomRemaining > 0 ? 0.01f : p.CurrentHPRatio;
+            if (valCurrent < minCur)
+            {
+                minCur = valCurrent;
+                minSlotCur = p.Slot;
+            }
+            var deltaCur = valCurrent - meanCur;
+            meanCur += deltaCur / count;
+            var deltaCur2 = valCurrent - meanCur;
+            meanCur2 += deltaCur * deltaCur2;
+
+            var valPredicted = p.PredictedHPRatio;
+            if (valPredicted < minPred)
+            {
+                minPred = valPredicted;
+                minSlotPred = p.Slot;
+            }
+            var deltaPred = valPredicted - meanPred;
+            meanPred += deltaPred / count;
+            var deltaPred2 = valPredicted - meanPred;
+            meanPred2 += deltaPred * deltaPred2;
         }
 
-        var variance = m2 / count;
+        var variancePred = meanPred2 / count;
+        var varianceCur = meanCur2 / count;
         return new PartyHealthState()
         {
-            LowestHPSlot = minSlot,
-            Avg = mean,
-            StdDev = MathF.Sqrt(variance),
+            LowestHPSlotCurrent = minSlotCur,
+            LowestHPSlotPredicted = minSlotPred,
+            AvgCurrent = meanCur,
+            AvgPredicted = meanPred,
+            StdDevCurrent = MathF.Sqrt(varianceCur),
+            StdDevPredicted = MathF.Sqrt(variancePred),
             Count = count
         };
     }
 
     private PartyHealthState CalcPartyHealthInArea(WPos center, float radius) => CalculatePartyHealthState(act => act.Position.InCircle(center, radius));
 
-    public (Actor Target, PartyMemberState State)? BestSTHealTarget => PartyHealth.StdDev > AOEBreakpointHPVariance || PartyHealth.Count == 1 ? (World.Party[PartyHealth.LowestHPSlot]!, PartyMemberStates[PartyHealth.LowestHPSlot]) : null;
+    public (Actor Target, PartyMemberState State)? BestSTHealTarget => PartyHealth.StdDevCurrent > AOEBreakpointHPVariance || PartyHealth.Count == 1 ? (World.Party[PartyHealth.LowestHPSlotCurrent]!, PartyMemberStates[PartyHealth.LowestHPSlotCurrent]) : null;
+
+    public (Actor Target, PartyMemberState State)? BestSTHealTargetPredicted => PartyHealth.StdDevPredicted > AOEBreakpointHPVariance || PartyHealth.Count == 1 ? (World.Party[PartyHealth.LowestHPSlotPredicted]!, PartyMemberStates[PartyHealth.LowestHPSlotPredicted]) : null;
 
     public bool ShouldHealInArea(WPos center, float radius, float hpThreshold)
     {
         var st = CalcPartyHealthInArea(center, radius);
-        // Service.Log($"party health in radius {radius}: {st}");
-        return st.Count > 1 && st.StdDev <= AOEBreakpointHPVariance && st.Avg <= hpThreshold;
+        return st.Count > 1 && st.StdDevCurrent <= AOEBreakpointHPVariance && st.AvgCurrent <= hpThreshold;
+    }
+
+    public bool PredictShouldHealInArea(WPos center, float radius, float hpThreshold)
+    {
+        var st = CalcPartyHealthInArea(center, radius);
+        return st.Count > 1 && st.StdDevPredicted <= AOEBreakpointHPVariance && st.AvgPredicted <= hpThreshold;
     }
 
     public void Update(AIHints Hints)
@@ -145,49 +176,52 @@ public class TrackPartyHealth(WorldState World)
             }
 
             var actor = World.Party[i];
-            ref var state = ref PartyMemberStates[i];
-            state.Slot = i;
+            _haveRealPartyMembers |= actor?.Type == ActorType.Player;
+
             if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || actor.FateID > 0 || shouldSkip)
             {
-                state.PredictedHP = state.PredictedHPMissing = 0;
-                state.PredictedHPRatio = state.PendingHPRatio = 1;
+                PartyMemberStates[i] = new() { Slot = i };
+                continue;
             }
+
+            _trackedActors[i] = true;
+
+            ref var state = ref PartyMemberStates[i];
+            state.Slot = i;
+            state.PredictedHP = actor.PendingHPRaw;
+            state.PredictedHPMissing = (int)actor.HPMP.MaxHP - actor.PendingHPRaw;
+            state.PredictedHPRatio = actor.PendingHPRatio;
+            // include pending heals, but not pending damage - used for stuff like essential dignity, where the actor's actual HP ratio is important
+            state.CurrentHPRatio = MathF.Max(actor.HPRatio, actor.PendingHPRatio);
+            state.AttackerStrength = 0;
+            state.EsunableStatusRemaining = 0;
+            state.DoomRemaining = 0;
+            state.NoHealStatusRemaining = 0;
+            var canEsuna = actor.IsTargetable && !esunas[i];
+            foreach (var s in actor.Statuses)
+            {
+                if (canEsuna && StatusIsRemovable(s.ID))
+                    state.EsunableStatusRemaining = Math.Max(StatusDuration(s.ExpireAt), state.EsunableStatusRemaining);
+
+                if (NoHealStatuses.Contains(s.ID))
+                    state.NoHealStatusRemaining = StatusDuration(s.ExpireAt);
+
+                if (s.ID == 1769)
+                    state.DoomRemaining = StatusDuration(s.ExpireAt);
+            }
+
+            if (actor.InCombat)
+                state.LastCombat = World.CurrentTime;
+
+            var pos = actor.Position.ToVec2();
+            if (state.AveragePosition == default)
+                state.AveragePosition = pos;
             else
             {
-                _trackedActors[i] = true;
-                state.PredictedHP = actor.PredictedHPRaw;
-                state.PredictedHPMissing = (int)actor.HPMP.MaxHP - state.PredictedHP;
-                state.PredictedHPRatio = state.PendingHPRatio = (float)state.PredictedHP / actor.HPMP.MaxHP;
-                state.AttackerStrength = 0;
-                state.EsunableStatusRemaining = 0;
-                state.DoomRemaining = 0;
-                state.NoHealStatusRemaining = 0;
-                var canEsuna = actor.IsTargetable && !esunas[i];
-                foreach (var s in actor.Statuses)
-                {
-                    if (canEsuna && StatusIsRemovable(s.ID))
-                        state.EsunableStatusRemaining = Math.Max(StatusDuration(s.ExpireAt), state.EsunableStatusRemaining);
-
-                    if (NoHealStatuses.Contains(s.ID))
-                        state.NoHealStatusRemaining = StatusDuration(s.ExpireAt);
-
-                    if (s.ID == 1769)
-                        state.DoomRemaining = StatusDuration(s.ExpireAt);
-                }
-
-                if (actor.InCombat)
-                    state.LastCombat = World.CurrentTime;
-
-                var pos = actor.Position.ToVec2();
-                if (state.AveragePosition == default)
-                    state.AveragePosition = pos;
-                else
-                {
-                    state.AveragePosition -= state.AveragePosition * World.Frame.Duration;
-                    state.AveragePosition += pos * World.Frame.Duration;
-                }
-                state.MoveDelta = (state.AveragePosition - pos).Length();
+                state.AveragePosition -= state.AveragePosition * World.Frame.Duration;
+                state.AveragePosition += pos * World.Frame.Duration;
             }
+            state.MoveDelta = (state.AveragePosition - pos).Length();
         }
 
         foreach (var enemy in Hints.PotentialTargets)

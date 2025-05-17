@@ -12,9 +12,9 @@ class P2SwellingFrost(BossModule module) : Components.Knockback(module, AID.Swel
     }
 }
 
-class P2SinboundBlizzard(BossModule module) : Components.SelfTargetedAOEs(module, AID.SinboundBlizzardAOE, new AOEShapeCone(50, 10.Degrees()));
+class P2SinboundBlizzard(BossModule module) : Components.StandardAOEs(module, AID.SinboundBlizzardAOE, new AOEShapeCone(50, 10.Degrees()));
 
-class P2HiemalStorm(BossModule module) : Components.LocationTargetedAOEs(module, AID.HiemalStormAOE, 7)
+class P2HiemalStorm(BossModule module) : Components.StandardAOEs(module, AID.HiemalStormAOE, 7)
 {
     private bool _slowDodges;
 

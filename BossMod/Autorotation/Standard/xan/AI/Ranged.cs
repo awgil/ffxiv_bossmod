@@ -25,7 +25,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
         }
 
         // second wind
-        if (strategy.Enabled(Track.SecondWind) && Player.InCombat && Player.PredictedHPRatio <= 0.5)
+        if (strategy.Enabled(Track.SecondWind) && Player.InCombat && Player.PendingHPRatio <= 0.5)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SecondWind), Player, ActionQueue.Priority.Medium);
 
         ExecLB(strategy, primaryTarget);

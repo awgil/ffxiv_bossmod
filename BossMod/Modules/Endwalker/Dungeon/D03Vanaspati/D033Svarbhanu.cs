@@ -113,7 +113,7 @@ class ChaoticUndercurrent(BossModule module) : Components.GenericAOEs(module)
 }
 
 class CosmicKissSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.CosmicKissSpread, 6);
-class CosmicKissCircle(BossModule module) : Components.LocationTargetedAOEs(module, AID.CosmicKissCircle, 6);
+class CosmicKissCircle(BossModule module) : Components.StandardAOEs(module, AID.CosmicKissCircle, 6);
 
 class CosmicKissRect(BossModule module) : Components.GenericAOEs(module)
 {

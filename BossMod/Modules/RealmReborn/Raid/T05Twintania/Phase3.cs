@@ -54,7 +54,7 @@ class P3Adds(BossModule module) : BossComponent(module)
             switch ((OID)e.Actor.OID)
             {
                 case OID.Hygieia:
-                    var predictedHP = e.Actor.PredictedHPRaw;
+                    var predictedHP = e.Actor.PendingHPRaw;
                     e.Priority = e.Actor.HPMP.CurHP == 1 ? 0
                         : killHygieia && e.Actor == nextHygieia ? 2
                         : predictedHP < 0.3f * e.Actor.HPMP.MaxHP ? -1
@@ -109,9 +109,7 @@ class P3AethericProfusion(BossModule module) : Components.CastCounter(module, AI
         }
 
         // let MT taunt boss if needed
-        var boss = hints.FindEnemy(Module.PrimaryActor);
-        if (boss != null)
-            boss.PreferProvoking = true;
+        hints.FindEnemy(Module.PrimaryActor)?.PreferProvoking = true;
 
         // mitigate heavy raidwide
         hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _activation));

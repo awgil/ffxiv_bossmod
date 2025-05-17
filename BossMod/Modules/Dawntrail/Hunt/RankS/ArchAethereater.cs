@@ -124,7 +124,7 @@ class FireBlizzardSoullessStream(BossModule module) : Components.GenericAOEs(mod
 }
 
 class Obliterate(BossModule module) : Components.StackWithCastTargets(module, AID.Obliterate, 6, 4);
-class Meltdown(BossModule module) : Components.SelfTargetedAOEs(module, AID.Meltdown, new AOEShapeRect(40, 5));
+class Meltdown(BossModule module) : Components.StandardAOEs(module, AID.Meltdown, new AOEShapeRect(40, 5));
 
 class ArchAethereaterStates : StateMachineBuilder
 {

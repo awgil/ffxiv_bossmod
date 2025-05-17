@@ -205,7 +205,7 @@ class LeapingEarthSpiral(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class CraterCarve(BossModule module) : Components.SelfTargetedAOEs(module, AID.CraterCarveAOE, new AOEShapeCircle(11))
+class CraterCarve(BossModule module) : Components.StandardAOEs(module, AID.CraterCarveAOE, new AOEShapeCircle(11))
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
@@ -215,7 +215,7 @@ class CraterCarve(BossModule module) : Components.SelfTargetedAOEs(module, AID.C
     }
 }
 
-class BeastlyRoar(BossModule module) : Components.LocationTargetedAOEs(module, AID.BeastlyRoar, 25, "GTFO from proximity marker!"); // TODO: verify falloff
+class BeastlyRoar(BossModule module) : Components.StandardAOEs(module, AID.BeastlyRoar, 25, warningText: "GTFO from proximity marker!"); // TODO: verify falloff
 
 class RockBlast(BossModule module) : Components.GenericAOEs(module, AID.RockBlast)
 {

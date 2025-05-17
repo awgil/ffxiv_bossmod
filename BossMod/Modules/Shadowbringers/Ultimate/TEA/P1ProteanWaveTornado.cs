@@ -24,6 +24,6 @@ class P1ProteanWaveTornado : Components.GenericBaitAway
     }
 }
 
-class P1ProteanWaveTornadoVisCast(BossModule module) : Components.SelfTargetedAOEs(module, AID.ProteanWaveTornadoVis, new AOEShapeCone(40, 15.Degrees()));
+class P1ProteanWaveTornadoVisCast(BossModule module) : Components.StandardAOEs(module, AID.ProteanWaveTornadoVis, new AOEShapeCone(40, 15.Degrees()));
 class P1ProteanWaveTornadoVisBait(BossModule module) : P1ProteanWaveTornado(module, false);
 class P1ProteanWaveTornadoInvis(BossModule module) : P1ProteanWaveTornado(module, true);

@@ -45,9 +45,9 @@ public enum IconID : uint
     Hailfire4 = 82, // player
 }
 
-class CrystallineFracture(BossModule module) : Components.SelfTargetedAOEs(module, AID.CrystallineFracture, new AOEShapeCircle(4));
-class ResonantFrequencyDim(BossModule module) : Components.SelfTargetedAOEs(module, AID.ResonantFrequencyDim, new AOEShapeCircle(6));
-class ResonantFrequencyCorrupted(BossModule module) : Components.SelfTargetedAOEs(module, AID.ResonantFrequencyCorrupted, new AOEShapeCircle(6));
+class CrystallineFracture(BossModule module) : Components.StandardAOEs(module, AID.CrystallineFracture, new AOEShapeCircle(4));
+class ResonantFrequencyDim(BossModule module) : Components.StandardAOEs(module, AID.ResonantFrequencyDim, new AOEShapeCircle(6));
+class ResonantFrequencyCorrupted(BossModule module) : Components.StandardAOEs(module, AID.ResonantFrequencyCorrupted, new AOEShapeCircle(6));
 
 class CrystallineStingers(BossModule module) : Components.CastLineOfSightAOE(module, AID.CrystallineStingers, 60, false)
 {
@@ -59,7 +59,7 @@ class AetherialStingers(BossModule module) : Components.CastLineOfSightAOE(modul
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.CorruptedCrystal).Where(a => !a.IsDead);
 }
 
-class Subduction(BossModule module) : Components.SelfTargetedAOEs(module, AID.Subduction, new AOEShapeCircle(8));
+class Subduction(BossModule module) : Components.StandardAOEs(module, AID.Subduction, new AOEShapeCircle(8));
 
 // next aoe starts casting slightly before previous, so use a custom component
 class Earthbreaker(BossModule module) : Components.GenericAOEs(module)

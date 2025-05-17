@@ -16,4 +16,4 @@ class RuinfallTower(BossModule module) : Components.GenericTowers(module, AID.Ru
 }
 
 class RuinfallKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.RuinfallKnockback, 25, kind: Kind.DirForward);
-class RuinfallAOE(BossModule module) : Components.LocationTargetedAOEs(module, AID.RuinfallAOE, 6);
+class RuinfallAOE(BossModule module) : Components.StandardAOEs(module, AID.RuinfallAOE, 6);

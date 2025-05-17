@@ -146,27 +146,19 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (source.OID == (uint)OID.Helper)
+        if (source.OID == (uint)OID.Helper && Raid.TryFindSlot(tether.Target, out var slot))
         {
-            var slot = Raid.FindSlot(tether.Target);
-            if (slot >= 0)
-            {
-                _playerTetherSource[slot] = source;
-                ++_activeTethers;
-            }
+            _playerTetherSource[slot] = source;
+            ++_activeTethers;
         }
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
-        if (source.OID == (uint)OID.Helper)
+        if (source.OID == (uint)OID.Helper && Raid.TryFindSlot(tether.Target, out var slot))
         {
-            var slot = Raid.FindSlot(tether.Target);
-            if (slot >= 0)
-            {
-                _playerTetherSource[slot] = null;
-                --_activeTethers;
-            }
+            _playerTetherSource[slot] = null;
+            --_activeTethers;
         }
     }
 
@@ -178,8 +170,7 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             _playerIcons[slot] = (IconID)iconID;
     }
 

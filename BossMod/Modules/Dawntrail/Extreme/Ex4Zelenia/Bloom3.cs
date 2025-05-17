@@ -1,20 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
-class Bloom3Emblazon(BossModule module) : Components.CastCounter(module, AID.Emblazon)
+class Bloom3Emblazon(BossModule module) : Emblazon(module)
 {
-    public BitMask Baiters;
     private BitMask TowerTiles;
-    private DateTime Activation;
-    private readonly Tiles Tiles = module.FindComponent<Tiles>()!;
-
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if ((IconID)iconID == IconID.Rose)
-        {
-            Baiters.Set(Raid.FindSlot(actor.InstanceID));
-            Activation = WorldState.FutureTime(6.7f);
-        }
-    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -22,63 +10,19 @@ class Bloom3Emblazon(BossModule module) : Components.CastCounter(module, AID.Emb
             TowerTiles.Set(Tiles.GetTile(spell.LocXZ));
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        base.OnEventCast(caster, spell);
-        if ((AID)spell.Action.ID == AID.Emblazon)
-        {
-            Baiters.Clear(Raid.FindSlot(spell.MainTargetID));
-            if (!Baiters.Any())
-                Activation = default;
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var (slot, player) in Raid.WithSlot().IncludedInMask(Baiters))
-        {
-            var tile = Tiles.GetTile(player);
-            if (slot == pcSlot)
-                Tiles.DrawTile(Arena, tile, ArenaColor.Danger);
-            else if (Baiters[pcSlot])
-                Tiles.ZoneTile(Arena, tile, ArenaColor.AOE);
-        }
-
-        if (Baiters[pcSlot])
-            Tiles.ZoneTiles(Arena, Tiles.Mask, ArenaColor.AOE);
-    }
-
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        // rose icons/spreads are harmless to non-baiting players
-        if (!Baiters[slot])
-            return;
-
-        var tile = Tiles.GetTile(actor);
-
-        if (Tiles[tile])
-            hints.Add("GTFO from tile!");
-        else if (DangerTile(tile))
+        base.AddHints(slot, actor, hints);
+        if (Baiters[slot] && DangerTile(Tiles.GetTile(actor)))
             hints.Add("Don't connect towers!");
-
-        if (OtherBaits(actor).Any(p => Tiles.GetTile(p) == tile))
-            hints.Add("GTFO from spreads!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (!Baiters[slot])
-            return;
+        base.AddAIHints(slot, actor, assignment, hints);
 
-        var tile = Tiles.GetTile(actor);
-
-        hints.AddForbiddenZone(p => DangerTile(Tiles.GetTile(p)), Activation);
-
-        foreach (var b in OtherBaits(actor))
-        {
-            var t = Tiles.GetTile(b);
-            hints.AddForbiddenZone(p => Tiles.GetTile(p) == t, Activation);
-        }
+        if (Baiters[slot])
+            hints.AddForbiddenZone(p => DangerTile(Tiles.GetTile(p)), Activation);
     }
 
     private bool DangerTile(int t)
@@ -87,66 +31,77 @@ class Bloom3Emblazon(BossModule module) : Components.CastCounter(module, AID.Emb
         var tilePrev = t is 0 or 8 ? t + 7 : t - 1;
 
         return t >= 8 // outer ring always unsafe
-            || Tiles[t] // active tiles always unsafe
-            || Tiles[t + 8] && Tiles[tileNext] != Tiles[tilePrev]; // inner "side tiles" always unsafe
+            || _tiles[t] // active tiles always unsafe
+            || _tiles[t + 8] && _tiles[tileNext] != _tiles[tilePrev]; // inner "side tiles" always unsafe
     }
-
-    private IEnumerable<Actor> OtherBaits(Actor actor) => Raid.WithSlot().IncludedInMask(Baiters).Exclude(actor).Select(p => p.Item2);
 }
 
-class Bloom3Explosion(BossModule module) : Components.CastCounter(module, AID.TileExplosion)
+class TileExplosion(BossModule module) : Components.CastCounter(module, AID.TileExplosion)
 {
-    private readonly Tiles Tiles = module.FindComponent<Tiles>()!;
+    private readonly Tiles _tiles = module.FindComponent<Tiles>()!;
 
-    private bool Active;
+    private bool _active;
 
-    private readonly List<Actor> Casters = [];
-    private readonly List<BitMask> Towers = [];
-    private BitMask ForbiddenSoakers;
+    private readonly List<Actor> _casters = [];
+    private readonly List<BitMask> _towers = [];
+    private BitMask _forbiddenSoakers;
 
-    private DateTime Activation => Casters.Count > 0 ? Module.CastFinishAt(Casters[0].CastInfo) : default;
+    private DateTime Activation => _casters.Count > 0 ? Module.CastFinishAt(_casters[0].CastInfo) : default;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID == AID.Emblazon)
-            Active = true;
+            _active = true;
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.Rose)
+            _forbiddenSoakers.Set(Raid.FindSlot(actor.InstanceID));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        if (Active)
-            Tiles.ZoneTiles(Arena, Tiles.Mask, ForbiddenSoakers[pcSlot] ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+        if (_active)
+            Tiles.ZoneTiles(Arena, _tiles.Mask, _forbiddenSoakers[pcSlot] ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var c in _casters)
+            Arena.AddCircle(c.Position, 1, _forbiddenSoakers[pcSlot] ? ArenaColor.Danger : ArenaColor.Safe, 2);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Casters.Count == 0 || !Active)
+        if (_casters.Count == 0 || !_active)
             return;
 
-        if (ForbiddenSoakers[slot])
+        if (_forbiddenSoakers[slot])
         {
-            if (Tiles.InActiveTile(actor))
+            if (_tiles.InActiveTile(actor))
                 hints.Add("GTFO from tile!");
         }
-        else if (Towers.FindIndex(t => t[Tiles.GetTile(actor)]) is var soaked && soaked >= 0)
+        else if (_towers.FindIndex(t => t[Tiles.GetTile(actor)]) is var soaked && soaked >= 0)
         {
-            var count = Raid.WithSlot().ExcludedFromMask(ForbiddenSoakers).Count(p => Towers[soaked][Tiles.GetTile(p.Item2)]);
+            var count = Raid.WithSlot().ExcludedFromMask(_forbiddenSoakers).Count(p => _towers[soaked][Tiles.GetTile(p.Item2)]);
             if (count > 1)
                 hints.Add("Too many people in tower!");
+            hints.Add("Soak a tower!", false);
         }
-        else if (!Tiles.InActiveTile(actor))
+        else if (!_tiles.InActiveTile(actor))
             hints.Add("Soak a tower!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Casters.Count == 0 || !Active)
+        if (_casters.Count == 0 || !_active)
             return;
 
-        var ts = Tiles.TileShape();
+        var ts = _tiles.TileShape();
 
-        hints.AddForbiddenZone(p => ForbiddenSoakers[slot] ? ts(p) : !ts(p), Activation);
+        hints.AddForbiddenZone(p => _forbiddenSoakers[slot] ? ts(p) : !ts(p), Activation);
 
         hints.PredictedDamage.Add((Raid.WithSlot().Where(r => ts(r.Item2.Position)).Mask(), Activation));
     }
@@ -154,31 +109,25 @@ class Bloom3Explosion(BossModule module) : Components.CastCounter(module, AID.Ti
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Casters.Add(caster);
+            _casters.Add(caster);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Casters.Remove(caster);
+            _casters.Remove(caster);
     }
 
     public override void OnEventEnvControl(byte index, uint state)
     {
-        if (!Active)
+        if (!_active)
             return;
 
         if (state == 0x00800040)
         {
-            Towers.Clear();
-            foreach (var c in Casters)
-                Towers.Add(Tiles.GetConnectedTiles(Tiles.GetTile(c.CastInfo!.LocXZ)));
+            _towers.Clear();
+            foreach (var c in _casters)
+                _towers.Add(_tiles.GetConnectedTiles(Tiles.GetTile(c.CastInfo!.LocXZ)));
         }
-    }
-
-    public override void OnStatusGain(Actor actor, ActorStatus status)
-    {
-        if ((SID)status.ID == SID.MagicVulnerabilityUp)
-            ForbiddenSoakers.Set(Raid.FindSlot(actor.InstanceID));
     }
 }

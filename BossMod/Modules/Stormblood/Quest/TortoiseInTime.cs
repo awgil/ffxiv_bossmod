@@ -19,9 +19,9 @@ public enum AID : uint
     Upwell = 11515, // 233B->self, 3.0s cast, range 37+R ?-degree cone
 }
 
-class Whitewater(BossModule module) : Components.SelfTargetedAOEs(module, AID.Whitewater1, new AOEShapeRect(40.5f, 3.5f));
-class Upwell(BossModule module) : Components.SelfTargetedAOEs(module, AID.Upwell, new AOEShapeCone(41, 15.Degrees()));
-class SpiritBurst(BossModule module) : Components.SelfTargetedAOEs(module, AID.SpiritBurst, new AOEShapeCircle(6));
+class Whitewater(BossModule module) : Components.StandardAOEs(module, AID.Whitewater1, new AOEShapeRect(40.5f, 3.5f));
+class Upwell(BossModule module) : Components.StandardAOEs(module, AID.Upwell, new AOEShapeCone(41, 15.Degrees()));
+class SpiritBurst(BossModule module) : Components.StandardAOEs(module, AID.SpiritBurst, new AOEShapeCircle(6));
 class WaterDrop(BossModule module) : Components.SpreadFromCastTargets(module, AID.WaterDrop, 6);
 
 class ExplosiveTataru(BossModule module) : BossComponent(module)
@@ -67,7 +67,7 @@ class ExplosiveTataru(BossModule module) : BossComponent(module)
     }
 }
 
-class Eddy(BossModule module) : Components.LocationTargetedAOEs(module, AID.Eddy1, 6);
+class Eddy(BossModule module) : Components.StandardAOEs(module, AID.Eddy1, 6);
 
 class ShieldHint(BossModule module) : BossComponent(module)
 {

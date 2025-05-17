@@ -122,6 +122,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ClientState.OpAnimationLockChange => false,
             ClientState.OpComboChange => false,
             ClientState.OpCooldown => false,
+            ClientState.OpHateChange => false,
             NetworkState.OpServerIPC => false,
             _ => true
         };

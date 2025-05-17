@@ -17,7 +17,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         CloseMove,
         Close,
         Move,
-        Any
+        Any,
+        Forbid
     }
 
     public static RotationModuleDefinition Definition()
@@ -34,7 +35,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             .AddOption(DashStrategy.CloseMove, "CloseMove", "Only use while close to target and not moving")
             .AddOption(DashStrategy.Close, "Close", "Only use while close to target")
             .AddOption(DashStrategy.Move, "Move", "Only use while not moving")
-            .AddOption(DashStrategy.Any, "Any", "Use ASAP");
+            .AddOption(DashStrategy.Any, "Any", "Use ASAP")
+            .AddOption(DashStrategy.Forbid, "Forbid", "Don't use at all");
 
         return def;
     }
@@ -239,7 +241,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (RaidBuffsLeft > GCD && Acceleration == 0)
             PushOGCD(AID.Acceleration, Player);
 
-        if (MP <= 7000)
+        if (MP <= Player.HPMP.MaxMP * 0.7f)
             PushOGCD(AID.LucidDreaming, Player);
     }
 

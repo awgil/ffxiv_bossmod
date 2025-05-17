@@ -51,8 +51,8 @@ public enum SID : uint
 class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, AID.CripplingBlow);
 class VirtuosicCapriccio(BossModule module) : Components.RaidwideCast(module, AID.VirtuosicCapriccio);
 class ImpChoir(BossModule module) : Components.CastGaze(module, AID.ImpChoir);
-class ToadChoir(BossModule module) : Components.SelfTargetedAOEs(module, AID.ToadChoir, new AOEShapeCone(19.5f, 75.Degrees()));
-class BileBombardment(BossModule module) : Components.LocationTargetedAOEs(module, AID.BileBombardment, 8);
+class ToadChoir(BossModule module) : Components.StandardAOEs(module, AID.ToadChoir, new AOEShapeCone(19.5f, 75.Degrees()));
+class BileBombardment(BossModule module) : Components.StandardAOEs(module, AID.BileBombardment, 8);
 
 internal class Bounds(BossModule module) : BossComponent(module)
 {

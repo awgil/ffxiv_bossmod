@@ -36,10 +36,10 @@ public enum IconID : uint
 }
 
 class ElectricalOverload(BossModule module) : Components.RaidwideCast(module, AID.ElectricalOverload);
-class LineVoltageNarrowLong(BossModule module) : Components.SelfTargetedAOEs(module, AID.LineVoltageNarrowLong, new AOEShapeRect(50, 2.5f), 9);
-class LineVoltageWideShort(BossModule module) : Components.SelfTargetedAOEs(module, AID.LineVoltageWideShort, new AOEShapeRect(50, 5));
-class LineVoltageWideLong(BossModule module) : Components.SelfTargetedAOEs(module, AID.LineVoltageWideLong, new AOEShapeRect(50, 5));
-class LineVoltageNarrowShort(BossModule module) : Components.SelfTargetedAOEs(module, AID.LineVoltageNarrowShort, new AOEShapeRect(50, 2.5f), 6);
+class LineVoltageNarrowLong(BossModule module) : Components.StandardAOEs(module, AID.LineVoltageNarrowLong, new AOEShapeRect(50, 2.5f), 9);
+class LineVoltageWideShort(BossModule module) : Components.StandardAOEs(module, AID.LineVoltageWideShort, new AOEShapeRect(50, 5));
+class LineVoltageWideLong(BossModule module) : Components.StandardAOEs(module, AID.LineVoltageWideLong, new AOEShapeRect(50, 5));
+class LineVoltageNarrowShort(BossModule module) : Components.StandardAOEs(module, AID.LineVoltageNarrowShort, new AOEShapeRect(50, 2.5f), 6);
 
 class CellShock(BossModule module) : Components.GenericAOEs(module, AID.CellShock)
 {
@@ -83,7 +83,7 @@ class LightningStorm(BossModule module) : Components.SpreadFromCastTargets(modul
 class SparkingFissureStart(BossModule module) : Components.RaidwideCast(module, AID.SparkingFissureStart);
 class SparkingFissureResolve(BossModule module) : Components.RaidwideCast(module, AID.SparkingFissureResolveAOE);
 class RawElectrope(BossModule module) : Components.Adds(module, (uint)OID.RawElectrope, 1);
-class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningBolt, 6);
+class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, 6);
 
 class D091LindblumZaghnalStates : StateMachineBuilder
 {

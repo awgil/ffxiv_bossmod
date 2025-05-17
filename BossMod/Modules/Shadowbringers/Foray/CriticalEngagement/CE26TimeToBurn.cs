@@ -131,7 +131,7 @@ class TimeEruptionBombReproduce(BossModule module) : Components.GenericAOEs(modu
     }
 }
 
-class Eruption(BossModule module) : Components.LocationTargetedAOEs(module, AID.Eruption, 8);
+class Eruption(BossModule module) : Components.StandardAOEs(module, AID.Eruption, 8);
 class FireTankbuster(BossModule module) : Components.SingleTargetCast(module, AID.FireTankbuster);
 class FireRaidwide(BossModule module) : Components.RaidwideCast(module, AID.FireRaidwide);
 

@@ -83,7 +83,7 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
             SID.OdderIncarnation3 => 3,
             _ => -1
         };
-        if (blueSlot >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (blueSlot >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _playerBlue[slot, blueSlot] = true;
     }
 
@@ -133,6 +133,6 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
     }
 }
 
-class FlickeringFlame(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeRect(46, 2.5f), 8);
+class FlickeringFlame(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(46, 2.5f), 8);
 class NFlickeringFlame(BossModule module) : FlickeringFlame(module, AID.NFireSpreadCross);
 class SFlickeringFlame(BossModule module) : FlickeringFlame(module, AID.SFireSpreadCross);

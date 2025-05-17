@@ -24,7 +24,7 @@ public enum IconID : uint
     Stackmarker = 62, // player
 }
 
-class RazorScales(BossModule module) : Components.SelfTargetedAOEs(module, AID.RazorScales, new AOEShapeCone(60, 30.Degrees()));
+class RazorScales(BossModule module) : Components.StandardAOEs(module, AID.RazorScales, new AOEShapeCone(60, 30.Degrees()));
 class PrimordialRoar(BossModule module) : Components.RaidwideCast(module, AID.PrimordialRoar);
 class MadDash(BossModule module) : Components.SpreadFromCastTargets(module, AID.MadDash, 6);
 class MadDashStack(BossModule module) : Components.StackWithCastTargets(module, AID.MadDashStack, 6, 2);

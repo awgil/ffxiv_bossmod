@@ -102,8 +102,8 @@ class DeadLeaves(BossModule module) : Components.GenericAOEs(module, default, "G
     };
 }
 
-class AnaphylacticShock(BossModule module) : Components.SelfTargetedAOEs(module, AID.AnaphylacticShock, new AOEShapeRect(30, 1));
-class SplashBomb(BossModule module) : Components.SelfTargetedAOEs(module, AID.SplashBombAOE, new AOEShapeCircle(6));
+class AnaphylacticShock(BossModule module) : Components.StandardAOEs(module, AID.AnaphylacticShock, new AOEShapeRect(30, 1));
+class SplashBomb(BossModule module) : Components.StandardAOEs(module, AID.SplashBombAOE, new AOEShapeCircle(6));
 class SplashGrenade(BossModule module) : Components.StackWithCastTargets(module, AID.SplashGrenadeAOE, 6);
 class PlayfulBreeze(BossModule module) : Components.RaidwideCast(module, AID.PlayfulBreeze);
 class Budbutt(BossModule module) : Components.SingleTargetCast(module, AID.Budbutt);

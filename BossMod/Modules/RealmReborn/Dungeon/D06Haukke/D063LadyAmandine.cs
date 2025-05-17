@@ -24,7 +24,7 @@ public enum AID : uint
     Stoneskin = 28641, // Handmaiden->Boss, 5.0s cast, buff target
 }
 
-class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkMist, new AOEShapeCircle(9));
+class DarkMist(BossModule module) : Components.StandardAOEs(module, AID.DarkMist, new AOEShapeCircle(9));
 class BeguilingMist(BossModule module) : Components.CastHint(module, AID.BeguilingMist, "Forced movement towards boss");
 class VoidThunder(BossModule module) : Components.SingleTargetCast(module, AID.VoidThunder3, "Interruptible tankbuster");
 class PetrifyingEye(BossModule module) : Components.CastGaze(module, AID.PetrifyingEye);

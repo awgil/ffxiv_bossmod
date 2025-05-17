@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C021Shishio;
 
-class LightningBolt(BossModule module, AID aid) : Components.LocationTargetedAOEs(module, aid, 6);
+class LightningBolt(BossModule module, AID aid) : Components.StandardAOEs(module, aid, 6);
 class NLightningBolt(BossModule module) : LightningBolt(module, AID.NLightningBoltAOE);
 class SLightningBolt(BossModule module) : LightningBolt(module, AID.SLightningBoltAOE);
 

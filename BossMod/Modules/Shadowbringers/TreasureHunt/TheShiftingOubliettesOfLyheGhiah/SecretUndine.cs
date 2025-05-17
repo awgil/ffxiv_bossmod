@@ -28,15 +28,15 @@ public enum AID : uint
     Scoop = 21768, // 3034->self, 4.0s cast, range 15 120-degree cone
 }
 
-class Hydrofan(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrofan, new AOEShapeCone(44, 15.Degrees()));
-class Hypnowave(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hypnowave, new AOEShapeCone(30, 60.Degrees()));
-class Hydropins(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydropins, new AOEShapeRect(12, 2));
-class AquaGlobe(BossModule module) : Components.LocationTargetedAOEs(module, AID.AquaGlobe, 8);
-class Hydrowhirl(BossModule module) : Components.SelfTargetedAOEs(module, AID.Hydrowhirl, new AOEShapeCircle(8));
+class Hydrofan(BossModule module) : Components.StandardAOEs(module, AID.Hydrofan, new AOEShapeCone(44, 15.Degrees()));
+class Hypnowave(BossModule module) : Components.StandardAOEs(module, AID.Hypnowave, new AOEShapeCone(30, 60.Degrees()));
+class Hydropins(BossModule module) : Components.StandardAOEs(module, AID.Hydropins, new AOEShapeRect(12, 2));
+class AquaGlobe(BossModule module) : Components.StandardAOEs(module, AID.AquaGlobe, 8);
+class Hydrowhirl(BossModule module) : Components.StandardAOEs(module, AID.Hydrowhirl, new AOEShapeCircle(8));
 class Hydrotaph(BossModule module) : Components.RaidwideCast(module, AID.Hydrotaph2);
-class Spin(BossModule module) : Components.SelfTargetedAOEs(module, AID.Spin, new AOEShapeCircle(11));
-class Mash(BossModule module) : Components.SelfTargetedAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
-class Scoop(BossModule module) : Components.SelfTargetedAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
+class Spin(BossModule module) : Components.StandardAOEs(module, AID.Spin, new AOEShapeCircle(11));
+class Mash(BossModule module) : Components.StandardAOEs(module, AID.Mash, new AOEShapeRect(13, 2));
+class Scoop(BossModule module) : Components.StandardAOEs(module, AID.Scoop, new AOEShapeCone(15, 60.Degrees()));
 
 class UndineStates : StateMachineBuilder
 {

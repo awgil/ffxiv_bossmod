@@ -119,8 +119,6 @@ public enum SID : uint
 
 public sealed class Definitions : IDisposable
 {
-    private readonly MNKConfig _config = Service.Config.Get<MNKConfig>();
-
     public Definitions(ActionDefinitions d)
     {
         d.RegisterSpell(AID.FinalHeaven, castAnimLock: 3.70f);
@@ -176,7 +174,7 @@ public sealed class Definitions : IDisposable
         // hardcoded mechanics
         d.RegisterChargeIncreaseTrait(AID.Thunderclap, TraitID.EnhancedThunderclap);
 
-        d.Spell(AID.Thunderclap)!.ForbidExecute = (_, player, target, _) => _config.PreventCloseDash && (target?.Position.InCircle(player.Position, target.HitboxRadius + player.HitboxRadius) ?? true);
+        d.Spell(AID.Thunderclap)!.ForbidExecute = ActionDefinitions.DashToPositionCheck;
 
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.SteelPeak)!.TransformAction = d.Spell(AID.ForbiddenChakra)!.TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);

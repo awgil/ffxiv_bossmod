@@ -44,7 +44,7 @@ class DemonEye(BossModule module) : Components.CastGaze(module, AID.DemonEye)
     }
 }
 
-class ColdStare(BossModule module) : Components.SelfTargetedAOEs(module, AID.ColdStare, new AOEShapeCone(42.53f, 45.Degrees())) //TODO: cone based gaze
+class ColdStare(BossModule module) : Components.StandardAOEs(module, AID.ColdStare, new AOEShapeCone(42.53f, 45.Degrees())) //TODO: cone based gaze
 {
     private BitMask _blinded;
 
@@ -91,7 +91,7 @@ class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, AI
     }
 }
 
-class DreadGaze(BossModule module) : Components.SelfTargetedAOEs(module, AID.DreadGaze, new AOEShapeCone(7.35f, 45.Degrees())) //TODO: cone based gaze
+class DreadGaze(BossModule module) : Components.StandardAOEs(module, AID.DreadGaze, new AOEShapeCone(7.35f, 45.Degrees())) //TODO: cone based gaze
 {
     private BitMask _blinded;
 

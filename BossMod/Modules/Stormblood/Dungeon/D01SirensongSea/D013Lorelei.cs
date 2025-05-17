@@ -45,7 +45,7 @@ class ArenaLimit(BossModule module) : GenericAOEs(module)
     }
 }
 
-class VoidWater(BossModule module) : LocationTargetedAOEs(module, AID.VoidWater, 8);
+class VoidWater(BossModule module) : StandardAOEs(module, AID.VoidWater, 8);
 
 class Puddles(BossModule module) : GenericAOEs(module)
 {

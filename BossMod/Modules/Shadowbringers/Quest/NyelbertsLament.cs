@@ -60,7 +60,7 @@ class TwoThousandMinaSlash : Components.GenericLineOfSightAOE
     }
 }
 
-class FallingRock(BossModule module) : Components.LocationTargetedAOEs(module, AID.FallingRock, 4);
+class FallingRock(BossModule module) : Components.StandardAOEs(module, AID.FallingRock, 4);
 class ZoomIn(BossModule module) : Components.SimpleLineStack(module, 4, 42, AID.ZoomTargetSelect, AID.ZoomIn, 5.1f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

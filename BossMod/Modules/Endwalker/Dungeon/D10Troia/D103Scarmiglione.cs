@@ -23,13 +23,13 @@ public enum AID : uint
 
 class VoidGravity(BossModule module) : Components.SpreadFromCastTargets(module, AID.VoidGravity, 6);
 class Firedamp(BossModule module) : Components.BaitAwayCast(module, AID.Firedamp, new AOEShapeCircle(5), true);
-class Nox(BossModule module) : Components.SelfTargetedAOEs(module, AID.Nox, new AOEShapeCircle(10));
+class Nox(BossModule module) : Components.StandardAOEs(module, AID.Nox, new AOEShapeCircle(10));
 class VoidVortex(BossModule module) : Components.StackWithCastTargets(module, AID.VoidVortex, 6);
-class BlightedBladework(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedBladework, new AOEShapeCircle(25));
-class BlightedSweep(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedSweep, new AOEShapeCone(40, 90.Degrees()));
-class BlightedBedevilment(BossModule module) : Components.SelfTargetedAOEs(module, AID.BlightedBedevilment, new AOEShapeCircle(9));
+class BlightedBladework(BossModule module) : Components.StandardAOEs(module, AID.BlightedBladework, new AOEShapeCircle(25));
+class BlightedSweep(BossModule module) : Components.StandardAOEs(module, AID.BlightedSweep, new AOEShapeCone(40, 90.Degrees()));
+class BlightedBedevilment(BossModule module) : Components.StandardAOEs(module, AID.BlightedBedevilment, new AOEShapeCircle(9));
 class CursedEcho(BossModule module) : Components.RaidwideCast(module, AID.CursedEcho);
-class RottenRampage(BossModule module) : Components.LocationTargetedAOEs(module, AID.RottenRampageAOE, 6);
+class RottenRampage(BossModule module) : Components.StandardAOEs(module, AID.RottenRampageAOE, 6);
 class RottenRampagePlayer(BossModule module) : Components.SpreadFromCastTargets(module, AID.RottenRampageSpread, 6);
 class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.VacuumWave, 30)
 {

@@ -94,7 +94,7 @@ class P2StrengthOfTheWard2SpreadStack : Components.UniformStackSpread
 }
 
 // growing voidzones
-class P2StrengthOfTheWard2Voidzones(BossModule module) : Components.LocationTargetedAOEs(module, AID.DimensionalCollapseAOE, 9, "GTFO from voidzone aoe!");
+class P2StrengthOfTheWard2Voidzones(BossModule module) : Components.StandardAOEs(module, AID.DimensionalCollapseAOE, 9, warningText: "GTFO from voidzone aoe!");
 
 // charges on tethered targets
 class P2StrengthOfTheWard2Charges(BossModule module) : Components.CastCounter(module, AID.HolyShieldBash)

@@ -156,6 +156,48 @@ public static class Intersect
     }
     public static bool CircleCone(WPos circleCenter, float circleRadius, WPos coneCenter, float coneRadius, WDir coneDir, Angle halfAngle) => CircleCone(circleCenter - coneCenter, circleRadius, coneRadius, coneDir, halfAngle);
 
+    public static bool CircleDonutSector(WPos circleCenter, float circleRadius, WPos coneCenter, float coneInner, float coneOuter, WDir coneDir, Angle halfAngle) => CircleDonutSector(circleCenter - coneCenter, circleRadius, coneInner, coneOuter, coneDir, halfAngle);
+    public static bool CircleDonutSector(WDir circleOffset, float circleRadius, float coneInner, float coneOuter, WDir coneDir, Angle halfAngle)
+    {
+        if (coneInner <= 0)
+            return CircleCone(circleOffset, circleRadius, coneOuter, coneDir, halfAngle);
+
+        var lsq = circleOffset.LengthSq();
+        var rsq = circleRadius * circleRadius;
+        var rsum = circleRadius + coneOuter;
+        if (lsq > rsum * rsum)
+            return false; // circle too far from origin to intersect
+
+        // check if circle origin is in extended cone (with same angle); corners and sides are checked separately
+        var inAngle = circleOffset.Normalized().Dot(coneDir) >= halfAngle.Cos();
+        // if circle radius >= cone inner radius, it cannot intersect the inner arc without containing at least one of the inner corners
+        var lessInner = MathF.Max(0, coneInner - circleRadius);
+        if (inAngle && lsq > lessInner * lessInner)
+            return true;
+
+        var normal = coneDir.OrthoL();
+        var sin = halfAngle.Sin();
+        var distFromAxis = circleOffset.Dot(normal);
+
+        if (distFromAxis < 0)
+            normal = -normal;
+
+        var side = coneDir * halfAngle.Cos() + normal * sin;
+        var distFromSide = Math.Abs(circleOffset.Cross(side));
+        if (distFromSide > circleRadius)
+            return false; // too far
+
+        var distAlongSide = circleOffset.Dot(side);
+        if (distAlongSide >= coneInner && distAlongSide <= coneOuter)
+            return true; // circle-side intersection
+
+        var cornerInside = side * coneInner;
+        var cornerOutside = side * coneOuter;
+
+        // check near and far corners
+        return (circleOffset - cornerInside).LengthSq() <= rsq || (circleOffset - cornerOutside).LengthSq() <= rsq;
+    }
+
     public static bool CircleAARect(WDir circleOffset, float circleRadius, float halfExtentX, float halfExtentZ)
     {
         circleOffset = circleOffset.Abs(); // symmetrical along X/Z, consider only positive quadrant

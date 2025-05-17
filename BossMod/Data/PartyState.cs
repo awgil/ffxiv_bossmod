@@ -40,8 +40,7 @@ public sealed class PartyState
     {
         void assign(ulong instanceID, Actor? actor)
         {
-            var slot = FindSlot(instanceID);
-            if (slot >= 0)
+            if (TryFindSlot(instanceID, out var slot))
                 _actors[slot] = actor;
         }
         actorState.Added.Subscribe(actor => assign(actor.InstanceID, actor));
@@ -91,6 +90,20 @@ public sealed class PartyState
             if (name.Equals(Members[i].Name, cmp))
                 return i;
         return -1;
+    }
+
+    public bool TryFindSlot(ulong instanceID, out int slot)
+    {
+        slot = FindSlot(instanceID);
+        return slot >= 0;
+    }
+
+    public bool TryFindSlot(Actor actor, out int slot) => TryFindSlot(actor.InstanceID, out slot);
+
+    public bool TryFindSlot(ReadOnlySpan<char> name, out int slot, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
+    {
+        slot = FindSlot(name, cmp);
+        return slot >= 0;
     }
 
     public IEnumerable<WorldState.Operation> CompareToInitial()

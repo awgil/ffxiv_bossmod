@@ -58,7 +58,7 @@ class BeeBeGoneHere(BossModule module) : Components.GenericAOEs(module, default,
 class ResonantBuzzRaidwide(BossModule module) : Components.RaidwideCast(module, AID.ResonantBuzz, "Raidwide + apply forced march");
 class ResonantBuzzMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace);
 class FrenziedSting(BossModule module) : Components.SingleTargetCast(module, AID.FrenziedSting);
-class StraightSpindle(BossModule module) : Components.SelfTargetedAOEs(module, AID.StraightSpindle, new AOEShapeRect(50, 2.5f));
+class StraightSpindle(BossModule module) : Components.StandardAOEs(module, AID.StraightSpindle, new AOEShapeRect(50, 2.5f));
 
 class QueenHawkStates : StateMachineBuilder
 {

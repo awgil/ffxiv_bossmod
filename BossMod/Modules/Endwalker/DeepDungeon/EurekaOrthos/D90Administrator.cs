@@ -119,7 +119,7 @@ class AetheroChemicalLaserCombo(BossModule module) : Components.GenericAOEs(modu
     }
 }
 
-class AetherochemicalLaserLine(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherochemicalLaserCube1, new AOEShapeRect(40, 2.5f), 4)
+class AetherochemicalLaserLine(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserCube1, new AOEShapeRect(40, 2.5f), 4)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -130,7 +130,7 @@ class AetherochemicalLaserLine(BossModule module) : Components.SelfTargetedAOEs(
     }
 }
 
-class HomingLasers(BossModule module) : Components.LocationTargetedAOEs(module, AID.HomingLaserHelper, 6);
+class HomingLasers(BossModule module) : Components.StandardAOEs(module, AID.HomingLaserHelper, 6);
 class Laserstream(BossModule module) : Components.RaidwideCast(module, AID.Laserstream);
 
 class SalvoScript(BossModule module) : Components.GenericAOEs(module)

@@ -15,9 +15,9 @@ public enum AID : uint
     PsychoSquama = 11899, // Boss->self, 3.0s cast, range 50+R 90-degree cone // opening attack
 }
 
-class PsychoSquamaAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.PsychoSquama, new AOEShapeCone(53, 45.Degrees()));
+class PsychoSquamaAOE(BossModule module) : Components.StandardAOEs(module, AID.PsychoSquama, new AOEShapeCone(53, 45.Degrees()));
 class NeuroSquamaLookAway(BossModule module) : Components.CastGaze(module, AID.NeuroSquama);
-class FragilityAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.Fragility, new AOEShapeCircle(8));
+class FragilityAOE(BossModule module) : Components.StandardAOEs(module, AID.Fragility, new AOEShapeCircle(8));
 
 class D20BecchoStates : StateMachineBuilder
 {

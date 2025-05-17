@@ -1,5 +1,6 @@
 ﻿using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace BossMod;
@@ -47,28 +48,25 @@ class AIMigrationNotice : ChangelogNotice
     }
 }
 
-class AIRemovalNotice : ChangelogNotice
+class MultiPresetNotice : ChangelogNotice
 {
-    public override Version Since => new(0, 2, 0, 0);
+    public override Version Since => new(0, 2, 3, 0);
 
     public override void Draw()
     {
-        var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide";
-        ImGui.TextUnformatted($"AI mode (legacy) has been removed.");
-        Bullet("Automatic targeting and AOE avoidance aren't going anywhere! These features are now provided by specialized rotation modules.");
-        Bullet("If you only use VBM with AutoDuty, you don't need to change anything. Just make sure that your AutoDuty version is 0.0.0.207 or later.");
-        Bullet($"Otherwise, check out the AI migration guide on the wiki at {link}.");
-        if (ImGui.Button("Open wiki in browser"))
-        {
-            try
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(link) { UseShellExecute = true });
-            }
-            catch (Exception e)
-            {
-                Service.Log($"Error opening link: {e}");
-            }
-        }
+        ImGui.TextWrapped("You can now enable multiple presets at once.");
+        Bullet("A new built-in preset has been added - VBM AI. This provides the same functionality as the legacy AI feature. It will try to dodge AOEs and automatically target enemies.");
+        Bullet("The existing /vbm ar commands have unchanged behavior. For example, /vbm ar set <preset> will enable the given preset and disable all others. To use multi-preset functionality, you can use the new subcommands 'activate', 'deactivate', and 'togglemulti'.");
+    }
+}
+
+class DashSafetyNotice : ChangelogNotice
+{
+    public override Version Since => new(0, 2, 5, 1);
+
+    public override void Draw()
+    {
+        ImGui.TextWrapped($"The option \"Try to prevent dashing into AOEs\" is now enabled by default. You can disable it in Settings -> Action Tweaks.");
     }
 }
 
@@ -191,22 +189,13 @@ public class ConfigChangelogWindow : UIWindow
 
     private static Version GetCurrentPluginVersion()
     {
-#if DEBUG
-        // version is always 0.0.0.0 in debug, making it useless for testing
-        return new(0, 999, 0, 0);
-#else
-        return Assembly.GetExecutingAssembly().GetName().Version!;
-#endif
+        return Service.IsDev ? new(999, 0, 0, 0) : Assembly.GetExecutingAssembly().GetName().Version!;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1024:Use properties where appropriate")]
+    [SuppressMessage("Design", "CA1024:Use properties where appropriate", Justification = "fuck it")]
     private static Version GetPreviousPluginVersion()
     {
-#if DEBUG
-        // change value to something sensible if you want to test the changelog stuff
-        return new(0, 999, 0, 0);
-#else
-        return Service.Config.AssemblyVersion;
-#endif
+        // change to a smaller value to test changelog
+        return Service.IsDev ? new(999, 0, 0, 0) : Service.Config.AssemblyVersion;
     }
 }

@@ -5,7 +5,7 @@ class LoneWolfTethers(BossModule module) : BossComponent(module)
     private readonly List<(Actor, Actor)> _close = [];
     private readonly List<(Actor, Actor)> _distant = [];
 
-    public record struct Assignment(Role Partner, bool Close);
+    public record struct Assignment(Role Partner, int PartnerSlot, bool Close);
 
     public readonly Assignment[] Assignments = new Assignment[PartyState.MaxPartySize];
 
@@ -24,21 +24,33 @@ class LoneWolfTethers(BossModule module) : BossComponent(module)
 
     private void Assign(Actor a, Actor b, bool close)
     {
-        Assignments[Raid.FindSlot(a.InstanceID)] = new(b.Role, close);
-        Assignments[Raid.FindSlot(b.InstanceID)] = new(a.Role, close);
+        var aslot = Raid.FindSlot(a.InstanceID);
+        var bslot = Raid.FindSlot(b.InstanceID);
+        Assignments[aslot] = new(b.Role, bslot, close);
+        Assignments[bslot] = new(a.Role, aslot, close);
         if (close)
             _close.Add((a, b));
         else
             _distant.Add((a, b));
     }
 
+    // TODO: figure out break distances and draw an indicator
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var (a, b) in _close)
-            Arena.AddLine(a.Position, b.Position, ArenaColor.Safe);
+            Arena.AddLine(a.Position, b.Position, ArenaColor.Danger);
         foreach (var (a, b) in _distant)
-            Arena.AddLine(a.Position, b.Position, 0xFFFF0000);
+            Arena.AddLine(a.Position, b.Position, ArenaColor.Danger);
     }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        var assign = Assignments[slot];
+        if (assign.Partner != Role.None)
+            hints.Add(assign.Close ? "Stay close to partner!" : "Stay far from partner!", false);
+    }
+
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Assignments[pcSlot].PartnerSlot == playerSlot ? PlayerPriority.Interesting : PlayerPriority.Normal;
 }
 
 class LoneWolfTowers(BossModule module) : Components.GenericTowers(module)

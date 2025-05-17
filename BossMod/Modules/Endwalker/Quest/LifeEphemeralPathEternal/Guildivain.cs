@@ -9,7 +9,7 @@ class AetherstreamTether(BossModule module) : Components.BaitAwayTethers(module,
     }
 }
 
-class Tracheostomy : Components.SelfTargetedAOEs
+class Tracheostomy : Components.StandardAOEs
 {
     public Tracheostomy(BossModule module) : base(module, AID.Tracheostomy, new AOEShapeDonut(10, 20))
     {
@@ -28,18 +28,18 @@ class Tracheostomy : Components.SelfTargetedAOEs
     }
 }
 
-class RightScalpel(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightScalpel, new AOEShapeCone(15, 105.Degrees()));
-class LeftScalpel(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftScalpel, new AOEShapeCone(15, 105.Degrees()));
-class Laparotomy(BossModule module) : Components.SelfTargetedAOEs(module, AID.Laparotomy, new AOEShapeCone(15, 60.Degrees()));
-class Amputation(BossModule module) : Components.SelfTargetedAOEs(module, AID.Amputation, new AOEShapeCone(20, 60.Degrees()));
+class RightScalpel(BossModule module) : Components.StandardAOEs(module, AID.RightScalpel, new AOEShapeCone(15, 105.Degrees()));
+class LeftScalpel(BossModule module) : Components.StandardAOEs(module, AID.LeftScalpel, new AOEShapeCone(15, 105.Degrees()));
+class Laparotomy(BossModule module) : Components.StandardAOEs(module, AID.Laparotomy, new AOEShapeCone(15, 60.Degrees()));
+class Amputation(BossModule module) : Components.StandardAOEs(module, AID.Amputation, new AOEShapeCone(20, 60.Degrees()));
 
 class Hypothermia(BossModule module) : Components.RaidwideCast(module, AID.Hypothermia);
 class Cryonics(BossModule module) : Components.StackWithCastTargets(module, AID.Cryonics, 6);
 class Craniotomy(BossModule module) : Components.RaidwideCast(module, AID.Craniotomy);
-class RightLeftScalpel1(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightLeftScalpel, new AOEShapeCone(15, 105.Degrees()));
-class RightLeftScalpel2(BossModule module) : Components.SelfTargetedAOEs(module, AID.RightLeftScalpel1, new AOEShapeCone(15, 105.Degrees()));
-class LeftRightScalpel1(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftRightScalpel, new AOEShapeCone(15, 105.Degrees()));
-class LeftRightScalpel2(BossModule module) : Components.SelfTargetedAOEs(module, AID.LeftRightScalpel1, new AOEShapeCone(15, 105.Degrees()));
+class RightLeftScalpel1(BossModule module) : Components.StandardAOEs(module, AID.RightLeftScalpel, new AOEShapeCone(15, 105.Degrees()));
+class RightLeftScalpel2(BossModule module) : Components.StandardAOEs(module, AID.RightLeftScalpel1, new AOEShapeCone(15, 105.Degrees()));
+class LeftRightScalpel1(BossModule module) : Components.StandardAOEs(module, AID.LeftRightScalpel, new AOEShapeCone(15, 105.Degrees()));
+class LeftRightScalpel2(BossModule module) : Components.StandardAOEs(module, AID.LeftRightScalpel1, new AOEShapeCone(15, 105.Degrees()));
 
 class EnhancedNoulith(BossModule module) : Components.Adds(module, (uint)OID.EnhancedNoulith)
 {

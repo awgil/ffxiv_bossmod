@@ -94,9 +94,7 @@ class P5Delta(BossModule module) : BossComponent(module)
         {
             case TetherID.HWPrepLocalTether:
             case TetherID.HWPrepRemoteTether:
-                var s1 = Raid.FindSlot(source.InstanceID);
-                var s2 = Raid.FindSlot(tether.Target);
-                if (s1 >= 0 && s2 >= 0)
+                if (Raid.TryFindSlot(source.InstanceID, out var s1) && Raid.TryFindSlot(tether.Target, out var s2))
                 {
                     var isLocal = tether.ID == (uint)TetherID.HWPrepLocalTether;
                     Players[s1].PartnerSlot = s2;
@@ -116,9 +114,7 @@ class P5Delta(BossModule module) : BossComponent(module)
     {
         if ((TetherID)tether.ID is TetherID.HWLocalTether or TetherID.HWRemoteTether)
         {
-            var s1 = Raid.FindSlot(source.InstanceID);
-            var s2 = Raid.FindSlot(tether.Target);
-            if (s1 >= 0 && s2 >= 0)
+            if (Raid.TryFindSlot(source.InstanceID, out var s1) && Raid.TryFindSlot(tether.Target, out var s2))
             {
                 Players[s1].TetherBroken = Players[s2].TetherBroken = true;
                 ++NumTethersBroken;
@@ -375,7 +371,7 @@ class P5DeltaOpticalLaser(BossModule module) : Components.GenericAOEs(module, AI
     }
 }
 
-class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(module, AID.DeltaExplosion, 3)
+class P5DeltaExplosion(BossModule module) : Components.StandardAOEs(module, AID.DeltaExplosion, 3)
 {
     private readonly P5Delta? _delta = module.FindComponent<P5Delta>();
 
@@ -386,7 +382,7 @@ class P5DeltaExplosion(BossModule module) : Components.LocationTargetedAOEs(modu
         var ps = _delta.Players[pcSlot];
         var partner = Raid.WithSlot(true).WhereSlot(i => _delta.Players[i].IsLocal == ps.IsLocal && i != ps.PartnerSlot && _delta.Players[i].RocketPunch?.OID != ps.RocketPunch?.OID).FirstOrDefault().Item2;
         if (partner != null)
-            Arena.AddCircle(partner.Position, Shape.Radius, ArenaColor.Safe);
+            Arena.AddCircle(partner.Position, ((AOEShapeCircle)Shape).Radius, ArenaColor.Safe);
     }
 }
 
@@ -500,7 +496,7 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             SID.OversampledWaveCannonLoadingR => -90.Degrees(),
             _ => default
         };
-        if (angle != default && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (angle != default && Raid.FindSlot(actor.InstanceID) >= 0)
         {
             _player = actor;
             _playerAngle = angle;

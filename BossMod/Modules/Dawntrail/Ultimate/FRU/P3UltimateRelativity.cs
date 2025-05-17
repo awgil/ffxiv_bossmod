@@ -99,8 +99,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         switch ((SID)status.ID)
         {
             case SID.SpellInWaitingDarkFire:
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                 {
                     ref var state = ref States[slot];
                     state.FireOrder = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds switch
@@ -474,8 +473,7 @@ class P3UltimateRelativityShadoweye(BossModule module) : BossComponent(module)
         switch ((SID)status.ID)
         {
             case SID.SpellInWaitingShadoweye:
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0 && _rel != null)
+                if (_rel != null && Raid.TryFindSlot(actor, out var slot))
                     _eyes.Add(_rel.States[slot].ReturnPos);
                 break;
             case SID.Return:

@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash1;
 
-class RightSwipe(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(60, 90.Degrees()));
+class RightSwipe(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(60, 90.Degrees()));
 class NRightSwipe(BossModule module) : RightSwipe(module, AID.NRightSwipe);
 class SRightSwipe(BossModule module) : RightSwipe(module, AID.SRightSwipe);
 
-class LeftSwipe(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(60, 90.Degrees()));
+class LeftSwipe(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(60, 90.Degrees()));
 class NLeftSwipe(BossModule module) : LeftSwipe(module, AID.NLeftSwipe);
 class SLeftSwipe(BossModule module) : LeftSwipe(module, AID.SLeftSwipe);
 

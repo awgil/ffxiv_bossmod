@@ -1,10 +1,8 @@
-﻿using static BossMod.Autorotation.ClassPCTUtility;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player) : RoleTankUtility(manager, player)
 {
-    public enum Track { Sheltron = SharedTrack.Count, Sentinel, Cover, Bulwark, DivineVeil, PassageOfArms, HallowedGround } //What we're tracking
+    public enum Track { Sheltron = SharedTrack.Count, Sentinel, Cover, Bulwark, DivineVeil, PassageOfArms, HallowedGround, ShieldBash } //What we're tracking
     public enum ShelOption { None, Sheltron, HolySheltron, Intervention } //Sheltron Options
     public enum SentOption { None, Sentinel, Guardian } //Sentinel enhancement
     public enum ArmsDirection { None, CharacterForward, CharacterBackward, CameraForward, CameraBackward }
@@ -45,6 +43,8 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
             .AddAssociatedActions(PLD.AID.PassageOfArms);
 
         DefineSimpleConfig(res, Track.HallowedGround, "HallowedGround", "Inv", 400, PLD.AID.HallowedGround, 10); //420s CD, 10s duration
+
+        DefineSimpleConfig(res, Track.ShieldBash, "ShieldBash", "ShieldBash", 340, PLD.AID.ShieldBash, 6);
 
         return res;
     }
@@ -89,6 +89,14 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
                 _ => Player.Rotation
             };
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(PLD.AID.PassageOfArms), Player, poa.Priority(), poa.Value.ExpireIn, facingAngle: angle);
+        }
+
+        var bash = strategy.Option(Track.ShieldBash);
+        if (bash.As<SimpleOption>() == SimpleOption.Use)
+        {
+            var target = ResolveTargetOverride(bash.Value) ?? primaryTarget;
+            if (target?.FindStatus(WAR.SID.Stun) == null)
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(PLD.AID.ShieldBash), target, ActionQueue.Priority.VeryHigh, bash.Value.ExpireIn);
         }
     }
 }

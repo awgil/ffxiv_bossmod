@@ -89,7 +89,7 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
             SID.BetaTarget => Debuff.Beta,
             _ => Debuff.None
         };
-        if (debuff != Debuff.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (debuff != Debuff.None && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _states[slot].Debuff = debuff;
     }
 
@@ -103,7 +103,7 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
             IconID.ClassicalConceptsTriangle => 3, // G
             _ => -1
         };
-        if (column >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (column >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             var partner = Array.FindIndex(_states, s => s.Column == column);
             _states[slot].Column = column;
@@ -171,7 +171,7 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
 class ClassicalConcepts1(BossModule module) : ClassicalConcepts(module, false);
 class ClassicalConcepts2(BossModule module) : ClassicalConcepts(module, true);
 
-class Implode(BossModule module) : Components.SelfTargetedAOEs(module, AID.Implode, new AOEShapeCircle(4));
+class Implode(BossModule module) : Components.StandardAOEs(module, AID.Implode, new AOEShapeCircle(4));
 
 class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, AID.PalladianRayAOEFirst)
 {

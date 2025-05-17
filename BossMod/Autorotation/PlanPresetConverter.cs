@@ -17,6 +17,16 @@ public static class PlanPresetConverter
                 RenameKeys(m, moduleRenames);
             return j;
         });
+        res.Converters.Add((j, _, _) =>
+        {
+            if (plan)
+            {
+                if ((string)j["Encounter"]!.AsValue()! == "BossMod.Dawntrail.Extreme.Ex4Zelenia.Zelenia")
+                    j["Encounter"] = "BossMod.Dawntrail.Extreme.Ex4Zelenia.Ex4Zelenia";
+            }
+
+            return j;
+        });
         return res;
     }
 

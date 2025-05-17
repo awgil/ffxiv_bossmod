@@ -21,10 +21,10 @@ public enum AID : uint
     Burst = 14904, // Boss->self, 20.0s cast, range 50 circle
 }
 
-class Sap(BossModule module) : Components.LocationTargetedAOEs(module, AID.Sap, 8);
-class Sap2(BossModule module) : Components.LocationTargetedAOEs(module, AID.Sap2, 8);
-class ScaldingScolding(BossModule module) : Components.SelfTargetedAOEs(module, AID.ScaldingScolding, new AOEShapeCone(11.75f, 60.Degrees()));
-class Flashthoom(BossModule module) : Components.SelfTargetedAOEs(module, AID.Flashthoom, new AOEShapeCircle(7.2f));
+class Sap(BossModule module) : Components.StandardAOEs(module, AID.Sap, 8);
+class Sap2(BossModule module) : Components.StandardAOEs(module, AID.Sap2, 8);
+class ScaldingScolding(BossModule module) : Components.StandardAOEs(module, AID.ScaldingScolding, new AOEShapeCone(11.75f, 60.Degrees()));
+class Flashthoom(BossModule module) : Components.StandardAOEs(module, AID.Flashthoom, new AOEShapeCircle(7.2f));
 class Ignition(BossModule module) : Components.RaidwideCast(module, AID.Ignition, "Wipe if Grenade is not killed yet, otherwise Raidwide");
 
 class Hints(BossModule module) : BossComponent(module)

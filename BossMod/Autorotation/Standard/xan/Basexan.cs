@@ -336,12 +336,14 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
 
-    protected Positional GetCurrentPositional(Actor target) => (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
-    {
-        < -0.7071068f => Positional.Rear,
-        < 0.7071068f => Positional.Flank,
-        _ => Positional.Front
-    };
+    protected Positional GetCurrentPositional(Actor target) => target.Omnidirectional
+        ? Positional.Any
+        : (Player.Position - target.Position).Normalized().Dot(target.Rotation.ToDirection()) switch
+        {
+            < -0.7071068f => Positional.Rear,
+            < 0.7071068f => Positional.Flank,
+            _ => Positional.Front
+        };
 
     protected bool NextPositionalImminent;
     protected bool NextPositionalCorrect;
@@ -350,7 +352,13 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     {
         var trueNorth = TrueNorthLeft > GCD;
         var target = enemy?.Actor;
-        if ((target?.Omnidirectional ?? true) || target?.TargetID == Player.InstanceID && target?.CastInfo == null && positional.pos != Positional.Front && target?.NameID != 541)
+        if (
+            // positionals irrelevant
+            target is { Omnidirectional: true }
+            // enemy is targeting us and is not busy casting, so we assume they will turn to face the player
+            // (excluding striking dummies, which don't move)
+            || target is { TargetID: var t, CastInfo: null, IsStrikingDummy: false } && t == Player.InstanceID
+        )
             positional = (Positional.Any, false);
 
         NextPositionalImminent = !trueNorth && positional.imm;
@@ -412,7 +420,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             UptimeIn = null;
         }
 
-        MP = (uint)Math.Clamp(Player.PredictedMPRaw, 0, Player.HPMP.MaxMP);
+        MP = (uint)Math.Clamp(Player.PendingMPRaw, 0, Player.HPMP.MaxMP);
 
         if (_cdLockout > World.CurrentTime)
             return;
@@ -456,7 +464,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
                 buffsIn = float.MaxValue;
         }
 
-        return (Bossmods.RaidCooldowns.DamageBuffLeft(Player), buffsIn.Value);
+        return (Bossmods.RaidCooldowns.DamageBuffLeft(Player, primaryTarget), buffsIn.Value);
     }
 
     private bool HavePartyBuff(Actor player) => player.Class switch
@@ -481,14 +489,14 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     public abstract void Exec(StrategyValues strategy, Enemy? primaryTarget);
 
-    protected (float Left, int Stacks) Status<SID>(SID status) where SID : Enum => Player.FindStatus(status) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
-    protected float StatusLeft<SID>(SID status) where SID : Enum => Status(status).Left;
-    protected int StatusStacks<SID>(SID status) where SID : Enum => Status(status).Stacks;
+    protected (float Left, int Stacks) Status<SID>(SID status, float? pendingDuration = null) where SID : Enum => Player.FindStatus(status, pendingDuration == null ? null : World.FutureTime(pendingDuration.Value)) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
+    protected float StatusLeft<SID>(SID status, float? pendingDuration = null) where SID : Enum => Status(status, pendingDuration).Left;
+    protected int StatusStacks<SID>(SID status, float? pendingDuration = null) where SID : Enum => Status(status, pendingDuration).Stacks;
 
     protected float HPRatio(Actor actor) => (float)actor.HPMP.CurHP / Player.HPMP.MaxHP;
     protected float HPRatio() => HPRatio(Player);
 
-    protected uint PredictedHP(Actor actor) => (uint)actor.PredictedHPClamped;
+    protected uint PredictedHP(Actor actor) => (uint)actor.PendingHPClamped;
     protected float PredictedHPRatio(Actor actor) => (float)PredictedHP(actor) / actor.HPMP.MaxHP;
 }
 

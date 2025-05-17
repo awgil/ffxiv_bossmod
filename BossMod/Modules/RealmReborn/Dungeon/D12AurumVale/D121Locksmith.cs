@@ -14,7 +14,7 @@ public enum AID : uint
 }
 
 class HundredLashings(BossModule module) : Components.Cleave(module, AID.HundredLashings, new AOEShapeCone(12, 45.Degrees())); // TODO: verify angle
-class GoldDust(BossModule module) : Components.LocationTargetedAOEs(module, AID.GoldDust, 8);
+class GoldDust(BossModule module) : Components.StandardAOEs(module, AID.GoldDust, 8);
 
 // arena has multiple weirdly-shaped puddles, so just prefer standing in large safe zone
 class AIPosition(BossModule module) : BossComponent(module)

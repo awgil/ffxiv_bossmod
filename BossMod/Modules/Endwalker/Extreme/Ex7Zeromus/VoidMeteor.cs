@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex7Zeromus;
 
-class MeteorImpactProximity(BossModule module) : Components.SelfTargetedAOEs(module, AID.MeteorImpactProximity, new AOEShapeCircle(10)); // TODO: verify falloff
+class MeteorImpactProximity(BossModule module) : Components.StandardAOEs(module, AID.MeteorImpactProximity, new AOEShapeCircle(10)); // TODO: verify falloff
 
 class MeteorImpactCharge(BossModule module) : BossComponent(module)
 {
@@ -97,7 +97,7 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID is TetherID.VoidMeteorCloseClipping or TetherID.VoidMeteorCloseGood or TetherID.VoidMeteorStretchedClipping or TetherID.VoidMeteorStretchedGood && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+        if ((TetherID)tether.ID is TetherID.VoidMeteorCloseClipping or TetherID.VoidMeteorCloseGood or TetherID.VoidMeteorStretchedClipping or TetherID.VoidMeteorStretchedGood && Raid.TryFindSlot(tether.Target, out var slot))
         {
             if (_playerStates[slot].TetherSource == null)
                 _playerStates[slot].Order = _numTethers++;
@@ -148,4 +148,4 @@ class MeteorImpactCharge(BossModule module) : BossComponent(module)
     }
 }
 
-class MeteorImpactExplosion(BossModule module) : Components.SelfTargetedAOEs(module, AID.MeteorImpactExplosion, new AOEShapeCircle(10));
+class MeteorImpactExplosion(BossModule module) : Components.StandardAOEs(module, AID.MeteorImpactExplosion, new AOEShapeCircle(10));

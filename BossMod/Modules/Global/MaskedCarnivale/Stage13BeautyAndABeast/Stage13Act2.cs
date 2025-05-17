@@ -25,13 +25,13 @@ public enum AID : uint
     BloodRain = 14882, // 26F8->location, 3.0s cast, range 50 circle
 }
 
-class VoidFireII(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireII, 5);
-class VoidFireIV(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireIV, 10);
-class VoidFireIV3(BossModule module) : Components.LocationTargetedAOEs(module, AID.VoidFireIV3, 6);
-class VoidAero(BossModule module) : Components.SelfTargetedAOEs(module, AID.VoidAero, new AOEShapeRect(42, 4));
+class VoidFireII(BossModule module) : Components.StandardAOEs(module, AID.VoidFireII, 5);
+class VoidFireIV(BossModule module) : Components.StandardAOEs(module, AID.VoidFireIV, 10);
+class VoidFireIV3(BossModule module) : Components.StandardAOEs(module, AID.VoidFireIV3, 6);
+class VoidAero(BossModule module) : Components.StandardAOEs(module, AID.VoidAero, new AOEShapeRect(42, 4));
 class DarkSabbath(BossModule module) : Components.CastGaze(module, AID.DarkSabbath);
-class DarkMist(BossModule module) : Components.SelfTargetedAOEs(module, AID.DarkMist, new AOEShapeCircle(10));
-class CircleOfBlood(BossModule module) : Components.SelfTargetedAOEs(module, AID.CircleOfBlood2, new AOEShapeDonut(10, 20));
+class DarkMist(BossModule module) : Components.StandardAOEs(module, AID.DarkMist, new AOEShapeCircle(10));
+class CircleOfBlood(BossModule module) : Components.StandardAOEs(module, AID.CircleOfBlood2, new AOEShapeDonut(10, 20));
 class BeguilingMist(BossModule module) : Components.CastHint(module, AID.BeguilingMist, "Interrupt or run around uncontrollably!");
 class BloodRain(BossModule module) : Components.RaidwideCast(module, AID.BloodRain, "Harmless raidwide unless you failed to kill succubus in time");
 

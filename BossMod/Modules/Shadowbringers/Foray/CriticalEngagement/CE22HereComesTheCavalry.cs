@@ -44,16 +44,16 @@ public enum TetherID : uint
     RawSteel = 57, // Boss->player
 }
 
-class StormSlash(BossModule module) : Components.SelfTargetedAOEs(module, AID.StormSlash, new AOEShapeCone(8, 60.Degrees()));
-class MagitekBurst(BossModule module) : Components.LocationTargetedAOEs(module, AID.MagitekBurst, 8);
+class StormSlash(BossModule module) : Components.StandardAOEs(module, AID.StormSlash, new AOEShapeCone(8, 60.Degrees()));
+class MagitekBurst(BossModule module) : Components.StandardAOEs(module, AID.MagitekBurst, 8);
 class BurnishedJoust(BossModule module) : Components.ChargeAOEs(module, AID.BurnishedJoust, 3);
 
 // note: there are two casters, probably to avoid 32-target limit - we only want to show one
 class GustSlash(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GustSlashAOE, 35, true, 1, null, Kind.DirForward);
 
 class FireShot(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.FireShot, m => m.Enemies(OID.FireShot).Where(e => e.EventState != 7), 0);
-class AirborneExplosion(BossModule module) : Components.LocationTargetedAOEs(module, AID.AirborneExplosion, 10);
-class RideDownAOE(BossModule module) : Components.SelfTargetedAOEs(module, AID.RideDown, new AOEShapeRect(60, 5));
+class AirborneExplosion(BossModule module) : Components.StandardAOEs(module, AID.AirborneExplosion, 10);
+class RideDownAOE(BossModule module) : Components.StandardAOEs(module, AID.RideDown, new AOEShapeRect(60, 5));
 
 // note: there are two casters, probably to avoid 32-target limit - we only want to show one
 // TODO: generalize to reusable component
@@ -125,8 +125,8 @@ class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, AID.Ra
     }
 }
 
-class CloseQuarters(BossModule module) : Components.SelfTargetedAOEs(module, AID.CloseQuartersAOE, new AOEShapeCircle(15));
-class FarAfield(BossModule module) : Components.SelfTargetedAOEs(module, AID.FarAfieldAOE, new AOEShapeDonut(10, 30));
+class CloseQuarters(BossModule module) : Components.StandardAOEs(module, AID.CloseQuartersAOE, new AOEShapeCircle(15));
+class FarAfield(BossModule module) : Components.StandardAOEs(module, AID.FarAfieldAOE, new AOEShapeDonut(10, 30));
 class CallControlledBurn(BossModule module) : Components.SpreadFromCastTargets(module, AID.CallControlledBurnAOE, 6);
 class MagitekBlaster(BossModule module) : Components.StackWithCastTargets(module, AID.MagitekBlaster, 8);
 

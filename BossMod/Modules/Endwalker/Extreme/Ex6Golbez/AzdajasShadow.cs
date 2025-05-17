@@ -52,14 +52,14 @@ class FlamesOfEventide(BossModule module) : Components.GenericBaitAway(module, A
         {
             if (IsClippedBy(actor, CurrentBaits[0]))
                 hints.Add("GTFO from tank!");
-            if (_playerStacks[slot] < 2 && actor.Role == Role.Tank && Raid.FindSlot(Module.PrimaryActor.TargetID) is var tankSlot && tankSlot >= 0 && _playerStacks[tankSlot] >= 2)
+            if (_playerStacks[slot] < 2 && actor.Role == Role.Tank && Raid.TryFindSlot(Module.PrimaryActor.TargetID, out var tankSlot) && _playerStacks[tankSlot] >= 2)
                 hints.Add("Taunt!");
         }
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.FlamesOfEventide && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.FlamesOfEventide && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             _playerStacks[slot] = status.Extra;
             if (status.Extra >= 2)
@@ -69,7 +69,7 @@ class FlamesOfEventide(BossModule module) : Components.GenericBaitAway(module, A
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.FlamesOfEventide && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.FlamesOfEventide && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             _playerStacks[slot] = 0;
             ForbiddenPlayers.Clear(slot);

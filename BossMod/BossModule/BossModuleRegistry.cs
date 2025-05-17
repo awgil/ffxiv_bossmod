@@ -38,6 +38,10 @@ public static class BossModuleRegistry
             var tidType = infoAttr?.TetherIDType ?? module.Module.GetType($"{module.Namespace}.TetherID");
             var iidType = infoAttr?.IconIDType ?? module.Module.GetType($"{module.Namespace}.IconID");
 
+            // skip really-WIP modules without logging to user since they have no use for this information
+            if (infoAttr?.DevOnly == true && !Service.IsDev)
+                return null;
+
             if (statesType == null || !statesType.IsSubclassOf(typeof(StateMachineBuilder)) || statesType.GetConstructor([module]) == null)
             {
                 Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated states type: it should be derived from StateMachineBuilder and have a constructor accepting module");

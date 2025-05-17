@@ -87,7 +87,7 @@ class Twinbite(BossModule module) : Components.CastCounter(module, AID.Twinbite)
     {
         if ((AID)spell.Action.ID == AID.TwinbiteCast)
         {
-            Baits.AddRange(Raid.WithoutSlot().Where(r => r.Role == Role.Tank).Take(2));
+            Baits.AddRange(RaidByEnmity(caster).Take(2));
             _activation = Module.CastFinishAt(spell, 0.1f);
         }
     }
@@ -96,7 +96,7 @@ class Twinbite(BossModule module) : Components.CastCounter(module, AID.Twinbite)
     {
         base.OnEventCast(caster, spell);
 
-        if (spell.Action == WatchedAction)
+        if (spell.Action == WatchedAction && Baits.Count > 0)
             Baits.RemoveAt(0);
     }
 
@@ -117,6 +117,6 @@ class Twinbite(BossModule module) : Components.CastCounter(module, AID.Twinbite)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_activation != default)
-            hints.PredictedDamage.Add((Raid.WithSlot().Where(r => r.Item2.Role == Role.Tank).Mask(), _activation));
+            hints.PredictedDamage.Add((Raid.WithSlot().Where(r => Baits.Any(b => b.TargetID == r.Item2.InstanceID)).Mask(), _activation));
     }
 }

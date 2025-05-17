@@ -55,8 +55,7 @@ class AllaganRot(BossModule module) : BossComponent(module)
                     _rotExpiration[_rotHolderSlot] = status.ExpireAt;
                 break;
             case SID.AllaganImmunity:
-                int slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                     _immunityExpiration[slot] = status.ExpireAt;
                 break;
         }

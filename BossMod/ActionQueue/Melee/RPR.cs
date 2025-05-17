@@ -166,9 +166,14 @@ public sealed class Definitions : IDisposable
 
         d.Spell(AID.Harpe)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyHarpe && !player.InCombat && ws.Client.CountdownRemaining > 1.7f;
 
-        d.Spell(AID.HellsEgress)!.TransformAngle = d.Spell(AID.HellsIngress)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
-            ? ws.Client.CameraAzimuth + 180.Degrees()
-            : null;
+        d.Spell(AID.HellsEgress)!.TransformAngle =
+            d.Spell(AID.HellsIngress)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+                ? ws.Client.CameraAzimuth + 180.Degrees()
+                : null;
+
+        d.Spell(AID.HellsIngress)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
+        d.Spell(AID.HellsEgress)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15, backwards: true);
+        d.Spell(AID.Regress)!.ForbidExecute = ActionDefinitions.DashToPositionCheck;
 
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.BloodStalk)!.TransformAction = d.Spell(AID.UnveiledGallows)!.TransformAction = d.Spell(AID.UnveiledGibbet)!.TransformAction = () => ActionID.MakeSpell(_state.Beststalk);

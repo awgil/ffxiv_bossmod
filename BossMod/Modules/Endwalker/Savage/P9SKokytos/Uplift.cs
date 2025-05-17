@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Savage.P9SKokytos;
 
-class Uplift(BossModule module) : Components.SelfTargetedAOEs(module, AID.Uplift, new AOEShapeRect(4, 8))
+class Uplift(BossModule module) : Components.StandardAOEs(module, AID.Uplift, new AOEShapeRect(4, 8))
 {
     public Angle? WallDirection { get; private set; }
 

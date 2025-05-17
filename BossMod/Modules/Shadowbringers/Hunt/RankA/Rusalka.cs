@@ -14,8 +14,8 @@ public enum AID : uint
     Flood = 17369, // Boss->self, no cast, range 8 circle
 }
 
-class Hydrocannon(BossModule module) : Components.LocationTargetedAOEs(module, AID.Hydrocannon, 8);
-class AetherialSpark(BossModule module) : Components.SelfTargetedAOEs(module, AID.AetherialSpark, new AOEShapeRect(12, 2));
+class Hydrocannon(BossModule module) : Components.StandardAOEs(module, AID.Hydrocannon, 8);
+class AetherialSpark(BossModule module) : Components.StandardAOEs(module, AID.AetherialSpark, new AOEShapeRect(12, 2));
 
 class AetherialPull(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherialPull, 30, shape: new AOEShapeCircle(30), kind: Kind.TowardsOrigin)
 {

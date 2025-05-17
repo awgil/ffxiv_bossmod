@@ -36,10 +36,10 @@ public enum IconID : uint
 }
 
 class Electrowave(BossModule module) : Components.RaidwideCast(module, AID.Electrowave);
-class BionicThrash(BossModule module) : Components.SelfTargetedAOEs(module, AID.BionicThrashAOE, new AOEShapeCone(30, 45.Degrees()));
-class Synchroshot(BossModule module) : Components.SelfTargetedAOEs(module, AID.SynchroshotReal, new AOEShapeRect(40, 2));
+class BionicThrash(BossModule module) : Components.StandardAOEs(module, AID.BionicThrashAOE, new AOEShapeCone(30, 45.Degrees()));
+class Synchroshot(BossModule module) : Components.StandardAOEs(module, AID.SynchroshotReal, new AOEShapeRect(40, 2));
 class Sentry(BossModule module) : Components.Adds(module, (uint)OID.SentryReal);
-class LaserLash(BossModule module) : Components.SelfTargetedAOEs(module, AID.LaserLashReal, new AOEShapeRect(40, 5));
+class LaserLash(BossModule module) : Components.StandardAOEs(module, AID.LaserLashReal, new AOEShapeRect(40, 5));
 
 class Surge(BossModule module) : Components.Knockback(module, AID.Surge)
 {

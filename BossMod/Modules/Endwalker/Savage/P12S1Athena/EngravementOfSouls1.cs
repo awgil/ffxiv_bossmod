@@ -31,7 +31,7 @@ class EngravementOfSouls1Spread(BossModule module) : Components.UniformStackSpre
             SID.AstralbrightSoul => DebuffType.Dark,
             _ => DebuffType.None
         };
-        if (type != DebuffType.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (type != DebuffType.None && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             _states[slot].Debuff = type;
             AddSpread(actor, WorldState.FutureTime(10.1f));

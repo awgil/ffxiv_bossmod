@@ -84,9 +84,9 @@ class AbyssicBuster(BossModule module) : Components.Cleave(module, AID.AbyssicBu
         }
     }
 };
-class ChaosBlast(BossModule module) : Components.LocationTargetedAOEs(module, AID.ChaosBlast, 2);
-class ChaosBlast2(BossModule module) : Components.SelfTargetedAOEs(module, AID.ChaosBlast2, new AOEShapeRect(50, 2));
-class Comet(BossModule module) : Components.LocationTargetedAOEs(module, AID.Comet, 4);
+class ChaosBlast(BossModule module) : Components.StandardAOEs(module, AID.ChaosBlast, 2);
+class ChaosBlast2(BossModule module) : Components.StandardAOEs(module, AID.ChaosBlast2, new AOEShapeRect(50, 2));
+class Comet(BossModule module) : Components.StandardAOEs(module, AID.Comet, 4);
 class MeteorBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(30), (uint)IconID.Meteor, AID.MeteorBait, 9.1f, true)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -124,7 +124,7 @@ class MeteorImpact(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class Heavensfall(BossModule module) : Components.LocationTargetedAOEs(module, AID.Heavensfall, 5);
+class Heavensfall(BossModule module) : Components.StandardAOEs(module, AID.Heavensfall, 5);
 class DarkStar(BossModule module) : Components.RaidwideCast(module, AID.DarkStar);
 class MultiAddModule(BossModule module) : Components.AddsMulti(module, [OID.LeftWingOfTragedy, OID.RightWingOfInjury], 1);
 class D023TiomanStates : StateMachineBuilder

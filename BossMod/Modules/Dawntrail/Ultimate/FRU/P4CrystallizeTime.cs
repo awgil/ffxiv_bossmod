@@ -65,8 +65,7 @@ class P4CrystallizeTime(BossModule module) : BossComponent(module)
 
     private void AssignMechanic(Actor player, Mechanic mechanic, Mechanic lowerPrio = Mechanic.None, Mechanic higherPrio = Mechanic.None)
     {
-        var slot = Raid.FindSlot(player.InstanceID);
-        if (slot < 0)
+        if (!Raid.TryFindSlot(player, out var slot))
             return;
         ref var mech = ref PlayerMechanics[slot];
         if (mech == Mechanic.None || mech == lowerPrio)

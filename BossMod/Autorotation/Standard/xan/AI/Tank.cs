@@ -202,10 +202,10 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     private void AutoMit()
     {
-        if (Player.PredictedHPRaw == Player.HPMP.CurHP && !Player.InCombat)
+        if (Player.PendingHPRaw == Player.HPMP.CurHP && !Player.InCombat)
             return;
 
-        if (Player.PredictedHPRatio < 0.8)
+        if (Player.PendingHPRatio < 0.8)
         {
             var delay = 0f;
             if (JobActions.ShortMit.ID == ActionID.MakeSpell(WAR.AID.RawIntuition))
@@ -213,12 +213,12 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.Minimal, delay: delay);
         }
 
-        if (Player.PredictedHPRatio < 0.6)
+        if (Player.PendingHPRatio < 0.6)
             // set arbitrary deadline to 1 second in the future
             UseOneMit(1);
 
         // TODO figure out how consistent this is or if we should use predictively instead
-        if (Player.PredictedHPRaw <= 0)
+        if (Player.PendingHPRaw <= 0)
             Hints.ActionsToExecute.Push(JobActions.Invuln.ID, Player, ActionQueue.Priority.VeryHigh);
 
         foreach (var t in Tankbusters)
@@ -230,7 +230,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
     {
         if (strategy.Enabled(Track.Mit) && EnemiesAutoingMe.Any())
         {
-            if (Player.PredictedHPRatio < 0.8 && Player.FindStatus(BossMod.GNB.SID.Aurora) == null)
+            if (Player.PendingHPRatio < 0.8 && Player.FindStatus(BossMod.GNB.SID.Aurora) == null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.GNB.AID.Aurora), Player, ActionQueue.Priority.Minimal);
         }
     }
@@ -239,10 +239,10 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
     {
         if (strategy.Enabled(Track.Mit) && EnemiesAutoingMe.Any())
         {
-            if (Player.PredictedHPRatio < 0.75)
+            if (Player.PendingHPRatio < 0.75)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(WAR.AID.Bloodwhetting), Player, ActionQueue.Priority.Low, delay: GCD - 1f);
 
-            if (Player.PredictedHPRatio < 0.5)
+            if (Player.PendingHPRatio < 0.5)
             {
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(WAR.AID.ThrillOfBattle), Player, ActionQueue.Priority.Low);
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(WAR.AID.Equilibrium), Player, ActionQueue.Priority.Low);

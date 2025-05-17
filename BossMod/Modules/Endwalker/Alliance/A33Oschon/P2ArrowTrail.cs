@@ -29,4 +29,4 @@ class P2ArrowTrail : Components.Exaflare
     }
 }
 
-class P2DownhillArrowTrailDownhill(BossModule module) : Components.LocationTargetedAOEs(module, AID.ArrowTrailDownhill, 6);
+class P2DownhillArrowTrailDownhill(BossModule module) : Components.StandardAOEs(module, AID.ArrowTrailDownhill, 6);

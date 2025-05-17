@@ -2,6 +2,7 @@
 
 namespace BossMod.Dawntrail.Extreme.Ex4Zelenia;
 
+// TODO: add "you should bait now!" hints
 class EscelonsFall : Components.GenericBaitAway
 {
     enum Proximity
@@ -31,7 +32,7 @@ class EscelonsFall : Components.GenericBaitAway
             HintOrder.Add(Order[^1]);
         }
 
-        if (status.ID == (uint)SID.SlashingResistanceDown && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (status.ID == (uint)SID.SlashingResistanceDown && Raid.TryFindSlot(actor.InstanceID, out var slot))
             Vulns[slot] = status.ExpireAt;
     }
 
@@ -87,3 +88,5 @@ class EscelonsFall : Components.GenericBaitAway
         }
     }
 }
+
+class PowerBreak(BossModule module) : Components.GroupedAOEs(module, [AID.PowerBreak1, AID.PowerBreak2], new AOEShapeRect(24, 32));

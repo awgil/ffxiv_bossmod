@@ -27,8 +27,8 @@ public enum IconID : uint
     TerrifyingGlance = 73, // player
 }
 
-class HeatGazeDonut(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeatGazeDonut, new AOEShapeDonut(5, 10));
-class HeatGazeCone(BossModule module) : Components.SelfTargetedAOEs(module, AID.HeatGazeCone, new AOEShapeCone(19.9f, 30.Degrees()));
+class HeatGazeDonut(BossModule module) : Components.StandardAOEs(module, AID.HeatGazeDonut, new AOEShapeDonut(5, 10));
+class HeatGazeCone(BossModule module) : Components.StandardAOEs(module, AID.HeatGazeCone, new AOEShapeCone(19.9f, 30.Degrees()));
 class Knockout(BossModule module) : Components.SingleTargetCast(module, AID.Knockout);
 class Brace(BossModule module) : Components.DirectionalParry(module, (uint)OID.Boss)
 {

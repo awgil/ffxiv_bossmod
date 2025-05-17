@@ -30,11 +30,11 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus add disappear
 }
 
-class HeavySmash(BossModule module) : Components.LocationTargetedAOEs(module, AID.HeavySmash, 6);
-class SludgeBomb(BossModule module) : Components.LocationTargetedAOEs(module, AID.SludgeBomb2, 8);
-class RustlingWind(BossModule module) : Components.SelfTargetedAOEs(module, AID.RustlingWind, new AOEShapeRect(15, 2));
-class AcidMist(BossModule module) : Components.SelfTargetedAOEs(module, AID.AcidMist, new AOEShapeCircle(6));
-class OdiousAir(BossModule module) : Components.SelfTargetedAOEs(module, AID.OdiousAir, new AOEShapeCone(12, 60.Degrees()));
+class HeavySmash(BossModule module) : Components.StandardAOEs(module, AID.HeavySmash, 6);
+class SludgeBomb(BossModule module) : Components.StandardAOEs(module, AID.SludgeBomb2, 8);
+class RustlingWind(BossModule module) : Components.StandardAOEs(module, AID.RustlingWind, new AOEShapeRect(15, 2));
+class AcidMist(BossModule module) : Components.StandardAOEs(module, AID.AcidMist, new AOEShapeCircle(6));
+class OdiousAir(BossModule module) : Components.StandardAOEs(module, AID.OdiousAir, new AOEShapeCone(12, 60.Degrees()));
 class VineWhip(BossModule module) : Components.SingleTargetCast(module, AID.VineWhip);
 
 class OdiousAtmosphere(BossModule module) : Components.GenericAOEs(module)

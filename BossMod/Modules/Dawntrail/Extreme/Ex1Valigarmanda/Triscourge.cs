@@ -59,7 +59,7 @@ class FireScourgeOfIce(BossModule module) : Components.StayMove(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID == (uint)IconID.CalamitysChill && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (iconID == (uint)IconID.CalamitysChill && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             PlayerStates[slot] = new(Requirement.Move, WorldState.FutureTime(7));
             ++NumImminent;
@@ -84,8 +84,7 @@ class ThunderScourgeOfIceThunder(BossModule module) : Components.UniformStackSpr
         if ((IconID)iconID is IconID.CalamitysBolt or IconID.CalamitysChill)
         {
             AddSpread(actor, WorldState.FutureTime(7.1f));
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0 && _platform != null)
+            if (_platform != null && Raid.TryFindSlot(actor, out var slot))
             {
                 _platform.RequireHint[slot] = true;
                 _platform.RequireLevitating[slot] = iconID == (uint)IconID.CalamitysChill;

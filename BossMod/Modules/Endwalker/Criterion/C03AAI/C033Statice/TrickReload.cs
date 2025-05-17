@@ -79,6 +79,6 @@ class Trapshooting(BossModule module) : Components.UniformStackSpread(module, 6,
     }
 }
 
-class TriggerHappy(BossModule module, AID aid) : Components.SelfTargetedAOEs(module, aid, new AOEShapeCone(40, 30.Degrees()));
+class TriggerHappy(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(40, 30.Degrees()));
 class NTriggerHappy(BossModule module) : TriggerHappy(module, AID.NTriggerHappyAOE);
 class STriggerHappy(BossModule module) : TriggerHappy(module, AID.STriggerHappyAOE);

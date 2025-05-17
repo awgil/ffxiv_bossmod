@@ -2,7 +2,7 @@
 
 class P2SanctityOfTheWard1Gaze : DragonsGaze
 {
-    public P2SanctityOfTheWard1Gaze(BossModule module) : base(module, OID.BossP2)
+    public P2SanctityOfTheWard1Gaze(BossModule module) : base(module, OID.BossP2, 9.4f)
     {
         EnableHints = true;
     }

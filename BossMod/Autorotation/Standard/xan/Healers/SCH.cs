@@ -102,12 +102,12 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         if (RaidBuffsLeft > 0 && !CanFitGCD(RaidBuffsLeft, 1))
             PushGCD(AID.Bio1, BestDotTarget);
 
-        //if (Unlocked(AID.ArtOfWar1) && !Unlocked(AID.Broil1))
-        //    Hints.RecommendedRangeToTarget = 4.9f - Player.HitboxRadius;
+        // for about 8 levels starting at 46, art of war (aoe) is our best single target action
+        var rangeToTarget = Unlocked(AID.ArtOfWar1) && !Unlocked(AID.Broil1) ? 5 : 25;
 
         var needAOETargets = Unlocked(AID.Broil1) ? 2 : 1;
 
-        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(5), AID.ArtOfWar1, needAOETargets);
+        GoalZoneCombined(strategy, rangeToTarget, Hints.GoalAOECircle(5), AID.ArtOfWar1, needAOETargets);
 
         if (NumAOETargets >= needAOETargets)
             PushGCD(AID.ArtOfWar1, Player);
@@ -141,7 +141,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         if (ImpactImminent > 0)
             PushOGCD(AID.BanefulImpaction, BestRangedAOETarget);
 
-        if (MP <= 7000)
+        if (MP <= Player.HPMP.MaxMP * 0.7f)
             PushOGCD(AID.LucidDreaming, Player);
     }
 

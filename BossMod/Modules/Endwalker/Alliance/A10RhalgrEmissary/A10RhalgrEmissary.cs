@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Alliance.A10RhalgrEmissary;
 
-class DestructiveStatic(BossModule module) : Components.SelfTargetedAOEs(module, AID.DestructiveStatic, new AOEShapeCone(50, 90.Degrees()));
-class LightningBolt(BossModule module) : Components.LocationTargetedAOEs(module, AID.LightningBoltAOE, 6);
+class DestructiveStatic(BossModule module) : Components.StandardAOEs(module, AID.DestructiveStatic, new AOEShapeCone(50, 90.Degrees()));
+class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBoltAOE, 6);
 class BoltsFromTheBlue(BossModule module) : Components.CastCounter(module, AID.BoltsFromTheBlueAOE);
 class DestructiveStrike(BossModule module) : Components.BaitAwayCast(module, AID.DestructiveStrike, new AOEShapeCone(13, 60.Degrees())); // TODO: verify angle
 
