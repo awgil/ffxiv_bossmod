@@ -247,6 +247,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (!Player.InCombat)
             return true;
 
+        if (Utils.IsNonBossFate(World.Client.ActiveFate.ID))
+            return !Player.InCombat;
+
         // spend buffs instead of casting motifs
         if (Hyperphantasia > 0 || SpectrumLeft > GCD || RainbowBright > GCD || Starstruck > GCD)
             return false;

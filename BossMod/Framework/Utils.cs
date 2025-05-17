@@ -35,11 +35,14 @@ public static partial class Utils
     public static string PosRotString(Vector4 posRot) => $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {posRot.W.Radians()}]";
     public static bool CharacterIsOmnidirectional(uint oid) => Service.LuminaRow<Lumina.Excel.Sheets.BNpcBase>(oid)?.IsOmnidirectional ?? false;
     public static string StatusString(uint statusID) => $"{statusID} '{Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.Name ?? "<not found>"}'";
-    public static bool StatusIsRemovable(uint statusID) => Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.CanDispel ?? false;
     public static string StatusTimeString(DateTime expireAt, DateTime now) => $"{Math.Max(0, (expireAt - now).TotalSeconds):f3}";
     public static string CastTimeString(float current, float total) => $"{current:f2}/{total:f2}";
     public static string CastTimeString(ActorCastInfo cast, DateTime now) => CastTimeString(cast.ElapsedTime, cast.TotalTime);
     public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(id)?.Text}'";
+
+    public static readonly Func<uint, bool> StatusIsRemovable = Memoize((uint statusID) => Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.CanDispel ?? false);
+    public static readonly Func<uint, bool> IsBossFate = Memoize((uint fateID) => Service.LuminaRow<Lumina.Excel.Sheets.Fate>(fateID)?.MapIcon == 60502);
+    public static bool IsNonBossFate(uint fateID) => fateID > 0 && !IsBossFate(fateID);
 
     public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged => *(T*)((IntPtr)address + offset);
     public static unsafe void WriteField<T>(void* address, int offset, T value) where T : unmanaged => *(T*)((IntPtr)address + offset) = value;
@@ -306,4 +309,16 @@ public static partial class Utils
     }
 
     public static IEnumerable<(string, T)> DedupKeys<T>(Dictionary<string, T> items) => DedupKeys(items.Select(i => (i.Key, i.Value)));
+
+    public static Func<TIn, TOut> Memoize<TIn, TOut>(this Func<TIn, TOut> func) where TIn : notnull
+    {
+        var cache = new Dictionary<TIn, TOut>();
+        return input =>
+        {
+            if (cache.TryGetValue(input, out var cached))
+                return cached;
+
+            return cache[input] = func(input);
+        };
+    }
 }
