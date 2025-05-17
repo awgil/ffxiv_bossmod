@@ -139,6 +139,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         BestLineTarget = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget).Best;
 
+        if (!Player.InCombat && Player.CastInfo is { Action: var act } && (AID)act.ID is AID.PomMotif or AID.WingMotif or AID.ClawMotif or AID.MawMotif or AID.HammerMotif or AID.StarrySkyMotif)
+            Hints.ForceCancelCast = true;
+
         var motifOk = IsMotifOk(strategy);
 
         if (motifOk)
@@ -241,9 +244,6 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool IsMotifOk(StrategyValues strategy)
     {
-        if (Player.MountId > 0)
-            return false;
-
         if (!Player.InCombat)
             return true;
 

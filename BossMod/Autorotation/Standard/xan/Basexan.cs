@@ -430,8 +430,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         else
             PotionLeft = 0;
 
-        if (Player.MountId is not (103 or 117 or 128))
-            Exec(strategy, PlayerTarget);
+        Exec(strategy, PlayerTarget);
     }
 
     // other classes have timed personal buffs to plan around, like blm leylines, mch overheat, gnb nomercy

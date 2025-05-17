@@ -162,8 +162,15 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             return; // every other GCD breaks soul reaver
         }
 
-        if (!Player.InCombat && Player.MountId == 0 && !Soulsow)
-            PushGCD(AID.SoulSow, Player, GCDPriority.Soulsow);
+        if (!Player.InCombat)
+        {
+            if (!Soulsow)
+                PushGCD(AID.SoulSow, Player, GCDPriority.Soulsow);
+
+            // if we exit combat while casting, cancel it so we get instant cast instead
+            if (Player.CastInfo?.Action.ID == (uint)AID.SoulSow)
+                Hints.ForceCancelCast = true;
+        }
 
         switch (strategy.Option(Track.Harpe).As<HarpeStrategy>())
         {

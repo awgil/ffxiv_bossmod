@@ -40,7 +40,7 @@ public sealed class ActionQueue
     public void Clear() => Entries.Clear();
     public void Push(ActionID action, Actor? target, float priority, float expire = float.MaxValue, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) => Entries.Add(new(action, target, priority, expire, delay, castTime, targetPos, facingAngle));
 
-    public Entry FindBest(WorldState ws, Actor player, ReadOnlySpan<Cooldown> cooldowns, float animationLock, AIHints hints, float instantAnimLockDelay)
+    public Entry FindBest(WorldState ws, Actor player, ReadOnlySpan<Cooldown> cooldowns, float animationLock, AIHints hints, float instantAnimLockDelay, bool allowDismount)
     {
         Entries.SortByReverse(e => (e.Priority, -e.Expire));
         Entry best = default;
@@ -77,7 +77,7 @@ public sealed class ActionQueue
                 best = candidate;
                 deadline = startDelay;
             }
-            else if (CanExecute(ref candidate, def, ws, player, hints))
+            else if (CanExecute(ref candidate, def, ws, player, hints, allowDismount))
             {
                 // the action can be used right now
                 return candidate;
@@ -87,10 +87,13 @@ public sealed class ActionQueue
         return best;
     }
 
-    private bool CanExecute(ref Entry entry, ActionDefinition? def, WorldState ws, Actor player, AIHints hints)
+    private bool CanExecute(ref Entry entry, ActionDefinition? def, WorldState ws, Actor player, AIHints hints, bool allowDismount)
     {
         if (entry.Priority >= Priority.ManualEmergency || def == null)
             return true; // don't make any assumptions
+
+        if (!allowDismount && AutoDismountTweak.IsMountPreventingAction(ws, def.ID))
+            return false;
 
         if (def.Range > 0)
         {

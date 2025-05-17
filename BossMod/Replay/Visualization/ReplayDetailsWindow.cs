@@ -174,7 +174,7 @@ class ReplayDetailsWindow : UIWindow
             var player = _mgr.WorldState.Party.Player();
             if (player != null)
             {
-                var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, player, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f);
+                var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, player, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f, false);
                 ImGui.TextUnformatted($"! {best.Action} ({best.Priority:f2}) in {best.Delay:f3} @ {best.Target}");
             }
             foreach (var a in _hints.ActionsToExecute.Entries)

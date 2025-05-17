@@ -241,7 +241,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
         (BestMeleeTarget, NumMeleeTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
 
-        if (Carbuncle == null && Player.MountId == 0)
+        if (Carbuncle == null)
             PushGCD(AID.SummonCarbuncle, Player);
 
         if (primaryTarget == null)

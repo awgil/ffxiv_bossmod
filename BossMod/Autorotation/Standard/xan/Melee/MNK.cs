@@ -617,7 +617,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     private void Meditate(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Chakra >= 5 || !Unlocked(AID.SteeledMeditation) || Player.MountId > 0)
+        if (Chakra >= 5 || !Unlocked(AID.SteeledMeditation))
             return;
 
         var prio = GCDPriority.None;
