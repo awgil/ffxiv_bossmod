@@ -50,10 +50,10 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool DrawEditorOption(ref StrategyValue value, StrategyConfig cfg, int? level)
+    public static bool DrawEditorOption(ref StrategyValue value, StrategyConfig cfg, int? level, string label = "Option")
     {
         var modified = false;
-        using (var combo = ImRaii.Combo("Option", cfg.Options[value.Option].UIName))
+        using (var combo = ImRaii.Combo(label, cfg.Options[value.Option].UIName))
         {
             if (combo)
             {

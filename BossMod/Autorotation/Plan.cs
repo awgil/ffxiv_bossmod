@@ -16,9 +16,9 @@ public sealed record class Plan(string Name, Type Encounter)
         public StrategyValue Value = Value;
     }
 
-    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks) : IRotationModuleData
+    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks, List<StrategyValue> Defaults) : IRotationModuleData
     {
-        public readonly Module MakeClone() => this with { Tracks = [.. Tracks.Select(t => new List<Entry>([.. t]))] };
+        public readonly Module MakeClone() => this with { Tracks = [.. Tracks.Select(t => new List<Entry>([.. t]))], Defaults = [.. Defaults] };
     }
 
     public string Guid = "";
@@ -36,14 +36,18 @@ public sealed record class Plan(string Name, Type Encounter)
     public int AddModule(Type t, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder)
     {
         List<List<Entry>> tracks = [];
+        List<StrategyValue> defaults = [];
         foreach (var _ in def.Configs)
+        {
             tracks.Add([]);
+            defaults.Add(default);
+        }
 
         var insertionIndex = Modules.Count;
         while (insertionIndex > 0 && Modules[insertionIndex - 1].Definition.Order > def.Order)
             --insertionIndex;
 
-        Modules.Insert(insertionIndex, new(t, def, builder, tracks));
+        Modules.Insert(insertionIndex, new(t, def, builder, tracks, defaults));
         return insertionIndex;
     }
 }
@@ -86,6 +90,31 @@ public class JsonPlanConverter : JsonConverter<Plan>
             var m = res.Modules[mi].Tracks;
             foreach (var jt in jm.Value.EnumerateObject())
             {
+                if (jt.Name == "_defaults")
+                {
+                    foreach (var jd in jt.Value.EnumerateObject())
+                    {
+                        var dTrack = md.Definition.Configs.FindIndex(s => s.InternalName == jd.Name);
+                        if (dTrack < 0)
+                        {
+                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find track {jd.Name} in module {jm.Name}");
+                            continue;
+                        }
+                        var optionName = jd.Value.GetString() ?? "";
+                        var s = new StrategyValue()
+                        {
+                            Option = md.Definition.Configs[dTrack].Options.FindIndex(o => o.InternalName == optionName)
+                        };
+                        if (s.Option < 0)
+                        {
+                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jd.Name} in module {jm.Name}");
+                            continue;
+                        }
+                        res.Modules[mi].Defaults[dTrack] = s;
+                    }
+                    continue;
+                }
+
                 var iTrack = md.Definition.Configs.FindIndex(s => s.InternalName == jt.Name);
                 if (iTrack < 0)
                 {
@@ -150,6 +179,17 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 }
                 writer.WriteEndArray();
             }
+            writer.WriteStartObject("_defaults");
+            for (int iDef = 0; iDef < m.Defaults.Count; ++iDef)
+            {
+                var def = m.Defaults[iDef];
+                if (def == default)
+                    continue;
+
+                var cfg = m.Definition.Configs[iDef];
+                writer.WriteString(cfg.InternalName, cfg.Options[def.Option].InternalName);
+            }
+            writer.WriteEndObject();
             writer.WriteEndObject();
         }
         writer.WriteEndObject();
