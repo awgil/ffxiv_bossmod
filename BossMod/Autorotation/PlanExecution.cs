@@ -23,7 +23,7 @@ public sealed class PlanExecution
         public bool IsActive(float t, StateData s) => t >= WindowStart && t <= WindowEnd && IntersectBranchRange(s.BranchID, s.NumBranches);
     }
 
-    public readonly record struct ModuleData(Type Type, RotationModuleDefinition Definition, List<List<EntryData>> Tracks);
+    public readonly record struct ModuleData(Type Type, RotationModuleDefinition Definition, List<List<EntryData>> Tracks, List<StrategyValue> Defaults);
 
     public readonly BossModule Module;
     public readonly Plan? Plan;
@@ -48,7 +48,7 @@ public sealed class PlanExecution
 
         if (plan != null)
         {
-            Strategies = [.. plan.Modules.Select(m => new ModuleData(m.Type, m.Definition, [.. m.Tracks.Select(BuildEntries)]))];
+            Strategies = [.. plan.Modules.Select(m => new ModuleData(m.Type, m.Definition, [.. m.Tracks.Select(BuildEntries)], m.Defaults))];
             ForcedTargets = BuildEntries(plan.Targeting);
         }
     }
@@ -88,6 +88,9 @@ public sealed class PlanExecution
         var res = new StrategyValues(data.Definition.Configs);
         for (int i = 0; i < data.Tracks.Count; ++i)
         {
+            // set global default
+            res.Values[i] = data.Defaults[i];
+            // then override with entries
             var entry = GetEntryAt(data.Tracks[i], t, s);
             if (entry != null)
                 res.Values[i] = entry.Value with { ExpireIn = entry.WindowEnd - t };

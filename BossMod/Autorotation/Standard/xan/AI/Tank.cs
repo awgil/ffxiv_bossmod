@@ -111,9 +111,6 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Player.MountId > 0)
-            return;
-
         // ranged
         if (ShouldRanged(strategy, primaryTarget))
             Hints.ActionsToExecute.Push(JobActions.Ranged, primaryTarget, ActionQueue.Priority.Low);

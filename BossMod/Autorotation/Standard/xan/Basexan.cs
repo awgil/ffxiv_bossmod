@@ -366,6 +366,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         {
             Positional.Flank => MathF.Abs(target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized())) < 0.7071067f,
             Positional.Rear => target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized()) < -0.7071068f,
+            // the only Front positional is Goblin Punch, used by BLU, who can't use True North anyway, so it's irrelevant
             _ => true
         };
         Hints.RecommendedPositional = (target, positional.pos, NextPositionalImminent, NextPositionalCorrect);
@@ -430,8 +431,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         else
             PotionLeft = 0;
 
-        if (Player.MountId is not (103 or 117 or 128))
-            Exec(strategy, PlayerTarget);
+        Exec(strategy, PlayerTarget);
     }
 
     // other classes have timed personal buffs to plan around, like blm leylines, mch overheat, gnb nomercy
