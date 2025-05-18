@@ -35,9 +35,6 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Player.MountId > 0)
-            return;
-
         var raise = strategy.Option(Track.Raise).As<RaiseStrategy>();
         if (raise == RaiseStrategy.None)
             return;

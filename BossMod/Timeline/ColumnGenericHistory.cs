@@ -53,13 +53,15 @@ public class ColumnGenericHistory : Timeline.Column
         return branchID >= e.AttachNode.BranchID && branchID < e.AttachNode.BranchID + e.AttachNode.NumBranches;
     }
 
+    protected virtual Color GetBackgroundColor() => Timeline.Colors.PlannerBackground;
+
     protected void DrawEntries()
     {
         var drawlist = ImGui.GetWindowDrawList();
 
         var trackMin = Timeline.ColumnCoordsToScreenCoords(Width / 2 - _trackHalfWidth, Timeline.MinVisibleTime);
         var trackMax = Timeline.ColumnCoordsToScreenCoords(Width / 2 + _trackHalfWidth, Timeline.MaxVisibleTime);
-        drawlist.AddRectFilled(trackMin, trackMax, Timeline.Colors.PlannerBackground.ABGR);
+        drawlist.AddRectFilled(trackMin, trackMax, GetBackgroundColor().ABGR);
 
         foreach (var e in Entries.Where(e => e.EntryType == Entry.Type.Range && IsEntryVisible(e)))
         {

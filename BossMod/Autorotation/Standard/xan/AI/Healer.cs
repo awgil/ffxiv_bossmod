@@ -114,9 +114,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Player.MountId > 0)
-            return;
-
         Health.Update(Hints);
 
         if (strategy.Enabled(Track.StayNearParty) && Player.InCombat)

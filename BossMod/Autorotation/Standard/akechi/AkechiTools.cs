@@ -889,8 +889,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             DowntimeIn = float.MaxValue;
             UptimeIn = null;
         }
-        if (Player.MountId is not (103 or 117 or 128))
-            Execution(strategy, PlayerTarget);
+        Execution(strategy, PlayerTarget);
     }
 
     /// <summary>The core function responsible for orchestrating the execution of all abilities and strategies.<br/></summary>

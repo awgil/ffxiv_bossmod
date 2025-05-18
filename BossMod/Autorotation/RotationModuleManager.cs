@@ -159,7 +159,6 @@ public sealed class RotationModuleManager : IDisposable
 
     public void Toggle(Preset p, bool exclusive = false)
     {
-        Presets.Remove(ForceDisable);
         if (!Presets.Remove(p))
         {
             if (exclusive)
