@@ -1,4 +1,5 @@
 ﻿using static BossMod.AIHints;
+using static BossMod.ClientState;
 
 namespace BossMod.Autorotation.akechi;
 
@@ -135,6 +136,18 @@ public enum OGCDStrategy
     Delay
 }
 #endregion
+
+public enum AllowOrForbid
+{
+    /// <summary> <b>Allow</b> the action to be executed. </summary>
+    Allow,
+
+    /// <summary> <b>Forces</b> the action to be executed. </summary>
+    Force,
+
+    /// <summary> <b>Forbid</b> the action from being executed. </summary>
+    Forbid
+}
 
 /// <summary>The core foundation of how we execute everything, from queuing GCDs to implementing our rotation helpers, functions, and tools.<br/> This base provides a robust framework equipped with a comprehensive suite of functions designed to streamline optimization and simplify the creation of advanced rotation modules.</summary>
 /// <typeparam name="AID">The user's specified <b>Action ID</b> being checked, called by <b>using <seealso cref="BossMod"/>.[class/job acronym]</b>.</typeparam>
@@ -977,6 +990,18 @@ static class ModuleExtensions
             .AddOption(OGCDStrategy.EarlyWeave, "EarlyWeave", $"Force use {action.Name()} in next possible early-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.LateWeave, "LateWeave", $"Force use {action.Name()} in next possible late-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.Delay, "Delay", $"Do NOT use {action.Name()}", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel)
+            .AddAssociatedActions(aid);
+    }
+
+    public static RotationModuleDefinition.ConfigRef<AllowOrForbid> DefineAllow<Index, AID>(this RotationModuleDefinition res, Index track, AID aid, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100)
+        where Index : Enum
+        where AID : Enum
+    {
+        var action = ActionID.MakeSpell(aid);
+        return res.Define(track).As<AllowOrForbid>(internalName, displayName: displayName, uiPriority: uiPriority)
+            .AddOption(AllowOrForbid.Allow, "Allow", $"Allow use {action.Name()} when available", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(AllowOrForbid.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(AllowOrForbid.Forbid, "Forbid", $"Forbid use {action.Name()} entirely", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddAssociatedActions(aid);
     }
     #endregion

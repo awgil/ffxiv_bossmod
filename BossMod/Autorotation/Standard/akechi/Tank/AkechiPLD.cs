@@ -364,36 +364,36 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             if (ShouldUseFightOrFlight(fofStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.FightOrFlight, Player, OGCDPrio(fofStrat, OGCDPriority.ExtremelyHigh));
             if (ShouldUseRequiescat(reqStrat, primaryTarget?.Actor))
-                QueueOGCD(BestRequiescat, TargetChoice(req) ?? (Unlocked(AID.Imperator) ? BestSplashTarget?.Actor : primaryTarget?.Actor), OGCDPrio(reqStrat, OGCDPriority.VeryHigh));
+                QueueOGCD(BestRequiescat, AOETargetChoice(primaryTarget?.Actor, Unlocked(AID.Imperator) ? BestSplashTarget?.Actor : primaryTarget?.Actor, req, strategy), OGCDPrio(reqStrat, OGCDPriority.VeryHigh));
             if (ShouldUseCircleOfScorn(cosStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.CircleOfScorn, Player, OGCDPrio(cosStrat, OGCDPriority.AboveAverage));
             if (ShouldUseSpiritsWithin(swStrat, primaryTarget?.Actor))
-                QueueOGCD(BestSpirits, TargetChoice(sw) ?? primaryTarget?.Actor, OGCDPrio(swStrat, OGCDPriority.Average));
+                QueueOGCD(BestSpirits, SingleTargetChoice(primaryTarget?.Actor, sw), OGCDPrio(swStrat, OGCDPriority.Average));
             if (ShouldUseDash(dashStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.Intervene, TargetChoice(dash) ?? primaryTarget?.Actor, dashStrat is DashStrategy.Force or DashStrategy.Force1 or DashStrategy.GapClose or DashStrategy.GapClose1 ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
+                QueueOGCD(AID.Intervene, SingleTargetChoice(primaryTarget?.Actor, dash), dashStrat is DashStrategy.Force or DashStrategy.Force1 or DashStrategy.GapClose or DashStrategy.GapClose1 ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
             if (ShouldUseBladeOfHonor(bohStrat, primaryTarget?.Actor))
-                QueueOGCD(AID.BladeOfHonor, TargetChoice(boh) ?? BestSplashTarget?.Actor, OGCDPrio(bohStrat, OGCDPriority.Low));
+                QueueOGCD(AID.BladeOfHonor, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, boh, strategy), OGCDPrio(bohStrat, OGCDPriority.Low));
             if (ShouldUseGoringBlade(gbStrat, primaryTarget?.Actor))
-                QueueGCD(AID.GoringBlade, TargetChoice(gb) ?? primaryTarget?.Actor, GCDPrio(gbStrat, GCDPriority.SlightlyHigh));
+                QueueGCD(AID.GoringBlade, SingleTargetChoice(primaryTarget?.Actor, gb), GCDPrio(gbStrat, GCDPriority.SlightlyHigh));
         }
         if (ShouldUseBladeCombo(bladeStrat, primaryTarget?.Actor))
         {
             switch (bladeStrat)
             {
                 case BladeComboStrategy.Automatic:
-                    QueueGCD(BestBlade, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.VeryHigh);
+                    QueueGCD(BestBlade, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, blade, strategy), GCDPriority.VeryHigh);
                     break;
                 case BladeComboStrategy.ForceConfiteor:
-                    QueueGCD(AID.Confiteor, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.Confiteor, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, blade, strategy), GCDPriority.Forced);
                     break;
                 case BladeComboStrategy.ForceFaith:
-                    QueueGCD(AID.BladeOfFaith, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.BladeOfFaith, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, blade, strategy), GCDPriority.Forced);
                     break;
                 case BladeComboStrategy.ForceTruth:
-                    QueueGCD(AID.BladeOfTruth, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.BladeOfTruth, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, blade, strategy), GCDPriority.Forced);
                     break;
                 case BladeComboStrategy.ForceValor:
-                    QueueGCD(AID.BladeOfValor, TargetChoice(blade) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.BladeOfValor, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, blade, strategy), GCDPriority.Forced);
                     break;
             }
         }
@@ -402,16 +402,16 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             switch (atoneStrat)
             {
                 case AtonementStrategy.Automatic:
-                    QueueGCD(BestAtonement, TargetChoice(atone) ?? primaryTarget?.Actor, GCDPriority.SlightlyHigh);
+                    QueueGCD(BestAtonement, SingleTargetChoice(primaryTarget?.Actor, atone), GCDPriority.SlightlyHigh);
                     break;
                 case AtonementStrategy.ForceAtonement:
-                    QueueGCD(AID.Atonement, TargetChoice(atone) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.Atonement, SingleTargetChoice(primaryTarget?.Actor, atone), GCDPriority.Forced);
                     break;
                 case AtonementStrategy.ForceSupplication:
-                    QueueGCD(AID.Supplication, TargetChoice(atone) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.Supplication, SingleTargetChoice(primaryTarget?.Actor, atone), GCDPriority.Forced);
                     break;
                 case AtonementStrategy.ForceSepulchre:
-                    QueueGCD(AID.Sepulchre, TargetChoice(atone) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.Sepulchre, SingleTargetChoice(primaryTarget?.Actor, atone), GCDPriority.Forced);
                     break;
             }
         }
@@ -421,10 +421,10 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             switch (holyStrat)
             {
                 case HolyStrategy.Automatic:
-                    QueueGCD(BestHoly, TargetChoice(holy) ?? primaryTarget?.Actor, lastsecBurst ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
+                    QueueGCD(BestHoly, SingleTargetChoice(primaryTarget?.Actor, holy), lastsecBurst ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
                     break;
                 case HolyStrategy.Spirit:
-                    QueueGCD(AID.HolySpirit, TargetChoice(holy) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.HolySpirit, SingleTargetChoice(primaryTarget?.Actor, holy), GCDPriority.Forced);
                     break;
                 case HolyStrategy.Circle:
                     QueueGCD(BestHolyCircle, Player, GCDPriority.Forced);
@@ -432,11 +432,11 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             }
         }
         if (rangedStrat == RangedStrategy.Automatic && !In3y(TargetChoice(ranged) ?? primaryTarget?.Actor))
-            QueueGCD(IsMoving ? AID.ShieldLob : AID.HolySpirit, TargetChoice(ranged) ?? primaryTarget?.Actor, GCDPriority.Low);
+            QueueGCD(IsMoving ? AID.ShieldLob : AID.HolySpirit, SingleTargetChoice(primaryTarget?.Actor, ranged), GCDPriority.Low);
         if (ShouldUseRangedLob(primaryTarget?.Actor, rangedStrat))
-            QueueGCD(AID.ShieldLob, TargetChoice(ranged) ?? primaryTarget?.Actor, rangedStrat == RangedStrategy.Force ? GCDPriority.Forced : GCDPriority.Low);
+            QueueGCD(AID.ShieldLob, SingleTargetChoice(primaryTarget?.Actor, ranged), rangedStrat == RangedStrategy.Force ? GCDPriority.Forced : GCDPriority.Low);
         if (ShouldUseRangedCast(primaryTarget?.Actor, rangedStrat))
-            QueueGCD(AID.HolySpirit, TargetChoice(ranged) ?? primaryTarget?.Actor, rangedStrat == RangedStrategy.ForceCast ? GCDPriority.Forced : GCDPriority.Low);
+            QueueGCD(AID.HolySpirit, SingleTargetChoice(primaryTarget?.Actor, ranged), rangedStrat == RangedStrategy.ForceCast ? GCDPriority.Forced : GCDPriority.Low);
         if (ShouldUsePotion(potStrat))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
         #endregion

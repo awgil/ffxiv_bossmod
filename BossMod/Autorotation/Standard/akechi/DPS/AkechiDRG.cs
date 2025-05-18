@@ -617,20 +617,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (!strategy.HoldEverything())
         {
             #region Dives
-            var diveStrategy = dive switch
-            {
-                DivesStrategy.AllowMaxMelee => In3y(BestDiveTarget?.Actor),
-                DivesStrategy.AllowCloseMelee => InRange(BestDiveTarget?.Actor, 1),
-                DivesStrategy.Allow => In20y(BestDiveTarget?.Actor),
-                DivesStrategy.Forbid => false,
-                _ => false,
-            };
-
-            var maxMelee = dive == DivesStrategy.AllowMaxMelee;
-            var closeMelee = dive == DivesStrategy.AllowCloseMelee;
-            var allowed = dive == DivesStrategy.Allow;
-            var forbidden = dive == DivesStrategy.Forbid;
-            var divesGood = diveStrategy && (maxMelee || closeMelee || allowed) && !forbidden;
             #endregion
 
             #region Standard Rotations
@@ -665,7 +651,15 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                         if (ShouldUseLifeSurge(lsStrat, primaryTarget?.Actor))
                             QueueOGCD(AID.LifeSurge, Player, lsStrat is SurgeStrategy.Force or SurgeStrategy.ForceWeave or SurgeStrategy.ForceNextOpti or SurgeStrategy.ForceNextOptiWeave ? OGCDPriority.Forced : OGCDPriority.ExtremelyHigh);
                     }
-                    if (divesGood)
+                    var shouldDive = dive switch
+                    {
+                        DivesStrategy.AllowMaxMelee => In3y(BestDiveTarget?.Actor),
+                        DivesStrategy.AllowCloseMelee => InRange(BestDiveTarget?.Actor, 1),
+                        DivesStrategy.Allow => In20y(BestDiveTarget?.Actor),
+                        DivesStrategy.Forbid => false,
+                        _ => false,
+                    };
+                    if (shouldDive && (dive == DivesStrategy.AllowMaxMelee || dive == DivesStrategy.AllowCloseMelee || dive == DivesStrategy.Allow) && dive != DivesStrategy.Forbid)
                     {
                         if (ShouldUseJump(jumpStrat, primaryTarget?.Actor))
                             QueueOGCD(Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump, SingleTargetChoice(primaryTarget?.Actor, jump), jumpStrat is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ? OGCDPriority.Forced : OGCDPriority.SlightlyHigh);

@@ -138,18 +138,18 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         if (strategy.ForceAOE())
             QueueGCD(BestAOE, Player, GCDPriority.Low);
         if (ShouldUseBio(primaryTarget?.Actor, BioStrategy))
-            QueueGCD(BestBio, TargetChoice(Bio) ?? BestDOTTarget?.Actor, GCDPriority.Average);
+            QueueGCD(BestBio, AOETargetChoice(primaryTarget?.Actor, BestDOTTarget?.Actor, Bio, strategy), GCDPriority.Average);
         #endregion
 
         #region Cooldowns
         if (HasEffect(SID.ImpactImminent))
-            QueueOGCD(AID.BanefulImpaction, TargetChoice(Bio) ?? primaryTarget?.Actor, OGCDPriority.VeryHigh);
+            QueueOGCD(AID.BanefulImpaction, SingleTargetChoice(primaryTarget?.Actor, AOE), OGCDPriority.VeryHigh);
         if (ShouldUseChainStratagem(primaryTarget?.Actor, csStrat))
-            QueueOGCD(AID.ChainStratagem, TargetChoice(cs) ?? primaryTarget?.Actor, OGCDPrio(csStrat, OGCDPriority.VeryHigh));
+            QueueOGCD(AID.ChainStratagem, SingleTargetChoice(primaryTarget?.Actor, cs), OGCDPrio(csStrat, OGCDPriority.VeryHigh));
         if (ShouldUseAetherflow(primaryTarget?.Actor, afStrat))
             QueueOGCD(AID.Aetherflow, Player, OGCDPrio(afStrat, OGCDPriority.AboveAverage));
         if (ShouldUseEnergyDrain(primaryTarget?.Actor, edStrat))
-            QueueOGCD(AID.EnergyDrain, TargetChoice(ed) ?? primaryTarget?.Actor, edStrat is EnergyStrategy.Force ? OGCDPriority.Forced : OGCDPriority.Average);
+            QueueOGCD(AID.EnergyDrain, SingleTargetChoice(primaryTarget?.Actor, ed), edStrat is EnergyStrategy.Force ? OGCDPriority.Forced : OGCDPriority.Average);
         if (MP <= 9000 && CanWeaveIn && OGCDReady(AID.LucidDreaming))
             QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average);
         if (ShouldUsePotion(strategy))

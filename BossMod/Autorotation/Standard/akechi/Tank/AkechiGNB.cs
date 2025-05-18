@@ -454,7 +454,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUseNoMercy(nmStrat, primaryTarget?.Actor))
                     QueueOGCD(AID.NoMercy, Player, nmStrat is NoMercyStrategy.Force or NoMercyStrategy.ForceW or NoMercyStrategy.ForceQW or NoMercyStrategy.Force1 or NoMercyStrategy.Force1W or NoMercyStrategy.Force1QW or NoMercyStrategy.Force2 or NoMercyStrategy.Force2W or NoMercyStrategy.Force2QW or NoMercyStrategy.Force3 or NoMercyStrategy.Force3W or NoMercyStrategy.Force3QW ? OGCDPriority.Forced : OGCDPriority.VeryHigh);
                 if (ShouldUseBloodfest(bfStrat, primaryTarget?.Actor))
-                    QueueOGCD(AID.Bloodfest, TargetChoice(bf) ?? primaryTarget?.Actor, bfStrat is BloodfestStrategy.Force or BloodfestStrategy.ForceW or BloodfestStrategy.Force0 or BloodfestStrategy.Force0W ? OGCDPriority.Forced : OGCDPriority.High);
+                    QueueOGCD(AID.Bloodfest, SingleTargetChoice(primaryTarget?.Actor, bf), bfStrat is BloodfestStrategy.Force or BloodfestStrategy.ForceW or BloodfestStrategy.Force0 or BloodfestStrategy.Force0W ? OGCDPriority.Forced : OGCDPriority.High);
             }
             if (!strategy.HoldGauge())
             {
@@ -463,7 +463,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUseGnashingFang(gfStrat, primaryTarget?.Actor))
                 {
                     if (gfStrat == GnashingStrategy.Automatic)
-                        QueueGCD(AID.GnashingFang, TargetChoice(gf) ?? primaryTarget?.Actor, GunComboStep is 1 or 2 ? GCDPriority.BelowAverage : GCDPriority.High);
+                        QueueGCD(AID.GnashingFang, SingleTargetChoice(primaryTarget?.Actor, gf), GunComboStep is 1 or 2 ? GCDPriority.BelowAverage : GCDPriority.High);
                     if (gfStrat is GnashingStrategy.Automatic or GnashingStrategy.ForceGnash or GnashingStrategy.ForceGnash1 or GnashingStrategy.ForceGnash2 or GnashingStrategy.ForceGnash3)
                         QueueGCD(AID.GnashingFang, primaryTarget?.Actor, GCDPriority.Forced);
                 }
@@ -472,50 +472,50 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                     if (cartStrat != CartridgeStrategy.Delay)
                     {
                         if (cartStrat == CartridgeStrategy.Automatic)
-                            QueueGCD(BestCartSpender, TargetChoice(carts) ?? primaryTarget?.Actor, NMcd < 1 && Ammo == 3 ? GCDPriority.Forced : GCDPriority.VeryLow);
+                            QueueGCD(BestCartSpender, SingleTargetChoice(primaryTarget?.Actor, carts), NMcd < 1 && Ammo == 3 ? GCDPriority.Forced : GCDPriority.VeryLow);
                         if (cartStrat is CartridgeStrategy.OnlyBS or CartridgeStrategy.ForceBS or CartridgeStrategy.ForceBS1 or CartridgeStrategy.ForceBS2 or CartridgeStrategy.ForceBS3)
-                            QueueGCD(AID.BurstStrike, TargetChoice(carts) ?? primaryTarget?.Actor, GCDPriority.VeryLow);
+                            QueueGCD(AID.BurstStrike, SingleTargetChoice(primaryTarget?.Actor, carts), GCDPriority.VeryLow);
                         if (cartStrat is CartridgeStrategy.ForceFC or CartridgeStrategy.OnlyFC or CartridgeStrategy.ForceFC1 or CartridgeStrategy.ForceFC2 or CartridgeStrategy.ForceFC3)
-                            QueueGCD(Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike, Unlocked(AID.FatedCircle) ? Player : primaryTarget?.Actor, GCDPriority.VeryLow);
+                            QueueGCD(Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike, Unlocked(AID.FatedCircle) ? Player : SingleTargetChoice(primaryTarget?.Actor, carts), GCDPriority.VeryLow);
                     }
                 }
             }
             if (ShouldUseZone(zoneStrat, primaryTarget?.Actor))
-                QueueOGCD(Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone, TargetChoice(zone) ?? primaryTarget?.Actor, OGCDPrio(zoneStrat, OGCDPriority.Average));
+                QueueOGCD(Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone, SingleTargetChoice(primaryTarget?.Actor, zone), OGCDPrio(zoneStrat, OGCDPriority.Average));
             if (ShouldUseBowShock(bowStrat, primaryTarget?.Actor))
                 QueueOGCD(AID.BowShock, Player, OGCDPrio(bowStrat, OGCDPriority.AboveAverage));
             if (ShouldUseSonicBreak(sbStrat, primaryTarget?.Actor))
-                QueueGCD(AID.SonicBreak, TargetChoice(sb) ?? BestDOTTarget?.Actor, sbStrat is SonicBreakStrategy.Force ? GCDPriority.Forced : sbStrat is SonicBreakStrategy.Early ? GCDPriority.VeryHigh : GCDPriority.Average);
+                QueueGCD(AID.SonicBreak, AOETargetChoice(primaryTarget?.Actor, BestDOTTarget?.Actor, sb, strategy), sbStrat is SonicBreakStrategy.Force ? GCDPriority.Forced : sbStrat is SonicBreakStrategy.Early ? GCDPriority.VeryHigh : GCDPriority.Average);
             if (ShouldUseReign(reignStrat, primaryTarget?.Actor))
             {
                 if (reignStrat == ReignStrategy.Automatic)
-                    QueueGCD(GunComboStep == 4 ? AID.LionHeart : GunComboStep == 3 ? AID.NobleBlood : AID.ReignOfBeasts, TargetChoice(reign) ?? BestSplashTarget?.Actor, GCDPriority.BelowAverage);
+                    QueueGCD(GunComboStep == 4 ? AID.LionHeart : GunComboStep == 3 ? AID.NobleBlood : AID.ReignOfBeasts, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, reign, strategy) ?? BestSplashTarget?.Actor, GCDPriority.BelowAverage);
                 if (reignStrat == ReignStrategy.ForceReign)
-                    QueueGCD(AID.ReignOfBeasts, TargetChoice(reign) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                    QueueGCD(AID.ReignOfBeasts, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, reign, strategy), GCDPriority.Forced);
             }
         }
         if (gfStrat == GnashingStrategy.ForceClaw || GunComboStep is 1)
-            QueueGCD(AID.SavageClaw, primaryTarget?.Actor, gfStrat != GnashingStrategy.ForceClaw ? GCDPriority.BelowAverage : GCDPriority.Forced);
+            QueueGCD(AID.SavageClaw, SingleTargetChoice(primaryTarget?.Actor, gf), gfStrat != GnashingStrategy.ForceClaw ? GCDPriority.BelowAverage : GCDPriority.Forced);
         if (gfStrat == GnashingStrategy.ForceTalon || GunComboStep is 2)
-            QueueGCD(AID.WickedTalon, primaryTarget?.Actor, gfStrat != GnashingStrategy.ForceTalon ? GCDPriority.BelowAverage : GCDPriority.Forced);
+            QueueGCD(AID.WickedTalon, SingleTargetChoice(primaryTarget?.Actor, gf), gfStrat != GnashingStrategy.ForceTalon ? GCDPriority.BelowAverage : GCDPriority.Forced);
         if (ShouldUseReign(reignStrat, primaryTarget?.Actor))
         {
             if (reignStrat == ReignStrategy.ForceNoble)
-                QueueGCD(AID.NobleBlood, TargetChoice(reign) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                QueueGCD(AID.NobleBlood, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, reign, strategy), GCDPriority.Forced);
             if (reignStrat == ReignStrategy.ForceLion)
-                QueueGCD(AID.LionHeart, TargetChoice(reign) ?? BestSplashTarget?.Actor, GCDPriority.Forced);
+                QueueGCD(AID.LionHeart, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, reign, strategy), GCDPriority.Forced);
         }
 
         if (ShouldUseContinuation(strategy.Option(Track.Continuation).As<ContinuationStrategy>(), primaryTarget?.Actor))
             QueueOGCD(BestContinuation,
-                TargetChoice(strategy.Option(Track.Continuation)) ?? primaryTarget?.Actor,
-                GCD is < 0.5f and 0 ? OGCDPriority.Forced + 1500 : //add a LOT of prio
+                SingleTargetChoice(primaryTarget?.Actor, strategy.Option(Track.Continuation)),
+                GCD is < 0.5f or 0 ? OGCDPriority.Forced + 1500 : //add a LOT of prio
                 strategy.Option(Track.Continuation).As<ContinuationStrategy>() == ContinuationStrategy.Early ? OGCDPriority.Forced : //add some prio
                 GCD is < 1.25f and >= 0.6f ? OGCDPriority.VeryHigh - 10 : //add a little bit of prio
                 OGCDPriority.BelowAverage); //default prio
 
         if (ShouldUseLightningShot(lsStrat, primaryTarget?.Actor))
-            QueueGCD(AID.LightningShot, TargetChoice(ls) ?? primaryTarget?.Actor, lsStrat is >= LightningShotStrategy.Force ? GCDPriority.Forced : GCDPriority.ExtremelyLow);
+            QueueGCD(AID.LightningShot, SingleTargetChoice(primaryTarget?.Actor, ls), lsStrat is >= LightningShotStrategy.Force ? GCDPriority.Forced : GCDPriority.ExtremelyLow);
         if (ShouldUsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
         #endregion

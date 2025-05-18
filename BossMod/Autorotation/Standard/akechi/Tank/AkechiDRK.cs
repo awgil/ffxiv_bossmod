@@ -396,13 +396,13 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         {
             #region Standard Rotations
             if (strategy.AutoFinish())
-                QueueGCD(AutoFinish, TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor, GCDPriority.Low);
+                QueueGCD(AutoFinish, SingleTargetChoice(primaryTarget?.Actor, strategy.Option(SharedTrack.AOE)), GCDPriority.Low);
             if (strategy.AutoBreak())
-                QueueGCD(AutoBreak, TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor, GCDPriority.Low);
+                QueueGCD(AutoBreak, SingleTargetChoice(primaryTarget?.Actor, strategy.Option(SharedTrack.AOE)), GCDPriority.Low);
             if (strategy.ForceST())
-                QueueGCD(FullST, TargetChoice(strategy.Option(SharedTrack.AOE)) ?? primaryTarget?.Actor, GCDPriority.BelowAverage);
+                QueueGCD(FullST, SingleTargetChoice(primaryTarget?.Actor, strategy.Option(SharedTrack.AOE)), GCDPriority.Low);
             if (strategy.ForceAOE())
-                QueueGCD(FullAOE, Player, GCDPriority.BelowAverage);
+                QueueGCD(FullAOE, Player, GCDPriority.Low);
             #endregion
 
             #region Cooldowns
@@ -413,26 +413,26 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                     if (!strategy.HoldBuffs())
                     {
                         if (ShouldUseDelirium(deliStrat, primaryTarget))
-                            QueueOGCD(BestDelirium, Player, deliStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.VeryHigh);
+                            QueueOGCD(BestDelirium, Player, OGCDPrio(deliStrat, OGCDPriority.VeryHigh));
                         if (ShouldUseLivingShadow(lsStrat, primaryTarget))
-                            QueueOGCD(AID.LivingShadow, Player, lsStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.ExtremelyHigh);
+                            QueueOGCD(AID.LivingShadow, Player, OGCDPrio(lsStrat, OGCDPriority.ExtremelyHigh));
                     }
                     if (ShouldUseSaltedEarth(seStrat, primaryTarget))
-                        QueueOGCD(AID.SaltedEarth, Player, seStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.AboveAverage);
+                        QueueOGCD(AID.SaltedEarth, Player, OGCDPrio(seStrat, OGCDPriority.AboveAverage));
                     if (ShouldUseShadowbringer(sbStrat, primaryTarget))
-                        QueueOGCD(AID.Shadowbringer, TargetChoice(sb) ?? BestRectTarget?.Actor, sbStrat is OGCDStrategy.Force or OGCDStrategy.AnyWeave or OGCDStrategy.EarlyWeave or OGCDStrategy.LateWeave ? OGCDPriority.Forced : OGCDPriority.Average);
+                        QueueOGCD(AID.Shadowbringer, AOETargetChoice(primaryTarget?.Actor, BestRectTarget?.Actor, sb, strategy), OGCDPrio(sbStrat, OGCDPriority.Average));
                     if (ShouldUseCarveOrDrain(cdStrat, primaryTarget))
                     {
                         switch (cdStrat)
                         {
                             case CarveStrategy.Automatic:
-                                QueueOGCD(CarveOrDrain, TargetChoice(cd) ?? primaryTarget?.Actor, cdStrat is CarveStrategy.ForceCarve or CarveStrategy.ForceDrain ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
+                                QueueOGCD(CarveOrDrain, SingleTargetChoice(primaryTarget?.Actor, cd), cdStrat is CarveStrategy.ForceCarve or CarveStrategy.ForceDrain ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
                                 break;
                             case CarveStrategy.OnlyCarve:
-                                QueueOGCD(BestCarve, TargetChoice(cd) ?? primaryTarget?.Actor, cdStrat is CarveStrategy.ForceCarve ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
+                                QueueOGCD(BestCarve, SingleTargetChoice(primaryTarget?.Actor, cd), cdStrat is CarveStrategy.ForceCarve ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
                                 break;
                             case CarveStrategy.OnlyDrain:
-                                QueueOGCD(AID.AbyssalDrain, TargetChoice(cd) ?? primaryTarget?.Actor, cdStrat is CarveStrategy.ForceDrain ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
+                                QueueOGCD(AID.AbyssalDrain, Player, cdStrat is CarveStrategy.ForceDrain ? OGCDPriority.Forced : OGCDPriority.BelowAverage);
                                 break;
                         }
                     }
@@ -442,19 +442,19 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                     switch (bloodStrat)
                     {
                         case BloodStrategy.Automatic:
-                            QueueGCD(BestBloodSpender, TargetChoice(blood) ?? primaryTarget?.Actor, bloodStrat is BloodStrategy.ForceBloodspiller or BloodStrategy.ForceQuietus ? GCDPriority.Forced : RiskingBlood ? GCDPriority.High : GCDPriority.Average);
+                            QueueGCD(BestBloodSpender, SingleTargetChoice(primaryTarget?.Actor, blood), bloodStrat is BloodStrategy.ForceBloodspiller or BloodStrategy.ForceQuietus ? GCDPriority.Forced : RiskingBlood ? GCDPriority.High : GCDPriority.Average);
                             break;
                         case BloodStrategy.OnlyBloodspiller:
-                            QueueGCD(AID.Bloodspiller, TargetChoice(blood) ?? primaryTarget?.Actor, bloodStrat is BloodStrategy.ForceBloodspiller ? GCDPriority.Forced : RiskingBlood ? GCDPriority.High : GCDPriority.Average);
+                            QueueGCD(AID.Bloodspiller, SingleTargetChoice(primaryTarget?.Actor, blood), bloodStrat is BloodStrategy.ForceBloodspiller ? GCDPriority.Forced : RiskingBlood ? GCDPriority.High : GCDPriority.Average);
                             break;
                         case BloodStrategy.OnlyQuietus:
-                            QueueGCD(AID.Quietus, Unlocked(AID.Quietus) ? Player : TargetChoice(blood) ?? primaryTarget?.Actor, bloodStrat is BloodStrategy.ForceQuietus ? GCDPriority.Forced : RiskingBlood ? GCDPriority.High : GCDPriority.Average);
+                            QueueGCD(AID.Quietus, Unlocked(AID.Quietus) ? Player : SingleTargetChoice(primaryTarget?.Actor, blood), bloodStrat is BloodStrategy.ForceQuietus ? GCDPriority.Forced : RiskingBlood ? GCDPriority.High : GCDPriority.Average);
                             break;
                     }
                 }
             }
             if (ShouldUseDisesteem(deStrat, primaryTarget))
-                QueueGCD(AID.Disesteem, TargetChoice(de) ?? BestRectTarget?.Actor, deStrat is GCDStrategy.Force ? GCDPriority.Forced : CombatTimer < 30 ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
+                QueueGCD(AID.Disesteem, AOETargetChoice(primaryTarget?.Actor, BestRectTarget?.Actor, de, strategy), deStrat is GCDStrategy.Force ? GCDPriority.Forced : CombatTimer < 30 ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
             if (ShouldUseMP(mpStrat))
             {
                 switch (mpStrat)
@@ -465,23 +465,23 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                     case MPStrategy.Auto3k:
                     case MPStrategy.AutoRefresh:
                         if (NumAOERectTargets >= 3 && Unlocked(AID.FloodOfDarkness))
-                            QueueOGCD(BestFlood, TargetChoice(mp) ?? BestMPTarget?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
+                            QueueOGCD(BestFlood, AOETargetChoice(primaryTarget?.Actor, BestMPTarget?.Actor, mp, strategy), RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
                         if (NumAOERectTargets <= 2 && Unlocked(AID.EdgeOfDarkness))
-                            QueueOGCD(BestEdge, TargetChoice(mp) ?? primaryTarget?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
+                            QueueOGCD(BestEdge, SingleTargetChoice(primaryTarget?.Actor, mp), RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
                         break;
                     case MPStrategy.Edge9k:
                     case MPStrategy.Edge6k:
                     case MPStrategy.Edge3k:
                     case MPStrategy.EdgeRefresh:
                     case MPStrategy.ForceEdge:
-                        QueueOGCD(BestEdge, TargetChoice(mp) ?? primaryTarget?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
+                        QueueOGCD(BestEdge, SingleTargetChoice(primaryTarget?.Actor, mp), RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
                         break;
                     case MPStrategy.Flood9k:
                     case MPStrategy.Flood6k:
                     case MPStrategy.Flood3k:
                     case MPStrategy.FloodRefresh:
                     case MPStrategy.ForceFlood:
-                        QueueOGCD(BestFlood, TargetChoice(mp) ?? BestRectTarget?.Actor, RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
+                        QueueOGCD(BestFlood, AOETargetChoice(primaryTarget?.Actor, BestMPTarget?.Actor, mp, strategy), RiskingMP ? OGCDPriority.Forced : OGCDPriority.Low);
                         break;
                 }
             }
@@ -490,16 +490,16 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
                 switch (dcomboStrat)
                 {
                     case DeliriumComboStrategy.Automatic:
-                        QueueGCD(DeliriumCombo, TargetChoice(dcombo) ?? primaryTarget?.Actor, GCDPriority.SlightlyHigh);
+                        QueueGCD(DeliriumCombo, SingleTargetChoice(primaryTarget?.Actor, dcombo), GCDPriority.SlightlyHigh);
                         break;
                     case DeliriumComboStrategy.ScarletDelirum:
-                        QueueGCD(AID.ScarletDelirium, TargetChoice(dcombo) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                        QueueGCD(AID.ScarletDelirium, SingleTargetChoice(primaryTarget?.Actor, dcombo), GCDPriority.Forced);
                         break;
                     case DeliriumComboStrategy.Comeuppance:
-                        QueueGCD(AID.Comeuppance, TargetChoice(dcombo) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                        QueueGCD(AID.Comeuppance, SingleTargetChoice(primaryTarget?.Actor, dcombo), GCDPriority.Forced);
                         break;
                     case DeliriumComboStrategy.Torcleaver:
-                        QueueGCD(AID.Torcleaver, TargetChoice(dcombo) ?? primaryTarget?.Actor, GCDPriority.Forced);
+                        QueueGCD(AID.Torcleaver, SingleTargetChoice(primaryTarget?.Actor, dcombo), GCDPriority.Forced);
                         break;
                     case DeliriumComboStrategy.Impalement:
                         QueueGCD(AID.Impalement, Player, GCDPriority.Forced);
@@ -509,7 +509,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             if (ShouldUseSaltAndDarkness(strategy.Option(Track.SaltAndDarkness).As<OGCDStrategy>(), primaryTarget))
                 QueueOGCD(AID.SaltAndDarkness, Player, OGCDPriority.AboveAverage);
             if (ShouldUseUnmend(unmendStrat, primaryTarget))
-                QueueGCD(AID.Unmend, TargetChoice(unmend) ?? primaryTarget?.Actor, GCDPriority.Low);
+                QueueGCD(AID.Unmend, SingleTargetChoice(primaryTarget?.Actor, unmend), GCDPriority.Low);
             if (ShouldUsePotion(strategy))
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.Forced, 0, GCD - 0.9f);
             #endregion

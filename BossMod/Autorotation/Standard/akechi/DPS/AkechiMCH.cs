@@ -87,7 +87,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         res.DefineOGCD(Track.DoubleCheck, AID.DoubleCheck, "Double Check", "D.Check", 144, 30, 0, ActionTargets.Hostile, 92).AddAssociatedActions(AID.DoubleCheck);
         res.DefineOGCD(Track.Ricochet, AID.Ricochet, "Ricochet", "", 141, 30, 0, ActionTargets.Hostile, 50, 91).AddAssociatedActions(AID.Ricochet);
         res.DefineOGCD(Track.Checkmate, AID.Checkmate, "Checkmate", "C.mate", 140, 30, 0, ActionTargets.Hostile, 92).AddAssociatedActions(AID.Checkmate);
-        res.DefineGCD(Track.Flamethrower, AID.Flamethrower, "Flamethrower", "F.thrower", -1, 60, 0, ActionTargets.Self, 70).AddAssociatedActions(AID.Flamethrower);
+        res.DefineAllow(Track.Flamethrower, AID.Flamethrower, "Flamethrower", "F.thrower", -1, 60, 0, ActionTargets.Self, 70).AddAssociatedActions(AID.Flamethrower);
         res.DefineGCD(Track.Excavator, AID.Excavator, "Excavator", "Excav.", 177, 0, 0, ActionTargets.Hostile, 96).AddAssociatedActions(AID.Excavator);
         res.DefineGCD(Track.FullMetalField, AID.FullMetalField, "Full Metal Field", "FM.Field", 176, 0, 0, ActionTargets.Hostile, 100).AddAssociatedActions(AID.FullMetalField);
         return res;
@@ -498,7 +498,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         {
             #region Opener / Other
             //Stop all for Flamethrower
-            if (StopForFlamethrower &&
+            if (StopForFlamethrower && strategy.Option(Track.Flamethrower).As<AllowOrForbid>() != AllowOrForbid.Forbid &&
                 ((Unlocked(TraitID.EnhancedMultiweapon) ? ReadyIn(AID.Drill) > 0 : Drillcd > 0) || AAcd > 0 || CScd > 0))
                 return;
 
@@ -555,7 +555,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                             if (wfStrat == WildfireStrategy.End)
                                 QueueOGCD(AID.Detonator, Player, wfPrio);
                             else
-                                QueueOGCD(AID.Wildfire, TargetChoice(wf) ?? primaryTarget?.Actor, wfPrio);
+                                QueueOGCD(AID.Wildfire, SingleTargetChoice(primaryTarget?.Actor, wf), wfPrio);
                         }
 
                         var (bsCondition, bsPrio) = ShouldUseBarrelStabilizer(bsStrat, primaryTarget?.Actor);
@@ -568,43 +568,42 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                     }
                     var (aaCondition, aaPrio) = ShouldUseAirAnchor(aaStrat, primaryTarget?.Actor);
                     if (aaCondition)
-                        QueueGCD(BestAirAnchor, TargetChoice(aa) ?? primaryTarget?.Actor, aaPrio);
+                        QueueGCD(BestAirAnchor, SingleTargetChoice(primaryTarget?.Actor, aa) ?? primaryTarget?.Actor, aaPrio);
 
                     var (csCondition, csPrio) = ShouldUseChainSaw(csStrat, primaryTarget?.Actor);
                     if (csCondition)
-                        QueueGCD(AID.ChainSaw, TargetChoice(cs) ?? BestChainSawTarget?.Actor, csPrio);
+                        QueueGCD(AID.ChainSaw, AOETargetChoice(primaryTarget?.Actor, BestChainSawTarget?.Actor, cs, strategy) ?? BestChainSawTarget?.Actor, csPrio);
 
                     var (drillCondition, drillPrio) = ShouldUseDrill(drillStrat, primaryTarget?.Actor);
                     if (drillCondition)
                     {
                         if (drillStrat is DrillStrategy.Automatic)
-                            QueueGCD(BestDrill, TargetChoice(drill) ?? (ShouldUseAOE ? BestConeTarget?.Actor : primaryTarget?.Actor), drillPrio);
+                            QueueGCD(BestDrill, ShouldUseAOE ? AOETargetChoice(primaryTarget?.Actor, BestConeTarget?.Actor, drill, strategy) : SingleTargetChoice(primaryTarget?.Actor, drill), drillPrio);
                         if (drillStrat is DrillStrategy.OnlyDrill or DrillStrategy.ForceDrill)
-                            QueueGCD(AID.Drill, TargetChoice(drill) ?? primaryTarget?.Actor, drillPrio);
+                            QueueGCD(AID.Drill, SingleTargetChoice(primaryTarget?.Actor, drill), drillPrio);
                         if (drillStrat is DrillStrategy.OnlyBioblaster or DrillStrategy.ForceBioblaster)
-                            QueueGCD(AID.Bioblaster, TargetChoice(drill) ?? BestConeTarget?.Actor, drillPrio);
+                            QueueGCD(AID.Bioblaster, AOETargetChoice(primaryTarget?.Actor, BestConeTarget?.Actor, drill, strategy), drillPrio);
                     }
 
                     var (evCondition, evPrio) = ShouldUseExcavator(evStrat, primaryTarget?.Actor);
                     if (evCondition)
-                        QueueGCD(AID.Excavator, TargetChoice(ev) ?? BestSplashTarget?.Actor, evStrat is GCDStrategy.Force ? GCDPriority.Forced : evPrio);
+                        QueueGCD(AID.Excavator, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, ev, strategy), evStrat is GCDStrategy.Force ? GCDPriority.Forced : evPrio);
 
                     var (fmfCondition, fmfPrio) = ShouldUseFullMetalField(fmfStrat, primaryTarget?.Actor);
                     if (fmfCondition)
-                        QueueGCD(AID.FullMetalField, TargetChoice(fmf) ?? BestSplashTarget?.Actor, fmfStrat is GCDStrategy.Force ? GCDPriority.Forced : fmfPrio);
+                        QueueGCD(AID.FullMetalField, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, fmf, strategy), fmfStrat is GCDStrategy.Force ? GCDPriority.Forced : fmfPrio);
 
                     var (dcCondition, dcPrio) = ShouldUseDoubleCheck(dcStrat, primaryTarget?.Actor);
                     var (grCondition, grPrio) = ShouldUseDoubleCheck(gaussStrat, primaryTarget?.Actor);
                     if (Unlocked(AID.DoubleCheck) ? dcCondition : grCondition)
-                        QueueOGCD(BestGauss, TargetChoice(Unlocked(AID.DoubleCheck) ? dc : gauss) ?? (Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor), Unlocked(AID.DoubleCheck) ? dcPrio : grPrio);
-
+                        QueueOGCD(BestGauss, AOETargetChoice(primaryTarget?.Actor, Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : primaryTarget?.Actor, Unlocked(AID.DoubleCheck) ? dc : gauss, strategy), Unlocked(AID.DoubleCheck) ? dcPrio : grPrio);
                     var (cmCondition, cmPrio) = ShouldUseCheckmate(cmStrat, primaryTarget?.Actor);
                     var (ricochetCondition, ricoPrio) = ShouldUseCheckmate(ricochetStrat, primaryTarget?.Actor);
                     if (Unlocked(AID.Checkmate) ? cmCondition : ricochetCondition)
-                        QueueOGCD(BestRicochet, TargetChoice(Unlocked(AID.Checkmate) ? cm : ricochet) ?? (Unlocked(AID.Checkmate) ? BestSplashTarget?.Actor : primaryTarget?.Actor), Unlocked(AID.Checkmate) ? cmPrio : ricoPrio);
+                        QueueOGCD(BestRicochet, AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, Unlocked(AID.Checkmate) ? cm : ricochet, strategy), Unlocked(AID.Checkmate) ? cmPrio : ricoPrio);
 
                     if (ShouldUseFlamethrower(ftStrat, primaryTarget?.Actor))
-                        QueueGCD(AID.Flamethrower, TargetChoice(ft) ?? BestFlamethrowerTarget?.Actor, ftStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.ModeratelyLow);
+                        QueueGCD(AID.Flamethrower, AOETargetChoice(primaryTarget?.Actor, BestFlamethrowerTarget?.Actor, ft, strategy), ftStrat is GCDStrategy.Force ? GCDPriority.Forced : GCDPriority.ModeratelyLow);
                 }
                 if (!strategy.HoldGauge())
                 {
@@ -622,11 +621,11 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUseHeat(hspOpt, primaryTarget?.Actor))
                 {
                     if (hspOpt == HeatOption.Automatic)
-                        QueueGCD(BestHeat, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
+                        QueueGCD(BestHeat, AOETargetChoice(primaryTarget?.Actor, primaryTarget?.Actor, hsp, strategy), GCDPriority.High);
                     if (hspOpt == HeatOption.OnlyHeatBlast)
-                        QueueGCD(BestHeatBlast, TargetChoice(hsp) ?? primaryTarget?.Actor, GCDPriority.High);
+                        QueueGCD(BestHeatBlast, SingleTargetChoice(primaryTarget?.Actor, hsp), GCDPriority.High);
                     if (hspOpt == HeatOption.OnlyAutoCrossbow)
-                        QueueGCD(Unlocked(AID.AutoCrossbow) ? AID.AutoCrossbow : BestHeatBlast, TargetChoice(hsp) ?? BestConeTarget?.Actor, GCDPriority.High);
+                        QueueGCD(Unlocked(AID.AutoCrossbow) ? AID.AutoCrossbow : BestHeatBlast, AOETargetChoice(primaryTarget?.Actor, BestConeTarget?.Actor, hsp, strategy), GCDPriority.High);
                 }
             }
             #endregion
