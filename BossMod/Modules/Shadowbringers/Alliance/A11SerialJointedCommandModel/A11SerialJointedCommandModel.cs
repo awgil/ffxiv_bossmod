@@ -1,5 +1,4 @@
-﻿
-
+﻿#if DEBUG
 namespace BossMod.Shadowbringers.Alliance.A11SerialJointedCommandModel;
 
 public enum OID : uint
@@ -48,9 +47,9 @@ public enum AID : uint
     _Weaponskill_EnergyRing6 = 18625, // Boss->self, no cast, single-target
     _Weaponskill_EnergyRing7 = 18626, // Helper->self, 10.7s cast, range 36-48 donut
 }
-
 class ForcefulImpact(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_ForcefulImpact);
 class ClangingBlow(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_ClangingBlow);
+class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Shockwave, 15);
 
 class EnergyBomb(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_EnergyBomb)
 {
@@ -144,11 +143,11 @@ class EnergyAssault(BossModule module) : Components.GenericAOEs(module, AID._Wea
 
 class AirToSurfaceEnergy(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_AirToSurfaceEnergy)
 {
-    private readonly List<WPos> _spawns = [];
-    private readonly List<(WPos expected, WPos actual)> _unexpected = [];
     private static readonly List<WPos> _centers = [.. CurveApprox.Rect(new(12, 0), new(0, 12)).Select(c => new WPos(-500, 0) + c)];
+    private readonly List<AOEInstance> _predicted = [];
 
     public int NumStarts;
+    public const int AOEsToShow = 5;
 
     public static readonly List<WDir> PatternOut = [
         new(10, -4.6f),
@@ -185,18 +184,19 @@ class AirToSurfaceEnergy(BossModule module) : Components.GenericAOEs(module, AID
         new(1.9f, -4)
     ];
 
-    public const int AOEsToShow = 5;
-
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select((p, i) => p with { Color = i < 8 ? ArenaColor.Danger : ArenaColor.AOE }).Take(AOEsToShow * 8).Reverse();
 
-    private readonly List<AOEInstance> _predicted = [];
+    public override void Update()
+    {
+        // remove garbage from minimap if the component screws up
+        _predicted.RemoveAll(p => p.Activation.AddSeconds(5) < WorldState.CurrentTime);
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID._Weaponskill_3)
         {
             NumStarts++;
-            _spawns.Add(caster.Position);
             var pivot = _centers.MinBy(c => (c - caster.Position).Length());
             var close = caster.Position.AlmostEqual(pivot, 8);
             var patternBase = caster.Position.AlmostEqual(pivot, 8) ? PatternIn : PatternOut;
@@ -219,78 +219,39 @@ class AirToSurfaceEnergy(BossModule module) : Components.GenericAOEs(module, AID
             _predicted.SortBy(p => p.Activation);
         }
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_SidestrikingSpin)
-        {
-            _spawns.Clear();
-        }
-
         if (spell.Action == WatchedAction)
         {
             NumCasts++;
             var ix = _predicted.FindIndex(p => p.Origin.AlmostEqual(caster.Position, 0.5f));
             if (ix < 0)
-            {
                 ReportError($"missing predicted cast for {caster} at {caster.Position}");
-                _unexpected.Add((default, caster.Position));
-            }
             else
-            {
-                var dist = (caster.Position - _predicted[ix].Origin).Length();
-                if (dist > 0.25f)
-                {
-                    ReportError($"distance: {dist}");
-                    _unexpected.Add((_predicted[ix].Origin, caster.Position));
-                }
                 _predicted.RemoveAt(ix);
-            }
-        }
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        foreach (var s in _spawns)
-        {
-            var c = _centers.MinBy(c => (s - c).LengthSq());
-            var off = s - c;
-            Arena.TextWorld(s, Angle.FromDirection(off).ToString(), ArenaColor.Object);
-        }
-
-        foreach (var (exp, act) in _unexpected)
-        {
-            Arena.AddCircle(act, 5, ArenaColor.Enemy);
-            Arena.AddCircle(exp, 5, ArenaColor.Object);
         }
     }
 }
 
-class ATSELog(BossModule module) : BossComponent(module)
+class EnergyRing(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(12), new AOEShapeDonut(12, 24), new AOEShapeDonut(24, 36), new AOEShapeDonut(36, 48)])
 {
-    private readonly List<WPos> _casts = [];
-    private List<WDir>[][] _offs = [[[], []], [[], []], [[], []], [[], []]];
-    private static readonly List<WPos> Centers = CurveApprox.Rect(new(12, 0), new(0, 12)).Select(c => new WPos(-500, 0) + c).ToList();
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_AirToSurfaceEnergy)
+        if ((AID)spell.Action.ID == AID._Weaponskill_EnergyRing1)
         {
-            _casts.Add(caster.Position);
-            var closest = Centers.MinBy(c => (c - caster.Position).Length());
-            var ix = Centers.IndexOf(closest);
-            var close = caster.Position.AlmostEqual(closest, 8) ? 0 : 1;
-            _offs[ix][close].Add(caster.Position - closest);
-        }
-
-        if ((AID)spell.Action.ID == AID._Weaponskill_SidestrikingSpin)
-        {
-            _casts.Clear();
-            _offs = [[[], []], [[], []], [[], []], [[], []]];
+            AddSequence(caster.Position, Module.CastFinishAt(spell));
         }
     }
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        //foreach (var c in _casts)
-        //    Arena.AddCircle(c, 5, ArenaColor.Danger);
+        var order = (AID)spell.Action.ID switch
+        {
+            AID._Weaponskill_EnergyRing1 => 0,
+            AID._Weaponskill_EnergyRing3 => 1,
+            AID._Weaponskill_EnergyRing5 => 2,
+            AID._Weaponskill_EnergyRing7 => 3,
+            _ => -1
+        };
+        AdvanceSequence(order, caster.Position, WorldState.FutureTime(2));
     }
 }
 
@@ -307,10 +268,11 @@ class A11SerialJointedCommandModelStates : StateMachineBuilder
             .ActivateOnEnter<SidestrikingSpin>()
             .ActivateOnEnter<EnergyAssault>()
             .ActivateOnEnter<AirToSurfaceEnergy>()
-            .ActivateOnEnter<ATSELog>();
+            .ActivateOnEnter<EnergyRing>()
+            .ActivateOnEnter<Shockwave>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9141)]
 public class A11SerialJointedCommandModel(WorldState ws, Actor primary) : BossModule(ws, primary, new(-500, 0), new ArenaBoundsSquare(23.5f));
-
+#endif
