@@ -24,7 +24,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan BLM", "Black Mage", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.BLM, Class.THM), 100);
+        var def = new RotationModuleDefinition("xan BLM", "Black Mage", "Standard Rotations|xan|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.BLM, Class.THM), 100);
 
         def.DefineShared().AddAssociatedActions(AID.LeyLines);
 

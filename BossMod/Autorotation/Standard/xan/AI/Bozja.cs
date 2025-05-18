@@ -6,7 +6,7 @@ public class BozjaAI(RotationModuleManager manager, Actor player) : AIBase(manag
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Bozja AI", "Bozja utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 80);
+        var def = new RotationModuleDefinition("Bozja AI", "Bozja utilities", "AI|Zone", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 80);
 
         def.AbilityTrack(Track.Dispel, "Auto-dispel").AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostDispel));
 

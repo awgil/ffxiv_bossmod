@@ -25,7 +25,7 @@ public sealed class AkechiWAR(RotationModuleManager manager, Actor player) : Ake
     {
         var res = new RotationModuleDefinition("Akechi WAR", //Title
             "Standard Rotation Module", //Description
-            "Standard rotation (Akechi)|Tank", //Category
+            "Standard Rotations|Akechi|Tank", //Category
             "Akechi", //Contributor
             RotationModuleQuality.WIP, //Quality
             BitMask.Build(Class.MRD, Class.WAR), //Job

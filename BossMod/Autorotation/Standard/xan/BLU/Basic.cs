@@ -7,7 +7,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 {
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan BLU", "Blue Mage", "Standard rotation (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.BLU), 80);
+        var def = new RotationModuleDefinition("xan BLU", "Blue Mage", "Standard Rotations|xan", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.BLU), 80);
 
         def.DefineShared().AddAssociatedActions(AID.Nightbloom, AID.BeingMortal, AID.BothEnds, AID.Apokalypsis, AID.MatraMagic);
 

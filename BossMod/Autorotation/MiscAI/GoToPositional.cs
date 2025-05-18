@@ -8,7 +8,7 @@ public sealed class GoToPositional(RotationModuleManager manager, Actor player) 
 
     public static RotationModuleDefinition Definition()
     {
-        RotationModuleDefinition def = new("Misc AI: Goes to specified positional", "Module for use with other rotation plugins.", "AI", "erdelf", RotationModuleQuality.Basic, new(~0ul), 1000);
+        RotationModuleDefinition def = new("Misc AI: Goes to specified positional", "Module for use with other rotation plugins.", "AI|Misc", "erdelf", RotationModuleQuality.Basic, new(~0ul), 1000);
 
         var track = def.Define(Tracks.Positional).As<Positional>("Positional", "Positional");
 

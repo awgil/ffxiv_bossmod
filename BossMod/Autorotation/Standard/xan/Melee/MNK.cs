@@ -91,7 +91,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan MNK", "Monk", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
+        var def = new RotationModuleDefinition("xan MNK", "Monk", "Standard Rotations|xan|Melee", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
 
         def.DefineSharedTA();
 

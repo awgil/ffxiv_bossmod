@@ -12,7 +12,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan WHM", "White Mage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.WHM, Class.CNJ), 100);
+        var def = new RotationModuleDefinition("xan WHM", "White Mage", "Standard Rotations|xan|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.WHM, Class.CNJ), 100);
 
         def.DefineShared().AddAssociatedActions(AID.PresenceOfMind);
         def.Define(Track.Assize).As<AssizeStrategy>("Assize")

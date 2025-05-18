@@ -18,7 +18,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi SCH", "Standard Rotation Module", "Standard rotation (Akechi)|Healer", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
+        var res = new RotationModuleDefinition("Akechi SCH", "Standard Rotation Module", "Standard Rotations|Akechi|Healer", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SCH), 100);
 
         res.DefineAOE().AddAssociatedActions(AID.Ruin1, AID.Ruin2, AID.Broil1, AID.Broil2, AID.Broil3, AID.Broil4, AID.ArtOfWar1, AID.ArtOfWar2);
         res.DefineHold();

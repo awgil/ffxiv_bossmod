@@ -18,7 +18,7 @@ public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Eureka AI", "Eureka utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 70);
+        var def = new RotationModuleDefinition("Eureka AI", "Eureka utilities", "AI|Zone", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 70);
 
         def.Define(Track.Platebearer).As<PBIgnore>("PB", "Ignore all AOEs while Platebearer is active")
             .AddOption(PBIgnore.Disabled, "Disabled")

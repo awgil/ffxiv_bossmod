@@ -9,7 +9,7 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: PCT", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.PCT), 100);
+        var res = new RotationModuleDefinition("Utility: PCT", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility|Caster", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.PCT), 100);
         DefineShared(res, IDLimitBreak3);
 
         res.Define(Track.TemperaCoat).As<TemperaCoatOption>("Tempera Coat", "T.Coat", 600)

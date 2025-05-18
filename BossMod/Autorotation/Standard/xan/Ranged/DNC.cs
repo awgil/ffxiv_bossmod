@@ -11,7 +11,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan DNC", "Dancer", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DNC), 100);
+        var def = new RotationModuleDefinition("xan DNC", "Dancer", "Standard Rotations|xan|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DNC), 100);
 
         def.DefineShared().AddAssociatedActions(AID.TechnicalStep);
 

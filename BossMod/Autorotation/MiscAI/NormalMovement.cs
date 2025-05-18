@@ -14,7 +14,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Automatic movement", "Automatically move character based on pathfinding or explicit coordinates.", "AI", "veyn", RotationModuleQuality.Good, new(~0ul), 1000, 1, RotationModuleOrder.Movement, CanUseWhileRoleplaying: true);
+        var res = new RotationModuleDefinition("Automatic movement", "Automatically move character based on pathfinding or explicit coordinates.", "AI|Auto", "veyn", RotationModuleQuality.Good, new(~0ul), 1000, 1, RotationModuleOrder.Movement, CanUseWhileRoleplaying: true);
         res.Define(Track.Destination).As<DestinationStrategy>("Destination", "Destination", 30)
             .AddOption(DestinationStrategy.None, "None", "No automatic movement")
             .AddOption(DestinationStrategy.Pathfind, "Pathfind", "Use standard pathfinding to find best position")

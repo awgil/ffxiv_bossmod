@@ -20,7 +20,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DRK), 100);
+        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard Rotations|Akechi|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DRK), 100);
 
         res.DefineAOE().AddAssociatedActions(AID.HardSlash, AID.SyphonStrike, AID.Souleater, AID.Unleash, AID.StalwartSoul);
         res.DefineHold();
