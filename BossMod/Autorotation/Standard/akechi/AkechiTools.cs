@@ -372,6 +372,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool OGCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 2.0f;
 
+    protected bool IsReady(AID aid) => Unlocked(aid) && (CDRemaining(aid) < GCD || CDRemaining(aid) <= 0.2f);
+
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);
@@ -642,7 +644,17 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         return (newTarget, newTimer);
     }
 
+    /// <summary>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.<br/>This function specifically is for <b>Single-Target</b> actions.</summary>
+    /// <param name="manual">Player's current target</param>
+    /// <param name="track">The ability's specified track</param>
+    /// <returns></returns>
     protected Actor? SingleTargetChoice(Actor? manual, StrategyValues.OptionRef track) => TargetChoice(track) ?? manual;
+
+    /// <summary>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.<br/>This function specifically is for <b>AOE</b> actions.</summary>
+    /// <param name="manual">Player's current target</param>
+    /// <param name="auto">The best target to be auto-selected</param>
+    /// <param name="track">The ability's specified track</param>
+    /// <returns></returns>
     protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => TargetChoice(track) ?? (strategy.Targeting() == SoftTargetStrategy.Automatic ? auto : manual);
     #endregion
 

@@ -163,6 +163,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private int NumAOETargets; //number of targets in range for AOE
     private int NumSpearTargets; //number of targets in range for Spears
     private int NumDiveTargets; //number of targets in range for Dives
+    private int NumRectTargets;
     private bool ShouldUseAOE; //should use AOE
     private bool ShouldUseSpears; //should use Spears
     private bool ShouldUseDives; //should use Dives
@@ -562,7 +563,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         CanROTD = Unlocked(AID.RiseOfTheDragon) && HasROTD;
         CanSC = Unlocked(AID.Starcross) && HasSC;
         NeedPower = PowerLeft <= SkSGCDLength * 2;
-        ShouldUseAOE = Unlocked(AID.DoomSpike) && NumAOETargets > 2 && !NeedPower;
+        ShouldUseAOE = Unlocked(AID.DoomSpike) && (strategy.AutoTarget() ? (NumAOETargets > 2 || strategy.ForceAOE()) : strategy.ManualTarget() ? (NumRectTargets > 2 || strategy.ForceAOE()) : primaryTarget?.Actor != null);
         ShouldUseSpears = Unlocked(AID.Geirskogul) && NumSpearTargets > 1;
         ShouldUseDives = Unlocked(AID.Stardiver) && NumDiveTargets > 1;
         ShouldUseDOT = Unlocked(AID.ChaosThrust) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 4) == 2 && In3y(BestDOTTarget?.Actor) && ComboLastMove is AID.Disembowel or AID.SpiralBlow;
@@ -570,6 +571,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
         (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
         (BestDOTTargets, ChaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2, 8);
+        NumRectTargets = Hints.NumPriorityTargetsInAOECone(Player.Position, 12, Player.Rotation.ToDirection(), 45.Degrees());
         BestAOETarget = ShouldUseAOE ? BestAOETargets : BestDOTTarget;
         BestSpearTarget = ShouldUseSpears ? BestSpearTargets : primaryTarget;
         BestDiveTarget = ShouldUseDives ? BestDiveTargets : primaryTarget;
