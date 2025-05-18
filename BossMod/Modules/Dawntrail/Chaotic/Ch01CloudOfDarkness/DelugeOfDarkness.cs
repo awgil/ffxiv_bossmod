@@ -61,17 +61,6 @@ class Phase2AIHints(BossModule module) : Components.GenericInvincible(module)
         return e;
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        // ranged DPS should kill atomos ASAP, they have very little health and apply a painful dot to healers on inside ring
-        if (!_playerPositions[slot].HasFlag(Position.Inside) && actor.Role == Role.Ranged)
-            foreach (var atomos in Module.Enemies(OID.Atomos))
-                if (actor.DistanceToHitbox(atomos) <= 25)
-                    hints.SetPriority(atomos, 5);
-    }
-
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         switch ((SID)status.ID)

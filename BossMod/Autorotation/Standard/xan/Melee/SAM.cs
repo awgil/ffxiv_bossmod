@@ -352,6 +352,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             return;
 
         if (RaidBuffsLeft > GCD
+            || RaidBuffsIn > 1000
             || !CanFitGCD(Tsubame.Left, 1)
             || PotionLeft > GCD && !CanFitGCD(PotionLeft, 1))
             PushGCD(aid, target, GCDPriority.Tsubame);

@@ -457,7 +457,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         var buffsIn = Bossmods.RaidCooldowns.NextDamageBuffIn2();
         if (buffsIn == null)
         {
-            if (CombatTimer < 7.8f && World.Party.WithoutSlot(false, true, true).Skip(1).Any(HavePartyBuff))
+            if (CombatTimer < 7.8f && World.Party.WithoutSlot(includeDead: true, excludeAlliance: true, excludeNPCs: true).Skip(1).Any(HavePartyBuff))
                 buffsIn = 7.8f - CombatTimer;
             else
                 // no party members with raid buffs, assume we're never getting any
