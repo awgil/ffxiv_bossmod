@@ -41,7 +41,7 @@ public static partial class Utils
     public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(id)?.Text}'";
 
     public static readonly Func<uint, bool> StatusIsRemovable = Memoize((uint statusID) => Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.CanDispel ?? false);
-    public static readonly Func<uint, bool> IsBossFate = Memoize((uint fateID) => Service.LuminaRow<Lumina.Excel.Sheets.Fate>(fateID)?.MapIcon == 60502);
+    public static readonly Func<uint, bool> IsBossFate = Memoize((uint fateID) => Service.LuminaRow<Lumina.Excel.Sheets.Fate>(fateID)?.MapIcon is 60502 or 60802);
     public static bool IsNonBossFate(uint fateID) => fateID > 0 && !IsBossFate(fateID);
 
     public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged => *(T*)((IntPtr)address + offset);

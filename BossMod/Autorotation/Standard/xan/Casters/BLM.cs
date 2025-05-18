@@ -353,6 +353,16 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (MP < 800 && CanWeave(AID.Manafont, 1))
             TryInstantCast(strategy, primaryTarget, GCDPriority.InstantWeave);
 
+        // flare acceleration
+        if (AstralSoul >= 3)
+        {
+            var castsNeeded = 6 - AstralSoul;
+            var f4MPNeeded = 1600 * castsNeeded;
+            var canManafont = CanWeave(AID.Manafont, castsNeeded + 1); // assume we can spend at least one instant cast on manafont weave
+            if (MP < f4MPNeeded && !canManafont)
+                PushGCD(AID.Flare, BestAOETarget, GCDPriority.High);
+        }
+
         // TODO: BLM doesn't really fit the priority system that well because of the MP cutoff stuff
         PushGCD(AID.Fire4, primaryTarget, GCDPriority.Standard);
         PushGCD(AID.Despair, primaryTarget, GCDPriority.Standard, mpCutoff: FireSpellCost);
