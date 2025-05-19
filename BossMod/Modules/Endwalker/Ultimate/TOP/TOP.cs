@@ -22,6 +22,8 @@ public class TOP(WorldState ws, Actor primary) : BossModule(ws, primary, new(100
     public Actor? BossP5() => _bossP5;
     public Actor? BossP6() => _bossP6;
 
+    public override bool PrioritizeAllEnemies => true;
+
     protected override void UpdateModule()
     {
         // TODO: this is an ugly hack, think how multi-actor fights can be implemented without it...

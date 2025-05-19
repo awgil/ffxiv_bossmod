@@ -45,6 +45,8 @@ public class UWU : BossModule
         _ultima = Enemies(OID.UltimaWeapon);
     }
 
+    public override bool PrioritizeAllEnemies => true;
+
     protected override void UpdateModule()
     {
         if (StateMachine.ActivePhaseIndex == 1)
