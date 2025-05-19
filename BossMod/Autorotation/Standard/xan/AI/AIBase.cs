@@ -39,6 +39,13 @@ public enum AbilityUse
     Disabled
 }
 
+public enum HintedStrategy
+{
+    Disabled,
+    HintOnly,
+    Enabled
+}
+
 internal static class AIExt
 {
     public static RotationModuleDefinition.ConfigRef<AbilityUse> AbilityTrack<Track>(this RotationModuleDefinition def, Track track, string name, string display = "") where Track : Enum
@@ -48,4 +55,20 @@ internal static class AIExt
 
     public static bool Enabled<Track>(this StrategyValues strategy, Track track) where Track : Enum
         => strategy.Option(track).As<AbilityUse>() == AbilityUse.Enabled;
+
+    public static bool HintEnabled<Track>(this StrategyValues strategy, Track track, bool hintValue) where Track : Enum
+        => strategy.Option(track).As<HintedStrategy>() switch
+        {
+            HintedStrategy.HintOnly => hintValue,
+            HintedStrategy.Enabled => true,
+            _ => false
+        };
+
+    public static bool IsEnabled(this HintedStrategy s) => s != HintedStrategy.Disabled;
+    public static bool Check(this HintedStrategy s, bool hintValue) => s switch
+    {
+        HintedStrategy.HintOnly => hintValue,
+        HintedStrategy.Enabled => true,
+        _ => false
+    };
 }
