@@ -1,57 +1,73 @@
-﻿#if DEBUG
-namespace BossMod.Shadowbringers.Alliance.A11SerialJointedCommandModel;
+﻿namespace BossMod.Shadowbringers.Alliance.A11SerialJointedCommandModel;
 
 public enum OID : uint
 {
     Boss = 0x2C61,
     Helper = 0x233C,
-    _Gen_SerialJointedServiceModel = 0x2C63, // R2.400, x12
-    _Gen_SerialJointedServiceModel1 = 0x2C65, // R1.000, x0 (spawn during fight)
+    Turret1 = 0x2C63, // R2.400, x12
+    Turret2 = 0x2C65, // R1.000, x0 (spawn during fight)
 }
 
 public enum IconID : uint
 {
-    _Gen_Icon_198 = 198, // player->self
-    _Gen_Icon_164 = 164, // player->self
+    Tankbuster = 198, // player->self
+    LockOn = 164, // player->self
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 872, // Boss->player, no cast, single-target
-    _Weaponskill_SystematicSiege = 18610, // Boss->self, 2.5s cast, single-target
-    _Weaponskill_ = 19249, // 2C63->self, no cast, single-target
-    _Weaponskill_1 = 18611, // 2C63->self, 1.0s cast, single-target
-    _Weaponskill_ClangingBlow = 18638, // Boss->player, 4.0s cast, single-target
-    _Weaponskill_EnergyBomb = 18612, // 2C65->player/2C66, no cast, single-target
-    _Weaponskill_EnergyBombardment = 18615, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_EnergyBombardment1 = 18616, // Helper->location, 3.0s cast, range 4 circle
-    _Weaponskill_ForcefulImpact = 18639, // Boss->self, 4.0s cast, range 100 circle
-    _Weaponskill_EnergyAssault = 18613, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_EnergyAssault1 = 18614, // Helper->self, no cast, range 30 ?-degree cone
-    _Weaponskill_2 = 18960, // Boss->self, no cast, single-target
-    _Weaponskill_SystematicTargeting = 18628, // Boss->self, 2.5s cast, single-target
-    _Weaponskill_HighPoweredLaser = 18629, // 2C63->self, no cast, range 70 width 4 rect
-    _Weaponskill_SidestrikingSpin = 18634, // Boss->self, 6.0s cast, single-target
-    _Weaponskill_SidestrikingSpin1 = 18635, // Helper->self, 6.3s cast, range 30 width 12 rect
-    _Weaponskill_SidestrikingSpin2 = 18636, // Helper->self, 6.3s cast, range 30 width 12 rect
-    _Weaponskill_SystematicAirstrike = 18617, // Boss->self, 2.5s cast, single-target
-    _Weaponskill_3 = 19250, // 2C63->self, no cast, single-target
-    _Weaponskill_AirToSurfaceEnergy = 18618, // Helper->self, no cast, range 5 circle
-    _Weaponskill_Shockwave = 18627, // Boss->self, 5.0s cast, range 100 circle
-    _Weaponskill_EnergyRing = 18619, // Boss->self, 3.5s cast, single-target
-    _Weaponskill_EnergyRing1 = 18620, // Helper->self, 4.7s cast, range 12 circle
-    _Weaponskill_EnergyRing2 = 18621, // Boss->self, no cast, single-target
-    _Weaponskill_EnergyRing3 = 18622, // Helper->self, 6.7s cast, range 12-24 donut
-    _Weaponskill_EnergyRing4 = 18623, // Boss->self, no cast, single-target
-    _Weaponskill_EnergyRing5 = 18624, // Helper->self, 8.7s cast, range 24-36 donut
-    _Weaponskill_EnergyRing6 = 18625, // Boss->self, no cast, single-target
-    _Weaponskill_EnergyRing7 = 18626, // Helper->self, 10.7s cast, range 36-48 donut
+    AutoAttack = 872, // Boss->player, no cast, single-target
+    SystematicSiege = 18610, // Boss->self, 2.5s cast, single-target
+    Unk0 = 19249, // Turret1->self, no cast, single-target
+    Unk1 = 18611, // Turret1->self, 1.0s cast, single-target
+    ClangingBlow = 18638, // Boss->player, 4.0s cast, single-target
+    EnergyBomb = 18612, // Turret2->player/2P, no cast, single-target
+    EnergyBombardment = 18615, // Boss->self, 3.0s cast, single-target
+    EnergyBombardment1 = 18616, // Helper->location, 3.0s cast, range 4 circle
+    ForcefulImpact = 18639, // Boss->self, 4.0s cast, range 100 circle
+    EnergyAssault = 18613, // Boss->self, 5.0s cast, single-target
+    EnergyAssault1 = 18614, // Helper->self, no cast, range 30 90-degree cone
+    Unk2 = 18960, // Boss->self, no cast, single-target
+    SystematicTargeting = 18628, // Boss->self, 2.5s cast, single-target
+    HighPoweredLaser = 18629, // Turret1->self, no cast, range 70 width 4 rect
+    SidestrikingSpin = 18634, // Boss->self, 6.0s cast, single-target
+    SidestrikingSpin1 = 18635, // Helper->self, 6.3s cast, range 30 width 12 rect
+    SidestrikingSpin2 = 18636, // Helper->self, 6.3s cast, range 30 width 12 rect
+    SystematicAirstrike = 18617, // Boss->self, 2.5s cast, single-target
+    AirToSurfaceAppear = 19250, // Turret1->self, no cast, single-target
+    AirToSurfaceEnergy = 18618, // Helper->self, no cast, range 5 circle
+    Shockwave = 18627, // Boss->self, 5.0s cast, range 100 circle
+    EnergyRingCast1 = 18619, // Boss->self, 3.5s cast, single-target
+    EnergyRingCast2 = 18621, // Boss->self, no cast, single-target
+    EnergyRingCast3 = 18623, // Boss->self, no cast, single-target
+    EnergyRingCast4 = 18625, // Boss->self, no cast, single-target
+    EnergyRing1 = 18620, // Helper->self, 4.7s cast, range 12 circle
+    EnergyRing2 = 18622, // Helper->self, 6.7s cast, range 12-24 donut
+    EnergyRing3 = 18624, // Helper->self, 8.7s cast, range 24-36 donut
+    EnergyRing4 = 18626, // Helper->self, 10.7s cast, range 36-48 donut
+    SystematicSuppression = 18630, // Boss->self, 2.5s cast, single-target
+    HighCaliberLaserCast = 18631, // Turret1->self, 7.0s cast, single-target
+    HighCaliberLaser = 18682, // Helper->self, 7.0s cast, range 70 width 24 rect
 }
-class ForcefulImpact(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_ForcefulImpact);
-class ClangingBlow(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_ClangingBlow);
-class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Shockwave, 15);
 
-class EnergyBomb(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_EnergyBomb)
+class ForcefulImpact(BossModule module) : Components.RaidwideCast(module, AID.ForcefulImpact);
+class ClangingBlow(BossModule module) : Components.SingleTargetCast(module, AID.ClangingBlow);
+class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Shockwave, 15);
+class HighCaliberLaser(BossModule module) : Components.StandardAOEs(module, AID.HighCaliberLaser, new AOEShapeRect(70, 12))
+{
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var group1 = DateTime.MinValue;
+        foreach (var aoe in base.ActiveAOEs(slot, actor))
+        {
+            if (group1 == DateTime.MinValue)
+                group1 = aoe.Activation.AddSeconds(0.5f);
+            yield return aoe with { Color = aoe.Activation < group1 ? ArenaColor.Danger : ArenaColor.AOE, Risky = aoe.Activation < group1 };
+        }
+    }
+}
+
+class EnergyBomb(BossModule module) : Components.GenericAOEs(module, AID.EnergyBomb)
 {
     public readonly List<Actor> Bombs = [];
 
@@ -59,17 +75,20 @@ class EnergyBomb(BossModule module) : Components.GenericAOEs(module, AID._Weapon
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if (id == 0x11D2 && actor.OID == 0x2C65)
-            Bombs.Add(actor);
-        if (id == 0x11E7 && actor.OID == 0x2C65)
-            Bombs.Remove(actor);
+        if ((OID)actor.OID == OID.Turret2)
+        {
+            if (id == 0x11D2)
+                Bombs.Add(actor);
+            if (id == 0x11E7)
+                Bombs.Remove(actor);
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == WatchedAction && WorldState.Actors.Find(spell.MainTargetID) is { } target)
+        if (spell.Action == WatchedAction)
         {
-            Service.Log($"{target.Position} exploded by {caster.Position} ({(caster.Position - target.Position).Length()})");
+            NumCasts++;
             Bombs.Remove(caster);
         }
     }
@@ -86,7 +105,7 @@ class EnergyBomb(BossModule module) : Components.GenericAOEs(module, AID._Weapon
 }
 
 // there's no good way to figure out which player is baiting which turret so we treat them like regular AOEs
-class HighPoweredLaser(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_HighPoweredLaser)
+class HighPoweredLaser(BossModule module) : Components.GenericAOEs(module, AID.HighPoweredLaser)
 {
     public readonly List<Actor> Turrets = [];
     public DateTime Activation { get; private set; }
@@ -95,13 +114,13 @@ class HighPoweredLaser(BossModule module) : Components.GenericAOEs(module, AID._
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if (actor.OID == 0x2C63 && id == 0x1E43)
+        if ((OID)actor.OID == OID.Turret1 && id == 0x1E43)
             Turrets.Add(actor);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_164 && Activation == default)
+        if ((IconID)iconID == IconID.LockOn && Activation == default)
             Activation = WorldState.FutureTime(6.6f);
     }
 
@@ -115,10 +134,10 @@ class HighPoweredLaser(BossModule module) : Components.GenericAOEs(module, AID._
     }
 }
 
-class SidestrikingSpin(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_SidestrikingSpin1, AID._Weaponskill_SidestrikingSpin2], new AOEShapeRect(30, 6));
-class EnergyBombardment(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_EnergyBombardment1, new AOEShapeCircle(4));
+class SidestrikingSpin(BossModule module) : Components.GroupedAOEs(module, [AID.SidestrikingSpin1, AID.SidestrikingSpin2], new AOEShapeRect(30, 6));
+class EnergyBombardment(BossModule module) : Components.StandardAOEs(module, AID.EnergyBombardment1, new AOEShapeCircle(4));
 
-class EnergyAssault(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_EnergyAssault1)
+class EnergyAssault(BossModule module) : Components.GenericAOEs(module, AID.EnergyAssault1)
 {
     private readonly List<(Actor, DateTime)> Casters = [];
 
@@ -126,7 +145,7 @@ class EnergyAssault(BossModule module) : Components.GenericAOEs(module, AID._Wea
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_EnergyAssault)
+        if ((AID)spell.Action.ID == AID.EnergyAssault)
             Casters.Add((caster, Module.CastFinishAt(spell, 2.2f)));
     }
 
@@ -141,7 +160,7 @@ class EnergyAssault(BossModule module) : Components.GenericAOEs(module, AID._Wea
     }
 }
 
-class AirToSurfaceEnergy(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_AirToSurfaceEnergy)
+class AirToSurfaceEnergy(BossModule module) : Components.GenericAOEs(module, AID.AirToSurfaceEnergy)
 {
     private static readonly List<WPos> _centers = [.. CurveApprox.Rect(new(12, 0), new(0, 12)).Select(c => new WPos(-500, 0) + c)];
     private readonly List<AOEInstance> _predicted = [];
@@ -194,7 +213,7 @@ class AirToSurfaceEnergy(BossModule module) : Components.GenericAOEs(module, AID
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_3)
+        if ((AID)spell.Action.ID == AID.AirToSurfaceAppear)
         {
             NumStarts++;
             var pivot = _centers.MinBy(c => (c - caster.Position).Length());
@@ -235,20 +254,18 @@ class EnergyRing(BossModule module) : Components.ConcentricAOEs(module, [new AOE
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_EnergyRing1)
-        {
+        if ((AID)spell.Action.ID == AID.EnergyRing1)
             AddSequence(caster.Position, Module.CastFinishAt(spell));
-        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         var order = (AID)spell.Action.ID switch
         {
-            AID._Weaponskill_EnergyRing1 => 0,
-            AID._Weaponskill_EnergyRing3 => 1,
-            AID._Weaponskill_EnergyRing5 => 2,
-            AID._Weaponskill_EnergyRing7 => 3,
+            AID.EnergyRing1 => 0,
+            AID.EnergyRing2 => 1,
+            AID.EnergyRing3 => 2,
+            AID.EnergyRing4 => 3,
             _ => -1
         };
         AdvanceSequence(order, caster.Position, WorldState.FutureTime(2));
@@ -269,10 +286,10 @@ class A11SerialJointedCommandModelStates : StateMachineBuilder
             .ActivateOnEnter<EnergyAssault>()
             .ActivateOnEnter<AirToSurfaceEnergy>()
             .ActivateOnEnter<EnergyRing>()
-            .ActivateOnEnter<Shockwave>();
+            .ActivateOnEnter<Shockwave>()
+            .ActivateOnEnter<HighCaliberLaser>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9141)]
 public class A11SerialJointedCommandModel(WorldState ws, Actor primary) : BossModule(ws, primary, new(-500, 0), new ArenaBoundsSquare(23.5f));
-#endif
