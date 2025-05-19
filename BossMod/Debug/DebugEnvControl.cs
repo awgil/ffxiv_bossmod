@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using ImGuiNET;
 using System.Globalization;
@@ -13,6 +14,7 @@ sealed unsafe class DebugEnvControl : IDisposable
 
     private readonly List<string> _history = [];
     private string _current = "";
+    private bool deduplicate;
 
     private readonly EventSubscription _onEnvControl;
 
@@ -25,7 +27,7 @@ sealed unsafe class DebugEnvControl : IDisposable
 
     public void Draw()
     {
-        ImGui.SetNextItemWidth(100);
+        ImGui.SetNextItemWidth(100 * ImGuiHelpers.GlobalScale);
         ImGui.InputText("ii.ssssssss", ref _current, 12);
         ImGui.SameLine();
         if (ImGui.Button("Execute"))
@@ -43,6 +45,11 @@ sealed unsafe class DebugEnvControl : IDisposable
 
     private void OnEventEnvControl(WorldState.OpEnvControl ec)
     {
+        if (deduplicate)
+        {
+            deduplicate = false;
+            return;
+        }
         _history.Insert(0, $"{ec.Index:X2}.{ec.State:X8}");
     }
 
@@ -60,6 +67,7 @@ sealed unsafe class DebugEnvControl : IDisposable
             Service.Log("No active content director, doing nothing");
             return;
         }
+        deduplicate = true;
         ProcessEnvControl(director, index, (ushort)(state & 0xFFFF), (ushort)(state >> 16));
     }
 }
