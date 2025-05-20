@@ -135,7 +135,6 @@ public enum OGCDStrategy
     /// <summary> <b>Forbids</b> execution of the ability. </summary>
     Delay
 }
-#endregion
 
 public enum AllowOrForbid
 {
@@ -148,6 +147,7 @@ public enum AllowOrForbid
     /// <summary> <b>Forbid</b> the action from being executed. </summary>
     Forbid
 }
+#endregion
 
 /// <summary>The core foundation of how we execute everything, from queuing GCDs to implementing our rotation helpers, functions, and tools.<br/> This base provides a robust framework equipped with a comprehensive suite of functions designed to streamline optimization and simplify the creation of advanced rotation modules.</summary>
 /// <typeparam name="AID">The user's specified <b>Action ID</b> being checked, called by <b>using <seealso cref="BossMod"/>.[class/job acronym]</b>.</typeparam>
@@ -793,6 +793,56 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks time remaining on party-wide <b>Raid Buffs</b>.</summary>
     protected float RaidBuffsLeft { get; private set; }
+
+    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE or Class.DRK;
+
+    private new (float Left, float In) EstimateRaidBuffTimings(Actor? target)
+    {
+        if (Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel && IsSelfish(Player.Class))
+            return (float.MaxValue, 0);
+
+        if (target?.IsStrikingDummy == true)
+        {
+            var cycleTime = CombatTimer - 7.8f;
+            if (cycleTime < 0)
+                return (0, 7.8f - CombatTimer);
+
+            cycleTime %= 120;
+            return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
+        }
+
+        var buffsIn = Bossmods.RaidCooldowns.NextDamageBuffIn2();
+        if (buffsIn == null)
+        {
+            if (CombatTimer < 7.8f && World.Party.WithoutSlot(includeDead: true, excludeAlliance: true, excludeNPCs: true).Skip(1).Any(HavePartyBuff))
+                buffsIn = 7.8f - CombatTimer;
+            else
+                buffsIn = float.MaxValue;
+        }
+
+        return (Bossmods.RaidCooldowns.DamageBuffLeft(Player, target), buffsIn.Value);
+    }
+
+    private bool HavePartyBuff(Actor player) => player.Class switch
+    {
+        Class.MNK => player.Level >= 70, // brotherhood
+        Class.DRG => player.Level >= 52, // battle litany
+        Class.NIN => player.Level >= 45, // mug/dokumori - level check is for suiton/huton, which grant Shadow Walker
+        Class.RPR => player.Level >= 72, // arcane circle
+
+        Class.SMN => player.Level >= 66, // searing light
+        Class.RDM => player.Level >= 58, // embolden
+        Class.PCT => player.Level >= 70, // starry muse
+
+        Class.BRD => player.Level >= 50, // battle voice - not counting songs since they are permanent kinda
+        Class.DNC => player.Level >= 70, // tech finish
+
+        Class.SCH => player.Level >= 66, // chain
+        Class.AST => player.Level >= 50, // divination
+
+        _ => false
+    };
+
     #endregion
 
     #region Shared Abilities

@@ -135,11 +135,9 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
     #region Cooldown Helpers
 
-    #region MP
-    private bool ShouldSpendMP(MPStrategy strategy)
+    private bool ShouldUseMP(MPStrategy strategy)
     {
-        //if locked, skip
-        if (strategy != MPStrategy.Optimal || !Unlocked(AID.FloodOfDarkness))
+        if (!CanWeaveIn || !Unlocked(AID.FloodOfDarkness))
             return false;
         if (strategy == MPStrategy.Optimal && Unlocked(AID.FloodOfDarkness))
         {
@@ -169,54 +167,29 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             if (!Unlocked(AID.Delirium))
                 return MP >= 3000;
         }
-        if (strategy is MPStrategy.ForceEdge or MPStrategy.ForceFlood)
-            return MP >= 3000;
-        return false;
-    }
-    private bool ShouldUseMP(MPStrategy strategy)
-    {
-        if (!CanWeaveIn)
-            return false;
-
         return strategy switch
         {
-            MPStrategy.Optimal => ShouldSpendMP(MPStrategy.Optimal),
-            MPStrategy.Auto3k => MP >= 3000,
-            MPStrategy.Auto6k => MP >= 6000,
-            MPStrategy.Auto9k => MP >= 9000,
-            MPStrategy.AutoRefresh => RiskingMP,
-            MPStrategy.Edge3k => MP >= 3000,
-            MPStrategy.Edge6k => MP >= 6000,
-            MPStrategy.Edge9k => MP >= 9000,
-            MPStrategy.EdgeRefresh => RiskingMP,
-            MPStrategy.Flood3k => MP >= 3000,
-            MPStrategy.Flood6k => MP >= 6000,
-            MPStrategy.Flood9k => MP >= 9000,
-            MPStrategy.FloodRefresh => RiskingMP,
-            MPStrategy.ForceEdge => MP >= 3000 || DarkArts.IsActive,
-            MPStrategy.ForceFlood => MP >= 3000 || DarkArts.IsActive,
-            MPStrategy.Delay => false,
+            MPStrategy.Auto3k or MPStrategy.Edge3k or MPStrategy.Flood3k => MP >= 3000,
+            MPStrategy.Auto6k or MPStrategy.Edge6k or MPStrategy.Flood6k => MP >= 6000,
+            MPStrategy.Auto9k or MPStrategy.Edge9k or MPStrategy.Flood9k => MP >= 9000,
+            MPStrategy.AutoRefresh or MPStrategy.EdgeRefresh or MPStrategy.FloodRefresh => RiskingMP,
+            MPStrategy.ForceEdge => Unlocked(AID.EdgeOfDarkness) && MP >= 3000 || DarkArts.IsActive,
+            MPStrategy.ForceFlood => Unlocked(AID.FloodOfDarkness) && MP >= 3000 || DarkArts.IsActive,
             _ => false
         };
-
     }
-    #endregion
-
-    private bool ShouldUseBlood(BloodStrategy strategy, Enemy? target) => strategy switch
+    private bool ShouldUseBlood(BloodStrategy strategy, Enemy? target)
     {
-        BloodStrategy.Automatic => ShouldSpendBlood(BloodStrategy.Automatic, target),
-        BloodStrategy.OnlyBloodspiller => ShouldSpendBlood(BloodStrategy.Automatic, target),
-        BloodStrategy.OnlyQuietus => ShouldSpendBlood(BloodStrategy.Automatic, target),
-        BloodStrategy.ForceBloodspiller => Unlocked(AID.Bloodspiller) && (Blood >= 50 || Delirium.IsActive),
-        BloodStrategy.ForceQuietus => Unlocked(AID.Quietus) && (Blood >= 50 || Delirium.IsActive),
-        BloodStrategy.Conserve => false,
-        _ => false
-    };
-    private bool ShouldSpendBlood(BloodStrategy strategy, Enemy? target) => strategy switch
-    {
-        BloodStrategy.Automatic => Player.InCombat && target != null && In3y(target?.Actor) && Blood >= 50 && Darkside.IsActive && Unlocked(AID.Bloodspiller) && (RiskingBlood || Delirium.CD >= 39.5f),
-        _ => false
-    };
+        var minimum = Unlocked(BestBloodSpender) && (Blood >= 50 || Delirium.IsActive);
+        var condition = Player.InCombat && target != null && InMeleeRange(target?.Actor) && minimum && Darkside.IsActive && (RiskingBlood || Delirium.Left < 9f || RaidBuffsLeft > 0f);
+        return strategy switch
+        {
+            BloodStrategy.Automatic or BloodStrategy.OnlyBloodspiller or BloodStrategy.OnlyQuietus => condition,
+            BloodStrategy.ForceBloodspiller or BloodStrategy.ForceQuietus => minimum,
+            BloodStrategy.Conserve => false,
+            _ => false
+        };
+    }
     private bool ShouldUseSaltedEarth(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
         OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && SaltedEarth.IsReady && Opener,
@@ -229,7 +202,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseSaltAndDarkness(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target?.Actor != null && CanWeaveIn && CDRemaining(AID.SaltAndDarkness) < 0.6f && SaltedEarth.IsActive,
+        OGCDStrategy.Automatic => Player.InCombat && target?.Actor != null && CanWeaveIn && CDRemaining(AID.SaltAndDarkness) < 0.6f && SaltedEarth.Left != 0f && (SaltedEarth.Left is <= 5f || RaidBuffsLeft > 0f),
         OGCDStrategy.Force => SaltedEarth.IsActive,
         OGCDStrategy.AnyWeave => SaltedEarth.IsActive && CanWeaveIn,
         OGCDStrategy.EarlyWeave => SaltedEarth.IsActive && CanEarlyWeaveIn,
@@ -239,17 +212,10 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseCarveOrDrain(CarveStrategy strategy, Enemy? target) => strategy switch
     {
-        CarveStrategy.Automatic => ShouldSpendCarveOrDrain(CarveStrategy.Automatic, target),
-        CarveStrategy.OnlyCarve => ShouldSpendCarveOrDrain(CarveStrategy.Automatic, target),
-        CarveStrategy.OnlyDrain => ShouldSpendCarveOrDrain(CarveStrategy.Automatic, target),
+        CarveStrategy.Automatic or CarveStrategy.OnlyCarve or CarveStrategy.OnlyDrain => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && AbyssalDrain.IsReady && Opener,
         CarveStrategy.ForceCarve => CarveAndSpit.IsReady,
         CarveStrategy.ForceDrain => AbyssalDrain.IsReady,
         CarveStrategy.Delay => false,
-        _ => false
-    };
-    private bool ShouldSpendCarveOrDrain(CarveStrategy strategy, Enemy? target) => strategy switch
-    {
-        CarveStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && AbyssalDrain.IsReady && Opener,
         _ => false
     };
     private bool ShouldUseDelirium(OGCDStrategy strategy, Enemy? target)
@@ -259,7 +225,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
         return strategy switch
         {
-            OGCDStrategy.Automatic => InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.IsReady : OGCDReady(AID.BloodWeapon) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0)),
+            OGCDStrategy.Automatic => InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.IsReady : OGCDReady(AID.BloodWeapon)) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0),
             OGCDStrategy.Force => true,
             OGCDStrategy.AnyWeave => CanWeaveIn,
             OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
@@ -278,17 +244,16 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseShadowbringer(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && Shadowbringer.IsReady && LivingShadow.IsActive && Delirium.IsActive,
+        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && Shadowbringer.IsReady && (RaidBuffsLeft > 0f || (!Delirium.IsActive && StatusRemaining(Player, SID.Scorn) is < 20f and not 0f)),
         OGCDStrategy.Force => Shadowbringer.IsReady,
         OGCDStrategy.AnyWeave => Shadowbringer.IsReady && CanWeaveIn,
         OGCDStrategy.EarlyWeave => Shadowbringer.IsReady && CanEarlyWeaveIn,
         OGCDStrategy.LateWeave => Shadowbringer.IsReady && CanLateWeaveIn,
-        OGCDStrategy.Delay => false,
         _ => false
     };
     private bool ShouldUseDeliriumCombo(DeliriumComboStrategy strategy, Enemy? target) => strategy switch
     {
-        DeliriumComboStrategy.Automatic => Player.InCombat && target != null && In3y(target?.Actor) && Delirium.IsActive && ((Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 or 1 or 2) || (!Unlocked(AID.ScarletDelirium))),
+        DeliriumComboStrategy.Automatic => Player.InCombat && target != null && In3y(target?.Actor) && Delirium.IsActive && Unlocked(AID.ScarletDelirium) && (Delirium.Left < 9f || RaidBuffsLeft > 0f) && Delirium.Step is 0 or 1 or 2,
         DeliriumComboStrategy.ScarletDelirum => Unlocked(AID.ScarletDelirium) && Delirium.Step is 0 && Delirium.IsActive,
         DeliriumComboStrategy.Comeuppance => Unlocked(AID.Comeuppance) && Delirium.Step is 1 && Delirium.IsActive,
         DeliriumComboStrategy.Torcleaver => Unlocked(AID.Torcleaver) && Delirium.Step is 2 && Delirium.IsActive,
@@ -298,7 +263,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseDisesteem(GCDStrategy strategy, Enemy? target) => strategy switch
     {
-        GCDStrategy.Automatic => Player.InCombat && target != null && In10y(target?.Actor) && Darkside.IsActive && Disesteem.IsReady && (CombatTimer < 30 && Delirium.IsActive || CombatTimer >= 30 && !Delirium.IsActive && Delirium.CD > 15),
+        GCDStrategy.Automatic => Player.InCombat && target != null && In10y(target?.Actor) && Darkside.IsActive && Disesteem.IsReady && (RaidBuffsLeft > 0 || StatusRemaining(Player, SID.Scorn) < 10f),
         GCDStrategy.Force => Disesteem.IsReady,
         GCDStrategy.Delay => false,
         _ => false

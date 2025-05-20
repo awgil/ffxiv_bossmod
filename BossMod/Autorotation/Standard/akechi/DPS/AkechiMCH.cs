@@ -304,10 +304,9 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         var off = !Unlocked(AID.Wildfire) || (Unlocked(AID.Wildfire) && (CDRemaining(AID.Wildfire) > 40 || (CDRemaining(AID.Wildfire) <= 2f && FMFleft == 0) || WFleft > 0));
         var risk = Heat == 100 && ((Unlocked(BestAirAnchor) && AAcd > GCD) || (Unlocked(AID.ChainSaw) && CScd > GCD) || (Unlocked(AID.Drill) && Drillcd > GCD) || (Unlocked(AID.Excavator) && EVleft == 0) || (Unlocked(AID.FullMetalField) && FMFleft == 0));
         var ct = (CombatTimer <= 30 || ComboTimer == 0 || (ComboLastMove is AID.HeatedCleanShot or AID.Scattergun)) ? ComboTimer >= 0 : ComboTimer >= 7.6f;
-        var desync = BScd is < 5 or > 105 && ((LastActionUsed(BestAirAnchor) || AAcd > 36) && CScd > 7.6f);
         return strategy switch
         {
-            HyperchargeStrategy.Automatic => (((ok && ct && (odd || even || off || risk)) || desync), OGCDPriority.Severe + 1),
+            HyperchargeStrategy.Automatic => ((ok && ct && (odd || even || off || risk)), OGCDPriority.Severe + 1),
             HyperchargeStrategy.ASAP => (true, OGCDPriority.Forced),
             HyperchargeStrategy.Full => (Heat == 100, OGCDPriority.Forced),
             HyperchargeStrategy.Delay or _ => (false, OGCDPriority.None),
