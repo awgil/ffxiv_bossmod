@@ -24,3 +24,29 @@ public class CastCounterMulti(BossModule module, Enum[] aids) : BossComponent(mo
             ++NumCasts;
     }
 }
+
+public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape) : CastCounterMulti(module, aids)
+{
+    private readonly List<(WPos Source, Angle Direction)> _casts = [];
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (WatchedActions.Contains(spell.Action))
+        {
+            NumCasts++;
+            _casts.Add((caster.Position, spell.Rotation));
+        }
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (_casts.Count > 0)
+            hints.Add($"Casts of {string.Join(", ", WatchedActions)}: {string.Join(", ", _casts)}");
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var c in _casts)
+            shape.Outline(Arena, c.Source, c.Direction, ArenaColor.Object);
+    }
+}

@@ -467,7 +467,7 @@ public abstract class BossModule : IDisposable
 
     private void OnActorCastEvent(Actor actor, ActorCastEvent cast)
     {
-        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && cast.IsSpell())
+        if (actor.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo) && cast.IsSpell())
             foreach (var comp in _components)
                 comp.OnEventCast(actor, cast);
     }
