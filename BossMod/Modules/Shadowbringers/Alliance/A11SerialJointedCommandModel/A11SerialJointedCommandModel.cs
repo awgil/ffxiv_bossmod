@@ -67,39 +67,23 @@ class HighCaliberLaser(BossModule module) : Components.StandardAOEs(module, AID.
     }
 }
 
-class EnergyBomb(BossModule module) : Components.GenericAOEs(module, AID.EnergyBomb)
+class EnergyBomb : Components.PersistentVoidzone
 {
-    public readonly List<Actor> Bombs = [];
+    private readonly List<Actor> _balls = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Bombs.Select(b => new AOEInstance(new AOEShapeCircle(2), b.Position, b.Rotation));
+    public EnergyBomb(BossModule module) : base(module, 2, _ => [], 8)
+    {
+        Sources = _ => _balls;
+    }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if ((OID)actor.OID == OID.Turret2)
+        if (actor.OID == (uint)OID.Turret2)
         {
             if (id == 0x11D2)
-                Bombs.Add(actor);
+                _balls.Add(actor);
             if (id == 0x11E7)
-                Bombs.Remove(actor);
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-        {
-            NumCasts++;
-            Bombs.Remove(caster);
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var aoe in ActiveAOEs(slot, actor))
-        {
-            hints.AddForbiddenZone(aoe.Shape, aoe.Origin, aoe.Rotation, aoe.Activation);
-            hints.AddForbiddenZone(ShapeContains.Capsule(aoe.Origin, aoe.Rotation, 10, 2), WorldState.FutureTime(4));
-            hints.AddForbiddenZone(ShapeContains.Capsule(aoe.Origin, aoe.Rotation, 5, 2), WorldState.FutureTime(2));
+                _balls.Remove(actor);
         }
     }
 }
