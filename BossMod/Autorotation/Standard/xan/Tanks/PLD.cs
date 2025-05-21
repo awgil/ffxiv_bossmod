@@ -170,7 +170,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
 
         var stComboPriority = comboStrategy == ComboStrategy.FinishAlways ? GCDPriority.FinishCombo : GCDPriority.Standard;
 
-        if (ComboLastMove == AID.TotalEclipse)
+        if (ComboLastMove == AID.TotalEclipse && NumAOETargets > 0)
             PushGCD(AID.Prominence, Player, aoeComboPriority);
 
         if (shouldAOE)
