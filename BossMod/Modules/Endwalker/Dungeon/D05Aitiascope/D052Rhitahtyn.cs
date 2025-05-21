@@ -45,41 +45,20 @@ public enum TetherID : uint
 
 class Impact(BossModule module) : Components.StandardAOEs(module, AID.Impact, new AOEShapeRect(14, 20));
 
-class ImpactWalls(BossModule module) : Components.GenericAOEs(module)
+class ImpactWalls(BossModule module) : BossComponent(module)
 {
-    private readonly List<AOEInstance> _safeWalls = [];
-    private readonly List<AOEInstance> _unsafeWalls = [];
+    private static readonly List<WPos> WallContour = [new(4, 124), new(4, 134.5f), new(0.5f, 134.5f), new(0.5f, 137.5f), new(4, 137.5f), new(4, 150.5f), new(0.5f, 150.5f), new(0.5f, 153.5f), new(4, 153.5f), new(4, 164), new(18, 164), new(18, 153.5f), new(21.5f, 153.5f), new(21.5f, 150.5f), new(18, 150.5f), new(18, 137.5f), new(22, 137.5f), new(22, 134.5f), new(18, 134.5f), new(18, 124)];
 
-    private bool _haveSafeZone;
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _haveSafeZone ? _safeWalls : _unsafeWalls;
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    public override void OnEventEnvControl(byte index, uint state)
     {
-        if (spell.Action.ID == (uint)AID.Impact)
+        if (index == 0)
         {
-            var angle = caster.Rotation.Deg > 0 ? 90.Degrees() : 270.Degrees();
+            if (state == 0x00020001)
+                Arena.Bounds = new ArenaBoundsCustom(20, new(WallContour.Select(c => c - Arena.Center)));
 
-            _unsafeWalls.Add(new AOEInstance(new AOEShapeRect(13, 20), caster.Position, angle, default, ArenaColor.Danger));
-
-            _safeWalls.Add(new AOEInstance(new AOEShapeRect(9.5f, 20), caster.Position, angle, default, ArenaColor.Danger));
-            _safeWalls.Add(new AOEInstance(new AOEShapeRect(5, 6.45f), caster.Position + caster.Rotation.ToDirection() * 8, angle, default, ArenaColor.Danger));
-            _safeWalls.Add(new AOEInstance(new AOEShapeRect(5, 6), caster.Position + caster.Rotation.ToDirection() * 8 + new WDir(0, -15.5f), angle, default, ArenaColor.Danger));
-            _safeWalls.Add(new AOEInstance(new AOEShapeRect(5, 6), caster.Position + caster.Rotation.ToDirection() * 8 + new WDir(0, 15.5f), angle, default, ArenaColor.Danger));
+            if (state == 0x00080004)
+                Arena.Bounds = new ArenaBoundsSquare(20);
         }
-
-        if (spell.Action.ID == (uint)AID.ShieldSkewer)
-        {
-            _haveSafeZone = false;
-            _unsafeWalls.Clear();
-            _safeWalls.Clear();
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID == (uint)AID.ShieldSkewer)
-            _haveSafeZone = true;
     }
 }
 
@@ -102,17 +81,8 @@ class ImpactSafezone(BossModule module) : Components.GenericAOEs(module)
         foreach (var icicle in Module.Enemies(OID.Helper2))
         {
             if (icicle.FindStatus(SID.Unknown2) != null)
-                yield return new AOEInstance(new AOEShapeRect(1.5f, 1.75f, 1.5f), DoAdjust(icicle.Position));
+                yield return new AOEInstance(new AOEShapeRect(1.5f, 2, 1.5f), icicle.Position, Color: ArenaColor.Danger);
         }
-    }
-
-    private WPos DoAdjust(WPos pos)
-    {
-        if (pos.X < 10)
-            pos.X += 0.25f;
-        else
-            pos.X -= 0.25f;
-        return pos;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
