@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Alliance.A23SuperiorFlightUnit;
 
-class HighPoweredLaser(BossModule module) : Components.CastCounter(module, AID._Weaponskill_ManeuverHighPoweredLaser1)
+class HighPoweredLaser(BossModule module) : Components.CastCounter(module, AID.ManeuverHighPoweredLaser1)
 {
     record struct Stack(Actor Source, Actor Target, DateTime Activation)
     {
@@ -16,7 +16,7 @@ class HighPoweredLaser(BossModule module) : Components.CastCounter(module, AID._
             _stacks.RemoveAll(c => c.Target.InstanceID == spell.MainTargetID);
         }
 
-        if ((AID)spell.Action.ID == AID._Ability_ && WorldState.Actors.Find(spell.MainTargetID) is { } tar)
+        if ((AID)spell.Action.ID == AID.TargetSelect && WorldState.Actors.Find(spell.MainTargetID) is { } tar)
             _stacks.Add(new(caster, tar, WorldState.FutureTime(5.4f)));
     }
 

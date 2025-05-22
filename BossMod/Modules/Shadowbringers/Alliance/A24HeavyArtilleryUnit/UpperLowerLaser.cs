@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Alliance.A24HeavyArtilleryUnit;
 
-class LowerLaser(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_LowerLaser)
+class LowerLaser(BossModule module) : Components.GenericAOEs(module, AID.LowerLaserCast)
 {
     private readonly List<(Angle rotation, DateTime activation, int casts)> _casters = [];
 
@@ -17,7 +17,7 @@ class LowerLaser(BossModule module) : Components.GenericAOEs(module, AID._Weapon
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_LowerLaser or AID._Weaponskill_LowerLaser1)
+        if ((AID)spell.Action.ID is AID.LowerLaserCast or AID.LowerLaserRepeat)
         {
             var index = _casters.FindIndex(c => c.rotation.AlmostEqual(spell.Rotation, 0.1f));
             if (index >= 0)
@@ -29,7 +29,7 @@ class LowerLaser(BossModule module) : Components.GenericAOEs(module, AID._Weapon
     }
 }
 
-class UpperLaser(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_UpperLaser)
+class UpperLaser(BossModule module) : Components.GenericAOEs(module, AID.UpperLaser1Cast)
 {
     private readonly List<(Angle rotation, DateTime activation, int casts)> _casters = [];
 
@@ -57,7 +57,7 @@ class UpperLaser(BossModule module) : Components.GenericAOEs(module, AID._Weapon
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_UpperLaser or AID._Weaponskill_UpperLaser1 or AID._Weaponskill_UpperLaser2 or AID._Weaponskill_UpperLaser3 or AID._Weaponskill_UpperLaser4 or AID._Weaponskill_UpperLaser5)
+        if ((AID)spell.Action.ID is AID.UpperLaser1Cast or AID.UpperLaser1Repeat or AID.UpperLaser2Cast or AID.UpperLaser2Repeat or AID.UpperLaser3Cast or AID.UpperLaser3Repeat)
         {
             var index = _casters.FindIndex(c => c.rotation.AlmostEqual(spell.Rotation, 0.1f));
             if (index >= 0)

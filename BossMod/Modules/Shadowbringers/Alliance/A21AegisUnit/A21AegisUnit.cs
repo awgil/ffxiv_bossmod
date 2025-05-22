@@ -4,37 +4,41 @@ public enum OID : uint
 {
     Boss = 0x2EA2,
     Helper = 0x233C,
-    _Gen_FlightUnit = 0x2ECB, // R2.800, x6
+    FlightUnit = 0x2ECB, // R2.800, x6
 }
 
 public enum AID : uint
 {
-    _Ability_Attack = 20924, // Helper->player, no cast, single-target
-    _Weaponskill_FiringOrderAntiPersonnelLaser = 20621, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_AntiPersonnelLaser = 20624, // Helper->player, no cast, range 3 circle
-    _Ability_ = 20602, // Boss->self, no cast, single-target
-    _Weaponskill_ManeuverBeamCannons = 20595, // Boss->self, 12.0s cast, single-target
-    _Weaponskill_BeamCannons = 20597, // Helper->self, no cast, range 40 ?-degree cone
-    _Weaponskill_BeamCannons1 = 20598, // Helper->self, no cast, range 40 ?-degree cone
-    _Weaponskill_BeamCannons2 = 20596, // Helper->self, no cast, range 40 ?-degree cone
-    _Weaponskill_ManeuverColliderCannons = 20604, // Boss->self, 7.5s cast, single-target
-    _Weaponskill_ColliderCannons = 20606, // Helper->self, no cast, range 40 ?-degree cone
-    _Weaponskill_FiringOrderSurfaceLaser = 20622, // Boss->self, 3.0s cast, single-target
-    _Ability_AerialSupportSwoop = 20690, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_SurfaceLaser = 20625, // Helper->location, no cast, single-target
-    _Weaponskill_SurfaceLaser1 = 20626, // Helper->location, no cast, range 4 circle
-    _Weaponskill_FlightPath = 20620, // 2ECB->self, 3.0s cast, range 60 width 10 rect
-    _Weaponskill_ManeuverRefractionCannons = 20608, // Boss->self, 6.0s cast, single-target
-    _Weaponskill_RefractionCannons = 20609, // Helper->self, no cast, range 40 ?-degree cone
-    _Ability_1 = 20601, // Boss->self, no cast, single-target
-    _Weaponskill_ManeuverDiffusionCannon = 20633, // Boss->self, 6.0s cast, range 60 circle
-    _Ability_AerialSupportBombardment = 20691, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_FiringOrderHighPoweredLaser = 20623, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_HighPoweredLaser = 20627, // Helper->players, no cast, range 6 circle
-    _Ability_2 = 21426, // Helper->self, no cast, single-target
-    _Ability_LifesLastSong = 21427, // Helper->self, 7.5s cast, range 30 ?-degree cone
-    _Ability_3 = 20599, // Boss->self, no cast, single-target
-    _Weaponskill_ManeuverSaturationBombing = 20631, // 2ECB->self, 25.0s cast, range 60 circle
+    AutoAttack = 20924, // Helper->player, no cast, single-target
+    FiringOrderAntiPersonnelLaser = 20621, // Boss->self, 3.0s cast, single-target
+    AntiPersonnelLaser = 20624, // Helper->player, no cast, range 3 circle
+    ManeuverBeamCannons = 20595, // Boss->self, 12.0s cast, single-target
+
+    // the order for these might be wrong but we don't directly use them anyway
+    BeamCannonsSmall = 20596, // Helper->self, no cast, range 40 30-degree cone
+    BeamCannonsMedium = 20597, // Helper->self, no cast, range 40 60-degree cone
+    BeamCannonsLarge = 20598, // Helper->self, no cast, range 40 90-degree cone
+
+    ManeuverColliderCannons = 20604, // Boss->self, 7.5s cast, single-target
+    ColliderCannons = 20606, // Helper->self, no cast, range 40 30-degree cone
+    FiringOrderSurfaceLaser = 20622, // Boss->self, 3.0s cast, single-target
+    AerialSupportSwoop = 20690, // Boss->self, 3.0s cast, single-target
+    SurfaceLaser = 20625, // Helper->location, no cast, single-target
+    SurfaceLaser1 = 20626, // Helper->location, no cast, range 4 circle
+    FlightPath = 20620, // FlightUnit->self, 3.0s cast, range 60 width 10 rect
+    ManeuverRefractionCannons = 20608, // Boss->self, 6.0s cast, single-target
+    RefractionCannons = 20609, // Helper->self, no cast, range 40 36-degree cone
+    ManeuverDiffusionCannon = 20633, // Boss->self, 6.0s cast, range 60 circle
+    AerialSupportBombardment = 20691, // Boss->self, 3.0s cast, single-target
+    FiringOrderHighPoweredLaser = 20623, // Boss->self, 3.0s cast, single-target
+    HighPoweredLaser = 20627, // Helper->players, no cast, range 6 circle
+    LifesLastSong = 21427, // Helper->self, 7.5s cast, range 30 100-degree cone
+    ManeuverSaturationBombing = 20631, // FlightUnit->self, 25.0s cast, range 60 circle
+
+    //_Ability_ = 20602, // Boss->self, no cast, single-target
+    //_Ability_1 = 20601, // Boss->self, no cast, single-target
+    //_Ability_2 = 21426, // Helper->self, no cast, single-target
+    //_Ability_3 = 20599, // Boss->self, no cast, single-target
 }
 
 public enum IconID : uint
@@ -44,9 +48,9 @@ public enum IconID : uint
     Stack = 62, // player->self
 }
 
-class AntiPersonnelLaser(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(3), (uint)IconID.Tankbuster, AID._Weaponskill_AntiPersonnelLaser, 4.1f, centerAtTarget: true);
+class AntiPersonnelLaser(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(3), (uint)IconID.Tankbuster, AID.AntiPersonnelLaser, 4.1f, centerAtTarget: true);
 
-class BeamCannons(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_ManeuverBeamCannons)
+class BeamCannons(BossModule module) : Components.GenericAOEs(module, AID.ManeuverBeamCannons)
 {
     private DateTime _activation;
 
@@ -71,7 +75,7 @@ class BeamCannons(BossModule module) : Components.GenericAOEs(module, AID._Weapo
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_BeamCannons or AID._Weaponskill_BeamCannons1 or AID._Weaponskill_BeamCannons2)
+        if ((AID)spell.Action.ID is AID.BeamCannonsMedium or AID.BeamCannonsLarge or AID.BeamCannonsSmall)
         {
             NumCasts++;
             _activation = default;
@@ -79,7 +83,7 @@ class BeamCannons(BossModule module) : Components.GenericAOEs(module, AID._Weapo
     }
 }
 
-class ColliderCannons(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_ManeuverColliderCannons)
+class ColliderCannons(BossModule module) : Components.GenericAOEs(module, AID.ManeuverColliderCannons)
 {
     private DateTime _activation;
 
@@ -101,7 +105,7 @@ class ColliderCannons(BossModule module) : Components.GenericAOEs(module, AID._W
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_ColliderCannons)
+        if ((AID)spell.Action.ID == AID.ColliderCannons)
         {
             NumCasts++;
             _activation = default;
@@ -109,7 +113,7 @@ class ColliderCannons(BossModule module) : Components.GenericAOEs(module, AID._W
     }
 }
 
-class SurfaceLaserBait(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.SurfaceLaser, AID._Weaponskill_SurfaceLaser, 4, 5.1f)
+class SurfaceLaserBait(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.SurfaceLaser, AID.SurfaceLaser, 4, 5.1f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -118,7 +122,7 @@ class SurfaceLaserBait(BossModule module) : Components.SpreadFromIcon(module, (u
     }
 }
 
-class SurfaceLaserRepeat(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_SurfaceLaser1)
+class SurfaceLaserRepeat(BossModule module) : Components.GenericAOEs(module, AID.SurfaceLaser1)
 {
     private readonly List<(WPos position, int casts)> _lasers = [];
 
@@ -126,7 +130,7 @@ class SurfaceLaserRepeat(BossModule module) : Components.GenericAOEs(module, AID
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_SurfaceLaser)
+        if ((AID)spell.Action.ID == AID.SurfaceLaser)
             _lasers.Add((spell.TargetXZ, 1));
 
         if (spell.Action == WatchedAction)
@@ -143,7 +147,7 @@ class SurfaceLaserRepeat(BossModule module) : Components.GenericAOEs(module, AID
     }
 }
 
-class RefractionCannons(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_ManeuverRefractionCannons)
+class RefractionCannons(BossModule module) : Components.GenericAOEs(module, AID.ManeuverRefractionCannons)
 {
     private DateTime _activation;
 
@@ -165,7 +169,7 @@ class RefractionCannons(BossModule module) : Components.GenericAOEs(module, AID.
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_RefractionCannons)
+        if ((AID)spell.Action.ID == AID.RefractionCannons)
         {
             NumCasts++;
             _activation = default;
@@ -173,12 +177,12 @@ class RefractionCannons(BossModule module) : Components.GenericAOEs(module, AID.
     }
 }
 
-class FlightPath(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_FlightPath, new AOEShapeRect(60, 5));
-class DiffusionCannon(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_ManeuverDiffusionCannon);
-class HighPoweredLaser(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID._Weaponskill_HighPoweredLaser, 6, 5);
-class FlightUnit(BossModule module) : Components.Adds(module, (uint)OID._Gen_FlightUnit, 1);
-class LifesLastSong(BossModule module) : Components.StandardAOEs(module, AID._Ability_LifesLastSong, new AOEShapeCone(30, 50.Degrees()));
-class SaturationBombing(BossModule module) : Components.CastHint(module, AID._Weaponskill_ManeuverSaturationBombing, "Kill adds!", true);
+class FlightPath(BossModule module) : Components.StandardAOEs(module, AID.FlightPath, new AOEShapeRect(60, 5));
+class DiffusionCannon(BossModule module) : Components.RaidwideCast(module, AID.ManeuverDiffusionCannon);
+class HighPoweredLaser(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.HighPoweredLaser, 6, 5);
+class FlightUnit(BossModule module) : Components.Adds(module, (uint)OID.FlightUnit, 1);
+class LifesLastSong(BossModule module) : Components.StandardAOEs(module, AID.LifesLastSong, new AOEShapeCone(30, 50.Degrees()));
+class SaturationBombing(BossModule module) : Components.CastHint(module, AID.ManeuverSaturationBombing, "Kill adds!", true);
 
 class A21AegisUnitStates : StateMachineBuilder
 {

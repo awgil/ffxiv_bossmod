@@ -1,13 +1,13 @@
 ﻿namespace BossMod.Shadowbringers.Alliance.A25Compound2P;
 
-class R011Laser(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_R011Laser1)
+class R011Laser(BossModule module) : Components.GenericAOEs(module, AID.R011LaserAOE)
 {
     private readonly List<Actor> _casters = [];
     private readonly List<(Actor from, Actor to)> _tethers = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_R011Laser)
+        if ((AID)spell.Action.ID == AID.R011LaserCast)
             _casters.Add(caster);
 
         if (spell.Action == WatchedAction)
@@ -37,4 +37,4 @@ class R011Laser(BossModule module) : Components.GenericAOEs(module, AID._Weapons
     }
 }
 
-class R011LaserAOE(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_R011Laser1, new AOEShapeRect(70, 7.5f));
+class R011LaserAOE(BossModule module) : Components.StandardAOEs(module, AID.R011LaserAOE, new AOEShapeRect(70, 7.5f));

@@ -28,23 +28,23 @@ class ShieldProtocol(BossModule module) : Components.GenericInvincible(module, "
     {
         switch ((SID)status.ID)
         {
-            case SID._Gen_ShieldProtocolA:
+            case SID.ShieldProtocolA:
                 SetPlayer(actor, Protocol.A);
                 break;
-            case SID._Gen_ShieldProtocolB:
+            case SID.ShieldProtocolB:
                 SetPlayer(actor, Protocol.B);
                 break;
-            case SID._Gen_ShieldProtocolC:
+            case SID.ShieldProtocolC:
                 SetPlayer(actor, Protocol.C);
                 break;
 
-            case SID._Gen_ProcessOfEliminationA:
+            case SID.ProcessOfEliminationA:
                 _bosses[0] = actor;
                 break;
-            case SID._Gen_ProcessOfEliminationB:
+            case SID.ProcessOfEliminationB:
                 _bosses[1] = actor;
                 break;
-            case SID._Gen_ProcessOfEliminationC:
+            case SID.ProcessOfEliminationC:
                 _bosses[2] = actor;
                 break;
         }
@@ -54,19 +54,19 @@ class ShieldProtocol(BossModule module) : Components.GenericInvincible(module, "
     {
         switch ((SID)status.ID)
         {
-            case SID._Gen_ShieldProtocolA:
-            case SID._Gen_ShieldProtocolB:
-            case SID._Gen_ShieldProtocolC:
+            case SID.ShieldProtocolA:
+            case SID.ShieldProtocolB:
+            case SID.ShieldProtocolC:
                 SetPlayer(actor, Protocol.None);
                 break;
 
-            case SID._Gen_ProcessOfEliminationA:
+            case SID.ProcessOfEliminationA:
                 _bosses[0] = null;
                 break;
-            case SID._Gen_ProcessOfEliminationB:
+            case SID.ProcessOfEliminationB:
                 _bosses[1] = null;
                 break;
-            case SID._Gen_ProcessOfEliminationC:
+            case SID.ProcessOfEliminationC:
                 _bosses[2] = null;
                 break;
         }

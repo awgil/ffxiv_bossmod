@@ -25,7 +25,7 @@ class EnergyCompression1(BossModule module) : Components.GenericTowers(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Explosion or AID._Weaponskill_BigExplosion)
+        if ((AID)spell.Action.ID is AID.Explosion or AID.BigExplosion)
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
     }
 

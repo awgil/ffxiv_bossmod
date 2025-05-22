@@ -2,17 +2,17 @@
 
 class FourPartsResolve(BossModule module) : Components.GenericBaitAway(module)
 {
-    private int progress = 0;
+    private int progress;
     private readonly Actor?[] _targets = new Actor?[4];
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var index = (IconID)iconID switch
         {
-            IconID._Gen_Icon_m0361trg_a1t => 0,
-            IconID._Gen_Icon_m0361trg_a2t => 1,
-            IconID._Gen_Icon_m0361trg_a3t => 2,
-            IconID._Gen_Icon_m0361trg_a4t => 3,
+            IconID.Order1 => 0,
+            IconID.Order2 => 1,
+            IconID.Order3 => 2,
+            IconID.Order4 => 3,
             _ => -1
         };
         if (index >= 0)
@@ -24,7 +24,7 @@ class FourPartsResolve(BossModule module) : Components.GenericBaitAway(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_FourPartsResolve1 or AID._Weaponskill_FourPartsResolve2)
+        if ((AID)spell.Action.ID is AID.FourPartsResolveJump or AID.FourPartsResolveRect)
         {
             progress++;
             if (CurrentBaits.Count > 0)
