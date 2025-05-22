@@ -2,27 +2,24 @@
 
 public sealed class AutoFarm(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { General, Fate, Specific, Mount }
+    public enum Track { General, Specific }
     public enum GeneralStrategy { FightBack, AllowPull, Aggressive, Passive }
-    public enum PriorityStrategy { None, Prioritize }
+    public enum TargetingStrategy { None, Fate, All }
 
     public static RotationModuleDefinition Definition()
     {
         RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel, CanUseWhileRoleplaying: true);
 
         res.Define(Track.General).As<GeneralStrategy>("General")
-            .AddOption(GeneralStrategy.FightBack, "FightBack", "Automatically engage any mobs that are in combat with player, but don't pull new mobs", supportedTargets: ActionTargets.Hostile)
-            .AddOption(GeneralStrategy.AllowPull, "AllowPull", "Automatically engage any mobs that are in combat with player; if player is not in combat, pull new mobs", supportedTargets: ActionTargets.Hostile)
-            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Aggressively pull all mobs that are not yet in combat", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.FightBack, "FightBack", "Automatically engage eligible mobs that are in combat with player, but don't pull new mobs", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.AllowPull, "AllowPull", "Automatically engage eligible mobs that are in combat with player; if player is not in combat, pull new mobs", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Aggressively pull eligible mobs that are not yet in combat", supportedTargets: ActionTargets.Hostile)
             .AddOption(GeneralStrategy.Passive, "Passive", "Do nothing");
 
-        res.Define(Track.Fate).As<PriorityStrategy>("FATE")
-            .AddOption(PriorityStrategy.None, "None", "Do not do anything about fate mobs")
-            .AddOption(PriorityStrategy.Prioritize, "Prioritize", "Prioritize mobs in active fate");
-
-        res.Define(Track.Specific).As<PriorityStrategy>("Specific")
-            .AddOption(PriorityStrategy.None, "None", "Do not do anything special")
-            .AddOption(PriorityStrategy.Prioritize, "Prioritize", "Prioritize specific mobs by targeting criterion");
+        res.Define(Track.Specific).As<TargetingStrategy>("Target")
+            .AddOption(TargetingStrategy.None, "None", "Don't prioritize any mobs")
+            .AddOption(TargetingStrategy.Fate, "FATE", "Prioritize mobs in active fate")
+            .AddOption(TargetingStrategy.All, "All", "Prioritize ALL targetable mobs");
 
         return res;
     }
@@ -55,22 +52,26 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
             }
         }
 
+        var (allowFate, allowAll) = strategy.Option(Track.Specific).As<TargetingStrategy>() switch
+        {
+            TargetingStrategy.All => (true, true),
+            TargetingStrategy.Fate => (true, false),
+            _ => (false, false)
+        };
+
         // first deal with pulling new enemies
         if (allowPulling)
         {
-            var allowFate = Utils.IsPlayerSyncedToFate(World) && strategy.Option(Track.Fate).As<PriorityStrategy>() == PriorityStrategy.Prioritize;
-            if (allowFate)
+            if (allowFate && Utils.IsPlayerSyncedToFate(World))
                 foreach (var e in Hints.PotentialTargets.Where(t => t.Actor.FateID == World.Client.ActiveFate.ID))
                 {
                     var isForlorn = e.Actor.NameID is 6737 or 6738;
                     prioritize(e, isForlorn ? 2 : 1);
                 }
 
-            var specific = strategy.Option(Track.Specific);
-            if (specific.As<PriorityStrategy>() == PriorityStrategy.Prioritize && Hints.FindEnemy(ResolveTargetOverride(specific.Value)) is var target && target != null)
-            {
-                prioritize(target, 2);
-            }
+            if (allowAll)
+                foreach (var h in Hints.PotentialTargets)
+                    prioritize(h, 1);
         }
 
         // we are done with priority changes
