@@ -235,7 +235,7 @@ class ReignInout(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ReignsEnd(BossModule module) : Components.GenericBaitAway(module, AID.ReignsEnd)
+class ReignsEnd(BossModule module) : Components.GenericBaitAway(module, AID.ReignsEnd, damageType: AIHints.PredictedDamageType.Tankbuster)
 {
     public override void Update()
     {
@@ -308,7 +308,7 @@ class SovereignScar : Components.CastCounter
         if (Source != null)
         {
             foreach (var h in Raid.WithoutSlot().Where(x => x.Role == Role.Healer))
-                hints.PredictedDamage.Add((Raid.WithSlot().InShape(Shape, Source.Position, Source.AngleTo(h)).Mask(), Activation));
+                hints.AddPredictedDamage(Raid.WithSlot().InShape(Shape, Source.Position, Source.AngleTo(h)).Mask(), Activation);
         }
     }
 

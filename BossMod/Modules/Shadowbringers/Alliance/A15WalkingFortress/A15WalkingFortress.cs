@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Shadowbringers.Alliance.A15WalkingFortress;
+﻿namespace BossMod.Shadowbringers.Alliance.A15WalkingFortress;
 
 public enum OID : uint
 {

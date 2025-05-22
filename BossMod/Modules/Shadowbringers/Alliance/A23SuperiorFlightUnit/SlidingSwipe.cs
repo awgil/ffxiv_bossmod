@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Shadowbringers.Alliance.A23SuperiorFlightUnit;
+﻿namespace BossMod.Shadowbringers.Alliance.A23SuperiorFlightUnit;
 
 class SlidingSwipe(BossModule module) : Components.GenericAOEs(module)
 {

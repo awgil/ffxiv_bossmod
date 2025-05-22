@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Shadowbringers.Alliance.A25Compound2P;
+﻿namespace BossMod.Shadowbringers.Alliance.A25Compound2P;
 
 class R011Laser(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_R011Laser1)
 {

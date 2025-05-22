@@ -57,7 +57,7 @@ class HighPoweredLaser(BossModule module) : Components.CastCounter(module, AID._
             hints.AddForbiddenZone(p => rects.Count(f => f(p)) != 1, _stacks[0].Activation);
         }
 
-        hints.PredictedDamage.Add((Raid.WithSlot().Where(p => _stacks.Any(s => s.Check(p.Item2))).Mask(), _stacks[0].Activation));
+        hints.AddPredictedDamage(Raid.WithSlot().Where(p => _stacks.Any(s => s.Check(p.Item2))).Mask(), _stacks[0].Activation);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => _stacks.Any(s => s.Target == player) ? PlayerPriority.Interesting : PlayerPriority.Normal;

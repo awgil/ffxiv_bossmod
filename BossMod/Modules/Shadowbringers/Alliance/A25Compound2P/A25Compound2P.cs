@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Shadowbringers.Alliance.A25Compound2P;
+﻿namespace BossMod.Shadowbringers.Alliance.A25Compound2P;
 
 public enum OID : uint
 {

@@ -14,23 +14,12 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
 
     internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PriorityTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
 
-    internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => World.Party.WithSlot(excludeAlliance: true).IncludedInMask(d.players).Count() >= 2).Select(t => t.activation);
-    internal IEnumerable<(Actor, DateTime)> Tankbusters
-    {
-        get
-        {
-            foreach (var d in Hints.PredictedDamage)
-            {
-                var targets = World.Party.WithSlot(excludeAlliance: true).IncludedInMask(d.players).GetEnumerator();
-                targets.MoveNext();
-                var target1 = targets.Current;
-                if (targets.MoveNext())
-                    continue;
-
-                yield return (target1.Item2, d.activation);
-            }
-        }
-    }
+    internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => d.Type is AIHints.PredictedDamageType.Raidwide or AIHints.PredictedDamageType.Shared).Select(d => d.Activation);
+    internal IEnumerable<(Actor, DateTime)> Tankbusters => Hints.PredictedDamage
+        .Where(p => p.Type == AIHints.PredictedDamageType.Tankbuster)
+        .SelectMany(d => World.Party.WithSlot()
+            .IncludedInMask(d.Players)
+            .Select(player => (player.Item2, d.Activation)));
 }
 
 public enum AbilityUse

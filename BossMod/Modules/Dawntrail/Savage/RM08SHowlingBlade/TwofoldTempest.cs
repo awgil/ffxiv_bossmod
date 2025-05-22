@@ -163,7 +163,7 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
         }
         else
         {
-            hints.PredictedDamage.Add((Raid.WithSlot().OnPlatform(NextBait).Mask(), _nextActivation));
+            hints.AddPredictedDamage(Raid.WithSlot().OnPlatform(NextBait).Mask(), _nextActivation);
         }
     }
 }

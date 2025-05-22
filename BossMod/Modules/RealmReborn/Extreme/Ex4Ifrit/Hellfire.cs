@@ -6,7 +6,7 @@ class Hellfire(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _expectedRaidwide));
+        hints.AddPredictedDamage(Raid.WithSlot().Mask(), _expectedRaidwide);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
