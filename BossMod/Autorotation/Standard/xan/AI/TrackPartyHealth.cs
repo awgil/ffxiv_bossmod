@@ -167,7 +167,8 @@ public class TrackPartyHealth(WorldState World)
             }
 
             var actor = World.Party[i];
-            _haveRealPartyMembers |= actor?.Type == ActorType.Player;
+            if (i > 0)
+                _haveRealPartyMembers |= actor?.Type == ActorType.Player;
 
             if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || actor.FateID > 0 || shouldSkip)
             {
