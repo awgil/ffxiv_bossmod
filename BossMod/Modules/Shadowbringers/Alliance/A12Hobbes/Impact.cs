@@ -78,14 +78,6 @@ class ConvenientSelfDestruction(BossModule module) : Components.BaitAwayTethers(
                 return;
             }
         }
-        else
-        {
-            if (ActiveBaitsOn(actor).Any())
-                // do nothing, wait for tank to pick it up
-                return;
-        }
-
-        base.AddAIHints(slot, actor, assignment, hints);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

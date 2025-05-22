@@ -1,4 +1,5 @@
-﻿namespace BossMod.Shadowbringers.Alliance.A15WalkingFortress;
+﻿
+namespace BossMod.Shadowbringers.Alliance.A15WalkingFortress;
 
 public enum OID : uint
 {
@@ -48,7 +49,7 @@ public enum AID : uint
     BallisticImpactFloor = 18660, // Helper->self, no cast, range 15 width 15 rect
 
     EngageGoliathTankSupport = 18661, // Boss->self, 3.0s cast, single-target
-    LaserTurretAutoattack = 18662, // GoliathTank->self, no cast, range 85 width 10 rect
+    LaserTurretTank = 18662, // GoliathTank->self, no cast, range 85 width 10 rect
     HackGoliathTank = 18663, // Boss->GoliathTank, 10.0s cast, single-target
     ConvenientSelfDestructionLOS = 18664, // GoliathTank->self, 10.0s cast, range 85 circle
     ConvenientSelfDestruction = 18665, // GoliathTank->self, 8.0s cast, range 22 circle
@@ -100,9 +101,34 @@ class MarxImpact(BossModule module) : Components.StandardAOEs(module, AID.MarxIm
 class Neutralization(BossModule module) : Components.SingleTargetCast(module, AID.Neutralization);
 class BossInvincible(BossModule module) : Components.InvincibleStatus(module, (uint)SID.Invincibility);
 class GoliathTank(BossModule module) : Components.Adds(module, (uint)OID.GoliathTank);
-class GoliathTankLaserTurret(BossModule module) : Components.Cleave(module, AID.LaserTurretAutoattack, new AOEShapeRect(85, 5), 0x2C77);
-class LaserTurretDebug(BossModule module) : Components.DebugCasts(module, [AID.LaserTurretAutoattack], new AOEShapeRect(85, 5));
-class ConvenientSelfDestruction(BossModule module) : Components.CastLineOfSightAOE(module, AID.ConvenientSelfDestructionLOS, 85, false)
+class GoliathTankLaserTurret(BossModule module) : Components.GenericAOEs(module, AID.LaserTurretTank)
+{
+    private readonly List<(Actor caster, Angle direction, DateTime activation)> _predicted = [];
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.TurretLockon && Module.Enemies(OID.GoliathTank).Closest(actor.Position) is { } tank)
+            _predicted.Add((tank, tank.AngleTo(actor), WorldState.FutureTime(3.3f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            _predicted.RemoveAll(p => p.caster == caster);
+        }
+    }
+
+    public override void Update()
+    {
+        _predicted.RemoveAll(p => !p.caster.IsTargetable);
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => new AOEInstance(new AOEShapeRect(85, 5), p.caster.Position, p.direction, p.activation));
+}
+// actual radius (9.6 units) is too wide
+class ConvenientSelfDestruction(BossModule module) : Components.CastLineOfSightAOE(module, AID.ConvenientSelfDestructionLOS, 85, false, 6)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.GoliathTank).Where(t => t.CastInfo == null);
 }
@@ -117,7 +143,7 @@ class DeployDefenses(BossModule module) : Components.GenericAOEs(module, AID.Tot
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_caster is { } c && _shield is { } s)
-            yield return new AOEInstance(new AOEShapeDonut(4, 80), s.Position, default, Module.CastFinishAt(c.CastInfo));
+            yield return new AOEInstance(new AOEShapeDonut(6, 80), s.Position, default, Module.CastFinishAt(c.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

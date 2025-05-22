@@ -4,9 +4,9 @@ public enum OID : uint
 {
     Boss = 0x2E6A,
     Helper = 0x233C,
-    _Gen_905POperatedHeavyArtilleryUnit = 0x18D6, // R0.500, x9 (spawn during fight)
-    _Gen_Energy = 0x2E6C, // R1.000, x0 (spawn during fight)
-    _Gen_Pod = 0x2E6D, // R0.800, x0 (spawn during fight)
+    TetherHelper = 0x18D6, // R0.500, x9 (spawn during fight)
+    Energy = 0x2E6C, // R1.000, x0 (spawn during fight)
+    Pod = 0x2E6D, // R0.800, x0 (spawn during fight)
     ChemicalBurn = 0x1EB055
 }
 
@@ -120,7 +120,7 @@ class Energy : Components.PersistentVoidzone
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if (actor.OID == (uint)OID._Gen_Energy)
+        if (actor.OID == (uint)OID.Energy)
         {
             if (id == 0x11D2)
                 _balls.Add(actor);

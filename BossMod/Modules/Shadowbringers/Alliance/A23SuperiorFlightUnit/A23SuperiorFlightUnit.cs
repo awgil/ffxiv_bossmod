@@ -13,30 +13,34 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_ = 21423, // Alpha/Chi/Beta->player, no cast, single-target
+    _AutoAttack_ = 21423, // Alpha/Beta/Chi->player, no cast, single-target
     _Weaponskill_ApplyShieldProtocol = 20390, // Alpha->self, 5.0s cast, single-target
     _Weaponskill_ApplyShieldProtocol1 = 20392, // Chi->self, 5.0s cast, single-target
     _Weaponskill_ApplyShieldProtocol2 = 20391, // Beta->self, 5.0s cast, single-target
-    _Weaponskill_ManeuverMissileCommand = 20413, // Alpha/Chi/Beta->self, 4.0s cast, single-target
+    _Weaponskill_ManeuverMissileCommand = 20413, // Alpha/Beta/Chi->self, 4.0s cast, single-target
     _Weaponskill_BarrageImpact = 20414, // Helper->self, no cast, range 50 circle
-    _Weaponskill_ManeuverIncendiaryBombing = 20419, // Alpha/Chi/Beta->self, 5.0s cast, single-target
+    _Weaponskill_ManeuverIncendiaryBombing = 20419, // Alpha/Beta/Chi->self, 5.0s cast, single-target
     _Ability_ = 20406, // Helper->player, no cast, single-target
     _Weaponskill_IncendiaryBombing = 20409, // Helper->location, 5.0s cast, range 8 circle
-    _Weaponskill_ManeuverHighPoweredLaser = 20404, // Alpha/Chi/Beta->self, 5.0s cast, single-target
+    _Weaponskill_ManeuverHighPoweredLaser = 20404, // Alpha/Beta/Chi->self, 5.0s cast, single-target
     _Weaponskill_ManeuverHighPoweredLaser1 = 20405, // Alpha/Beta/Chi->players, no cast, range 80 width 14 rect
-    _Weaponskill_FormationSharpTurn = 20395, // Alpha/Chi/Beta->self, 3.0s cast, single-target
-    _Weaponskill_ = 26807, // Alpha/Chi/Beta->location, no cast, single-target
-    _Weaponskill_SharpTurn = 20394, // Alpha->self, 9.0s cast, single-target
-    _Weaponskill_SharpTurn1 = 21780, // Chi->self, 9.0s cast, single-target
-    _Weaponskill_SharpTurn2 = 21778, // Beta->self, 9.0s cast, single-target
-    _Weaponskill_SharpTurn3 = 20590, // Helper->self, no cast, range 110 width 30 rect
-    _Weaponskill_ManeuverPrecisionGuidedMissile = 20420, // Alpha/Chi/Beta->self, 4.0s cast, single-target
+    _Weaponskill_FormationSharpTurn = 20395, // Alpha/Beta/Chi->self, 3.0s cast, single-target
+    _Weaponskill_ = 26807, // Alpha/Beta/Chi->location, no cast, single-target
+    SharpTurnAlphaRight = 20393,  // Alpha->self, 9.0s cast, single-target
+    SharpTurnAlphaLeft = 20394, // Alpha->self, 9.0s cast, single-target
+    SharpTurnBetaRight = 21777,  // Beta->self, 9.0s cast, single-target
+    SharpTurnBetaLeft = 21778, // Beta->self, 9.0s cast, single-target
+    SharpTurnChiRight = 21779, // Chi->self, 9.0s cast, single target
+    SharpTurnChiLeft = 21780, // Chi->self, 9.0s cast, single-target
+    SharpTurnRight = 20589, // Helper->self, no cast, range 110 width 30 rect
+    SharpTurnLeft = 20590, // Helper->self, no cast, range 110 width 30 rect
+    _Weaponskill_ManeuverPrecisionGuidedMissile = 20420, // Alpha/Beta/Chi->self, 4.0s cast, single-target
     _Weaponskill_PrecisionGuidedMissile = 20421, // Helper->players, 4.0s cast, range 6 circle
-    _Weaponskill_FormationAirRaid = 20400, // Alpha/Chi/Beta->self, 5.0s cast, single-target
+    _Weaponskill_FormationAirRaid = 20400, // Alpha/Beta/Chi->self, 5.0s cast, single-target
     _Weaponskill_StandardSurfaceMissile = 20401, // Helper->location, 5.0s cast, range 10 circle
     _Weaponskill_StandardSurfaceMissile1 = 20402, // Helper->location, 5.0s cast, range 10 circle
-    _Weaponskill_LethalRevolution = 20403, // Alpha/Chi/Beta->self, 5.0s cast, range 15 circle
-    _Weaponskill_FormationSlidingSwipe = 20398, // Alpha/Chi/Beta->self, 5.0s cast, single-target
+    _Weaponskill_LethalRevolution = 20403, // Alpha/Beta/Chi->self, 5.0s cast, range 15 circle
+    _Weaponskill_FormationSlidingSwipe = 20398, // Alpha/Beta/Chi->self, 5.0s cast, single-target
     _Weaponskill_SuperiorMobility = 20412, // Alpha/Beta/Chi->location, no cast, single-target
     _Weaponskill_IncendiaryBarrage = 20399, // Helper->location, 9.0s cast, range 27 circle
     AlphaSlidingSwipeRight = 20396, // Alpha->self, 6.0s cast, single-target
@@ -47,7 +51,7 @@ public enum AID : uint
     ChiSlidingSwipeLeft = 21776, // Chi->self, 6.0s cast, single-target
     SlidingSwipeLeft = 20592, // Helper->self, no cast, range 130 width 30 rect, left hand (all)
     SlidingSwipeRight = 20591, // Helper->self, no cast, range 130 width 30 rect, right hand (all)
-    _Weaponskill_ManeuverAreaBombardment = 20407, // Alpha/Chi/Beta->self, 5.0s cast, single-target
+    _Weaponskill_ManeuverAreaBombardment = 20407, // Alpha/Beta/Chi->self, 5.0s cast, single-target
     _Weaponskill_GuidedMissile = 20408, // Helper->location, 3.0s cast, range 4 circle
     _Weaponskill_SurfaceMissile = 20410, // Helper->location, 3.0s cast, range 6 circle
     _Weaponskill_AntiPersonnelMissile = 20411, // Helper->players, 5.0s cast, range 6 circle
@@ -76,7 +80,7 @@ public enum SID : uint
 public enum TetherID : uint
 {
     _Gen_Tether_chn_earth001f = 7, // player->Alpha/Beta/Chi
-    _Gen_Tether_chn_m0354_0c = 54, // Alpha/Chi/Beta->Beta/Alpha/Chi
+    _Gen_Tether_chn_m0354_0c = 54, // Alpha/Beta/Chi->Beta/Alpha/Chi
 }
 
 public enum IconID : uint
@@ -118,12 +122,41 @@ class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets
 class HighOrderExplosiveBlast(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HighOrderExplosiveBlast, 6);
 class HighOrderExplosiveBlast2(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HighOrderExplosiveBlast1, new AOEShapeCross(20, 2.5f));
 
+class SharpTurn(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<(WPos caster, Angle rotation, DateTime activation)> _casters = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeRect(30, 100), c.caster, c.rotation, c.activation));
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        var angle = (AID)spell.Action.ID switch
+        {
+            AID.SharpTurnAlphaRight or AID.SharpTurnBetaRight or AID.SharpTurnChiRight => -90.Degrees(),
+            AID.SharpTurnAlphaLeft or AID.SharpTurnBetaLeft or AID.SharpTurnChiLeft => 90.Degrees(),
+            _ => default
+        };
+        if (angle != default)
+            _casters.Add((caster.Position, spell.Rotation + angle, Module.CastFinishAt(spell, 1.5f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.SharpTurnRight or AID.SharpTurnLeft)
+        {
+            NumCasts++;
+            _casters.Clear();
+        }
+    }
+}
+
 class A23SuperiorFlightUnitStates : StateMachineBuilder
 {
     public A23SuperiorFlightUnitStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<ShieldProtocol>()
+            .ActivateOnEnter<SharpTurn>()
             .ActivateOnEnter<ManeuverMissileCommand>()
             .ActivateOnEnter<IncendiaryBombingSpread>()
             .ActivateOnEnter<IncendiaryBombing>()

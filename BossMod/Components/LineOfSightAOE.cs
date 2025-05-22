@@ -87,10 +87,12 @@ public abstract class GenericLineOfSightAOE(BossModule module, Enum? aid, float 
 public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
 {
     private readonly List<Actor> _casters = [];
+    public readonly float RadiusOverride;
     public Actor? ActiveCaster => _casters.MinBy(c => c.CastInfo!.RemainingTime);
 
-    protected CastLineOfSightAOE(BossModule module, Enum aid, float maxRange, bool blockersImpassable) : base(module, aid, maxRange, blockersImpassable)
+    protected CastLineOfSightAOE(BossModule module, Enum aid, float maxRange, bool blockersImpassable, float radiusOverride = 0) : base(module, aid, maxRange, blockersImpassable)
     {
+        RadiusOverride = radiusOverride;
         Refresh();
     }
 
@@ -118,6 +120,6 @@ public abstract class CastLineOfSightAOE : GenericLineOfSightAOE
     {
         var caster = ActiveCaster;
         WPos? position = caster != null ? (WorldState.Actors.Find(caster.CastInfo!.TargetID)?.Position ?? caster.CastInfo!.LocXZ) : null;
-        Modify(position, BlockerActors().Select(b => (b.Position, b.HitboxRadius)), Module.CastFinishAt(caster?.CastInfo));
+        Modify(position, BlockerActors().Select(b => (b.Position, RadiusOverride > 0 ? RadiusOverride : b.HitboxRadius)), Module.CastFinishAt(caster?.CastInfo));
     }
 }

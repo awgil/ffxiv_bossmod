@@ -33,6 +33,8 @@ public enum AID : uint
     SidestrikingSpin = 18634, // Boss->self, 6.0s cast, single-target
     SidestrikingSpin1 = 18635, // Helper->self, 6.3s cast, range 30 width 12 rect
     SidestrikingSpin2 = 18636, // Helper->self, 6.3s cast, range 30 width 12 rect
+    CentrifugalSpin = 18632, // Boss->self, 6.0s cast, single-target
+    CentrifugalSpin1 = 18633, // Helper->self, 6.3s cast, range 30 width 8 rect
     SystematicAirstrike = 18617, // Boss->self, 2.5s cast, single-target
     AirToSurfaceAppear = 19250, // Turret1->self, no cast, single-target
     AirToSurfaceEnergy = 18618, // Helper->self, no cast, range 5 circle
@@ -52,6 +54,7 @@ public enum AID : uint
 
 class ForcefulImpact(BossModule module) : Components.RaidwideCast(module, AID.ForcefulImpact);
 class ClangingBlow(BossModule module) : Components.SingleTargetCast(module, AID.ClangingBlow);
+class CentrifugalSpin(BossModule module) : Components.StandardAOEs(module, AID.CentrifugalSpin1, new AOEShapeRect(30, 4));
 class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Shockwave, 15);
 class HighCaliberLaser(BossModule module) : Components.StandardAOEs(module, AID.HighCaliberLaser, new AOEShapeRect(70, 12))
 {
@@ -74,6 +77,12 @@ class EnergyBomb : Components.PersistentVoidzone
     public EnergyBomb(BossModule module) : base(module, 2, _ => [], 8)
     {
         Sources = _ => _balls;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.EnergyBomb)
+            _balls.Remove(caster);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -267,6 +276,7 @@ class A11SerialJointedCommandModelStates : StateMachineBuilder
             .ActivateOnEnter<HighPoweredLaser>()
             .ActivateOnEnter<EnergyBombardment>()
             .ActivateOnEnter<SidestrikingSpin>()
+            .ActivateOnEnter<CentrifugalSpin>()
             .ActivateOnEnter<EnergyAssault>()
             .ActivateOnEnter<AirToSurfaceEnergy>()
             .ActivateOnEnter<EnergyRing>()
