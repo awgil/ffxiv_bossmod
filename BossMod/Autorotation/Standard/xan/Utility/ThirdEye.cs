@@ -16,7 +16,7 @@ public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Auto-ThirdEye", "Third Eye before incoming damage", "Utility (xan)", "xan", RotationModuleQuality.Excellent, BitMask.Build(Class.SAM), 100, 6);
+        var def = new RotationModuleDefinition("Auto-ThirdEye", "Third Eye before incoming damage", "Utility|xan", "xan", RotationModuleQuality.Excellent, BitMask.Build(Class.SAM), 100, 6);
 
         def.Define(Track.ThirdEye).As<ThirdEyeStrategy>("ThirdEye")
             .AddOption(ThirdEyeStrategy.Automatic, "Auto", "Use Third Eye ~3s before predicted damage", 15, 4)

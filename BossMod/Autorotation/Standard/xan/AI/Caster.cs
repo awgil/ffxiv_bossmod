@@ -18,7 +18,7 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Caster AI", "Auto-caster", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.ACN, Class.SMN, Class.RDM), 100);
+        var def = new RotationModuleDefinition("Caster AI", "Auto-caster", "AI|Role", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.ACN, Class.SMN, Class.RDM), 100);
 
         def.Define(Track.Raise).As<RaiseStrategy>("Raise")
             .AddOption(RaiseStrategy.None, "Don't automatically raise")

@@ -15,7 +15,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SCH", "Scholar", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SCH), 100);
+        var def = new RotationModuleDefinition("xan SCH", "Scholar", "Standard Rotations|xan|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SCH), 100);
 
         def.DefineShared().AddAssociatedActions(AID.ChainStratagem, AID.Dissipation);
 

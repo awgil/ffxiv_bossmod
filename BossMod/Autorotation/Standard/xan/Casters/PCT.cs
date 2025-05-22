@@ -11,7 +11,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan PCT", "Pictomancer", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PCT), 100);
+        var def = new RotationModuleDefinition("xan PCT", "Pictomancer", "Standard Rotations|xan|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PCT), 100);
 
         def.DefineShared().AddAssociatedActions(AID.StarryMuse);
 

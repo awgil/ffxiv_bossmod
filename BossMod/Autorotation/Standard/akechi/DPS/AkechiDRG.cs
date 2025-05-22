@@ -23,7 +23,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi DRG", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Excellent, BitMask.Build(Class.LNC, Class.DRG), 100);
+        var res = new RotationModuleDefinition("Akechi DRG", "Standard Rotation Module", "Standard Rotations|Akechi|DPS", "Akechi", RotationModuleQuality.Excellent, BitMask.Build(Class.LNC, Class.DRG), 100);
 
         res.DefineAOE().AddAssociatedActions(
             AID.TrueThrust, AID.RaidenThrust, AID.DoomSpike, AID.DraconianFury,

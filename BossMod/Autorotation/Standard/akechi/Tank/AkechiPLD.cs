@@ -23,7 +23,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     #region Module Definitions
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
+        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard Rotations|Akechi|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 200)
             .AddOption(AOEStrategy.AutoFinish, "Auto (Finish Combo)", "Auto-selects best rotation dependant on targets; finishes combo if possible", supportedTargets: ActionTargets.Hostile)

@@ -8,7 +8,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
+        var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "AI|Role", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
 
         def.AbilityTrack(Track.Stance, "Stance");
         def.AbilityTrack(Track.Ranged, "Ranged GCD");
