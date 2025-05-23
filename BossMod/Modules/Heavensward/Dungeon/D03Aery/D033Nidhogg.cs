@@ -34,7 +34,7 @@ public enum AID : uint
 }
 
 class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, AID.DeafeningBellow);
-class HotTail(BossModule module) : Components.StandardAOEs(module, AID.HotTail, new AOEShapeRect(68, 8));
+class HotTail(BossModule module) : Components.StandardAOEs(module, AID.HotTail, new AOEShapeRect(68, 8, 68));
 class HotWing(BossModule module) : Components.StandardAOEs(module, AID.HotWing, new AOEShapeRect(30, 34));
 class Cauterize(BossModule module) : Components.StandardAOEs(module, AID.Cauterize, new AOEShapeRect(80, 11));
 class HorridRoar(BossModule module) : Components.SpreadFromCastTargets(module, AID.HorridRoar, 6);
