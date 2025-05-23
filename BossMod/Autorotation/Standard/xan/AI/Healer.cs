@@ -8,7 +8,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 {
     private readonly TrackPartyHealth Health = new(manager.WorldState);
 
-    public enum Track { Raise, RaiseTarget, Heal, Esuna, StayNearParty }
+    public enum Track { Raise, RaiseTarget, Heal, Esuna, StayNearParty, OutOfCombat }
     public enum RaiseStrategy
     {
         None,
@@ -42,7 +42,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             .AddOption(RaiseStrategy.Slowcast, "Raise without requiring Swiftcast to be available")
             .AddOption(RaiseStrategy.Hardcast, "Never use Swiftcast to raise");
 
-        def.Define(Track.RaiseTarget).As<RaiseTarget>("RaiseTargets")
+        def.Define(Track.RaiseTarget).As<RaiseTarget>("RaiseTargets", "Raise targets")
             .AddOption(RaiseTarget.Party, "Party members")
             .AddOption(RaiseTarget.Alliance, "Alliance raid members")
             .AddOption(RaiseTarget.Everyone, "Any dead player");
@@ -56,6 +56,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             .AddAssociatedActions(ClassShared.AID.Esuna);
 
         def.AbilityTrack(Track.StayNearParty, "Stay near party");
+        def.AbilityTrack(Track.OutOfCombat, "OutOfCombat", "Allow generic out-of-combat predictive heals on tank (Excogitation, Divine Benison, etc)");
 
         return def;
     }
@@ -343,6 +344,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     private void AutoSCH(StrategyValues strategy, Actor? primaryTarget)
     {
+        var useOutOfCombat = strategy.Enabled(Track.OutOfCombat);
+
         void UseSoil(Vector3? location = null)
         {
             if (World.Client.GetGauge<ScholarGauge>().Aetherflow == 0)
@@ -404,7 +407,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         RunForTank((tank, tankState) =>
         {
-            if (!Player.InCombat && (World.CurrentTime - tankState.LastCombat).TotalSeconds > 1)
+            if (!Player.InCombat && (World.CurrentTime - tankState.LastCombat).TotalSeconds > 1 && useOutOfCombat)
             {
                 if (NextChargeIn(BossMod.SCH.AID.Excogitation) == 0)
                     UseOGCD(BossMod.SCH.AID.Recitation, Player, 5);
@@ -416,12 +419,35 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         });
 
         foreach (var rw in Raidwides)
-            if ((rw - World.CurrentTime).TotalSeconds < 5)
+            if ((rw - World.CurrentTime).TotalSeconds < 5 && NextChargeIn(BossMod.SCH.AID.SacredSoil) == 0)
+                UseSoil(GetBestPartyCoverage(15));
+    }
+
+    // O(n³) :3
+    private Vector3 GetBestPartyCoverage(float radius)
+    {
+        var allies = LightParty.Select(p => p.Position).ToList();
+        if (allies.Count < 2)
+            return Player.PosRot.XYZ();
+
+        var rsq = radius * radius;
+        var bestCount = 0;
+        var bestCenter = allies[0];
+        for (var i = 0; i < allies.Count; i++)
+        {
+            for (var j = i; j < allies.Count; j++)
             {
-                var allies = LightParty.ToList();
-                var centroid = allies.Aggregate(allies[0].PosRot.XYZ(), (pos, actor) => (pos + actor.PosRot.XYZ()) / 2f);
-                UseSoil(centroid);
+                var center = WPos.Lerp(allies[i], allies[j], 0.5f);
+                var thisCount = allies.Count(pos => (pos - center).LengthSq() <= rsq);
+                if (thisCount > bestCount)
+                {
+                    bestCount = thisCount;
+                    bestCenter = center;
+                }
             }
+        }
+
+        return new Vector3(bestCenter.X, Player.PosRot.Y, bestCenter.Z);
     }
 
     private void AutoSGE(StrategyValues strategy, Actor? primaryTarget)

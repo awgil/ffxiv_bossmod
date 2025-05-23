@@ -1,6 +1,5 @@
-using System.Data;
-
 namespace BossMod.Shadowbringers.Dungeon.D11HeroesGauntlet.D113SpectralBerserker;
+
 public enum OID : uint
 {
     Boss = 0x2EFD, // R3.000, x? 
