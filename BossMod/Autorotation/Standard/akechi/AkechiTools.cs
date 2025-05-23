@@ -372,7 +372,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool OGCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 2.0f;
 
-    protected bool IsReady(AID aid) => Unlocked(aid) && (CDRemaining(aid) < GCD || CDRemaining(aid) <= 0.2f);
+    protected bool IsReady(AID aid) => Unlocked(aid) && CDRemaining(aid) < 0.5f;
 
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
@@ -794,52 +794,59 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks time remaining on party-wide <b>Raid Buffs</b>.</summary>
     protected float RaidBuffsLeft { get; private set; }
 
-    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE or Class.DRK;
-
     private new (float Left, float In) EstimateRaidBuffTimings(Actor? target)
     {
         if (Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel && IsSelfish(Player.Class))
             return (float.MaxValue, 0);
 
+        //dummy shit
         if (target?.IsStrikingDummy == true)
         {
-            var cycleTime = CombatTimer - 7.8f;
-            if (cycleTime < 0)
+            var cycle = CombatTimer - 7.8f;
+            if (cycle < 0)
                 return (0, 7.8f - CombatTimer);
 
-            cycleTime %= 120;
-            return cycleTime < 20 ? (20 - cycleTime, 0) : (0, 120 - cycleTime);
+            cycle %= 120;
+            return cycle < 20 ? (20 - cycle, 0) : (0, 120 - cycle);
         }
 
         var buffsIn = Bossmods.RaidCooldowns.NextDamageBuffIn2();
-        if (buffsIn == null)
-        {
-            if (CombatTimer < 7.8f && World.Party.WithoutSlot(includeDead: true, excludeAlliance: true, excludeNPCs: true).Skip(1).Any(HavePartyBuff))
-                buffsIn = 7.8f - CombatTimer;
-            else
-                buffsIn = float.MaxValue;
-        }
-
+        buffsIn ??= CombatTimer < 7.8f && World.Party.WithoutSlot(includeDead: true, excludeAlliance: true, excludeNPCs: true).Skip(1).Any(PartyBuffCheck) ? 7.8f - CombatTimer : float.MaxValue;
         return (Bossmods.RaidCooldowns.DamageBuffLeft(Player, target), buffsIn.Value);
     }
-
-    private bool HavePartyBuff(Actor player) => player.Class switch
+    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE or Class.DRK;
+    private bool PartyBuffCheck(Actor player) => player.Class switch
     {
         Class.MNK => player.Level >= 70, // brotherhood
         Class.DRG => player.Level >= 52, // battle litany
         Class.NIN => player.Level >= 45, // mug/dokumori - level check is for suiton/huton, which grant Shadow Walker
         Class.RPR => player.Level >= 72, // arcane circle
-
         Class.SMN => player.Level >= 66, // searing light
         Class.RDM => player.Level >= 58, // embolden
         Class.PCT => player.Level >= 70, // starry muse
-
         Class.BRD => player.Level >= 50, // battle voice - not counting songs since they are permanent kinda
         Class.DNC => player.Level >= 70, // tech finish
-
         Class.SCH => player.Level >= 66, // chain
         Class.AST => player.Level >= 50, // divination
+        _ => false
+    };
 
+    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
+    protected bool ShouldUseGCD(bool ready, GCDStrategy strategy, Actor? target, Func<bool>? condition = null) => ready && strategy switch
+    {
+        GCDStrategy.Automatic => condition?.Invoke() ?? true,
+        GCDStrategy.Force => true,
+        _ => false
+    };
+
+    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
+    protected bool ShouldUseOGCD(bool ready, OGCDStrategy strategy, Actor? target, Func<bool>? condition = null) => ready && strategy switch
+    {
+        OGCDStrategy.Automatic => condition?.Invoke() ?? true,
+        OGCDStrategy.Force => true,
+        OGCDStrategy.AnyWeave => CanWeaveIn,
+        OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => CanLateWeaveIn,
         _ => false
     };
 

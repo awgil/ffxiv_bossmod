@@ -182,9 +182,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var speed = slow || fast;
         var lv1to89 = speed && Ammo >= 1;
         var lv90plus = speed && ((InOddWindow(AID.Bloodfest) && Ammo >= 2) || (!InOddWindow(AID.Bloodfest) && Ammo < 3));
-        var open = ((fast && CombatTimer < 30 && ComboLastMove is AID.BrutalShell) ||
-                   (slow && CombatTimer < 30 && ComboLastMove is AID.KeenEdge) ||
-                   CombatTimer >= 30);
+        var open = (fast && CombatTimer < 30 && ComboLastMove is AID.BrutalShell) || (slow && CombatTimer < 30 && ComboLastMove is AID.KeenEdge) || CombatTimer >= 30;
         var burst = speed && Ammo >= 2 && (((Unlocked(AID.DoubleDown) && CDRemaining(AID.DoubleDown) <= 3) || !Unlocked(AID.DoubleDown)) && ((Unlocked(AID.GnashingFang) && CDRemaining(AID.GnashingFang) <= 1) || !Unlocked(AID.GnashingFang)));
         return strategy switch
         {
@@ -202,7 +200,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             NoMercyStrategy.Force3 => Ammo == 3,
             NoMercyStrategy.Force3W => CanWeaveIn && Ammo == 3,
             NoMercyStrategy.Force3QW => CanQuarterWeaveIn && Ammo == 3,
-            NoMercyStrategy.Delay or _ => false,
+            _ => false,
         };
     }
     private bool ShouldUseGnashingFang(GnashingStrategy strategy, Actor? target)
@@ -388,9 +386,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
         CanBS = Unlocked(AID.BurstStrike) && Ammo > 0;
-        CanGF = GCDReady(AID.GnashingFang) && Ammo > 0;
+        CanGF = IsReady(AID.GnashingFang) && Ammo > 0;
         CanFC = Unlocked(AID.FatedCircle) && Ammo > 0;
-        CanDD = GCDReady(AID.DoubleDown) && Ammo > 0;
+        CanDD = IsReady(AID.DoubleDown) && Ammo > 0;
         CanBreak = Unlocked(AID.SonicBreak) && HasEffect(SID.ReadyToBreak);
         CanReign = Unlocked(AID.ReignOfBeasts) && HasEffect(SID.ReadyToReign);
 

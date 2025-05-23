@@ -178,11 +178,11 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #region Buffs
     private (bool, OGCDPriority) ShouldUseWildfire(WildfireStrategy strategy, Actor? target)
     {
-        var condition = InsideCombatWith(target) && CanWF && CanLateWeaveIn && ((FMFleft > 0 && AAsafe && CSsafe && EVleft == 0) || LastActionUsed(AID.Hypercharge) || OverheatActive);
+        var condition = InsideCombatWith(target) && CanWF && CanWeaveIn && ((FMFleft > 0 && AAsafe && CSsafe && EVleft == 0) || LastActionUsed(AID.Hypercharge) || OverheatActive);
         return strategy switch
         {
-            WildfireStrategy.Automatic => (condition, OGCDPriority.Severe),
-            WildfireStrategy.AlignWithBurst => (BScd > 90 && condition, OGCDPriority.Severe),
+            WildfireStrategy.Automatic => (condition, OGCDPriority.Max),
+            WildfireStrategy.AlignWithBurst => (BScd > 90 && condition, OGCDPriority.Max),
             WildfireStrategy.End => (HasEffect(SID.WildfirePlayer), OGCDPriority.Max),
             WildfireStrategy.Force => (CanWF, OGCDPriority.Forced),
             WildfireStrategy.ForceWeave => (CanWF && CanWeaveIn, OGCDPriority.Forced),
@@ -195,7 +195,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             return (false, OGCDPriority.None);
         return strategy switch
         {
-            OGCDStrategy.Automatic => (InsideCombatWith(target) && In25y(target) && CanWeaveIn, OGCDPriority.ExtremelyHigh),
+            OGCDStrategy.Automatic => (CanWeaveIn, OGCDPriority.Max),
             OGCDStrategy.AnyWeave => (CanWeaveIn, OGCDPriority.Forced),
             OGCDStrategy.EarlyWeave => (CanEarlyWeaveIn, OGCDPriority.Forced),
             OGCDStrategy.LateWeave => (CanLateWeaveIn, OGCDPriority.Forced),
@@ -239,7 +239,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         {
             if (CountdownRemaining < 1.15f)
             {
-                if (opt == OpenerOption.AirAnchor || (opt == OpenerOption.ChainSaw && !Unlocked(AID.ChainSaw)))
+                if (opt == OpenerOption.AirAnchor || (opt == OpenerOption.ChainSaw && !Unlocked(AID.ChainSaw)) || (opt == OpenerOption.Drill && !Unlocked(AID.Drill)))
                     QueueGCD(BestAirAnchor, target, GCDPriority.VerySevere);
                 if (opt == OpenerOption.Drill)
                     QueueGCD(AID.Drill, target, GCDPriority.VerySevere);
@@ -264,10 +264,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         var prio = CDRemaining(AID.Drill) < GCD ? GCDPriority.ExtremelyHigh + 9 : CanFitSkSGCD(WFleft) && FMFleft == 0 ? GCDPriority.High + 2 : GCDPriority.High;
         return strategy switch
         {
-            DrillStrategy.Automatic => (ShouldUseAOE ? aoe : st, prio),
-            DrillStrategy.HoldOne => (CDRemaining(AID.Drill) < GCD && st, prio),
-            DrillStrategy.OnlyDrill => (st, prio),
-            DrillStrategy.OnlyBioblaster => (Unlocked(AID.Bioblaster) ? aoe : st, prio),
+            DrillStrategy.Automatic or DrillStrategy.OnlyDrill or DrillStrategy.OnlyBioblaster => (ShouldUseAOE ? aoe : st, prio),
+            DrillStrategy.HoldOne => (CDRemaining(AID.Drill) < GCD && (ShouldUseAOE ? aoe : st), prio),
             DrillStrategy.ForceDrill => (CanDrill, GCDPriority.Forced),
             DrillStrategy.ForceBioblaster => (CanBB, GCDPriority.Forced),
             DrillStrategy.Delay or _ => (false, GCDPriority.None),
@@ -294,9 +292,9 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Gauge
-    private (bool, OGCDPriority) ShouldUseHypercharge(HyperchargeStrategy strategy)
+    private (bool, OGCDPriority) ShouldUseHypercharge(HyperchargeStrategy strategy, Actor? target)
     {
-        if (!CanHC || RAleft > 0 || OverheatActive)
+        if (!CanHC || RAleft > 0 || OverheatActive || target == null)
             return (false, OGCDPriority.None);
         var ok = AAsafe && CSsafe && Drillsafe && FMFsafe && EVsafe;
         var odd = LastActionUsed(AID.Excavator) || (CScd > 50 && EVleft == 0);
@@ -428,7 +426,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         CanWF = OGCDReady(AID.Wildfire);
         CanBS = OGCDReady(AID.BarrelStabilizer);
         CanRA = Unlocked(AID.Reassemble) && CDRemaining(AID.Reassemble) <= 57f && !OverheatActive && RAleft == 0;
-        CanDrill = Unlocked(AID.Drill) && (Unlocked(TraitID.EnhancedMultiweapon) ? CDRemaining(AID.Drill) < GCD + (SkSGCDLength * 8) : CDRemaining(AID.Drill) < GCD);
+        CanDrill = Unlocked(AID.Drill) && (Unlocked(TraitID.EnhancedMultiweapon) ? CDRemaining(AID.Drill) < 0.5f + (SkSGCDLength * 8) : CDRemaining(AID.Drill) < 0.5f);
         CanBB = GCDReady(AID.Bioblaster);
         CanAA = IsReady(BestAirAnchor);
         CanCS = IsReady(AID.ChainSaw);
@@ -606,13 +604,13 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
                 }
                 if (!strategy.HoldGauge())
                 {
-                    var (hcCondition, hcPrio) = ShouldUseHypercharge(hcStrat);
+                    var (hcCondition, hcPrio) = ShouldUseHypercharge(hcStrat, primaryTarget?.Actor);
                     if (hcCondition)
                         QueueOGCD(AID.Hypercharge, Player, hcPrio);
                     if (ShouldUseBattery(batteryStrat))
                     {
                         if (batteryStrat is BatteryStrategy.Automatic or BatteryStrategy.Fifty or BatteryStrategy.Hundred)
-                            QueueOGCD(BestBattery, Player, OGCDPriority.Critical);
+                            QueueOGCD(BestBattery, Player, OGCDPriority.Severe);
                         if (batteryStrat == BatteryStrategy.End)
                             QueueOGCD(Unlocked(AID.QueenOverdrive) ? AID.QueenOverdrive : AID.RookOverdrive, Player, OGCDPriority.Critical);
                     }
