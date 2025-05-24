@@ -16,6 +16,7 @@ public sealed class NMAttribute(uint nameID, uint prepNameID, uint fateID = 0) :
 [ConfigDisplay(Name = "Eureka", Parent = typeof(StormbloodConfig))]
 public class EurekaConfig : ConfigNode
 {
+    [PropertyDisplay("Enable zone module")]
     public bool Enabled = true;
 
     [PropertyDisplay("Max range to look for new mobs to pull")]

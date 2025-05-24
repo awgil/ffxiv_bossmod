@@ -34,7 +34,7 @@ class WindfangStonefang(BossModule module) : Components.CastCounter(module, defa
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_source != null)
-            hints.PredictedDamage.Add((new(0xff), Activation));
+            hints.AddPredictedDamage(new(0xff), Activation, type: Stack ? AIHints.PredictedDamageType.Shared : AIHints.PredictedDamageType.Raidwide);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

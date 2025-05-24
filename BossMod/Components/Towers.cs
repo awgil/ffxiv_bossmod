@@ -1,7 +1,9 @@
 ﻿namespace BossMod.Components;
 
-public class GenericTowers(BossModule module, Enum? aid = default) : CastCounter(module, aid)
+public class GenericTowers(BossModule module, Enum? aid = default, AIHints.PredictedDamageType damageType = AIHints.PredictedDamageType.Raidwide) : CastCounter(module, aid)
 {
+    public AIHints.PredictedDamageType DamageType = damageType;
+
     public struct Tower(WPos position, float radius, int minSoakers = 1, int maxSoakers = 1, BitMask forbiddenSoakers = default, DateTime activation = default)
     {
         public WPos Position = position;
@@ -91,7 +93,7 @@ public class GenericTowers(BossModule module, Enum? aid = default) : CastCounter
             hints.AddForbiddenZone(haveTowersToSoak ? p => !zoneUnion(p) : zoneUnion, firstActivation);
         }
         if (soakingPlayers.Any())
-            hints.PredictedDamage.Add((soakingPlayers, firstActivation));
+            hints.AddPredictedDamage(soakingPlayers, firstActivation, DamageType);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -101,7 +103,7 @@ public class GenericTowers(BossModule module, Enum? aid = default) : CastCounter
     }
 }
 
-public class CastTowers(BossModule module, Enum aid, float radius, int minSoakers = 1, int maxSoakers = 1) : GenericTowers(module, aid)
+public class CastTowers(BossModule module, Enum aid, float radius, int minSoakers = 1, int maxSoakers = 1, AIHints.PredictedDamageType damageType = AIHints.PredictedDamageType.Raidwide) : GenericTowers(module, aid, damageType)
 {
     public float Radius = radius;
     public int MinSoakers = minSoakers;

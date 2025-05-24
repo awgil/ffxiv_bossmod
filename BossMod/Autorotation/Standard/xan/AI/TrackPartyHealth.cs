@@ -167,7 +167,8 @@ public class TrackPartyHealth(WorldState World)
             }
 
             var actor = World.Party[i];
-            _haveRealPartyMembers |= actor?.Type == ActorType.Player;
+            if (i > 0)
+                _haveRealPartyMembers |= actor?.Type == ActorType.Player;
 
             if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || actor.FateID > 0 || shouldSkip)
             {
@@ -228,7 +229,7 @@ public class TrackPartyHealth(WorldState World)
         }
 
         foreach (var predicted in Hints.PredictedDamage)
-            foreach (var bit in predicted.players.SetBits())
+            foreach (var bit in predicted.Players.SetBits())
                 PartyMemberStates[bit].PredictedHPRatio -= 0.30f;
 
         PartyHealth = CalculatePartyHealthState(_ => true);

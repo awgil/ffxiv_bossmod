@@ -74,7 +74,7 @@ class QuakeIII(BossModule module) : Components.CastCounter(module, AID.QuakeIIIS
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var b in Baits)
-            hints.PredictedDamage.Add((Raid.WithSlot().OnSamePlatform(b).Mask(), _activation));
+            hints.AddPredictedDamage(Raid.WithSlot().OnSamePlatform(b).Mask(), _activation);
     }
 }
 
@@ -117,6 +117,6 @@ class Twinbite(BossModule module) : Components.CastCounter(module, AID.Twinbite)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_activation != default)
-            hints.PredictedDamage.Add((Raid.WithSlot().Where(r => Baits.Any(b => b.TargetID == r.Item2.InstanceID)).Mask(), _activation));
+            hints.AddPredictedDamage(Raid.WithSlot().Where(r => Baits.Any(b => b.TargetID == r.Item2.InstanceID)).Mask(), _activation, AIHints.PredictedDamageType.Tankbuster);
     }
 }

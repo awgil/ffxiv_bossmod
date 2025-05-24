@@ -38,6 +38,19 @@ public sealed class AIHints
         Misdirection, // temporary misdirection - if current time is greater than activation, use special pathfinding codepath
     }
 
+    public enum PredictedDamageType
+    {
+        None,
+        Tankbuster, // cast is expected to do a decent amount of damage, tank AI should use mitigation
+        Raidwide, // cast is expected to hit everyone and deal minor damage; also used for spread components
+        Shared, // cast is expected to hit multiple players; modules might have special behavior when intentionally taking this damage solo
+    }
+
+    public record struct DamagePrediction(BitMask Players, DateTime Activation, PredictedDamageType Type = PredictedDamageType.None)
+    {
+        public readonly BitMask Players = Players;
+    }
+
     public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(30);
 
     // information needed to build base pathfinding map (onto which forbidden/goal zones are later rasterized), if needed (lazy, since it's somewhat expensive and not always needed)
@@ -73,6 +86,9 @@ public sealed class AIHints
     // other parts of the code can return small (e.g. 0.01) values to slightly (de)prioritize some positions, or large (e.g. 1000) values to effectively soft-override target position (but still utilize pathfinding)
     public List<Func<WPos, float>> GoalZones = [];
 
+    // AI will treat the pixels inside these shapes as unreachable and not try to pathfind through them (unlike imminent forbidden zones)
+    public List<Func<WPos, bool>> TemporaryObstacles = [];
+
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
 
@@ -88,7 +104,7 @@ public sealed class AIHints
 
     // predicted incoming damage (raidwides, tankbusters, etc.)
     // AI will attempt to shield & mitigate
-    public List<(BitMask players, DateTime activation)> PredictedDamage = [];
+    public List<DamagePrediction> PredictedDamage = [];
 
     // list of party members with cleansable debuffs that are dangerous enough to sacrifice a GCD to cleanse them, i.e. doom, throttle, some types of vuln debuff, etc
     public BitMask ShouldCleanse;
@@ -121,6 +137,7 @@ public sealed class AIHints
         InteractWithTarget = null;
         ForbiddenZones.Clear();
         GoalZones.Clear();
+        TemporaryObstacles.Clear();
         RecommendedPositional = default;
         ForbiddenDirections.Clear();
         ImminentSpecialMode = default;
@@ -168,6 +185,8 @@ public sealed class AIHints
     public void AddForbiddenZone(Func<WPos, bool> containsFn, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((containsFn, activation, source));
     public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((shape.CheckFn(origin, rot), activation, source));
 
+    public void AddPredictedDamage(BitMask players, DateTime activation, PredictedDamageType type = PredictedDamageType.Raidwide) => PredictedDamage.Add(new(players, activation, type));
+
     public void AddSpecialMode(SpecialMode mode, DateTime activation)
     {
         if (ImminentSpecialMode == default || ImminentSpecialMode.activation > activation)
@@ -182,12 +201,14 @@ public sealed class AIHints
         HighestPotentialTargetPriority = Math.Max(0, PotentialTargets.FirstOrDefault()?.Priority ?? 0);
         ForbiddenZones.SortBy(e => e.activation);
         ForbiddenDirections.SortBy(e => e.activation);
-        PredictedDamage.SortBy(e => e.activation);
+        PredictedDamage.SortBy(e => e.Activation);
     }
 
     public void InitPathfindMap(Pathfinding.Map map)
     {
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
+        foreach (var o in TemporaryObstacles)
+            map.BlockPixelsInside(o, -1000);
         if (PathfindMapObstacles.Bitmap != null)
         {
             var offX = -PathfindMapObstacles.Rect.Left;

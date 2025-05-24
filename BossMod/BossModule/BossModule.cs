@@ -271,6 +271,9 @@ public abstract class BossModule : IDisposable
     // return true if non-party player characters should be drawn on the minimap
     public virtual bool DrawAllPlayers => false;
 
+    // return true if out-of-combat enemies should be set to priority 0 - useful for multi-phase encounters when player wants to use automatic targeting via cdplan
+    public virtual bool PrioritizeAllEnemies => false;
+
     protected virtual void UpdateModule() { }
     protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background
     protected virtual void DrawArenaForeground(int pcSlot, Actor pc) { } // after border, before modules foreground
@@ -464,7 +467,7 @@ public abstract class BossModule : IDisposable
 
     private void OnActorCastEvent(Actor actor, ActorCastEvent cast)
     {
-        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && cast.IsSpell())
+        if (actor.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo) && cast.IsSpell())
             foreach (var comp in _components)
                 comp.OnEventCast(actor, cast);
     }
