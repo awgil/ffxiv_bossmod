@@ -272,7 +272,7 @@ public abstract class BossModule : IDisposable
     public virtual bool DrawAllPlayers => false;
 
     // return true if out-of-combat enemies should be set to priority 0 - useful for multi-phase encounters when player wants to use automatic targeting via cdplan
-    public virtual bool PrioritizeAllEnemies => false;
+    public virtual bool ShouldPrioritizeAllEnemies => false;
 
     protected virtual void UpdateModule() { }
     protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background

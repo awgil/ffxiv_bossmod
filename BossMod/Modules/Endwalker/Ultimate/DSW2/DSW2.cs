@@ -45,7 +45,7 @@ public class DSW2(WorldState ws, Actor primary) : BossModule(ws, primary, new(10
     public Actor? HraesvelgrP6() => _hraesvelgrP6;
     public Actor? BossP7() => _bossP7;
 
-    public override bool PrioritizeAllEnemies => true;
+    public override bool ShouldPrioritizeAllEnemies => true;
 
     protected override void UpdateModule()
     {
