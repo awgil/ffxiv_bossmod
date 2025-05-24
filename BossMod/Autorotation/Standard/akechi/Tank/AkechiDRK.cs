@@ -134,7 +134,6 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Cooldown Helpers
-
     private bool ShouldUseMP(MPStrategy strategy)
     {
         if (!CanWeaveIn || !Unlocked(AID.FloodOfDarkness))
@@ -218,21 +217,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         CarveStrategy.Delay => false,
         _ => false
     };
-    private bool ShouldUseDelirium(OGCDStrategy strategy, Enemy? target)
-    {
-        if (!Delirium.IsReady)
-            return false;
-
-        return strategy switch
-        {
-            OGCDStrategy.Automatic => InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.IsReady : OGCDReady(AID.BloodWeapon)) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0),
-            OGCDStrategy.Force => true,
-            OGCDStrategy.AnyWeave => CanWeaveIn,
-            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
-            OGCDStrategy.LateWeave => CanLateWeaveIn,
-            OGCDStrategy.Delay or _ => false
-        };
-    }
+    private bool ShouldUseDelirium(OGCDStrategy strategy, Enemy? target) => ShouldUseOGCD(Delirium.IsReady, strategy, target?.Actor, () => InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.IsReady : OGCDReady(AID.BloodWeapon)) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0));
     private bool ShouldUseLivingShadow(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
         OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && LivingShadow.IsReady,

@@ -1,8 +1,6 @@
-﻿#region Dependencies
-using static BossMod.AIHints;
+﻿using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.MCH;
-#endregion
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi

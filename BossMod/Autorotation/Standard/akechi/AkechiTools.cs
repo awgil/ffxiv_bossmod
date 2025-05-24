@@ -1,12 +1,9 @@
 ﻿using static BossMod.AIHints;
-using static BossMod.ClientState;
 
 namespace BossMod.Autorotation.akechi;
 
 #region Shared Enums
-/// <summary>
-/// <b>SharedTrack</b> enum for <b>AOE</b> and <b>Hold</b> strategies, used in damage rotations for all PvE classes and jobs.
-/// </summary>
+/// <summary> <b>SharedTrack</b> enum for <b>AOE</b> and <b>Hold</b> strategies, used in damage rotations for all PvE classes and jobs. </summary>
 public enum SharedTrack
 {
     /// <summary> Tracks <b>single-target</b> and <b>AOE</b> rotations. </summary>
@@ -25,10 +22,8 @@ public enum SharedTrack
     Count
 }
 
-/// <summary>
-/// <b>AOEStrategy</b> enum for tracking <b>single-target</b> and <b>AOE</b> strategies.<para/>
-/// <b>NOTE</b>: For jobs with combos that have no relative combo timer (e.g. <b>BLM</b>), <seealso cref="AutoFinish"/> and <seealso cref="AutoBreak"/> are essentially the same function.
-/// </summary>
+/// <summary> <b>AOEStrategy</b> enum for tracking <b>single-target</b> and <b>AOE</b> strategies.<para/>
+/// <b>NOTE</b>: For jobs with combos that have no relative combo timer (e.g. <b>BLM</b>), <seealso cref="AutoFinish"/> and <seealso cref="AutoBreak"/> are essentially the same function. </summary>
 public enum AOEStrategy
 {
     /// <summary> Executes the most <b>optimal rotation</b> automatically.<br/>
@@ -46,21 +41,18 @@ public enum AOEStrategy
     ForceAOE
 }
 
-/// <summary>
-/// <b>SoftTargetStrategy</b> enum for tracking which <b>targeting</b> strategy the user would like to use.<para/>
-/// <b>NOTE</b>: This does <b>NOT</b> take priority over <seealso cref="StrategyTarget"/>.
-/// </summary>
+/// <summary> <b>SoftTargetStrategy</b> enum for tracking which <b>targeting</b> strategy the user would like to use.<para/>
+/// <b>NOTE</b>: This does <b>NOT</b> take priority over <seealso cref="StrategyTarget"/>. </summary>
 public enum SoftTargetStrategy
 {
     /// <summary> <b>Automatic</b> selection of user's target for abilities executed.</summary>
     Automatic,
+
     /// <summary> <b>Manual</b> selection of user's target for abilities executed.</summary>
     Manual,
 }
 
-/// <summary>
-/// <b>HoldStrategy</b> enum for tracking when to hold <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b>.
-/// </summary>
+/// <summary> <b>HoldStrategy</b> enum for tracking when to hold <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b>. </summary>
 public enum HoldStrategy
 {
     /// <summary> Uses all <b>buffs</b>, <b>gauge</b>, and <b>cooldown abilities</b> without restriction. </summary>
@@ -82,6 +74,7 @@ public enum HoldStrategy
     HoldEverything
 }
 
+/// <summary> <b>PotionStrategy</b> enum for tracking when to use <b>potions</b>. </summary>
 public enum PotionStrategy
 {
     /// <summary> Do <b>NOT</b> use <b>potions</b> automatically. </summary>
@@ -97,13 +90,14 @@ public enum PotionStrategy
     Immediate
 }
 
-/// <summary>
-/// <b>GCDStrategy</b> enum for managing module-specific <b>GCD abilities</b>.
-/// </summary>
+/// <summary> <b>GCDStrategy</b> enum for managing module-specific <b>GCD abilities</b>. </summary>
 public enum GCDStrategy
 {
     /// <summary> Executes the ability <b>automatically</b> based on user logic. </summary>
     Automatic,
+
+    /// <summary> Executes the ability <b>automatically</b> based on user logic, but only if <b>raid buffs</b> are present. </summary>
+    RaidBuffsOnly,
 
     /// <summary> <b>Forces</b> execution of the ability. </summary>
     Force,
@@ -112,13 +106,14 @@ public enum GCDStrategy
     Delay
 }
 
-/// <summary>
-/// <b>OGCDStrategy</b> enum for managing module-specific <b>OGCD abilities</b>.
-/// </summary>
+/// <summary> <b>OGCDStrategy</b> enum for managing module-specific <b>OGCD abilities</b>. </summary>
 public enum OGCDStrategy
 {
     /// <summary> Executes the ability <b>automatically</b> based on user logic. </summary>
     Automatic,
+
+    /// <summary> Executes the ability <b>automatically</b> based on user logic, but only if <b>raid buffs</b> are present. </summary>
+    RaidBuffsOnly,
 
     /// <summary> <b>Forces</b> execution of the ability. </summary>
     Force,
@@ -136,6 +131,7 @@ public enum OGCDStrategy
     Delay
 }
 
+/// <summary> <b>AllowOrForbid</b> enum for managing module-specific <b>GCD</b> and <b>OGCD abilities</b>. </summary>
 public enum AllowOrForbid
 {
     /// <summary> <b>Allow</b> the action to be executed. </summary>
@@ -835,6 +831,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool ShouldUseGCD(bool ready, GCDStrategy strategy, Actor? target, Func<bool>? condition = null) => ready && strategy switch
     {
         GCDStrategy.Automatic => condition?.Invoke() ?? true,
+        GCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
         GCDStrategy.Force => true,
         _ => false
     };
@@ -843,6 +840,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool ShouldUseOGCD(bool ready, OGCDStrategy strategy, Actor? target, Func<bool>? condition = null) => ready && strategy switch
     {
         OGCDStrategy.Automatic => condition?.Invoke() ?? true,
+        OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
         OGCDStrategy.Force => true,
         OGCDStrategy.AnyWeave => CanWeaveIn,
         OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
@@ -1031,6 +1029,7 @@ static class ModuleExtensions
         var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<GCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
             .AddOption(GCDStrategy.Automatic, "Auto", $"Automatically use {action.Name()} when optimal", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
+            .AddOption(GCDStrategy.RaidBuffsOnly, "With Buffs", $"Use {action.Name()} when raid buffs are active", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
             .AddOption(GCDStrategy.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
             .AddOption(GCDStrategy.Delay, "Delay", $"Do NOT use {action.Name()}", 0, 0, ActionTargets.None, minLevel, maxLevel)
             .AddAssociatedActions(aid);
@@ -1053,6 +1052,7 @@ static class ModuleExtensions
         var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<OGCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
             .AddOption(OGCDStrategy.Automatic, "Auto", $"Automatically use {action.Name()} when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.RaidBuffsOnly, "With Buffs", $"Use {action.Name()} when raid buffs are active", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.AnyWeave, "AnyWeave", $"Force use {action.Name()} in next possible weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.EarlyWeave, "EarlyWeave", $"Force use {action.Name()} in next possible early-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
@@ -1067,9 +1067,9 @@ static class ModuleExtensions
     {
         var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<AllowOrForbid>(internalName, displayName: displayName, uiPriority: uiPriority)
-            .AddOption(AllowOrForbid.Allow, "Allow", $"Allow use {action.Name()} when available", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(AllowOrForbid.Allow, "Allow", $"Allow use of {action.Name()} when available", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(AllowOrForbid.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
-            .AddOption(AllowOrForbid.Forbid, "Forbid", $"Forbid use {action.Name()} entirely", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(AllowOrForbid.Forbid, "Forbid", $"Forbid use of {action.Name()} entirely", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddAssociatedActions(aid);
     }
     #endregion

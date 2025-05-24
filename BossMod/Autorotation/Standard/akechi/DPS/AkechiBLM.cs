@@ -425,24 +425,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
         return (false, OGCDPriority.None);
     }
-    private bool ShouldUseOGCD(bool minimum, bool condition, OGCDStrategy strategy)
-    {
-        if (!minimum)
-            return false;
-
-        return strategy switch
-        {
-            OGCDStrategy.Automatic => condition,
-            OGCDStrategy.Force => true,
-            OGCDStrategy.AnyWeave => CanWeaveIn,
-            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
-            OGCDStrategy.LateWeave => CanLateWeaveIn,
-            _ => false
-        };
-    }
-    private bool ShouldUseAmplifier(OGCDStrategy strategy) => ShouldUseOGCD(CanAmplify, !HasMaxPolyglots, strategy);
-    private bool ShouldUseRetrace(OGCDStrategy strategy) => ShouldUseOGCD(CanRetrace, false, strategy);
-    private bool ShouldUseBTL(OGCDStrategy strategy) => ShouldUseOGCD(CanBTL, false, strategy);
+    private bool ShouldUseAmplifier(OGCDStrategy strategy) => ShouldUseOGCD(CanAmplify, strategy, Player, () => !HasMaxPolyglots);
+    private bool ShouldUseRetrace(OGCDStrategy strategy) => ShouldUseOGCD(CanRetrace, strategy, Player);
+    private bool ShouldUseBTL(OGCDStrategy strategy) => ShouldUseOGCD(CanBTL, strategy, Player);
     private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
         PotionStrategy.AlignWithBuffs or PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),

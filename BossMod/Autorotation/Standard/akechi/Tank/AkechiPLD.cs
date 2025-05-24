@@ -1,8 +1,6 @@
 ﻿using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using BossMod.PLD;
-using Lumina.Excel.Sheets;
-using BossMod.Components;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
