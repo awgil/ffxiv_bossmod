@@ -203,6 +203,6 @@ abstract class Emblazon(BossModule module) : Components.CastCounter(module, AID.
         }
 
         if (Baiters.Any())
-            hints.PredictedDamage.Add((Baiters, Activation));
+            hints.AddPredictedDamage(Baiters, Activation, AIHints.PredictedDamageType.Raidwide);
     }
 }

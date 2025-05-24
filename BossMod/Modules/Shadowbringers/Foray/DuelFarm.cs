@@ -16,6 +16,7 @@ public sealed class DuelAttribute(uint nameID, uint prepNameID, uint fateID = 0)
 [ConfigDisplay(Name = "Bozja duel farming", Parent = typeof(ShadowbringersConfig))]
 public class DuelFarmConfig : ConfigNode
 {
+    [PropertyDisplay("Enable zone module")]
     public bool Enabled = true;
 
     [PropertyDisplay("Max range to look for new mobs to pull")]

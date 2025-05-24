@@ -40,7 +40,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         }
         foreach (var _1 in tree.Node("Predicted damage", hints.PredictedDamage.Count == 0))
         {
-            tree.LeafNodes(hints.PredictedDamage, d => $"[{string.Join(", ", ws.Party.WithSlot().IncludedInMask(d.players).Select(ia => ia.Item2.Name))}], at {Math.Max(0, (d.activation - ws.CurrentTime).TotalSeconds):f3}");
+            tree.LeafNodes(hints.PredictedDamage, d => $"[{string.Join(", ", ws.Party.WithSlot().IncludedInMask(d.Players).Select(ia => ia.Item2.Name))}] ({d.Type}), at {Math.Max(0, (d.Activation - ws.CurrentTime).TotalSeconds):f3}");
         }
         foreach (var _1 in tree.Node("Party health"))
         {

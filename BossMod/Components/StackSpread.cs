@@ -119,23 +119,27 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
                 hints.AddForbiddenZone(ShapeContains.InvertedCircle(closestStack.Target.Position, closestStack.Radius), closestStack.Activation);
         }
 
+        var spreadMask = new BitMask();
+        var stackMask = new BitMask();
+
         if (RaidwideOnResolve)
         {
-            DateTime firstActivation = DateTime.MaxValue;
-            BitMask damageMask = new();
+            var firstActivation = DateTime.MaxValue;
             foreach (var s in ActiveSpreads)
             {
-                damageMask.Set(Raid.FindSlot(s.Target.InstanceID));
+                spreadMask.Set(Raid.FindSlot(s.Target.InstanceID));
                 firstActivation = firstActivation < s.Activation ? firstActivation : s.Activation;
             }
             foreach (var s in ActiveStacks)
             {
-                damageMask |= Raid.WithSlot().Mask() & ~s.ForbiddenPlayers; // assume everyone will take damage except forbidden players (so-so assumption really...)
+                stackMask |= Raid.WithSlot().Mask() & ~s.ForbiddenPlayers; // assume everyone will take damage except forbidden players (so-so assumption really...)
                 firstActivation = firstActivation < s.Activation ? firstActivation : s.Activation;
             }
 
-            if (damageMask.Any())
-                hints.PredictedDamage.Add((damageMask, firstActivation));
+            if (spreadMask.Any())
+                hints.AddPredictedDamage(spreadMask, firstActivation, AIHints.PredictedDamageType.Raidwide);
+            if (stackMask.Any())
+                hints.AddPredictedDamage(stackMask, firstActivation, AIHints.PredictedDamageType.Shared);
         }
     }
 

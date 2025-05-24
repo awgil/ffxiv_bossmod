@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation;
-using BossMod.Autorotation.xan.AI;
+﻿using BossMod.Autorotation.xan.AI;
 using RID = BossMod.Roleplay.AID;
 
 namespace BossMod.QuestBattle.Endwalker.MSQ;
@@ -31,8 +30,8 @@ class AlphinaudAI(WorldState ws) : UnmanagedRotation(ws, 25)
 
     private void AutoHeal()
     {
-        foreach (var h in Hints.PredictedDamage.Where(pd => pd.players.NumSetBits() == 1))
-            foreach (var (_, player) in World.Party.WithSlot().IncludedInMask(h.players))
+        foreach (var h in Hints.PredictedDamage.Where(pd => pd.Players.NumSetBits() == 1))
+            foreach (var (_, player) in World.Party.WithSlot().IncludedInMask(h.Players))
                 if (StatusDetails(player, 2844, Player.InstanceID).Left == 0)
                     UseAction(RID.LeveilleurDiagnosis, player);
 

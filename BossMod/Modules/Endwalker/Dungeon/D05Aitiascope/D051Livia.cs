@@ -40,8 +40,7 @@ public enum IconID : uint
     Icon161 = 161, // player
 }
 
-class AglaeaShotAOE1(BossModule module) : Components.StandardAOEs(module, AID.AglaeaShotAOE1, new AOEShapeRect(20, 3));
-class AglaeaShotAOE2(BossModule module) : Components.StandardAOEs(module, AID.AglaeaShotAOE2, new AOEShapeRect(20, 3));
+class AglaeaShot(BossModule module) : Components.GroupedAOEs(module, [AID.AglaeaShotAOE1, AID.AglaeaShotAOE2], new AOEShapeRect(40, 2));
 
 class AglaeaClimbAOE(BossModule module) : Components.StandardAOEs(module, AID.AglaeaClimbAOE, new AOEShapeCone(20, 45.Degrees()));
 class Disparagement(BossModule module) : Components.StandardAOEs(module, AID.Disparagement, new AOEShapeCone(40, 60.Degrees()));
@@ -53,7 +52,7 @@ class IgnisOdi(BossModule module) : Components.StackWithCastTargets(module, AID.
     {
         // force AI to move to center - trust NPCs won't stack with you lol
         if (ActiveStackTargets.Contains(actor))
-            hints.AddForbiddenZone(new AOEShapeDonut(3, 50), Arena.Center);
+            hints.AddForbiddenZone(new AOEShapeDonut(3, 50), Arena.Center, activation: Stacks[0].Activation);
     }
 }
 
@@ -66,8 +65,7 @@ class D051LiviaStates : StateMachineBuilder
     public D051LiviaStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<AglaeaShotAOE1>()
-            .ActivateOnEnter<AglaeaShotAOE2>()
+            .ActivateOnEnter<AglaeaShot>()
             .ActivateOnEnter<AglaeaClimbAOE>()
             .ActivateOnEnter<Disparagement>()
             .ActivateOnEnter<IgnisOdi>()

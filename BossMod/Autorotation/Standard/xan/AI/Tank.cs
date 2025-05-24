@@ -5,13 +5,20 @@ namespace BossMod.Autorotation.xan;
 public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
 {
     public enum Track { Stance, Ranged, Interject, Stun, ArmsLength, Mit, Invuln, Protect }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
 
         def.AbilityTrack(Track.Stance, "Stance");
         def.AbilityTrack(Track.Ranged, "Ranged GCD");
-        def.AbilityTrack(Track.Interject, "Interject").AddAssociatedActions(ClassShared.AID.Interject);
+
+        def.Define(Track.Interject).As<HintedStrategy>("Interject2", "Interject")
+            .AddOption(HintedStrategy.Disabled, "Disabled", "Don't use")
+            .AddOption(HintedStrategy.HintOnly, "HintOnly", "Interrupt enemies if the current module suggests doing it")
+            .AddOption(HintedStrategy.Enabled, "Enabled", "Interrupt all interruptable enemies")
+            .AddAssociatedActions(ClassShared.AID.Interject);
+
         def.AbilityTrack(Track.Stun, "Low Blow").AddAssociatedActions(ClassShared.AID.LowBlow);
         def.AbilityTrack(Track.ArmsLength, "Arms' Length").AddAssociatedActions(ClassShared.AID.ArmsLength);
         def.AbilityTrack(Track.Mit, "Personal mits");
@@ -117,14 +124,18 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
         // stance
         if (strategy.Enabled(Track.Stance) && !Player.Statuses.Any(x => x.ID == JobActions.StanceBuff))
-            Hints.ActionsToExecute.Push(JobActions.Stance, Player, ActionQueue.Priority.Minimal);
+            Hints.ActionsToExecute.Push(JobActions.Stance, Player, ActionQueue.Priority.VeryLow);
+
+        var interjectStrategy = strategy.Option(Track.Interject).As<HintedStrategy>();
 
         // interrupt
-        if (strategy.Enabled(Track.Interject) && NextChargeIn(ClassShared.AID.Interject) == 0)
+        if (interjectStrategy.IsEnabled() && NextChargeIn(ClassShared.AID.Interject) == 0)
         {
-            var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 3);
+            bool shouldInterrupt(AIHints.Enemy e) => e.Actor.InCombat && interjectStrategy.Check(e.ShouldBeInterrupted) && e.Actor.CastInfo?.Interruptible == true;
+
+            var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => shouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (interruptibleEnemy != null)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Interject), interruptibleEnemy.Actor, ActionQueue.Priority.Minimal);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Interject), interruptibleEnemy.Actor, ActionQueue.Priority.VeryLow);
         }
 
         // low blow
@@ -132,11 +143,11 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         {
             var stunnableEnemy = Hints.PotentialTargets.Find(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (stunnableEnemy != null)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.LowBlow), stunnableEnemy.Actor, ActionQueue.Priority.Minimal);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.LowBlow), stunnableEnemy.Actor, ActionQueue.Priority.VeryLow);
         }
 
         if (strategy.Enabled(Track.ArmsLength) && EnemiesAutoingMe.Count() > 1)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.ArmsLength), Player, ActionQueue.Priority.Minimal);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.ArmsLength), Player, ActionQueue.Priority.VeryLow);
 
         if (strategy.Enabled(Track.Protect))
             AutoProtect();
@@ -207,7 +218,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             var delay = 0f;
             if (JobActions.ShortMit.ID == ActionID.MakeSpell(WAR.AID.RawIntuition))
                 delay = GCD - 0.8f;
-            Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.Minimal, delay: delay);
+            Hints.ActionsToExecute.Push(JobActions.ShortMit.ID, Player, ActionQueue.Priority.VeryLow, delay: delay);
         }
 
         if (Player.PendingHPRatio < 0.6)
@@ -228,7 +239,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         if (strategy.Enabled(Track.Mit) && EnemiesAutoingMe.Any())
         {
             if (Player.PendingHPRatio < 0.8 && Player.FindStatus(BossMod.GNB.SID.Aurora) == null)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.GNB.AID.Aurora), Player, ActionQueue.Priority.Minimal);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.GNB.AID.Aurora), Player, ActionQueue.Priority.VeryLow);
         }
     }
 

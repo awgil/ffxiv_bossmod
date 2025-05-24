@@ -39,7 +39,7 @@ public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<A
             _ => 0
         };
 
-        if (advance > 0 && Hints.PredictedDamage.Any(x => x.players[0] && x.activation < World.FutureTime(advance)))
+        if (advance > 0 && Hints.PredictedDamage.Any(x => x.Players[0] && x.Activation < World.FutureTime(advance)))
             PushOGCD(AID.ThirdEye, Player, -100);
     }
 }

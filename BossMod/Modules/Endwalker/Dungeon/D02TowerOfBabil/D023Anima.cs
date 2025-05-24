@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Dungeon.D02TowerOfBabil.D023Anima;
+﻿using Lumina.Extensions;
+
+namespace BossMod.Endwalker.Dungeon.D02TowerOfBabil.D023Anima;
 
 public enum OID : uint
 {
@@ -105,127 +107,59 @@ class BoundlessPain(BossModule module) : Components.GenericAOEs(module)
                 break;
         }
     }
+}
+
+class AetherialPull(BossModule module) : Components.Knockback(module, AID.AetherialPull, ignoreImmunes: true)
+{
+    private readonly List<Actor> _casters = [];
+
+    public const int BreakDistance = 32;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _casters.Add(caster);
+    }
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => _casters.Where(c => c.CastInfo?.TargetID == actor.InstanceID).Select(c => new Source(c.Position, 30, Module.CastFinishAt(c.CastInfo), Kind: Kind.TowardsOrigin));
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var s in Sources(slot, actor))
+            hints.AddForbiddenZone(new AOEShapeCircle(BreakDistance), s.Origin, activation: s.Activation);
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var s in Sources(pcSlot, pc))
+            Arena.ZoneCircle(s.Origin, BreakDistance - 30, ArenaColor.AOE);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        foreach (var s in Sources(slot, actor))
+            hints.Add("Get away from orb!", actor.Position.InCircle(s.Origin, BreakDistance));
+    }
+}
+
+class CoffinScratchBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(3), (uint)IconID.ChasingAOE, centerAtTarget: true)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.CoffinScratchFirst)
+            CurrentBaits.Clear();
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (ActiveAOEs(slot, actor).Any())
-            hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center, Arena.Center + new WDir(0, 20), 20));
+
+        if (ActiveBaitsOn(actor).FirstOrNull() is { } bait)
+            hints.AddForbiddenZone(new AOEShapeRect(17, 17, 17), Arena.Center, default, bait.Activation);
     }
 }
-
-class Gravitons(BossModule module) : Components.PersistentVoidzone(module, 1, m => m.Enemies(OID.MegaGraviton).Where(x => !x.IsDead));
-class AetherialPull(BossModule module) : Components.GenericBaitAway(module, AID.AetherialPull)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (actor != WorldState.Party.Player())
-            return;
-
-        foreach (var b in ActiveBaits)
-        {
-            if (b.Target == actor)
-            {
-                hints.AddForbiddenZone(b.Shape, BaitOrigin(b), b.Rotation, b.Activation);
-            }
-        }
-    }
-
-    public override void Update()
-    {
-        foreach (ref var b in CurrentBaits.AsSpan())
-        {
-            if (b.Shape is AOEShapeRect shape)
-            {
-                var length = (b.Target.Position - b.Source.Position).Length();
-                if (shape.LengthFront != length)
-                {
-                    b.Shape = shape with { LengthFront = length };
-                }
-            }
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action == WatchedAction && WorldState.Actors.Find(spell.TargetID) is var target && target != null && target == WorldState.Party.Player())
-            CurrentBaits.Add(new(caster, target, new AOEShapeRect(0, 0.5f), Module.CastFinishAt(spell)));
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action == WatchedAction)
-            CurrentBaits.RemoveAll(b => b.Source == caster);
-    }
-}
-
-class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), AID.CoffinScratchFirst, AID.CoffinScratchRest, 6, 2, 5)
-{
-    private readonly bool ResetExcludedTargets = true;
-    private readonly List<Actor> Actors = []; // to keep track of the icon before mechanic starts for handling custom forbidden zones
-    private DateTime Activation;
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Chasers.Count > 0)
-        {
-            AddForbiddenZones(actor, hints, true);
-            AddForbiddenZones(actor, hints, false);
-        }
-        if (Actors.Contains(actor))
-            hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center + new WDir(19, 0), Arena.Center + new WDir(-19, 0), 20), Activation);
-        else if (Chasers.Any(x => x.Target == actor))
-            hints.AddForbiddenZone(ShapeContains.InvertedRect(actor.Position, 90.Degrees(), 40, 40, 3));
-    }
-    private void AddForbiddenZones(Actor actor, AIHints hints, bool isTarget)
-    {
-        // sort of a hack to prevent the AI from getting "stuck" inside the AOE because all paths to safety have equal distance
-        foreach (var c in Chasers.Where(c => c.Target == actor == isTarget))
-        {
-            var circle = (AOEShapeCircle)c.Shape;
-            var radius = isTarget ? MoveDistance + circle.Radius : circle.Radius + 1;
-            var position = isTarget ? c.PredictedPosition() - circle.Radius * actor.Rotation.ToDirection() : c.PredictedPosition();
-            hints.AddForbiddenZone(ShapeContains.Circle(position, radius), c.NextActivation);
-        }
-    }
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action == ActionFirst)
-        {
-            var pos = spell.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
-            var (slot, target) = Raid.WithSlot().ExcludedFromMask(ExcludedTargets).MinBy(ip => (ip.Item2.Position - pos).LengthSq());
-            if (target != null)
-            {
-                Actors.Remove(target);
-                Chasers.Add(new(Shape, target, pos, 0, MaxCasts, Module.CastFinishAt(spell), SecondsBetweenActivations)); // initial cast does not move anywhere
-                ExcludedTargets.Set(slot);
-            }
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == ActionFirst || spell.Action == ActionRest)
-        {
-            var pos = spell.MainTargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ;
-            Advance(pos, MoveDistance, WorldState.CurrentTime);
-            if (Chasers.Count == 0 && ResetExcludedTargets)
-            {
-                ExcludedTargets.Reset();
-                NumCasts = 0;
-            }
-        }
-    }
-
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if (iconID == (uint)IconID.ChasingAOE)
-        {
-            Activation = WorldState.FutureTime(5.1f);
-            Actors.Add(actor);
-        }
-    }
-}
-class PhantomPain(BossModule module) : Components.StandardAOEs(module, AID.PhantomPain2, new AOEShapeRect(10, 10, 10));
+class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), AID.CoffinScratchFirst, AID.CoffinScratchRest, 6, 2, 5);
+class PhantomPain(BossModule module) : Components.StandardAOEs(module, AID.PhantomPain2, new AOEShapeRect(20, 10));
 class PaterPatriaeAOE(BossModule module) : Components.StandardAOEs(module, AID.PaterPatriaeAOE, new AOEShapeRect(60, 4));
 class CharnelClaw(BossModule module) : Components.StandardAOEs(module, AID.CharnelClaw, new AOEShapeRect(40, 2.5f), 5);
 class ErruptingPain(BossModule module) : Components.SpreadFromCastTargets(module, AID.EruptingPain, 6);
@@ -239,9 +173,9 @@ class D023AnimaStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<ArenaChange>()
-            .ActivateOnEnter<Gravitons>()
             .ActivateOnEnter<BoundlessPain>()
             .ActivateOnEnter<CoffinScratch>()
+            .ActivateOnEnter<CoffinScratchBait>()
             .ActivateOnEnter<PhantomPain>()
             .ActivateOnEnter<AetherialPull>()
             .ActivateOnEnter<PaterPatriaeAOE>()

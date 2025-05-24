@@ -93,7 +93,8 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
         }
 
         foreach (var aoe in EnumerateAOEs())
-            hints.PredictedDamage.Add((Raid.WithSlot().Where(p => InAOE(aoe, p.Item2)).Mask(), Activation));
+            // TODO add separate "tankbuster" hint for PlayerRole.Share if there are any ShareNotFirsts in the party
+            hints.AddPredictedDamage(Raid.WithSlot().Where(p => InAOE(aoe, p.Item2)).Mask(), Activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

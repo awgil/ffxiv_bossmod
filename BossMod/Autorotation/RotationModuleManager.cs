@@ -189,7 +189,7 @@ public sealed class RotationModuleManager : IDisposable
             allowedMask.Clear(PlayerSlot);
         if (filter.HasFlag(StrategyPartyFiltering.ExcludeNoPredictedDamage))
         {
-            var predictedDamage = Hints.PredictedDamage.Aggregate(default(BitMask), (s, p) => s | p.players);
+            var predictedDamage = Hints.PredictedDamage.Aggregate(default(BitMask), (s, p) => s | p.Players);
             allowedMask &= predictedDamage;
         }
 
