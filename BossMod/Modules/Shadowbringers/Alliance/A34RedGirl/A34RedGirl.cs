@@ -96,12 +96,14 @@ public enum Shade
     White
 }
 
-class Cruelty(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_Cruelty, AID._Weaponskill_Cruelty1, 0.1f);
+class CrueltyP1(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_Cruelty, AID._Weaponskill_Cruelty1, 0.1f);
+class CrueltyP2(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_Cruelty2, AID._Weaponskill_Cruelty1, 0.1f);
 class ShockGround(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ShockWhite1, AID._Weaponskill_ShockBlack], new AOEShapeCircle(5));
-class ShockWhiteSlow(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockWhiteSlow, AID._Weaponskill_ShockWhite, 5, 10.1f);
-class ShockBlackSlow(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockBlackSlow, AID._Weaponskill_ShockBlack1, 5, 10.1f);
 class ShockWhiteFast(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockWhiteFast, AID._Weaponskill_ShockWhite, 5, 5.1f);
 class ManipulateEnergy(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(3), (uint)IconID.Tankbuster, AID._Weaponskill_ManipulateEnergy1, 5.2f, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster);
+
+class ShockWhiteSlow(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockWhiteSlow, AID._Weaponskill_ShockWhite, 5, 10.1f);
+class ShockBlackSlow(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockBlackSlow, AID._Weaponskill_ShockBlack1, 5, 10.1f);
 
 class A34RedGirlStates : StateMachineBuilder
 {
@@ -116,7 +118,7 @@ class A34RedGirlStates : StateMachineBuilder
     private void Phase1(uint id)
     {
         Timeout(id, 9999, "P1 enrage")
-            .ActivateOnEnter<Cruelty>()
+            .ActivateOnEnter<CrueltyP1>()
             .ActivateOnEnter<GenerateBarrier1>()
             .ActivateOnEnter<GenerateBarrier2>()
             .ActivateOnEnter<GenerateBarrier3>()
@@ -156,7 +158,10 @@ class A34RedGirlStates : StateMachineBuilder
             .ActivateOnEnter<ShockWhiteSlow>()
             .ActivateOnEnter<ShockWhiteFast>()
             .ActivateOnEnter<ShockBlackSlow>()
-            .ActivateOnEnter<PylonExplosion>();
+            .ActivateOnEnter<PylonExplosion>()
+            .ActivateOnEnter<Point>()
+            .ActivateOnEnter<Wipe>()
+            .ActivateOnEnter<CrueltyP2>();
     }
 }
 

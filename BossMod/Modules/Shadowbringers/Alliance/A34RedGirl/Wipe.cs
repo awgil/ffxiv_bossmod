@@ -9,7 +9,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
         public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = 0) => arena.AddTriangle(origin + A.Rotate(rotation), origin + B.Rotate(rotation), origin + C.Rotate(rotation), color);
     }
 
-    record class Meteor(Actor Caster, Shade Shade, ArcList AnglesUnblocked, List<(WPos, WPos)> BlockingWalls);
+    record class Meteor(Actor Caster, Shade Shade, List<WPos> Blockers);
 
     private readonly List<Meteor> _meteors = [];
     private readonly Barrier _barriers = module.FindComponent<Barrier>()!;
@@ -17,13 +17,15 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
+        if (!_risky)
+            yield break;
+
         foreach (var m in _meteors)
         {
-            foreach (var (min, max) in m.AnglesUnblocked.Allowed(default))
-                yield return new AOEInstance(new AOEShapeCone(50, (max - min) * 0.5f), m.Caster.Position, (max + min) * 0.5f, Module.CastFinishAt(m.Caster.CastInfo), Risky: _risky);
-
-            foreach (var tri in m.BlockingWalls)
-                yield return new AOEInstance(new AOEShapeTri(default, tri.Item1 - m.Caster.Position, tri.Item2 - m.Caster.Position), m.Caster.Position, Activation: Module.CastFinishAt(m.Caster.CastInfo), Risky: _risky);
+            for (var i = 0; i < m.Blockers.Count - 1; i++)
+            {
+                yield return new AOEInstance(new AOEShapeTri(default, m.Blockers[i] - m.Caster.Position, m.Blockers[i + 1] - m.Caster.Position), m.Caster.Position, default, Activation: Module.CastFinishAt(m.Caster.CastInfo));
+            }
         }
     }
 
@@ -37,7 +39,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
         };
         if (color != default)
         {
-            _meteors.Add(new(caster, color, new(caster.Position, 50), []));
+            _meteors.Add(new(caster, color, []));
             UpdateWalls();
         }
     }
@@ -52,38 +54,34 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
     {
         if (_meteors.Count == 1)
             _risky = _barriers.NumBarriers < 12;
+        else if (_meteors.Count == 2)
+            _risky = !(Module.FindComponent<Point>()?.Active ?? true);
 
         foreach (var m in _meteors)
         {
-            var list = m.AnglesUnblocked;
-            list.Forbidden.Clear();
-            m.BlockingWalls.Clear();
-            foreach (var (bcenter, borient, bcol) in _barriers.BarrierPositions)
+            m.Blockers.Clear();
+            List<(WPos, WPos)> segments = [];
+
+            void addBlock(WPos center, IEnumerable<WDir> corners)
             {
-                if (bcol != m.Shade)
-                    continue;
-
-                var rectFaceToCaster = borient.OrthoR();
-                if (rectFaceToCaster.Dot(bcenter - m.Caster.Position) > 0)
-                    rectFaceToCaster *= -1;
-
-                var corner1 = bcenter + rectFaceToCaster.OrthoL() * 3 + rectFaceToCaster;
-                var corner2 = bcenter + rectFaceToCaster.OrthoR() * 3 + rectFaceToCaster;
-                var angle1 = Angle.FromDirection(corner1 - m.Caster.Position).Normalized();
-                var angle2 = Angle.FromDirection(corner2 - m.Caster.Position).Normalized();
-
-                if (angle2.Rad < -MathF.PI * 0.5f && angle1.Rad > MathF.PI * 0.5f)
-                {
-                    var amax2 = angle2 + 360.Degrees();
-                    angle2 = angle1;
-                    angle1 = amax2;
-                }
-
-                var center = (angle1.Rad + angle2.Rad) * 0.5f;
-                var width = MathF.Abs(angle2.Rad - center);
-                list.ForbidArcByLength(center.Radians().Normalized(), width.Radians());
-                m.BlockingWalls.Add((corner1, corner2));
+                var c = corners.ToList();
+                for (var i = 0; i < c.Count - 1; i++)
+                    segments.Add((c[i] + center, c[i + 1] + center));
+                segments.Add((c[^1] + center, c[0] + center));
             }
+
+            foreach (var block in _barriers.BarrierPositions.Where(b => b.Shade == m.Shade))
+                addBlock(block.Center, CurveApprox.Rect(block.Orientation, 1, 3));
+            addBlock(Arena.Center, CurveApprox.Rect(new(Arena.Bounds.Radius, 0), new(0, Arena.Bounds.Radius)));
+
+            foreach (var point in Visibility.Compute(m.Caster.Position, segments))
+            {
+                if (m.Blockers.Count == 0 || !m.Blockers[^1].AlmostEqual(point, 0.1f))
+                    m.Blockers.Add(point);
+            }
+
+            if (m.Blockers.Count > 0)
+                m.Blockers.Add(m.Blockers[0]);
         }
     }
 
