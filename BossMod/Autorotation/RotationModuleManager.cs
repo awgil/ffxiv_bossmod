@@ -46,6 +46,11 @@ public sealed class RotationModuleManager : IDisposable
         (uint)Roleplay.SID.RolePlaying, // used for almost all solo duties
         (uint)Roleplay.SID.BorrowedFlesh, // used specifically for In from the Cold (Endwalker)
         (uint)Roleplay.SID.FreshPerspective, // sapphire weapon quest
+
+        // hacking interlude gimmick in Paradigm's Breach boss 3
+        (uint)Shadowbringers.Alliance.A34RedGirl.SID.Program000000,
+        (uint)Shadowbringers.Alliance.A34RedGirl.SID.ProgramFFFFFFF,
+
         565, // "Transfiguration" from certain pomanders in Palace of the Dead
         439, // "Toad", palace of the dead
         1546, // "Odder", heaven-on-high
