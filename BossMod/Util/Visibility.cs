@@ -1,5 +1,7 @@
 ﻿namespace BossMod;
 
+// adapted from https://github.com/xaviergonz/visibility-polygon-csharp
+// TODO: rewrite to use our utils (Angle, WDir, etc); slightly annoying because this code assumes that 0 degrees is along the x-axis and that angle increases clockwise instead of ccw
 public static class Visibility
 {
     public record struct Segment(WPos A, WPos B)
@@ -7,8 +9,6 @@ public static class Visibility
         public readonly WPos this[int index] => index == 0 ? A : index == 1 ? B : throw new InvalidOperationException($"index {index} out of bounds");
     }
     record struct SegmentPointAngle(int SegmentIndex, int PointIndex, float Angle);
-
-    public record struct Tri(WPos A, WPos B, WPos C);
 
     private const float Epsilon = 0.0000001f;
 
@@ -113,7 +113,13 @@ public static class Visibility
             }
         }
 
-        return output;
+        // deduplicate resulting points - grid rasterization doesn't like "zero-width" triangles
+        var output2 = new List<WPos>();
+        foreach (var o in output)
+            if (output2.Count == 0 || !output2[^1].AlmostEqual(o, 0.1f))
+                output2.Add(o);
+
+        return output2;
     }
 
     private static SegmentPointAngle[] SortPoints(WPos pos, List<Segment> segments)
@@ -161,9 +167,7 @@ public static class Visibility
                 break;
             map[heap[parent]] = cur;
             map[heap[cur]] = parent;
-            var temp = heap[cur];
-            heap[cur] = heap[parent];
-            heap[parent] = temp;
+            (heap[parent], heap[cur]) = (heap[cur], heap[parent]);
             cur = parent;
         }
     }
@@ -204,9 +208,7 @@ public static class Visibility
                 }
                 map[heap[parent]] = cur;
                 map[heap[cur]] = parent;
-                var temp = heap[cur];
-                heap[cur] = heap[parent];
-                heap[parent] = temp;
+                (heap[parent], heap[cur]) = (heap[cur], heap[parent]);
                 cur = parent;
             }
         }
@@ -221,18 +223,14 @@ public static class Visibility
                 {
                     map[heap[left]] = cur;
                     map[heap[cur]] = left;
-                    var temp = heap[left];
-                    heap[left] = heap[cur];
-                    heap[cur] = temp;
+                    (heap[cur], heap[left]) = (heap[left], heap[cur]);
                     cur = left;
                 }
                 else if (right < heap.Count && LessThan(heap[right], heap[cur], position, segments, destination))
                 {
                     map[heap[right]] = cur;
                     map[heap[cur]] = right;
-                    var temp = heap[right];
-                    heap[right] = heap[cur];
-                    heap[cur] = temp;
+                    (heap[cur], heap[right]) = (heap[right], heap[cur]);
                     cur = right;
                 }
                 else
