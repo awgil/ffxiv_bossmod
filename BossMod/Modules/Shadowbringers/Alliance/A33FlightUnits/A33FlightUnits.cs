@@ -1,4 +1,4 @@
-﻿namespace BossMod.Modules.Shadowbringers.Alliance.A33FlightUnits;
+﻿namespace BossMod.Shadowbringers.Alliance.A33FlightUnits;
 
 public enum OID : uint
 {
