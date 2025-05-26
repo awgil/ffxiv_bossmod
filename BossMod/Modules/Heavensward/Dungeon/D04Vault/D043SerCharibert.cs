@@ -21,10 +21,8 @@ public enum AID : uint
     AltarPyre = 4149, // 1056->location, 3.0s cast, range 80 circle
     BlackKnightsTour = 4153, // 1058->self, 3.0s cast, range 40+R width 4 rect
     WhiteKnightsTour = 4152, // 1057->self, 3.0s cast, range 40+R width 4 rect
-    PureOfHeart = 4151, // 1056->location, no cast, range 80 circle
     TurretCharge = 4155, // D25->player, no cast, single-target
     TurretCharge2 = 4154, // D25->player, no cast, single-target
-    SacredFlame = 4156, // 1059->self, no cast, range 80+R circle
 }
 public enum GID : uint
 {
@@ -40,44 +38,26 @@ class HolyChain(BossModule module) : Components.Chains(module, (uint)TetherID.Ho
 class AltarPyre(BossModule module) : Components.RaidwideCast(module, AID.AltarPyre);
 class BlackKnightsTour(BossModule module) : Components.StandardAOEs(module, AID.BlackKnightsTour, new AOEShapeRect(40, 2));
 class WhiteKnightsTour(BossModule module) : Components.StandardAOEs(module, AID.WhiteKnightsTour, new AOEShapeRect(40, 2));
-class PureOfHeart(BossModule module) : Components.RaidwideCast(module, AID.PureOfHeart);
-class SacredFlame(BossModule module) : Components.RaidwideCast(module, AID.SacredFlame);
-class March(BossModule module) : Components.GenericAOEs(module)
+class March : Components.PersistentVoidzone
 {
     private readonly List<Actor> _knights = [];
-    private static readonly AOEShapeRect rect = new(12, 2, -1);
-    private static readonly AOEShapeCircle circ = new(2.5f);
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+
+    public March(BossModule module) : base(module, 2.5f, _ => [], 15)
     {
-        foreach (var b in _knights)
-        {
-            yield return new AOEInstance(rect, b.Position);
-            yield return new AOEInstance(circ, b.Position) with { Color = ArenaColor.Danger };
-        }
+        Sources = _ => _knights;
     }
+
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.DawnKnight or OID.DuskKnight && !actor.Position.AlmostEqual(Module.Center, 5))
-        {
             _knights.Add(actor);
-        }
     }
     public override void OnActorDestroyed(Actor actor)
     {
         if ((OID)actor.OID is OID.DawnKnight or OID.DuskKnight)
-        {
             _knights.Remove(actor);
-        }
     }
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var b in _knights)
-        {
-            hints.AddForbiddenZone(ShapeContains.Capsule(b.Position, b.Rotation.ToDirection(), 12, 2));
-            hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 2.5f));
-        }
-    }
-};
+}
 class AddsModule(BossModule module) : Components.Adds(module, (uint)OID.HolyFlame)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -101,8 +81,6 @@ class D043SerCharibertStates : StateMachineBuilder
             .ActivateOnEnter<HolyChain>()
             .ActivateOnEnter<BlackKnightsTour>()
             .ActivateOnEnter<WhiteKnightsTour>()
-            .ActivateOnEnter<PureOfHeart>()
-            .ActivateOnEnter<SacredFlame>()
             .ActivateOnEnter<March>()
             .ActivateOnEnter<AddsModule>();
 

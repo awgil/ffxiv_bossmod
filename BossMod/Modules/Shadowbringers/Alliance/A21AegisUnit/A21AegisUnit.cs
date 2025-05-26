@@ -19,7 +19,8 @@ public enum AID : uint
     BeamCannonsMedium = 20597, // Helper->self, no cast, range 40 60-degree cone
     BeamCannonsLarge = 20598, // Helper->self, no cast, range 40 90-degree cone
 
-    ManeuverColliderCannons = 20604, // Boss->self, 7.5s cast, single-target
+    ManeuverColliderCannons1 = 20604, // Boss->self, 7.5s cast, single-target
+    ManeuverColliderCannons2 = 20605, // Boss->self, 8.0s cast, single-target
     ColliderCannons = 20606, // Helper->self, no cast, range 40 30-degree cone
     FiringOrderSurfaceLaser = 20622, // Boss->self, 3.0s cast, single-target
     AerialSupportSwoop = 20690, // Boss->self, 3.0s cast, single-target
@@ -83,9 +84,10 @@ class BeamCannons(BossModule module) : Components.GenericAOEs(module, AID.Maneuv
     }
 }
 
-class ColliderCannons(BossModule module) : Components.GenericAOEs(module, AID.ManeuverColliderCannons)
+class ColliderCannons(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
+    private Angle _rotation;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -93,14 +95,23 @@ class ColliderCannons(BossModule module) : Components.GenericAOEs(module, AID.Ma
         {
             var src = Module.PrimaryActor;
             for (var i = 0; i < 5; i++)
-                yield return new AOEInstance(new AOEShapeCone(30, 15.Degrees()), src.Position, src.Rotation + (72 * i).Degrees(), _activation);
+                yield return new AOEInstance(new AOEShapeCone(30, 15.Degrees()), src.Position, src.Rotation + _rotation + (72 * i).Degrees(), _activation);
         }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == WatchedAction)
-            _activation = Module.CastFinishAt(spell, 0.5f);
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.ManeuverColliderCannons1:
+                _activation = Module.CastFinishAt(spell, 0.5f);
+                _rotation = default;
+                break;
+            case AID.ManeuverColliderCannons2:
+                _activation = Module.CastFinishAt(spell, 0.5f);
+                _rotation = -90.Degrees();
+                break;
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

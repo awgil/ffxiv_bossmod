@@ -25,13 +25,13 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
         Exec(primary);
     }
 
-    protected void UseAction(Roleplay.AID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default) => UseAction(ActionID.MakeSpell(action), target, additionalPriority, targetPos);
-    protected void UseAction(ActionID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default)
+    protected void UseAction(Roleplay.AID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default, Angle? facingAngle = null) => UseAction(ActionID.MakeSpell(action), target, additionalPriority, targetPos, facingAngle);
+    protected void UseAction(ActionID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         var def = ActionDefinitions.Instance[action];
         if (def == null)
             return;
-        Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + additionalPriority, castTime: def.CastTime - 0.5f, targetPos: targetPos); // TODO[cast-time]-xan: review, doesn't look right...
+        Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + additionalPriority, castTime: def.CastTime - 0.5f, targetPos: targetPos, facingAngle: facingAngle);
     }
 
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);

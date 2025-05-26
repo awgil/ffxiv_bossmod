@@ -140,6 +140,12 @@ public enum AID : uint
     MedicaII = 21888,
     Break = 21921,
 
+    // ShB alliance raid 3 hacking minigame
+    LiminalFireWhite = 24619,
+    LiminalFireBlack = 24620,
+    F0SwitchToBlack = 24621,
+    F0SwitchToWhite = 24622,
+
     // Thancred - Frosty Reception
     SwiftDeception = 27432,
     SilentTakedown = 27433,
@@ -391,6 +397,11 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.CureII);
         d.RegisterSpell(AID.MedicaII);
         d.RegisterSpell(AID.Break);
+
+        d.RegisterSpell(AID.LiminalFireWhite);
+        d.RegisterSpell(AID.LiminalFireBlack);
+        d.RegisterSpell(AID.F0SwitchToBlack);
+        d.RegisterSpell(AID.F0SwitchToWhite);
 
         d.RegisterSpell(AID.SwiftDeception);
         d.RegisterSpell(AID.SilentTakedown);

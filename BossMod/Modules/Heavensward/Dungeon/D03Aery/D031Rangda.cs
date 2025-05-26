@@ -33,9 +33,8 @@ public enum TetherID : uint
     LightningRod = 6,
 }
 
-class ElectricPredation(BossModule module) : Components.StandardAOEs(module, AID.ElectricPredation, new AOEShapeCone(8, 45.Degrees()));
+class ElectricPredation(BossModule module) : Components.Cleave(module, AID.ElectricPredation, new AOEShapeCone(8, 45.Degrees()));
 class ElectricCachexia(BossModule module) : Components.StandardAOEs(module, AID.ElectricCachexia, new AOEShapeDonut(7, 60));
-//class IonosphericCharge(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(0), (uint)TetherID.LightningRod, AID.LightningRod);
 class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, 3);
 class LightningRod(BossModule module) : BossComponent(module)
 {
@@ -67,23 +66,10 @@ class LightningRod(BossModule module) : BossComponent(module)
                 Arena.AddCircle(enemy.Position, 6, ArenaColor.Safe);
     }
 }
-//class Ground(BossModule module) : Components.SelfTargetedAOEs(module, AID.Ground, new AOEShapeRect(40, 2));
+// electrocution also involves a random line baits mechanic but it does so little damage it's not worth hinting
 class Electrocution(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Electrocution, 17, stopAtWall: true);
-//class Electrocution2(BossModule module) : Components.RaidwideCast(module, AID.Electrocution2);
-class Reflux(BossModule module) : Components.SingleTargetCast(module, AID.Reflux);
-class Adds(BossModule module) : Components.Adds(module, (uint)OID.Leyak)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var e in hints.PotentialTargets)
-            e.Priority = (OID)e.Actor.OID switch
-            {
-                OID.Leyak => 2,
-                OID.Boss => 1,
-                _ => 0
-            };
-    }
-};
+class Adds(BossModule module) : Components.Adds(module, (uint)OID.Leyak, 2);
+
 class D031RangdaStates : StateMachineBuilder
 {
     public D031RangdaStates(BossModule module) : base(module)
@@ -94,7 +80,6 @@ class D031RangdaStates : StateMachineBuilder
             .ActivateOnEnter<LightningBolt>()
             .ActivateOnEnter<LightningRod>()
             .ActivateOnEnter<Electrocution>()
-            .ActivateOnEnter<Reflux>()
             .ActivateOnEnter<Adds>();
 
     }

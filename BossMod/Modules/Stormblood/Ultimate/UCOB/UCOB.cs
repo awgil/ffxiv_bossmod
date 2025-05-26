@@ -16,7 +16,7 @@ public class UCOB(WorldState ws, Actor primary) : BossModule(ws, primary, new(0,
     public Actor? Nael() => _nael;
     public Actor? BahamutPrime() => _bahamutPrime;
 
-    public override bool PrioritizeAllEnemies => true;
+    public override bool ShouldPrioritizeAllEnemies => true;
 
     protected override void UpdateModule()
     {

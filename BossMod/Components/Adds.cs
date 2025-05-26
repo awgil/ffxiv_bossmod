@@ -8,7 +8,7 @@ public class Adds(BossModule module, uint oid, int priority = 0) : BossComponent
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (priority > 0)
+        if (priority >= 0)
             hints.PrioritizeTargetsByOID(oid, priority);
     }
 
@@ -39,7 +39,7 @@ public class AddsMulti(BossModule module, uint[] oids, int priority = 0) : BossC
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (priority > 0)
+        if (priority >= 0)
             hints.PrioritizeTargetsByOID(OIDs, priority);
     }
 

@@ -127,7 +127,7 @@ class PrimeBladeDonutTeleport(BossModule module) : Components.GenericAOEs(module
 class ThreePartsDisdain(BossModule module) : Components.StackWithCastTargets(module, AID.ThreePartsDisdainCast, 6);
 class R012LaserGround(BossModule module) : Components.StandardAOEs(module, AID.R012LaserGround, 6);
 class R012LaserSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.R012LaserSpread, 6);
-class R012LaserTank(BossModule module) : Components.BaitAwayCast(module, AID.R012LaserTank, new AOEShapeCircle(6));
+class R012LaserTank(BossModule module) : Components.BaitAwayCast(module, AID.R012LaserTank, new AOEShapeCircle(6), centerAtTarget: true);
 
 class A25Compound2PStates : StateMachineBuilder
 {
