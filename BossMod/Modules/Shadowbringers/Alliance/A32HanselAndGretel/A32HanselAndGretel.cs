@@ -89,6 +89,7 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
+    StrongerTogether = 1, // Hansel->Gretel
     _Gen_Tether_chn_pchange_t0a1 = 151, // Gretel->Hansel
 }
 
@@ -163,6 +164,41 @@ class SeedOfMagicBeta(BossModule module) : Components.StandardAOEs(module, AID._
 class Lamentation1(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Lamentation);
 class Lamentation2(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Lamentation1);
 
+class StrongerTogether(BossModule module) : BossComponent(module)
+{
+    private Actor? _boss1;
+    private Actor? _boss2;
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.StrongerTogether && (OID)source.OID is OID.Hansel or OID.Gretel)
+        {
+            _boss1 = source;
+            _boss2 = WorldState.Actors.Find(tether.Target);
+        }
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.StrongerTogether)
+        {
+            _boss1 = _boss2 = null;
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_boss1?.TargetID == actor.InstanceID || _boss2?.TargetID == actor.InstanceID)
+            hints.Add("Separate bosses!");
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        if (_boss1 is { } b1 && _boss2 is { } b2)
+            Arena.AddLine(b1.Position, b2.Position, ArenaColor.Danger);
+    }
+}
+
 class A32HanselAndGretelStates : StateMachineBuilder
 {
     public A32HanselAndGretelStates(A32HanselAndGretel module) : base(module)
@@ -170,6 +206,7 @@ class A32HanselAndGretelStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<UpgradedShield1>()
             .ActivateOnEnter<UpgradedShield2>()
+            .ActivateOnEnter<StrongerTogether>()
             .ActivateOnEnter<Wail1>()
             .ActivateOnEnter<Wail2>()
             .ActivateOnEnter<CripplingBlow1>()
