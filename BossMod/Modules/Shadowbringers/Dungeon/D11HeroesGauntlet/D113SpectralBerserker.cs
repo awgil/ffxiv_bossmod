@@ -213,6 +213,7 @@ class WildHole(BossModule module) : Components.CastCounter(module, AID.WildRampa
     public DateTime UnsafeAt;
 
     public bool Safe => UnsafeAt > WorldState.CurrentTime;
+    public float HoleSize => Safe ? 7f : 8f; // 7.5 is too big to reliably dodge the rage and 7 is too small to stay out from the berzerk.
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
@@ -224,7 +225,7 @@ class WildHole(BossModule module) : Components.CastCounter(module, AID.WildRampa
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var z in _zones)
-            Arena.ZoneCircle(z, 8, UnsafeAt > WorldState.CurrentTime ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+            Arena.ZoneCircle(z, HoleSize, UnsafeAt > WorldState.CurrentTime ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -234,7 +235,7 @@ class WildHole(BossModule module) : Components.CastCounter(module, AID.WildRampa
             var safe = UnsafeAt > WorldState.CurrentTime;
             hints.AddForbiddenZone(p =>
             {
-                var inHole = _zones.Any(z => p.InCircle(z, 8));
+                var inHole = _zones.Any(z => p.InCircle(z, HoleSize));
                 return safe ? !inHole : inHole;
             }, UnsafeAt);
         }
@@ -248,7 +249,7 @@ class WildHole(BossModule module) : Components.CastCounter(module, AID.WildRampa
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var inHole = _zones.Any(z => actor.Position.InCircle(z, 8));
+        var inHole = _zones.Any(z => actor.Position.InCircle(z, HoleSize));
         if (Safe)
             hints.Add("Hide from AOE!", !inHole);
         else if (inHole)
