@@ -33,7 +33,7 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.EarthlyStar).As<StarOption>("EarthlyStar", "E.Star", 200) //AoE GCD heal, 60s CD, 10s + 10s effect duration
             .AddOption(StarOption.None, "None", "Do not use automatically")
-            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 10, ActionTargets.Area, 62)
+            .AddOption(StarOption.Use, "Earthly Star", "Use Earthly Star", 60, 20, ActionTargets.Area, 62)
             .AddOption(StarOption.End, "Stellar Detonation", "Use Stellar Detonation", 0, 1, ActionTargets.Self, 62)
             .AddAssociatedActions(AST.AID.EarthlyStar, AST.AID.StellarDetonation);
 
@@ -45,13 +45,13 @@ public sealed class ClassASTUtility(RotationModuleManager manager, Actor player)
             .AddOption(HoroscopeOption.End, "UseEx", "Use Enhanced Horoscope", 0, 1, ActionTargets.Self, 76)
             .AddAssociatedActions(AST.AID.Horoscope, AST.AID.HoroscopeEnd);
 
-        DefineSimpleConfig(res, Track.NeutralSect, "NeutralSect", "Sect", 250, AST.AID.NeutralSect, 30); //Self oGCD buffs, 120s CD, 20s heal+ / 30s buffed Aspected casts effect duration  
+        DefineSimpleConfig(res, Track.NeutralSect, "NeutralSect", "Sect", 250, AST.AID.NeutralSect, 20); //Self oGCD buffs, 120s CD, 20s heal+ / 30s buffed Aspected casts effect duration  
         DefineSimpleConfig(res, Track.Exaltation, "Exaltation", "Exalt", 100, AST.AID.Exaltation, 8); //ST oGCD mit, 60s CD, 8s effect duration
 
         res.Define(Track.Macrocosmos).As<MacrocosmosOption>("Macrocosmos", "Macro", 300) //AoE GCD heal (after damage taken), 180s CD, 15s effect duration
             .AddOption(MacrocosmosOption.None, "None", "Do not use automatically")
-            .AddOption(MacrocosmosOption.Use, "Use", "Use Macrocosmos", 120, 2, ActionTargets.Hostile, 90)
-            .AddOption(MacrocosmosOption.End, "UseEx", "Use Microcosmos", 0, 1, ActionTargets.Hostile, 90)
+            .AddOption(MacrocosmosOption.Use, "Use", "Use Macrocosmos", 180, 15, ActionTargets.Self, 90, defaultPriority: ActionQueue.Priority.ManualGCD - 1)
+            .AddOption(MacrocosmosOption.End, "UseEx", "Use Microcosmos", 0, 1, ActionTargets.Self, 90)
             .AddAssociatedActions(AST.AID.Macrocosmos, AST.AID.MicrocosmosEnd);
 
         DefineSimpleConfig(res, Track.SunSign, "SunSign", "", 290, AST.AID.SunSign, 15); //AoE oGCD mit (only can use when under NeutralSect), 15s effect duration
