@@ -1,5 +1,11 @@
-﻿
-namespace BossMod.Shadowbringers.Alliance.A34RedGirl;
+﻿namespace BossMod.Shadowbringers.Alliance.A34RedGirl;
+
+[ConfigDisplay(Parent = typeof(ShadowbringersConfig), Name = "The Tower at Paradigm's Breach - Red Girl")]
+public class A34RedGirlConfig : ConfigNode
+{
+    [PropertyDisplay("Automatically attack closest enemies during hacking minigame")]
+    public bool AutoHack = true;
+}
 
 public enum OID : uint
 {
@@ -171,15 +177,11 @@ public class A34RedGirl(WorldState ws, Actor primary) : BossModule(ws, primary, 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+
+        var northZ = Arena.Center.Z - Arena.Bounds.Radius;
+
         // avoid janky clip
         foreach (var b in Enemies(OID.BossP2))
-            Arena.ActorInsideBounds(b.Position, b.Rotation, ArenaColor.Enemy);
+            Arena.ActorOutsideBounds(new(b.Position.X, MathF.Max(northZ, b.Position.Z)), b.Rotation, ArenaColor.Enemy);
     }
-}
-
-[ConfigDisplay(Parent = typeof(ShadowbringersConfig), Name = "The Tower at Paradigm's Breach - Red Girl")]
-public class A34RedGirlConfig : ConfigNode
-{
-    [PropertyDisplay("Automatically attack closest enemies during hacking minigame")]
-    public bool AutoHack = true;
 }

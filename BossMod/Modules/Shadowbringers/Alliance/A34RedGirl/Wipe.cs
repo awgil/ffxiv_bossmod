@@ -63,21 +63,22 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
         foreach (var m in _meteors)
         {
             m.Blockers.Clear();
-            List<(WPos, WPos)> segments = [];
+            List<Visibility.LineSegment> segments = [];
 
             void addBlock(WPos center, IEnumerable<WDir> corners)
             {
                 var c = corners.ToList();
                 for (var i = 0; i < c.Count - 1; i++)
-                    segments.Add((c[i] + center, c[i + 1] + center));
-                segments.Add((c[^1] + center, c[0] + center));
+                    segments.Add(new(c[i] + center, c[i + 1] + center));
+                segments.Add(new(c[^1] + center, c[0] + center));
             }
 
             foreach (var block in _barriers.BarrierPositions.Where(b => b.Shade == m.Shade))
                 addBlock(block.Center, CurveApprox.Rect(block.Orientation, 1, 3));
-            addBlock(Arena.Center, CurveApprox.Rect(new(Arena.Bounds.Radius, 0), new(0, Arena.Bounds.Radius)));
+            // use larger radius than arena max, since the algorithm is not designed to work with intersecting line segments - outermost blocks can extend outside arena
+            addBlock(Arena.Center, CurveApprox.Rect(new(30, 0), new(0, 30)));
 
-            m.Blockers.AddRange(Visibility.Compute(m.Caster.Position, segments));
+            m.Blockers.AddRange(Visibility.VisibilityPolygon(m.Caster.Position, segments));
 
             if (m.Blockers.Count > 0)
                 m.Blockers.Add(m.Blockers[0]);

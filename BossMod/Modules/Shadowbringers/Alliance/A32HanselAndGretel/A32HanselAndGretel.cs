@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Shadowbringers.Alliance.A32HanselAndGretel;
+﻿namespace BossMod.Shadowbringers.Alliance.A32HanselAndGretel;
 
 public enum OID : uint
 {

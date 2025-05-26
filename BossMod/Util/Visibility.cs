@@ -1,300 +1,229 @@
 ﻿namespace BossMod;
 
-// adapted from https://github.com/xaviergonz/visibility-polygon-csharp
-// TODO: rewrite to use our utils (Angle, WDir, etc); slightly annoying because this code assumes that 0 degrees is along the x-axis and that angle increases clockwise instead of ccw
+// adapted from https://github.com/trylock/visibility
 public static class Visibility
 {
-    public record struct Segment(WPos A, WPos B)
+    public record struct LineSegment(WPos A, WPos B);
+
+    record struct LineSegmentDistCompare(WPos Origin) : IComparer<LineSegment>
     {
-        public readonly WPos this[int index] => index == 0 ? A : index == 1 ? B : throw new InvalidOperationException($"index {index} out of bounds");
-    }
-    record struct SegmentPointAngle(int SegmentIndex, int PointIndex, float Angle);
+        public readonly int Compare(LineSegment x, LineSegment y) => LessThan(x, y) ? -1 : LessThan(y, x) ? 1 : 0;
 
-    private const float Epsilon = 0.0000001f;
-
-    public static List<WPos> Compute(WPos position, List<(WPos start, WPos end)> segments) => Compute(position, segments.Select(s => new Segment(s.start, s.end)).ToList());
-
-    public static List<WPos> Compute(WPos position, List<Segment> segments)
-    {
-        List<Segment> bounded = [];
-        float minX = position.X, minY = position.Z, maxX = position.X, maxY = position.Z;
-        for (var i = 0; i < segments.Count; i++)
+        private readonly bool LessThan(LineSegment x, LineSegment y)
         {
-            for (var j = 0; j < 2; j++)
+            var a = x.A;
+            var b = x.B;
+            var c = y.A;
+            var d = y.B;
+
+            if (ComputeOrientation(Origin, a, b) == Orientation.Collinear)
+                throw new ArgumentException("AB must not be collinear with origin");
+            if (ComputeOrientation(Origin, c, d) == Orientation.Collinear)
+                throw new ArgumentException("CD must not be collinear with origin");
+
+            if (ApproxEqual(b, c) || ApproxEqual(b, d))
+                (a, b) = (b, a);
+            if (ApproxEqual(a, d))
+                (c, d) = (d, c);
+
+            if (ApproxEqual(a, c))
             {
-                minX = MathF.Min(minX, segments[i][j].X);
-                minY = MathF.Min(minY, segments[i][j].Z);
-                maxX = MathF.Max(maxX, segments[i][j].X);
-                maxY = MathF.Max(maxY, segments[i][j].Z);
+                var oad = ComputeOrientation(Origin, a, d);
+                var oab = ComputeOrientation(Origin, a, b);
+                if (ApproxEqual(b, d) || oad != oab)
+                    return false;
+                return ComputeOrientation(a, b, d) != ComputeOrientation(a, b, Origin);
             }
-            bounded.Add(new(segments[i][0], segments[i][1]));
-        }
-        --minX;
-        --minY;
-        ++maxX;
-        ++maxY;
 
-        bounded.Add(new(new(minX, minY), new(maxX, minY)));
-        bounded.Add(new(new(maxX, minY), new(maxX, maxY)));
-        bounded.Add(new(new(maxX, maxY), new(minX, maxY)));
-        bounded.Add(new(new(minX, maxY), new(minX, minY)));
-
-        var sorted = SortPoints(position, bounded);
-        var map = Utils.MakeArray(bounded.Count, -1);
-
-        var heap = new List<int>();
-        var start = new WPos(position.X + 1, position.Z);
-        for (var i = 0; i < bounded.Count; i++)
-        {
-            var a1 = Angle_(bounded[i][0], position);
-            var a2 = Angle_(bounded[i][1], position);
-            var active = (a1 > -180.0 && a1 <= 0.0 && a2 <= 180.0 && a2 >= 0.0 && a2 - a1 > 180.0) ||
-                 (a2 > -180.0 && a2 <= 0.0 && a1 <= 180.0 && a1 >= 0.0 && a1 - a2 > 180.0);
-            if (active)
-                Insert(i, heap, position, bounded, start, map);
-        }
-
-        var output = new List<WPos>();
-
-        for (var i = 0; i < sorted.Length;)
-        {
-            var extend = false;
-            var shorten = false;
-            var orig = i;
-            var vertex = bounded[sorted[i].SegmentIndex][sorted[i].PointIndex];
-            var oldSegment = heap[0];
-            do
+            var cda = ComputeOrientation(c, d, a);
+            var cdb = ComputeOrientation(c, d, b);
+            if (cdb == Orientation.Collinear && cda == Orientation.Collinear)
+                return (Origin - a).LengthSq() < (Origin - c).LengthSq();
+            else if (cda == cdb || cda == Orientation.Collinear || cdb == Orientation.Collinear)
             {
-                if (map[sorted[i].SegmentIndex] != -1)
+                var cdo = ComputeOrientation(c, d, Origin);
+                return cdo == cda || cdo == cdb;
+            }
+            else
+            {
+                var abo = ComputeOrientation(a, b, Origin);
+                return abo != ComputeOrientation(a, b, c);
+            }
+        }
+    }
+
+    record struct AngleCompare(WPos Vertex) : IComparer<WPos>
+    {
+        public readonly int Compare(WPos x, WPos y) => LessThan(x, y) ? -1 : 1;
+
+        private readonly bool LessThan(WPos a, WPos b)
+        {
+            var is_a_left = StrictlyLess(a.X, Vertex.X);
+            var is_b_left = StrictlyLess(b.X, Vertex.X);
+            if (is_a_left != is_b_left)
+                return is_b_left;
+
+            if (ApproxEqual(a.X, Vertex.X) && ApproxEqual(b.X, Vertex.X))
+            {
+                if (!StrictlyLess(a.Z, Vertex.Z) || !StrictlyLess(b.Z, Vertex.Z))
+                    return StrictlyLess(b.Z, a.Z);
+                return StrictlyLess(a.Z, b.Z);
+            }
+
+            var oa = a - Vertex;
+            var ob = b - Vertex;
+            var det = WDir.Cross(oa, ob);
+            if (ApproxEqual(det, 0))
+                return oa.LengthSq() < ob.LengthSq();
+            return det < 0;
+        }
+    }
+
+    public enum Orientation
+    {
+        LeftTurn = 1,
+        RightTurn = -1,
+        Collinear = 0
+    }
+
+    public static Orientation ComputeOrientation(WPos a, WPos b, WPos c)
+    {
+        var det = WDir.Cross(b - a, c - a);
+        var a1 = StrictlyLess(0, det) ? 1 : 0;
+        var a2 = StrictlyLess(det, 0) ? 1 : 0;
+        return (Orientation)(a1 - a2);
+    }
+
+    private static bool StrictlyLess(float a, float b) => (b - a) > MathF.Max(MathF.Abs(a), MathF.Abs(b)) * float.Epsilon;
+    private static bool ApproxEqual(float a, float b) => MathF.Abs(a - b) <= MathF.Max(MathF.Abs(a), MathF.Abs(b)) * float.Epsilon;
+    private static bool ApproxEqual(WPos a, WPos b) => ApproxEqual(a.X, b.X) && ApproxEqual(a.Z, b.Z);
+
+    enum EventType
+    {
+        Start,
+        End
+    }
+
+    record struct Vevent(EventType Type, LineSegment Segment)
+    {
+        public readonly WPos Point => Segment.A;
+    }
+
+    public static List<WPos> VisibilityPolygon(WPos point, IEnumerable<LineSegment> obstacles)
+    {
+        var cmpDist = new LineSegmentDistCompare(point);
+        var state = new SortedSet<LineSegment>(cmpDist);
+        var events = new List<Vevent>();
+
+        foreach (var segment in obstacles)
+        {
+            var pab = ComputeOrientation(point, segment.A, segment.B);
+            if (pab == Orientation.Collinear)
+                continue;
+            else if (pab == Orientation.RightTurn)
+            {
+                events.Add(new(EventType.Start, segment));
+                events.Add(new(EventType.End, new(segment.B, segment.A)));
+            }
+            else
+            {
+                events.Add(new(EventType.Start, new(segment.B, segment.A)));
+                events.Add(new(EventType.End, segment));
+            }
+
+            WPos a = segment.A, b = segment.B;
+            if (a.X > b.X)
+                (a, b) = (b, a);
+
+            var abp = ComputeOrientation(a, b, point);
+            if (abp == Orientation.RightTurn && (ApproxEqual(b.X, point.X) || (a.X < point.X && point.X < b.X)))
+                state.Add(segment);
+        }
+
+        var cmpAngle = new AngleCompare(point);
+        events.Sort((a, b) =>
+        {
+            if (ApproxEqual(a.Point, b.Point))
+                return a.Type == EventType.End && b.Type == EventType.Start ? -1 : 1;
+            return cmpAngle.Compare(a.Point, b.Point);
+        });
+
+        var vertices = new List<WPos>();
+        foreach (var evt in events)
+        {
+            if (evt.Type == EventType.End)
+                state.RemoveWhere(s => cmpDist.Compare(s, evt.Segment) == 0);
+
+            if (state.Count == 0)
+                vertices.Add(evt.Point);
+            else if (cmpDist.Compare(evt.Segment, state.Min!) < 0)
+            {
+                var ray = new Ray(point, evt.Point - point);
+                var nearest_segment = state.Min!;
+                var intersects = ray.Intersects(nearest_segment, out var intersection);
+                if (!intersects)
+                    throw new ArgumentException("ray intersects line segment L iff L is in the state");
+                if (evt.Type == EventType.Start)
                 {
-                    if (sorted[i].SegmentIndex == oldSegment)
-                    {
-                        extend = true;
-                        vertex = bounded[sorted[i].SegmentIndex][sorted[i].PointIndex];
-                    }
-                    Remove(map[sorted[i].SegmentIndex], heap, position, bounded, vertex, map);
+                    vertices.Add(intersection);
+                    vertices.Add(evt.Point);
                 }
                 else
                 {
-                    Insert(sorted[i].SegmentIndex, heap, position, bounded, vertex, map);
-                    if (heap[0] != oldSegment)
-                    {
-                        shorten = true;
-                    }
-                }
-                ++i;
-                if (i >= sorted.Length)
-                {
-                    break;
-                }
-            } while (sorted[i].Angle < sorted[orig].Angle + Epsilon);
-
-            if (extend)
-            {
-                output.Add(vertex);
-                var cur = IntersectLines(bounded[heap[0]][0], bounded[heap[0]][1], position, vertex);
-                if (cur.HasValue && !Equal(cur.Value, vertex))
-                {
-                    output.Add(cur.Value);
+                    vertices.Add(evt.Point);
+                    vertices.Add(intersection);
                 }
             }
-            else if (shorten)
+
+            if (evt.Type == EventType.Start)
+                state.Add(evt.Segment);
+        }
+
+        var top = 0;
+        for (var it = 0; it < vertices.Count; it++)
+        {
+            var prev = top == 0 ? vertices.Count - 1 : top - 1;
+            var next = it + 1 == vertices.Count ? 0 : it + 1;
+            if (ComputeOrientation(vertices[prev], vertices[it], vertices[next]) != Orientation.Collinear)
+                vertices[top++] = vertices[it];
+        }
+
+        return vertices.Take(top).ToList();
+    }
+
+    record struct Ray(WPos Origin, WDir Direction)
+    {
+        public readonly bool Intersects(LineSegment segment, out WPos outPoint)
+        {
+            outPoint = default;
+            var ao = Origin - segment.A;
+            var ab = segment.B - segment.A;
+            var det = WDir.Cross(ab, Direction);
+            if (ApproxEqual(det, 0))
             {
-                var add1 = IntersectLines(bounded[oldSegment][0], bounded[oldSegment][1], position, vertex);
-                if (add1.HasValue)
-                {
-                    output.Add(add1.Value);
-                }
-                var add2 = IntersectLines(bounded[heap[0]][0], bounded[heap[0]][1], position, vertex);
-                if (add2.HasValue)
-                {
-                    output.Add(add2.Value);
-                }
-            }
-        }
-
-        // deduplicate resulting points - grid rasterization doesn't like "zero-width" triangles
-        var output2 = new List<WPos>();
-        foreach (var o in output)
-            if (output2.Count == 0 || !output2[^1].AlmostEqual(o, 0.1f))
-                output2.Add(o);
-
-        return output2;
-    }
-
-    private static SegmentPointAngle[] SortPoints(WPos pos, List<Segment> segments)
-    {
-        var segCount = segments.Count;
-        var points = new SegmentPointAngle[segCount * 2];
-        for (var i = 0; i < segCount; i++)
-        {
-            for (var j = 0; j < 2; ++j)
-            {
-                var a = Angle_(segments[i][j], pos);
-                points[2 * i + j] = new(i, j, a);
-            }
-        }
-
-        points.SortBy(p => p.Angle);
-        return points;
-    }
-
-    private static float Angle_(WPos a, WPos b) => MathF.Atan2(b.Z - a.Z, b.X - a.X) * 180f / MathF.PI;
-    private static float Angle2(WPos a, WPos b, WPos c)
-    {
-        var a1 = Angle_(a, b);
-        var a2 = Angle_(b, c);
-        var a3 = a1 - a2;
-        if (a3 < 0)
-            a3 += 360;
-        if (a3 > 360)
-            a3 -= 360;
-        return a3;
-    }
-
-    private static void Insert(int index, List<int> heap, WPos position, List<Segment> segments, WPos destination, int[] map)
-    {
-        var intersect = IntersectLines(segments[index][0], segments[index][1], position, destination);
-        if (intersect == null)
-            return;
-        var cur = heap.Count;
-        heap.Add(index);
-        map[index] = cur;
-        while (cur > 0)
-        {
-            var parent = Parent(cur);
-            if (!LessThan(heap[cur], heap[parent], position, segments, destination))
-                break;
-            map[heap[parent]] = cur;
-            map[heap[cur]] = parent;
-            (heap[parent], heap[cur]) = (heap[cur], heap[parent]);
-            cur = parent;
-        }
-    }
-
-    private static int Pop(List<int> heap)
-    {
-        if (heap.Count > 0)
-        {
-            var index = heap.Count - 1;
-            var val = heap[index];
-            heap.RemoveAt(index);
-            return val;
-        }
-        //throw new InvalidOperationException();
-        return 0;
-    }
-
-    private static void Remove(int index, List<int> heap, WPos position, List<Segment> segments, WPos destination, int[] map)
-    {
-        map[heap[index]] = -1;
-        if (index == heap.Count - 1)
-        {
-            Pop(heap);
-            return;
-        }
-        heap[index] = Pop(heap);
-        map[heap[index]] = index;
-        var cur = index;
-        var parent = Parent(cur);
-        if (cur != 0 && LessThan(heap[cur], heap[parent], position, segments, destination))
-        {
-            while (cur > 0)
-            {
-                parent = Parent(cur);
-                if (!LessThan(heap[cur], heap[parent], position, segments, destination))
-                {
-                    break;
-                }
-                map[heap[parent]] = cur;
-                map[heap[cur]] = parent;
-                (heap[parent], heap[cur]) = (heap[cur], heap[parent]);
-                cur = parent;
-            }
-        }
-        else
-        {
-            while (true)
-            {
-                var left = Child(cur);
-                var right = left + 1;
-                if (left < heap.Count && LessThan(heap[left], heap[cur], position, segments, destination) &&
-                    (right == heap.Count || LessThan(heap[left], heap[right], position, segments, destination)))
-                {
-                    map[heap[left]] = cur;
-                    map[heap[cur]] = left;
-                    (heap[cur], heap[left]) = (heap[left], heap[cur]);
-                    cur = left;
-                }
-                else if (right < heap.Count && LessThan(heap[right], heap[cur], position, segments, destination))
-                {
-                    map[heap[right]] = cur;
-                    map[heap[cur]] = right;
-                    (heap[cur], heap[right]) = (heap[right], heap[cur]);
-                    cur = right;
-                }
+                var abo = ComputeOrientation(segment.A, segment.B, Origin);
+                if (abo != Orientation.Collinear)
+                    return false;
+                var dist_a = WDir.Dot(ao, Direction);
+                var dist_b = WDir.Dot(Origin - segment.B, Direction);
+                if (dist_a > 0 && dist_b > 0)
+                    return false;
+                else if ((dist_a > 0) != (dist_b > 0))
+                    outPoint = Origin;
+                else if (dist_a > dist_b)
+                    outPoint = segment.A;
                 else
-                {
-                    break;
-                }
-            }
-        }
-    }
-
-    private static int Parent(int index) => (index - 1) / 2;
-    private static int Child(int index) => 2 * index + 1;
-
-    private static bool LessThan(int index1, int index2, WPos position, List<Segment> segments, WPos destination)
-    {
-        var inter1Null = IntersectLines(segments[index1][0], segments[index1][1], position, destination);
-        var inter2Null = IntersectLines(segments[index2][0], segments[index2][1], position, destination);
-        if (inter1Null == null || inter2Null == null)
-            return false;
-
-        var inter1 = inter1Null.Value;
-        var inter2 = inter2Null.Value;
-        if (!Equal(inter1, inter2))
-        {
-            var d1 = Distance(inter1, position);
-            var d2 = Distance(inter2, position);
-            return d1 < d2;
-        }
-
-        var end1 = 0;
-        if (Equal(inter1, segments[index1][0]))
-            end1 = 1;
-        var end2 = 0;
-        if (Equals(inter2, segments[index2][0]))
-            end2 = 1;
-
-        var a1 = Angle2(segments[index1][end1], inter1, position);
-        var a2 = Angle2(segments[index2][end2], inter2, position);
-        if (a1 < 180)
-        {
-            if (a2 > 180)
+                    outPoint = segment.B;
                 return true;
-            return a2 < a1;
-        }
-        return a1 < a2;
-    }
+            }
 
-    private static bool Equal(WPos a, WPos b) => a.AlmostEqual(b, Epsilon);
-    private static float Distance(WPos a, WPos b)
-    {
-        var dx = a.X - b.X;
-        var dy = a.Z - b.Z;
-        return dx * dx + dy * dy;
-    }
+            var u = WDir.Cross(ao, Direction) / det;
+            if (StrictlyLess(u, 0) || StrictlyLess(1, u))
+                return false;
 
-    private static WPos? IntersectLines(WPos a1, WPos a2, WPos b1, WPos b2)
-    {
-        float dbx = b2.X - b1.X, dby = b2.Z - b1.Z, dax = a2.X - a1.X, day = a2.Z - a1.Z;
-        var uB = dby * dax - dbx * day;
-        if (uB != 0)
-        {
-            var ua = (dbx * (a1.Z - b1.Z) - dby * (a1.X - b1.X)) / uB;
-            return new(a1.X - ua * -dax, a1.Z - ua * -day);
+            var t = -WDir.Cross(ab, ao) / det;
+            outPoint = Origin + t * Direction;
+            return ApproxEqual(t, 0) || t > 0;
         }
-        return null;
     }
 }

@@ -1,4 +1,3 @@
-
 namespace BossMod.Heavensward.Dungeon.D04Vault.D042SerGrinnauxTheBull;
 
 public enum OID : uint
