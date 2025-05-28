@@ -65,6 +65,8 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
+        GoalZoneSingle(25);
+
         if (NumAOETargets > 2)
             PushGCD(AID.Gravity, BestAOETarget);
 

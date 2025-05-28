@@ -99,10 +99,10 @@ class Blocks(BossModule module) : Components.GenericAOEs(module, AID.BlockSpawn)
         base.AddAIHints(slot, actor, assignment, hints);
 
         foreach (var b in BlockCenters)
-            hints.TemporaryObstacles.Add(ShapeContains.Rect(b, new WDir(0, 1), 4, 4, 4));
+            hints.TemporaryObstacles.Add(ShapeContains.Rect(b, new WDir(0, 1), 4.5f, 4.5f, 4.5f));
     }
 }
-class Lunge(BossModule module) : Components.Knockback(module, AID.Lunge, true)
+class Lunge(BossModule module) : Components.Knockback(module, AID.Lunge)
 {
     private readonly List<Actor> _casters = [];
     private readonly Blocks _blocks = module.FindComponent<Blocks>()!;
@@ -127,7 +127,7 @@ class Lunge(BossModule module) : Components.Knockback(module, AID.Lunge, true)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_casters.FirstOrDefault() is { } source)
+        if (_casters.FirstOrDefault() is { } source && !IsImmune(slot, Module.CastFinishAt(source.CastInfo)))
         {
             var safeRects = ShapeContains.Union([.. _blocks.BlockCenters.Select(c => ShapeContains.Rect(c, source.Rotation + 180.Degrees(), 60, 0, 4))]);
             hints.AddForbiddenZone(p => !safeRects(p), Module.CastFinishAt(source.CastInfo));
@@ -169,6 +169,6 @@ class A31KnaveOfHeartsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9955)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9955)]
 public class A31KnaveOfHearts(WorldState ws, Actor primary) : BossModule(ws, primary, new(-800, -724.40625f), new ArenaBoundsSquare(30));
 

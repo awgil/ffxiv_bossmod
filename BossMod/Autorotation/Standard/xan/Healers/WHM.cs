@@ -85,15 +85,15 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             }
         }
 
+        if (SacredSight > 0)
+            PushGCD(AID.GlareIV, BestMiseryTarget);
+
         if (NumHolyTargets > 2)
             PushGCD(AID.Holy, Player);
 
         // TODO make a track for this
         if (Unlocked(AID.AfflatusMisery) && Lily == 3)
             PushGCD(AID.AfflatusSolace, Player);
-
-        if (SacredSight > 0)
-            PushGCD(AID.GlareIV, primaryTarget);
 
         PushGCD(AID.Stone, primaryTarget);
 

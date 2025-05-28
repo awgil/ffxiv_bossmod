@@ -170,6 +170,8 @@ public sealed class RotationModuleManager : IDisposable
                 Presets.Clear();
             Presets.Add(p);
         }
+        if (p != ForceDisable)
+            Presets.Remove(ForceDisable);
         DirtyActiveModules(true);
     }
 

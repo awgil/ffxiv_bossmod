@@ -2,7 +2,7 @@
 
 class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
 {
-    private BitMask _targets = new();
+    private BitMask _targets;
     private Angle _direction;
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -11,7 +11,7 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
             _targets.Set(slot);
     }
 
-    public WDir? PredictedDirection(Actor player)
+    public WDir? PredictedMovement(Actor player)
     {
         // ostensibly 24 units (6 units/sec * 4s debuff), actually 21-23 units depending on latency/acceleration, but we report a conservative estimate to avoid walking into the wall
         // the pylon explosions go off about a second after the debuff expires, so there is still time to adjust to a safe spot
@@ -25,11 +25,11 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_ChildsPlayNorth:
+            case AID.ChildsPlayNorth:
                 _direction = 180.Degrees();
                 AddMarches(Module.CastFinishAt(spell));
                 break;
-            case AID._Weaponskill_ChildsPlayEast:
+            case AID.ChildsPlayEast:
                 _direction = 90.Degrees();
                 AddMarches(Module.CastFinishAt(spell));
                 break;
@@ -53,7 +53,7 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_PayingThePiper)
+        if ((SID)status.ID == SID.PayingThePiper)
         {
             if (State.TryGetValue(actor.InstanceID, out var st))
                 st.PendingMoves.Clear();
@@ -64,18 +64,47 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_PayingThePiper)
+        if ((SID)status.ID == SID.PayingThePiper)
             DeactivateForcedMovement(actor);
     }
-}
-
-class PylonExplosion(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Explosion, 9)
-{
-    private readonly ChildsPlay _march = module.FindComponent<ChildsPlay>()!;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var displacement = _march.PredictedDirection(actor) is { } dir ? dir * -1 : default;
+        if (State.TryGetValue(actor.InstanceID, out var state) && state.PendingMoves.Count > 0)
+        {
+            var dir = _direction.ToDirection();
+            var march = dir * 24;
+            var dangerWallCenter = Arena.Center + dir * 20;
+
+            // prevent walking into death wall
+            hints.AddForbiddenZone(ShapeContains.Rect(dangerWallCenter, dangerWallCenter - march, 20), state.PendingMoves[0].activation);
+            hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center, Arena.Center - march, 2.5f), state.PendingMoves[0].activation);
+        }
+    }
+}
+
+class PylonExplosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, 9)
+{
+    private readonly ChildsPlay _march = module.FindComponent<ChildsPlay>()!;
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_march.PredictedMovement(actor) is { } d)
+        {
+            var predictedPosition = actor.Position + d;
+
+            if (Casters.Any(c => predictedPosition.InCircle(c.CastInfo!.LocXZ, 9)))
+                hints.Add("Aim for safe spot!");
+        }
+        else
+        {
+            base.AddHints(slot, actor, hints);
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var displacement = _march.PredictedMovement(actor) is { } dir ? dir * -1 : default;
 
         foreach (var c in Casters)
             hints.AddForbiddenZone(Shape, c.Position + displacement, default, Module.CastFinishAt(c.CastInfo));

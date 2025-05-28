@@ -192,6 +192,6 @@ class A15WalkingFortressStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9153)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9153)]
 public class A15WalkingFortress(WorldState ws, Actor primary) : BossModule(ws, primary, new(900, 427), new ArenaBoundsSquare(30));
 

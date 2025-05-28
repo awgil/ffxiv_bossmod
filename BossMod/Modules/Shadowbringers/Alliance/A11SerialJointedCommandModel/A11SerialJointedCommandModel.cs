@@ -285,5 +285,5 @@ class A11SerialJointedCommandModelStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9141)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9141)]
 public class A11SerialJointedCommandModel(WorldState ws, Actor primary) : BossModule(ws, primary, new(-500, 0), new ArenaBoundsSquare(23.5f));

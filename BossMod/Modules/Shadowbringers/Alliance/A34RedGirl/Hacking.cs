@@ -34,8 +34,8 @@ class Hacking(BossModule module) : BossComponent(module)
     }
 }
 
-class HackingWalls(BossModule module) : Components.AddsMulti(module, [OID._Gen_WhiteWall, OID._Gen_BlackWall]);
-class HackingPylons(BossModule module) : Components.AddsMulti(module, [OID._Gen_BlackPylon, OID._Gen_WhitePylon]);
+class HackingWalls(BossModule module) : Components.AddsMulti(module, [OID.WhiteWall, OID.BlackWall]);
+class HackingPylons(BossModule module) : Components.AddsMulti(module, [OID.BlackPylon, OID.WhitePylon]);
 class RedSphere(BossModule module) : Components.Adds(module, (uint)OID.RedSphere);
 
 class HackRotation(WorldState ws) : QuestBattle.UnmanagedRotation(ws, 10)
@@ -68,8 +68,8 @@ class HackRotation(WorldState ws) : QuestBattle.UnmanagedRotation(ws, 10)
 
         var targetColor = (OID)closest.Actor.OID switch
         {
-            OID._Gen_WhiteWall or OID._Gen_WhitePylon => Shade.White,
-            OID._Gen_BlackWall or OID._Gen_BlackPylon => Shade.Black,
+            OID.WhiteWall or OID.WhitePylon => Shade.White,
+            OID.BlackWall or OID.BlackPylon => Shade.Black,
             _ => default
         };
 
@@ -82,8 +82,8 @@ class HackRotation(WorldState ws) : QuestBattle.UnmanagedRotation(ws, 10)
         {
             var waveColor = (AID)castInfo.Action.ID switch
             {
-                AID._Weaponskill_WaveBlack => Shade.Black,
-                AID._Weaponskill_WaveWhite => Shade.White,
+                AID.WaveBlack => Shade.Black,
+                AID.WaveWhite => Shade.White,
                 _ => default
             };
             if (waveColor != default && waveColor != color && Player.Position.InCircle(redSphere.Actor.Position, 22))

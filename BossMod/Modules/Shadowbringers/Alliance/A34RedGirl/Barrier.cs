@@ -39,10 +39,10 @@ class BarrierVoidzone(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class GenerateBarrier1(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GenerateBarrier5, new AOEShapeRect(6, 1.5f));
-class GenerateBarrier2(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GenerateBarrier6, new AOEShapeRect(12, 1.5f));
-class GenerateBarrier3(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GenerateBarrier3, new AOEShapeRect(18, 1.5f));
-class GenerateBarrier4(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GenerateBarrier, new AOEShapeRect(24, 1.5f));
+class GenerateBarrier1(BossModule module) : Components.StandardAOEs(module, AID.GenerateBarrierShort, new AOEShapeRect(6, 1.5f));
+class GenerateBarrier2(BossModule module) : Components.StandardAOEs(module, AID.GenerateBarrierMidShort, new AOEShapeRect(12, 1.5f));
+class GenerateBarrier3(BossModule module) : Components.StandardAOEs(module, AID.GenerateBarrierMidLong, new AOEShapeRect(18, 1.5f));
+class GenerateBarrier4(BossModule module) : Components.StandardAOEs(module, AID.GenerateBarrierLong, new AOEShapeRect(24, 1.5f));
 
 class Barrier(BossModule module) : BossComponent(module)
 {
