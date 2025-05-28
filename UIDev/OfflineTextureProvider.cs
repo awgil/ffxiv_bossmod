@@ -139,6 +139,10 @@ internal class OfflineTextureProvider(IRenderer render) : ITextureProvider
 
         return string.Format(format, iconId / 1000, type, iconId);
     }
+
+    IDrawListTextureWrap ITextureProvider.CreateDrawListTexture(string? debugName) => throw new NotImplementedException();
+    Task<IDalamudTextureWrap> ITextureProvider.CreateFromClipboardAsync(string? debugName, CancellationToken cancellationToken) => throw new NotImplementedException();
+    bool ITextureProvider.HasClipboardImage() => throw new NotImplementedException();
 }
 
 internal record class OfflineTextureWrap(TextureWrap Wrap) : IDalamudTextureWrap

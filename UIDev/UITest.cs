@@ -78,6 +78,11 @@ class UITest
         {
             // this hack is needed to ensure we use correct global scale
             newFrame.Invoke();
+
+            // dalamud trying to draw a fadeout effect causes a deadlock in uidev as the TextureManager service isn't present
+            foreach (var w in Service.WindowSystem.Windows)
+                w.DisableFadeInFadeOut = true;
+
             Service.WindowSystem.Draw();
         };
 
@@ -101,8 +106,8 @@ class UITest
         var cont = dala.GetType("Dalamud.IoC.Internal.ServiceContainer")!;
 
         var provideFn = wrapper.GetMethod("Provide", BindingFlags.Static | BindingFlags.Public);
-        var inst = Activator.CreateInstance(cont);
-        provideFn!.Invoke(null, [inst]);
+        provideFn!.Invoke(null, [Activator.CreateInstance(cont)]);
+        // provideFn!.Invoke(null, [Activator.CreateInstance(texManager)]);
 
         // all of this is taken straight from dalamud
         ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
