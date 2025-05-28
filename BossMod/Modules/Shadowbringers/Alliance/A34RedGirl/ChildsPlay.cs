@@ -2,7 +2,7 @@
 
 class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
 {
-    private BitMask _targets = new();
+    private BitMask _targets;
     private Angle _direction;
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -25,11 +25,11 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_ChildsPlayNorth:
+            case AID.ChildsPlayNorth:
                 _direction = 180.Degrees();
                 AddMarches(Module.CastFinishAt(spell));
                 break;
-            case AID._Weaponskill_ChildsPlayEast:
+            case AID.ChildsPlayEast:
                 _direction = 90.Degrees();
                 AddMarches(Module.CastFinishAt(spell));
                 break;
@@ -53,7 +53,7 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_PayingThePiper)
+        if ((SID)status.ID == SID.PayingThePiper)
         {
             if (State.TryGetValue(actor.InstanceID, out var st))
                 st.PendingMoves.Clear();
@@ -64,7 +64,7 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_PayingThePiper)
+        if ((SID)status.ID == SID.PayingThePiper)
             DeactivateForcedMovement(actor);
     }
 
@@ -83,7 +83,7 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
     }
 }
 
-class PylonExplosion(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Explosion, 9)
+class PylonExplosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, 9)
 {
     private readonly ChildsPlay _march = module.FindComponent<ChildsPlay>()!;
 

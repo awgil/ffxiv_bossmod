@@ -17,80 +17,73 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_ = 24572, // Boss->player, no cast, single-target
-    _Spell_ScreamingScore = 23517, // Boss->self, 5.0s cast, range 60 circle
-    _Spell_MadeMagic = 23511, // Boss->self, 7.0s cast, range 50 width 30 rect
-    _Spell_MadeMagic1 = 23510, // Boss->self, 7.0s cast, range 50 width 30 rect
-    _Spell_LighterNote = 23512, // Boss->self, 3.0s cast, single-target
-    _Spell_LighterNote1 = 23513, // Helper->location, no cast, range 6 circle
-    _Spell_LighterNote2 = 23514, // Helper->location, no cast, range 6 circle
-    _Spell_RhythmRings = 23508, // Boss->self, 3.0s cast, single-target
-    _Spell_MagicalInterference = 23509, // Helper->self, no cast, range 50 width 10 rect
-    _Spell_SeedOfMagic = 23518, // Boss->self, 3.0s cast, single-target
-    _Spell_ScatteredMagic = 23519, // Helper->location, 3.0s cast, range 4 circle
-    _Spell_DarkerNote = 23515, // Boss->self, 5.0s cast, single-target
-    _Spell_DarkerNote1 = 23516, // Helper->player, 5.0s cast, range 6 circle
-    _Spell_Eminence = 24021, // Boss->location, 5.0s cast, range 60 circle
-    _AutoAttack_1 = 24575, // BossP2->player, no cast, single-target
-    _Spell_Pervasion = 23520, // BossP2->self, 3.0s cast, single-target
-    _Spell_RecreateStructure = 23521, // BossP2->self, 3.0s cast, single-target
-    _Weaponskill_UnevenFooting = 23522, // Helper->self, 1.9s cast, range 80 width 30 rect
-    _Spell_RecreateSignal = 23523, // BossP2->self, 3.0s cast, single-target
-    _Spell_MixedSignals = 23524, // BossP2->self, 3.0s cast, single-target
-    _Weaponskill_Crash = 23525, // Helper->self, 0.8s cast, range 50 width 10 rect
-    _Spell_LighterNote3 = 23564, // BossP2->self, 3.0s cast, single-target
-    _Spell_ScreamingScore1 = 23541, // BossP2->self, 5.0s cast, range 71 circle
-    _Spell_DarkerNote2 = 23562, // BossP2->self, 5.0s cast, single-target
-    _Weaponskill_HeavyArms = 23534, // BossP2->self, 7.0s cast, single-target
-    _Weaponskill_HeavyArms1 = 23535, // Helper->self, 7.0s cast, range 44 width 100 rect
-    _Weaponskill_HeavyArms2 = 23533, // BossP2->self, 7.0s cast, range 100 width 12 rect
-    _Spell_Distortion = 23529, // BossP2->self, 3.0s cast, range 60 circle
-    _Spell_TheFinalSong = 23530, // BossP2->self, 3.0s cast, single-target
-    _Spell_PlaceOfPower = 23565, // Helper->location, 3.0s cast, range 6 circle
-    _Spell_WhiteDissonance = 23531, // Helper->self, no cast, range 60 circle
-    _Spell_BlackDissonance = 23532, // Helper->self, no cast, range 60 circle
-    _Weaponskill_PillarImpact = 23536, // BossP2->self, 10.0s cast, single-target
-    _Weaponskill_Shockwave = 23538, // Helper->self, 6.5s cast, range 71 circle, distance 35 kb, can be invulned
-    _Weaponskill_Shockwave1 = 23537, // Helper->self, 6.5s cast, range 7 circle
-    _Weaponskill_PillarImpact1 = 23566, // BossP2->self, no cast, single-target
-    _Weaponskill_Towerfall = 23539, // BossP2->self, 3.0s cast, single-target
-    _Weaponskill_Towerfall1 = 23540, // Helper->self, 3.0s cast, range 70 width 14 rect
-    _Ability_ = 23526, // 3191->self, no cast, single-target
-    _Spell_Distortion1 = 24664, // BossP2->self, 3.0s cast, range 60 circle
-    _Spell_ScatteredMagic1 = 23528, // 3192->player, no cast, single-target
-    _Ability_1 = 23527, // 3191->self, no cast, single-target
-    _Spell_RhythmRings1 = 23563, // BossP2->self, 3.0s cast, single-target
+    AutoAttack = 24572, // Boss->player, no cast, single-target
+    ScreamingScore = 23517, // Boss->self, 5.0s cast, range 60 circle
+    MadeMagic1 = 23511, // Boss->self, 7.0s cast, range 50 width 30 rect
+    MadeMagic2 = 23510, // Boss->self, 7.0s cast, range 50 width 30 rect
+    LighterNoteCast = 23512, // Boss->self, 3.0s cast, single-target
+    LighterNoteFirst = 23513, // Helper->location, no cast, range 6 circle
+    LighterNoteRest = 23514, // Helper->location, no cast, range 6 circle
+    RhythmRings = 23508, // Boss->self, 3.0s cast, single-target
+    MagicalInterference = 23509, // Helper->self, no cast, range 50 width 10 rect
+    SeedOfMagic = 23518, // Boss->self, 3.0s cast, single-target
+    ScatteredMagic = 23519, // Helper->location, 3.0s cast, range 4 circle
+    DarkerNoteCast = 23515, // Boss->self, 5.0s cast, single-target
+    DarkerNote = 23516, // Helper->player, 5.0s cast, range 6 circle
+    Eminence = 24021, // Boss->location, 5.0s cast, range 60 circle, stun, phase transition
+
+    AutoAttackP2 = 24575, // BossP2->player, no cast, single-target
+    Pervasion = 23520, // BossP2->self, 3.0s cast, single-target
+    RecreateStructure = 23521, // BossP2->self, 3.0s cast, single-target
+    UnevenFooting = 23522, // Helper->self, 1.9s cast, range 80 width 30 rect
+    RecreateSignal = 23523, // BossP2->self, 3.0s cast, single-target
+    MixedSignals = 23524, // BossP2->self, 3.0s cast, single-target
+    Crash = 23525, // Helper->self, 0.8s cast, range 50 width 10 rect
+    LighterNoteCastP2 = 23564, // BossP2->self, 3.0s cast, single-target
+    ScreamingScoreP2 = 23541, // BossP2->self, 5.0s cast, range 71 circle
+    DarkerNoteP2 = 23562, // BossP2->self, 5.0s cast, single-target
+    HeavyArmsCast = 23534, // BossP2->self, 7.0s cast, single-target
+    HeavyArmsSides = 23535, // Helper->self, 7.0s cast, range 44 width 100 rect
+    HeavyArmsMiddle = 23533, // BossP2->self, 7.0s cast, range 100 width 12 rect
+    Distortion1 = 23529, // BossP2->self, 3.0s cast, range 60 circle
+    TheFinalSong = 23530, // BossP2->self, 3.0s cast, single-target
+    PlaceOfPower = 23565, // Helper->location, 3.0s cast, range 6 circle
+    WhiteDissonance = 23531, // Helper->self, no cast, range 60 circle, gaze mechanic
+    BlackDissonance = 23532, // Helper->self, no cast, range 60 circle, gaze mechanic
+    PillarImpact = 23536, // BossP2->self, 10.0s cast, single-target
+    Shockwave = 23538, // Helper->self, 6.5s cast, range 71 circle, distance 35 kb, can be invulned
+    ShockwaveCircle = 23537, // Helper->self, 6.5s cast, range 7 circle, instant kill
+    PillarImpactInstant = 23566, // BossP2->self, no cast, single-target
+    TowerfallCast = 23539, // BossP2->self, 3.0s cast, single-target
+    Towerfall = 23540, // Helper->self, 3.0s cast, range 70 width 14 rect
+    Distortion2 = 24664, // BossP2->self, 3.0s cast, range 60 circle
+    ScatteredMagicP2 = 23528, // 3192->player, no cast, single-target
+    RhythmRingsP2 = 23563, // BossP2->self, 3.0s cast, single-target
 }
 
 public enum SID : uint
 {
-    _Gen_VulnerabilityUp = 1789, // Boss/Helper/3192/BossP2->player, extra=0x1/0x2/0x3/0x4/0x5
-    _Gen_Weakness = 43, // none->player, extra=0x0
-    _Gen_Transcendent = 418, // none->player, extra=0x0
-    _Gen_DownForTheCount = 2408, // Boss->player, extra=0xEC7
-    _Gen_ = 2056, // none->BossP2, extra=0xE1
-    _Gen_Distorted = 2535, // BossP2->player, extra=0x0
-    _Gen_BrinkOfDeath = 44, // none->player, extra=0x0
+    Distorted = 2535, // BossP2->player, extra=0x0
 }
 
 public enum IconID : uint
 {
     LighterNote = 1, // player->self
-    _Gen_Icon_target_ae_s5f = 139, // player->self
+    Spread = 139, // player->self
 }
 
 public enum TetherID : uint
 {
-    _Gen_Tether_chn_m0354_0c = 54, // Helper/BossP2->BossP2/Helper
+    TrafficLights = 54, // Helper/BossP2->BossP2/Helper
 }
 
-class ScreamingScore(BossModule module) : Components.RaidwideCast(module, AID._Spell_ScreamingScore);
-class MadeMagic(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_MadeMagic, AID._Spell_MadeMagic1], new AOEShapeRect(50, 15));
-class ScatteredMagic(BossModule module) : Components.StandardAOEs(module, AID._Spell_ScatteredMagic, 4);
-class DarkerNote(BossModule module) : Components.BaitAwayCast(module, AID._Spell_DarkerNote1, new AOEShapeCircle(6), centerAtTarget: true);
-class Eminence(BossModule module) : Components.RaidwideCast(module, AID._Spell_Eminence, "Knockback + stun");
+class ScreamingScore(BossModule module) : Components.RaidwideCast(module, AID.ScreamingScore);
+class MadeMagic(BossModule module) : Components.GroupedAOEs(module, [AID.MadeMagic1, AID.MadeMagic2], new AOEShapeRect(50, 15));
+class ScatteredMagic(BossModule module) : Components.StandardAOEs(module, AID.ScatteredMagic, 4);
+class DarkerNote(BossModule module) : Components.BaitAwayCast(module, AID.DarkerNote, new AOEShapeCircle(6), centerAtTarget: true);
+class Eminence(BossModule module) : Components.RaidwideCast(module, AID.Eminence, "Knockback + stun");
 
-class RecreateStructure(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_UnevenFooting)
+class RecreateStructure(BossModule module) : Components.GenericAOEs(module, AID.UnevenFooting)
 {
     private readonly List<(Actor Actor, DateTime Activation)> _casters = [];
 
@@ -112,8 +105,8 @@ class RecreateStructure(BossModule module) : Components.GenericAOEs(module, AID.
     }
 }
 
-class HeavyArms1(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HeavyArms1, new AOEShapeRect(44, 50));
-class HeavyArms2(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HeavyArms2, new AOEShapeRect(100, 6));
+class HeavyArms1(BossModule module) : Components.StandardAOEs(module, AID.HeavyArmsSides, new AOEShapeRect(44, 50));
+class HeavyArms2(BossModule module) : Components.StandardAOEs(module, AID.HeavyArmsMiddle, new AOEShapeRect(100, 6));
 
 class A36FalseIdolStates : StateMachineBuilder
 {

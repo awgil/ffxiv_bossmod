@@ -173,7 +173,7 @@ class A12HobbesStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9143)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9143)]
 public class A12Hobbes(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, CircleBounds)
 {
     public static readonly WPos ArenaCenter = new(-805, -240);

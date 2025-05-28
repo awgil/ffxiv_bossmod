@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Alliance.A36FalseIdol;
 
-class LighterNote(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6), AID._Spell_LighterNote2)
+class LighterNote(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(6), AID.LighterNoteRest)
 {
     private readonly List<(Actor Actor, DateTime Spawn)> _indicators = [];
 
@@ -47,7 +47,7 @@ class LighterNote(BossModule module) : Components.Exaflare(module, new AOEShapeC
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_LighterNote1)
+        if ((AID)spell.Action.ID == AID.LighterNoteFirst)
         {
             NumCasts++;
             foreach (var l in Lines)
@@ -77,7 +77,7 @@ class LighterNote(BossModule module) : Components.Exaflare(module, new AOEShapeC
 class LighterNoteSpread(BossModule module) : BossComponent(module)
 {
     private readonly Actor?[] _indicators = new Actor?[PartyState.MaxAllianceSize];
-    private BitMask _tagged = new();
+    private BitMask _tagged;
     private DateTime _spawn;
 
     public override void OnActorCreated(Actor actor)

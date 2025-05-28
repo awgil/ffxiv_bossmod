@@ -188,7 +188,7 @@ public static class Visibility
                 vertices[top++] = vertices[it];
         }
 
-        return vertices.Take(top).ToList();
+        return [.. vertices.Take(top)];
     }
 
     record struct Ray(WPos Origin, WDir Direction)

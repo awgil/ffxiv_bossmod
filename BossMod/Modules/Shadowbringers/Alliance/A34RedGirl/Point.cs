@@ -9,7 +9,7 @@ class Point(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID is OID._Gen_BlackLance or OID._Gen_WhiteLance && !_casters.Any(c => c.Caster.Position.AlmostEqual(actor.Position, 1)))
+        if ((OID)actor.OID is OID.BlackLance or OID.WhiteLance && !_casters.Any(c => c.Caster.Position.AlmostEqual(actor.Position, 1)))
         {
             var isBlocked = _barriers.BarrierPositions.Any(b => b.Center.InRect(actor.Position, actor.Rotation, 50, 0, 3));
             _casters.Add((actor, WorldState.FutureTime(7.7f), isBlocked));
@@ -18,7 +18,7 @@ class Point(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_PointBlack or AID._Weaponskill_PointBlack1 or AID._Weaponskill_PointWhite or AID._Weaponskill_PointWhite1)
+        if ((AID)spell.Action.ID is AID.PointBlackLong or AID.PointBlackShort or AID.PointWhiteShort or AID.PointWhiteLong)
         {
             NumCasts++;
             _casters.Clear();
@@ -27,7 +27,7 @@ class Point(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if ((OID)actor.OID is OID._Gen_BlackLance or OID._Gen_WhiteLance && id is 0x11D1 or 0x11D2)
+        if ((OID)actor.OID is OID.BlackLance or OID.WhiteLance && id is 0x11D1 or 0x11D2)
         {
             var isBlocked = _barriers.BarrierPositions.Any(b => b.Center.InRect(actor.Position, actor.Rotation, 50, 0, 3));
             _casters.Add((actor, WorldState.FutureTime(8), isBlocked));

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Alliance.A36FalseIdol;
 
-class MixedSignals(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Crash)
+class MixedSignals(BossModule module) : Components.GenericAOEs(module, AID.Crash)
 {
     private DateTime _activation;
     private readonly bool[] _lanes = new bool[5];

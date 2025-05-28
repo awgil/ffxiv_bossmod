@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Alliance.A36FalseIdol;
 
-class Distortion(BossModule module) : Components.GenericAOEs(module, AID._Spell_PlaceOfPower)
+class Distortion(BossModule module) : Components.GenericAOEs(module, AID.PlaceOfPower)
 {
     private DateTime _activation;
 
@@ -23,7 +23,7 @@ class Distortion(BossModule module) : Components.GenericAOEs(module, AID._Spell_
     }
 }
 
-class Dissonance(BossModule module) : Components.CastCounterMulti(module, [AID._Spell_WhiteDissonance, AID._Spell_BlackDissonance])
+class Dissonance(BossModule module) : Components.CastCounterMulti(module, [AID.WhiteDissonance, AID.BlackDissonance])
 {
     private readonly List<(Actor Ring, A34RedGirl.Shade Color, DateTime Activation)> _rings = [];
 

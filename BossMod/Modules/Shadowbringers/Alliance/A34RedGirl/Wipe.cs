@@ -36,8 +36,8 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
     {
         var color = (AID)spell.Action.ID switch
         {
-            AID._Weaponskill_WipeWhite => Shade.White,
-            AID._Weaponskill_WipeBlack => Shade.Black,
+            AID.WipeWhite => Shade.White,
+            AID.WipeBlack => Shade.Black,
             _ => default
         };
         if (color != default)
@@ -87,7 +87,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_WipeWhite or AID._Weaponskill_WipeBlack)
+        if ((AID)spell.Action.ID is AID.WipeWhite or AID.WipeBlack)
         {
             _meteors.RemoveAll(m => m.Caster == caster);
             if (_meteors.Count == 0)

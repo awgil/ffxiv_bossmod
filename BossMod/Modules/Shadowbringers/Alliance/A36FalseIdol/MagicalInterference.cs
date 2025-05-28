@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Shadowbringers.Alliance.A36FalseIdol;
 
-class MagicalInterference(BossModule module) : Components.GenericAOEs(module, AID._Spell_MagicalInterference)
+class MagicalInterference(BossModule module) : Components.GenericAOEs(module, AID.MagicalInterference)
 {
     private readonly List<(WPos Source, DateTime Activation)> _casters = [];
 

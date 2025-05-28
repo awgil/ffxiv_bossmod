@@ -14,7 +14,7 @@ class DiffuseEnergy(BossModule module) : Components.GenericRotatingAOE(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_DiffuseEnergy)
+        if ((AID)spell.Action.ID == AID.DiffuseEnergy)
         {
             _casters.Add(caster);
             if (_direction.TryGetValue(caster.InstanceID, out var dir))
@@ -48,7 +48,7 @@ class DiffuseEnergy(BossModule module) : Components.GenericRotatingAOE(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_DiffuseEnergy or AID._Weaponskill_DiffuseEnergy1)
+        if ((AID)spell.Action.ID is AID.DiffuseEnergy or AID.DiffuseEnergyRepeat)
             AdvanceSequence(caster.Position, spell.Rotation, WorldState.CurrentTime);
     }
 }
