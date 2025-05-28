@@ -53,6 +53,7 @@ class LighterNote(BossModule module) : Components.Exaflare(module, new AOEShapeC
             foreach (var l in Lines)
                 if (l.Next.AlmostEqual(spell.TargetXZ, 0.5f))
                     AdvanceLine(l, spell.TargetXZ);
+            Prune();
         }
 
         if (spell.Action == WatchedAction)
@@ -60,12 +61,16 @@ class LighterNote(BossModule module) : Components.Exaflare(module, new AOEShapeC
             NumCasts++;
             var l = Lines.FindIndex(l => l.Next.AlmostEqual(spell.TargetXZ, 0.5f) && l.Rotation.AlmostEqual(caster.Rotation, 0.1f));
             if (l >= 0)
-            {
                 AdvanceLine(Lines[l], spell.TargetXZ);
-                if (!Arena.InBounds(Lines[l].Next))
-                    Lines.RemoveAt(l);
-            }
+            Prune();
         }
+    }
+
+    private void Prune()
+    {
+        for (var i = Lines.Count - 1; i >= 0; i--)
+            if (!Arena.InBounds(Lines[i].Next))
+                Lines.RemoveAt(i);
     }
 }
 
@@ -114,6 +119,14 @@ class LighterNoteSpread(BossModule module) : BossComponent(module)
                 case OID.LighterNoteNS:
                     hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center, default(Angle), 30, 30, 18), _spawn.AddSeconds(LighterNote.LockInDelay));
                     break;
+            }
+        }
+        else
+        {
+            foreach (var p in _tagged.SetBits())
+            {
+                if (_indicators[p] is { } i2)
+                    hints.AddForbiddenZone(new AOEShapeCircle(6), i2.Position, default, _spawn.AddSeconds(LighterNote.LockInDelay));
             }
         }
     }

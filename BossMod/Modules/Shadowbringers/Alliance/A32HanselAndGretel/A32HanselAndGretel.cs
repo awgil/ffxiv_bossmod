@@ -158,7 +158,7 @@ class BloodySweep2(BossModule module) : Components.GroupedAOEs(module, [AID._Wea
 class MagicalConfluence(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID._Gen_MagicalConfluence).Where(e => e.EventState != 7), 8);
 class Breakthrough(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Breakthrough, new AOEShapeRect(53, 16));
 // estimate of falloff
-class UnevenFooting(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_UnevenFooting, new AOEShapeCircle(20));
+class UnevenFooting(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_UnevenFooting, new AOEShapeCircle(22));
 class HungryLance(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_HungryLance, AID._Weaponskill_HungryLance1], new AOEShapeCone(40, 60.Degrees()));
 class SeedOfMagicBeta(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_SeedOfMagicBeta2, 5);
 class Lamentation1(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Lamentation);

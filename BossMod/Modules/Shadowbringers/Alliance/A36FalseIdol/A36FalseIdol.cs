@@ -7,8 +7,12 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x21, Helper type
     LighterNoteEW = 0x318E, // R1.000, x0 (spawn during fight)
     LighterNoteNS = 0x318F, // R1.000, x0 (spawn during fight)
-    _Gen_Energy = 0x3192, // R1.000, x0 (spawn during fight)
-    _Gen_RedGirl = 0x3191, // R3.450, x0 (spawn during fight)
+    RedGirl = 0x3191, // R3.450, x0 (spawn during fight)
+    Energy = 0x3192, // R1.000, x0 (spawn during fight)
+    MagicalInterference = 0x1EB169,
+    WhiteDissonance = 0x1EB16A,
+    BlackDissonance = 0x1EB16B,
+    RecreateStructure = 0x1EB16C,
 }
 
 public enum AID : uint
@@ -82,6 +86,34 @@ public enum TetherID : uint
 
 class ScreamingScore(BossModule module) : Components.RaidwideCast(module, AID._Spell_ScreamingScore);
 class MadeMagic(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_MadeMagic, AID._Spell_MadeMagic1], new AOEShapeRect(50, 15));
+class ScatteredMagic(BossModule module) : Components.StandardAOEs(module, AID._Spell_ScatteredMagic, 4);
+class DarkerNote(BossModule module) : Components.BaitAwayCast(module, AID._Spell_DarkerNote1, new AOEShapeCircle(6), centerAtTarget: true);
+class Eminence(BossModule module) : Components.RaidwideCast(module, AID._Spell_Eminence, "Knockback + stun");
+
+class RecreateStructure(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_UnevenFooting)
+{
+    private readonly List<(Actor Actor, DateTime Activation)> _casters = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeRect(15, 80, 15), c.Actor.Position, c.Actor.Rotation, c.Activation));
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if ((OID)actor.OID == OID.RecreateStructure && state == 0x00010002)
+            _casters.Add((actor, WorldState.FutureTime(9)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            _casters.Clear();
+        }
+    }
+}
+
+class HeavyArms1(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HeavyArms1, new AOEShapeRect(44, 50));
+class HeavyArms2(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HeavyArms2, new AOEShapeRect(100, 6));
 
 class A36FalseIdolStates : StateMachineBuilder
 {
@@ -92,6 +124,16 @@ class A36FalseIdolStates : StateMachineBuilder
             .ActivateOnEnter<MadeMagic>()
             .ActivateOnEnter<LighterNote>()
             .ActivateOnEnter<LighterNoteSpread>()
+            .ActivateOnEnter<MagicalInterference>()
+            .ActivateOnEnter<ScatteredMagic>()
+            .ActivateOnEnter<DarkerNote>()
+            .ActivateOnEnter<Eminence>()
+            .ActivateOnEnter<RecreateStructure>()
+            .ActivateOnEnter<MixedSignals>()
+            .ActivateOnEnter<HeavyArms1>()
+            .ActivateOnEnter<HeavyArms2>()
+            .ActivateOnEnter<Distortion>()
+            .ActivateOnEnter<Dissonance>()
             .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed
                 && module.Enemies(OID.BossP2).All(i => i.IsDeadOrDestroyed);
     }
