@@ -14,5 +14,6 @@ class SisyphusStates : StateMachineBuilder
     }
 }
 
+// TODO: this is a fate, not a CE
 //[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13703)]
 //public class Sisyphus(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));

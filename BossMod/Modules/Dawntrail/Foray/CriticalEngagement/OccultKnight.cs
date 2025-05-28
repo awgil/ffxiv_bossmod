@@ -14,5 +14,6 @@ class OccultKnightStates : StateMachineBuilder
     }
 }
 
+// TODO: fix state machine
 //[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13728)]
-public class OccultKnight(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
+// public class OccultKnight(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));

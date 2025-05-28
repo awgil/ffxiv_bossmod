@@ -14,5 +14,6 @@ class LifereaperStates : StateMachineBuilder
     }
 }
 
+// TODO: this is a fate
 //[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13741)]
 //public class Lifereaper(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
