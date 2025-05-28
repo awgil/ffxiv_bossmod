@@ -76,7 +76,7 @@ class CrystalDragonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13696, DevOnly = true)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13696)]
 public class CrystalDragon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-414, 75), new ArenaBoundsCircle(24.5f))
 {
     public override bool DrawAllPlayers => true;
