@@ -55,8 +55,8 @@ class AgitatedGroan(BossModule module) : Components.RaidwideCast(module, AID.Agi
 
 class LightningCrossingRush(BossModule module) : Components.GenericAOEs(module)
 {
-    private Actor? _source = null;
-    private Angle _currentRotation = default;
+    private Actor? _source;
+    private Angle _currentRotation;
     private readonly List<AOEInstance> _predicted = [];
     private WPos? _prevDestination;
     private readonly List<(Actor, DateTime)> _icons = [];
