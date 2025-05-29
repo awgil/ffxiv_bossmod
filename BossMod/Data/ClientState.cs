@@ -283,6 +283,8 @@ public sealed class ClientState
     public Event<OpDutyActionsChange> DutyActionsChanged = new();
     public sealed record class OpDutyActionsChange(DutyAction[] Slots) : WorldState.Operation
     {
+        public readonly DutyAction[] Slots = Slots;
+
         protected override void Exec(WorldState ws)
         {
             Array.Fill(ws.Client.DutyActions, default);
