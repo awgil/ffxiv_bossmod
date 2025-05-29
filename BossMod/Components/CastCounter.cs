@@ -34,7 +34,7 @@ public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape) : CastCo
         if (WatchedActions.Contains(spell.Action))
         {
             NumCasts++;
-            _casts.Add((spell.TargetXZ == default ? caster.Position : spell.TargetXZ, spell.Rotation));
+            _casts.Add((spell.TargetXZ.AlmostEqual(default, 1) ? caster.Position : spell.TargetXZ, spell.Rotation));
         }
     }
 

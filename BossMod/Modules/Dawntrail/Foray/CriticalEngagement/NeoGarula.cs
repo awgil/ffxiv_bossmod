@@ -103,13 +103,15 @@ class LightningCrossingRush(BossModule module) : Components.GenericAOEs(module)
 
         var srcPos = _prevDestination ?? src.Position;
 
-        var rotation = Angle.FromDirection(actor.Position - srcPos);
         var borderPos = (actor.Position - Arena.Center).Normalized() * 23;
         var destination = Arena.Center + borderPos;
+        var chargeDir = destination - srcPos;
+        var chargeDist = chargeDir.Length();
+        var rotation = Angle.FromDirection(chargeDir);
         _prevDestination = destination;
 
         // charge AOE
-        _predicted.Add(new AOEInstance(new AOEShapeRect(60, 4), srcPos, rotation, highlightTime.AddSeconds(6.4f), Color: ArenaColor.Danger));
+        _predicted.Add(new AOEInstance(new AOEShapeRect(chargeDist, 4), srcPos, rotation, highlightTime.AddSeconds(6.4f), Color: ArenaColor.Danger));
 
         // rumble
         _predicted.Add(new AOEInstance(new AOEShapeCircle(30), destination, rotation, highlightTime.AddSeconds(9.4f)));
