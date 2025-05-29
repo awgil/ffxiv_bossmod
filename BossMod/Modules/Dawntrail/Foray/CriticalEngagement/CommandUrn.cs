@@ -138,7 +138,7 @@ class CommandUrnStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13814)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13814)]
 public class CommandUrn(WorldState ws, Actor primary) : BossModule(ws, primary, new(-352, -608), new ArenaBoundsCircle(19.5f))
 {
     public override bool DrawAllPlayers => true;

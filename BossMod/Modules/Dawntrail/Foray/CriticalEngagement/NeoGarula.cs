@@ -247,7 +247,7 @@ class NeoGarulaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13638)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13638)]
 public class NeoGarula(WorldState ws, Actor primary) : BossModule(ws, primary, new(461, -363), new ArenaBoundsCircle(23))
 {
     public override bool DrawAllPlayers => true;
