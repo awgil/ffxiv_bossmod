@@ -193,11 +193,11 @@ sealed unsafe class DebugAction : IDisposable
             return;
         }
         ImGui.TextUnformatted($"Excel rows: pending={cd->DutyActionManager.PendingContentExActionRowId}, current={cd->DutyActionManager.CurrentContentExActionRowId}");
-        // TODO: fix offset
-        ImGui.TextUnformatted($"Num valid slots: {cd->DutyActionManager.NumValidSlots}, actions present={cd->DutyActionManager.ActionActive[0]}");
-        for (int i = 0; i < 2; ++i)
+        ImGui.TextUnformatted($"Num valid slots: {cd->DutyActionManager.NumValidSlots}, actions present={cd->DutyActionManager.ActionActive[0] && cd->DutyActionManager.NumValidSlots > 0}");
+        for (int i = 0; i < cd->DutyActionManager.NumValidSlots; ++i)
         {
-            ImGui.TextUnformatted($"[{i}]: action={new ActionID(ActionType.Spell, cd->DutyActionManager.ActionId[i])}, active={cd->DutyActionManager.ActionActive[i]}, charges={cd->DutyActionManager.CurCharges[i]}/{cd->DutyActionManager.MaxCharges[i]}");
+            var chargeText = i < 2 ? $"{cd->DutyActionManager.CurCharges[i]}/{cd->DutyActionManager.MaxCharges[i]}" : "?/?";
+            ImGui.TextUnformatted($"[{i}]: action={new ActionID(ActionType.Spell, cd->DutyActionManager.ActionId[i])}, active={cd->DutyActionManager.ActionActive[i]}, charges={chargeText}");
         }
     }
 

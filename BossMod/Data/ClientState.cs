@@ -58,7 +58,7 @@ public sealed class ClientState
     public Stats PlayerStats;
     public float MoveSpeed = 6f;
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
-    public readonly DutyAction[] DutyActions = new DutyAction[2];
+    public readonly DutyAction[] DutyActions = new DutyAction[5];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
     public readonly uint[] BlueMageSpells = new uint[NumBlueMageSpells];
     public readonly short[] ClassJobLevels = new short[NumClassLevels];
@@ -120,7 +120,7 @@ public sealed class ClientState
             yield return new OpCooldown(false, cooldowns);
 
         if (DutyActions.Any(a => a != default))
-            yield return new OpDutyActionsChange(DutyActions[0], DutyActions[1]);
+            yield return new OpDutyActionsChange(DutyActions);
 
         var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.v > 0).ToList();
         if (BozjaHolster.Any(count => count != 0))
@@ -281,15 +281,22 @@ public sealed class ClientState
     }
 
     public Event<OpDutyActionsChange> DutyActionsChanged = new();
-    public sealed record class OpDutyActionsChange(DutyAction Slot0, DutyAction Slot1) : WorldState.Operation
+    public sealed record class OpDutyActionsChange(DutyAction[] Slots) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
-            ws.Client.DutyActions[0] = Slot0;
-            ws.Client.DutyActions[1] = Slot1;
+            Array.Fill(ws.Client.DutyActions, default);
+            for (var i = 0; i < Slots.Length; i++)
+                ws.Client.DutyActions[i] = Slots[i];
             ws.Client.DutyActionsChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0.Action).Emit(Slot0.CurCharges).Emit(Slot0.MaxCharges).Emit(Slot1.Action).Emit(Slot1.CurCharges).Emit(Slot1.MaxCharges);
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CLDA"u8);
+            output.Emit((byte)Slots.Length);
+            foreach (var s in Slots)
+                output.Emit(s.Action).Emit(s.CurCharges).Emit(s.MaxCharges);
+        }
     }
 
     public Event<OpBozjaHolsterChange> BozjaHolsterChanged = new();
