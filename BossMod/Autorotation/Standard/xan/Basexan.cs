@@ -76,6 +76,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected int NextGCDPrio;
     protected uint MP;
 
+    public const float DefaultOGCDPriority = ActionQueue.Priority.Low + 1;
+    public const float DefaultGCDPriority = ActionQueue.Priority.High + 2;
+
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
     // override if some action requires specific runtime checks that aren't covered by the existing framework code
