@@ -51,6 +51,9 @@ public sealed class Replay
         public readonly SortedList<DateTime, Vector4> PosRotHistory = [];
         public readonly SortedList<DateTime, ActorHPMP> HPMPHistory = [];
         public readonly List<Cast> Casts = [];
+        public readonly SortedList<DateTime, uint> EventObjectAnimation = [];
+        public readonly SortedList<DateTime, byte> EventState = [];
+        public readonly SortedList<DateTime, ushort> ActionTimeline = [];
         public float MinRadius = float.MaxValue;
         public float MaxRadius = float.MinValue;
         public bool HasAnyActions;

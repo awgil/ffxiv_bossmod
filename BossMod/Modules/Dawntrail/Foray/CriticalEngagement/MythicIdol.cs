@@ -24,6 +24,7 @@ public enum AID : uint
     ArcaneOrb = 41136, // Helper->location, no cast, range 6 circle
     LotsCastCast = 41138, // Boss->self, 5.0s cast, single-target
     LotsCastHelper = 41764, // Helper->self, no cast, ???
+    LotsCastTank = 41139, // Helper->player, 5.0s cast, range 6 circle
     LostCastSpread = 41140, // Helper->player, 6.0s cast, range 6 circle
     ArcaneLight = 41141, // Boss->self, 5.0s cast, single-target
     ArcaneLightHelper = 41142, // Helper->self, no cast, ???
@@ -35,6 +36,7 @@ class BigBurst(BossModule module) : Components.StandardAOEs(module, AID.BigBurst
 class DeathRay(BossModule module) : Components.StandardAOEs(module, AID.DeathRay, new AOEShapeCone(60, 45.Degrees()));
 class Steelstrike(BossModule module) : Components.GroupedAOEs(module, [AID.SteelstrikeHelper, AID.Steelstrike], new AOEShapeCross(100, 5));
 class LotsCast(BossModule module) : Components.SpreadFromCastTargets(module, AID.LostCastSpread, 6);
+class LotsCastTank(BossModule module) : Components.BaitAwayCast(module, AID.LotsCastTank, new AOEShapeCircle(6), centerAtTarget: true, endsOnCastEvent: true);
 
 class ArcaneOrb(BossModule module) : Components.GenericAOEs(module, AID.ArcaneOrb)
 {
@@ -42,13 +44,19 @@ class ArcaneOrb(BossModule module) : Components.GenericAOEs(module, AID.ArcaneOr
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Take(24).Select(p => new AOEInstance(new AOEShapeCircle(6), p.Position, default, p.Activation));
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ArcaneOrbAppear)
-            _predicted.Add((spell.TargetXZ, WorldState.FutureTime(8.2f)));
+            _predicted.Add((spell.LocXZ, WorldState.FutureTime(9.2f)));
+    }
 
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
         if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
             _predicted.RemoveAll(p => p.Position.AlmostEqual(spell.TargetXZ, 0.5f));
+        }
     }
 }
 
@@ -63,6 +71,7 @@ class MythicIdolStates : StateMachineBuilder
             .ActivateOnEnter<DeathRay>()
             .ActivateOnEnter<Steelstrike>()
             .ActivateOnEnter<LotsCast>()
+            .ActivateOnEnter<LotsCastTank>()
             .ActivateOnEnter<ArcaneOrb>();
     }
 }
