@@ -70,7 +70,7 @@ class Seal(BossModule module) : Components.GenericTowers(module, damageType: AIH
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.Seal)
-            Towers.Add(new(actor.Position, 3, 4, int.MaxValue, activation: WorldState.FutureTime(60)));
+            Towers.Add(new(actor.Position, 3, 4, int.MaxValue, activation: Module.CastFinishAt(Module.PrimaryActor.CastInfo, fallback: DateTime.MaxValue - TimeSpan.FromSeconds(100))));
     }
 
     public override void OnActorEAnim(Actor actor, uint state)

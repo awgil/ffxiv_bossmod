@@ -19,7 +19,7 @@ class OccultKnightStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13728, DevOnly = true)]
-public class OccultKnight(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
+public class OccultKnight(WorldState ws, Actor primary) : BossModule(ws, primary, new(680, -280), new ArenaBoundsCircle(20))
 {
     public override bool DrawAllPlayers => true;
 }
