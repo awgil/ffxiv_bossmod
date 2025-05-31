@@ -22,10 +22,10 @@ public struct NavigationDecision
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
 
-    public const float ForbiddenZoneCushion = 1.5f; // increase to fatten forbidden zones
+    public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
     public const float ActivationTimeCushion = 1; // reduce time between now and activation by this value in seconds; increase for more conservativeness
 
-    public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6)
+    public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
     {
         // build a pathfinding map: rasterize all forbidden zones and goals
         hints.InitPathfindMap(ctx.Map);
@@ -34,8 +34,8 @@ public struct NavigationDecision
         if (hints.GoalZones.Count > 0)
             RasterizeGoalZones(ctx.Map, hints.GoalZones);
 
-        if (ForbiddenZoneCushion > 0)
-            AvoidForbiddenZone(ctx.Map);
+        if (forbiddenZoneCushion > 0)
+            AvoidForbiddenZone(ctx.Map, forbiddenZoneCushion);
 
         // execute pathfinding
         ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
@@ -45,9 +45,9 @@ public struct NavigationDecision
         return new() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore };
     }
 
-    public static void AvoidForbiddenZone(Map map)
+    public static void AvoidForbiddenZone(Map map, float forbiddenZoneCushion)
     {
-        int d = (int)(ForbiddenZoneCushion / map.Resolution);
+        int d = (int)(forbiddenZoneCushion / map.Resolution);
         map.MaxPriority = -1;
         foreach (var (x, y, _) in map.EnumeratePixels())
         {
