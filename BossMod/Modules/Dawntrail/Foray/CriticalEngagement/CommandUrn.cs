@@ -60,6 +60,7 @@ class RockslideTether(BossModule module) : TetherAOEs(module, new AOEShapeCross(
 class StoneSwell(BossModule module) : Components.GroupedAOEs(module, [AID.StoneSwell1, AID.StoneSwell2], new AOEShapeCircle(16));
 class Rockslide(BossModule module) : Components.GroupedAOEs(module, [AID.Rockslide2, AID.Rockslide1], new AOEShapeCross(40, 5));
 class StoneSwellClockwise(BossModule module) : TetherAOEs(module, new AOEShapeCircle(16), TetherID.StoneSwellReverse, [AID.StoneSwell1, AID.StoneSwell2], true);
+class VassalVessel(BossModule module) : Components.Adds(module, (uint)OID.VassalVessel);
 
 class SelfDestruct(BossModule module) : BossComponent(module)
 {
@@ -67,8 +68,6 @@ class SelfDestruct(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.PrioritizeTargetsByOID(OID.VassalVessel, 0);
-
         var nextExplosion = DateTime.MinValue;
 
         foreach (var t in _targets)
@@ -118,7 +117,8 @@ class SelfDestruct(BossModule module) : BossComponent(module)
         {
             if (nextExplosion == default)
                 nextExplosion = t.Item2.AddSeconds(1);
-            Arena.Actor(t.Item1, t.Item2 < nextExplosion ? ArenaColor.Enemy : ArenaColor.Object);
+            if (t.Item2 < nextExplosion)
+                Arena.AddCircle(t.Item1.Position, 1.5f, ArenaColor.Danger);
         }
     }
 }
@@ -134,6 +134,7 @@ class CommandUrnStates : StateMachineBuilder
             .ActivateOnEnter<StoneSwellClockwise>()
             .ActivateOnEnter<RockslideTether>()
             .ActivateOnEnter<Rockslide>()
+            .ActivateOnEnter<VassalVessel>()
             .ActivateOnEnter<SelfDestruct>();
     }
 }

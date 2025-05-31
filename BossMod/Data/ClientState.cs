@@ -46,7 +46,7 @@ public sealed class ClientState
     }
     public record struct Hate(ulong InstanceID, int Enmity);
 
-    public const int NumCooldownGroups = 82;
+    public const int NumCooldownGroups = 87;
     public const int NumClassLevels = 32; // see ClassJob.ExpArrayIndex
     public const int NumBlueMageSpells = 24;
 

@@ -183,20 +183,20 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public void GetCooldowns(Span<Cooldown> cooldowns)
     {
-        // TODO: 7.1: there are now 87 cdgroups
-        // [0,80) are stored in actionmanager, [80,81) are stored in director
+        // [0,80) are stored in actionmanager, [80,87) are stored in director
         var rg = _inst->GetRecastGroupDetail(0);
-        for (int i = 0; i < 80; ++i)
+        var i = 0;
+        for (; i < 80; ++i)
             GetCooldown(ref cooldowns[i], rg++);
         rg = _inst->GetRecastGroupDetail(80);
         if (rg != null)
         {
-            for (int i = 80; i < 82; ++i)
+            for (; i < 87; ++i)
                 GetCooldown(ref cooldowns[i], rg++);
         }
         else
         {
-            for (int i = 80; i < 82; ++i)
+            for (; i < 87; ++i)
                 cooldowns[i] = default;
         }
     }

@@ -25,17 +25,24 @@ public class CastCounterMulti(BossModule module, Enum[] aids) : BossComponent(mo
     }
 }
 
-public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape) : CastCounterMulti(module, aids)
+public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float expireAfter = 30) : CastCounterMulti(module, aids)
 {
-    private readonly List<(WPos Source, Angle Direction)> _casts = [];
+    private readonly List<(WPos Source, Angle Direction, DateTime Timestamp)> _casts = [];
+    public float ExpireAfter = expireAfter;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (WatchedActions.Contains(spell.Action))
         {
             NumCasts++;
-            _casts.Add((spell.TargetXZ.AlmostEqual(default, 1) ? caster.Position : spell.TargetXZ, spell.Rotation));
+            _casts.Add((spell.TargetXZ.AlmostEqual(default, 1) ? caster.Position : spell.TargetXZ, spell.Rotation, WorldState.CurrentTime));
         }
+    }
+
+    public override void Update()
+    {
+        if (ExpireAfter < float.MaxValue)
+            _casts.RemoveAll(c => c.Timestamp.AddSeconds(ExpireAfter) < WorldState.CurrentTime);
     }
 
     public override void AddGlobalHints(GlobalHints hints)

@@ -66,7 +66,7 @@ public sealed unsafe class DebugVfx : IDisposable
 
         Dalamud.Utility.Util.ShowStruct(&player->Vfx);
 
-        using var v = ImRaii.ListBox("VFX");
+        using var v = ImRaii.ListBox("VFX (click item to remove)");
         if (v)
             for (var i = 0; i < _spawnedVfx.Count; i++)
             {
@@ -83,7 +83,7 @@ public sealed unsafe class DebugVfx : IDisposable
     private void CreateTestVfx()
     {
         var pos = Service.ClientState.LocalPlayer?.Position ?? new();
-        var path = "vfx/omen/eff/general_1bf.avfx";
+        var path = "vfx/omen/eff/gl_circle_5007_x1.avfx";
         var pathBytes = System.Text.Encoding.UTF8.GetBytes(path);
 
         var init = new VfxInitData();

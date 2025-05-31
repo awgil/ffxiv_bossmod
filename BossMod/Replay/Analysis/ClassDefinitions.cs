@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using BossMod.Data;
+using ImGuiNET;
 using System.Text;
 
 namespace BossMod.ReplayAnalysis;
@@ -29,6 +30,7 @@ class ClassDefinitions
         public bool PotentiallyRemoved;
         public bool ReplayOnly;
         public bool IsBozjaHolster;
+        public bool IsPhantomAction;
         public bool SeenDifferentInstantAnimLocks;
         public bool SeenDifferentCastAnimLocks;
         public Dictionary<int, List<Entry>> InstantByAnimLock = [];
@@ -140,6 +142,10 @@ class ClassDefinitions
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
             _actionData[BozjaActionID.GetNormal(i)].IsBozjaHolster = true;
 
+        foreach (var id in typeof(PhantomID).GetEnumValues())
+            if ((uint)id > 0)
+                _actionData[ActionID.MakeSpell((PhantomID)id)].IsPhantomAction = true;
+
         // split actions by categories
         foreach (var (aid, data) in _actionData)
         {
@@ -154,6 +160,7 @@ class ClassDefinitions
                     : data.IsRoleAction ? GroupRoleActions
                     : data.LimitBreakLevel > 0 && data.OwningClasses.NumSetBits() > 1 ? GroupLimitBreaks
                     : data.IsBozjaHolster ? "Bozja action"
+                    : data.IsPhantomAction ? "Phantom action"
                     : data.OwningClasses.Any() ? $"Class: {string.Join(" ", data.OwningClasses.SetBits().Select(i => (Class)i))}"
                     : "???",
                 ActionType.Item => "Item",

@@ -347,7 +347,7 @@ public sealed class ActionDefinitions : IDisposable
         };
 
     // check if dashing to target will put the player inside a forbidden zone
-    private static bool IsDashDangerous(WPos from, WPos to, AIHints hints)
+    public static bool IsDashDangerous(WPos from, WPos to, AIHints hints)
     {
         var center = hints.PathfindMapCenter;
         if (!hints.PathfindMapBounds.Contains(to - center))
