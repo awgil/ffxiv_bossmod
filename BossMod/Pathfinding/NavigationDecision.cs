@@ -22,7 +22,7 @@ public struct NavigationDecision
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
 
-    public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
+    public const float ForbiddenZoneCushion = 1.5f; // increase to fatten forbidden zones
     public const float ActivationTimeCushion = 1; // reduce time between now and activation by this value in seconds; increase for more conservativeness
 
     public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6)
@@ -34,12 +34,38 @@ public struct NavigationDecision
         if (hints.GoalZones.Count > 0)
             RasterizeGoalZones(ctx.Map, hints.GoalZones);
 
+        if (ForbiddenZoneCushion > 0)
+            AvoidForbiddenZone(ctx.Map);
+
         // execute pathfinding
         ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
         var bestNodeIndex = ctx.ThetaStar.Execute();
         ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
         var waypoints = GetFirstWaypoints(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
         return new() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore };
+    }
+
+    public static void AvoidForbiddenZone(Map map)
+    {
+        int d = (int)(ForbiddenZoneCushion / map.Resolution);
+        map.MaxPriority = -1;
+        foreach (var (x, y, _) in map.EnumeratePixels())
+        {
+            var cellIndex = map.GridToIndex(x, y);
+            if (map.PixelMaxG[cellIndex] == float.MaxValue)
+            {
+                var neighbourhood = new[]
+                {
+                    (x + d, y), (x - d, y), (x, y + d), (x, y - d),
+                    (x + d, y + d), (x - d, y + d), (x + d, y - d), (x - d, y - d)
+                };
+                if (neighbourhood.Any(p => map.PixelMaxG[map.GridToIndex(map.ClampToGrid(p))] != float.MaxValue))
+                {
+                    map.PixelPriority[cellIndex] -= 0.125f;
+                }
+            }
+            map.MaxPriority = Math.Max(map.MaxPriority, map.PixelPriority[cellIndex]);
+        }
     }
 
     public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, bool> containsFn, DateTime activation, ulong source)> zones, DateTime current, ref float[] scratch)

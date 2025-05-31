@@ -94,6 +94,7 @@ public class Map
     }
 
     public int GridToIndex(int x, int y) => y * Width + x;
+    public int GridToIndex((int x, int y) p) => GridToIndex(p.x, p.y);
     public (int x, int y) IndexToGrid(int index) => (index % Width, index / Width);
     public (int x, int y) FracToGrid(Vector2 frac) => ((int)MathF.Floor(frac.X), (int)MathF.Floor(frac.Y));
     public (int x, int y) WorldToGrid(WPos world) => FracToGrid(WorldToGridFrac(world));
