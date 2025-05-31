@@ -33,19 +33,36 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
 }
 
 // standard AOE, targeted at some location (usually caster), resolves on cast event
-public class StandardAOEs(BossModule module, Enum aid, AOEShape shape, int maxCasts = int.MaxValue, string warningText = "GTFO from aoe!") : GenericAOEs(module, aid, warningText)
+public class StandardAOEs(BossModule module, Enum aid, AOEShape shape, int maxCasts = int.MaxValue, string warningText = "GTFO from aoe!", bool highlightImminent = false) : GenericAOEs(module, aid, warningText)
 {
     public AOEShape Shape { get; init; } = shape;
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
     public uint Color; // can be customized if needed
+    public uint ColorImminent = ArenaColor.Danger;
     public bool Risky = true; // can be customized if needed
     public readonly List<Actor> Casters = [];
 
-    public StandardAOEs(BossModule module, Enum aid, float radius, int maxCasts = int.MaxValue, string warningText = "GTFO from aoe!") : this(module, aid, new AOEShapeCircle(radius), maxCasts, warningText) { }
+    public StandardAOEs(BossModule module, Enum aid, float radius, int maxCasts = int.MaxValue, string warningText = "GTFO from aoe!", bool highlightImminent = false) : this(module, aid, new AOEShapeCircle(radius), maxCasts, warningText, highlightImminent) { }
 
     public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(c => new AOEInstance(Shape, c.CastInfo!.LocXZ, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), Color, Risky));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        DateTime nextActivation = default;
+        foreach (var c in ActiveCasters)
+        {
+            var color = Color;
+            var thisActivation = Module.CastFinishAt(c.CastInfo);
+            if (highlightImminent)
+            {
+                if (nextActivation == default)
+                    nextActivation = thisActivation.AddSeconds(0.5f);
+                if (thisActivation < nextActivation)
+                    color = ColorImminent;
+            }
+            yield return new AOEInstance(Shape, c.CastInfo!.LocXZ, c.CastInfo!.Rotation, thisActivation, color, Risky);
+        }
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -61,17 +78,9 @@ public class StandardAOEs(BossModule module, Enum aid, AOEShape shape, int maxCa
 }
 
 // standard AOE where multiple action IDs should be grouped together as logically the same action
-public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int maxCasts = int.MaxValue) : GenericAOEs(module)
+public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int maxCasts = int.MaxValue, bool highlightImminent = false) : StandardAOEs(module, aids[0], shape, maxCasts, highlightImminent: highlightImminent)
 {
-    public AOEShape Shape { get; init; } = shape;
-    public int MaxCasts = maxCasts;
-    public uint Color; // can be customized if needed
-    public bool Risky = true; // can be customized if needed
-    public readonly List<Actor> Casters = [];
     public readonly List<ActionID> IDs = [.. aids.Select(ActionID.MakeSpell)];
-    public IEnumerable<Actor> ActiveCasters => Casters.Take(MaxCasts);
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveCasters.Select(csr => new AOEInstance(Shape, csr.CastInfo!.LocXZ, csr.CastInfo.Rotation, Module.CastFinishAt(csr.CastInfo), Color, Risky));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
