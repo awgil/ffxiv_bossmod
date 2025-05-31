@@ -31,6 +31,7 @@ class ReplayDetailsWindow : UIWindow
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
+    private float _pfCushion;
     private float _pfTargetRadius = 3;
     private Positional _pfPositional = Positional.Any;
 
@@ -499,11 +500,11 @@ class ReplayDetailsWindow : UIWindow
         if (player == null)
             return;
 
-        _pfVisu ??= new(_hints, _mgr.WorldState, player, _pfTargetRadius);
+        _pfVisu ??= new(_hints, _mgr.WorldState, player, _pfTargetRadius, _pfCushion);
         _pfVisu.Draw(_pfTree);
 
         bool rebuild = false;
-        //rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0.1f, 5);
+        rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0, 5);
         rebuild |= ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25);
         rebuild |= UICombo.Enum("Ability positional", ref _pfPositional);
         if (rebuild)
