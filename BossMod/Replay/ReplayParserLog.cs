@@ -690,9 +690,19 @@ public sealed class ReplayParserLog : IDisposable
 
     private ClientState.OpDutyActionsChange ParseClientDutyActions()
     {
-        var slot0 = new ClientState.DutyAction(_input.ReadAction(), _version >= 20 ? _input.ReadByte(false) : (byte)1, _version >= 20 ? _input.ReadByte(false) : (byte)1);
-        var slot1 = new ClientState.DutyAction(_input.ReadAction(), _version >= 20 ? _input.ReadByte(false) : (byte)1, _version >= 20 ? _input.ReadByte(false) : (byte)1);
-        return new(slot0, slot1);
+        if (_version < 25)
+        {
+            var slot0 = new ClientState.DutyAction(_input.ReadAction(), _version >= 20 ? _input.ReadByte(false) : (byte)1, _version >= 20 ? _input.ReadByte(false) : (byte)1);
+            var slot1 = new ClientState.DutyAction(_input.ReadAction(), _version >= 20 ? _input.ReadByte(false) : (byte)1, _version >= 20 ? _input.ReadByte(false) : (byte)1);
+            return new([slot0, slot1]);
+        }
+
+        var count = _input.ReadByte(false);
+        var actions = new ClientState.DutyAction[count];
+        for (var i = 0; i < count; i++)
+            actions[i] = new ClientState.DutyAction(_input.ReadAction(), _input.ReadByte(false), _input.ReadByte(false));
+
+        return new(actions);
     }
 
     private ClientState.OpBozjaHolsterChange ParseClientBozjaHolster()

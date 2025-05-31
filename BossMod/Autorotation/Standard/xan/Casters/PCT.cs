@@ -172,8 +172,8 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID is LeylinesOID && x.OwnerID == Player.InstanceID) is Actor ll)
             Hints.GoalZones.Add(p => p.InCircle(ll.Position, 8) ? 0.5f : 0);
 
-        if (!Player.InCombat && primaryTarget != null && Paint == 0)
-            PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
+        //if (!Player.InCombat && primaryTarget != null && Paint == 0)
+        //    PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
 
         if (Player.InCombat && primaryTarget != null)
         {

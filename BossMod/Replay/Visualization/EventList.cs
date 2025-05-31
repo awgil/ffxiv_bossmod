@@ -179,6 +179,18 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
             {
                 _tree.LeafNodes(p.TargetableHistory, r => $"{tp(r.Key)} = {r.Value}");
             }
+            foreach (var an in _tree.Node("EObjAnim", p.EventObjectAnimation.Count == 0))
+            {
+                _tree.LeafNodes(p.EventObjectAnimation, r => $"{tp(r.Key)} = {r.Value:X8}");
+            }
+            foreach (var an in _tree.Node("Event state", p.EventState.Count == 0))
+            {
+                _tree.LeafNodes(p.EventState, r => $"{tp(r.Key)} = {r.Value}");
+            }
+            foreach (var an in _tree.Node("Action timeline events", p.ActionTimeline.Count == 0))
+            {
+                _tree.LeafNodes(p.ActionTimeline, r => $"{tp(r.Key)} = {r.Value:X4}");
+            }
         }
     }
 

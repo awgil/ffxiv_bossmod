@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.Lifereaper;
+﻿namespace BossMod.Modules.Dawntrail.Foray.FATE.Lifereaper;
 
 public enum OID : uint
 {

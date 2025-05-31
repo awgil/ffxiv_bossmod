@@ -190,8 +190,8 @@ public abstract class BossModule : IDisposable
         // draw non-player alive party members
         DrawPartyMembers(pcSlot, pc);
 
-        // draw non-party pcs
-        if (DrawAllPlayers)
+        // draw non-party pcs, if requested
+        if (DrawAllPlayers && WindowConfig.ShowIrrelevantPlayers && WindowConfig.ShowAllPlayers)
             Arena.Actors(WorldState.Actors.Where(a => a.Type == ActorType.Player && Raid.FindSlot(a.InstanceID) < 0), ArenaColor.PlayerReallyGeneric);
 
         // draw foreground

@@ -77,6 +77,9 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Always show all alive party members")]
     public bool ShowIrrelevantPlayers = false;
 
+    [PropertyDisplay("Allow drawing non-party players on radar", tooltip: "This option only affects certain categories of content, like adventuring forays.", depends: nameof(ShowIrrelevantPlayers))]
+    public bool ShowAllPlayers = true;
+
     [PropertyDisplay("Show role-based colors on otherwise uncolored players in the radar")]
     public bool ColorPlayersBasedOnRole = false;
 
