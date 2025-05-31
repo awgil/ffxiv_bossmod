@@ -226,7 +226,52 @@ class BirdserkRush(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class BirdserkHeave(BossModule module) : Components.StandardAOEs(module, AID.HeaveFast, new AOEShapeCone(60, 60.Degrees()));
+class BirdserkPredict(BossModule module) : Components.GenericAOEs(module)
+{
+    private bool _active;
+    private Actor? _bird;
+    private WPos _dashLocation;
+    private DateTime _activation;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_activation != default && _bird is { } bird)
+        {
+            // "cheat" the cone slightly wider since the boss doesn't cast directly at the bird, rather a little closer to the center of the arena
+            yield return new AOEInstance(new AOEShapeCone(60, 64.Degrees()), _dashLocation, Angle.FromDirection(bird.Position - _dashLocation), _activation);
+        }
+    }
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if (_active && (TetherID)tether.ID == TetherID.Purple && (OID)source.OID == OID.Boss && WorldState.Actors.Find(tether.Target) is { } bird)
+            _bird = bird;
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.BirdserkRush)
+            _active = true;
+
+        if ((AID)spell.Action.ID == AID.HeaveFast)
+        {
+            _active = false;
+            _activation = default;
+            _bird = default;
+            _dashLocation = default;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (_active && (AID)spell.Action.ID == AID.Rush)
+        {
+            _dashLocation = spell.TargetXZ;
+            _activation = WorldState.FutureTime(4.2f);
+        }
+    }
+}
+class HeaveFast(BossModule module) : Components.StandardAOEs(module, AID.HeaveFast, new AOEShapeCone(60, 60.Degrees()));
 class MammothBolt(BossModule module) : Components.StandardAOEs(module, AID.MammothBolt, 30);
 class EpicenterShock(BossModule module) : Components.StandardAOEs(module, AID.EpicenterShock, 12);
 
@@ -241,7 +286,8 @@ class NeoGarulaStates : StateMachineBuilder
             .ActivateOnEnter<LightningCrossingSlow>()
             .ActivateOnEnter<LightningCrossingRush>()
             .ActivateOnEnter<BirdserkRush>()
-            .ActivateOnEnter<BirdserkHeave>()
+            .ActivateOnEnter<BirdserkPredict>()
+            .ActivateOnEnter<HeaveFast>()
             .ActivateOnEnter<MammothBolt>()
             .ActivateOnEnter<EpicenterShock>();
     }

@@ -1,4 +1,6 @@
-﻿namespace BossMod.ClassShared;
+﻿using BossMod.Data;
+
+namespace BossMod.ClassShared;
 
 public enum AID : uint
 {
@@ -198,6 +200,12 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.SprintPvP);
         #endregion
 
+        #region Phantom actions
+        foreach (var action in typeof(PhantomID).GetEnumValues())
+            if ((uint)action > 0)
+                d.RegisterSpell((PhantomID)action);
+        #endregion
+
         Customize(d);
     }
 
@@ -225,5 +233,20 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.LucidDreaming)!.EffectDuration = 21;
         //d.Spell(AID.Swiftcast)!.EffectDuration = 10;
         //d.Spell(AID.Surecast)!.EffectDuration = 6;
+
+        // regular dash check doesn't work since this one is awkwardly fixed distance
+        d.Spell(PhantomID.PhantomKick)!.ForbidExecute = (_, player, action, hints) =>
+        {
+            var cfg = Service.Config.Get<ActionTweaksConfig>();
+            var target = action.Target;
+            if (target == null || !cfg.DashSafety)
+                return false;
+
+            if (player.PendingKnockbacks.Count > 0)
+                return true;
+
+            var dir = player.DirectionTo(target).Normalized() * 15;
+            return ActionDefinitions.IsDashDangerous(player.Position, player.Position + dir, hints);
+        };
     }
 }

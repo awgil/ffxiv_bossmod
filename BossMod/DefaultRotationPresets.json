@@ -342,15 +342,6 @@
         ],
         "BossMod.Autorotation.xan.BLM": [
           {
-            "Track": "Buffs",
-            "Option": "Auto"
-          },
-          {
-            "Track": "Buffs",
-            "Option": "Delay",
-            "Mod": "Shift, Ctrl"
-          },
-          {
             "Track": "AOE",
             "Option": "AOE"
           },

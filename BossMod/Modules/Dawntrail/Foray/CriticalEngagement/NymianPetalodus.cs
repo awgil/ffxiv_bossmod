@@ -39,48 +39,6 @@ class MarineMayhem(BossModule module) : Components.RaidwideCast(module, AID.Mari
 class PelagicCleaver(BossModule module) : Components.StandardAOEs(module, AID.PelagicCleaver, new AOEShapeCone(50, 30.Degrees()));
 class PetalodusProgeny(BossModule module) : Components.Adds(module, (uint)OID.PetalodusProgeny2, 1);
 
-class TidalGuillotine(BossModule module) : Components.GenericAOEs(module)
-{
-    private bool _casting;
-
-    private readonly List<(Actor Actor, DateTime Activation)> _markers = [];
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _markers.Select(m => new AOEInstance(new AOEShapeCircle(20), m.Actor.Position, Activation: m.Activation));
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID == OID.Marker2 && _casting)
-            _markers.Add((actor, WorldState.FutureTime(_markers.Count switch
-            {
-                1 => 6.9f,
-                2 => 8.2f,
-                _ => 6.1f
-            })));
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.TidalGuillotineSlow)
-            _casting = true;
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.TidalGuillotineSlow)
-            _casting = false;
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID.TidalGuillotineSlow or AID.TidalGuillotineFast)
-        {
-            NumCasts++;
-            if (_markers.Count > 0)
-                _markers.RemoveAt(0);
-        }
-    }
-}
-
 class OpenWater(BossModule module) : Components.GenericAOEs(module)
 {
     class Line
@@ -168,6 +126,28 @@ class OpenWater(BossModule module) : Components.GenericAOEs(module)
 
 class Hydrocleave(BossModule module) : Components.StandardAOEs(module, AID.Hydrocleave, new AOEShapeCone(50, 30.Degrees()));
 
+class TidalGuillotine(BossModule module) : Components.StandardAOEs(module, AID.TidalGuillotineSlow, new AOEShapeCircle(20));
+
+class TidalGuillotineMarker(BossModule module) : Components.GenericAOEs(module, AID.TidalGuillotineFast)
+{
+    private readonly List<(WPos, DateTime)> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => new AOEInstance(new AOEShapeCircle(20), p.Item1, Activation: p.Item2));
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.MarkerAppear)
+            _predicted.Add((spell.TargetXZ, WorldState.FutureTime(_predicted.Count == 0 ? 8.7f : 9.9f)));
+
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            if (_predicted.Count > 0)
+                _predicted.RemoveAt(0);
+        }
+    }
+}
+
 class NymianPetalodusStates : StateMachineBuilder
 {
     public NymianPetalodusStates(BossModule module) : base(module)
@@ -176,6 +156,7 @@ class NymianPetalodusStates : StateMachineBuilder
             .ActivateOnEnter<MarineMayhem>()
             .ActivateOnEnter<PelagicCleaver>()
             .ActivateOnEnter<TidalGuillotine>()
+            .ActivateOnEnter<TidalGuillotineMarker>()
             .ActivateOnEnter<PetalodusProgeny>()
             .ActivateOnEnter<OpenWater>()
             .ActivateOnEnter<Hydrocleave>();
