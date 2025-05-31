@@ -31,7 +31,7 @@ class ReplayDetailsWindow : UIWindow
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
-    private float _pfCushion = 0;
+    private float _pfCushion;
     private float _pfTargetRadius = 3;
     private Positional _pfPositional = Positional.Any;
 
