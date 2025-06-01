@@ -15,7 +15,7 @@ class TradeTortoiseStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13695, DevOnly = true)]
-public class TradeTortoise(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
+public class TradeTortoise(WorldState ws, Actor primary) : BossModule(ws, primary, new(72, -545), new ArenaBoundsCircle(25))
 {
     public override bool DrawAllPlayers => true;
 }

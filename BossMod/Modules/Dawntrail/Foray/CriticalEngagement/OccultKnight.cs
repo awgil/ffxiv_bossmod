@@ -116,6 +116,8 @@ class CageOfFire : Components.StandardAOEs
 }
 class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BlastKnucklesCast, 15)
 {
+    public int NumRealCasts { get; private set; }
+
     private readonly CageOfFire _cage = module.FindComponent<CageOfFire>()!;
 
     private bool HitByRect(WPos p) => _cage.ActiveCasters.Any(c => p.InRect(c.Position, c.Rotation, 60, 0, 4));
@@ -130,13 +132,21 @@ class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(modu
             if (IsImmune(slot, activation))
                 return;
 
-            hints.AddForbiddenZone(ShapeContains.Donut(caster.Position, 5, 30), Module.CastFinishAt(caster.CastInfo));
+            hints.AddForbiddenZone(ShapeContains.Donut(caster.Position, 5, 40), Module.CastFinishAt(caster.CastInfo));
             hints.AddForbiddenZone(p =>
             {
                 var dir = (p - Arena.Center).Normalized() * Distance;
                 return HitByRect(p + dir);
             }, Module.CastFinishAt(caster.CastInfo));
         }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if ((AID)spell.Action.ID == AID.BlastKnuckles)
+            NumRealCasts++;
     }
 }
 
@@ -193,7 +203,7 @@ class OccultKnightStates : StateMachineBuilder
         Condition(id + 0x30000, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed), "Adds 2 enrage");
 
         SpinningSiege(id + 0x40000, 13.2f);
-        BlastKnuckles(id + 0x50000, 6.4f);
+        BlastKnuckles(id + 0x50000, 7.3f);
 
         Condition(id + 0x60000, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed), "Adds 3 enrage");
 
@@ -236,11 +246,12 @@ class OccultKnightStates : StateMachineBuilder
 
     private void BlastKnuckles(uint id, float delay)
     {
-        ComponentCondition<BlastKnuckles>(id, delay, b => b.NumCasts > 0, "Knockback")
+        ComponentCondition<BlastKnuckles>(id, delay, b => b.NumRealCasts > 0, "Knockback")
             .ActivateOnEnter<CageOfFire>()
             .ActivateOnEnter<BlastKnuckles>();
-        ComponentCondition<CageOfFire>(id + 0x10, 2, c => c.NumCasts > 0, "Lines 1");
-        ComponentCondition<CageOfFire>(id + 0x12, 2, c => c.NumCasts > 5, "Lines 2")
+        ComponentCondition<CageOfFire>(id + 0x10, 1, c => c.NumCasts > 0, "Lines 1")
+            .ExecOnEnter<CageOfFire>(c => c.Risky = true);
+        ComponentCondition<CageOfFire>(id + 0x12, 2.1f, c => c.NumCasts > 5, "Lines 2")
             .DeactivateOnExit<CageOfFire>()
             .DeactivateOnExit<BlastKnuckles>();
     }

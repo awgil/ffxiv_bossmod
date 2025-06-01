@@ -2,17 +2,18 @@
 
 public enum OID : uint
 {
-    Boss = 0x46A7,
-    Chocobo1 = 0x46A6,
-    Chocobo2 = 0x46A8,
-    Chocobo3 = 0x4861,
-    Chocobo4 = 0x46A9,
     BlackStar = 0x46A5,
+    Chocobo1 = 0x46A6,
+    Boss = 0x46A7,
+    Chocobo2 = 0x46A8,
+    Chocobo4 = 0x46A9,
+    DeathWallHelper = 0x4861,
     Helper = 0x233C,
 }
 
 public enum AID : uint
 {
+    DeathWall = 41394,
     ChocoAero = 41165, // Boss->player, no cast, single-target
     ChocoAttack = 43032, // Chocobo1->player, no cast, single-target
     ChocoBeak = 41163, // Chocobo2->location, 5.0s cast, width 4 rect charge
@@ -86,13 +87,17 @@ class ChocoSlaughter(BossModule module) : Components.Exaflare(module, new AOESha
 
 class BlackChocoboStates : StateMachineBuilder
 {
-    public BlackChocoboStates(BossModule module) : base(module)
+    private readonly BlackChocobo _module;
+
+    public BlackChocoboStates(BlackChocobo module) : base(module)
     {
+        _module = module;
+
         SimplePhase(0, id => Timeout(id, 9999, "P1 enrage"), "P1")
             .ActivateOnEnter<ChocoBeak>()
             .ActivateOnEnter<ChocoMaelfeather>()
             .ActivateOnEnter<Priority>()
-            .Raw.Update = () => Module.Enemies(OID.BlackStar).Any(p => p.IsTargetable);
+            .Raw.Update = () => _module.BlackStar?.IsTargetable == true || _module.Helper?.IsDeadOrDestroyed == true;
         SimplePhase(1, id => Timeout(id, 9999, "P2 enrage"), "P2")
             .ActivateOnEnter<ChocoBeak>()
             .ActivateOnEnter<ChocoMaelfeather>()
@@ -102,12 +107,21 @@ class BlackChocoboStates : StateMachineBuilder
             .ActivateOnEnter<ChocoBlades>()
             .ActivateOnEnter<ChocoAeroII>()
             .ActivateOnEnter<ChocoSlaughter>()
-            .Raw.Update = () => Module.Enemies(OID.BlackStar).All(b => b.IsDeadOrDestroyed);
+            .Raw.Update = () => _module.BlackStar?.IsDeadOrDestroyed == true || _module.Helper?.IsDeadOrDestroyed == true;
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13637)]
 public class BlackChocobo(WorldState ws, Actor primary) : BossModule(ws, primary, new(450, 357), new ArenaBoundsSquare(20))
 {
+    public Actor? BlackStar { get; private set; }
+    public Actor? Helper { get; private set; }
+
+    protected override void UpdateModule()
+    {
+        BlackStar ??= Enemies(OID.BlackStar).FirstOrDefault();
+        Helper ??= Enemies(OID.DeathWallHelper).FirstOrDefault();
+    }
+
     public override bool DrawAllPlayers => true;
 }
