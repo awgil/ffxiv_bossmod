@@ -187,19 +187,23 @@ class ShadesNest(BossModule module) : Components.GenericAOEs(module, AID.ShadesN
 {
     private readonly Molt _molt = module.FindComponent<Molt>()!;
 
+    // TODO fix donut radius
+    public static readonly AOEShape DonutShape = new AOEShapeDonut(7, 50);
+    public static readonly AOEShape CrossShape = new AOEShapeCross(50, 7.5f);
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_molt.NextBird is { } bird)
         {
             if (bird.Mechanic == Molt.M.Donut)
-                yield return new(new AOEShapeDonut(7.5f, 50), bird.Source, default, bird.Activation);
+                yield return new(DonutShape, bird.Source, default, bird.Activation);
             if (bird.Mechanic == Molt.M.Cross)
-                yield return new(new AOEShapeCross(50, 7.5f), bird.Source, 45.Degrees(), bird.Activation);
+                yield return new(CrossShape, bird.Source, 45.Degrees(), bird.Activation);
         }
     }
 }
 
-class ShadesNestBoss(BossModule module) : Components.StandardAOEs(module, AID.ShadesNest, new AOEShapeDonut(7.5f, 50))
+class ShadesNestBoss(BossModule module) : Components.StandardAOEs(module, AID.ShadesNest, ShadesNest.DonutShape)
 {
     private readonly Molt _molt = module.FindComponent<Molt>()!;
 
@@ -210,7 +214,7 @@ class ShadesNestBoss(BossModule module) : Components.StandardAOEs(module, AID.Sh
         _ => base.ActiveAOEs(slot, actor), // draw normally
     };
 }
-class ShadesCrossingBoss(BossModule module) : Components.StandardAOEs(module, AID.ShadesCrossing, new AOEShapeCross(50, 7.5f))
+class ShadesCrossingBoss(BossModule module) : Components.StandardAOEs(module, AID.ShadesCrossing, ShadesNest.CrossShape)
 {
     private readonly Molt _molt = module.FindComponent<Molt>()!;
 

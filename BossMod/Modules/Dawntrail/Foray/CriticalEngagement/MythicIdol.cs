@@ -35,8 +35,22 @@ class MysticHeat(BossModule module) : Components.StandardAOEs(module, AID.Mystic
 class BigBurst(BossModule module) : Components.StandardAOEs(module, AID.BigBurst, new AOEShapeCircle(26));
 class DeathRay(BossModule module) : Components.StandardAOEs(module, AID.DeathRay, new AOEShapeCone(60, 45.Degrees()));
 class Steelstrike(BossModule module) : Components.GroupedAOEs(module, [AID.SteelstrikeHelper, AID.Steelstrike], new AOEShapeCross(100, 5));
-class LotsCast(BossModule module) : Components.SpreadFromCastTargets(module, AID.LostCastSpread, 6);
-class LotsCastTank(BossModule module) : Components.BaitAwayCast(module, AID.LotsCastTank, new AOEShapeCircle(6), centerAtTarget: true, endsOnCastEvent: true);
+class LotsCast(BossModule module) : Components.SpreadFromCastTargets(module, AID.LostCastSpread, 6)
+{
+    public override void Update()
+    {
+        // if player dies during mechanic, no cast event happens
+        Spreads.RemoveAll(s => s.Activation.AddSeconds(2) < WorldState.CurrentTime);
+    }
+}
+class LotsCastTank(BossModule module) : Components.BaitAwayCast(module, AID.LotsCastTank, new AOEShapeCircle(6), centerAtTarget: true, endsOnCastEvent: true)
+{
+    public override void Update()
+    {
+        // if player dies during mechanic, no cast event happens
+        CurrentBaits.RemoveAll(b => b.Activation.AddSeconds(2) < WorldState.CurrentTime);
+    }
+}
 
 class ArcaneOrb(BossModule module) : Components.GenericAOEs(module, AID.ArcaneOrb)
 {
