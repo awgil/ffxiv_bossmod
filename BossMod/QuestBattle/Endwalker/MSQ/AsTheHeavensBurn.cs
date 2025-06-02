@@ -1,4 +1,4 @@
-﻿using BossMod.Autorotation.xan.AI;
+﻿using BossMod.Autorotation.xan;
 using RID = BossMod.Roleplay.AID;
 
 namespace BossMod.QuestBattle.Endwalker.MSQ;

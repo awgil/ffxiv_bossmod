@@ -1,4 +1,4 @@
-﻿using BossMod.Autorotation.xan.AI;
+﻿using BossMod.Autorotation.xan;
 using BossMod.Pathfinding;
 using ImGuiNET;
 

@@ -1,5 +1,5 @@
 ﻿using BossMod.Autorotation;
-using BossMod.Autorotation.xan.AI;
+using BossMod.Autorotation.xan;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;

@@ -8,7 +8,15 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
     {
         Cannoneer,
         Ranger,
-        TimeMage
+        TimeMage,
+        Chemist
+    }
+
+    public enum RaiseStrategy
+    {
+        Never,
+        OutOfCombat,
+        InCombat
     }
 
     public static RotationModuleDefinition Definition()
@@ -21,6 +29,11 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddAssociatedActions(PhantomID.PhantomAim);
         def.AbilityTrack(Track.TimeMage, "TimeMage", "Time Mage: Use Comet ASAP if it will be instant")
             .AddAssociatedActions(PhantomID.OccultComet);
+        def.Define(Track.Chemist).As<RaiseStrategy>("Chemist", "Chemist raise")
+            .AddOption(RaiseStrategy.Never, "Never", "Disabled")
+            .AddOption(RaiseStrategy.OutOfCombat, "OutOfCombat", "Out of combat")
+            .AddOption(RaiseStrategy.InCombat, "InCombat", "Always")
+            .AddAssociatedActions(PhantomID.Revive);
 
         return def;
     }
@@ -74,6 +87,22 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             var haveSwift = Player.Statuses.Any(s => InstantCastStatus.Contains(s.ID) && s.ExpireAt > nextGCD);
             if (haveSwift)
                 UseAction(PhantomID.OccultComet, primaryTarget, prio);
+        }
+
+        var option = strategy.Option(Track.Chemist);
+        var canRaise = option.As<RaiseStrategy>() switch
+        {
+            RaiseStrategy.InCombat => true,
+            RaiseStrategy.OutOfCombat => !Player.InCombat,
+            _ => false
+        };
+
+        // check that we have Revive to avoid pointlessly scanning the object table again
+        if (canRaise && World.Client.DutyActions.Any(d => d.Action.ID == (uint)PhantomID.Revive))
+        {
+            var prio = option.Priority(ActionQueue.Priority.High + 500);
+            if (RaiseUtil.FindRaiseTargets(World, RaiseUtil.Targets.Everyone).FirstOrDefault() is { } tar)
+                UseAction(PhantomID.Revive, tar, prio);
         }
     }
 
