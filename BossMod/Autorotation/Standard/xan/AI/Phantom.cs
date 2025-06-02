@@ -7,37 +7,54 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
     public enum Track
     {
         Cannoneer,
-        Ranger
+        Ranger,
+        TimeMage
     }
 
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("Phantom Job AI", "Basic phantom job action automation", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 100);
 
-        def.AbilityTrack(Track.Cannoneer, "CAN", "Cannoneer: Use cannon actions on best AOE target as soon as they become available")
+        def.AbilityTrack(Track.Cannoneer, "Cannoneer", "Cannoneer: Use cannon actions on best AOE target as soon as they become available")
             .AddAssociatedActions(PhantomID.DarkCannon, PhantomID.HolyCannon, PhantomID.ShockCannon, PhantomID.SilverCannon, PhantomID.PhantomFire);
-        def.AbilityTrack(Track.Ranger, "RAN", "Ranger: Use Phantom Aim on cooldown")
+        def.AbilityTrack(Track.Ranger, "Ranger", "Ranger: Use Phantom Aim on cooldown")
             .AddAssociatedActions(PhantomID.PhantomAim);
+        def.AbilityTrack(Track.TimeMage, "TimeMage", "Time Mage: Use Comet ASAP if it will be instant")
+            .AddAssociatedActions(PhantomID.OccultComet);
 
         return def;
     }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (strategy.Enabled(Track.Cannoneer))
+        if (strategy.Enabled(Track.Cannoneer) && !CheckMidCombo())
         {
             var prio = strategy.Option(Track.Cannoneer).Priority(ActionQueue.Priority.High + 500);
 
-            var best = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 30).MaxBy(t => Hints.NumPriorityTargetsInAOECircle(t.Actor.Position, 5))?.Actor ?? primaryTarget;
-            if (best != null)
+            var bestTarget = primaryTarget;
+            var bestCount = bestTarget == null ? 0 : Hints.NumPriorityTargetsInAOECircle(bestTarget.Position, 5);
+            foreach (var tar in Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 30))
             {
-                UseAction(PhantomID.PhantomFire, best, prio);
+                if (tar.Actor == bestTarget)
+                    continue;
 
-                UseAction(PhantomID.SilverCannon, best, prio); // shares CD with holy
-                UseAction(PhantomID.ShockCannon, best, prio); // shares CD with dark
+                var cnt = Hints.NumPriorityTargetsInAOECircle(tar.Actor.Position, 5);
+                if (cnt > bestCount)
+                {
+                    bestTarget = tar.Actor;
+                    bestCount = cnt;
+                }
+            }
 
-                UseAction(PhantomID.HolyCannon, best, prio);
-                UseAction(PhantomID.DarkCannon, best, prio);
+            if (bestTarget != null)
+            {
+                UseAction(PhantomID.PhantomFire, bestTarget, prio);
+
+                UseAction(PhantomID.SilverCannon, bestTarget, prio); // shares CD with holy
+                UseAction(PhantomID.ShockCannon, bestTarget, prio); // shares CD with dark
+
+                UseAction(PhantomID.HolyCannon, bestTarget, prio);
+                UseAction(PhantomID.DarkCannon, bestTarget, prio);
             }
         }
 
@@ -46,6 +63,16 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             var prio = strategy.Option(Track.Ranger).Priority(ActionQueue.Priority.Low);
 
             UseAction(PhantomID.PhantomAim, Player, prio);
+        }
+
+        if (strategy.Enabled(Track.TimeMage) && primaryTarget != null)
+        {
+            var prio = strategy.Option(Track.TimeMage).Priority(ActionQueue.Priority.High + 500);
+
+            var nextGCD = World.FutureTime(GCD);
+            var haveSwift = Player.Statuses.Any(s => s.ID is (uint)ClassShared.SID.Swiftcast or (uint)BossMod.RDM.SID.Dualcast or (uint)BossMod.BLM.SID.Triplecast && s.ExpireAt > nextGCD);
+            if (haveSwift)
+                UseAction(PhantomID.OccultComet, primaryTarget, prio);
         }
     }
 
@@ -56,5 +83,15 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
     {
         if (World.Client.DutyActions.Any(d => d.Action.ID == (uint)pid) && NextChargeIn(pid) <= GCD)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(pid), target, prio);
+    }
+
+    private bool CheckMidCombo()
+    {
+        // cannons break ninjutsu, TCJ prevents most GCDs entirely
+        if (Player.Statuses.Any(s => (BossMod.NIN.SID)s.ID is BossMod.NIN.SID.Mudra or BossMod.NIN.SID.TenChiJin))
+            return true;
+
+        // TODO: check reaper soul reaver or whatever it's called
+        return false;
     }
 }

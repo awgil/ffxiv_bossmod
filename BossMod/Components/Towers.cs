@@ -92,7 +92,7 @@ public class GenericTowers(BossModule module, Enum? aid = default, AIHints.Predi
             var zoneUnion = ShapeContains.Union(zones);
             hints.AddForbiddenZone(haveTowersToSoak ? p => !zoneUnion(p) : zoneUnion, firstActivation);
         }
-        if (soakingPlayers.Any())
+        if (soakingPlayers.Any() && DamageType != AIHints.PredictedDamageType.None)
             hints.AddPredictedDamage(soakingPlayers, firstActivation, DamageType);
     }
 
