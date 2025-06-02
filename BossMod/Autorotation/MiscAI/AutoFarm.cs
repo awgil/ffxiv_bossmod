@@ -71,7 +71,8 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
 
             if (allowAll)
                 foreach (var h in Hints.PotentialTargets)
-                    prioritize(h, 1);
+                    if (!h.Actor.IsStrikingDummy)
+                        prioritize(h, 1);
         }
 
         // we are done with priority changes

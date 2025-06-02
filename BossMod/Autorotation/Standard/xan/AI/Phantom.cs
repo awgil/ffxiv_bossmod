@@ -48,10 +48,11 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
 
             if (bestTarget != null)
             {
-                UseAction(PhantomID.PhantomFire, bestTarget, prio);
-
                 UseAction(PhantomID.SilverCannon, bestTarget, prio); // shares CD with holy
                 UseAction(PhantomID.ShockCannon, bestTarget, prio); // shares CD with dark
+
+                // use after silver for the extra damage from silver debuff
+                UseAction(PhantomID.PhantomFire, bestTarget, prio);
 
                 UseAction(PhantomID.HolyCannon, bestTarget, prio);
                 UseAction(PhantomID.DarkCannon, bestTarget, prio);
@@ -70,14 +71,18 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             var prio = strategy.Option(Track.TimeMage).Priority(ActionQueue.Priority.High + 500);
 
             var nextGCD = World.FutureTime(GCD);
-            var haveSwift = Player.Statuses.Any(s => s.ID is (uint)ClassShared.SID.Swiftcast or (uint)BossMod.RDM.SID.Dualcast or (uint)BossMod.BLM.SID.Triplecast && s.ExpireAt > nextGCD);
+            var haveSwift = Player.Statuses.Any(s => InstantCastStatus.Contains(s.ID) && s.ExpireAt > nextGCD);
             if (haveSwift)
                 UseAction(PhantomID.OccultComet, primaryTarget, prio);
         }
     }
 
-    //private void UseGCD(PhantomID pid, Actor target, float prio = ActionQueue.Priority.High) => UseAction(pid, target, prio);
-    //private void UseOGCD(PhantomID pid, Actor target, float prio = ActionQueue.Priority.Low) => UseAction(pid, target, prio);
+    public static readonly uint[] InstantCastStatus = [
+        (uint)ClassShared.SID.Swiftcast,
+        (uint)BossMod.RDM.SID.Dualcast,
+        (uint)BossMod.BLM.SID.Triplecast,
+        (uint)BossMod.PLD.SID.Requiescat
+    ];
 
     private void UseAction(PhantomID pid, Actor target, float prio)
     {
