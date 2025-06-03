@@ -9,7 +9,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         Cannoneer,
         Ranger,
         TimeMage,
-        Chemist
+        Chemist,
+        Samurai,
+        Bard
     }
 
     public enum RaiseStrategy
@@ -34,17 +36,23 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddOption(RaiseStrategy.OutOfCombat, "OutOfCombat", "Out of combat")
             .AddOption(RaiseStrategy.InCombat, "InCombat", "Always")
             .AddAssociatedActions(PhantomID.Revive);
+        def.AbilityTrack(Track.Samurai, "Samurai", "Samurai: Use Iainuki on best AOE target")
+            .AddAssociatedActions(PhantomID.Iainuki);
+        def.AbilityTrack(Track.Bard, "Bard", "Bard: Use Aria/Rime in combat")
+            .AddAssociatedActions(PhantomID.OffensiveAria, PhantomID.HerosRime);
 
         return def;
     }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (strategy.Enabled(Track.Cannoneer) && !CheckMidCombo())
+        var isMidCombo = CheckMidCombo();
+
+        if (strategy.Enabled(Track.Cannoneer) && !isMidCombo)
         {
             var prio = strategy.Option(Track.Cannoneer).Priority(ActionQueue.Priority.High + 500);
 
-            var bestTarget = primaryTarget;
+            var bestTarget = primaryTarget?.IsAlly == false ? primaryTarget : null;
             var bestCount = bestTarget == null ? 0 : Hints.NumPriorityTargetsInAOECircle(bestTarget.Position, 5);
             foreach (var tar in Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 30))
             {
@@ -79,7 +87,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             UseAction(PhantomID.PhantomAim, Player, prio);
         }
 
-        if (strategy.Enabled(Track.TimeMage) && primaryTarget != null)
+        if (strategy.Enabled(Track.TimeMage) && primaryTarget?.IsAlly == false)
         {
             var prio = strategy.Option(Track.TimeMage).Priority(ActionQueue.Priority.High + 500);
 
@@ -98,11 +106,27 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         };
 
         // check that we have Revive to avoid pointlessly scanning the object table again
-        if (canRaise && World.Client.DutyActions.Any(d => d.Action.ID == (uint)PhantomID.Revive))
+        if (canRaise && !isMidCombo && World.Client.DutyActions.Any(d => d.Action.ID == (uint)PhantomID.Revive))
         {
             var prio = option.Priority(ActionQueue.Priority.High + 500);
             if (RaiseUtil.FindRaiseTargets(World, RaiseUtil.Targets.Everyone).FirstOrDefault() is { } tar)
                 UseAction(PhantomID.Revive, tar, prio);
+        }
+
+        if (strategy.Enabled(Track.Samurai) && primaryTarget?.IsAlly == false && !isMidCombo)
+        {
+            var prio = strategy.Option(Track.Samurai).Priority(ActionQueue.Priority.High + 500);
+            if (UseAction(PhantomID.Iainuki, primaryTarget, prio, 0.8f))
+                Hints.GoalZones.Add(Hints.GoalAOECone(primaryTarget, 8, 60.Degrees()));
+        }
+
+        if (strategy.Enabled(Track.Bard) && primaryTarget?.IsAlly == false && Player.InCombat)
+        {
+            var ariaLeft = SelfStatusDetails(4247, 70).Left;
+            var prio = strategy.Option(Track.Samurai).Priority(ActionQueue.Priority.Low);
+
+            if (ariaLeft < 10)
+                UseAction(PhantomID.OffensiveAria, Player, prio);
         }
     }
 
@@ -113,19 +137,26 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         (uint)BossMod.PLD.SID.Requiescat
     ];
 
-    private void UseAction(PhantomID pid, Actor target, float prio)
+    private bool UseAction(PhantomID pid, Actor target, float prio, float castTime = 0)
     {
         if (World.Client.DutyActions.Any(d => d.Action.ID == (uint)pid) && NextChargeIn(pid) <= GCD)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pid), target, prio);
+        {
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pid), target, prio, castTime: castTime);
+            return true;
+        }
+        return false;
     }
+
+    public static readonly uint[] BreakableComboStatus = [
+        (uint)BossMod.NIN.SID.Mudra,
+        (uint)BossMod.NIN.SID.TenChiJin,
+        (uint)BossMod.RDM.SID.Dualcast,
+        (uint)BossMod.DRG.SID.DraconianFire,
+        (uint)BossMod.RPR.SID.SoulReaver
+    ];
 
     private bool CheckMidCombo()
     {
-        // cannons break ninjutsu, TCJ prevents most GCDs entirely
-        if (Player.Statuses.Any(s => (BossMod.NIN.SID)s.ID is BossMod.NIN.SID.Mudra or BossMod.NIN.SID.TenChiJin))
-            return true;
-
-        // TODO: check reaper soul reaver or whatever it's called
-        return false;
+        return Player.Statuses.Any(s => BreakableComboStatus.Contains(s.ID));
     }
 }
