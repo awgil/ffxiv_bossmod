@@ -35,7 +35,8 @@ class MysticHeat(BossModule module) : Components.StandardAOEs(module, AID.Mystic
 class BigBurst(BossModule module) : Components.StandardAOEs(module, AID.BigBurst, new AOEShapeCircle(26));
 class DeathRay(BossModule module) : Components.StandardAOEs(module, AID.DeathRay, new AOEShapeCone(60, 45.Degrees()));
 class Steelstrike(BossModule module) : Components.GroupedAOEs(module, [AID.SteelstrikeHelper, AID.Steelstrike], new AOEShapeCross(100, 5));
-class LotsCast(BossModule module) : Components.SpreadFromCastTargets(module, AID.LostCastSpread, 6)
+class LotsCastRaidwide(BossModule module) : Components.RaidwideCast(module, AID.LotsCastCast);
+class LotsCastSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.LostCastSpread, 6)
 {
     public override void Update()
     {
@@ -84,7 +85,8 @@ class MythicIdolStates : StateMachineBuilder
             .ActivateOnEnter<BigBurst>()
             .ActivateOnEnter<DeathRay>()
             .ActivateOnEnter<Steelstrike>()
-            .ActivateOnEnter<LotsCast>()
+            .ActivateOnEnter<LotsCastRaidwide>()
+            .ActivateOnEnter<LotsCastSpread>()
             .ActivateOnEnter<LotsCastTank>()
             .ActivateOnEnter<ArcaneOrb>();
     }

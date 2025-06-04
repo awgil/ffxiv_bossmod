@@ -56,6 +56,8 @@ public sealed class RotationModuleManager : IDisposable
         1546, // "Odder", heaven-on-high
         3502, // "Owlet", EO
         404, // "Transporting", not a transformation but prevents actions
+        4235, // "Rage" status from Phantom Berserker, prevents all actions and movement
+        4376, // "Transporting", variant in Occult Crescent
     ];
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);

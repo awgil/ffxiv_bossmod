@@ -163,6 +163,9 @@ class Blowout(BossModule module) : Components.Knockback(module, null)
 {
     private readonly Molt _molt = module.FindComponent<Molt>()!;
 
+    // if we edge the arena to the maximum extent possible, it can make getting back inside (for boss Shades' Nest cast) very sketchy
+    public const float ExtraKnockbackCushion = 2;
+
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_molt.NextBird is { } bird && bird.Mechanic == Molt.M.KB)
@@ -177,7 +180,7 @@ class Blowout(BossModule module) : Components.Knockback(module, null)
                 hints.AddForbiddenZone(p =>
                 {
                     var dir = (p - src.Origin).Normalized();
-                    return !(p + dir * 20).InCircle(Arena.Center, 20);
+                    return !(p + dir * 20).InCircle(Arena.Center, 20 - ExtraKnockbackCushion);
                 }, src.Activation);
         }
     }

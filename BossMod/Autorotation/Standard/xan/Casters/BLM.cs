@@ -656,9 +656,10 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         // ice phase transpose
         var haveInstantFire = Firestarter && Ice > 0 // we have a firestarter
-            || Ice == 3 && Unlocked(AID.Paradox); // transpose will give us firestarter
+            || Ice == 3 && Unlocked(AID.Paradox) // transpose will give us firestarter
+            || InstantCastLeft > GCD; // use tc/sc to cast regular f3
 
-        return Hearts == MaxHearts && AlmostMaxMP && haveInstantFire;
+        return Hearts == MaxHearts && AlmostMaxMP && haveInstantFire && !Paradox;
     }
 
     private void PushGCD(AID aid, Enemy? target, GCDPriority priority, float delay = 0, int mpCutoff = int.MaxValue)

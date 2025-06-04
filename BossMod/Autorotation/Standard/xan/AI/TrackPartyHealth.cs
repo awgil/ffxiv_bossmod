@@ -1,4 +1,4 @@
-﻿namespace BossMod.Autorotation.xan.AI;
+﻿namespace BossMod.Autorotation.xan;
 
 public class TrackPartyHealth(WorldState World)
 {

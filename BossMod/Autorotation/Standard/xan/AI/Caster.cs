@@ -9,12 +9,6 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
         Swiftcast,
         Slowcast,
     }
-    public enum RaiseTarget
-    {
-        Party,
-        Alliance,
-        Everyone
-    }
 
     public static RotationModuleDefinition Definition()
     {
@@ -25,10 +19,10 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
             .AddOption(RaiseStrategy.Swiftcast, "Raise using Swiftcast only")
             .AddOption(RaiseStrategy.Slowcast, "Allow raising without Swiftcast (not applicable to RDM)");
 
-        def.Define(Track.RaiseTarget).As<RaiseTarget>("RaiseTargets")
-            .AddOption(RaiseTarget.Party, "Party members")
-            .AddOption(RaiseTarget.Alliance, "Alliance members")
-            .AddOption(RaiseTarget.Everyone, "Any dead player");
+        def.Define(Track.RaiseTarget).As<RaiseUtil.Targets>("RaiseTargets", "Raise targets")
+            .AddOption(RaiseUtil.Targets.Party, "Party members")
+            .AddOption(RaiseUtil.Targets.Alliance, "Alliance raid members")
+            .AddOption(RaiseUtil.Targets.Everyone, "Any dead player");
 
         return def;
     }
@@ -88,22 +82,5 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
         }
     }
 
-    private Actor? GetRaiseTarget(StrategyValues strategy)
-    {
-        var candidates = strategy.Option(Track.RaiseTarget).As<RaiseTarget>() switch
-        {
-            RaiseTarget.Everyone => World.Actors.Where(x => x.Type is ActorType.Player or ActorType.DutySupport && x.IsAlly),
-            RaiseTarget.Alliance => World.Party.WithoutSlot(true, false, true),
-            _ => World.Party.WithoutSlot(true, true, true)
-        };
-
-        return candidates.Where(x => x.IsDead && Player.DistanceToHitbox(x) <= 30 && !BeingRaised(x)).MaxBy(actor => actor.Class.GetRole() switch
-        {
-            Role.Healer => 5,
-            Role.Tank => 4,
-            _ => actor.Class is Class.RDM or Class.SMN or Class.ACN ? 3 : 2
-        });
-    }
-
-    private static bool BeingRaised(Actor actor) => actor.Statuses.Any(s => s.ID is 148 or 1140 or 2648);
+    private Actor? GetRaiseTarget(StrategyValues strategy) => RaiseUtil.FindRaiseTargets(World, strategy.Option(Track.RaiseTarget).As<RaiseUtil.Targets>()).FirstOrDefault();
 }

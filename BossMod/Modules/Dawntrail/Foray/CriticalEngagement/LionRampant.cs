@@ -56,6 +56,8 @@ class AetherialRay(BossModule module) : Components.GenericAOEs(module, AID.Aethe
     private readonly List<Angle> _predicted = [];
     private DateTime _activation;
 
+    public bool Pending => _predicted.Count > 0;
+
     public static readonly AOEShape Shape = new AOEShapeRect(28, 5);
     public const float PredictionCutoff = 0.8f;
 
@@ -134,7 +136,13 @@ class BrightPulse(BossModule module) : Components.GenericAOEs(module, AID.Bright
 }
 
 class FallingRock(BossModule module) : Components.StandardAOEs(module, AID.FallingRock, 10);
-class Decompress(BossModule module) : Components.StandardAOEs(module, AID.Decompress, 12);
+class Decompress(BossModule module) : Components.StandardAOEs(module, AID.Decompress, 12)
+{
+    private readonly AetherialRay _ray = module.FindComponent<AetherialRay>()!;
+
+    // AI doesn't like trying to dodge both of these at once...TODO figure out why
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).Select(a => a with { Risky = !_ray.Pending });
+}
 
 class LionRampantStates : StateMachineBuilder
 {
@@ -151,7 +159,7 @@ class LionRampantStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13809)]
-public class LionRampant(WorldState ws, Actor primary) : BossModule(ws, primary, new(636, -54), new ArenaBoundsCircle(25f))
+public class LionRampant(WorldState ws, Actor primary) : BossModule(ws, primary, new(636, -54), new ArenaBoundsCircle(26))
 {
     public override bool DrawAllPlayers => true;
 }

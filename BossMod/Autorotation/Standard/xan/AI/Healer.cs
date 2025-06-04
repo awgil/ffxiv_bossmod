@@ -1,6 +1,5 @@
-﻿using BossMod.Autorotation.xan.AI;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using static BossMod.Autorotation.xan.AI.TrackPartyHealth;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.Autorotation.xan.TrackPartyHealth;
 
 namespace BossMod.Autorotation.xan;
 
@@ -15,12 +14,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         Swiftcast,
         Slowcast,
         Hardcast,
-    }
-    public enum RaiseTarget
-    {
-        Party,
-        Alliance,
-        Everyone
     }
 
     public ActionID RaiseAction => Player.Class switch
@@ -42,10 +35,10 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             .AddOption(RaiseStrategy.Slowcast, "Raise without requiring Swiftcast to be available")
             .AddOption(RaiseStrategy.Hardcast, "Never use Swiftcast to raise");
 
-        def.Define(Track.RaiseTarget).As<RaiseTarget>("RaiseTargets", "Raise targets")
-            .AddOption(RaiseTarget.Party, "Party members")
-            .AddOption(RaiseTarget.Alliance, "Alliance raid members")
-            .AddOption(RaiseTarget.Everyone, "Any dead player");
+        def.Define(Track.RaiseTarget).As<RaiseUtil.Targets>("RaiseTargets", "Raise targets")
+            .AddOption(RaiseUtil.Targets.Party, "Party members")
+            .AddOption(RaiseUtil.Targets.Alliance, "Alliance raid members")
+            .AddOption(RaiseUtil.Targets.Everyone, "Any dead player");
 
         def.AbilityTrack(Track.Heal, "Heal");
 
@@ -221,24 +214,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         }
     }
 
-    private Actor? GetRaiseTarget(StrategyValues strategy)
-    {
-        var candidates = strategy.Option(Track.RaiseTarget).As<RaiseTarget>() switch
-        {
-            RaiseTarget.Everyone => World.Actors.Where(x => x.Type is ActorType.Player or ActorType.DutySupport && x.IsAlly),
-            RaiseTarget.Alliance => World.Party.WithoutSlot(true, false, true),
-            _ => World.Party.WithoutSlot(true, true, true)
-        };
-
-        return candidates.Where(x => x.IsDead && Player.DistanceToHitbox(x) <= 30 && !BeingRaised(x)).MaxBy(actor => actor.Class.GetRole() switch
-        {
-            Role.Healer => 5,
-            Role.Tank => 4,
-            _ => actor.Class is Class.RDM or Class.SMN or Class.ACN ? 3 : 2
-        });
-    }
-
-    private static bool BeingRaised(Actor actor) => actor.Statuses.Any(s => s.ID is 148 or 1140 or 2648);
+    private Actor? GetRaiseTarget(StrategyValues strategy) => RaiseUtil.FindRaiseTargets(World, strategy.Option(Track.RaiseTarget).As<RaiseUtil.Targets>()).FirstOrDefault();
 
     private bool ShouldHealInAreaSoon(WPos pos, float radius, float ratio) => Health.PredictShouldHealInArea(pos, radius, ratio);
     private bool ShouldHealInAreaNow(WPos pos, float radius, float ratio) => Health.ShouldHealInArea(pos, radius, ratio);

@@ -4,10 +4,11 @@ namespace BossMod.Autorotation.MiscAI;
 
 public sealed class NormalMovement(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { Destination, Range, Cast, SpecialModes }
+    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion }
     public enum DestinationStrategy { None, Pathfind, Explicit }
     public enum RangeStrategy { Any, MaxMelee, MeleeGreedGCDExplicit, MeleeGreedLastMomentExplicit }
     public enum CastStrategy { Leeway, Explicit, Greedy, FinishMove, DropMove, FinishInstants, DropInstants }
+    public enum ForbiddenZoneCushionStrategy { None, Small, Medium, Large }
     public enum SpecialModesStrategy { Automatic, Ignore }
 
     public const float MeleeGreedTolerance = 0.15f;
@@ -36,6 +37,11 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         res.Define(Track.SpecialModes).As<SpecialModesStrategy>("SpecialModes", "Special", -1)
             .AddOption(SpecialModesStrategy.Automatic, "Automatic", "Automatically deal with special conditions (knockbacks, pyretics, etc)")
             .AddOption(SpecialModesStrategy.Ignore, "Ignore", "Ignore any special conditions (knockbacks, pyretics, etc)");
+        res.Define(Track.ForbiddenZoneCushion).As<ForbiddenZoneCushionStrategy>("ForbiddenZoneCushion", "Overdodge", 25)
+            .AddOption(ForbiddenZoneCushionStrategy.None, "None", "Do not use any buffer in pathfinding")
+            .AddOption(ForbiddenZoneCushionStrategy.Small, "Small", "Prefer to stay 0.5y away from forbidden zones")
+            .AddOption(ForbiddenZoneCushionStrategy.Medium, "Medium", "Prefer to stay 1.5y away from forbidden zones")
+            .AddOption(ForbiddenZoneCushionStrategy.Large, "Large", "Prefer to stay 3y away from forbidden zones");
         return res;
     }
 
@@ -81,9 +87,17 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         var speed = World.Client.MoveSpeed;
         var destinationOpt = strategy.Option(Track.Destination);
         var destinationStrategy = destinationOpt.As<DestinationStrategy>();
+        var cushionStrategy = strategy.Option(Track.ForbiddenZoneCushion).As<ForbiddenZoneCushionStrategy>();
+        var cushionSize = cushionStrategy switch
+        {
+            ForbiddenZoneCushionStrategy.Small => 0.5f,
+            ForbiddenZoneCushionStrategy.Medium => 1.5f,
+            ForbiddenZoneCushionStrategy.Large => 3.0f,
+            _ => 0f
+        };
         var navi = destinationStrategy switch
         {
-            DestinationStrategy.Pathfind => NavigationDecision.Build(_navCtx, World, Hints, Player, speed),
+            DestinationStrategy.Pathfind => NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize),
             DestinationStrategy.Explicit => new() { Destination = ResolveTargetLocation(destinationOpt.Value), TimeToGoal = destinationOpt.Value.ExpireIn },
             _ => default
         };

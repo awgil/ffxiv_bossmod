@@ -248,5 +248,7 @@ public sealed class Definitions : IDisposable
             var dir = player.DirectionTo(target).Normalized() * 15;
             return ActionDefinitions.IsDashDangerous(player.Position, player.Position + dir, hints);
         };
+
+        d.Spell(PhantomID.OccultFeatherfoot)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
     }
 }
