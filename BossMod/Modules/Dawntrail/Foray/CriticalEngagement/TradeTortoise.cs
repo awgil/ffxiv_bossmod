@@ -94,7 +94,6 @@ class BuyersRemorseStayMove(BossModule module) : Components.StayMove(module)
     }
 }
 
-// TODO facing hint
 class BuyersRemorseTurtle(BossModule module) : Components.Knockback(module)
 {
     private readonly DateTime[] _activations = new DateTime[PartyState.MaxPartySize];
@@ -122,7 +121,15 @@ class BuyersRemorseTurtle(BossModule module) : Components.Knockback(module)
     {
         var t = _activations.BoundSafeAt(slot);
         if (t != default)
+        {
             hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 10), t);
+
+            var oo = Arena.Center - actor.Position;
+            var center = Angle.FromDirection(oo);
+            var cos = (oo.LengthSq() + 35 * 35 - 25 * 25) / (2 * oo.Length() * 35);
+            if (cos is <= 1 and >= -1)
+                hints.ForbiddenDirections.Add(((center + 180.Degrees()).Normalized(), Angle.Acos(-cos), t));
+        }
     }
 }
 
