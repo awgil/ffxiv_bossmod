@@ -123,9 +123,12 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         if (strategy.Enabled(Track.Bard) && primaryTarget?.IsAlly == false && Player.InCombat)
         {
             var ariaLeft = SelfStatusDetails(4247, 70).Left;
-            var prio = strategy.Option(Track.Samurai).Priority(ActionQueue.Priority.Low);
+            var rimeLeft = SelfStatusDetails(4249, 20).Left;
+            var prio = strategy.Option(Track.Bard).Priority(ActionQueue.Priority.Low);
 
-            if (ariaLeft < 10)
+            UseAction(PhantomID.HerosRime, Player, prio);
+
+            if (ariaLeft < 10 && rimeLeft < World.Client.AnimationLock)
                 UseAction(PhantomID.OffensiveAria, Player, prio);
         }
     }

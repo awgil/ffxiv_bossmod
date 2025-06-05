@@ -135,6 +135,8 @@ class BuyersRemorseTurtle(BossModule module) : Components.Knockback(module)
 
 class CoinGame(BossModule module) : BossComponent(module)
 {
+    private readonly TradeTortoiseConfig _config = Service.Config.Get<TradeTortoiseConfig>();
+
     // indexed by Transporting status param (minus 0x28)
     // player is only allowed to hold 2 coin bags, so if param >= 4, we finish the mechanic regardless of whether the total is correct
     public static readonly int[] HeldQuantity = [0, 1, 2, 4, 2, 3, 4, 5, 6, 8];
@@ -218,6 +220,9 @@ class CoinGame(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (!_config.CoinGame)
+            return;
+
         var obj = _playerStates.BoundSafeAt(slot);
         if (obj.Goal == 0)
             return;
@@ -290,4 +295,11 @@ class TradeTortoiseStates : StateMachineBuilder
 public class TradeTortoise(WorldState ws, Actor primary) : BossModule(ws, primary, new(72, -545), new ArenaBoundsCircle(25))
 {
     public override bool DrawAllPlayers => true;
+}
+
+[ConfigDisplay(Parent = typeof(DawntrailConfig))]
+public class TradeTortoiseConfig : ConfigNode
+{
+    [PropertyDisplay("Automatically solve the coin minigame (if AI mode or NormalMovement is active)")]
+    public bool CoinGame = true;
 }
