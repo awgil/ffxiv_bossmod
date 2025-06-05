@@ -70,10 +70,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             }
 
             if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Freezing && Hints.ImminentSpecialMode.activation <= World.FutureTime(0.5f))
-            {
                 Hints.WantJump = true;
-                return;
-            }
 
             if (Hints.InteractWithTarget != null)
             {
