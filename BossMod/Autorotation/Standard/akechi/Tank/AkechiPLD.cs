@@ -144,29 +144,29 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
 
     #region Buffs
-    private (bool, OGCDPriority) ShouldBuffUp(BuffsStrategy strategy, Actor? target, bool ready, Func<bool> together)
+    private (bool, OGCDPriority) ShouldBuffUp(BuffsStrategy strategy, Actor? target, bool ready, bool together)
     {
         if (!ready)
             return (false, OGCDPriority.None);
 
-        var minimal = Player.InCombat && target != null && In3y(target);
+        var minimal = Player.InCombat && target != null && In3y(target) && MP >= 4000;
         return strategy switch
         {
             BuffsStrategy.Automatic => (minimal && Opener, OGCDPriority.Severe),
-            BuffsStrategy.Together => (minimal && together(), OGCDPriority.Severe),
+            BuffsStrategy.Together => (minimal && together, OGCDPriority.Severe),
             BuffsStrategy.RaidBuffsOnly => (minimal && (RaidBuffsLeft > 0 || RaidBuffsIn < 3000), OGCDPriority.Severe),
             BuffsStrategy.Force => (true, OGCDPriority.Forced),
             _ => (false, OGCDPriority.None)
         };
     }
-    private (bool, OGCDPriority) ShouldUseFightOrFlight(BuffsStrategy strategy, Actor? target) => ShouldBuffUp(strategy, target, FightOrFlight.IsReady, () => Requiescat.CD < 1f);
-    private (bool, OGCDPriority) ShouldUseRequiescat(BuffsStrategy strategy, Actor? target) => ShouldBuffUp(strategy, target, Requiescat.IsReady, () => FightOrFlight.CD > 56f);
+    private (bool, OGCDPriority) ShouldUseFightOrFlight(BuffsStrategy strategy, Actor? target) => ShouldBuffUp(strategy, target, FightOrFlight.IsReady, Requiescat.CD < 1f);
+    private (bool, OGCDPriority) ShouldUseRequiescat(BuffsStrategy strategy, Actor? target) => ShouldBuffUp(strategy, target, Requiescat.IsReady, FightOrFlight.CD > 56f);
     #endregion
 
     #region Other
-    private bool ShouldUseSpiritsWithin(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(OGCDReady(BestSpirits), strategy, target, () => In3y(target) && FightOrFlight.CD is < 57.55f and > 12);
-    private bool ShouldUseCircleOfScorn(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(OGCDReady(AID.CircleOfScorn), strategy, target, () => In5y(target) && FightOrFlight.CD is < 57.55f and > 12);
-    private bool ShouldUseBladeOfHonor(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(BladeOfHonor.IsReady, strategy, target);
+    private bool ShouldUseSpiritsWithin(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, OGCDReady(BestSpirits), In3y(target) && FightOrFlight.CD is < 57.55f and > 12);
+    private bool ShouldUseCircleOfScorn(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, OGCDReady(AID.CircleOfScorn), In5y(target) && FightOrFlight.CD is < 57.55f and > 12);
+    private bool ShouldUseBladeOfHonor(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, BladeOfHonor.IsReady);
     private (bool, GCDPriority) ShouldUseGoringBlade(GoringBladeStrategy strategy, Actor? target)
     {
         if (!GoringBlade.IsReady || !In3y(target))
@@ -305,7 +305,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         BladeOfHonor.IsActive = BladeOfHonor.Left > 0;
         BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && BladeOfHonor.IsActive;
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore || strategy.ForceAOE();
-        ShouldHoldDMandAC = (fofStrat != BuffsStrategy.Delay && !strategy.HoldBuffs()) && (ComboLastMove is AID.RoyalAuthority ? FightOrFlight.CD < 5f : ComboLastMove is AID.FastBlade ? FightOrFlight.CD < 2.5f : ComboLastMove is AID.RiotBlade && FightOrFlight.CD < 1f);
+        ShouldHoldDMandAC = (fofStrat != BuffsStrategy.Delay && !strategy.HoldBuffs()) && MP >= 4000 && (ComboLastMove is AID.RoyalAuthority ? !CanFitSkSGCD(FightOrFlight.CD, 2) : ComboLastMove is AID.FastBlade ? !CanFitSkSGCD(FightOrFlight.CD, 1) : ComboLastMove is AID.RiotBlade && !CanFitSkSGCD(FightOrFlight.CD));
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.Confiteor) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         Opener = CombatTimer <= 10 ? ComboLastMove == AID.RoyalAuthority : ComboTimer > 10;

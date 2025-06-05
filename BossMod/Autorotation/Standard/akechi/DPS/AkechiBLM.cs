@@ -425,9 +425,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
         return (false, OGCDPriority.None);
     }
-    private bool ShouldUseAmplifier(OGCDStrategy strategy) => ShouldUseOGCD(CanAmplify, strategy, Player, () => !HasMaxPolyglots);
-    private bool ShouldUseRetrace(OGCDStrategy strategy) => ShouldUseOGCD(CanRetrace, strategy, Player);
-    private bool ShouldUseBTL(OGCDStrategy strategy) => ShouldUseOGCD(CanBTL, strategy, Player);
+    private bool ShouldUseAmplifier(OGCDStrategy strategy) => ShouldUseOGCD(strategy, Player, CanAmplify, !HasMaxPolyglots);
+    private bool ShouldUseRetrace(OGCDStrategy strategy) => ShouldUseOGCD(strategy, Player, CanRetrace);
+    private bool ShouldUseBTL(OGCDStrategy strategy) => ShouldUseOGCD(strategy, Player, CanBTL);
     private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
         PotionStrategy.AlignWithBuffs or PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),

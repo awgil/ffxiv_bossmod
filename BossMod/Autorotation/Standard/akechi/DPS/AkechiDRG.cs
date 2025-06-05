@@ -278,7 +278,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
 
     #region Buffs
-    private (bool, OGCDPriority) ShouldBuffUp(BuffsStrategy strategy, Actor? target, bool ready, Func<bool> together)
+    private (bool, OGCDPriority) ShouldBuffUp(BuffsStrategy strategy, Actor? target, bool ready, bool together)
     {
         if (!ready || !HasPower)
             return (false, OGCDPriority.None);
@@ -287,14 +287,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         return strategy switch
         {
             BuffsStrategy.Automatic => (minimal, OGCDPriority.Severe),
-            BuffsStrategy.Together => (minimal && together(), OGCDPriority.Severe),
+            BuffsStrategy.Together => (minimal && together, OGCDPriority.Severe),
             BuffsStrategy.RaidBuffsOnly => (minimal && (RaidBuffsLeft > 0 || RaidBuffsIn < 2000), OGCDPriority.Severe),
             BuffsStrategy.Force => (true, OGCDPriority.Forced),
             _ => (false, OGCDPriority.None)
         };
     }
-    private (bool, OGCDPriority) ShouldUseLanceCharge(BuffsStrategy strategy, Actor? target) => ShouldBuffUp(strategy, target, CanLC, () => (Unlocked(AID.BattleLitany) && BLcd is > 30 or < 1) || !Unlocked(AID.BattleLitany));
-    private (bool, OGCDPriority) ShouldUseBattleLitany(BuffsStrategy strategy, Actor? target) => ShouldBuffUp(strategy, target, CanBL, () => HasLC);
+    private (bool, OGCDPriority) ShouldUseLanceCharge(BuffsStrategy strategy, Actor? target) => ShouldBuffUp(strategy, target, CanLC, (Unlocked(AID.BattleLitany) && BLcd is > 30 or < 1) || !Unlocked(AID.BattleLitany));
+    private (bool, OGCDPriority) ShouldUseBattleLitany(BuffsStrategy strategy, Actor? target) => ShouldBuffUp(strategy, target, CanBL, HasLC);
     private bool ShouldUseLifeSurge(SurgeStrategy strategy, Actor? target)
     {
         var lv6to17 = ComboLastMove is AID.TrueThrust;
@@ -320,18 +320,18 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Dives
-    private bool ShouldUseDragonfireDive(CommonStrategy strategy, Actor? target) => ShouldUseCommons(CanDD, strategy, target, () => InsideCombatWith(target) && In20y(target) && HasPower && (Unlocked(AID.Geirskogul) ? (HasLC && HasBL && HasLOTD) : Unlocked(AID.BattleLitany) ? (HasLC && HasBL) : HasLC));
-    private bool ShouldUseJump(CommonStrategy strategy, Actor? target) => ShouldUseCommons(CanJump, strategy, target, () => InsideCombatWith(target) && In20y(target) && HasPower && (HasLC || LCcd is < 35 and > 13));
-    private bool ShouldUseStardiver(CommonStrategy strategy, Actor? target) => ShouldUseCommons(CanSD, strategy, target, () => InsideCombatWith(target) && In20y(target) && HasPower && HasLOTD);
-    private bool ShouldUseMirageDive(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(CanMD, strategy, target, () => InsideCombatWith(target) && In20y(target) && HasPower);
+    private bool ShouldUseDragonfireDive(CommonStrategy strategy, Actor? target) => ShouldUseCommons(strategy, target, CanDD, InsideCombatWith(target) && In20y(target) && HasPower && (Unlocked(AID.Geirskogul) ? (HasLC && HasBL && HasLOTD) : Unlocked(AID.BattleLitany) ? (HasLC && HasBL) : HasLC));
+    private bool ShouldUseJump(CommonStrategy strategy, Actor? target) => ShouldUseCommons(strategy, target, CanJump, InsideCombatWith(target) && In20y(target) && HasPower && (HasLC || LCcd is < 35 and > 13));
+    private bool ShouldUseStardiver(CommonStrategy strategy, Actor? target) => ShouldUseCommons(strategy, target, CanSD, InsideCombatWith(target) && In20y(target) && HasPower && HasLOTD);
+    private bool ShouldUseMirageDive(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, CanMD, InsideCombatWith(target) && In20y(target));
     #endregion
 
     #region Spears
-    private bool ShouldUseGeirskogul(CommonStrategy strategy, Actor? target) => ShouldUseCommons(CanGeirskogul, strategy, target, () => InsideCombatWith(target) && In15y(target) && HasPower && ((InOddWindow(AID.BattleLitany) && HasLC) || (!InOddWindow(AID.BattleLitany) && HasLC && HasBL)));
-    private bool ShouldUseNastrond(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(CanNastrond, strategy, target, () => InsideCombatWith(target) && In15y(target) && HasPower);
-    private bool ShouldUseWyrmwindThrust(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(CanWT, strategy, target, () => InsideCombatWith(target) && In15y(target) && HasPower && LCcd > SkSGCDLength * 2);
-    private bool ShouldUseStarcross(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(CanSC, strategy, target, () => InsideCombatWith(target) && In20y(target) && HasPower);
-    private bool ShouldUseROTD(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(CanROTD, strategy, target, () => InsideCombatWith(target) && In20y(target) && HasPower);
+    private bool ShouldUseGeirskogul(CommonStrategy strategy, Actor? target) => ShouldUseCommons(strategy, target, CanGeirskogul, InsideCombatWith(target) && In15y(target) && HasPower && ((InOddWindow(AID.BattleLitany) && HasLC) || (!InOddWindow(AID.BattleLitany) && HasLC && HasBL)));
+    private bool ShouldUseNastrond(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, CanNastrond, InsideCombatWith(target) && In15y(target) && HasPower);
+    private bool ShouldUseWyrmwindThrust(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, CanWT, InsideCombatWith(target) && In15y(target) && HasPower && LCcd > SkSGCDLength * 2);
+    private bool ShouldUseStarcross(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, CanSC, InsideCombatWith(target) && In20y(target) && HasPower);
+    private bool ShouldUseROTD(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, CanROTD, InsideCombatWith(target) && In20y(target) && HasPower);
     #endregion
 
     private void ShouldUseElusive(ElusiveDirection strategy, Actor? target)
@@ -395,9 +395,9 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             _ => false
         };
     }
-    private bool ShouldUseCommons(bool ready, CommonStrategy strategy, Actor? target, Func<bool> auto) => ready && strategy switch
+    private bool ShouldUseCommons(CommonStrategy strategy, Actor? target, bool ready, bool optimal) => ready && strategy switch
     {
-        CommonStrategy.Automatic => auto(),
+        CommonStrategy.Automatic => optimal,
         CommonStrategy.Force or CommonStrategy.ForceEX => true,
         CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX => CanWeaveIn,
         CommonStrategy.Delay => false,

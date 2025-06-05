@@ -345,7 +345,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.6f;
 
     /// <summary>Checks if user can <b>Quarter Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanQuarterWeaveIn => GCD is < 1f and >= 0.6f;
+    protected bool CanQuarterWeaveIn => GCD is < 0.9f and >= 0.5f;
 
     /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
     protected bool InOddWindow(AID aid) => CDRemaining(aid) is < 90 and > 30;
@@ -366,7 +366,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool OGCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 2.0f;
+    protected bool OGCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 1f;
 
     protected bool IsReady(AID aid) => Unlocked(aid) && CDRemaining(aid) < 0.5f;
 
@@ -828,26 +828,28 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     };
 
     /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
-    protected bool ShouldUseGCD(bool ready, GCDStrategy strategy, Actor? target, Func<bool>? condition = null) => ready && strategy switch
+    protected bool ShouldUseGCD(bool ready, GCDStrategy strategy, Actor? target, bool optimal = false) => ready && strategy switch
     {
-        GCDStrategy.Automatic => condition?.Invoke() ?? true,
+        GCDStrategy.Automatic => target != null && optimal,
         GCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
         GCDStrategy.Force => true,
         _ => false
     };
 
     /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
-    protected bool ShouldUseOGCD(bool ready, OGCDStrategy strategy, Actor? target, Func<bool>? condition = null) => ready && strategy switch
+    protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = false)
     {
-        OGCDStrategy.Automatic => condition?.Invoke() ?? true,
-        OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
-        OGCDStrategy.Force => true,
-        OGCDStrategy.AnyWeave => CanWeaveIn,
-        OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => CanLateWeaveIn,
-        _ => false
-    };
-
+        return ready && strategy switch
+        {
+            OGCDStrategy.Automatic => target != null && optimal,
+            OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            _ => false
+        };
+    }
     #endregion
 
     #region Shared Abilities
