@@ -9,7 +9,7 @@ class P1BrightfireLarge(BossModule module) : Components.StandardAOEs(module, AID
 // TODO: fixed tethers strat variant (tether target with clone on safe side goes S, other goes N, if any group has 5 players prio1 adjusts)
 class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 6, 0, 4, 4)
 {
-    public bool EnableHints;
+    public new bool EnableHints;
     public WDir SafeSide;
     public DateTime Activation;
     public readonly int[] AssignedGroups = new int[PartyState.MaxPartySize];
