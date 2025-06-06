@@ -36,7 +36,7 @@ class FT01DemonTabletStates : StateMachineBuilder
 
     private State CloseFar(uint id, float delay)
     {
-        return CastStartMulti(id, [AID.RayOfDangersNear, AID.RayOfExpulsionAfar, AID.DemonographOfDangersNear], delay)
+        return CastStartMulti(id, [AID.RayOfDangersNear, AID.RayOfExpulsionAfar, AID.DemonographOfDangersNear, AID.DemonographOfExpulsionAfar], delay)
             .ActivateOnEnter<LandingBoss>()
             .ActivateOnEnter<LandingNear>()
             .ActivateOnEnter<LandingKnockback>();
@@ -81,7 +81,7 @@ class FT01DemonTabletStates : StateMachineBuilder
             .ActivateOnEnter<Rotation1>()
             .ActivateOnEnter<LacunateStream>();
 
-        ComponentCondition<Rotation>(id + 0x110, 8.8f, r => r.NumCasts > 0, "Rotation 2")
+        ComponentCondition<Rotation>(id + 0x110, 8.8f, r => r.NumCasts > 1, "Rotation 2")
             .DeactivateOnExit<Rotation>()
             .DeactivateOnExit<Rotation1>();
 
