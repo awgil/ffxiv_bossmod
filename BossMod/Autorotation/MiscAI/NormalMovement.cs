@@ -6,7 +6,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 {
     public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion }
     public enum DestinationStrategy { None, Pathfind, Explicit }
-    public enum RangeStrategy { Any, MaxMelee, MeleeGreedGCDExplicit, MeleeGreedLastMomentExplicit }
+    public enum RangeStrategy { Any, MaxMelee, MeleeGreedGCDExplicit, MeleeGreedLastMomentExplicit, MeleeGreedLastMomentImplicit }
     public enum CastStrategy { Leeway, Explicit, Greedy, FinishMove, DropMove, FinishInstants, DropInstants }
     public enum ForbiddenZoneCushionStrategy { None, Small, Medium, Large }
     public enum SpecialModesStrategy { Automatic, Ignore }
@@ -25,6 +25,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             .AddOption(RangeStrategy.MaxMelee, "MaxMelee", "Stay within max-melee of target closest to destination", supportedTargets: ActionTargets.Hostile)
             .AddOption(RangeStrategy.MeleeGreedGCDExplicit, "MeleeGreedGCDExplicit", "Melee greed, wait until last gcd to move, ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
             .AddOption(RangeStrategy.MeleeGreedLastMomentExplicit, "MeleeGreedLastMomentExplicit", "Melee greed, wait until last moment to move, ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.MeleeGreedLastMomentImplicit, "MeleeGreedLastMomentImplicit", "Melee greed, wait until last moment to move, try to reach destination by attack resolution", supportedTargets: ActionTargets.Hostile)
             /*.AddOption(RangeStrategy.Drag, "Drag", "Drag the target to specified spot, but maintain gcd uptime", supportedTargets: ActionTargets.Hostile)*/; // TODO
         res.Define(Track.Cast).As<CastStrategy>("Cast", "Cast", 10)
             .AddOption(CastStrategy.Leeway, "Leeway", "Continue slidecasting as long as there is enough time to get to safety")
@@ -131,6 +132,13 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                         case RangeStrategy.MeleeGreedLastMomentExplicit:
                             navi.LeewaySeconds = destinationOpt.Value.ExpireIn - uptimeToDestinationTime;
                             if (navi.LeewaySeconds > (rangeStrategy == RangeStrategy.MeleeGreedGCDExplicit ? GCD : 0))
+                                navi.Destination = uptimePosition;
+                            break;
+                        case RangeStrategy.MeleeGreedLastMomentImplicit:
+                            // Leeway is on the order of 1 second when in danger or near maxfloat when safe.
+                            // If leeway is over 10 minutes then the player is currently safe so dont greed INTO danger.
+                            // This avoids vibrating on the edge of the attack due to the maxfloat leeway being higher than 0.
+                            if (navi.LeewaySeconds is < 600 and > 0)
                                 navi.Destination = uptimePosition;
                             break;
                     }
