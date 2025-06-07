@@ -133,3 +133,11 @@ public enum SID : uint
     _Gen_Doom = 2519, // Helper->player, extra=0x0
     _Gen_BattleHigh = 4229, // none->player, extra=0x0
 }
+
+public enum TetherID : uint
+{
+    _Gen_Tether_chn_tergetfix2k1 = 249, // player->Nereid/Triton/Phobos
+    _Gen_Tether_chn_d1048sp_01h = 310, // Nereid/Triton/Phobos->Phobos/Nereid/Triton
+    _Gen_Tether_chn_arrow01f = 246, // FrozenPhobos/FrozenTriton->player
+    _Gen_Tether_chn_dark001f = 1, // FrozenPhobos/FrozenTriton->player
+}

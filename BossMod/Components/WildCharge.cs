@@ -153,3 +153,107 @@ public class SimpleLineStack(BossModule module, float halfWidth, float fixedLeng
         }
     }
 }
+
+// component for multiple simultaneous line stacks from different sources
+// we assume getting hit by two line stacks is fatal (they typically give a vuln stack or something)
+public class MultiLineStack(BossModule module, float halfWidth, float fixedLength, Enum aidTargetSelect, Enum aidResolve, float activationDelay) : CastCounter(module, aidResolve)
+{
+    public struct Stack(WPos source, Actor target, DateTime activation, BitMask forbiddenPlayers = default)
+    {
+        public WPos Source = source;
+        public Actor Target = target;
+        public DateTime Activation = activation;
+        public BitMask ForbiddenPlayers = forbiddenPlayers;
+    }
+
+    protected bool Check(Stack s, Actor player) => player.Position.InRect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
+
+    public readonly List<Stack> Stacks = [];
+
+    private Func<WPos, bool> ShapeFn(Stack s) => ShapeContains.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            Stacks.RemoveAll(c => c.Target.InstanceID == spell.MainTargetID);
+        }
+
+        if (spell.Action.ID == (uint)(object)aidTargetSelect)
+        {
+            if (WorldState.Actors.Find(spell.MainTargetID) is { } tar)
+                Stacks.Add(new(caster.Position, tar, WorldState.FutureTime(activationDelay)));
+            else
+                ReportError($"Unable to find target with ID {spell.MainTargetID:X} for stack");
+        }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var s in Stacks)
+            Arena.ZoneRect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth, s.ForbiddenPlayers[pcSlot] ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Stacks.Count == 0)
+            return;
+
+        if (Stacks.Any(s => s.Target == actor))
+            hints.Add("Stack with party!", false);
+        else
+        {
+            int countAllowed = 0, countOk = 0, countForbidden = 0;
+            foreach (var s in Stacks)
+            {
+                if (!s.ForbiddenPlayers[slot])
+                    countAllowed++;
+
+                if (Check(s, actor))
+                {
+                    if (s.ForbiddenPlayers[slot])
+                        countForbidden++;
+                    else
+                        countOk++;
+                }
+            }
+
+            if (countAllowed == 0)
+                return;
+
+            if (countForbidden > 0)
+                hints.Add("GTFO from forbidden stack!");
+            else if (countOk == 0)
+                hints.Add("Stack!");
+            else
+            {
+                hints.Add("Stack!", false);
+                if (countOk > 1)
+                    hints.Add("GTFO from other stacks!");
+            }
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Stacks.Count == 0)
+            return;
+
+        foreach (var group in Stacks.GroupBy(s => s.ForbiddenPlayers[slot]))
+        {
+            if (group.Key) // player is forbidden
+            {
+                foreach (var s in group)
+                    hints.AddForbiddenZone(ShapeFn(s), s.Activation);
+            }
+            else
+            {
+                var zones = group.Select(ShapeFn).ToList();
+                hints.AddForbiddenZone(p => zones.Count(f => f(p)) != 1, group.First().Activation);
+            }
+        }
+    }
+
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Stacks.Any(s => s.Target == player) ? PlayerPriority.Interesting : PlayerPriority.Normal;
+}

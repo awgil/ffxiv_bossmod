@@ -89,6 +89,8 @@ public enum IconID : uint
 // raidwide actually has 3 hits but i cba
 class ManeuverMissileCommand(BossModule module) : Components.RaidwideCastDelay(module, AID.ManeuverMissileCommand, AID.BarrageImpact, 2.1f);
 
+class HighPoweredLaser(BossModule module) : Components.MultiLineStack(module, 7, 80, AID.TargetSelect, AID.ManeuverHighPoweredLaser1, 5.4f);
+
 class IncendiaryBombingSpread(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.Lockon, AID.IncendiaryBombing, 6, centerAtTarget: true, damageType: AIHints.PredictedDamageType.None)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
