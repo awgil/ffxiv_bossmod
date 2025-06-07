@@ -156,6 +156,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public void FaceDirection(Angle direction)
     {
+        Service.Log($"face direction requested: {direction}");
         var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (player != null)
         {
@@ -389,9 +390,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
         // gaze avoidance & targeting
         // note: to execute an oriented action (cast a spell or use instant), target has to be within 45 degrees of character orientation (reversed)
-        // to finish a spell without interruption, by the beginning of the slide-cast window target has to be within 75 degrees of character orientation (empyrical)
+        // to finish a spell without interruption, by the beginning of the slide-cast window target has to be within 75 degrees of character orientation (empirical)
         var castInfo = player->GetCastInfo();
-        var isCasting = castInfo != null && castInfo->IsCasting != 0;
+        // with <500ms remaining on cast timer, player can face and move wherever they want and still complete the cast successfully (slidecast)
+        var isCasting = castInfo != null && castInfo->IsCasting != 0 && castInfo->CurrentCastTime + 0.5f < castInfo->TotalCastTime;
         var currentAction = isCasting ? new((ActionType)castInfo->ActionType, castInfo->ActionId) : actionImminent ? AutoQueue.Action : default;
         var currentTargetId = isCasting ? (ulong)castInfo->TargetId : (AutoQueue.Target?.InstanceID ?? 0xE0000000);
         var currentTargetSelf = currentTargetId == player->EntityId;
