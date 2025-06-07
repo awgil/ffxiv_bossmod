@@ -34,7 +34,7 @@ public class ThetaStar
     private Node[] _nodes = [];
     private readonly List<int> _openList = [];
     private float _deltaGSide;
-    private int _startNodeIndex;
+    public int _startNodeIndex;
     private float _startMaxG;
     private float _startPrio;
     private Score _startScore;

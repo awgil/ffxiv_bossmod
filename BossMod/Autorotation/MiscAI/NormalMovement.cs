@@ -135,10 +135,11 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                                 navi.Destination = uptimePosition;
                             break;
                         case RangeStrategy.MeleeGreedLastMomentImplicit:
-                            // Leeway is on the order of 1 second when in danger or near maxfloat when safe.
-                            // If leeway is over 10 minutes then the player is currently safe so dont greed INTO danger.
-                            // This avoids vibrating on the edge of the attack due to the maxfloat leeway being higher than 0.
-                            if (navi.LeewaySeconds is < 600 and > 0)
+                            // If the uptime pixel G is lower than the current position G then dont greed INTO danger.
+                            // This avoids vibrating on the edge of the attack due to the maxfloat leeway of already being safe being higher than 0.
+                            var uptimeIndex = _navCtx.Map.GridToIndex(_navCtx.Map.WorldToGrid(uptimePosition));
+                            var currentIndex = _navCtx.ThetaStar._startNodeIndex;
+                            if (navi.LeewaySeconds > 0.5 && _navCtx.Map.PixelMaxG[uptimeIndex] >= _navCtx.Map.PixelMaxG[currentIndex])
                                 navi.Destination = uptimePosition;
                             break;
                     }
