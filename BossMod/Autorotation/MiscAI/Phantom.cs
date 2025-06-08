@@ -160,7 +160,7 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
                 && !primaryTarget!.IsAlly)
                 UseSkill(PhantomID.Rage, Player, strategy.Option(Tracks.PhantomBerserker).Priority(ActionQueue.Priority.Low + 500));
             if (level >= 2)
-                UseSkill(PhantomID.DeadlyBlow, Player, strategy.Option(Tracks.PhantomBerserker).Priority(ActionQueue.Priority.High + 500));
+                UseSkill(PhantomID.DeadlyBlow, primaryTarget, strategy.Option(Tracks.PhantomBerserker).Priority(ActionQueue.Priority.High + 600));
         }
     }
 
