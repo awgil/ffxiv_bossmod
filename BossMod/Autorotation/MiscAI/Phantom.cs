@@ -154,7 +154,7 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
         }
         if (strategy.Option(Tracks.PhantomBerserker).As<PhantomEnabled>() == PhantomEnabled.On)
         {
-            var level = PhantomJobLevel(Player, PhantomClass.Oracle);
+            var level = PhantomJobLevel(Player, PhantomClass.Berserker);
             if (level >= 1
                 && Player.DistanceToHitbox(primaryTarget) is < 3
                 && !primaryTarget!.IsAlly)
