@@ -27,6 +27,24 @@ class ForkedTowerConfig : ConfigNode
     public bool DrawOverlay = true;
 }
 
+static class ConfigExtensions
+{
+    public static int Group(this ForkedTowerConfig.Alliance a) => a switch
+    {
+        ForkedTowerConfig.Alliance.A or ForkedTowerConfig.Alliance.B or ForkedTowerConfig.Alliance.C => 1,
+        ForkedTowerConfig.Alliance.D1 or ForkedTowerConfig.Alliance.E2 or ForkedTowerConfig.Alliance.F3 => 2,
+        _ => 0
+    };
+
+    public static int Pair(this ForkedTowerConfig.Alliance a) => a switch
+    {
+        ForkedTowerConfig.Alliance.A or ForkedTowerConfig.Alliance.D1 => 1,
+        ForkedTowerConfig.Alliance.B or ForkedTowerConfig.Alliance.E2 => 2,
+        ForkedTowerConfig.Alliance.C or ForkedTowerConfig.Alliance.F3 => 3,
+        _ => 0
+    };
+}
+
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1018)]
 class FTAllianceSelector(WorldState ws) : ZoneModule(ws)
 {

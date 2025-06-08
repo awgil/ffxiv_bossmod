@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT02DeadStars;
 
-class PrimordialChaos(BossModule module) : Components.RaidwideCastDelay(module, AID._Spell_PrimordialChaos, AID._Spell_PrimordialChaos2, 1.3f);
+class PrimordialChaos(BossModule module) : Components.RaidwideCastDelay(module, AID.PrimordialChaosCast, AID.PrimordialChaos, 1.3f);
 
 class Ooze(BossModule module) : Components.GenericAOEs(module)
 {
@@ -37,7 +37,7 @@ class Ooze(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_)
+        if ((AID)spell.Action.ID == AID.FrozenFalloutIndicator)
         {
             NumCasts++;
             if (_predicted[0].Center.AlmostEqual(caster.Position, 1))
@@ -49,10 +49,10 @@ class Ooze(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID._Gen_NovaOoze or SID._Gen_IceOoze && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID is SID.NovaOoze or SID.IceOoze && Raid.TryFindSlot(actor, out var slot))
         {
             var extra = (int)status.Extra;
-            if ((SID)status.ID == SID._Gen_IceOoze)
+            if ((SID)status.ID == SID.IceOoze)
                 extra = -extra;
             _states[slot] = extra;
         }
@@ -60,7 +60,7 @@ class Ooze(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID._Gen_NovaOoze or SID._Gen_IceOoze && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID is SID.NovaOoze or SID.IceOoze && Raid.TryFindSlot(actor, out var slot))
             _states[slot] = 0;
     }
 
@@ -76,4 +76,4 @@ class Ooze(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class NoxiousNova(BossModule module) : Components.RaidwideCastDelay(module, AID._Spell_NoxiousNova, AID._Spell_NoxiousNova1, 0.8f);
+class NoxiousNova(BossModule module) : Components.RaidwideCastDelay(module, AID.NoxiousNovaCast, AID.NoxiousNova, 0.8f);

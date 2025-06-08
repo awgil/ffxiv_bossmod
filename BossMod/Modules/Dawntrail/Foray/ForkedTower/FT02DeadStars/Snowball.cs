@@ -2,9 +2,9 @@
 
 class SnowballAdds(BossModule module) : Components.AddsMulti(module, [OID.FrozenPhobos, OID.FrozenTriton], 2);
 
-class SnowBoulderHelper(BossModule module) : Components.ChargeAOEs(module, AID._Ability_SnowBoulder, 5);
+class SnowBoulderHelper(BossModule module) : Components.ChargeAOEs(module, AID.SnowBoulderCast, 5);
 
-class SnowBoulder(BossModule module) : Components.CastCounter(module, AID._Ability_SnowBoulder1)
+class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBoulder)
 {
     private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
 
@@ -23,16 +23,8 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID._Abili
         if (_vulns[slot] > c.Activation)
             return false;
 
-        var (side, order) = _config.PlayerAlliance switch
-        {
-            ForkedTowerConfig.Alliance.A => (0, 0),
-            ForkedTowerConfig.Alliance.B => (0, 1),
-            ForkedTowerConfig.Alliance.C => (0, 2),
-            ForkedTowerConfig.Alliance.D1 => (1, 0),
-            ForkedTowerConfig.Alliance.E2 => (1, 1),
-            ForkedTowerConfig.Alliance.F3 => (1, 2),
-            _ => (-1, -1)
-        };
+        var (side, order) = (_config.PlayerAlliance.Group() - 1, _config.PlayerAlliance.Pair() - 1);
+
         if (side < 0)
             return true;
         return side == c.Snowball && order == c.Order;
@@ -46,7 +38,7 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID._Abili
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_SnowBoulder)
+        if ((AID)spell.Action.ID == AID.SnowBoulderCast)
         {
             var snowball = _charges.Count < 2
                 ? (caster.Position.Z < Arena.Center.Z ? 0 : 1)
@@ -107,29 +99,29 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID._Abili
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_PhysicalVulnerabilityUp && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID == SID.PhysicalVulnerabilityUp && Raid.TryFindSlot(actor, out var slot))
             _vulns[slot] = status.ExpireAt;
     }
 }
 
-class ChillingCollision(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Spell_ChillingCollision, 21)
+class ChillingCollision(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ChillingCollisionIndicator, 21)
 {
     public int NumRealCasts;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
-        if ((AID)spell.Action.ID == AID._Spell_ChillingCollision2)
+        if ((AID)spell.Action.ID == AID.ChillingCollisionKB)
             NumRealCasts++;
     }
 }
 
 class Avalaunch : Components.StackWithCastTargets
 {
-    public Avalaunch(BossModule module) : base(module, AID._Ability_Avalaunch2, 8)
+    public Avalaunch(BossModule module) : base(module, AID.AvalaunchStack, 8)
     {
         EnableHints = false;
     }
 }
 
-class SelfDestruct(BossModule module) : Components.CastHint(module, AID._Spell_SelfDestruct, "Kill snowballs!", true);
+class SelfDestruct(BossModule module) : Components.CastHint(module, AID.SelfDestructIce, "Kill snowballs!", true);

@@ -242,7 +242,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
 
         foreach (var group in Stacks.GroupBy(s => s.ForbiddenPlayers[slot]))
         {
-            if (group.Key) // player is forbidden
+            if (group.Key) // player is not allowed to stack with these
             {
                 foreach (var s in group)
                     hints.AddForbiddenZone(ShapeFn(s), s.Activation);

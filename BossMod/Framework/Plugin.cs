@@ -357,7 +357,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             //Service.Log($"[ExecHints] Jumping...");
             FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
-            _throttleJump = _ws.CurrentTime.AddMilliseconds(100);
+            _throttleJump = _ws.FutureTime(0.1f);
         }
 
         if (CheckInteractRange(_ws.Party.Player(), _hints.InteractWithTarget))

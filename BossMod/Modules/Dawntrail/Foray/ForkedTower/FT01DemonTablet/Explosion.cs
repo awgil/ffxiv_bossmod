@@ -42,11 +42,11 @@ class GravityExplosion : Components.CastTowers
             var pos = DeterminePosition(caster, spell);
             var towerAssignment = AssignmentUtil.GetTowerAssignment(pos, split: false);
 
-            var playerAssign = _config.PlayerAlliance switch
+            var playerAssign = _config.PlayerAlliance.Group() switch
             {
-                ForkedTowerConfig.Alliance.A or ForkedTowerConfig.Alliance.D1 => ForkedTowerConfig.Alliance.A,
-                ForkedTowerConfig.Alliance.B or ForkedTowerConfig.Alliance.E2 => ForkedTowerConfig.Alliance.B,
-                ForkedTowerConfig.Alliance.C or ForkedTowerConfig.Alliance.F3 => ForkedTowerConfig.Alliance.C,
+                1 => ForkedTowerConfig.Alliance.A,
+                2 => ForkedTowerConfig.Alliance.B,
+                3 => ForkedTowerConfig.Alliance.C,
                 _ => _config.PlayerAlliance
             };
 
@@ -67,7 +67,7 @@ class EraseGravity : Components.StandardAOEs
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var shouldLevitate = _config.PlayerAlliance is ForkedTowerConfig.Alliance.D1 or ForkedTowerConfig.Alliance.E2 or ForkedTowerConfig.Alliance.F3;
+        var shouldLevitate = _config.PlayerAlliance.Group() == 2;
 
         foreach (var aoe in base.ActiveAOEs(slot, actor))
             yield return aoe with { Color = shouldLevitate ? ArenaColor.SafeFromAOE : ArenaColor.AOE, Risky = Risky && !shouldLevitate };
@@ -78,7 +78,7 @@ class EraseGravity : Components.StandardAOEs
         if (!Risky)
             return;
 
-        var shouldLevitate = _config.PlayerAlliance is ForkedTowerConfig.Alliance.D1 or ForkedTowerConfig.Alliance.E2 or ForkedTowerConfig.Alliance.F3;
+        var shouldLevitate = _config.PlayerAlliance.Group() == 2;
 
         if (Casters.Count > 0)
         {
@@ -95,7 +95,7 @@ class EraseGravity : Components.StandardAOEs
         if (!Risky)
             return;
 
-        var shouldLevitate = _config.PlayerAlliance is ForkedTowerConfig.Alliance.D1 or ForkedTowerConfig.Alliance.E2 or ForkedTowerConfig.Alliance.F3;
+        var shouldLevitate = _config.PlayerAlliance.Group() == 2;
 
         var zones = Casters.Select(c => ShapeContains.Circle(c.CastInfo!.LocXZ, 4)).ToList();
         if (zones.Count > 0)

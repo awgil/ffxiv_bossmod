@@ -16,18 +16,15 @@ class DecisiveBattleAOE(BossModule module) : Components.GenericAOEs(module)
     public IEnumerable<Actor> ActiveCasters()
     {
         var active = new BitMask(0b111);
-        switch (_config.PlayerAlliance)
+        switch (_config.PlayerAlliance.Pair())
         {
-            case ForkedTowerConfig.Alliance.A:
-            case ForkedTowerConfig.Alliance.D1:
+            case 1:
                 active.Clear(0);
                 break;
-            case ForkedTowerConfig.Alliance.B:
-            case ForkedTowerConfig.Alliance.E2:
+            case 2:
                 active.Clear(1);
                 break;
-            case ForkedTowerConfig.Alliance.C:
-            case ForkedTowerConfig.Alliance.F3:
+            case 3:
                 active.Clear(2);
                 break;
         }
@@ -38,7 +35,7 @@ class DecisiveBattleAOE(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_DecisiveBattle or AID._Ability_DecisiveBattle1 or AID._Ability_DecisiveBattle2)
+        if ((AID)spell.Action.ID is AID.DecisiveBattle3 or AID.DecisiveBattle2 or AID.DecisiveBattle1)
         {
             var ix = caster.Position.Z < Arena.Center.Z ? 1 : caster.Position.X < Arena.Center.X ? 0 : 2;
             _casters[ix] = caster;
@@ -47,7 +44,7 @@ class DecisiveBattleAOE(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_DecisiveBattle or AID._Ability_DecisiveBattle1 or AID._Ability_DecisiveBattle2)
+        if ((AID)spell.Action.ID is AID.DecisiveBattle3 or AID.DecisiveBattle2 or AID.DecisiveBattle1)
         {
             var ix = Array.FindIndex(_casters, c => c == caster);
             if (ix >= 0)
@@ -80,13 +77,18 @@ class DecisiveBattleAOE(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DecisiveBattle(BossModule module) : Components.GenericInvincible(module)
+class DecisiveBattle : Components.GenericInvincible
 {
     private readonly int[] _playerAssignments = Utils.MakeArray(PartyState.MaxPartySize, -1);
 
     private Actor? _triton;
     private Actor? _nereid;
     private Actor? _phobos;
+
+    public DecisiveBattle(BossModule module) : base(module)
+    {
+        KeepOnPhaseChange = true;
+    }
 
     public bool Active => _playerAssignments.Any(p => p >= 0);
 
@@ -124,9 +126,9 @@ class DecisiveBattle(BossModule module) : Components.GenericInvincible(module)
     {
         var ix = (SID)status.ID switch
         {
-            SID._Gen_TritonicGravity => 0,
-            SID._Gen_NereidicGravity => 1,
-            SID._Gen_PhobosicGravity => 2,
+            SID.TritonicGravity => 0,
+            SID.NereidicGravity => 1,
+            SID.PhobosicGravity => 2,
             _ => -1
         };
         if (ix >= 0 && Raid.TryFindSlot(actor, out var slot))
@@ -135,7 +137,7 @@ class DecisiveBattle(BossModule module) : Components.GenericInvincible(module)
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID._Gen_TritonicGravity or SID._Gen_NereidicGravity or SID._Gen_PhobosicGravity && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID is SID.TritonicGravity or SID.NereidicGravity or SID.PhobosicGravity && Raid.TryFindSlot(actor, out var slot))
             _playerAssignments[slot] = -1;
     }
 }
