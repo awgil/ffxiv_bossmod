@@ -139,8 +139,15 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                             // This avoids vibrating on the edge of the attack due to the maxfloat leeway of already being safe being higher than 0.
                             var uptimeIndex = _navCtx.Map.GridToIndex(_navCtx.Map.WorldToGrid(uptimePosition));
                             var currentIndex = _navCtx.ThetaStar._startNodeIndex;
-                            if (navi.LeewaySeconds > 0.5 && _navCtx.Map.PixelMaxG[uptimeIndex] >= _navCtx.Map.PixelMaxG[currentIndex])
-                                navi.Destination = uptimePosition;
+                            if (navi.LeewaySeconds > 0.5)
+                            { // Theres still time to move, so we can greed.
+                                if (_navCtx.Map.PixelMaxG[uptimeIndex] >= _navCtx.Map.PixelMaxG[currentIndex])
+                                    // Greed from nearest spot to goal if possible
+                                    navi.Destination = uptimePosition;
+                                else if (Player.DistanceToHitbox(primaryTarget) <= maxRange)
+                                    // If we are currently in range but the close spot isnt safe, then we can just greed from here
+                                    navi.Destination = Player.Position;
+                            }
                             break;
                     }
                 }
