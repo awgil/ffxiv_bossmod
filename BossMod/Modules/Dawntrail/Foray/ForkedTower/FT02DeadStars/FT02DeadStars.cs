@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Foray.ForkedTower.FT02DeadStars;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT02DeadStars;
 
 class DeathWall : Components.GenericAOEs
 {

@@ -60,7 +60,7 @@ class FireSpread(BossModule module) : Components.CastCounter(module, AID.FireSpr
             _towers.Add(actor);
     }
 
-    record struct Target(Actor t, float lsq);
+    record struct Target(Actor T, float Lsq);
 
     public override void Update()
     {
@@ -74,7 +74,7 @@ class FireSpread(BossModule module) : Components.CastCounter(module, AID.FireSpr
             if (!src.IsTargetable)
                 return;
 
-            var prev = t?.lsq ?? float.MaxValue;
+            var prev = t?.Lsq ?? float.MaxValue;
             var dist = (tar.Position - src.Position).LengthSq();
             if (dist < prev)
                 t = new(tar, dist);
@@ -94,10 +94,10 @@ class FireSpread(BossModule module) : Components.CastCounter(module, AID.FireSpr
             }
         }
 
-        _targets[0][0] = s1?.t;
-        _targets[0][1] = d1?.t;
-        _targets[1][0] = s2?.t;
-        _targets[1][1] = d2?.t;
+        _targets[0][0] = s1?.T;
+        _targets[0][1] = d1?.T;
+        _targets[1][0] = s2?.T;
+        _targets[1][1] = d2?.T;
     }
 
     private IEnumerable<(Actor Source, Actor Target, bool Allowed)> Baits(Actor player)
@@ -136,10 +136,18 @@ class FireSpread(BossModule module) : Components.CastCounter(module, AID.FireSpr
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var baits = Baits(actor);
-        if (baits.Any(b => b.Target == actor))
+        bool stackHint = false, forbidden = false;
+
+        foreach (var b in baits)
+        {
+            stackHint |= b.Target == actor;
+            forbidden |= !b.Allowed && actor.Position.InCone(b.Source.Position, b.Source.AngleTo(b.Target), 45.Degrees());
+        }
+
+        if (stackHint)
             hints.Add("Stack with party!", false);
 
-        if (baits.Any(b => !b.Allowed && actor.Position.InCone(b.Source.Position, b.Source.AngleTo(b.Target), 45.Degrees())))
+        if (forbidden)
             hints.Add("GTFO from forbidden bait!");
     }
 

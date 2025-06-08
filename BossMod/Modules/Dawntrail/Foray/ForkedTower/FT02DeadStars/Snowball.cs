@@ -75,7 +75,7 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBo
     {
         if (_charges.Count(c => IsAssigned(slot, c)) > 1)
         {
-            var anyCharge = ShapeContains.Union(_charges.Select(c => c.ShapeFn).ToList());
+            var anyCharge = ShapeContains.Union([.. _charges.Select(c => c.ShapeFn)]);
             hints.AddForbiddenZone(p => !anyCharge(p), _charges[0].Activation);
             return;
         }

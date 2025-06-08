@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Foray.ForkedTower.FT03MarbleDragon;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT03MarbleDragon;
 
 class Rain3(BossModule module) : BossComponent(module)
 {
