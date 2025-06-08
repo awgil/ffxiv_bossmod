@@ -12,6 +12,7 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
         PhantomOracleBlessing,
         PhantomOracleStarfall,
         PhantomOracleRejuvination,
+        PhantomBerserker,
     }
 
     public enum PhantomEnabled
@@ -92,6 +93,13 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
         .AddAssociatedActions(
             PhantomID.PhantomRejuvenation
         );
+        def.Define(Tracks.PhantomBerserker).As<PhantomEnabled>("Berserker", "Berserker: Use Berserker actions")
+        .AddOption(PhantomEnabled.Off, "Disabled")
+        .AddOption(PhantomEnabled.On, "Enabled")
+        .AddAssociatedActions(
+            PhantomID.Rage,
+            PhantomID.DeadlyBlow
+        );
 
         return def;
     }
@@ -143,6 +151,16 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
             Player.PendingHPRatio < 1 && PhantomJobLevel(Player, PhantomClass.Oracle) >= 4)
         {
             UseSkill(PhantomID.PhantomRejuvenation, Player, strategy.Option(Tracks.PhantomOracleRejuvination).Priority(ActionQueue.Priority.Low + 500));
+        }
+        if (strategy.Option(Tracks.PhantomBerserker).As<PhantomEnabled>() == PhantomEnabled.On)
+        {
+            var level = PhantomJobLevel(Player, PhantomClass.Oracle);
+            if (level >= 1
+                && Player.DistanceToHitbox(primaryTarget) is < 3
+                && !primaryTarget!.IsAlly)
+                UseSkill(PhantomID.Rage, Player, strategy.Option(Tracks.PhantomBerserker).Priority(ActionQueue.Priority.Low + 500));
+            if (level >= 2)
+                UseSkill(PhantomID.DeadlyBlow, Player, strategy.Option(Tracks.PhantomBerserker).Priority(ActionQueue.Priority.High + 500));
         }
     }
 
