@@ -16,54 +16,18 @@ class DraconiformHint(BossModule module) : BossComponent(module)
     }
 }
 
-class FT03MarbleDragonStates : StateMachineBuilder
+class DreadDeluge(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_DreadDeluge1, "Tankbusters");
+class Golem(BossModule module) : Components.Adds(module, (uint)OID._Gen_IceGolem, 1);
+class FrigidDive : Components.StandardAOEs
 {
-    public FT03MarbleDragonStates(BossModule module) : base(module)
+    public FrigidDive(BossModule module) : base(module, AID._Weaponskill_FrigidDive1, new AOEShapeRect(60, 10))
     {
-        DeathPhase(0, Phase1);
-    }
-
-    private void Phase1(uint id)
-    {
-        CastStart(id, AID._Weaponskill_ImitationStar, 6.1f)
-            .ActivateOnEnter<ImitationStar>();
-        ComponentCondition<ImitationStar>(id + 1, 6.9f, s => s.NumCasts > 0, "Raidwide");
-
-        DraconiformMotion(id + 0x100, 8.6f);
-        Blizzard1(id + 0x10000, 5);
-
-        Timeout(id + 0xFF0000, 9999, "???");
-    }
-
-    private State DraconiformMotion(uint id, float delay)
-    {
-        CastStart(id, AID._Weaponskill_DraconiformMotion, delay)
-            .ActivateOnEnter<DraconiformHint>()
-            .ActivateOnEnter<DraconiformMotion>()
-            .DeactivateOnExit<DraconiformHint>();
-        return ComponentCondition<DraconiformMotion>(id + 0x10, 4.8f, d => d.NumCasts > 0, "Baited AOE")
-            .DeactivateOnExit<DraconiformMotion>();
-    }
-
-    private void Blizzard1(uint id, float delay)
-    {
-        ComponentCondition<ImitationRain>(id, delay, i => i.NumCasts > 0, "Raidwide")
-            .ActivateOnEnter<ImitationRain>()
-            .ActivateOnEnter<ImitationBlizzard>()
-            .DeactivateOnExit<ImitationRain>();
-
-        Cast(id + 0x10, AID._Weaponskill_ImitationIcicle, 3.6f, 3);
-
-        DraconiformMotion(id + 0x100, 4.4f)
-            .ExecOnEnter<ImitationBlizzard>(b => b.Enabled = true);
-
-        ComponentCondition<ImitationBlizzard>(id + 0x200, 4.3f, b => b.NumCasts > 0, "Blizzard start");
-        ComponentCondition<ImitationBlizzard>(id + 0x210, 3.1f, b => b.NumCasts >= 8, "Blizzard end");
+        Color = ArenaColor.Danger;
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13838)]
-public class FT03MarbleDragon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-337, 157), new ArenaBoundsCircle(35))
+public class FT03MarbleDragon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-337, 157), new ArenaBoundsCircle(30))
 {
     public override bool DrawAllPlayers => true;
 }

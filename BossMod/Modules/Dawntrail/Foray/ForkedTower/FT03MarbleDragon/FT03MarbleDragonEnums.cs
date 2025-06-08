@@ -8,9 +8,12 @@ public enum OID : uint
     _Gen_ = 0x46D5, // R0.500, x1
     _Gen_Icewind = 0x3976, // R1.000, x0 (spawn during fight)
     _Gen_IceGolem = 0x398A, // R2.850, x0 (spawn during fight)
+    _Gen_IceSprite = 0x39C2, // R1.040, x0 (spawn during fight)
+    _Gen_Trap = 0x4767, // R1.000, x0 (spawn during fight)
 
     IcePuddle = 0x1EBD52,
-    CrossPuddle = 0x1EBD53
+    CrossPuddle = 0x1EBD53,
+    IceTower = 0x1EBD54,
 }
 
 public enum AID : uint
@@ -43,4 +46,7 @@ public enum AID : uint
     _Ability_ImitationBlizzard2 = 30229, // Helper->self, 4.0s cast, range 4 circle
     _Ability_ImitationBlizzard3 = 30230, // Helper->self, no cast, single-target
     _Ability_ImitationBlizzard4 = 30417, // Helper->self, no cast, ???
+    _Ability_FrozenHeart = 37823, // _Gen_IceGolem->self, 3.0s cast, single-target
+    _Ability_1 = 30416, // Boss->self, no cast, single-target
+    _Ability_LifelessLegacy = 30616, // Boss->self, 35.0+1.6s cast, single-target
 }
