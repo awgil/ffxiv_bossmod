@@ -267,7 +267,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (strategy.Enabled(Track.Zeninage) && RaidBuffsLeft > GCD && PhantomReadyIn(PhantomID.Zeninage) <= GCD)
             PushGCD((AID)PhantomID.Zeninage, primaryTarget, GCDPriority.Max);
 
-        if (strategy.Enabled(Track.Iainuki))
+        if (strategy.Enabled(Track.Iainuki) && (CombatTimer > 10 || RaidBuffsLeft > GCD))
         {
             var ready = PhantomReadyIn(PhantomID.Iainuki);
             if (ready <= GCD)
