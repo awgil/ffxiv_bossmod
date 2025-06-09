@@ -1,4 +1,5 @@
 ﻿using BossMod.BLM;
+using BossMod.Data;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
 
@@ -6,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
-    public enum Track { Scathe = SharedTrack.Buffs, Thunder, Leylines, Triplecast }
+    public enum Track { Scathe = SharedTrack.Buffs, Thunder, Leylines, Triplecast, Iainuki, Zeninage }
     public enum ScatheStrategy
     {
         Forbid,
@@ -64,6 +65,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             .AddOption(TriplecastStrategy.Delay, "Delay", "Don't use")
             .AddOption(TriplecastStrategy.Force, "Force", "Use ASAP", effect: 15, defaultPriority: DefaultOGCDPriority)
             .AddAssociatedActions(AID.Triplecast);
+
+        def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki on cooldown");
+        def.AbilityTrack(Track.Zeninage, "Zeninage", "PSAM: Use Zeninage under raid buffs (costs 10,000 gil)");
 
         return def;
     }
@@ -259,6 +263,19 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID) is Actor ll)
             Hints.GoalZones.Add(p => p.InCircle(ll.Position, 3) ? 0.5f : 0);
+
+        if (strategy.Enabled(Track.Zeninage) && RaidBuffsLeft > GCD && PhantomReadyIn(PhantomID.Zeninage) <= GCD)
+            PushGCD((AID)PhantomID.Zeninage, primaryTarget, GCDPriority.Max);
+
+        if (strategy.Enabled(Track.Iainuki))
+        {
+            var ready = PhantomReadyIn(PhantomID.Iainuki);
+            if (ready <= GCD)
+                PushGCD((AID)PhantomID.Iainuki, primaryTarget, GCDPriority.Max);
+
+            if (ready <= GCD + GCDLength * 2)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget.Actor, 8));
+        }
 
         if (Polyglot < MaxPolyglot)
             PushOGCD(AID.Amplifier, Player);
