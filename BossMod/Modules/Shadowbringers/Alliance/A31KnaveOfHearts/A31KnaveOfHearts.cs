@@ -13,11 +13,14 @@ public enum AID : uint
 {
     AutoAttack = 24668, // Boss->player, no cast, single-target
     Roar = 24245, // Boss->self, 5.0s cast, range 80 circle
-    ColossalImpactCast = 24228, // Boss/CopiedKnave->self, 7.0s cast, single-target
-    ColossalImpactFast = 24231, // Boss/CopiedKnave->self, 8.0s cast, range 61 width 20 rect
-    ColossalImpactSlow = 24776, // Boss->self, 9.5s cast, range 61 width 20 rect
-    ColossalImpact1 = 24230, // Helper->self, 8.0s cast, range 61 width 20 rect
-    ColossalImpact2 = 24229, // Helper->self, 8.0s cast, range 61 width 20 rect
+    ColossalImpactCastFast = 24228, // Boss/CopiedKnave->self, 7.0s cast, single-target
+    ColossalImpact1 = 24229, // Helper->self, 8.0s cast, range 61 width 20 rect
+    ColossalImpact2 = 24230, // Helper->self, 8.0s cast, range 61 width 20 rect
+    ColossalImpact3 = 24231, // Boss/CopiedKnave->self, 8.0s cast, range 61 width 20 rect
+    ColossalImpactCastSlow = 23805, // Boss->self, 8.5s cast, single-target
+    ColossalImpactSlow1 = 24774, // Helper->self, 9.5s cast, range 61 width 20 rect
+    ColossalImpactSlow2 = 24775, // Helper->self, 9.5s cast, range 61 width 20 rect
+    ColossalImpactSlow3 = 24776, // Boss->self, 9.5s cast, range 61 width 20 rect
     MagicArtilleryBetaCast = 24242, // Boss->self, 3.0s cast, single-target
     MagicArtilleryBeta = 24243, // Helper->player, 5.0s cast, range 3 circle
     Replicate = 24233, // Boss->self, 3.0s cast, single-target
@@ -49,7 +52,7 @@ public enum IconID : uint
     Spread = 169, // player->self
 }
 
-class ColossalImpact(BossModule module) : Components.GroupedAOEs(module, [AID.ColossalImpactFast, AID.ColossalImpact1, AID.ColossalImpact2, AID.ColossalImpactSlow], new AOEShapeRect(61, 10));
+class ColossalImpact(BossModule module) : Components.GroupedAOEs(module, [AID.ColossalImpact1, AID.ColossalImpact2, AID.ColossalImpact3, AID.ColossalImpactSlow1, AID.ColossalImpactSlow2, AID.ColossalImpactSlow3], new AOEShapeRect(61, 10));
 
 class MagicArtilleryAlpha(BossModule module) : Components.SpreadFromCastTargets(module, AID.MagicArtilleryAlpha, 5);
 class LightLeap(BossModule module) : Components.StandardAOEs(module, AID.LightLeap, new AOEShapeCircle(25));
