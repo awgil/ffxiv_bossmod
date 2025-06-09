@@ -17,6 +17,7 @@ class FT03MarbleDragonStates : StateMachineBuilder
         Rain1(id + 0x10000, 5);
         Rain2(id + 0x20000, 5.8f);
         Golems(id + 0x30000, 9.7f);
+        Sprites(id + 0x40000, 6.1f);
 
         Timeout(id + 0xFF0000, 9999, "???");
     }
@@ -114,5 +115,20 @@ class FT03MarbleDragonStates : StateMachineBuilder
         ComponentCondition<Rain3Towers>(id + 0x20, 4, t => t.NumCasts > 2, "Towers 2")
             .DeactivateOnExit<Rain3>()
             .DeactivateOnExit<Rain3Towers>();
+    }
+
+    private void Sprites(uint id, float delay)
+    {
+        Targetable(id, true, delay, "Boss reappears");
+
+        ComponentCondition<IceSprite>(id + 0x10, 1, s => s.ActiveActors.Any(), "Sprites appear")
+            .ActivateOnEnter<IceSprite>()
+            .ActivateOnEnter<LifelessLegacy>();
+
+        ComponentCondition<LifelessLegacy>(id + 0x20, 36.7f, l => l.NumCasts > 0, "Raidwide + sprites enrage")
+            .DeactivateOnExit<IceSprite>()
+            .DeactivateOnExit<LifelessLegacy>();
+
+        Cast(id + 0x100, AID._Weaponskill_WickedWater, 8.5f, 4, "wicked water");
     }
 }

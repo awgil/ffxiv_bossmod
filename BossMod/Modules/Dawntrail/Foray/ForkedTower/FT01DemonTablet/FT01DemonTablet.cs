@@ -71,7 +71,6 @@ static class AssignmentUtil
 {
     private static WPos Center => FT01DemonTablet.ArenaCenter;
 
-    // if `split` is false, only A/B/C will be returned
     public static ForkedTowerConfig.Alliance GetTowerAssignment(WPos pos)
     {
         var letters = pos.Z < Center.Z;

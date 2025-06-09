@@ -26,6 +26,10 @@ class FrigidDive : Components.StandardAOEs
     }
 }
 
+class IceSprite(BossModule module) : Components.Adds(module, (uint)OID._Gen_IceSprite, 1);
+
+class LifelessLegacy(BossModule module) : Components.RaidwideCastDelay(module, AID._Ability_LifelessLegacy, AID._Weaponskill_LifelessLegacy, 1.8f, hint: "");
+
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13838)]
 public class FT03MarbleDragon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-337, 157), new ArenaBoundsCircle(30))
 {

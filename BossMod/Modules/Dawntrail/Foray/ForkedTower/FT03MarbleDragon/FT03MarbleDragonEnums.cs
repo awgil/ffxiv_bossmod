@@ -10,6 +10,7 @@ public enum OID : uint
     _Gen_IceGolem = 0x398A, // R2.850, x0 (spawn during fight)
     _Gen_IceSprite = 0x39C2, // R1.040, x0 (spawn during fight)
     _Gen_Trap = 0x4767, // R1.000, x0 (spawn during fight)
+    _Gen_GelidGaol = 0x39D9, // R1.000, x0 (spawn during fight)
 
     IcePuddle = 0x1EBD52,
     CrossPuddle = 0x1EBD53,
@@ -49,4 +50,6 @@ public enum AID : uint
     _Ability_FrozenHeart = 37823, // _Gen_IceGolem->self, 3.0s cast, single-target
     _Ability_1 = 30416, // Boss->self, no cast, single-target
     _Ability_LifelessLegacy = 30616, // Boss->self, 35.0+1.6s cast, single-target
+    _Weaponskill_LifelessLegacy = 37818, // Helper->self, no cast, ???
+    _Weaponskill_WickedWater = 30695, // Boss->self, 4.0s cast, single-target
 }
