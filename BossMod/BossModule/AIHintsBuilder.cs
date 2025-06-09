@@ -7,6 +7,8 @@ public sealed class AIHintsBuilder : IDisposable
     private const float RaidwideSize = 30;
     public const float MaxError = 2000f / 65535f; // TODO: this should really be handled by the rasterization itself...
 
+    private readonly SmartRotationConfig _gazeConfig = Service.Config.Get<SmartRotationConfig>();
+
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;
     private readonly BossModuleManager _bmm;
@@ -16,6 +18,7 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape)> _activeGazes = [];
     private readonly List<Actor> _invincible = [];
     private ArenaBoundsCircle? _activeFateBounds;
+    private bool AvoidGazes => _gazeConfig.Enabled && _gazeConfig.AvoidGazes;
 
     private static readonly List<uint> InvincibleStatuses =
     [
@@ -219,7 +222,7 @@ public sealed class AIHintsBuilder : IDisposable
             return;
 
         // gaze
-        if (data.VFX.RowId == 25)
+        if (data.VFX.RowId == 25 && AvoidGazes)
         {
             if (GuessShape(data, actor) is AOEShape sh)
                 _activeGazes[actor.InstanceID] = (actor, _ws.Actors.Find(actor.CastInfo.TargetID), sh);
