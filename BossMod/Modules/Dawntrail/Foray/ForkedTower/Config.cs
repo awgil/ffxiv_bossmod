@@ -50,7 +50,7 @@ class FTAllianceSelector(WorldState ws) : ZoneModule(ws)
 {
     private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
 
-    public override bool WantDrawExtra() => _config.DrawOverlay;
+    public override bool WantDrawExtra() => _config.DrawOverlay && World.Party.Player()?.PosRot.Y < -200;
 
     public override void DrawExtra()
     {

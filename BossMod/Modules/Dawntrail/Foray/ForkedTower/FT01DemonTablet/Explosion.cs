@@ -40,9 +40,9 @@ class GravityExplosion : Components.CastTowers
         if (spell.Action == WatchedAction)
         {
             var pos = DeterminePosition(caster, spell);
-            var towerAssignment = AssignmentUtil.GetTowerAssignment(pos, split: false);
+            var towerAssignment = AssignmentUtil.GetTowerAssignment(pos);
 
-            var playerAssign = _config.PlayerAlliance.Group() switch
+            var playerAssign = _config.PlayerAlliance.Pair() switch
             {
                 1 => ForkedTowerConfig.Alliance.A,
                 2 => ForkedTowerConfig.Alliance.B,

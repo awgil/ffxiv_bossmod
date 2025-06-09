@@ -72,7 +72,7 @@ static class AssignmentUtil
     private static WPos Center => FT01DemonTablet.ArenaCenter;
 
     // if `split` is false, only A/B/C will be returned
-    public static ForkedTowerConfig.Alliance GetTowerAssignment(WPos pos, bool split = true)
+    public static ForkedTowerConfig.Alliance GetTowerAssignment(WPos pos)
     {
         var letters = pos.Z < Center.Z;
         var off = pos - Center;
@@ -81,11 +81,11 @@ static class AssignmentUtil
 
         ForkedTowerConfig.Alliance ass;
         if (off.Z > 20)
-            ass = letters || !split ? ForkedTowerConfig.Alliance.B : ForkedTowerConfig.Alliance.E2;
+            ass = letters ? ForkedTowerConfig.Alliance.B : ForkedTowerConfig.Alliance.E2;
         else if (off.X > 0)
-            ass = letters || !split ? ForkedTowerConfig.Alliance.C : ForkedTowerConfig.Alliance.F3;
+            ass = letters ? ForkedTowerConfig.Alliance.C : ForkedTowerConfig.Alliance.F3;
         else
-            ass = letters || !split ? ForkedTowerConfig.Alliance.A : ForkedTowerConfig.Alliance.D1;
+            ass = letters ? ForkedTowerConfig.Alliance.A : ForkedTowerConfig.Alliance.D1;
 
         return ass;
     }
