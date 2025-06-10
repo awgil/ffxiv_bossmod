@@ -184,13 +184,13 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.Button("Add misdirection"))
         {
             var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-            player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, 0xE0000000, true);
+            player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, (GameObjectId)0xE0000000, true);
         }
         ImGui.SameLine();
         if (ImGui.Button("Add thin ice"))
         {
             var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-            player->GetStatusManager()->SetStatus(20, 911, 20.0f, 50, 0xE0000000, true); // param = distance * 10
+            player->GetStatusManager()->SetStatus(20, 911, 20.0f, 50, (GameObjectId)0xE0000000, true); // param = distance * 10
         }
 
         ImGui.TextUnformatted($"Player move speed: {ws.Client.MoveSpeed:f2}");
