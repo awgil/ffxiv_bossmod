@@ -6,7 +6,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 {
     public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion }
     public enum DestinationStrategy { None, Pathfind, Explicit }
-    public enum RangeStrategy { Any, MaxMelee, MeleeGreedGCDExplicit, MeleeGreedLastMomentExplicit }
+    public enum RangeStrategy { Any, MaxMelee, MeleeGreedGCDExplicit, MeleeGreedLastMomentExplicit, MeleeGreedAutomatic }
     public enum CastStrategy { Leeway, Explicit, Greedy, FinishMove, DropMove, FinishInstants, DropInstants }
     public enum ForbiddenZoneCushionStrategy { None, Small, Medium, Large }
     public enum SpecialModesStrategy { Automatic, Ignore }
@@ -25,6 +25,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             .AddOption(RangeStrategy.MaxMelee, "MaxMelee", "Stay within max-melee of target closest to destination", supportedTargets: ActionTargets.Hostile)
             .AddOption(RangeStrategy.MeleeGreedGCDExplicit, "MeleeGreedGCDExplicit", "Melee greed, wait until last gcd to move, ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
             .AddOption(RangeStrategy.MeleeGreedLastMomentExplicit, "MeleeGreedLastMomentExplicit", "Melee greed, wait until last moment to move, ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.MeleeGreedAutomatic, "MeleeGreedAutomatic", "Melee greed, wait until last moment to move, try ensure destination is reached before mechanics resolve", supportedTargets: ActionTargets.Hostile)
             /*.AddOption(RangeStrategy.Drag, "Drag", "Drag the target to specified spot, but maintain gcd uptime", supportedTargets: ActionTargets.Hostile)*/; // TODO
         res.Define(Track.Cast).As<CastStrategy>("Cast", "Cast", 10)
             .AddOption(CastStrategy.Leeway, "Leeway", "Continue slidecasting as long as there is enough time to get to safety")
@@ -132,6 +133,17 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                             navi.LeewaySeconds = destinationOpt.Value.ExpireIn - uptimeToDestinationTime;
                             if (navi.LeewaySeconds > (rangeStrategy == RangeStrategy.MeleeGreedGCDExplicit ? GCD : 0))
                                 navi.Destination = uptimePosition;
+                            break;
+                        case RangeStrategy.MeleeGreedAutomatic:
+                            var uptimeCell = _navCtx.Map.GridToIndex(_navCtx.Map.WorldToGrid(uptimePosition));
+                            var curCell = _navCtx.ThetaStar.StartNodeIndex;
+                            if (navi.LeewaySeconds > 0)
+                            {
+                                if (_navCtx.Map.PixelMaxG[uptimeCell] >= _navCtx.Map.PixelMaxG[curCell])
+                                    navi.Destination = uptimePosition;
+                                else if (Player.DistanceToHitbox(primaryTarget) <= maxRange)
+                                    navi.Destination = Player.Position;
+                            }
                             break;
                     }
                 }

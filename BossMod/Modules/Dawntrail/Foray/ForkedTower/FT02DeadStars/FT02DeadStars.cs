@@ -134,7 +134,7 @@ public class FT02DeadStars(WorldState ws, Actor primary) : BossModule(ws, primar
 {
     private Actor? _nereid;
     private Actor? _phobos;
-    private Actor? _deadStars;
+    private Actor? _multiboss;
     private Actor? _fireNereid;
     private Actor? _firePhobos;
     private Actor? _iceTriton;
@@ -147,7 +147,8 @@ public class FT02DeadStars(WorldState ws, Actor primary) : BossModule(ws, primar
     public Actor? FirePhobos() => _firePhobos;
     public Actor? IceTriton() => _iceTriton;
     public Actor? IcePhobos() => _icePhobos;
-    public Actor? DeadStars() => _deadStars;
+    public Actor? Multiboss() => _multiboss;
+    public Actor? DeathWall { get; private set; }
 
     public override bool DrawAllPlayers => true;
 
@@ -160,13 +161,14 @@ public class FT02DeadStars(WorldState ws, Actor primary) : BossModule(ws, primar
 
     protected override void UpdateModule()
     {
+        DeathWall ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.DeathWallHelper).FirstOrDefault() : null;
         _nereid ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Nereid).FirstOrDefault() : null;
         _phobos ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.Phobos).FirstOrDefault() : null;
         _icePhobos ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.FrozenPhobos).FirstOrDefault() : null;
         _iceTriton ??= StateMachine.ActivePhaseIndex == 0 ? Enemies(OID.FrozenTriton).FirstOrDefault() : null;
         _fireNereid ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.GaseousNereid).FirstOrDefault() : null;
         _firePhobos ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.GaseousPhobos).FirstOrDefault() : null;
-        _deadStars ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.DeadStars).FirstOrDefault() : null;
+        _multiboss ??= StateMachine.ActivePhaseIndex == 2 ? Enemies(OID.DeadStars).FirstOrDefault() : null;
     }
 }
 

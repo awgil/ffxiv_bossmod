@@ -34,6 +34,7 @@ class FT04MagitaurStates : StateMachineBuilder
 
         CastEnd(id + 0x410, 1, "Axe/lance 2");
 
-        Timeout(id + 0xFF0000, 9999, "???");
+        Timeout(id + 0xFF0000, 9999, "???")
+            .ActivateOnEnter<AssassinsDagger>();
     }
 }

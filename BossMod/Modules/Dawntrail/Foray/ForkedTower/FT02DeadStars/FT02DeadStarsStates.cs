@@ -18,12 +18,16 @@ class FT02DeadStarsStates : StateMachineBuilder
                 && _module.Nereid()?.CastInfo == null;
 
         SimplePhase(1, Phase2, "Fire phase")
-            .Raw.Update = () => IsEffectivelyDead(_module.FireNereid())
+            .Raw.Update = () =>
+                (_module.DeathWall?.IsDeadOrDestroyed ?? true)
+                || IsEffectivelyDead(_module.FireNereid())
                 && IsEffectivelyDead(_module.FirePhobos())
                 && _module.Triton()?.CastInfo == null;
 
         SimplePhase(2, Phase3, "Enrage phase")
-            .Raw.Update = () => IsEffectivelyDead(_module.DeadStars());
+            .Raw.Update = () =>
+                (_module.DeathWall?.IsDeadOrDestroyed ?? true)
+                || IsEffectivelyDead(_module.Multiboss());
     }
 
     private void Phase1(uint id)
