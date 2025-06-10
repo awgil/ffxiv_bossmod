@@ -11,7 +11,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         TimeMage,
         Chemist,
         Samurai,
-        Bard
+        Bard,
+        Monk
     }
 
     public enum RaiseStrategy
@@ -40,6 +41,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddAssociatedActions(PhantomID.Iainuki);
         def.AbilityTrack(Track.Bard, "Bard", "Bard: Use Aria/Rime in combat")
             .AddAssociatedActions(PhantomID.OffensiveAria, PhantomID.HerosRime);
+        def.AbilityTrack(Track.Monk, "Monk", "Monk: Use Kick to maintain buff; use Chakra at low HP/MP")
+            .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.OccultChakra);
 
         return def;
     }
@@ -130,6 +133,17 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
 
             if (ariaLeft < 10 && rimeLeft < World.Client.AnimationLock)
                 UseAction(PhantomID.OffensiveAria, Player, prio);
+        }
+
+        if (strategy.Enabled(Track.Monk) && primaryTarget?.IsAlly == false && Player.InCombat)
+        {
+            var prio = strategy.Option(Track.Monk).Priority(ActionQueue.Priority.Low);
+
+            if (UseAction(PhantomID.PhantomKick, primaryTarget, prio))
+                Hints.GoalZones.Add(Hints.GoalAOERect(primaryTarget, 15, 3));
+
+            if (Player.HPMP.MaxHP * 0.3f >= Player.HPMP.CurHP || Player.HPMP.MaxMP * 0.3f >= Player.HPMP.CurMP)
+                UseAction(PhantomID.OccultChakra, Player, prio);
         }
     }
 
