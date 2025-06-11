@@ -16,7 +16,7 @@ class DecisiveBattleAOE(BossModule module) : Components.GenericAOEs(module)
     public IEnumerable<Actor> ActiveCasters()
     {
         var active = new BitMask(0b111);
-        switch (_config.PlayerAlliance.Pair())
+        switch (_config.PlayerAlliance.Group3())
         {
             case 1:
                 active.Clear(0);

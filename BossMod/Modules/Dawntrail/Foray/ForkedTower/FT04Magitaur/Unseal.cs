@@ -9,18 +9,20 @@ class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.
         Lance
     }
 
-    public Weapon Current { get; private set; }
+    public Weapon CurrentWeapon;
     private readonly List<Actor>[] _targets = Utils.MakeArray<List<Actor>>(3, []);
     private IEnumerable<Actor> AllTargets => _targets.SelectMany(t => t);
 
     public DateTime NextActivation;
+
+    public void Predict(float delay) => NextActivation = WorldState.FutureTime(delay);
 
     public override void Update()
     {
         foreach (var t in _targets)
             t.Clear();
 
-        if (Current == Weapon.None)
+        if (CurrentWeapon == Weapon.None)
             return;
 
         foreach (var group in WorldState.Actors.Where(p => p.Type == ActorType.Player && !p.IsDead).GroupBy(FT04Magitaur.GetPlatform))
@@ -29,25 +31,25 @@ class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.
                 continue;
 
             var sorted = group.SortedByRange(Module.PrimaryActor.Position);
-            if (Current == Weapon.Axe)
+            if (CurrentWeapon == Weapon.Axe)
                 _targets[group.Key].AddRange(sorted.Take(2));
 
-            if (Current == Weapon.Lance)
+            if (CurrentWeapon == Weapon.Lance)
                 _targets[group.Key].AddRange(sorted.TakeLast(2));
         }
     }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (Current == Weapon.Axe)
+        if (CurrentWeapon == Weapon.Axe)
             hints.Add("Autos: close");
-        else if (Current == Weapon.Lance)
+        else if (CurrentWeapon == Weapon.Lance)
             hints.Add("Autos: far");
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Current == Weapon.None)
+        if (CurrentWeapon == Weapon.None)
             return;
 
         if (actor.Role == Role.Tank)
@@ -56,10 +58,10 @@ class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.
             if (platform < 0)
                 hints.Add("Get on platform!");
             else
-                hints.Add(Current == Weapon.Axe ? "Stay close to boss!" : "Stay away from boss!", _targets[platform].Any(a => a.Role != Role.Tank));
+                hints.Add(CurrentWeapon == Weapon.Axe ? "Stay close to boss!" : "Stay away from boss!", _targets[platform].Any(a => a.Role != Role.Tank));
         }
         else if (AllTargets.Contains(actor))
-            hints.Add(Current == Weapon.Axe ? "Stay away from boss!" : "Stay close to boss!");
+            hints.Add(CurrentWeapon == Weapon.Axe ? "Stay away from boss!" : "Stay close to boss!");
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -67,11 +69,11 @@ class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.
         switch ((AID)spell.Action.ID)
         {
             case AID.UnsealAxe:
-                Current = Weapon.Axe;
+                CurrentWeapon = Weapon.Axe;
                 NextActivation = WorldState.FutureTime(8);
                 break;
             case AID.UnsealLance:
-                Current = Weapon.Lance;
+                CurrentWeapon = Weapon.Lance;
                 NextActivation = WorldState.FutureTime(8);
                 break;
         }
@@ -80,6 +82,19 @@ class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.
         {
             NumCasts++;
             NextActivation = WorldState.FutureTime(3.2f);
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID._Gen_Unsealed)
+        {
+            if (status.Extra == 0x353)
+                CurrentWeapon = Weapon.Axe;
+            else if (status.Extra == 0x354)
+                CurrentWeapon = Weapon.Lance;
+            else
+                ReportError($"unrecognized status extra for Unsealed: {status.Extra}");
         }
     }
 

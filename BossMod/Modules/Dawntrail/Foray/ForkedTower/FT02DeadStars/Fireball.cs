@@ -10,7 +10,7 @@ class FireballTowerHint(BossModule module) : BossComponent(module)
 
     public int FireballCount => (_fireballNE == null ? 0 : 1) + (_fireballSW == null ? 0 : 1);
 
-    public Actor? PlayerFireball => _config.PlayerAlliance.Group() switch
+    public Actor? PlayerFireball => _config.PlayerAlliance.Group2() switch
     {
         1 => _fireballNE,
         2 => _fireballSW,
@@ -38,9 +38,9 @@ class FireballTowerHint(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_config.PlayerAlliance.Group() != 2 && _fireballNE is { } ne)
+        if (_config.PlayerAlliance.Group2() != 2 && _fireballNE is { } ne)
             Arena.AddCircle(ne.Position, 1, ArenaColor.Safe);
-        if (_config.PlayerAlliance.Group() != 1 && _fireballSW is { } sw)
+        if (_config.PlayerAlliance.Group2() != 1 && _fireballSW is { } sw)
             Arena.AddCircle(sw.Position, 1, ArenaColor.Safe);
     }
 }

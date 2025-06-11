@@ -23,7 +23,7 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBo
         if (_vulns[slot] > c.Activation)
             return false;
 
-        var (side, order) = (_config.PlayerAlliance.Group() - 1, _config.PlayerAlliance.Pair() - 1);
+        var (side, order) = (_config.PlayerAlliance.Group2() - 1, _config.PlayerAlliance.Group3() - 1);
 
         if (side < 0)
             return true;

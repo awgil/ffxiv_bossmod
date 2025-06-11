@@ -29,14 +29,14 @@ class ForkedTowerConfig : ConfigNode
 
 static class ConfigExtensions
 {
-    public static int Group(this ForkedTowerConfig.Alliance a) => a switch
+    public static int Group2(this ForkedTowerConfig.Alliance a) => a switch
     {
         ForkedTowerConfig.Alliance.A or ForkedTowerConfig.Alliance.B or ForkedTowerConfig.Alliance.C => 1,
         ForkedTowerConfig.Alliance.D1 or ForkedTowerConfig.Alliance.E2 or ForkedTowerConfig.Alliance.F3 => 2,
         _ => 0
     };
 
-    public static int Pair(this ForkedTowerConfig.Alliance a) => a switch
+    public static int Group3(this ForkedTowerConfig.Alliance a) => a switch
     {
         ForkedTowerConfig.Alliance.A or ForkedTowerConfig.Alliance.D1 => 1,
         ForkedTowerConfig.Alliance.B or ForkedTowerConfig.Alliance.E2 => 2,

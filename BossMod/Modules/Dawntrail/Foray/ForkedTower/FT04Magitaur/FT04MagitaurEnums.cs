@@ -11,6 +11,7 @@ public enum OID : uint
     _Gen_UniversalEmpowermentConduit = 0x46F9, // R4.000, x0 (spawn during fight)
     _Gen_AxeEmpowermentConduit = 0x46EC, // R4.000, x0 (spawn during fight)
     _Gen_LanceEmpowermentConduit = 0x46EB, // R4.000, x0 (spawn during fight)
+    LuminousLance = 0x46E4,
 }
 
 public enum AID : uint
@@ -57,4 +58,20 @@ public enum AID : uint
     _Ability_HolyIV = 41559, // Helper->players, no cast, range 6 circle
     _Ability_Holy = 41563, // Boss->self, 19.0+1.0s cast, single-target
     _Ability_Holy1 = 39910, // Helper->self, 20.0s cast, ???
+}
+
+public enum SID : uint
+{
+    _Gen_Unsealed = 4339, // Boss->Boss, extra=0x353 (axe)/0x354 (lance)
+    _Gen_PreyLesserAxebit = 4336, // none->player, extra=0x0
+    _Gen_PreyGreaterAxebit = 4337, // none->player, extra=0x0
+    _Gen_MagicVulnerabilityUp = 2941, // Helper->player, extra=0x0
+    _Gen_PreyLancepoint = 4338, // none->player, extra=0x0
+}
+
+public enum IconID : uint
+{
+    _Gen_Icon_loc08sp_08a_se_c = 573, // player->self
+    _Gen_Icon_tag_ae5m_8s_0v = 345, // player->self
+    _Gen_Icon_com_share2i = 100, // player->self
 }

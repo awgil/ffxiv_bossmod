@@ -42,7 +42,7 @@ class GravityExplosion : Components.CastTowers
             var pos = DeterminePosition(caster, spell);
             var towerAssignment = AssignmentUtil.GetTowerAssignment(pos);
 
-            var playerAssign = _config.PlayerAlliance.Pair() switch
+            var playerAssign = _config.PlayerAlliance.Group3() switch
             {
                 1 => ForkedTowerConfig.Alliance.A,
                 2 => ForkedTowerConfig.Alliance.B,
@@ -67,7 +67,7 @@ class EraseGravity : Components.StandardAOEs
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var shouldLevitate = _config.PlayerAlliance.Group() == 2;
+        var shouldLevitate = _config.PlayerAlliance.Group2() == 2;
 
         foreach (var aoe in base.ActiveAOEs(slot, actor))
             yield return aoe with { Color = shouldLevitate ? ArenaColor.SafeFromAOE : ArenaColor.AOE, Risky = Risky && !shouldLevitate };
@@ -78,7 +78,7 @@ class EraseGravity : Components.StandardAOEs
         if (!Risky)
             return;
 
-        var shouldLevitate = _config.PlayerAlliance.Group() == 2;
+        var shouldLevitate = _config.PlayerAlliance.Group2() == 2;
 
         if (Casters.Count > 0)
         {
@@ -95,7 +95,7 @@ class EraseGravity : Components.StandardAOEs
         if (!Risky)
             return;
 
-        var shouldLevitate = _config.PlayerAlliance.Group() == 2;
+        var shouldLevitate = _config.PlayerAlliance.Group2() == 2;
 
         var zones = Casters.Select(c => ShapeContains.Circle(c.CastInfo!.LocXZ, 4)).ToList();
         if (zones.Count > 0)

@@ -158,6 +158,8 @@ public class SimpleLineStack(BossModule module, float halfWidth, float fixedLeng
 // we assume getting hit by two line stacks is fatal (they typically give a vuln stack or something)
 public class MultiLineStack(BossModule module, float halfWidth, float fixedLength, Enum aidTargetSelect, Enum aidResolve, float activationDelay) : CastCounter(module, aidResolve)
 {
+    public float ActivationDelay = activationDelay;
+
     public struct Stack(WPos source, Actor target, DateTime activation, BitMask forbiddenPlayers = default)
     {
         public WPos Source = source;
@@ -183,7 +185,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
         if (spell.Action.ID == (uint)(object)aidTargetSelect)
         {
             if (WorldState.Actors.Find(spell.MainTargetID) is { } tar)
-                Stacks.Add(new(caster.Position, tar, WorldState.FutureTime(activationDelay)));
+                Stacks.Add(new(caster.Position, tar, WorldState.FutureTime(ActivationDelay)));
             else
                 ReportError($"Unable to find target with ID {spell.MainTargetID:X} for stack");
         }

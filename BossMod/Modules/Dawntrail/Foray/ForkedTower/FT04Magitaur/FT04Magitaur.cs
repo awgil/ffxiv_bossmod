@@ -33,10 +33,8 @@ public class FT04Magitaur(WorldState ws, Actor primary) : BossModule(ws, primary
         return new(arena);
     }
 
-    public override void DrawArena(int pcSlot, Actor pc, bool haveRisks)
+    protected override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        base.DrawArena(pcSlot, pc, haveRisks);
-
         foreach (var (off, angle) in Platforms)
             Arena.AddRect(Arena.Center + off, angle.ToDirection(), 10, 10, 10, ArenaColor.Border);
     }
