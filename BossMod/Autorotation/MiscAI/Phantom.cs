@@ -13,6 +13,7 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
         PhantomOracleStarfall,
         PhantomOracleRejuvination,
         PhantomBerserker,
+        PhantomGeomancerBuffs,
     }
 
     public enum PhantomEnabled
@@ -29,17 +30,20 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
         Berserker = 4359,
         Monk = 4360,
         Ranger = 4361,
-
+        Samurai = 4362,
         Bard = 4363,
-
+        Geomancer = 4364,
         TimeMage = 4365,
         Cannoneer = 4366,
         Chemist = 4367,
         Oracle = 4368,
+        Thief = 4369,
     }
 
-    public enum PhantomStatus
+    public enum PhantomStatus : uint
     {
+        BattleBell = 4251,
+        RingingRespite = 4257,
         PredictionJudegment = 4265,
         PredictionCleansing = 4266,
         PredictionBlessing = 4267,
@@ -99,6 +103,14 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
         .AddAssociatedActions(
             PhantomID.Rage,
             PhantomID.DeadlyBlow
+        );
+        def.Define(Tracks.PhantomGeomancerBuffs).As<PhantomEnabled>("BattleBell", "Geomancer: Use Battle Bell and Ringing Respite")
+        .AddOption(PhantomEnabled.Off, "Disabled")
+        .AddOption(PhantomEnabled.On, "Enabled", "Use on self")
+        .AddOption(PhantomEnabled.Fallback, "FallbackOnly", "Use on main tank if available, otherwise use on self")
+        .AddAssociatedActions(
+            PhantomID.BattleBell,
+            PhantomID.RingingRespite
         );
 
         return def;
@@ -161,6 +173,40 @@ public sealed class PhantomActions(RotationModuleManager manager, Actor player) 
                 UseSkill(PhantomID.Rage, Player, strategy.Option(Tracks.PhantomBerserker).Priority(ActionQueue.Priority.Low + 500));
             if (level >= 2)
                 UseSkill(PhantomID.DeadlyBlow, primaryTarget, strategy.Option(Tracks.PhantomBerserker).Priority(ActionQueue.Priority.High + 600));
+        }
+        if (strategy.Option(Tracks.PhantomGeomancerBuffs).As<PhantomEnabled>() != PhantomEnabled.Off)
+        {
+            var level = PhantomJobLevel(Player, PhantomClass.Geomancer);
+
+            var target = Player;
+            if (strategy.Option(Tracks.PhantomGeomancerBuffs).As<PhantomEnabled>() == PhantomEnabled.Fallback)
+                target = World.Actors.Find(primaryTarget?.TargetID ?? 0) ?? Player; // if no target, use on self
+
+            if (level >= 1)
+            {
+                var status = target.FindStatus(PhantomStatus.BattleBell);
+                if (status == null || StatusDuration(status.Value.ExpireAt) < 30)
+                {
+                    UseSkill(PhantomID.BattleBell, target, strategy.Option(Tracks.PhantomGeomancerBuffs).Priority(ActionQueue.Priority.Low + 500));
+                }
+                else
+                {
+                    UseSkill(PhantomID.BattleBell, Player, strategy.Option(Tracks.PhantomGeomancerBuffs).Priority(ActionQueue.Priority.Low + 500));
+                }
+            }
+
+            if (level >= 3)
+            {
+                var status = target.FindStatus(PhantomStatus.RingingRespite);
+                if (status == null || StatusDuration(status.Value.ExpireAt) < 30)
+                {
+                    UseSkill(PhantomID.RingingRespite, target, strategy.Option(Tracks.PhantomGeomancerBuffs).Priority(ActionQueue.Priority.Low + 500));
+                }
+                else
+                {
+                    UseSkill(PhantomID.RingingRespite, Player, strategy.Option(Tracks.PhantomGeomancerBuffs).Priority(ActionQueue.Priority.Low + 500));
+                }
+            }
         }
     }
 
