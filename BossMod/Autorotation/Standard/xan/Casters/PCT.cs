@@ -306,7 +306,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void Holy(StrategyValues strategy)
     {
-        if (Paint == 0)
+        if (Paint == 0 || !strategy.Enabled(Track.Holy))
             return;
 
         var prio = GCDPriority.HolyMove;
