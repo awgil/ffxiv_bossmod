@@ -8,6 +8,7 @@ public sealed class AIHintsBuilder : IDisposable
     public const float MaxError = 2000f / 65535f; // TODO: this should really be handled by the rasterization itself...
 
     private readonly SmartRotationConfig _gazeConfig = Service.Config.Get<SmartRotationConfig>();
+    private readonly AIHintsConfig _hintConfig = Service.Config.Get<AIHintsConfig>();
 
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;
@@ -19,6 +20,8 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly List<Actor> _invincible = [];
     private ArenaBoundsCircle? _activeFateBounds;
     private bool AvoidGazes => _gazeConfig.Enabled && _gazeConfig.AvoidGazes;
+
+    private float ConeFallback => Math.Clamp(_hintConfig.ConeFallbackAngle * 0.5f, 1, 180);
 
     private static readonly List<uint> InvincibleStatuses =
     [
@@ -221,6 +224,9 @@ public sealed class AIHintsBuilder : IDisposable
         if (Service.LuminaRow<Lumina.Excel.Sheets.Action>(actor.CastInfo!.Action.ID) is not { } data)
             return;
 
+        if (_hintConfig.OmenSetting == AIHintsConfig.OmenBehavior.OmenOnly && data.Omen.RowId == 0)
+            return;
+
         // gaze
         if (data.VFX.RowId == 25 && AvoidGazes)
         {
@@ -233,7 +239,8 @@ public sealed class AIHintsBuilder : IDisposable
             return;
         //if (data.Omen.Row == 0)
         //    return; // to consider: ignore aoes without omen, such aoes typically need a module to resolve...
-        if (data.CastType is 2 or 5 && data.EffectRange >= RaidwideSize)
+
+        if (_hintConfig.OmenSetting != AIHintsConfig.OmenBehavior.AutomaticConservative && data.CastType is 2 or 5 && data.EffectRange >= RaidwideSize)
             return;
         if (GuessShape(data, actor) is not AOEShape shape)
         {
@@ -262,36 +269,50 @@ public sealed class AIHintsBuilder : IDisposable
             _invincible.Remove(actor);
     }
 
-    private static AOEShape? GuessShape(Lumina.Excel.Sheets.Action data, Actor actor) => data.CastType switch
+    private AOEShape? GuessShape(Lumina.Excel.Sheets.Action data, Actor actor)
     {
-        2 => new AOEShapeCircle(data.EffectRange + MaxError), // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
-        3 => new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f),
-        4 => new AOEShapeRect(data.EffectRange + actor.HitboxRadius + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError),
-        5 => new AOEShapeCircle(data.EffectRange + actor.HitboxRadius + MaxError),
-        //6 => ???
-        //7 => new AOEShapeCircle(data.EffectRange), - used for player ground-targeted circles a-la asylum
-        //8 => charge rect
-        10 => new AOEShapeDonut(MathF.Max(0, DetermineDonutInner(data) - MaxError), data.EffectRange + MaxError),
-        11 => new AOEShapeCross(data.EffectRange + MaxError, data.XAxisModifier * 0.5f + MaxError),
-        12 => new AOEShapeRect(data.EffectRange + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError),
-        13 => new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f),
-        _ => null
-    };
+        switch (data.CastType)
+        {
+            case 2:
+                return new AOEShapeCircle(data.EffectRange + MaxError); // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
+            case 3:
+                return new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f);
+            case 4:
+                return new AOEShapeRect(data.EffectRange + actor.HitboxRadius + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError);
+            case 10:
+                var inner = DetermineDonutInner(data);
+                if (inner == 0 && _hintConfig.DonutFallback == AIHintsConfig.DonutFallbackBehavior.Ignore)
+                    return null;
+                return new AOEShapeDonut(MathF.Max(0, inner - MaxError), data.EffectRange + MaxError);
+            case 11:
+                return new AOEShapeCross(data.EffectRange + MaxError, data.XAxisModifier * 0.5f + MaxError);
+            case 12:
+                return new AOEShapeRect(data.EffectRange + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError);
+            case 13:
+                return new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f);
 
-    private static Angle DetermineConeAngle(Lumina.Excel.Sheets.Action data)
+            case 6: // ???
+            case 7: // new AOEShapeCircle(data.EffectRange), used for player ground-targeted circles like asylum
+            case 8: // charge rect
+            default:
+                return null;
+        }
+    }
+
+    private Angle DetermineConeAngle(Lumina.Excel.Sheets.Action data)
     {
         var omen = data.Omen.ValueNullable;
         if (omen == null)
         {
             Service.Log($"[AutoHints] No omen data for {data.RowId} '{data.Name}'...");
-            return 180.Degrees();
+            return ConeFallback.Degrees();
         }
         var path = omen.Value.Path.ToString();
         var pos = path.IndexOf("fan", StringComparison.Ordinal);
         if (pos < 0 || pos + 6 > path.Length || !int.TryParse(path.AsSpan(pos + 3, 3), out var angle))
         {
             Service.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.Value.PathAlly}) for {data.RowId} '{data.Name}'...");
-            return 180.Degrees();
+            return ConeFallback.Degrees();
         }
         return angle.Degrees();
     }
