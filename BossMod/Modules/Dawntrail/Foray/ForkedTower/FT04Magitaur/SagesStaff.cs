@@ -9,7 +9,7 @@ class SagesStaff(BossModule module) : Components.MultiLineStack(module, 2, 40, (
     private DateTime _activation;
 
     public int NumStaffs => _sources.Count;
-    public bool Enabled = false;
+    public bool Enabled;
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {

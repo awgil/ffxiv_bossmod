@@ -15,10 +15,10 @@ class FT04MagitaurStates : StateMachineBuilder
         Daggers1(id + 0x20000, 1.7f);
         ForkedFury(id + 0x30000, 4.9f);
         UnsealAutos(id + 0x30100, 6, count: 2);
-        Conduit(id + 0x40000, 1.7f, 8);
+        Conduit(id + 0x40000, 1.7f);
         SagesStaff(id + 0x50000, 14.9f);
         RuneAxe(id + 0x60000, 8.3f);
-        Conduit(id + 0x70000, 1.7f, 11);
+        Conduit(id + 0x70000, 1.7f);
         Daggers1(id + 0x80000, 4.2f);
         HolyLance(id + 0x90000, 4);
         Enrage(id + 0xA0000, 4);
@@ -223,6 +223,6 @@ class FT04MagitaurStates : StateMachineBuilder
         UnsealedAura(id, delay);
         ForkedFury(id + 0x100, 4.2f);
         UnsealAutos(id + 0x200, 6.3f, 2);
-        Conduit(id + 0x300, 20, 10);
+        Conduit(id + 0x300, 20);
     }
 }

@@ -1,5 +1,4 @@
-﻿
-using Lumina.Extensions;
+﻿using Lumina.Extensions;
 
 namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
@@ -13,8 +12,6 @@ class RuneAxe(BossModule module) : Components.GenericAOEs(module)
     public readonly List<Spread> Spreads = [];
 
     public bool Enabled = true;
-
-    private bool ForcePlayer = false;
 
     private int NumActive => Math.Min(NumCasts == 0 ? 1 : 3, Spreads.Count);
     public IEnumerable<Spread> ActiveSpreads => NumCasts == 0 ? Spreads.Take(1) : Spreads.Take(3);
@@ -46,7 +43,7 @@ class RuneAxe(BossModule module) : Components.GenericAOEs(module)
                 Spreads.SortBy(s => s.Activation);
                 break;
             case SID._Gen_PreyGreaterAxebit:
-                Spreads.Add(new(ForcePlayer ? Raid.Player()! : actor, 11, status.ExpireAt));
+                Spreads.Add(new(actor, 11, status.ExpireAt));
                 Spreads.SortBy(s => s.Activation);
                 break;
         }
