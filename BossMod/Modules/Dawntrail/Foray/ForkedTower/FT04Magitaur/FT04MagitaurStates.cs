@@ -96,7 +96,7 @@ class FT04MagitaurStates : StateMachineBuilder
             .DeactivateOnExit<ForkedFury>();
     }
 
-    private void Conduit(uint id, float delay, float hysteriaDelay)
+    private void Conduit(uint id, float delay)
     {
         CastStartMulti(id, [AID._Ability_AuraBurst, AID._Ability_Holy], delay, "Conduits appear")
             .ActivateOnEnter<Conduit>()

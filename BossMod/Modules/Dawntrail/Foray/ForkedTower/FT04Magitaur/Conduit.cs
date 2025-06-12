@@ -75,6 +75,12 @@ class ArcaneReaction(BossModule module) : Components.GenericBaitAway(module, AID
             hints.Add("Bait purple canister!");
     }
 
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (_source != null && pc.FindStatus(4359) != null)
+            Arena.AddCircle(_source.Position, 1.5f, ArenaColor.Danger);
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
