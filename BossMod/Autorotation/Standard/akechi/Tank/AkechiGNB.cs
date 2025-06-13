@@ -175,7 +175,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     #region Cooldown Helpers
     private bool ShouldUseNoMercy(NoMercyStrategy strategy, Actor? target)
     {
-        if (!OGCDReady(AID.NoMercy))
+        if (!ActionReady(AID.NoMercy))
             return false;
 
         var slow = Slow && CanWeaveIn;
@@ -232,8 +232,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             _ => false,
         };
     }
-    private bool ShouldUseBowShock(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, OGCDReady(AID.BowShock), InsideCombatWith(target) && In5y(target) && CanWeaveIn && NMcd is <= 58f and > 39.5f);
-    private bool ShouldUseZone(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, OGCDReady(AID.DangerZone), InsideCombatWith(target) && In3y(target) && CanWeaveIn && NMcd is <= 58f and > 15f);
+    private bool ShouldUseBowShock(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, ActionReady(AID.BowShock), InsideCombatWith(target) && In5y(target) && CanWeaveIn && NMcd is <= 58f and > 39.5f);
+    private bool ShouldUseZone(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, ActionReady(AID.DangerZone), InsideCombatWith(target) && In3y(target) && CanWeaveIn && NMcd is <= 58f and > 15f);
     private bool ShouldUseDoubleDown(DoubleDownStrategy strategy, Actor? target) => CanDD && strategy switch
     {
         DoubleDownStrategy.Automatic => InsideCombatWith(target) && In5y(target) && HasNM,
@@ -243,7 +243,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         DoubleDownStrategy.Force3 => Ammo == 3,
         _ => false,
     };
-    private bool ShouldUseBloodfest(BloodfestStrategy strategy, Actor? target) => OGCDReady(AID.Bloodfest) && strategy switch
+    private bool ShouldUseBloodfest(BloodfestStrategy strategy, Actor? target) => ActionReady(AID.Bloodfest) && strategy switch
     {
         BloodfestStrategy.Automatic => InsideCombatWith(target) && Ammo == 0,
         BloodfestStrategy.Force => true,
@@ -369,9 +369,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
         CanBS = Unlocked(AID.BurstStrike) && Ammo > 0;
-        CanGF = IsReady(AID.GnashingFang) && Ammo > 0;
+        CanGF = ActionReady(AID.GnashingFang) && Ammo > 0;
         CanFC = Unlocked(AID.FatedCircle) && Ammo > 0;
-        CanDD = IsReady(AID.DoubleDown) && Ammo > 0;
+        CanDD = ActionReady(AID.DoubleDown) && Ammo > 0;
         CanBreak = Unlocked(AID.SonicBreak) && HasEffect(SID.ReadyToBreak);
         CanReign = Unlocked(AID.ReignOfBeasts) && HasEffect(SID.ReadyToReign);
         Fast = SkSGCDLength <= 2.4499f;

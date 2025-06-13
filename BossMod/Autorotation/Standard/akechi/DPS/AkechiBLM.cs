@@ -132,24 +132,27 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
     #region Module Variables
     private sbyte ElementStance;
+    private int MaxAspect;
     private bool NoUIorAF;
     private int AF;
     private bool InAF;
+    private bool MaxAF;
     private int UI;
     private bool InUI;
     private bool MaxUI;
     private byte Hearts;
     private int MaxHearts;
+    private bool HasMaxHearts;
     private int Souls;
+    private int MaxSouls;
+    private bool HasMaxSouls;
     private byte Polyglots;
-    private int MaxPolyglots;
     private int PolyglotTimer;
-    private bool HasParadox;
+    private int MaxPolyglots;
+    private bool HasMaxPolyglots;
     private bool HasThunderhead;
     private bool HasFirestarter;
-    private bool HasMaxPolyglots;
-    private bool HasMaxHearts;
-    private bool HasMaxSouls;
+    private bool HasParadox;
     private bool CanFoul;
     private bool CanXG;
     private bool CanParadox;
@@ -171,7 +174,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Rotation Helpers
-    private void AstralFireST(Actor? target, GCDPriority prio)
+    private void AstralFireST(StrategyValues strategy, Actor? target, GCDPriority prio)
     {
         if (!In25y(target) || !InAF)
             return;
@@ -180,7 +183,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         //thanks to no more timers on our buffs, we can spend everything else asap and then spam F4 6-7 times in a row
         //F1 - used basically as placeholder until F4 because who cares?
         //F4 - as soon as we're in AF3 & no resources, we burn it all
-        if (Hearts > 0 ? MP >= 800 : MP >= 1600) //MP cost for F4
+        if (MaxAF && (Hearts > 0 ? MP >= 800 : MP >= 1600)) //MP cost for F4
         {
             if ((Unlocked(AID.FlareStar) && Souls != 6) || //Lv100 - Need 6 stacks to execute FlareStar
                 !Unlocked(AID.FlareStar)) //below Lv100 - just burn until we need Despair or 7th F4
@@ -188,14 +191,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         }
 
         //by now, we want to instant-cast B3 after a Transpose to get back into UI
-        //at lower levels, this can result very poorly with clipping or just raw swapping sub-optimally
-        //not really much we can do about that tbh except prepare for it as best we can
-        //we do that by just simply checking if appropriate resources are available for it, and rawdog it if not
+        //at lower levels, we want to either rawdog B3 or instant-cast it after a TP
+        //check if appropriate resources are available for it, and rawdog it if not
         if (Unlocked(AID.Blizzard3))
         {
-            if ((Unlocked(AID.Flare) && MP == 0) || //Lv72+ - emptied by Despair
-                (!Unlocked(AID.Flare) && MP < 1600)) //below Lv72 - not enough MP to use F4
-                QueueGCD(AID.Blizzard3, target, prio); //if neither we rawdog
+            if ((Unlocked(AID.Flare) && Souls == 0 && (MP == 0 || LastActionUsed(AID.Flare) || LastActionUsed(AID.Despair))) || //Lv50+ - emptied by ender
+                (!Unlocked(AID.Flare) && MP < 1600)) //below Lv50 - not enough MP to use F1
+                QueueGCD(AID.Blizzard3, target, prio);
         }
     }
     private void UmbralIceST(Actor? target, GCDPriority prio)
@@ -224,7 +226,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         if (ShouldUseAOE || !In25y(target))
             return;
 
-        AstralFireST(target, prio);
+        AstralFireST(strategy, target, prio);
         UmbralIceST(target, prio);
     }
     private void BestAOE(Actor? target, GCDPriority prio, StrategyValues strategy)
@@ -298,18 +300,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             (strategy.Option(Track.Casting).As<CastingOption>() == CastingOption.Forbid && IsNotMoving(strategy, target));
     private void UseTPUS(StrategyValues strategy, Actor? target)
     {
-        //if we have potential to use FlareStar, we want to keep Element as is
-        var fsPotential = !Unlocked(AID.FlareStar) || (Unlocked(AID.FlareStar) &&
-            ((Souls == 3 && MP is <= 6000 and >= 800) ||
-            (Souls == 4 && MP is <= 4400 and >= 800) ||
-            (Souls == 5 && MP is <= 2800 and >= 800) ||
-            Souls == 6));
-
-        //no need to swap if we're already in the best stance
-        if ((HasThunderhead && MaxUI) || (InAF && fsPotential))
-            return;
-
-        //either out of combat or in combat but no targets are nearby
         var ok = (strategy.Option(Track.TPUS).As<TPUSStrategy>() == TPUSStrategy.Allow &&
             (!Player.InCombat || (Player.InCombat && Hints.NumPriorityTargetsInAOECircle(Player.Position, 35) == 0))) ||
             (strategy.Option(Track.TPUS).As<TPUSStrategy>() == TPUSStrategy.OOConly && !Player.InCombat);
@@ -318,20 +308,19 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         {
             if (Unlocked(AID.Transpose))
             {
-                if (Unlocked(AID.UmbralSoul))
-                {
-                    //TP to UI to restart rotation
-                    if ((InAF && !fsPotential) || //In AF with no FlareStar potential, swap to UI3
-                        (InUI && !HasThunderhead)) //In UI with no Thunderhead, swap back to AF for buff then back to UI
-                        QueueOGCD(AID.Transpose, Player, OGCDPriority.ExtremelyHigh);
-                    else if (InUI && HasThunderhead && !MaxUI) //refresh UI resources
-                        QueueGCD(AID.UmbralSoul, Player, GCDPriority.ExtremelyHigh);
-                    return;
-                }
-                else if (!Unlocked(AID.UmbralSoul) && !HasThunderhead && !InUI) //if we don't have Umbral Soul, just use TP until we are in UI with buff
-                    QueueOGCD(AID.Transpose, Player, OGCDPriority.ExtremelyHigh);
-                return;
+                var fsPotential = Unlocked(AID.FlareStar) && (Souls == 6 || Souls >= 3 && MP >= 800);
+                if (InAF && !fsPotential && MP < MaxMP)
+                    QueueOGCD(AID.Transpose, Player, OGCDPriority.Max);
+
+                if (InUI && HasFirestarter && MP == MaxMP)
+                    QueueOGCD(AID.Transpose, Player, OGCDPriority.Max);
             }
+
+            if (Unlocked(AID.UmbralSoul) &&
+                InUI && (UI < 3 || Hearts < MaxHearts || MP < MaxMP))
+                QueueGCD(AID.UmbralSoul, Player, GCDPriority.Minimal);
+
+            return;
         }
     }
     private void UseOpener(StrategyValues strategy, Actor? target)
@@ -341,25 +330,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
         //F3 - best for opener or reopener if MP is good enough
         //B3 - best for recovering from death or if using F3 is not optimal
-        //we will handle the no stance case first
         if (NoUIorAF)
         {
             //Out of Combat - align with countdown end
             //In Combat - just send it
-            if ((IsFirstGCD && CountdownRemaining < 3.9f) || !IsFirstGCD)
-            {
-                if (!ShouldUseAOE)
-                {
-                    if (MP >= MaxMP)
-                        QueueGCD(AID.Fire3, target, GCDPriority.SlightlyHigh);
-                    else
-                        QueueGCD(AID.Blizzard3, target, GCDPriority.SlightlyHigh);
-                }
-                if (ShouldUseAOE)
-                {
-                    QueueGCD(Unlocked(AID.HighBlizzard2) ? AID.HighBlizzard2 : AID.Blizzard2, target, GCDPriority.SlightlyHigh);
-                }
-            }
+            if (CountdownRemaining is null or > 0 and < 4f)
+                QueueGCD(AID.Fire3, target, GCDPriority.SlightlyHigh);
         }
     }
     private void UseMovement(StrategyValues strategy, Actor? target)
@@ -486,9 +462,21 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region OGCD
-    private bool ShouldUseTranspose => OGCDReady(AID.Transpose) && Player.InCombat &&
-        (Unlocked(AID.Paradox) && InUI && UI == 3 && Hearts == MaxHearts) || //transition into AF, only after Ice Paradox
-        (InAF && AF == 3 && (HasEffect(SID.Triplecast) || HasEffect(SID.Swiftcast)) && (Unlocked(AID.Flare) ? (LastActionUsed(AID.Flare) || (MP == 0 && Souls == 0)) : (LastActionUsed(AID.Fire1) && MP < 1600))); //transition into UI
+    private bool ShouldUseTranspose()
+    {
+        if (!ActionReady(AID.Transpose))
+            return false;
+
+        //Ice
+        //- transition into AF only if we can use Paradox
+        //- if no Paradox, skip TP entirely and just rawdog into AF with 1/2 cast F3
+        //Fire
+        //- if we have ender, use TP after it
+        //- if no ender, use TP after last F1
+        return ((MaxUI && Unlocked(AID.Paradox)) ||
+            (MaxAF && (HasEffect(SID.Triplecast) || HasEffect(SID.Swiftcast)) && //if no Instant buff, we skip TP
+            (Unlocked(AID.Flare) ? (LastActionUsed(BestDespair) || (MP == 0 && Souls == 0)) : (LastActionUsed(AID.Fire1) && MP < 1600))));
+    }
     private (bool, GCDPriority) ShouldUseManafont(UpgradeStrategy strategy, Actor? target)
     {
         if (!CanMF)
@@ -571,31 +559,34 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         #region Variables
         var gauge = World.Client.GetGauge<BlackMageGauge>();
         ElementStance = gauge.ElementStance;
-        NoUIorAF = ElementStance is 0 and not (1 or 2 or 3 or -1 or -2 or -3);
+        MaxAspect = Unlocked(TraitID.AspectMastery3) ? 3 : Unlocked(TraitID.AspectMastery2) ? 2 : 1;
+        NoUIorAF = ElementStance is 0 and not (1 or 2 or 3 or -1 or -2 or -3); //nothing
+        InAF = ElementStance is 1 or 2 or 3 and not (0 or -1 or -2 or -3); //fire
+        InUI = ElementStance is -1 or -2 or -3 and not (0 or 1 or 2 or 3); //ice
         AF = gauge.AstralStacks;
-        InAF = ElementStance is 1 or 2 or 3 and not (0 or -1 or -2 or -3);
+        MaxAF = AF == MaxAspect;
+        Souls = gauge.AstralSoulStacks;
+        MaxSouls = Unlocked(AID.FlareStar) ? 6 : 0;
+        HasMaxSouls = Souls == MaxSouls;
         UI = gauge.UmbralStacks;
-        InUI = ElementStance is -1 or -2 or -3 and not (0 or 1 or 2 or 3);
-        MaxUI = UI == 3 && Hearts == MaxHearts;
         Hearts = gauge.UmbralHearts;
         MaxHearts = Unlocked(TraitID.UmbralHeart) ? 3 : 0;
         HasMaxHearts = Hearts == MaxHearts;
-        Souls = gauge.AstralSoulStacks;
-        HasMaxSouls = Souls == 6;
-        HasParadox = gauge.ParadoxActive;
+        MaxUI = UI == MaxAspect && HasMaxHearts;
         Polyglots = gauge.PolyglotStacks;
         MaxPolyglots = Unlocked(TraitID.EnhancedPolyglotII) ? 3 : Unlocked(TraitID.EnhancedPolyglot) ? 2 : Unlocked(AID.Foul) ? 1 : 0;
         HasMaxPolyglots = Polyglots == MaxPolyglots;
         PolyglotTimer = gauge.EnochianTimer;
+        HasParadox = gauge.ParadoxActive;
         CanFoul = Unlocked(AID.Foul) && Polyglots > 0;
         CanXG = Unlocked(AID.Xenoglossy) && Polyglots > 0;
         CanParadox = Unlocked(AID.Paradox) && HasParadox && MP >= 1600;
-        CanLL = Unlocked(AID.LeyLines) && CDRemaining(AID.LeyLines) <= 120 && Player.FindStatus(SID.LeyLines) == null;
-        CanAmplify = OGCDReady(AID.Amplifier);
-        CanTC = Unlocked(AID.Triplecast) && CDRemaining(AID.Triplecast) <= 60 && Player.FindStatus(SID.Triplecast) == null;
-        CanMF = OGCDReady(AID.Manafont) && InAF;
-        CanRetrace = OGCDReady(AID.Retrace) && Player.FindStatus(SID.LeyLines) != null;
-        CanBTL = OGCDReady(AID.BetweenTheLines) && Player.FindStatus(SID.LeyLines) != null;
+        CanLL = Unlocked(AID.LeyLines) && CDRemaining(AID.LeyLines) <= 120 && !HasEffect(SID.LeyLines);
+        CanAmplify = ActionReady(AID.Amplifier);
+        CanTC = Unlocked(AID.Triplecast) && CDRemaining(AID.Triplecast) <= 60 && !HasEffect(SID.Triplecast);
+        CanMF = ActionReady(AID.Manafont) && InAF;
+        CanRetrace = ActionReady(AID.Retrace) && HasEffect(SID.CircleOfPower);
+        CanBTL = ActionReady(AID.BetweenTheLines) && HasEffect(SID.LeyLines);
         HasThunderhead = HasEffect(SID.Thunderhead);
         HasFirestarter = HasEffect(SID.Firestarter);
         ThunderLeft = Utils.MaxAll(
@@ -673,9 +664,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     if (ShouldUseTriplecast(strategy.Option(Track.Triplecast).As<ChargeStrategy>(), primaryTarget?.Actor))
                         QueueOGCD(AID.Triplecast, Player, Unlocked(AID.Xenoglossy) ? GCDPriority.ModeratelyLow : GCDPriority.ModeratelyLow + 2002); //4252
                     //Transpose
-                    if (ShouldUseTranspose)
-                        QueueOGCD(AID.Transpose, Player,
-                        Unlocked(AID.Xenoglossy) ? OGCDPriority.ExtremelyHigh : OGCDPriority.ModeratelyLow + 2000);
+                    if (ShouldUseTranspose())
+                        QueueOGCD(AID.Transpose, Player, Unlocked(AID.Xenoglossy) ? OGCDPriority.ExtremelyHigh : OGCDPriority.ModeratelyLow + 2000);
                 }
                 if (!strategy.HoldGauge())
                 {
@@ -746,7 +736,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 //FlareStar
                 if (InsideCombatWith(primaryTarget?.Actor) && CastingCheck(strategy, primaryTarget?.Actor) && Unlocked(AID.FlareStar) && HasMaxSouls)
                     QueueGCD(AID.FlareStar, strategy.AutoTarget() ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.Average + 6);
-
+                //Despair & Flare
                 if (ShouldUseEnder(strategy, primaryTarget?.Actor))
                 {
                     var stFlare = Unlocked(AID.FlareStar) && ((Souls is >= 3 and < 6 && MP < 1600) || (DowntimeIn < 8 && Souls >= 3 && MP >= 800));

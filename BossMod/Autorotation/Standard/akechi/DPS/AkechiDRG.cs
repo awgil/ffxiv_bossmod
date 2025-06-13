@@ -339,7 +339,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         if (!Unlocked(AID.ElusiveJump))
             return;
 
-        if (OGCDReady(AID.ElusiveJump))
+        if (ActionReady(AID.ElusiveJump))
         {
             if (strategy != ElusiveDirection.None)
             {
@@ -422,16 +422,16 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         HasBL = BLcd is >= 100 and <= 120;
         HasROTD = HasEffect(SID.DragonsFlight);
         HasSC = HasEffect(SID.StarcrossReady);
-        CanLC = OGCDReady(AID.LanceCharge);
-        CanBL = OGCDReady(AID.BattleLitany);
+        CanLC = ActionReady(AID.LanceCharge);
+        CanBL = ActionReady(AID.BattleLitany);
         CanLS = Unlocked(AID.LifeSurge) && !HasEffect(SID.LifeSurge) && (Unlocked(TraitID.EnhancedLifeSurge) ? CDRemaining(AID.LifeSurge) < 40.6f : ReadyIn(AID.LifeSurge) < 0.6f);
-        CanJump = OGCDReady(AID.Jump);
-        CanDD = OGCDReady(AID.DragonfireDive);
-        CanGeirskogul = OGCDReady(AID.Geirskogul);
+        CanJump = ActionReady(AID.Jump);
+        CanDD = ActionReady(AID.DragonfireDive);
+        CanGeirskogul = ActionReady(AID.Geirskogul);
         CanMD = Unlocked(AID.MirageDive) && HasMD;
         CanNastrond = Unlocked(AID.Nastrond) && HasNastrond;
-        CanSD = OGCDReady(AID.Stardiver);
-        CanWT = OGCDReady(AID.WyrmwindThrust) && FirstmindsFocus == 2;
+        CanSD = ActionReady(AID.Stardiver);
+        CanWT = ActionReady(AID.WyrmwindThrust) && FirstmindsFocus == 2;
         CanROTD = Unlocked(AID.RiseOfTheDragon) && HasROTD;
         CanSC = Unlocked(AID.Starcross) && HasSC;
         NeedPower = PowerLeft <= SkSGCDLength * 2;

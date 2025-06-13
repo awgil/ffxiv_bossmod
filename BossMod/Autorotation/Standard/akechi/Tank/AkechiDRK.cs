@@ -92,13 +92,13 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private (float Timer, bool IsActive, bool NeedsRefresh) Darkside;
     private bool RiskingBlood;
     private bool RiskingMP;
-    private (float Left, float CD, bool IsActive, bool IsReady) SaltedEarth;
-    private (float CD, bool IsReady) AbyssalDrain;
-    private (float CD, bool IsReady) CarveAndSpit;
-    private (ushort Step, float Left, int Stacks, float CD, bool IsActive, bool IsReady) Delirium;
-    private (float Timer, float CD, bool IsActive, bool IsReady) LivingShadow;
-    private (float CDRemaining, float ReadyIn, bool HasCharges, bool IsReady) Shadowbringer;
-    private (float Left, bool IsActive, bool IsReady) Disesteem;
+    private (float Left, float CD, bool IsActive, bool ActionReady) SaltedEarth;
+    private (float CD, bool ActionReady) AbyssalDrain;
+    private (float CD, bool ActionReady) CarveAndSpit;
+    private (ushort Step, float Left, int Stacks, float CD, bool IsActive, bool ActionReady) Delirium;
+    private (float Timer, float CD, bool IsActive, bool ActionReady) LivingShadow;
+    private (float CDRemaining, float ReadyIn, bool HasCharges, bool ActionReady) Shadowbringer;
+    private (float Left, bool IsActive, bool ActionReady) Disesteem;
     private bool Opener;
     private bool ShouldUseAOE;
     private int NumAOERectTargets;
@@ -185,13 +185,13 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     }
     private bool ShouldUseCarveOrDrain(CarveStrategy strategy, Enemy? target) => strategy switch
     {
-        CarveStrategy.Automatic or CarveStrategy.OnlyCarve or CarveStrategy.OnlyDrain => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && AbyssalDrain.IsReady && Opener,
-        CarveStrategy.ForceCarve => CarveAndSpit.IsReady,
-        CarveStrategy.ForceDrain => AbyssalDrain.IsReady,
+        CarveStrategy.Automatic or CarveStrategy.OnlyCarve or CarveStrategy.OnlyDrain => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && AbyssalDrain.ActionReady && Opener,
+        CarveStrategy.ForceCarve => CarveAndSpit.ActionReady,
+        CarveStrategy.ForceDrain => AbyssalDrain.ActionReady,
         CarveStrategy.Delay => false,
         _ => false
     };
-    private bool ShouldUseSaltedEarth(OGCDStrategy strategy, Enemy? target) => SaltedEarth.IsReady && strategy switch
+    private bool ShouldUseSaltedEarth(OGCDStrategy strategy, Enemy? target) => SaltedEarth.ActionReady && strategy switch
     {
         OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive && Opener,
         OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f && Player.InCombat && target != null && CanWeaveIn && In3y(target?.Actor) && Darkside.IsActive,
@@ -211,23 +211,23 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         OGCDStrategy.LateWeave => CanLateWeaveIn,
         _ => false
     };
-    private bool ShouldUseDelirium(OGCDStrategy strategy, Enemy? target) => ShouldUseOGCD(strategy, target?.Actor, Delirium.IsReady, InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.IsReady : OGCDReady(AID.BloodWeapon)) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0));
+    private bool ShouldUseDelirium(OGCDStrategy strategy, Enemy? target) => ShouldUseOGCD(strategy, target?.Actor, Delirium.ActionReady, InsideCombatWith(target?.Actor) && Darkside.IsActive && (Unlocked(AID.Delirium) ? Delirium.ActionReady : ActionReady(AID.BloodWeapon)) && (Unlocked(AID.LivingShadow) ? Opener : CombatTimer > 0));
     private bool ShouldUseLivingShadow(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && LivingShadow.IsReady,
-        OGCDStrategy.Force => LivingShadow.IsReady,
-        OGCDStrategy.AnyWeave => LivingShadow.IsReady && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => LivingShadow.IsReady && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => LivingShadow.IsReady && CanLateWeaveIn,
+        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && LivingShadow.ActionReady,
+        OGCDStrategy.Force => LivingShadow.ActionReady,
+        OGCDStrategy.AnyWeave => LivingShadow.ActionReady && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => LivingShadow.ActionReady && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => LivingShadow.ActionReady && CanLateWeaveIn,
         OGCDStrategy.Delay or _ => false
     };
     private bool ShouldUseShadowbringer(OGCDStrategy strategy, Enemy? target) => strategy switch
     {
-        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && Shadowbringer.IsReady && (RaidBuffsLeft > 0f || (!Delirium.IsActive && StatusRemaining(Player, SID.Scorn) is < 20f and not 0f)),
-        OGCDStrategy.Force => Shadowbringer.IsReady,
-        OGCDStrategy.AnyWeave => Shadowbringer.IsReady && CanWeaveIn,
-        OGCDStrategy.EarlyWeave => Shadowbringer.IsReady && CanEarlyWeaveIn,
-        OGCDStrategy.LateWeave => Shadowbringer.IsReady && CanLateWeaveIn,
+        OGCDStrategy.Automatic => Player.InCombat && target != null && CanWeaveIn && Darkside.IsActive && Shadowbringer.ActionReady && (RaidBuffsLeft > 0f || (!Delirium.IsActive && StatusRemaining(Player, SID.Scorn) is < 20f and not 0f)),
+        OGCDStrategy.Force => Shadowbringer.ActionReady,
+        OGCDStrategy.AnyWeave => Shadowbringer.ActionReady && CanWeaveIn,
+        OGCDStrategy.EarlyWeave => Shadowbringer.ActionReady && CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => Shadowbringer.ActionReady && CanLateWeaveIn,
         _ => false
     };
     private bool ShouldUseDeliriumCombo(DeliriumComboStrategy strategy, Enemy? target) => Delirium.IsActive && strategy switch
@@ -242,8 +242,8 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     };
     private bool ShouldUseDisesteem(GCDStrategy strategy, Enemy? target) => strategy switch
     {
-        GCDStrategy.Automatic => Player.InCombat && target != null && In10y(target?.Actor) && Darkside.IsActive && Disesteem.IsReady && (RaidBuffsLeft > 0 || StatusRemaining(Player, SID.Scorn) < 10f),
-        GCDStrategy.Force => Disesteem.IsReady,
+        GCDStrategy.Automatic => Player.InCombat && target != null && In10y(target?.Actor) && Darkside.IsActive && Disesteem.ActionReady && (RaidBuffsLeft > 0 || StatusRemaining(Player, SID.Scorn) < 10f),
+        GCDStrategy.Force => Disesteem.ActionReady,
         GCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
         GCDStrategy.Delay => false,
         _ => false
@@ -281,28 +281,28 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         SaltedEarth.Left = StatusRemaining(Player, SID.SaltedEarth, 15); //Retrieve current Salted Earth time left
         SaltedEarth.CD = CDRemaining(AID.SaltedEarth); //Retrieve current Salted Earth cooldown
         SaltedEarth.IsActive = SaltedEarth.Left > 0.1f; //Checks if Salted Earth is active
-        SaltedEarth.IsReady = Unlocked(AID.SaltedEarth) && SaltedEarth.CD < 0.6f; //Salted Earth ability
+        SaltedEarth.ActionReady = Unlocked(AID.SaltedEarth) && SaltedEarth.CD < 0.6f; //Salted Earth ability
         AbyssalDrain.CD = CDRemaining(AID.AbyssalDrain); //Retrieve current Abyssal Drain cooldown
-        AbyssalDrain.IsReady = Unlocked(AID.AbyssalDrain) && AbyssalDrain.CD < 0.6f; //Abyssal Drain ability
+        AbyssalDrain.ActionReady = Unlocked(AID.AbyssalDrain) && AbyssalDrain.CD < 0.6f; //Abyssal Drain ability
         CarveAndSpit.CD = CDRemaining(AID.CarveAndSpit); //Retrieve current Carve and Spit cooldown
-        CarveAndSpit.IsReady = Unlocked(AID.CarveAndSpit) && CarveAndSpit.CD < 0.6f; //Carve and Spit ability
+        CarveAndSpit.ActionReady = Unlocked(AID.CarveAndSpit) && CarveAndSpit.CD < 0.6f; //Carve and Spit ability
         Disesteem.Left = StatusRemaining(Player, SID.Scorn, 30); //Retrieve current Disesteem time left
         Disesteem.IsActive = Disesteem.Left > 0.1f; //Checks if Disesteem is active
-        Disesteem.IsReady = Unlocked(AID.Disesteem) && Disesteem.Left > 0.1f; //Disesteem ability
+        Disesteem.ActionReady = Unlocked(AID.Disesteem) && Disesteem.Left > 0.1f; //Disesteem ability
         Delirium.Step = gauge.DeliriumStep; //Retrieve current Delirium combo step
         Delirium.Left = StatusRemaining(Player, BestBloodWeapon, 15); //Retrieve current Delirium time left
         Delirium.Stacks = StacksRemaining(Player, BestBloodWeapon, 15); //Retrieve current Delirium stacks
         Delirium.CD = CDRemaining(BestDelirium); //Retrieve current Delirium cooldown
         Delirium.IsActive = Delirium.Left > 0.1f; //Checks if Delirium is active
-        Delirium.IsReady = Unlocked(BestDelirium) && Delirium.CD < 0.6f; //Delirium ability
+        Delirium.ActionReady = Unlocked(BestDelirium) && Delirium.CD < 0.6f; //Delirium ability
         LivingShadow.Timer = gauge.ShadowTimer / 1000f; //Retrieve current Living Shadow timer
         LivingShadow.CD = CDRemaining(AID.LivingShadow); //Retrieve current Living Shadow cooldown
         LivingShadow.IsActive = LivingShadow.Timer > 0; //Checks if Living Shadow is active
-        LivingShadow.IsReady = Unlocked(AID.LivingShadow) && LivingShadow.CD < 0.6f; //Living Shadow ability
+        LivingShadow.ActionReady = Unlocked(AID.LivingShadow) && LivingShadow.CD < 0.6f; //Living Shadow ability
         Shadowbringer.CDRemaining = CDRemaining(AID.Shadowbringer); //Retrieve current Shadowbringer cooldown
         Shadowbringer.ReadyIn = ReadyIn(AID.Shadowbringer); //Retrieve current Shadowbringer charge cooldown
         Shadowbringer.HasCharges = CDRemaining(AID.Shadowbringer) <= 60; //Checks if Shadowbringer has charges
-        Shadowbringer.IsReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
+        Shadowbringer.ActionReady = Unlocked(AID.Shadowbringer) && Shadowbringer.HasCharges; //Shadowbringer ability
         Opener = (CombatTimer < 30 && ComboLastMove is AID.Souleater) || CombatTimer >= 30;
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore;
         (BestAOERectTargets, NumAOERectTargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);

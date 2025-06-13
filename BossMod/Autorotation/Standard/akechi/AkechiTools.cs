@@ -160,12 +160,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>The <b>Next GCD</b> being queued's <b>Priority</b>.</summary>
     protected int NextGCDPrio;
 
-    /// <summary>The last used <b>GCD</b> ability.</summary>
-    protected AID LastGCDUsed;
-
-    /// <summary>The last used <b>OGCD</b> ability.</summary>
-    protected AID LastOGCDUsed;
-
     #region Queuing
 
     #region GCD
@@ -302,32 +296,18 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks the <b>last combo action</b> is what the user is specifying.</summary>
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
-    /// <summary>Retrieves <b>actual cast time</b> of a specified <b>action</b>.</summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected virtual float ActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime;
-
-    /// <summary>Retrieves <b>effective cast time</b> of a specified <b>action</b>.</summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected virtual float EffectiveCastTime(AID aid) => HasEffect(ClassShared.SID.Swiftcast) ? 0 : ActualCastTime(aid) * SpSGCDLength / 2.5f;
-
     /// <summary>Retrieves player's <b>GCD length</b> based on <b>Skill-Speed</b>.</summary>
     protected float SkSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
-
-    /// <summary>Retrieves player's current <b>Skill-Speed</b> stat.</summary>
-    protected float SkS => ActionSpeed.Round(World.Client.PlayerStats.SkillSpeed);
 
     /// <summary>Retrieves player's <b>GCD length</b> based on <b>Spell-Speed</b>.</summary>
     protected float SpSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
 
-    /// <summary>Retrieves player's current <b>Spell-Speed</b> stat.</summary>
-    protected float SpS => ActionSpeed.Round(World.Client.PlayerStats.SpellSpeed);
-
-    /// <summary>Checks if we can fit in a <b>skill-speed based</b> GCD.</summary>
+    /// <summary>Checks if we can fit in a <b>skill-speed based</b> GCD into a deadline.</summary>
     /// <param name="duration">The <b>duration</b> to check against.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     protected bool CanFitSkSGCD(float duration, int extraGCDs = 0) => GCD + SkSGCDLength * extraGCDs < duration;
 
-    /// <summary>Checks if we can fit in a <b>spell-speed based</b> GCD.</summary>
+    /// <summary>Checks if we can fit in a <b>spell-speed based</b> GCD into a deadline.</summary>
     /// <param name="duration">The <b>duration</b> to check against.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     protected bool CanFitSpSGCD(float duration, int extraGCDs = 0) => GCD + SpSGCDLength * extraGCDs < duration;
@@ -360,15 +340,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float ReadyIn(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
-    /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>specified action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool GCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) < GCD;
-
-    /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool OGCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 1f;
-
-    protected bool IsReady(AID aid) => Unlocked(aid) && CDRemaining(aid) < 0.5f;
+    protected bool ActionReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 0.5f;
 
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
@@ -643,14 +617,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.<br/>This function specifically is for <b>Single-Target</b> actions.</summary>
     /// <param name="manual">Player's current target</param>
     /// <param name="track">The ability's specified track</param>
-    /// <returns></returns>
     protected Actor? SingleTargetChoice(Actor? manual, StrategyValues.OptionRef track) => TargetChoice(track) ?? manual;
 
     /// <summary>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.<br/>This function specifically is for <b>AOE</b> actions.</summary>
     /// <param name="manual">Player's current target</param>
     /// <param name="auto">The best target to be auto-selected</param>
     /// <param name="track">The ability's specified track</param>
-    /// <returns></returns>
     protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => TargetChoice(track) ?? (strategy.Targeting() == SoftTargetStrategy.Automatic ? auto : manual);
     #endregion
 
@@ -671,11 +643,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if player is on specified target's <b>Rear Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    protected bool IsOnRear(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Rear;
+    protected bool IsOnRear(Actor target) => In3y(target) && GetCurrentPositional(target) == Positional.Rear;
 
     /// <summary>Checks if player is on specified target's <b>Flank Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    protected bool IsOnFlank(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Flank;
+    protected bool IsOnFlank(Actor target) => In3y(target) && GetCurrentPositional(target) == Positional.Flank;
 
     /// <summary>Updates the positional recommendations based on the current target and the positional requirement.</summary>
     /// <param name="enemy">The user's current enemy scanned for user's current positional.</param>
@@ -714,7 +686,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="fAoe">A function determining the area of effect.</param>
     /// <param name="firstUnlockedAoeAction">The first available AOE action.</param>
     /// <param name="minAoe">The minimum number of targets required to trigger AOE.</param>
-    /// <param name="positional">The positional requirement for the goal zone (default: any).</param>
     /// <param name="maximumActionRange">An optional parameter specifying the maximum action range.</param>
     protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
@@ -773,6 +744,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Time remaining on pre-pull (or any) <b>Countdown Timer</b>.</summary>
     protected float? CountdownRemaining { get; private set; }
+
+    /// <summary>Time remaining on current <b>Combo timer</b>.</summary>
     protected float? ComboTimer { get; private set; }
 
     /// <summary>Checks if player is currently <b>moving</b>.</summary>
@@ -790,6 +763,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks time remaining on party-wide <b>Raid Buffs</b>.</summary>
     protected float RaidBuffsLeft { get; private set; }
 
+    /// <summary>A function for helping check estimations on Raid Buffs.</summary>
     private new (float Left, float In) EstimateRaidBuffTimings(Actor? target)
     {
         if (Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel && IsSelfish(Player.Class))
@@ -813,17 +787,17 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE or Class.DRK;
     private bool PartyBuffCheck(Actor player) => player.Class switch
     {
-        Class.MNK => player.Level >= 70, // brotherhood
-        Class.DRG => player.Level >= 52, // battle litany
-        Class.NIN => player.Level >= 45, // mug/dokumori - level check is for suiton/huton, which grant Shadow Walker
-        Class.RPR => player.Level >= 72, // arcane circle
-        Class.SMN => player.Level >= 66, // searing light
-        Class.RDM => player.Level >= 58, // embolden
-        Class.PCT => player.Level >= 70, // starry muse
-        Class.BRD => player.Level >= 50, // battle voice - not counting songs since they are permanent kinda
-        Class.DNC => player.Level >= 70, // tech finish
-        Class.SCH => player.Level >= 66, // chain
-        Class.AST => player.Level >= 50, // divination
+        Class.MNK => player.Level >= 70,
+        Class.DRG => player.Level >= 52,
+        Class.NIN => player.Level >= 45,
+        Class.RPR => player.Level >= 72,
+        Class.SMN => player.Level >= 66,
+        Class.RDM => player.Level >= 58,
+        Class.PCT => player.Level >= 70,
+        Class.BRD => player.Level >= 50,
+        Class.DNC => player.Level >= 70,
+        Class.SCH => player.Level >= 66,
+        Class.AST => player.Level >= 50,
         _ => false
     };
 

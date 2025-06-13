@@ -257,8 +257,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     };
     private (bool, GCDPriority) ShouldUseDrill(DrillStrategy strategy, Actor? target)
     {
-        var st = InsideCombatWith(target) && CanDrill && (IsReady(AID.Drill) || !OverheatActive);
-        var aoe = InsideCombatWith(target) && CanBB && In12y(target) && IsReady(AID.Bioblaster);
+        var st = InsideCombatWith(target) && CanDrill && (ActionReady(AID.Drill) || !OverheatActive);
+        var aoe = InsideCombatWith(target) && CanBB && In12y(target) && ActionReady(AID.Bioblaster);
         var prio = CDRemaining(AID.Drill) < GCD ? GCDPriority.ExtremelyHigh + 9 : CanFitSkSGCD(WFleft) && FMFleft == 0 ? GCDPriority.High + 2 : GCDPriority.High;
         return strategy switch
         {
@@ -414,19 +414,19 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         CSsafe = !Unlocked(AID.ChainSaw) || (Unlocked(AID.ChainSaw) && CScd > 7.6f);
         EVsafe = !Unlocked(AID.Excavator) || (Unlocked(AID.Excavator) && EVleft == 0);
         FMFsafe = !Unlocked(AID.FullMetalField) || (Unlocked(AID.FullMetalField) && FMFleft == 0);
-        CanHC = OGCDReady(AID.Hypercharge) && (Heat >= 50 || HCleft > GCD);
+        CanHC = ActionReady(AID.Hypercharge) && (Heat >= 50 || HCleft > GCD);
         CanHB = Unlocked(AID.HeatBlast) && OverheatActive;
         CanSummon = Unlocked(AID.RookAutoturret) && Battery >= 50 && !MinionActive;
-        CanWF = OGCDReady(AID.Wildfire);
-        CanBS = OGCDReady(AID.BarrelStabilizer);
+        CanWF = ActionReady(AID.Wildfire);
+        CanBS = ActionReady(AID.BarrelStabilizer);
         CanRA = Unlocked(AID.Reassemble) && CDRemaining(AID.Reassemble) <= 57f && !OverheatActive && RAleft == 0;
         CanDrill = Unlocked(AID.Drill) && (Unlocked(TraitID.EnhancedMultiweapon) ? CDRemaining(AID.Drill) < 0.5f + (SkSGCDLength * 8) : CDRemaining(AID.Drill) < 0.5f);
-        CanBB = GCDReady(AID.Bioblaster);
-        CanAA = IsReady(BestAirAnchor);
-        CanCS = IsReady(AID.ChainSaw);
+        CanBB = ActionReady(AID.Bioblaster);
+        CanAA = ActionReady(BestAirAnchor);
+        CanCS = ActionReady(AID.ChainSaw);
         CanEV = Unlocked(AID.Excavator) && EVleft > 0;
         CanFMF = Unlocked(AID.FullMetalField) && FMFleft > 0;
-        CanFT = OGCDReady(AID.Flamethrower) && !OverheatActive && FTleft == 0 && NumFlamethrowerTargets > 2;
+        CanFT = ActionReady(AID.Flamethrower) && !OverheatActive && FTleft == 0 && NumFlamethrowerTargets > 2;
         (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 12, Is12yConeTarget);
         (BestSplashTargets, NumSplashTargets) = !strategy.ManualTarget() ? GetBestTarget(primaryTarget, 25, IsSplashTarget) : (primaryTarget, 0);
         (BestChainSawTargets, NumChainSawTargets) = !strategy.ManualTarget() ? GetBestTarget(primaryTarget, 25, Is25yRectTarget) : (primaryTarget, 0);
@@ -497,7 +497,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             {
                 if (!Player.InCombat && In25y(primaryTarget?.Actor))
                 {
-                    if (RAleft == 0 && OGCDReady(AID.Reassemble)) //RA first
+                    if (RAleft == 0 && ActionReady(AID.Reassemble)) //RA first
                         QueueGCD(AID.Reassemble, Player, GCDPriority.Max);
                     if (RAleft > 0)
                         Opener(openerOpt, primaryTarget?.Actor);
@@ -505,7 +505,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             }
             if (CountdownRemaining > 0)
             {
-                if (CountdownRemaining < 5 && RAleft == 0 && OGCDReady(AID.Reassemble))
+                if (CountdownRemaining < 5 && RAleft == 0 && ActionReady(AID.Reassemble))
                     QueueGCD(AID.Reassemble, Player, GCDPriority.Max);
                 if (ShouldUsePotion(strategy) && CountdownRemaining <= 1.99f)
                     Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);

@@ -78,9 +78,9 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         Aetherflow.CD = CDRemaining(AID.Aetherflow);
         BioLeft = StatusRemaining(BestDOTTargets?.Actor, BestDOT);
         CSLeft = StatusRemaining(BestDOTTargets?.Actor, SID.ChainStratagem);
-        CanCS = OGCDReady(AID.ChainStratagem); //Chain Stratagem is available
+        CanCS = ActionReady(AID.ChainStratagem); //Chain Stratagem is available
         CanED = Unlocked(AID.EnergyDrain) && Aetherflow.IsActive; //Energy Drain is available
-        CanAF = OGCDReady(AID.Aetherflow) && !Aetherflow.IsActive; //Aetherflow is available
+        CanAF = ActionReady(AID.Aetherflow) && !Aetherflow.IsActive; //Aetherflow is available
         ShouldUseAOE = ShouldUseAOECircle(5).OnTwoOrMore; //otherwise, use AOE if 2+ targets would be hit
         (BestDOTTargets, BioLeft) = GetDOTTarget(primaryTarget, BioRemaining, ShouldUseAOECircle(5).OnFourOrMore ? 3 : 4);
         BestDOTTarget = Unlocked(AID.Bio1) ? BestDOTTargets : primaryTarget;
@@ -134,7 +134,7 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             QueueOGCD(AID.Aetherflow, Player, OGCDPrio(afStrat, OGCDPriority.AboveAverage));
         if (ShouldUseEnergyDrain(primaryTarget?.Actor, edStrat))
             QueueOGCD(AID.EnergyDrain, SingleTargetChoice(primaryTarget?.Actor, ed), edStrat is EnergyStrategy.Force ? OGCDPriority.Forced : OGCDPriority.Average);
-        if (MP <= 9000 && CanWeaveIn && OGCDReady(AID.LucidDreaming))
+        if (MP <= 9000 && CanWeaveIn && ActionReady(AID.LucidDreaming))
             QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average);
         if (ShouldUsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.Medium);
