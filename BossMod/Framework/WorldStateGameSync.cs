@@ -959,9 +959,10 @@ sealed class WorldStateGameSync : IDisposable
         _globalOps.Add(new WorldState.OpRSVData(MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet)));
     }
 
-    private unsafe void ProcessPacketOpenTreasureDetour(uint actorID, byte* packet)
+    private unsafe void ProcessPacketOpenTreasureDetour(uint playerID, byte* packet)
     {
-        _processPacketOpenTreasureHook.Original(actorID, packet);
+        _processPacketOpenTreasureHook.Original(playerID, packet);
+        var actorID = *(uint*)(packet + 16);
         _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventOpenTreasure(actorID));
     }
 
