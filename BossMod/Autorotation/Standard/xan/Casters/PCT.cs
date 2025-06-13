@@ -284,7 +284,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void Hammer(StrategyValues strategy)
     {
-        if (HammerTime.Stacks == 0 || !strategy.Enabled(Track.Hammer))
+        if (HammerTime.Stacks == 0 || strategy.Option(Track.Hammer).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
             return;
 
         var prio = GCDPriority.HammerMove;
@@ -306,7 +306,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void Holy(StrategyValues strategy)
     {
-        if (Paint == 0 || !strategy.Enabled(Track.Holy))
+        if (Paint == 0 || strategy.Option(Track.Holy).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
             return;
 
         var prio = GCDPriority.HolyMove;
