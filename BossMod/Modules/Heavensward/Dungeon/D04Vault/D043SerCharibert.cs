@@ -87,5 +87,5 @@ class D043SerCharibertStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 4142)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 4142)]
 public class D043SerCharibert(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 4), new ArenaBoundsRect(20, 20));

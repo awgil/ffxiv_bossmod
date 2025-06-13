@@ -25,10 +25,11 @@ public class CastCounterMulti(BossModule module, Enum[] aids) : BossComponent(mo
     }
 }
 
-public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float expireAfter = 30) : CastCounterMulti(module, aids)
+public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float expireAfter = 30, uint color = 0) : CastCounterMulti(module, aids)
 {
     private readonly List<(WPos Source, Angle Direction, DateTime Timestamp)> _casts = [];
     public float ExpireAfter = expireAfter;
+    public uint Color = color == 0 ? ArenaColor.Object : color;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -54,6 +55,6 @@ public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float ex
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var c in _casts)
-            shape.Outline(Arena, c.Source, c.Direction, ArenaColor.Object);
+            shape.Outline(Arena, c.Source, c.Direction, Color);
     }
 }

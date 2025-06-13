@@ -384,7 +384,7 @@ sealed class WorldStateGameSync : IDisposable
                 {
                     var dur = Math.Min(Math.Abs(s.RemainingTime), 100000);
                     curStatus.ID = s.StatusId;
-                    curStatus.SourceID = SanitizedObjectID(s.SourceId);
+                    curStatus.SourceID = SanitizedObjectID(s.SourceObject);
                     curStatus.Extra = s.Param;
                     curStatus.ExpireAt = _ws.CurrentTime.AddSeconds(dur);
                 }

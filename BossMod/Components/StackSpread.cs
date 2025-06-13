@@ -31,11 +31,16 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
     public IEnumerable<Stack> ActiveStacks => IncludeDeadTargets ? Stacks : Stacks.Where(s => !s.Target.IsDead);
     public IEnumerable<Spread> ActiveSpreads => IncludeDeadTargets ? Spreads : Spreads.Where(s => !s.Target.IsDead);
 
+    public bool EnableHints = true;
+
     public bool IsStackTarget(Actor? actor) => Stacks.Any(s => s.Target == actor);
     public bool IsSpreadTarget(Actor? actor) => Spreads.Any(s => s.Target == actor);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
+        if (!EnableHints)
+            return;
+
         if (Spreads.FindIndex(s => s.Target == actor) is var iSpread && iSpread >= 0)
         {
             hints.Add("Spread!", Raid.WithoutSlot().InRadiusExcluding(actor, Spreads[iSpread].Radius).Any());
@@ -86,6 +91,9 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (!EnableHints)
+            return;
+
         // forbid standing next to spread markers
         // TODO: think how to improve this, current implementation works, but isn't particularly good - e.g. nearby players tend to move to same spot, turn around, etc.
         // ideally we should provide per-mechanic spread spots, but for simple cases we should try to let melee spread close and healers/rdd spread far from main target...

@@ -24,7 +24,7 @@ class UITest
             TransparentColor = [0, 0, 0],
         };
 
-        if (args.Length > 0 && args[0] == "-w")
+        if (args.Length > 0 && args[0] == "-w" && false)
         {
             // windowed mode
             windowInfo.XPos = 100;

@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace BossMod.Pathfinding;
 
-[ConfigDisplay(Name = "Obstacle map development", Order = 8)]
+[ConfigDisplay(Name = "Obstacle map development", Order = 9)]
 public sealed class ObstacleMapConfig : ConfigNode
 {
     [PropertyDisplay("Developer mode: load obstacle maps from source rather than from plugin distribution")]
