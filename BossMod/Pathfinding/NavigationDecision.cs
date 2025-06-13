@@ -23,7 +23,11 @@ public struct NavigationDecision
     public float TimeToGoal;
 
     public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
-    public const float ActivationTimeCushion = 1; // reduce time between now and activation by this value in seconds; increase for more conservativeness
+
+    // reduce time between now and activation by this value in seconds; increase for more conservativeness
+    public static readonly float ActivationTimeCushion = Service.IsDev
+        ? ActorCastInfo.NPCFinishDelay + 0.2f
+        : 1;
 
     public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
     {

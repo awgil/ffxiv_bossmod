@@ -19,6 +19,8 @@ public class GenericTowers(BossModule module, Enum? aid = default, AIHints.Predi
         public readonly bool CorrectAmountInside(BossModule module) => NumInside(module) is var count && count >= MinSoakers && count <= MaxSoakers;
     }
 
+    public bool EnableHints = true;
+
     public List<Tower> Towers = [];
 
     // default tower styling
@@ -31,6 +33,9 @@ public class GenericTowers(BossModule module, Enum? aid = default, AIHints.Predi
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
+        if (!EnableHints)
+            return;
+
         if (Towers.Any(t => t.ForbiddenSoakers[slot] && t.IsInside(actor)))
         {
             hints.Add("GTFO from tower!");
@@ -51,7 +56,7 @@ public class GenericTowers(BossModule module, Enum? aid = default, AIHints.Predi
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Towers.Count == 0)
+        if (Towers.Count == 0 || !EnableHints)
             return;
 
         // we consider some list of towers part of the same "group" if their activations are within 500ms, as there can be varying delays between helper actors in an encounter casting the "same" spell
@@ -124,5 +129,5 @@ public class CastTowers(BossModule module, Enum aid, float radius, int minSoaker
         }
     }
 
-    private WPos DeterminePosition(Actor caster, ActorCastInfo spell) => spell.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
+    protected WPos DeterminePosition(Actor caster, ActorCastInfo spell) => spell.TargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.TargetID)?.Position ?? spell.LocXZ;
 }

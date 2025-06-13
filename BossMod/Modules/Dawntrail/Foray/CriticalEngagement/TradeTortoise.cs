@@ -94,7 +94,6 @@ class BuyersRemorseStayMove(BossModule module) : Components.StayMove(module)
     }
 }
 
-// TODO facing hint
 class BuyersRemorseTurtle(BossModule module) : Components.Knockback(module)
 {
     private readonly DateTime[] _activations = new DateTime[PartyState.MaxPartySize];
@@ -122,12 +121,22 @@ class BuyersRemorseTurtle(BossModule module) : Components.Knockback(module)
     {
         var t = _activations.BoundSafeAt(slot);
         if (t != default)
+        {
             hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 10), t);
+
+            var oo = Arena.Center - actor.Position;
+            var center = Angle.FromDirection(oo);
+            var cos = (oo.LengthSq() + 35 * 35 - 25 * 25) / (2 * oo.Length() * 35);
+            if (cos is <= 1 and >= -1)
+                hints.ForbiddenDirections.Add(((center + 180.Degrees()).Normalized(), Angle.Acos(-cos), t));
+        }
     }
 }
 
 class CoinGame(BossModule module) : BossComponent(module)
 {
+    private readonly TradeTortoiseConfig _config = Service.Config.Get<TradeTortoiseConfig>();
+
     // indexed by Transporting status param (minus 0x28)
     // player is only allowed to hold 2 coin bags, so if param >= 4, we finish the mechanic regardless of whether the total is correct
     public static readonly int[] HeldQuantity = [0, 1, 2, 4, 2, 3, 4, 5, 6, 8];
@@ -211,6 +220,9 @@ class CoinGame(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (!_config.CoinGame)
+            return;
+
         var obj = _playerStates.BoundSafeAt(slot);
         if (obj.Goal == 0)
             return;
@@ -283,4 +295,11 @@ class TradeTortoiseStates : StateMachineBuilder
 public class TradeTortoise(WorldState ws, Actor primary) : BossModule(ws, primary, new(72, -545), new ArenaBoundsCircle(25))
 {
     public override bool DrawAllPlayers => true;
+}
+
+[ConfigDisplay(Parent = typeof(DawntrailConfig))]
+public class TradeTortoiseConfig : ConfigNode
+{
+    [PropertyDisplay("Automatically solve the coin minigame (if AI mode or NormalMovement is active)")]
+    public bool CoinGame = true;
 }

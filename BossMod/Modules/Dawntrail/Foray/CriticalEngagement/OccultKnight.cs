@@ -194,7 +194,7 @@ class OccultKnightStates : StateMachineBuilder
 
     private void Phase1(uint id)
     {
-        Condition(id, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed), "Adds 1 enrage")
+        Condition(id, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed || !k.IsTargetable), "Adds 1 enrage")
             .ActivateOnEnter<OccultKnights>();
 
         LineOfFire(id + 0x10000, 10.2f);

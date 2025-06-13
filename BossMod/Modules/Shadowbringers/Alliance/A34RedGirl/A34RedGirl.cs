@@ -112,8 +112,20 @@ class ShockGround(BossModule module) : Components.GroupedAOEs(module, [AID.Shock
 class ShockWhiteFast(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockWhiteFast, AID.ShockWhiteSpread, 5, 5.1f);
 class ManipulateEnergy(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(3), (uint)IconID.Tankbuster, AID.ManipulateEnergy, 5.2f, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster);
 
-class ShockWhiteSlow(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockWhiteSlow, AID.ShockWhiteSpread, 5, 10.1f);
-class ShockBlackSlow(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockBlackSlow, AID.ShockBlackSpread, 5, 10.1f);
+class ShockWhiteSlow(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockWhiteSlow, AID.ShockWhiteSpread, 5, 10.1f)
+{
+    public override void Update()
+    {
+        Spreads.RemoveAll(s => s.Target.IsDead);
+    }
+}
+class ShockBlackSlow(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.ShockBlackSlow, AID.ShockBlackSpread, 5, 10.1f)
+{
+    public override void Update()
+    {
+        Spreads.RemoveAll(s => s.Target.IsDead);
+    }
+}
 
 class A34RedGirlStates : StateMachineBuilder
 {
@@ -175,7 +187,7 @@ class A34RedGirlStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9950)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9950)]
 public class A34RedGirl(WorldState ws, Actor primary) : BossModule(ws, primary, new(845, -851), new ArenaBoundsSquare(24.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

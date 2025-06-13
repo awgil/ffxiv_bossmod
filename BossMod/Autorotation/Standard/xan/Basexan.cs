@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using BossMod.Data;
+using System.Diagnostics.CodeAnalysis;
 using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
@@ -47,6 +48,13 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     protected float ReadyIn(AID action) => Unlocked(action) ? ActionDefinitions.Instance.Spell(action)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
     protected float MaxChargesIn(AID action) => Unlocked(action) ? ActionDefinitions.Instance.Spell(action)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
+
+    protected float PhantomReadyIn(PhantomID pid)
+    {
+        if (World.Client.DutyActions.Any(d => d.Action.ID == (uint)pid))
+            return ActionDefinitions.Instance.Spell(pid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
+        return float.MaxValue;
+    }
 
     protected abstract float GCDLength { get; }
 

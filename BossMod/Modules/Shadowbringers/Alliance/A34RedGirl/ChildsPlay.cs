@@ -11,6 +11,12 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
             _targets.Set(slot);
     }
 
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.Chain && Raid.TryFindSlot(source.InstanceID, out var slot))
+            _targets.Clear(slot);
+    }
+
     public WDir? PredictedMovement(Actor player)
     {
         // ostensibly 24 units (6 units/sec * 4s debuff), actually 21-23 units depending on latency/acceleration, but we report a conservative estimate to avoid walking into the wall

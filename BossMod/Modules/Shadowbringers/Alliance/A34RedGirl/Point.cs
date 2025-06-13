@@ -11,7 +11,8 @@ class Point(BossModule module) : Components.GenericAOEs(module)
     {
         if ((OID)actor.OID is OID.BlackLance or OID.WhiteLance && !_casters.Any(c => c.Caster.Position.AlmostEqual(actor.Position, 1)))
         {
-            var isBlocked = _barriers.BarrierPositions.Any(b => b.Center.InRect(actor.Position, actor.Rotation, 50, 0, 3));
+            var shade = (OID)actor.OID == OID.BlackLance ? Shade.Black : Shade.White;
+            var isBlocked = _barriers.BarrierPositions.Any(b => b.Center.InRect(actor.Position, actor.Rotation, 50, 0, 3) && b.Shade != shade);
             _casters.Add((actor, WorldState.FutureTime(7.7f), isBlocked));
         }
     }
@@ -29,7 +30,8 @@ class Point(BossModule module) : Components.GenericAOEs(module)
     {
         if ((OID)actor.OID is OID.BlackLance or OID.WhiteLance && id is 0x11D1 or 0x11D2)
         {
-            var isBlocked = _barriers.BarrierPositions.Any(b => b.Center.InRect(actor.Position, actor.Rotation, 50, 0, 3));
+            var shade = (OID)actor.OID == OID.BlackLance ? Shade.Black : Shade.White;
+            var isBlocked = _barriers.BarrierPositions.Any(b => b.Center.InRect(actor.Position, actor.Rotation, 50, 0, 3) && b.Shade != shade);
             _casters.Add((actor, WorldState.FutureTime(8), isBlocked));
         }
     }

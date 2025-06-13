@@ -74,7 +74,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
             }
 
             foreach (var block in _barriers.BarrierPositions.Where(b => b.Shade == m.Shade))
-                addBlock(block.Center, CurveApprox.Rect(block.Orientation, 1, 3));
+                addBlock(block.Center, [block.Orientation * 3, block.Orientation * -3]);
             // use larger radius than arena max, since the algorithm is not designed to work with intersecting line segments - outermost blocks can extend outside arena
             addBlock(Arena.Center, CurveApprox.Rect(new(30, 0), new(0, 30)));
 

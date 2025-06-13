@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Components;
 
-public class DispelHint(BossModule module, uint statusID, Enum? action = default) : CastHint(module, action, "Prepare to dispel!")
+public class DispelHint(BossModule module, uint statusID, Enum? action = default, bool includeTargetName = false) : CastHint(module, action, "Prepare to dispel!")
 {
     private readonly List<Actor> Targets = [];
 
@@ -13,8 +13,13 @@ public class DispelHint(BossModule module, uint statusID, Enum? action = default
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Targets.Count > 0)
-            hints.Add("Dispel!", false);
+        if (Targets.FirstOrDefault() is { } target)
+        {
+            if (includeTargetName)
+                hints.Add($"Dispel {target.Name}!", false);
+            else
+                hints.Add("Dispel!", false);
+        }
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
