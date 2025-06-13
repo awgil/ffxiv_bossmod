@@ -22,7 +22,7 @@ public static class RaiseUtil
         if (filterByRange)
             t1 = t1.Where(t => world.Party.Player()?.DistanceToHitbox(t) <= 30);
         if (sortByClass)
-            t1 = t1.OrderBy(t => t.Class.GetRole() switch
+            t1 = t1.OrderByDescending(t => t.Class.GetRole() switch
             {
                 Role.Healer => 5,
                 Role.Tank => 4,
