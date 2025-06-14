@@ -41,7 +41,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddAssociatedActions(PhantomID.Iainuki);
         def.AbilityTrack(Track.Bard, "Bard", "Bard: Use Aria/Rime in combat")
             .AddAssociatedActions(PhantomID.OffensiveAria, PhantomID.HerosRime);
-        def.AbilityTrack(Track.Monk, "Monk", "Monk: Use Kick to maintain buff; use Chakra at low HP/MP")
+        def.AbilityTrack(Track.Monk, "Monk", "Monk: Use Kick to maintain buff; use Chakra at low HP/MP; use Counterstance during downtime")
             .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.OccultChakra);
 
         return def;
@@ -125,8 +125,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
 
         if (strategy.Enabled(Track.Bard) && primaryTarget?.IsAlly == false && Player.InCombat)
         {
-            var ariaLeft = SelfStatusDetails(4247, 70).Left;
-            var rimeLeft = SelfStatusDetails(4249, 20).Left;
+            var ariaLeft = SelfStatusDetails(PhantomSID.OffensiveAria, 70).Left;
+            var rimeLeft = SelfStatusDetails(PhantomSID.HerosRime, 20).Left;
             var prio = strategy.Option(Track.Bard).Priority(ActionQueue.Priority.Low);
 
             UseAction(PhantomID.HerosRime, Player, prio);
@@ -135,15 +135,22 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
                 UseAction(PhantomID.OffensiveAria, Player, prio);
         }
 
-        if (strategy.Enabled(Track.Monk) && primaryTarget?.IsAlly == false && Player.InCombat)
+        if (strategy.Enabled(Track.Monk) && Player.InCombat)
         {
             var prio = strategy.Option(Track.Monk).Priority(ActionQueue.Priority.Low);
 
-            if (UseAction(PhantomID.PhantomKick, primaryTarget, prio))
-                Hints.GoalZones.Add(Hints.GoalAOERect(primaryTarget, 15, 3));
-
             if (Player.HPMP.MaxHP * 0.3f >= Player.HPMP.CurHP || Player.HPMP.MaxMP * 0.3f >= Player.HPMP.CurMP)
                 UseAction(PhantomID.OccultChakra, Player, prio);
+
+            var counterLeft = SelfStatusDetails(PhantomSID.Counterstance, 60).Left;
+            if (counterLeft <= GCD && !Hints.PriorityTargets.Any())
+                UseAction(PhantomID.Counterstance, Player, prio);
+
+            if (primaryTarget?.IsAlly == false)
+            {
+                if (UseAction(PhantomID.PhantomKick, primaryTarget, prio))
+                    Hints.GoalZones.Add(Hints.GoalAOERect(primaryTarget, 15, 3));
+            }
         }
     }
 

@@ -6,12 +6,12 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 {
     public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion }
     public enum DestinationStrategy { None, Pathfind, Explicit }
-    public enum RangeStrategy { Any, MaxMelee, MeleeGreedGCDExplicit, MeleeGreedLastMomentExplicit, MeleeGreedAutomatic }
+    public enum RangeStrategy { Any, MaxRange, GreedGCDExplicit, GreedLastMomentExplicit, GreedAutomatic }
     public enum CastStrategy { Leeway, Explicit, Greedy, FinishMove, DropMove, FinishInstants, DropInstants }
     public enum ForbiddenZoneCushionStrategy { None, Small, Medium, Large }
     public enum SpecialModesStrategy { Automatic, Ignore }
 
-    public const float MeleeGreedTolerance = 0.15f;
+    public const float GreedTolerance = 0.15f;
 
     public static RotationModuleDefinition Definition()
     {
@@ -20,13 +20,16 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             .AddOption(DestinationStrategy.None, "None", "No automatic movement")
             .AddOption(DestinationStrategy.Pathfind, "Pathfind", "Use standard pathfinding to find best position")
             .AddOption(DestinationStrategy.Explicit, "Explicit", "Move to specific point", supportedTargets: ActionTargets.Area);
+
+        // note that these options used to be melee-specific - internal names are kept unchanged for convenience
         res.Define(Track.Range).As<RangeStrategy>("Range", "Range", 20)
             .AddOption(RangeStrategy.Any, "Any", "Go directly to destination")
-            .AddOption(RangeStrategy.MaxMelee, "MaxMelee", "Stay within max-melee of target closest to destination", supportedTargets: ActionTargets.Hostile)
-            .AddOption(RangeStrategy.MeleeGreedGCDExplicit, "MeleeGreedGCDExplicit", "Melee greed, wait until last gcd to move, ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
-            .AddOption(RangeStrategy.MeleeGreedLastMomentExplicit, "MeleeGreedLastMomentExplicit", "Melee greed, wait until last moment to move, ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
-            .AddOption(RangeStrategy.MeleeGreedAutomatic, "MeleeGreedAutomatic", "Melee greed, wait until last moment to move, try ensure destination is reached before mechanics resolve", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.MaxRange, "MaxMelee", "Stay within maximum effective range of target closest to destination", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.GreedGCDExplicit, "MeleeGreedGCDExplicit", "Stay within effective range until last GCD; ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.GreedLastMomentExplicit, "MeleeGreedLastMomentExplicit", "Stay within effective range until last possible moment; ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.GreedAutomatic, "MeleeGreedAutomatic", "Stay within effective range as long as possible; try to ensure safety is reached before mechanic resolves", supportedTargets: ActionTargets.Hostile)
             /*.AddOption(RangeStrategy.Drag, "Drag", "Drag the target to specified spot, but maintain gcd uptime", supportedTargets: ActionTargets.Hostile)*/; // TODO
+
         res.Define(Track.Cast).As<CastStrategy>("Cast", "Cast", 10)
             .AddOption(CastStrategy.Leeway, "Leeway", "Continue slidecasting as long as there is enough time to get to safety")
             .AddOption(CastStrategy.Explicit, "Explicit", "Continue slidecasting as long as there is enough time to reach destination by the plan entry end")
@@ -47,6 +50,9 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
     }
 
     private readonly NavigationDecision.Context _navCtx = new();
+
+    public const float MeleeRange = 3;
+    public const float CasterRange = 25;
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -115,8 +121,11 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             var rangeReference = ResolveTargetOverride(rangeOpt.Value) ?? primaryTarget;
             if (rangeReference != null)
             {
+                // TODO: instead of hardcoding, is it possible to reuse goal zones for this purpose?
+                // it would allow greeding AOE actions as well, but requires modification to NavigationDecision to avoid duplicating work
+                var effectiveRange = Player.Role is Role.Tank or Role.Melee ? MeleeRange : CasterRange;
                 var toDestination = navi.Destination.Value - rangeReference.Position;
-                var maxRange = Player.HitboxRadius + rangeReference.HitboxRadius + 3 - MeleeGreedTolerance;
+                var maxRange = Player.HitboxRadius + rangeReference.HitboxRadius + effectiveRange - GreedTolerance;
                 var range = toDestination.Length();
                 if (range > maxRange)
                 {
@@ -124,17 +133,17 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                     var uptimeToDestinationTime = (range - maxRange) / speed;
                     switch (rangeStrategy)
                     {
-                        case RangeStrategy.MaxMelee:
+                        case RangeStrategy.MaxRange:
                             navi.Destination = uptimePosition;
                             navi.LeewaySeconds -= uptimeToDestinationTime; // assume we'll want to reach destination later, so leeway has to be reduced
                             break;
-                        case RangeStrategy.MeleeGreedGCDExplicit:
-                        case RangeStrategy.MeleeGreedLastMomentExplicit:
+                        case RangeStrategy.GreedGCDExplicit:
+                        case RangeStrategy.GreedLastMomentExplicit:
                             navi.LeewaySeconds = destinationOpt.Value.ExpireIn - uptimeToDestinationTime;
-                            if (navi.LeewaySeconds > (rangeStrategy == RangeStrategy.MeleeGreedGCDExplicit ? GCD : 0))
+                            if (navi.LeewaySeconds > (rangeStrategy == RangeStrategy.GreedGCDExplicit ? GCD : 0))
                                 navi.Destination = uptimePosition;
                             break;
-                        case RangeStrategy.MeleeGreedAutomatic:
+                        case RangeStrategy.GreedAutomatic:
                             var uptimeCell = _navCtx.Map.GridToIndex(_navCtx.Map.WorldToGrid(uptimePosition));
                             var curCell = _navCtx.ThetaStar.StartNodeIndex;
                             if (navi.LeewaySeconds > 0)
@@ -147,7 +156,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                             break;
                     }
                 }
-                // else: destination is already in melee range, nothing to adjust here
+                // else: destination is already in our effective range, nothing to adjust here
             }
         }
 
