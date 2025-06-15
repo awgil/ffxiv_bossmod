@@ -12,7 +12,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         Chemist,
         Samurai,
         Bard,
-        Monk
+        Monk,
+        Predict
     }
 
     public enum RaiseStrategy
@@ -22,27 +23,59 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         InCombat
     }
 
+    public enum PredictStrategy
+    {
+        AutoConservative,
+        AutoGreedy,
+        AutoSuperGreedy,
+        HealOnly,
+        Disabled
+    }
+
+    enum Prediction
+    {
+        None,
+        Judgment,
+        Cleansing,
+        Blessing,
+        Starfall
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("Phantom Job AI", "Basic phantom job action automation", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 100);
 
         def.AbilityTrack(Track.Cannoneer, "Cannoneer", "Cannoneer: Use cannon actions on best AOE target as soon as they become available")
             .AddAssociatedActions(PhantomID.DarkCannon, PhantomID.HolyCannon, PhantomID.ShockCannon, PhantomID.SilverCannon, PhantomID.PhantomFire);
+
         def.AbilityTrack(Track.Ranger, "Ranger", "Ranger: Use Phantom Aim on cooldown")
             .AddAssociatedActions(PhantomID.PhantomAim);
+
         def.AbilityTrack(Track.TimeMage, "TimeMage", "Time Mage: Use Comet ASAP if it will be instant")
             .AddAssociatedActions(PhantomID.OccultComet);
-        def.Define(Track.Chemist).As<RaiseStrategy>("Chemist", "Chemist raise")
+
+        def.Define(Track.Chemist).As<RaiseStrategy>("Chemist", "Chemist: Raise")
             .AddOption(RaiseStrategy.Never, "Never", "Disabled")
             .AddOption(RaiseStrategy.OutOfCombat, "OutOfCombat", "Out of combat")
             .AddOption(RaiseStrategy.InCombat, "InCombat", "Always")
             .AddAssociatedActions(PhantomID.Revive);
+
         def.AbilityTrack(Track.Samurai, "Samurai", "Samurai: Use Iainuki on best AOE target")
             .AddAssociatedActions(PhantomID.Iainuki);
+
         def.AbilityTrack(Track.Bard, "Bard", "Bard: Use Aria/Rime in combat")
             .AddAssociatedActions(PhantomID.OffensiveAria, PhantomID.HerosRime);
+
         def.AbilityTrack(Track.Monk, "Monk", "Monk: Use Kick to maintain buff; use Chakra at low HP/MP; use Counterstance during downtime")
             .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.OccultChakra);
+
+        def.Define(Track.Predict).As<PredictStrategy>("Predict", "Oracle: Predict")
+            .AddOption(PredictStrategy.AutoConservative, "Use first available damage action that isn't Starfall")
+            .AddOption(PredictStrategy.AutoGreedy, "Use first available damage action; allow Starfall if HP is high enough")
+            .AddOption(PredictStrategy.AutoSuperGreedy, "Use Starfall, regardless of HP")
+            .AddOption(PredictStrategy.HealOnly, "Use Blessing (heal)")
+            .AddOption(PredictStrategy.Disabled, "Don't use")
+            .AddAssociatedActions(PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall);
 
         return def;
     }
@@ -143,16 +176,82 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
                 UseAction(PhantomID.OccultChakra, Player, prio);
 
             var counterLeft = SelfStatusDetails(PhantomSID.Counterstance, 60).Left;
-            if (counterLeft <= GCD && !Hints.PriorityTargets.Any())
+            if (counterLeft <= 30 && !Hints.PriorityTargets.Any())
                 UseAction(PhantomID.Counterstance, Player, prio);
 
-            if (primaryTarget?.IsAlly == false)
+            if (primaryTarget?.IsAlly == false && UseAction(PhantomID.PhantomKick, primaryTarget, prio))
+                Hints.GoalZones.Add(Hints.GoalAOERect(primaryTarget, 15, 3));
+        }
+
+        var predictOpt = strategy.Option(Track.Predict);
+        var predictStrategy = predictOpt.As<PredictStrategy>();
+        if (predictStrategy != PredictStrategy.Disabled && Player.InCombat)
+        {
+            var pred = GetPrediction();
+
+            var haveTarget = predictStrategy switch
             {
-                if (UseAction(PhantomID.PhantomKick, primaryTarget, prio))
-                    Hints.GoalZones.Add(Hints.GoalAOERect(primaryTarget, 15, 3));
-            }
+                PredictStrategy.AutoConservative or PredictStrategy.AutoGreedy or PredictStrategy.AutoSuperGreedy => primaryTarget?.IsAlly == false,
+                PredictStrategy.HealOnly => true,
+                _ => false
+            };
+
+            if (pred == Prediction.None && haveTarget)
+                UseAction(PhantomID.Predict, Player, ActionQueue.Priority.VeryHigh - 10);
+
+            var isHeal = pred == Prediction.Blessing;
+            var isDmg = pred is Prediction.Cleansing or Prediction.Judgment or Prediction.Starfall;
+            var isSafe = pred != Prediction.Starfall;
+
+            var canUse = predictStrategy switch
+            {
+                PredictStrategy.AutoConservative => isDmg && isSafe,
+                PredictStrategy.AutoGreedy => isDmg && (isSafe || EnoughHP),
+                PredictStrategy.AutoSuperGreedy => !isSafe,
+                PredictStrategy.HealOnly => isHeal,
+                _ => false
+            };
+
+            if (canUse && haveTarget)
+                UseAction(GetID(pred), Player, predictOpt.Priority(ActionQueue.Priority.High));
         }
     }
+
+    private bool EnoughHP => Player.HPMP.MaxHP * 0.9f < Player.HPMP.CurHP + Player.HPMP.Shield;
+
+    private Prediction GetPrediction()
+    {
+        var deadline = World.Client.AnimationLock;
+
+        foreach (var sid in Player.Statuses)
+        {
+            if (sid.ExpireAt < World.FutureTime(deadline))
+                continue;
+
+            switch ((PhantomSID)sid.ID)
+            {
+                case PhantomSID.PredictionOfJudgment:
+                    return Prediction.Judgment;
+                case PhantomSID.PredictionOfCleansing:
+                    return Prediction.Cleansing;
+                case PhantomSID.PredictionOfBlessing:
+                    return Prediction.Blessing;
+                case PhantomSID.PredictionOfStarfall:
+                    return Prediction.Starfall;
+            }
+        }
+
+        return default;
+    }
+
+    private PhantomID GetID(Prediction p) => p switch
+    {
+        Prediction.Judgment => PhantomID.PhantomJudgment,
+        Prediction.Cleansing => PhantomID.Cleansing,
+        Prediction.Blessing => PhantomID.Blessing,
+        Prediction.Starfall => PhantomID.Starfall,
+        _ => PhantomID.None
+    };
 
     public static readonly uint[] InstantCastStatus = [
         (uint)ClassShared.SID.Swiftcast,
@@ -163,13 +262,16 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
 
     private bool UseAction(PhantomID pid, Actor target, float prio, float castTime = 0)
     {
-        if (World.Client.DutyActions.Any(d => d.Action.ID == (uint)pid) && NextChargeIn(pid) <= GCD)
+        var baseAction = (uint)GetBase(pid);
+        if (World.Client.DutyActions.Any(d => d.Action.ID == baseAction) && NextChargeIn(pid) <= GCD)
         {
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(pid), target, prio, castTime: castTime);
             return true;
         }
         return false;
     }
+
+    private PhantomID GetBase(PhantomID input) => input is PhantomID.PhantomJudgment or PhantomID.Cleansing or PhantomID.Blessing or PhantomID.Starfall ? PhantomID.Predict : input;
 
     public static readonly uint[] BreakableComboStatus = [
         (uint)BossMod.NIN.SID.Mudra,
