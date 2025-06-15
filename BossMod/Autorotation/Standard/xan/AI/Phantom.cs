@@ -13,7 +13,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         Samurai,
         Bard,
         Monk,
-        Predict
+        Predict,
+        Chakra
     }
 
     public enum RaiseStrategy
@@ -41,6 +42,14 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         Starfall
     }
 
+    public enum ChakraStrategy
+    {
+        Any,
+        HP,
+        MP,
+        Disabled
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("Phantom Job AI", "Basic phantom job action automation", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 100);
@@ -66,8 +75,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         def.AbilityTrack(Track.Bard, "Bard", "Bard: Use Aria/Rime in combat")
             .AddAssociatedActions(PhantomID.OffensiveAria, PhantomID.HerosRime);
 
-        def.AbilityTrack(Track.Monk, "Monk", "Monk: Use Kick to maintain buff; use Chakra at low HP/MP; use Counterstance during downtime")
-            .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.OccultChakra);
+        def.AbilityTrack(Track.Monk, "Monk", "Monk: Use Kick to maintain buff, use Counterstance during downtime")
+            .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.Counterstance);
 
         def.Define(Track.Predict).As<PredictStrategy>("Predict", "Oracle: Predict")
             .AddOption(PredictStrategy.AutoConservative, "Use first available damage action that isn't Starfall")
@@ -76,6 +85,13 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddOption(PredictStrategy.HealOnly, "Use Blessing (heal)")
             .AddOption(PredictStrategy.Disabled, "Don't use")
             .AddAssociatedActions(PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall);
+
+        def.Define(Track.Chakra).As<ChakraStrategy>("Chakra", "Monk: Use Occult Chakra")
+            .AddOption(ChakraStrategy.Any, "Any", "If HP or MP is low")
+            .AddOption(ChakraStrategy.HP, "HP", "Only if HP is below 30%")
+            .AddOption(ChakraStrategy.MP, "MP", "Only if MP is below 30%")
+            .AddOption(ChakraStrategy.Disabled, "Disabled", "Never")
+            .AddAssociatedActions(PhantomID.OccultChakra);
 
         return def;
     }
@@ -172,15 +188,31 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         {
             var prio = strategy.Option(Track.Monk).Priority(ActionQueue.Priority.Low);
 
-            if (Player.HPMP.MaxHP * 0.3f >= Player.HPMP.CurHP || Player.HPMP.MaxMP * 0.3f >= Player.HPMP.CurMP)
-                UseAction(PhantomID.OccultChakra, Player, prio);
-
             var counterLeft = SelfStatusDetails(PhantomSID.Counterstance, 60).Left;
             if (counterLeft <= 30 && !Hints.PriorityTargets.Any())
                 UseAction(PhantomID.Counterstance, Player, prio);
 
             if (primaryTarget?.IsAlly == false && UseAction(PhantomID.PhantomKick, primaryTarget, prio))
                 Hints.GoalZones.Add(Hints.GoalAOERect(primaryTarget, 15, 3));
+        }
+
+        var chakraOpt = strategy.Option(Track.Chakra);
+        var chakraStrategy = chakraOpt.As<ChakraStrategy>();
+        if (chakraStrategy != ChakraStrategy.Disabled && Player.InCombat)
+        {
+            var lowHP = Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.3f;
+            var lowMP = Player.HPMP.CurMP < Player.HPMP.MaxMP * 0.3f;
+
+            var useOk = chakraStrategy switch
+            {
+                ChakraStrategy.Any => lowHP || lowMP,
+                ChakraStrategy.HP => lowHP,
+                ChakraStrategy.MP => lowMP,
+                _ => false
+            };
+
+            if (useOk)
+                UseAction(PhantomID.OccultChakra, Player, chakraOpt.Priority(ActionQueue.Priority.Low));
         }
 
         var predictOpt = strategy.Option(Track.Predict);

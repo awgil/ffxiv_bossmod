@@ -7,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
-    public enum Track { Scathe = SharedTrack.Buffs, Thunder, Leylines, Triplecast, Iainuki, Zeninage }
+    public enum Track { Scathe = SharedTrack.Buffs, Thunder, Leylines, Triplecast, Iainuki, Zeninage, LLMove }
     public enum ScatheStrategy
     {
         Forbid,
@@ -68,6 +68,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki on cooldown");
         def.AbilityTrack(Track.Zeninage, "Zeninage", "PSAM: Use Zeninage under raid buffs (costs 10,000 gil)");
+
+        def.AbilityTrack(Track.LLMove, "LLMove", "Allow automatic usage of Leylines while moving")
+            .AddAssociatedActions(AID.LeyLines);
 
         return def;
     }
@@ -634,6 +637,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             LeylinesStrategy.Force => opt.Priority(),
             _ => 0,
         };
+
+        if (!strategy.Enabled(Track.LLMove) && IsMoving)
+            return;
 
         if (prio > 0)
         {
