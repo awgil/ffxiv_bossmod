@@ -279,6 +279,8 @@ public sealed class AIHintsBuilder : IDisposable
                 return new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f);
             case 4:
                 return new AOEShapeRect(data.EffectRange + actor.HitboxRadius + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError);
+            case 5:
+                return new AOEShapeCircle(data.EffectRange + actor.HitboxRadius + MaxError);
             case 10:
                 var inner = DetermineDonutInner(data);
                 if (inner == 0 && _hintConfig.DonutFallback == AIHintsConfig.DonutFallbackBehavior.Ignore)
