@@ -3,13 +3,14 @@
 namespace BossMod.Autorotation.akechi;
 
 #region Shared Enums
-/// <summary>
-/// <b>SharedTrack</b> enum for <b>AOE</b> and <b>Hold</b> strategies, used in damage rotations for all PvE classes and jobs.
-/// </summary>
+/// <summary> <b>SharedTrack</b> enum for <b>AOE</b> and <b>Hold</b> strategies, used in damage rotations for all PvE classes and jobs. </summary>
 public enum SharedTrack
 {
     /// <summary> Tracks <b>single-target</b> and <b>AOE</b> rotations. </summary>
     AOE,
+
+    /// <summary> Tracks which <b>targeting</b> strategy the user would like to use. </summary>
+    Targeting,
 
     /// <summary> Tracks holding user's <b>rotation</b>, <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b> for optimal usage. </summary>
     Hold,
@@ -21,10 +22,8 @@ public enum SharedTrack
     Count
 }
 
-/// <summary>
-/// <b>AOEStrategy</b> enum for tracking <b>single-target</b> and <b>AOE</b> strategies.<para/>
-/// <b>NOTE</b>: For jobs with combos that have no relative combo timer (e.g. <b>BLM</b>), <seealso cref="AutoFinish"/> and <seealso cref="AutoBreak"/> are essentially the same function.
-/// </summary>
+/// <summary> <b>AOEStrategy</b> enum for tracking <b>single-target</b> and <b>AOE</b> strategies.<para/>
+/// <b>NOTE</b>: For jobs with combos that have no relative combo timer (e.g. <b>BLM</b>), <seealso cref="AutoFinish"/> and <seealso cref="AutoBreak"/> are essentially the same function. </summary>
 public enum AOEStrategy
 {
     /// <summary> Executes the most <b>optimal rotation</b> automatically.<br/>
@@ -42,9 +41,18 @@ public enum AOEStrategy
     ForceAOE
 }
 
-/// <summary>
-/// <b>HoldStrategy</b> enum for tracking when to hold <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b>.
-/// </summary>
+/// <summary> <b>SoftTargetStrategy</b> enum for tracking which <b>targeting</b> strategy the user would like to use.<para/>
+/// <b>NOTE</b>: This does <b>NOT</b> take priority over <seealso cref="StrategyTarget"/>. </summary>
+public enum SoftTargetStrategy
+{
+    /// <summary> <b>Automatic</b> selection of user's target for abilities executed.</summary>
+    Automatic,
+
+    /// <summary> <b>Manual</b> selection of user's target for abilities executed.</summary>
+    Manual,
+}
+
+/// <summary> <b>HoldStrategy</b> enum for tracking when to hold <b>buffs</b>, <b>gauge</b>, or <b>cooldown abilities</b>. </summary>
 public enum HoldStrategy
 {
     /// <summary> Uses all <b>buffs</b>, <b>gauge</b>, and <b>cooldown abilities</b> without restriction. </summary>
@@ -66,6 +74,7 @@ public enum HoldStrategy
     HoldEverything
 }
 
+/// <summary> <b>PotionStrategy</b> enum for tracking when to use <b>potions</b>. </summary>
 public enum PotionStrategy
 {
     /// <summary> Do <b>NOT</b> use <b>potions</b> automatically. </summary>
@@ -81,13 +90,14 @@ public enum PotionStrategy
     Immediate
 }
 
-/// <summary>
-/// <b>GCDStrategy</b> enum for managing module-specific <b>GCD abilities</b>.
-/// </summary>
+/// <summary> <b>GCDStrategy</b> enum for managing module-specific <b>GCD abilities</b>. </summary>
 public enum GCDStrategy
 {
     /// <summary> Executes the ability <b>automatically</b> based on user logic. </summary>
     Automatic,
+
+    /// <summary> Executes the ability <b>automatically</b> based on user logic, but only if <b>raid buffs</b> are present. </summary>
+    RaidBuffsOnly,
 
     /// <summary> <b>Forces</b> execution of the ability. </summary>
     Force,
@@ -96,13 +106,14 @@ public enum GCDStrategy
     Delay
 }
 
-/// <summary>
-/// <b>OGCDStrategy</b> enum for managing module-specific <b>OGCD abilities</b>.
-/// </summary>
+/// <summary> <b>OGCDStrategy</b> enum for managing module-specific <b>OGCD abilities</b>. </summary>
 public enum OGCDStrategy
 {
     /// <summary> Executes the ability <b>automatically</b> based on user logic. </summary>
     Automatic,
+
+    /// <summary> Executes the ability <b>automatically</b> based on user logic, but only if <b>raid buffs</b> are present. </summary>
+    RaidBuffsOnly,
 
     /// <summary> <b>Forces</b> execution of the ability. </summary>
     Force,
@@ -118,6 +129,19 @@ public enum OGCDStrategy
 
     /// <summary> <b>Forbids</b> execution of the ability. </summary>
     Delay
+}
+
+/// <summary> <b>AllowOrForbid</b> enum for managing module-specific <b>GCD</b> and <b>OGCD abilities</b>. </summary>
+public enum AllowOrForbid
+{
+    /// <summary> <b>Allow</b> the action to be executed. </summary>
+    Allow,
+
+    /// <summary> <b>Forces</b> the action to be executed. </summary>
+    Force,
+
+    /// <summary> <b>Forbid</b> the action from being executed. </summary>
+    Forbid
 }
 #endregion
 
@@ -135,12 +159,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>The <b>Next GCD</b> being queued's <b>Priority</b>.</summary>
     protected int NextGCDPrio;
-
-    /// <summary>The last used <b>GCD</b> ability.</summary>
-    protected AID LastGCDUsed;
-
-    /// <summary>The last used <b>OGCD</b> ability.</summary>
-    protected AID LastOGCDUsed;
 
     #region Queuing
 
@@ -278,32 +296,18 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks the <b>last combo action</b> is what the user is specifying.</summary>
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
-    /// <summary>Retrieves <b>actual cast time</b> of a specified <b>action</b>.</summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected virtual float ActualCastTime(AID aid) => ActionDefinitions.Instance.Spell(aid)!.CastTime;
-
-    /// <summary>Retrieves <b>effective cast time</b> of a specified <b>action</b>.</summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected virtual float EffectiveCastTime(AID aid) => HasEffect(ClassShared.SID.Swiftcast) ? 0 : ActualCastTime(aid) * SpSGCDLength / 2.5f;
-
     /// <summary>Retrieves player's <b>GCD length</b> based on <b>Skill-Speed</b>.</summary>
     protected float SkSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
-
-    /// <summary>Retrieves player's current <b>Skill-Speed</b> stat.</summary>
-    protected float SkS => ActionSpeed.Round(World.Client.PlayerStats.SkillSpeed);
 
     /// <summary>Retrieves player's <b>GCD length</b> based on <b>Spell-Speed</b>.</summary>
     protected float SpSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
 
-    /// <summary>Retrieves player's current <b>Spell-Speed</b> stat.</summary>
-    protected float SpS => ActionSpeed.Round(World.Client.PlayerStats.SpellSpeed);
-
-    /// <summary>Checks if we can fit in a <b>skill-speed based</b> GCD.</summary>
+    /// <summary>Checks if we can fit in a <b>skill-speed based</b> GCD into a deadline.</summary>
     /// <param name="duration">The <b>duration</b> to check against.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     protected bool CanFitSkSGCD(float duration, int extraGCDs = 0) => GCD + SkSGCDLength * extraGCDs < duration;
 
-    /// <summary>Checks if we can fit in a <b>spell-speed based</b> GCD.</summary>
+    /// <summary>Checks if we can fit in a <b>spell-speed based</b> GCD into a deadline.</summary>
     /// <param name="duration">The <b>duration</b> to check against.</param>
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     protected bool CanFitSpSGCD(float duration, int extraGCDs = 0) => GCD + SpSGCDLength * extraGCDs < duration;
@@ -321,7 +325,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.6f;
 
     /// <summary>Checks if user can <b>Quarter Weave in</b> any <b>abilities</b>.</summary>
-    protected bool CanQuarterWeaveIn => GCD is < 1f and >= 0.6f;
+    protected bool CanQuarterWeaveIn => GCD is < 0.9f and >= 0.5f;
 
     /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
     protected bool InOddWindow(AID aid) => CDRemaining(aid) is < 90 and > 30;
@@ -336,13 +340,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float ReadyIn(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
-    /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
+    /// <summary>Checks if <b>specified action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool GCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) < GCD;
-
-    /// <summary>Checks if <b>GCD action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected bool OGCDReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 2.0f;
+    protected bool ActionReady(AID aid) => Unlocked(aid) && CDRemaining(aid) <= 0.5f;
 
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
@@ -613,6 +613,17 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         return (newTarget, newTimer);
     }
+
+    /// <summary>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.<br/>This function specifically is for <b>Single-Target</b> actions.</summary>
+    /// <param name="manual">Player's current target</param>
+    /// <param name="track">The ability's specified track</param>
+    protected Actor? SingleTargetChoice(Actor? manual, StrategyValues.OptionRef track) => TargetChoice(track) ?? manual;
+
+    /// <summary>A simpler smart-targeting helper for picking a <b>specific</b> target over your current target.<br/>This function specifically is for <b>AOE</b> actions.</summary>
+    /// <param name="manual">Player's current target</param>
+    /// <param name="auto">The best target to be auto-selected</param>
+    /// <param name="track">The ability's specified track</param>
+    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => TargetChoice(track) ?? (strategy.Targeting() == SoftTargetStrategy.Automatic ? auto : manual);
     #endregion
 
     #endregion
@@ -632,11 +643,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if player is on specified target's <b>Rear Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    protected bool IsOnRear(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Rear;
+    protected bool IsOnRear(Actor target) => In3y(target) && GetCurrentPositional(target) == Positional.Rear;
 
     /// <summary>Checks if player is on specified target's <b>Flank Positional</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    protected bool IsOnFlank(Actor target) => In5y(target) && GetCurrentPositional(target) == Positional.Flank;
+    protected bool IsOnFlank(Actor target) => In3y(target) && GetCurrentPositional(target) == Positional.Flank;
 
     /// <summary>Updates the positional recommendations based on the current target and the positional requirement.</summary>
     /// <param name="enemy">The user's current enemy scanned for user's current positional.</param>
@@ -675,7 +686,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="fAoe">A function determining the area of effect.</param>
     /// <param name="firstUnlockedAoeAction">The first available AOE action.</param>
     /// <param name="minAoe">The minimum number of targets required to trigger AOE.</param>
-    /// <param name="positional">The positional requirement for the goal zone (default: any).</param>
     /// <param name="maximumActionRange">An optional parameter specifying the maximum action range.</param>
     protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
@@ -734,6 +744,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Time remaining on pre-pull (or any) <b>Countdown Timer</b>.</summary>
     protected float? CountdownRemaining { get; private set; }
+
+    /// <summary>Time remaining on current <b>Combo timer</b>.</summary>
     protected float? ComboTimer { get; private set; }
 
     /// <summary>Checks if player is currently <b>moving</b>.</summary>
@@ -750,6 +762,68 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks time remaining on party-wide <b>Raid Buffs</b>.</summary>
     protected float RaidBuffsLeft { get; private set; }
+
+    /// <summary>A function for helping check estimations on Raid Buffs.</summary>
+    private new (float Left, float In) EstimateRaidBuffTimings(Actor? target)
+    {
+        if (Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel && IsSelfish(Player.Class))
+            return (float.MaxValue, 0);
+
+        //dummy shit
+        if (target?.IsStrikingDummy == true)
+        {
+            var cycle = CombatTimer - 7.8f;
+            if (cycle < 0)
+                return (0, 7.8f - CombatTimer);
+
+            cycle %= 120;
+            return cycle < 20 ? (20 - cycle, 0) : (0, 120 - cycle);
+        }
+
+        var buffsIn = Bossmods.RaidCooldowns.NextDamageBuffIn2();
+        buffsIn ??= CombatTimer < 7.8f && World.Party.WithoutSlot(includeDead: true, excludeAlliance: true, excludeNPCs: true).Skip(1).Any(PartyBuffCheck) ? 7.8f - CombatTimer : float.MaxValue;
+        return (Bossmods.RaidCooldowns.DamageBuffLeft(Player, target), buffsIn.Value);
+    }
+    private bool IsSelfish(Class cls) => cls is Class.VPR or Class.SAM or Class.WHM or Class.SGE or Class.DRK;
+    private bool PartyBuffCheck(Actor player) => player.Class switch
+    {
+        Class.MNK => player.Level >= 70,
+        Class.DRG => player.Level >= 52,
+        Class.NIN => player.Level >= 45,
+        Class.RPR => player.Level >= 72,
+        Class.SMN => player.Level >= 66,
+        Class.RDM => player.Level >= 58,
+        Class.PCT => player.Level >= 70,
+        Class.BRD => player.Level >= 50,
+        Class.DNC => player.Level >= 70,
+        Class.SCH => player.Level >= 66,
+        Class.AST => player.Level >= 50,
+        _ => false
+    };
+
+    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
+    protected bool ShouldUseGCD(bool ready, GCDStrategy strategy, Actor? target, bool optimal = false) => ready && strategy switch
+    {
+        GCDStrategy.Automatic => target != null && optimal,
+        GCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
+        GCDStrategy.Force => true,
+        _ => false
+    };
+
+    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
+    protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = false)
+    {
+        return ready && strategy switch
+        {
+            OGCDStrategy.Automatic => target != null && optimal,
+            OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
+            OGCDStrategy.Force => true,
+            OGCDStrategy.AnyWeave => CanWeaveIn,
+            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+            OGCDStrategy.LateWeave => CanLateWeaveIn,
+            _ => false
+        };
+    }
     #endregion
 
     #region Shared Abilities
@@ -881,6 +955,14 @@ static class ModuleExtensions
             .AddOption(AOEStrategy.ForceAOE, "Force AOE", "Force AOE rotation execution", supportedTargets: ActionTargets.Hostile | ActionTargets.Self);
     }
 
+    /// <summary>Defines our shared <b>soft-Targeting</b> strategies.</summary>
+    public static RotationModuleDefinition.ConfigRef<SoftTargetStrategy> DefineTargeting(this RotationModuleDefinition res)
+    {
+        return res.Define(SharedTrack.Targeting).As<SoftTargetStrategy>("SoftTarget", uiPriority: 295)
+            .AddOption(SoftTargetStrategy.Automatic, "Automatic", "Auto-select best target for maximum optimal DPS output")
+            .AddOption(SoftTargetStrategy.Manual, "Manual", "Do not auto-select best target, instead executing only on whichever target is currently selected");
+    }
+
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
     /// <param name="res">The definitions of our base module's strategies.</param>
     public static RotationModuleDefinition.ConfigRef<HoldStrategy> DefineHold(this RotationModuleDefinition res)
@@ -923,6 +1005,7 @@ static class ModuleExtensions
         var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<GCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
             .AddOption(GCDStrategy.Automatic, "Auto", $"Automatically use {action.Name()} when optimal", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
+            .AddOption(GCDStrategy.RaidBuffsOnly, "With Buffs", $"Use {action.Name()} when raid buffs are active", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
             .AddOption(GCDStrategy.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
             .AddOption(GCDStrategy.Delay, "Delay", $"Do NOT use {action.Name()}", 0, 0, ActionTargets.None, minLevel, maxLevel)
             .AddAssociatedActions(aid);
@@ -945,6 +1028,7 @@ static class ModuleExtensions
         var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<OGCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
             .AddOption(OGCDStrategy.Automatic, "Auto", $"Automatically use {action.Name()} when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(OGCDStrategy.RaidBuffsOnly, "With Buffs", $"Use {action.Name()} when raid buffs are active", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.AnyWeave, "AnyWeave", $"Force use {action.Name()} in next possible weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
             .AddOption(OGCDStrategy.EarlyWeave, "EarlyWeave", $"Force use {action.Name()} in next possible early-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
@@ -952,46 +1036,76 @@ static class ModuleExtensions
             .AddOption(OGCDStrategy.Delay, "Delay", $"Do NOT use {action.Name()}", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel)
             .AddAssociatedActions(aid);
     }
+
+    public static RotationModuleDefinition.ConfigRef<AllowOrForbid> DefineAllow<Index, AID>(this RotationModuleDefinition res, Index track, AID aid, string internalName, string displayName = "", int uiPriority = 100, float cooldown = 0, float effectDuration = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = 100)
+        where Index : Enum
+        where AID : Enum
+    {
+        var action = ActionID.MakeSpell(aid);
+        return res.Define(track).As<AllowOrForbid>(internalName, displayName: displayName, uiPriority: uiPriority)
+            .AddOption(AllowOrForbid.Allow, "Allow", $"Allow use of {action.Name()} when available", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(AllowOrForbid.Force, "Force", $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddOption(AllowOrForbid.Forbid, "Forbid", $"Forbid use of {action.Name()} entirely", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel)
+            .AddAssociatedActions(aid);
+    }
     #endregion
 
     #region Global Helpers
+
+    #region ST/AOE
     /// <summary>A global helper for easily retrieving the user's <b>Rotation</b> strategy. See <seealso cref="AOEStrategy"/> for more details.</summary>
     public static AOEStrategy Rotation(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
 
     /// <summary>A global helper for automatically executing the best optimal rotation; finishes combo if possible. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool AutoFinish(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.AutoFinish;
+    public static bool AutoFinish(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.AutoFinish;
 
     /// <summary>A global helper for automatically executing the best optimal rotation; breaks combo if necessary. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool AutoBreak(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.AutoBreak;
+    public static bool AutoBreak(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.AutoBreak;
 
     /// <summary>A global helper for force-executing the single-target rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool ForceST(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() is AOEStrategy.ForceST;
+    public static bool ForceST(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.ForceST;
 
     /// <summary>A global helper for force-executing the AOE rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
-    public static bool ForceAOE(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>() == AOEStrategy.ForceAOE;
+    public static bool ForceAOE(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.ForceAOE;
+    #endregion
+
+    #region Targeting
+    /// <summary>A global helper for easily retrieving the user's <b>Targeting</b> strategy. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
+    public static SoftTargetStrategy Targeting(this StrategyValues strategy) => strategy.Option(SharedTrack.Targeting).As<SoftTargetStrategy>();
+
+    /// <summary>A global helper for automatically selecting the best target. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
+    public static bool AutoTarget(this StrategyValues strategy) => strategy.Targeting() == SoftTargetStrategy.Automatic;
+
+    /// <summary>A global helper for manually selecting the best target. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
+    public static bool ManualTarget(this StrategyValues strategy) => strategy.Targeting() == SoftTargetStrategy.Manual;
+    #endregion
+
+    #region Hold
+    public static HoldStrategy Hold(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>();
 
     /// <summary>A global helper for forbidding ALL actions, rotations <em>and</em> abilities. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldEverything(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldEverything;
+    public static bool HoldEverything(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldEverything;
 
     /// <summary>A global helper for forbidding ALL available abilities that are buff, gauge, or cooldown related. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldAbilities(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldAbilities;
+    public static bool HoldAbilities(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldAbilities;
 
     /// <summary>A global helper for forbidding ALL available abilities that are related to raidbuffs. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldBuffs(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldBuffs;
+    public static bool HoldBuffs(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldBuffs;
 
     /// <summary>A global helper for forbidding ALL available abilities that have any sort of cooldown attached to it. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldCDs(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldCooldowns;
+    public static bool HoldCDs(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldCooldowns;
 
     /// <summary>A global helper for forbidding ALL available abilities that are related to the job's gauge. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool HoldGauge(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.HoldGauge;
+    public static bool HoldGauge(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldGauge;
+    #endregion
 
-    /// <summary>A global helper for allowing ALL available abilities that are buff, gauge, or cooldown related. This is the default option for this strategy. See <seealso cref="HoldStrategy"/> for more details.</summary>
-    public static bool DontHold(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>() == HoldStrategy.DontHold;
-
+    #region Potion
     public static PotionStrategy Potion(this StrategyValues strategy) => strategy.Option(SharedTrack.Potion).As<PotionStrategy>();
     public static bool AlignPotionWithBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithBuffs;
     public static bool AlignPotionWithRaidBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithRaidBuffs;
     public static bool UsePotionImmediately(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Immediate;
     public static bool UsePotionManually(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Manual;
+    #endregion
+
     #endregion
 }
