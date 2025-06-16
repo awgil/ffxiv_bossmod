@@ -94,9 +94,17 @@ class FT01DemonTabletStates : StateMachineBuilder
         ComponentCondition<PortentousComet>(id, delay, c => c.ActiveSpreads.Any(), "Meteors appear")
             .ActivateOnEnter<PortentousComet>()
             .ActivateOnEnter<PortentousCometeor>()
-            .ActivateOnEnter<PortentousCometKB>();
+            .ActivateOnEnter<PortentousCometKB>()
+            .ActivateOnEnter<LandingBoss>()
+            .ActivateOnEnter<LandingNear>()
+            .ActivateOnEnter<LandingKnockback>();
 
-        ComponentCondition<PortentousComet>(id + 0x10, 12, c => !c.ActiveSpreads.Any(), "Meteor target resolve")
+        ComponentCondition<LandingBoss>(id + 1, 10.4f, l => l.NumCasts > 0, "In/out")
+            .DeactivateOnExit<LandingBoss>()
+            .DeactivateOnExit<LandingNear>()
+            .DeactivateOnExit<LandingKnockback>();
+
+        ComponentCondition<PortentousComet>(id + 0x10, 1.6f, c => !c.ActiveSpreads.Any(), "Meteor target resolve")
             .ExecOnExit<PortentousComet>(e => e.EnableHints = true);
 
         ComponentCondition<PortentousCometKB>(id + 0x20, 5.1f, c => c.NumCasts > 0, "Stacks")
