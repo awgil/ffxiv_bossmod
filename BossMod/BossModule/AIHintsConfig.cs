@@ -28,6 +28,6 @@ public sealed class AIHintsConfig : ConfigNode
         OmenOnly
     }
 
-    [PropertyDisplay("Behavior for actions without AOE indicators")]
+    [PropertyDisplay("Behavior for actions without AOE indicators", tooltip: "This setting only applies when no module is active.")]
     public OmenBehavior OmenSetting = OmenBehavior.Automatic;
 }
