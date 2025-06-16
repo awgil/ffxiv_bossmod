@@ -21,7 +21,7 @@ public sealed class AIHintsBuilder : IDisposable
     private ArenaBoundsCircle? _activeFateBounds;
     private bool AvoidGazes => _gazeConfig.Enabled && _gazeConfig.AvoidGazes;
 
-    private float ConeFallback => Math.Clamp(_hintConfig.ConeFallbackAngle * 0.5f, 1, 180);
+    private float ConeFallback => Math.Clamp(_hintConfig.ConeFallbackAngle, 1, 180);
 
     private static readonly List<uint> InvincibleStatuses =
     [
