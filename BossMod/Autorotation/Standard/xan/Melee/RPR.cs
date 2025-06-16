@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
 {
-    public enum Track { Harpe = SharedTrack.Count }
+    public enum Track { Harpe = SharedTrack.Count, Crest }
 
     public enum HarpeStrategy
     {
@@ -24,6 +24,8 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(HarpeStrategy.Automatic, "Use out of melee range if Enhanced Harpe is active")
             .AddOption(HarpeStrategy.Forbid, "Don't use")
             .AddOption(HarpeStrategy.Ranged, "Use out of melee range");
+
+        def.AbilityTrack(Track.Crest, "Crest", "Arcane Crest").AddAssociatedActions(AID.ArcaneCrest);
 
         return def;
     }
@@ -259,6 +261,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Enshroud, Player);
 
         UseSoul(strategy, primaryTarget);
+
+        if (strategy.Enabled(Track.Crest) && Hints.PredictedDamage.Any(p => p.Players[0] && p.Activation < World.FutureTime(5)))
+            PushOGCD(AID.ArcaneCrest, Player);
     }
 
     private void DDRefresh(Enemy? primaryTarget)
