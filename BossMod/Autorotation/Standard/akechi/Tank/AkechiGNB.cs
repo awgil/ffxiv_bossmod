@@ -151,11 +151,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool Slow;
     #endregion
 
-    #region Upgrade Paths
-    private AID BestCartSpender => CanFC ? (ShouldUseAOECircle(5).OnTwoOrMore ? AID.FatedCircle : AID.BurstStrike) : CanBS ? AID.BurstStrike : AutoFinish;
-    private AID BestContinuation => HasRaze ? AID.FatedBrand : HasBlast ? AID.Hypervelocity : HasGouge ? AID.EyeGouge : HasTear ? AID.AbdomenTear : HasRip ? AID.JugularRip : AID.Continuation;
-    #endregion
-
     #region Rotation Helpers
     private AID AutoFinish => ComboLastMove switch
     {
@@ -170,6 +165,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private AID STwithoutOvercap => Unlocked(AID.SolidBarrel) && ComboLastMove is AID.BrutalShell ? AID.SolidBarrel : Unlocked(AID.BrutalShell) && ComboLastMove is AID.KeenEdge ? AID.BrutalShell : AID.KeenEdge;
     private AID AOEwithOvercap => Ammo == MaxCartridges ? BestCartSpender : Unlocked(AID.DemonSlaughter) && ComboLastMove is AID.DemonSlice ? AID.DemonSlaughter : AID.DemonSlice;
     private AID AOEwithoutOvercap => Unlocked(AID.DemonSlaughter) && ComboLastMove is AID.DemonSlice ? AID.DemonSlaughter : AID.DemonSlice;
+    private AID BestCartSpender => CanFC ? (ShouldUseAOECircle(5).OnTwoOrMore ? AID.FatedCircle : AID.BurstStrike) : CanBS ? AID.BurstStrike : AutoFinish;
     #endregion
 
     #region Cooldown Helpers
@@ -492,7 +488,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             }
 
             if (ShouldUseContinuation(strategy.Option(Track.Continuation).As<ContinuationStrategy>(), primaryTarget?.Actor))
-                QueueOGCD(BestContinuation, SingleTargetChoice(primaryTarget?.Actor, strategy.Option(Track.Continuation)), ContinuationPrio());
+                QueueOGCD(HasRaze ? AID.FatedBrand : HasBlast ? AID.Hypervelocity : HasGouge ? AID.EyeGouge : HasTear ? AID.AbdomenTear : HasRip ? AID.JugularRip : AID.Continuation, SingleTargetChoice(primaryTarget?.Actor, strategy.Option(Track.Continuation)), ContinuationPrio());
             if (ShouldUseLightningShot(lsStrat, primaryTarget?.Actor))
                 QueueGCD(AID.LightningShot, SingleTargetChoice(primaryTarget?.Actor, ls), lsStrat is >= LightningShotStrategy.Force ? GCDPriority.Forced : GCDPriority.ExtremelyLow);
             if (ShouldUsePotion(strategy))

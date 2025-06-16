@@ -1,6 +1,6 @@
 ﻿using BossMod.DRG;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi

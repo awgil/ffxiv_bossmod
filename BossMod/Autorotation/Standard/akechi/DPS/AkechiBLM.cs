@@ -1,6 +1,6 @@
 ﻿using BossMod.BLM;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -38,13 +38,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(ThunderStrategy.AllowNoDOT, "AllowNoDOT", "Allow the use Thunder only if target does not have DoT effect", 0, 0, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.ForceAny, "ForceAny", "Force use of best Thunder regardless of DoT effect", 0, 30, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.ForceST, "ForceST", "Force use of single-target Thunder regardless of DoT effect", 0, 30, ActionTargets.Hostile, 6)
-            .AddOption(ThunderStrategy.ForceAOE, "ForceAOE", "Force use of AOE Thunder regardless of DoT effect", 0, 24, ActionTargets.Hostile, 6)
+            .AddOption(ThunderStrategy.ForceAOE, "ForceAOE", "Force use of AOE Thunder regardless of DoT effect", 0, 24, ActionTargets.Hostile, 26)
             .AddOption(ThunderStrategy.Forbid, "Forbid", "Forbid the use of Thunder for manual or strategic usage", 0, 0, ActionTargets.Hostile, 6)
             .AddAssociatedActions(AID.Thunder1, AID.Thunder2, AID.Thunder3, AID.Thunder4, AID.HighThunder, AID.HighThunder2);
         res.Define(Track.Ender).As<EnderStrategy>("Despair", uiPriority: 197)
             .AddOption(EnderStrategy.Automatic, "Auto", "Automatically use Despair or Flare based on targets nearby", 0, 0, ActionTargets.Hostile, 50)
-            .AddOption(EnderStrategy.OnlyDespair, "OnlyDespair", "Use Despair only, regardless of targets nearby", 0, 0, ActionTargets.Hostile, 72)
-            .AddOption(EnderStrategy.OnlyFlare, "OnlyFlare", "Use Flare only, regardless of targets nearby", 0, 0, ActionTargets.Hostile, 50)
+            .AddOption(EnderStrategy.OnlyDespair, "OnlyDespair", "Use Despair only, regardless of targets", 0, 0, ActionTargets.Hostile, 72)
+            .AddOption(EnderStrategy.OnlyFlare, "OnlyFlare", "Use Flare only, regardless of targets", 0, 0, ActionTargets.Hostile, 50)
             .AddOption(EnderStrategy.ForceDespair, "ForceDespair", "Force the use of Despair if possible", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(EnderStrategy.ForceFlare, "ForceFlare", "Force the use of Flare if possible", 0, 0, ActionTargets.Hostile, 50)
             .AddAssociatedActions(AID.Despair, AID.Flare);
@@ -118,16 +118,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
         return res;
     }
-    #endregion
-
-    #region Upgrade Paths
-    private AID BestThunderST => Unlocked(AID.HighThunder) ? AID.HighThunder : Unlocked(AID.Thunder3) ? AID.Thunder3 : AID.Thunder1;
-    private AID BestThunderAOE => Unlocked(AID.HighThunder2) ? AID.HighThunder2 : Unlocked(AID.Thunder4) ? AID.Thunder4 : Unlocked(AID.Thunder2) ? AID.Thunder2 : AID.Thunder1;
-    private AID BestThunder => ShouldUseAOE ? BestThunderAOE : BestThunderST;
-    private AID BestPolyglot => ShouldUseAOE ? AID.Foul : BestXenoglossy;
-    private AID BestXenoglossy => Unlocked(AID.Xenoglossy) ? AID.Xenoglossy : AID.Foul;
-    private AID BestBlizzardAOE => Unlocked(AID.HighBlizzard2) ? AID.HighBlizzard2 : Unlocked(AID.Blizzard2) ? AID.Blizzard2 : AID.Blizzard1;
-    private AID BestDespair => Unlocked(AID.Despair) ? AID.Despair : AID.Flare;
     #endregion
 
     #region Module Variables
@@ -283,6 +273,17 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             (!HasThunderhead && Polyglots == 0)) //this will clip, but doing this raw is rare
             QueueOGCD(AID.Transpose, target, prio);
     }
+
+    #region Upgrade Paths
+    private AID BestThunderST => Unlocked(AID.HighThunder) ? AID.HighThunder : Unlocked(AID.Thunder3) ? AID.Thunder3 : AID.Thunder1;
+    private AID BestThunderAOE => Unlocked(AID.HighThunder2) ? AID.HighThunder2 : Unlocked(AID.Thunder4) ? AID.Thunder4 : Unlocked(AID.Thunder2) ? AID.Thunder2 : AID.Thunder1;
+    private AID BestThunder => ShouldUseAOE ? BestThunderAOE : BestThunderST;
+    private AID BestPolyglot => ShouldUseAOE ? AID.Foul : BestXenoglossy;
+    private AID BestXenoglossy => Unlocked(AID.Xenoglossy) ? AID.Xenoglossy : AID.Foul;
+    private AID BestBlizzardAOE => Unlocked(AID.HighBlizzard2) ? AID.HighBlizzard2 : Unlocked(AID.Blizzard2) ? AID.Blizzard2 : AID.Blizzard1;
+    private AID BestDespair => Unlocked(AID.Despair) ? AID.Despair : AID.Flare;
+    #endregion
+
     #endregion
 
     #region Cooldown Helpers
@@ -311,15 +312,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 var fsPotential = Unlocked(AID.FlareStar) && (Souls == 6 || Souls >= 3 && MP >= 800);
                 if (InAF && !fsPotential && MP < MaxMP)
                     QueueOGCD(AID.Transpose, Player, OGCDPriority.Max);
-
                 if (InUI && HasFirestarter && MP == MaxMP)
                     QueueOGCD(AID.Transpose, Player, OGCDPriority.Max);
             }
-
             if (Unlocked(AID.UmbralSoul) &&
                 InUI && (UI < 3 || Hearts < MaxHearts || MP < MaxMP))
                 QueueGCD(AID.UmbralSoul, Player, GCDPriority.Minimal);
-
             return;
         }
     }
@@ -631,7 +629,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
         #endregion
 
-        #region Rotation
+        #region Full Rotation Execution
         if (!strategy.HoldEverything())
         {
             if (!strategy.HoldAbilities())

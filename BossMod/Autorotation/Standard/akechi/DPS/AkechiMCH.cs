@@ -1,6 +1,6 @@
-﻿using static BossMod.AIHints;
+﻿using BossMod.MCH;
+using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using BossMod.MCH;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -144,6 +144,15 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestFlamethrowerTarget;
     #endregion
 
+    #region Rotation Helpers
+    private AID AutoFinish => ComboLastMove switch
+    {
+        AID.SlugShot or AID.HeatedSlugShot or AID.SplitShot or AID.HeatedSplitShot => ST,
+        AID.CleanShot or AID.HeatedCleanShot or AID.Scattergun or AID.SpreadShot or _ => AutoBreak,
+    };
+    private bool BreakCombo => ComboLastMove == AID.HeatedSlugShot ? NumConeTargets > 3 : ComboLastMove == AID.HeatedSplitShot ? NumConeTargets > 2 : NumConeTargets > 1;
+    private AID AutoBreak => BreakCombo ? BestSpreadShot : ST;
+
     #region Upgrade Paths
     private AID ST => ComboLastMove is AID.SlugShot or AID.HeatedSlugShot ? BestCleanShot : ComboLastMove is AID.SplitShot or AID.HeatedSplitShot ? BestSlugShot : BestSplitShot;
     private AID BestDrill => NumConeTargets > 1 && Unlocked(AID.Bioblaster) ? AID.Bioblaster : AID.Drill;
@@ -161,14 +170,6 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     private AID BestBattery => Unlocked(AID.AutomatonQueen) ? AID.AutomatonQueen : AID.RookAutoturret;
     #endregion
 
-    #region Rotation Helpers
-    private AID AutoFinish => ComboLastMove switch
-    {
-        AID.SlugShot or AID.HeatedSlugShot or AID.SplitShot or AID.HeatedSplitShot => ST,
-        AID.CleanShot or AID.HeatedCleanShot or AID.Scattergun or AID.SpreadShot or _ => AutoBreak,
-    };
-    private bool BreakCombo => ComboLastMove == AID.HeatedSlugShot ? NumConeTargets > 3 : ComboLastMove == AID.HeatedSplitShot ? NumConeTargets > 2 : NumConeTargets > 1;
-    private AID AutoBreak => BreakCombo ? BestSpreadShot : ST;
     #endregion
 
     #region Cooldown Helpers
@@ -439,8 +440,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         BestSplashTarget = ShouldUseRangedAOE ? BestSplashTargets : primaryTarget;
         BestChainSawTarget = ShouldUseSaw ? BestChainSawTargets : primaryTarget;
         BestFlamethrowerTarget = ShouldFlamethrower ? BestConeTarget : primaryTarget;
-        RicoCharges = MaxChargesIn(BestRicochet) <= GCD ? 3 : CDRemaining(BestRicochet) < 30.6f ? 2 : CDRemaining(BestRicochet) < 60.6f ? 1 : 0;
-        GaussCharges = MaxChargesIn(BestGauss) <= GCD ? 3 : CDRemaining(BestGauss) < 30.6f ? 2 : CDRemaining(BestGauss) < 60.6f ? 1 : 0;
+        RicoCharges = CDRemaining(BestRicochet) <= GCD ? 3 : CDRemaining(BestRicochet) < 30.6f ? 2 : CDRemaining(BestRicochet) < 60.6f ? 1 : 0;
+        GaussCharges = CDRemaining(BestGauss) <= GCD ? 3 : CDRemaining(BestGauss) < 30.6f ? 2 : CDRemaining(BestGauss) < 60.6f ? 1 : 0;
 
         #region Strategy Definitions
         var AOE = strategy.Option(SharedTrack.AOE);

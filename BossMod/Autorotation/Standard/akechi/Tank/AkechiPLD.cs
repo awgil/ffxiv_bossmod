@@ -122,13 +122,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestSplashTarget;
     #endregion
 
-    #region Upgrade Paths
-    public AID BestSpirits => Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
-    public AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
-    public AID BestHoly => ShouldUseAOE ? BestHolyCircle : AID.HolySpirit;
-    public AID BestHolyCircle => Unlocked(AID.HolyCircle) ? AID.HolyCircle : AID.HolySpirit;
-    #endregion
-
     #region Rotation Helpers
     private AID AutoFinish => ComboLastMove switch
     {
@@ -139,6 +132,14 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     private AID AutoBreak => ShouldUseAOE ? FullAOE : FullST;
     private AID FullST => ComboLastMove is AID.RiotBlade ? (Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : Unlocked(AID.RageOfHalone) ? AID.RageOfHalone : AID.FastBlade) : Unlocked(AID.RiotBlade) && ComboLastMove is AID.FastBlade ? AID.RiotBlade : AID.FastBlade;
     private AID FullAOE => Unlocked(AID.Prominence) && ComboLastMove is AID.TotalEclipse ? AID.Prominence : AID.TotalEclipse;
+
+    #region Upgrade Paths
+    public AID BestSpirits => Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
+    public AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
+    public AID BestHoly => ShouldUseAOE ? BestHolyCircle : AID.HolySpirit;
+    public AID BestHolyCircle => Unlocked(AID.HolyCircle) ? AID.HolyCircle : AID.HolySpirit;
+    #endregion
+
     #endregion
 
     #region Cooldown Helpers
@@ -164,8 +165,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     #endregion
 
     #region Other
-    private bool ShouldUseSpiritsWithin(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, OGCDReady(BestSpirits), In3y(target) && FightOrFlight.CD is < 57.55f and > 12);
-    private bool ShouldUseCircleOfScorn(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, OGCDReady(AID.CircleOfScorn), In5y(target) && FightOrFlight.CD is < 57.55f and > 12);
+    private bool ShouldUseSpiritsWithin(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, ActionReady(BestSpirits), In3y(target) && FightOrFlight.CD is < 57.55f and > 12);
+    private bool ShouldUseCircleOfScorn(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, ActionReady(AID.CircleOfScorn), In5y(target) && FightOrFlight.CD is < 57.55f and > 12);
     private bool ShouldUseBladeOfHonor(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, BladeOfHonor.IsReady);
     private (bool, GCDPriority) ShouldUseGoringBlade(GoringBladeStrategy strategy, Actor? target)
     {
@@ -245,32 +246,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         #region Variables
-
-        #region Strategy Definitions
-        var fof = strategy.Option(Track.FightOrFlight);
-        var fofStrat = fof.As<BuffsStrategy>();
-        var req = strategy.Option(Track.Requiescat);
-        var reqStrat = req.As<BuffsStrategy>();
-        var atone = strategy.Option(Track.Atonement);
-        var atoneStrat = atone.As<AtonementStrategy>();
-        var blade = strategy.Option(Track.BladeCombo);
-        var bladeStrat = blade.As<BladeComboStrategy>();
-        var cos = strategy.Option(Track.CircleOfScorn);
-        var cosStrat = cos.As<OGCDStrategy>();
-        var sw = strategy.Option(Track.SpiritsWithin);
-        var swStrat = sw.As<OGCDStrategy>();
-        var dash = strategy.Option(Track.Dash);
-        var dashStrat = dash.As<DashStrategy>();
-        var gb = strategy.Option(Track.GoringBlade);
-        var gbStrat = gb.As<GoringBladeStrategy>();
-        var boh = strategy.Option(Track.BladeOfHonor);
-        var bohStrat = boh.As<OGCDStrategy>();
-        var holy = strategy.Option(Track.Holy);
-        var holyStrat = holy.As<HolyStrategy>();
-        var ranged = strategy.Option(Track.Ranged);
-        var rangedStrat = ranged.As<RangedStrategy>();
-        #endregion
-
         var gauge = World.Client.GetGauge<PaladinGauge>();
         BladeComboStep = gauge.ConfiteorComboStep;
         DivineMight.Left = StatusRemaining(Player, SID.DivineMight, 30);
@@ -278,7 +253,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         FightOrFlight.CD = CDRemaining(AID.FightOrFlight);
         FightOrFlight.Left = StatusRemaining(Player, SID.FightOrFlight, 20);
         FightOrFlight.IsActive = FightOrFlight.CD is >= 39.5f and <= 60;
-        FightOrFlight.IsReady = OGCDReady(AID.FightOrFlight);
+        FightOrFlight.IsReady = ActionReady(AID.FightOrFlight);
         GoringBlade.Left = StatusRemaining(Player, SID.GoringBladeReady, 30);
         GoringBlade.IsActive = GoringBlade.Left > 0f;
         GoringBlade.IsReady = Unlocked(AID.GoringBlade) && GoringBlade.IsActive;
@@ -305,10 +280,36 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         BladeOfHonor.IsActive = BladeOfHonor.Left > 0;
         BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && BladeOfHonor.IsActive;
         ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore || strategy.ForceAOE();
-        ShouldHoldDMandAC = (fofStrat != BuffsStrategy.Delay && !strategy.HoldBuffs()) && MP >= 4000 && (ComboLastMove is AID.RoyalAuthority ? !CanFitSkSGCD(FightOrFlight.CD, 2) : ComboLastMove is AID.FastBlade ? !CanFitSkSGCD(FightOrFlight.CD, 1) : ComboLastMove is AID.RiotBlade && !CanFitSkSGCD(FightOrFlight.CD));
+        ShouldHoldDMandAC = (strategy.Option(Track.FightOrFlight).As<BuffsStrategy>() != BuffsStrategy.Delay && !strategy.HoldBuffs()) && MP >= 4000 && (ComboLastMove is AID.RoyalAuthority ? !CanFitSkSGCD(FightOrFlight.CD, 2) : ComboLastMove is AID.FastBlade ? !CanFitSkSGCD(FightOrFlight.CD, 1) : ComboLastMove is AID.RiotBlade && !CanFitSkSGCD(FightOrFlight.CD));
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.Confiteor) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         Opener = CombatTimer <= 10 ? ComboLastMove == AID.RoyalAuthority : ComboTimer > 10;
+
+        #region Strategy Definitions
+        var fof = strategy.Option(Track.FightOrFlight);
+        var fofStrat = fof.As<BuffsStrategy>();
+        var req = strategy.Option(Track.Requiescat);
+        var reqStrat = req.As<BuffsStrategy>();
+        var atone = strategy.Option(Track.Atonement);
+        var atoneStrat = atone.As<AtonementStrategy>();
+        var blade = strategy.Option(Track.BladeCombo);
+        var bladeStrat = blade.As<BladeComboStrategy>();
+        var cos = strategy.Option(Track.CircleOfScorn);
+        var cosStrat = cos.As<OGCDStrategy>();
+        var sw = strategy.Option(Track.SpiritsWithin);
+        var swStrat = sw.As<OGCDStrategy>();
+        var dash = strategy.Option(Track.Dash);
+        var dashStrat = dash.As<DashStrategy>();
+        var gb = strategy.Option(Track.GoringBlade);
+        var gbStrat = gb.As<GoringBladeStrategy>();
+        var boh = strategy.Option(Track.BladeOfHonor);
+        var bohStrat = boh.As<OGCDStrategy>();
+        var holy = strategy.Option(Track.Holy);
+        var holyStrat = holy.As<HolyStrategy>();
+        var ranged = strategy.Option(Track.Ranged);
+        var rangedStrat = ranged.As<RangedStrategy>();
+        #endregion
+
         #endregion
 
         #region Full Rotation Execution
@@ -444,16 +445,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         #endregion
 
         #region AI
-        var goalST = primaryTarget?.Actor != null ? Hints.GoalSingleTarget(primaryTarget!.Actor, 3) : null;
-        var goalAOE = Hints.GoalAOECircle(3);
-        var goal = strategy.Option(SharedTrack.AOE).As<AOEStrategy>() switch
-        {
-            AOEStrategy.ForceST => goalST,
-            AOEStrategy.ForceAOE => goalAOE,
-            _ => goalST != null ? Hints.GoalCombined(goalST, goalAOE, 3) : goalAOE
-        };
-        if (goal != null)
-            Hints.GoalZones.Add(goal);
+        GetNextTarget(strategy, ref primaryTarget, 3);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.TotalEclipse, 3, maximumActionRange: 20);
         #endregion
     }
 }
