@@ -294,6 +294,8 @@ public sealed class ReplayParserLog : IDisposable
             [new("SLOG"u8)] = ParseSystemLog,
             [new("WAY+"u8)] = () => ParseWaymarkChange(true),
             [new("WAY-"u8)] = () => ParseWaymarkChange(false),
+            [new("SGN+"u8)] = () => ParseSignChange(true),
+            [new("SGN-"u8)] = () => ParseSignChange(false),
             [new("ACT+"u8)] = ParseActorCreate,
             [new("ACT-"u8)] = ParseActorDestroy,
             [new("NAME"u8)] = ParseActorRename,
@@ -479,6 +481,8 @@ public sealed class ReplayParserLog : IDisposable
 
     private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
         => new(_version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false), set ? _input.ReadVec3() : null);
+
+    private WaymarkState.OpSignChange ParseSignChange(bool set) => new((Sign)_input.ReadByte(false), set ? _input.ReadActorID() : 0);
 
     private ActorState.OpCreate ParseActorCreate()
     {

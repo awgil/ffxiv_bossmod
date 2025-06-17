@@ -228,6 +228,15 @@ sealed class WorldStateGameSync : IDisposable
                 _ws.Execute(new WaymarkState.OpWaymarkChange(wm, pos));
             ++wm;
         }
+
+        var sgn = Sign.Attack1;
+        foreach (ref var marker in MarkingController.Instance()->Markers)
+        {
+            var id = SanitizedObjectID(marker.Id);
+            if (_ws.Waymarks[sgn] != id)
+                _ws.Execute(new WaymarkState.OpSignChange(sgn, id));
+            ++sgn;
+        }
     }
 
     private unsafe void UpdateActors()

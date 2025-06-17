@@ -112,9 +112,9 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
         {
             case DSW1Config.HeavensflameHints.Waymarks:
                 {
-                    if (WorldState.Waymarks[(int)Waymark.A + (icon - 1)] is var alt1 && alt1 != null)
+                    if (WorldState.Waymarks.GetFieldMark((int)Waymark.A + (icon - 1)) is var alt1 && alt1 != null)
                         yield return new(alt1.Value.XZ());
-                    if (WorldState.Waymarks[(int)Waymark.N1 + (icon - 1)] is var alt2 && alt2 != null)
+                    if (WorldState.Waymarks.GetFieldMark((int)Waymark.N1 + (icon - 1)) is var alt2 && alt2 != null)
                         yield return new(alt2.Value.XZ());
                 }
                 break;

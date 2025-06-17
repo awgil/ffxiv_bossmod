@@ -1,6 +1,7 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Autorotation.xan;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -142,6 +143,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.CollapsingHeader("Input"))
         {
             _debugInput.Draw();
+        }
+        if (ImGui.CollapsingHeader("Markers"))
+        {
+            DrawMarkers();
         }
         if (ImGui.CollapsingHeader("Player attributes"))
         {
@@ -313,6 +318,36 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var angle = Angle.FromDirection(new(selfToObj.XZ())) - refAngle;
         var visHalf = Angle.Asin(obj->HitboxRadius / dist);
         ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->EntityId)} {obj->BaseId}:{obj->GetNameId()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
+    }
+
+    private static readonly string[] FieldMarkers = ["A", "B", "C", "D", "1", "2", "3", "4"];
+
+    private unsafe void DrawMarkers()
+    {
+        var markers = MarkingController.Instance();
+        using (ImRaii.Table("Field", 2))
+        {
+            for (var i = 0; i < markers->FieldMarkers.Length; i++)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text(FieldMarkers[i]);
+                ImGui.TableNextColumn();
+                ImGui.Text(markers->FieldMarkers[i].Active ? markers->FieldMarkers[i].Position.ToString() : "-");
+            }
+        }
+
+        using (ImRaii.Table("Target", 2))
+        {
+            for (var i = 0; i < markers->Markers.Length; i++)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text($"{i} ???");
+                ImGui.TableNextColumn();
+                ImGui.Text(markers->Markers[i].ObjectId.ToString("X8"));
+            }
+        }
     }
 
     private unsafe void DrawPlayerAttributes()
