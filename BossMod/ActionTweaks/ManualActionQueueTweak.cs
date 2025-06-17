@@ -203,7 +203,8 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             target = def.SmartTarget(ws, player, target, hints);
 
         // fallback: if requested, use native "target nearest" function to try to find a valid hostile target
-        if (target == null && !def.AllowedTargets.HasFlag(ActionTargets.Self))
+        // this conditional ensures we don't get a false positive for holmgang (can target self or hostile) or phantom oracle invuln (can target ally, but not self)
+        if (target == null && def.AllowedTargets.HasFlag(ActionTargets.Hostile) && !def.AllowedTargets.HasFlag(ActionTargets.Self))
         {
             target = ws.Actors.Find(targetNearest());
             return true;
