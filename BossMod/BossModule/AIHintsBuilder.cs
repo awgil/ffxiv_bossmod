@@ -189,7 +189,9 @@ public sealed class AIHintsBuilder : IDisposable
             var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);
             if (aoe.IsCharge)
             {
-                hints.AddForbiddenZone(ShapeContains.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
+                // ignore charge AOEs that target player, as they presumably can't be avoided
+                if (aoe.Target != player)
+                    hints.AddForbiddenZone(ShapeContains.Rect(aoe.Caster.Position, target, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
             }
             else if (aoe.Shape is AOEShapeCone cone)
             {
@@ -281,6 +283,8 @@ public sealed class AIHintsBuilder : IDisposable
                 return new AOEShapeRect(data.EffectRange + actor.HitboxRadius + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError);
             case 5:
                 return new AOEShapeCircle(data.EffectRange + actor.HitboxRadius + MaxError);
+            case 8:
+                return new AOEShapeRect(1, data.XAxisModifier * 0.5f + MaxError);
             case 10:
                 var inner = DetermineDonutInner(data);
                 if (inner == 0 && _hintConfig.DonutFallback == AIHintsConfig.DonutFallbackBehavior.Ignore)
@@ -295,7 +299,6 @@ public sealed class AIHintsBuilder : IDisposable
 
             case 6: // ???
             case 7: // new AOEShapeCircle(data.EffectRange), used for player ground-targeted circles like asylum
-            case 8: // charge rect
             default:
                 return null;
         }
