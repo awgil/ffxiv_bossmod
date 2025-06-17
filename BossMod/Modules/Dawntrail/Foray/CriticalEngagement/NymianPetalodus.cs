@@ -49,6 +49,7 @@ class OpenWater(BossModule module) : Components.GenericAOEs(module)
         public Angle Increment;
         public float Speed;
         public int NumLeft;
+        public bool Outside;
 
         public void Advance(DateTime timestamp)
         {
@@ -68,7 +69,9 @@ class OpenWater(BossModule module) : Components.GenericAOEs(module)
         if (l == null)
             yield break;
 
-        for (var i = 0; i < Math.Min(5, l.NumLeft); i++)
+        var showNum = l.Outside ? 7 : 4;
+
+        for (var i = 0; i < Math.Min(showNum, l.NumLeft); i++)
         {
             var next = (l.Next + l.Increment * i).ToDirection() * l.Distance;
             yield return new AOEInstance(new AOEShapeCircle(4), Arena.Center + next, Activation: l.NextExplosion.AddSeconds(l.Speed * i), Color: i == 0 ? ArenaColor.Danger : ArenaColor.AOE);
@@ -90,7 +93,8 @@ class OpenWater(BossModule module) : Components.GenericAOEs(module)
                 Increment = (cw * 360f / (outside ? 28 : 16)).Degrees(),
                 Speed = outside ? 0.7f : 1.1f,
                 NumLeft = outside ? 59 : 35,
-                NextExplosion = Module.CastFinishAt(spell)
+                NextExplosion = Module.CastFinishAt(spell),
+                Outside = outside
             };
             if (outside)
                 _lineOuter = line;
