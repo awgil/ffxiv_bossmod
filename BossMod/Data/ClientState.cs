@@ -453,4 +453,19 @@ public sealed class ClientState
                 output.EmitActor(Targets[i].InstanceID).Emit(Targets[i].Enmity);
         }
     }
+
+    public Event<OpProcTimersChange> ProcTimersChanged = new();
+    public sealed record class OpProcTimersChange(float[] Value) : WorldState.Operation
+    {
+        public readonly float[] Value = Value;
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.ProcTimers = Value;
+            ws.Client.ProcTimersChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CLPR"u8).Emit(Value[0]).Emit(Value[1]).Emit(Value[2]).Emit(Value[3]);
+        }
+    }
 }

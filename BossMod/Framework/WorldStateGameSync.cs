@@ -755,6 +755,10 @@ sealed class WorldStateGameSync : IDisposable
 
         if (hatePrimary != _ws.Client.CurrentTargetHate.InstanceID || !MemoryExtensions.SequenceEqual(hateTargets, _ws.Client.CurrentTargetHate.Targets))
             _ws.Execute(new ClientState.OpHateChange(hatePrimary, hateTargets));
+
+        var timers = actionManager->ProcTimers[1..];
+        if (!MemoryExtensions.SequenceEqual(timers, _ws.Client.ProcTimers))
+            _ws.Execute(new ClientState.OpProcTimersChange(timers.ToArray()));
     }
 
     private unsafe void UpdateDeepDungeon()

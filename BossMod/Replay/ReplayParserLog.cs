@@ -359,6 +359,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLKV"u8)] = ParseClientContentKVData,
             [new("FATE"u8)] = ParseClientFateInfo,
             [new("HATE"u8)] = ParseClientHateInfo,
+            [new("CLPR"u8)] = ParseClientProcTimers,
             [new("DDPG"u8)] = ParseDeepDungeonProgress,
             [new("DDMP"u8)] = ParseDeepDungeonMap,
             [new("DDPT"u8)] = ParseDeepDungeonParty,
@@ -478,6 +479,8 @@ public sealed class ReplayParserLog : IDisposable
             targets[i] = new(_input.ReadActorID(), _input.ReadInt());
         return new(primary, targets);
     }
+
+    private ClientState.OpProcTimersChange ParseClientProcTimers() => new([_input.ReadFloat(), _input.ReadFloat(), _input.ReadFloat(), _input.ReadFloat()]);
 
     private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
         => new(_version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false), set ? _input.ReadVec3() : null);

@@ -76,7 +76,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddAssociatedActions(PhantomID.OffensiveAria, PhantomID.HerosRime);
 
         def.AbilityTrack(Track.Monk, "Monk", "Monk: Use Kick to maintain buff, use Counterstance during downtime")
-            .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.Counterstance);
+            .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.Counterstance, PhantomID.OccultCounter);
 
         def.Define(Track.Predict).As<PredictStrategy>("Predict", "Oracle: Predict")
             .AddOption(PredictStrategy.AutoConservative, "Use first available damage action that isn't Starfall")
@@ -192,8 +192,14 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             if (counterLeft <= 30 && !Hints.PriorityTargets.Any())
                 UseAction(PhantomID.Counterstance, Player, prio);
 
-            if (primaryTarget?.IsAlly == false && UseAction(PhantomID.PhantomKick, primaryTarget, prio))
-                Hints.GoalZones.Add(Hints.GoalAOERect(primaryTarget, 15, 3));
+            if (primaryTarget?.IsAlly == false)
+            {
+                if (UseAction(PhantomID.PhantomKick, primaryTarget, prio))
+                    Hints.GoalZones.Add(Hints.GoalAOERect(primaryTarget, 15, 3));
+
+                if (World.Client.ProcTimers[2] > World.Client.AnimationLock && UseAction(PhantomID.OccultCounter, primaryTarget, prio))
+                    Hints.GoalZones.Add(Hints.GoalAOECone(primaryTarget, 6, 60.Degrees()));
+            }
         }
 
         var chakraOpt = strategy.Option(Track.Chakra);
