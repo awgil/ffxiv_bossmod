@@ -160,7 +160,7 @@ public sealed class BossModuleManager : IDisposable
         return 1;
     }
 
-    private DemoModule CreateDemoModule() => new(WorldState, new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new()));
+    private DemoModule CreateDemoModule() => new(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new()));
 
     private void ActorAdded(Actor actor)
     {

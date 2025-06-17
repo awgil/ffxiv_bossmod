@@ -139,7 +139,7 @@ class IaiGiriBait : Components.GenericBaitAway
     public class Instance(Actor source)
     {
         public Actor Source = source;
-        public Actor FakeSource = new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new());
+        public Actor FakeSource = new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new());
         public Actor? Target;
         public List<Angle> DirOffsets = [];
         public List<string> Hints = [];

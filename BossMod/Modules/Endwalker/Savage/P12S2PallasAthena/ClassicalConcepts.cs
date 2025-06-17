@@ -175,7 +175,7 @@ class Implode(BossModule module) : Components.StandardAOEs(module, AID.Implode, 
 
 class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, AID.PalladianRayAOEFirst)
 {
-    private readonly Actor[] _dummies = [new(0, 0, -1, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0))];
+    private readonly Actor[] _dummies = [new(0, 0, -1, 0, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, 0, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0))];
 
     private static readonly AOEShapeCone _shape = new(100, 15.Degrees());
 

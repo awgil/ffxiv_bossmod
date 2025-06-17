@@ -289,7 +289,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         (uint)ClassShared.SID.Swiftcast,
         (uint)BossMod.RDM.SID.Dualcast,
         (uint)BossMod.BLM.SID.Triplecast,
-        (uint)BossMod.PLD.SID.Requiescat
+        (uint)BossMod.PLD.SID.Requiescat,
+        (uint)PhantomSID.OccultQuick
     ];
 
     private bool UseAction(PhantomID pid, Actor target, float prio, float castTime = 0)
