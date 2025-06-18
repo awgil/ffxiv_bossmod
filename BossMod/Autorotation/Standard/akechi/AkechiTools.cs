@@ -516,15 +516,13 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <b>NOTE</b>: This function is solely used for finding the best <b>PvP target</b> without having to manually scan and click on other targets. Please use appropriately.</summary>
     /// <param name="primaryTarget">The user's current <b>target</b>.</param>
     /// <param name="range">The <b>max range</b> to consider a new target.</param>
-    protected void GetPvPTarget(ref Enemy? primaryTarget, float range)
+    protected void GetPvPTarget(float range)
     {
-        if (primaryTarget?.Actor == null || Player.DistanceToHitbox(primaryTarget.Actor) > range)
-        {
-            primaryTarget = Hints.PriorityTargets
-                .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.Guard) == null)
-                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
-                .FirstOrDefault();
-        }
+        var bestTarget = Hints.PriorityTargets
+            .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.Guard) == null)
+            .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
+            .FirstOrDefault();
+        Hints.ForcedTarget = bestTarget?.Actor;
     }
 
     /// <summary>Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.</summary>
