@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
-//Discord @akechdz or 'Akechi' on Puni.sh for maintenance
+//Discord: @akechdz or 'Akechi' on Puni.sh for maintenance
 
 public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
@@ -12,7 +12,6 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     public enum TargetingStrategy { Auto, Manual }
     public enum TriggerStrategy { Five, Four, Three, Two, One, Forbid }
     public enum CorundumStrategy { Eighty, Seventy, Sixty, Fifty, Fourty, Thirty, Forbid }
-    public enum ElixirStrategy { Forbid, Close, Mid, Far }
     public enum DivideStrategy { Auto, AutoMelee, Forbid }
     public enum ZoneStrategy { Auto, AutoBuffOnly, HalfHPP, HalfHPPBuffOnly, Forbid }
     public enum CDsStrategy { Allow, Forbid }
@@ -44,30 +43,24 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
             .AddOption(CorundumStrategy.Thirty, "30% HP", "Use when HP is at or below 30%")
             .AddOption(CorundumStrategy.Forbid, "Forbid", "Forbid use of Heart of Corundum entirely")
             .AddAssociatedActions(AID.HeartOfCorundumPvP);
-        res.Define(Track.Elixir).As<ElixirStrategy>("Elixir", "", 300)
-            .AddOption(ElixirStrategy.Forbid, "Forbid", "Forbid use of Elixir entirely")
-            .AddOption(ElixirStrategy.Close, "Close", "Use Elixir when no target available and more than 20y away from any possible targets")
-            .AddOption(ElixirStrategy.Mid, "Mid", "Use Elixir when no target available and more than 30y away from any possible targets")
-            .AddOption(ElixirStrategy.Far, "Far", "Use Elixir when no target available and more than 40y away from any possible targets");
         res.Define(Track.CDs).As<CDsStrategy>("Cooldowns", "", 300)
             .AddOption(CDsStrategy.Allow, "Allow", "Allow use of cooldowns automatically")
             .AddOption(CDsStrategy.Forbid, "Forbid", "Forbid use of cooldowns entirely");
         res.Define(Track.RoughDivide).As<DivideStrategy>("Rough Divide", "", 300)
-            .AddOption(DivideStrategy.Auto, "Automatic", "Use Rough Divide automatically when No Mercy buff is not active")
-            .AddOption(DivideStrategy.AutoMelee, "Automatic (Melee Range)", "Use Rough Divide only when in Melee range of target and when No Mercy buff is not active")
+            .AddOption(DivideStrategy.Auto, "Automatic", "Use automatically when No Mercy buff is not active")
+            .AddOption(DivideStrategy.AutoMelee, "Automatic (Melee Range)", "Use only when in Melee range of target and when No Mercy buff is not active")
             .AddOption(DivideStrategy.Forbid, "Forbid", "Forbid use of Rough Divide entirely")
             .AddAssociatedActions(AID.RoughDividePvP);
         res.Define(Track.Zone).As<ZoneStrategy>("Blasting Zone", "", 300)
             .AddOption(ZoneStrategy.Auto, "Automatic", "Use when No Mercy buff is active or target has less than 50% HP")
-            .AddOption(ZoneStrategy.AutoBuffOnly, "Automatic (No Mercy)", "Use Blasting Zone only when under No Mercy buff; disregards the 2x potency effect")
-            .AddOption(ZoneStrategy.HalfHPP, "Half HPP", "Use when target is less than 50% HP; disregards the No Mercy buff")
+            .AddOption(ZoneStrategy.AutoBuffOnly, "Automatic (No Mercy)", "Use only when under No Mercy buff; disregards 2x potency effect")
+            .AddOption(ZoneStrategy.HalfHPP, "Half HPP", "Use when target is less than 50% HP; disregards No Mercy buff")
             .AddOption(ZoneStrategy.HalfHPPBuffOnly, "Half HPP (No Mercy", "Use only if under No Mercy buff and when target is less than 50% HP")
             .AddOption(ZoneStrategy.Forbid, "Forbid", "Forbid use of Blasting Zone entirely")
             .AddAssociatedActions(AID.BlastingZonePvP);
         return res;
     }
 
-    #region Module Variables
     private bool HasNM;
     private bool HasBlast;
     private bool HasRaze;
@@ -76,69 +69,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     private bool HasGouge;
     public bool LBready;
     public bool inGF;
-    #endregion
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
-    {
-        var gauge = World.Client.GetGauge<GunbreakerGauge>();
-        var GunStep = gauge.AmmoComboStep;
-        HasNM = HasEffect(SID.NoMercyPvP);
-        HasBlast = HasEffect(SID.ReadyToBlastPvP);
-        HasRaze = HasEffect(SID.ReadyToRazePvP);
-        HasRip = HasEffect(SID.ReadyToRipPvP);
-        HasTear = HasEffect(SID.ReadyToTearPvP);
-        HasGouge = HasEffect(SID.ReadyToGougePvP);
-        LBready = World.Party.LimitBreakLevel >= 1;
-        inGF = GunStep != 0;
-        var hold = strategy.Option(Track.CDs).As<CDsStrategy>() == CDsStrategy.Forbid;
-        if (strategy.Option(Track.Targeting).As<TargetingStrategy>() == TargetingStrategy.Auto)
-        {
-            GetPvPTarget(5);
-        }
-        if (In5y(PlayerTarget?.Actor))
-        {
-            if (!inGF)
-                QueueGCD(PvPCombo, PlayerTarget?.Actor, GCDPriority.Low);
-            if (!hold)
-            {
-                if (ShouldUseLB(strategy, PlayerTarget?.Actor))
-                    QueueOGCD(AID.RelentlessRushPvP, PlayerTarget?.Actor, GCDPriority.VeryHigh);
-                if (ShouldUseZone(strategy, PlayerTarget?.Actor))
-                    QueueOGCD(AID.BlastingZonePvP, PlayerTarget?.Actor, OGCDPriority.High - 1);
-                if (HasNM)
-                {
-                    if (ActionReady(AID.GnashingFangPvP))
-                        QueueGCD(AID.GnashingFangPvP, PlayerTarget?.Actor, GCDPriority.High);
-                    if (ActionReady(AID.FatedCirclePvP))
-                        QueueGCD(AID.FatedCirclePvP, PlayerTarget?.Actor, GCDPriority.Average);
-                }
-            }
-            if (GunStep == 1)
-                QueueGCD(AID.SavageClawPvP, PlayerTarget?.Actor, GCDPriority.BelowAverage);
-            if (GunStep == 2)
-                QueueGCD(AID.WickedTalonPvP, PlayerTarget?.Actor, GCDPriority.BelowAverage);
-            if (HasRaze)
-                QueueOGCD(AID.FatedBrandPvP, PlayerTarget?.Actor, ContinuationPrio());
-            if (HasBlast)
-                QueueOGCD(AID.HypervelocityPvP, PlayerTarget?.Actor, ContinuationPrio());
-            if (HasRip)
-                QueueOGCD(AID.JugularRipPvP, PlayerTarget?.Actor, ContinuationPrio());
-            if (HasTear)
-                QueueOGCD(AID.AbdomenTearPvP, PlayerTarget?.Actor, ContinuationPrio());
-            if (HasGouge)
-                QueueOGCD(AID.EyeGougePvP, PlayerTarget?.Actor, ContinuationPrio());
-        }
-        if (!hold && ShouldUseRoughDivide(strategy, PlayerTarget?.Actor))
-            QueueOGCD(AID.RoughDividePvP, PlayerTarget?.Actor, CDRemaining(AID.RoughDividePvP) < 0.6f ? OGCDPriority.High + 2001 : OGCDPriority.High);
-        if (ShouldUseHOC(strategy))
-            QueueGCD(AID.HeartOfCorundumPvP, Player, GCDPriority.High);
-        if (ShouldUseTT(strategy, PlayerTarget?.Actor))
-            QueueGCD(AID.TerminalTriggerPvP, Player, GCDPriority.High);
-        if (ShouldUseElixir(strategy, PlayerTarget?.Actor))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Elixir), Player, (int)ActionQueue.Priority.High);
-    }
-
-    #region Cooldown Helpers
     private AID PvPCombo => ComboLastMove switch
     {
         AID.SolidBarrelPvP => AID.BurstStrikePvP,
@@ -180,13 +111,6 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         TriggerStrategy.One => StacksRemaining(target, SID.RelentlessShrapnelPvP) >= 1,
         _ => false
     };
-    private bool ShouldUseElixir(StrategyValues strategy, Actor? target) => target == null && TargetHPP(Player) is < 80 and not 0 && strategy.Option(Track.Elixir).As<ElixirStrategy>() switch
-    {
-        ElixirStrategy.Close => Hints.NumPriorityTargetsInAOECircle(Player.Position, 20) == 0,
-        ElixirStrategy.Mid => Hints.NumPriorityTargetsInAOECircle(Player.Position, 30) == 0,
-        ElixirStrategy.Far => Hints.NumPriorityTargetsInAOECircle(Player.Position, 40) == 0,
-        _ => false
-    };
     private OGCDPriority ContinuationPrio()
     {
         if (GCD < 0.5f)
@@ -195,5 +119,62 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         var a = i * 300;
         return OGCDPriority.Low + a; //every 0.5s = +300 prio
     }
-    #endregion
+
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        var gauge = World.Client.GetGauge<GunbreakerGauge>();
+        var GunStep = gauge.AmmoComboStep;
+        HasNM = HasEffect(SID.NoMercyPvP);
+        HasBlast = HasEffect(SID.ReadyToBlastPvP);
+        HasRaze = HasEffect(SID.ReadyToRazePvP);
+        HasRip = HasEffect(SID.ReadyToRipPvP);
+        HasTear = HasEffect(SID.ReadyToTearPvP);
+        HasGouge = HasEffect(SID.ReadyToGougePvP);
+        LBready = World.Party.LimitBreakLevel >= 1;
+        inGF = GunStep != 0;
+        var hold = strategy.Option(Track.CDs).As<CDsStrategy>() == CDsStrategy.Forbid;
+        if (strategy.Option(Track.Targeting).As<TargetingStrategy>() == TargetingStrategy.Auto)
+        {
+            GetPvPTarget(5);
+        }
+        if (In5y(PlayerTarget?.Actor))
+        {
+            if (!inGF)
+                QueueGCD(PvPCombo, PlayerTarget?.Actor, GCDPriority.Low);
+            if (!hold)
+            {
+                if (ShouldUseLB(strategy, PlayerTarget?.Actor))
+                    QueueOGCD(AID.RelentlessRushPvP, Player, GCDPriority.VeryHigh);
+                if (ShouldUseZone(strategy, PlayerTarget?.Actor))
+                    QueueOGCD(AID.BlastingZonePvP, PlayerTarget?.Actor, OGCDPriority.High - 1);
+                if (HasNM)
+                {
+                    if (ActionReady(AID.GnashingFangPvP))
+                        QueueGCD(AID.GnashingFangPvP, PlayerTarget?.Actor, GCDPriority.High);
+                    if (ActionReady(AID.FatedCirclePvP))
+                        QueueGCD(AID.FatedCirclePvP, PlayerTarget?.Actor, GCDPriority.Average);
+                }
+            }
+            if (GunStep == 1)
+                QueueGCD(AID.SavageClawPvP, PlayerTarget?.Actor, GCDPriority.BelowAverage);
+            if (GunStep == 2)
+                QueueGCD(AID.WickedTalonPvP, PlayerTarget?.Actor, GCDPriority.BelowAverage);
+            if (HasRaze)
+                QueueOGCD(AID.FatedBrandPvP, PlayerTarget?.Actor, ContinuationPrio());
+            if (HasBlast)
+                QueueOGCD(AID.HypervelocityPvP, PlayerTarget?.Actor, ContinuationPrio());
+            if (HasRip)
+                QueueOGCD(AID.JugularRipPvP, PlayerTarget?.Actor, ContinuationPrio());
+            if (HasTear)
+                QueueOGCD(AID.AbdomenTearPvP, PlayerTarget?.Actor, ContinuationPrio());
+            if (HasGouge)
+                QueueOGCD(AID.EyeGougePvP, PlayerTarget?.Actor, ContinuationPrio());
+        }
+        if (!hold && ShouldUseRoughDivide(strategy, PlayerTarget?.Actor))
+            QueueOGCD(AID.RoughDividePvP, PlayerTarget?.Actor, CDRemaining(AID.RoughDividePvP) < 0.6f ? OGCDPriority.High + 2001 : OGCDPriority.High);
+        if (ShouldUseHOC(strategy))
+            QueueGCD(AID.HeartOfCorundumPvP, Player, GCDPriority.High);
+        if (ShouldUseTT(strategy, PlayerTarget?.Actor))
+            QueueGCD(AID.TerminalTriggerPvP, Player, GCDPriority.High);
+    }
 }
