@@ -2,19 +2,21 @@
 
 class ImitationRain : Components.RaidwideInstant
 {
-    public ImitationRain(BossModule module) : base(module, AID._Ability_ImitationRain1, 0)
+    public ImitationRain(BossModule module) : base(module, AID.ImitationRainInstant2, 0)
     {
         Activation = WorldState.FutureTime(5);
     }
 }
 
-abstract class ImitationBlizzard(BossModule module, float activationGap) : Components.GenericAOEs(module)
+abstract class ImitationBlizzard(BossModule module, float activationGap, bool imminentOnly = false) : Components.GenericAOEs(module)
 {
     public static readonly AOEShape Circle = new AOEShapeCircle(20);
     public static readonly AOEShape Cross = new AOEShapeCross(60, 8);
 
+    public bool Risky = true;
+
     // sorted in activation order
-    protected abstract IEnumerable<(Actor Actor, DateTime Activation)> Puddles();
+    protected abstract IEnumerable<(Actor Actor, DateTime Activation, bool Safe)> Puddles();
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -28,9 +30,9 @@ abstract class ImitationBlizzard(BossModule module, float activationGap) : Compo
             var shape = cur.Actor.OID == (uint)OID.IcePuddle ? Circle : Cross;
 
             if (cur.Activation < firstActivation)
-                yield return new AOEInstance(shape, cur.Actor.Position, cur.Actor.Rotation, cur.Activation, ArenaColor.Danger);
-            else if (cur.Activation < firstActivation.AddSeconds(activationGap))
-                yield return new AOEInstance(shape, cur.Actor.Position, cur.Actor.Rotation, cur.Activation);
+                yield return new AOEInstance(shape, cur.Actor.Position, cur.Actor.Rotation, cur.Activation, imminentOnly ? ArenaColor.AOE : ArenaColor.Danger, Risky: Risky);
+            else if (cur.Activation < firstActivation.AddSeconds(activationGap) && !imminentOnly)
+                yield return new AOEInstance(shape, cur.Actor.Position, cur.Actor.Rotation, cur.Activation, Risky: Risky);
             else
                 break;
         }
@@ -43,15 +45,15 @@ class ImitationBlizzard1(BossModule module) : ImitationBlizzard(module, 1)
     private readonly List<Actor> _puddlesNorth = []; // sorted by X coord
     private readonly List<Actor> _puddlesSouth = []; // sorted by X coord
 
-    private readonly List<(Actor Actor, DateTime Activation)> _aoes = [];
+    protected readonly List<(Actor Actor, DateTime Activation, bool Safe)> _aoes = [];
 
     public bool Enabled;
 
-    protected override IEnumerable<(Actor Actor, DateTime Activation)> Puddles() => Enabled ? _aoes : [];
+    protected override IEnumerable<(Actor Actor, DateTime Activation, bool Safe)> Puddles() => Enabled ? _aoes : [];
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_ImitationBlizzard or AID._Ability_ImitationBlizzard1)
+        if ((AID)spell.Action.ID is AID.ImitationBlizzardCircle or AID.ImitationBlizzardCross)
         {
             NumCasts++;
             _aoes.RemoveAll(l => l.Actor.Position.AlmostEqual(caster.Position, 0.5f));
@@ -79,7 +81,7 @@ class ImitationBlizzard1(BossModule module) : ImitationBlizzard(module, 1)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_ImitationIcicle1)
+        if ((AID)spell.Action.ID == AID.ImitationIcicleAOE)
         {
             var pos = spell.LocXZ;
             var line = pos.Z < Arena.Center.Z ? _puddlesNorth : _puddlesSouth;
@@ -104,13 +106,13 @@ class ImitationBlizzard1(BossModule module) : ImitationBlizzard(module, 1)
         }
     }
 
-    private void AddLine(List<Actor> actorList, int[][] ixs, ActorCastInfo spell)
+    protected virtual void AddLine(List<Actor> actorList, int[][] ixs, ActorCastInfo spell)
     {
         var start = Module.CastFinishAt(spell, 4.6f);
         foreach (var group in ixs)
         {
             foreach (var ix in group)
-                _aoes.Add((actorList[ix], start));
+                _aoes.Add((actorList[ix], start, false));
             start = start.AddSeconds(1);
         }
         _aoes.SortBy(l => l.Activation);

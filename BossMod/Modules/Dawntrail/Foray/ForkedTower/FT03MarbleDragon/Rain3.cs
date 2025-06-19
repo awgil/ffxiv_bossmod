@@ -1,66 +1,80 @@
 ﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT03MarbleDragon;
 
-class Rain3(BossModule module) : BossComponent(module)
+class ImitationBlizzard3(BossModule module) : ImitationBlizzard1(module)
 {
-    private readonly List<(Actor Tower, bool Imminent)> _towers = [];
+    private BitMask _targets;
 
-    public override void OnActorCreated(Actor actor)
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((OID)actor.OID == OID.IceTower)
-            _towers.Add((actor, false));
+        if ((SID)status.ID == SID.WickedWater)
+            _targets.Set(Raid.FindSlot(actor.InstanceID));
+        if ((SID)status.ID == SID.GelidGaol)
+            _targets.Clear(Raid.FindSlot(actor.InstanceID));
     }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID._Weaponskill_FrigidDive1)
-        {
-            for (var i = 0; i < _towers.Count; i++)
-            {
-                if (_towers[i].Tower.Position.InRect(caster.Position, caster.Rotation, 60, 0, 5))
-                    _towers.Ref(i).Imminent = true;
-            }
-        }
-
-        if ((AID)spell.Action.ID == AID._Ability_ImitationBlizzard2)
-            _towers.RemoveAll(t => t.Tower.Position.AlmostEqual(spell.LocXZ, 1));
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        foreach (var (t, imm) in _towers)
-            Components.GenericTowers.DrawTower(Arena, t.Position, 4, imm);
-    }
-}
-
-// TODO: per-alliance hints
-class Rain3Towers(BossModule module) : Components.CastTowers(module, AID._Ability_ImitationBlizzard2, 4, 4, int.MaxValue);
-
-class Rain3Cross(BossModule module) : Components.GenericAOEs(module)
-{
-    private Actor? _cross;
-    private DateTime _activation;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_activation != default && _cross is { } c)
-            yield return new(ImitationBlizzard.Cross, c.Position, c.Rotation, _activation);
+        DateTime firstActivation = default;
+
+        foreach (var cur in Puddles())
+        {
+            if (firstActivation == default)
+                firstActivation = cur.Activation.AddSeconds(0.5f);
+
+            var shape = cur.Actor.OID == (uint)OID.IcePuddle ? Circle : Cross;
+            var safe = cur.Safe && _targets[slot];
+
+            if (cur.Activation < firstActivation)
+                yield return new AOEInstance(shape, cur.Actor.Position, cur.Actor.Rotation, cur.Activation, safe ? ArenaColor.SafeFromAOE : ArenaColor.Danger, Risky: !safe);
+            else if (cur.Activation < firstActivation.AddSeconds(1))
+                yield return new AOEInstance(shape, cur.Actor.Position, cur.Actor.Rotation, cur.Activation, safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE, Risky: !safe);
+            else
+                break;
+        }
     }
 
-    public override void OnActorCreated(Actor actor)
+    protected override void AddLine(List<Actor> actorList, int[][] ixs, ActorCastInfo spell)
     {
-        if ((OID)actor.OID == OID.CrossPuddle)
-            _cross = actor;
+        var start = Module.CastFinishAt(spell, 4.6f);
+        for (var ixix = 0; ixix < ixs.Length; ixix++)
+        {
+            var group = ixs[ixix];
+
+            foreach (var ix in group)
+                _aoes.Add((actorList[ix], start, ixs.Length == 3 && ixix == 2));
+            start = start.AddSeconds(1);
+        }
+        _aoes.SortBy(l => l.Activation);
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_FrigidDive1)
-            _activation = Module.CastFinishAt(spell, 4.2f);
+        base.AddHints(slot, actor, hints);
+
+        if (_targets[slot])
+            hints.Add("Stand in ice puddle!", false);
+    }
+}
+
+class GelidGaol(BossModule module) : Components.Adds(module, (uint)OID.GelidGaol, 1)
+{
+    private BitMask _targets;
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.GelidGaol)
+            _targets.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((AID)spell.Action.ID == AID._Ability_ImitationBlizzard1)
-            _activation = default;
+        if ((SID)status.ID == SID.GelidGaol)
+            _targets.Clear(Raid.FindSlot(actor.InstanceID));
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (!_targets[slot] && Actors.Any(i => i.IsTargetable))
+            hints.Add("Destroy ice cubes!", false);
     }
 }

@@ -9,22 +9,28 @@ class FT03MarbleDragonStates : StateMachineBuilder
 
     private void Phase1(uint id)
     {
-        CastStart(id, AID._Weaponskill_ImitationStar, 6.1f)
-            .ActivateOnEnter<ImitationStar>();
-        ComponentCondition<ImitationStar>(id + 1, 6.9f, s => s.NumCasts > 0, "Raidwide");
-
+        ImitationStar(id, 6.1f);
         DraconiformMotion(id + 0x100, 8.6f);
         Rain1(id + 0x10000, 5);
         Rain2(id + 0x20000, 5.8f);
-        Golems(id + 0x30000, 9.7f);
-        Sprites(id + 0x40000, 6.1f);
+        Golems(id + 0x30000, 9.5f);
+        Sprites(id + 0x40000, 6);
+        Rain3(id + 0x50000, 8.5f);
+        Rain4(id + 0x60000, 10.7f);
+        Enrage(id + 0x70000, 7.7f);
+    }
 
-        Timeout(id + 0xFF0000, 9999, "???");
+    private State ImitationStar(uint id, float delay)
+    {
+        CastStart(id, AID.ImitationStarCast, delay)
+            .ActivateOnEnter<ImitationStar>();
+        return ComponentCondition<ImitationStar>(id + 1, 6.8f, s => s.NumCasts > 0, "Raidwide")
+            .DeactivateOnExit<ImitationStar>();
     }
 
     private State DraconiformMotion(uint id, float delay)
     {
-        CastStart(id, AID._Weaponskill_DraconiformMotion, delay)
+        CastStart(id, AID.DraconiformMotionCast, delay)
             .ActivateOnEnter<DraconiformHint>()
             .ActivateOnEnter<DraconiformMotion>()
             .DeactivateOnExit<DraconiformHint>();
@@ -34,10 +40,10 @@ class FT03MarbleDragonStates : StateMachineBuilder
 
     private State DreadDeluge(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_DreadDeluge, delay, 3)
+        Cast(id, AID.DreadDelugeCast, delay, 3)
             .ActivateOnEnter<DreadDeluge>();
 
-        return ComponentCondition<DreadDeluge>(id + 3, 2.1f, d => d.NumCasts > 0, "Tankbusters")
+        return ComponentCondition<DreadDeluge>(id + 3, 2, d => d.NumCasts > 0, "Tankbusters")
             .DeactivateOnExit<DreadDeluge>();
     }
 
@@ -48,10 +54,12 @@ class FT03MarbleDragonStates : StateMachineBuilder
             .ActivateOnEnter<ImitationBlizzard1>()
             .DeactivateOnExit<ImitationRain>();
 
-        Cast(id + 0x10, AID._Weaponskill_ImitationIcicle, 3.6f, 3);
+        Cast(id + 0x10, AID.ImitationIcicle, 3.6f, 3);
 
         DraconiformMotion(id + 0x100, 4.4f)
-            .ExecOnEnter<ImitationBlizzard1>(b => b.Enabled = true);
+            .ActivateOnEnter<ImitationIcicle>()
+            .ExecOnEnter<ImitationBlizzard1>(b => b.Enabled = true)
+            .DeactivateOnExit<ImitationIcicle>();
 
         ComponentCondition<ImitationBlizzard1>(id + 0x200, 4.3f, b => b.NumCasts > 0, "Rain 1 start");
         ComponentCondition<ImitationBlizzard1>(id + 0x210, 3.1f, b => b.NumCasts >= 8, "Rain 1 end")
@@ -67,7 +75,7 @@ class FT03MarbleDragonStates : StateMachineBuilder
             .ActivateOnEnter<ImitationBlizzard2>()
             .DeactivateOnExit<ImitationRain>();
 
-        Cast(id + 0x10, AID._Weaponskill_FrigidTwister, 1.4f, 4)
+        Cast(id + 0x10, AID.FrigidTwisterCast, 1.4f, 4)
             .ActivateOnEnter<IceTwister>();
 
         DraconiformMotion(id + 0x100, 4.3f)
@@ -83,7 +91,7 @@ class FT03MarbleDragonStates : StateMachineBuilder
 
     private void Golems(uint id, float delay)
     {
-        CastStart(id, AID._Ability_WitheringEternity, delay);
+        CastStart(id, AID.WitheringEternity, delay);
 
         ActorTargetable(id + 0x10, () => Module.PrimaryActor, false, 7f, "Boss disappears + adds appear")
             .ActivateOnEnter<ImitationRain>()
@@ -98,37 +106,111 @@ class FT03MarbleDragonStates : StateMachineBuilder
             .ActivateOnEnter<ImitationRain>()
             .DeactivateOnExit<ImitationRain>();
 
-        DiveTowers(id + 0x300, 11.4f);
+        DiveTowers(id + 0x300, 11.4f)
+            .DeactivateOnExit<Golem>();
     }
 
-    private void DiveTowers(uint id, float delay)
+    private State DiveTowers(uint id, float delay)
     {
         ComponentCondition<FrigidDive>(id, delay, f => f.NumCasts > 0, "Dive")
             .ActivateOnEnter<FrigidDive>()
             .DeactivateOnExit<FrigidDive>()
-            .ActivateOnEnter<Rain3>()
-            .ActivateOnEnter<Rain3Towers>()
-            .ActivateOnEnter<Rain3Cross>();
+            .ActivateOnEnter<AddsTowersPre>()
+            .ActivateOnEnter<AddsTowers>()
+            .ActivateOnEnter<AddsCross>();
 
-        ComponentCondition<Rain3Towers>(id + 0x10, 4.2f, t => t.NumCasts > 0, "Cross + towers 1")
-            .DeactivateOnExit<Rain3Cross>();
-        ComponentCondition<Rain3Towers>(id + 0x20, 4, t => t.NumCasts > 2, "Towers 2")
-            .DeactivateOnExit<Rain3>()
-            .DeactivateOnExit<Rain3Towers>();
+        ComponentCondition<AddsTowers>(id + 0x10, 4.2f, t => t.NumCasts > 0, "Cross + towers 1")
+            .DeactivateOnExit<AddsCross>();
+        return ComponentCondition<AddsTowers>(id + 0x20, 4, t => t.NumCasts > 2, "Towers 2")
+            .DeactivateOnExit<AddsTowersPre>()
+            .DeactivateOnExit<AddsTowers>();
     }
 
     private void Sprites(uint id, float delay)
     {
         Targetable(id, true, delay, "Boss reappears");
 
-        ComponentCondition<IceSprite>(id + 0x10, 1, s => s.ActiveActors.Any(), "Sprites appear")
+        CastStart(id + 0x0A, AID.LifelessLegacyCast, 1)
             .ActivateOnEnter<IceSprite>()
+            .ActivateOnEnter<SpriteInvincible>()
             .ActivateOnEnter<LifelessLegacy>();
+
+        ComponentCondition<IceSprite>(id + 0x10, 0.1f, s => s.ActiveActors.Any(), "Sprites appear");
 
         ComponentCondition<LifelessLegacy>(id + 0x20, 36.7f, l => l.NumCasts > 0, "Raidwide + sprites enrage")
             .DeactivateOnExit<IceSprite>()
+            .DeactivateOnExit<SpriteInvincible>()
             .DeactivateOnExit<LifelessLegacy>();
+    }
 
-        Cast(id + 0x100, AID._Weaponskill_WickedWater, 8.5f, 4, "wicked water");
+    private void Rain3(uint id, float delay)
+    {
+        Cast(id, AID.WickedWater, delay, 4, "wicked water")
+            .ActivateOnEnter<ImitationBlizzard3>();
+
+        Cast(id + 0x10, AID.ImitationIcicle, 6.3f, 3);
+
+        DraconiformMotion(id + 0x100, 4.4f)
+            .ExecOnEnter<ImitationBlizzard3>(b => b.Enabled = true);
+
+        ComponentCondition<ImitationBlizzard3>(id + 0x200, 4.2f, b => b.NumCasts > 0, "Rain 1 start");
+        ComponentCondition<ImitationBlizzard3>(id + 0x210, 3, b => b.NumCasts >= 8, "Rain 1 end")
+            .DeactivateOnExit<ImitationBlizzard3>()
+            .ActivateOnEnter<GelidGaol>();
+
+        ComponentCondition<GelidGaol>(id + 0x220, 0.4f, g => g.Actors.Count > 0, "Ice cubes appear");
+    }
+
+    private void Rain4(uint id, float delay)
+    {
+        ImitationStar(id, delay)
+            .DeactivateOnExit<GelidGaol>();
+
+        Cast(id + 0x100, AID.FrigidTwisterCast, 13.4f, 4)
+            .ActivateOnEnter<ImitationBlizzard4>();
+
+        DraconiformMotion(id + 0x200, 4.3f)
+            .ActivateOnEnter<B4TowerFreeze>()
+            .ExecOnEnter<ImitationBlizzard4>(b => b.Enabled = true);
+
+        ComponentCondition<ImitationBlizzard4>(id + 0x220, 3.8f, b => b.NumCasts > 0, "AOEs 1")
+            .ExecOnExit<ImitationBlizzard4>(b => b.Risky = false);
+
+        ComponentCondition<B4TowerFreeze>(id + 0x230, 0.6f, p => p.NumCasts > 0, "Towers freeze")
+            .DeactivateOnExit<B4TowerFreeze>();
+
+        ComponentCondition<B4Tower>(id + 0x240, 3.5f, b => b.NumCasts > 0, "Towers activate")
+            .ActivateOnEnter<B4Tower>()
+            .DeactivateOnExit<B4Tower>()
+            .ExecOnExit<ImitationBlizzard4>(b => b.Risky = true);
+
+        ComponentCondition<ImitationBlizzard4>(id + 0x250, 6, b => b.NumCasts > 2, "AOEs 2")
+            .DeactivateOnExit<ImitationBlizzard4>();
+
+        DraconiformMotion(id + 0x300, 3.9f)
+            .ActivateOnEnter<ImitationBlizzard4>()
+            .ActivateOnEnter<B4TowerFreeze>()
+            .ExecOnEnter<ImitationBlizzard4>(b => b.Enabled = true);
+
+        ComponentCondition<ImitationBlizzard4>(id + 0x320, 1.6f, b => b.NumCasts > 0, "AOEs 3")
+            .ExecOnExit<ImitationBlizzard4>(b => b.Risky = false);
+
+        ComponentCondition<B4TowerFreeze>(id + 0x330, 0.6f, p => p.NumCasts > 0, "Towers freeze")
+            .DeactivateOnExit<B4TowerFreeze>();
+
+        ComponentCondition<B4Tower>(id + 0x340, 3.5f, b => b.NumCasts > 0, "Towers activate")
+            .ActivateOnEnter<B4Tower>()
+            .DeactivateOnExit<B4Tower>()
+            .ExecOnExit<ImitationBlizzard4>(b => b.Risky = true);
+
+        ComponentCondition<ImitationBlizzard4>(id + 0x350, 6, b => b.NumCasts > 2, "AOEs 4")
+            .DeactivateOnExit<ImitationBlizzard4>();
+    }
+
+    private void Enrage(uint id, float delay)
+    {
+        ImitationStar(id, delay);
+        DreadDeluge(id + 0x100, 6.4f);
+        Cast(id + 0x200, AID.LifelessLegacyEnrage, 12.3f, 21.6f, "Enrage");
     }
 }

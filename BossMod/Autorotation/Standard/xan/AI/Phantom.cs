@@ -61,7 +61,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddAssociatedActions(PhantomID.PhantomAim);
 
         def.AbilityTrack(Track.TimeMage, "TimeMage", "Time Mage: Use Comet ASAP if it will be instant")
-            .AddAssociatedActions(PhantomID.OccultComet);
+            .AddAssociatedActions(PhantomID.OccultComet, PhantomID.OccultQuick);
 
         def.Define(Track.Chemist).As<RaiseStrategy>("Chemist", "Chemist: Raise")
             .AddOption(RaiseStrategy.Never, "Never", "Disabled")
@@ -147,6 +147,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             var haveSwift = Player.Statuses.Any(s => InstantCastStatus.Contains(s.ID) && s.ExpireAt > nextGCD);
             if (haveSwift)
                 UseAction(PhantomID.OccultComet, primaryTarget, prio);
+
+            UseAction(PhantomID.OccultQuick, Player, prio);
         }
 
         var option = strategy.Option(Track.Chemist);

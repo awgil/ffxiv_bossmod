@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT03MarbleDragon;
 
-class IceTwister(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID._Gen_Icewind));
+class IceTwister(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.Icewind));
 
 // 3 puddles north, 3 puddles south, 1 center, activated in an arbitrary illogical order
 class ImitationBlizzard2(BossModule module) : ImitationBlizzard(module, 4)
@@ -12,22 +12,19 @@ class ImitationBlizzard2(BossModule module) : ImitationBlizzard(module, 4)
     private Actor? _puddleCenter;
     private Actor? _twister;
 
-    private DateTime _predictedAt;
-
     private bool _sorted;
     public bool Enabled; // twisters move a miniscule amount when spawning, so we don't check their positions until the component is "enabled" (when draconiform is cast)
 
     private readonly List<(Actor Actor, DateTime Activation)> _aoes = [];
 
-    protected override IEnumerable<(Actor Actor, DateTime Activation)> Puddles() => _aoes;
+    protected override IEnumerable<(Actor Actor, DateTime Activation, bool Safe)> Puddles() => _aoes.Select(a => (a.Actor, a.Activation, false));
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_ImitationBlizzard or AID._Ability_ImitationBlizzard1)
+        if ((AID)spell.Action.ID is AID.ImitationBlizzardCircle or AID.ImitationBlizzardCross)
         {
             NumCasts++;
             _aoes.RemoveAll(l => l.Actor.Position.AlmostEqual(caster.Position, 0.5f));
-            Service.Log($"time since prediction: {(WorldState.CurrentTime - _predictedAt).TotalSeconds:f2}");
         }
     }
 
@@ -43,7 +40,7 @@ class ImitationBlizzard2(BossModule module) : ImitationBlizzard(module, 4)
                 _puddlesSouth.Add(actor);
         }
 
-        if ((OID)actor.OID == OID._Gen_Icewind)
+        if ((OID)actor.OID == OID.Icewind)
             _twister ??= actor;
     }
 
@@ -75,8 +72,6 @@ class ImitationBlizzard2(BossModule module) : ImitationBlizzard(module, 4)
 
     private void PredictAOEs()
     {
-        _predictedAt = WorldState.CurrentTime;
-
         if (_puddlesNorth[0].OID == (uint)OID.CrossPuddle)
         {
             // cross pattern: first puddles, then second and third simultaneously, then center

@@ -2,6 +2,13 @@
 
 namespace BossMod.ClassShared;
 
+[ConfigDisplay(Name = "Cross-class actions", Parent = typeof(ActionTweaksConfig), Order = -5)]
+public sealed class SharedActionsConfig : ConfigNode
+{
+    [PropertyDisplay("Align dash actions with camera direction (Lost Swift, Occult Featherfoot, etc)")]
+    public bool AlignDashToCamera = false;
+}
+
 public enum AID : uint
 {
     #region PvE
@@ -130,6 +137,8 @@ public enum SID : uint
 
 public sealed class Definitions : IDisposable
 {
+    private readonly SharedActionsConfig _config = Service.Config.Get<SharedActionsConfig>();
+
     public Definitions(ActionDefinitions d)
     {
         #region PvE
@@ -250,5 +259,6 @@ public sealed class Definitions : IDisposable
         };
 
         d.Spell(PhantomID.OccultFeatherfoot)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
+        d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
     }
 }
