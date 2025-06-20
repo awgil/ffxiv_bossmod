@@ -196,23 +196,29 @@ class FT04MagitaurStates : StateMachineBuilder
         CastStartMulti(id + 0x120, [AID.CriticalAxeblowCast, AID.CriticalLanceblowCast], 4.3f)
             .ActivateOnEnter<CriticalCounter>()
             .ActivateOnEnter<CriticalAxeblow>()
-            .ActivateOnEnter<CriticalLanceblow>();
+            .ActivateOnEnter<CriticalLanceblow>()
+            .ActivateOnEnter<PreyLancepoint>();
 
         ComponentCondition<CriticalCounter>(id + 0x121, 6.3f, c => c.NumCasts > 0, "Axe/lance 1")
             .ExecOnExit<HolyLance>(l => l.Enabled = true);
 
         ComponentCondition<HolyLance>(id + 0x130, 3.6f, h => h.NumCasts > 0, "Outside 1");
         ComponentCondition<HolyLance>(id + 0x131, 2, h => h.NumCasts > 1, "Platform 1 start");
-        ComponentCondition<HolyLance>(id + 0x132, 4, h => h.NumCasts > 3, "Platform 1 end");
-        ComponentCondition<HolyLance>(id + 0x133, 2, h => h.NumCasts > 4, "Outside 2");
-        ComponentCondition<HolyLance>(id + 0x134, 2, h => h.NumCasts > 5, "Platform 2 start");
-        ComponentCondition<HolyLance>(id + 0x135, 4, h => h.NumCasts > 7, "Platform 2 end");
-        ComponentCondition<HolyLance>(id + 0x136, 2, h => h.NumCasts > 8, "Outside 3");
-        ComponentCondition<HolyLance>(id + 0x137, 2, h => h.NumCasts > 9, "Platform 3 start");
-        ComponentCondition<HolyLance>(id + 0x138, 4, h => h.NumCasts > 11, "Lances end")
+        ComponentCondition<HolyIV>(id + 0x132, 2, h => h.NumFinishedStacks > 0, "Stacks 1");
+        ComponentCondition<HolyLance>(id + 0x133, 2, h => h.NumCasts > 3, "Platform 1 end");
+        ComponentCondition<HolyLance>(id + 0x134, 2, h => h.NumCasts > 4, "Outside 2");
+        ComponentCondition<HolyLance>(id + 0x135, 2, h => h.NumCasts > 5, "Platform 2 start");
+        ComponentCondition<HolyIV>(id + 0x136, 2, h => h.NumFinishedStacks > 3, "Stacks 2");
+        ComponentCondition<HolyLance>(id + 0x137, 2, h => h.NumCasts > 7, "Platform 2 end");
+        ComponentCondition<HolyLance>(id + 0x138, 2, h => h.NumCasts > 8, "Outside 3");
+        ComponentCondition<HolyLance>(id + 0x139, 2, h => h.NumCasts > 9, "Platform 3 start");
+        ComponentCondition<HolyIV>(id + 0x13A, 2, h => h.NumFinishedStacks > 6, "Stacks 3")
+            .DeactivateOnExit<HolyIV>()
+            .DeactivateOnExit<PreyLancepoint>();
+        ComponentCondition<HolyLance>(id + 0x13B, 2, h => h.NumCasts > 11, "Lances end")
             .DeactivateOnExit<HolyLance>();
 
-        ComponentCondition<CriticalCounter>(id + 0x150, 2.6f, c => c.NumCasts > 1, "Axe/lance 2")
+        ComponentCondition<CriticalCounter>(id + 0x150, 3, c => c.NumCasts > 1, "Axe/lance 2")
             .DeactivateOnExit<CriticalCounter>()
             .DeactivateOnExit<CriticalAxeblow>()
             .DeactivateOnExit<CriticalLanceblow>();
