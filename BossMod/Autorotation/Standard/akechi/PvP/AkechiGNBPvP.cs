@@ -8,7 +8,7 @@ namespace BossMod.Autorotation.akechi;
 
 public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
-    public enum Track { Targeting, LimitBreak, TerminalTrigger, Corundum, Elixir, CDs, RoughDivide, Zone }
+    public enum Track { Targeting, LimitBreak, TerminalTrigger, Corundum, CDs, RoughDivide, Zone }
     public enum TargetingStrategy { Auto, Manual }
     public enum TriggerStrategy { Five, Four, Three, Two, One, Forbid }
     public enum CorundumStrategy { Eighty, Seventy, Sixty, Fifty, Fourty, Thirty, Forbid }

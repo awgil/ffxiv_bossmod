@@ -809,7 +809,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     };
 
     /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
-    protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = false)
+    protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = true)
     {
         return ready && strategy switch
         {
