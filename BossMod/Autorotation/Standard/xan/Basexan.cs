@@ -413,7 +413,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
         var pelo = Player.FindStatus(ClassShared.SID.Peloton);
         PelotonLeft = pelo != null ? StatusDuration(pelo.Value.ExpireAt) : 0;
-        SwiftcastLeft = MathF.Max(StatusLeft(ClassShared.SID.Swiftcast), StatusLeft(ClassShared.SID.LostChainspell));
+        SwiftcastLeft = Utils.MaxAll(StatusLeft(ClassShared.SID.Swiftcast), StatusLeft(ClassShared.SID.LostChainspell), StatusLeft(PhantomSID.OccultQuick));
         TrueNorthLeft = StatusLeft(ClassShared.SID.TrueNorth);
 
         AnimationLockDelay = estimatedAnimLockDelay;
