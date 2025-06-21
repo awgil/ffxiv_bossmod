@@ -110,7 +110,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Enabled(Track.Zeninage) && PhantomReadyIn(PhantomID.Zeninage) <= GCD)
             PushGCD((AID)(uint)PhantomID.Zeninage, primaryTarget, priority: 100);
 
-        if (strategy.Enabled(Track.Iainuki) && PhantomReadyIn(PhantomID.Iainuki) <= GCD && PhantomReadyIn(PhantomID.Zeninage) > 0)
+        if (strategy.Enabled(Track.Iainuki) && PhantomReadyIn(PhantomID.Iainuki) <= GCD && PhantomReadyIn(PhantomID.Zeninage) > GCD)
             PushGCD((AID)(uint)PhantomID.Iainuki, primaryTarget, priority: 90);
 
         if (NumAOETargets > 2)
