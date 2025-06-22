@@ -2,6 +2,7 @@
 
 namespace BossMod.Autorotation.MiscAI;
 
+// TODO this module is now useless and has been merged with AutoFarm, but some plugins still use it, like Questionable (rip)
 public sealed class AutoPull(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum Track { QuestBattle, DeepDungeon, EpicEcho, Hunt }
@@ -20,8 +21,16 @@ public sealed class AutoPull(RotationModuleManager manager, Actor player) : Rota
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Player.InCombat || primaryTarget != null || World.Client.CountdownRemaining != null)
+        if (World.Client.CountdownRemaining != null)
             return;
+
+        // TODO set HP threshold lower, or remove entirely? want to avoid getting one guy'd by an early puller
+        if (strategy.Enabled(Track.Hunt) && Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Hunt && Bossmods.ActiveModule?.PrimaryActor is Actor p && p.InCombat && p.HPRatio < 0.95f)
+        {
+            Hints.SetPriority(p, 0);
+            primaryTarget = Hints.ForcedTarget = p;
+            return;
+        }
 
         var enabled = false;
 
@@ -34,22 +43,14 @@ public sealed class AutoPull(RotationModuleManager manager, Actor player) : Rota
         if (strategy.Enabled(Track.EpicEcho))
             enabled |= Player.Statuses.Any(s => s.ID == 2734);
 
-        // TODO set HP threshold lower, or remove entirely? want to avoid getting one guy'd by an early puller
-        if (strategy.Enabled(Track.Hunt) && Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Hunt && Bossmods.ActiveModule?.PrimaryActor is Actor p && p.InCombat && p.HPRatio < 0.95f)
-        {
-            Hints.SetPriority(p, 0);
-            primaryTarget = Hints.ForcedTarget = p;
-            return;
-        }
-
         if (enabled)
         {
-            var bestEnemy = Hints.PotentialTargets.Where(t => t.Priority == AIHints.Enemy.PriorityUndesirable).MinBy(p => Player.DistanceToHitbox(p.Actor));
-            if (bestEnemy != null)
-            {
-                bestEnemy.Priority = 0;
-                primaryTarget = Hints.ForcedTarget = bestEnemy.Actor;
-            }
+            Hints.PrioritizeAll();
+            Hints.PotentialTargets.SortByReverse(x => x.Priority);
+            Hints.HighestPotentialTargetPriority = Math.Max(0, Hints.PotentialTargets[0].Priority);
+
+            if (primaryTarget == null && Hints.PotentialTargets.MinBy(t => t.Actor.DistanceToHitbox(Player)) is { } tar)
+                primaryTarget = Hints.ForcedTarget = tar.Actor;
         }
     }
 }

@@ -2,9 +2,10 @@
 
 public sealed class AutoFarm(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { General, Specific }
+    public enum Track { General, Specific, QuestBattle, DeepDungeon, EpicEcho, Hunt }
     public enum GeneralStrategy { FightBack, AllowPull, Aggressive, Passive }
     public enum TargetingStrategy { None, Fate, All }
+    public enum Flag { Disabled, Enabled }
 
     public static RotationModuleDefinition Definition()
     {
@@ -20,6 +21,22 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
             .AddOption(TargetingStrategy.None, "None", "Don't prioritize any mobs")
             .AddOption(TargetingStrategy.Fate, "FATE", "Prioritize mobs in active fate")
             .AddOption(TargetingStrategy.All, "All", "Prioritize ALL targetable mobs");
+
+        res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Automatically attack solo duty bosses")
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
+
+        res.Define(Track.DeepDungeon).As<Flag>("DD", "Automatically attack deep dungeon bosses if solo")
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
+
+        res.Define(Track.EpicEcho).As<Flag>("EE", "Automatically attack all targets in unsynced duties")
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
+
+        res.Define(Track.Hunt).As<Flag>("Hunt", "Automatically attack hunt marks once they have been pulled")
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
 
         return res;
     }
@@ -59,6 +76,15 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
             _ => (false, false)
         };
 
+        if (strategy.Option(Track.QuestBattle).As<Flag>() == Flag.Enabled)
+            allowAll |= Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Quest;
+
+        if (strategy.Option(Track.DeepDungeon).As<Flag>() == Flag.Enabled)
+            allowAll |= Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.DeepDungeon && World.Party.WithoutSlot().Count() == 1;
+
+        if (strategy.Option(Track.EpicEcho).As<Flag>() == Flag.Enabled)
+            allowAll |= Player.Statuses.Any(s => s.ID == 2734);
+
         // first deal with pulling new enemies
         if (allowPulling)
         {
@@ -68,6 +94,9 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
                     var isForlorn = e.Actor.NameID is 6737 or 6738;
                     prioritize(e, isForlorn ? 2 : 1);
                 }
+
+            if (strategy.Option(Track.Hunt).As<Flag>() == Flag.Enabled && Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Hunt && Bossmods.ActiveModule?.PrimaryActor is Actor p && p.InCombat && p.HPRatio < 0.95f)
+                prioritize(Hints.FindEnemy(p)!, 1);
 
             if (allowAll)
                 foreach (var h in Hints.PotentialTargets)
