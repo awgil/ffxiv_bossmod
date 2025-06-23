@@ -313,10 +313,10 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         (uint)PhantomSID.OccultQuick
     ];
 
+    // returns true if the action is ready to be used, so we can add movement hints for e.g. maximizing aoe targets
     private bool UseAction(PhantomID pid, Actor target, float prio, float castTime = 0)
     {
-        var baseAction = (uint)GetBase(pid);
-        if (World.Client.DutyActions.Any(d => d.Action.ID == baseAction) && NextChargeIn(pid) <= GCD)
+        if (DutyActionCD(ActionID.MakeSpell(GetBase(pid))) <= GCD)
         {
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(pid), target, prio, castTime: castTime);
             return true;

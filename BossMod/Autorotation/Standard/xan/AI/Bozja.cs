@@ -15,9 +15,9 @@ public class BozjaAI(RotationModuleManager manager, Actor player) : AIBase(manag
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (strategy.Enabled(Track.Dispel) && HaveAction(BozjaHolsterID.LostDispel) && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
-            Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostDispel), primaryTarget, ActionQueue.Priority.VeryHigh);
-    }
+        var dispel = BozjaActionID.GetNormal(BozjaHolsterID.LostDispel);
 
-    private bool HaveAction(BozjaHolsterID id) => World.Client.DutyActions.Any(d => d.Action == BozjaActionID.GetNormal(id));
+        if (strategy.Enabled(Track.Dispel) && FindDutyActionSlot(dispel) >= 0 && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
+            Hints.ActionsToExecute.Push(dispel, primaryTarget, ActionQueue.Priority.VeryHigh);
+    }
 }

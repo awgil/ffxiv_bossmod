@@ -108,6 +108,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public bool IsGCD => MainCooldownGroup == ActionDefinitions.GCDGroup || ExtraCooldownGroup == ActionDefinitions.GCDGroup;
 
     // for duty actions, the action definition always stores cooldown group 80, but in reality a different one might be used
+    // note that this doesn't apply to phantom actions, which use the cdgroups 82-86
     public int ActualMainCooldownGroup(ReadOnlySpan<ClientState.DutyAction> dutyActions)
         => MainCooldownGroup == ActionDefinitions.DutyAction0CDGroup && dutyActions[0].Action != ID && dutyActions[1].Action == ID
             ? ActionDefinitions.DutyAction1CDGroup

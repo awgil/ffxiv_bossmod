@@ -162,7 +162,9 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         return slot >= 0 && World.Client.DutyActions[1 - slot].Action == other ? slot : -1;
     }
 
-    public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? World.Client.Cooldowns[ActionDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
+    public int FindDutyActionSlot<AID>(AID aid) where AID : Enum => FindDutyActionSlot(ActionID.MakeSpell(aid));
+
+    public float DutyActionCD(int slot) => slot is >= 0 and < 7 ? World.Client.Cooldowns[ActionDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
     public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
 
     protected (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)
