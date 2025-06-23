@@ -55,7 +55,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         if (ReadyIn(AID.NoMercy) > 20 && Ammo > 0)
             PushGCD(AID.GnashingFang, primaryTarget);
 
-        if (NumAOETargets > 0 && Ammo >= 2 && NoMercy > GCD && ReadyIn(AID.DoubleDown) <= GCD)
+        if (NumAOETargets > 0 && Ammo > 0 && NoMercy > GCD && ReadyIn(AID.DoubleDown) <= GCD)
             PushGCD(AID.DoubleDown, Player);
 
         if (SonicBreak > GCD)

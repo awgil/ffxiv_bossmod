@@ -540,6 +540,9 @@ public sealed class ActionDefinitions : IDisposable
             var aid2 = ActionID.MakeBozjaHolster(id, 1);
             _definitions[aid2] = new(aid2) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
         }
+
+        if (id == BozjaHolsterID.LostSeraphStrike)
+            _definitions[normalAction].ForbidExecute = DashToTargetCheck;
     }
 
     private void RegisterDeepDungeon(ActionID id)

@@ -627,7 +627,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void UseLeylines(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Player.FindStatus(SID.LeyLines) != null)
+        if (Player.FindStatus(SID.LeyLines) != null || Player.FindStatus(PhantomSID.OccultQuick) != null)
             return;
 
         var opt = strategy.Option(Track.Leylines);

@@ -41,5 +41,8 @@ public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<A
 
         if (advance > 0 && Hints.PredictedDamage.Any(x => x.Players[0] && x.Activation < World.FutureTime(advance)))
             PushOGCD(AID.ThirdEye, Player, -100);
+
+        if (Hints.PriorityTargets.Any(t => t.Actor.TargetID == Player.InstanceID && t.Actor.CastInfo == null && t.Actor.DistanceToHitbox(Player) < 6))
+            PushOGCD(AID.ThirdEye, Player, -100);
     }
 }
