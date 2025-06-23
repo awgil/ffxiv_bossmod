@@ -70,6 +70,17 @@ public enum AID : uint
     Shatterstone = 9823,
     Deflect = 10006,
     DeflectVeryEasy = 18863,
+
+    // Variant actions
+    VariantCure1 = 29729, // available in sil'dih
+    VariantUltimatum = 29730,
+    VariantRaise = 29731,
+    VariantSpiritDart1 = 29732, // available in sil'dih
+    VariantRampart1 = 29733, // available in sil'dih
+    VariantRaiseII = 29734,
+    VariantCure2 = 33862, // available in mount rokkon and aloalo island
+    VariantSpiritDart2 = 33863, // available in mount rokkon and aloalo island
+    VariantRampart2 = 33864, // available in mount rokkon and aloalo island
     #endregion
 
     #region PvP
@@ -107,6 +118,9 @@ public enum SID : uint
     Surecast = 160, // applied by Surecast to self
     Swiftcast = 167, // applied by Swiftcast to self
     Raise = 148, // applied by Raise to target
+
+    // Variant
+    VulnerabilityDown = 3360, // applied by Variant Rampart to self
 
     // Bozja
     LostChainspell = 2560, // instant cast
@@ -199,6 +213,17 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Shatterstone);
         d.RegisterSpell(AID.Deflect);
         d.RegisterSpell(AID.DeflectVeryEasy);
+
+        // variant actions
+        d.RegisterSpell(AID.VariantCure1);
+        d.RegisterSpell(AID.VariantUltimatum);
+        d.RegisterSpell(AID.VariantRaise);
+        d.RegisterSpell(AID.VariantSpiritDart1);
+        d.RegisterSpell(AID.VariantRampart1);
+        d.RegisterSpell(AID.VariantRaiseII);
+        d.RegisterSpell(AID.VariantCure2);
+        d.RegisterSpell(AID.VariantSpiritDart2);
+        d.RegisterSpell(AID.VariantRampart2);
         #endregion
 
         #region PvP
