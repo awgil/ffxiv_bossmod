@@ -237,11 +237,11 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
 
         var predictOpt = strategy.Option(Track.Predict);
         var predictStrategy = predictOpt.As<PredictStrategy>();
-        if (predictStrategy != PredictStrategy.Disabled && Player.InCombat)
+        if (predictStrategy != PredictStrategy.Disabled)
         {
-            var pred = GetPrediction();
+            var (pred, flags) = GetPrediction();
 
-            var haveTarget = predictStrategy switch
+            var haveTarget = Player.InCombat && predictStrategy switch
             {
                 PredictStrategy.AutoConservative or PredictStrategy.AutoGreedy or PredictStrategy.AutoSuperGreedy => primaryTarget?.IsAlly == false,
                 PredictStrategy.HealOnly => true,
@@ -254,6 +254,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             var isHeal = pred == Prediction.Blessing;
             var isDmg = pred is Prediction.Cleansing or Prediction.Judgment or Prediction.Starfall;
             var isSafe = pred != Prediction.Starfall;
+            var isLastPrediction = flags == 0xF;
 
             var canUse = predictStrategy switch
             {
@@ -264,14 +265,14 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
                 _ => false
             };
 
-            if (canUse && haveTarget)
+            if (canUse && haveTarget || isLastPrediction)
                 UseAction(GetID(pred), Player, predictOpt.Priority(ActionQueue.Priority.High));
         }
     }
 
     private bool EnoughHP => Player.HPMP.MaxHP * 0.9f < Player.HPMP.CurHP + Player.HPMP.Shield;
 
-    private Prediction GetPrediction()
+    private (Prediction pred, int flags) GetPrediction()
     {
         var deadline = World.Client.AnimationLock;
 
@@ -283,13 +284,13 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             switch ((PhantomSID)sid.ID)
             {
                 case PhantomSID.PredictionOfJudgment:
-                    return Prediction.Judgment;
+                    return (Prediction.Judgment, sid.Extra);
                 case PhantomSID.PredictionOfCleansing:
-                    return Prediction.Cleansing;
+                    return (Prediction.Cleansing, sid.Extra);
                 case PhantomSID.PredictionOfBlessing:
-                    return Prediction.Blessing;
+                    return (Prediction.Blessing, sid.Extra);
                 case PhantomSID.PredictionOfStarfall:
-                    return Prediction.Starfall;
+                    return (Prediction.Starfall, sid.Extra);
             }
         }
 
@@ -316,15 +317,15 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
     // returns true if the action is ready to be used, so we can add movement hints for e.g. maximizing aoe targets
     private bool UseAction(PhantomID pid, Actor target, float prio, float castTime = 0)
     {
-        if (DutyActionCD(ActionID.MakeSpell(GetBase(pid))) <= GCD)
+        var cd = pid is PhantomID.PhantomJudgment or PhantomID.Cleansing or PhantomID.Blessing or PhantomID.Starfall ? 0 : DutyActionCD(ActionID.MakeSpell(pid));
+
+        if (cd <= GCD)
         {
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(pid), target, prio, castTime: castTime);
             return true;
         }
         return false;
     }
-
-    private PhantomID GetBase(PhantomID input) => input is PhantomID.PhantomJudgment or PhantomID.Cleansing or PhantomID.Blessing or PhantomID.Starfall ? PhantomID.Predict : input;
 
     public static readonly uint[] BreakableComboStatus = [
         (uint)BossMod.NIN.SID.Mudra,
