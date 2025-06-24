@@ -219,10 +219,25 @@ public sealed class AIHintsBuilder : IDisposable
             hints.SetPriority(inv, AIHints.Enemy.PriorityInvincible);
     }
 
+    private bool IsValidEnemy(Actor actor)
+    {
+        if (actor.IsAlly)
+            return false;
+
+        if (actor.Type == ActorType.Enemy)
+            return true;
+
+        if (_hintConfig.EnableHelperHints && actor.Type == ActorType.Helper)
+            return true;
+
+        return false;
+    }
+
     private void OnCastStarted(Actor actor)
     {
-        if (actor.Type != ActorType.Enemy || actor.IsAlly)
+        if (!IsValidEnemy(actor))
             return;
+
         if (Service.LuminaRow<Lumina.Excel.Sheets.Action>(actor.CastInfo!.Action.ID) is not { } data)
             return;
 

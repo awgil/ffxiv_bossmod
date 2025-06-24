@@ -6,9 +6,9 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase(man
 
     public enum RampartStrategy
     {
-        Combat,
-        Always,
-        Never
+        PermaShield,
+        PermaBuff,
+        Disabled
     }
 
     public enum CureStrategy
@@ -22,9 +22,9 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase(man
         var def = new RotationModuleDefinition("Variant AI", "Variant dungeon utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 90);
 
         def.Define(Track.Rampart).As<RampartStrategy>("Rampart", "Variant Rampart")
-            .AddOption(RampartStrategy.Combat, "Combat", "Use in combat if buff is about to expire")
-            .AddOption(RampartStrategy.Always, "Always", "Use if buff is about to expire")
-            .AddOption(RampartStrategy.Never, "Never", "Do not automatically use")
+            .AddOption(RampartStrategy.PermaShield, "Shield", "Use on cooldown (for shield)")
+            .AddOption(RampartStrategy.PermaBuff, "Buff", "Use if buff is about to expire")
+            .AddOption(RampartStrategy.Disabled, "Disabled", "Do not automatically use")
             .AddAssociatedActions(ClassShared.AID.VariantRampart1, ClassShared.AID.VariantRampart2);
 
         def.Define(Track.Cure).As<CureStrategy>("Cure", "Variant Cure")
@@ -38,18 +38,22 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase(man
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var opt = strategy.Option(Track.Rampart);
-        var canUse = opt.As<RampartStrategy>() switch
-        {
-            RampartStrategy.Combat => Player.InCombat,
-            RampartStrategy.Always => true,
-            _ => false
-        };
+        var canUse = false;
 
-        if (canUse && TryFindAction([ClassShared.AID.VariantRampart1, ClassShared.AID.VariantRampart2], out var act))
+        if (opt.As<RampartStrategy>() != RampartStrategy.Disabled && Player.InCombat && TryFindAction([ClassShared.AID.VariantRampart1, ClassShared.AID.VariantRampart2], out var act))
         {
-            var rampartLeft = SelfStatusLeft(ClassShared.SID.VulnerabilityDown, 60);
-            if (rampartLeft < 5)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(act), Player, opt.Priority(ActionQueue.Priority.Medium));
+            switch (opt.As<RampartStrategy>())
+            {
+                case RampartStrategy.PermaShield:
+                    canUse = true;
+                    break;
+                case RampartStrategy.PermaBuff:
+                    canUse = SelfStatusLeft(ClassShared.SID.VulnerabilityDown, 60) < 5;
+                    break;
+            }
+
+            if (canUse)
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(act), Player, opt.Priority(ActionQueue.Priority.Low));
         }
 
         opt = strategy.Option(Track.Cure);

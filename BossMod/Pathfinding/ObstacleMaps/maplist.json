@@ -3407,5 +3407,100 @@
       "ViewHeight": 60,
       "Filename": "788.584.2.bmp"
     }
+  ],
+  "1137.945": [
+    {
+      "MinBoundsX": 627.5,
+      "MinBoundsY": 30,
+      "MinBoundsZ": -212.5,
+      "MaxBoundsX": 836.5,
+      "MaxBoundsY": 101.5,
+      "MaxBoundsZ": 567,
+      "OriginX": 627.5,
+      "OriginZ": -212.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1137.945.1.bmp"
+    },
+    {
+      "MinBoundsX": 872.5,
+      "MinBoundsY": 88.5,
+      "MinBoundsZ": -961.5,
+      "MaxBoundsX": 974.5,
+      "MaxBoundsY": 106,
+      "MaxBoundsZ": -715.5,
+      "OriginX": 872.5,
+      "OriginZ": -961.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1137.945.2.bmp"
+    }
+  ],
+  "1176.961": [
+    {
+      "MinBoundsX": -828,
+      "MinBoundsY": 2,
+      "MinBoundsZ": -579,
+      "MaxBoundsX": -466.5,
+      "MaxBoundsY": 38.5,
+      "MaxBoundsZ": 461.5,
+      "OriginX": -828,
+      "OriginZ": -579,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1176.961.2.bmp"
+    },
+    {
+      "MinBoundsX": 21,
+      "MinBoundsY": 32,
+      "MinBoundsZ": -261,
+      "MaxBoundsX": 182.5,
+      "MaxBoundsY": 81,
+      "MaxBoundsZ": 196,
+      "OriginX": 21,
+      "OriginZ": -261,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1176.961.1.bmp"
+    },
+    {
+      "MinBoundsX": 825.5,
+      "MinBoundsY": 197,
+      "MinBoundsZ": -9.5,
+      "MaxBoundsX": 948,
+      "MaxBoundsY": 231.5,
+      "MaxBoundsZ": 306.5,
+      "OriginX": 825.5,
+      "OriginZ": -9.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1176.961.3.bmp"
+    },
+    {
+      "MinBoundsX": 554,
+      "MinBoundsY": 27.5,
+      "MinBoundsZ": -905.5,
+      "MaxBoundsX": 669.5,
+      "MaxBoundsY": 96,
+      "MaxBoundsZ": -550,
+      "OriginX": 554,
+      "OriginZ": -905.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1176.961.4.bmp"
+    },
+    {
+      "MinBoundsX": 925.5,
+      "MinBoundsY": 98,
+      "MinBoundsZ": -979.5,
+      "MaxBoundsX": 974.5,
+      "MaxBoundsY": 122.5,
+      "MaxBoundsZ": -521,
+      "OriginX": 925.5,
+      "OriginZ": -979.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1176.961.5.bmp"
+    }
   ]
 }

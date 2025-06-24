@@ -40,6 +40,7 @@ public static class BossModuleInfo
         Alliance,
         Chaotic,
         Foray,
+        Variant,
         Criterion,
         DeepDungeon,
         FATE,

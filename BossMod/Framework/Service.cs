@@ -46,6 +46,8 @@ public sealed class Service
     public static WindowSystem? WindowSystem;
 #pragma warning restore CA2211
 
+    public static bool IsUIDev => PluginInterface == null;
+
     public static readonly ConfigRoot Config = new();
 
     //public static SharpDX.Direct3D11.Device? Device = null;

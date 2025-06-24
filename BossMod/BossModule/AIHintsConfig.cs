@@ -30,4 +30,7 @@ public sealed class AIHintsConfig : ConfigNode
 
     [PropertyDisplay("Behavior for actions without AOE indicators", tooltip: "This setting only applies when no module is active.")]
     public OmenBehavior OmenSetting = OmenBehavior.Automatic;
+
+    [PropertyDisplay("Run generic solver for 'Helper'-type actors", tooltip: "This setting only applies when no module is active.\n\nHelpers are invisible enemies that are responsible for casting a majority of the mechanics in boss fights. Enabling this option may cause unwanted results. For example, vbm may treat gaze attacks, knockbacks, raidwides, or other mechanics as regular AOEs and try to run out of them. Enable this setting at your own discretion.")]
+    public bool EnableHelperHints = false;
 }
