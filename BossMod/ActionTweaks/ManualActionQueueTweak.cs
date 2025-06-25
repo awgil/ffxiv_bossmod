@@ -98,11 +98,6 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             _queue.RemoveAt(index);
             _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime));
         }
-        else if (isGCD)
-        {
-            // spamming GCD - just extend expiration time; don't bother moving stuff around, since GCD vs oGCD order doesn't matter
-            e = e with { ExpireAt = expireAt };
-        }
         else
         {
             Service.Log($"[MAO] Entering emergency mode for {e.Action}");
