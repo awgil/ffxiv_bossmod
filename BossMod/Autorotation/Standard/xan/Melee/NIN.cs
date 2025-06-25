@@ -1,4 +1,5 @@
-﻿using BossMod.NIN;
+﻿using BossMod.Data;
+using BossMod.NIN;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using System.Collections.ObjectModel;
 using static BossMod.AIHints;
@@ -7,7 +8,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Dexterity)
 {
-    public enum Track { Hide = SharedTrack.Count, ForkedRaiju }
+    public enum Track { Hide = SharedTrack.Count, ForkedRaiju, PhantomCannon }
     public enum HideStrategy { Automatic, Manual }
     public enum RaijuStrategy { Manual, Automatic }
 
@@ -24,6 +25,8 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         def.Define(Track.ForkedRaiju).As<RaijuStrategy>("Forked Raiju")
             .AddOption(RaijuStrategy.Manual, "Manual", "Do not use automatically")
             .AddOption(RaijuStrategy.Automatic, "Auto", "Use when out of melee range");
+
+        def.AbilityTrack(Track.PhantomCannon, "PCAN", "Phantom Cannoneer: use cannons on primary target ASAP").AddAssociatedActions(PhantomID.PhantomFire, PhantomID.HolyCannon, PhantomID.DarkCannon, PhantomID.ShockCannon, PhantomID.SilverCannon);
 
         return def;
     }
@@ -158,6 +161,16 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
                 }, primaryTarget);
             }
             return;
+        }
+
+        if (Mudra.Left == 0 && strategy.Enabled(Track.PhantomCannon))
+        {
+            if (PhantomReadyIn(PhantomID.SilverCannon) <= GCD)
+                PushGCD((AID)PhantomID.SilverCannon, primaryTarget, 10);
+            if (PhantomReadyIn(PhantomID.ShockCannon) <= GCD)
+                PushGCD((AID)PhantomID.ShockCannon, primaryTarget, 8);
+            if (PhantomReadyIn(PhantomID.PhantomFire) <= GCD)
+                PushGCD((AID)PhantomID.PhantomFire, primaryTarget, 6);
         }
 
         if (PhantomKamaitachi > GCD && Mudra.Left == 0 && ShouldPK(BestRangedAOETarget))
@@ -363,7 +376,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
         if (buffsOk)
         {
-            if (!Unlocked(TraitID.Shukiho) || Ninki >= 10)
+            if ((!Unlocked(TraitID.Shukiho) || Ninki >= 10) && TargetMugLeft == 0)
                 PushOGCD(AID.Mug, primaryTarget);
 
             if (ReadyIn(AID.Ten1) > GCD && Mudra.Left == 0 && Kassatsu == 0 && ShadowWalker == 0)
@@ -373,7 +386,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
                 PushOGCD(AID.Bunshin, Player);
         }
 
-        if (Hidden && (OnCooldown(AID.Mug) || !buffsOk))
+        if (Hidden && (MugOnCD || !buffsOk))
             // late weave trick during 2min windows with mug/dokumori active; otherwise use on cooldown
             PushOGCD(AID.TrickAttack, primaryTarget, delay: TargetMugLeft == 0 ? 0 : GCD - 0.8f);
 
@@ -388,6 +401,8 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Bhavacakra, primaryTarget, priority: Meisui > 0 ? 50 : 1);
         }
     }
+
+    private bool MugOnCD => TargetMugLeft > 0 || OnCooldown(AID.Mug);
 
     private bool ShouldBhava(StrategyValues strategy)
         => Ninki >= 50 && (Meisui > 0 || TargetTrickLeft > AnimLock || Ninki > 85);
