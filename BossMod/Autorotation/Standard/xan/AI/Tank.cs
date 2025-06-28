@@ -6,11 +6,21 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 {
     public enum Track { Stance, Ranged, Interject, Stun, ArmsLength, Mit, Invuln, Protect }
 
+    enum StanceStrategy
+    {
+        Enabled,
+        Disabled,
+        LeechMode
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
 
-        def.AbilityTrack(Track.Stance, "Stance");
+        def.Define(Track.Stance).As<StanceStrategy>("Stance")
+            .AddOption(StanceStrategy.Enabled, "Enabled")
+            .AddOption(StanceStrategy.Disabled, "Disabled")
+            .AddOption(StanceStrategy.LeechMode, "Leech", "Leech mode: enable stance only in FATEs");
         def.AbilityTrack(Track.Ranged, "Ranged GCD");
 
         def.Define(Track.Interject).As<HintedStrategy>("Interject2", "Interject")
@@ -123,8 +133,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             Hints.ActionsToExecute.Push(JobActions.Ranged, primaryTarget, ActionQueue.Priority.Low);
 
         // stance
-        if (strategy.Enabled(Track.Stance) && !Player.Statuses.Any(x => x.ID == JobActions.StanceBuff))
-            Hints.ActionsToExecute.Push(JobActions.Stance, Player, ActionQueue.Priority.VeryLow);
+        AutoStance(strategy);
 
         var interjectStrategy = strategy.Option(Track.Interject).As<HintedStrategy>();
 
@@ -164,6 +173,24 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             case Class.WAR:
                 ExecuteWAR(strategy);
                 break;
+        }
+    }
+
+    private void AutoStance(StrategyValues strategy)
+    {
+        var stanceStrategy = strategy.Option(Track.Stance).As<StanceStrategy>();
+        switch (stanceStrategy)
+        {
+            case StanceStrategy.Enabled:
+                if (Player.FindStatus(JobActions.StanceBuff) == null)
+                    Hints.ActionsToExecute.Push(JobActions.Stance, Player, ActionQueue.Priority.VeryLow);
+                return;
+            case StanceStrategy.LeechMode:
+                var wantOn = World.Client.ActiveFate.ID != 0;
+                var haveOn = Player.FindStatus(JobActions.StanceBuff) != null;
+                if (wantOn != haveOn)
+                    Hints.ActionsToExecute.Push(JobActions.Stance, Player, ActionQueue.Priority.VeryLow);
+                return;
         }
     }
 

@@ -52,9 +52,10 @@ class KnuckleCrusher(BossModule module) : Components.StandardAOEs(module, AID.Kn
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
+        if (NumCasts > 0 || Casters.Count > 2)
+            base.AddAIHints(slot, actor, assignment, hints);
 
-        if (Casters.Count >= 2 && NumCasts == 0)
+        if (NumCasts == 0 && Casters.Count > 2)
             hints.AddForbiddenZone(ShapeContains.Donut(Casters[1].Position, 17, 60), Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
@@ -93,16 +94,21 @@ class SpinningSiege(BossModule module) : Components.GenericRotatingAOE(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        if (NumCasts > 0)
+        // don't move to safe square immediately, it looks sus
+        if (NumCasts == 0 && Sequences.Count > 0 && Sequences[0].NextActivation > WorldState.FutureTime(4))
             return;
 
-        foreach (var seq in Sequences)
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // block unsafe squares
+        if (NumCasts == 0)
         {
-            var dirCenter = (Arena.Center - seq.Origin).Normalized();
-            var dirSweep = seq.Increment.Rad > 0 ? dirCenter.OrthoL() : dirCenter.OrthoR();
-            hints.AddForbiddenZone(ShapeContains.Cone(seq.Origin, 50, Angle.FromDirection(dirSweep), 90.Degrees()), seq.NextActivation);
+            foreach (var seq in Sequences)
+            {
+                var dirCenter = (Arena.Center - seq.Origin).Normalized();
+                var dirSweep = seq.Increment.Rad > 0 ? dirCenter.OrthoL() : dirCenter.OrthoR();
+                hints.AddForbiddenZone(ShapeContains.Cone(seq.Origin, 50, Angle.FromDirection(dirSweep), 90.Degrees()), seq.NextActivation);
+            }
         }
     }
 }
@@ -194,22 +200,22 @@ class OccultKnightStates : StateMachineBuilder
 
     private void Phase1(uint id)
     {
-        Condition(id, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed || !k.IsTargetable), "Adds 1 enrage")
+        AddsPhase(id, 1)
             .ActivateOnEnter<OccultKnights>();
 
         LineOfFire(id + 0x10000, 10.2f);
         KnuckleCrusher(id + 0x20000, 11);
 
-        Condition(id + 0x30000, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed), "Adds 2 enrage");
+        AddsPhase(id + 0x30000, 2);
 
         SpinningSiege(id + 0x40000, 13.2f);
         BlastKnuckles(id + 0x50000, 7.3f);
 
-        Condition(id + 0x60000, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed), "Adds 3 enrage");
+        AddsPhase(id + 0x60000, 3);
 
         DualfistFlurry(id + 0x70000, 16.1f);
 
-        Condition(id + 0x80000, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed), "Adds 4 enrage");
+        AddsPhase(id + 0x80000, 4);
 
         Condition(id + 0x90000, 7.1f, () => Module.Enemies(OID.OccultKnight1).Any(k => k.IsTargetable), "Megaknight appears")
             .ActivateOnEnter<SpiritSling>();
@@ -217,6 +223,9 @@ class OccultKnightStates : StateMachineBuilder
         ActorCastStart(id + 0x90100, _module.Megaloknight, AID.BarefistedDeath, 50);
         ActorCastEnd(id + 0x90200, _module.Megaloknight, 90, name: "Enrage");
     }
+
+    // subsequent wave of adds can spawn the same frame the last mob from the previous wave is killed, hence the !IsTargetable check
+    private State AddsPhase(uint id, int order) => Condition(id, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed || !k.IsTargetable), $"Adds {order} enrage");
 
     private void LineOfFire(uint id, float delay)
     {
