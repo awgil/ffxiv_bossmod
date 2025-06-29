@@ -224,8 +224,18 @@ class OccultKnightStates : StateMachineBuilder
         ActorCastEnd(id + 0x90200, _module.Megaloknight, 90, name: "Enrage");
     }
 
-    // subsequent wave of adds can spawn the same frame the last mob from the previous wave is killed, hence the !IsTargetable check
-    private State AddsPhase(uint id, int order) => Condition(id, 300, () => Module.Enemies(OID.OccultKnight0).All(k => k.IsDeadOrDestroyed || !k.IsTargetable), $"Adds {order} enrage");
+    // next wave can spawn on the same frame that the last targetable mob is killed, so we have to check that 1. at least one dead knight exists and 2. no living knight is targetable
+    private State AddsPhase(uint id, int order) => Condition(id, 300, () =>
+    {
+        var anyDead = false;
+        foreach (var k in Module.Enemies(OID.OccultKnight0))
+        {
+            if (k.IsTargetable && !k.IsDead)
+                return false;
+            anyDead |= k.IsDead;
+        }
+        return anyDead;
+    }, $"Adds {order} enrage");
 
     private void LineOfFire(uint id, float delay)
     {
