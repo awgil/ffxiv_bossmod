@@ -96,9 +96,9 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
                 QueueGCD(AID.PhantomDartPvP, PlayerTarget?.Actor, GCDPriority.High);
             if (IsReady(AID.RustPvP) && strategy.Option(Track.RoleActions).As<RoleActionStrategy>() == RoleActionStrategy.Rust)
                 QueueGCD(AID.RustPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High);
-            if (IsReady(AID.BrandOfPurgatoryPvP) && HasEffect(SID.FirebirdTrancePvP))
+            if (IsReady(AID.BrandOfPurgatoryPvP) && HasEffect(SID.FirebirdTrance))
                 QueueGCD(AID.BrandOfPurgatoryPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High);
-            if (IsReady(AID.DeathflarePvP) && HasEffect(SID.DreadwyrmTrancePvP))
+            if (IsReady(AID.DeathflarePvP) && HasEffect(SID.DreadwyrmTrance))
                 QueueGCD(AID.DeathflarePvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High);
             if (IsReady(AID.Ruin4PvP) && HasEffect(SID.FurtherRuinPvP))
             {
@@ -121,9 +121,9 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
             if (IsReady(AID.SlipstreamPvP) && !IsMoving &&
                 strategy.Option(Track.Slipstream).As<CommonStrategy>() == CommonStrategy.Allow)
                 QueueGCD(AID.SlipstreamPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.BelowAverage);
-            if (IsReady(AID.AstralImpulsePvP) && HasEffect(SID.DreadwyrmTrancePvP))
+            if (IsReady(AID.AstralImpulsePvP) && HasEffect(SID.DreadwyrmTrance))
                 QueueGCD(AID.AstralImpulsePvP, PlayerTarget?.Actor, GCDPriority.SlightlyLow);
-            if (IsReady(AID.FountainOfFirePvP) && HasEffect(SID.FirebirdTrancePvP))
+            if (IsReady(AID.FountainOfFirePvP) && HasEffect(SID.FirebirdTrance))
                 QueueGCD(AID.FountainOfFirePvP, PlayerTarget?.Actor, GCDPriority.SlightlyLow);
             QueueGCD(AID.Ruin3PvP, PlayerTarget?.Actor, GCDPriority.Low);
         }

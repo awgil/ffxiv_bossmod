@@ -171,6 +171,8 @@ public enum SID : uint
     RubysGlimmer = 3873, // applied by Searing Light to self
     RefulgentLux = 3874, // applied by Summon Solar Bahamut to self
     CrimsonStrikeReady = 4403, // applied by Crimson Cyclone to self
+    DreadwyrmTrance = 3228, // applied to self by summoning Bahamut
+    FirebirdTrance = 3229, // applied to self by summoning Phoenix
 
     //Shared
     Addle = ClassShared.SID.Addle, // applied by Addle to target
@@ -179,10 +181,8 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 
     //PvP
-    FurtherRuinPvP = 4399,
-    DreadwyrmTrancePvP = 3228,
-    FirebirdTrancePvP = 3229,
-    CrimsonStrikeReadyPvP = 4400
+    FurtherRuinPvP = 4399, // applied by Necrotize to self
+    CrimsonStrikeReadyPvP = 4400 // applied by Crimson Cyclone (PvP) to self
 }
 
 public sealed class Definitions : IDisposable
