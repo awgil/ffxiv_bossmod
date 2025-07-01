@@ -108,6 +108,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (World.Client.CountdownRemaining > 0)
+            return;
+
         var isMidCombo = CheckMidCombo();
 
         if (strategy.Enabled(Track.Cannoneer) && !isMidCombo)
@@ -129,7 +132,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
                 }
             }
 
-            if (bestTarget != null)
+            if (bestTarget != null && bestCount > 0)
             {
                 var isUndead = UndeadMobs.Contains(bestTarget.NameID);
 
