@@ -116,10 +116,10 @@ public enum AID : uint
     RustPvP = 43254,
 
     //Shared
-    Elixir = ClassShared.AID.Elixir,
-    Recuperate = ClassShared.AID.Recuperate,
-    Purify = ClassShared.AID.Purify,
-    Guard = ClassShared.AID.Guard,
+    Elixir = ClassShared.AID.ElixirPvP,
+    Recuperate = ClassShared.AID.RecuperatePvP,
+    Purify = ClassShared.AID.PurifyPvP,
+    Guard = ClassShared.AID.GuardPvP,
     SprintPvP = ClassShared.AID.SprintPvP
     #endregion
 }

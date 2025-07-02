@@ -519,7 +519,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected void GetPvPTarget(float range)
     {
         var bestTarget = Hints.PriorityTargets
-            .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.Guard) == null)
+            .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null)
             .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
             .FirstOrDefault();
         Hints.ForcedTarget = bestTarget?.Actor;

@@ -84,11 +84,10 @@ public enum AID : uint
     #endregion
 
     #region PvP
-    Elixir = 29055,
-    Recuperate = 29711,
-    Purify = 29056,
-    Guard = 29054,
-    //Guard = 29735,
+    ElixirPvP = 29055,
+    RecuperatePvP = 29711,
+    PurifyPvP = 29056,
+    GuardPvP = 29054,
     SprintPvP = 29057,
     #endregion
 }
@@ -137,15 +136,15 @@ public enum SID : uint
 
     #region PvP
     SprintPvP = 1342,
-    Guard = 3054,
-    Silence = 1347,
-    Bind = 1345,
+    GuardPvP = 3054,
+    SilencePvP = 1347,
+    BindPvP = 1345,
     StunPvP = 1343,
-    HalfAsleep = 3022,
-    Sleep = 1348,
-    DeepFreeze = 3219,
-    Heavy = 1344,
-    Unguarded = 3021,
+    HalfAsleepPvP = 3022,
+    SleepPvP = 1348,
+    DeepFreezePvP = 3219,
+    HeavyPvP = 1344,
+    UnguardedPvP = 3021,
     #endregion
 }
 
@@ -227,10 +226,10 @@ public sealed class Definitions : IDisposable
         #endregion
 
         #region PvP
-        d.RegisterSpell(AID.Elixir);
-        d.RegisterSpell(AID.Recuperate);
-        d.RegisterSpell(AID.Purify);
-        d.RegisterSpell(AID.Guard);
+        d.RegisterSpell(AID.ElixirPvP);
+        d.RegisterSpell(AID.RecuperatePvP);
+        d.RegisterSpell(AID.PurifyPvP);
+        d.RegisterSpell(AID.GuardPvP);
         d.RegisterSpell(AID.SprintPvP);
         #endregion
 

@@ -82,10 +82,10 @@ public enum AID : uint
     TerminalTriggerPvP = 29131,
 
     //Shared
-    Elixir = ClassShared.AID.Elixir,
-    Recuperate = ClassShared.AID.Recuperate,
-    Purify = ClassShared.AID.Purify,
-    Guard = ClassShared.AID.Guard,
+    Elixir = ClassShared.AID.ElixirPvP,
+    Recuperate = ClassShared.AID.RecuperatePvP,
+    Purify = ClassShared.AID.PurifyPvP,
+    Guard = ClassShared.AID.GuardPvP,
     SprintPvP = ClassShared.AID.SprintPvP
     #endregion
 }
@@ -155,19 +155,19 @@ public enum SID : uint
     RelentlessShrapnelPvP = 3053,
 
     //Shared
-    Elixir = ClassShared.AID.Elixir,
-    Recuperate = ClassShared.AID.Recuperate,
-    Purify = ClassShared.AID.Purify,
-    Guard = ClassShared.AID.Guard,
+    Elixir = ClassShared.AID.ElixirPvP,
+    Recuperate = ClassShared.AID.RecuperatePvP,
+    Purify = ClassShared.AID.PurifyPvP,
+    Guard = ClassShared.AID.GuardPvP,
     SprintPvP = ClassShared.AID.SprintPvP,
-    Silence = ClassShared.SID.Silence,
-    Bind = ClassShared.SID.Bind,
+    Silence = ClassShared.SID.SilencePvP,
+    Bind = ClassShared.SID.BindPvP,
     StunPvP = ClassShared.SID.StunPvP,
-    HalfAsleep = ClassShared.SID.HalfAsleep,
-    Sleep = ClassShared.SID.Sleep,
-    DeepFreeze = ClassShared.SID.DeepFreeze,
-    Heavy = ClassShared.SID.Heavy,
-    Unguarded = ClassShared.SID.Unguarded,
+    HalfAsleep = ClassShared.SID.HalfAsleepPvP,
+    Sleep = ClassShared.SID.SleepPvP,
+    DeepFreeze = ClassShared.SID.DeepFreezePvP,
+    Heavy = ClassShared.SID.HeavyPvP,
+    Unguarded = ClassShared.SID.UnguardedPvP,
 
     #endregion
 }
