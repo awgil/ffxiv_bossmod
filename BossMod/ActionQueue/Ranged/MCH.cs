@@ -196,7 +196,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Excavator, true); // animLock=???
         d.RegisterSpell(AID.FullMetalField, true); // animLock=???
 
-        //PvP
+        // PvP
         d.RegisterSpell(AID.BlastChargePvP, true);
         d.RegisterSpell(AID.ScattergunPvP, true);
         d.RegisterSpell(AID.DrillPvP, true);
@@ -211,9 +211,6 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.BlazingShotPvP, true);
         d.RegisterSpell(AID.FullMetalFieldPvP, true);
         d.RegisterSpell(AID.DetonatorPvP, true);
-        d.RegisterSpell(AID.DervishPvP, true);
-        d.RegisterSpell(AID.BraveryPvP, true);
-        d.RegisterSpell(AID.EagleEyeShotPvP, true);
 
         Customize(d);
     }

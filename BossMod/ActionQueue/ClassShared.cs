@@ -257,6 +257,23 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.PurifyPvP);
         d.RegisterSpell(AID.GuardPvP);
         d.RegisterSpell(AID.SprintPvP);
+
+        // role actions
+        d.RegisterSpell(AID.DiabrosisPvP);
+        d.RegisterSpell(AID.StoneskinIIPvP);
+        d.RegisterSpell(AID.HaelanPvP);
+        d.RegisterSpell(AID.RustPvP);
+        d.RegisterSpell(AID.PhantomDartPvP);
+        d.RegisterSpell(AID.CometPvP);
+        d.RegisterSpell(AID.EagleEyeShotPvP);
+        d.RegisterSpell(AID.BraveryPvP);
+        d.RegisterSpell(AID.DervishPvP);
+        d.RegisterSpell(AID.SmitePvP);
+        d.RegisterSpell(AID.SwiftPvP);
+        d.RegisterSpell(AID.BloodbathPvP);
+        d.RegisterSpell(AID.FullSwingPvP);
+        d.RegisterSpell(AID.RampartPvP);
+        d.RegisterSpell(AID.RampagePvP);
         #endregion
 
         #region Phantom actions

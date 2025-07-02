@@ -299,9 +299,6 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.EverlastingFlightPvP);
         d.RegisterSpell(AID.SummonBahamutPvP);
         d.RegisterSpell(AID.SummonPhoenixPvP);
-        d.RegisterSpell(AID.CometPvP);
-        d.RegisterSpell(AID.PhantomDartPvP);
-        d.RegisterSpell(AID.RustPvP);
 
         Customize(d);
     }

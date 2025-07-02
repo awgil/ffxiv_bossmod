@@ -219,7 +219,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.NobleBlood);
         d.RegisterSpell(AID.LionHeart);
 
-        #region PvP
+        // PvP
         d.RegisterSpell(AID.KeenEdgePvP);
         d.RegisterSpell(AID.BrutalShellPvP);
         d.RegisterSpell(AID.SolidBarrelPvP);
@@ -239,7 +239,6 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.RoughDividePvP);
         d.RegisterSpell(AID.RelentlessRushPvP);
         d.RegisterSpell(AID.TerminalTriggerPvP);
-        #endregion
 
         Customize(d);
     }
