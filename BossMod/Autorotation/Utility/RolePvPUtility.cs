@@ -65,7 +65,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             !h.Actor.IsFriendlyNPC &&
             !h.Actor.IsAlly &&
             h.Actor.Position.InCircle(Player.Position, range));
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLock, bool isMoving)
+    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Player.IsDeadOrDestroyed || IsMounted)
             return;
