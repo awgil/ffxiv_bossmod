@@ -148,8 +148,7 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
             AegisStrategy.LessThan50 => PlayerHPP < 50,
             _ => false
         };
-        if (IsReady(AID.RadiantAegisPvP) && bestHP &&
-            strategy.Option(Track.RadiantAegis).As<CommonStrategy>() == CommonStrategy.Allow)
+        if (IsReady(AID.RadiantAegisPvP) && bestHP)
             QueueGCD(AID.RadiantAegisPvP, Player, GCDPriority.VeryHigh);
     }
 }
