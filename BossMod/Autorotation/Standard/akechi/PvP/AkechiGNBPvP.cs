@@ -8,8 +8,9 @@ namespace BossMod.Autorotation.akechi;
 
 public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
-    public enum Track { Targeting, LimitBreak, TerminalTrigger, Corundum, CDs, RoughDivide, Zone }
+    public enum Track { Targeting, RoleActions, LimitBreak, TerminalTrigger, Corundum, CDs, RoughDivide, Zone }
     public enum TargetingStrategy { Auto, Manual }
+    public enum RoleActionStrategy { Forbid, Rampage, Rampart, FullSwing }
     public enum TriggerStrategy { Five, Four, Three, Two, One, Forbid }
     public enum CorundumStrategy { Eighty, Seventy, Sixty, Fifty, Fourty, Thirty, Forbid }
     public enum DivideStrategy { Auto, AutoMelee, Forbid }
@@ -22,6 +23,12 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
             .AddOption(TargetingStrategy.Auto, "Automatic", "Automatically select best target")
             .AddOption(TargetingStrategy.Manual, "Manual", "Manually select target");
+        res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
+            .AddOption(RoleActionStrategy.Forbid, "Forbid", "Do not use any role actions")
+            .AddOption(RoleActionStrategy.Rampage, "Rampage", "Use Rampage when available and targets are nearby")
+            .AddOption(RoleActionStrategy.Rampart, "Rampart", "Use Rampart when available")
+            .AddOption(RoleActionStrategy.FullSwing, "Full Swing", "Use Full Swing when available")
+            .AddAssociatedActions(AID.RampagePvP, AID.RampartPvP, AID.FullSwingPvP);
         res.Define(Track.LimitBreak).As<CDsStrategy>("Limit Break", "", 300)
             .AddOption(CDsStrategy.Allow, "Allow", "Allow use of Limit Break automatically when available")
             .AddOption(CDsStrategy.Forbid, "Forbid", "Forbid use of Limit Break entirely")
@@ -119,6 +126,11 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         var a = i * 300;
         return OGCDPriority.Low + a; //every 0.5s = +300 prio
     }
+    private bool NoTargetsNearby(float range) => !Hints.PriorityTargets.Any(h =>
+        !h.Actor.IsDeadOrDestroyed &&
+        !h.Actor.IsFriendlyNPC &&
+        !h.Actor.IsAlly &&
+        h.Actor.Position.InCircle(Player.Position, range));
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
@@ -137,44 +149,66 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         {
             GetPvPTarget(5);
         }
-        if (In5y(PlayerTarget?.Actor))
+        if (In5y(primaryTarget?.Actor))
         {
+            if (strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+            {
+                RoleActionStrategy.Rampage => HasEffect(SID.RampageEquippedPvP) && ActionReady(AID.RampagePvP) && !NoTargetsNearby(10),
+                RoleActionStrategy.Rampart => HasEffect(SID.RampartEquippedPvP) && ActionReady(AID.RampartPvP) && HP != MaxHP,
+                RoleActionStrategy.FullSwing => HasEffect(SID.FullSwingEquippedPvP) && ActionReady(AID.FullSwingPvP),
+                _ => false
+            })
+                QueueGCD(strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+                {
+                    RoleActionStrategy.Rampage => AID.RampagePvP,
+                    RoleActionStrategy.Rampart => AID.RampartPvP,
+                    RoleActionStrategy.FullSwing => AID.FullSwingPvP,
+                    _ => AID.None
+                },
+                strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+                {
+                    RoleActionStrategy.Rampage => Player,
+                    RoleActionStrategy.Rampart => Player,
+                    RoleActionStrategy.FullSwing => primaryTarget?.Actor,
+                    _ => null
+                }, GCDPriority.VeryHigh + 1);
+
             if (!inGF)
-                QueueGCD(PvPCombo, PlayerTarget?.Actor, GCDPriority.Low);
+                QueueGCD(PvPCombo, primaryTarget?.Actor, GCDPriority.Low);
             if (!hold)
             {
-                if (ShouldUseLB(strategy, PlayerTarget?.Actor))
+                if (ShouldUseLB(strategy, primaryTarget?.Actor))
                     QueueOGCD(AID.RelentlessRushPvP, Player, GCDPriority.VeryHigh);
-                if (ShouldUseZone(strategy, PlayerTarget?.Actor))
-                    QueueOGCD(AID.BlastingZonePvP, PlayerTarget?.Actor, OGCDPriority.High - 1);
+                if (ShouldUseZone(strategy, primaryTarget?.Actor))
+                    QueueOGCD(AID.BlastingZonePvP, primaryTarget?.Actor, OGCDPriority.High - 1);
                 if (HasNM)
                 {
                     if (ActionReady(AID.GnashingFangPvP))
-                        QueueGCD(AID.GnashingFangPvP, PlayerTarget?.Actor, GCDPriority.High);
+                        QueueGCD(AID.GnashingFangPvP, primaryTarget?.Actor, GCDPriority.High);
                     if (ActionReady(AID.FatedCirclePvP))
-                        QueueGCD(AID.FatedCirclePvP, PlayerTarget?.Actor, GCDPriority.Average);
+                        QueueGCD(AID.FatedCirclePvP, primaryTarget?.Actor, GCDPriority.Average);
                 }
             }
             if (GunStep == 1)
-                QueueGCD(AID.SavageClawPvP, PlayerTarget?.Actor, GCDPriority.BelowAverage);
+                QueueGCD(AID.SavageClawPvP, primaryTarget?.Actor, GCDPriority.BelowAverage);
             if (GunStep == 2)
-                QueueGCD(AID.WickedTalonPvP, PlayerTarget?.Actor, GCDPriority.BelowAverage);
+                QueueGCD(AID.WickedTalonPvP, primaryTarget?.Actor, GCDPriority.BelowAverage);
             if (HasRaze)
-                QueueOGCD(AID.FatedBrandPvP, PlayerTarget?.Actor, ContinuationPrio());
+                QueueOGCD(AID.FatedBrandPvP, primaryTarget?.Actor, ContinuationPrio());
             if (HasBlast)
-                QueueOGCD(AID.HypervelocityPvP, PlayerTarget?.Actor, ContinuationPrio());
+                QueueOGCD(AID.HypervelocityPvP, primaryTarget?.Actor, ContinuationPrio());
             if (HasRip)
-                QueueOGCD(AID.JugularRipPvP, PlayerTarget?.Actor, ContinuationPrio());
+                QueueOGCD(AID.JugularRipPvP, primaryTarget?.Actor, ContinuationPrio());
             if (HasTear)
-                QueueOGCD(AID.AbdomenTearPvP, PlayerTarget?.Actor, ContinuationPrio());
+                QueueOGCD(AID.AbdomenTearPvP, primaryTarget?.Actor, ContinuationPrio());
             if (HasGouge)
-                QueueOGCD(AID.EyeGougePvP, PlayerTarget?.Actor, ContinuationPrio());
+                QueueOGCD(AID.EyeGougePvP, primaryTarget?.Actor, ContinuationPrio());
         }
-        if (!hold && ShouldUseRoughDivide(strategy, PlayerTarget?.Actor))
-            QueueOGCD(AID.RoughDividePvP, PlayerTarget?.Actor, CDRemaining(AID.RoughDividePvP) < 0.6f ? OGCDPriority.High + 2001 : OGCDPriority.High);
+        if (!hold && ShouldUseRoughDivide(strategy, primaryTarget?.Actor))
+            QueueOGCD(AID.RoughDividePvP, primaryTarget?.Actor, CDRemaining(AID.RoughDividePvP) < 0.6f ? OGCDPriority.High + 2001 : OGCDPriority.High);
         if (ShouldUseHOC(strategy))
             QueueGCD(AID.HeartOfCorundumPvP, Player, GCDPriority.High);
-        if (ShouldUseTT(strategy, PlayerTarget?.Actor))
+        if (ShouldUseTT(strategy, primaryTarget?.Actor))
             QueueGCD(AID.TerminalTriggerPvP, Player, GCDPriority.High);
     }
 }

@@ -70,62 +70,76 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        (BestConeTargets, NumConeTargets) = GetBestTarget(PlayerTarget, 8, Is8yConeTarget);
-        (BestSplashTargets, NumSplashTargets) = GetBestTarget(PlayerTarget, 25, IsSplashTarget);
+        (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 8, Is8yConeTarget);
+        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         var LBready = World.Party.LimitBreakLevel >= 1;
-        var BestConeTarget = NumConeTargets > 1 ? BestConeTargets : PlayerTarget;
-        var BestSplashTarget = NumSplashTargets > 1 ? BestSplashTargets : PlayerTarget;
+        var BestConeTarget = NumConeTargets > 1 ? BestConeTargets : primaryTarget;
+        var BestSplashTarget = NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         var auto = strategy.Option(Track.Targeting).As<TargetingStrategy>() == TargetingStrategy.Auto;
         if (auto)
         {
             GetPvPTarget(25);
         }
-        if (In25y(PlayerTarget?.Actor))
+        if (In25y(primaryTarget?.Actor))
         {
             if (LBready)
             {
                 if (strategy.Option(Track.LimitBreak).As<LBStrategy>() == LBStrategy.Bahamut)
-                    QueueGCD(AID.SummonBahamutPvP, PlayerTarget?.Actor, GCDPriority.High + 1);
+                    QueueGCD(AID.SummonBahamutPvP, primaryTarget?.Actor, GCDPriority.High + 1);
                 if (strategy.Option(Track.LimitBreak).As<LBStrategy>() == LBStrategy.Phoenix)
                     QueueGCD(AID.SummonPhoenixPvP, Player, GCDPriority.High + 1);
             }
-            if (IsReady(AID.CometPvP) && InRange(PlayerTarget?.Actor, 30f) &&
-                strategy.Option(Track.RoleActions).As<RoleActionStrategy>() == RoleActionStrategy.Comet)
-                QueueGCD(AID.CometPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High);
-            if (IsReady(AID.PhantomDartPvP) && strategy.Option(Track.RoleActions).As<RoleActionStrategy>() == RoleActionStrategy.PhantomDart)
-                QueueGCD(AID.PhantomDartPvP, PlayerTarget?.Actor, GCDPriority.High);
-            if (IsReady(AID.RustPvP) && strategy.Option(Track.RoleActions).As<RoleActionStrategy>() == RoleActionStrategy.Rust)
-                QueueGCD(AID.RustPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High);
+            if (strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+            {
+                RoleActionStrategy.Comet => HasEffect(SID.CometEquippedPvP) && IsReady(AID.CometPvP),
+                RoleActionStrategy.PhantomDart => HasEffect(SID.PhantomDartEquippedPvP) && IsReady(AID.PhantomDartPvP),
+                RoleActionStrategy.Rust => HasEffect(SID.RustEquippedPvP) && IsReady(AID.RustPvP),
+                _ => false
+            })
+                QueueGCD(strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+                {
+                    RoleActionStrategy.Comet => AID.CometPvP,
+                    RoleActionStrategy.PhantomDart => AID.PhantomDartPvP,
+                    RoleActionStrategy.Rust => AID.RustPvP,
+                    _ => AID.None
+                },
+                strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+                {
+                    RoleActionStrategy.Comet => auto ? BestSplashTarget?.Actor : primaryTarget?.Actor,
+                    RoleActionStrategy.PhantomDart => primaryTarget?.Actor,
+                    RoleActionStrategy.Rust => auto ? BestSplashTarget?.Actor : primaryTarget?.Actor,
+                    _ => null
+                }, GCDPriority.VeryHigh + 1);
             if (IsReady(AID.BrandOfPurgatoryPvP) && HasEffect(SID.FirebirdTrance))
-                QueueGCD(AID.BrandOfPurgatoryPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High);
+                QueueGCD(AID.BrandOfPurgatoryPvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High);
             if (IsReady(AID.DeathflarePvP) && HasEffect(SID.DreadwyrmTrance))
-                QueueGCD(AID.DeathflarePvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High);
+                QueueGCD(AID.DeathflarePvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High);
             if (IsReady(AID.Ruin4PvP) && HasEffect(SID.FurtherRuinPvP))
             {
                 if (strategy.Option(Track.RuinIV).As<Ruin4Strategy>() == Ruin4Strategy.Late &&
                     (StatusRemaining(Player, SID.FurtherRuinPvP) <= 3f || CDRemaining(AID.NecrotizePvP) <= 1f))
-                    QueueGCD(AID.Ruin4PvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High + 1);
+                    QueueGCD(AID.Ruin4PvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High + 1);
                 if (strategy.Option(Track.RuinIV).As<Ruin4Strategy>() == Ruin4Strategy.Early)
-                    QueueGCD(AID.Ruin4PvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.ModeratelyHigh);
+                    QueueGCD(AID.Ruin4PvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.ModeratelyHigh);
             }
             if (CDRemaining(AID.NecrotizePvP) < 10.6f && !HasEffect(SID.FurtherRuinPvP) &&
                 strategy.Option(Track.Necrotize).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.NecrotizePvP, PlayerTarget?.Actor, GCDPriority.SlightlyHigh);
+                QueueGCD(AID.NecrotizePvP, primaryTarget?.Actor, GCDPriority.SlightlyHigh);
             if (IsReady(AID.CrimsonCyclonePvP) && strategy.Option(Track.CrimsonCyclone).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.CrimsonCyclonePvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.AboveAverage);
+                QueueGCD(AID.CrimsonCyclonePvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.AboveAverage);
             if (IsReady(AID.CrimsonStrikePvP) && HasEffect(SID.CrimsonStrikeReadyPvP))
-                QueueGCD(AID.CrimsonStrikePvP, PlayerTarget?.Actor, StatusRemaining(Player, SID.FurtherRuinPvP) <= 3f ? GCDPriority.High + 1 : GCDPriority.AboveAverage);
-            if (IsReady(AID.MountainBusterPvP) && InRange(PlayerTarget?.Actor, 8f) &&
+                QueueGCD(AID.CrimsonStrikePvP, primaryTarget?.Actor, StatusRemaining(Player, SID.FurtherRuinPvP) <= 3f ? GCDPriority.High + 1 : GCDPriority.AboveAverage);
+            if (IsReady(AID.MountainBusterPvP) && InRange(primaryTarget?.Actor, 8f) &&
                 strategy.Option(Track.MountainBuster).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.MountainBusterPvP, auto ? BestConeTarget?.Actor : PlayerTarget?.Actor, GCDPriority.Average);
+                QueueGCD(AID.MountainBusterPvP, auto ? BestConeTarget?.Actor : primaryTarget?.Actor, GCDPriority.Average);
             if (IsReady(AID.SlipstreamPvP) && !IsMoving &&
                 strategy.Option(Track.Slipstream).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.SlipstreamPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.BelowAverage);
+                QueueGCD(AID.SlipstreamPvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.BelowAverage);
             if (IsReady(AID.AstralImpulsePvP) && HasEffect(SID.DreadwyrmTrance))
-                QueueGCD(AID.AstralImpulsePvP, PlayerTarget?.Actor, GCDPriority.SlightlyLow);
+                QueueGCD(AID.AstralImpulsePvP, primaryTarget?.Actor, GCDPriority.SlightlyLow);
             if (IsReady(AID.FountainOfFirePvP) && HasEffect(SID.FirebirdTrance))
-                QueueGCD(AID.FountainOfFirePvP, PlayerTarget?.Actor, GCDPriority.SlightlyLow);
-            QueueGCD(AID.Ruin3PvP, PlayerTarget?.Actor, GCDPriority.Low);
+                QueueGCD(AID.FountainOfFirePvP, primaryTarget?.Actor, GCDPriority.SlightlyLow);
+            QueueGCD(AID.Ruin3PvP, primaryTarget?.Actor, GCDPriority.Low);
         }
         var bestHP = strategy.Option(Track.RadiantAegis).As<AegisStrategy>() switch
         {

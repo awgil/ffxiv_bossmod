@@ -62,14 +62,24 @@ public enum AID : uint
     BishopAutoturretPvP = 29412,
     AetherMortarPvP = 29413,
     AnalysisPvP = 29414,
-    MarksmansSpitePvP = 29415,
     BlazingShotPvP = 41468,
     FullMetalFieldPvP = 41469,
     DetonatorPvP = 41470,
 
-    DervishPvP = 43249,
-    BraveryPvP = 43250,
-    EagleEyeShotPvP = 43251,
+    //LB
+    MarksmansSpitePvP = 29415,
+
+    //Role
+    DervishPvP = ClassShared.AID.DervishPvP,
+    BraveryPvP = ClassShared.AID.BraveryPvP,
+    EagleEyeShotPvP = ClassShared.AID.EagleEyeShotPvP,
+
+    //Shared
+    ElixirPvP = ClassShared.AID.ElixirPvP,
+    RecuperatePvP = ClassShared.AID.RecuperatePvP,
+    PurifyPvP = ClassShared.AID.PurifyPvP,
+    GuardPvP = ClassShared.AID.GuardPvP,
+    SprintPvP = ClassShared.AID.SprintPvP
     #endregion
 }
 
@@ -114,11 +124,11 @@ public enum SID : uint
     FullMetalMachinist = 3866, // applied by Hypercharge to self
     Tactician = 1951, // applied by Tactician to self
     Bioblaster = 1866, // applied by Bioblaster to target
+
     //Shared
     Peloton = ClassShared.SID.Peloton, // applied by Peloton to self/party
 
     #region PvP
-
     HeatPvP = 3148,
     OverheatedPvP = 3149,
     DrillPrimed = 3150,
@@ -126,8 +136,24 @@ public enum SID : uint
     AirAnchorPrimed = 3152,
     ChainSawPrimed = 3153,
     AnalysisPvP = 3158,
-    #endregion
 
+    //Role
+    DervishEquippedPvP = ClassShared.SID.DervishEquippedPvP,
+    BraveryEquippedPvP = ClassShared.SID.BraveryEquippedPvP,
+    EagleEyeShotEquippedPvP = ClassShared.SID.EagleEyeShotEquippedPvP,
+
+    //Shared
+    GuardPvP = ClassShared.SID.GuardPvP,
+    SprintPvP = ClassShared.SID.SprintPvP,
+    SilencePvP = ClassShared.SID.SilencePvP,
+    BindPvP = ClassShared.SID.BindPvP,
+    StunPvP = ClassShared.SID.StunPvP,
+    HalfAsleepPvP = ClassShared.SID.HalfAsleepPvP,
+    SleepPvP = ClassShared.SID.SleepPvP,
+    DeepFreezePvP = ClassShared.SID.DeepFreezePvP,
+    HeavyPvP = ClassShared.SID.HeavyPvP,
+    UnguardedPvP = ClassShared.SID.UnguardedPvP,
+    #endregion
 }
 
 public sealed class Definitions : IDisposable

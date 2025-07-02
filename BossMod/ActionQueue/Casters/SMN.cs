@@ -106,20 +106,20 @@ public enum AID : uint
     MegaflarePvP = 29675,
     EverlastingFlightPvP = 29680,
 
-    //LBs
+    //LB
     SummonBahamutPvP = 29673,
     SummonPhoenixPvP = 29678,
 
     //Role
-    CometPvP = 43252,
-    PhantomDartPvP = 43291,
-    RustPvP = 43254,
+    CometPvP = ClassShared.AID.CometPvP,
+    PhantomDartPvP = ClassShared.AID.PhantomDartPvP,
+    RustPvP = ClassShared.AID.RustPvP,
 
     //Shared
-    Elixir = ClassShared.AID.ElixirPvP,
-    Recuperate = ClassShared.AID.RecuperatePvP,
-    Purify = ClassShared.AID.PurifyPvP,
-    Guard = ClassShared.AID.GuardPvP,
+    ElixirPvP = ClassShared.AID.ElixirPvP,
+    RecuperatePvP = ClassShared.AID.RecuperatePvP,
+    PurifyPvP = ClassShared.AID.PurifyPvP,
+    GuardPvP = ClassShared.AID.GuardPvP,
     SprintPvP = ClassShared.AID.SprintPvP
     #endregion
 }
@@ -180,9 +180,27 @@ public enum SID : uint
     LucidDreaming = ClassShared.SID.LucidDreaming, // applied by Lucid Dreaming to self
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 
-    //PvP
-    FurtherRuinPvP = 4399, // applied by Necrotize to self
-    CrimsonStrikeReadyPvP = 4400 // applied by Crimson Cyclone (PvP) to self
+    #region PvP
+    FurtherRuinPvP = 4399,
+    CrimsonStrikeReadyPvP = 4400,
+
+    //Role
+    CometEquippedPvP = ClassShared.SID.CometEquippedPvP,
+    PhantomDartEquippedPvP = ClassShared.SID.PhantomDartEquippedPvP,
+    RustEquippedPvP = ClassShared.SID.RustEquippedPvP,
+
+    //Shared
+    GuardPvP = ClassShared.SID.GuardPvP,
+    SprintPvP = ClassShared.SID.SprintPvP,
+    SilencePvP = ClassShared.SID.SilencePvP,
+    BindPvP = ClassShared.SID.BindPvP,
+    StunPvP = ClassShared.SID.StunPvP,
+    HalfAsleepPvP = ClassShared.SID.HalfAsleepPvP,
+    SleepPvP = ClassShared.SID.SleepPvP,
+    DeepFreezePvP = ClassShared.SID.DeepFreezePvP,
+    HeavyPvP = ClassShared.SID.HeavyPvP,
+    UnguardedPvP = ClassShared.SID.UnguardedPvP,
+    #endregion
 }
 
 public sealed class Definitions : IDisposable

@@ -7,12 +7,12 @@ namespace BossMod.Autorotation.akechi;
 
 public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
-    public enum Track { Targeting, RoleActions, LimitBreak, Analysis, Drill, AirAnchor, ChainSaw, Bioblaster, Scattergun, FullMetalField, Wildfire, BishopAutoturret }
+    public enum Track { Targeting, RoleActions, LimitBreak, Analysis, Tools, Scattergun, FullMetalField, Wildfire, BishopAutoturret }
     public enum TargetingStrategy { Auto, Manual }
     public enum RoleActionStrategy { Forbid, Dervish, Bravery, EagleEyeShot }
     public enum LBStrategy { ASAP, LessThan70, LessThan60, LessThan50, LessThan40, Forbid }
     public enum AnalysisStrategy { Any, DrillAA, BBCS, Forbid }
-    public enum BuffedStrategy { ASAP, BuffOrOvercap, Forbid }
+    public enum ToolsStrategy { ASAP, BuffOrOvercap, Forbid }
     public enum CommonStrategy { Allow, Forbid }
 
     public static RotationModuleDefinition Definition()
@@ -41,26 +41,11 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
             .AddOption(AnalysisStrategy.BBCS, "Bioblaster", "Use Analysis to buff Bioblaster and ChainSaw only")
             .AddOption(AnalysisStrategy.Forbid, "Forbid", "Do not use Analysis")
             .AddAssociatedActions(AID.AnalysisPvP);
-        res.Define(Track.Drill).As<BuffedStrategy>("Drill", "", 300)
-            .AddOption(BuffedStrategy.ASAP, "ASAP", "Use Drill as soon as it is available")
-            .AddOption(BuffedStrategy.BuffOrOvercap, "Buff or Overcap", "Use Drill when buffed by Analysis or about to overcap on charges")
-            .AddOption(BuffedStrategy.Forbid, "Forbid", "Do not use Drill")
-            .AddAssociatedActions(AID.DrillPvP);
-        res.Define(Track.AirAnchor).As<BuffedStrategy>("Air Anchor", "", 300)
-            .AddOption(BuffedStrategy.ASAP, "ASAP", "Use Air Anchor as soon as it is available")
-            .AddOption(BuffedStrategy.BuffOrOvercap, "Buff or Overcap", "Use Air Anchor when buffed by Analysis or about to overcap on charges")
-            .AddOption(BuffedStrategy.Forbid, "Forbid", "Do not use Air Anchor")
-            .AddAssociatedActions(AID.AirAnchorPvP);
-        res.Define(Track.ChainSaw).As<BuffedStrategy>("Chain Saw", "", 300)
-            .AddOption(BuffedStrategy.ASAP, "ASAP", "Use Chain Saw as soon as it is available")
-            .AddOption(BuffedStrategy.BuffOrOvercap, "Buff or Overcap", "Use Chain Saw when buffed by Analysis or about to overcap on charges")
-            .AddOption(BuffedStrategy.Forbid, "Forbid", "Do not use Chain Saw")
-            .AddAssociatedActions(AID.ChainSawPvP);
-        res.Define(Track.Bioblaster).As<BuffedStrategy>("Bioblaster", "", 300)
-            .AddOption(BuffedStrategy.ASAP, "ASAP", "Use Bioblaster as soon as it is available")
-            .AddOption(BuffedStrategy.BuffOrOvercap, "Buff or Overcap", "Use Bioblaster when buffed by Analysis or about to overcap on charges")
-            .AddOption(BuffedStrategy.Forbid, "Forbid", "Do not use Bioblaster")
-            .AddAssociatedActions(AID.BioblasterPvP);
+        res.Define(Track.Tools).As<ToolsStrategy>("Tools", "", 300)
+            .AddOption(ToolsStrategy.ASAP, "ASAP", "Use Tools as soon as it is available")
+            .AddOption(ToolsStrategy.BuffOrOvercap, "Buff or Overcap", "Use Tools when buffed by Analysis or about to overcap on charges")
+            .AddOption(ToolsStrategy.Forbid, "Forbid", "Do not use Tools")
+            .AddAssociatedActions(AID.DrillPvP, AID.BioblasterPvP, AID.AirAnchorPvP, AID.ChainSawPvP);
         res.Define(Track.Scattergun).As<CommonStrategy>("Scattergun", "", 300)
             .AddOption(CommonStrategy.Allow, "Allow", "Use Scattergun when available")
             .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Scattergun")
@@ -100,12 +85,6 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
     private float AnalyzeLeft => StatusRemaining(Player, SID.AnalysisPvP);
     private bool LBready => World.Party.LimitBreakLevel >= 1;
     private bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
-    private bool UseTool(StrategyValues strategy, Track index, AID aid) => strategy.Option(index).As<BuffedStrategy>() switch
-    {
-        BuffedStrategy.ASAP => CDRemaining(aid) <= 10.2f,
-        BuffedStrategy.BuffOrOvercap => AnalyzeLeft > 0 || CDRemaining(aid) < 0.6f,
-        _ => false
-    };
 
     private int NumConeTargets;
     private int NumLineTargets;
@@ -113,37 +92,39 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
     private Enemy? BestConeTargets;
     private Enemy? BestLineTargets;
     private Enemy? BestSplashTargets;
+    private AID BestTool => HasEffect(SID.ChainSawPrimed) ? AID.ChainSawPvP : HasEffect(SID.AirAnchorPrimed) ? AID.AirAnchorPvP : HasEffect(SID.BioblasterPrimed) ? AID.BioblasterPvP : AID.DrillPvP;
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        (BestConeTargets, NumConeTargets) = GetBestTarget(PlayerTarget, 12, Is12yConeTarget);
-        (BestLineTargets, NumLineTargets) = GetBestTarget(PlayerTarget, 25, Is25yRectTarget);
-        (BestSplashTargets, NumSplashTargets) = GetBestTarget(PlayerTarget, 25, IsSplashTarget);
-        var BestConeTarget = NumConeTargets > 1 ? BestConeTargets : PlayerTarget;
-        var BestLineTarget = NumLineTargets > 1 ? BestLineTargets : PlayerTarget;
-        var BestSplashTarget = NumSplashTargets > 1 ? BestSplashTargets : PlayerTarget;
+        (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 12, Is12yConeTarget);
+        (BestLineTargets, NumLineTargets) = GetBestTarget(primaryTarget, 25, Is25yRectTarget);
+        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
+        var BestConeTarget = NumConeTargets > 1 ? BestConeTargets : primaryTarget;
+        var BestLineTarget = NumLineTargets > 1 ? BestLineTargets : primaryTarget;
+        var BestSplashTarget = NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
+        var BestTarget = HasEffect(SID.ChainSawPrimed) ? BestLineTarget : HasEffect(SID.Bioblaster) ? BestConeTarget : primaryTarget;
         var auto = strategy.Option(Track.Targeting).As<TargetingStrategy>() == TargetingStrategy.Auto;
         if (auto)
         {
             GetPvPTarget(25);
         }
-        if (In25y(PlayerTarget?.Actor))
+        if (In25y(primaryTarget?.Actor))
         {
             if (HasEffect(SID.OverheatedPvP))
             {
-                if (IsReady(AID.WildfirePvP) && PlayerTarget?.Actor != null &&
+                if (IsReady(AID.WildfirePvP) && primaryTarget?.Actor != null &&
                     strategy.Option(Track.Wildfire).As<CommonStrategy>() == CommonStrategy.Allow)
-                    QueueGCD(AID.WildfirePvP, PlayerTarget?.Actor, GCDPriority.High + 2);
+                    QueueGCD(AID.WildfirePvP, primaryTarget?.Actor, GCDPriority.High + 2);
 
-                QueueGCD(AID.BlazingShotPvP, PlayerTarget?.Actor, GCDPriority.Low);
+                QueueGCD(AID.BlazingShotPvP, primaryTarget?.Actor, GCDPriority.Low);
             }
             if (!HasEffect(SID.OverheatedPvP))
             {
                 if (strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
                 {
-                    RoleActionStrategy.Dervish => IsReady(AID.DervishPvP),
-                    RoleActionStrategy.Bravery => IsReady(AID.BraveryPvP),
-                    RoleActionStrategy.EagleEyeShot => IsReady(AID.EagleEyeShotPvP),
+                    RoleActionStrategy.Dervish => HasEffect(SID.DervishEquippedPvP) && IsReady(AID.DervishPvP),
+                    RoleActionStrategy.Bravery => HasEffect(SID.BraveryEquippedPvP) && IsReady(AID.BraveryPvP),
+                    RoleActionStrategy.EagleEyeShot => HasEffect(SID.EagleEyeShotEquippedPvP) && IsReady(AID.EagleEyeShotPvP),
                     _ => false
                 })
                     QueueGCD(strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
@@ -157,36 +138,26 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
                     {
                         RoleActionStrategy.Dervish => Player,
                         RoleActionStrategy.Bravery => Player,
-                        RoleActionStrategy.EagleEyeShot => PlayerTarget?.Actor,
+                        RoleActionStrategy.EagleEyeShot => primaryTarget?.Actor,
                         _ => null
                     }, GCDPriority.VeryHigh + 1);
-                if (ShouldUseLB(strategy, PlayerTarget?.Actor))
-                    QueueGCD(AID.MarksmansSpitePvP, PlayerTarget?.Actor, GCDPriority.VeryHigh);
-                if (IsReady(AID.FullMetalFieldPvP) && !HasEffect(SID.OverheatedPvP) && PlayerTarget?.Actor != null &&
+                if (ShouldUseLB(strategy, primaryTarget?.Actor))
+                    QueueGCD(AID.MarksmansSpitePvP, primaryTarget?.Actor, GCDPriority.VeryHigh);
+                if (IsReady(AID.FullMetalFieldPvP) && !HasEffect(SID.OverheatedPvP) && primaryTarget?.Actor != null &&
                     strategy.Option(Track.FullMetalField).As<CommonStrategy>() == CommonStrategy.Allow)
-                    QueueGCD(AID.FullMetalFieldPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High + 5);
-                if (IsReady(AID.BishopAutoturretPvP) && PlayerTarget?.Actor != null &&
+                    QueueGCD(AID.FullMetalFieldPvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High + 5);
+                if (IsReady(AID.BishopAutoturretPvP) && primaryTarget?.Actor != null &&
                     strategy.Option(Track.BishopAutoturret).As<CommonStrategy>() == CommonStrategy.Allow)
-                    QueueGCD(AID.BishopAutoturretPvP, auto ? BestSplashTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High + 4);
-                if (ShouldAnalyze(strategy) && PlayerTarget?.Actor != null)
+                    QueueGCD(AID.BishopAutoturretPvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High + 4);
+                if (ShouldAnalyze(strategy) && primaryTarget?.Actor != null)
                     QueueGCD(AID.AnalysisPvP, Player, GCDPriority.High + 3);
-                if (IsReady(AID.ScattergunPvP) && In12y(PlayerTarget?.Actor) && PlayerTarget?.Actor != null &&
+                if (IsReady(AID.ScattergunPvP) && In12y(primaryTarget?.Actor) && primaryTarget?.Actor != null &&
                     strategy.Option(Track.Scattergun).As<CommonStrategy>() == CommonStrategy.Allow)
-                    QueueGCD(AID.ScattergunPvP, auto ? BestConeTarget?.Actor : PlayerTarget?.Actor, GCDPriority.High + 1);
-                if (CDRemaining(AID.DrillPvP) <= 10.2f && HasEffect(SID.DrillPrimed) &&
-                    UseTool(strategy, Track.Drill, AID.DrillPvP))
-                    QueueGCD(AID.DrillPvP, PlayerTarget?.Actor, GCDPriority.Average);
-                if (CDRemaining(AID.BioblasterPvP) <= 10.2f && HasEffect(SID.BioblasterPrimed) &&
-                    UseTool(strategy, Track.Bioblaster, AID.BioblasterPvP))
-                    QueueGCD(AID.BioblasterPvP, auto ? BestConeTarget?.Actor : PlayerTarget?.Actor, GCDPriority.Average);
-                if (CDRemaining(AID.AirAnchorPvP) <= 10.2f && HasEffect(SID.AirAnchorPrimed) &&
-                    UseTool(strategy, Track.AirAnchor, AID.AirAnchorPvP))
-                    QueueGCD(AID.AirAnchorPvP, PlayerTarget?.Actor, GCDPriority.Average);
-                if (CDRemaining(AID.ChainSawPvP) <= 10.2f && HasEffect(SID.ChainSawPrimed) &&
-                    UseTool(strategy, Track.ChainSaw, AID.ChainSawPvP))
-                    QueueGCD(AID.ChainSawPvP, auto ? BestLineTarget?.Actor : PlayerTarget?.Actor, GCDPriority.Average);
+                    QueueGCD(AID.ScattergunPvP, auto ? BestConeTarget?.Actor : primaryTarget?.Actor, GCDPriority.High + 1);
+                if (CDRemaining(BestTool) <= 10.2f && strategy.Option(Track.Tools).As<ToolsStrategy>() != ToolsStrategy.Forbid)
+                    QueueGCD(BestTool, auto ? BestTarget?.Actor : primaryTarget?.Actor, GCDPriority.Average);
 
-                QueueGCD(AID.BlastChargePvP, PlayerTarget?.Actor, GCDPriority.Low);
+                QueueGCD(AID.BlastChargePvP, primaryTarget?.Actor, GCDPriority.Low);
             }
         }
     }
