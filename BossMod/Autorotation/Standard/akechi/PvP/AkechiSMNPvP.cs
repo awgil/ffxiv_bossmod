@@ -84,26 +84,28 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
         {
             if (LBready)
             {
-                if (strategy.Option(Track.LimitBreak).As<LBStrategy>() == LBStrategy.Bahamut)
+                var lb = strategy.Option(Track.LimitBreak).As<LBStrategy>();
+                if (lb == LBStrategy.Bahamut)
                     QueueGCD(AID.SummonBahamutPvP, primaryTarget?.Actor, GCDPriority.High + 1);
-                if (strategy.Option(Track.LimitBreak).As<LBStrategy>() == LBStrategy.Phoenix)
+                if (lb == LBStrategy.Phoenix)
                     QueueGCD(AID.SummonPhoenixPvP, Player, GCDPriority.High + 1);
             }
-            if (strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+            var role = strategy.Option(Track.RoleActions).As<RoleActionStrategy>();
+            if (role switch
             {
-                RoleActionStrategy.Comet => HasEffect(SID.CometEquippedPvP) && IsReady(AID.CometPvP),
+                RoleActionStrategy.Comet => HasEffect(SID.CometEquippedPvP) && IsReady(AID.CometPvP) && !IsMoving,
                 RoleActionStrategy.PhantomDart => HasEffect(SID.PhantomDartEquippedPvP) && IsReady(AID.PhantomDartPvP),
                 RoleActionStrategy.Rust => HasEffect(SID.RustEquippedPvP) && IsReady(AID.RustPvP),
                 _ => false
             })
-                QueueGCD(strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+                QueueGCD(role switch
                 {
                     RoleActionStrategy.Comet => AID.CometPvP,
                     RoleActionStrategy.PhantomDart => AID.PhantomDartPvP,
                     RoleActionStrategy.Rust => AID.RustPvP,
                     _ => AID.None
                 },
-                strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+                role switch
                 {
                     RoleActionStrategy.Comet => auto ? BestSplashTarget?.Actor : primaryTarget?.Actor,
                     RoleActionStrategy.PhantomDart => primaryTarget?.Actor,
@@ -116,10 +118,11 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
                 QueueGCD(AID.DeathflarePvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High);
             if (IsReady(AID.Ruin4PvP) && HasEffect(SID.FurtherRuinPvP))
             {
-                if (strategy.Option(Track.RuinIV).As<Ruin4Strategy>() == Ruin4Strategy.Late &&
+                var r4 = strategy.Option(Track.RuinIV).As<Ruin4Strategy>();
+                if (r4 == Ruin4Strategy.Late &&
                     (StatusRemaining(Player, SID.FurtherRuinPvP) <= 3f || CDRemaining(AID.NecrotizePvP) <= 1f))
                     QueueGCD(AID.Ruin4PvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High + 1);
-                if (strategy.Option(Track.RuinIV).As<Ruin4Strategy>() == Ruin4Strategy.Early)
+                if (r4 == Ruin4Strategy.Early)
                     QueueGCD(AID.Ruin4PvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.ModeratelyHigh);
             }
             if (CDRemaining(AID.NecrotizePvP) < 10.6f && !HasEffect(SID.FurtherRuinPvP) &&
@@ -141,14 +144,13 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
                 QueueGCD(AID.FountainOfFirePvP, primaryTarget?.Actor, GCDPriority.SlightlyLow);
             QueueGCD(AID.Ruin3PvP, primaryTarget?.Actor, GCDPriority.Low);
         }
-        var bestHP = strategy.Option(Track.RadiantAegis).As<AegisStrategy>() switch
+        if (IsReady(AID.RadiantAegisPvP) && strategy.Option(Track.RadiantAegis).As<AegisStrategy>() switch
         {
             AegisStrategy.LessThanFull => PlayerHPP < 100,
             AegisStrategy.LessThan75 => PlayerHPP < 75,
             AegisStrategy.LessThan50 => PlayerHPP < 50,
             _ => false
-        };
-        if (IsReady(AID.RadiantAegisPvP) && bestHP)
+        })
             QueueGCD(AID.RadiantAegisPvP, Player, GCDPriority.VeryHigh);
     }
 }
