@@ -267,12 +267,12 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID) is Actor ll)
             Hints.GoalZones.Add(p => p.InCircle(ll.Position, 3) ? 0.5f : 0);
 
-        if (strategy.Enabled(Track.Zeninage) && RaidBuffsLeft > GCD && PhantomReadyIn(PhantomID.Zeninage) <= GCD)
+        if (strategy.Enabled(Track.Zeninage) && RaidBuffsLeft > GCD && DutyActionReadyIn(PhantomID.Zeninage) <= GCD)
             PushGCD((AID)PhantomID.Zeninage, primaryTarget, GCDPriority.Max);
 
         if (strategy.Enabled(Track.Iainuki) && (CombatTimer > 10 || RaidBuffsLeft > GCD))
         {
-            var ready = PhantomReadyIn(PhantomID.Iainuki);
+            var ready = DutyActionReadyIn(PhantomID.Iainuki);
             if (ready <= GCD)
                 PushGCD((AID)PhantomID.Iainuki, primaryTarget, GCDPriority.Max);
 

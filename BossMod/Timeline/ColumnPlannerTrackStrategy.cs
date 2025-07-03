@@ -5,7 +5,7 @@ using ImGuiNET;
 namespace BossMod;
 
 public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, StrategyConfig config, int level, BossModuleRegistry.Info? moduleInfo, StrategyValue defaultOverride)
-    : ColumnPlannerTrack(timeline, tree, phaseBranches, config.UIName)
+    : ColumnPlannerTrack(timeline, tree, phaseBranches, config.InternalName)
 {
     public StrategyValue DefaultOverride { get; private set; } = defaultOverride;
 
@@ -49,6 +49,7 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
         using var _ = ImRaii.PushId($"{config.OptionEnum}_{config.InternalName}");
         var paddingY = ImGui.GetStyle().ItemSpacing.Y;
         var cursor = ImGui.GetCursorPos();
+        var isHovered = false;
         using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0, paddingY)))
         {
             var textSize = ImGui.CalcTextSize(Name);
@@ -57,10 +58,14 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
             {
                 ImGui.SetCursorPos(originAdj);
                 ImGui.Selectable("", DefaultOverride.Option > 0, ImGuiSelectableFlags.None, textSize with { X = Width });
+                isHovered = ImGui.IsItemHovered();
                 ImGui.SetCursorPos(originAdj + new Vector2((Width - textSize.X) * 0.5f, 0));
                 ImGui.Text(Name);
             }
         }
+
+        if (isHovered && config.InternalName != config.DisplayName && config.DisplayName.Length > 0)
+            ImGui.SetTooltip(config.DisplayName);
 
         using (var popup = ImRaii.Popup("settings"))
         {

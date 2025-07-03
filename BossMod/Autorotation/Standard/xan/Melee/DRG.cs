@@ -7,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
 {
-    public enum Track { Dive = SharedTrack.Count, Iainuki, Zeninage }
+    public enum Track { Dive = SharedTrack.Count, Iainuki, Zeninage, LanceCharge }
 
     public enum DiveStrategy
     {
@@ -16,19 +16,32 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         NoLock
     }
 
+    public enum LCStrategy
+    {
+        Automatic,
+        Force,
+        Delay
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan DRG", "Dragoon", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.BattleLitany, AID.LanceCharge);
+        def.DefineShared().AddAssociatedActions(AID.BattleLitany);
 
         def.Define(Track.Dive).As<DiveStrategy>("Dive")
             .AddOption(DiveStrategy.Allow, "Allow", "Use dives according to standard rotation")
             .AddOption(DiveStrategy.NoMove, "NoMove", "Disallow dive actions that move you to the target")
             .AddOption(DiveStrategy.NoLock, "NoLock", "Disallow dive actions that prevent you from moving (all except Mirage Dive)");
 
-        def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki during burst");
-        def.AbilityTrack(Track.Zeninage, "Zeninage", "PSAM: Use Zeninage during burst (costs 10,000 gil)");
+        def.AbilityTrack(Track.Iainuki, "Iainuki", "Phantom Samurai: Use Iainuki during burst", -50);
+        def.AbilityTrack(Track.Zeninage, "Zeninage", "Phantom Samurai: Use Zeninage during burst - requires a coffer", -100);
+
+        def.Define(Track.LanceCharge).As<LCStrategy>("LC", "Lance Charge")
+            .AddOption(LCStrategy.Automatic, "Automatic", "Use on cooldown, once Power Surge is active")
+            .AddOption(LCStrategy.Force, "Force", "Use ASAP")
+            .AddOption(LCStrategy.Delay, "Delay", "Don't use")
+            .AddAssociatedActions(AID.LanceCharge);
 
         return def;
     }
@@ -55,13 +68,6 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     private Enemy? BestAOETarget;
     private Enemy? BestLongAOETarget;
     private Enemy? BestDiveTarget;
-
-    protected override float GetCastTime(AID aid)
-    {
-        if ((uint)aid == (uint)PhantomID.Iainuki)
-            return 1.3f;
-        return base.GetCastTime(aid);
-    }
 
     public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
     {
@@ -107,10 +113,10 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
 
-        if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Enabled(Track.Zeninage) && PhantomReadyIn(PhantomID.Zeninage) <= GCD)
+        if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Enabled(Track.Zeninage) && DutyActionReadyIn(PhantomID.Zeninage) <= GCD)
             PushGCD((AID)(uint)PhantomID.Zeninage, primaryTarget, priority: 100);
 
-        if (strategy.Enabled(Track.Iainuki) && PhantomReadyIn(PhantomID.Iainuki) <= GCD && PhantomReadyIn(PhantomID.Zeninage) > GCD)
+        if (strategy.Enabled(Track.Iainuki) && DutyActionReadyIn(PhantomID.Iainuki) <= GCD && DutyActionReadyIn(PhantomID.Zeninage) > GCD)
             PushGCD((AID)(uint)PhantomID.Iainuki, primaryTarget, priority: 90);
 
         if (NumAOETargets > 2)
@@ -189,11 +195,8 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (NextPositionalImminent && !NextPositionalCorrect)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);
 
-        if (strategy.BuffsOk() && PowerSurge > GCD)
-        {
+        if (ShouldLanceCharge(strategy))
             PushOGCD(AID.LanceCharge, Player);
-            PushOGCD(AID.BattleLitany, Player);
-        }
 
         // ok to use WT outside of buffs, otherwise we might overcap and waste one
         if (ShouldWT(strategy))
@@ -202,10 +205,13 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         // delay all damaging ogcds until we've used lance charge
         // first one (jump) unlocks at level 30, same as lance charge, so we don't need extra checks
         // TODO check if this is actually a good idea
-        if (CanWeave(AID.LanceCharge))
+        if (!OnCooldown(AID.LanceCharge))
             return;
 
-        if (NastrondReady == 0 && strategy.BuffsOk())
+        if (strategy.BuffsOk())
+            PushOGCD(AID.BattleLitany, Player);
+
+        if (NastrondReady == 0 && LanceCharge > AnimLock)
             PushOGCD(AID.Geirskogul, BestLongAOETarget);
 
         if (DiveReady == 0 && posOk)
@@ -214,7 +220,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (LanceCharge > GCD && ShouldLifeSurge())
             PushOGCD(AID.LifeSurge, Player);
 
-        if (moveOk && strategy.BuffsOk())
+        if (moveOk && LanceCharge > AnimLock)
             PushOGCD(AID.DragonfireDive, BestDiveTarget);
 
         if (NastrondReady > 0)
@@ -240,6 +246,13 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (DiveReady > 0)
             PushOGCD(AID.MirageDive, bestSingleTarget);
     }
+
+    private bool ShouldLanceCharge(StrategyValues strategy) => strategy.Option(Track.LanceCharge).As<LCStrategy>() switch
+    {
+        LCStrategy.Force => true,
+        LCStrategy.Automatic => PowerSurge > GCD,
+        _ => false,
+    };
 
     private bool ShouldLifeSurge()
     {

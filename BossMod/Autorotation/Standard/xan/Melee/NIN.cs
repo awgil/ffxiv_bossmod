@@ -165,11 +165,11 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
         if (Mudra.Left == 0 && strategy.Enabled(Track.PhantomCannon))
         {
-            if (PhantomReadyIn(PhantomID.SilverCannon) <= GCD)
+            if (DutyActionReadyIn(PhantomID.SilverCannon) <= GCD)
                 PushGCD((AID)PhantomID.SilverCannon, primaryTarget, 10);
-            if (PhantomReadyIn(PhantomID.ShockCannon) <= GCD)
+            if (DutyActionReadyIn(PhantomID.ShockCannon) <= GCD)
                 PushGCD((AID)PhantomID.ShockCannon, primaryTarget, 8);
-            if (PhantomReadyIn(PhantomID.PhantomFire) <= GCD)
+            if (DutyActionReadyIn(PhantomID.PhantomFire) <= GCD)
                 PushGCD((AID)PhantomID.PhantomFire, primaryTarget, 6);
         }
 

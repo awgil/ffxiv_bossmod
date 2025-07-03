@@ -1,8 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.FRU;
 
-class P1TurnOfHeavensBurntStrikeFire(BossModule module) : Components.StandardAOEs(module, AID.TurnOfHeavensBurntStrikeFire, new AOEShapeRect(40, 5, 40));
-class P1TurnOfHeavensBurntStrikeLightning(BossModule module) : Components.StandardAOEs(module, AID.TurnOfHeavensBurntStrikeLightning, new AOEShapeRect(40, 5, 40));
-class P1TurnOfHeavensBurnout(BossModule module) : Components.StandardAOEs(module, AID.TurnOfHeavensBurnout, new AOEShapeRect(40, 10, 40));
+class P1TurnOfHeavensBurntStrikeFire(BossModule module) : Components.StandardAOEs(module, AID.TurnOfHeavensBurntStrikeFire, new AOEShapeRect(80, 5));
+class P1TurnOfHeavensBurntStrikeLightning(BossModule module) : Components.StandardAOEs(module, AID.TurnOfHeavensBurntStrikeLightning, new AOEShapeRect(80, 5));
+class P1TurnOfHeavensBurnout(BossModule module) : Components.StandardAOEs(module, AID.TurnOfHeavensBurnout, new AOEShapeRect(80, 10));
 class P1BrightfireSmall(BossModule module) : Components.StandardAOEs(module, AID.BrightfireSmall, new AOEShapeCircle(5));
 class P1BrightfireLarge(BossModule module) : Components.StandardAOEs(module, AID.BrightfireLarge, new AOEShapeCircle(10));
 

@@ -608,6 +608,7 @@ class AbilityInfo : CommonEnumInfo
         return pos >= 0 && pos + 6 <= path.Length && int.TryParse(path.AsSpan(pos + 3, 3), out var angle) ? angle.Degrees() : null;
     }
 
+    // TODO deduplicate this + AIHintsBuilder, it's annoying because we need 3 return states (omen OK, can't parse omen name, no omen at all)
     private float? DetermineDonutInner(Lumina.Excel.Sheets.Action data)
     {
         var omen = data.Omen.ValueNullable;
@@ -617,6 +618,10 @@ class AbilityInfo : CommonEnumInfo
         var path = omen.Value.Path.ToString();
         var pos = path.IndexOf("sircle_", StringComparison.Ordinal);
         if (pos >= 0 && pos + 11 <= path.Length && int.TryParse(path.AsSpan(pos + 9, 2), out var inner))
+            return inner;
+
+        pos = path.IndexOf("sicle_", StringComparison.Ordinal);
+        if (pos >= 0 && pos + 10 <= path.Length && int.TryParse(path.AsSpan(pos + 8, 2), out inner))
             return inner;
 
         pos = path.IndexOf("circle", StringComparison.Ordinal);

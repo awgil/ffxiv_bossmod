@@ -258,8 +258,12 @@ public sealed class ModuleViewer : IDisposable
         Vector4 tintCol = filtered ? new(0.5f, 0.5f, 0.5f, 0.85f) : new(1);
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        if (Service.Texture.GetFromGameIcon(iconId).TryGetWrap(out var tex, out var _e))
+        if (Service.Texture.GetFromGameIcon(iconId).TryGetWrap(out var tex, out var ex))
+        {
             ImGui.Image(tex.ImGuiHandle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
+            if (ex != null)
+                Service.Logger.Warning(ex, $"unable to load icon {iconId}");
+        }
 
         ImGui.TableNextColumn();
         var c = ImGui.GetCursorPos();
