@@ -50,6 +50,37 @@ public enum AID : uint
     Peloton = ClassShared.AID.Peloton, // L20, instant, 5.0s CD (group 40), range 0, AOE 30 circle, targets=Self
     HeadGraze = ClassShared.AID.HeadGraze, // L24, instant, 30.0s CD (group 43), range 25, single-target, targets=Hostile
     ArmsLength = ClassShared.AID.ArmsLength, // L32, instant, 120.0s CD (group 48), range 0, single-target, targets=Self
+
+    #region PvP
+    BlastChargePvP = 29402,
+    ScattergunPvP = 29404,
+    DrillPvP = 29405,
+    BioblasterPvP = 29406,
+    AirAnchorPvP = 29407,
+    ChainSawPvP = 29408,
+    WildfirePvP = 29409,
+    BishopAutoturretPvP = 29412,
+    AetherMortarPvP = 29413,
+    AnalysisPvP = 29414,
+    BlazingShotPvP = 41468,
+    FullMetalFieldPvP = 41469,
+    DetonatorPvP = 41470,
+
+    //LB
+    MarksmansSpitePvP = 29415,
+
+    //Role
+    DervishPvP = ClassShared.AID.DervishPvP,
+    BraveryPvP = ClassShared.AID.BraveryPvP,
+    EagleEyeShotPvP = ClassShared.AID.EagleEyeShotPvP,
+
+    //Shared
+    ElixirPvP = ClassShared.AID.ElixirPvP,
+    RecuperatePvP = ClassShared.AID.RecuperatePvP,
+    PurifyPvP = ClassShared.AID.PurifyPvP,
+    GuardPvP = ClassShared.AID.GuardPvP,
+    SprintPvP = ClassShared.AID.SprintPvP
+    #endregion
 }
 
 public enum TraitID : uint
@@ -93,8 +124,36 @@ public enum SID : uint
     FullMetalMachinist = 3866, // applied by Hypercharge to self
     Tactician = 1951, // applied by Tactician to self
     Bioblaster = 1866, // applied by Bioblaster to target
+
     //Shared
     Peloton = ClassShared.SID.Peloton, // applied by Peloton to self/party
+
+    #region PvP
+    HeatPvP = 3148,
+    OverheatedPvP = 3149,
+    DrillPrimed = 3150,
+    BioblasterPrimed = 3151,
+    AirAnchorPrimed = 3152,
+    ChainSawPrimed = 3153,
+    AnalysisPvP = 3158,
+
+    //Role
+    DervishEquippedPvP = ClassShared.SID.DervishEquippedPvP,
+    BraveryEquippedPvP = ClassShared.SID.BraveryEquippedPvP,
+    EagleEyeShotEquippedPvP = ClassShared.SID.EagleEyeShotEquippedPvP,
+
+    //Shared
+    GuardPvP = ClassShared.SID.GuardPvP,
+    SprintPvP = ClassShared.SID.SprintPvP,
+    SilencePvP = ClassShared.SID.SilencePvP,
+    BindPvP = ClassShared.SID.BindPvP,
+    StunPvP = ClassShared.SID.StunPvP,
+    HalfAsleepPvP = ClassShared.SID.HalfAsleepPvP,
+    SleepPvP = ClassShared.SID.SleepPvP,
+    DeepFreezePvP = ClassShared.SID.DeepFreezePvP,
+    HeavyPvP = ClassShared.SID.HeavyPvP,
+    UnguardedPvP = ClassShared.SID.UnguardedPvP,
+    #endregion
 }
 
 public sealed class Definitions : IDisposable
@@ -136,6 +195,22 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Checkmate, true); // animLock=???
         d.RegisterSpell(AID.Excavator, true); // animLock=???
         d.RegisterSpell(AID.FullMetalField, true); // animLock=???
+
+        // PvP
+        d.RegisterSpell(AID.BlastChargePvP, true);
+        d.RegisterSpell(AID.ScattergunPvP, true);
+        d.RegisterSpell(AID.DrillPvP, true);
+        d.RegisterSpell(AID.BioblasterPvP, true);
+        d.RegisterSpell(AID.AirAnchorPvP, true);
+        d.RegisterSpell(AID.ChainSawPvP, true);
+        d.RegisterSpell(AID.WildfirePvP, true);
+        d.RegisterSpell(AID.BishopAutoturretPvP, true);
+        d.RegisterSpell(AID.AetherMortarPvP, true);
+        d.RegisterSpell(AID.AnalysisPvP, true);
+        d.RegisterSpell(AID.MarksmansSpitePvP, true);
+        d.RegisterSpell(AID.BlazingShotPvP, true);
+        d.RegisterSpell(AID.FullMetalFieldPvP, true);
+        d.RegisterSpell(AID.DetonatorPvP, true);
 
         Customize(d);
     }
