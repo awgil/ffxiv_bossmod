@@ -7,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
-    public enum Track { Scathe = SharedTrack.Buffs, Thunder, Leylines, Triplecast, Iainuki, Zeninage, LLMove }
+    public enum Track { Scathe = SharedTrack.Buffs, Thunder, Leylines, Triplecast, Iainuki, Zeninage, LLMove, TimeMage }
     public enum ScatheStrategy
     {
         Forbid,
@@ -61,7 +61,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             .AddAssociatedActions(AID.LeyLines, AID.Retrace, AID.BetweenTheLines);
 
         def.Define(Track.Triplecast).As<TriplecastStrategy>("TC", "Triplecast")
-            .AddOption(TriplecastStrategy.Automatic, "Automatic", "Use for instant fire/ice swaps, otherwise hold - NOT YET IMPLEMENTED")
+            .AddOption(TriplecastStrategy.Automatic, "Automatic", "Use for instant fire/ice swaps, otherwise hold")
             .AddOption(TriplecastStrategy.Delay, "Delay", "Don't use")
             .AddOption(TriplecastStrategy.Force, "Force", "Use ASAP", effect: 15, defaultPriority: DefaultOGCDPriority)
             .AddAssociatedActions(AID.Triplecast);
@@ -71,6 +71,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         def.AbilityTrack(Track.LLMove, "LLMove", "Allow automatic usage of Leylines while moving")
             .AddAssociatedActions(AID.LeyLines);
+
+        def.AbilityTrack(Track.TimeMage, "AutoTimeMage", "PTME: Use Occult Quick/Occult Comet on cooldown")
+            .AddAssociatedActions(PhantomID.OccultQuick, PhantomID.OccultComet);
 
         return def;
     }
@@ -278,6 +281,23 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
             if (ready <= GCD + GCDLength * 2)
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget.Actor, 8));
+        }
+
+        if (strategy.Enabled(Track.TimeMage))
+        {
+            if (DutyActionReadyIn(PhantomID.OccultQuick) <= GCD && (InLeyLines || CombatTimer > 10))
+                PushGCD((AID)PhantomID.OccultQuick, Player, GCDPriority.Max);
+
+            if ((CombatTimer > 10 || RaidBuffsLeft > GCD) && DutyActionReadyIn(PhantomID.OccultComet) <= GCD)
+            {
+                if (InstantCastLeft > GCD)
+                    PushGCD((AID)PhantomID.OccultComet, BestAOETarget, GCDPriority.Max);
+                else
+                {
+                    PushOGCD(AID.Swiftcast, Player);
+                    PushOGCD(AID.Triplecast, Player);
+                }
+            }
         }
 
         if (Polyglot < MaxPolyglot)

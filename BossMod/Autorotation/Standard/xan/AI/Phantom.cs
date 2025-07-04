@@ -106,6 +106,29 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         13927, // crescent dullahan
     ];
 
+    public static readonly uint[] UndesirableStatus = [
+        1706, // Evasion Up on Tower Scarab (hallways)
+        2556, // Magic Damage Up on Tower Abyss (bridges)
+        4539, // Invincibility on Guardian Knight (lockwards)
+        // 4458, // Armed to the Teeth on Guardian Weapon, can only be pilfered, not dispelled
+    ];
+
+    public static readonly uint[] SlowableMobs = [
+        0x35de,
+        0x35df,
+        0x35e0,
+        0x35e1,
+        0x35e2,
+        0x35e3,
+        0x35e4,
+        0x35e5,
+        0x35e6,
+        0x35e9,
+        0x35eb,
+        0x35ed,
+        0x35ef
+    ];
+
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (World.Client.CountdownRemaining > 0)
