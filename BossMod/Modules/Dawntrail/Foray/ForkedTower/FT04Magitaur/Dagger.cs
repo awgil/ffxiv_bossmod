@@ -28,7 +28,7 @@ class AssassinsDagger(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_AssassinsDagger1)
+        if ((AID)spell.Action.ID == AID.AssassinsDaggerCast)
         {
             var orientation = Angle.FromDirection(spell.LocXZ - caster.Position);
             var next = Module.CastFinishAt(spell);
@@ -44,7 +44,7 @@ class AssassinsDagger(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_AssassinsDagger1 or AID._Ability_AssassinsDagger2 or AID._Ability_AssassinsDagger3)
+        if ((AID)spell.Action.ID is AID.AssassinsDaggerCast or AID.AssassinsDaggerRepeat or AID.AssassinsDaggerRepeatFinal)
         {
             NumCasts++;
             var dir = Angle.FromDirection(spell.TargetXZ - caster.Position);
@@ -64,5 +64,5 @@ class AssassinsDagger(BossModule module) : Components.GenericAOEs(module)
 }
 
 // 12 hits, 10 degrees of rotation between each
-class Dagger1(BossModule module) : Components.ChargeAOEs(module, AID._Ability_AssassinsDagger1, 3);
-class Dagger2(BossModule module) : Components.DebugCasts(module, [AID._Ability_AssassinsDagger1, AID._Ability_AssassinsDagger2], new AOEShapeRect(0, 3, 32));
+class Dagger1(BossModule module) : Components.ChargeAOEs(module, AID.AssassinsDaggerCast, 3);
+class Dagger2(BossModule module) : Components.DebugCasts(module, [AID.AssassinsDaggerCast, AID.AssassinsDaggerRepeat], new AOEShapeRect(0, 3, 32));

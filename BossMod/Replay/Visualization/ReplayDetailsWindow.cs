@@ -41,7 +41,7 @@ class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1000, 1500) : new(1500, 1000))
+    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1100, 1500) : new(1500, 1000))
     {
         _player = new(data);
         _rotationDB = rotationDB;

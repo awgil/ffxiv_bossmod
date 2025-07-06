@@ -2,7 +2,7 @@
 
 namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
-class HolyLance(BossModule module) : Components.GenericAOEs(module, AID._Ability_2)
+class HolyLance(BossModule module) : Components.GenericAOEs(module, AID.LanceAppear)
 {
     private DateTime _activation;
 
@@ -39,7 +39,7 @@ class HolyLance(BossModule module) : Components.GenericAOEs(module, AID._Ability
 }
 
 // TODO: add hints to not clip other parties with outside-floor stack
-class HolyIV(BossModule module) : Components.StackWithIcon(module, (uint)IconID._Gen_Icon_com_share2i, AID._Ability_HolyIV, 6, 8);
+class HolyIV(BossModule module) : Components.StackWithIcon(module, (uint)IconID.HolyIV, AID.HolyIV, 6, 8);
 
 class PreyLancepoint(BossModule module) : BossComponent(module)
 {
@@ -49,7 +49,7 @@ class PreyLancepoint(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_PreyLancepoint)
+        if ((SID)status.ID == SID.PreyLancepoint)
         {
             var delay = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds;
             var order = delay switch
@@ -71,7 +71,7 @@ class PreyLancepoint(BossModule module) : BossComponent(module)
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_PreyLancepoint)
+        if ((SID)status.ID == SID.PreyLancepoint)
             Targets.RemoveAll(t => t.Actor == actor);
     }
 

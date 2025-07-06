@@ -38,11 +38,11 @@ class RuneAxe(BossModule module) : Components.GenericAOEs(module)
     {
         switch ((SID)status.ID)
         {
-            case SID._Gen_PreyLesserAxebit:
+            case SID.PreyLesserAxebit:
                 Spreads.Add(new(actor, 5, status.ExpireAt));
                 Spreads.SortBy(s => s.Activation);
                 break;
-            case SID._Gen_PreyGreaterAxebit:
+            case SID.PreyGreaterAxebit:
                 Spreads.Add(new(actor, 11, status.ExpireAt));
                 Spreads.SortBy(s => s.Activation);
                 break;
@@ -96,7 +96,7 @@ class RuneAxe(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_RuinousRune or AID._Ability_RuinousRune1)
+        if ((AID)spell.Action.ID is AID.RuinousRuneLarge or AID.RuinousRuneSmall)
         {
             NumCasts++;
             if (Spreads.Count > 0)

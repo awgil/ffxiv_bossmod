@@ -11,7 +11,7 @@ class FT04MagitaurStates : StateMachineBuilder
     {
         UnsealedAura(id, 10.1f);
         Unseal(id + 0x10000, 10.2f);
-        UnsealAutos(id + 0x10100, 8, count: 3);
+        UnsealAutos(id + 0x10100, 8.2f, count: 3);
         Daggers1(id + 0x20000, 1.7f);
         ForkedFury(id + 0x30000, 4.9f);
         UnsealAutos(id + 0x30100, 6, count: 2);
@@ -67,7 +67,7 @@ class FT04MagitaurStates : StateMachineBuilder
 
     private void Daggers1(uint id, float delay)
     {
-        CastStart(id, AID._Ability_AssassinsDagger, delay)
+        CastStart(id, AID.AssassinsDaggerBossCast, delay)
             .ActivateOnEnter<AssassinsDagger>();
 
         ComponentCondition<AssassinsDagger>(id + 1, 5, d => d.NumCasts >= 3, "Daggers start")
@@ -80,10 +80,10 @@ class FT04MagitaurStates : StateMachineBuilder
 
         CastStartMulti(id + 0x20, [AID.CriticalAxeblowCast, AID.CriticalLanceblowCast], 4);
 
-        ComponentCondition<AssassinsDagger>(id + 0x30, 4.1f, d => d.NumCasts >= 36, "Daggers end")
+        ComponentCondition<AssassinsDagger>(id + 0x30, 4, d => d.NumCasts >= 36, "Daggers end")
             .DeactivateOnExit<AssassinsDagger>();
 
-        ComponentCondition<CriticalCounter>(id + 0x40, 2.1f, c => c.NumCasts > 1, "Axe/lance 2")
+        ComponentCondition<CriticalCounter>(id + 0x40, 2.2f, c => c.NumCasts > 1, "Axe/lance 2")
             .DeactivateOnExit<CriticalCounter>()
             .DeactivateOnExit<CriticalAxeblow>()
             .DeactivateOnExit<CriticalLanceblow>();
@@ -91,14 +91,14 @@ class FT04MagitaurStates : StateMachineBuilder
 
     private void ForkedFury(uint id, float delay)
     {
-        Cast(id, AID._Ability_ForkedFury, delay, 4.5f).ActivateOnEnter<ForkedFury>();
+        Cast(id, AID.ForkedFuryCast, delay, 4.5f).ActivateOnEnter<ForkedFury>();
         ComponentCondition<ForkedFury>(id + 0x10, 0.6f, t => t.NumCasts > 0, "Tankbusters")
             .DeactivateOnExit<ForkedFury>();
     }
 
     private void Conduit(uint id, float delay)
     {
-        CastStartMulti(id, [AID._Ability_AuraBurst, AID._Ability_Holy], delay, "Conduits appear")
+        CastStartMulti(id, [AID.AuraBurstCast, AID.HolyCast], delay, "Conduits appear")
             .ActivateOnEnter<Conduit>()
             .ActivateOnEnter<ArcaneReaction>()
             .ActivateOnEnter<ArcaneRecoil>();
@@ -112,7 +112,7 @@ class FT04MagitaurStates : StateMachineBuilder
 
     private void SagesStaff(uint id, float delay)
     {
-        Cast(id, AID._Ability_SagesStaff, delay, 5)
+        Cast(id, AID.SagesStaff, delay, 5)
             .ActivateOnEnter<SagesStaff>();
 
         CastStartMulti(id + 0x10, [AID.CriticalAxeblowCast, AID.CriticalLanceblowCast], 3.4f)
@@ -148,12 +148,12 @@ class FT04MagitaurStates : StateMachineBuilder
 
         UnsealAutos(id + 0x10, 6, 3);
 
-        Cast(id + 0x100, AID._Ability_RuneAxe, 1.8f, 5)
+        Cast(id + 0x100, AID.RuneAxe, 1.8f, 5)
             .ActivateOnEnter<RuneAxe>();
 
-        ComponentCondition<RuneAxe>(id + 0x110, 20, r => r.ActiveSpreads.Any(), "Spreads appear");
+        ComponentCondition<RuneAxe>(id + 0x110, 1, r => r.ActiveSpreads.Any(), "Spreads appear");
 
-        ComponentCondition<RuneAxe>(id + 0x111, 9.2f, r => r.NumCasts > 0, "Spread 1");
+        ComponentCondition<RuneAxe>(id + 0x111, 9.1f, r => r.NumCasts > 0, "Spread 1");
 
         CastStartMulti(id + 0x120, [AID.CriticalAxeblowCast, AID.CriticalLanceblowCast], 0.1f)
             .ActivateOnEnter<CriticalCounter>()
@@ -176,7 +176,7 @@ class FT04MagitaurStates : StateMachineBuilder
         ComponentCondition<RuneAxe>(id + 0x140, 5.5f, r => r.NumCasts > 4, "Spreads 3")
             .DeactivateOnExit<RuneAxe>();
 
-        ForkedFury(id + 0x200, 7.3f);
+        ForkedFury(id + 0x200, 7.4f);
 
         ComponentCondition<UnsealAutos>(id + 0x300, 6, u => u.NumCasts > 0, "Autos 1")
             .ActivateOnEnter<UnsealAutos>();
@@ -189,7 +189,7 @@ class FT04MagitaurStates : StateMachineBuilder
         Unseal(id, delay, 2);
         UnsealAutos(id + 0x10, 6.3f, 3);
 
-        Cast(id + 0x100, AID._Ability_HolyLance, 1.6f, 5)
+        Cast(id + 0x100, AID.HolyLance, 1.6f, 5)
             .ActivateOnEnter<HolyLance>()
             .ActivateOnEnter<HolyIV>();
 
@@ -202,7 +202,7 @@ class FT04MagitaurStates : StateMachineBuilder
         ComponentCondition<CriticalCounter>(id + 0x121, 6.3f, c => c.NumCasts > 0, "Axe/lance 1")
             .ExecOnExit<HolyLance>(l => l.Enabled = true);
 
-        ComponentCondition<HolyLance>(id + 0x130, 3.6f, h => h.NumCasts > 0, "Outside 1");
+        ComponentCondition<HolyLance>(id + 0x130, 3.5f, h => h.NumCasts > 0, "Outside 1");
         ComponentCondition<HolyLance>(id + 0x131, 2, h => h.NumCasts > 1, "Platform 1 start");
         ComponentCondition<HolyIV>(id + 0x132, 2, h => h.NumFinishedStacks > 0, "Stacks 1");
         ComponentCondition<HolyLance>(id + 0x133, 2, h => h.NumCasts > 3, "Platform 1 end");
@@ -218,7 +218,7 @@ class FT04MagitaurStates : StateMachineBuilder
         ComponentCondition<HolyLance>(id + 0x13B, 2, h => h.NumCasts > 11, "Lances end")
             .DeactivateOnExit<HolyLance>();
 
-        ComponentCondition<CriticalCounter>(id + 0x150, 3, c => c.NumCasts > 1, "Axe/lance 2")
+        ComponentCondition<CriticalCounter>(id + 0x150, 2.7f, c => c.NumCasts > 1, "Axe/lance 2")
             .DeactivateOnExit<CriticalCounter>()
             .DeactivateOnExit<CriticalAxeblow>()
             .DeactivateOnExit<CriticalLanceblow>();
@@ -229,6 +229,6 @@ class FT04MagitaurStates : StateMachineBuilder
         UnsealedAura(id, delay);
         ForkedFury(id + 0x100, 4.2f);
         UnsealAutos(id + 0x200, 6.3f, 2);
-        Conduit(id + 0x300, 20);
+        Conduit(id + 0x300, 1.5f);
     }
 }

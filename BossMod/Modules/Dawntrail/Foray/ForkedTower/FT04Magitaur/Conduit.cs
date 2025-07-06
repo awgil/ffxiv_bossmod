@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
-class Conduit(BossModule module) : Components.CastCounterMulti(module, [AID._Ability_AuraBurst1, AID._Ability_Holy1])
+class Conduit(BossModule module) : Components.CastCounterMulti(module, [AID.AuraBurst, AID.HolyEnrage])
 {
     private uint _oid;
 
@@ -10,11 +10,11 @@ class Conduit(BossModule module) : Components.CastCounterMulti(module, [AID._Abi
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Ability_AuraBurst:
-                _oid = (uint)OID._Gen_AxeEmpowermentConduit;
+            case AID.AuraBurstCast:
+                _oid = (uint)OID.AxeEmpowermentConduit;
                 break;
-            case AID._Ability_Holy:
-                _oid = (uint)OID._Gen_LanceEmpowermentConduit;
+            case AID.HolyCast:
+                _oid = (uint)OID.LanceEmpowermentConduit;
                 break;
         }
     }
@@ -41,13 +41,13 @@ class Conduit(BossModule module) : Components.CastCounterMulti(module, [AID._Abi
     }
 }
 
-class ArcaneReaction(BossModule module) : Components.GenericBaitAway(module, AID._Ability_ArcaneReaction, damageType: AIHints.PredictedDamageType.Raidwide)
+class ArcaneReaction(BossModule module) : Components.GenericBaitAway(module, AID.ArcaneReaction, damageType: AIHints.PredictedDamageType.Raidwide)
 {
     private Actor? _source;
 
     public override void OnActorCreated(Actor actor)
     {
-        if (actor.OID == (uint)OID._Gen_UniversalEmpowermentConduit)
+        if (actor.OID == (uint)OID.UniversalEmpowermentConduit)
             _source = actor;
     }
 
@@ -91,7 +91,7 @@ class ArcaneReaction(BossModule module) : Components.GenericBaitAway(module, AID
     }
 }
 
-class ArcaneRecoil(BossModule module) : Components.CastCounter(module, AID._Ability_ArcaneRecoil)
+class ArcaneRecoil(BossModule module) : Components.CastCounter(module, AID.ArcaneRecoil)
 {
     public record struct Bait(Actor Source, Actor Target);
 
@@ -100,9 +100,9 @@ class ArcaneRecoil(BossModule module) : Components.CastCounter(module, AID._Abil
     public override void Update()
     {
         Baits.Clear();
-        foreach (var actor in Module.Enemies(OID._Gen_LanceEmpowermentConduit))
+        foreach (var actor in Module.Enemies(OID.LanceEmpowermentConduit))
             AddBaits(actor);
-        foreach (var actor in Module.Enemies(OID._Gen_AxeEmpowermentConduit))
+        foreach (var actor in Module.Enemies(OID.AxeEmpowermentConduit))
             AddBaits(actor);
     }
 

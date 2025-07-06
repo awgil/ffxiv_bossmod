@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
-class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID._Ability_Attack1, AID._Ability_Attack3])
+class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.AutoAttackLance, AID.AutoAttackAxe])
 {
     public enum Weapon
     {
@@ -87,7 +87,7 @@ class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_Unsealed)
+        if ((SID)status.ID == SID.Unsealed)
         {
             if (status.Extra == 0x353)
                 CurrentWeapon = Weapon.Axe;
@@ -101,7 +101,7 @@ class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => AllTargets.Contains(player) ? PlayerPriority.Danger : PlayerPriority.Normal;
 }
 
-class ForkedFury(BossModule module) : Components.CastCounter(module, AID._Ability_ForkedFury1)
+class ForkedFury(BossModule module) : Components.CastCounter(module, AID.ForkedFury)
 {
     record struct Bait(Actor? Close, Actor? Far);
 
@@ -134,7 +134,7 @@ class ForkedFury(BossModule module) : Components.CastCounter(module, AID._Abilit
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_ForkedFury)
+        if ((AID)spell.Action.ID == AID.ForkedFuryCast)
             _activation = Module.CastFinishAt(spell);
     }
 

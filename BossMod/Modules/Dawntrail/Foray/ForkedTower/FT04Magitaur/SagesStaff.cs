@@ -2,7 +2,7 @@
 
 namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
-class SagesStaff(BossModule module) : Components.MultiLineStack(module, 2, 40, (AID)0, AID._Ability_ManaExpulsion, 11.3f)
+class SagesStaff(BossModule module) : Components.MultiLineStack(module, 2, 40, (AID)0, AID.ManaExpulsion, 11.3f)
 {
     private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
     private readonly List<(Actor Actor, int Group3)> _sources = [];
@@ -13,7 +13,7 @@ class SagesStaff(BossModule module) : Components.MultiLineStack(module, 2, 40, (
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if ((OID)actor.OID == OID._Gen_SagesStaff && id == 0x11D4)
+        if ((OID)actor.OID == OID.SagesStaff && id == 0x11D4)
         {
             var alliance = 0;
 
