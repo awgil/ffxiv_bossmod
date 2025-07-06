@@ -93,7 +93,7 @@ class FT03MarbleDragonStates : StateMachineBuilder
     {
         CastStart(id, AID.WitheringEternity, delay);
 
-        ActorTargetable(id + 0x10, () => Module.PrimaryActor, false, 7f, "Boss disappears + adds appear")
+        ActorTargetable(id + 0x10, () => Module.PrimaryActor, false, 7, "Boss disappears + adds appear")
             .ActivateOnEnter<ImitationRain>()
             .ActivateOnEnter<Golem>();
 
@@ -145,7 +145,7 @@ class FT03MarbleDragonStates : StateMachineBuilder
 
     private void Rain3(uint id, float delay)
     {
-        Cast(id, AID.WickedWater, delay, 4, "wicked water")
+        Cast(id, AID.WickedWater, delay, 4)
             .ActivateOnEnter<ImitationBlizzard3>();
 
         Cast(id + 0x10, AID.ImitationIcicle, 6.3f, 3);
