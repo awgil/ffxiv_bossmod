@@ -274,12 +274,12 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Retrieves the <b>current HP percentage</b> of a specified actor.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
-    protected static float TargetHPP(Actor? actor = null)
+    protected float TargetHPP(Actor? actor = null)
     {
         if (actor is null || actor.IsDead)
             return 0f;
 
-        var HPP = (float)actor.HPMP.CurHP / actor.HPMP.MaxHP * 100f;
+        var HPP = (actor.HPMP.CurHP / actor.HPMP.MaxHP) * 100f;
         return Math.Clamp(HPP, 0f, 100f);
     }
     #endregion
@@ -519,7 +519,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected void GetPvPTarget(float range)
     {
         var bestTarget = Hints.PriorityTargets
-            .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.Guard) == null)
+            .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null)
             .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
             .FirstOrDefault();
         Hints.ForcedTarget = bestTarget?.Actor;
