@@ -30,7 +30,7 @@ class HissatsuKyuten(BossModule module) : Components.StandardAOEs(module, AID.Hi
 class TenkaGoken(BossModule module) : Components.StandardAOEs(module, AID.TenkaGoken, new AOEShapeCone(8.5f, 60.Degrees()));
 class ShinGetsubaku(BossModule module) : Components.StandardAOEs(module, AID.ShinGetsubaku, 6);
 class ShinGetsubakuVoidzone(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Voidzone).Where(e => e.EventState != 7));
-class MijinGiri(BossModule module) : Components.StandardAOEs(module, AID.MijinGiri, new AOEShapeRect(80, 5, 2));
+class MijinGiri(BossModule module) : Components.StandardAOEs(module, AID.MijinGiri, new AOEShapeRect(80, 5));
 class Ugetsuzan(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeDonutSector(2, 7, 90.Degrees()), new AOEShapeDonutSector(7, 12, 90.Degrees()), new AOEShapeDonutSector(12, 17, 90.Degrees())])
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

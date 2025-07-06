@@ -20,8 +20,8 @@ public enum AID : uint
     LozatlsFuryB = 15503, // 27AF->self, 4.0s cast, range 60 width 20 rect
 }
 
-class LozatlsFuryA(BossModule module) : Components.StandardAOEs(module, AID.LozatlsFuryA, new AOEShapeRect(60, 20, 0, 90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
-class LozatlsFuryB(BossModule module) : Components.StandardAOEs(module, AID.LozatlsFuryB, new AOEShapeRect(60, 20, 0, -90.Degrees())); // TODO: verify; there should not be an offset in reality here..., also double halfwidth is strange
+class LozatlsFuryA(BossModule module) : Components.StandardAOEs(module, AID.LozatlsFuryA, new AOEShapeRect(60, 20));
+class LozatlsFuryB(BossModule module) : Components.StandardAOEs(module, AID.LozatlsFuryB, new AOEShapeRect(60, 20));
 class Stonefist(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Stonefist);
 class LozatlsScorn(BossModule module) : Components.RaidwideCast(module, AID.LozatlsScorn);
 class SunToss(BossModule module) : Components.StandardAOEs(module, AID.SunToss, 5);

@@ -39,7 +39,7 @@ public enum IconID : uint
 }
 
 class HeavingHaymaker(BossModule module) : Components.RaidwideCast(module, AID.HeavingHaymakerAOE);
-class LithicImpact(BossModule module) : Components.StandardAOEs(module, AID.LithicImpact, new AOEShapeRect(2, 2, 2));
+class LithicImpact(BossModule module) : Components.StandardAOEs(module, AID.LithicImpact, new AOEShapeRect(4, 2));
 
 class Allfire(BossModule module) : Components.GenericAOEs(module)
 {

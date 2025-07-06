@@ -1,5 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
 public enum OID : uint
 {

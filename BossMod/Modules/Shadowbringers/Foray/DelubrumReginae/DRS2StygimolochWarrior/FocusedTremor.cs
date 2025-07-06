@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS2StygimolochWarrior;
 
-class FocusedTremorLarge(BossModule module) : Components.StandardAOEs(module, AID.FocusedTremorAOELarge, new AOEShapeRect(10, 10, 10), 2);
+class FocusedTremorLarge(BossModule module) : Components.StandardAOEs(module, AID.FocusedTremorAOELarge, new AOEShapeRect(20, 10), 2);
 class ForcefulStrike(BossModule module) : Components.StandardAOEs(module, AID.ForcefulStrike, new AOEShapeRect(44, 24));
 
 // combined with flailing strike, first bait should be into first square
 class FocusedTremorSmall : Components.StandardAOEs
 {
-    public FocusedTremorSmall(BossModule module) : base(module, AID.FocusedTremorAOESmall, new AOEShapeRect(5, 5, 5), 1)
+    public FocusedTremorSmall(BossModule module) : base(module, AID.FocusedTremorAOESmall, new AOEShapeRect(10, 5), 1)
     {
         Color = ArenaColor.SafeFromAOE;
         Risky = false;

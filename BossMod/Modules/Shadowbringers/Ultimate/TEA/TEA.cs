@@ -6,7 +6,7 @@ class P1Sluice(BossModule module) : Components.StandardAOEs(module, AID.Sluice, 
 class P1Splash(BossModule module) : Components.CastCounter(module, AID.Splash);
 class P1Drainage(BossModule module) : Components.TankbusterTether(module, AID.DrainageP1, (uint)TetherID.Drainage, 6);
 class P2JKick(BossModule module) : Components.CastCounter(module, AID.JKick);
-class P2EyeOfTheChakram(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheChakram, new AOEShapeRect(73, 3, 3));
+class P2EyeOfTheChakram(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheChakram, new AOEShapeRect(73, 3));
 class P2HawkBlasterOpticalSight(BossModule module) : Components.StandardAOEs(module, AID.HawkBlasterP2, 10);
 class P2Photon(BossModule module) : Components.CastCounter(module, AID.PhotonAOE);
 class P2SpinCrusher(BossModule module) : Components.StandardAOEs(module, AID.SpinCrusher, new AOEShapeCone(10, 45.Degrees()));

@@ -86,7 +86,7 @@ class Touchdown(BossModule module) : Components.StandardAOEs(module, AID.Touchdo
 class PillarImpact(BossModule module) : Components.StandardAOEs(module, AID.PillarImpact, new AOEShapeCircle(7));
 class PillarPierce(BossModule module) : Components.StandardAOEs(module, AID.PillarPierce, new AOEShapeRect(65, 4));
 class AncientAevis(BossModule module) : Components.Adds(module, (uint)OID.AncientAevis);
-class HeadlongRush(BossModule module) : Components.StandardAOEs(module, AID.HeadlongRush, new AOEShapeRect(13.2f, 5, 4.2f));
+class HeadlongRush(BossModule module) : Components.StandardAOEs(module, AID.HeadlongRush, new AOEShapeRect(25.15f, 5));
 class Aether(BossModule module) : Components.Adds(module, (uint)OID.Aether);
 
 class ArchaeotaniaStates : StateMachineBuilder

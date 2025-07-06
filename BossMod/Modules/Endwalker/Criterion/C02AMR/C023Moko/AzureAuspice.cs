@@ -4,7 +4,7 @@ class AzureAuspice(BossModule module, AID aid) : Components.StandardAOEs(module,
 class NAzureAuspice(BossModule module) : AzureAuspice(module, AID.NAzureAuspice);
 class SAzureAuspice(BossModule module) : AzureAuspice(module, AID.SAzureAuspice);
 
-class BoundlessAzure(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(30, 5, 30));
+class BoundlessAzure(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(60, 5));
 class NBoundlessAzure(BossModule module) : BoundlessAzure(module, AID.NBoundlessAzureAOE);
 class SBoundlessAzure(BossModule module) : BoundlessAzure(module, AID.SBoundlessAzureAOE);
 

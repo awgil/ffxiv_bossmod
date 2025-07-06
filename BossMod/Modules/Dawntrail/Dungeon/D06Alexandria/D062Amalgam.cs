@@ -42,7 +42,7 @@ class Electrowave(BossModule module) : Components.RaidwideCast(module, AID.Elect
 class Disassembly(BossModule module) : Components.RaidwideCast(module, AID.Disassembly);
 class SupercellMatrix(BossModule module) : Components.StandardAOEs(module, AID.SupercellMatrix, new AOEShapeRect(28.2843f, 28.2843f));
 class SupercellMatrixRect(BossModule module) : Components.StandardAOEs(module, AID.SupercellMatrixRect, new AOEShapeRect(55, 4));
-class CentralizedCurrent(BossModule module) : Components.StandardAOEs(module, AID.CentralizedCurrent, new AOEShapeRect(45, 7.5f, 45));
+class CentralizedCurrent(BossModule module) : Components.StandardAOEs(module, AID.CentralizedCurrent, new AOEShapeRect(90, 7.5f));
 
 class SplitCurrent(BossModule module) : Components.GenericAOEs(module, AID.SplitCurrent)
 {

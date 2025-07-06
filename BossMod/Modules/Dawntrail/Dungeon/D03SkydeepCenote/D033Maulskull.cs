@@ -180,8 +180,8 @@ class DestructiveBuildingHeat(BossModule module) : Components.CastStackSpread(mo
 
 class Landing(BossModule module) : Components.StandardAOEs(module, AID.Landing, 8);
 class ShatterCenter(BossModule module) : Components.StandardAOEs(module, AID.ShatterCenter, new AOEShapeRect(40, 10));
-class ShatterSideR(BossModule module) : Components.StandardAOEs(module, AID.ShatterSideR, new AOEShapeRect(45, 11, 5));
-class ShatterSideL(BossModule module) : Components.StandardAOEs(module, AID.ShatterSideL, new AOEShapeRect(45, 11, 5));
+class ShatterSideR(BossModule module) : Components.StandardAOEs(module, AID.ShatterSideR, new AOEShapeRect(45, 11));
+class ShatterSideL(BossModule module) : Components.StandardAOEs(module, AID.ShatterSideL, new AOEShapeRect(45, 11));
 
 class DeepThunder(BossModule module) : Components.GenericTowers(module)
 {

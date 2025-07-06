@@ -23,7 +23,7 @@ class SunforgeSidesHint(BossModule module) : Components.CastHint(module, AID.Sun
     }
 }
 
-class SunforgeCenter(BossModule module) : Components.StandardAOEs(module, AID.ScorchingFang, new AOEShapeRect(21, 7, 21));
-class SunforgeSides(BossModule module) : Components.StandardAOEs(module, AID.SunsPinion, new AOEShapeRect(21, 21, -7));
+class SunforgeCenter(BossModule module) : Components.StandardAOEs(module, AID.ScorchingFang, new AOEShapeRect(42, 7));
+class SunforgeSides(BossModule module) : Components.StandardAOEs(module, AID.SunsPinion, new AOEShapeRect(14, 21));
 class SunforgeCenterIntermission(BossModule module) : Components.StandardAOEs(module, AID.ScorchingFangIntermission, new AOEShapeRect(42, 7));
-class SunforgeSidesIntermission(BossModule module) : Components.StandardAOEs(module, AID.ScorchedPinion, new AOEShapeRect(21, 42, -7));
+class SunforgeSidesIntermission(BossModule module) : Components.StandardAOEs(module, AID.ScorchedPinion, new AOEShapeRect(14, 42));

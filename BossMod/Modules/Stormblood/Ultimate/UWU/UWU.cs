@@ -15,9 +15,9 @@ class P4Blight(BossModule module) : Components.CastCounter(module, AID.Blight);
 class P4HomingLasers(BossModule module) : Components.SpreadFromCastTargets(module, AID.HomingLasers, 4);
 class P4DiffractiveLaser(BossModule module) : Components.Cleave(module, AID.DiffractiveLaser, new AOEShapeCone(18, 45.Degrees()), (uint)OID.UltimaWeapon); // TODO: verify angle
 class P5MistralSongCone(BossModule module) : Components.StandardAOEs(module, AID.MistralSongCone, new AOEShapeCone(21.7f, 75.Degrees()));
-class P5AetherochemicalLaserCenter(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserCenter, new AOEShapeRect(46, 4, 6));
-class P5AetherochemicalLaserRight(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserRight, new AOEShapeRect(46, 4, 6));
-class P5AetherochemicalLaserLeft(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserLeft, new AOEShapeRect(46, 4, 6));
+class P5AetherochemicalLaserCenter(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserCenter, new AOEShapeRect(46, 4));
+class P5AetherochemicalLaserRight(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserRight, new AOEShapeRect(46, 4));
+class P5AetherochemicalLaserLeft(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserLeft, new AOEShapeRect(46, 4));
 class P5LightPillar(BossModule module) : Components.StandardAOEs(module, AID.LightPillarAOE, 3); // TODO: consider showing circle around baiter
 class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AethericBoom, 10);
 

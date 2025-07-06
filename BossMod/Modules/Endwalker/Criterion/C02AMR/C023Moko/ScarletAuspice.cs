@@ -4,11 +4,11 @@ class ScarletAuspice(BossModule module, AID aid) : Components.StandardAOEs(modul
 class NScarletAuspice(BossModule module) : ScarletAuspice(module, AID.NScarletAuspice);
 class SScarletAuspice(BossModule module) : ScarletAuspice(module, AID.SScarletAuspice);
 
-class BoundlessScarletFirst(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(30, 5, 30));
+class BoundlessScarletFirst(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(60, 5));
 class NBoundlessScarletFirst(BossModule module) : BoundlessScarletFirst(module, AID.NBoundlessScarletAOE);
 class SBoundlessScarletFirst(BossModule module) : BoundlessScarletFirst(module, AID.SBoundlessScarletAOE);
 
-class BoundlessScarletRest(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(30, 15, 30), 2);
+class BoundlessScarletRest(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(60, 15), 2);
 class NBoundlessScarletRest(BossModule module) : BoundlessScarletRest(module, AID.NBoundlessScarletExplosion);
 class SBoundlessScarletRest(BossModule module) : BoundlessScarletRest(module, AID.SBoundlessScarletExplosion);
 

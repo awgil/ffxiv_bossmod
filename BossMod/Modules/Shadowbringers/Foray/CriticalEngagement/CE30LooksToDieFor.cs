@@ -70,7 +70,7 @@ class LightningBoltDistantClap(BossModule module) : Components.GenericAOEs(modul
     }
 }
 
-class TwistingWinds(BossModule module) : Components.StandardAOEs(module, AID.TwistingWinds, new AOEShapeRect(40, 5, 40));
+class TwistingWinds(BossModule module) : Components.StandardAOEs(module, AID.TwistingWinds, new AOEShapeRect(80, 5));
 
 class CloudToGround(BossModule module) : Components.Exaflare(module, 5)
 {

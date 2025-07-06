@@ -41,7 +41,7 @@ public enum AID : uint
     SMountainBreeze = 34442, // SYamabiko->self, 6.0s cast, range 40 width 8 rect
 }
 
-class MountainBreeze(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(38, 4, 2));
+class MountainBreeze(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(40, 4));
 class NMountainBreeze(BossModule module) : MountainBreeze(module, AID.NMountainBreeze);
 class SMountainBreeze(BossModule module) : MountainBreeze(module, AID.SMountainBreeze);
 
