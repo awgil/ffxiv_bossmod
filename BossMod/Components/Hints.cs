@@ -27,7 +27,7 @@ class InvincibleStatus(BossModule module, uint statusId, string hint = "Attackin
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if (status.ID == statusId)
+        if (status.ID == statusId && !_actors.Contains(actor))
             _actors.Add(actor);
     }
 

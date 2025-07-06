@@ -125,6 +125,7 @@ class FT02DeadStarsStates : StateMachineBuilder
             .DeactivateOnExit<NoisomeNuisance>();
         ActorTargetable(id + 0x20, _module.Enemies(OID.FrozenTriton).FirstOrDefault, true, 0.5f, "Snowballs appear")
             .ActivateOnEnter<SnowballAdds>()
+            .ActivateOnEnter<IceboundBuffoonery>()
             .ActivateOnEnter<SnowBoulder>();
 
         ComponentCondition<SnowBoulder>(id + 0x100, 14, s => s.NumCasts > 0, "Charges 1");
@@ -147,6 +148,7 @@ class FT02DeadStarsStates : StateMachineBuilder
         ActorCastStart(id + 0x230, _module.Nereid, AID.ToTheWinds1, 5.3f, true, "Snowball enrage start");
         ActorCastEnd(id + 0x231, _module.Nereid, 13, true, "Snowballs enrage")
             .DeactivateOnExit<SnowballAdds>()
+            .DeactivateOnExit<IceboundBuffoonery>()
             .DeactivateOnExit<SelfDestruct>();
     }
 

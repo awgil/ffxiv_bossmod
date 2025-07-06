@@ -2,7 +2,7 @@
 
 class SnowballAdds(BossModule module) : Components.AddsMulti(module, [OID.FrozenPhobos, OID.FrozenTriton], 2);
 
-class SnowBoulderHelper(BossModule module) : Components.ChargeAOEs(module, AID.SnowBoulderCast, 5);
+class IceboundBuffoonery(BossModule module) : Components.InvincibleStatus(module, (uint)SID.IceboundBuffoonery);
 
 class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBoulder)
 {
