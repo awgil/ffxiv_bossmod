@@ -90,7 +90,7 @@ static class AssignmentUtil
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13760)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13760, PlanLevel = 100)]
 public class FT01DemonTablet(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsRect(15, 33))
 {
     public static readonly WPos ArenaCenter = new(700, 379);
