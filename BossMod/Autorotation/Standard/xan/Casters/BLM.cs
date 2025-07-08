@@ -66,13 +66,13 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             .AddOption(TriplecastStrategy.Force, "Force", "Use ASAP", effect: 15, defaultPriority: DefaultOGCDPriority)
             .AddAssociatedActions(AID.Triplecast);
 
-        def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki on cooldown");
-        def.AbilityTrack(Track.Zeninage, "Zeninage", "PSAM: Use Zeninage under raid buffs (costs 10,000 gil)");
+        def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki on cooldown", uiPriority: -10);
+        def.AbilityTrack(Track.Zeninage, "Zeninage", "PSAM: Use Zeninage under raid buffs (costs 10,000 gil)", uiPriority: -10);
 
         def.AbilityTrack(Track.LLMove, "LLMove", "Allow automatic usage of Leylines while moving")
             .AddAssociatedActions(AID.LeyLines);
 
-        def.AbilityTrack(Track.TimeMage, "AutoTimeMage", "PTME: Use Occult Quick/Occult Comet on cooldown")
+        def.AbilityTrack(Track.TimeMage, "AutoTimeMage", "PTME: Use Occult Quick/Occult Comet on cooldown", uiPriority: -10)
             .AddAssociatedActions(PhantomID.OccultQuick, PhantomID.OccultComet);
 
         return def;
