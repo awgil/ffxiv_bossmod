@@ -13,6 +13,7 @@ public class PhantomUtility(RotationModuleManager manager, Actor player) : Gener
         Bell,
         RomeosBallad,
         MightyMarch,
+        Predict,
         Rejuvenation,
         Invuln
     }
@@ -28,6 +29,7 @@ public class PhantomUtility(RotationModuleManager manager, Actor player) : Gener
         DefineSimpleConfig(def, Track.Bell, "BattleBell", "Bell", -10, PhantomID.BattleBell, 60);
         DefineSimpleConfig(def, Track.RomeosBallad, "Romeo", "Romeo", -10, PhantomID.RomeosBallad, 3);
         DefineSimpleConfig(def, Track.MightyMarch, "MightyMarch", "March", -10, PhantomID.MightyMarch, 30);
+        DefineSimpleConfig(def, Track.Predict, "Predict", "Predict", -10, PhantomID.Predict, 16, ActionQueue.Priority.VeryHigh - 10);
         DefineSimpleConfig(def, Track.Rejuvenation, "Rejuvenation", "Rejuv", -10, PhantomID.PhantomRejuvenation, 20);
         DefineSimpleConfig(def, Track.Invuln, "Invulnerability", "Invuln", -10, PhantomID.Invulnerability, 8);
 
@@ -45,6 +47,7 @@ public class PhantomUtility(RotationModuleManager manager, Actor player) : Gener
         ExecutePhantom(strategy.Option(Track.Bell), PhantomID.BattleBell, Player);
         ExecutePhantom(strategy.Option(Track.RomeosBallad), PhantomID.RomeosBallad, Player);
         ExecutePhantom(strategy.Option(Track.MightyMarch), PhantomID.MightyMarch, Player);
+        ExecutePhantom(strategy.Option(Track.Predict), PhantomID.Predict, Player);
         ExecutePhantom(strategy.Option(Track.Rejuvenation), PhantomID.PhantomRejuvenation, Player);
         ExecutePhantom(strategy.Option(Track.Invuln), PhantomID.Invulnerability, cotank);
     }
