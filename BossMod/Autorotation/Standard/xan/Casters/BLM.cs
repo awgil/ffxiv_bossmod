@@ -90,6 +90,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     public bool Thunderhead;
     public bool Firestarter;
     public bool InLeyLines;
+    public bool HaveLeyLines;
 
     public int Fire => Math.Max(0, Element);
     public int Ice => Math.Max(0, -Element);
@@ -214,6 +215,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         Thunderhead = Player.FindStatus(SID.Thunderhead) != null;
         Firestarter = Player.FindStatus(SID.Firestarter) != null;
         InLeyLines = Player.FindStatus(SID.CircleOfPower) != null;
+        HaveLeyLines = Player.FindStatus(SID.LeyLines) != null;
 
         for (var i = 0; i < Hints.Enemies.Length; i++)
             EnemyDotTimers[i] = CalculateDotTimer(Hints.Enemies[i]?.Actor);
@@ -238,6 +240,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         {
             if (CountdownRemaining < GetCastTime(AID.Fire3))
                 PushGCD(AID.Fire3, primaryTarget, GCDPriority.Standard);
+
+            if (strategy.Option(Track.Leylines).As<LeylinesStrategy>() == LeylinesStrategy.Force && !HaveLeyLines)
+                PushAction(AID.LeyLines, Player, strategy.Option(Track.Leylines).Priority(), 0);
 
             return;
         }
