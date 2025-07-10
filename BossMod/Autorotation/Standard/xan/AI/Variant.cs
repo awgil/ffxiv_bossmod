@@ -64,9 +64,7 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase(man
         };
 
         if (canUse && TryFindAction([ClassShared.AID.VariantCure1, ClassShared.AID.VariantCure2], out var act2))
-        {
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(act2), Player, opt.Priority(ActionQueue.Priority.High + 500));
-        }
     }
 
     private bool TryFindAction(ClassShared.AID[] actions, out ClassShared.AID result)
