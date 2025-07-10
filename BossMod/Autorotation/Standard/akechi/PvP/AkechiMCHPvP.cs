@@ -72,7 +72,7 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         AnalysisStrategy.BBCS => (HasEffect(SID.BioblasterPrimed) && CDRemaining(AID.BioblasterPvP) <= 11f) || (HasEffect(SID.ChainSawPrimed) && CDRemaining(AID.ChainSawPvP) <= 11f),
         _ => false
     };
-    private bool ShouldUseLB(StrategyValues strategy, Actor? target) => LBready && strategy.Option(Track.LimitBreak).As<LBStrategy>() switch
+    private bool ShouldUseLB(StrategyValues strategy, Actor? target) => LBready && target != null && target.NameID is 0 or 541 && strategy.Option(Track.LimitBreak).As<LBStrategy>() switch
     {
         LBStrategy.ASAP => true,
         LBStrategy.LessThan70 => TargetHPP(target) < 70,

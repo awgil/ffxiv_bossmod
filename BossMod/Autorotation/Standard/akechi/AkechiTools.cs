@@ -518,9 +518,14 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="range">The <b>max range</b> to consider a new target.</param>
     protected void GetPvPTarget(float range)
     {
+        //TODO: add LoS
         var bestTarget = Hints.PriorityTargets
-            .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null)
-            .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
+            .Where(x =>
+                    //Player.IsInLineOfSight(x.Actor) && //in line of sight
+                    Player.DistanceToHitbox(x.Actor) <= range && //in range
+                    x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null && //no Guard up
+                    x.Actor.NameID is 0 or 541) //players or striking dummies
+            .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP) //from lowest to highest HP percentage
             .FirstOrDefault();
         Hints.ForcedTarget = bestTarget?.Actor;
     }
