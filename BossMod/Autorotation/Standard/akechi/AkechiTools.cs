@@ -523,8 +523,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             .Where(x =>
                     //Player.IsInLineOfSight(x.Actor) && //in line of sight
                     Player.DistanceToHitbox(x.Actor) <= range && //in range
-                    x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null && //no Guard up
-                    x.Actor.NameID is 0 or 541) //players or striking dummies
+                    x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null) //no Guard up
             .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP) //from lowest to highest HP percentage
             .FirstOrDefault();
         Hints.ForcedTarget = bestTarget?.Actor;
