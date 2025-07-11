@@ -12,16 +12,17 @@ public enum AID : uint
     AngelsSnack = 23272, // L1, 2.0s cast, 120.0s CD (group 15/57), range 0, AOE 20 circle, targets=Self
     FeculentFlood = 23271, // L1, 2.0s cast, GCD, range 20, AOE 20+R width 4 rect, targets=Hostile
     SaintlyBeam = 23270, // L1, 2.0s cast, GCD, range 25, AOE 6 circle, targets=Hostile
-    Stotram1 = 23269, // L1, 2.0s cast, GCD, range 0, AOE 15 circle, targets=Self
+    StotramDamage = 23269, // L1, 2.0s cast, GCD, range 0, AOE 15 circle, targets=Self
+    StotramHeal = 23416, // L1, 2.0s cast, GCD, range 0, AOE 15 circle, targets=Self
     WhiteDeath = 23268, // L1, instant, GCD, range 25, single-target, targets=Hostile
     ColdFog = 23267, // L1, 2.0s cast, 90.0s CD (group 11/57), range 0, single-target, targets=Self
     TatamiGaeshi = 23266, // L1, 2.0s cast, GCD, range 20, AOE 20+R width 5 rect, targets=Hostile
     Tingle = 23265, // L1, 2.0s cast, GCD, range 20, AOE 6 circle, targets=Hostile
     TripleTrident = 23264, // L1, 2.0s cast, 90.0s CD (group 10/57), range 3, single-target, targets=Hostile
-    AethericMimicryReleaseHealer = 19240, // L1, instant, GCD, range 0, single-target, targets=Self
-    AethericMimicryReleaseDPS = 19239, // L1, instant, GCD, range 0, single-target, targets=Self
-    BasicInstinct = 23276, // L1, 2.0s cast, GCD, range 0, single-target, targets=Self
     AethericMimicryReleaseTank = 19238, // L1, instant, GCD, range 0, single-target, targets=Self
+    AethericMimicryReleaseDPS = 19239, // L1, instant, GCD, range 0, single-target, targets=Self
+    AethericMimicryReleaseHealer = 19240, // L1, instant, GCD, range 0, single-target, targets=Self
+    BasicInstinct = 23276, // L1, 2.0s cast, GCD, range 0, single-target, targets=Self
     Quasar = 18324, // L1, instant, 60.0s CD (group 6), range 0, AOE 15 circle, targets=Self
     Surpanakha = 18323, // L1, instant, 30.0s CD (group 13/70) (4 charges), range 0, AOE 16+R ?-degree cone, targets=Self
     AethericMimicry = 18322, // L1, 1.0s cast, GCD, range 25, single-target, targets=Party/Alliance/Friendly
@@ -58,10 +59,9 @@ public enum AID : uint
     Rehydration = 34566, // L1, 5.0s cast, GCD, range 0, single-target, targets=Self
     RightRound = 34564, // L1, 2.0s cast, GCD, range 0, AOE 8 circle, targets=Self
     GoblinPunch = 34563, // L1, instant, GCD, range 3, single-target, targets=Hostile
-    Stotram2 = 23416, // L1, 2.0s cast, GCD, range 0, AOE 15 circle, targets=Self
     Nightbloom = 23290, // L1, instant, 120.0s CD (group 18), range 0, AOE 10 circle, targets=Self
-    PhantomFlurryEnd = 23289, // L1, instant, GCD, range 0, AOE 16+R ?-degree cone, targets=Self
     PhantomFlurry = 23288, // L1, instant, 120.0s CD (group 17), range 0, AOE 8+R ?-degree cone, targets=Self
+    PhantomFlurryEnd = 23289, // L1, instant, GCD, range 0, AOE 16+R ?-degree cone, targets=Self
     BothEnds = 23287, // L1, instant, 120.0s CD (group 18), range 0, AOE 20 circle, targets=Self
     PeripheralSynthesis = 23286, // L1, 2.0s cast, GCD, range 20, AOE 20+R width 4 rect, targets=Hostile
     MatraMagic = 23285, // L1, 2.0s cast, 120.0s CD (group 15/57), range 25, single-target, targets=Hostile
@@ -159,19 +159,24 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
-    BasicInstinct = 2498, // applied by Basic Instinct to self
-    SurpanakhasFury = 2130, // applied by Surpanakha to self
-    HPBoost = 2120, // applied by Devour to self
-    BreathOfMagic = 3712, // applied by Breath of Magic to target
-    Bleeding = 1714, // applied by Nightbloom to target
-    PhantomFlurry = 2502, // applied by Phantom Flurry to self
-    Boost = 1716, // applied by Bristle to self
-    DeepFreeze = 1731, // applied by the Ram's Voice to target
-    Windburn = 1723, // applied by Feather Rain to target
-    LucidDreaming = 1204, // applied by Lucid Dreaming to self
     Swiftcast = 167, // applied by Swiftcast to self
-    SpickAndSpan = 3637,
+    LucidDreaming = 1204, // applied by Lucid Dreaming to self
+    Bleeding = 1714, // applied by Nightbloom to target
+    Boost = 1716, // applied by Bristle to self
     MightyGuard = 1719, // applied by Mighty Guard to self
+    Windburn = 1723, // applied by Feather Rain to target
+    DeepFreeze = 1731, // applied by the Ram's Voice to target
+    HPBoost = 2120, // applied by Devour to self
+    SurpanakhasFury = 2130, // applied by Surpanakha to self
+    ChelonianGate = 2496, // applied by Chelonian Gate to self
+    AuspiciousTrance = 2497, // applied by Chelonian Gate to self
+    BasicInstinct = 2498, // applied by Basic Instinct to self
+    PhantomFlurry = 2502, // applied by Phantom Flurry to self
+    Begrimed = 3636, // applied by Peat Pelt to targets
+    SpickAndSpan = 3637, // applied by Deep Clean to self
+    MortalFlame = 3643, // applied by Mortal Flame to target
+    BreathOfMagic = 3712, // applied by Breath of Magic to target
+
     AethericMimicryTank = 2124,
     AethericMimicryDPS = 2125,
     AethericMimicryHealer = 2126,
@@ -188,16 +193,17 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.AngelsSnack);
         d.RegisterSpell(AID.FeculentFlood);
         d.RegisterSpell(AID.SaintlyBeam);
-        d.RegisterSpell(AID.Stotram1);
+        d.RegisterSpell(AID.StotramDamage);
+        d.RegisterSpell(AID.StotramHeal);
         d.RegisterSpell(AID.WhiteDeath);
         d.RegisterSpell(AID.ColdFog);
         d.RegisterSpell(AID.TatamiGaeshi);
         d.RegisterSpell(AID.Tingle);
         d.RegisterSpell(AID.TripleTrident);
-        d.RegisterSpell(AID.AethericMimicryReleaseHealer);
-        d.RegisterSpell(AID.AethericMimicryReleaseDPS);
-        d.RegisterSpell(AID.BasicInstinct);
         d.RegisterSpell(AID.AethericMimicryReleaseTank);
+        d.RegisterSpell(AID.AethericMimicryReleaseDPS);
+        d.RegisterSpell(AID.AethericMimicryReleaseHealer);
+        d.RegisterSpell(AID.BasicInstinct);
         d.RegisterSpell(AID.Quasar);
         d.RegisterSpell(AID.Surpanakha);
         d.RegisterSpell(AID.AethericMimicry);
@@ -234,10 +240,9 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Rehydration);
         d.RegisterSpell(AID.RightRound);
         d.RegisterSpell(AID.GoblinPunch);
-        d.RegisterSpell(AID.Stotram2);
         d.RegisterSpell(AID.Nightbloom);
-        d.RegisterSpell(AID.PhantomFlurryEnd);
         d.RegisterSpell(AID.PhantomFlurry);
+        d.RegisterSpell(AID.PhantomFlurryEnd);
         d.RegisterSpell(AID.BothEnds);
         d.RegisterSpell(AID.PeripheralSynthesis);
         d.RegisterSpell(AID.MatraMagic);

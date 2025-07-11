@@ -238,8 +238,16 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < GetCastTime(AID.Fire3))
-                PushGCD(AID.Fire3, primaryTarget, GCDPriority.Standard);
+            if (Fire == 3)
+            {
+                if (CountdownRemaining < GetCastTime(AID.Fire4))
+                    PushGCD(AID.Fire4, primaryTarget, GCDPriority.Standard);
+            }
+            else
+            {
+                if (CountdownRemaining < GetCastTime(AID.Fire3))
+                    PushGCD(AID.Fire3, primaryTarget, GCDPriority.Standard);
+            }
 
             if (strategy.Option(Track.Leylines).As<LeylinesStrategy>() == LeylinesStrategy.Force && !HaveLeyLines)
                 PushAction(AID.LeyLines, Player, strategy.Option(Track.Leylines).Priority(), 0);
