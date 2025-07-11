@@ -167,7 +167,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Devour, primaryTarget, GCDPriority.BuffRefresh);
         }
 
-        var d = Hints.PredictedDamage.Count(p => p.Players[0] && p.Activation >= World.FutureTime(GCD + GetCastTime(AID.ChelonianGate)));
+        var d = Hints.PredictedDamage.Count(p => p.Players[0] && p.Activation >= World.FutureTime(GCD + GetCastTime(AID.ChelonianGate)) && p.Type is PredictedDamageType.Tankbuster or PredictedDamageType.Shared);
         if (d > 0)
             PushGCD(AID.ChelonianGate, Player, GCDPriority.BuffRefresh);
 
