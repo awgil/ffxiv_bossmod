@@ -67,7 +67,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             h.Actor.Position.InCircle(Player.Position, range));
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Player.IsDeadOrDestroyed || IsMounted)
+        if (Player.IsDeadOrDestroyed || IsMounted || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
             return;
 
         if (DebuffsLeft(Player) > 0 && IsReady(ClassShared.AID.PurifyPvP) &&
@@ -91,7 +91,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             _ => false
         })
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.RecuperatePvP), Player, (int)ActionQueue.Priority.VeryHigh);
-        if (IsReady(ClassShared.AID.GuardPvP) && Player.FindStatus(ClassShared.SID.GuardPvP) == null && strategy.Option(Track.Guard).As<ThresholdStrategy>() switch
+        if (IsReady(ClassShared.AID.GuardPvP) && strategy.Option(Track.Guard).As<ThresholdStrategy>() switch
         {
             ThresholdStrategy.Seventy => PlayerHPP is < 70 and not 0,
             ThresholdStrategy.Fifty => PlayerHPP is < 50 and not 0,
