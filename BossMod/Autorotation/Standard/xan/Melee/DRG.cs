@@ -108,9 +108,6 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         var pos = GetPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos);
 
-        if (primaryTarget == null)
-            return;
-
         if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < 0.7f)
@@ -119,7 +116,8 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
+        if (primaryTarget != null)
+            GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
 
         if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Enabled(Track.Zeninage) && DutyActionReadyIn(PhantomID.Zeninage) <= GCD)
             PushGCD((AID)(uint)PhantomID.Zeninage, primaryTarget, priority: 100);
@@ -265,7 +263,8 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         var mdOk = DiveReady > AnimLock && opt switch
         {
-            HJMDStrategy.AfterBuffs or HJMDStrategy.Force => true,
+            HJMDStrategy.Force => true,
+            HJMDStrategy.AfterBuffs => PowerSurge > AnimLock,
             HJMDStrategy.HoldMD => LanceCharge > AnimLock || DiveReady < GCD + 0.6f + AnimationLockDelay,
             _ => false
         };
