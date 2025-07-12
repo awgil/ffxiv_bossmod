@@ -557,20 +557,8 @@ class ClassDefinitions
 
         private float? DetermineDonutInner(Lumina.Excel.Sheets.Action data)
         {
-            var omen = data.Omen.ValueNullable;
-            if (omen == null)
-                return null;
-
-            var path = omen.Value.Path.ToString();
-            var pos = path.IndexOf("sircle_", StringComparison.Ordinal);
-            if (pos >= 0 && pos + 11 <= path.Length && int.TryParse(path.AsSpan(pos + 9, 2), out var inner))
-                return inner;
-
-            pos = path.IndexOf("circle", StringComparison.Ordinal);
-            if (pos >= 0 && pos + 10 <= path.Length && int.TryParse(path.AsSpan(pos + 8, 2), out inner))
-                return inner;
-
-            return null;
+            Utils.DetermineDonutInner(data, out var innerRadius);
+            return innerRadius;
         }
     }
 

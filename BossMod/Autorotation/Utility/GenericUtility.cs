@@ -6,7 +6,7 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
     public enum SimpleOption { None, Use }
     public enum LBOption { None, LB3, LB2, LB1, LB2Only, LB1Only, LB12 }
 
-    protected static void DefineSimpleConfig<Index, AID>(RotationModuleDefinition def, Index expectedIndex, string internalName, string displayName, int uiPriority, AID aid, float effect = 0)
+    protected static void DefineSimpleConfig<Index, AID>(RotationModuleDefinition def, Index expectedIndex, string internalName, string displayName, int uiPriority, AID aid, float effect = 0, float defaultPriority = 3000)
         where Index : Enum
         where AID : Enum
     {
@@ -15,7 +15,7 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
         var adata = adefs[action]!;
         def.Define(expectedIndex).As<SimpleOption>(internalName, displayName, uiPriority)
             .AddOption(SimpleOption.None, "None", "Do not use automatically")
-            .AddOption(SimpleOption.Use, "Use", $"Use {action.Name()}", adata.Cooldown, effect, adata.AllowedTargets, adefs.ActionMinLevel(action))
+            .AddOption(SimpleOption.Use, "Use", $"Use {action.Name()}", adata.Cooldown, effect, adata.AllowedTargets, adefs.ActionMinLevel(action), defaultPriority: defaultPriority)
             .AddAssociatedActions(aid);
     }
 

@@ -3434,6 +3434,58 @@
       "ViewWidth": 60,
       "ViewHeight": 60,
       "Filename": "1137.945.2.bmp"
+    },
+    {
+      "MinBoundsX": -797.5,
+      "MinBoundsY": 40,
+      "MinBoundsZ": -31.5,
+      "MaxBoundsX": -643.5,
+      "MaxBoundsY": 71.5,
+      "MaxBoundsZ": 266.5,
+      "OriginX": -797.5,
+      "OriginZ": -31.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1137.945.3.bmp"
+    },
+    {
+      "MinBoundsX": -740.5,
+      "MinBoundsY": 41,
+      "MinBoundsZ": 645.5,
+      "MaxBoundsX": -642.5,
+      "MaxBoundsY": 97.5,
+      "MaxBoundsZ": 740.5,
+      "OriginX": -740.5,
+      "OriginZ": 645.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1137.945.4.bmp"
+    },
+    {
+      "MinBoundsX": -724.5,
+      "MinBoundsY": -29.5,
+      "MinBoundsZ": 515.5,
+      "MaxBoundsX": -675.5,
+      "MaxBoundsY": -10,
+      "MaxBoundsZ": 579.5,
+      "OriginX": -724.5,
+      "OriginZ": 515.5,
+      "ViewWidth": 49,
+      "ViewHeight": 60,
+      "Filename": "1137.945.5.bmp"
+    },
+    {
+      "MinBoundsX": -85,
+      "MinBoundsY": 233.5,
+      "MinBoundsZ": -319.5,
+      "MaxBoundsX": 128,
+      "MaxBoundsY": 374,
+      "MaxBoundsZ": 430.5,
+      "OriginX": -85,
+      "OriginZ": -319.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1137.945.6.bmp"
     }
   ],
   "1176.961": [
@@ -3609,6 +3661,34 @@
       "ViewWidth": 60,
       "ViewHeight": 60,
       "Filename": "841.661.4.bmp"
+    }
+  ],
+  "1069.868": [
+    {
+      "MinBoundsX": -124,
+      "MinBoundsY": 3.5,
+      "MinBoundsZ": -290.5,
+      "MaxBoundsX": 59.5,
+      "MaxBoundsY": 31,
+      "MaxBoundsZ": -63,
+      "OriginX": -124,
+      "OriginZ": -290.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1069.868.2.bmp"
+    },
+    {
+      "MinBoundsX": -92.5,
+      "MinBoundsY": -22,
+      "MinBoundsZ": -184,
+      "MaxBoundsX": 335,
+      "MaxBoundsY": 43,
+      "MaxBoundsZ": 303.5,
+      "OriginX": -92.5,
+      "OriginZ": -184,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1069.868.1.bmp"
     }
   ]
 }

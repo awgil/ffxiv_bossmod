@@ -7,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
 {
-    public enum Track { Dive = SharedTrack.Count, Iainuki, Zeninage, LanceCharge }
+    public enum Track { Dive = SharedTrack.Count, Iainuki, Zeninage, LanceCharge, HJMD }
 
     public enum DiveStrategy
     {
@@ -16,11 +16,12 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         NoLock
     }
 
-    public enum LCStrategy
+    public enum HJMDStrategy
     {
-        Automatic,
-        Force,
-        Delay
+        AfterBuffs,
+        HoldMD,
+        Delay,
+        Force
     }
 
     public static RotationModuleDefinition Definition()
@@ -37,11 +38,18 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         def.AbilityTrack(Track.Iainuki, "Iainuki", "Phantom Samurai: Use Iainuki during burst", -50);
         def.AbilityTrack(Track.Zeninage, "Zeninage", "Phantom Samurai: Use Zeninage during burst - requires a coffer", -100);
 
-        def.Define(Track.LanceCharge).As<LCStrategy>("LC", "Lance Charge")
-            .AddOption(LCStrategy.Automatic, "Automatic", "Use on cooldown, once Power Surge is active")
-            .AddOption(LCStrategy.Force, "Force", "Use ASAP")
-            .AddOption(LCStrategy.Delay, "Delay", "Don't use")
+        def.Define(Track.LanceCharge).As<OffensiveStrategy>("LC", "Lance Charge")
+            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use on cooldown, once Power Surge is active")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Don't use", cooldown: 20) // hack to make UI display how long LC will last if we use it immediately after a Delay track
+            .AddOption(OffensiveStrategy.Force, "Force", "Use ASAP", effect: 20, cooldown: 60)
             .AddAssociatedActions(AID.LanceCharge);
+
+        def.Define(Track.HJMD).As<HJMDStrategy>("HJMD", "High Jump/Mirage Dive")
+            .AddOption(HJMDStrategy.AfterBuffs, "AfterBuffs", "Use on cooldown under buffs, or if Lance Charge is on cooldown")
+            .AddOption(HJMDStrategy.HoldMD, "HoldMD", "Use HJ ASAP, hold Mirage Dive until buffs are active", effect: 15, cooldown: 30)
+            .AddOption(HJMDStrategy.Delay, "Delay", "Do not use")
+            .AddOption(HJMDStrategy.Force, "Force", "Use both ASAP", effect: 15, cooldown: 30)
+            .AddAssociatedActions(AID.Jump, AID.HighJump, AID.MirageDive);
 
         return def;
     }
@@ -79,11 +87,11 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         Focus = gauge.FirstmindsFocusCount;
         LotD = gauge.LotdTimer * 0.001f;
 
-        PowerSurge = StatusLeft(SID.PowerSurge);
+        PowerSurge = StatusLeft(SID.PowerSurge, 30);
         DiveReady = StatusLeft(SID.DiveReady);
         NastrondReady = StatusLeft(SID.NastrondReady);
-        LifeSurge = StatusLeft(SID.LifeSurge);
-        LanceCharge = StatusLeft(SID.LanceCharge);
+        LifeSurge = StatusLeft(SID.LifeSurge, 5);
+        LanceCharge = StatusLeft(SID.LanceCharge, 20);
         DraconianFire = StatusLeft(SID.DraconianFire);
         DragonsFlight = StatusLeft(SID.DragonsFlight);
         StarcrossReady = StatusLeft(SID.StarcrossReady);
@@ -185,37 +193,25 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (primaryTarget == null || !Player.InCombat || PowerSurge == 0)
-            return;
-
         var moveOk = MoveOk(strategy);
-        var posOk = PosLockOk(strategy);
-        var bestSingleTarget = primaryTarget.Priority >= 0 ? primaryTarget : null;
 
-        if (NextPositionalImminent && !NextPositionalCorrect)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);
-
-        if (ShouldLanceCharge(strategy))
+        if (StrategyOk(strategy, Track.LanceCharge, primaryTarget))
             PushOGCD(AID.LanceCharge, Player);
 
-        // ok to use WT outside of buffs, otherwise we might overcap and waste one
-        if (ShouldWT(strategy))
-            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget);
-
-        // delay all damaging ogcds until we've used lance charge
-        // first one (jump) unlocks at level 30, same as lance charge, so we don't need extra checks
-        // TODO check if this is actually a good idea
-        if (!OnCooldown(AID.LanceCharge))
-            return;
-
-        if (strategy.BuffsOk())
+        if (StrategyOk(strategy, SharedTrack.Buffs, primaryTarget, extraCondition: LanceCharge > AnimLock))
             PushOGCD(AID.BattleLitany, Player);
 
         if (NastrondReady == 0 && LanceCharge > AnimLock)
             PushOGCD(AID.Geirskogul, BestLongAOETarget);
 
-        if (DiveReady == 0 && posOk)
-            PushOGCD(AID.Jump, bestSingleTarget);
+        HJMD(strategy, primaryTarget);
+
+        if (NextPositionalImminent && !NextPositionalCorrect)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.TrueNorth), Player, ActionQueue.Priority.Low - 20, delay: GCD - 0.8f);
+
+        // ok to use WT outside of buffs, otherwise we might overcap and waste one
+        if (ShouldWT(strategy))
+            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget);
 
         if (LanceCharge > GCD && ShouldLifeSurge())
             PushOGCD(AID.LifeSurge, Player);
@@ -242,17 +238,43 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         if (DragonsFlight > 0)
             PushOGCD(AID.RiseOfTheDragon, BestDiveTarget);
-
-        if (DiveReady > 0)
-            PushOGCD(AID.MirageDive, bestSingleTarget);
     }
 
-    private bool ShouldLanceCharge(StrategyValues strategy) => strategy.Option(Track.LanceCharge).As<LCStrategy>() switch
+    private bool StrategyOk<Track>(StrategyValues strategy, Track t, Enemy? primaryTarget, bool extraCondition = true) where Track : Enum => strategy.Simple(t) switch
     {
-        LCStrategy.Force => true,
-        LCStrategy.Automatic => PowerSurge > GCD,
-        _ => false,
+        OffensiveStrategy.Force => true,
+        OffensiveStrategy.Automatic => primaryTarget?.Priority >= 0 && Player.InCombat && PowerSurge > GCD && extraCondition,
+        _ => false
     };
+
+    private void HJMD(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        if (primaryTarget == null)
+            return;
+
+        var haveTarget = primaryTarget.Priority >= 0;
+
+        var opt = strategy.Option(Track.HJMD).As<HJMDStrategy>();
+
+        var hjOk = DiveReady == 0 && PosLockOk(strategy) && opt switch
+        {
+            HJMDStrategy.AfterBuffs => OnCooldown(AID.LanceCharge) && haveTarget,
+            HJMDStrategy.HoldMD or HJMDStrategy.Force => true,
+            _ => false
+        };
+
+        var mdOk = DiveReady > AnimLock && opt switch
+        {
+            HJMDStrategy.AfterBuffs or HJMDStrategy.Force => true,
+            HJMDStrategy.HoldMD => LanceCharge > AnimLock || DiveReady < GCD + 0.6f + AnimationLockDelay,
+            _ => false
+        };
+
+        if (hjOk)
+            PushOGCD(AID.Jump, primaryTarget);
+        if (mdOk)
+            PushOGCD(AID.MirageDive, primaryTarget);
+    }
 
     private bool ShouldLifeSurge()
     {

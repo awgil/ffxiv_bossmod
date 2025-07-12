@@ -66,13 +66,13 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             .AddOption(TriplecastStrategy.Force, "Force", "Use ASAP", effect: 15, defaultPriority: DefaultOGCDPriority)
             .AddAssociatedActions(AID.Triplecast);
 
-        def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki on cooldown");
-        def.AbilityTrack(Track.Zeninage, "Zeninage", "PSAM: Use Zeninage under raid buffs (costs 10,000 gil)");
+        def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki on cooldown", uiPriority: -10);
+        def.AbilityTrack(Track.Zeninage, "Zeninage", "PSAM: Use Zeninage under raid buffs (costs 10,000 gil)", uiPriority: -10);
 
         def.AbilityTrack(Track.LLMove, "LLMove", "Allow automatic usage of Leylines while moving")
             .AddAssociatedActions(AID.LeyLines);
 
-        def.AbilityTrack(Track.TimeMage, "AutoTimeMage", "PTME: Use Occult Quick/Occult Comet on cooldown")
+        def.AbilityTrack(Track.TimeMage, "AutoTimeMage", "PTME: Use Occult Quick/Occult Comet on cooldown", uiPriority: -10)
             .AddAssociatedActions(PhantomID.OccultQuick, PhantomID.OccultComet);
 
         return def;
@@ -90,6 +90,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     public bool Thunderhead;
     public bool Firestarter;
     public bool InLeyLines;
+    public bool HaveLeyLines;
 
     public int Fire => Math.Max(0, Element);
     public int Ice => Math.Max(0, -Element);
@@ -214,6 +215,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         Thunderhead = Player.FindStatus(SID.Thunderhead) != null;
         Firestarter = Player.FindStatus(SID.Firestarter) != null;
         InLeyLines = Player.FindStatus(SID.CircleOfPower) != null;
+        HaveLeyLines = Player.FindStatus(SID.LeyLines) != null;
 
         for (var i = 0; i < Hints.Enemies.Length; i++)
             EnemyDotTimers[i] = CalculateDotTimer(Hints.Enemies[i]?.Actor);
@@ -236,8 +238,19 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < GetCastTime(AID.Fire3))
-                PushGCD(AID.Fire3, primaryTarget, GCDPriority.Standard);
+            if (Fire == 3)
+            {
+                if (CountdownRemaining < GetCastTime(AID.Fire4))
+                    PushGCD(AID.Fire4, primaryTarget, GCDPriority.Standard);
+            }
+            else
+            {
+                if (CountdownRemaining < GetCastTime(AID.Fire3))
+                    PushGCD(AID.Fire3, primaryTarget, GCDPriority.Standard);
+            }
+
+            if (strategy.Option(Track.Leylines).As<LeylinesStrategy>() == LeylinesStrategy.Force && !HaveLeyLines)
+                PushAction(AID.LeyLines, Player, strategy.Option(Track.Leylines).Priority(), 0);
 
             return;
         }
