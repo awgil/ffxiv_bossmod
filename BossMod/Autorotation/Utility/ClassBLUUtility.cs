@@ -31,7 +31,7 @@ public sealed class ClassBLUUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.AngelWhisper, "Angel Whisper", "A.Whisper", 100, BLU.AID.AngelWhisper);
         DefineSimpleConfig(res, Track.Exuviation, "Exuviation", "Exuvi", 100, BLU.AID.Exuviation);
         DefineSimpleConfig(res, Track.ColdFog, "Cold Fog", "C.Fog", 50, BLU.AID.ColdFog, 5);
-        DefineSimpleConfig(res, Track.Stotram, "Stotram (Heal)", "Stotram", 100, BLU.AID.Stotram2);
+        DefineSimpleConfig(res, Track.Stotram, "Stotram (Heal)", "Stotram", 100, BLU.AID.StotramHeal);
         DefineSimpleConfig(res, Track.AngelsSnack, "Angels Snack", "A.Snack", 100, BLU.AID.AngelsSnack, 15);
         DefineSimpleConfig(res, Track.ChelonianGate, "Chelonian Gate", "C.Gate", 100, BLU.AID.ChelonianGate, 10);
         DefineSimpleConfig(res, Track.BasicInstinct, "Basic Instinct", "Instinct", 10, BLU.AID.BasicInstinct);
@@ -67,7 +67,7 @@ public sealed class ClassBLUUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.AngelWhisper), BLU.AID.AngelWhisper, primaryTarget, 10); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.Exuviation), BLU.AID.Exuviation, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.ColdFog), BLU.AID.ColdFog, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
-        ExecuteSimple(strategy.Option(Track.Stotram), BLU.AID.Stotram2, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
+        ExecuteSimple(strategy.Option(Track.Stotram), BLU.AID.StotramHeal, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.AngelsSnack), BLU.AID.AngelsSnack, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.ChelonianGate), BLU.AID.ChelonianGate, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
         ExecuteSimple(strategy.Option(Track.BasicInstinct), BLU.AID.BasicInstinct, Player, 2); // TODO[cast-time]: adjustment (swiftcast etc)
