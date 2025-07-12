@@ -149,7 +149,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         {
             GetPvPTarget(5);
         }
-        if (In5y(primaryTarget?.Actor))
+        if (In5y(primaryTarget?.Actor) && !HasEffect(SID.GuardPvP) && HasLOS(primaryTarget?.Actor))
         {
             if (strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
             {

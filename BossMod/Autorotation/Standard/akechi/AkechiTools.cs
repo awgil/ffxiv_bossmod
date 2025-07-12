@@ -1,4 +1,6 @@
-﻿using static BossMod.AIHints;
+﻿using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
@@ -518,16 +520,26 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="range">The <b>max range</b> to consider a new target.</param>
     protected void GetPvPTarget(float range)
     {
-        //TODO: add LoS
-        var bestTarget = Hints.PriorityTargets
-            .Where(x =>
-                    //Player.IsInLineOfSight(x.Actor) && //in line of sight
-                    Player.DistanceToHitbox(x.Actor) <= range && //in range
-                    x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null) //no Guard up
-            .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP) //from lowest to highest HP percentage
-            .FirstOrDefault();
-        Hints.ForcedTarget = bestTarget?.Actor;
+        //max prio target, we want to burn this enemy player down immediately
+        var TargetWithoutGuard = Hints.PriorityTargets.Where(x =>
+                HasLOS(x.Actor) && //in line of sight
+                Player.DistanceToHitbox(x.Actor) <= range && //in range
+                x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null) //no Guard active
+                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
+
+        //if we end up with no targets to select except Guarded targets, then we target them also as a last resort
+        var TargetWithGuard = Hints.PriorityTargets.Where(x =>
+                HasLOS(x.Actor) && //in line of sight
+                Player.DistanceToHitbox(x.Actor) <= range && //in range
+                x.Actor.FindStatus(ClassShared.SID.GuardPvP) != null) //Guard is active
+                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
+
+        Hints.ForcedTarget = TargetWithoutGuard ?? TargetWithGuard;
     }
+    /*
+    protected bool EnemyTargetingSelf => Player is { } p && Service.ObjectTable.Any(o => o.IsTargetable && o.TargetObjectId == p.OID);
+    protected bool EnemiesTargetingSelf => Player is { } p && Service.ObjectTable.Count(o => o.IsTargetable && o.TargetObjectId == p.OID) > 1;
+    */
 
     /// <summary>Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.</summary>
     /// <param name="range">The radius of the <b>AOE Circle</b> ability from the Player.</param>
@@ -825,6 +837,21 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             OGCDStrategy.LateWeave => CanLateWeaveIn,
             _ => false
         };
+    }
+    /// <summary>Checks if the player has line of sight on a target</summary>
+    protected unsafe bool HasLOS(Actor? actor)
+    {
+        if (actor == null || actor.IsDeadOrDestroyed)
+            return false;
+
+        var sourcePos = Player.Position.ToVec3() with { Y = actor.Position.ToVec3(2f).Y };
+        var targetPos = actor.Position.ToVec3() with { Y = actor.Position.ToVec3(2f).Y };
+        var offset = targetPos - sourcePos;
+        var distance = offset.Length();
+        var direction = offset / distance;
+        RaycastHit hit;
+        var flags = stackalloc int[] { 0x4000, 0, 0x4000, 0 };
+        return !Framework.Instance()->BGCollisionModule->RaycastMaterialFilter(&hit, &sourcePos, &direction, distance, 1, flags);
     }
     #endregion
 

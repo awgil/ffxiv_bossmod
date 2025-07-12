@@ -108,7 +108,7 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         {
             GetPvPTarget(25);
         }
-        if (In25y(primaryTarget?.Actor))
+        if (In25y(primaryTarget?.Actor) && !HasEffect(SID.GuardPvP) && HasLOS(primaryTarget?.Actor))
         {
             if (HasEffect(SID.OverheatedPvP))
             {
