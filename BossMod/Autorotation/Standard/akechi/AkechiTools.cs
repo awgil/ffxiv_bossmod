@@ -520,26 +520,34 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="range">The <b>max range</b> to consider a new target.</param>
     protected void GetPvPTarget(float range)
     {
-        //max prio target, we want to burn this enemy player down immediately
-        var TargetWithoutGuard = Hints.PriorityTargets.Where(x =>
+        //max prio target
+        //- target is the lowest HP% enemy Player without Guard active
+        var maxtarget = Hints.PriorityTargets.Where(x =>
                 HasLOS(x.Actor) && //in line of sight
                 Player.DistanceToHitbox(x.Actor) <= range && //in range
+                !x.Actor.IsStrikingDummy && //not a dummy
+                x.Actor.NameID == 0 && //guaranteed enemy player
                 x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null) //no Guard active
                 .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
 
-        //if we end up with no targets to select except Guarded targets, then we target them also as a last resort
-        var TargetWithGuard = Hints.PriorityTargets.Where(x =>
+        //high prio target
+        //- target is the lowest HP% enemy Player or NPC without Guard active
+        var hightarget = Hints.PriorityTargets.Where(x =>
                 HasLOS(x.Actor) && //in line of sight
                 Player.DistanceToHitbox(x.Actor) <= range && //in range
-                x.Actor.FindStatus(ClassShared.SID.GuardPvP) != null) //Guard is active
+                !x.Actor.IsStrikingDummy && //not a dummy
+                x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null) //no Guard active
                 .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
 
-        Hints.ForcedTarget = TargetWithoutGuard ?? TargetWithGuard;
+        //low prio target
+        //- target is the lowest HP% enemy Player or NPC
+        var lowtarget = Hints.PriorityTargets.Where(x =>
+                HasLOS(x.Actor) && //in line of sight
+                Player.DistanceToHitbox(x.Actor) <= range) //in range
+                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
+
+        Hints.ForcedTarget = maxtarget ?? hightarget ?? lowtarget;
     }
-    /*
-    protected bool EnemyTargetingSelf => Player is { } p && Service.ObjectTable.Any(o => o.IsTargetable && o.TargetObjectId == p.OID);
-    protected bool EnemiesTargetingSelf => Player is { } p && Service.ObjectTable.Count(o => o.IsTargetable && o.TargetObjectId == p.OID) > 1;
-    */
 
     /// <summary>Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.</summary>
     /// <param name="range">The radius of the <b>AOE Circle</b> ability from the Player.</param>
@@ -843,6 +851,13 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     {
         if (actor == null || actor.IsDeadOrDestroyed)
             return false;
+
+        //TODO: there is weird behavior when it comes to striking dummies
+        //they have a different Y coord needed for this to function correctly (works with 4), as the current correct value of 2 will not work unless up close
+        //we don't care about LOS for striking dummies since they really don't matter and are mainly used for testing/observing
+        //leaving this as true is ok for now, but may need a small revision in the future when someone actually cares
+        if (actor.IsStrikingDummy)
+            return true;
 
         var sourcePos = Player.Position.ToVec3() with { Y = actor.Position.ToVec3(2f).Y };
         var targetPos = actor.Position.ToVec3() with { Y = actor.Position.ToVec3(2f).Y };
