@@ -276,14 +276,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Retrieves the <b>current HP percentage</b> of a specified actor.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
-    protected float TargetHPP(Actor? actor = null)
-    {
-        if (actor is null || actor.IsDead)
-            return 0f;
-
-        var HPP = (actor.HPMP.CurHP / actor.HPMP.MaxHP) * 100f;
-        return Math.Clamp(HPP, 0f, 100f);
-    }
+    protected float TargetHPP(Actor? actor = null) => actor == null || actor.IsDead ? 0f : (float)actor.HPMP.CurHP / actor.HPMP.MaxHP * 100;
     #endregion
 
     #region Actions
@@ -398,6 +391,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #region Splash
     /// <summary>Position checker for determining the best target for an ability that deals <b>Splash</b> damage.</summary>
     protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);
+
+    protected PositionCheck Is10ySplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 10);
     #endregion
 
     #region Cones
@@ -868,6 +863,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         var flags = stackalloc int[] { 0x4000, 0, 0x4000, 0 };
         return !Framework.Instance()->BGCollisionModule->RaycastMaterialFilter(&hit, &sourcePos, &direction, distance, 1, flags);
     }
+
+    /// <summary>Checks the <b>quantity of enemies</b> currently targeting the <b>Player</b></summary>
+    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Service.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
     #endregion
 
     #region Shared Abilities

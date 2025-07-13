@@ -31,7 +31,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             .AddOption(ThresholdStrategy.Forbid, "Forbid", "Forbid use of Recuperate")
             .AddAssociatedActions(ClassShared.AID.RecuperatePvP);
         res.Define(Track.Guard).As<GuardStrategy>("Guard", uiPriority: 150)
-            .AddOption(GuardStrategy.Auto, "Auto", "Automatically use Guard when HP% is under 70% and two or more targets are targeting you, or when HP% is below 30%")
+            .AddOption(GuardStrategy.Auto, "Auto", "Automatically use Guard when HP% is under 75% and two or more targets are targeting you, or when HP% is below 33%")
             .AddOption(GuardStrategy.Two, "2 Targets", "Automatically use Guard when HP is not full and two or more targets are targeting you")
             .AddOption(GuardStrategy.Three, "3 Targets", "Automatically use Guard when HP is not full and three or more targets are targeting you")
             .AddOption(GuardStrategy.Four, "4 Targets", "Automatically use Guard when HP is not full and four or more targets are targeting you")
@@ -51,10 +51,9 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
         return res;
     }
 
-    private bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
-    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && o.TargetObjectId == Service.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
+    public bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
+    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Service.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
     public float PlayerHPP => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
-    public bool IsMounted => Player.MountId != 0;
     public float DebuffsLeft(Actor? target)
     {
         return target == null ? 0f
@@ -72,15 +71,20 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             !h.Actor.IsAlly &&
             h.Actor.Position.InCircle(Player.Position, range));
 
+    private bool GuardForDRGLB => Hints.PriorityTargets.Any(t => !t.Actor.IsDead && t.Actor.Class == Class.DRG && !t.Actor.IsTargetable && t.Actor.DistanceToHitbox(Player) < 8);
+    //private bool GuardForMCHLB => Hints.PriorityTargets.Any(t => !t.Actor.IsDeadOrDestroyed && t.Actor.Class == Class.MCH && t.Actor.IsTargetable && t.Actor.DistanceToHitbox(Player) <= 25f);
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Player.IsDeadOrDestroyed || IsMounted || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+        Service.Log($"Player X: {Player.Position.X} Y: {Player.Position.ToVec3()} Z: {Player.Position.Z} ");
+        Service.Log($"Target X: {primaryTarget?.Position.X} Y: {primaryTarget?.Position.ToVec3()} Z: {primaryTarget?.Position.Z} ");
+
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
             return;
 
         if (DebuffsLeft(Player) > 0 && IsReady(ClassShared.AID.PurifyPvP) &&
             strategy.Option(Track.Purify).As<DefensiveStrategy>() == DefensiveStrategy.Allow)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.PurifyPvP), Player, (int)ActionQueue.Priority.VeryHigh);
-        if (IsReady(ClassShared.AID.SprintPvP) && !IsMounted && Player.FindStatus(ClassShared.SID.SprintPvP) == null &&
+        if (IsReady(ClassShared.AID.SprintPvP) && Player.MountId == 0 && Player.FindStatus(ClassShared.SID.SprintPvP) == null &&
             NoTargetsNearby(32) && strategy.Option(Track.Sprint).As<DefensiveStrategy>() == DefensiveStrategy.Allow)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SprintPvP), Player, (int)ActionQueue.Priority.High);
         if ((Player.HPMP.CurHP != Player.HPMP.MaxHP || Player.HPMP.CurMP != Player.HPMP.MaxMP) && strategy.Option(Track.Elixir).As<ElixirStrategy>() switch
@@ -100,7 +104,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.RecuperatePvP), Player, (int)ActionQueue.Priority.VeryHigh);
         if (IsReady(ClassShared.AID.GuardPvP) && strategy.Option(Track.Guard).As<GuardStrategy>() switch
         {
-            GuardStrategy.Auto => (PlayerHPP is < 70 and not 0 && EnemiesTargetingSelf(2)) || PlayerHPP is < 33 and not 0,
+            GuardStrategy.Auto => (PlayerHPP is < 75 and not 0 && EnemiesTargetingSelf(2)) || PlayerHPP is < 33 and not 0 || GuardForDRGLB,
             GuardStrategy.Two => EnemiesTargetingSelf(2) && PlayerHPP is < 100 and not 0,
             GuardStrategy.Three => EnemiesTargetingSelf(3) && PlayerHPP is < 100 and not 0,
             GuardStrategy.Four => EnemiesTargetingSelf(4) && PlayerHPP is < 100 and not 0,

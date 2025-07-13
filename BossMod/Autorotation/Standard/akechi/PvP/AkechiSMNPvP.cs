@@ -7,15 +7,15 @@ namespace BossMod.Autorotation.akechi;
 
 public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
-    public enum Track { Targeting, RoleActions, LimitBreak, RadiantAegis, RuinIV, CrimsonCyclone, MountainBuster, Slipstream, Necrotize }
+    public enum Track { Targeting, RoleActions, LimitBreak, Placement, RadiantAegis, RuinIV, CrimsonCyclone, MountainBuster, Slipstream, Necrotize }
     public enum TargetingStrategy { Auto, Manual }
     public enum RoleActionStrategy { Forbid, Comet, PhantomDart, Rust }
     public enum LBStrategy { Bahamut, Phoenix, Forbid }
-    public enum AegisStrategy { LessThanFull, LessThan75, LessThan50, Forbid }
+    public enum LBPlacement { Self, Target, Crystal, CrystalOrTarget }
+    public enum AegisStrategy { Auto, Two, Three, Four, LessThanFull, LessThan75, LessThan50, Forbid }
     public enum Ruin4Strategy { Early, Late, Forbid }
     public enum CycloneStrategy { Five, Ten, Fifteen, Twenty, Allow, Forbid }
     public enum CommonStrategy { Allow, Forbid }
-
 
     public static RotationModuleDefinition Definition()
     {
@@ -29,12 +29,22 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
             .AddOption(RoleActionStrategy.PhantomDart, "Phantom Dart", "Use Phantom Dart when available")
             .AddOption(RoleActionStrategy.Rust, "Rust", "Use Rust when available")
             .AddAssociatedActions(AID.CometPvP, AID.PhantomDartPvP, AID.RustPvP);
-        res.Define(Track.LimitBreak).As<LBStrategy>("Limit Break", "", 300)
+        res.Define(Track.LimitBreak).As<LBStrategy>("LB Summon", "", 300)
             .AddOption(LBStrategy.Bahamut, "Bahamut", "Allow use of Bahamut only for Limit Break when available")
             .AddOption(LBStrategy.Phoenix, "Phoenix", "Allow use of Phoenix only for Limit Break when available")
             .AddOption(LBStrategy.Forbid, "Forbid", "Do not use Limit Break")
             .AddAssociatedActions(AID.SummonBahamutPvP, AID.SummonPhoenixPvP);
+        res.Define(Track.Placement).As<LBPlacement>("LB Placement", "", 300)
+            .AddOption(LBPlacement.Self, "Self", "Place Limit Break summon on self")
+            .AddOption(LBPlacement.Target, "Target", "Place Limit Break summon on current target")
+            .AddOption(LBPlacement.Crystal, "Crystal", "Place Limit Break summon on crystal only; will hold LB until near the Crystal (only works for Crystalline Conflict)")
+            .AddOption(LBPlacement.CrystalOrTarget, "Crystal or Target", "Place Limit Break summon on crystal or target if Crystal is unavailable (intended for Crystalline Conflict, but works in others too)")
+            .AddAssociatedActions(AID.SummonBahamutPvP, AID.SummonPhoenixPvP);
         res.Define(Track.RadiantAegis).As<AegisStrategy>("Radiant Aegis", "", 300)
+            .AddOption(AegisStrategy.Auto, "Automatic", "Use Radiant Aegis when HP is less than 75% and two or more targets are targeting you, or when HP is below 33%")
+            .AddOption(AegisStrategy.Two, "2 Targets", "Use Radiant Aegis when HP is not full and two or more targets are targeting you")
+            .AddOption(AegisStrategy.Three, "3 Targets", "Use Radiant Aegis when HP is not full and three or more targets are targeting you")
+            .AddOption(AegisStrategy.Four, "4 Targets", "Use Radiant Aegis when HP is not full and four or more targets are targeting you")
             .AddOption(AegisStrategy.LessThanFull, "Less than Full", "Use Radiant Aegis when HP is less than 100%")
             .AddOption(AegisStrategy.LessThan75, "Less than 75%", "Use Radiant Aegis when HP is less than 75%")
             .AddOption(AegisStrategy.LessThan50, "Less than 50%", "Use Radiant Aegis when HP is less than 50%")
@@ -68,34 +78,50 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
         return res;
     }
 
-    public bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
     public int NumConeTargets;
     private int NumSplashTargets;
     private Enemy? BestConeTargets;
     private Enemy? BestSplashTargets;
 
+    public bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
+
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+            return;
+
         (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 8, Is8yConeTarget);
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
+        var (BestSlipstreamTargets, NumSlipstreamTargets) = GetBestTarget(primaryTarget, 25, Is10ySplashTarget);
         var LBready = World.Party.LimitBreakLevel >= 1;
         var BestConeTarget = NumConeTargets > 1 ? BestConeTargets : primaryTarget;
         var BestSplashTarget = NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
+        var BestSlipstreamTarget = NumSlipstreamTargets > 1 ? BestSlipstreamTargets : primaryTarget;
         var auto = strategy.Option(Track.Targeting).As<TargetingStrategy>() == TargetingStrategy.Auto;
         var BestTarget = auto ? BestSplashTarget?.Actor : primaryTarget?.Actor;
         if (auto)
         {
             GetPvPTarget(25);
         }
-        if (In25y(primaryTarget?.Actor) && !HasEffect(SID.GuardPvP) && HasLOS(primaryTarget?.Actor))
+        if (In25y(primaryTarget?.Actor) && HasLOS(primaryTarget?.Actor))
         {
             if (LBready)
             {
-                var lb = strategy.Option(Track.LimitBreak).As<LBStrategy>();
-                if (lb == LBStrategy.Bahamut)
-                    QueueGCD(AID.SummonBahamutPvP, primaryTarget?.Actor, GCDPriority.High + 1);
-                if (lb == LBStrategy.Phoenix)
-                    QueueGCD(AID.SummonPhoenixPvP, Player, GCDPriority.High + 1);
+                var summon = strategy.Option(Track.LimitBreak).As<LBStrategy>();
+                var placement = strategy.Option(Track.Placement).As<LBPlacement>();
+                var crystal = World.Actors.FirstOrDefault(x => x.OID == 0x3886); //crystal
+                var bestActor = placement switch
+                {
+                    LBPlacement.Self => Player,
+                    LBPlacement.Target => primaryTarget?.Actor,
+                    LBPlacement.Crystal => crystal,
+                    LBPlacement.CrystalOrTarget => crystal ?? primaryTarget?.Actor,
+                    _ => null
+                };
+                if (summon == LBStrategy.Bahamut)
+                    QueueGCD(AID.SummonBahamutPvP, bestActor, GCDPriority.High + 1);
+                if (summon == LBStrategy.Phoenix)
+                    QueueGCD(AID.SummonPhoenixPvP, bestActor, GCDPriority.High + 1);
             }
             var role = strategy.Option(Track.RoleActions).As<RoleActionStrategy>();
             if (role switch
@@ -114,7 +140,7 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
                 },
                 role switch
                 {
-                    RoleActionStrategy.Comet => BestTarget,
+                    RoleActionStrategy.Comet => auto ? BestSlipstreamTarget?.Actor : primaryTarget?.Actor,
                     RoleActionStrategy.PhantomDart => primaryTarget?.Actor,
                     RoleActionStrategy.Rust => BestTarget,
                     _ => null
@@ -145,28 +171,32 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
                 _ => false
             })
                 QueueGCD(AID.CrimsonCyclonePvP, BestTarget, GCDPriority.AboveAverage);
-            if (IsReady(AID.CrimsonStrikePvP) && HasEffect(SID.CrimsonStrikeReadyPvP))
+            if (HasEffect(SID.CrimsonStrikeReadyPvP))
                 QueueGCD(AID.CrimsonStrikePvP, primaryTarget?.Actor, StatusRemaining(Player, SID.FurtherRuinPvP) <= 3f ? GCDPriority.High + 1 : GCDPriority.AboveAverage);
             if (IsReady(AID.MountainBusterPvP) && InRange(primaryTarget?.Actor, 8f) &&
                 strategy.Option(Track.MountainBuster).As<CommonStrategy>() == CommonStrategy.Allow)
                 QueueGCD(AID.MountainBusterPvP, auto ? BestConeTarget?.Actor : primaryTarget?.Actor, GCDPriority.Average);
             if (IsReady(AID.SlipstreamPvP) && !IsMoving &&
                 strategy.Option(Track.Slipstream).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.SlipstreamPvP, BestTarget, GCDPriority.BelowAverage);
+                QueueGCD(AID.SlipstreamPvP, BestSlipstreamTarget?.Actor, GCDPriority.BelowAverage);
             if (IsReady(AID.AstralImpulsePvP) && HasEffect(SID.DreadwyrmTrance))
                 QueueGCD(AID.AstralImpulsePvP, primaryTarget?.Actor, GCDPriority.SlightlyLow);
             if (IsReady(AID.FountainOfFirePvP) && HasEffect(SID.FirebirdTrance))
                 QueueGCD(AID.FountainOfFirePvP, primaryTarget?.Actor, GCDPriority.SlightlyLow);
+            if (IsReady(AID.RadiantAegisPvP) && strategy.Option(Track.RadiantAegis).As<AegisStrategy>() switch
+            {
+                AegisStrategy.Auto => (PlayerHPP is < 75 and not 0 && EnemiesTargetingSelf(2)) || PlayerHPP is < 33 and not 0,
+                AegisStrategy.Two => EnemiesTargetingSelf(2) && PlayerHPP is < 100 and not 0,
+                AegisStrategy.Three => EnemiesTargetingSelf(3) && PlayerHPP is < 100 and not 0,
+                AegisStrategy.Four => EnemiesTargetingSelf(4) && PlayerHPP is < 100 and not 0,
+                AegisStrategy.LessThanFull => PlayerHPP is < 100 and not 0,
+                AegisStrategy.LessThan75 => PlayerHPP is < 75 and not 0,
+                AegisStrategy.LessThan50 => PlayerHPP is < 50 and not 0,
+                _ => false
+            })
+                QueueGCD(AID.RadiantAegisPvP, primaryTarget?.Actor, GCDPriority.Max);
 
             QueueGCD(AID.Ruin3PvP, primaryTarget?.Actor, GCDPriority.Low);
         }
-        if (IsReady(AID.RadiantAegisPvP) && strategy.Option(Track.RadiantAegis).As<AegisStrategy>() switch
-        {
-            AegisStrategy.LessThanFull => PlayerHPP is < 100 and not 0,
-            AegisStrategy.LessThan75 => PlayerHPP is < 75 and not 0,
-            AegisStrategy.LessThan50 => PlayerHPP is < 50 and not 0,
-            _ => false
-        })
-            QueueGCD(AID.RadiantAegisPvP, Player, GCDPriority.VeryHigh);
     }
 }

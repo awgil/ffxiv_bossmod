@@ -65,6 +65,17 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         return res;
     }
 
+    private int NumConeTargets;
+    private int NumLineTargets;
+    private int NumSplashTargets;
+    private Enemy? BestConeTargets;
+    private Enemy? BestLineTargets;
+    private Enemy? BestSplashTargets;
+
+    private float AnalyzeLeft => StatusRemaining(Player, SID.AnalysisPvP);
+    private bool LBready => World.Party.LimitBreakLevel >= 1;
+    private AID BestTool => HasEffect(SID.ChainSawPrimed) ? AID.ChainSawPvP : HasEffect(SID.AirAnchorPrimed) ? AID.AirAnchorPvP : HasEffect(SID.BioblasterPrimed) ? AID.BioblasterPvP : AID.DrillPvP;
+    private bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
     private bool ShouldAnalyze(StrategyValues strategy) => AnalyzeLeft == 0 && CDRemaining(AID.AnalysisPvP) <= 20.6f && strategy.Option(Track.Analysis).As<AnalysisStrategy>() switch
     {
         AnalysisStrategy.Any => (HasEffect(SID.DrillPrimed) && CDRemaining(AID.DrillPvP) <= 11f) || (HasEffect(SID.BioblasterPrimed) && CDRemaining(AID.BioblasterPvP) <= 11f) || (HasEffect(SID.AirAnchorPrimed) && CDRemaining(AID.AirAnchorPvP) <= 11f) || (HasEffect(SID.ChainSawPrimed) && CDRemaining(AID.ChainSawPvP) <= 11f),
@@ -82,20 +93,12 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         LBStrategy.Forbid => false,
         _ => false
     };
-    private float AnalyzeLeft => StatusRemaining(Player, SID.AnalysisPvP);
-    private bool LBready => World.Party.LimitBreakLevel >= 1;
-    private bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
-
-    private int NumConeTargets;
-    private int NumLineTargets;
-    private int NumSplashTargets;
-    private Enemy? BestConeTargets;
-    private Enemy? BestLineTargets;
-    private Enemy? BestSplashTargets;
-    private AID BestTool => HasEffect(SID.ChainSawPrimed) ? AID.ChainSawPvP : HasEffect(SID.AirAnchorPrimed) ? AID.AirAnchorPvP : HasEffect(SID.BioblasterPrimed) ? AID.BioblasterPvP : AID.DrillPvP;
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+            return;
+
         (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 12, Is12yConeTarget);
         (BestLineTargets, NumLineTargets) = GetBestTarget(primaryTarget, 25, Is25yRectTarget);
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
@@ -108,7 +111,7 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         {
             GetPvPTarget(25);
         }
-        if (In25y(primaryTarget?.Actor) && !HasEffect(SID.GuardPvP) && HasLOS(primaryTarget?.Actor))
+        if (In25y(primaryTarget?.Actor) && HasLOS(primaryTarget?.Actor))
         {
             if (HasEffect(SID.OverheatedPvP))
             {
