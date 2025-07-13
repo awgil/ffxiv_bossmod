@@ -516,12 +516,13 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected void GetPvPTarget(float range)
     {
         //max prio target
-        //- target is the lowest HP% enemy Player without Guard active
+        //- target is the lowest HP% enemy Player without Guard or any invulnerabilities active
         var maxtarget = Hints.PriorityTargets.Where(x =>
                 HasLOS(x.Actor) && //in line of sight
                 Player.DistanceToHitbox(x.Actor) <= range && //in range
                 !x.Actor.IsStrikingDummy && //not a dummy
                 x.Actor.NameID == 0 && //guaranteed enemy player
+                x.Actor.FindStatus(3039) == null && //no DRK invuln active
                 x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null) //no Guard active
                 .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
 
