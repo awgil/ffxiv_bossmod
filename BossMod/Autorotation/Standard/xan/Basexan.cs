@@ -99,7 +99,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     protected void PushGCD<P>(AID aid, Enemy? target, P priority, float delay = 0) where P : Enum
     {
-        if (target?.Priority <= Enemy.PriorityInvincible)
+        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden)
             return;
 
         PushGCD(aid, target?.Actor, (int)(object)priority, delay);
@@ -124,7 +124,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     protected void PushOGCD<P>(AID aid, Enemy? target, P priority, float delay = 0) where P : Enum
     {
-        if (target?.Priority <= Enemy.PriorityInvincible)
+        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden)
             return;
 
         PushOGCD(aid, target?.Actor, (int)(object)priority, delay);
