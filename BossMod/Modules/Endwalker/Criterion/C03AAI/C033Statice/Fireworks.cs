@@ -3,6 +3,7 @@
 class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20, 2, 2, true)
 {
     public Actor?[] TetheredAdds = new Actor?[4];
+    public WPos?[] TetheredStartPositions = new WPos?[4];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -24,7 +25,10 @@ class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Follow && Raid.TryFindSlot(tether.Target, out var slot) && slot < TetheredAdds.Length)
+        {
             TetheredAdds[slot] = source;
+            TetheredStartPositions[slot] = source.Position;
+        }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -267,11 +271,9 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_fireworks?.TetheredAdds[pcSlot] is var add && add != null)
+        if (GetClosestSafeSpot(pcSlot) is { } safeSpot)
         {
-            var safeSpots = (OID)add.OID is OID.NSurprisingClaw or OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
-            foreach (var p in safeSpots)
-                Arena.AddCircle(p, 1, ArenaColor.Safe);
+            Arena.AddCircle(safeSpot, 1, ArenaColor.Safe);
         }
         else
         {
@@ -280,7 +282,23 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
         }
     }
 
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (GetClosestSafeSpot(slot) is { } safeSpot)
+            movementHints.Add(actor.Position, safeSpot, ArenaColor.Safe);
+    }
+
     private void AddSafeSpot(List<WPos> list, Angle angle) => list.Add(Module.Center + 19 * angle.ToDirection());
+
+    private WPos? GetClosestSafeSpot(int slot)
+    {
+        if (_fireworks?.TetheredAdds[slot] is not { } add || _fireworks?.TetheredStartPositions[slot] is not { } start)
+            return null;
+
+        var safeSpots = (OID)add.OID is OID.NSurprisingClaw or OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
+        var closestSafeSpot = safeSpots.MaxBy(spot => (spot - start).Length()); // Furthest from add starting position
+        return closestSafeSpot;
+    }
 }
 
 class Fireworks2Hints(BossModule module) : BossComponent(module)
