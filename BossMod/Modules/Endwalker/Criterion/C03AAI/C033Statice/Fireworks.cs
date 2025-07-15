@@ -323,13 +323,10 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
     private WPos NearestCardinal(WPos pos)
     {
         var north = _bombs?.RelativeNorth ?? 180.Degrees();
-        WPos[] possibilities = _split switch
-        {
-            SplitType.Vertical => [GetEdgePos(north), GetEdgePos(north + 180.Degrees())],
-            SplitType.Lateral => [GetEdgePos(north - 90.Degrees()), GetEdgePos(north + 90.Degrees())],
-            _ => [GetEdgePos(north)],
-        };
-        return possibilities.MinBy(dest => (dest - pos).Length());
+        if (_split is SplitType.Lateral) // Rotate relative north so later calculations can always assume n/s
+            north += 90.Degrees();
+        var destAngle = Angle.FromDirection(pos - Module.Center);
+        return GetEdgePos(destAngle.DistanceToAngle(north).Abs().Rad < 90.Degrees().Rad ? north : north + 180.Degrees());
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -368,7 +365,7 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
             if (_chains?.Tethered(slot) is true)
                 yield return Module.Center;
             var safeSpots = (OID)add.OID is OID.NSurprisingClaw or OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
-            var closestSafeSpot = safeSpots.MaxBy(spot => (spot - start).Length()); // Furthest from add starting position
+            var closestSafeSpot = safeSpots.MaxBy(spot => (spot - start).LengthSq()); // Furthest from add starting position
             // If we're still chained, we head cardinal first
             if (_chains?.Tethered(slot) is true || _chains?.Chained(slot) is true)
                 yield return NearestCardinal(closestSafeSpot);

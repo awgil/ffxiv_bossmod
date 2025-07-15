@@ -11,7 +11,7 @@ class RingARingOExplosions(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => ActiveBombs.Select(b => new AOEInstance(_shape, b.Position, default, _activation));
 
-    private static int Distance(Actor self, Actor other) => (int)float.Round((self.Position - other.Position).Length());
+    private static int Distance(Actor self, Actor other) => (int)float.Round((self.Position - other.Position).LengthSq());
 
     public override void Update()
     {
