@@ -62,13 +62,19 @@ class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20
 
 class BurningChains(BossModule module) : BossComponent(module)
 {
+    private BitMask _missiles;
     private BitMask _chains;
 
+    public bool Preparing => _missiles.Any();
     public bool Active => _chains.Any();
+    public bool Chained(int slot) => _chains[slot];
+    public bool Tethered(int slot) => _missiles[slot];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (_chains[slot])
+        if (Tethered(slot))
+            hints.Add("Stay with partner!");
+        else if (Chained(slot))
             hints.Add("Break chains!");
     }
 
@@ -85,13 +91,38 @@ class BurningChains(BossModule module) : BossComponent(module)
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.BurningChains)
-            _chains.Set(Raid.FindSlot(actor.InstanceID));
+        {
+            var slot = Raid.FindSlot(actor.InstanceID);
+            _chains.Set(slot);
+            _missiles.Clear(slot);
+        }
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.BurningChains)
             _chains.Clear(Raid.FindSlot(actor.InstanceID));
+    }
+
+    // Shortcuts for early chain hints in Fireworks1
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        // Ensure "preparing" is cleared if the status somehow doesn't happen
+        if ((OID)source.OID is OID.NSurprisingMissile or OID.SSurprisingMissile)
+        {
+            if ((TetherID)tether.ID == TetherID.Follow && Raid.TryFindSlot(tether.Target, out var slot))
+                _missiles.Clear(slot);
+        }
+    }
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        // Missile indicates an upcoming chain
+        if ((OID)source.OID is OID.NSurprisingMissile or OID.SSurprisingMissile)
+        {
+            if ((TetherID)tether.ID == TetherID.Follow && Raid.TryFindSlot(tether.Target, out var slot))
+                _missiles.Set(slot);
+        }
     }
 }
 
@@ -186,6 +217,7 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
 {
     private readonly RingARingOExplosions? _bombs = module.FindComponent<RingARingOExplosions>();
     private readonly Fireworks? _fireworks = module.FindComponent<Fireworks>();
+    private readonly BurningChains? _chains = module.FindComponent<BurningChains>();
     private BitMask _pattern;
     private readonly List<WPos> _safeSpotsClaw = [];
     private readonly List<WPos> _safeSpotsMissile = [];
@@ -271,9 +303,17 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (GetClosestSafeSpot(pcSlot) is { } safeSpot)
+        if (GetAssignedSafeSpot(pcSlot) is { } safeSpot)
         {
-            Arena.AddCircle(safeSpot, 1, ArenaColor.Safe);
+            if (_chains?.Tethered(pcSlot) is true)
+            {
+                Arena.AddCircle(Module.Center, 1, ArenaColor.Safe);
+                Arena.AddCircle(safeSpot, 1, ArenaColor.Danger);
+            }
+            else
+            {
+                Arena.AddCircle(safeSpot, 1, ArenaColor.Safe);
+            }
         }
         else
         {
@@ -284,13 +324,23 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        if (GetClosestSafeSpot(slot) is { } safeSpot)
-            movementHints.Add(actor.Position, safeSpot, ArenaColor.Safe);
+        if (GetAssignedSafeSpot(slot) is { } safeSpot)
+        {
+            if (_chains?.Tethered(slot) is true)
+            {
+                movementHints.Add(actor.Position, Module.Center, ArenaColor.Safe);
+                movementHints.Add(Module.Center, safeSpot, ArenaColor.Danger);
+            }
+            else // Future enhancement: add case for running to cardinal to break tether, followed by movement to safeSpot
+            {
+                movementHints.Add(actor.Position, safeSpot, ArenaColor.Safe);
+            }
+        }
     }
 
     private void AddSafeSpot(List<WPos> list, Angle angle) => list.Add(Module.Center + 19 * angle.ToDirection());
 
-    private WPos? GetClosestSafeSpot(int slot)
+    private WPos? GetAssignedSafeSpot(int slot)
     {
         if (_fireworks?.TetheredAdds[slot] is not { } add || _fireworks?.TetheredStartPositions[slot] is not { } start)
             return null;
