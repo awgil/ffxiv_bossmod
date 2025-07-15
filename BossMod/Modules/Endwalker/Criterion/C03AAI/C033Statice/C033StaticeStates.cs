@@ -132,11 +132,11 @@ class C033StaticeStates : StateMachineBuilder
             .ActivateOnEnter<Dartboard>()
             .ActivateOnEnter<FireSpread>() // first cast starts ~2.6s after cast-end
             .ActivateOnEnter<Fireworks>()
+            .ActivateOnEnter<BurningChains>() // Module loaded early for initial positing
             .ActivateOnEnter<Fireworks2Hints>();
         Cast(id + 0x10, _savage ? AID.SFireworks : AID.NFireworks, 5.7f, 3);
         ComponentCondition<FireSpread>(id + 0x20, 1.9f, comp => comp.NumCasts > 0);
-        ComponentCondition<BurningChains>(id + 0x30, 2.7f, comp => comp.Active, "Chains")
-            .ActivateOnEnter<BurningChains>();
+        ComponentCondition<BurningChains>(id + 0x30, 2.7f, comp => comp.Active, "Chains");
         ComponentCondition<Fireworks>(id + 0x40, 5.1f, comp => !comp.Active, "Stack/spread")
             .DeactivateOnExit<Fireworks2Hints>()
             .DeactivateOnExit<BurningChains>()
