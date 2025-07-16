@@ -17,9 +17,7 @@ sealed class IPCProvider : IDisposable
         Service.Config.Modified.Subscribe(() => lastModified = DateTime.Now);
         Register("Configuration.LastModified", () => lastModified);
 
-        Register("Rotation.ActionQueue.Entries", () => autorotation.Hints.ActionsToExecute.Entries);
-        Register("Rotation.ActionQueue.NonManualEntries", () => autorotation.Hints.ActionsToExecute.Entries
-            .Where(x => x.Priority is not (ActionQueue.Priority.ManualEmergency or ActionQueue.Priority.ManualOGCD or ActionQueue.Priority.ManualGCD)));
+        Register("Rotation.ActionQueue.HasEntries", () => autorotation.Hints.ActionsToExecute.Entries.Any(x => !x.IsManualAction));
 
         Register("Presets.Get", (string name) =>
         {
