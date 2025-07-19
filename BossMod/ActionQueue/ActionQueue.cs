@@ -8,7 +8,10 @@
 // - repeat the process until no more actions can be found
 public sealed class ActionQueue
 {
-    public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire, float Delay, float CastTime, Vector3 TargetPos, Angle? FacingAngle);
+    public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire, float Delay, float CastTime, Vector3 TargetPos, Angle? FacingAngle)
+    {
+        public readonly bool IsManualAction = Priority is (ActionQueue.Priority.ManualEmergency or ActionQueue.Priority.ManualOGCD or ActionQueue.Priority.ManualGCD);
+    }
 
     // reference priority guidelines
     // values divisible by 1000 are reserved for standard cooldown planner priorities
