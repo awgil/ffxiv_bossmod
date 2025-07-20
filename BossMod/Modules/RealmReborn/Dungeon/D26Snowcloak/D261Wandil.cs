@@ -20,7 +20,7 @@ public enum AID : uint
     HypothermalCombustion = 3085, // D09->self, 3.0s cast, range 80+R circle
 
 }
-class SnowDrift(BossModule module) : Components.StayMove(module) 
+class SnowDrift(BossModule module) : Components.StayMove(module)
 {
     private DateTime _time;
 
