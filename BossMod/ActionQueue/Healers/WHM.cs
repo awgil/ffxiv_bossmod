@@ -206,6 +206,16 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.MedicaIII); // animLock=???
         d.RegisterSpell(AID.DivineCaress);
 
+        d.RegisterSpell(AID.GlareIIIPvP);
+        d.RegisterSpell(AID.CureIIPvP);
+        d.RegisterSpell(AID.AfflatusMiseryPvP);
+        d.RegisterSpell(AID.AquaveilPvP);
+        d.RegisterSpell(AID.MiracleOfNaturePvP);
+        d.RegisterSpell(AID.SeraphStrikePvP);
+        d.RegisterSpell(AID.GlareIVPvP);
+        d.RegisterSpell(AID.CureIIIPvP);
+        d.RegisterSpell(AID.AfflatusPurgationPvP);
+
         Customize(d);
     }
 

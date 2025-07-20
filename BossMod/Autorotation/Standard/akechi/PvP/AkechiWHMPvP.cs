@@ -7,12 +7,15 @@ namespace BossMod.Autorotation.akechi;
 
 public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
-    public enum Track { Targeting, RoleActions, LimitBreak, Cure, CureTarget, AfflatusMisery, Aquaveil, MiracleOfNature, SeraphStrike }
+    public enum Track { Targeting, RoleActions, LimitBreak, Cure, CureTarget, Aquaveil, SeraphStrike, MiracleOfNature, AfflatusMisery }
     public enum TargetingStrategy { Auto, Manual }
     public enum RoleActionStrategy { Forbid, Haelan, Stoneskin2, Diabrosis }
+    public enum LBStrategy { Any, Two, Three, Forbid }
     public enum CureStrategy { Eighty, Seventy, Sixty, Fifty, Fourty, Forbid }
     public enum CureTargetStrategy { Self, Party, SelfOrParty }
     public enum AquaveilStrategy { Auto, Two, Three, Four, LessThanFull, LessThan75, LessThan50, DebuffOnly, Forbid }
+    public enum SeraphStrategy { Twenty, Fifteen, Ten, Five, Forbid }
+    public enum MiracleStrategy { Any, Two, Three, Four, Forbid }
     public enum CommonStrategy { Allow, Forbid }
 
     public static RotationModuleDefinition Definition()
@@ -26,6 +29,11 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
             .AddOption(RoleActionStrategy.Haelan, "Haelan", "Use Haelan when available")
             .AddOption(RoleActionStrategy.Stoneskin2, "Stoneskin2", "Use Stoneskin II when available")
             .AddOption(RoleActionStrategy.Diabrosis, "Diabrosis", "Use Diabrosis when available");
+        res.Define(Track.LimitBreak).As<LBStrategy>("Limit Break", "", 300)
+            .AddOption(LBStrategy.Any, "Any", "Use Limit Break when available")
+            .AddOption(LBStrategy.Two, "Two", "Use Limit Break when two or more enemies will be hit")
+            .AddOption(LBStrategy.Three, "Three", "Use Limit Break when three or more enemies will be hit")
+            .AddOption(LBStrategy.Forbid, "Forbid", "Do not use Limit Break");
         res.Define(Track.Cure).As<CureStrategy>("Cure", "", 300)
             .AddOption(CureStrategy.Eighty, "80%", "Use Cure when HP is below 80%")
             .AddOption(CureStrategy.Seventy, "70%", "Use Cure when HP is below 70%")
@@ -47,18 +55,21 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
             .AddOption(AquaveilStrategy.LessThan50, "Less than 50%", "Use Aquaveil when HP is below 50%")
             .AddOption(AquaveilStrategy.DebuffOnly, "Debuff Only", "Use Aquaveil only when under a cleansible debuff")
             .AddOption(AquaveilStrategy.Forbid, "Forbid", "Do not use Aquaveil");
-        res.Define(Track.LimitBreak).As<CommonStrategy>("Limit Break", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Limit Break when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Limit Break");
+        res.Define(Track.SeraphStrike).As<SeraphStrategy>("Seraph Strike", "", 300)
+            .AddOption(SeraphStrategy.Twenty, "20y", "Use Seraph Strike when target is within 20 yalms")
+            .AddOption(SeraphStrategy.Fifteen, "15y", "Use Seraph Strike when target is within 15 yalms")
+            .AddOption(SeraphStrategy.Ten, "10y", "Use Seraph Strike when target is within 10 yalms")
+            .AddOption(SeraphStrategy.Five, "5y", "Use Seraph Strike when target is within 5 yalms")
+            .AddOption(SeraphStrategy.Forbid, "Forbid", "Do not use Seraph Strike");
+        res.Define(Track.MiracleOfNature).As<MiracleStrategy>("Miracle of Nature", "", 300)
+            .AddOption(MiracleStrategy.Any, "Any", "Use Miracle of Nature when available")
+            .AddOption(MiracleStrategy.Two, "Two", "Use Miracle of Nature when two or more party members are targeting an enemy Player (NOT YET IMPLEMENTED)")
+            .AddOption(MiracleStrategy.Three, "Three", "Use Miracle of Nature when three or more party members are targeting an enemy Player (NOT YET IMPLEMENTED)")
+            .AddOption(MiracleStrategy.Four, "Four", "Use Miracle of Nature when four or more party members are targeting an enemy Player (NOT YET IMPLEMENTED)")
+            .AddOption(MiracleStrategy.Forbid, "Forbid", "Do not use Miracle of Nature");
         res.Define(Track.AfflatusMisery).As<CommonStrategy>("Afflatus Misery", "", 300)
             .AddOption(CommonStrategy.Allow, "Allow", "Use Afflatus Misery when available")
             .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Afflatus Misery");
-        res.Define(Track.MiracleOfNature).As<CommonStrategy>("Miracle of Nature", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Miracle of Nature when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Miracle of Nature");
-        res.Define(Track.SeraphStrike).As<CommonStrategy>("Seraph Strike", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Seraph Strike when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Seraph Strike");
         return res;
     }
 
@@ -89,8 +100,22 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
         }
         if (HasLOS(primaryTarget?.Actor))
         {
-            if (World.Party.LimitBreakLevel >= 1 && strategy.Option(Track.LimitBreak).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.AfflatusPurgationPvP, auto ? BestLineTarget?.Actor : primaryTarget?.Actor, GCDPriority.Max);
+            var lb = strategy.Option(Track.LimitBreak).As<LBStrategy>();
+            var bestLBtarget = lb switch
+            {
+                LBStrategy.Any => NumLineTargets >= 1 ? BestLineTargets : primaryTarget,
+                LBStrategy.Two => NumLineTargets >= 2 ? BestLineTargets : primaryTarget,
+                LBStrategy.Three => NumLineTargets >= 3 ? BestLineTargets : primaryTarget,
+                _ => primaryTarget
+            };
+            if (World.Party.LimitBreakLevel >= 1 && lb switch
+            {
+                LBStrategy.Any => NumLineTargets >= 1,
+                LBStrategy.Two => NumLineTargets >= 2,
+                LBStrategy.Three => NumLineTargets >= 3,
+                _ => false
+            })
+                QueueGCD(AID.AfflatusPurgationPvP, auto ? bestLBtarget?.Actor : primaryTarget?.Actor, GCDPriority.Max);
 
             var role = strategy.Option(Track.RoleActions).As<RoleActionStrategy>();
             if (role switch
@@ -113,28 +138,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
                     RoleActionStrategy.Stoneskin2 => Player,
                     RoleActionStrategy.Diabrosis => BestSeraphStrikeTarget?.Actor,
                     _ => null
-                }, GCDPriority.VeryHigh);
-
-            var healtarget = strategy.Option(Track.CureTarget).As<CureTargetStrategy>() switch
-            {
-                CureTargetStrategy.Self => Player,
-                CureTargetStrategy.Party => auto ? World.Party.WithoutSlot(excludeNPCs: true).Exclude(Player).Where(a => a.HPMP.CurHP != a.HPMP.MaxHP).OrderBy(a => (float)a.HPMP.CurHP / a.HPMP.MaxHP).FirstOrDefault() : primaryTarget?.Actor ?? Player,
-                CureTargetStrategy.SelfOrParty => auto ? World.Party.WithoutSlot(excludeNPCs: true).Where(a => a.HPMP.CurHP != a.HPMP.MaxHP).OrderBy(a => (float)a.HPMP.CurHP / a.HPMP.MaxHP).FirstOrDefault() : primaryTarget?.Actor ?? Player,
-                _ => null
-            };
-            if ((IsReady(AID.CureIIPvP) || HasEffect(SID.CureIIIReadyPvP)) && strategy.Option(Track.Cure).As<CureStrategy>() switch
-            {
-                CureStrategy.Eighty => HPP(healtarget) is < 80 and not 0,
-                CureStrategy.Seventy => HPP(healtarget) is < 70 and not 0,
-                CureStrategy.Sixty => HPP(healtarget) is < 60 and not 0,
-                CureStrategy.Fifty => HPP(healtarget) is < 50 and not 0,
-                CureStrategy.Fourty => HPP(healtarget) is < 40 and not 0,
-                _ => false
-            })
-                QueueGCD(HasEffect(SID.CureIIIReadyPvP) ? AID.CureIIIPvP : AID.CureIIPvP, healtarget, GCDPriority.VeryHigh);
-
-            if (IsReady(AID.AfflatusMiseryPvP) && strategy.Option(Track.AfflatusMisery).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.AfflatusMiseryPvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.VeryHigh + 2);
+                }, GCDPriority.Critical);
 
             if (IsReady(AID.AquaveilPvP) && strategy.Option(Track.Aquaveil).As<AquaveilStrategy>() switch
             {
@@ -148,13 +152,52 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
                 AquaveilStrategy.DebuffOnly => DebuffsLeft(Player) > 0,
                 _ => false
             })
-                QueueGCD(AID.AquaveilPvP, Player, GCDPriority.VeryHigh + 3);
+                QueueGCD(AID.AquaveilPvP, Player, GCDPriority.VeryHigh + 1);
 
-            if (IsReady(AID.MiracleOfNaturePvP) && strategy.Option(Track.MiracleOfNature).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.MiracleOfNaturePvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.VeryHigh + 4);
+            var healtarget = strategy.Option(Track.CureTarget).As<CureTargetStrategy>() switch
+            {
+                CureTargetStrategy.Self => Player,
+                CureTargetStrategy.Party => auto ? World.Party.WithoutSlot(excludeNPCs: true).Exclude(Player).Where(a => a.HPMP.CurHP != a.HPMP.MaxHP).OrderBy(a => (float)a.HPMP.CurHP / a.HPMP.MaxHP).FirstOrDefault() : primaryTarget?.Actor ?? Player,
+                CureTargetStrategy.SelfOrParty => auto ? World.Party.WithoutSlot(excludeNPCs: true).Where(a => a.HPMP.CurHP != a.HPMP.MaxHP).OrderBy(a => (float)a.HPMP.CurHP / a.HPMP.MaxHP).FirstOrDefault() : primaryTarget?.Actor ?? Player,
+                _ => null
+            };
+            if ((CDRemaining(AID.CureIIPvP) < 12.6f || HasEffect(SID.CureIIIReadyPvP)) && strategy.Option(Track.Cure).As<CureStrategy>() switch
+            {
+                CureStrategy.Eighty => HPP(healtarget) is < 80 and not 0,
+                CureStrategy.Seventy => HPP(healtarget) is < 70 and not 0,
+                CureStrategy.Sixty => HPP(healtarget) is < 60 and not 0,
+                CureStrategy.Fifty => HPP(healtarget) is < 50 and not 0,
+                CureStrategy.Fourty => HPP(healtarget) is < 40 and not 0,
+                _ => false
+            })
+                QueueGCD(HasEffect(SID.CureIIIReadyPvP) ? AID.CureIIIPvP : AID.CureIIPvP, healtarget, GCDPriority.VeryHigh);
 
-            if (IsReady(AID.SeraphStrikePvP) && strategy.Option(Track.SeraphStrike).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.SeraphStrikePvP, auto ? BestSeraphStrikeTarget?.Actor : primaryTarget?.Actor, GCDPriority.VeryHigh + 5);
+            if (IsReady(AID.AfflatusMiseryPvP) && strategy.Option(Track.AfflatusMisery).As<CommonStrategy>() == CommonStrategy.Allow)
+                QueueGCD(AID.AfflatusMiseryPvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.Average);
+
+            if (IsReady(AID.MiracleOfNaturePvP) &&
+                primaryTarget?.Actor.NameID == 0 && //doesnt work on NPCs or striking dummy
+                primaryTarget?.Actor.MountId == 0 && //doesnt work on mounted players
+                primaryTarget?.Actor.FindStatus(GNB.SID.RelentlessRushPvP) == null && //doesnt work on Relentless Rush
+                primaryTarget?.Actor.FindStatus(3162) == null && //doesnt work on Honing Dance
+                primaryTarget?.Actor.FindStatus(3039) == null && //no DRK invuln active - no point in using if invulnerable
+                primaryTarget?.Actor.FindStatus(1302) == null && //no PLD invuln active - no point in using if invulnerable
+                primaryTarget?.Actor.FindStatus(1301) == null && primaryTarget?.Actor.FindStatus(1300) == null && //no PLD Cover active - no point in using if resistant
+                primaryTarget?.Actor.FindStatus(1978) == null && //no Rampart active - no point in using if resistant
+                primaryTarget?.Actor.FindStatus(ClassShared.SID.GuardPvP) == null && //no Guard active - no point in using if resistant
+                strategy.Option(Track.MiracleOfNature).As<MiracleStrategy>() == MiracleStrategy.Any)
+                QueueGCD(AID.MiracleOfNaturePvP, primaryTarget?.Actor, GCDPriority.Average);
+
+            var bestSStarget = auto ? BestSeraphStrikeTarget?.Actor : primaryTarget?.Actor;
+            if (IsReady(AID.SeraphStrikePvP) && strategy.Option(Track.SeraphStrike).As<SeraphStrategy>() switch
+            {
+                SeraphStrategy.Twenty => In20y(bestSStarget),
+                SeraphStrategy.Fifteen => In15y(bestSStarget),
+                SeraphStrategy.Ten => In10y(bestSStarget),
+                SeraphStrategy.Five => In5y(bestSStarget),
+                _ => false
+            })
+                QueueGCD(AID.SeraphStrikePvP, bestSStarget, GCDPriority.Average);
 
             QueueGCD(HasEffect(SID.SacredSightPvP) ? AID.GlareIVPvP : AID.GlareIIIPvP, auto && HasEffect(SID.SacredSightPvP) ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.Low);
         }
