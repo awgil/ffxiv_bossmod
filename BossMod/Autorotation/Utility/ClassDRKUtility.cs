@@ -64,18 +64,17 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority(), tbn.Value.ExpireIn);
 
         //Oblation execution
-        var canObl = ActionUnlocked(ActionID.MakeSpell(DRK.AID.Oblation));
         var oblation = strategy.Option(Track.Oblation);
         var oblationStrat = oblation.As<OblationStrategy>();
-        var oblationTarget = ResolveTargetOverride(oblation.Value) ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        var oblationStatus = oblationTarget?.FindStatus(DRK.SID.Oblation) != null;
+        var oblationTarget = ResolveTargetOverride(oblation.Value) ?? primaryTarget ?? Player;
         var oblationCD = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRK.AID.Oblation)!.MainCooldownGroup].Remaining;
-        if (canObl && oblationStrat != OblationStrategy.None && !oblationStatus)
+        if (ActionUnlocked(ActionID.MakeSpell(DRK.AID.Oblation)) && oblationTarget?.FindStatus(DRK.SID.Oblation) == null && oblationStrat switch
         {
-            if ((oblationStrat == OblationStrategy.Force) ||
-                (oblationStrat == OblationStrategy.ForceHold1 && oblationCD < 0.6f))
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Oblation), oblationTarget, oblation.Priority(), oblation.Value.ExpireIn);
-        }
+            OblationStrategy.Force => oblationCD <= 60.5f,
+            OblationStrategy.ForceHold1 => oblationCD < 0.6f,
+            _ => false
+        })
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Oblation), oblationTarget, oblation.Priority(), oblation.Value.ExpireIn);
 
         //Shadow Wall / Vigil execution
         var wall = strategy.Option(Track.ShadowWall);
