@@ -48,11 +48,8 @@ class Tundra(BossModule module) : Components.GenericAOEs(module)
     private readonly List<AOEInstance> _aoes = [];
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var i in _aoes)
-                yield return i with { Color = ArenaColor.AOE };
-        }
+        foreach (var i in _aoes)
+            yield return i with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
