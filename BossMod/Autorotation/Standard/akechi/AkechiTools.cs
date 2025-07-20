@@ -457,6 +457,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if the target is within a <b>25-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is25yRectTarget => LineTargetCheck(25);
+
+    /// <summary>Checks if the target is within a <b>25-yalm AOE Rect</b> range.</summary>
+    protected PositionCheck Is40yRectTarget => LineTargetCheck(40);
     #endregion
 
     #endregion
