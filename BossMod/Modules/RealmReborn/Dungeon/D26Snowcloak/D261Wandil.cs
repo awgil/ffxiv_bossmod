@@ -20,22 +20,21 @@ public enum AID : uint
     HypothermalCombustion = 3085, // D09->self, 3.0s cast, range 80+R circle
 
 }
-
-class SnowDrift(BossModule module) : Components.StayMove(module) // For how many BASIC blizzard/move-or-freeze mechanics there are in this game, this component is ass.
+class SnowDrift(BossModule module) : Components.StayMove(module) 
 {
-    private DateTime _thisComponentSucks;
+    private DateTime _time;
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.SnowDrift)
         {
-            _thisComponentSucks = DateTime.Now;
+            _time = WorldState.CurrentTime;
             Array.Fill(PlayerStates, new(Requirement.Move, Module.CastFinishAt(spell, 2.4f)));
         }
     }
     public override void Update()
     {
-        if (DateTime.Now > _thisComponentSucks.AddSeconds(3))
+        if (WorldState.CurrentTime > _time.AddSeconds(3))
         {
             Array.Fill(PlayerStates, default);
         }
@@ -63,19 +62,7 @@ class Tundra(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class Adds(BossModule module) : Components.Adds(module, (uint)OID.FrostBomb)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var e in hints.PotentialTargets)
-            e.Priority = (OID)e.Actor.OID switch
-            {
-                OID.FrostBomb => 3,
-                OID.Boss => 1,
-                _ => 0
-            };
-    }
-}
+class Adds(BossModule module) : Components.Adds(module, (uint)OID.FrostBomb, 3);
 class D261WandilStates : StateMachineBuilder
 {
     public D261WandilStates(BossModule module) : base(module)
