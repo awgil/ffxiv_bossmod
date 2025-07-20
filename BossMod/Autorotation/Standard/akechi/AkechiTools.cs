@@ -841,6 +841,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         Class.AST => player.Level >= 50,
         _ => false
     };
+    protected void ExecutePotSTR(GCDPriority prio = 0) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium + (int)prio);
+    protected void ExecutePotINT(GCDPriority prio = 0) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.Medium + (int)prio);
+    protected void ExecutePotDEX(GCDPriority prio = 0) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium + (int)prio);
     #endregion
 
     #region Shared Abilities

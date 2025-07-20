@@ -496,7 +496,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
         return strategy switch
         {
-            UpgradeStrategy.Automatic => InsideCombatWith(target) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast) && InAF && (LastActionUsed(Unlocked(AID.Despair) ? AID.Despair : AID.Flare) || MP < 800),
+            UpgradeStrategy.Automatic => InsideCombatWith(target) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast) && InUI && MP < 1600,
             UpgradeStrategy.Force or UpgradeStrategy.ForceEX => true,
             UpgradeStrategy.ForceWeave or UpgradeStrategy.ForceWeaveEX => CanWeaveIn,
             _ => false
@@ -510,9 +510,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         //primary use for this is to make sure we get instant B3
         if (strategy == ChargeStrategy.Automatic && InsideCombatWith(target) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast))
         {
-            return InAF && CDRemaining(AID.Manafont) > 8f && //if Manafont is imminent, we dont want to early use
-                ((!Unlocked(AID.FlareStar) && MP < 1600) || //Lv50-Lv99 - F4->Despair/Flare->B3
-                (LastActionUsed(Unlocked(AID.Despair) ? AID.Despair : AID.Flare) || MP < 800)); //fallback attempt to use right before B3
+            return InAF && CDRemaining(AID.Manafont) > 8f && InAF && MP is <= 1600 and >= 800;
+
         }
 
         return strategy switch
@@ -583,8 +582,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         CanAmplify = ActionReady(AID.Amplifier);
         CanTC = Unlocked(AID.Triplecast) && CDRemaining(AID.Triplecast) <= 60 && !HasEffect(SID.Triplecast);
         CanMF = ActionReady(AID.Manafont) && InAF;
-        CanRetrace = ActionReady(AID.Retrace) && HasEffect(SID.CircleOfPower);
-        CanBTL = ActionReady(AID.BetweenTheLines) && HasEffect(SID.LeyLines);
+        CanRetrace = ActionReady(AID.Retrace) && HasEffect(SID.LeyLines) && !HasEffect(SID.CircleOfPower);
+        CanBTL = ActionReady(AID.BetweenTheLines) && HasEffect(SID.LeyLines) && !HasEffect(SID.CircleOfPower);
         HasThunderhead = HasEffect(SID.Thunderhead);
         HasFirestarter = HasEffect(SID.Firestarter);
         ThunderLeft = Utils.MaxAll(
@@ -646,24 +645,24 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                         //Manafont
                         var (mfCondition, mfPrio) = ShouldUseManafont(mfStrat, primaryTarget?.Actor);
                         if (mfCondition)
-                            QueueOGCD(AID.Manafont, Player, Unlocked(AID.Xenoglossy) ? mfPrio : mfPrio + 2004); //4254
+                            QueueOGCD(AID.Manafont, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? mfPrio : mfPrio + 2004);
                         //LeyLines
                         var (llCondition, llPrio) = ShouldUseLeyLines(llStrat, primaryTarget?.Actor);
                         if (llCondition)
-                            QueueOGCD(AID.LeyLines, Player, Unlocked(AID.Xenoglossy) ? llPrio : llPrio + 2001); //4251
+                            QueueOGCD(AID.LeyLines, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? llPrio : llPrio + 2001);
                         //Amplifier
                         if (ShouldUseAmplifier(ampStrat))
                             QueueOGCD(AID.Amplifier, Player, OGCDPrio(ampStrat, OGCDPriority.ModeratelyLow));
                     }
                     //Swiftcast
                     if (ShouldUseSwiftcast(strategy.Option(Track.Swiftcast).As<UpgradeStrategy>(), primaryTarget?.Actor))
-                        QueueOGCD(AID.Swiftcast, Player, Unlocked(AID.Xenoglossy) ? GCDPriority.ModeratelyLow : GCDPriority.ModeratelyLow + 2003); //4253
+                        QueueOGCD(AID.Swiftcast, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow : GCDPriority.ModeratelyLow + 2003);
                     //Triplecast
                     if (ShouldUseTriplecast(strategy.Option(Track.Triplecast).As<ChargeStrategy>(), primaryTarget?.Actor))
-                        QueueOGCD(AID.Triplecast, Player, Unlocked(AID.Xenoglossy) ? GCDPriority.ModeratelyLow : GCDPriority.ModeratelyLow + 2002); //4252
+                        QueueOGCD(AID.Triplecast, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow : GCDPriority.Average + 2001);
                     //Transpose
                     if (ShouldUseTranspose())
-                        QueueOGCD(AID.Transpose, Player, Unlocked(AID.Xenoglossy) ? OGCDPriority.ExtremelyHigh : OGCDPriority.ModeratelyLow + 2000);
+                        QueueOGCD(AID.Transpose, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? OGCDPriority.ExtremelyHigh : OGCDPriority.ModeratelyLow + 2000);
                 }
                 if (!strategy.HoldGauge())
                 {
