@@ -191,7 +191,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
 
     /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
-    protected bool ShouldUseGCD(bool ready, GCDStrategy strategy, Actor? target, bool optimal = false) => ready && strategy switch
+    protected bool ShouldUseGCD(GCDStrategy strategy, Actor? target, bool ready, bool optimal = true) => ready && strategy switch
     {
         GCDStrategy.Automatic => target != null && optimal,
         GCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
@@ -223,19 +223,16 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
 
     /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
-    protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = true)
+    protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = true) => ready && strategy switch
     {
-        return ready && strategy switch
-        {
-            OGCDStrategy.Automatic => target != null && optimal,
-            OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
-            OGCDStrategy.Force => true,
-            OGCDStrategy.AnyWeave => CanWeaveIn,
-            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
-            OGCDStrategy.LateWeave => CanLateWeaveIn,
-            _ => false
-        };
-    }
+        OGCDStrategy.Automatic => target != null && optimal,
+        OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
+        OGCDStrategy.Force => true,
+        OGCDStrategy.AnyWeave => CanWeaveIn,
+        OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => CanLateWeaveIn,
+        _ => false
+    };
 
     #endregion
 
