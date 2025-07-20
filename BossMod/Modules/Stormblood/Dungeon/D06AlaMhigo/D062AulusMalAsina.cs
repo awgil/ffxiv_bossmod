@@ -60,8 +60,7 @@ class IntegratedAetheromodulator(BossModule module) : Components.GenericAOEs(mod
 
     public override void Update()
     {
-        if (_aoes.Count > 0)
-            _aoes.RemoveAll(x => DateTime.Now >= x.Activation);
+        _aoes.RemoveAll(x => WorldState.CurrentTime >= x.Activation);
     }
 }
 class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(45.6f, 2));

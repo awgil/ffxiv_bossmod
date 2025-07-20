@@ -24,6 +24,7 @@ public class Analyzer : DiagnosticAnalyzer
         "Property {0} of type {1} is a read/write bitmask, which introduces a risk of mutating a temporary");
     private static readonly DiagnosticDescriptor RuleNoEmptyFirstLine = Register("First line of the file should not be empty", "Empty first line is pointless", DiagnosticSeverity.Warning);
     private static readonly DiagnosticDescriptor RuleUseSingleLineFindSlot = Register("Conditional can be inlined", "Use TryFindSlot instead of testing against 0", DiagnosticSeverity.Warning);
+    private static readonly DiagnosticDescriptor RuleNoRealDatetimeInComponents = Register("Use of DateTime.Now in boss module", "DateTime.Now will behave unexpectedly in replays. Use WorldState.CurrentTime instead", DiagnosticSeverity.Error);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -33,6 +34,7 @@ public class Analyzer : DiagnosticAnalyzer
         context.RegisterSymbolAction(AnalyzeNoBitmaskProperties, SymbolKind.Property);
         context.RegisterSyntaxTreeAction(AnalyzeNoEmptyFirstLine);
         context.RegisterSyntaxNodeAction(AnalyzeUseInlineFindSlot, SyntaxKind.Block);
+        context.RegisterSyntaxNodeAction(AnalyzeNoRealDatetime, SyntaxKind.Block);
     }
 
     private static void AnalyzeNoMutableStatics(SymbolAnalysisContext context)
@@ -111,6 +113,18 @@ public class Analyzer : DiagnosticAnalyzer
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private static void AnalyzeNoRealDatetime(SyntaxNodeAnalysisContext context)
+    {
+        if (context.ContainingSymbol?.ContainingType is { } ty && IsSameOrDerivedFrom(ty, "BossComponent", "BossModule"))
+        {
+            foreach (var node in context.Node.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
+            {
+                if (node.Expression.ToString() == "DateTime" && node.Name.ToString() is "Now" or "Today")
+                    context.ReportDiagnostic(Diagnostic.Create(RuleNoRealDatetimeInComponents, node.GetLocation()));
             }
         }
     }
