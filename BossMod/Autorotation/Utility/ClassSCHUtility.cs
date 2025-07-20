@@ -43,7 +43,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
             .AddAssociatedActions(SCH.AID.DeploymentTactics);
 
         DefineSimpleConfig(res, Track.EmergencyTactics, "EmergencyTactics", "Emerg.", 100, SCH.AID.EmergencyTactics, 15);
-        DefineSimpleConfig(res, Track.Dissipation, "Dissipation", "Dissi.", 290, SCH.AID.Dissipation, 15);
+        DefineSimpleConfig(res, Track.Dissipation, "Dissipation", "Dissi.", 290, SCH.AID.Dissipation, 30);
         DefineSimpleConfig(res, Track.Excogitation, "Excogitation", "Excog.", 100, SCH.AID.Excogitation, 45);
 
         res.Define(Track.Aetherpact).As<AetherpactOption>("Aetherpact", "A.pact", 300)
