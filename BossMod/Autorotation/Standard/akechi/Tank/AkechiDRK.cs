@@ -174,7 +174,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
     private bool ShouldUseBlood(BloodStrategy strategy, Enemy? target)
     {
         var minimum = Unlocked(BestBloodSpender) && (Blood >= 50 || Delirium.IsActive);
-        var condition = Player.InCombat && target != null && InMeleeRange(target?.Actor) && minimum && Darkside.IsActive && (RiskingBlood || !InOddWindow(AID.LivingShadow) ? (!CanFitSkSGCD(Delirium.Left, 3) || RaidBuffsLeft > 0f) : minimum || !CanFitSkSGCD(DowntimeIn, 3));
+        var condition = Player.InCombat && target != null && In3y(target?.Actor) && minimum && Darkside.IsActive && (RiskingBlood || !InOddWindow(AID.LivingShadow) ? (!CanFitSkSGCD(Delirium.Left, 3) || RaidBuffsLeft > 0f) : minimum || !CanFitSkSGCD(DowntimeIn, 3));
         return strategy switch
         {
             BloodStrategy.Automatic or BloodStrategy.OnlyBloodspiller or BloodStrategy.OnlyQuietus => condition,

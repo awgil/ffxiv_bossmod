@@ -37,9 +37,8 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
         res.Define(Track.Placement).As<LBPlacement>("LB Placement", "", 300)
             .AddOption(LBPlacement.Self, "Self", "Place Limit Break summon on self")
             .AddOption(LBPlacement.Target, "Target", "Place Limit Break summon on current target")
-            .AddOption(LBPlacement.Crystal, "Crystal", "Place Limit Break summon on crystal only; will hold LB until near the Crystal (only works for Crystalline Conflict)")
-            .AddOption(LBPlacement.CrystalOrTarget, "Crystal or Target", "Place Limit Break summon on crystal or target if Crystal is unavailable (intended for Crystalline Conflict, but works in others too)")
-            .AddAssociatedActions(AID.SummonBahamutPvP, AID.SummonPhoenixPvP);
+            .AddOption(LBPlacement.Crystal, "Crystal", "Place Limit Break summon on crystal only; will hold LB until near the crystal (only works for Crystalline Conflict)")
+            .AddOption(LBPlacement.CrystalOrTarget, "Crystal or Target", "Place Limit Break summon on crystal or target if crystal is unavailable (intended for Crystalline Conflict, but works in others too)");
         res.Define(Track.RadiantAegis).As<AegisStrategy>("Radiant Aegis", "", 300)
             .AddOption(AegisStrategy.Auto, "Automatic", "Use Radiant Aegis when HP is less than 75% and two or more targets are targeting you, or when HP is below 33%")
             .AddOption(AegisStrategy.Two, "2 Targets", "Use Radiant Aegis when HP is not full and two or more targets are targeting you")
@@ -173,7 +172,7 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
                 QueueGCD(AID.CrimsonCyclonePvP, BestTarget, GCDPriority.AboveAverage);
             if (HasEffect(SID.CrimsonStrikeReadyPvP))
                 QueueGCD(AID.CrimsonStrikePvP, primaryTarget?.Actor, StatusRemaining(Player, SID.FurtherRuinPvP) <= 3f ? GCDPriority.High + 1 : GCDPriority.AboveAverage);
-            if (IsReady(AID.MountainBusterPvP) && InRange(primaryTarget?.Actor, 8f) &&
+            if (IsReady(AID.MountainBusterPvP) && DistanceFrom(primaryTarget?.Actor, 8f) &&
                 strategy.Option(Track.MountainBuster).As<CommonStrategy>() == CommonStrategy.Allow)
                 QueueGCD(AID.MountainBusterPvP, auto ? BestConeTarget?.Actor : primaryTarget?.Actor, GCDPriority.Average);
             if (IsReady(AID.SlipstreamPvP) && !IsMoving &&

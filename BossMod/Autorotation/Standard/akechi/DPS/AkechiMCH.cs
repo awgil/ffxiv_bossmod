@@ -359,9 +359,9 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         };
     }
     private (bool, OGCDPriority) ShouldUseDoubleCheck(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, Unlocked(AID.GaussRound), GaussCharges,
-            WFleft > 0 || RaidBuffsLeft > 0 || OverheatActive || TargetHPP(target) <= 5 || (CDRemaining(AID.Wildfire) > 90 ? CDRemaining(BestGauss) <= 62f : CDRemaining(BestGauss) <= 32f));
+            WFleft > 0 || RaidBuffsLeft > 0 || OverheatActive || HPP(target) <= 5 || (CDRemaining(AID.Wildfire) > 90 ? CDRemaining(BestGauss) <= 62f : CDRemaining(BestGauss) <= 32f));
     private (bool, OGCDPriority) ShouldUseCheckmate(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, Unlocked(AID.Ricochet), RicoCharges,
-            WFleft > 0 || RaidBuffsLeft > 0 || OverheatActive || TargetHPP(target) <= 5 || (CDRemaining(AID.Wildfire) > 90 ? CDRemaining(BestRicochet) <= 62f : CDRemaining(BestRicochet) <= 32f));
+            WFleft > 0 || RaidBuffsLeft > 0 || OverheatActive || HPP(target) <= 5 || (CDRemaining(AID.Wildfire) > 90 ? CDRemaining(BestRicochet) <= 62f : CDRemaining(BestRicochet) <= 32f));
     private OGCDPriority CMDCPriority(int charges) => charges switch
     {
         3 => OGCDPriority.ExtremelyHigh + 1,
