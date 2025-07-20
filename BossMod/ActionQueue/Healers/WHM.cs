@@ -105,6 +105,7 @@ public enum SID : uint
     MedicaIII = 3880, // applied by Medica III to self/target
     DivineGrace = 3881, // applied by Temperance to self
     DivineCaress = 3903, // applied by Divine Caress to self/target
+    MiracleOfNaturePvP = 3085, // applied by WHM PvP LB to self/target
 
     //Shared
     Surecast = ClassShared.SID.Surecast, // applied by Surecast to self

@@ -528,7 +528,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     var shouldDive = dive switch
                     {
                         DivesStrategy.AllowMaxMelee => In3y(BestDiveTarget?.Actor),
-                        DivesStrategy.AllowCloseMelee => InRange(BestDiveTarget?.Actor, 1),
+                        DivesStrategy.AllowCloseMelee => DistanceFrom(BestDiveTarget?.Actor, 1),
                         DivesStrategy.Allow => In20y(BestDiveTarget?.Actor),
                         DivesStrategy.Forbid => false,
                         _ => false,

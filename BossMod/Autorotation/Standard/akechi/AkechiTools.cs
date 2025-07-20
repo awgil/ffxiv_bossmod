@@ -1,4 +1,6 @@
-﻿using static BossMod.AIHints;
+﻿using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
@@ -187,6 +189,15 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             NextGCDPrio = priority;
         }
     }
+
+    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
+    protected bool ShouldUseGCD(GCDStrategy strategy, Actor? target, bool ready, bool optimal = true) => ready && strategy switch
+    {
+        GCDStrategy.Automatic => target != null && optimal,
+        GCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
+        GCDStrategy.Force => true,
+        _ => false
+    };
     #endregion
 
     #region OGCD
@@ -210,6 +221,19 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
         QueueAction(aid, target, ActionQueue.Priority.Low + priority, delay, castTime, targetPos, facingAngle);
     }
+
+    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
+    protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = true) => ready && strategy switch
+    {
+        OGCDStrategy.Automatic => target != null && optimal,
+        OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
+        OGCDStrategy.Force => true,
+        OGCDStrategy.AnyWeave => CanWeaveIn,
+        OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
+        OGCDStrategy.LateWeave => CanLateWeaveIn,
+        _ => false
+    };
+
     #endregion
 
     protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime, Vector3 targetPos = default, Angle? facingAngle = null)
@@ -259,29 +283,23 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Retrieves the <b>current HP</b> value of a specified actor.</summary>
     /// <param name="actor">The specified <b>target actor</b>.</param>
-    protected uint TargetCurrentHP(Actor actor) => actor.HPMP.CurHP;
+    protected uint CurrentHP(Actor actor) => actor.HPMP.CurHP;
 
     /// <summary>Retrieves the <b>current Shield</b> value of a specified actor.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
-    protected uint TargetCurrentShield(Actor actor) => actor.HPMP.Shield;
+    protected uint CurrentShield(Actor actor) => actor.HPMP.Shield;
 
     /// <summary>Checks if a specified actor has any current <b>active Shield</b>.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
-    protected bool TargetHasShield(Actor actor) => actor.HPMP.Shield > 0.1f;
-
-    /// <summary>Retrieves the <b>player's current HP percentage</b>.</summary>
-    protected float PlayerHPP => TargetHPP(Player);
+    protected bool ShieldActive(Actor actor) => actor.HPMP.Shield > 0.1f;
 
     /// <summary>Retrieves the <b>current HP percentage</b> of a specified actor.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
-    protected float TargetHPP(Actor? actor = null)
-    {
-        if (actor is null || actor.IsDead)
-            return 0f;
+    protected float HPP(Actor? actor = null) => actor == null || actor.IsDead ? 0f : (float)actor.HPMP.CurHP / actor.HPMP.MaxHP * 100;
 
-        var HPP = (actor.HPMP.CurHP / actor.HPMP.MaxHP) * 100f;
-        return Math.Clamp(HPP, 0f, 100f);
-    }
+    /// <summary>Retrieves the <b>player's current HP percentage</b>.</summary>
+    protected float PlayerHPP => HPP(Player);
+
     #endregion
 
     #region Actions
@@ -347,10 +365,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);
-
-    /// <summary>Retrieves time remaining until specified <b>action</b> is at <b>max charges</b>. </summary>
-    /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float MaxChargesIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
     #endregion
 
     #region Status
@@ -396,17 +410,15 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #region Splash
     /// <summary>Position checker for determining the best target for an ability that deals <b>Splash</b> damage.</summary>
     protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);
+
+    protected PositionCheck Is10ySplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 10);
     #endregion
 
     #region Cones
     //some use-cases for these are mainly for BLU modules, since the ranges for their abilities are all over the place. (e.g. 4y & 16y specifically)
 
     /// <summary>Creates a <b>Position Check</b> for <b>Cone AOE</b> attacks with the given range.</summary>
-    private PositionCheck ConeTargetCheck(float range) => (primary, other) =>
-    {
-        var playerDir = Player.DirectionTo(primary);
-        return Hints.TargetInAOECone(other, Player.Position, range, playerDir, 45.Degrees());
-    };
+    private PositionCheck ConeTargetCheck(float range) => (primary, other) => Hints.TargetInAOECone(other, Player.Position, range, Player.DirectionTo(primary), 45.Degrees());
 
     /// <summary>Checks if the target is within a <b>4-yalm Cone</b> range.</summary>
     protected PositionCheck Is4yConeTarget => ConeTargetCheck(4);
@@ -432,11 +444,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     #region Lines (AOE Rectangles)
     /// <summary>Creates a <b>Position Check</b> for <b>Line AOE (AOE Rectangle)</b> attacks with the given range.</summary>
-    private PositionCheck LineTargetCheck(float range) => (primary, other) =>
-    {
-        var playerDir = Player.DirectionTo(primary); // Cache calculation
-        return Hints.TargetInAOERect(other, Player.Position, playerDir, range, 2);
-    };
+    private PositionCheck LineTargetCheck(float range, float halfWidth = 2) => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), range, halfWidth);
 
     /// <summary>Checks if the target is within a <b>10-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is10yRectTarget => LineTargetCheck(10);
@@ -457,34 +465,28 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if target is within the specified distance in <b>yalms</b>.</summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
     /// <param name="maxDistance">The maximum distance threshold.</param>
-    protected bool InRange(Actor? target, float maxDistance) => Player.DistanceToHitbox(target) <= maxDistance - 0.01f;
-
-    /// <summary>Checks if target is within the Melee-range distance in <b>yalms</b>.</summary>
-    protected bool InMeleeRange(Actor? target) => InRange(target, 3.5f);
-
-    /// <summary>Checks if the target is within <b>0-yalm</b> range.</summary>
-    protected bool In0y(Actor? target) => InRange(target, 0.01f);
+    protected bool DistanceFrom(Actor? target, float maxDistance) => Player.DistanceToHitbox(target) <= maxDistance - 0.01f;
 
     /// <summary>Checks if the target is within <b>3-yalm</b> range.</summary>
-    protected bool In3y(Actor? target) => InRange(target, 3.00f);
+    protected bool In3y(Actor? target) => DistanceFrom(target, 3.00f);
 
     /// <summary>Checks if the target is within <b>5-yalm</b> range.</summary>
-    protected bool In5y(Actor? target) => InRange(target, 5.00f);
+    protected bool In5y(Actor? target) => DistanceFrom(target, 5.00f);
 
     /// <summary>Checks if the target is within <b>10-yalm</b> range.</summary>
-    protected bool In10y(Actor? target) => InRange(target, 10.00f);
+    protected bool In10y(Actor? target) => DistanceFrom(target, 10.00f);
 
     /// <summary>Checks if the target is within <b>12-yalm</b> range.</summary>
-    protected bool In12y(Actor? target) => InRange(target, 12.00f);
+    protected bool In12y(Actor? target) => DistanceFrom(target, 12.00f);
 
     /// <summary>Checks if the target is within <b>15-yalm</b> range.</summary>
-    protected bool In15y(Actor? target) => InRange(target, 15.00f);
+    protected bool In15y(Actor? target) => DistanceFrom(target, 15.00f);
 
     /// <summary>Checks if the target is within <b>20-yalm</b> range.</summary>
-    protected bool In20y(Actor? target) => InRange(target, 20.00f);
+    protected bool In20y(Actor? target) => DistanceFrom(target, 20.00f);
 
     /// <summary>Checks if the target is within <b>25-yalm</b> range.</summary>
-    protected bool In25y(Actor? target) => InRange(target, 25.00f);
+    protected bool In25y(Actor? target) => DistanceFrom(target, 25.00f);
     #endregion
 
     #region Smart-Targeting
@@ -512,17 +514,66 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         }
     }
 
+    /// <summary>Checks if the player has line of sight on a target</summary>
+    protected unsafe bool HasLOS(Actor? actor)
+    {
+        if (actor == null || actor.IsDeadOrDestroyed)
+            return false;
+
+        //TODO: there is weird behavior when it comes to striking dummies
+        //they have a different Y coord needed for this to function correctly (works with 4), as the current correct value of 2 will not work unless up close
+        //we don't care about LOS for striking dummies since they really don't matter and are mainly used for testing/observing
+        //leaving this as true is ok for now, but may need a small revision in the future when someone actually cares
+        if (actor.IsStrikingDummy)
+            return true;
+
+        var sourcePos = Player.Position.ToVec3() with { Y = actor.Position.ToVec3(2f).Y };
+        var targetPos = actor.Position.ToVec3() with { Y = actor.Position.ToVec3(2f).Y };
+        var offset = targetPos - sourcePos;
+        var distance = offset.Length();
+        var direction = offset / distance;
+        RaycastHit hit;
+        var flags = stackalloc int[] { 0x4000, 0, 0x4000, 0 };
+        return !Framework.Instance()->BGCollisionModule->RaycastMaterialFilter(&hit, &sourcePos, &direction, distance, 1, flags);
+    }
+
+    /// <summary>Checks the <b>quantity of enemies</b> currently targeting the <b>Player</b></summary>
+    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Service.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
+
     /// <summary>Attempts to <b>select</b> the most suitable <b>PvP target</b> automatically, prioritizing the target with the <b>lowest HP percentage</b> within range.<para/>
-    /// <b>NOTE</b>: This function is solely used for finding the best <b>PvP target</b> without having to manually scan and click on other targets. Please use appropriately.</summary>
-    /// <param name="primaryTarget">The user's current <b>target</b>.</param>
+    /// <b>NOTE</b>: This function is solely used for finding the best <b>PvP target</b> without having to manually scan and click on other targets.</summary>
     /// <param name="range">The <b>max range</b> to consider a new target.</param>
     protected void GetPvPTarget(float range)
     {
-        var bestTarget = Hints.PriorityTargets
-            .Where(x => Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null)
-            .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
-            .FirstOrDefault();
-        Hints.ForcedTarget = bestTarget?.Actor;
+        //max prio target - we want to burn down this target immediately
+        var high = Hints.PriorityTargets.Where(x =>
+                HasLOS(x.Actor) && //in line of sight
+                Player.DistanceToHitbox(x.Actor) <= range && //in range
+                !x.Actor.IsStrikingDummy && //not a dummy
+                x.Actor.NameID == 0 && //guaranteed enemy player
+                x.Actor.FindStatus(3039) == null && //no DRK invuln active - no point in attacking if invulnerable
+                x.Actor.FindStatus(1302) == null && //no PLD invuln active - no point in attacking if invulnerable
+                x.Actor.FindStatus(1301) == null && x.Actor.FindStatus(1300) == null && //no PLD Cover active - no point in attacking if resistant
+                x.Actor.FindStatus(1978) == null && //no Rampart active - no point in attacking if resistant
+                x.Actor.FindStatus(1240) == null && //no SAM buff active - attacking them with this up results in us receiving a debuff
+                x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null) //no Guard active - no point in attacking if resistant
+                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //order enemies from lowest to highest HP percentage
+
+        //high prio target - if we do not have a max prio target, we want to have a good enough target to fall back on
+        var medium = Hints.PriorityTargets.Where(x =>
+                HasLOS(x.Actor) && //in line of sight
+                Player.DistanceToHitbox(x.Actor) <= range && //in range
+                !x.Actor.IsStrikingDummy && //not a dummy
+                x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null) //no Guard active
+                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
+
+        //low prio target - this target is the fallback target if we have nothing good enough left
+        var low = Hints.PriorityTargets.Where(x =>
+                HasLOS(x.Actor) && //in line of sight
+                Player.DistanceToHitbox(x.Actor) <= range) //in range
+                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
+
+        Hints.ForcedTarget = high ?? medium ?? low;
     }
 
     /// <summary>Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.</summary>
@@ -547,13 +598,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="isInAOE">A flag indicating if the target is within the <b>Area of Effect</b> (AOE).</param>
     protected (Enemy? Best, int Targets) GetBestTarget(Enemy? primaryTarget, float range, PositionCheck isInAOE)
         => GetTarget(primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
-
-    /// <summary>This function picks the target based on HP, modified by how many targets are in the AOE.</summary>
-    /// <param name="primaryTarget">The user's current <b>selected Target</b>.</param>
-    /// <param name="range">The <b>range</b> within which to evaluate potential targets.</param>
-    /// <param name="isInAOE">A flag indicating if the target is within the <b>Area of Effect</b> (AOE).</param>
-    protected (Enemy? Best, int Targets) GetBestHPTarget(Enemy? primaryTarget, float range, PositionCheck isInAOE)
-        => GetTarget(primaryTarget, range, isInAOE, (numTargets, enemy) => (numTargets, numTargets > 2 ? enemy.HPMP.CurHP : 0), args => args.numTargets);
 
     /// <summary>Main function for picking a target, generalized for any prioritization and simplification logic.</summary>
     /// <typeparam name="P"></typeparam>
@@ -724,7 +768,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
         }
     }
-
     #endregion
 
     #region Misc
@@ -798,30 +841,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         Class.AST => player.Level >= 50,
         _ => false
     };
-
-    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
-    protected bool ShouldUseGCD(bool ready, GCDStrategy strategy, Actor? target, bool optimal = false) => ready && strategy switch
-    {
-        GCDStrategy.Automatic => target != null && optimal,
-        GCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
-        GCDStrategy.Force => true,
-        _ => false
-    };
-
-    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
-    protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = true)
-    {
-        return ready && strategy switch
-        {
-            OGCDStrategy.Automatic => target != null && optimal,
-            OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
-            OGCDStrategy.Force => true,
-            OGCDStrategy.AnyWeave => CanWeaveIn,
-            OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
-            OGCDStrategy.LateWeave => CanLateWeaveIn,
-            _ => false
-        };
-    }
+    protected void ExecutePotSTR(GCDPriority prio = 0) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium + (int)prio);
+    protected void ExecutePotINT(GCDPriority prio = 0) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.Medium + (int)prio);
+    protected void ExecutePotDEX(GCDPriority prio = 0) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium + (int)prio);
     #endregion
 
     #region Shared Abilities
@@ -1099,10 +1121,6 @@ static class ModuleExtensions
 
     #region Potion
     public static PotionStrategy Potion(this StrategyValues strategy) => strategy.Option(SharedTrack.Potion).As<PotionStrategy>();
-    public static bool AlignPotionWithBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithBuffs;
-    public static bool AlignPotionWithRaidBuffs(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.AlignWithRaidBuffs;
-    public static bool UsePotionImmediately(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Immediate;
-    public static bool UsePotionManually(this StrategyValues strategy) => strategy.Potion() == PotionStrategy.Manual;
     #endregion
 
     #endregion

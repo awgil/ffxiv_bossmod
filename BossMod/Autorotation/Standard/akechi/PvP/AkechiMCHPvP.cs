@@ -7,13 +7,14 @@ namespace BossMod.Autorotation.akechi;
 
 public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
-    public enum Track { Targeting, RoleActions, LimitBreak, Analysis, Tools, Scattergun, FullMetalField, Wildfire, BishopAutoturret }
+    public enum Track { Targeting, RoleActions, LimitBreak, Analysis, Tools, Scattergun, FullMetalField, Wildfire, BishopAutoturret, TurretPlacement }
     public enum TargetingStrategy { Auto, Manual }
     public enum RoleActionStrategy { Forbid, Dervish, Bravery, EagleEyeShot }
     public enum LBStrategy { ASAP, LessThan70, LessThan60, LessThan50, LessThan40, Forbid }
     public enum AnalysisStrategy { Any, DrillAA, BBCS, Forbid }
     public enum ToolsStrategy { ASAP, BuffOrOvercap, Forbid }
     public enum CommonStrategy { Allow, Forbid }
+    public enum TurretPlacement { Self, Target, Crystal, CrystalOrTarget }
 
     public static RotationModuleDefinition Definition()
     {
@@ -62,29 +63,13 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
             .AddOption(CommonStrategy.Allow, "Allow", "Use Bishop Autoturret on target's location when available")
             .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Bishop Autoturret")
             .AddAssociatedActions(AID.BishopAutoturretPvP);
+        res.Define(Track.TurretPlacement).As<TurretPlacement>("Turret Placement", "", 300)
+            .AddOption(TurretPlacement.Self, "Self", "Place turret on self")
+            .AddOption(TurretPlacement.Target, "Target", "Place turret on target's location")
+            .AddOption(TurretPlacement.Crystal, "Crystal", "Place turret on crystal only; will hold turret until near the crystal (only works for Crystalline Conflict)")
+            .AddOption(TurretPlacement.CrystalOrTarget, "Crystal or Target", "Place turret on crystal or target if crystal is unavailable (intended for Crystalline Conflict, but works in others too)");
         return res;
     }
-
-    private bool ShouldAnalyze(StrategyValues strategy) => AnalyzeLeft == 0 && CDRemaining(AID.AnalysisPvP) <= 20.6f && strategy.Option(Track.Analysis).As<AnalysisStrategy>() switch
-    {
-        AnalysisStrategy.Any => (HasEffect(SID.DrillPrimed) && CDRemaining(AID.DrillPvP) <= 11f) || (HasEffect(SID.BioblasterPrimed) && CDRemaining(AID.BioblasterPvP) <= 11f) || (HasEffect(SID.AirAnchorPrimed) && CDRemaining(AID.AirAnchorPvP) <= 11f) || (HasEffect(SID.ChainSawPrimed) && CDRemaining(AID.ChainSawPvP) <= 11f),
-        AnalysisStrategy.DrillAA => (HasEffect(SID.DrillPrimed) && CDRemaining(AID.DrillPvP) <= 11f) || (HasEffect(SID.AirAnchorPrimed) && CDRemaining(AID.AirAnchorPvP) <= 11f),
-        AnalysisStrategy.BBCS => (HasEffect(SID.BioblasterPrimed) && CDRemaining(AID.BioblasterPvP) <= 11f) || (HasEffect(SID.ChainSawPrimed) && CDRemaining(AID.ChainSawPvP) <= 11f),
-        _ => false
-    };
-    private bool ShouldUseLB(StrategyValues strategy, Actor? target) => LBready && strategy.Option(Track.LimitBreak).As<LBStrategy>() switch
-    {
-        LBStrategy.ASAP => true,
-        LBStrategy.LessThan70 => TargetHPP(target) < 70,
-        LBStrategy.LessThan60 => TargetHPP(target) < 60,
-        LBStrategy.LessThan50 => TargetHPP(target) < 50,
-        LBStrategy.LessThan40 => TargetHPP(target) < 40,
-        LBStrategy.Forbid => false,
-        _ => false
-    };
-    private float AnalyzeLeft => StatusRemaining(Player, SID.AnalysisPvP);
-    private bool LBready => World.Party.LimitBreakLevel >= 1;
-    private bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
 
     private int NumConeTargets;
     private int NumLineTargets;
@@ -92,10 +77,42 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
     private Enemy? BestConeTargets;
     private Enemy? BestLineTargets;
     private Enemy? BestSplashTargets;
+
+    private float AnalyzeLeft => StatusRemaining(Player, SID.AnalysisPvP);
+    private bool LBready => World.Party.LimitBreakLevel >= 1;
     private AID BestTool => HasEffect(SID.ChainSawPrimed) ? AID.ChainSawPvP : HasEffect(SID.AirAnchorPrimed) ? AID.AirAnchorPvP : HasEffect(SID.BioblasterPrimed) ? AID.BioblasterPvP : AID.DrillPvP;
+    private bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
+    private bool ShouldAnalyze(StrategyValues strategy) => AnalyzeLeft == 0 && CDRemaining(AID.AnalysisPvP) <= 20.6f && strategy.Option(Track.Analysis).As<AnalysisStrategy>() switch
+    {
+        AnalysisStrategy.Any => (HasEffect(SID.DrillPrimed) && CDRemaining(AID.DrillPvP) <= 11f) || (HasEffect(SID.BioblasterPrimed) && CDRemaining(AID.BioblasterPvP) <= 11f) || (HasEffect(SID.AirAnchorPrimed) && CDRemaining(AID.AirAnchorPvP) <= 11f) || (HasEffect(SID.ChainSawPrimed) && CDRemaining(AID.ChainSawPvP) <= 11f),
+        AnalysisStrategy.DrillAA => (HasEffect(SID.DrillPrimed) && CDRemaining(AID.DrillPvP) <= 11f) || (HasEffect(SID.AirAnchorPrimed) && CDRemaining(AID.AirAnchorPvP) <= 11f),
+        AnalysisStrategy.BBCS => (HasEffect(SID.BioblasterPrimed) && CDRemaining(AID.BioblasterPvP) <= 11f) || (HasEffect(SID.ChainSawPrimed) && CDRemaining(AID.ChainSawPvP) <= 11f),
+        _ => false
+    };
+    private bool ShouldUseLB(StrategyValues strategy, Actor? target) => LBready && target != null &&
+        target.NameID is 0 or 541 && //guaranteed enemy player (or striking dummy)
+        target.FindStatus(3039) == null && //no DRK invuln active - no point in using if invulnerable
+        target.FindStatus(1302) == null && //no PLD invuln active - no point in using if invulnerable
+        target.FindStatus(1301) == null && target.FindStatus(1300) == null && //no PLD Cover active - no point in using if resistant
+        target.FindStatus(1978) == null && //no Rampart active - no point in using if resistant
+        target.FindStatus(1240) == null && //no SAM buff active - using this results in us receiving a debuff if they just so happen to survive
+        target.FindStatus(ClassShared.SID.GuardPvP) == null && //no Guard active - no point in using if resistant
+        strategy.Option(Track.LimitBreak).As<LBStrategy>() switch
+        {
+            LBStrategy.ASAP => true,
+            LBStrategy.LessThan70 => HPP(target) <= 70,
+            LBStrategy.LessThan60 => HPP(target) <= 60,
+            LBStrategy.LessThan50 => HPP(target) <= 50,
+            LBStrategy.LessThan40 => HPP(target) <= 40,
+            LBStrategy.Forbid => false,
+            _ => false
+        };
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+            return;
+
         (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 12, Is12yConeTarget);
         (BestLineTargets, NumLineTargets) = GetBestTarget(primaryTarget, 25, Is25yRectTarget);
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
@@ -108,7 +125,7 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         {
             GetPvPTarget(25);
         }
-        if (In25y(primaryTarget?.Actor))
+        if (In25y(primaryTarget?.Actor) && HasLOS(primaryTarget?.Actor))
         {
             if (HasEffect(SID.OverheatedPvP))
             {
@@ -146,9 +163,17 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
                 if (IsReady(AID.FullMetalFieldPvP) && !HasEffect(SID.OverheatedPvP) && primaryTarget?.Actor != null &&
                     strategy.Option(Track.FullMetalField).As<CommonStrategy>() == CommonStrategy.Allow)
                     QueueGCD(AID.FullMetalFieldPvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High + 5);
+                var crystal = World.Actors.FirstOrDefault(x => x.OID == 0x3886); //crystal
                 if (IsReady(AID.BishopAutoturretPvP) && primaryTarget?.Actor != null &&
                     strategy.Option(Track.BishopAutoturret).As<CommonStrategy>() == CommonStrategy.Allow)
-                    QueueGCD(AID.BishopAutoturretPvP, auto ? BestSplashTarget?.Actor : primaryTarget?.Actor, GCDPriority.High + 4);
+                    QueueGCD(AID.BishopAutoturretPvP, strategy.Option(Track.TurretPlacement).As<TurretPlacement>() switch
+                    {
+                        TurretPlacement.Self => Player,
+                        TurretPlacement.Target => primaryTarget?.Actor,
+                        TurretPlacement.Crystal => crystal,
+                        TurretPlacement.CrystalOrTarget => crystal ?? primaryTarget?.Actor,
+                        _ => null
+                    }, GCDPriority.High + 4);
                 if (ShouldAnalyze(strategy) && primaryTarget?.Actor != null)
                     QueueGCD(AID.AnalysisPvP, Player, GCDPriority.High + 3);
                 if (IsReady(AID.ScattergunPvP) && In12y(primaryTarget?.Actor) && primaryTarget?.Actor != null &&
