@@ -7,6 +7,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace BossMod;
 
@@ -73,7 +74,7 @@ public sealed class Plugin : IDalamudPlugin
         Service.Config.Modified.Subscribe(() =>
         {
             Service.Log($"saving configuration to {dalamud.ConfigFile}");
-            Service.Config.SaveToFile(dalamud.ConfigFile);
+            Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile));
         });
 
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
