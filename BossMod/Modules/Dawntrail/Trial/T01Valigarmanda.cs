@@ -1,5 +1,3 @@
-using static BossMod.Components.StayMove;
-
 namespace BossMod.Dawntrail.Trial.T01Valigarmanda;
 public enum OID : uint
 {
@@ -115,11 +113,11 @@ class RuinfallKnockback(BossModule module) : Components.Knockback(module)
     private Actor? _source;
     private DateTime _activation;
     private readonly List<Actor> _casters = [];
-    private bool tbSoaked = false;
+    private bool tbSoaked;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        foreach (var c in _casters)
+        if (_casters != null)
         {
             if (_source != null && _source != actor)
                 yield return new(_source.Position, 21, _activation, Kind: Kind.DirForward);
@@ -157,7 +155,7 @@ class RuinfallKnockback(BossModule module) : Components.Knockback(module)
     }
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var c in _casters)
+        if (_casters != null)
         {
             if (actor.Role == Role.Tank && !tbSoaked)
             {
