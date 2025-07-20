@@ -1,6 +1,5 @@
 ﻿using BossMod.MCH;
 using static BossMod.AIHints;
-using static BossMod.Autorotation.akechi.AkechiSMNPvP;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi

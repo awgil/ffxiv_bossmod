@@ -1,6 +1,5 @@
 ﻿using BossMod.GNB;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using System;
 using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
