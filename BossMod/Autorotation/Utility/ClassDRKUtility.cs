@@ -59,7 +59,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         //TBN execution
         var canTBN = ActionUnlocked(ActionID.MakeSpell(DRK.AID.TheBlackestNight)) && Player.HPMP.CurMP >= 3000;
         var tbn = strategy.Option(Track.TheBlackestNight);
-        var tbnTarget = ResolveTargetOverride(tbn.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
+        var tbnTarget = ResolveTargetOverride(tbn.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self if current target is enemy
         if (canTBN && tbn.As<TBNStrategy>() == TBNStrategy.Force)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority(), tbn.Value.ExpireIn);
 
