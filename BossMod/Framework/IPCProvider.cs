@@ -13,6 +13,12 @@ sealed class IPCProvider : IDisposable
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
 
+        DateTime lastModified = DateTime.Now;
+        Service.Config.Modified.Subscribe(() => lastModified = DateTime.Now);
+        Register("Configuration.LastModified", () => lastModified);
+
+        Register("Rotation.ActionQueue.HasEntries", () => autorotation.Hints.ActionsToExecute.Entries.Any(x => !x.Manual));
+
         Register("Presets.Get", (string name) =>
         {
             var preset = autorotation.Database.Presets.FindPresetByName(name);

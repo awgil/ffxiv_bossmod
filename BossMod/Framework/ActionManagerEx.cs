@@ -476,7 +476,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
             _inst->UseAction(CSActionType.GeneralAction, 1);
 
-        if (_hints.WantDismount && _dismountTweak.AllowDismount())
+        if (_hints.WantDismount && !_movement.FollowPathActive() && _dismountTweak.AllowDismount())
             _inst->UseAction(CSActionType.Action, 4);
     }
 
