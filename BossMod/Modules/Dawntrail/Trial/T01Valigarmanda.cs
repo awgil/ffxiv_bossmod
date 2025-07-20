@@ -87,19 +87,19 @@ class CalamitousCryShort(BossModule module) : Components.SimpleLineStack(module,
 }
 class FreezingDust(BossModule module) : Components.StayMove(module)
 {
-    private DateTime _thisComponentSucks;
+    private DateTime _time;
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.FreezingDust)
         {
-            _thisComponentSucks = DateTime.Now;
+            _time = WorldState.CurrentTime;
             Array.Fill(PlayerStates, new(Requirement.Move, Module.CastFinishAt(spell)));
         }
     }
     public override void Update()
     {
-        if (DateTime.Now > _thisComponentSucks.AddSeconds(3))
+        if (WorldState.CurrentTime > _time.AddSeconds(3))
         {
             Array.Fill(PlayerStates, default);
         }
