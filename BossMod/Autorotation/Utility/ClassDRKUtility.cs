@@ -68,7 +68,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         var oblation = strategy.Option(Track.Oblation);
         var oblationStrat = oblation.As<OblationStrategy>();
         var oblationTarget = ResolveTargetOverride(oblation.Value) ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
-        var oblationStatus = StatusDetails(oblationTarget, DRK.SID.Oblation, Player.InstanceID).Left > 0.1f;
+        var oblationStatus = oblationTarget?.FindStatus(DRK.SID.Oblation) != null;
         var oblationCD = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRK.AID.Oblation)!.MainCooldownGroup].Remaining;
         if (canObl && oblationStrat != OblationStrategy.None && !oblationStatus)
         {
