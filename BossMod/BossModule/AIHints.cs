@@ -73,6 +73,9 @@ public sealed class AIHints
     // low-level forced movement - if set, character will move in specified direction (ignoring casts, uptime, forbidden zones, etc), or stay in place if set to default
     public Vector3? ForcedMovement;
 
+    // which direction should we point during the Spinning status in Alzadaal's Legacy? (yes, this is a bespoke movement gimmick for one dungeon boss)
+    public Angle? SpinDirection;
+
     // indicates to AI mode that it should try to interact with some object
     public Actor? InteractWithTarget;
 
