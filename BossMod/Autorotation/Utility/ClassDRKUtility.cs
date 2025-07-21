@@ -86,14 +86,12 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var distance = Player.DistanceToHitbox(dashTarget);
         var dashCD = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRK.AID.Shadowstride)!.MainCooldownGroup].Remaining;
-        var shouldDash = dashStrategy switch
+        if (dashStrategy switch
         {
-            DashStrategy.None => false,
             DashStrategy.GapClose => distance is > 3f and <= 20f && dashCD <= 30.5f,
             DashStrategy.GapCloseHold1 => distance is > 3f and <= 20f && dashCD < 0.6f,
             _ => false,
-        };
-        if (shouldDash)
+        })
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Shadowstride), dashTarget, dash.Priority(), dash.Value.ExpireIn);
     }
 }
