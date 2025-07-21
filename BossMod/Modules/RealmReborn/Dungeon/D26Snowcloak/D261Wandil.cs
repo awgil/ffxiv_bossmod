@@ -46,11 +46,8 @@ class HypothermalCombustion(BossModule module) : Components.RaidwideCast(module,
 class Tundra(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        foreach (var i in _aoes)
-            yield return i with { Color = ArenaColor.AOE };
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Tundra)
