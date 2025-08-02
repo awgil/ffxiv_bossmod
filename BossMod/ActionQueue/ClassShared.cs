@@ -69,6 +69,7 @@ public enum AID : uint
     Shatterstone = 9823,
     Deflect = 10006,
     DeflectVeryEasy = 18863,
+    MegaPotion = 10229,
 
     // Variant actions
     VariantCure1 = 29729, // available in sil'dih
@@ -238,6 +239,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Shatterstone);
         d.RegisterSpell(AID.Deflect);
         d.RegisterSpell(AID.DeflectVeryEasy);
+        d.RegisterSpell(AID.MegaPotion);
 
         // variant actions
         d.RegisterSpell(AID.VariantCure1);

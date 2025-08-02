@@ -100,7 +100,7 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
 
             if (allowAll)
                 foreach (var h in Hints.PotentialTargets)
-                    if (!h.Actor.IsStrikingDummy)
+                    if (!h.Actor.IsStrikingDummy && h.Priority == AIHints.Enemy.PriorityUndesirable)
                         prioritize(h, 1);
         }
 

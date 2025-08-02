@@ -42,7 +42,7 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
         if (strategy.Option(Track.Test).As<Strategy>() == Strategy.Some && primaryTarget != null)
         {
             Hints.ForcedMovement = (primaryTarget.Position - Player.Position).OrthoL().ToVec3();
-            Hints.SpinDirection = World.Client.ForcedMovementDirection - 90.Degrees();
+            Hints.SpinDirection = Player.AngleTo(primaryTarget);
         }
     }
 }

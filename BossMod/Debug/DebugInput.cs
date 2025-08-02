@@ -1,6 +1,5 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Hooking;
 using ImGuiNET;
 using System.Reflection;
 using System.Runtime.InteropServices;
