@@ -26,11 +26,9 @@ public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor pl
             roleRef.AddOption(role, role.ToString());
         }
 
-
         var rangeRef = def.Define(Tracks.Range).As<RangeDefinition>("range");
 
         rangeRef.AddOption(RangeDefinition.OnHitbox, "OnHitbox", "Stay on edge of hitbox (+/- 1 unit)");
-
         for (var f = 1.1f; f <= 30f; f = MathF.Round(f + 0.1f, 1))
         {
             rangeRef.AddOption((RangeDefinition)(f * 10f - 10f), f.ToString(CultureInfo.InvariantCulture));
@@ -48,8 +46,8 @@ public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor pl
             if (roleActor != null)
             {
                 var position = roleActor.Position;
-                var radius   = roleActor.HitboxRadius;
-                var range    = strategy.Option(Tracks.Range);
+                var radius = roleActor.HitboxRadius;
+                var range = strategy.Option(Tracks.Range);
                 if (range.As<RangeDefinition>() == RangeDefinition.OnHitbox)
                     Hints.GoalZones.Add(p => p.InDonut(position, radius - 1, radius + 1) ? 0.5f : 0);
                 else
