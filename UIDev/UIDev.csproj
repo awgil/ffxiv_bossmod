@@ -22,10 +22,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="ImGui.NET">
-      <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
+	<Reference Include="Dalamud.Bindings.ImGui">
+	  <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
+	  <Private>false</Private>
     </Reference>
-    <Reference Include="ImGuiScene">
+	  <Reference Include="Dalamud.Bindings.ImPlot">
+		  <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImPlot.dll</HintPath>
+		  <Private>false</Private>
+	  </Reference>
+	  <Reference Include="ImGuiScene">
       <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
     </Reference>
     <Reference Include="SDL2-CS">

@@ -1,5 +1,5 @@
 ﻿using BossMod.Pathfinding;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Data.SQLite;
 using System.IO;
 using System.Reflection;

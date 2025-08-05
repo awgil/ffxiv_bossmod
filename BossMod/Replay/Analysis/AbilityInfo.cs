@@ -1,5 +1,5 @@
 ﻿using BossMod.Components;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Globalization;
 using System.Text;
 

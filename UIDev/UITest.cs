@@ -1,6 +1,6 @@
 ﻿using BossMod;
 using Dalamud.Interface.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using Microsoft.Win32;
 using System.Diagnostics;

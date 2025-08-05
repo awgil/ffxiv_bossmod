@@ -1,5 +1,5 @@
 ﻿using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using static BossMod.BossModuleConfig;
 
 namespace BossMod;

@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Bindings.ImGui;
 
 namespace BossMod;
 
@@ -74,7 +74,7 @@ public class UITree
         }
         if (doubleClick != null && ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             doubleClick();
-        if (contextMenu != null && ImGui.BeginPopupContextItem())
+        if (contextMenu != null && ImGui.BeginPopupContextItem($"###{text}popup"))
         {
             contextMenu();
             ImGui.EndPopup();

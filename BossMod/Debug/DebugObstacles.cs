@@ -1,7 +1,7 @@
 ﻿using BossMod.Pathfinding;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.IO;
 
 namespace BossMod;

@@ -1,5 +1,5 @@
 ﻿using BossMod.Autorotation;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Runtime.InteropServices;
 
 namespace BossMod.ReplayVisualization;

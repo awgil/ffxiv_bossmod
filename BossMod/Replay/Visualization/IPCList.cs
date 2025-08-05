@@ -1,6 +1,6 @@
 ﻿using BossMod.Network;
 using BossMod.Network.ServerIPC;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod.ReplayVisualization;
 

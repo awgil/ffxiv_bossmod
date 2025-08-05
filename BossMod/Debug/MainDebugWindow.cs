@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Autorotation.xan;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
@@ -7,7 +8,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using ImGuiNET;
 
 namespace BossMod;
 
@@ -43,7 +43,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var player = Service.ClientState.LocalPlayer;
         ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
         // ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
-        ImGui.TextUnformatted($"Player mode: {(player is null ? "No player found" : Utils.CharacterInternal(player)->Mode)}");
+        ImGui.TextUnformatted($"Player mode: {(player is null ? "No player found" : Utils.CharacterInternal(player)->Mode.ToString())}");
 
         var eventFwk = FFXIVClientStructs.FFXIV.Client.Game.Event.EventFramework.Instance();
         var instanceDirector = eventFwk != null ? eventFwk->GetInstanceContentDirector() : null;
