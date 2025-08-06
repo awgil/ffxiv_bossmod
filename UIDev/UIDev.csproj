@@ -33,9 +33,6 @@
 	  <Reference Include="ImGuiScene">
       <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
     </Reference>
-    <Reference Include="SDL2-CS">
-      <HintPath>$(DalamudLibPath)SDL2-CS.dll</HintPath>
-    </Reference>
     <Reference Include="Lumina">
       <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
     </Reference>

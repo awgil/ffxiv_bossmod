@@ -1,4 +1,5 @@
 ﻿using BossMod;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -147,7 +148,7 @@ internal class OfflineTextureProvider(IRenderer render) : ITextureProvider
 
 internal record class OfflineTextureWrap(TextureWrap Wrap) : IDalamudTextureWrap
 {
-    public nint ImGuiHandle => Wrap.ImGuiHandle;
+    public ImTextureID Handle => new(Wrap.ImGuiHandle);
 
     public int Width => Wrap.Width;
 

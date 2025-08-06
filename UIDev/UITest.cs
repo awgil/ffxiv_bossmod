@@ -1,13 +1,11 @@
 ﻿using BossMod;
-using Dalamud.Interface.Utility;
 using Dalamud.Bindings.ImGui;
-using ImGuiScene;
+using Dalamud.Interface.Utility;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using static SDL2.SDL;
 
 namespace UIDev;
 
@@ -110,7 +108,7 @@ class UITest
         // provideFn!.Invoke(null, [Activator.CreateInstance(texManager)]);
 
         // all of this is taken straight from dalamud
-        ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+        ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig();
         fontConfig.MergeMode = true;
         fontConfig.PixelSnapH = true;
 
@@ -119,7 +117,7 @@ class UITest
 
         var fontPathGame = "gamesym.ttf";
         var rangeHandle = GCHandle.Alloc(new ushort[] { 0xE020, 0xE0DB, 0 }, GCHandleType.Pinned);
-        ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, rangeHandle.AddrOfPinnedObject());
+        ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, (ushort*)rangeHandle.AddrOfPinnedObject());
 
         ImGui.GetIO().Fonts.Build();
 
