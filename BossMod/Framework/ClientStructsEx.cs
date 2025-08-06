@@ -8,9 +8,11 @@ internal static class ClientStructsEx
     public static bool IsValidAllianceMember(this PartyMember member) => (member.Flags & 1) != 0;
 }
 
+// TODO i might have adjusted the wrong offset for the 7.3 fix but it doesn't really matter if all we care about is interpolation
 [StructLayout(LayoutKind.Explicit, Size = 0x22E0)]
 internal unsafe partial struct PlayerMove
 {
+    // this was 0x1E0 in 7.25
     [FieldOffset(0x1E0)] public MoveContainer Move;
 }
 
@@ -25,5 +27,6 @@ internal unsafe partial struct MoveContainer
         [FieldOffset(0x40)] public bool RotationInterpolationInProgress;
     }
 
+    // this was 0x1C0 in 7.25
     [FieldOffset(0x1D0)] public InterpolationState Interpolation;
 }
