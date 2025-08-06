@@ -25,5 +25,5 @@ internal unsafe partial struct MoveContainer
         [FieldOffset(0x40)] public bool RotationInterpolationInProgress;
     }
 
-    [FieldOffset(0x1C0)] public InterpolationState Interpolation;
+    [FieldOffset(0x1D0)] public InterpolationState Interpolation;
 }
