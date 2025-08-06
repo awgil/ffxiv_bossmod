@@ -3745,6 +3745,21 @@
       "Filename": "1062.27.1.bmp"
     }
   ],
+  "1036.4": [
+    {
+      "MinBoundsX": -360,
+      "MinBoundsY": 3,
+      "MinBoundsZ": -236,
+      "MaxBoundsX": 374.5,
+      "MaxBoundsY": 60,
+      "MaxBoundsZ": 375.5,
+      "OriginX": -360,
+      "OriginZ": -236,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "1036.4.1.bmp"
+    }
+  ],
   "815": [
     {
       "MinBoundsX": 125.5,
