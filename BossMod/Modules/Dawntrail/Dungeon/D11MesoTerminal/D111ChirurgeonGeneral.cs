@@ -1,6 +1,6 @@
 ﻿using BossMod.Components;
 
-namespace BossMod.Modules.Dawntrail.Dungeon.D11MesoTerminal.D111ChirurgeonGeneral;
+namespace BossMod.Dawntrail.Dungeon.D11MesoTerminal.D111ChirurgeonGeneral;
 
 public enum OID : uint
 {
