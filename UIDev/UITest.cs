@@ -1,11 +1,13 @@
 ﻿using BossMod;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
+using ImGuiScene;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using static SDL2.SDL;
 
 namespace UIDev;
 

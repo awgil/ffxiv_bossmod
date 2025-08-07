@@ -72,7 +72,6 @@ boss modules:
 - [dsr] for p2 thordan cleavebuster the telegraph on the minimap is narrower than the actual hitbox
 
 autorotation:
-- global strategy for track
 - bulk override priorities?
 - preset/plan editors should properly react to external changes
 - actiondefinitions
@@ -92,6 +91,8 @@ autorotation:
 -- low-level rotation - improve berserk delay logic
 - whm:
 -- write new module(?)
+- blm:
+-- start aoe rotation with UI (for souls for double flare)
 
 ai:
 - improve healing AI: analyze incoming dps

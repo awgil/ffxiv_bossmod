@@ -24,15 +24,10 @@
   <ItemGroup>
 	<Reference Include="Dalamud.Bindings.ImGui">
 	  <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
-	  <Private>false</Private>
     </Reference>
 	  <Reference Include="Dalamud.Bindings.ImPlot">
 		  <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImPlot.dll</HintPath>
-		  <Private>false</Private>
 	  </Reference>
-	  <Reference Include="ImGuiScene">
-      <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
-    </Reference>
     <Reference Include="Lumina">
       <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
     </Reference>
@@ -48,6 +43,8 @@
     <Reference Include="Dalamud">
       <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
     </Reference>
+	  <Reference Include=".\dep\ImGuiScene.dll" />
+	  <Reference Include=".\dep\SDL2-CS.dll" />
   </ItemGroup>
 
   <ItemGroup>
