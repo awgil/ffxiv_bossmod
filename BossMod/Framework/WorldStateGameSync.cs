@@ -676,7 +676,7 @@ sealed class WorldStateGameSync : IDisposable
         var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (pc != null)
         {
-            var baseSpeed = *(float*)((nint)Control.Instance() + 0x7108);
+            var baseSpeed = *(float*)((nint)Control.Instance() + 0x7118);
             var c8 = new CharacterContainer() { Character = pc };
             var factor = _calculateMoveSpeedMulti((ContainerInterface*)&c8);
             var speed = baseSpeed * factor;
