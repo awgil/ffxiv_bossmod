@@ -1,4 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Group;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using System.Runtime.InteropServices;
 
 namespace BossMod;
@@ -29,4 +30,12 @@ internal unsafe partial struct MoveContainer
 
     // this was 0x1C0 in 7.25
     [FieldOffset(0x1D0)] public InterpolationState Interpolation;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x76F0)]
+internal unsafe partial struct ControlEx
+{
+    [FieldOffset(0x7118)] public float BaseMoveSpeed;
+
+    public static ControlEx* Instance() => (ControlEx*)Control.Instance();
 }
