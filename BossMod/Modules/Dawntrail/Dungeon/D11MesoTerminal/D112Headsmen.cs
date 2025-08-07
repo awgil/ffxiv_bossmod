@@ -126,7 +126,7 @@ class D112HeadsmenStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 14049)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 14049)]
 public class D112Headsmen(WorldState ws, Actor primary) : BossModule(ws, primary, new(60f, -256f), new ArenaBoundsRect(28f, 20f))
 {
     public Actor? bossActor;
