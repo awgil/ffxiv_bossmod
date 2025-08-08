@@ -144,7 +144,7 @@ sealed class WorldStateGameSync : IDisposable
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
 
-        var processMapEffectAddr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 47 10 41 8B D6 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4F 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 47 10 41 8B D6 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4F 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4F 10 BA");
+        var processMapEffectAddr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? B0 01 48 8B 5C 24 ?? 48 8B 74 24 ?? 48 83 C4 50 5F C3 48 8B CB E8 ?? ?? ?? ?? B0 01 48 8B 5C 24 ?? 48 8B 74 24 ?? 48 83 C4 50 5F C3 0F B6 43 1E");
         _processMapEffect1Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr, ProcessMapEffect1Detour);
         _processMapEffect1Hook.Enable();
         _processMapEffect2Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x40, ProcessMapEffect2Detour);
