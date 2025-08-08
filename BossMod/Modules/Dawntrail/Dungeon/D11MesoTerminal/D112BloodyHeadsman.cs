@@ -257,7 +257,7 @@ class D112BloodyHeadsmanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 14047)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 14047, DevOnly = true)] // devonly until we fix the state machine
 public class D112BloodyHeadsman(WorldState ws, Actor primary) : BossModule(ws, primary, new(60, -258), new ArenaBoundsRect(29.5f, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
