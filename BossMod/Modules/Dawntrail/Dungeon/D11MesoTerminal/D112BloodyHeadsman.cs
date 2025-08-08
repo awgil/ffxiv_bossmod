@@ -66,6 +66,8 @@ class RelentlessTorment(BossModule module) : Components.SingleTargetCast(module,
 // TODO: figure out what the inner radius is when duty recorder works again
 class ExecutionWheel(BossModule module) : Components.StandardAOEs(module, AID.ExecutionWheel, new AOEShapeDonut(4, 9));
 
+class WillBreaker(BossModule module) : Components.CastInterruptHint(module, AID.WillBreaker);
+
 class Shackles(BossModule module) : Components.GenericInvincible(module)
 {
     private readonly List<Actor> _shackles = [];
@@ -126,6 +128,11 @@ class Shackles(BossModule module) : Components.GenericInvincible(module)
         {
             _guards[status.ID - 4546] = actor;
         }
+    }
+
+    public override void Update()
+    {
+        _shackles.RemoveAll(s => s.IsDead);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
@@ -246,11 +253,13 @@ class D112BloodyHeadsmanStates : StateMachineBuilder
             .ActivateOnEnter<ChoppingBlock>()
             .ActivateOnEnter<RelentlessTorment>()
             .ActivateOnEnter<ExecutionWheel>()
-            .ActivateOnEnter<Hellmaker>();
+            .ActivateOnEnter<Hellmaker>()
+            .ActivateOnEnter<WillBreaker>()
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed && !Module.Enemies(OID.PaleHeadsman).Any(h => !h.IsDead) && !Module.Enemies(OID.RavenousHeadsman).Any(h => !h.IsDead) && !Module.Enemies(OID.PestilentHeadsman).Any(h => !h.IsDead);
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 14047, DevOnly = true)] // devonly until we fix the state machine
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 14047)]
 public class D112BloodyHeadsman(WorldState ws, Actor primary) : BossModule(ws, primary, new(60, -258), new ArenaBoundsRect(29.5f, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
