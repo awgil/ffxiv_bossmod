@@ -80,14 +80,7 @@ class Shackles(BossModule module) : Components.GenericInvincible(module)
         new(77.5f, -258)
     ];
 
-    public static int GetCell(WPos position)
-    {
-        for (var i = 0; i < _cells.Length; i++)
-            if (position.InRect(_cells[i], default(Angle), 8.5f, 8.5f, 8.5f))
-                return i;
-
-        return -1;
-    }
+    public static int GetCell(WPos position) => Array.FindIndex(_cells, c => position.AlmostEqual(c, 8.5f));
 
     protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor)
     {
@@ -116,7 +109,7 @@ class Shackles(BossModule module) : Components.GenericInvincible(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        if (_cellBlocks[slot] >= 0 && _guards[_cellBlocks[slot]] is { } g)
+        if (_cellBlocks[slot] >= 0 && _shackles.Count > 0 && _guards[_cellBlocks[slot]] is { } g)
             hints.TemporaryObstacles.Add(ShapeContains.Donut(g.Position, 7.5f, 100));
     }
 
