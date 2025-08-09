@@ -333,7 +333,7 @@ class SovereignScar : Components.CastCounter
             else if (pc.Class.IsSupport())
                 Shape.Draw(Arena, Source.Position, Source.AngleTo(h), ArenaColor.AOE);
             else
-                Shape.Outline(Arena, Source.Position, Source.AngleTo(h), ArenaColor.Safe);
+                Shape.Draw(Arena, Source.Position, Source.AngleTo(h), ArenaColor.SafeFromAOE);
         }
     }
 

@@ -29,9 +29,11 @@ public enum AID : uint
     _Weaponskill_FearOfDeath1 = 44551, // Helper->location, 3.0s cast, range 3 circle
     _Weaponskill_ChokingGrasp = 44552, // 490C->self, no cast, range 24 width 6 rect
     _Weaponskill_ColdGrip = 44553, // Boss->self, 5.0+1.0s cast, single-target
+    _Weaponskill_ColdGrip2 = 44554, // Boss->self, 5.0+1.0s cast, single-target
     _Weaponskill_ColdGrip1 = 44612, // Helper->self, 6.0s cast, range 100 width 12 rect
     _Weaponskill_ExistentialDread = 44555, // Helper->self, 1.0s cast, range 100 width 24 rect
-    _Weaponskill_MementoMori = 44565, // Boss->self, 5.0s cast, range 100 width 12 rect
+    MementoMoriDarkRight = 44565, // Boss->self, 5.0s cast, range 100 width 12 rect
+    MementoMoriDarkLeft = 44566, // Boss->self, 5.0s cast, range 100 width 12 rect
     _Weaponskill_ChokingGrasp1 = 44567, // 490C->self, 3.0s cast, range 24 width 6 rect
     _Weaponskill_SmiteOfGloom = 44602, // Helper->player, 4.0s cast, range 10 circle
     _Weaponskill_SmiteOfGloom1 = 44601, // Boss->self, 4.0s cast, single-target
@@ -52,8 +54,6 @@ public enum AID : uint
     _Weaponskill_GrandCross3 = 44572, // Helper->players, 5.0s cast, range 3 circle
     _Weaponskill_GrandCross4 = 44570, // Helper->self, 4.0s cast, range 100 width 100 rect
     _Weaponskill_NeutronRing = 44575, // Boss->location, 7.0s cast, single-target
-    _Weaponskill_ColdGrip2 = 44554, // Boss->self, 5.0+1.0s cast, single-target
-    _Weaponskill_MementoMori1 = 44566, // Boss->self, 5.0s cast, range 100 width 12 rect
     _Weaponskill_FourfoldBlight = 44558, // Boss->self, 5.0s cast, single-target
     _Weaponskill_Shockwave1 = 44560, // Helper->self, no cast, range 100 ?-degree cone
     _Weaponskill_Electrify = 44574, // Helper->self, no cast, range 50 circle
@@ -82,3 +82,15 @@ public enum AID : uint
     _Weaponskill_TheSecondSeason = 45167, // Boss->self, 8.0s cast, single-target
 }
 
+public enum IconID : uint
+{
+    StoreCircle = 604, // Boss->self
+    StoreDonut = 605, // Boss->self
+    StoreInverseRect = 606, // Boss->self
+    StoreRect = 607, // Boss->self
+    SmallSpread5s = 611, // player->self
+    HugeSpread = 612, // player->self
+    SmallSpread4s = 614, // player->self
+    BlueShockwave = 615, // Boss->player
+    Tankbuster = 381, // player->self
+}
