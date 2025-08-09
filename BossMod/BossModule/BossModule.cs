@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
@@ -8,7 +8,7 @@ namespace BossMod;
 public abstract class BossModule : IDisposable
 {
     public readonly WorldState WorldState;
-    public readonly Actor PrimaryActor;
+    public Actor PrimaryActor;
     public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
     public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
     public readonly MiniArena Arena;

@@ -263,109 +263,6 @@ class MMChokingGrasp(BossModule module) : Components.GenericAOEs(module, AID._We
     }
 }
 
-class Aetherblight(BossModule module) : Components.GenericAOEs(module)
-{
-    enum Blight
-    {
-        Circle,
-        Donut,
-        InverseRect,
-        Rect
-    }
-
-    private readonly List<Blight> _order = [];
-
-    private DateTime _nextActivation;
-
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        static string readable(Blight b) => b switch
-        {
-            Blight.Circle => "Circle",
-            Blight.Donut => "Donut",
-            Blight.InverseRect => "Center safe",
-            Blight.Rect => "Walls safe",
-            _ => throw new Exception("unreachable")
-        };
-
-        if (_order.Count > 0)
-            hints.Add($"Next: {string.Join(" -> ", _order.Select(readable))}");
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_nextActivation != default && _order.Count > 0)
-        {
-            switch (_order[0])
-            {
-                case Blight.Circle:
-                    yield return new(new AOEShapeCircle(20), Module.PrimaryActor.Position, default, _nextActivation);
-                    break;
-                case Blight.Donut:
-                    yield return new(new AOEShapeDonut(20, 60), Module.PrimaryActor.Position, default, _nextActivation);
-                    break;
-                case Blight.Rect:
-                    yield return new(new AOEShapeRect(100, 6), Module.PrimaryActor.Position, default, _nextActivation);
-                    break;
-                case Blight.InverseRect:
-                    yield return new(new AOEShapeRect(100, 6), new WPos(88, 85), default, _nextActivation);
-                    yield return new(new AOEShapeRect(100, 6), new WPos(112, 85), default, _nextActivation);
-                    break;
-            }
-        }
-    }
-
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if (actor == Module.PrimaryActor)
-        {
-            Blight? blight = (IconID)iconID switch
-            {
-                IconID.StoreCircle => Blight.Circle,
-                IconID.StoreDonut => Blight.Donut,
-                IconID.StoreInverseRect => Blight.InverseRect,
-                IconID.StoreRect => Blight.Rect,
-                _ => null
-            };
-
-            if (blight != null)
-                _order.Add(blight.Value);
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID._Weaponskill_TwofoldBlight or AID._Weaponskill_FourfoldBlight)
-            _nextActivation = Module.CastFinishAt(spell, 1.2f);
-    }
-
-    private int _numCasts;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID._Weaponskill_Aetherblight1:
-                if (++_numCasts >= 2)
-                    RecordCast();
-                break;
-            case AID._Weaponskill_Aetherblight3:
-            case AID._Weaponskill_Aetherblight5:
-            case AID._Weaponskill_Aetherblight7:
-                RecordCast();
-                break;
-        }
-    }
-
-    private void RecordCast()
-    {
-        if (_order.Count > 0)
-            _order.RemoveAt(0);
-        NumCasts++;
-        _nextActivation = default;
-    }
-}
-
 class EndsEmbrace(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.SmallSpread4s, AID._Weaponskill_TheEndsEmbrace1, 3, 4.1f);
 
 class EndsEmbraceBait(BossModule module) : Components.GenericBaitAway(module)
@@ -414,116 +311,35 @@ class EndsEmbraceBait(BossModule module) : Components.GenericBaitAway(module)
 
 class DelayedChokingGrasp(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_ChokingGrasp1, new AOEShapeRect(24, 3));
 
-class Shockwave(BossModule module) : Components.CastCounter(module, default)
+class FearOfDeathAdds(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_FearOfDeath2, 3);
+
+class IcyHandsAdds(BossModule module) : Components.AddsMulti(module, [OID._Gen_IcyHands1, OID._Gen_BeckoningHands], 1)
 {
-    private int _numBaits;
-    private DateTime _activation;
-
-    public static readonly AOEShape Shape2 = new AOEShapeCone(100, 22.5f.Degrees());
-    public static readonly AOEShape Shape4 = new AOEShapeCone(100, 10.Degrees());
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID._Weaponskill_TwofoldBlight:
-                _numBaits = 2;
-                _activation = Module.CastFinishAt(spell, 1.4f);
-                break;
-            case AID._Weaponskill_FourfoldBlight:
-                _numBaits = 4;
-                _activation = Module.CastFinishAt(spell, 1.4f);
-                break;
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (_numBaits == 2)
-        {
-            var shape = Shape2;
-
-            if (actor.Role == Role.Healer)
-            {
-                var stacked = Raid.WithoutSlot().Exclude(actor).InShape(shape, Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(actor)).ToList();
-                if (stacked.Any(p => p.Role == Role.Healer))
-                    hints.Add("GTFO from other healer!");
-
-                hints.Add("Stack with party!", !stacked.Any(p => p.Role != Role.Healer));
-            }
-            else
-            {
-                var healers = Raid.WithoutSlot().Where(x => x.Role == Role.Healer);
-                hints.Add("Stack with healer!", !healers.Any(h => shape.Check(actor.Position, Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(h))));
-            }
-        }
-
-        if (_numBaits == 4)
-        {
-            var stacked = Raid.WithoutSlot().Exclude(actor).InShape(Shape4, Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(actor)).Count();
-
-            var roleName = actor.Class.IsSupport() ? "supports" : "DPS";
-
-            if (stacked > 1)
-                hints.Add($"Bait away from other {roleName}!");
-            else
-                hints.Add("Stack with partner!", stacked == 0);
-        }
-    }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_numBaits > 0)
-            hints.AddPredictedDamage(Raid.WithSlot().Mask(), _activation);
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        if (_numBaits == 2)
+        foreach (var a in ActiveActors)
         {
-            var shape = Shape2;
-
-            foreach (var pm in Raid.WithoutSlot().Where(r => r.Role == Role.Healer))
-            {
-                if (pm == pc)
-                    shape.Outline(Arena, Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(pm), ArenaColor.Safe);
-                else if (pc.Role == Role.Healer)
-                    shape.Draw(Arena, Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(pm), ArenaColor.AOE);
-                else
-                    shape.Draw(Arena, Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(pm), ArenaColor.SafeFromAOE);
-            }
+            var e = hints.FindEnemy(a);
+            e?.Priority = 1;
+            e?.ForbidDOTs = true;
         }
-
-        if (_numBaits == 4)
-            Shape4.Outline(Arena, Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(pc), ArenaColor.Danger);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Shockwave or AID._Weaponskill_Shockwave1)
-        {
-            _numBaits = 0;
-            NumCasts++;
-        }
-    }
-
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
-    {
-        if (_numBaits == 2 && player.Role == Role.Healer)
-            return pc.Role == Role.Healer ? PlayerPriority.Danger : PlayerPriority.Interesting;
-
-        if (_numBaits == 4 && player.Class.IsSupport() == pc.Class.IsSupport())
-            return PlayerPriority.Interesting;
-
-        return base.CalcPriority(pcSlot, pc, playerSlot, player, ref customColor);
     }
 }
+
+class ChokingGraspAdds(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_ChokingGrasp2, new AOEShapeRect(24, 3));
+
+class MutedStruggle(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_MutedStruggle);
+class DarknessOfEternity(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_DarknessOfEternity, AID._Weaponskill_DarknessOfEternity1, 6.4f);
 
 class Ex5NecronStates : StateMachineBuilder
 {
     public Ex5NecronStates(BossModule module) : base(module)
     {
-        DeathPhase(0, P1);
+        SimplePhase(0, P1, "P1")
+            .Raw.Update = () => Module.Enemies(0x490D).Any();
+        SimplePhase(1, id => Timeout(id, 9999, "P1???"), "Intermission")
+            .Raw.Update = () => Module.PrimaryActor.IsTargetable;
+        DeathPhase(2, id => Timeout(id, 9999, "P2???"));
     }
 
     private void P1(uint id)
@@ -533,6 +349,8 @@ class Ex5NecronStates : StateMachineBuilder
         ColdGrip(id + 0x10000, 0);
         MementoMoriP1(id + 0x20000, 5.6f);
         SoulReaping(id + 0x30000, 2.2f);
+        GrandCross(id + 0x40000, 7.9f);
+        Adds(id + 0x50000, 14.6f);
 
         Timeout(id + 0xFF0000, 9999, "???");
     }
@@ -631,5 +449,56 @@ class Ex5NecronStates : StateMachineBuilder
         ComponentCondition<Aetherblight>(id + 0x400, 7.1f, a => a.NumCasts > 1, "Stored AOE + stacks")
             .ActivateOnEnter<Shockwave>()
             .DeactivateOnExit<Aetherblight>();
+    }
+
+    private void GrandCross(uint id, float delay)
+    {
+        Cast(id, AID._Weaponskill_GrandCross, delay, 7, "Raidwide")
+            .ActivateOnEnter<GrandCrossArena>()
+            .ActivateOnEnter<GrandCrossRaidwide>()
+            .ActivateOnEnter<GrandCrossPuddle>()
+            .ActivateOnEnter<GrandCrossSpread>()
+            .ActivateOnEnter<GrandCrossLine>()
+            .ActivateOnEnter<GrandCrossLineCast>()
+            .ActivateOnEnter<Shock>();
+
+        ComponentCondition<GrandCrossArena>(id + 0x10, 1.1f, t => t.NumChanges > 0, "Arena change");
+
+        ComponentCondition<Shock>(id + 0x20, 13, s => s.NumCasts >= 4, "Towers 1");
+        ComponentCondition<Shock>(id + 0x30, 11, s => s.NumCasts >= 8, "Towers 2")
+            .DeactivateOnExit<GrandCrossLine>()
+            .DeactivateOnExit<GrandCrossLineCast>()
+            .DeactivateOnExit<GrandCrossSpread>()
+            .DeactivateOnExit<Shock>();
+
+        ComponentCondition<GrandCrossProximity>(id + 0x100, 8.7f, g => g.NumCasts > 0, "Proximity")
+            .ActivateOnEnter<GrandCrossProximity>()
+            .DeactivateOnExit<GrandCrossPuddle>()
+            .DeactivateOnExit<GrandCrossProximity>();
+
+        Cast(id + 0x200, AID._Weaponskill_NeutronRing, 3.1f, 7)
+            .ActivateOnEnter<NeutronRing>();
+
+        ComponentCondition<NeutronRing>(id + 0x210, 2.6f, n => n.NumCasts > 0, "Raidwide + restore arena");
+    }
+
+    private void Adds(uint id, float delay)
+    {
+        Targetable(id, false, delay, "Boss disappears (adds)")
+            .ActivateOnEnter<FearOfDeathAdds>()
+            .ActivateOnEnter<IcyHandsAdds>()
+            .ActivateOnEnter<ChokingGraspAdds>()
+            .ActivateOnEnter<MutedStruggle>()
+            .ClearHint(StateMachine.StateHint.DowntimeStart);
+
+        Targetable(id + 0x100, true, 60, "Boss reappears")
+            .ActivateOnEnter<DarknessOfEternity>()
+            .DeactivateOnExit<FearOfDeathAdds>()
+            .DeactivateOnExit<IcyHandsAdds>()
+            .DeactivateOnExit<ChokingGraspAdds>()
+            .DeactivateOnExit<MutedStruggle>()
+            .ClearHint(StateMachine.StateHint.DowntimeEnd);
+
+        Targetable(id + 0x200, false, 16.4f, "Boss disappears (intermission)");
     }
 }
