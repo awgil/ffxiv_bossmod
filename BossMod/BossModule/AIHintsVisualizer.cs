@@ -1,6 +1,6 @@
 ﻿using BossMod.Autorotation.xan;
 using BossMod.Pathfinding;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod;
 

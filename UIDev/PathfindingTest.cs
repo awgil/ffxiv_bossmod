@@ -1,6 +1,6 @@
 ﻿using BossMod;
 using BossMod.Pathfinding;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace UIDev;
 

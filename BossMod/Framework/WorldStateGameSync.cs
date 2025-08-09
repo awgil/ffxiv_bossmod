@@ -100,7 +100,7 @@ sealed class WorldStateGameSync : IDisposable
             amex.ActionEffectReceived.Subscribe(OnActionEffect)
         );
 
-        _processPacketActorCastHook = Service.Hook.HookFromSignature<ProcessPacketActorCastDelegate>("40 56 41 56 48 81 EC ?? ?? ?? ?? 48 8B F2", ProcessPacketActorCastDetour);
+        _processPacketActorCastHook = Service.Hook.HookFromSignature<ProcessPacketActorCastDelegate>("40 53 57 48 81 EC ?? ?? ?? ?? 48 8B FA 8B D1", ProcessPacketActorCastDetour);
         _processPacketActorCastHook.Enable();
         Service.Log($"[WSG] ProcessPacketActorCast address = 0x{_processPacketActorCastHook.Address:X}");
 
@@ -117,7 +117,7 @@ sealed class WorldStateGameSync : IDisposable
         Service.Log($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
 
         // alt sig - impl: "45 33 D2 48 8D 41 48"
-        _processPacketNpcYellHook = Service.Hook.HookFromSignature<ProcessPacketNpcYellDelegate>("48 83 EC 58 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 0F 10 41 10", ProcessPacketNpcYellDetour);
+        _processPacketNpcYellHook = Service.Hook.HookFromSignature<ProcessPacketNpcYellDelegate>("48 83 EC 68 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 0F 10 41 10", ProcessPacketNpcYellDetour);
         _processPacketNpcYellHook.Enable();
         Service.Log($"[WSG] ProcessPacketNpcYell address = 0x{_processPacketNpcYellHook.Address:X}");
 
@@ -129,7 +129,7 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketRSVDataHook.Enable();
         Service.Log($"[WSG] ProcessPacketRSVData address = 0x{_processPacketRSVDataHook.Address:X}");
 
-        _processSystemLogMessageHook = Service.Hook.HookFromSignature<ProcessSystemLogMessageDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 46 28", ProcessSystemLogMessageDetour);
+        _processSystemLogMessageHook = Service.Hook.HookFromSignature<ProcessSystemLogMessageDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 47 28", ProcessSystemLogMessageDetour);
         _processSystemLogMessageHook.Enable();
         Service.Log($"[WSG] ProcessSystemLogMessage address = 0x{_processSystemLogMessageHook.Address:X}");
 
@@ -137,14 +137,14 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketOpenTreasureHook.Enable();
         Service.Log($"[WSG] ProcessPacketOpenTreasure address = 0x{_processPacketOpenTreasureHook.Address:X}");
 
-        _processPacketFateInfoHook = Service.Hook.HookFromSignature<ProcessPacketFateInfoDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4E 10 48 8D 56 12 41 B8 ?? ?? ?? ??", ProcessPacketFateInfoDetour);
+        _processPacketFateInfoHook = Service.Hook.HookFromSignature<ProcessPacketFateInfoDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4F 10 48 8D 57 12 41 B8", ProcessPacketFateInfoDetour);
         _processPacketFateInfoHook.Enable();
         Service.Log($"[WSG] ProcessPacketFateInfo address = 0x{_processPacketFateInfoHook.Address:X}");
 
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
 
-        var processMapEffectAddr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 46 10 8B D7 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4E 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 46 10 8B D7 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4E 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4E 10 BA ?? ?? ?? ??");
+        var processMapEffectAddr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? B0 01 48 8B 5C 24 ?? 48 8B 74 24 ?? 48 83 C4 50 5F C3 48 8B CB E8 ?? ?? ?? ?? B0 01 48 8B 5C 24 ?? 48 8B 74 24 ?? 48 83 C4 50 5F C3 0F B6 43 1E");
         _processMapEffect1Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr, ProcessMapEffect1Detour);
         _processMapEffect1Hook.Enable();
         _processMapEffect2Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x40, ProcessMapEffect2Detour);
@@ -366,7 +366,7 @@ sealed class WorldStateGameSync : IDisposable
         var castInfo = chr != null ? chr->GetCastInfo() : null;
         if (castInfo != null)
         {
-            var curCast = castInfo->IsCasting != 0
+            var curCast = castInfo->IsCasting
                 ? new ActorCastInfo
                 {
                     Action = new((ActionType)castInfo->ActionType, castInfo->ActionId),
@@ -375,7 +375,7 @@ sealed class WorldStateGameSync : IDisposable
                     Location = _lastCastPositions.GetValueOrDefault(act.InstanceID, castInfo->TargetLocation),
                     ElapsedTime = castInfo->CurrentCastTime,
                     TotalTime = castInfo->BaseCastTime,
-                    Interruptible = castInfo->Interruptible != 0,
+                    Interruptible = castInfo->Interruptible
                 } : null;
             UpdateActorCastInfo(act, curCast);
         }
@@ -489,7 +489,7 @@ sealed class WorldStateGameSync : IDisposable
         {
             // in normal mode, the primary data source is playerstate
             var ui = UIState.Instance();
-            if (ui->PlayerState.IsLoaded != 0)
+            if (ui->PlayerState.IsLoaded)
             {
                 var inCutscene = Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
                 player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, inCutscene, ui->PlayerState.CharacterNameString);
@@ -676,7 +676,7 @@ sealed class WorldStateGameSync : IDisposable
         var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (pc != null)
         {
-            var baseSpeed = *(float*)((nint)Control.Instance() + 0x7108);
+            var baseSpeed = ControlEx.Instance()->BaseMoveSpeed;
             var c8 = new CharacterContainer() { Character = pc };
             var factor = _calculateMoveSpeedMulti((ContainerInterface*)&c8);
             var speed = baseSpeed * factor;

@@ -8,6 +8,7 @@ public record struct WDir(float X, float Z)
     public readonly Vector3 ToVec3(float y = 0) => new(X, y, Z);
     public readonly Vector4 ToVec4(float y = 0, float w = 0) => new(X, y, Z, w);
     public readonly WPos ToWPos() => new(X, Z);
+    public readonly Angle ToAngle() => Angle.FromDirection(this);
 
     public static WDir operator +(WDir a, WDir b) => new(a.X + b.X, a.Z + b.Z);
     public static WDir operator -(WDir a, WDir b) => new(a.X - b.X, a.Z - b.Z);

@@ -32,7 +32,7 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Enu
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public Func<BossModule, IEnumerable<Actor>> Sources { get; init; } = sources;
     public float CastEventToSpawn { get; init; } = castEventToSpawn;
-    private readonly List<(WPos pos, DateTime time)> _predictedByEvent = [];
+    protected readonly List<(WPos pos, DateTime time)> _predictedByEvent = [];
     private readonly List<(Actor caster, DateTime time)> _predictedByCast = [];
 
     public bool HaveCasters => _predictedByCast.Count > 0;

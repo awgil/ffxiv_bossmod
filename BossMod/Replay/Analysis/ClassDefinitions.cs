@@ -1,5 +1,5 @@
 ﻿using BossMod.Data;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Text;
 
 namespace BossMod.ReplayAnalysis;

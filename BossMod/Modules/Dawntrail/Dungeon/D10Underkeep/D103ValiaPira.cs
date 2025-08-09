@@ -377,8 +377,8 @@ class D103ValiaPiraStates : StateMachineBuilder
             .ActivateOnEnter<NeutralizeFrontLines>()
             .ActivateOnEnter<DeterrentPulse>()
             .ActivateOnEnter<HyperchargedLight>()
-            .ActivateOnEnter<CoordinateMarch>()
-            .ActivateOnEnter<Debugger>(Service.IsDev);
+            .ActivateOnEnter<CoordinateMarch>();
+        // .ActivateOnEnter<Debugger>(Service.IsDev);
     }
 }
 

@@ -12,6 +12,8 @@ public class FRU(WorldState ws, Actor primary) : BossModule(ws, primary, new(100
 {
     public static readonly ArenaBoundsSquare PathfindHugBorderBounds = new(20); // this is a hack to allow precise positioning near border by some mechanics, TODO reconsider
 
+    public override bool ShouldPrioritizeAllEnemies => true;
+
     private Actor? _bossP2;
     private Actor? _iceVeil;
     private Actor? _bossP3;

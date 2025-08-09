@@ -1,9 +1,9 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 using System.Data;
@@ -260,7 +260,7 @@ public sealed class ModuleViewer : IDisposable
         ImGui.TableNextColumn();
         if (Service.Texture.GetFromGameIcon(iconId).TryGetWrap(out var tex, out var ex))
         {
-            ImGui.Image(tex.ImGuiHandle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
+            ImGui.Image(tex.Handle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
             if (ex != null)
                 Service.Logger.Warning(ex, $"unable to load icon {iconId}");
         }

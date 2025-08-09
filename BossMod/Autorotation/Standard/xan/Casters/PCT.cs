@@ -68,6 +68,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         HolyMove = 100,
         HammerMove = 200,
         Standard = 500,
+        High = 600
     }
 
     private float GetApplicationDelay(AID action) => action switch
@@ -180,7 +181,8 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             if (ShouldWeapon(strategy))
                 PushOGCD(AID.StrikingMuse, Player);
 
-            PushOGCD(BestLivingMuse, BestAOETarget);
+            if (ShouldCreatureMuse(strategy))
+                PushOGCD(BestLivingMuse, BestAOETarget);
 
             if (ShouldLandscape(strategy))
                 PushOGCD(AID.StarryMuse, Player, 2);
@@ -188,18 +190,19 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             if (ShouldSubtract(strategy))
                 PushOGCD(AID.SubtractivePalette, Player);
 
-            PushOGCD(BestPortrait, BestLineTarget);
+            if (ShouldCreaturePortrait(strategy))
+                PushOGCD(BestPortrait, BestLineTarget);
 
             if (MP <= Player.HPMP.MaxMP * 0.7f)
                 PushOGCD(AID.LucidDreaming, Player);
         }
 
-        if (!CanFitGCD(DowntimeIn - GetApplicationDelay(AID.RainbowDrip), 1))
+        if (DowntimeIn > 0 && !CanFitGCD(DowntimeIn - GetApplicationDelay(AID.RainbowDrip), 1))
         {
             PushOGCD(AID.Swiftcast, Player, 50);
 
             if (SwiftcastLeft > GCD)
-                PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
+                PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.High);
         }
 
         if (Starstruck > GCD)
@@ -289,11 +292,16 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         var prio = GCDPriority.HammerMove;
 
-        if (RaidBuffsLeft > GCD)
-            prio = GCDPriority.Standard;
+        // hammer isnt that good in the opener anymore xddd
+        //if (RaidBuffsLeft > GCD)
+        //    prio = GCDPriority.Standard;
 
         // worst case scenario, give at least 8 extra seconds of leeway in case we want to cast both other motifs
         if (HammerTime.Left < GCD + GCDLength + (4 * HammerTime.Stacks - 1))
+            prio = GCDPriority.High;
+
+        // use to weave in opener, now that hammer sucks
+        if (ShouldSubtract(strategy, 1))
             prio = GCDPriority.Standard;
 
         if (NumAOETargets > 1)
@@ -356,5 +364,20 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             return false;
 
         return Palette > 75 || RaidBuffsLeft > 0 || SpectrumLeft > 0;
+    }
+
+    private bool ShouldCreatureMuse(StrategyValues strategy)
+    {
+        if (BestLivingMuse is AID.WingedMuse or AID.FangedMuse)
+            // prevent overcap
+            return BestPortrait == AID.None;
+
+        // otherwise should always be fine to use
+        return true;
+    }
+
+    private bool ShouldCreaturePortrait(StrategyValues strategy)
+    {
+        return StarryMuseLeft > AnimLock;
     }
 }

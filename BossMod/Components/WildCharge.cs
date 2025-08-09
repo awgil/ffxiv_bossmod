@@ -154,6 +154,32 @@ public class SimpleLineStack(BossModule module, float halfWidth, float fixedLeng
     }
 }
 
+public class IconLineStack(BossModule module, float halfWidth, float fixedLength, uint iconID, Enum aidResolve, float activationDelay) : GenericWildCharge(module, halfWidth, aidResolve, fixedLength)
+{
+    public uint Icon => iconID;
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (Icon == iconID)
+        {
+            Source = actor;
+            Activation = WorldState.FutureTime(activationDelay);
+            foreach (var (i, p) in Raid.WithSlot(true))
+                PlayerRoles[i] = p.InstanceID == targetID ? PlayerRole.Target : PlayerRole.Share;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            Source = null;
+            Array.Fill(PlayerRoles, PlayerRole.Ignore);
+        }
+    }
+}
+
 // component for multiple simultaneous line stacks from different sources
 // we assume getting hit by two line stacks is fatal (they typically give a vuln stack or something)
 public class MultiLineStack(BossModule module, float halfWidth, float fixedLength, Enum aidTargetSelect, Enum aidResolve, float activationDelay) : CastCounter(module, aidResolve)

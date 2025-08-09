@@ -1,7 +1,7 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Group;
+﻿using Dalamud.Bindings.ImGui;
+using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using ImGuiNET;
 
 namespace BossMod;
 
@@ -70,6 +70,6 @@ class DebugParty
         ImGui.TableNextColumn();
         ImGui.TextUnformatted($"{member.HomeWorld}");
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(Utils.Vec3String(new(member.X, member.Y, member.Z)));
+        ImGui.TextUnformatted(Utils.Vec3String(new(member.Position.X, member.Position.Y, member.Position.Z)));
     }
 }
