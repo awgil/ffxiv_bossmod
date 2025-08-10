@@ -41,10 +41,6 @@ class UITest
                 SDL_Quit();
             }
         }
-        else
-        {
-            throw new Exception($"Actual args were: {string.Join(", ", args)}");
-        }
 
         using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, windowInfo);
         scene.Renderer.ClearColor = new Vector4(0, 0, 0, 0);
