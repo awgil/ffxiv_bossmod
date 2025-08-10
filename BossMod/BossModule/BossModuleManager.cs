@@ -130,13 +130,13 @@ public sealed class BossModuleManager : IDisposable
 
     private void LoadModule(BossModule m)
     {
-        // skip loading module if this specific actor already has an active module
         // this can only happen in modules that involve teleporting to different areas mid-combat, where the boss will deload and reload when the player returns to the arena
         // for now the only applicable boss is dawntrail EX5 Necron
         // shadowbringers alliance raid boss Red Girl is similar (player teleports to a minigame arena) but the actor in the P2 arena is a separate object
         if (LoadedModules.FindIndex(l => l.PrimaryActor.InstanceID == m.PrimaryActor.InstanceID) is var ix && ix >= 0)
         {
-            LoadedModules[ix].PrimaryActor = m.PrimaryActor;
+            // TODO this is morally wrong but these two different objects do represent the actual same actor
+            typeof(BossModule).GetField("PrimaryActor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)!.SetValue(LoadedModules[ix], m.PrimaryActor);
             return;
         }
 
