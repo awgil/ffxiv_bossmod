@@ -17,6 +17,7 @@ public enum OID : uint
     _Gen_BeckoningHands = 0x4912, // R5.500, x0 (spawn during fight)
     _Gen_AzureAether2 = 0x49B0, // R1.000, x0 (spawn during fight)
     _Gen_IcyHands2 = 0x4913, // R3.575, x0 (spawn during fight)
+    _Gen_IcyHands3 = 0x490D, // R3.575, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -80,6 +81,7 @@ public enum AID : uint
     _Weaponskill_MacabreMark = 44819, // Helper->location, no cast, range 3 circle
     _Weaponskill_SpreadingFear = 44596, // 4913->self, no cast, range 50 circle
     _Weaponskill_TheSecondSeason = 45167, // Boss->self, 8.0s cast, single-target
+    _Weaponskill_ChokingGrasp3 = 44584, // _Gen_IcyHands3->self, 3.0s cast, range 24 width 6 rect
 }
 
 public enum IconID : uint

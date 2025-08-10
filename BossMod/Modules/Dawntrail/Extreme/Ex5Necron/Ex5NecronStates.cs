@@ -337,9 +337,23 @@ class Ex5NecronStates : StateMachineBuilder
     {
         SimplePhase(0, P1, "P1")
             .Raw.Update = () => Module.Enemies(0x490D).Any();
-        SimplePhase(1, id => Timeout(id, 9999, "P1???"), "Intermission")
+        SimplePhase(1, P2, "Intermission")
+            .OnEnter(() =>
+            {
+                // meh
+                if (Module.Raid.Player() is { } player)
+                {
+                    Module.Arena.Center = player.Position - new WDir(0, 7.5f);
+                    Module.Arena.Bounds = new ArenaBoundsCircle(9);
+                }
+            })
             .Raw.Update = () => Module.PrimaryActor.IsTargetable;
-        DeathPhase(2, id => Timeout(id, 9999, "P2???"));
+        DeathPhase(2, P3)
+            .OnEnter(() =>
+            {
+                Module.Arena.Center = new(100, 100);
+                Module.Arena.Bounds = new ArenaBoundsRect(18, 15);
+            });
     }
 
     private void P1(uint id)
@@ -351,8 +365,18 @@ class Ex5NecronStates : StateMachineBuilder
         SoulReaping(id + 0x30000, 2.2f);
         GrandCross(id + 0x40000, 7.9f);
         Adds(id + 0x50000, 14.6f);
+    }
 
-        Timeout(id + 0xFF0000, 9999, "???");
+    private void P2(uint id)
+    {
+        Timeout(id + 0x10, 50, "Doom")
+            .ActivateOnEnter<JailHands>()
+            .ActivateOnEnter<JailGrasp>();
+    }
+
+    private void P3(uint id)
+    {
+        Timeout(id + 0xFF0000, 9999, "P3!");
     }
 
     private void BlueShockwave(uint id, float delay)
