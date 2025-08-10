@@ -93,12 +93,14 @@ class ColdGrip(BossModule module) : Components.GenericAOEs(module, AID._Weaponsk
 
     private Side _safeSide;
 
+    public bool Highlight;
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_leftHand is { } h)
-            yield return new AOEInstance(new AOEShapeRect(100, 6), h.CastInfo!.LocXZ, h.CastInfo!.Rotation, Module.CastFinishAt(h.CastInfo), Color: _safeSide == Side.Right ? ArenaColor.Danger : ArenaColor.AOE);
+            yield return new AOEInstance(new AOEShapeRect(100, 6), h.CastInfo!.LocXZ, h.CastInfo!.Rotation, Module.CastFinishAt(h.CastInfo), Color: _safeSide == Side.Right && Highlight ? ArenaColor.Danger : ArenaColor.AOE);
         if (_rightHand is { } h2)
-            yield return new AOEInstance(new AOEShapeRect(100, 6), h2.CastInfo!.LocXZ, h2.CastInfo!.Rotation, Module.CastFinishAt(h2.CastInfo), Color: _safeSide == Side.Left ? ArenaColor.Danger : ArenaColor.AOE);
+            yield return new AOEInstance(new AOEShapeRect(100, 6), h2.CastInfo!.LocXZ, h2.CastInfo!.Rotation, Module.CastFinishAt(h2.CastInfo), Color: _safeSide == Side.Left && Highlight ? ArenaColor.Danger : ArenaColor.AOE);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -330,6 +332,78 @@ class ChokingGraspAdds(BossModule module) : Components.StandardAOEs(module, AID.
 
 class MutedStruggle(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_MutedStruggle);
 class DarknessOfEternity(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_DarknessOfEternity, AID._Weaponskill_DarknessOfEternity1, 6.4f);
+class Invitation(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Invitation1, new AOEShapeRect(36, 5));
+
+class LoomingSpecter(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Invitation1)
+{
+    private readonly List<(Actor, DateTime)> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => new AOEInstance(new AOEShapeRect(36, 5), p.Item1.Position, p.Item1.Rotation, p.Item2));
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((OID)source.OID == OID._Gen_LoomingSpecter && tether.ID == 102)
+            _predicted.Add((source, WorldState.FutureTime(12.1f)));
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _predicted.Clear();
+    }
+}
+
+class CrapRotation(BossModule module) : BossComponent(module)
+{
+    private readonly List<string> _icons = [];
+    private readonly List<string> _casts = [];
+    private readonly List<string> _models = [];
+
+    // modelstate 0x15 = order 1
+    // modelstate 0x93 = order 2
+    // modelstate 0x41 = order 3
+    // modelstate 0x16 = order 4
+    public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
+    {
+        if ((OID)actor.OID == OID.Boss)
+            _models.Add(modelState.ToString("X2"));
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((OID)actor.OID == OID.Boss && iconID is >= 604 and <= 607)
+            _icons.Add(((IconID)iconID).ToString());
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (_icons.Count > 0)
+            hints.Add("Icons: " + string.Join(" -> ", _icons));
+        if (_casts.Count > 0)
+            hints.Add("Casts: " + string.Join(" -> ", _casts));
+        if (_models.Count > 0)
+            hints.Add("Models: " + string.Join(" -> ", _models));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID._Weaponskill_Aetherblight1:
+                _casts.Add("Inverse rect");
+                break;
+            case AID._Weaponskill_Aetherblight3:
+                _casts.Add("Rect");
+                break;
+            case AID._Weaponskill_Aetherblight5:
+                _casts.Add("Circle");
+                break;
+            case AID._Weaponskill_Aetherblight7:
+                _casts.Add("Donut");
+                break;
+        }
+    }
+}
 
 class Ex5NecronStates : StateMachineBuilder
 {
@@ -337,7 +411,7 @@ class Ex5NecronStates : StateMachineBuilder
     {
         SimplePhase(0, P1, "P1")
             .Raw.Update = () => Module.Enemies(0x490D).Any();
-        SimplePhase(1, P2, "Intermission")
+        SimplePhase(1, PJail, "Intermission")
             .OnEnter(() =>
             {
                 // meh
@@ -348,7 +422,7 @@ class Ex5NecronStates : StateMachineBuilder
                 }
             })
             .Raw.Update = () => Module.PrimaryActor.IsTargetable;
-        DeathPhase(2, P3)
+        DeathPhase(2, P2)
             .OnEnter(() =>
             {
                 Module.Arena.Center = new(100, 100);
@@ -367,15 +441,18 @@ class Ex5NecronStates : StateMachineBuilder
         Adds(id + 0x50000, 14.6f);
     }
 
-    private void P2(uint id)
+    private void PJail(uint id)
     {
         Timeout(id + 0x10, 50, "Doom")
             .ActivateOnEnter<JailHands>()
             .ActivateOnEnter<JailGrasp>();
     }
 
-    private void P3(uint id)
+    private void P2(uint id)
     {
+        EndsEmbraceP2(id, 5.7f);
+        CropCircle(id + 0x10000, 6.6f);
+
         Timeout(id + 0xFF0000, 9999, "P3!");
     }
 
@@ -458,7 +535,7 @@ class Ex5NecronStates : StateMachineBuilder
 
         ComponentCondition<EndsEmbraceBait>(id + 0x210, 1, e => e.CurrentBaits.Count > 0, "Hands 2 appear");
 
-        ComponentCondition<EndsEmbraceBait>(id + 0x220, 2.2f, e => e.Baited)
+        ComponentCondition<EndsEmbraceBait>(id + 0x220, 2.2f, e => e.Baited, "Baits")
             .ActivateOnEnter<BlueShockwave>()
             .DeactivateOnExit<EndsEmbrace>()
             .DeactivateOnExit<EndsEmbraceBait>();
@@ -524,5 +601,56 @@ class Ex5NecronStates : StateMachineBuilder
             .ClearHint(StateMachine.StateHint.DowntimeEnd);
 
         Targetable(id + 0x200, false, 16.4f, "Boss disappears (intermission)");
+    }
+
+    private void EndsEmbraceP2(uint id, float delay)
+    {
+        Cast(id, AID._Weaponskill_SpecterOfDeath, delay, 5)
+            .ActivateOnEnter<Invitation>()
+            .ActivateOnEnter<LoomingSpecter>()
+            .ActivateOnEnter<EndsEmbrace>()
+            .ActivateOnEnter<EndsEmbraceBait>();
+
+        ComponentCondition<EndsEmbrace>(id + 0x10, 8.2f, e => e.NumFinishedSpreads > 0, "Stacks")
+            .ActivateOnEnter<DelayedChokingGrasp>()
+            .DeactivateOnExit<EndsEmbrace>()
+            .DeactivateOnExit<Invitation>()
+            .DeactivateOnExit<LoomingSpecter>();
+
+        CastStartMulti(id + 0x20, [AID._Weaponskill_ColdGrip, AID._Weaponskill_ColdGrip2], 2.1f)
+            .ActivateOnEnter<ColdGrip>()
+            .ActivateOnEnter<ExistentialDread>();
+
+        ComponentCondition<EndsEmbraceBait>(id + 0x30, 1, e => e.Baited, "Baits")
+            .DeactivateOnExit<EndsEmbraceBait>();
+
+        ComponentCondition<ColdGrip>(id + 0x40, 4.9f, c => c.NumCasts > 0, "Line AOEs")
+            .DeactivateOnExit<ColdGrip>();
+
+        ComponentCondition<ExistentialDread>(id + 0x50, 1.6f, e => e.NumCasts > 0, "Safe side")
+            .DeactivateOnExit<DelayedChokingGrasp>()
+            .DeactivateOnExit<ExistentialDread>();
+    }
+
+    private void CropCircle(uint id, float delay)
+    {
+        CastStart(id, AID._Weaponskill_RelentlessReaping, delay)
+            .ActivateOnEnter<CropCircle>()
+            .ActivateOnEnter<Shockwave>()
+            .ExecOnEnter<Shockwave>(s => s.Enabled = false);
+
+        CastEnd(id + 1, 15);
+
+        Cast(id + 0x10, AID._Weaponskill_CropRotation, 3.1f, 3);
+
+        CastStartMulti(id + 0x20, [AID._Weaponskill_TheFourthSeason, AID._Weaponskill_TheSecondSeason], 3.2f);
+
+        ComponentCondition<CropCircle>(id + 0x30, 9.3f, c => c.NumCasts > 0, "AOE 1");
+        ComponentCondition<CropCircle>(id + 0x31, 2.8f, c => c.NumCasts > 1, "AOE 2");
+        ComponentCondition<CropCircle>(id + 0x32, 2.8f, c => c.NumCasts > 2, "AOE 3")
+            .ExecOnEnter<Shockwave>(s => s.Enabled = true);
+        ComponentCondition<Shockwave>(id + 0x40, 2.9f, s => s.NumCasts > 0, "AOE 4 + stacks")
+            .DeactivateOnExit<CropCircle>()
+            .DeactivateOnExit<Shockwave>();
     }
 }

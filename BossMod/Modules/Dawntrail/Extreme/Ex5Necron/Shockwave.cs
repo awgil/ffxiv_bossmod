@@ -2,7 +2,7 @@
 
 class Aetherblight(BossModule module) : Components.GenericAOEs(module)
 {
-    enum Blight
+    public enum Blight
     {
         Circle,
         Donut,
@@ -10,9 +10,9 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
         Rect
     }
 
-    private readonly List<Blight> _order = [];
+    protected readonly List<Blight> _order = [];
 
-    private DateTime _nextActivation;
+    protected DateTime _nextActivation;
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -20,8 +20,8 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
         {
             Blight.Circle => "Circle",
             Blight.Donut => "Donut",
-            Blight.InverseRect => "Center safe",
-            Blight.Rect => "Walls safe",
+            Blight.InverseRect => "Walls",
+            Blight.Rect => "Center",
             _ => null!
         };
 
@@ -29,26 +29,30 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
             hints.Add($"Next: {string.Join(" -> ", _order.Select(readable))}");
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _nextActivation == default ? [] : RenderAOEs().Take(1).SelectMany(x => x);
+
+    protected IEnumerable<AOEInstance[]> RenderAOEs()
     {
-        if (_nextActivation != default && _order.Count > 0)
+        var next = _nextActivation;
+        foreach (var aoe in _order)
         {
-            switch (_order[0])
+            switch (aoe)
             {
                 case Blight.Circle:
-                    yield return new(new AOEShapeCircle(20), Module.PrimaryActor.Position, default, _nextActivation);
+                    yield return [new(new AOEShapeCircle(20), Module.PrimaryActor.Position, default, _nextActivation)];
                     break;
                 case Blight.Donut:
-                    yield return new(new AOEShapeDonut(20, 60), Module.PrimaryActor.Position, default, _nextActivation);
+                    yield return [new(new AOEShapeDonut(16, 60), Module.PrimaryActor.Position, default, _nextActivation)];
                     break;
                 case Blight.Rect:
-                    yield return new(new AOEShapeRect(100, 6), Module.PrimaryActor.Position, default, _nextActivation);
+                    yield return [new(new AOEShapeRect(100, 6), Module.PrimaryActor.Position, default, _nextActivation)];
                     break;
                 case Blight.InverseRect:
-                    yield return new(new AOEShapeRect(100, 6), new WPos(88, 85), default, _nextActivation);
-                    yield return new(new AOEShapeRect(100, 6), new WPos(112, 85), default, _nextActivation);
+                    yield return [new(new AOEShapeRect(100, 6), new WPos(88, 85), default, _nextActivation),
+                     new(new AOEShapeRect(100, 6), new WPos(112, 85), default, _nextActivation)];
                     break;
             }
+            next = next.AddSeconds(2.8f);
         }
     }
 
@@ -73,6 +77,9 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID._Weaponskill_TwofoldBlight or AID._Weaponskill_FourfoldBlight)
+            _nextActivation = Module.CastFinishAt(spell, 1.2f);
+
+        if ((AID)spell.Action.ID is AID._Weaponskill_TheSecondSeason or AID._Weaponskill_TheFourthSeason)
             _nextActivation = Module.CastFinishAt(spell, 1.2f);
     }
 
@@ -103,6 +110,71 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class CropCircle(BossModule module) : Aetherblight(module)
+{
+    public bool Active = false;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (Active)
+        {
+            var danger = true;
+            foreach (var aoes in RenderAOEs().Take(2))
+            {
+                foreach (var aoe in aoes)
+                    yield return aoe with { Color = danger ? ArenaColor.Danger : ArenaColor.AOE, Risky = danger };
+                danger = false;
+            }
+        }
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (Active)
+            base.AddGlobalHints(hints);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_TheSecondSeason or AID._Weaponskill_TheFourthSeason)
+            Active = true;
+    }
+
+    public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
+    {
+        if (Active)
+            return;
+
+        if ((OID)actor.OID == OID.Boss)
+        {
+            switch (modelState)
+            {
+                case 0x15:
+                    // no rotation
+                    break;
+                case 0x93:
+                    _order.Add(_order[0]);
+                    _order.RemoveAt(0);
+                    break;
+                case 0x41:
+                    _order.Add(_order[0]);
+                    _order.Add(_order[1]);
+                    _order.RemoveAt(0);
+                    _order.RemoveAt(0);
+                    break;
+                case 0x16:
+                    _order.Add(_order[0]);
+                    _order.Add(_order[1]);
+                    _order.Add(_order[2]);
+                    _order.RemoveAt(0);
+                    _order.RemoveAt(0);
+                    _order.RemoveAt(0);
+                    break;
+            }
+        }
+    }
+}
+
 class Shockwave(BossModule module) : Components.CastCounter(module, default)
 {
     private int _numBaits;
@@ -110,6 +182,8 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
 
     public static readonly AOEShape Shape2 = new AOEShapeCone(100, 22.5f.Degrees());
     public static readonly AOEShape Shape4 = new AOEShapeCone(100, 10.Degrees());
+
+    public bool Enabled = true;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -123,11 +197,22 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
                 _numBaits = 4;
                 _activation = Module.CastFinishAt(spell, 1.4f);
                 break;
+            case AID._Weaponskill_TheSecondSeason:
+                _numBaits = 2;
+                _activation = Module.CastFinishAt(spell, 9.8f);
+                break;
+            case AID._Weaponskill_TheFourthSeason:
+                _numBaits = 4;
+                _activation = Module.CastFinishAt(spell, 9.8f);
+                break;
         }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
+        if (!Enabled)
+            return;
+
         if (_numBaits == 2)
         {
             var shape = Shape2;
@@ -168,6 +253,9 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
+        if (!Enabled)
+            return;
+
         if (_numBaits == 2)
         {
             var shape = Shape2;
@@ -198,11 +286,14 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
-        if (_numBaits == 2 && player.Role == Role.Healer)
-            return pc.Role == Role.Healer ? PlayerPriority.Danger : PlayerPriority.Interesting;
+        if (Enabled)
+        {
+            if (_numBaits == 2 && player.Role == Role.Healer)
+                return pc.Role == Role.Healer ? PlayerPriority.Danger : PlayerPriority.Interesting;
 
-        if (_numBaits == 4 && player.Class.IsSupport() == pc.Class.IsSupport())
-            return PlayerPriority.Interesting;
+            if (_numBaits == 4 && player.Class.IsSupport() == pc.Class.IsSupport())
+                return PlayerPriority.Interesting;
+        }
 
         return base.CalcPriority(pcSlot, pc, playerSlot, player, ref customColor);
     }
