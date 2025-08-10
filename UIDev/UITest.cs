@@ -24,7 +24,7 @@ class UITest
             TransparentColor = [0, 0, 0],
         };
 
-        if (args.Length > 0 && args[0] == "-w" && false)
+        if (args.Length > 0 && args[0] == "-w")
         {
             // windowed mode
             windowInfo.XPos = 100;
@@ -40,6 +40,10 @@ class UITest
                 windowInfo.Height = mode.h - 200;
                 SDL_Quit();
             }
+        }
+        else
+        {
+            throw new Exception($"Actual args were: {string.Join(", ", args)}");
         }
 
         using var scene = new SimpleImGuiScene(RendererFactory.RendererBackend.DirectX11, windowInfo);

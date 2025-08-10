@@ -28,8 +28,7 @@
         "build",
         "${workspaceFolder}/UIDev/UIDev.csproj",
         "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary;ForceNoAlign",
-        "/p:Platform=x64"
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
       "problemMatcher": "$msCompile"
     }
