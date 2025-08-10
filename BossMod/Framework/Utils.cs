@@ -169,11 +169,6 @@ public static partial class Utils
         return first;
     }
 
-    public static List<T> Rotate<T>(List<T> input, int offset)
-    {
-        return input.Skip(offset).Concat(input.Take(offset)).ToList();
-    }
-
     // add value to the list, if it is not null
     public static bool AddIfNonNull<T>(this List<T> list, T? value)
     {

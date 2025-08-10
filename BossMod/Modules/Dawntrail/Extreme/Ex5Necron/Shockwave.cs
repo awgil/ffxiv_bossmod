@@ -112,7 +112,7 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
 
 class CropCircle(BossModule module) : Aetherblight(module)
 {
-    public bool Active = false;
+    public bool Active;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

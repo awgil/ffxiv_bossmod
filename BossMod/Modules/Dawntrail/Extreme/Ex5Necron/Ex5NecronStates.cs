@@ -93,7 +93,10 @@ class ColdGrip(BossModule module) : Components.GenericAOEs(module, AID._Weaponsk
 
     private Side _safeSide;
 
+#pragma warning disable CS0649
+    // TODO: figure out a good way to communicate this visually, Color=Danger completely obscures other AOEs in p2
     public bool Highlight;
+#pragma warning restore
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
