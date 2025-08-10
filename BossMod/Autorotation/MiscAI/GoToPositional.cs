@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Autorotation.MiscAI;
+
 public sealed class GoToPositional(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum Tracks

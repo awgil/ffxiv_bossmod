@@ -1,4 +1,5 @@
 namespace BossMod.RealmReborn.Dungeon.D26Snowcloak.D261Wandil;
+
 public enum OID : uint
 {
     Boss = 0xD07, // R3.230, x?

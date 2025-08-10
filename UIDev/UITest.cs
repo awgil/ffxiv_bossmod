@@ -58,14 +58,13 @@ class UITest
 
         // esc should close focused window
         bool escDown = false;
-        scene.Window.OnSDLEvent += (ref SDL_Event sdlEvent) =>
+        scene.Window.OnSDLEvent += (ref sdlEvent) =>
         {
             if (sdlEvent.type == SDL_EventType.SDL_KEYDOWN && sdlEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_ESCAPE && !escDown)
             {
                 escDown = true;
                 var focusWindow = Service.WindowSystem.HasAnyFocus ? Service.WindowSystem.Windows.FirstOrDefault(w => w.IsFocused && w.RespectCloseHotkey) : null;
-                if (focusWindow != null)
-                    focusWindow.IsOpen = false;
+                focusWindow?.IsOpen = false;
             }
             else if (sdlEvent.type == SDL_EventType.SDL_KEYUP && sdlEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_ESCAPE)
             {

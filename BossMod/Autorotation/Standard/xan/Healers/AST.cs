@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
 namespace BossMod.Autorotation.xan;
+
 public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Mind)
 {
     public static RotationModuleDefinition Definition()
