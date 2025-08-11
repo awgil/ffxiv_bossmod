@@ -113,10 +113,11 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
 class CropCircle(BossModule module) : Aetherblight(module)
 {
     public bool Active;
+    private bool _failed;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (Active)
+        if (Active && !_failed)
         {
             var danger = true;
             foreach (var aoes in RenderAOEs().Take(2))
@@ -130,7 +131,9 @@ class CropCircle(BossModule module) : Aetherblight(module)
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (Active)
+        if (_failed)
+            hints.Add("Unable to predict order. Hope your party members were watching!");
+        else if (Active)
             base.AddGlobalHints(hints);
     }
 
@@ -153,24 +156,31 @@ class CropCircle(BossModule module) : Aetherblight(module)
                     // no rotation
                     break;
                 case 0x93:
-                    _order.Add(_order[0]);
-                    _order.RemoveAt(0);
+                    RotateSafe(1);
                     break;
                 case 0x41:
-                    _order.Add(_order[0]);
-                    _order.Add(_order[1]);
-                    _order.RemoveAt(0);
-                    _order.RemoveAt(0);
+                    RotateSafe(2);
                     break;
                 case 0x16:
-                    _order.Add(_order[0]);
-                    _order.Add(_order[1]);
-                    _order.Add(_order[2]);
-                    _order.RemoveAt(0);
-                    _order.RemoveAt(0);
-                    _order.RemoveAt(0);
+                    RotateSafe(3);
                     break;
             }
+        }
+    }
+
+    private void RotateSafe(int count)
+    {
+        if (_order.Count <= count)
+        {
+            ReportError($"CropCircle triggered but we didn't see the order, unable to predict");
+            _failed = true;
+            return;
+        }
+        for (var i = 0; i < count; i++)
+        {
+            var first = _order[0];
+            _order.RemoveAt(0);
+            _order.Add(first);
         }
     }
 }

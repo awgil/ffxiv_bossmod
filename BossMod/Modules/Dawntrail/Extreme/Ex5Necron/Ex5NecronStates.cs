@@ -413,7 +413,7 @@ class Ex5NecronStates : StateMachineBuilder
     public Ex5NecronStates(BossModule module) : base(module)
     {
         SimplePhase(0, P1, "P1")
-            .Raw.Update = () => Module.Enemies(0x490D).Any();
+            .Raw.Update = () => Module.Enemies(0x490D).Any() || Module.Enemies(0x490E).Any();
         SimplePhase(1, PJail, "Intermission")
             .OnEnter(() =>
             {

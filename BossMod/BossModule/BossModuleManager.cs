@@ -200,11 +200,15 @@ public sealed class BossModuleManager : IDisposable
             _wipeInProgress = true;
 
             for (var i = LoadedModules.Count - 1; i >= 0; i--)
+            {
+                if (LoadedModules[i].StateMachine.ActiveState != null)
+                    ModuleDeactivated.Fire(LoadedModules[i]);
                 UnloadModule(i);
+            }
         }
 
         // TODO: reverse these; 0005 is referenced in Dalamud as the DutyWipe op, but there are a few different IDs that are always triggered after wipe, including 000F, 0011, 0013
-        // 0006 is Duty Recommenced, but is unsuitable here because it fires after actors are recreated
+        // 0006 is Duty Recommenced, but is unsuitable here because it fires after actors are recreated (at least i think it does lol i didnt check)
         if (diru.UpdateID == 0x4000_0011)
             _wipeInProgress = false;
     }
