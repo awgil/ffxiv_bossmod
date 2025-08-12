@@ -18,6 +18,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     public enum TPUSStrategy { Allow, OOConly, Forbid }
     public enum MovementStrategy { Allow, AllowNoScathe, OnlyGCDs, OnlyOGCDs, OnlyScathe, Forbid }
     public enum CastingOption { Allow, Forbid }
+    public enum CommonOption { Forbid, Allow, AllowNoMoving }
     #endregion
 
     #region Module Definitions
@@ -113,8 +114,16 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CastingOption.Allow, "Allow", "Allow casting while moving")
             .AddOption(CastingOption.Forbid, "Forbid", "Forbid casting while moving");
         res.DefineOGCD(Track.Amplifier, AID.Amplifier, "Amplifier", "Amp.", uiPriority: 196, 120, 0, ActionTargets.Self, 86);
-        res.DefineOGCD(Track.Retrace, AID.Retrace, "Retrace", "Retrace", uiPriority: 170, 40, 0, ActionTargets.Self, 96);
-        res.DefineOGCD(Track.BTL, AID.BetweenTheLines, "BTL", "BTL", uiPriority: 170, 40, 0, ActionTargets.Self, 62);
+        res.Define(Track.Retrace).As<CommonOption>("Retrace", "Retrace", uiPriority: 196)
+            .AddOption(CommonOption.Forbid, "Forbid", "Forbid the use of Retrace")
+            .AddOption(CommonOption.Allow, "Allow", "Allow the use of Retrace")
+            .AddOption(CommonOption.AllowNoMoving, "Allow No Moving", "Allow the use of Retrace only when not moving")
+            .AddAssociatedActions(AID.Retrace);
+        res.Define(Track.BTL).As<CommonOption>("Between the Lines", "B.T.Lines", uiPriority: 196)
+            .AddOption(CommonOption.Forbid, "Forbid", "Forbid the use of Between the Lines")
+            .AddOption(CommonOption.Allow, "Allow", "Allow the use of Between the Lines")
+            .AddOption(CommonOption.AllowNoMoving, "Allow No Moving", "Allow the use of Between the Lines only when not moving")
+            .AddAssociatedActions(AID.BetweenTheLines);
 
         return res;
     }
@@ -177,7 +186,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         {
             if ((Unlocked(AID.FlareStar) && Souls != 6) || //Lv100 - Need 6 stacks to execute FlareStar
                 !Unlocked(AID.FlareStar)) //below Lv100 - just burn until we need Despair or 7th F4
-                QueueGCD(Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1, target, prio);
+                QueueGCD(Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1, target, StatusRemaining(Player, SID.Triplecast) is <= 3 and not 0 ? prio + 500 : prio);
         }
 
         //by now, we want to instant-cast B3 after a Transpose to get back into UI
@@ -327,7 +336,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             return;
 
         if (CountdownRemaining is null or > 0 and < 4f)
-            QueueGCD(ShouldUseAOE ? AID.HighBlizzard2 : AID.Fire3, target, GCDPriority.SlightlyHigh);
+            QueueGCD(ShouldUseAOE ? AID.HighBlizzard2 : MP < 8000 ? AID.Blizzard3 : AID.Fire3, target, GCDPriority.SlightlyHigh);
     }
     private void UseMovement(StrategyValues strategy, Actor? target)
     {
@@ -422,12 +431,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             _ => (false, GCDPriority.None),
         };
     }
-    private bool ShouldUseF3P => Unlocked(AID.Fire3) && //minimal
-        !ShouldUseAOE && HasFirestarter && InAF && AF < 3; //grants AF3 after TP from UI
-    private bool ShouldUseParadox => CanParadox && !ShouldUseAOE && //minimal
-        ((InAF && !HasFirestarter) || //grant F3P in AF
-        (InUI && Hearts == MaxHearts) || //transition back into AF
-        (InAF && Souls == 0 && MP < 3200)); //after Manafont
+    private bool ShouldUseF3P => Unlocked(AID.Fire3) && !ShouldUseAOE && HasFirestarter && InAF && AF < 3;
+    private bool ShouldUseParadox => CanParadox && !ShouldUseAOE && ((InAF && !HasFirestarter) || (InUI && Hearts == MaxHearts) || (InAF && Souls == 0 && MP < 3200));
     private bool ShouldUseEnder(StrategyValues strategy, Actor? target)
     {
         if (!Unlocked(AID.Flare) || !InAF || MP < 800)
@@ -459,12 +464,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             return false;
 
         //Ice
-        //- transition into AF only if we can use Paradox
+        //- transition into AF only if we can use Ice Paradox
         //- if no Paradox, skip TP entirely and just rawdog into AF with 1/2 cast F3
         //Fire
         //- if we have ender, use TP after it
         //- if no ender, use TP after last F1
-        return ((MaxUI && Unlocked(AID.Paradox)) ||
+        return ((MaxUI && Unlocked(AID.Paradox) && LastActionUsed(AID.Paradox)) ||
             (MaxAF && (HasEffect(SID.Triplecast) || HasEffect(SID.Swiftcast)) && //if no Instant buff, we skip TP
             (Unlocked(AID.Flare) ? (LastActionUsed(BestDespair) || (MP == 0 && Souls == 0)) : (LastActionUsed(AID.Fire1) && MP < 1600))));
     }
@@ -489,7 +494,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
         return strategy switch
         {
-            UpgradeStrategy.Automatic => InsideCombatWith(target) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast) && InUI && MP < 1600,
+            UpgradeStrategy.Automatic => InsideCombatWith(target) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast) && InAF && MP == 0 && Souls == 0,
             UpgradeStrategy.Force or UpgradeStrategy.ForceEX => true,
             UpgradeStrategy.ForceWeave or UpgradeStrategy.ForceWeaveEX => CanWeaveIn,
             _ => false
@@ -503,7 +508,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         //primary use for this is to make sure we get instant B3
         if (strategy == ChargeStrategy.Automatic && InsideCombatWith(target) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast))
         {
-            return InAF && CDRemaining(AID.Manafont) > 8f && InAF && MP is <= 1600 and >= 800;
+            return InAF && CDRemaining(AID.Manafont) > 8f && InAF && MP is <= 1600;
         }
 
         return strategy switch
@@ -531,8 +536,19 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         };
     }
     private bool ShouldUseAmplifier(OGCDStrategy strategy) => ShouldUseOGCD(strategy, Player, CanAmplify, (InUI || InAF) && !HasMaxPolyglots);
-    private bool ShouldUseRetrace(OGCDStrategy strategy) => ShouldUseOGCD(strategy, Player, CanRetrace);
-    private bool ShouldUseBTL(OGCDStrategy strategy) => ShouldUseOGCD(strategy, Player, CanBTL);
+    private bool ShouldUseRetrace(StrategyValues strategy) => CanRetrace && strategy.Option(Track.Retrace).As<CommonOption>() switch
+    {
+        CommonOption.Allow => true,
+        CommonOption.AllowNoMoving => !IsMoving,
+        _ => false
+    };
+
+    private bool ShouldUseBTL(StrategyValues strategy) => CanBTL && strategy.Option(Track.BTL).As<CommonOption>() switch
+    {
+        CommonOption.Allow => true,
+        CommonOption.AllowNoMoving => !IsMoving,
+        _ => false
+    };
     private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
         PotionStrategy.AlignWithBuffs or PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
@@ -610,10 +626,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         var llStrat = ll.As<ChargeStrategy>();
         var amp = strategy.Option(Track.Amplifier);
         var ampStrat = amp.As<OGCDStrategy>();
-        var retrace = strategy.Option(Track.Retrace);
-        var retraceStrat = retrace.As<OGCDStrategy>();
-        var btl = strategy.Option(Track.BTL);
-        var btlStrat = btl.As<OGCDStrategy>();
         var tpusStrat = strategy.Option(Track.TPUS).As<TPUSStrategy>();
         var movingOption = strategy.Option(Track.Casting).As<CastingOption>();
         #endregion
@@ -648,10 +660,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                     }
                     //Swiftcast
                     if (ShouldUseSwiftcast(strategy.Option(Track.Swiftcast).As<UpgradeStrategy>(), primaryTarget?.Actor))
-                        QueueOGCD(AID.Swiftcast, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow : GCDPriority.ModeratelyLow + 2003);
+                        QueueOGCD(AID.Swiftcast, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow + 3 : GCDPriority.Average + 2003);
                     //Triplecast
                     if (ShouldUseTriplecast(strategy.Option(Track.Triplecast).As<ChargeStrategy>(), primaryTarget?.Actor))
-                        QueueOGCD(AID.Triplecast, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow : GCDPriority.Average + 2001);
+                        QueueOGCD(AID.Triplecast, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow + 2 : GCDPriority.Average + 2001);
                     //Transpose
                     if (ShouldUseTranspose())
                         QueueOGCD(AID.Transpose, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? OGCDPriority.ExtremelyHigh : OGCDPriority.ModeratelyLow + 2000);
@@ -698,11 +710,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 if (ShouldUsePotion(strategy))
                     Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.Medium);
                 //Retrace
-                if (ShouldUseRetrace(retraceStrat))
+                if (ShouldUseRetrace(strategy))
                     QueueOGCD(AID.Retrace, Player, OGCDPriority.Forced);
                 //Between the Lines
                 var zone = World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID);
-                if (ShouldUseBTL(btlStrat))
+                if (ShouldUseBTL(strategy))
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.BetweenTheLines), Player, (int)ActionQueue.Priority.Medium, targetPos: zone!.PosRot.XYZ());
             }
 
