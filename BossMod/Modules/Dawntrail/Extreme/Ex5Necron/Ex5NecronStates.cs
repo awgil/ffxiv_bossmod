@@ -93,17 +93,12 @@ class ColdGrip(BossModule module) : Components.GenericAOEs(module, AID._Weaponsk
 
     private Side _safeSide;
 
-#pragma warning disable CS0649
-    // TODO: figure out a good way to communicate this visually, Color=Danger completely obscures other AOEs in p2
-    public bool Highlight;
-#pragma warning restore
-
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_leftHand is { } h)
-            yield return new AOEInstance(new AOEShapeRect(100, 6), h.CastInfo!.LocXZ, h.CastInfo!.Rotation, Module.CastFinishAt(h.CastInfo), Color: _safeSide == Side.Right && Highlight ? ArenaColor.Danger : ArenaColor.AOE);
+            yield return new AOEInstance(new AOEShapeRect(100, 6), h.CastInfo!.LocXZ, h.CastInfo!.Rotation, Module.CastFinishAt(h.CastInfo));
         if (_rightHand is { } h2)
-            yield return new AOEInstance(new AOEShapeRect(100, 6), h2.CastInfo!.LocXZ, h2.CastInfo!.Rotation, Module.CastFinishAt(h2.CastInfo), Color: _safeSide == Side.Left && Highlight ? ArenaColor.Danger : ArenaColor.AOE);
+            yield return new AOEInstance(new AOEShapeRect(100, 6), h2.CastInfo!.LocXZ, h2.CastInfo!.Rotation, Module.CastFinishAt(h2.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -132,6 +127,17 @@ class ColdGrip(BossModule module) : Components.GenericAOEs(module, AID._Weaponsk
                 _rightHand = null;
             if (_leftHand == caster)
                 _leftHand = null;
+        }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaBackground(pcSlot, pc);
+
+        if (_rightHand != null && _leftHand != null)
+        {
+            var x = _safeSide == Side.Left ? 95 : 105;
+            Arena.ZoneRect(new WPos(x, 85), default(Angle), 30, 0, 1, ArenaColor.SafeFromAOE);
         }
     }
 }
@@ -408,12 +414,14 @@ class CrapRotation(BossModule module) : BossComponent(module)
     }
 }
 
+class CircleOfLives(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_CircleOfLives1, new AOEShapeDonut(3, 50), maxCasts: 1);
+
 class Ex5NecronStates : StateMachineBuilder
 {
     public Ex5NecronStates(BossModule module) : base(module)
     {
         SimplePhase(0, P1, "P1")
-            .Raw.Update = () => Module.Enemies(0x490D).Any() || Module.Enemies(0x490E).Any();
+            .Raw.Update = () => Module.Enemies(0x490D).Any() || Module.Enemies(0x490E).Any() || Module.Enemies(0x490F).Any();
         SimplePhase(1, PJail, "Intermission")
             .OnEnter(() =>
             {
@@ -455,6 +463,7 @@ class Ex5NecronStates : StateMachineBuilder
     {
         EndsEmbraceP2(id, 5.7f);
         CropCircle(id + 0x10000, 6.6f);
+        Circles1(id + 0x20000, 10);
 
         Timeout(id + 0xFF0000, 9999, "P3!");
     }
@@ -655,5 +664,26 @@ class Ex5NecronStates : StateMachineBuilder
         ComponentCondition<Shockwave>(id + 0x40, 2.9f, s => s.NumCasts > 0, "AOE 4 + stacks")
             .DeactivateOnExit<CropCircle>()
             .DeactivateOnExit<Shockwave>();
+    }
+
+    private void Circles1(uint id, float delay)
+    {
+        CastStart(id, AID._Weaponskill_CircleOfLives, delay)
+            .ActivateOnEnter<CircleOfLives>()
+            .ActivateOnEnter<Invitation>()
+            .ActivateOnEnter<Shockwave>()
+            .ActivateOnEnter<Aetherblight>();
+
+        ComponentCondition<CircleOfLives>(id + 0x10, 14, c => c.NumCasts > 0, "Circle 1");
+        ComponentCondition<CircleOfLives>(id + 0x11, 5, c => c.NumCasts > 1, "Circle 2");
+        ComponentCondition<CircleOfLives>(id + 0x12, 5, c => c.NumCasts > 2, "Circle 3");
+        ComponentCondition<CircleOfLives>(id + 0x13, 5, c => c.NumCasts > 3, "Circle 4");
+        ComponentCondition<CircleOfLives>(id + 0x14, 5, c => c.NumCasts > 4, "Circle 5")
+            .DeactivateOnExit<CircleOfLives>()
+            .DeactivateOnExit<Invitation>();
+
+        ComponentCondition<Shockwave>(id + 0x20, 6.7f, s => s.NumCasts > 0, "AOE + stacks")
+            .DeactivateOnExit<Shockwave>()
+            .DeactivateOnExit<Aetherblight>();
     }
 }

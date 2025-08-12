@@ -42,7 +42,8 @@ public enum AID : uint
     _Weaponskill_TwofoldBlight = 44557, // Boss->self, 5.0s cast, single-target
     _Weaponskill_Aetherblight = 44607, // Boss->self, no cast, single-target
     _Weaponskill_Aetherblight1 = 44608, // Helper->self, 1.0s cast, range 100 width 12 rect
-    _Weaponskill_Shockwave = 44559, // Helper->self, no cast, range 100 ?-degree cone
+    ShockwaveParties = 44559, // Helper->self, no cast, range 100 20-degree cone
+    ShockwavePairs = 44560, // Helper->self, no cast, range 100 20-degree cone
     _Weaponskill_TheEndsEmbrace = 44597, // Boss->self, 4.0s cast, single-target
     _Weaponskill_TheEndsEmbrace1 = 44598, // Helper->player, no cast, range 3 circle
     _Weaponskill_Aetherblight2 = 44563, // Boss->self, no cast, single-target
@@ -56,7 +57,6 @@ public enum AID : uint
     _Weaponskill_GrandCross4 = 44570, // Helper->self, 4.0s cast, range 100 width 100 rect
     _Weaponskill_NeutronRing = 44575, // Boss->location, 7.0s cast, single-target
     _Weaponskill_FourfoldBlight = 44558, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_Shockwave1 = 44560, // Helper->self, no cast, range 100 ?-degree cone
     _Weaponskill_Electrify = 44574, // Helper->self, no cast, range 50 circle
     _Weaponskill_NeutronRing1 = 44576, // Helper->self, no cast, range 50 circle
     _Weaponskill_FearOfDeath2 = 44577, // Helper->location, 3.0s cast, range 3 circle
@@ -74,9 +74,9 @@ public enum AID : uint
     _Weaponskill_Aetherblight4 = 44561, // Boss->self, no cast, single-target
     _Weaponskill_Aetherblight5 = 45183, // Helper->self, 1.0s cast, range 20 circle
     _Weaponskill_Aetherblight6 = 44562, // Boss->self, no cast, single-target
-    _Weaponskill_Aetherblight7 = 45184, // Helper->self, 1.0s cast, range ?-60 donut
+    _Weaponskill_Aetherblight7 = 45184, // Helper->self, 1.0s cast, range 16-60 donut - vfx is 15.8y but donut aoes are occasionally visually inaccurate
     _Weaponskill_CircleOfLives = 44599, // Boss->self, 4.0s cast, single-target
-    _Weaponskill_CircleOfLives1 = 44600, // 49B0->self, 7.0s cast, range ?-50 donut
+    _Weaponskill_CircleOfLives1 = 44600, // 49B0->self, 7.0s cast, range 3-50 donut
     _Weaponskill_MassMacabre = 44595, // Boss->self, 4.0s cast, single-target
     _Weaponskill_MacabreMark = 44819, // Helper->location, no cast, range 3 circle
     _Weaponskill_SpreadingFear = 44596, // 4913->self, no cast, range 50 circle

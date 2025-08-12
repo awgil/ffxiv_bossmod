@@ -190,7 +190,7 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
     private int _numBaits;
     private DateTime _activation;
 
-    public static readonly AOEShape Shape2 = new AOEShapeCone(100, 22.5f.Degrees());
+    public static readonly AOEShape Shape2 = new AOEShapeCone(100, 10.Degrees());
     public static readonly AOEShape Shape4 = new AOEShapeCone(100, 10.Degrees());
 
     public bool Enabled = true;
@@ -287,7 +287,7 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Shockwave or AID._Weaponskill_Shockwave1)
+        if ((AID)spell.Action.ID is AID.ShockwaveParties or AID.ShockwavePairs)
         {
             _numBaits = 0;
             NumCasts++;

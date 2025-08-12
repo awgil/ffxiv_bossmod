@@ -66,7 +66,7 @@ public sealed class BossModuleManager : IDisposable
         {
             var m = LoadedModules[i];
             bool wasActive = m.StateMachine.ActiveState != null;
-            bool allowUpdate = wasActive || !LoadedModules.Any(other => other.StateMachine.ActiveState != null && other.GetType() == m.GetType()); // hack: forbid activating multiple modules of the same type
+            bool allowUpdate = !_wipeInProgress && (wasActive || !LoadedModules.Any(other => other.StateMachine.ActiveState != null && other.GetType() == m.GetType())); // hack: forbid activating multiple modules of the same type
             bool isActive;
             try
             {
@@ -176,13 +176,6 @@ public sealed class BossModuleManager : IDisposable
 
     private void ActorAdded(Actor actor)
     {
-        if (_wipeInProgress)
-        {
-            if (Service.IsDev)
-                Service.Log($"[BMM] actor {actor} spawned during wipe; no module can be loaded for it");
-            return;
-        }
-
         var m = BossModuleRegistry.CreateModuleForActor(WorldState, actor, Config.MinMaturity);
         if (m != null)
         {
