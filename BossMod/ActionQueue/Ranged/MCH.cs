@@ -136,6 +136,8 @@ public enum SID : uint
     AirAnchorPrimed = 3152,
     ChainSawPrimed = 3153,
     AnalysisPvP = 3158,
+    WildfirePlayerPvP = 2018,
+    WildfireTargetPvP = 1323,
 
     //Role
     DervishEquippedPvP = ClassShared.SID.DervishEquippedPvP,

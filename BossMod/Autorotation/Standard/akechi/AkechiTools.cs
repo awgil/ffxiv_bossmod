@@ -578,6 +578,18 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
 
         Hints.ForcedTarget = high ?? medium ?? low;
+        //special case for MCH - we want to prioritize any target that currently has Wildfire debuff for maximum DPS
+        if (Player.Class == Class.MCH && Player.FindStatus(MCH.SID.WildfirePlayerPvP) != null)
+        {
+            Hints.ForcedTarget = Hints.PriorityTargets.FirstOrDefault(x =>
+            HasLOS(x.Actor) &&
+            x.Actor.FindStatus(MCH.SID.WildfireTargetPvP) != null &&
+            Player.DistanceToHitbox(x.Actor) <= range)?.Actor;
+        }
+        else
+        {
+            Hints.ForcedTarget = high ?? medium ?? low;
+        }
     }
 
     /// <summary>Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.</summary>

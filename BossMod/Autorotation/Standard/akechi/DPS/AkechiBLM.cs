@@ -323,18 +323,11 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     }
     private void UseOpener(StrategyValues strategy, Actor? target)
     {
-        if (target == null)
+        if (target == null || !NoUIorAF)
             return;
 
-        //F3 - best for opener or reopener if MP is good enough
-        //B3 - best for recovering from death or if using F3 is not optimal
-        if (NoUIorAF)
-        {
-            //Out of Combat - align with countdown end
-            //In Combat - just send it
-            if (CountdownRemaining is null or > 0 and < 4f)
-                QueueGCD(AID.Fire3, target, GCDPriority.SlightlyHigh);
-        }
+        if (CountdownRemaining is null or > 0 and < 4f)
+            QueueGCD(ShouldUseAOE ? AID.HighBlizzard2 : AID.Fire3, target, GCDPriority.SlightlyHigh);
     }
     private void UseMovement(StrategyValues strategy, Actor? target)
     {
@@ -511,7 +504,6 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         if (strategy == ChargeStrategy.Automatic && InsideCombatWith(target) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast))
         {
             return InAF && CDRemaining(AID.Manafont) > 8f && InAF && MP is <= 1600 and >= 800;
-
         }
 
         return strategy switch
@@ -645,24 +637,24 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                         //Manafont
                         var (mfCondition, mfPrio) = ShouldUseManafont(mfStrat, primaryTarget?.Actor);
                         if (mfCondition)
-                            QueueOGCD(AID.Manafont, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? mfPrio : mfPrio + 2004);
+                            QueueGCD(AID.Manafont, Player, mfPrio + 2004);
                         //LeyLines
                         var (llCondition, llPrio) = ShouldUseLeyLines(llStrat, primaryTarget?.Actor);
                         if (llCondition)
-                            QueueOGCD(AID.LeyLines, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? llPrio : llPrio + 2001);
+                            QueueOGCD(AID.LeyLines, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? llPrio : llPrio + 2001);
                         //Amplifier
                         if (ShouldUseAmplifier(ampStrat))
                             QueueOGCD(AID.Amplifier, Player, OGCDPrio(ampStrat, OGCDPriority.ModeratelyLow));
                     }
                     //Swiftcast
                     if (ShouldUseSwiftcast(strategy.Option(Track.Swiftcast).As<UpgradeStrategy>(), primaryTarget?.Actor))
-                        QueueOGCD(AID.Swiftcast, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow : GCDPriority.ModeratelyLow + 2003);
+                        QueueOGCD(AID.Swiftcast, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow : GCDPriority.ModeratelyLow + 2003);
                     //Triplecast
                     if (ShouldUseTriplecast(strategy.Option(Track.Triplecast).As<ChargeStrategy>(), primaryTarget?.Actor))
-                        QueueOGCD(AID.Triplecast, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow : GCDPriority.Average + 2001);
+                        QueueOGCD(AID.Triplecast, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? GCDPriority.ModeratelyLow : GCDPriority.Average + 2001);
                     //Transpose
                     if (ShouldUseTranspose())
-                        QueueOGCD(AID.Transpose, Player, Unlocked(AID.Paradox) || HasInstants(strategy, primaryTarget?.Actor) ? OGCDPriority.ExtremelyHigh : OGCDPriority.ModeratelyLow + 2000);
+                        QueueOGCD(AID.Transpose, Player, Unlocked(AID.FlareStar) || HasInstants(strategy, primaryTarget?.Actor) ? OGCDPriority.ExtremelyHigh : OGCDPriority.ModeratelyLow + 2000);
                 }
                 if (!strategy.HoldGauge())
                 {

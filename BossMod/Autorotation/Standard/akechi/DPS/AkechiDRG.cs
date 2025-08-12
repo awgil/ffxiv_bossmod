@@ -288,7 +288,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         {
             BuffsStrategy.Automatic => (minimal, OGCDPriority.Severe),
             BuffsStrategy.Together => (minimal && together, OGCDPriority.Severe),
-            BuffsStrategy.RaidBuffsOnly => (minimal && (RaidBuffsLeft > 0 || RaidBuffsIn < 2000), OGCDPriority.Severe),
+            BuffsStrategy.RaidBuffsOnly => (minimal && RaidBuffsLeft > 0, OGCDPriority.Severe),
             BuffsStrategy.Force => (true, OGCDPriority.Forced),
             _ => (false, OGCDPriority.None)
         };
