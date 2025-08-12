@@ -13,7 +13,7 @@ class GrandCrossArena(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_)
+        if ((AID)spell.Action.ID == AID.GrandCrossArenaChange)
             _activation = Module.CastFinishAt(spell);
     }
 
@@ -36,10 +36,10 @@ class GrandCrossArena(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class GrandCrossRaidwide(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_GrandCross);
-class GrandCrossPuddle(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GrandCross1, 3);
-class GrandCrossSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID._Weaponskill_GrandCross3, 3);
-class GrandCrossLine(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_GrandCross2)
+class GrandCrossRaidwide(BossModule module) : Components.RaidwideCast(module, AID.GrandCrossRaidwide);
+class GrandCrossPuddle(BossModule module) : Components.StandardAOEs(module, AID.GrandCrossPuddle, 3);
+class GrandCrossSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.GrandCrossSpread, 3);
+class GrandCrossLine(BossModule module) : Components.GenericAOEs(module, AID.GrandCrossLaser)
 {
     private readonly List<(Angle, DateTime)> _lasers = [];
 
@@ -71,14 +71,20 @@ class GrandCrossLine(BossModule module) : Components.GenericAOEs(module, AID._We
             _lasers.RemoveAt(0);
     }
 }
-class GrandCrossLineCast(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GrandCross2, new AOEShapeRect(100, 2));
-class Shock(BossModule module) : Components.CastTowers(module, AID._Weaponskill_Shock, 3)
+class GrandCrossLineCast(BossModule module) : Components.StandardAOEs(module, AID.GrandCrossLaser, new AOEShapeRect(100, 2));
+class Shock(BossModule module) : Components.CastTowers(module, AID.Shock, 3)
 {
     private BitMask _forbidden;
 
+    public void Reset()
+    {
+        _forbidden.Reset();
+        UpdateMask();
+    }
+
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID.SmallSpread5s)
+        if ((IconID)iconID == IconID.GrandCrossSpread)
         {
             _forbidden.Set(Raid.FindSlot(actor.InstanceID));
             UpdateMask();
@@ -99,6 +105,6 @@ class Shock(BossModule module) : Components.CastTowers(module, AID._Weaponskill_
     }
 }
 
-class GrandCrossProximity(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GrandCross4, new AOEShapeRect(100, 4.5f));
+class GrandCrossProximity(BossModule module) : Components.StandardAOEs(module, AID.GrandCrossProximity, new AOEShapeRect(100, 4.5f));
 
-class NeutronRing(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_NeutronRing, AID._Weaponskill_NeutronRing1, 2.6f);
+class NeutronRing(BossModule module) : Components.RaidwideCastDelay(module, AID.NeutronRingCast, AID.NeutronRing, 2.6f);

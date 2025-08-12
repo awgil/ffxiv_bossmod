@@ -135,8 +135,7 @@ public sealed class BossModuleManager : IDisposable
         // shadowbringers alliance raid boss Red Girl is similar (player teleports to a minigame arena) but the actor in the P2 arena is a separate object
         if (LoadedModules.FindIndex(l => l.PrimaryActor.InstanceID == m.PrimaryActor.InstanceID) is var ix && ix >= 0)
         {
-            // TODO this is morally wrong but these two different objects do represent the actual same actor
-            typeof(BossModule).GetField("PrimaryActor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)!.SetValue(LoadedModules[ix], m.PrimaryActor);
+            LoadedModules[ix].SetPrimaryActor(m.PrimaryActor);
             return;
         }
 
