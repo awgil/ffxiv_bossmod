@@ -577,7 +577,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 Player.DistanceToHitbox(x.Actor) <= range) //in range
                 .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
 
-        Hints.ForcedTarget = high ?? medium ?? low;
         //special case for MCH - we want to prioritize any target that currently has Wildfire debuff for maximum DPS
         if (Player.Class == Class.MCH && Player.FindStatus(MCH.SID.WildfirePlayerPvP) != null)
         {
