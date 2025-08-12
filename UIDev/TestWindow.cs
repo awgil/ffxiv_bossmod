@@ -3,7 +3,6 @@ using Dalamud.Bindings.ImGui;
 
 namespace UIDev;
 
-abstract class TestWindow : UIWindow
+abstract class TestWindow(string name, Vector2 initialSize, ImGuiWindowFlags flags) : UIWindow(name, true, initialSize, flags)
 {
-    public TestWindow(string name, Vector2 initialSize, ImGuiWindowFlags flags) : base(name, true, initialSize, flags) { }
 }

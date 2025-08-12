@@ -1,4 +1,5 @@
 namespace BossMod.Stormblood.Dungeon.D13TheBurn.D133MistDragon;
+
 public enum OID : uint
 {
     Boss = 0x2431, // R3.000-7.000, x?

@@ -1,4 +1,5 @@
 ﻿namespace BossMod.WHM;
+
 public enum AID : uint
 {
     None = 0,

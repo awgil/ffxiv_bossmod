@@ -37,6 +37,7 @@ public sealed class BossModuleManager : IDisposable
         _subsciptions = new
         (
             WorldState.Actors.Added.Subscribe(ActorAdded),
+            WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate),
             Config.Modified.ExecuteAndSubscribe(ConfigChanged)
         );
 
@@ -94,6 +95,7 @@ public sealed class BossModuleManager : IDisposable
             // if module is active and wants to be reset, oblige
             if (isActive && m.CheckReset())
             {
+                Service.Log($"[BMM] Resetting module '{m.GetType()}'");
                 ModuleDeactivated.Fire(m);
                 var actor = m.PrimaryActor;
                 UnloadModule(i--);
@@ -128,6 +130,16 @@ public sealed class BossModuleManager : IDisposable
 
     private void LoadModule(BossModule m)
     {
+        // this can only happen in modules that involve teleporting to different areas mid-combat, where the boss will deload and reload when the player returns to the arena
+        // for now the only applicable boss is dawntrail EX5 Necron
+        // shadowbringers alliance raid boss Red Girl is similar (player teleports to a minigame arena) but the actor in the P2 arena is a separate object
+        if (LoadedModules.FindIndex(l => l.PrimaryActor.InstanceID == m.PrimaryActor.InstanceID) is var ix && ix >= 0)
+        {
+            // TODO this is morally wrong but these two different objects do represent the actual same actor
+            typeof(BossModule).GetField("PrimaryActor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)!.SetValue(LoadedModules[ix], m.PrimaryActor);
+            return;
+        }
+
         LoadedModules.Add(m);
         Service.Log($"[BMM] Boss module '{m.GetType()}' loaded for actor {m.PrimaryActor}");
         ModuleLoaded.Fire(m);
@@ -164,11 +176,41 @@ public sealed class BossModuleManager : IDisposable
 
     private void ActorAdded(Actor actor)
     {
+        if (_wipeInProgress)
+        {
+            if (Service.IsDev)
+                Service.Log($"[BMM] actor {actor} spawned during wipe; no module can be loaded for it");
+            return;
+        }
+
         var m = BossModuleRegistry.CreateModuleForActor(WorldState, actor, Config.MinMaturity);
         if (m != null)
         {
             LoadModule(m);
         }
+    }
+
+    private bool _wipeInProgress;
+
+    private void OnDirectorUpdate(WorldState.OpDirectorUpdate diru)
+    {
+        if (diru.UpdateID == 0x4000_0005)
+        {
+            Service.Log($"[BMM] Raid wiped, unloading all modules");
+            _wipeInProgress = true;
+
+            for (var i = LoadedModules.Count - 1; i >= 0; i--)
+            {
+                if (LoadedModules[i].StateMachine.ActiveState != null)
+                    ModuleDeactivated.Fire(LoadedModules[i]);
+                UnloadModule(i);
+            }
+        }
+
+        // TODO: reverse these; 0005 is referenced in Dalamud as the DutyWipe op, but there are a few different IDs that are always triggered after wipe, including 000F, 0011, 0013
+        // 0006 is Duty Recommenced, but is unsuitable here because it fires after actors are recreated (at least i think it does lol i didnt check)
+        if (diru.UpdateID == 0x4000_0011)
+            _wipeInProgress = false;
     }
 
     private void ConfigChanged()

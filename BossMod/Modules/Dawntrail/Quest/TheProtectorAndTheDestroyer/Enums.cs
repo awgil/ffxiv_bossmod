@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Dawntrail.Quest.TheProtectorAndTheDestroyer;
+
 public enum OID : uint
 {
     Boss = 0x4342,
@@ -38,4 +39,3 @@ public enum AID : uint
     UnnamedCurrent2 = 19728, // 3A5E->location, 3.3s cast, range 5 circle
     UntamedCurrentSpread = 19181, // Helper->players/4146/4339, 5.0s cast, range 5 circle
 }
-

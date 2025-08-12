@@ -5,9 +5,9 @@
 // TODO: this version assumes that boss cast and first-hit are potentially from different actors; the target lock could also be things like icons, etc - generalize more...
 public class TankSwap(BossModule module, Enum bossCast, Enum firstCast, Enum subsequentHit, float timeBetweenHits, AOEShape? shape, bool centerAtTarget) : GenericBaitAway(module, centerAtTarget: centerAtTarget)
 {
-    private Actor? _source;
-    private ulong _prevTarget; // before first cast, this is the target of the first hit
-    private DateTime _activation;
+    protected Actor? _source;
+    protected ulong _prevTarget; // before first cast, this is the target of the first hit
+    protected DateTime _activation;
 
     public readonly ActionID BossCast = ActionID.MakeSpell(bossCast);
     public readonly ActionID FirstCast = ActionID.MakeSpell(firstCast);

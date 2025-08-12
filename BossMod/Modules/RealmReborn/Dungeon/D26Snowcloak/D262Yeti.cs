@@ -1,4 +1,5 @@
 namespace BossMod.RealmReborn.Dungeon.D26Snowcloak.D262Yeti;
+
 public enum OID : uint
 {
     Boss = 0x3977, // R3.800, x?

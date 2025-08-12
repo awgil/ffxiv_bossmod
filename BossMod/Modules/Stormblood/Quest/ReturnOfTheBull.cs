@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Stormblood.Quest.ReturnOfTheBull;
+
 public enum OID : uint
 {
     Boss = 0x1FD2,

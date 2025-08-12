@@ -342,7 +342,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         }
     }
 
-    private unsafe void DrawTarget(string kind, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj, Vector3 selfPos, Angle refAngle)
+    private unsafe void DrawTarget(string kind, GameObject* obj, Vector3 selfPos, Angle refAngle)
     {
         if (obj == null)
             return;

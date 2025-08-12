@@ -1,4 +1,5 @@
 namespace BossMod.Stormblood.Dungeon.D13TheBurn.D131Hedetet;
+
 public enum OID : uint
 {
     Boss = 0x2419, // R4.200, x1

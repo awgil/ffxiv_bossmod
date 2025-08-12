@@ -1,4 +1,5 @@
 namespace BossMod.Stormblood.Dungeon.D13TheBurn.D132DefectiveDrone;
+
 public enum OID : uint
 {
     Boss = 0x23AA, // R3.200, x1

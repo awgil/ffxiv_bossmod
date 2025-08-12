@@ -1,4 +1,5 @@
 namespace BossMod.Dawntrail.Trial.T01Valigarmanda;
+
 public enum OID : uint
 {
     Boss = 0x4115, // R20.000, x?
