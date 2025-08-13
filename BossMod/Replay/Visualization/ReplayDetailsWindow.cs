@@ -1,6 +1,6 @@
 ﻿using BossMod.Autorotation;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using System.IO;
 
 namespace BossMod.ReplayVisualization;
@@ -95,7 +95,7 @@ class ReplayDetailsWindow : UIWindow
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
         _hintsBuilder.Update(_hints, _povSlot, false);
-        _rmm.Update(0, false);
+        _rmm.Update(0, false, false);
         if (_mgr.ActiveModule != null)
         {
             var drawTimerPre = DateTime.Now;

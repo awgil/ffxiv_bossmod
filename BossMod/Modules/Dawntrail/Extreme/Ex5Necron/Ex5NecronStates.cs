@@ -123,7 +123,9 @@ class Ex5NecronStates : StateMachineBuilder
             .ActivateOnEnter<JailHands>()
             .ActivateOnEnter<JailGrasp>()
             .ActivateOnEnter<JailEnrage>()
-            .ActivateOnEnter<JailSlow>();
+            .ActivateOnEnter<JailSlow>()
+            .ActivateOnEnter<JailInterrupt>()
+            .ActivateOnEnter<JailBuster>();
     }
 
     private void P2(uint id)

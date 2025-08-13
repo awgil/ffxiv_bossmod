@@ -83,8 +83,10 @@ public enum AID : uint
     SpreadingFearTower = 44596, // IcyHandsTower->self, no cast, range 50 circle
     ChokingGraspDPSJail = 44584, // IcyHandsDPSJail->self, 3.0s cast, range 24 width 6 rect
     SpreadingFearDPSJail = 44585, // IcyHandsDPSJail->self, 10.0s cast, range 50 circle
+    SpreadingFearTankJail = 44586, // IcyHandsTankJail->self, 5.0s cast, range 50 circle
+    ChokingGraspTankJail = 44587, // IcyHandsTankJail->self/player, 5.0s cast, range 24 width 6 rect
     NecroticPulse = 44588, // IcyHandsHealerJail->self, no cast, range 24 width 6 rect, applies bleed
-    ChillingFingcers = 44589, // IcyHandsHealerJail->self/player, 5.0s cast, range 24 width 6 rect, applies slow
+    ChillingFingers = 44589, // IcyHandsHealerJail->self/player, 5.0s cast, range 24 width 6 rect, applies slow
     ChokingGraspHealerJail = 44590, // IcyHandsHealerJail->self/player, 4.0s cast, range 24 width 6 rect, unavoidable damage
     DarknessOfEternityAddsEnrage = 44582, // Helper->location, no cast, range 50 circle
 
