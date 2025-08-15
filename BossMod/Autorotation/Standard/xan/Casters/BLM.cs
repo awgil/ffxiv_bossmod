@@ -182,8 +182,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         InstantMove = 100,
         Standard = 500, // aka F4
         InstantWeave = 600, // if we want to use manafont/transpose ASAP (TODO: or utility actions?)
-        DotRefresh = 650, // thunder refresh - could logically be grouped with instant weave
-        High = 700, // anything more important than F4 filler - paradox so we don't miss our FS proc, xeno to prevent overcap
+        High = 650, // anything more important than F4 filler - paradox so we don't miss our FS proc, xeno to prevent overcap
+        DotRefresh = 700, // thunder refresh
         Max = 900, // flare star
     }
 
@@ -435,6 +435,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             if (MP < f4MPNeeded && !canManafont)
                 PushGCD(AID.Flare, BestAOETarget, GCDPriority.High);
         }
+
+        if (MP < 2400 && !Unlocked(AID.FlareStar))
+            PushGCD(AID.Despair, primaryTarget, GCDPriority.Standard);
 
         // TODO: BLM doesn't really fit the priority system that well because of the MP cutoff stuff
         PushGCD(AID.Fire4, primaryTarget, GCDPriority.Standard);
