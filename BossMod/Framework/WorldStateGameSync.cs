@@ -256,7 +256,9 @@ sealed class WorldStateGameSync : IDisposable
                 obj = null;
             }
 
-            if (actor != null && (obj == null || actor.InstanceID != obj->EntityId))
+            var existing = obj != null ? _ws.Actors.Find(obj->EntityId) : null;
+
+            if (actor != null && (obj == null || existing == null || actor.InstanceID != obj->EntityId))
             {
                 _actorsByIndex[i] = null;
                 RemoveActor(actor);
@@ -265,10 +267,9 @@ sealed class WorldStateGameSync : IDisposable
 
             if (obj != null)
             {
-                if (actor != _ws.Actors.Find(obj->EntityId))
-                {
+                if (actor != existing)
                     Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
-                }
+
                 UpdateActor(obj, i, actor);
             }
         }
