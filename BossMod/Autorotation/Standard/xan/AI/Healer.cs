@@ -376,7 +376,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
             {
                 if (gauge.Aetherflow > 0)
                     UseOGCD(BossMod.SCH.AID.Excogitation, target);
-                if (gauge.FairyGauge > 0)
+                if (gauge.FairyGauge > 0 && target.FindStatus(BossMod.SCH.SID.FeyUnion) == null)
                     UseOGCD(BossMod.SCH.AID.Aetherpact, target);
             }
         });
