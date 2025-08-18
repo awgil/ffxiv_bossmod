@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Alliance.A23Kamlanaut;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Alliance.A23Kamlanaut;
 
 public enum OID : uint
 {
