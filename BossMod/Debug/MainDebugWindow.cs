@@ -242,7 +242,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         ImGui.TableHeadersRow();
         foreach (var elem in ws.Actors)
         {
-            if (elem.CastInfo == null || elem.Type != ActorType.Enemy)
+            if (elem.CastInfo == null || elem.IsAlly)
                 continue;
 
             ImGui.TableNextRow();

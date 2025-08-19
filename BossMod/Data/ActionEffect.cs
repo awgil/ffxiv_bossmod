@@ -138,6 +138,8 @@ public unsafe struct ActionEffects : IEnumerable<ActionEffect>
         fixed (ulong* p = _effects)
             return *(ActionEffect*)(p + index);
     }
+
+    public override readonly string ToString() => string.Join(", ", this.Select(e => e.Type));
 }
 
 public static class ActionEffectParser

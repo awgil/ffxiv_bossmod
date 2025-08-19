@@ -24,18 +24,6 @@ class ProvingGround(BossModule module) : Components.GenericAOEs(module, AID._Spe
     }
 }
 
-class PG(BossModule module) : BossComponent(module)
-{
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        foreach (var e in Module.Enemies(OID.ProvingGround))
-        {
-            Arena.Actor(e.Position, e.Rotation, ArenaColor.Object);
-            Arena.TextWorld(e.Position, $"{e.ModelState} {e.EventState}", ArenaColor.Object);
-        }
-    }
-}
-
 class ElementalBladeSmall(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_FireBlade, AID._Spell_EarthBlade, AID._Spell_WaterBlade, AID._Spell_IceBlade, AID._Spell_LightningBlade1, AID._Spell_WindBlade1], new AOEShapeRect(80, 2.5f));
 class ElementalBladeLarge(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_FireBlade1, AID._Spell_EarthBlade1, AID._Spell_WaterBlade1, AID._Spell_IceBlade1, AID._Spell_LightningBlade, AID._Spell_WindBlade], new AOEShapeRect(80, 10));
 class SublimeElementSmall(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_SublimeFire1, AID._Spell_SublimeEarth, AID._Spell_SublimeWater, AID._Spell_SublimeIce, AID._Spell_SublimeLightning, AID._Spell_SublimeWind1], new AOEShapeCone(40, 11.Degrees()));
@@ -147,8 +135,16 @@ class Fetters(BossModule module) : Components.CastCounter(module, default)
     }
 }
 
-class ArenaBounds(BossModule module) : BossComponent(module)
+class ArenaBounds(BossModule module) : Components.GenericAOEs(module)
 {
+    private DateTime _activation;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_activation != default)
+            yield return new AOEInstance(new AOEShapeDonut(20, 50), Arena.Center, default, _activation);
+    }
+
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (index == 2 && state == 0x00010001)
@@ -163,11 +159,20 @@ class ArenaBounds(BossModule module) : BossComponent(module)
             var arenaBig = Arena.Bounds.Clipper.Union(new(arenaSmall), oper);
             Arena.Bounds = new ArenaBoundsCustom(30, arenaBig);
         }
+
+        if (index == 0x63)
+        {
+            if (state == 0x00200010)
+                _activation = WorldState.FutureTime(4.3f);
+
+            if (state == 0x00080004)
+                _activation = default;
+        }
     }
 }
 
+class Shockwave(BossModule module) : Components.RaidwideCast(module, AID._Spell_Shockwave);
 class TranscendentUnion(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_TranscendentUnion, AID._Spell_TranscendentUnion, 6.6f);
-
 class ElementalResonance(BossModule module) : Components.StandardAOEs(module, AID._Spell_ElementalResonance, 18);
 class EmpyrealBanishIII(BossModule module) : Components.SpreadFromCastTargets(module, AID._Spell_EmpyrealBanishIII, 5);
 class IllumedEstoc(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_IllumedEstoc, new AOEShapeRect(120, 6.5f));
@@ -233,8 +238,12 @@ class A23KamlanautStates : StateMachineBuilder
         ComponentCondition<Fetters>(id + 0x30500, 10, f => f.Finished, "Stun end")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
+        ComponentCondition<Shockwave>(id + 0x30600, 7.4f, s => s.NumCasts > 0, "Raidwide")
+            .ActivateOnEnter<Shockwave>()
+            .DeactivateOnExit<Shockwave>();
+
         // 6.6
-        Cast(id + 0x40000, AID._Weaponskill_TranscendentUnion, 11, 5, "Raidwides start")
+        Cast(id + 0x40000, AID._Weaponskill_TranscendentUnion, 3.7f, 5, "Raidwides start")
             .ActivateOnEnter<TranscendentUnion>();
 
         ComponentCondition<TranscendentUnion>(id + 0x40010, 6.6f, t => t.NumCasts > 0, "Raidwides end")

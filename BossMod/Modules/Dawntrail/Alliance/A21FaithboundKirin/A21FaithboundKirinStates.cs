@@ -10,8 +10,16 @@ class ArenaBounds(BossModule module) : BossComponent(module)
 {
     public override void OnEventEnvControl(byte index, uint state)
     {
+        // suzaku bounds
+        if (index == 0x4B && state == 0x00020001)
+            Arena.Bounds = new ArenaBoundsSquare(20);
+
+        // byakko bounds
         if (index == 0x4C && state == 0x00020001)
             Arena.Bounds = new ArenaBoundsCircle(27);
+
+        if (index is 0x4B or 0x4C && state == 0x00080004)
+            Arena.Bounds = new ArenaBoundsCircle(29.5f);
     }
 }
 

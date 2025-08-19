@@ -61,8 +61,6 @@ class EastwindWheel2(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _predicted;
 
-    // 94.48
-    // 105.20
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_predicted);
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -100,7 +98,7 @@ class NorthernCurrent(BossModule module) : Components.StandardAOEs(module, AID._
 
 #region Suzaku
 class VermilionFlight(BossModule module) : Components.StandardAOEs(module, AID._Ability_VermilionFlight1, new AOEShapeRect(60, 10));
-class ArmOfPurgatory(BossModule module) : Components.StandardAOEs(module, AID._Ability_ArmOfPurgatory1, 3);
+class ArmOfPurgatory(BossModule module) : Components.StandardAOEs(module, AID._Ability_ArmOfPurgatory1, 15);
 class StonegaIII2(BossModule module) : Components.SpreadFromCastTargets(module, AID._Spell_StonegaIII2, 6);
 #endregion
 

@@ -54,6 +54,7 @@ public enum AID : uint
     _Weaponskill_HyperPulse = 44335, // Boss->self, 5.0s cast, range 50 circle
     _Spell_EnergyRay2 = 44301, // Helper->self, no cast, range 48 width 20 rect
     _Spell_EnergyRay3 = 44299, // Helper->self, no cast, range 40 width 16 rect
+    _Spell_EnergyRay4 = 44298, // Helper->self, no cast, range 40 width 16 rect
     _Spell_EnergizingEquilibrium1 = 44336, // Boss->UltimaTheFeared, no cast, single-target
     _Weaponskill_ChemicalBomb = 44302, // UltimaTheFeared->self, 6.5s cast, single-target
     _Spell_ChemicalBomb = 44303, // Helper->self, 7.0s cast, range 50 circle

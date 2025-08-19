@@ -5,7 +5,16 @@ namespace BossMod.Dawntrail.Alliance.A22OmegaTheOne;
 class IonEfflux(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_IonEfflux);
 class Antimatter(BossModule module) : Components.SingleTargetCast(module, AID._Spell_Antimatter);
 class EnergyRay(BossModule module) : Components.StandardAOEs(module, AID._Spell_EnergyRay, new AOEShapeRect(40, 8));
-class OmegaBlaster(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_OmegaBlaster, AID._Spell_OmegaBlaster1], new AOEShapeCone(50, 90.Degrees()), maxCasts: 1);
+class OmegaBlaster(BossModule module) : Components.GroupedAOEs(module, [AID._Spell_OmegaBlaster, AID._Spell_OmegaBlaster1], new AOEShapeCone(50, 90.Degrees()), maxCasts: 1)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if (IDs.Contains(spell.Action))
+            Casters.SortBy(c => Module.CastFinishAt(c.CastInfo));
+    }
+}
 class Crash(BossModule module) : Components.StandardAOEs(module, AID._Ability_Crash, new AOEShapeRect(40, 12));
 class TractorBeam(BossModule module) : Components.Knockback(module, AID._Spell_TractorBeam)
 {
@@ -111,7 +120,7 @@ class ReflectedRay(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Spell_EnergyRay1 or AID._Spell_EnergyRay2 or AID._Spell_EnergyRay3)
+        if ((AID)spell.Action.ID is AID._Spell_EnergyRay1 or AID._Spell_EnergyRay2 or AID._Spell_EnergyRay3 or AID._Spell_EnergyRay4)
         {
             _rays.RemoveAll(r => r.Origin.AlmostEqual(caster.Position, 1) && r.Angle.AlmostEqual(spell.Rotation, 0.1f));
             NumCasts++;
@@ -411,16 +420,16 @@ class A22OmegaTheOneStates : StateMachineBuilder
         ComponentCondition<ReflectedRay>(id + 0x12020, 0.6f, r => r.NumCasts > 1, "Laser 3")
             .DeactivateOnExit<ReflectedRay>();
 
-        ComponentCondition<AntiPersonnelMissile>(id + 0x12030, 4.7f, p => p.NumFinishedSpreads > 0, "Spreads")
+        ComponentCondition<AntiPersonnelMissile>(id + 0x12030, 4.8f, p => p.NumFinishedSpreads > 0, "Spreads")
             .DeactivateOnExit<AntiPersonnelMissile>();
 
         ComponentCondition<ChemicalBomb>(id + 0x13000, 9.2f, c => c.NumCasts > 0, "Gigaflare 1")
+            .ActivateOnEnter<SurfaceMissile>()
             .ActivateOnEnter<ChemicalBomb>();
 
         ComponentCondition<ChemicalBomb>(id + 0x13010, 9, c => c.NumCasts >= 4, "Gigaflare 4");
 
         Timeout(id + 0xFF0000, 10000, "Repeat mechanics until death")
-            .ActivateOnEnter<SurfaceMissile>()
             .ActivateOnEnter<AntiPersonnelMissile>()
             .ActivateOnEnter<CitadelBuster>()
             .ActivateOnEnter<EnergyRay>()
