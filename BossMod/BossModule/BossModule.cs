@@ -8,13 +8,18 @@ namespace BossMod;
 public abstract class BossModule : IDisposable
 {
     public readonly WorldState WorldState;
-    public readonly Actor PrimaryActor;
+    public Actor PrimaryActor { get; private set; }
     public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
     public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
     public readonly MiniArena Arena;
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
+
+    internal unsafe void SetPrimaryActor(Actor actor)
+    {
+        PrimaryActor = actor;
+    }
 
     private readonly EventSubscriptions _subscriptions;
 

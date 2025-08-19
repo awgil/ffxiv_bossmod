@@ -18,10 +18,10 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
     {
         static string readable(Blight b) => b switch
         {
-            Blight.Circle => "Circle",
-            Blight.Donut => "Donut",
-            Blight.InverseRect => "Walls",
-            Blight.Rect => "Center",
+            Blight.Circle => "Out",
+            Blight.Donut => "In",
+            Blight.InverseRect => "Center",
+            Blight.Rect => "Walls",
             _ => null!
         };
 
@@ -76,10 +76,10 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_TwofoldBlight or AID._Weaponskill_FourfoldBlight)
+        if ((AID)spell.Action.ID is AID.TwofoldBlight or AID.FourfoldBlight)
             _nextActivation = Module.CastFinishAt(spell, 1.2f);
 
-        if ((AID)spell.Action.ID is AID._Weaponskill_TheSecondSeason or AID._Weaponskill_TheFourthSeason)
+        if ((AID)spell.Action.ID is AID.TheSecondSeason or AID.TheFourthSeason)
             _nextActivation = Module.CastFinishAt(spell, 1.2f);
     }
 
@@ -89,13 +89,13 @@ class Aetherblight(BossModule module) : Components.GenericAOEs(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_Aetherblight1:
+            case AID.AetherblightSides:
                 if (++_numCasts >= 2)
                     RecordCast();
                 break;
-            case AID._Weaponskill_Aetherblight3:
-            case AID._Weaponskill_Aetherblight5:
-            case AID._Weaponskill_Aetherblight7:
+            case AID.AetherblightMiddle:
+            case AID.AetherblightCircle:
+            case AID.AetherblightDonut:
                 RecordCast();
                 break;
         }
@@ -139,7 +139,7 @@ class CropCircle(BossModule module) : Aetherblight(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_TheSecondSeason or AID._Weaponskill_TheFourthSeason)
+        if ((AID)spell.Action.ID is AID.TheSecondSeason or AID.TheFourthSeason)
             Active = true;
     }
 
@@ -190,7 +190,7 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
     private int _numBaits;
     private DateTime _activation;
 
-    public static readonly AOEShape Shape2 = new AOEShapeCone(100, 22.5f.Degrees());
+    public static readonly AOEShape Shape2 = new AOEShapeCone(100, 10.Degrees());
     public static readonly AOEShape Shape4 = new AOEShapeCone(100, 10.Degrees());
 
     public bool Enabled = true;
@@ -199,19 +199,19 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_TwofoldBlight:
+            case AID.TwofoldBlight:
                 _numBaits = 2;
                 _activation = Module.CastFinishAt(spell, 1.4f);
                 break;
-            case AID._Weaponskill_FourfoldBlight:
+            case AID.FourfoldBlight:
                 _numBaits = 4;
                 _activation = Module.CastFinishAt(spell, 1.4f);
                 break;
-            case AID._Weaponskill_TheSecondSeason:
+            case AID.TheSecondSeason:
                 _numBaits = 2;
                 _activation = Module.CastFinishAt(spell, 9.8f);
                 break;
-            case AID._Weaponskill_TheFourthSeason:
+            case AID.TheFourthSeason:
                 _numBaits = 4;
                 _activation = Module.CastFinishAt(spell, 9.8f);
                 break;
@@ -287,7 +287,7 @@ class Shockwave(BossModule module) : Components.CastCounter(module, default)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Shockwave or AID._Weaponskill_Shockwave1)
+        if ((AID)spell.Action.ID is AID.ShockwaveParties or AID.ShockwavePairs)
         {
             _numBaits = 0;
             NumCasts++;

@@ -90,7 +90,7 @@ public sealed class RotationModuleManager : IDisposable
         _subscriptions.Dispose();
     }
 
-    public void Update(float estimatedAnimLockDelay, bool isMoving)
+    public void Update(float estimatedAnimLockDelay, bool isMoving, bool dutyRecorder)
     {
         // see whether current plan matches what should be active, and update if not; only rebuild actions if there is no active override
         var expectedPlan = CalculateExpectedPlan();
@@ -105,6 +105,10 @@ public sealed class RotationModuleManager : IDisposable
         _activeModules ??= Presets.Count > 0 ? [.. Presets.SelectMany((p, i) => RebuildActiveModules(p.Modules, i))] : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules, 0) : [];
 
         _activeModules?.SortBy(m => m.module.Definition.Order);
+
+        // trying to change target or use actions is a waste of cpu cycles during duty recorder playback
+        if (dutyRecorder)
+            return;
 
         // forced target update
         if (Hints.ForcedTarget == null && Presets.Count == 0 && Planner?.ActiveForcedTarget() is var forced && forced != null)
