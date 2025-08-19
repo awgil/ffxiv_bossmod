@@ -106,14 +106,6 @@ public sealed class ActorState : IEnumerable<Actor>
                     case ActionEffectType.LoseStatusEffectSource:
                         effTarget.PendingDispels.Add(new(header, eff.Value));
                         break;
-                    case ActionEffectType.Knockback:
-                    case ActionEffectType.Attract1:
-                    case ActionEffectType.Attract2:
-                    case ActionEffectType.AttractCustom1:
-                    case ActionEffectType.AttractCustom2:
-                    case ActionEffectType.AttractCustom3:
-                        effTarget.PendingKnockbacks.Add(header);
-                        break;
                 }
             }
         }
@@ -481,10 +473,18 @@ public sealed class ActorState : IEnumerable<Actor>
             var prevSeq = prev.GlobalSequence;
             var prevIdx = prev.TargetIndex;
             if (prevSeq != 0 && (prevSeq != Value.GlobalSequence || prevIdx != Value.TargetIndex))
+            {
+                if (prev.Effects.Any(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3))
+                    actor.PendingKnockbacks.RemoveAll(e => e.GlobalSequence == prevSeq && e.TargetIndex == prevIdx);
                 ws.Actors.IncomingEffectRemove.Fire(actor, Index);
+            }
             actor.IncomingEffects[Index] = Value;
             if (Value.GlobalSequence != 0)
+            {
+                if (Value.Effects.Any(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3))
+                    actor.PendingKnockbacks.Add(new(Value.GlobalSequence, Value.TargetIndex, Value.SourceInstanceId, ws.FutureTime(3))); // note: sometimes effect can never be applied (eg if source dies shortly after actioneffect), so we need a timeout
                 ws.Actors.IncomingEffectAdd.Fire(actor, Index);
+            }
         }
         public override void Write(ReplayRecorder.Output output)
         {
