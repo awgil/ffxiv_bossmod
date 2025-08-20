@@ -41,7 +41,7 @@ class TractorBeam(BossModule module) : Components.Knockback(module, AID._Spell_T
     {
         foreach (var s in Sources(slot, actor))
             if (!IsImmune(slot, s.Activation))
-                hints.AddForbiddenZone(new AOEShapeRect(25, 24), new WPos(795, 800), 90.Degrees(), s.Activation);
+                hints.AddForbiddenZone(new AOEShapeRect(25, 24), Arena.Center - new WDir(5, 0), 90.Degrees(), s.Activation);
     }
 }
 class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets(module, AID._Weaponskill_AntiPersonnelMissile1, 6);

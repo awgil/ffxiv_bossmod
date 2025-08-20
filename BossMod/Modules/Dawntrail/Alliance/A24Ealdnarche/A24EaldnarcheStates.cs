@@ -364,6 +364,31 @@ class OrbitalWind(BossModule module) : Components.GenericAOEs(module)
 class Flare(BossModule module) : Components.StandardAOEs(module, AID._Spell_Flare, 5);
 class FlareRect(BossModule module) : Components.StandardAOEs(module, AID._Spell_Flare1, new AOEShapeRect(70, 3));
 
+class Flood(BossModule module) : Components.StandardAOEs(module, AID._Spell_Flood, 20);
+class FloodDonut(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(8), new AOEShapeDonut(8, 16), new AOEShapeDonut(16, 24), new AOEShapeDonut(24, 36)])
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Spell_Flood1)
+            AddSequence(caster.Position, Module.CastFinishAt(spell));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        var order = (AID)spell.Action.ID switch
+        {
+            AID._Spell_Flood1 => 0,
+            AID._Spell_Flood2 => 1,
+            AID._Spell_Flood3 => 2,
+            AID._Spell_Flood4 => 3,
+            _ => -1
+        };
+
+        if (order >= 0)
+            AdvanceSequence(order, caster.Position, WorldState.FutureTime(2));
+    }
+}
+
 class A24EaldnarcheStates : StateMachineBuilder
 {
     public A24EaldnarcheStates(BossModule module) : base(module)
@@ -373,12 +398,7 @@ class A24EaldnarcheStates : StateMachineBuilder
 
     private void SinglePhase(uint id)
     {
-        Cast(id, AID._Spell_UranosCascade, 6.1f, 4)
-            .ActivateOnEnter<UranosCascade>();
-
-        ComponentCondition<UranosCascade>(id + 3, 1, c => c.NumCasts > 0, "Tankbusters")
-            .DeactivateOnExit<UranosCascade>();
-
+        UranosCascade(id, 6.1f);
         CronosSling(id + 0x10000, 5.1f);
         EmpyrealVortexP1(id + 0x11000, 6.4f);
         CronosSling(id + 0x12000, 4.4f);
@@ -404,29 +424,74 @@ class A24EaldnarcheStates : StateMachineBuilder
         Targetable(id + 0x32100, false, 4.8f);
         Targetable(id + 0x33000, true, 30.3f, "Boss reappears");
 
-        Cast(id + 0x40000, AID._Spell_Duplicate, 2.1f, 2);
-
-        SimpleState(id + 0xFF0000, 10000, "???")
-            .ActivateOnEnter<Duplicate2>()
-            .ActivateOnEnter<StellarBurst>()
-            .ActivateOnEnter<QuakeZone>()
-            .ActivateOnEnter<TornadoAttract>()
-            .ActivateOnEnter<TornadoBoss>()
+        Duplicate2(id + 0x40000, 2.1f);
+        StellarBurst(id + 0x41000, 1);
+        Cast(id + 0x42000, AID._Spell_AncientTriad, 10.8f, 6)
+            .ActivateOnEnter<Flood>()
+            .ActivateOnEnter<FloodDonut>()
             .ActivateOnEnter<Burst>()
-            .ActivateOnEnter<OrbitalWind>()
+            .ActivateOnEnter<QuakeZone>()
             .ActivateOnEnter<Flare>()
             .ActivateOnEnter<FlareRect>()
+            .ActivateOnEnter<OrbitalWind>()
+            .ActivateOnEnter<TornadoAttract>()
+            .ActivateOnEnter<TornadoBoss>();
+
+        Cast(id + 0x43000, AID._Spell_GaeaStream, 12.7f, 3)
+            .DeactivateOnExit<Flood>()
+            .DeactivateOnExit<FloodDonut>()
+            .DeactivateOnExit<Burst>()
+            .DeactivateOnExit<QuakeZone>()
+            .DeactivateOnExit<Flare>()
+            .DeactivateOnExit<FlareRect>()
+            .DeactivateOnExit<OrbitalWind>()
+            .DeactivateOnExit<TornadoAttract>()
+            .DeactivateOnExit<TornadoBoss>();
+
+        UranosCascade(id + 0x44000, 15.2f);
+        Duplicate2(id + 0x45000, 4.3f);
+        OmegaJavelin(id + 0x46000, 1.1f);
+        Cast(id + 0x50000, AID._Spell_GaeaStream, 50, 3);
+        CronosSling(id + 0x51000, 6.1f);
+        StellarBurst(id + 0x52000, 3.9f);
+
+        Cast(id + 0x60000, AID._Spell_AncientTriad, 10.8f, 6)
+            .ActivateOnEnter<Flood>()
+            .ActivateOnEnter<FloodDonut>()
+            .ActivateOnEnter<EmpyrealVortexPuddle>()
+            .ActivateOnEnter<EmpyrealVortexRaidwide>()
+            .ActivateOnEnter<EmpyrealVortexSpread>()
+            .ActivateOnEnter<Burst>()
+            .ActivateOnEnter<QuakeZone>()
+            .ActivateOnEnter<Flare>()
+            .ActivateOnEnter<FlareRect>()
+            .ActivateOnEnter<OrbitalWind>()
+            .ActivateOnEnter<TornadoAttract>()
+            .ActivateOnEnter<TornadoBoss>()
+            .ActivateOnEnter<Duplicate2>()
+            .ActivateOnEnter<StellarBurst>()
             .ActivateOnEnter<OmegaJavelin>()
             .ActivateOnEnter<OmegaJavelin2>()
             .ActivateOnEnter<CronosSlingIn>()
             .ActivateOnEnter<CronosSlingOut>()
             .ActivateOnEnter<CronosSlingSide>()
             .ActivateOnEnter<Sleepga>();
+
+        Timeout(id + 0x61000, 10000, "Repeat mechanics until death");
+    }
+
+    private void UranosCascade(uint id, float delay)
+    {
+        Cast(id, AID._Spell_UranosCascade, delay, 4)
+            .ActivateOnEnter<UranosCascade>();
+
+        ComponentCondition<UranosCascade>(id + 3, 1, c => c.NumCasts > 0, "Tankbusters")
+            .DeactivateOnExit<UranosCascade>();
     }
 
     private void CronosSling(uint id, float delay)
     {
-        CastMulti(id, [AID._Spell_CronosSling, AID._Spell_CronosSling3], delay, 7)
+        CastMulti(id, [AID._Spell_CronosSling, AID._Spell_CronosSling3, AID._Spell_CronosSling6, AID._Spell_CronosSling7], delay, 7)
             .ActivateOnEnter<CronosSlingIn>()
             .ActivateOnEnter<CronosSlingOut>()
             .ActivateOnEnter<CronosSlingSide>()
@@ -475,5 +540,37 @@ class A24EaldnarcheStates : StateMachineBuilder
             .DeactivateOnExit<OmegaJavelin>();
         ComponentCondition<OmegaJavelin2>(id + 0x20, 4.5f, j => j.NumCasts > 0, "Puddles")
             .DeactivateOnExit<OmegaJavelin2>();
+    }
+
+    private void Duplicate2(uint id, float delay)
+    {
+        Cast(id, AID._Spell_Duplicate, delay, 2)
+            .ActivateOnEnter<Duplicate2>();
+
+        Cast(id + 0x10, AID._Spell_VisionsOfParadise, 2.1f, 7);
+
+        ComponentCondition<Duplicate2>(id + 0x20, 4.1f, d => d.NumCasts > 0, "Safe tile")
+            .DeactivateOnExit<Duplicate2>();
+    }
+
+    private void StellarBurst(uint id, float delay)
+    {
+        Cast(id, AID._Spell_StellarBurst, delay, 4)
+            .ActivateOnEnter<StellarBurst>();
+
+        ComponentCondition<StellarBurst>(id + 0x10, 7.6f, s => s.NumCasts > 0, "Stack")
+            .DeactivateOnExit<StellarBurst>();
+    }
+
+    private void AncientTriad(uint id, float delay)
+    {
+        Cast(id, AID._Spell_AncientTriad, delay, 6)
+            .ActivateOnEnter<Flood>()
+            .ActivateOnEnter<QuakeZone>()
+            .ActivateOnEnter<Flare>()
+            .ActivateOnEnter<FlareRect>()
+            .ActivateOnEnter<OrbitalWind>()
+            .ActivateOnEnter<TornadoAttract>()
+            .ActivateOnEnter<TornadoBoss>();
     }
 }

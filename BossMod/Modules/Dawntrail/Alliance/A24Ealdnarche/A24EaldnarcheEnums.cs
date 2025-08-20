@@ -63,6 +63,12 @@ public enum AID : uint
     _Spell_Freeze = 44389, // Helper->self, 6.0s cast, range 16 width 48 rect
     _Spell_Flare = 44384, // Helper->location, 7.0s cast, range 5 circle
     _Spell_Flare1 = 44385, // _Gen_OrbitalFlame->location, 4.0s cast, range 70 width 6 rect
+    _Spell_Flood = 44390, // Helper->self, 6.0s cast, range 35 circle
+    _Spell_Flood1 = 44391, // Helper->self, 10.0s cast, range 8 circle
+    _Spell_Flood2 = 44392, // Helper->self, 12.0s cast, range 8-16 donut
+    _Spell_Flood3 = 44393, // Helper->self, 14.0s cast, range 16-24 donut
+    _Spell_Flood4 = 44394, // Helper->self, 16.0s cast, range 24-36 donut
+    _Spell_CronosSling7 = 44363, // Boss->self, 7.0s cast, single-target
 }
 
 public enum IconID : uint

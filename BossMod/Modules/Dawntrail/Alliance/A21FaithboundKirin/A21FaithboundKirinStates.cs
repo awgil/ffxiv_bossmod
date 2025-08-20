@@ -42,8 +42,8 @@ class A21FaithboundKirinStates : StateMachineBuilder
         ArmsSingle(id + 0x10100, 6.5f);
         ArmsSingle(id + 0x10200, 2.5f);
 
-        Cast(id + 0x10300, AID._Ability_CrimsonRiddle, 6.5f, 5, "Half-room cleave 1");
-        Cast(id + 0x10400, AID._Ability_CrimsonRiddle1, 2.1f, 5, "Half-room cleave 2");
+        CastMulti(id + 0x10300, [AID._Ability_CrimsonRiddle, AID._Ability_CrimsonRiddle1], 6.5f, 5, "Half-room cleave 1");
+        CastMulti(id + 0x10400, [AID._Ability_CrimsonRiddle, AID._Ability_CrimsonRiddle1], 2.1f, 5, "Half-room cleave 2");
 
         Cast(id + 0x20000, AID._Ability_SummonShijin, 7.2f, 7)
             .ActivateOnEnter<ByakkoWalls>();
@@ -100,7 +100,7 @@ class A21FaithboundKirinStates : StateMachineBuilder
             .DeactivateOnExit<Wringer>()
             .DeactivateOnExit<DeadWringer>();
 
-        CastMulti(id + 0x100, [AID.StrikingRightBoss], 4.6f, 4.9f, "Boss AOE")
+        CastMulti(id + 0x100, [AID.StrikingRightBoss, AID.StrikingLeftBoss], 4.6f, 4.9f, "Boss AOE")
             .ActivateOnEnter<Striking>()
             .ActivateOnEnter<Smiting>();
 
@@ -111,7 +111,7 @@ class A21FaithboundKirinStates : StateMachineBuilder
 
     private void ArmsDoubleFast(uint id, float delay)
     {
-        CastStartMulti(id, [AID._Ability_DoubleWringer, AID._Ability_SynchronizedSequence], delay)
+        CastStartMulti(id, [AID._Ability_DoubleWringer, AID._Ability_SynchronizedSequence, AID._Ability_SmitingRightSequence, AID._Ability_SmitingLeftSequence], delay)
             .ActivateOnEnter<DoubleWringer>()
             .ActivateOnEnter<SmitingSequence>()
             .ActivateOnEnter<SynchronizedSequence>()
@@ -194,7 +194,7 @@ class A21FaithboundKirinStates : StateMachineBuilder
 
     private void SummonGenbu(uint id)
     {
-        ComponentCondition<MoontideFont>(id, 18.5f, m => m.NumCasts >= 11, "Puddles 1")
+        ComponentCondition<MoontideFont>(id, 18.5f, m => m.NumCasts >= 10, "Puddles 1")
             .ActivateOnEnter<MoontideFont>();
         ComponentCondition<MoontideFont>(id + 0x10, 5.1f, m => m.NumCasts >= 20, "Puddles 2")
             .DeactivateOnExit<MoontideFont>();
@@ -207,7 +207,7 @@ class A21FaithboundKirinStates : StateMachineBuilder
             .DeactivateOnExit<MidwinterMarch>()
             .DeactivateOnExit<NorthernCurrent>();
 
-        Cast(id + 0x200, AID._Ability_CrimsonRiddle, 0, 5, "Half-room cleave");
+        CastMulti(id + 0x200, [AID._Ability_CrimsonRiddle, AID._Ability_CrimsonRiddle1], 0, 5, "Half-room cleave");
 
         Subphase1(id + 0x10000);
     }
