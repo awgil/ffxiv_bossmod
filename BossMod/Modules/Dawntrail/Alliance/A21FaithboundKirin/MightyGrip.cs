@@ -1,13 +1,13 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A21FaithboundKirin;
 
-class ChiseledArm(BossModule module) : Components.AddsMulti(module, [OID._Gen_ChiseledArm, OID._Gen_ChiseledArm2], 1);
+class ChiseledArm(BossModule module) : Components.AddsMulti(module, [OID.ChiseledArm3, OID.ChiseledArm4], 1);
 
-class Shockwave(BossModule module) : Components.RaidwideInstant(module, AID._Ability_Shockwave, 9)
+class Shockwave(BossModule module) : Components.RaidwideInstant(module, AID.Shockwave, 9)
 {
     public void Predict(float delay) => Activation = WorldState.FutureTime(delay);
 }
 
-class StandingFirm(BossModule module) : Components.GenericTowers(module, AID._Ability_Bury)
+class StandingFirm(BossModule module) : Components.GenericTowers(module, AID.Bury)
 {
     private static readonly WPos[] _towers = [
         new(-858, 781),
@@ -43,7 +43,7 @@ class MightyGrip : Components.GenericAOEs
 
     private readonly AOEShapeCustom _borderShape;
 
-    public MightyGrip(BossModule module) : base(module, AID._Ability_MightyGrip)
+    public MightyGrip(BossModule module) : base(module, AID.MightyGrip)
     {
         var blank = new PolygonClipper.Operand(CurveApprox.Rect(new(0, 30), new(30, 0)));
         var safe = new PolygonClipper.Operand(CurveApprox.Rect(new(12.5f, 0), new(0, 15)).Select(d => d + new WDir(0, 5)));

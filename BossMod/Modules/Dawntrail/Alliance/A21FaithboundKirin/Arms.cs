@@ -4,9 +4,9 @@ class Wringer(BossModule module) : Components.StandardAOEs(module, AID.WringerSl
 class DeadWringer(BossModule module) : Components.StandardAOEs(module, AID.DeadWringerSlow, new AOEShapeDonut(14, 30));
 class Striking(BossModule module) : Components.GroupedAOEs(module, [AID.StrikingRightBoss, AID.StrikingLeftBoss], new AOEShapeCircle(10));
 class Smiting(BossModule module) : Components.GroupedAOEs(module, [AID.SmitingRightSlow, AID.SmitingLeftSlow], new AOEShapeCircle(30));
-class SynchronizedSequence(BossModule module) : Components.StandardAOEs(module, AID._Ability_SynchronizedSequence1, new AOEShapeRect(60, 5));
-class DoubleWringer(BossModule module) : Components.StandardAOEs(module, AID._Ability_DoubleWringer, 14);
-class SmitingSequence(BossModule module) : Components.GroupedAOEs(module, [AID._Ability_SmitingRightSequence, AID._Ability_SmitingLeftSequence], new AOEShapeCircle(10));
+class SynchronizedSequence(BossModule module) : Components.StandardAOEs(module, AID.SynchronizedSequence, new AOEShapeRect(60, 5));
+class DoubleWringer(BossModule module) : Components.StandardAOEs(module, AID.DoubleWringer, 14);
+class SmitingSequence(BossModule module) : Components.GroupedAOEs(module, [AID.SmitingRightSequence, AID.SmitingLeftSequence], new AOEShapeCircle(10));
 
 class ArmsMulti(BossModule module) : Components.GenericAOEs(module)
 {
@@ -90,12 +90,12 @@ class ArmsMulti(BossModule module) : Components.GenericAOEs(module)
             case AID.SmitingLeftFast:
             case AID.SmitingRightFast:
             case AID.WringerFast:
-            case AID._Ability_DeadWringer3:
-            case AID._Ability_SynchronizedSmite2:
-            case AID._Ability_SynchronizedSmite3:
+            case AID.DeadWringerFast:
+            case AID.SynchronizedSmite2Fast:
+            case AID.SynchronizedSmite1Fast:
                 Advance();
                 break;
-            case AID._Ability_SynchronizedStrike4:
+            case AID.SynchronizedStrikeFast:
                 Advance(true);
                 break;
         }

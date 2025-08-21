@@ -35,6 +35,13 @@ class GaeaStream(BossModule module) : Components.Exaflare(module, new AOEShapeRe
                 AdvanceLine(Lines[ix], caster.Position);
         }
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // only hint imminent aoes, there is plenty of time to walk out of them
+        foreach (var (c, t, r) in ImminentAOEs())
+            hints.AddForbiddenZone(Shape, c, r, t);
+    }
 }
 
 class EmpyrealVortexRaidwide(BossModule module) : Components.RaidwideCastDelay(module, AID._Spell_EmpyrealVortex, AID._Spell_EmpyrealVortex2, 1.7f)
@@ -560,17 +567,5 @@ class A24EaldnarcheStates : StateMachineBuilder
 
         ComponentCondition<StellarBurst>(id + 0x10, 7.6f, s => s.NumCasts > 0, "Stack")
             .DeactivateOnExit<StellarBurst>();
-    }
-
-    private void AncientTriad(uint id, float delay)
-    {
-        Cast(id, AID._Spell_AncientTriad, delay, 6)
-            .ActivateOnEnter<Flood>()
-            .ActivateOnEnter<QuakeZone>()
-            .ActivateOnEnter<Flare>()
-            .ActivateOnEnter<FlareRect>()
-            .ActivateOnEnter<OrbitalWind>()
-            .ActivateOnEnter<TornadoAttract>()
-            .ActivateOnEnter<TornadoBoss>();
     }
 }
