@@ -119,5 +119,5 @@ public enum IconID : uint
 {
     TurnLeft = 502, // DawnboundSeiryu->self
     TurnRight = 501, // DawnboundSeiryu->self
-    _Gen_Icon_m0074g01ai = 101, // player->self
+    Spread = 101, // player->self
 }
