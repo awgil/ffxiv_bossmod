@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Alliance.A22OmegaTheOne;
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1058, NameID = 14230)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1058, NameID = 14230)]
 public class A22OmegaTheOne(WorldState ws, Actor primary) : BossModule(ws, primary, new(800, 800), new ArenaBoundsRect(20, 23.8f))
 {
     public Actor? Ultima() => _ultima;
