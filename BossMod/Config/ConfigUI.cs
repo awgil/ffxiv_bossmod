@@ -6,9 +6,153 @@ using System.Reflection;
 
 namespace BossMod;
 
+internal static class SettingsSearchHelper
+{
+    public static bool NodeMatchesSearch(ConfigUI.UINode node, string searchFilter)
+    {
+        var trimmedFilter = searchFilter?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(trimmedFilter))
+            return true;
+
+        return NodeHasDirectMatch(node, trimmedFilter) || HasMatchingChildren(node, trimmedFilter);
+    }
+
+    public static bool PropertyMatchesSearch(FieldInfo field, PropertyDisplayAttribute props, object? value, string searchFilter)
+    {
+        if (string.IsNullOrWhiteSpace(searchFilter))
+            return false;
+
+        // Check property label and tooltip
+        if (props.Label?.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) == true ||
+            props.Tooltip?.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        // Check property values
+        if (value != null)
+        {
+            if (value is string strValue && strValue.Contains(searchFilter, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (value is Enum enumValue && EnumMatchesSearch(enumValue, searchFilter))
+                return true;
+
+            var combo = field.GetCustomAttribute<PropertyComboAttribute>();
+            if (combo?.Values != null && combo.Values.Any(v => v?.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) == true))
+                return true;
+        }
+
+        return false;
+    }
+
+    public static int CountMatchesInNode(ConfigUI.UINode node, string searchFilter)
+    {
+        var trimmedFilter = searchFilter?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(trimmedFilter))
+            return 0;
+
+        int count = 0;
+
+        if (node.Name.Contains(trimmedFilter, StringComparison.OrdinalIgnoreCase))
+            count++;
+
+        foreach (var field in node.Node.GetType().GetFields())
+        {
+            var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
+            if (props != null)
+            {
+                if (props.Label?.Contains(trimmedFilter, StringComparison.OrdinalIgnoreCase) == true)
+                    count++;
+
+                if (props.Tooltip?.Contains(trimmedFilter, StringComparison.OrdinalIgnoreCase) == true)
+                    count++;
+
+                var value = field.GetValue(node.Node);
+                if (value != null)
+                {
+                    if (value is string strValue && strValue.Contains(trimmedFilter, StringComparison.OrdinalIgnoreCase))
+                        count++;
+
+                    if (value is Enum enumValue)
+                    {
+                        if (enumValue.ToString().Contains(trimmedFilter, StringComparison.OrdinalIgnoreCase))
+                            count++;
+
+                        var enumType = enumValue.GetType();
+                        var enumField = enumType.GetField(enumValue.ToString());
+                        if (enumField != null)
+                        {
+                            var displayAttr = enumField.GetCustomAttribute<PropertyDisplayAttribute>();
+                            if (displayAttr?.Label?.Contains(trimmedFilter, StringComparison.OrdinalIgnoreCase) == true)
+                                count++;
+                        }
+                    }
+
+                    var combo = field.GetCustomAttribute<PropertyComboAttribute>();
+                    if (combo?.Values != null)
+                    {
+                        count += combo.Values.Count(v => v?.Contains(trimmedFilter, StringComparison.OrdinalIgnoreCase) == true);
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
+
+    private static bool NodeHasDirectMatch(ConfigUI.UINode node, string searchFilter)
+    {
+        if (node.Name.Contains(searchFilter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return node.Node.GetType().GetFields()
+            .Where(field => field.GetCustomAttribute<PropertyDisplayAttribute>() != null)
+            .Any(field => PropertyMatchesSearch(field, field.GetCustomAttribute<PropertyDisplayAttribute>()!, field.GetValue(node.Node), searchFilter));
+    }
+
+    private static bool HasMatchingChildren(ConfigUI.UINode node, string searchFilter)
+    {
+        return node.Children.Any(child => NodeMatchesSearch(child, searchFilter));
+    }
+
+    private static bool EnumMatchesSearch(Enum enumValue, string searchFilter)
+    {
+        if (enumValue.ToString().Contains(searchFilter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var enumType = enumValue.GetType();
+        var enumField = enumType.GetField(enumValue.ToString());
+        if (enumField != null)
+        {
+            var displayAttr = enumField.GetCustomAttribute<PropertyDisplayAttribute>();
+            if (displayAttr?.Label?.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) == true)
+                return true;
+        }
+
+        foreach (var possibleValue in Enum.GetValues(enumType))
+        {
+            var possibleName = possibleValue.ToString();
+            if (possibleName != null && possibleName.Contains(searchFilter, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (possibleName != null)
+            {
+                var possibleField = enumType.GetField(possibleName);
+                if (possibleField != null)
+                {
+                    var possibleDisplay = possibleField.GetCustomAttribute<PropertyDisplayAttribute>();
+                    if (possibleDisplay?.Label?.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) == true)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
 public sealed class ConfigUI : IDisposable
 {
-    private class UINode(ConfigNode node)
+    internal class UINode(ConfigNode node)
     {
         public ConfigNode Node = node;
         public string Name = "";
@@ -25,6 +169,7 @@ public sealed class ConfigUI : IDisposable
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
     private readonly UIPresetDatabaseEditor? _presets;
+    private string _searchFilter = "";
 
     public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
@@ -71,11 +216,37 @@ public sealed class ConfigUI : IDisposable
         _tabs.Draw();
     }
 
-    private void DrawSettings() => DrawNodes(_roots);
+    private void DrawSettings()
+    {
+        ImGui.SetNextItemWidth(300);
+        ImGui.InputTextWithHint("##SettingsSearch", "Search settings...", ref _searchFilter, 256);
+        ImGui.SameLine();
+        if (ImGui.Button("Clear"))
+            _searchFilter = "";
+
+        if (!string.IsNullOrWhiteSpace(_searchFilter))
+        {
+            ImGui.SameLine();
+            var matchCount = CountMatchingNodes(_roots);
+            var matchText = matchCount == 1 ? "1 match found" : $"{matchCount} matches found";
+            ImGui.TextColored(matchCount > 0 ? new System.Numerics.Vector4(0, 1, 0, 1) : new System.Numerics.Vector4(1, 0, 0, 1),
+                $"({matchText})");
+        }
+
+        ImGui.Separator();
+
+        if (string.IsNullOrWhiteSpace(_searchFilter))
+        {
+            DrawNodes(_roots);
+        }
+        else
+        {
+            DrawFilteredNodes(_roots);
+        }
+    }
 
     public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)
     {
-        // draw standard properties
         foreach (var field in node.GetType().GetFields())
         {
             var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
@@ -83,7 +254,6 @@ public sealed class ConfigUI : IDisposable
                 continue;
 
             var disabled = false;
-
             if (props.Depends is { } prop)
             {
                 var dependsEnabled = node.GetType().GetField(prop)?.GetValue(node) switch
@@ -109,7 +279,55 @@ public sealed class ConfigUI : IDisposable
             }
         }
 
-        // draw custom stuff
+        node.DrawCustom(tree, ws);
+    }
+
+    private void DrawNodeWithHighlighting(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, string searchFilter)
+    {
+        foreach (var field in node.GetType().GetFields())
+        {
+            var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
+            if (props == null)
+                continue;
+
+            var disabled = false;
+            if (props.Depends is { } prop)
+            {
+                var dependsEnabled = node.GetType().GetField(prop)?.GetValue(node) switch
+                {
+                    bool v => v,
+                    _ => throw new InvalidDataException($"Internal error: cannot use dependsOn with a non-bool field")
+                };
+                disabled = !dependsEnabled;
+            }
+
+            var value = field.GetValue(node);
+            var propertyMatches = SettingsSearchHelper.PropertyMatchesSearch(field, props, value, searchFilter);
+
+            if (propertyMatches)
+            {
+                var cursorPos = ImGui.GetCursorPos();
+                ImGui.SetCursorPos(new System.Numerics.Vector2(cursorPos.X - 18, cursorPos.Y + 2));
+                ImGui.PushStyleColor(ImGuiCol.Text, new System.Numerics.Vector4(1, 1, 0, 1));
+                UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.ArrowRight, "");
+                ImGui.PopStyleColor();
+                ImGui.SetCursorPos(cursorPos);
+            }
+
+            using (ImRaii.Disabled(disabled))
+            {
+                if (DrawProperty(props.Label, props.Tooltip, node, field, value, root, tree, ws))
+                {
+                    node.Modified.Fire();
+                }
+            }
+
+            if (props.Separator)
+            {
+                ImGui.Separator();
+            }
+        }
+
         node.DrawCustom(tree, ws);
     }
 
@@ -129,6 +347,38 @@ public sealed class ConfigUI : IDisposable
             DrawNode(n.Node, _root, _tree, _ws);
             DrawNodes(n.Children);
         }
+    }
+
+    private void DrawFilteredNodes(List<UINode> nodes)
+    {
+        var trimmedFilter = _searchFilter?.Trim() ?? "";
+        foreach (var n in nodes)
+        {
+            if (SettingsSearchHelper.NodeMatchesSearch(n, trimmedFilter))
+            {
+                var color = n.Name.Contains(trimmedFilter, StringComparison.OrdinalIgnoreCase) ? 0xFFFFFF00u : 0xFFFFFFFFu;
+                foreach (var _ in _tree.Node(n.Name, true, color))
+                {
+                    DrawNodeWithHighlighting(n.Node, _root, _tree, _ws, trimmedFilter);
+                    DrawFilteredNodes(n.Children);
+                }
+            }
+            else
+            {
+                DrawFilteredNodes(n.Children);
+            }
+        }
+    }
+
+    private int CountMatchingNodes(List<UINode> nodes)
+    {
+        int count = 0;
+        foreach (var node in nodes)
+        {
+            count += SettingsSearchHelper.CountMatchesInNode(node, _searchFilter);
+            count += CountMatchingNodes(node.Children);
+        }
+        return count;
     }
 
     private static void DrawHelp(string tooltip)
