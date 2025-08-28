@@ -2,8 +2,8 @@
 
 public enum OID : uint
 {
-    Boss = 0x6D9, // x1
-    DungWespe = 0x6DA, // spawn during fight
+    Boss = 0x477A, // x1
+    DungWespe = 0x477B, // spawn during fight
     Platform1 = 0x1E87E2, // x1, EventObj type; eventstate 0 if active, 7 if inactive
     Platform2 = 0x1E87E3, // x1, EventObj type; eventstate 0 if active, 7 if inactive
     Platform3 = 0x1E87E4, // x1, EventObj type; eventstate 0 if active, 7 if inactive
@@ -12,10 +12,10 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttackBoss = 870, // Boss->player, no cast
-    Triclip = 1414, // Boss->self, no cast, range 5.25 width 4 rect cleave
-    Mow = 1413, // Boss->self, 2.5s cast, range 8.25 120-degree cone aoe
-    FrightfulRoar = 933, // Boss->self, 3.0s cast, range 8.25 aoe
-    MortalRay = 934, // Boss->self, 1.5s cast, raidwide doom debuff
+    Triclip = 42231, // Boss->player, 5.0s cast, single-target tankbuster
+    Mow = 42232, // Boss->self, 2.5s cast, range 6 120-degree cone aoe
+    FrightfulRoar = 42233, // Boss->self, 3.0s cast, range 6 circle aoe
+    MortalRay = 42229, // Boss->self, 3.0s cast, raidwide doom debuff
 
     AutoAttackWespe = 871, // DungWespe->player, no cast
     FinalSting = 919, // DungWespe->player, 3.0s cast
@@ -23,13 +23,21 @@ public enum AID : uint
 
 public enum SID : uint
 {
-    Doom = 210, // Boss->player, extra=0x0
+    Doom = 1970, // Boss->player, extra=0x0
 }
 
-class Triclip(BossModule module) : Components.Cleave(module, AID.Triclip, new AOEShapeRect(5.25f, 2));
-class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(8.25f, 60.Degrees()));
-class FrightfulRoar(BossModule module) : Components.StandardAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(8.25f));
+public enum IconID : uint
+{
+    Tankbuster = 218, //Player->self
+}
 
+//class Triclip(BossModule module) : Components.Cleave(module, AID.Triclip, new AOEShapeRect(5.25f, 2));
+//triclip is a TB now, need to check if it cleaves still
+//.SetHint(StateMachine.StateHint.Tankbuster)? seems only relevant for EX+ content?
+class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(6, 60.Degrees()));
+class FrightfulRoar(BossModule module) : Components.StandardAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(6));
+
+//priority stun to stop mortal ray cast?
 class MortalRay(BossModule module) : BossComponent(module)
 {
     private BitMask _dooms;
@@ -88,14 +96,14 @@ class D081TeratotaurStates : StateMachineBuilder
     public D081TeratotaurStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Triclip>()
+        //    .ActivateOnEnter<Triclip>()
             .ActivateOnEnter<Mow>()
             .ActivateOnEnter<FrightfulRoar>()
             .ActivateOnEnter<MortalRay>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1567)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1567)]
 public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(-70, -60), new ArenaBoundsSquare(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
