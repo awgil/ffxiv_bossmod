@@ -321,7 +321,9 @@ sealed class WorldStateGameSync : IDisposable
         var hasAggro = _playerEnmity.IndexOf(obj->EntityId) >= 0;
         var target = chr != null ? SanitizedObjectID(chr->GetTargetId()) : 0; // note: when changing targets, we want to see changes immediately rather than wait for server response
         var modelState = chr != null ? new ActorModelState(chr->Timeline.ModelState, chr->Timeline.AnimationState[0], chr->Timeline.AnimationState[1]) : default;
-        var eventState = obj->EventState;
+        // TODO: undo when cs is updated
+        var eventState = *((byte*)obj + 0x70);
+        // var eventState = obj->EventState;
         var radius = obj->GetRadius();
         var mountId = chr != null ? chr->Mount.MountId : 0u;
         var forayInfoPtr = chr != null ? chr->GetForayInfo() : null;
