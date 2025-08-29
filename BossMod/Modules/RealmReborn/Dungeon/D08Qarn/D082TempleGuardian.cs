@@ -3,7 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x477C, // x1
-    GolemSoulstone = 0x477D, // x1, Part type, and more spawn during fight
+    GolemSoulstone = 0x477D, // x1, Part type, and more spawn during fight. applies vuln down to boss while alive
 }
 
 public enum AID : uint
@@ -12,8 +12,14 @@ public enum AID : uint
     BoulderClap = 42234, // Boss->self, 2.5s cast, range 12+R(2.2) 120-degree cone aoe
     TrueGrit = 42235, // Boss->self, 3.0s cast, range 12+R(2.2) 120-degree cone aoe
     Rockslide = 42236, // Boss->self, 2.5s cast, range 14+R(2.2) width 8 rect aoe
-    StoneSkull = 42237, // Boss->player, no cast, random single-target
+    StoneSkull = 42237, // Boss->player, no cast, random single-target stun + knockback
     Obliterate = 42238, // Boss->self, 2.0s cast, range 60 circle aoe (raidwide)
+}
+
+public enum SID : uint
+{
+    Stun = 2, // Boss->player, extra=0x0
+    VulnerabilityDown = 350, // None->boss, extra=0x0
 }
 
 class BoulderClap(BossModule module) : Components.StandardAOEs(module, AID.BoulderClap, new AOEShapeCone(14.2f, 60.Degrees()));

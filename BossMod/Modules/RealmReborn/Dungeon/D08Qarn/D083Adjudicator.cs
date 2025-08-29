@@ -10,7 +10,6 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast
-    //Darkness = 928, // Boss->self, 2.5s cast, range 7.5 120-degree cone aoe
     LoomingJudgement = 42245, // Boss->player, 5.0s cast, single-target tankbuster
     Dark = 42246, // Boss->none, 3.0s cast, range 5 circle aoe, spawns on target(?)
     DarkII = 42248, // Boss->self, 6.0s cast, range 40 120-degree cone aoe
@@ -21,7 +20,7 @@ public enum AID : uint
     VergeLine = 42244, // MythrilVergeLine->self, 4.0s cast, range 60+R(0.6) width 4 rect aoe
 
     Stun = 30506, // MythrilVergePulse->player, no cast, single-target, applies status Stun/3408
-    MythrilChains = 42240, //MythrilVergePulse->player, no cast, single-target, applies Bind/3625 and tether 31
+    MythrilChains = 42240, //MythrilVergePulse->player, no cast, single-target, applies status Bind/3625 and tether 31
     VergePulse = 42241, // MythrilVergePulse->self, 20.0s cast, range 60+R(0.6) width 4 rect aoe
 }
 
@@ -71,7 +70,8 @@ public class D083Adjudicator(WorldState ws, Actor primary) : BossModule(ws, prim
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                // note: could do 'when x => 3' for tether source to guarantee you get out first, but that seems overkill.
+                // note: could do 'when x => 3' for tether source to guarantee you get out fast, but that seems overkill.
+                // only relevant for non-melee, plus it all dies easy enough anyway.
                 OID.MythrilVergePulse or OID.MythrilVergeLine => 2,
                 OID.Boss => 1,
                 _ => 0

@@ -1,7 +1,6 @@
 ﻿namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur;
-// TODO: this boss' radar pops up at the start because it's close to the arena
-// can probably fix that somehow
-// TODO: learn fight timeline? better learning now than later?
+// note: this boss' radar pops up at the start because it's close to the arena
+// no mechanism to fix that yet
 
 public enum OID : uint
 {
@@ -38,17 +37,20 @@ class Triclip(BossModule module) : Components.SingleTargetCast(module, AID.Tricl
 class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(6, 60.Degrees()));
 class FrightfulRoar(BossModule module) : Components.StandardAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(6));
 
-// TODO: priority stun to stop MR cast?
-// TODO: second MR cast drops first pad after a sec or two; delay move?
+// TODO:
+// A: priority stun to stop MR cast?
+// auto-stun doesn't exist yet.
+// B: second MR cast drops first pad after a sec or two; delay move?
 // no, this is on a timer between casts; it only happens to align.
-// would have to count time active & say 'don't move if active/until inactive = say 2s or less.
-// note: runs off pad as soon as Doom drops; looks weird, only cuts like 200ms of downtime.
-// could delay to look more natural; maybe unnecessary.
+// would have to count time active & say "don't move if active/until inactive = say 2s or less."
+// C: runs off pad as soon as Doom drops; looks weird, only cuts like 200ms of downtime.
+// could delay to look more natural; maybe unnecessary-paranoiac.
 class MortalRay(BossModule module) : BossComponent(module)
 {
     private BitMask _dooms;
     private readonly Actor?[] _platforms = [null, null, null];
 
+    // note: cleanse area seems slightly smaller than it looks visually.
     private static readonly AOEShapeCircle _platformShape = new(1);
 
     private Actor? ActivePlatform => _platforms.FirstOrDefault(a => a != null && a.EventState == 0);
