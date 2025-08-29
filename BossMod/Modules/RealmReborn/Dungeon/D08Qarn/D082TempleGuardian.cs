@@ -9,9 +9,9 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast
-    BoulderClap = 42234, // Boss->self, 2.5s cast, range 14.2 120-degree cone aoe
-    TrueGrit = 42235, // Boss->self, 3.0s cast, range 14.2 120-degree cone aoe
-    Rockslide = 42236, // Boss->self, 2.5s cast, range 16.2 width 8 rect aoe
+    BoulderClap = 42234, // Boss->self, 2.5s cast, range 12+R(2.2) 120-degree cone aoe
+    TrueGrit = 42235, // Boss->self, 3.0s cast, range 12+R(2.2) 120-degree cone aoe
+    Rockslide = 42236, // Boss->self, 2.5s cast, range 14+R(2.2) width 8 rect aoe
     StoneSkull = 42237, // Boss->player, no cast, random single-target
     Obliterate = 42238, // Boss->self, 2.0s cast, range 60 circle aoe (raidwide)
 }
@@ -19,6 +19,7 @@ public enum AID : uint
 class BoulderClap(BossModule module) : Components.StandardAOEs(module, AID.BoulderClap, new AOEShapeCone(14.2f, 60.Degrees()));
 class TrueGrit(BossModule module) : Components.StandardAOEs(module, AID.TrueGrit, new AOEShapeCone(14.2f, 60.Degrees()));
 class Rockslide(BossModule module) : Components.StandardAOEs(module, AID.Rockslide, new AOEShapeRect(16.2f, 4));
+class Obliterate(BossModule module) : Components.RaidwideCast(module, AID.Obliterate);
 
 class D082TempleGuardianStates : StateMachineBuilder
 {
@@ -27,7 +28,8 @@ class D082TempleGuardianStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<BoulderClap>()
             .ActivateOnEnter<TrueGrit>()
-            .ActivateOnEnter<Rockslide>();
+            .ActivateOnEnter<Rockslide>()
+            .ActivateOnEnter<Obliterate>();
     }
 }
 

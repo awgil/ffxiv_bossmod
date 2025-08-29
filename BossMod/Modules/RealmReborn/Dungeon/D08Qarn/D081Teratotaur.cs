@@ -1,4 +1,7 @@
 ﻿namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur;
+// TODO: this boss' radar pops up at the start because it's close to the arena
+// can probably fix that somehow
+// TODO: learn fight timeline? better learning now than later?
 
 public enum OID : uint
 {
@@ -31,19 +34,22 @@ public enum IconID : uint
     Tankbuster = 218, //Player->self
 }
 
-//class Triclip(BossModule module) : Components.Cleave(module, AID.Triclip, new AOEShapeRect(5.25f, 2));
-//triclip is a TB now, need to check if it cleaves still
-//.SetHint(StateMachine.StateHint.Tankbuster)? seems only relevant for EX+ content?
+class Triclip(BossModule module) : Components.SingleTargetCast(module, AID.Triclip, "Tankbuster");
 class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(6, 60.Degrees()));
 class FrightfulRoar(BossModule module) : Components.StandardAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(6));
 
-//priority stun to stop mortal ray cast?
+// TODO: priority stun to stop MR cast?
+// TODO: second MR cast drops first pad after a sec or two; delay move?
+// no, this is on a timer between casts; it only happens to align.
+// would have to count time active & say 'don't move if active/until inactive = say 2s or less.
+// note: runs off pad as soon as Doom drops; looks weird, only cuts like 200ms of downtime.
+// could delay to look more natural; maybe unnecessary.
 class MortalRay(BossModule module) : BossComponent(module)
 {
     private BitMask _dooms;
     private readonly Actor?[] _platforms = [null, null, null];
 
-    private static readonly AOEShapeCircle _platformShape = new(2);
+    private static readonly AOEShapeCircle _platformShape = new(1);
 
     private Actor? ActivePlatform => _platforms.FirstOrDefault(a => a != null && a.EventState == 0);
 
@@ -91,15 +97,18 @@ class MortalRay(BossModule module) : BossComponent(module)
     }
 }
 
+class MortalRayHint(BossModule module) : Components.CastInterruptHint(module, AID.MortalRay, canBeInterrupted: false, canBeStunned: true);
+
 class D081TeratotaurStates : StateMachineBuilder
 {
     public D081TeratotaurStates(BossModule module) : base(module)
     {
         TrivialPhase()
-        //    .ActivateOnEnter<Triclip>()
+            .ActivateOnEnter<Triclip>()
             .ActivateOnEnter<Mow>()
             .ActivateOnEnter<FrightfulRoar>()
-            .ActivateOnEnter<MortalRay>();
+            .ActivateOnEnter<MortalRay>()
+            .ActivateOnEnter<MortalRayHint>();
     }
 }
 

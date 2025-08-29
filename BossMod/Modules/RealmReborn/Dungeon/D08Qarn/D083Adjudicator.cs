@@ -11,18 +11,18 @@ public enum AID : uint
 {
     AutoAttack = 872, // Boss->player, no cast
     //Darkness = 928, // Boss->self, 2.5s cast, range 7.5 120-degree cone aoe
-    LoomingJudgement = 42245, // Boss->player, 5.0s cast, tankbuster
-    Dark = 42246, // Boss->none(? or is that just self?), [details]
-    DarkII = 42248, // Boss->self, [aoe?]
-    CreepingDarkness = 42247, // Boss->self, 2.5s cast, raidwide[?]
-    SummonVL = 42243, //Boss->self, 3.0s cast, single-target, summons MythrilVergeLine
-    SummonVP = 42239, //Boss->self, 3.0s cast, single-target, summons MythrilVergePulse
+    LoomingJudgement = 42245, // Boss->player, 5.0s cast, single-target tankbuster
+    Dark = 42246, // Boss->none, 3.0s cast, range 5 circle aoe, spawns on target(?)
+    DarkII = 42248, // Boss->self, 6.0s cast, range 40 120-degree cone aoe
+    CreepingDarkness = 42247, // Boss->self, 2.5s cast, range 50 raidwide circle aoe
+    SummonVL = 42243, //Boss->self, 3.0s cast, single-target, spawns MythrilVergeLine
+    SummonVP = 42239, //Boss->self, 3.0s cast, single-target, spawns MythrilVergePulse
 
-    VergeLine = 42244, // MythrilVergeLine->self, 4.0s cast, range 60.6 width 4 rect aoe
+    VergeLine = 42244, // MythrilVergeLine->self, 4.0s cast, range 60+R(0.6) width 4 rect aoe
 
-    Stun = 30506, // MythrilVergePulse->player, no cast, single-target, applies status 3408
-    MythrilChains = 42240, //MythrilVergePulse->player, no cast, single-target, applies Bind and tether
-    VergePulse = 42241, // MythrilVergePulse->self, 20.0s cast, range 60.6 width 4 rect aoe
+    Stun = 30506, // MythrilVergePulse->player, no cast, single-target, applies status Stun/3408
+    MythrilChains = 42240, //MythrilVergePulse->player, no cast, single-target, applies Bind/3625 and tether 31
+    VergePulse = 42241, // MythrilVergePulse->self, 20.0s cast, range 60+R(0.6) width 4 rect aoe
 }
 
 public enum SID : uint
@@ -41,7 +41,10 @@ public enum TetherID : uint
     MythrilChains = 31, // MythrilVergePulse->player
 }
 
-//class Darkness(BossModule module) : Components.StandardAOEs(module, AID.Darkness, new AOEShapeCone(7.5f, 60.Degrees()));
+class LoomingJudgement(BossModule module) : Components.SingleTargetCast(module, AID.LoomingJudgement);
+class CreepingDarkness(BossModule module) : Components.RaidwideCast(module, AID.CreepingDarkness);
+class Dark(BossModule module) : Components.StandardAOEs(module, AID.Dark, new AOEShapeCircle(5));
+class DarkII(BossModule module) : Components.StandardAOEs(module, AID.DarkII, new AOEShapeCone(40, 60.Degrees()));
 class VergeLine(BossModule module) : Components.StandardAOEs(module, AID.VergeLine, new AOEShapeRect(60.6f, 2));
 class VergePulse(BossModule module) : Components.StandardAOEs(module, AID.VergePulse, new AOEShapeRect(60.6f, 2));
 
@@ -50,7 +53,10 @@ class D083AdjudicatorStates : StateMachineBuilder
     public D083AdjudicatorStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            //.ActivateOnEnter<Darkness>()
+            .ActivateOnEnter<LoomingJudgement>()
+            .ActivateOnEnter<CreepingDarkness>()
+            .ActivateOnEnter<Dark>()
+            .ActivateOnEnter<DarkII>()
             .ActivateOnEnter<VergeLine>()
             .ActivateOnEnter<VergePulse>();
     }
@@ -65,10 +71,7 @@ public class D083Adjudicator(WorldState ws, Actor primary) : BossModule(ws, prim
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                // figure out [if tether from vergepulse == on player, target priority 3]; yanked from P10S for now
-                //if ((TetherID)tether.ID is TetherID.MythrilChains)
-                //    WorldState.Actors.Find(tether.Target) => 3,
-                // maybe below is just fine? shouldn't spawn concurrently; Duty Support seems to kill them all fine in the allotted time
+                // note: could do 'when x => 3' for tether source to guarantee you get out first, but that seems overkill.
                 OID.MythrilVergePulse or OID.MythrilVergeLine => 2,
                 OID.Boss => 1,
                 _ => 0
