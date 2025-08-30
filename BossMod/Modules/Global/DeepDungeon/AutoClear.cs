@@ -290,7 +290,7 @@ public abstract class AutoClear : ZoneModule
 
     public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.IsBossFloor;
 
-    public sealed override string WindowName() => "VBM DD minimap###Zone module";
+    public sealed override string WindowName() => "VBM DD minimap###VBMDD";
 
     public override void DrawExtra()
     {

@@ -253,6 +253,23 @@ public static partial class Utils
         }
     }
 
+    // useful for grouping AOEs on radar; input must already be sorted in activation order
+    public static IEnumerable<T> TakeWhileTime<T>(IEnumerable<T> source, Func<T, DateTime> getTimestamp, float delay)
+    {
+        DateTime nextTs = default;
+        foreach (var s in source)
+        {
+            var ts = getTimestamp(s);
+            if (nextTs == default)
+                nextTs = ts;
+
+            if (ts > nextTs.AddSeconds(delay))
+                yield break;
+
+            yield return s;
+        }
+    }
+
     // swap two values
     public static void Swap<T>(ref T l, ref T r) => (r, l) = (l, r);
 

@@ -80,6 +80,10 @@ sealed class WorldStateGameSync : IDisposable
     private readonly Hook<ProcessMapEffectDelegate> _processMapEffect2Hook;
     private readonly Hook<ProcessMapEffectDelegate> _processMapEffect3Hook;
 
+    private unsafe delegate void ApplyKnockbackDelegate(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6);
+
+    private readonly Hook<ApplyKnockbackDelegate> _applyKnockbackHook;
+
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
         _ws = ws;
@@ -152,10 +156,17 @@ sealed class WorldStateGameSync : IDisposable
         _processMapEffect3Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x80, ProcessMapEffect3Detour);
         _processMapEffect3Hook.Enable();
         Service.Log($"[WSG] MapEffect addresses = 0x{_processMapEffect1Hook.Address:X}, 0x{_processMapEffect2Hook.Address:X}, 0x{_processMapEffect3Hook.Address:X}");
+
+        var addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? FF C6");
+        _applyKnockbackHook = Service.Hook.HookFromAddress<ApplyKnockbackDelegate>(addr, ApplyKnockbackDetour);
+        if (Service.IsDev)
+            _applyKnockbackHook.Enable();
+        Service.Log($"[WSG] ApplyKnockback address = {_applyKnockbackHook.Address:X}");
     }
 
     public void Dispose()
     {
+        _applyKnockbackHook.Dispose();
         _processMapEffect1Hook.Dispose();
         _processMapEffect2Hook.Dispose();
         _processMapEffect3Hook.Dispose();
@@ -256,7 +267,9 @@ sealed class WorldStateGameSync : IDisposable
                 obj = null;
             }
 
-            if (actor != null && (obj == null || actor.InstanceID != obj->EntityId))
+            var existing = obj != null ? _ws.Actors.Find(obj->EntityId) : null;
+
+            if (actor != null && (obj == null || existing == null || actor.InstanceID != obj->EntityId))
             {
                 _actorsByIndex[i] = null;
                 RemoveActor(actor);
@@ -265,10 +278,9 @@ sealed class WorldStateGameSync : IDisposable
 
             if (obj != null)
             {
-                if (actor != _ws.Actors.Find(obj->EntityId))
-                {
+                if (actor != existing)
                     Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
-                }
+
                 UpdateActor(obj, i, actor);
             }
         }
@@ -309,7 +321,9 @@ sealed class WorldStateGameSync : IDisposable
         var hasAggro = _playerEnmity.IndexOf(obj->EntityId) >= 0;
         var target = chr != null ? SanitizedObjectID(chr->GetTargetId()) : 0; // note: when changing targets, we want to see changes immediately rather than wait for server response
         var modelState = chr != null ? new ActorModelState(chr->Timeline.ModelState, chr->Timeline.AnimationState[0], chr->Timeline.AnimationState[1]) : default;
-        var eventState = obj->EventState;
+        // TODO: undo when cs is updated
+        var eventState = *((byte*)obj + 0x70);
+        // var eventState = obj->EventState;
         var radius = obj->GetRadius();
         var mountId = chr != null ? chr->Mount.MountId : 0u;
         var forayInfoPtr = chr != null ? chr->GetForayInfo() : null;
@@ -1020,5 +1034,11 @@ sealed class WorldStateGameSync : IDisposable
             var index = data[i + offIndex];
             _globalOps.Add(new WorldState.OpEnvControl(index, low | ((uint)high << 16)));
         }
+    }
+
+    private unsafe void ApplyKnockbackDetour(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6)
+    {
+        _applyKnockbackHook.Original(thisPtr, a2, a3, a4, a5, a6);
+        Service.Log("applying knockback to player");
     }
 }

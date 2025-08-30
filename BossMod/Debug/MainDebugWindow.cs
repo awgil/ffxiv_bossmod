@@ -242,7 +242,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         ImGui.TableHeadersRow();
         foreach (var elem in ws.Actors)
         {
-            if (elem.CastInfo == null || elem.Type != ActorType.Enemy)
+            if (elem.CastInfo == null || elem.IsAlly)
                 continue;
 
             ImGui.TableNextRow();
@@ -274,17 +274,40 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (aeh == null)
             return;
 
+        ImGui.TextUnformatted($"Effecthandler address: {(nint)aeh:X}");
+
+        ImGui.BeginTable("effects", 6, ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg);
+        ImGui.TableSetupColumn("Seq", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Action");
+        ImGui.TableSetupColumn("Source");
+        ImGui.TableSetupColumn("Target");
+        ImGui.TableSetupColumn("Effects");
+        ImGui.TableHeadersRow();
         foreach (var entry in aeh->IncomingEffects)
         {
             if (entry.ActionId == 0)
                 continue;
-            ImGui.TextUnformatted(new ActionID((ActionType)entry.ActionType, entry.ActionId).ToString());
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(entry.GlobalSequence.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(entry.TargetIndex.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{new ActionID((ActionType)entry.ActionType, entry.ActionId)} ({entry.SpellId})");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{entry.Source.Id:X} confirmed={entry.SourceConfirmed}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{entry.Target.Id:X} confirmed={entry.TargetConfirmed}");
+            ImGui.TableNextColumn();
             foreach (var eff in entry.Effects.Effects)
             {
                 if (eff.Type > 0)
                     ImGui.TextUnformatted($"{(ActionEffectType)eff.Type} {eff.Param0:X2} {eff.Param1:X2} {eff.Param2:X2} {eff.Param3:X2} {eff.Param4:X2} {eff.Value}");
             }
         }
+        ImGui.EndTable();
     }
 
     private readonly TrackPartyHealth _partyHealth = new(ws);
