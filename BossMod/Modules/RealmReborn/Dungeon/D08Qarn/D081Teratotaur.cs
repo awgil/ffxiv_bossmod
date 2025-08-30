@@ -129,4 +129,13 @@ public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, prima
             };
         }
     }
+
+    // TODO: draw pads as AOEShapeRect while inactive?
+    // DrawArenaForeground seems preferred over DrawEnemies; bit inconsistent.
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var e in Enemies(OID.DungWespe))
+            Arena.Actor(e, ArenaColor.Enemy);
+    }
 }

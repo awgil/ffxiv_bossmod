@@ -78,4 +78,13 @@ public class D083Adjudicator(WorldState ws, Actor primary) : BossModule(ws, prim
             };
         }
     }
+
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var e in Enemies(OID.MythrilVergeLine))
+            Arena.Actor(e, ArenaColor.Enemy);
+        foreach (var e in Enemies(OID.MythrilVergePulse))
+            Arena.Actor(e, ArenaColor.Enemy);
+    }
 }
