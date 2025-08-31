@@ -4,8 +4,8 @@
 
 public enum OID : uint
 {
-    Boss = 0x477A, // x1
-    DungWespe = 0x477B, // spawn during fight
+    Boss = 0x477A, // R2.240, x1
+    DungWespe = 0x477B, // R0.400, x0 (spawn during fight)
     Platform1 = 0x1E87E2, // x1, EventObj type; eventstate 0 if active, 7 if inactive
     Platform2 = 0x1E87E3, // x1, EventObj type; eventstate 0 if active, 7 if inactive
     Platform3 = 0x1E87E4, // x1, EventObj type; eventstate 0 if active, 7 if inactive
@@ -13,13 +13,13 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttackBoss = 870, // Boss->player, no cast
+    AutoAttackBoss = 870, // Boss->player, no cast, single-target
     Triclip = 42231, // Boss->player, 5.0s cast, single-target tankbuster
-    Mow = 42232, // Boss->self, 2.5s cast, range 6 120-degree cone aoe
+    Mow = 42232, // Boss->self, 2.5s cast, range 6+R 120-degree cone aoe
     FrightfulRoar = 42233, // Boss->self, 3.0s cast, range 6 circle aoe
     MortalRay = 42229, // Boss->self, 3.0s cast, raidwide doom debuff
 
-    AutoAttackWespe = 871, // DungWespe->player, no cast
+    AutoAttackWespe = 871, // DungWespe->player, no cast, single-target
     FinalSting = 919, // DungWespe->player, 3.0s cast
 }
 

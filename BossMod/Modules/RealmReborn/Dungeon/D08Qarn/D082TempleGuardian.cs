@@ -2,18 +2,18 @@
 
 public enum OID : uint
 {
-    Boss = 0x477C, // x1
-    GolemSoulstone = 0x477D, // x1, Part type, and more spawn during fight. applies vuln down to boss while alive
+    Boss = 0x477C, // R2.200, x1
+    GolemSoulstone = 0x477D, // R2.200, x1, Part type, and more spawn during fight; applies vuln down to boss while alive
 }
 
 public enum AID : uint
 {
-    AutoAttack = 872, // Boss->player, no cast
-    BoulderClap = 42234, // Boss->self, 2.5s cast, range 12+R(2.2) 120-degree cone aoe
-    TrueGrit = 42235, // Boss->self, 3.0s cast, range 12+R(2.2) 120-degree cone aoe
-    Rockslide = 42236, // Boss->self, 2.5s cast, range 14+R(2.2) width 8 rect aoe
+    AutoAttack = 872, // Boss->player, no cast, single-target
+    BoulderClap = 42234, // Boss->self, 2.5s cast, range 12+R 120-degree cone aoe
+    TrueGrit = 42235, // Boss->self, 3.0s cast, range 12+R 120-degree cone aoe
+    Rockslide = 42236, // Boss->self, 2.5s cast, range 14+R width 8 rect aoe
     StoneSkull = 42237, // Boss->player, no cast, random single-target stun + knockback
-    Obliterate = 42238, // Boss->self, 2.0s cast, range 60 circle aoe (raidwide)
+    Obliterate = 42238, // Boss->self, 2.0s cast, raidwide
 }
 
 public enum SID : uint

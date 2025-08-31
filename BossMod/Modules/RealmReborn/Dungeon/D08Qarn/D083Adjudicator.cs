@@ -2,26 +2,26 @@
 
 public enum OID : uint
 {
-    Boss = 0x477E, // x1
-    MythrilVergeLine = 0x477F, // spawn during fight
-    MythrilVergePulse = 0x4780, // spawn during fight
+    Boss = 0x477E, // R1.500, x1
+    MythrilVergeLine = 0x477F, // R0.600, x0 (spawn during fight)
+    MythrilVergePulse = 0x4780, // R0.600, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    AutoAttack = 872, // Boss->player, no cast
+    AutoAttack = 872, // Boss->player, no cast, single-target
     LoomingJudgement = 42245, // Boss->player, 5.0s cast, single-target tankbuster
-    Dark = 42246, // Boss->none, 3.0s cast, range 5 circle aoe, spawns on target(?)
+    Dark = 42246, // Boss->location, 3.0s cast, range 5 circle aoe
     DarkII = 42248, // Boss->self, 6.0s cast, range 40 120-degree cone aoe
     CreepingDarkness = 42247, // Boss->self, 2.5s cast, range 50 raidwide circle aoe
     SummonVL = 42243, //Boss->self, 3.0s cast, single-target, spawns MythrilVergeLine
     SummonVP = 42239, //Boss->self, 3.0s cast, single-target, spawns MythrilVergePulse
 
-    VergeLine = 42244, // MythrilVergeLine->self, 4.0s cast, range 60+R(0.6) width 4 rect aoe
+    VergeLine = 42244, // MythrilVergeLine->self, 4.0s cast, range 60+R width 4 rect aoe
 
     Stun = 30506, // MythrilVergePulse->player, no cast, single-target, applies status Stun/3408
     MythrilChains = 42240, //MythrilVergePulse->player, no cast, single-target, applies status Bind/3625 and tether 31
-    VergePulse = 42241, // MythrilVergePulse->self, 20.0s cast, range 60+R(0.6) width 4 rect aoe
+    VergePulse = 42241, // MythrilVergePulse->self, 20.0s cast, range 60+R width 4 rect aoe
 }
 
 public enum SID : uint
