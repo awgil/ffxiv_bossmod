@@ -34,7 +34,7 @@ public enum IconID : uint
 }
 
 class Triclip(BossModule module) : Components.SingleTargetCast(module, AID.Triclip, "Tankbuster");
-class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(6, 60.Degrees()));
+class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(8.24f, 60.Degrees()));
 class FrightfulRoar(BossModule module) : Components.StandardAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(6));
 
 // TODO:
