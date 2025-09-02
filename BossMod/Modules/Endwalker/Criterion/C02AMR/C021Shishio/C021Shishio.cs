@@ -8,6 +8,20 @@ class ThunderVortex(BossModule module, AID aid) : Components.StandardAOEs(module
 class NThunderVortex(BossModule module) : ThunderVortex(module, AID.NThunderVortex);
 class SThunderVortex(BossModule module) : ThunderVortex(module, AID.SThunderVortex);
 
+class CircleBounds(BossModule module) : BossComponent(module)
+{
+    public override void OnEventEnvControl(byte index, uint state)
+    {
+        if (index == 0x34)
+        {
+            if (state == 0x00020001)
+                Arena.Bounds = new ArenaBoundsCircle(20);
+            if (state == 0x00080004)
+                Arena.Bounds = new ArenaBoundsSquare(20);
+        }
+    }
+}
+
 public abstract class C021Shishio(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -100), new ArenaBoundsSquare(20));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12428, SortOrder = 4, PlanLevel = 90)]
