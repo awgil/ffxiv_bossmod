@@ -74,7 +74,7 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
-    private unsafe delegate void ProcessMapEffectDelegate(byte* data);
+    private unsafe delegate void ProcessMapEffectDelegate(ContentDirector* director, byte* packet);
 
     private readonly Hook<ProcessMapEffectDelegate> _processMapEffect1Hook;
     private readonly Hook<ProcessMapEffectDelegate> _processMapEffect2Hook;
@@ -1010,22 +1010,22 @@ sealed class WorldStateGameSync : IDisposable
         return res;
     }
 
-    private unsafe void ProcessMapEffect1Detour(byte* data)
+    private unsafe void ProcessMapEffect1Detour(ContentDirector* director, byte* packet)
     {
-        _processMapEffect1Hook.Original(data);
-        ProcessMapEffect(data, 10, 18);
+        _processMapEffect1Hook.Original(director, packet);
+        ProcessMapEffect(packet, 10, 18);
     }
 
-    private unsafe void ProcessMapEffect2Detour(byte* data)
+    private unsafe void ProcessMapEffect2Detour(ContentDirector* director, byte* packet)
     {
-        _processMapEffect2Hook.Original(data);
-        ProcessMapEffect(data, 18, 34);
+        _processMapEffect2Hook.Original(director, packet);
+        ProcessMapEffect(packet, 18, 34);
     }
 
-    private unsafe void ProcessMapEffect3Detour(byte* data)
+    private unsafe void ProcessMapEffect3Detour(ContentDirector* director, byte* packet)
     {
-        _processMapEffect3Hook.Original(data);
-        ProcessMapEffect(data, 26, 50);
+        _processMapEffect3Hook.Original(director, packet);
+        ProcessMapEffect(packet, 26, 50);
     }
 
     private unsafe void ProcessMapEffect(byte* data, byte offLow, byte offIndex)
