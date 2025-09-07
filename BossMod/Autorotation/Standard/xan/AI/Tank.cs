@@ -204,22 +204,25 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     private void AutoProtect()
     {
-        var threat = Hints.PriorityTargets.FirstOrDefault(x =>
-            // skip all of this for fates mobs, we can't provoke them and probably don't care about this anyway
+        var threat = Hints.PotentialTargets.TakeWhile(t => t.Priority >= AIHints.Enemy.PriorityInvincible).FirstOrDefault(x =>
+            // fate mobs are immune to provoke and we probably don't care about this anyway
             x.Actor.FateID == 0
-            && World.Actors.Find(x.Actor.TargetID) is Actor victim
-            && victim.IsAlly
-            && victim.Class.GetRole() != Role.Tank
+            && World.Party.TryFindSlot(x.Actor.TargetID, out var slot)
+            && World.Party[slot]!.Class.GetRole() != Role.Tank
         );
         if (threat != null)
         {
-            if (Player.DistanceToHitbox(threat.Actor) > 3)
-                Hints.ActionsToExecute.Push(JobActions.Ranged, threat.Actor, ActionQueue.Priority.VeryHigh);
-            else
-                // in case all mobs are in melee range, but there aren't enough mobs to switch to aoe
-                Hints.ForcedTarget = threat.Actor;
-
+            // provoke works on invincible mobs
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Provoke), threat.Actor, ActionQueue.Priority.Medium);
+
+            if (threat.Priority > AIHints.Enemy.PriorityInvincible)
+            {
+                if (Player.DistanceToHitbox(threat.Actor) > 3)
+                    Hints.ActionsToExecute.Push(JobActions.Ranged, threat.Actor, ActionQueue.Priority.ManualGCD - 100);
+                else
+                    // in case all mobs are in melee range, but there aren't enough mobs to switch to aoe
+                    Hints.ForcedTarget = threat.Actor;
+            }
         }
 
         foreach (var rw in Raidwides)

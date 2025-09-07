@@ -7,7 +7,8 @@ class C021ShishioStates : StateMachineBuilder
     public C021ShishioStates(BossModule module, bool savage) : base(module)
     {
         _savage = savage;
-        DeathPhase(0, SinglePhase);
+        DeathPhase(0, SinglePhase)
+            .ActivateOnEnter<CircleBounds>();
     }
 
     private void SinglePhase(uint id)

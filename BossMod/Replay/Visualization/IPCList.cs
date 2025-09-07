@@ -45,6 +45,7 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
         PacketID.ItemInfo,
         PacketID.ContainerInfo
     ];
+    private bool _filterInvert;
 
     public void Draw(UITree tree, DateTime reference)
     {
@@ -59,6 +60,7 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
     public void ClearFilters()
     {
         _filteredPackets.Clear();
+        _filterInvert = false;
         _nodes = null;
     }
 
@@ -70,21 +72,21 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
             DrawNodes(tree, n.Children);
     }
 
-    private bool FilterOp(NetworkState.OpServerIPC op) => !_filteredPackets.Contains(op.Packet.ID);
+    private bool FilterOp(NetworkState.OpServerIPC op) => _filterInvert ? _filteredPackets.Contains(op.Packet.ID) : !_filteredPackets.Contains(op.Packet.ID);
 
     private void ContextMenu(NetworkState.OpServerIPC op)
     {
         if (ImGui.MenuItem($"Filter out opcode {op.Packet.ID}"))
         {
             _filteredPackets.Add(op.Packet.ID);
+            _filterInvert = false;
             _nodes = null;
         }
         if (ImGui.MenuItem($"Focus opcode {op.Packet.ID}"))
         {
             _filteredPackets.Clear();
-            foreach (var p in Enum.GetValues<PacketID>())
-                _filteredPackets.Add(p);
-            _filteredPackets.Remove(op.Packet.ID);
+            _filteredPackets.Add(op.Packet.ID);
+            _filterInvert = true;
             _nodes = null;
         }
     }
