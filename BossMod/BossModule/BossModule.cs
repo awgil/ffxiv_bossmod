@@ -253,6 +253,8 @@ public abstract class BossModule : IDisposable
         CalculateModuleAIHints(slot, actor, assignment, hints);
         if (!WindowConfig.AllowAutomaticActions)
             hints.ActionsToExecute.Clear();
+        if (!WindowConfig.AllowAutomaticInteract)
+            hints.InteractWithTarget = null;
     }
 
     public void ReportError(BossComponent? comp, string message)

@@ -226,7 +226,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         }
 
         foreach (var rw in Raidwides)
-            if ((rw - World.CurrentTime).TotalSeconds < 5)
+            if (World.FutureTime(5) > rw)
             {
                 Hints.ActionsToExecute.Push(JobActions.PartyMit.ID, Player, ActionQueue.Priority.Medium);
                 if (Player.DistanceToHitbox(Bossmods.ActiveModule?.PrimaryActor) <= 5)
