@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Automatic out-of-combat utility actions", Parent = typeof(ActionTweaksConfig), Since = "0.0.0.245", Order = -10)]
+[ConfigDisplay(Name = "Automatic out-of-combat utility actions", Parent = typeof(ActionTweaksConfig), Since = "0.0.0.245", Order = -10, Tags = ["peloton"])]
 class OutOfCombatActionsConfig : ConfigNode
 {
     [PropertyDisplay("Enable the feature")]
