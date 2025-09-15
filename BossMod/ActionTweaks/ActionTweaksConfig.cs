@@ -14,7 +14,7 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Remove extra framerate-induced cooldown delay", tooltip: "Dynamically adjusts cooldown and animation locks to ensure queued actions resolve immediately regardless of framerate limitations")]
     public bool RemoveCooldownDelay = false;
 
-    [PropertyDisplay("Prevent movement while casting")]
+    [PropertyDisplay("Prevent movement while casting", tags: ["slidecast"])]
     public bool PreventMovingWhileCasting = false;
 
     public enum ModifierKey
@@ -31,7 +31,7 @@ public sealed class ActionTweaksConfig : ConfigNode
         M12
     }
 
-    [PropertyDisplay("Key to hold to allow movement while casting", depends: nameof(PreventMovingWhileCasting))]
+    [PropertyDisplay("Key to hold to allow movement while casting", depends: nameof(PreventMovingWhileCasting), tags: ["slidecast"])]
     public ModifierKey MoveEscapeHatch = ModifierKey.None;
 
     [PropertyDisplay("Automatically cancel a cast when target is dead")]

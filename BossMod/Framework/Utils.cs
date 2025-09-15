@@ -304,6 +304,8 @@ public static partial class Utils
         return res;
     }
 
+    public static bool TextMatch(string haystack, string needle) => haystack.Contains(needle, StringComparison.InvariantCultureIgnoreCase);
+
     // bounds-checking access
     public static T? BoundSafeAt<T>(this T[] array, int index, T? outOfBounds = default) => index >= 0 && index < array.Length ? array[index] : outOfBounds;
     public static T? BoundSafeAt<T>(this List<T> array, int index, T? outOfBounds = default) => index >= 0 && index < array.Count ? array[index] : outOfBounds;
