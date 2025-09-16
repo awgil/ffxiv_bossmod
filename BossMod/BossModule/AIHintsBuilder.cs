@@ -138,6 +138,22 @@ public sealed class AIHintsBuilder : IDisposable
         if (inFate)
         {
             hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
+
+            // if in a big fate with no obstacle map available, reduce resolution to avoid destroying fps
+            // fates don't need precise pathfinding anyway since they are just orange circle simulators
+            if (bitmap == null)
+            {
+                switch (_ws.Client.ActiveFate.Radius)
+                {
+                    case > 60:
+                        resolution = 2;
+                        break;
+                    case > 30:
+                        resolution = 1;
+                        break;
+                }
+            }
+
             hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius, resolution));
             if (e != null && bitmap != null)
             {
