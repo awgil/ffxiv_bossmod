@@ -44,7 +44,7 @@ class AkhMorn(BossModule module) : Components.UniformStackSpread(module, 6, 0)
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.AkhMorn or AID.AkhMornRepeat)
-            if (++Counter >= 6)
+            if (++Counter >= 5)
                 Stacks.Clear();
     }
 }
