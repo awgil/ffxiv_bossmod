@@ -44,6 +44,9 @@ sealed class WorldStateGameSync : IDisposable
     private readonly ConfigListener<ReplayManagementConfig> _netConfig;
     private readonly EventSubscriptions _subscriptions;
 
+    private unsafe delegate byte ProcessLegacyMapEffectDelegate(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length);
+    private readonly Hook<ProcessLegacyMapEffectDelegate> _processLegacyMapEffectHook;
+
     private unsafe delegate void ProcessPacketActorCastDelegate(uint casterId, Network.ServerIPC.ActorCast* packet);
     private readonly Hook<ProcessPacketActorCastDelegate> _processPacketActorCastHook;
 
@@ -160,6 +163,11 @@ sealed class WorldStateGameSync : IDisposable
         _processMapEffect3Hook.Enable();
         Service.Log($"[WSG] MapEffect addresses = 0x{_processMapEffect1Hook.Address:X}, 0x{_processMapEffect2Hook.Address:X}, 0x{_processMapEffect3Hook.Address:X}");
 
+        var ad = Service.SigScanner.ScanText("89 54 24 10 48 89 4C 24 ?? 53 56 57 41 55 41 57 48 83 EC 30 48 8B 99 ?? ?? ?? ??");
+        _processLegacyMapEffectHook = Service.Hook.HookFromAddress<ProcessLegacyMapEffectDelegate>(ad, ProcessLegacyMapEffectDetour);
+        _processLegacyMapEffectHook.Enable();
+        Service.Log($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
+
         var addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? FF C6");
         _applyKnockbackHook = Service.Hook.HookFromAddress<ApplyKnockbackDelegate>(addr, ApplyKnockbackDetour);
         if (Service.IsDev)
@@ -170,6 +178,7 @@ sealed class WorldStateGameSync : IDisposable
     public void Dispose()
     {
         _applyKnockbackHook.Dispose();
+        _processLegacyMapEffectHook.Dispose();
         _processMapEffect1Hook.Dispose();
         _processMapEffect2Hook.Dispose();
         _processMapEffect3Hook.Dispose();
@@ -1041,7 +1050,16 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void ApplyKnockbackDetour(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6)
     {
-        _applyKnockbackHook.Original(thisPtr, a2, a3, a4, a5, a6);
         Service.Log("applying knockback to player");
+        _applyKnockbackHook.Original(thisPtr, a2, a3, a4, a5, a6);
+    }
+
+    private unsafe byte ProcessLegacyMapEffectDetour(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length)
+    {
+        var res = _processLegacyMapEffectHook.Original(fwk, eventId, seq, unk, data, length);
+
+        _globalOps.Add(new WorldState.OpLegacyMapEffect(seq, unk, new Span<byte>(data, (int)length).ToArray()));
+
+        return res;
     }
 }

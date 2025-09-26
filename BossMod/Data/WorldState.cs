@@ -146,6 +146,15 @@ public sealed class WorldState
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ENVC"u8).Emit(Index, "X2").Emit(State, "X8");
     }
 
+    public Event<OpLegacyMapEffect> LegacyMapEffect = new();
+    public sealed record class OpLegacyMapEffect(byte Sequence, byte Param, byte[] Data) : Operation
+    {
+        public readonly byte[] Data = Data;
+
+        protected override void Exec(WorldState ws) => ws.LegacyMapEffect.Fire(this);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("LEME"u8).Emit(Sequence, "X2").Emit(Param, "X2").Emit(Data);
+    }
+
     public Event<OpSystemLogMessage> SystemLogMessage = new();
     public sealed record class OpSystemLogMessage(uint MessageId, int[] Args) : Operation
     {
