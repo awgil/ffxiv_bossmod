@@ -14,7 +14,7 @@ class DancingFlame(BossModule module) : Components.GenericAOEs(module, AID.Danci
             AOEs.Add(new(_shape, caster.Position + 40 * caster.Rotation.ToDirection(), default, Module.CastFinishAt(spell, 1)));
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 27 && state == 0x00080004)
             AOEs.Clear();

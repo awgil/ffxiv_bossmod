@@ -11,7 +11,7 @@ class AddsVoidzone(BossModule module) : Components.GenericAOEs(module)
             yield return new(new AOEShapeCircle(8), Arena.Center, Activation: _activation);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 1)
         {

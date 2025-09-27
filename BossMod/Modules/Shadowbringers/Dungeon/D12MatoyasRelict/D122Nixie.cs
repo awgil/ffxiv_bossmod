@@ -72,7 +72,7 @@ class Gurgle(BossModule module) : Components.GenericAOEs(module)
         (new(20, -135), -90.Degrees()),
     ];
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001 && index is >= 0x13 and <= 0x1A)
         {
@@ -116,7 +116,7 @@ class GeyserDanger(BossModule module) : Components.GenericAOEs(module, AID.Sploo
 
 class Bounds(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x12)
         {

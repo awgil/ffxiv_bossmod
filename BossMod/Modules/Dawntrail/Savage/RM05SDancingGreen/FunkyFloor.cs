@@ -79,7 +79,7 @@ class FunkyFloor(BossModule module) : Components.GenericAOEs(module, AID.FunkyFl
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (!Active && index == 3)
         {

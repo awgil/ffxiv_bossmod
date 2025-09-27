@@ -33,7 +33,7 @@ class ArenaBounds(BossModule module) : Components.GenericAOEs(module)
             yield return new AOEInstance(new AOEShapeDonut(20, 50), Arena.Center, default, _activation);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 2 && state == 0x00010001)
         {

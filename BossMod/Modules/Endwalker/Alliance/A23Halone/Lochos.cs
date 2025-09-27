@@ -19,7 +19,7 @@ class Lochos(BossModule module, float activationDelay) : Components.GenericAOEs(
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00200010)
         {

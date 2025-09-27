@@ -115,7 +115,7 @@ class Phase2OuterRing(BossModule module) : Components.GenericAOEs(module)
             _aoe = new(_shape, Module.Center, default, Module.CastFinishAt(spell, 1.1f));
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index != 2)
             return;
@@ -150,7 +150,7 @@ class Phase2InnerCells(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // 03-1E = mid squares
         // - 08000001 - init

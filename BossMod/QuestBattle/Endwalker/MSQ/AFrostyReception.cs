@@ -95,7 +95,7 @@ internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
                     if (World.Actors.Find(player.TargetID)?.OID == 0x384C)
                         hints.ForcedTarget = player;
                 };
-                obj.OnEnvControl += (env) => obj.CompleteIf(env.Index == 14 && env.State == 0x80002);
+                obj.OnMapEffect += (env) => obj.CompleteIf(env.Index == 14 && env.State == 0x80002);
             }),
 
         Takedown(new(55, 0, -375), 0x3627).Named("Guard 1").MoveHint(new WPos(76.25f, -356.250f)),

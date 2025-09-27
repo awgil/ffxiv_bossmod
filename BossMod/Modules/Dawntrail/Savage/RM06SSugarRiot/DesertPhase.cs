@@ -133,7 +133,7 @@ class Quicksand(BossModule module) : Components.GenericAOEs(module, warningText:
             StandInQuicksand.Reset();
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001)
         {

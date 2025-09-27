@@ -144,7 +144,7 @@ class ArmLaser(BossModule module) : Components.StandardAOEs(module, AID.ArmLaser
 class DemolishStructure(BossModule module) : Components.StandardAOEs(module, AID.DemolishStructure, new AOEShapeCircle(25));
 class DemolishBounds(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x0B && state == 0x00020001)
             Arena.Center = new(900, 785);
@@ -170,7 +170,7 @@ class IncendiarySaturationBombingVoidzone(BossModule module) : BossComponent(mod
             Arena.Bounds = new ArenaBoundsSquare(15);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x0C && state == 0x00080004)
         {

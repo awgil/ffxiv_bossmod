@@ -35,7 +35,7 @@ class Terrible(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes.FirstOrDefault([]);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (aoes.Count > 0)
             return;

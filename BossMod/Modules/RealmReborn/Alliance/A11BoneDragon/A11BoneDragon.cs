@@ -70,7 +70,7 @@ class Poison : Components.GenericAOEs
             yield return new(_poisonShape, Arena.Center, default, DateTime.MaxValue);
     }
 
-    public override void OnLegacyMapEffect(byte sequence, byte param, byte[] data)
+    public override void OnLegacyMapEffect(byte seq, byte param, byte[] data)
     {
         if (data[0] == 3 && data[2] == 0x10)
             _active = true;

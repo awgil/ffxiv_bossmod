@@ -31,7 +31,7 @@ class StableCannon(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 8 and <= 10)
         {
@@ -95,7 +95,7 @@ class Launchpad(BossModule module) : BossComponent(module)
 
     private static readonly WPos Position = new(-175, 30);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x0D)
         {

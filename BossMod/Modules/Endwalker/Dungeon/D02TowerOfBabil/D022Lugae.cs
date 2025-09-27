@@ -58,7 +58,7 @@ class DownpourMagitekChakram(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is 0x01 or 0x02 && state == 0x00080004)
         {

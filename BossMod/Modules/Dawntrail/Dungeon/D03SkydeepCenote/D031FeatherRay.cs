@@ -60,7 +60,7 @@ class HydroRing(BossModule module) : Components.GenericAOEs(module, AID.HydroRin
             _aoe = new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell));
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 19 && state == 0x00080004)
             _aoe = null;

@@ -41,7 +41,7 @@ class AstralEclipse(BossModule module) : BossComponent(module)
             Arena.AddLine(from, to, ArenaColor.Safe);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is < 6 or > 8)
             return;

@@ -24,7 +24,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, AID.Hier
             BindsAssigned = true;
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state != 0x00020001)
             return;

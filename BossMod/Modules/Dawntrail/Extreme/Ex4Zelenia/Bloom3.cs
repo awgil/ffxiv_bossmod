@@ -118,7 +118,7 @@ class TileExplosion(BossModule module) : Components.CastCounter(module, AID.Tile
             _casters.Remove(caster);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (!_active)
             return;

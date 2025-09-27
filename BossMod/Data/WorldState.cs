@@ -139,10 +139,10 @@ public sealed class WorldState
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("DIRU"u8).Emit(DirectorID, "X8").Emit(UpdateID, "X8").Emit(Param1, "X8").Emit(Param2, "X8").Emit(Param3, "X8").Emit(Param4, "X8");
     }
 
-    public Event<OpEnvControl> EnvControl = new();
-    public sealed record class OpEnvControl(byte Index, uint State) : Operation
+    public Event<OpMapEffect> MapEffect = new();
+    public sealed record class OpMapEffect(byte Index, uint State) : Operation
     {
-        protected override void Exec(WorldState ws) => ws.EnvControl.Fire(this);
+        protected override void Exec(WorldState ws) => ws.MapEffect.Fire(this);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ENVC"u8).Emit(Index, "X2").Emit(State, "X8");
     }
 

@@ -290,7 +290,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("RSV "u8)] = ParseRSVData,
             [new("ZONE"u8)] = ParseZoneChange,
             [new("DIRU"u8)] = ParseDirectorUpdate,
-            [new("ENVC"u8)] = ParseEnvControl,
+            [new("ENVC"u8)] = ParseMapEffect,
             [new("LEME"u8)] = ParseLegacyMapEffect,
             [new("SLOG"u8)] = ParseSystemLog,
             [new("WAY+"u8)] = () => ParseWaymarkChange(true),
@@ -451,7 +451,7 @@ public sealed class ReplayParserLog : IDisposable
     private WorldState.OpDirectorUpdate ParseDirectorUpdate()
         => new(_input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true), _input.ReadUInt(true));
 
-    private WorldState.OpEnvControl ParseEnvControl()
+    private WorldState.OpMapEffect ParseMapEffect()
     {
         // director id field is removed in v11
         if (_version < 11)

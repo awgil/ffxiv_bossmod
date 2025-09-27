@@ -49,7 +49,7 @@ class ImpactWalls(BossModule module) : BossComponent(module)
 {
     private static readonly List<WPos> WallContour = [new(4, 124), new(4, 134.5f), new(0.5f, 134.5f), new(0.5f, 137.5f), new(4, 137.5f), new(4, 150.5f), new(0.5f, 150.5f), new(0.5f, 153.5f), new(4, 153.5f), new(4, 164), new(18, 164), new(18, 153.5f), new(21.5f, 153.5f), new(21.5f, 150.5f), new(18, 150.5f), new(18, 137.5f), new(22, 137.5f), new(22, 134.5f), new(18, 134.5f), new(18, 124)];
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0)
         {

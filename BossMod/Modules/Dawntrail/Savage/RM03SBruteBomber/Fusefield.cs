@@ -54,7 +54,7 @@ class FusefieldVoidzone(BossModule module) : Components.PersistentVoidzone(modul
 {
     public bool Active;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 19 && state is 0x00200010 or 0x00080004)
             Active = state == 0x00200010;

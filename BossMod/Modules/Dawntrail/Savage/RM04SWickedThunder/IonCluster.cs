@@ -31,7 +31,7 @@ class StampedingThunder(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0 && state is 0x00400004 or 0x00800004)
         {

@@ -21,7 +21,7 @@ class CrystallineThorns(BossModule module) : Components.CastCounter(module, AID.
             Arena.Zone(_triangulation, ArenaColor.AOE);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index != 1)
             return;

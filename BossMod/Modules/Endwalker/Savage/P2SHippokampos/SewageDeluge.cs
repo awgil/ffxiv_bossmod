@@ -83,7 +83,7 @@ class SewageDeluge(BossModule module) : BossComponent(module)
         Arena.PathStroke(true, ArenaColor.Border);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // 800375A2: we typically get two events for index=0 (global) and index=N (corner)
         // state 00200010 - "prepare" (show aoe that is still harmless)

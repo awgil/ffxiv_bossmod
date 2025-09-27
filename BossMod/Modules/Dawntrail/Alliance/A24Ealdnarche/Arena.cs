@@ -22,7 +22,7 @@ class Duplicate1(BossModule module) : Components.GenericAOEs(module, AID.Duplica
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 0x2C and <= 0x34 && state == 0x00020001)
         {
@@ -40,7 +40,7 @@ class Duplicate2(BossModule module) : Components.GenericAOEs(module, AID.Duplica
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _sourceTile >= 0 && _destinationTile >= 0 ? _aoes : [];
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 0x2C and <= 0x34 && state == 0x00020001)
         {
@@ -96,7 +96,7 @@ class TileArena(BossModule module) : BossComponent(module)
 {
     private BitMask _missing;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 0x1A and <= 0x22)
         {
@@ -134,7 +134,7 @@ class TileVanish(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 0x35 and <= 0x3D && state == 0x00020001)
             _aoe = new(new AOEShapeRect(8, 8, 8), Duplicate1.GetTile(index - 0x35), default, WorldState.FutureTime(7.9f), ArenaColor.Danger);
@@ -170,7 +170,7 @@ class QuakeZone(BossModule module) : Components.GenericAOEs(module)
             NumCasts++;
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 0x1A and <= 0x22)
         {

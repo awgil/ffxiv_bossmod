@@ -112,7 +112,8 @@ public abstract class BossModule : IDisposable
             WorldState.Actors.PlayActionTimelineEvent.Subscribe(OnActorPlayActionTimelineEvent),
             WorldState.Actors.EventNpcYell.Subscribe(OnActorNpcYell),
             WorldState.Actors.ModelStateChanged.Subscribe(OnActorModelStateChange),
-            WorldState.EnvControl.Subscribe(OnEnvControl),
+            WorldState.MapEffect.Subscribe(OnMapEffect),
+            WorldState.LegacyMapEffect.Subscribe(OnLegacyMapEffect),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate)
         );
 
@@ -510,10 +511,16 @@ public abstract class BossModule : IDisposable
             comp.OnActorModelStateChange(actor, actor.ModelState.ModelState, actor.ModelState.AnimState1, actor.ModelState.AnimState2);
     }
 
-    private void OnEnvControl(WorldState.OpEnvControl op)
+    private void OnMapEffect(WorldState.OpMapEffect op)
     {
         foreach (var comp in _components)
-            comp.OnEventEnvControl(op.Index, op.State);
+            comp.OnMapEffect(op.Index, op.State);
+    }
+
+    private void OnLegacyMapEffect(WorldState.OpLegacyMapEffect op)
+    {
+        foreach (var comp in _components)
+            comp.OnLegacyMapEffect(op.Sequence, op.Param, op.Data);
     }
 
     private void OnDirectorUpdate(WorldState.OpDirectorUpdate op)

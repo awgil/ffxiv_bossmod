@@ -72,7 +72,7 @@ public enum IconID : uint
 
 class ArenaChange(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x03)
         {

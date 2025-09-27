@@ -26,7 +26,7 @@ public class RheognosisCrash : Components.Exaflare
 {
     public RheognosisCrash(BossModule module) : base(module, new AOEShapeRect(10, 12), AID.RheognosisCrash) => ImminentColor = ArenaColor.AOE;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index <= 1 && state is 0x01000001 or 0x02000001)
         {

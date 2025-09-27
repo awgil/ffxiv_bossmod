@@ -4,7 +4,7 @@ class Voidzone(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime NextActivation;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 1 && state == 0x00020001)
             NextActivation = WorldState.CurrentTime;
@@ -27,7 +27,7 @@ class Tiles(BossModule module) : BossComponent(module)
 
     public bool this[int index] => Mask[index];
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00800040)
             Mask.Set(index - 4);

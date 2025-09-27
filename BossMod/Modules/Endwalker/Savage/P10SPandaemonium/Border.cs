@@ -25,7 +25,7 @@ class Border(BossModule module) : BossComponent(module)
             DrawBridge(+1);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state is 0x00020001 or 0x00080004)
         {

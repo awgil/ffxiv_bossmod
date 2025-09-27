@@ -55,7 +55,7 @@ public sealed class ReplayBuilder : IDisposable
             _ws.UserMarkerAdded.Subscribe(EventUserMarker),
             _ws.CurrentZoneChanged.Subscribe(EventZoneChange),
             _ws.DirectorUpdate.Subscribe(EventDirectorUpdate),
-            _ws.EnvControl.Subscribe(EventEnvControl),
+            _ws.MapEffect.Subscribe(EventMapEffect),
             _ws.Client.ActionRequested.Subscribe(ClientActionRequested),
             _ws.Client.ActionRejected.Subscribe(ClientActionRejected),
             _mgr.ModuleLoaded.Subscribe(ModuleLoaded),
@@ -129,7 +129,7 @@ public sealed class ReplayBuilder : IDisposable
                     m.Encounter.FirstTether = _res.Tethers.Count;
                     m.Encounter.FirstIcon = _res.Icons.Count;
                     m.Encounter.FirstDirectorUpdate = _res.DirectorUpdates.Count;
-                    m.Encounter.FirstEnvControl = _res.EnvControls.Count;
+                    m.Encounter.FirstEnvControl = _res.MapEffects.Count;
                     foreach (var p in _participants.Values.Where(p => p.WorldExistence.Count > 0 && p.WorldExistence[^1].End == default)) // include only live actors
                         m.Encounter.ParticipantsByOID.GetOrAdd(p.OID).Add(p);
                     foreach (var p in _ws.Party.WithoutSlot(true))
@@ -435,9 +435,9 @@ public sealed class ReplayBuilder : IDisposable
         _res.DirectorUpdates.Add(new(op.DirectorID, op.UpdateID, op.Param1, op.Param2, op.Param3, op.Param4, _ws.CurrentTime));
     }
 
-    private void EventEnvControl(WorldState.OpEnvControl op)
+    private void EventMapEffect(WorldState.OpMapEffect op)
     {
-        _res.EnvControls.Add(new(op.Index, op.State, _ws.CurrentTime));
+        _res.MapEffects.Add(new(op.Index, op.State, _ws.CurrentTime));
     }
 
     private void ClientActionRequested(ClientState.OpActionRequest op)

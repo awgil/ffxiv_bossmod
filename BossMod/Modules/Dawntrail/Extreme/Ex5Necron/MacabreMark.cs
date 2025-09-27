@@ -15,7 +15,7 @@ class MacabreMark(BossModule module) : Components.GenericTowers(module, AID.Maca
         (new(109, 112), 3)
     ];
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 0x1A and <= 0x23 && state == 0x00020001)
         {

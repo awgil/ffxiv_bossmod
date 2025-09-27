@@ -72,7 +72,7 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
 
     private static float CalculateStampedeLength(List<Actor> beasts) => (beasts[0].Position - beasts[^1].Position).Length();
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001)
         {

@@ -8,7 +8,7 @@ class CrimsonRiddle(BossModule module) : Components.GroupedAOEs(module, [AID.Cri
 
 class ArenaBounds(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // suzaku bounds
         if (index == 0x4B && state == 0x00020001)
