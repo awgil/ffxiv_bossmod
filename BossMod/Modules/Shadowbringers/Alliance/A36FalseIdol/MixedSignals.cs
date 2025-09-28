@@ -20,7 +20,7 @@ class MixedSignals(BossModule module) : Components.GenericAOEs(module, AID.Crash
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index >= 8 && index <= 0x0C && state == 0x00200010)
         {

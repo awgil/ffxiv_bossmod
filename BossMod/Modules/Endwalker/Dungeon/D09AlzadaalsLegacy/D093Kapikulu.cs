@@ -83,7 +83,7 @@ class ManaExplosion(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001)
         {
@@ -119,7 +119,7 @@ class SpikeTraps(BossModule module) : Components.GenericAOEs(module)
             _aoes.Add(new(rect, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x01 && state is 0x00400004 or 0x00800004 or 0x00080004)
             _aoes.Clear();

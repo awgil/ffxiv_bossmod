@@ -17,7 +17,7 @@ class Quintessence(BossModule module) : Components.GenericAOEs(module)
             yield return new(imminent.shape, imminent.origin, imminent.rotation, imminent.activation, ArenaColor.Danger);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state != 0x00020001 || index is < 0x4C or > 0x57)
             return;

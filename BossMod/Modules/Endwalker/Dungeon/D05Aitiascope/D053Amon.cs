@@ -54,7 +54,7 @@ class Entracte(BossModule module) : Components.RaidwideCast(module, AID.Entracte
 
 class CurtainCall(BossModule module) : Components.GenericLineOfSightAOE(module, AID.CurtainCall, 60, true)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 5)
         {

@@ -50,7 +50,7 @@ class NecroticFluid(BossModule module) : Components.Exaflare(module, new AOEShap
 
     private WindDirection Wind;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x2B && state == 0x01000010)
             Wind = WindDirection.North;

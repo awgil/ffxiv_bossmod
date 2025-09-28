@@ -39,7 +39,7 @@ public enum AID : uint
 
 class Voidzone(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x0A)
             Module.Arena.Bounds = new ArenaBoundsCircle(20);

@@ -4,7 +4,7 @@ class ArenaBounds(BossModule module) : BossComponent(module)
 {
     public bool Ship2 { get; private set; }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x25 && state == 0x00020001)
         {
@@ -31,7 +31,7 @@ class CitadelSiegeArena(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x18)
         {
@@ -58,7 +58,7 @@ class CitadelSiegeJump(BossModule module) : BossComponent(module)
 {
     private DateTime _deadline;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x19 && state == 0x00020001)
         {

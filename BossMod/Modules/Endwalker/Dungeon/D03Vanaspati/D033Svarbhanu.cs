@@ -38,7 +38,7 @@ class ChaoticUndercurrent(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // index 0x08
         // red blue blue red => 0x00400020, red (-142, -172), blue (-152, -162)
@@ -125,7 +125,7 @@ class CosmicKissRect(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(3);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001 && _aoes.Count == 0)
         {

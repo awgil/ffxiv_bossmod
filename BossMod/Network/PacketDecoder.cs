@@ -29,7 +29,7 @@ public abstract unsafe class PacketDecoder
     public TextNode Decode(NetworkState.ServerIPC ipc, DateTime now)
     {
         Now = now;
-        var sb = new StringBuilder($"Server IPC {ipc.ID} [0x{ipc.Opcode:X4} / 0x{ipc.Opcode - 102:X4}]: {DecodeActor(ipc.SourceServerActor)}, sent {(now - ipc.SendTimestamp).TotalMilliseconds:f3}ms ago, epoch={ipc.Epoch}, data=");
+        var sb = new StringBuilder($"Server IPC {ipc.ID} [0x{ipc.Opcode:X4} / 0x{ipc.Opcode - 101:X4}]: {DecodeActor(ipc.SourceServerActor)}, sent {(now - ipc.SendTimestamp).TotalMilliseconds:f3}ms ago, epoch={ipc.Epoch}, data=");
         foreach (byte b in ipc.Payload)
             sb.Append($"{b:X2}");
         var node = new TextNode(sb.ToString());
@@ -110,7 +110,7 @@ public abstract unsafe class PacketDecoder
         PacketID.EventPlay128 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 128)),
         PacketID.EventPlay255 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 255)),
         PacketID.ServerRequestCallbackResponse1 when (DecodeServerRequestCallbackResponse*)payload is var p => DecodeServerRequestCallbackResponse(p),
-        PacketID.EnvControl when (EnvControl*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
+        PacketID.MapEffect when (MapEffect*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
         PacketID.NpcYell when (NpcYell*)payload is var p => new($"{DecodeActor(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.Sheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
         PacketID.WaymarkPreset when (WaymarkPreset*)payload is var p => DecodeWaymarkPreset(p),
         PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),

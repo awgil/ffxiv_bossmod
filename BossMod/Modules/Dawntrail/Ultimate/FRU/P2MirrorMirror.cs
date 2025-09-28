@@ -48,7 +48,7 @@ class P2MirrorMirrorReflectedScytheKickBlue : Components.GenericAOEs
             _aoe = new(_shape, Module.Center + 20 * _blueMirror, default, Module.CastFinishAt(spell));
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 1 and <= 8 && state == 0x00020001)
             _blueMirror = (225 - index * 45).Degrees().ToDirection();
@@ -123,7 +123,7 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
         hints.AddForbiddenZone(ShapeContains.InvertedCone(origin.Actor.Position, 4, dir, 15.Degrees()), origin.Activation);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 1 and <= 8 && state == 0x00020001)
         {

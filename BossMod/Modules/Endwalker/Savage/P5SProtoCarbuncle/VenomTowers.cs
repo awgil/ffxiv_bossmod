@@ -19,7 +19,7 @@ class VenomTowers(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         WDir offset = index switch
         {

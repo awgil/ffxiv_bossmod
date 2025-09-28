@@ -1,29 +1,29 @@
-﻿using Dalamud.Interface.Utility;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
-using Dalamud.Bindings.ImGui;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace BossMod;
 
-sealed unsafe class DebugEnvControl : IDisposable
+sealed unsafe class DebugMapEffect : IDisposable
 {
-    private delegate void ProcessEnvControlDelegate(void* self, uint index, ushort s1, ushort s2);
-    private readonly ProcessEnvControlDelegate ProcessEnvControl = Marshal.GetDelegateForFunctionPointer<ProcessEnvControlDelegate>(Service.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8"));
+    private delegate void ProcessMapEffectDelegate(void* self, uint index, ushort s1, ushort s2);
+    private readonly ProcessMapEffectDelegate ProcessMapEffect = Marshal.GetDelegateForFunctionPointer<ProcessMapEffectDelegate>(Service.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8"));
 
     private readonly List<string> _history = [];
     private string _current = "";
     private bool deduplicate;
 
-    private readonly EventSubscription _onEnvControl;
+    private readonly EventSubscription _onMapEffect;
 
-    public DebugEnvControl(WorldState ws)
+    public DebugMapEffect(WorldState ws)
     {
-        _onEnvControl = ws.EnvControl.Subscribe(OnEventEnvControl);
+        _onMapEffect = ws.MapEffect.Subscribe(OnMapEffect);
     }
 
-    public void Dispose() => _onEnvControl.Dispose();
+    public void Dispose() => _onMapEffect.Dispose();
 
     public void Draw()
     {
@@ -31,7 +31,7 @@ sealed unsafe class DebugEnvControl : IDisposable
         ImGui.InputText("ii.ssssssss", ref _current, 12);
         ImGui.SameLine();
         if (ImGui.Button("Execute"))
-            ExecuteEnvControl();
+            ApplyMapEffect();
         ImGui.SameLine();
         if (ImGui.Button("Clear history"))
             _history.Clear();
@@ -43,7 +43,7 @@ sealed unsafe class DebugEnvControl : IDisposable
                     _current = h;
     }
 
-    private void OnEventEnvControl(WorldState.OpEnvControl ec)
+    private void OnMapEffect(WorldState.OpMapEffect ec)
     {
         if (deduplicate)
         {
@@ -53,7 +53,7 @@ sealed unsafe class DebugEnvControl : IDisposable
         _history.Insert(0, $"{ec.Index:X2}.{ec.State:X8}");
     }
 
-    private void ExecuteEnvControl()
+    private void ApplyMapEffect()
     {
         var parts = _current.Split('.');
         if (parts.Length != 2 || !byte.TryParse(parts[0], NumberStyles.HexNumber, null, out var index) || !uint.TryParse(parts[1], NumberStyles.HexNumber, null, out var state))
@@ -68,6 +68,6 @@ sealed unsafe class DebugEnvControl : IDisposable
             return;
         }
         deduplicate = true;
-        ProcessEnvControl(director, index, (ushort)(state & 0xFFFF), (ushort)(state >> 16));
+        ProcessMapEffect(director, index, (ushort)(state & 0xFFFF), (ushort)(state >> 16));
     }
 }

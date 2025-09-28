@@ -68,7 +68,7 @@ class PomMeteor(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 8 and < 16)
         {

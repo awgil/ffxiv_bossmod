@@ -66,7 +66,7 @@ class Voidzones(BossModule module) : BossComponent(module)
 
     public Configuration Current { get; private set; }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         bool activate;
         if (state == 0x00020001)
@@ -205,7 +205,7 @@ class Drains(BossModule module) : BossComponent(module)
         Array.Fill(DrainStates, DrainState.Inactive);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is not (>= 0x0F and <= 0x16))
             return;

@@ -1,9 +1,9 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Ipc;
-using Dalamud.Bindings.ImGui;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -79,7 +79,7 @@ public class QuestObjective(WorldState ws)
     public Action<Actor>? OnActorKilled;
     public Action<Actor>? OnActorTargetableChanged;
     public Action<Actor, ActorCastEvent>? OnEventCast;
-    public Action<WorldState.OpEnvControl>? OnEnvControl;
+    public Action<WorldState.OpMapEffect>? OnMapEffect;
     public Action<WorldState.OpDirectorUpdate>? OnDirectorUpdate;
     public Action<ClientState.OpDutyActionsChange>? OnDutyActionsChange;
     public Action<ConditionFlag, bool>? OnConditionChange;
@@ -282,7 +282,7 @@ public abstract class QuestBattle : ZoneModule
             ws.Actors.EventObjectStateChange.Subscribe((act, u) => CurrentObjective?.OnEventObjectStateChanged?.Invoke(act, u)),
             ws.Actors.EventObjectAnimation.Subscribe((act, p1, p2) => CurrentObjective?.OnEventObjectAnimation?.Invoke(act, p1, p2)),
             ws.DirectorUpdate.Subscribe(op => CurrentObjective?.OnDirectorUpdate?.Invoke(op)),
-            ws.EnvControl.Subscribe(op => CurrentObjective?.OnEnvControl?.Invoke(op)),
+            ws.MapEffect.Subscribe(op => CurrentObjective?.OnMapEffect?.Invoke(op)),
             ws.Actors.IsTargetableChanged.Subscribe(act => CurrentObjective?.OnActorTargetableChanged?.Invoke(act)),
             ws.Client.DutyActionsChanged.Subscribe(op => CurrentObjective?.OnDutyActionsChange?.Invoke(op))
         );

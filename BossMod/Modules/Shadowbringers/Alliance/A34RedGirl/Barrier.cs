@@ -9,7 +9,7 @@ class BarrierVoidzone(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeCustom ZoneOuter = new(new PolygonClipper().Difference(new(CurveApprox.Rect(new(0, 25), new(25, 0))), new(CurveApprox.Rect(new(0, 20), new(20, 0)))));
     private static readonly AOEShapeRect ZoneInner = new(2.5f, 2.5f, 2.5f);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x1C)
         {
@@ -58,7 +58,7 @@ class Barrier(BossModule module) : BossComponent(module)
             return (a.Center, a.Orientation, c.color);
         });
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         var barrierIndex = index - 0x1D;
         if (barrierIndex is >= 0 and < 28)

@@ -22,7 +22,7 @@ class RadicalShift(BossModule module) : BossComponent(module)
             Arena.Zone(_triangulation, ArenaColor.AOE);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 12)
         {

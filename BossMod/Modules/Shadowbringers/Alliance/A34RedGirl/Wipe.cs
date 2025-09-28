@@ -47,7 +47,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index - 0x1D is >= 0 and < 28)
             UpdateWalls();

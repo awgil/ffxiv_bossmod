@@ -35,7 +35,7 @@ class PunishingSlice(BossModule module) : Components.GenericAOEs(module, AID.Pun
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
         => Utils.ZeroOrOne(_aoe);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (aoeSources.TryGetValue((index, state), out var rotation))
         {

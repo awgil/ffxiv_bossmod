@@ -52,7 +52,7 @@ class LimitlessDesolation : Components.UniformStackSpread
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         var towerIndex = index switch
         {

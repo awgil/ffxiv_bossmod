@@ -92,7 +92,7 @@ class RockyRoll(BossModule module) : Components.GenericBaitAway(module)
         { 0x0D, new(-157.373f, -117.373f) }
     };
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (holePositions.TryGetValue(index, out var value))
         {

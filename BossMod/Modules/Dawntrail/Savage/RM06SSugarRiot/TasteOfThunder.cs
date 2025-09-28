@@ -35,7 +35,7 @@ class TasteOfThunder(BossModule module) : Components.GenericTowers(module)
         new WPos(105f, 117f),
     ];
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 0x45 and <= 0x60 && state == 0x00020001)
             Towers.Add(new(TowersOrdered[index - 0x45], 3, activation: WorldState.FutureTime(19.2f)));

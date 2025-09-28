@@ -8,7 +8,7 @@ class VirtualShiftIce(BossModule module) : Components.GenericAOEs(module, defaul
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _unsafeBridges;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state is not 0x00200010 and not 0x00400001)
             return;

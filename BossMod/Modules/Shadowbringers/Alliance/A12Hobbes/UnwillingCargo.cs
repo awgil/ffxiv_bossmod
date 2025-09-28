@@ -10,7 +10,7 @@ class UnwillingCargoRing(BossModule module) : Components.GenericAOEs(module)
             yield return new(new AOEShapeDonut(17.5f, 20), new(-805, -270));
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 4)
         {
@@ -83,7 +83,7 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
             yield return new(actor.Position, 15, Activation, Direction: Angle.FromDirection(dir), Kind: Kind.DirForward);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 5)
         {

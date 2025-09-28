@@ -10,7 +10,7 @@ class SThunderVortex(BossModule module) : ThunderVortex(module, AID.SThunderVort
 
 class CircleBounds(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x34)
         {

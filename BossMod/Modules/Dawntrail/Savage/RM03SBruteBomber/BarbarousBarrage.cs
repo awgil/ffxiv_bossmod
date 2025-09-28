@@ -15,7 +15,7 @@ class BarbarousBarrageTowers(BossModule module) : Components.GenericTowers(modul
                 Arena.AddCircle(p, 4, ArenaColor.Object);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (CurState == State.None && index is 14 or 15)
             SetState(index == 14 ? State.NextNS : State.NextEW, 4);

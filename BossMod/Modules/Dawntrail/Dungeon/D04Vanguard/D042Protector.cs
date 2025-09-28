@@ -83,7 +83,7 @@ class FulminousFence(BossModule module) : BossComponent(module)
             Arena.AddLine(a, b, ArenaColor.Object, 2);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index != 13)
             return;

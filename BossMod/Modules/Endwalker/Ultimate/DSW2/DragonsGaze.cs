@@ -20,7 +20,7 @@ class DragonsGaze(BossModule module, OID bossOID, float activationDelay) : Compo
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // seen indices: 2 = E, 5 = SW, 6 = W => inferring 0=N, 1=NE, ... cw order
         if (state == 0x00020001 && index <= 7)

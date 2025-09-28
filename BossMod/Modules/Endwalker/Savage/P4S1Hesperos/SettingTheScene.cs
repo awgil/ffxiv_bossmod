@@ -53,7 +53,7 @@ class SettingTheScene(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // 8003759C, state=00020001
         // what I've seen so far:

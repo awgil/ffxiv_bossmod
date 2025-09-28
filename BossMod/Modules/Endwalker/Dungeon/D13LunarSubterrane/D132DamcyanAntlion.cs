@@ -29,7 +29,7 @@ class Sandblast(BossModule module) : Components.RaidwideCast(module, AID.Sandbla
 
 class Voidzone(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x00)
             Module.Arena.Bounds = new ArenaBoundsRect(19.5f, 20);
@@ -133,7 +133,7 @@ class Towerfall(BossModule module) : Components.GenericAOEs(module)
             yield return new(_casters[1].shape, _casters[1].source, _casters[1].direction, _casters[1].activation);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001)
         {

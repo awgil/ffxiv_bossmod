@@ -69,7 +69,7 @@ class RideTheWaves(BossModule module) : Components.GenericAOEs(module)
 
     private DateTime NextActivation;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         switch (index, state)
         {
@@ -154,7 +154,7 @@ class Moonwalk(BossModule module) : Components.GenericAOEs(module)
         return bm;
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         switch ((index, state))
         {

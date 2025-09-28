@@ -15,7 +15,7 @@ class StandingFirm(BossModule module) : Components.GenericTowers(module, AID.Bur
         new(-842, 781)
     ];
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // ignore tower 0x51, the NPC helper soaks it
         if (index is >= 0x4E and <= 0x50)
@@ -57,7 +57,7 @@ class MightyGrip : Components.GenericAOEs
             yield return new(_borderShape, Arena.Center, Activation: _activation);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x46)
         {

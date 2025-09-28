@@ -1,17 +1,17 @@
 ﻿namespace BossMod.ReplayAnalysis;
 
-class EnvControlInfo
+class MapEffectInfo
 {
     private readonly Dictionary<byte, Dictionary<uint, List<(Replay r, Replay.Encounter enc, DateTime ts)>>> _data = [];
 
-    public EnvControlInfo(List<Replay> replays, uint oid)
+    public MapEffectInfo(List<Replay> replays, uint oid)
     {
         var moduleInfo = BossModuleRegistry.FindByOID(oid);
         foreach (var replay in replays)
         {
             foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
             {
-                foreach (var envc in replay.EncounterEnvControls(enc))
+                foreach (var envc in replay.EncounterMapEffects(enc))
                 {
                     _data.GetOrAdd(envc.Index).GetOrAdd(envc.State).Add((replay, enc, envc.Timestamp));
                 }

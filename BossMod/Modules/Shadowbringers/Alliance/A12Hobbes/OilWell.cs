@@ -41,7 +41,7 @@ class OilWell(BossModule module) : Components.GenericAOEs(module, AID.OilWell)
             hints.Add("Go to platform!");
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 6)
         {

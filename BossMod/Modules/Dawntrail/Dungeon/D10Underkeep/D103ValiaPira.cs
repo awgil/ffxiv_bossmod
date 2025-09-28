@@ -274,7 +274,7 @@ class Debugger(BossModule module) : BossComponent(module)
     // bit 0 = N, bit 1 = E, bit 2 = S, bit 3 = W
     public readonly Tile[] Tiles = new Tile[16];
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         var tile = index switch
         {

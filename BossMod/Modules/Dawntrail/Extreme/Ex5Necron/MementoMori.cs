@@ -37,7 +37,7 @@ class MementoMoriVoidzone(BossModule module) : Components.GenericAOEs(module)
             Active = true;
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x18 && state == 0x00080004)
             Active = false;
