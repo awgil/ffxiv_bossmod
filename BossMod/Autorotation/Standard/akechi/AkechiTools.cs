@@ -680,7 +680,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="manual">Player's current target</param>
     /// <param name="auto">The best target to be auto-selected</param>
     /// <param name="track">The ability's specified track</param>
-    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => TargetChoice(track) ?? (strategy.Targeting() == SoftTargetStrategy.Automatic ? auto : manual);
+    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => TargetChoice(track) ?? (strategy.AutoTarget() ? auto : manual);
     #endregion
 
     #endregion
