@@ -28,7 +28,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionInt);
 
-        res.Define(Track.Thunder).As<ThunderStrategy>("DOT", "Thunder", 198)
+        res.Define(Track.Thunder).As<ThunderStrategy>("DOT", "Thunder", 200)
             .AddOption(ThunderStrategy.Allow3, "Allow3", "Allow the use Thunder if target Has 3s or less remaining on DoT effect", 0, 0, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.Allow6, "Allow6", "Allow the use Thunder if target Has 6s or less remaining on DoT effect", 0, 0, ActionTargets.Hostile, 6)
             .AddOption(ThunderStrategy.Allow9, "Allow9", "Allow the use Thunder if target Has 9s or less remaining on DoT effect", 0, 0, ActionTargets.Hostile, 6)
@@ -39,7 +39,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(ThunderStrategy.Forbid, "Forbid", "Forbid the use of Thunder for manual or strategic usage", 0, 0, ActionTargets.Hostile, 6)
             .AddAssociatedActions(AID.Thunder1, AID.Thunder2, AID.Thunder3, AID.Thunder4, AID.HighThunder, AID.HighThunder2);
 
-        res.Define(Track.Ender).As<EnderStrategy>("AF.Ender", "Astral Fire Ender", 197)
+        res.Define(Track.Ender).As<EnderStrategy>("AF.Ender", "Despair / Flare", 194)
             .AddOption(EnderStrategy.Automatic, "Auto", "Automatically end fire phase with Despair or Flare based on targets nearby", 0, 0, ActionTargets.Hostile, 50)
             .AddOption(EnderStrategy.OnlyDespair, "OnlyDespair", "End fire phase with Despair only, regardless of targets", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(EnderStrategy.OnlyFlare, "OnlyFlare", "End fire phase with Flare only, regardless of targets", 0, 0, ActionTargets.Hostile, 50)
@@ -47,7 +47,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(EnderStrategy.ForceFlare, "ForceFlare", "Force the use of Flare if possible", 0, 0, ActionTargets.Hostile, 50)
             .AddAssociatedActions(AID.Despair, AID.Flare);
 
-        res.Define(Track.Polyglot).As<PolyglotStrategy>("Poly", "Polyglots", 197)
+        res.Define(Track.Polyglot).As<PolyglotStrategy>("Polyglot", "Xenoglossy / Foul", 197)
             .AddOption(PolyglotStrategy.AutoSpendAll, "AutoSpendAll", "Automatically select best polyglot based on targets; Spend all Polyglots as soon as possible", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.AutoHold1, "AutoHold1", "Automatically select best polyglot based on targets; holds 1 for manual usage", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.AutoHold2, "AutoHold2", "Automatically select best polyglot based on targets; holds 2 for manual usage", 0, 0, ActionTargets.Hostile, 70)
@@ -84,7 +84,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(ChargeStrategy.Delay, "Delay", "Delay the use of Triplecast", 0, 0, ActionTargets.Self, 66)
             .AddAssociatedActions(AID.Triplecast);
 
-        res.Define(Track.Swiftcast).As<UpgradeStrategy>("Swift", "Swiftcast", 194)
+        res.Define(Track.Swiftcast).As<UpgradeStrategy>("Swift", "Swiftcast", 195)
             .AddOption(UpgradeStrategy.Automatic, "Auto", "Use Swiftcast to maintain swift rotation by instant-casting Blizzard III after Fire Phase (e.g. Despair->Transpose->Swiftcast->B3 etc.)", 0, 0, ActionTargets.Self, 66)
             .AddOption(UpgradeStrategy.Force, "Force", "Force the use of Swiftcast (60s cooldown), regardless of weaving conditions", 0, 10, ActionTargets.Self, 18, 93)
             .AddOption(UpgradeStrategy.ForceWeave, "ForceWeave", "Force the use of Swiftcast (60s cooldown) in any next possible weave slot", 0, 10, ActionTargets.Self, 18, 93)
@@ -93,7 +93,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(UpgradeStrategy.Delay, "Delay", "Delay the use of Swiftcast for strategic reasons", 0, 0, ActionTargets.Self, 18)
             .AddAssociatedActions(AID.Swiftcast);
 
-        res.Define(Track.LeyLines).As<ChargeStrategy>("LL", "Ley Lines", 196)
+        res.Define(Track.LeyLines).As<ChargeStrategy>("LL", "Ley Lines", 197)
             .AddOption(ChargeStrategy.Automatic, "Auto", "Automatically decide when to use Ley Lines", 0, 0, ActionTargets.Self, 52)
             .AddOption(ChargeStrategy.Force, "Force", "Force the use of Ley Lines, regardless of weaving conditions", 0, 20, ActionTargets.Self, 52)
             .AddOption(ChargeStrategy.Force1, "Force1", "Force the use of Ley Lines; holds one charge for manual usage", 0, 20, ActionTargets.Self, 52)
@@ -102,13 +102,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(ChargeStrategy.Delay, "Delay", "Delay the use of Ley Lines", 0, 0, ActionTargets.Self, 52)
             .AddAssociatedActions(AID.LeyLines);
 
-        res.Define(Track.TPUS).As<TPUSStrategy>("TP/US", "Transpose & Umbral Soul", 160)
+        res.Define(Track.TPUS).As<TPUSStrategy>("TP/US", "Transpose & Umbral Soul", 198)
             .AddOption(TPUSStrategy.Allow, "Allow", "Allow Transpose & Umbral Soul combo when either out of combat or no targetable enemy is nearby", minLevel: 35)
             .AddOption(TPUSStrategy.OOConly, "OOConly", "Only use Transpose & Umbral Soul combo when fully out of combat", minLevel: 35)
             .AddOption(TPUSStrategy.Forbid, "Forbid", "Forbid Transpose & Umbral Soul combo", minLevel: 35)
             .AddAssociatedActions(AID.Transpose, AID.UmbralSoul);
 
-        res.Define(Track.Movement).As<MovementStrategy>("Move", "Movement", 199)
+        res.Define(Track.Movement).As<MovementStrategy>("Move", "Movement Options", 199)
             .AddOption(MovementStrategy.Allow, "Allow", "Allow the use of all appropriate abilities for use while moving")
             .AddOption(MovementStrategy.AllowNoScathe, "AllowNoScathe", "Allow the use of all appropriate abilities for use while moving except for Scathe")
             .AddOption(MovementStrategy.OnlyGCDs, "OnlyGCDs", "Only use instant cast GCDs for use while moving; Polyglots->Thunder->Scathe if nothing left")
@@ -116,18 +116,18 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(MovementStrategy.OnlyScathe, "OnlyScathe", "Only use Scathe for use while moving")
             .AddOption(MovementStrategy.Forbid, "Forbid", "Forbid the use of any abilities for use while moving");
 
-        res.Define(Track.Casting).As<CastingOption>("Cast", "Cast While Moving", 200)
+        res.Define(Track.Casting).As<CastingOption>("Cast", "Cast While Moving", 199)
             .AddOption(CastingOption.Allow, "Allow", "Allow casting while moving")
             .AddOption(CastingOption.Forbid, "Forbid", "Forbid casting while moving");
         res.DefineOGCD(Track.Amplifier, AID.Amplifier, "Amplifier", "Amp.", 196, 120, 0, ActionTargets.Self, 86);
 
-        res.Define(Track.Retrace).As<CommonOption>("Rt", "Retrace", 196)
+        res.Define(Track.Retrace).As<CommonOption>("Rt", "Retrace", 197)
             .AddOption(CommonOption.Forbid, "Forbid", "Forbid the use of Retrace")
             .AddOption(CommonOption.Allow, "Allow", "Allow the use of Retrace")
             .AddOption(CommonOption.AllowNoMoving, "Allow No Moving", "Allow the use of Retrace only when not moving")
             .AddAssociatedActions(AID.Retrace);
 
-        res.Define(Track.BTL).As<CommonOption>("BTL", "Between The Lines", 196)
+        res.Define(Track.BTL).As<CommonOption>("BTL", "Between The Lines", 197)
             .AddOption(CommonOption.Forbid, "Forbid", "Forbid the use of Between the Lines")
             .AddOption(CommonOption.Allow, "Allow", "Allow the use of Between the Lines")
             .AddOption(CommonOption.AllowNoMoving, "Allow No Moving", "Allow the use of Between the Lines only when not moving")
