@@ -385,19 +385,19 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         {
             case Form.Coeurl:
                 PushGCD(AID.Demolish, primaryTarget, GCDPriority.BasicSaver);
-                PushGCD(AID.SnapPunch, primaryTarget, prioBuffed(CoeurlStacks));
+                PushGCD(AID.SnapPunch, primaryTarget, prioBuffed(CoeurlStacks), useOnDyingTarget: false);
                 break;
             case Form.Raptor:
                 PushGCD(AID.TwinSnakes, primaryTarget, GCDPriority.BasicSaver);
-                PushGCD(AID.TrueStrike, primaryTarget, prioBuffed(RaptorStacks));
+                PushGCD(AID.TrueStrike, primaryTarget, prioBuffed(RaptorStacks), useOnDyingTarget: false);
                 break;
             case Form.OpoOpo:
                 PushGCD(AID.DragonKick, primaryTarget, GCDPriority.BasicSaver);
-                PushGCD(AID.Bootshine, primaryTarget, prioBuffed(OpoStacks));
+                PushGCD(AID.Bootshine, primaryTarget, prioBuffed(OpoStacks), useOnDyingTarget: false);
                 break;
             default:
                 PushGCD(AID.DragonKick, primaryTarget, GCDPriority.BasicSaver);
-                PushGCD(AID.Bootshine, primaryTarget, FormShiftLeft > GCD ? prioBuffed(OpoStacks) : GCDPriority.Basic);
+                PushGCD(AID.Bootshine, primaryTarget, FormShiftLeft > GCD ? prioBuffed(OpoStacks) : GCDPriority.Basic, useOnDyingTarget: false);
                 break;
         }
 
@@ -408,7 +408,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 break;
             case OffensiveStrategy.Automatic:
                 if (EffectiveDowntimeIn > 0 && !CanFitGCD(EffectiveDowntimeIn, 1))
-                    PushGCD(AID.SixSidedStar, primaryTarget, primaryTarget?.Priority >= 0 ? GCDPriority.SSS : GCDPriority.None);
+                    PushGCD(AID.SixSidedStar, primaryTarget, GCDPriority.SSS, useOnDyingTarget: false);
                 break;
         }
 
@@ -586,8 +586,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             if (NumLineTargets >= 3)
                 PushOGCD(AID.HowlingFist, BestLineTarget, OGCDPriority.TFC);
 
-            if (primaryTarget?.Priority >= 0)
-                PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC);
+            PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC, useOnDyingTarget: false);
         }
 
         var tc = strategy.Option(Track.TC);
@@ -631,8 +630,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 if (!Player.InCombat)
                     prio = GCDPriority.Meditate;
 
-                // gross
-                if (primaryTarget == null && (UptimeIn ?? float.MaxValue) > GCD + 1)
+                if (UptimeIn > GCD + 1 || (UptimeIn ?? 0) == 0 && primaryTarget == null)
                     prio = GCDPriority.Meditate;
                 break;
             case MeditationStrategy.Greedy:

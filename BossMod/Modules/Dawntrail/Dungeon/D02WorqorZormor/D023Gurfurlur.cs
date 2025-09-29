@@ -202,7 +202,7 @@ class WindswrathLong(BossModule module) : Components.KnockbackFromCastTarget(mod
 
             // ok knockback is imminent, calculate precise safe zone
             List<Func<WPos, bool>> funcs = [
-                ShapeContains.InvertedRect(Module.Center, new WDir(0, 1), 21, 21, 21),
+                ShapeContains.InvertedRect(Module.Center, new WDir(0, 1), 20, 20, 20),
                 .. _tornadoes.Select(t => ShapeContains.Capsule(t.Position, t.Rotation, 20, 6))
             ];
             bool combined(WPos p)

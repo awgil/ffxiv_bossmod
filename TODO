@@ -1,25 +1,29 @@
 immediate plans
+
 - refactor replay history feature
 - remove 'ex' variants of strategies, replace with cooldown/effect functors, write a converter
 - add strategy param, use for 'apply unless already active' flavours of utility strategies
 - ishape
--- rasterization should automatically deal with 0.03 position imprecision (and angle imprecision?..)
+  -- rasterization should automatically deal with 0.03 position imprecision (and angle imprecision?..)
 
 - component to apply priority -1 to bosses below an HP threshold
 - update rotations to go into build-gauge mode on priority -1 bosses
 
+- "buggy" knockback is applied by ActorControl packet, normal knockbacks are applied by action effects; figure out where the actioneffect goes in the first case
+
 general:
+
 - horizontal timeline / cooldown planner
 - cdplanner should use real cds
 - assignments per ui order rather than per player + class-specific assignments
 - restore view-timeline to module ui
 - module packs
--- dlls, loaded as usual
--- hotreload - just discard old version and load new one
--- distributed as github releases, on startup query latest version and download if different
--- rate limit gh requests to 1/hour
--- dialog to add warns about arbitrary code execution
--- update bm/rm registries on reload
+  -- dlls, loaded as usual
+  -- hotreload - just discard old version and load new one
+  -- distributed as github releases, on startup query latest version and download if different
+  -- rate limit gh requests to 1/hour
+  -- dialog to add warns about arbitrary code execution
+  -- update bm/rm registries on reload
 - add non-entities to worldstate
 - proper logging
 - consistently use Color instead of uint
@@ -48,6 +52,7 @@ general:
 - obstacle maps - download from github
 
 ai:
+
 - forcedmovement with large leeway and casting...
 - nav decision delay
 - review TODO[cast-time]
@@ -59,78 +64,86 @@ ai:
 - high-level follow/assist module for multibox
 
 boss modules:
+
 - timers
 - wipe should not fast forward all phases
 - fail log
 - boss module config presets/profiles
 - jeuno
--- a11: ai hints for spikes+uppercut
--- a14: complex aoe hints (cthonic, battlements)
--- a14: dark nebula kb hints
+  -- a11: ai hints for spikes+uppercut
+  -- a14: complex aoe hints (cthonic, battlements)
+  -- a14: dark nebula kb hints
 - [dt ex3] p2 ice bridges
 - [dt ex1] the cleave is still telegraphed a bit too wide
 - [dsr] for p2 thordan cleavebuster the telegraph on the minimap is narrower than the actual hitbox
 
 autorotation:
+
 - bulk override priorities?
 - preset/plan editors should properly react to external changes
 - actiondefinitions
--- action transforms?.. (combos, adjustment)
--- adjusted casttime/cooldown/???
+  -- action transforms?.. (combos, adjustment)
+  -- adjusted casttime/cooldown/???
 - action history/queue visualization
 - simulation in replay analysis
 - spell out shared cooldowns in actiondefinitions comments instead of group?
 - dot/regen server tick tracking
 - brd
--- take traits into account (ij proccing rs, ea proccing repertoire)
--- better handle bad misalignment (see JeunoTheFirstWalk_BRD100_VeynHumanmale_2025_01_05_20_42_19.log)
+  -- take traits into account (ij proccing rs, ea proccing repertoire)
+  -- better handle bad misalignment (see JeunoTheFirstWalk_BRD100_VeynHumanmale_2025_01_05_20_42_19.log)
 - drg
--- write new module(?)
+  -- write new module(?)
 - war
--- simulate gauge changes (message can arrive few frames after ActionEffect...)
--- low-level rotation - improve berserk delay logic
+  -- simulate gauge changes (message can arrive few frames after ActionEffect...)
+  -- low-level rotation - improve berserk delay logic
 - whm:
--- write new module(?)
+  -- write new module(?)
 - blm:
--- start aoe rotation with UI (for souls for double flare)
+  -- start aoe rotation with UI (for souls for double flare)
 
 ai:
+
 - improve healing AI: analyze incoming dps
 - movement: know time left, distance to travel => decide whether to swiftcast or slidecast or use movement rotation
 
 world rendering:
+
 - danger zones (modify action vfx?)
 - arrows
 
 replay encounter analysis:
+
 - tether & debuff passing range
 - pull range
 
 misc:
+
 - memory show/watch utility
 - clip circles to arena bounds...
 - draw target max-melee and boss positioning hints?..
 
 notes on targeting:
+
 - aoe (e.g. cone) will hit if shape intersects target's hitbox; for players it is == 0.5
 - max melee range is raw range (usually 3) + source hitbox radius + target hitbox radius; for players this usually means 3.5 + target hitbox
 - charge/onslaught will bring player to source hitbox radius + target hitbox radius range, or leave in place if current distance is less
 
 getAjustedRecastTime:
+
 - type: item => calculation, non-spell => 5000, spell => continue...
-- no adjustment or cdgroup is [76-79] -> recast100ms * 100; otherwise start with that and adjust...
-- trait adjustment: recastMS += 100 * trait->Value (per trait)
+- no adjustment or cdgroup is [76-79] -> recast100ms \* 100; otherwise start with that and adjust...
+- trait adjustment: recastMS += 100 \* trait->Value (per trait)
 - if maxcharges > 1 => return recast (adjusted by additive traits)
 - recastMS = adjustRecastTimeByStatusesAndStats(recastMS)
--- if non pvp:
---- weaponskill/spell:
----- spdMod = 1000 + 130 * (base - spdattr) / levelmod (min 0)
----- recastMS *= spdMod / 1000
----- recastMS *= hasteattr / 100
----- min 1500
---- if gcd and have sm flag 18: recastMS += recastMS * sum-status-param(22) / 100; min 500 (ie riddle of fire)
--- else: tbd...
+  -- if non pvp:
+  --- weaponskill/spell:
+  ---- spdMod = 1000 + 130 _ (base - spdattr) / levelmod (min 0)
+  ---- recastMS _= spdMod / 1000
+  ---- recastMS _= hasteattr / 100
+  ---- min 1500
+  --- if gcd and have sm flag 18: recastMS += recastMS _ sum-status-param(22) / 100; min 500 (ie riddle of fire)
+  -- else: tbd...
 - some special pvp checks -> fallback to raw base
-- MCH if have rapid fire (853) status -> override to 100*param
+- MCH if have rapid fire (853) status -> override to 100\*param
 - DNC overrides
 - etc special overrides
