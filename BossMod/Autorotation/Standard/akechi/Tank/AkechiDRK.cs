@@ -15,11 +15,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DRK), 100);
+        var res = new RotationModuleDefinition("Akechi DRK", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.DRK), 100);
         res.DefineAOE().AddAssociatedActions(AID.HardSlash, AID.SyphonStrike, AID.Souleater, AID.Unleash, AID.StalwartSoul);
         res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionStr);
+
         res.Define(Track.Blood).As<BloodStrategy>("Blood", "Bloodspiller / Quietus", 194)
             .AddOption(BloodStrategy.Automatic, "Automatic", "Automatically use Bloodspiller or Quietus optimally based on targets nearby", supportedTargets: ActionTargets.Hostile, minLevel: 30)
             .AddOption(BloodStrategy.OnlyBloodspiller, "Only Bloodspiller", "Uses Bloodspiller optimally as Blood spender only, regardless of targets nearby", supportedTargets: ActionTargets.Hostile, minLevel: 62)
@@ -30,6 +31,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BloodStrategy.Conserve, "Conserve", "Conserves all Bloodspiller or Quietus as much as possible; only spending when absolutely necessary", supportedTargets: ActionTargets.Hostile, minLevel: 62)
             .AddOption(BloodStrategy.Delay, "Delay", "Delay the use of Bloodspiller or Quietus", supportedTargets: ActionTargets.None, minLevel: 62)
             .AddAssociatedActions(AID.Bloodspiller, AID.Quietus);
+
         res.Define(Track.MP).As<MPStrategy>("MP", "Edge / Flood", 193)
             .AddOption(MPStrategy.Automatic, "Optimal", "Automatically use Edge or Flood optimally based on targets nearby; 2 for 1m, 4 (or 5 if Dark Arts is active) for 2m", supportedTargets: ActionTargets.Hostile, minLevel: 30)
             .AddOption(MPStrategy.Auto3k, "Auto 3k", "Automatically use Edge or Flood optimally based on targets nearby; Uses when 3000+ MP is available", supportedTargets: ActionTargets.Hostile, minLevel: 30)
@@ -48,6 +50,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(MPStrategy.ForceFlood, "Force Flood", "Force use Flood of Darkness/Shadow ASAP if 3000+ MP is available", supportedTargets: ActionTargets.Hostile, minLevel: 30)
             .AddOption(MPStrategy.Delay, "Delay", "Delay the use of Edge or Flood of Darkness/Shadow", supportedTargets: ActionTargets.None, minLevel: 40)
             .AddAssociatedActions(AID.EdgeOfDarkness, AID.EdgeOfShadow, AID.FloodOfDarkness, AID.FloodOfShadow);
+
         res.Define(Track.Carve).As<CarveStrategy>("C&S/AD", "Carve & Spit / Abyssal Drain", 195)
             .AddOption(CarveStrategy.Automatic, "Auto", "Automatically use Carve and Spit or Abyssal Drain based on targets nearby", supportedTargets: ActionTargets.Hostile, minLevel: 56)
             .AddOption(CarveStrategy.OnlyCarve, "Only Carve and Spit", "Automatically use Carve and Spit, regardless of targets nearby", supportedTargets: ActionTargets.Hostile, minLevel: 60)
@@ -56,6 +59,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CarveStrategy.ForceDrain, "Force Abyssal Drain", "Force use Abyssal Drain ASAP when available", 60, 0, ActionTargets.Hostile, 56)
             .AddOption(CarveStrategy.Delay, "Delay", "Delay the use of Carve and Spit", supportedTargets: ActionTargets.None, minLevel: 56)
             .AddAssociatedActions(AID.CarveAndSpit, AID.AbyssalDrain);
+
         res.Define(Track.DeliriumCombo).As<DeliriumComboStrategy>("DeliCombo", "Delirium Combo", 196)
             .AddOption(DeliriumComboStrategy.Automatic, "Auto", "Automatically use Delirium Combo", supportedTargets: ActionTargets.Hostile, minLevel: 96)
             .AddOption(DeliriumComboStrategy.ScarletDelirum, "Scarlet Delirium", "Force use Scarlet Delirium ASAP when available", supportedTargets: ActionTargets.Hostile, minLevel: 96)
@@ -64,6 +68,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(DeliriumComboStrategy.Impalement, "Impalement", "Force use Impalement ASAP when available", supportedTargets: ActionTargets.Hostile, minLevel: 96)
             .AddOption(DeliriumComboStrategy.Delay, "Delay", "Delay use of Scarlet combo", supportedTargets: ActionTargets.None, minLevel: 96)
             .AddAssociatedActions(AID.ScarletDelirium, AID.Comeuppance, AID.Torcleaver, AID.Impalement);
+
         res.Define(Track.Unmend).As<UnmendStrategy>("Ranged", "Unmend", 100)
             .AddOption(UnmendStrategy.OpenerFar, "Far (Opener)", "Use Unmend only in pre-pull & out of max-melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(UnmendStrategy.OpenerForce, "Force (Opener)", "Use Unmend only in pre-pull regardless of range", supportedTargets: ActionTargets.Hostile)
@@ -71,12 +76,14 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
             .AddOption(UnmendStrategy.Allow, "Allow", "Allow use of Unmend only when out of melee range", supportedTargets: ActionTargets.Hostile)
             .AddOption(UnmendStrategy.Forbid, "Forbid", "Forbid use of Unmend")
             .AddAssociatedActions(AID.Unmend);
+
         res.DefineOGCD(Track.Delirium, AID.Delirium, "Deli", "Delirium", 197, 60, 15, ActionTargets.Self, 35).AddAssociatedActions(AID.BloodWeapon, AID.Delirium);
         res.DefineOGCD(Track.SaltedEarth, AID.SaltedEarth, "SE", "Salted Earth", 196, 90, 15, ActionTargets.Self, 52).AddAssociatedActions(AID.SaltedEarth);
         res.DefineOGCD(Track.SaltAndDarkness, AID.SaltAndDarkness, "S&D", "Salt & Darkness", 190, 20, 0, ActionTargets.Self, 86).AddAssociatedActions(AID.SaltAndDarkness);
         res.DefineOGCD(Track.LivingShadow, AID.LivingShadow, "LS", "Living Shadow", 199, 120, 20, ActionTargets.Self, 80).AddAssociatedActions(AID.LivingShadow);
         res.DefineOGCD(Track.Shadowbringer, AID.Shadowbringer, "SB", "Shadowbringer", 198, 60, 0, ActionTargets.Hostile, 90).AddAssociatedActions(AID.Shadowbringer);
         res.DefineGCD(Track.Disesteem, AID.Disesteem, "Disesteem", "", 150, supportedTargets: ActionTargets.Hostile, minLevel: 100).AddAssociatedActions(AID.Disesteem);
+
         return res;
     }
 

@@ -22,6 +22,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionStr);
+
         res.Define(Track.Atonement).As<AtonementStrategy>("Atones", "Atonement Combo", 155)
             .AddOption(AtonementStrategy.Automatic, "Automatic", "Normal use of Atonement & its combo chain")
             .AddOption(AtonementStrategy.ForceAtonement, "Force Atonement", "Force use of Atonement", 0, 30, ActionTargets.Hostile, 76)
@@ -29,6 +30,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(AtonementStrategy.ForceSepulchre, "Force Sepulchre", "Force use of Sepulchre", 0, 0, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.Delay, "Delay", "Delay use of Atonement & its combo chain", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
+
         res.Define(Track.BladeCombo).As<BladeComboStrategy>("Blades", "Confiteor + Blade Combo", 160)
             .AddOption(BladeComboStrategy.Automatic, "Automatic", "Normal use of Confiteor & Blades combo chain")
             .AddOption(BladeComboStrategy.ForceConfiteor, "Force", "Force use of Confiteor", 0, 0, ActionTargets.Hostile, 80)
@@ -37,6 +39,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BladeComboStrategy.ForceValor, "Force Valor", "Force use of Blade of Valor", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(BladeComboStrategy.Delay, "Delay", "Delay use of Confiteor & Blades combo chain", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Confiteor, AID.BladeOfFaith, AID.BladeOfTruth, AID.BladeOfValor);
+
         res.Define(Track.FightOrFlight).As<BuffsStrategy>("FoF", "Fight or Flight", 170)
             .AddOption(BuffsStrategy.Automatic, "Automatic", "Normal use Fight or Flight")
             .AddOption(BuffsStrategy.Together, "Together", "Use Fight or Flight only with Requiescat / Imperator; will delay in attempt to align itself with Requiescat / Imperator if misaligned", 60, 20, ActionTargets.Self, 2)
@@ -45,6 +48,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BuffsStrategy.ForceWeave, "Force Weave", "Force Fight or Flight usage inside the next possible weave window", 60, 20, ActionTargets.Self, 2)
             .AddOption(BuffsStrategy.Delay, "Delay", "Delay Fight or Flight usage", 0, 0, ActionTargets.None, 2)
             .AddAssociatedActions(AID.FightOrFlight);
+
         res.Define(Track.Requiescat).As<BuffsStrategy>("Req.", "Requiescat", 165)
             .AddOption(BuffsStrategy.Automatic, "Automatic", "Use Requiescat / Imperator normally")
             .AddOption(BuffsStrategy.Together, "Together", "Use Requiescat / Imperator only with Fight or Flight; will delay in attempt to align itself with Fight or Flight", 60, 20, ActionTargets.Self, 68)
@@ -53,6 +57,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(BuffsStrategy.ForceWeave, "Force Weave", "Force Requiescat / Imperator usage inside the next possible weave window", 180, 20, ActionTargets.Self, 68)
             .AddOption(BuffsStrategy.Delay, "Delay", "Delay Requiescat / Imperator usage", 0, 0, ActionTargets.None, 68)
             .AddAssociatedActions(AID.Requiescat, AID.Imperator);
+
         res.Define(Track.GoringBlade).As<GoringBladeStrategy>("GB", "Goring Blade", 135)
             .AddOption(GoringBladeStrategy.Automatic, "Automatic", "Normal use of Goring Blade")
             .AddOption(GoringBladeStrategy.Early, "Early", "Use Goring Blade before spending Requiescat stacks", 0, 0, ActionTargets.Hostile, 68)
@@ -60,6 +65,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(GoringBladeStrategy.Force, "Force", "Force use of Goring Blade", 0, 0, ActionTargets.Hostile, 54)
             .AddOption(GoringBladeStrategy.Delay, "Delay", "Delay use of Goring Blade", 0, 0, ActionTargets.None, 54)
             .AddAssociatedActions(AID.GoringBlade);
+
         res.Define(Track.Holy).As<HolyStrategy>("Holy", "Holy Spirit / Circle", 150)
             .AddOption(HolyStrategy.Automatic, "Automatic", "Automatically choose best Holy action under Divine Might based on targets")
             .AddOption(HolyStrategy.Early, "Early", "Use best Holy action under Divine Might ASAP", 0, 0, ActionTargets.Hostile, 68)
@@ -70,6 +76,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(HolyStrategy.ForceCircle, "Circle", "Force use of Holy Circle", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(HolyStrategy.Delay, "Delay", "Delay use of Holy actions", 0, 0, ActionTargets.None, 64)
             .AddAssociatedActions(AID.HolySpirit, AID.HolyCircle);
+
         res.Define(Track.Dash).As<DashStrategy>("Dash", "Intervene", 95)
             .AddOption(DashStrategy.Automatic, "Automatic", "Normal use of Intervene")
             .AddOption(DashStrategy.Force, "Force", "Force use of Intervene", 30, 0, ActionTargets.Hostile, 66)
@@ -78,6 +85,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(DashStrategy.GapClose1, "Gap Close (Hold 1)", "Use as gap closer if outside melee range; Hold one charge for manual usage", 30, 0, ActionTargets.None, 66)
             .AddOption(DashStrategy.Delay, "Delay", "Delay use of Intervene", 0, 0, ActionTargets.None, 66)
             .AddAssociatedActions(AID.Intervene);
+
         res.Define(Track.Ranged).As<RangedStrategy>("Ranged", "Shield Lob / Holy Spirit", 100)
             .AddOption(RangedStrategy.Automatic, "Automatic", "Uses Holy Spirit when stationary; Uses Shield Lob if moving")
             .AddOption(RangedStrategy.OpenerRangedCast, "Opener (Cast)", "Use Holy Spirit at the start of combat if outside melee range", 0, 0, ActionTargets.Hostile, 64)
@@ -91,9 +99,11 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(RangedStrategy.Ranged, "Ranged", "Use Shield Lob as ranged choice if outside melee range", 0, 0, ActionTargets.Hostile, 15)
             .AddOption(RangedStrategy.Forbid, "Forbid", "Prohibit the use of any ranged attacks", 0, 0, ActionTargets.Hostile, 15)
             .AddAssociatedActions(AID.ShieldLob, AID.HolySpirit);
+
         res.DefineOGCD(Track.SpiritsWithin, AID.SpiritsWithin, "SW", "Spirits Within", 145, 30, 0, ActionTargets.Hostile, 30).AddAssociatedActions(AID.SpiritsWithin, AID.Expiacion);
         res.DefineOGCD(Track.CircleOfScorn, AID.CircleOfScorn, "CoS", "Circle of Scorn", 140, 30, 15, ActionTargets.Self, 50).AddAssociatedActions(AID.CircleOfScorn);
         res.DefineOGCD(Track.BladeOfHonor, AID.BladeOfHonor, "BoH", "Blade of Honor", 130, 0, 0, ActionTargets.Hostile, 100).AddAssociatedActions(AID.BladeOfHonor);
+
         return res;
     }
 
@@ -145,7 +155,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        #region Variables
         var gauge = World.Client.GetGauge<PaladinGauge>();
         BladeComboStep = gauge.ConfiteorComboStep;
         DivineMight.Left = StatusRemaining(Player, SID.DivineMight, 30);
@@ -183,7 +192,6 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.Confiteor) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         Opener = CombatTimer <= 10 ? ComboLastMove == AID.RoyalAuthority : ComboTimer > 10;
-        #endregion
 
         if (strategy.HoldEverything())
             return;
@@ -300,6 +308,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         var dmacHold = fofStrat != BuffsStrategy.Delay && !strategy.HoldBuffs() && buffActive && !dmacSkipHold &&
             ((ComboLastMove is AID.RoyalAuthority ? !CanFitSkSGCD(FightOrFlight.CD, 2) : ComboLastMove is AID.FastBlade ? !CanFitSkSGCD(FightOrFlight.CD, 1) : ComboLastMove is AID.RiotBlade && !CanFitSkSGCD(FightOrFlight.CD)) ||
             dmacSkipHold);
+
         var atone = strategy.Option(Track.Atonement);
         var atoneStrat = atone.As<AtonementStrategy>();
         var aTarget = SingleTargetChoice(primaryTarget?.Actor, atone);
