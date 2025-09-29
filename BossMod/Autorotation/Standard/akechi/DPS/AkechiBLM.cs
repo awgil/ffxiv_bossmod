@@ -186,8 +186,8 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private AID BestDespair => Unlocked(AID.Despair) ? AID.Despair : AID.Flare;
 
     private bool HasInstants(StrategyValues strategy, Actor? target) => HasSwiftcast || HasEffect(SID.Triplecast) || (Unlocked(AID.Fire3) && HasFirestarter && ((InAF && AF < 3) || (InUI && MaxUI))) || WantParadox || WantThunder(strategy, target).Condition || WantPolyglot(strategy, target).Condition || (Unlocked(AID.Despair) && Unlocked(AID.FlareStar) && InAF && MP < 1600 && Souls == 0);
-    private static SID[] ThunderStatus => [SID.Thunder, SID.ThunderII, SID.ThunderIII, SID.ThunderIV, SID.HighThunder, SID.HighThunderII];
-    private float ThunderRemaining(Actor? target) => ThunderStatus.Select(status => StatusDetails(target, (uint)status, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
+    private static SID[] ThunderStatus() => [SID.Thunder, SID.ThunderII, SID.ThunderIII, SID.ThunderIV, SID.HighThunder, SID.HighThunderII];
+    private float ThunderRemaining(Actor? target) => target == null ? float.MaxValue : ThunderStatus().Select(status => StatusDetails(target, (uint)status, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
     private bool WantParadox => CanParadox && !ShouldUseAOE && ((InAF && !HasFirestarter) || (InUI && Hearts == MaxHearts) || (InAF && Souls == 0 && MP < 3200));
     private (bool Condition, AID Action, GCDPriority Priority) WantThunder(StrategyValues strategy, Actor? target)
     {
