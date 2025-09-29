@@ -155,16 +155,14 @@ public enum AllowOrForbid
 public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
         where AID : struct, Enum where TraitID : Enum
 {
-    #region Core Ability Execution
+
+    #region Queue Actions
     /// <summary>The <b>Next GCD</b> being queued.</summary>
     protected AID NextGCD;
 
     /// <summary>The <b>Next GCD</b> being queued's <b>Priority</b>.</summary>
     protected int NextGCDPrio;
 
-    #region Queuing
-
-    #region GCD
     /// <summary>
     /// The primary helper we use for calling all our <b>GCD</b> abilities onto any actor.<para/>
     /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use <c> primaryTarget?.Actor</c>  as <c>Enemy?</c>  definition.
@@ -178,6 +176,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="facingAngle">The user's specified <b>Angle facing Target</b> for the ability.</param>
     protected void QueueGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) where P : Enum
                 => QueueGCDs(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
+
     protected void QueueGCDs(AID aid, Actor? target, int priority = 0, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         if (priority == 0)
@@ -190,7 +189,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         }
     }
 
-    /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
+    /// <summary>Simplified check for if a specified GCD is ready and if the strategy allows for it.</summary>
+    /// <param name="strategy">The user's specified <b>GCD Strategy</b> being checked.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
+    /// <param name="ready">The minimum requirement for this GCD to be executed.</param>
+    /// <param name="optimal">The optimal condition for this GCD to be executed; set to <b>true</b> by default.</param>
     protected bool ShouldUseGCD(GCDStrategy strategy, Actor? target, bool ready, bool optimal = true) => ready && strategy switch
     {
         GCDStrategy.Automatic => target != null && optimal,
@@ -198,9 +201,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         GCDStrategy.Force => true,
         _ => false
     };
-    #endregion
 
-    #region OGCD
     /// <summary>
     /// The primary helper we use for calling all our <b>OGCD</b> abilities onto any actor.<para/>
     /// <b>NOTE:</b> For compatibility between <c>Actor?</c> and <c>Enemy?</c> inside one function, use <c> primaryTarget?.Actor</c>  as <c>Enemy?</c>  definition.
@@ -214,6 +215,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="facingAngle">The user's specified <b>Angle facing Target</b> for the ability.</param>
     protected void QueueOGCD<P>(AID aid, Actor? target, P priority, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null) where P : Enum
                 => QueueOGCDs(aid, target, (int)(object)priority, delay, castTime, targetPos, facingAngle);
+
     protected void QueueOGCDs(AID aid, Actor? target, int priority = 1, float delay = 0, float castTime = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
         if (priority == 0)
@@ -223,6 +225,10 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
 
     /// <summary>Simplified check for if a specified OGCD is ready and if the strategy allows for it.</summary>
+    /// <param name="strategy">The user's specified <b>OGCD Strategy</b> being checked.</param>
+    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
+    /// <param name="ready">The minimum requirement for this OGCD to be executed.</param>
+    /// <param name="optimal">The optimal condition for this OGCD to be executed; set to <b>true</b> by default.</param>
     protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = true) => ready && strategy switch
     {
         OGCDStrategy.Automatic => target != null && optimal,
@@ -233,8 +239,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         OGCDStrategy.LateWeave => CanLateWeaveIn,
         _ => false
     };
-
-    #endregion
 
     protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime, Vector3 targetPos = default, Angle? facingAngle = null)
     {
@@ -263,9 +267,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
     #endregion
 
-    #endregion
-
-    #region HP/MP/Shield
+    #region HP/MP
     /// <summary>Retrieves the <b>current HP</b> value of the player.</summary>
     protected uint HP { get; private set; }
 
@@ -278,31 +280,15 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Retrieves the <b>maximum MP</b> value of the player.</summary>
     protected uint MaxMP { get; private set; }
 
-    /// <summary>Retrieves the <b>current Shield</b> value of the player.</summary>
-    protected uint Shield { get; private set; }
-
-    /// <summary>Retrieves the <b>current HP</b> value of a specified actor.</summary>
-    /// <param name="actor">The specified <b>target actor</b>.</param>
-    protected uint CurrentHP(Actor actor) => actor.HPMP.CurHP;
-
-    /// <summary>Retrieves the <b>current Shield</b> value of a specified actor.</summary>
-    /// <param name="actor">The <b>target actor</b>.</param>
-    protected uint CurrentShield(Actor actor) => actor.HPMP.Shield;
-
-    /// <summary>Checks if a specified actor has any current <b>active Shield</b>.</summary>
-    /// <param name="actor">The <b>target actor</b>.</param>
-    protected bool ShieldActive(Actor actor) => actor.HPMP.Shield > 0.1f;
-
     /// <summary>Retrieves the <b>current HP percentage</b> of a specified actor.</summary>
     /// <param name="actor">The <b>target actor</b>.</param>
     protected float HPP(Actor? actor = null) => actor == null || actor.IsDead ? 0f : (float)actor.HPMP.CurHP / actor.HPMP.MaxHP * 100;
 
     /// <summary>Retrieves the <b>player's current HP percentage</b>.</summary>
     protected float PlayerHPP => HPP(Player);
-
     #endregion
 
-    #region Actions
+    #region Conditions
     /// <summary>Checks if specified <b>action</b> is <b>Unlocked</b> based on <b>Level</b> and <b>Job Quest</b> (if required).</summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
@@ -325,11 +311,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
     protected bool CanFitSkSGCD(float duration, int extraGCDs = 0) => GCD + SkSGCDLength * extraGCDs < duration;
 
-    /// <summary>Checks if we can fit in a <b>spell-speed based</b> GCD into a deadline.</summary>
-    /// <param name="duration">The <b>duration</b> to check against.</param>
-    /// <param name="extraGCDs">How many <b>extra GCDs</b> the user can fit in.</param>
-    protected bool CanFitSpSGCD(float duration, int extraGCDs = 0) => GCD + SpSGCDLength * extraGCDs < duration;
-
     /// <summary>Checks if user is in <b>pre-pull</b> stage.</summary>
     protected bool IsFirstGCD => !Player.InCombat || CombatTimer < 0.1f;
 
@@ -347,9 +328,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if Player is in an <b>odd minute window</b> by checking job's specified <b>120s ability</b> explicitly.</summary>
     protected bool InOddWindow(AID aid) => CDRemaining(aid) is < 90 and > 30;
-    #endregion
 
-    #region Cooldown
     /// <summary>Retrieves the total <b>cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected float CDRemaining(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
@@ -365,9 +344,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <summary>Checks if last <b>action</b> used is what the user is specifying. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
     protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);
-    #endregion
 
-    #region Status
     /// <summary>Retrieves the amount of specified <b>status effect's stacks</b> remaining on any target.
     /// <para><b>NOTE:</b> The effect MUST be owned by the <b>Player</b>.</para></summary>
     /// <param name="target">The user's specified <b>Target</b> being checked.</param>
@@ -386,13 +363,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <para><b>NOTE:</b> The effect can be owned by <b>anyone</b>; Player, Party, Alliance, NPCs, or even enemies.</para></summary>
     /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
     protected bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
-
-    /// <summary>Checks if a specific <b>status effect</b> on any specified <b>Target</b> exists.
-    /// <para><b>NOTE:</b> The effect <b>MUST</b> be owned by the <b>Player</b>.</para></summary>
-    /// <param name="target">The user's specified <b>Target</b> being checked.</param>
-    /// <param name="sid"> The user's specified <b>Status ID</b> being checked.</param>
-    /// <param name="duration"> The <b>Total Effect Duration</b> of specified <b>Status ID</b> being checked.</param>
-    protected bool TargetHasEffect<SID>(Actor? target, SID sid) where SID : Enum => target?.FindStatus(sid) != null;
     #endregion
 
     #region Targeting
@@ -457,6 +427,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks if the target is within a <b>25-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is25yRectTarget => LineTargetCheck(25);
+
+    /// <summary>Checks if the target is within a <b>25-yalm AOE Rect</b> range.</summary>
+    protected PositionCheck Is40yRectTarget => LineTargetCheck(40);
     #endregion
 
     #endregion
@@ -539,6 +512,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Checks the <b>quantity of enemies</b> currently targeting the <b>Player</b></summary>
     public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Service.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
+    //public bool TeammatesTargetingEnemy() => World.Party.WithoutSlot().Count(a => a.TargetID == )?.A;
 
     /// <summary>Attempts to <b>select</b> the most suitable <b>PvP target</b> automatically, prioritizing the target with the <b>lowest HP percentage</b> within range.<para/>
     /// <b>NOTE</b>: This function is solely used for finding the best <b>PvP target</b> without having to manually scan and click on other targets.</summary>
@@ -573,7 +547,18 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
                 Player.DistanceToHitbox(x.Actor) <= range) //in range
                 .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault()?.Actor; //from lowest to highest HP percentage
 
-        Hints.ForcedTarget = high ?? medium ?? low;
+        //special case for MCH - we want to prioritize any target that currently has Wildfire debuff for maximum DPS
+        if (Player.Class == Class.MCH && Player.FindStatus(MCH.SID.WildfirePlayerPvP) != null)
+        {
+            Hints.ForcedTarget = Hints.PriorityTargets.FirstOrDefault(x =>
+            HasLOS(x.Actor) &&
+            x.Actor.FindStatus(MCH.SID.WildfireTargetPvP) != null &&
+            Player.DistanceToHitbox(x.Actor) <= range)?.Actor;
+        }
+        else
+        {
+            Hints.ForcedTarget = high ?? medium ?? low;
+        }
     }
 
     /// <summary>Targeting function for indicating when <b>AOE Circle</b> abilities should be used based on nearby targets.</summary>
@@ -665,7 +650,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     /// <param name="manual">Player's current target</param>
     /// <param name="auto">The best target to be auto-selected</param>
     /// <param name="track">The ability's specified track</param>
-    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => TargetChoice(track) ?? (strategy.Targeting() == SoftTargetStrategy.Automatic ? auto : manual);
+    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => TargetChoice(track) ?? (strategy.AutoTarget() ? auto : manual);
     #endregion
 
     #endregion
@@ -867,7 +852,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #endregion
 
     #region Priorities
-    protected GCDPriority GCDPrio(GCDStrategy strat, GCDPriority defaultPrio) => strat is GCDStrategy.Force ? GCDPriority.Forced : defaultPrio;
     public enum GCDPriority //Base = 4000
     {
         None = 0,
@@ -928,7 +912,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         MaxHP = Player.HPMP.MaxHP;
         MP = Player.HPMP.CurMP;
         MaxMP = Player.HPMP.MaxMP;
-        Shield = Player.HPMP.Shield;
         PlayerTarget = Hints.FindEnemy(primaryTarget);
         AnimationLockDelay = estimatedAnimLockDelay;
         IsMoving = isMoving;
@@ -978,9 +961,9 @@ static class ModuleExtensions
     /// <summary>Defines our shared <b>soft-Targeting</b> strategies.</summary>
     public static RotationModuleDefinition.ConfigRef<SoftTargetStrategy> DefineTargeting(this RotationModuleDefinition res)
     {
-        return res.Define(SharedTrack.Targeting).As<SoftTargetStrategy>("SoftTarget", uiPriority: 295)
-            .AddOption(SoftTargetStrategy.Automatic, "Automatic", "Auto-select best target for maximum optimal DPS output")
-            .AddOption(SoftTargetStrategy.Manual, "Manual", "Do not auto-select best target, instead executing only on whichever target is currently selected");
+        return res.Define(SharedTrack.Targeting).As<SoftTargetStrategy>("S.Target", "Soft Targeting", 295)
+            .AddOption(SoftTargetStrategy.Automatic, "Automatic", "Allow auto-selecting best target for maximum optimal DPS output")
+            .AddOption(SoftTargetStrategy.Manual, "Manual", "Forbid auto-selecting best target, instead executing only on whichever target is currently selected");
     }
 
     /// <summary>Defines our shared <b>Hold</b> strategies.</summary>
@@ -1072,8 +1055,7 @@ static class ModuleExtensions
 
     #region Global Helpers
 
-    #region ST/AOE
-    /// <summary>A global helper for easily retrieving the user's <b>Rotation</b> strategy. See <seealso cref="AOEStrategy"/> for more details.</summary>
+    /// <summary>A global helper for easily retrieving the user's shared <b>Rotation</b> strategy. See <seealso cref="AOEStrategy"/> for more details.</summary>
     public static AOEStrategy Rotation(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
 
     /// <summary>A global helper for automatically executing the best optimal rotation; finishes combo if possible. See <seealso cref="AOEStrategy"/> for more details.</summary>
@@ -1087,10 +1069,8 @@ static class ModuleExtensions
 
     /// <summary>A global helper for force-executing the AOE rotation. See <seealso cref="AOEStrategy"/> for more details.</summary>
     public static bool ForceAOE(this StrategyValues strategy) => strategy.Rotation() == AOEStrategy.ForceAOE;
-    #endregion
 
-    #region Targeting
-    /// <summary>A global helper for easily retrieving the user's <b>Targeting</b> strategy. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
+    /// <summary>A global helper for easily retrieving the user's shared <b>Targeting</b> strategy. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
     public static SoftTargetStrategy Targeting(this StrategyValues strategy) => strategy.Option(SharedTrack.Targeting).As<SoftTargetStrategy>();
 
     /// <summary>A global helper for automatically selecting the best target. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
@@ -1098,9 +1078,8 @@ static class ModuleExtensions
 
     /// <summary>A global helper for manually selecting the best target. See <seealso cref="SoftTargetStrategy"/> for more details.</summary>
     public static bool ManualTarget(this StrategyValues strategy) => strategy.Targeting() == SoftTargetStrategy.Manual;
-    #endregion
 
-    #region Hold
+    /// <summary>A global helper for easily retrieving the user's shared <b>Hold</b> strategy. See <seealso cref="HoldStrategy"/> for more details.</summary>
     public static HoldStrategy Hold(this StrategyValues strategy) => strategy.Option(SharedTrack.Hold).As<HoldStrategy>();
 
     /// <summary>A global helper for forbidding ALL actions, rotations <em>and</em> abilities. See <seealso cref="HoldStrategy"/> for more details.</summary>
@@ -1117,11 +1096,9 @@ static class ModuleExtensions
 
     /// <summary>A global helper for forbidding ALL available abilities that are related to the job's gauge. See <seealso cref="HoldStrategy"/> for more details.</summary>
     public static bool HoldGauge(this StrategyValues strategy) => strategy.Hold() == HoldStrategy.HoldGauge;
-    #endregion
 
-    #region Potion
+    /// <summary>A global helper for easily retrieving the user's shared <b>Potion</b> strategy. See <seealso cref="PotionStrategy"/> for more details.</summary>
     public static PotionStrategy Potion(this StrategyValues strategy) => strategy.Option(SharedTrack.Potion).As<PotionStrategy>();
-    #endregion
 
     #endregion
 }
