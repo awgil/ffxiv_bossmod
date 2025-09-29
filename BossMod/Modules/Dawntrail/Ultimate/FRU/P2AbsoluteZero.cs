@@ -49,6 +49,7 @@ class P2Intermission(BossModule module) : Components.GenericBaitAway(module)
     private readonly IReadOnlyList<Actor> _crystalsOfDarkness = module.Enemies(OID.CrystalOfDarkness);
     private readonly IReadOnlyList<Actor> _iceVeil = module.Enemies(OID.IceVeil);
     private bool _iceVeilInvincible = true;
+    private bool _gaiaHammer;
 
     public bool CrystalsActive => CrystalsOfLight.Any();
 
@@ -76,7 +77,11 @@ class P2Intermission(BossModule module) : Components.GenericBaitAway(module)
             {
                 OID.CrystalOfLight => CrystalPriority(e.Actor, clockSpot),
                 OID.CrystalOfDarkness => AIHints.Enemy.PriorityPointless,
-                OID.IceVeil => _iceVeilInvincible ? AIHints.Enemy.PriorityInvincible : 1,
+                OID.IceVeil => _iceVeilInvincible
+                    ? AIHints.Enemy.PriorityInvincible
+                    : e.Actor.PendingHPRatio < (_gaiaHammer ? 0 : 0.5f)
+                        ? AIHints.Enemy.PriorityPointless
+                        : 1,
                 _ => 0
             };
         }
@@ -140,6 +145,12 @@ class P2Intermission(BossModule module) : Components.GenericBaitAway(module)
     private IEnumerable<Actor> CrystalsOfLight => ActiveActors(_crystalsOfLight);
     private IEnumerable<Actor> CrystalsOfDarkness => ActiveActors(_crystalsOfDarkness);
     private Actor? IceVeil => ActiveActors(_iceVeil).FirstOrDefault();
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.Icecrusher)
+            _gaiaHammer = true;
+    }
 
     private int CrystalPriority(Actor crystal, int clockSpot)
     {
