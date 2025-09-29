@@ -78,7 +78,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(DashStrategy.GapClose1, "Gap Close (Hold 1)", "Use as gap closer if outside melee range; Hold one charge for manual usage", 30, 0, ActionTargets.None, 66)
             .AddOption(DashStrategy.Delay, "Delay", "Delay use of Intervene", 0, 0, ActionTargets.None, 66)
             .AddAssociatedActions(AID.Intervene);
-        res.Define(Track.Ranged).As<RangedStrategy>("Shield Lob / Holy Spirit", "Ranged", 100)
+        res.Define(Track.Ranged).As<RangedStrategy>("Ranged", "Shield Lob / Holy Spirit", 100)
             .AddOption(RangedStrategy.Automatic, "Automatic", "Uses Holy Spirit when stationary; Uses Shield Lob if moving")
             .AddOption(RangedStrategy.OpenerRangedCast, "Opener (Cast)", "Use Holy Spirit at the start of combat if outside melee range", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(RangedStrategy.OpenerCast, "Opener", "Use Holy Spirit at the start of combat regardless of range", 0, 0, ActionTargets.Hostile, 64)
