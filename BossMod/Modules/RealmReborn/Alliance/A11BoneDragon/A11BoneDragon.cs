@@ -26,44 +26,87 @@ class EvilEye(BossModule module) : Components.StandardAOEs(module, AID.EvilEye, 
 
 class Platinal(BossModule module) : Components.Adds(module, (uint)OID.Platinal, 1);
 
-class Poison : Components.GenericAOEs
+class Poison(BossModule module) : BossComponent(module)
 {
-    private readonly AOEShapeCustom _poisonShape;
+    private int _poisonStage;
 
-    private bool _active;
-
-    public Poison(BossModule module) : base(module)
+    bool Safe(WPos p)
     {
-        var circle = CurveApprox.Circle(49.4f, 1 / 90f);
-        var clipper = new PolygonClipper();
-        var op1 = new PolygonClipper.Operand(circle);
+        if (_poisonStage == 0 || p.InCircle(Arena.Center, 8))
+            return true;
 
-        var op2 = clipper.Difference(op1, new(CurveApprox.Circle(8, 1 / 90f)));
-
-        var laneOffset = new WDir(0, 31.87f);
         for (var i = 0; i < 8; i++)
         {
             var deg = (45 * i).Degrees();
-            var rect = CurveApprox.Rect(laneOffset.Rotate(deg), deg.ToDirection().OrthoR() * 3.9f, deg.ToDirection() * 17.675f);
-            op2 = clipper.Difference(new(op2), new(rect));
+
+            // long platforms
+            if (_poisonStage == 1)
+            {
+                if (p.InRect(Arena.Center + new WDir(0, 31.87f).Rotate(deg), deg, 17.675f, 17.675f, 3.9f))
+                    return true;
+            }
+
+            if (_poisonStage == 2)
+            {
+                if (p.InRect(Arena.Center + new WDir(0, 18.02f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
+                    return true;
+                if (p.InRect(Arena.Center + new WDir(0, 32.13f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
+                    return true;
+                if (p.InRect(Arena.Center + new WDir(0, 45.745f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
+                    return true;
+            }
         }
 
-        _poisonShape = new(op2);
+        return false;
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        if (_active)
-            yield return new(_poisonShape, Arena.Center, default, DateTime.MaxValue);
+        if (_poisonStage > 0)
+        {
+            Arena.ZoneCircle(Arena.Center, 8, ArenaColor.SafeFromAOE);
+
+            for (var i = 0; i < 8; i++)
+            {
+                var deg = (45 * i).Degrees();
+
+                if (_poisonStage == 1)
+                {
+                    Arena.ZoneRect(Arena.Center + new WDir(0, 31.87f).Rotate(deg), deg, 17.675f, 17.675f, 3.9f, ArenaColor.SafeFromAOE);
+                }
+
+                if (_poisonStage == 2)
+                {
+                    Arena.ZoneRect(Arena.Center + new WDir(0, 18.02f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f, ArenaColor.SafeFromAOE);
+                    Arena.ZoneRect(Arena.Center + new WDir(0, 32.13f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f, ArenaColor.SafeFromAOE);
+                    Arena.ZoneRect(Arena.Center + new WDir(0, 45.745f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f, ArenaColor.SafeFromAOE);
+                }
+            }
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_poisonStage > 0)
+            hints.AddForbiddenZone(p => !Safe(p), DateTime.MaxValue);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (!Safe(actor.Position))
+            hints.Add("GTFO from poison!");
     }
 
     public override void OnLegacyMapEffect(byte seq, byte param, byte[] data)
     {
         if (data[0] == 3 && data[2] == 0x10)
-            _active = true;
+            _poisonStage = 1;
+
+        if (data[0] == 3 && data[2] == 0x20)
+            _poisonStage = 2;
 
         if (data[0] == 3 && data[2] == 0x80)
-            _active = false;
+            _poisonStage = 0;
     }
 }
 class BossDeathTracker(BossModule module) : BossComponent(module)
