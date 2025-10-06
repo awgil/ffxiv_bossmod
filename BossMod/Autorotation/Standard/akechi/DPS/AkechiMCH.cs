@@ -375,7 +375,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             return false;
         return strategy switch
         {
-            AllowOrForbid.Allow => InsideCombatWith(target) && ShouldFlamethrower && In12y(target) && AAcd > 10 && !TargetHasEffect(target, SID.Bioblaster) && CScd > 10 && EVleft == 0 && FMFleft == 0,
+            AllowOrForbid.Allow => InsideCombatWith(target) && ShouldFlamethrower && In12y(target) && AAcd > 10 && target?.FindStatus(SID.Bioblaster) == null && CScd > 10 && EVleft == 0 && FMFleft == 0,
             AllowOrForbid.Force => true,
             AllowOrForbid.Forbid or _ => false,
         };

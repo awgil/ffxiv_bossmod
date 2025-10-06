@@ -53,6 +53,32 @@ public enum AID : uint
     Swiftcast = ClassShared.AID.Swiftcast, // L18, instant, 60.0s CD (group 43), range 0, single-target, targets=Self
     Surecast = ClassShared.AID.Surecast, // L44, instant, 120.0s CD (group 48), range 0, single-target, targets=Self
     Rescue = ClassShared.AID.Rescue, // L48, instant, 120.0s CD (group 49), range 30, single-target, targets=Party
+
+    #region PvP
+    GlareIIIPvP = 29223,
+    CureIIPvP = 29224,
+    AfflatusMiseryPvP = 29226,
+    AquaveilPvP = 29227,
+    MiracleOfNaturePvP = 29228,
+    SeraphStrikePvP = 29229,
+    GlareIVPvP = 41499,
+    CureIIIPvP = 29225,
+
+    // LB
+    AfflatusPurgationPvP = 29230,
+
+    // Role
+    HaelanPvP = 43255,
+    StoneskinIIPvP = 43256,
+    DiabrosisPvP = 43257,
+
+    //Shared
+    ElixirPvP = ClassShared.AID.ElixirPvP,
+    RecuperatePvP = ClassShared.AID.RecuperatePvP,
+    PurifyPvP = ClassShared.AID.PurifyPvP,
+    GuardPvP = ClassShared.AID.GuardPvP,
+    SprintPvP = ClassShared.AID.SprintPvP
+    #endregion
 }
 
 public enum TraitID : uint
@@ -106,12 +132,35 @@ public enum SID : uint
     MedicaIII = 3880, // applied by Medica III to self/target
     DivineGrace = 3881, // applied by Temperance to self
     DivineCaress = 3903, // applied by Divine Caress to self/target
-    MiracleOfNaturePvP = 3085, // applied by WHM PvP LB to self/target
 
     //Shared
     Surecast = ClassShared.SID.Surecast, // applied by Surecast to self
     LucidDreaming = ClassShared.SID.LucidDreaming, // applied by Lucid Dreaming to self
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
+
+    #region PvP
+    MiracleOfNaturePvP = 3085,
+    CureIIIReadyPvP = 3083,
+    SacredSightPvP = 4326,
+    //SacredSightPvP = 3879,
+
+    //Role
+    HaelanEquippedPvP = ClassShared.SID.HaelanEquippedPvP,
+    StoneskinEquippedPvP = ClassShared.SID.StoneskinEquippedPvP,
+    DiabrosisEquippedPvP = ClassShared.SID.DiabrosisEquippedPvP,
+
+    //Shared
+    GuardPvP = ClassShared.SID.GuardPvP,
+    SprintPvP = ClassShared.SID.SprintPvP,
+    SilencePvP = ClassShared.SID.SilencePvP,
+    BindPvP = ClassShared.SID.BindPvP,
+    StunPvP = ClassShared.SID.StunPvP,
+    HalfAsleepPvP = ClassShared.SID.HalfAsleepPvP,
+    SleepPvP = ClassShared.SID.SleepPvP,
+    DeepFreezePvP = ClassShared.SID.DeepFreezePvP,
+    HeavyPvP = ClassShared.SID.HeavyPvP,
+    UnguardedPvP = ClassShared.SID.UnguardedPvP,
+    #endregion
 }
 
 public sealed class Definitions : IDisposable
@@ -157,6 +206,16 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.GlareIV);
         d.RegisterSpell(AID.MedicaIII); // animLock=???
         d.RegisterSpell(AID.DivineCaress);
+
+        d.RegisterSpell(AID.GlareIIIPvP);
+        d.RegisterSpell(AID.CureIIPvP);
+        d.RegisterSpell(AID.AfflatusMiseryPvP);
+        d.RegisterSpell(AID.AquaveilPvP);
+        d.RegisterSpell(AID.MiracleOfNaturePvP);
+        d.RegisterSpell(AID.SeraphStrikePvP);
+        d.RegisterSpell(AID.GlareIVPvP);
+        d.RegisterSpell(AID.CureIIIPvP);
+        d.RegisterSpell(AID.AfflatusPurgationPvP);
 
         Customize(d);
     }
