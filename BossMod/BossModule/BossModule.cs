@@ -106,6 +106,7 @@ public abstract class BossModule : IDisposable
             WorldState.Actors.StatusGain.Subscribe(OnActorStatusGain),
             WorldState.Actors.StatusLose.Subscribe(OnActorStatusLose),
             WorldState.Actors.IconAppeared.Subscribe(OnActorIcon),
+            WorldState.Actors.VFXAppeared.Subscribe(OnActorVFX),
             WorldState.Actors.CastEvent.Subscribe(OnActorCastEvent),
             WorldState.Actors.EventObjectStateChange.Subscribe(OnActorEState),
             WorldState.Actors.EventObjectAnimation.Subscribe(OnActorEAnim),
@@ -471,6 +472,12 @@ public abstract class BossModule : IDisposable
     {
         foreach (var comp in _components)
             comp.OnEventIcon(actor, iconID, targetID);
+    }
+
+    private void OnActorVFX(Actor actor, uint vfxID, ulong targetID)
+    {
+        foreach (var comp in _components)
+            comp.OnEventVFX(actor, vfxID, targetID);
     }
 
     private void OnActorCastEvent(Actor actor, ActorCastEvent cast)

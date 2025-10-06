@@ -495,12 +495,20 @@ public sealed class ActorState : IEnumerable<Actor>
         }
     }
 
-    // TODO: this should really be an actor field, but I have no idea what triggers icon clear...
+    // icons are stored in actor's VfxContainer and expire after a fixed delay
     public Event<Actor, uint, ulong> IconAppeared = new();
     public sealed record class OpIcon(ulong InstanceID, uint IconID, ulong TargetID) : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.IconAppeared.Fire(actor, IconID, TargetID);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ICON"u8).EmitActor(InstanceID).Emit(IconID).EmitActor(TargetID);
+    }
+
+    // same as above, but only used in old content before Lockon replaced it
+    public Event<Actor, uint, ulong> VFXAppeared = new();
+    public sealed record class OpVFX(ulong InstanceID, uint VfxID, ulong TargetID) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.VFXAppeared.Fire(actor, VfxID, TargetID);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("VFX "u8).EmitActor(InstanceID).Emit(VfxID).EmitActor(TargetID);
     }
 
     // TODO: this should be an actor field (?)

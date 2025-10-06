@@ -558,6 +558,7 @@ public enum ActorControlCategory : ushort
     UnlockAetherCurrentMsg = 164, // from dissector
     RemoveName = 168, // from dissector
     ScreenFadeOut = 170, // from dissector
+    TargetVFX = 184,
     ZoneIn = 200, // from dissector
     ZoneInDefaultPos = 201, // from dissector
     TeleportStart = 203, // from dissector

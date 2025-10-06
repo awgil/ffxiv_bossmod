@@ -11,12 +11,12 @@ public enum OID : uint
 public enum AID : uint
 {
     DarkWave = 736, // Boss->self, no cast, range 6+R circle
-    AutoAttack = 1461, // Boss/_Gen_Platinal->player, no cast, single-target
+    AutoAttack = 1461, // Boss/Platinal->player, no cast, single-target
     DarkThorn = 745, // Boss->location, no cast, range 6 circle
     MiasmaBreath = 735, // Boss->self, no cast, range 8+R ?-degree cone
-    HellSlash = 341, // _Gen_Platinal->player, no cast, single-target
-    Apocalypse = 749, // _Gen_BoneDragon->location, 3.0s cast, range 6 circle
-    Stone = 970, // _Gen_RottingEye->player, 1.0s cast, single-target
+    HellSlash = 341, // Platinal->player, no cast, single-target
+    Apocalypse = 749, // BoneDragon->location, 3.0s cast, range 6 circle
+    Stone = 970, // RottingEye->player, 1.0s cast, single-target
     EvilEye = 750, // Boss->self, 3.0s cast, range 100+R 120-degree cone
 }
 
@@ -135,6 +135,5 @@ class A11BoneDragonStates : StateMachineBuilder
     }
 }
 
-// inner circle radius = 8
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 706, DevOnly = true)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 706)]
 public class A11BoneDragon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-451.2f, 23.93f), new ArenaBoundsCircle(49.4f, MapResolution: 1));

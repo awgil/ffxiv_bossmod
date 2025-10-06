@@ -9,21 +9,23 @@ namespace BossMod;
 
 sealed unsafe class DebugMapEffect : IDisposable
 {
-    private delegate void ProcessMapEffectDelegate(void* self, uint index, ushort s1, ushort s2);
-    private readonly ProcessMapEffectDelegate ProcessMapEffect = Marshal.GetDelegateForFunctionPointer<ProcessMapEffectDelegate>(Service.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8"));
+    private readonly WorldStateGameSync.ProcessMapEffectDelegate ProcessMapEffect = Marshal.GetDelegateForFunctionPointer<WorldStateGameSync.ProcessMapEffectDelegate>(Service.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8"));
 
     private readonly List<string> _history = [];
     private string _current = "";
     private bool deduplicate;
 
-    private readonly EventSubscription _onMapEffect;
+    private readonly EventSubscriptions _subscriptions;
 
     public DebugMapEffect(WorldState ws)
     {
-        _onMapEffect = ws.MapEffect.Subscribe(OnMapEffect);
+        _subscriptions = new(
+            ws.MapEffect.Subscribe(OnMapEffect),
+            ws.LegacyMapEffect.Subscribe(OnLegacyMapEffect)
+        );
     }
 
-    public void Dispose() => _onMapEffect.Dispose();
+    public void Dispose() => _subscriptions.Dispose();
 
     public void Draw()
     {
@@ -51,6 +53,11 @@ sealed unsafe class DebugMapEffect : IDisposable
             return;
         }
         _history.Insert(0, $"{ec.Index:X2}.{ec.State:X8}");
+    }
+
+    private void OnLegacyMapEffect(WorldState.OpLegacyMapEffect ec)
+    {
+        _history.Insert(0, $"{ec.Sequence:X2} {ec.Param:X2} [{string.Join(" ", ec.Data.Select(d => d.ToString("X2")))}]");
     }
 
     private void ApplyMapEffect()

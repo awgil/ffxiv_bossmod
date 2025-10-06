@@ -44,9 +44,6 @@ sealed class WorldStateGameSync : IDisposable
     private readonly ConfigListener<ReplayManagementConfig> _netConfig;
     private readonly EventSubscriptions _subscriptions;
 
-    private unsafe delegate byte ProcessLegacyMapEffectDelegate(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length);
-    private readonly Hook<ProcessLegacyMapEffectDelegate> _processLegacyMapEffectHook;
-
     private unsafe delegate void ProcessPacketActorCastDelegate(uint casterId, Network.ServerIPC.ActorCast* packet);
     private readonly Hook<ProcessPacketActorCastDelegate> _processPacketActorCastHook;
 
@@ -60,13 +57,16 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void ProcessPacketNpcYellDelegate(Network.ServerIPC.NpcYell* packet);
     private readonly Hook<ProcessPacketNpcYellDelegate> _processPacketNpcYellHook;
 
-    private unsafe delegate void ProcessMapEffectDelegate(void* self, uint index, ushort s1, ushort s2);
+    public unsafe delegate void ProcessMapEffectDelegate(void* self, uint index, ushort s1, ushort s2);
     private readonly Hook<ProcessMapEffectDelegate> _processMapEffectHook;
 
     private unsafe delegate void ProcessMapEffectNDelegate(ContentDirector* director, byte* packet);
     private readonly Hook<ProcessMapEffectNDelegate> _processMapEffect1Hook;
     private readonly Hook<ProcessMapEffectNDelegate> _processMapEffect2Hook;
     private readonly Hook<ProcessMapEffectNDelegate> _processMapEffect3Hook;
+
+    public unsafe delegate byte ProcessLegacyMapEffectDelegate(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length);
+    private readonly Hook<ProcessLegacyMapEffectDelegate> _processLegacyMapEffectHook;
 
     private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
     private readonly Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
@@ -162,16 +162,16 @@ sealed class WorldStateGameSync : IDisposable
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
 
-        var ad = Service.SigScanner.ScanText("89 54 24 10 48 89 4C 24 ?? 53 56 57 41 55 41 57 48 83 EC 30 48 8B 99 ?? ?? ?? ??");
-        _processLegacyMapEffectHook = Service.Hook.HookFromAddress<ProcessLegacyMapEffectDelegate>(ad, ProcessLegacyMapEffectDetour);
+        _processLegacyMapEffectHook = Service.Hook.HookFromSignature<ProcessLegacyMapEffectDelegate>("89 54 24 10 48 89 4C 24 ?? 53 56 57 41 55 41 57 48 83 EC 30 48 8B 99 ?? ?? ?? ??", ProcessLegacyMapEffectDetour);
         _processLegacyMapEffectHook.Enable();
         Service.Log($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
 
-        var addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? FF C6");
-        _applyKnockbackHook = Service.Hook.HookFromAddress<ApplyKnockbackDelegate>(addr, ApplyKnockbackDetour);
+        _applyKnockbackHook = Service.Hook.HookFromSignature<ApplyKnockbackDelegate>("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? FF C6", ApplyKnockbackDetour);
         if (Service.IsDev)
+        {
             _applyKnockbackHook.Enable();
-        Service.Log($"[WSG] ApplyKnockback address = {_applyKnockbackHook.Address:X}");
+            Service.Log($"[WSG] ApplyKnockback address = {_applyKnockbackHook.Address:X}");
+        }
     }
 
     public void Dispose()
@@ -951,6 +951,9 @@ sealed class WorldStateGameSync : IDisposable
         {
             case Network.ServerIPC.ActorControlCategory.TargetIcon:
                 _actorOps.GetOrAdd(actorID).Add(new ActorState.OpIcon(actorID, p1 - Network.IDScramble.Delta, p2));
+                break;
+            case Network.ServerIPC.ActorControlCategory.TargetVFX:
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpVFX(actorID, p1, p2));
                 break;
             case Network.ServerIPC.ActorControlCategory.Tether:
                 _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether(actorID, new(p2, p3)));
