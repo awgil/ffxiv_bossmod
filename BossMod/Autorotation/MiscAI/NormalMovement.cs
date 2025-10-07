@@ -55,7 +55,8 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
     public const float MeleeRange = 3;
     public const float CasterRange = 25;
 
-    private Task<NavigationDecision>? _lastDecision;
+    private Task<NavigationDecision> _decisionTask = Task.FromResult(default(NavigationDecision));
+    private NavigationDecision _lastDecision;
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -112,22 +113,21 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         switch (destinationStrategy)
         {
             case DestinationStrategy.Pathfind:
-                // TODO clean up these conditionals
-                if (_lastDecision == null)
-                    _lastDecision = Task.Run(() => NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize));
-                else if (_lastDecision.IsCompletedSuccessfully)
+                if (_decisionTask.IsCompletedSuccessfully)
                 {
-                    navi = _lastDecision.Result;
-                    Service.Log($"next: {navi.Destination}");
-                    Manager.LastPathfindMs = (float)navi.BuildTimeMs;
-                    _lastDecision = Task.Run(() => NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize));
+                    _lastDecision = _decisionTask.Result;
+                    Manager.LastPathfindMs = (float)_lastDecision.BuildTimeMs;
+                    _decisionTask = Task.Run(() => NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize));
                 }
+                navi = _lastDecision;
                 break;
             case DestinationStrategy.Explicit:
                 navi = new() { Destination = ResolveTargetLocation(destinationOpt.Value), TimeToGoal = destinationOpt.Value.ExpireIn };
+                _lastDecision = default;
                 Manager.LastPathfindMs = 0;
                 break;
             default:
+                _lastDecision = default;
                 Manager.LastPathfindMs = 0;
                 break;
         }
