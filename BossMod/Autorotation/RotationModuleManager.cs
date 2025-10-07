@@ -39,6 +39,7 @@ public sealed class RotationModuleManager : IDisposable
     public DateTime CombatStart { get; private set; } // default value when player is not in combat, otherwise timestamp when player entered combat
     public (DateTime Time, ActorCastEvent? Data) LastCast { get; private set; }
 
+    public volatile float LastRasterizeMs;
     public volatile float LastPathfindMs;
 
     // list of status effects that disable the player's default action set, but do not disable *all* actions

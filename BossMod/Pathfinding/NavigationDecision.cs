@@ -1,4 +1,6 @@
-﻿namespace BossMod.Pathfinding;
+﻿using System.Threading.Tasks;
+
+namespace BossMod.Pathfinding;
 
 // utility for selecting player's navigation target
 // there are several goals that navigation has to meet, in following rough priority
@@ -22,7 +24,9 @@ public struct NavigationDecision
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
 
-    public double BuildTimeMs;
+    public TimeSpan RasterizeTime;
+    public TimeSpan PathfindTime;
+    public TimeSpan TotalTime;
 
     public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
 
@@ -33,8 +37,15 @@ public struct NavigationDecision
 
     public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
     {
-        var start = DateTime.Now;
-        // build a pathfinding map: rasterize all forbidden zones and goals
+        var t = BuildAsync(ctx, ws, hints, player, playerSpeed, forbiddenZoneCushion);
+        t.Wait();
+        return t.Result;
+    }
+
+    public static Task<NavigationDecision> BuildAsync(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
+    {
+        var startTime = DateTime.Now;
+        // do rasterization synchronously so we don't have to clone the hints structure (TODO this still needs optimization xd)
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
             RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
@@ -44,12 +55,18 @@ public struct NavigationDecision
         if (forbiddenZoneCushion > 0)
             AvoidForbiddenZone(ctx.Map, forbiddenZoneCushion);
 
-        // execute pathfinding
-        ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
-        var bestNodeIndex = ctx.ThetaStar.Execute();
-        ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
-        var waypoints = GetFirstWaypoints(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
-        return new() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, BuildTimeMs = (DateTime.Now - start).TotalMilliseconds };
+        var rasterFinish = DateTime.Now;
+
+        return Task.Run(() =>
+        {
+            // execute pathfinding
+            ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
+            var bestNodeIndex = ctx.ThetaStar.Execute();
+            ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
+            var waypoints = GetFirstWaypoints(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
+            var finishTime = DateTime.Now;
+            return new NavigationDecision() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, PathfindTime = finishTime - rasterFinish, RasterizeTime = rasterFinish - startTime, TotalTime = finishTime - startTime };
+        });
     }
 
     public static void AvoidForbiddenZone(Map map, float forbiddenZoneCushion)

@@ -116,8 +116,9 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 if (_decisionTask.IsCompletedSuccessfully)
                 {
                     _lastDecision = _decisionTask.Result;
-                    Manager.LastPathfindMs = (float)_lastDecision.BuildTimeMs;
-                    _decisionTask = Task.Run(() => NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize));
+                    Manager.LastRasterizeMs = (float)_lastDecision.RasterizeTime.TotalMilliseconds;
+                    Manager.LastPathfindMs = (float)_lastDecision.PathfindTime.TotalMilliseconds;
+                    _decisionTask = NavigationDecision.BuildAsync(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize);
                 }
                 navi = _lastDecision;
                 break;

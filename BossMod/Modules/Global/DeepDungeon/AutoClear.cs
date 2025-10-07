@@ -13,6 +13,7 @@ enum OID : uint
     CairnPalace = 0x1EA094,
     BeaconHoH = 0x1EA9A3,
     PylonEO = 0x1EB867,
+    PylonPT = 0x1EBE24,
     SilverCoffer = 0x1EA13D,
     GoldCoffer = 0x1EA13E,
     BandedCofferIndicator = 0x1EA1F6,
@@ -442,7 +443,7 @@ public abstract class AutoClear : ZoneModule
             if (a.OID == (uint)OID.BandedCofferIndicator)
                 hoardLight = a;
 
-            if ((OID)a.OID is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO && (passage?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))
+            if ((OID)a.OID is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && (passage?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))
                 passage = a;
 
             if (RevealedTrapOIDs.Contains(a.OID))

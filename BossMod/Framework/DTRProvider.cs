@@ -58,7 +58,7 @@ internal sealed class DTRProvider : IDisposable
 
         _statsEntry.Shown = true;
         if (_mgr.LastPathfindMs > 0)
-            _statsEntry.Text = $"Pathfind: {_mgr.LastPathfindMs:f1}ms";
+            _statsEntry.Text = $"Pathfind: {_mgr.LastRasterizeMs:f1}ms (r) {_mgr.LastPathfindMs:f1}ms (p)";
         else
             _statsEntry.Text = $"Pathfind: -";
 
