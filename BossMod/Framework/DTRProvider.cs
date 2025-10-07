@@ -16,6 +16,7 @@ internal sealed class DTRProvider : IDisposable
     private readonly AIManager _ai;
     private readonly IDtrBarEntry _autorotationEntry = Service.DtrBar.Get("vbm-autorotation");
     private readonly IDtrBarEntry _aiEntry = Service.DtrBar.Get("vbm-ai");
+    private readonly IDtrBarEntry _statsEntry = Service.DtrBar.Get("vbm-stats");
     private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
     private bool _wantOpenPopup;
 
@@ -42,6 +43,7 @@ internal sealed class DTRProvider : IDisposable
     {
         _autorotationEntry.Remove();
         _aiEntry.Remove();
+        _statsEntry.Remove();
     }
 
     public void Update()
@@ -53,6 +55,12 @@ internal sealed class DTRProvider : IDisposable
 
         _aiEntry.Shown = _aiConfig.ShowDTR;
         _aiEntry.Text = "AI: " + (_ai.Behaviour == null ? "Off" : "On");
+
+        _statsEntry.Shown = true;
+        if (_mgr.LastPathfindMs > 0)
+            _statsEntry.Text = $"Pathfind: {_mgr.LastPathfindMs:f1}ms";
+        else
+            _statsEntry.Text = $"Pathfind: -";
 
         if (_wantOpenPopup && _mgr.Player != null)
         {

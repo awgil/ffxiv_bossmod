@@ -1,4 +1,5 @@
 ﻿using BossMod.Pathfinding;
+using System.Threading.Tasks;
 
 namespace BossMod.Autorotation.MiscAI;
 
@@ -54,6 +55,8 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
     public const float MeleeRange = 3;
     public const float CasterRange = 25;
 
+    private Task<NavigationDecision>? _lastDecision;
+
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var castOpt = strategy.Option(Track.Cast);
@@ -105,12 +108,29 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             ForbiddenZoneCushionStrategy.Large => 3.0f,
             _ => 0f
         };
-        var navi = destinationStrategy switch
+        NavigationDecision navi = default;
+        switch (destinationStrategy)
         {
-            DestinationStrategy.Pathfind => NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize),
-            DestinationStrategy.Explicit => new() { Destination = ResolveTargetLocation(destinationOpt.Value), TimeToGoal = destinationOpt.Value.ExpireIn },
-            _ => default
-        };
+            case DestinationStrategy.Pathfind:
+                // TODO clean up these conditionals
+                if (_lastDecision == null)
+                    _lastDecision = Task.Run(() => NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize));
+                else if (_lastDecision.IsCompletedSuccessfully)
+                {
+                    navi = _lastDecision.Result;
+                    Service.Log($"next: {navi.Destination}");
+                    Manager.LastPathfindMs = (float)navi.BuildTimeMs;
+                    _lastDecision = Task.Run(() => NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize));
+                }
+                break;
+            case DestinationStrategy.Explicit:
+                navi = new() { Destination = ResolveTargetLocation(destinationOpt.Value), TimeToGoal = destinationOpt.Value.ExpireIn };
+                Manager.LastPathfindMs = 0;
+                break;
+            default:
+                Manager.LastPathfindMs = 0;
+                break;
+        }
         if (navi.Destination == null)
             return; // nothing to do
 
