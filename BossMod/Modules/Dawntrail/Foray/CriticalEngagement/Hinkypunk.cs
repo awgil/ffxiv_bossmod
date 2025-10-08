@@ -177,11 +177,15 @@ class Blowout(BossModule module) : Components.Knockback(module, null)
         foreach (var src in Sources(slot, actor))
         {
             if (!IsImmune(slot, src.Activation))
+            {
+                var center = Arena.Center;
+                var extra = ExtraKnockbackCushion;
                 hints.AddForbiddenZone(p =>
                 {
                     var dir = (p - src.Origin).Normalized();
-                    return !(p + dir * 20).InCircle(Arena.Center, 20 - ExtraKnockbackCushion);
+                    return !(p + dir * 20).InCircle(center, 20 - extra);
                 }, src.Activation);
+            }
         }
     }
 }

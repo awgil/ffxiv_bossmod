@@ -25,6 +25,7 @@ public class Analyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor RuleNoEmptyFirstLine = Register("First line of the file should not be empty", "Empty first line is pointless", DiagnosticSeverity.Warning);
     private static readonly DiagnosticDescriptor RuleUseSingleLineFindSlot = Register("Conditional can be inlined", "Use TryFindSlot instead of testing against 0", DiagnosticSeverity.Warning);
     private static readonly DiagnosticDescriptor RuleNoRealDatetimeInComponents = Register("Use of DateTime.Now in boss module", "DateTime.Now will behave unexpectedly in replays. Use WorldState.CurrentTime instead", DiagnosticSeverity.Error);
+    private static readonly DiagnosticDescriptor RuleNoRefTypesInHintFuncs = Register("Reference type captured in closure", "This point test function captures a ref-typed variable of type {0}, which might be modified before the function is called", DiagnosticSeverity.Error);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -35,6 +36,7 @@ public class Analyzer : DiagnosticAnalyzer
         context.RegisterSyntaxTreeAction(AnalyzeNoEmptyFirstLine);
         context.RegisterSyntaxNodeAction(AnalyzeUseInlineFindSlot, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeNoRealDatetime, SyntaxKind.Block);
+        context.RegisterSyntaxNodeAction(AnalyzeNoRefsInHints, SyntaxKind.Block);
     }
 
     private static void AnalyzeNoMutableStatics(SymbolAnalysisContext context)
@@ -115,6 +117,38 @@ public class Analyzer : DiagnosticAnalyzer
                 }
             }
         }
+    }
+
+    private static void AnalyzeNoRefsInHints(SyntaxNodeAnalysisContext context)
+    {
+        foreach (var node in context.Node.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (!IsHintZoneFn(context, node))
+                continue;
+
+            if (node.ArgumentList.Arguments.First().Expression is LambdaExpressionSyntax lam)
+            {
+                var anal = context.SemanticModel.AnalyzeDataFlow(lam.Body);
+
+                foreach (var captured in anal.CapturedInside)
+                    if (captured is IParameterSymbol p && p.Type.IsReferenceType)
+                        context.ReportDiagnostic(Diagnostic.Create(RuleNoRefTypesInHintFuncs, lam.GetLocation(), $"{p.Type}"));
+            }
+        }
+    }
+
+    private static bool IsHintZoneFn(SyntaxNodeAnalysisContext context, InvocationExpressionSyntax node)
+    {
+        if (node.Expression is MemberAccessExpressionSyntax mem)
+        {
+            if (mem.Name.ToString() == "AddForbiddenZone")
+                return true;
+
+            if (mem.Expression is MemberAccessExpressionSyntax parent)
+                return parent.Name.ToString() == "GoalZones" && mem.Name.ToString() == "Add";
+        }
+
+        return false;
     }
 
     private static void AnalyzeNoRealDatetime(SyntaxNodeAnalysisContext context)

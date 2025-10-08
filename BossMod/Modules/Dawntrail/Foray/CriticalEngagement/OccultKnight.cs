@@ -126,9 +126,9 @@ class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(modu
 
     private readonly CageOfFire _cage = module.FindComponent<CageOfFire>()!;
 
-    private bool HitByRect(WPos p) => _cage.ActiveCasters.Any(c => p.InRect(c.Position, c.Rotation, 60, 0, 4));
+    private Func<WPos, bool> HitByRect() => ShapeContains.Union([.. _cage.ActiveCasters.Select(c => ShapeContains.Rect(c.Position, c.Rotation, 60, 0, 4))]);
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, 20) || HitByRect(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, 20) || HitByRect()(pos);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -139,10 +139,15 @@ class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(modu
                 return;
 
             hints.AddForbiddenZone(ShapeContains.Donut(caster.Position, 5, 40), Module.CastFinishAt(caster.CastInfo));
+
+            var hitRectShape = HitByRect();
+            var center = Arena.Center;
+            var dist = Distance;
+
             hints.AddForbiddenZone(p =>
             {
-                var dir = (p - Arena.Center).Normalized() * Distance;
-                return HitByRect(p + dir);
+                var dir = (p - center).Normalized() * dist;
+                return hitRectShape(p + dir);
             }, Module.CastFinishAt(caster.CastInfo));
         }
     }

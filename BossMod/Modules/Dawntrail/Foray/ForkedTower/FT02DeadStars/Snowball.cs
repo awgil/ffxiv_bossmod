@@ -71,6 +71,8 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBo
             hints.Add("Stand in charge!", !inside);
     }
 
+    // TODO figure out why this impl triggers the lint; anyCharge is a local declaration and ShapeContains returns "clean" functions
+#pragma warning disable VBM006 // Reference type captured in closure
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_charges.Count(c => IsAssigned(slot, c)) > 1)
@@ -83,9 +85,11 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBo
         foreach (var c in _charges)
         {
             var shape = c.ShapeFn;
-            hints.AddForbiddenZone(p => IsAssigned(slot, c) ? !shape(p) : shape(p), c.Activation);
+            var isAssigned = IsAssigned(slot, c);
+            hints.AddForbiddenZone(p => isAssigned ? !shape(p) : shape(p), c.Activation);
         }
     }
+#pragma warning restore VBM006 // Reference type captured in closure
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

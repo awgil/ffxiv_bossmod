@@ -37,17 +37,17 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
         Player = 2
     }
 
-    private Func<WPos, Clip> ClipBaitersShape => p =>
+    private static Func<WPos, Clip> ClipBaitersShape(bool spreadSouth, WPos center) => p =>
     {
-        var signright = SpreadSouth ? 1 : -1;
+        var signright = spreadSouth ? 1 : -1;
         var c = Clip.None;
 
-        if (Intersect.CircleDonutSector(p, 4, Arena.Center, 8, 16, new WDir(1, 0).Rotate(22.5f.Degrees() * signright), 22.5f.Degrees()))
+        if (Intersect.CircleDonutSector(p, 4, center, 8, 16, new WDir(1, 0).Rotate(22.5f.Degrees() * signright), 22.5f.Degrees()))
             c |= Clip.Tile;
-        else if (Intersect.CircleDonutSector(p, 4, Arena.Center, 8, 16, new WDir(-1, 0).Rotate(-22.5f.Degrees() * signright), 22.5f.Degrees()))
+        else if (Intersect.CircleDonutSector(p, 4, center, 8, 16, new WDir(-1, 0).Rotate(-22.5f.Degrees() * signright), 22.5f.Degrees()))
             c |= Clip.Tile;
 
-        if (Intersect.CircleCone(p, 4, new WPos(100, 100), 16, new WDir(0, SpreadSouth ? -1 : 1), 45.Degrees()))
+        if (Intersect.CircleCone(p, 4, new WPos(100, 100), 16, new WDir(0, spreadSouth ? -1 : 1), 45.Degrees()))
             c |= Clip.Player;
         return c;
     };
@@ -58,9 +58,10 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
         if (IsSpreadTarget(actor))
         {
             hints.AddForbiddenZone(_tiles.TileShape(), Spreads[0].Activation);
+            var sh = ClipBaitersShape(SpreadSouth, Arena.Center);
             // hints.AddForbiddenZone(p => ClipBaitersShape(p) > 0, Spreads[0].Activation);
-            hints.AddForbiddenZone(p => ClipBaitersShape(p).HasFlag(Clip.Tile), Spreads[0].Activation);
-            hints.AddForbiddenZone(p => ClipBaitersShape(p).HasFlag(Clip.Player), Spreads[0].Activation);
+            hints.AddForbiddenZone(p => sh(p).HasFlag(Clip.Tile), Spreads[0].Activation);
+            hints.AddForbiddenZone(p => sh(p).HasFlag(Clip.Player), Spreads[0].Activation);
         }
     }
 
@@ -72,7 +73,7 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
             if (_tiles.InActiveTile(actor))
                 hints.Add("GTFO from tile!");
 
-            var clip = ClipBaitersShape(actor.Position);
+            var clip = ClipBaitersShape(SpreadSouth, Arena.Center)(actor.Position);
             if (clip.HasFlag(Clip.Tile))
                 hints.Add("Stay away from connected tiles!");
 
@@ -87,7 +88,7 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
 
         if (IsSpreadTarget(pc))
         {
-            var clip = ClipBaitersShape(pc.Position);
+            var clip = ClipBaitersShape(SpreadSouth, Arena.Center)(pc.Position);
 
             if (clip.HasFlag(Clip.Player))
                 Arena.ZoneCone(Arena.Center, 0, 16, SpreadSouth ? 180.Degrees() : default, 45.Degrees(), ArenaColor.Danger);
@@ -182,7 +183,9 @@ class BanishIII(BossModule module) : Components.CastCounter(module, AID.Alexandr
     {
         if (Target != null && Target != actor)
         {
-            hints.AddForbiddenZone(p => !p.InCircle(Target.Position, 4) && !_stackTiles[Tiles.GetTile(p)], Activation);
+            var tpos = Target.Position;
+            var stackTiles = _stackTiles;
+            hints.AddForbiddenZone(p => !p.InCircle(tpos, 4) && !stackTiles[Tiles.GetTile(p)], Activation);
         }
     }
 }

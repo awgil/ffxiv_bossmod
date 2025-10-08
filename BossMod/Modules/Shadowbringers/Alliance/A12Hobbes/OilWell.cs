@@ -26,12 +26,13 @@ class OilWell(BossModule module) : Components.GenericAOEs(module, AID.OilWell)
     {
         if (Activation != default && Relevant(actor))
         {
-            hints.AddForbiddenZone(p => _inverted ? !OnPlatform(p) : OnPlatform(p), Activation);
+            var inv = _inverted;
+            hints.AddForbiddenZone(p => inv ? !OnPlatform(p) : OnPlatform(p), Activation);
         }
     }
 
     bool Relevant(Actor a) => a.Position.InCircle(new(-779, -225), 20);
-    bool OnPlatform(WPos a) => Platforms.Any(p => p.InCircle(a, 6));
+    static bool OnPlatform(WPos a) => Platforms.Any(p => p.InCircle(a, 6));
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

@@ -67,7 +67,9 @@ class FaithUnmoving(BossModule module) : Components.KnockbackFromCastTarget(modu
             if (IsImmune(slot, s.Activation))
                 continue;
 
+#pragma warning disable VBM006 // Reference type captured in closure
             hints.AddForbiddenZone(p => _forbidden.Forbidden.Contains(Angle.FromDirection(p - Arena.Center).Rad), s.Activation);
+#pragma warning restore VBM006 // Reference type captured in closure
         }
     }
 }

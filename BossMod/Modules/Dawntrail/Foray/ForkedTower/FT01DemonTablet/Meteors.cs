@@ -58,7 +58,10 @@ class PortentousComet : Components.UniformStackSpread
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (IsSpreadTarget(actor) && _meteor != null)
-            hints.AddForbiddenZone(p => MathF.Abs(p.Z - _meteor.Position.Z) > 3, Spreads[0].Activation);
+        {
+            var meteorPos = _meteor.Position;
+            hints.AddForbiddenZone(p => MathF.Abs(p.Z - meteorPos.Z) > 3, Spreads[0].Activation);
+        }
 
         base.AddAIHints(slot, actor, assignment, hints);
     }

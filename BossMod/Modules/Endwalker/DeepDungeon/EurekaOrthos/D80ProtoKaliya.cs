@@ -102,13 +102,14 @@ class Aetheromagnetism(BossModule module) : Components.Knockback(module, ignoreI
         var cannons = Module.Enemies(OID.WeaponsDrone).Select(d => ShapeContains.Rect(d.Position, d.Rotation, 50, 0, 2.5f));
         var all = ShapeContains.Union([barofield, arena, .. cannons]);
 
+        var bossPos = Module.PrimaryActor.Position;
         hints.AddForbiddenZone(p =>
         {
             var dir = (p - source.Origin).Normalized();
             var kb = attract ? -dir : dir;
 
             // prevent KB through death zone in center
-            if (Intersect.RayCircle(p, kb, Module.PrimaryActor.Position, 5) < 1000)
+            if (Intersect.RayCircle(p, kb, bossPos, 5) < 1000)
                 return true;
 
             return all(p + kb * 10);

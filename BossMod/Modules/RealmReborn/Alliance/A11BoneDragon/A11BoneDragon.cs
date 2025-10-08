@@ -88,7 +88,9 @@ class Poison(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_poisonStage > 0)
+#pragma warning disable VBM006 // Reference type captured in closure
             hints.AddForbiddenZone(p => !Safe(p), DateTime.MaxValue);
+#pragma warning restore VBM006 // Reference type captured in closure
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

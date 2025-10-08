@@ -27,12 +27,15 @@ class PungentAerosol(BossModule module) : Components.KnockbackFromCastTarget(mod
         // TODO: add hints to avoid big circle AOEs, not sure if 5.5s is enough time to get from risky corner to safety
         foreach (var c in Sources(slot, actor))
             if (!IsImmune(slot, c.Activation))
+            {
+                var center = Arena.Center;
                 hints.AddForbiddenZone(p =>
                 {
                     var dir = (p - c.Origin).Normalized() * 24;
                     var proj = p + dir;
-                    return !Arena.InBounds(proj);
+                    return !proj.AlmostEqual(center, 20);
                 }, c.Activation);
+            }
     }
 }
 class SterileSphereSmall(BossModule module) : Components.StandardAOEs(module, AID.SterileSphereSmall, 8);

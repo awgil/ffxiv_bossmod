@@ -150,8 +150,10 @@ class DynasticFlame : Components.BaitAwayTethers
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        var center = Arena.Center;
+        var pos = actor.Position;
         if (CurrentBaits.Count > 0)
-            hints.AddForbiddenZone(p => !p.InDonutCone(Arena.Center, 17, 20, Angle.FromDirection(actor.Position - Arena.Center) + 18.Degrees(), 20.Degrees()), orbcount > 0 ? default : DateTime.MaxValue);
+            hints.AddForbiddenZone(p => !p.InDonutCone(center, 17, 20, Angle.FromDirection(pos - center) + 18.Degrees(), 20.Degrees()), orbcount > 0 ? default : DateTime.MaxValue);
     }
 
     public override void OnActorCreated(Actor actor)

@@ -108,6 +108,9 @@ class WindfangStonefangAI(BossModule module) : BossComponent(module)
         var partnerShape = ShapeContains.Cone(Module.PrimaryActor.Position, 12, Module.PrimaryActor.AngleTo(closestPartner), 15.Degrees());
 
         if (_ws.Activation < WorldState.FutureTime(0.5f))
-            hints.AddForbiddenZone(p => _ws.Stack ? !partnerShape(p) : partnerShape(p), _ws.Activation);
+        {
+            var stack = _ws.Stack;
+            hints.AddForbiddenZone(p => stack ? !partnerShape(p) : partnerShape(p), _ws.Activation);
+        }
     }
 }

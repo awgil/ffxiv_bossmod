@@ -13,7 +13,7 @@ class Bloom3Emblazon(BossModule module) : Emblazon(module)
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(slot, actor, hints);
-        if (Baiters[slot] && DangerTile(Tiles.GetTile(actor)))
+        if (Baiters[slot] && DangerTile(_tiles.Mask, Tiles.GetTile(actor)))
             hints.Add("Don't connect towers!");
     }
 
@@ -22,10 +22,13 @@ class Bloom3Emblazon(BossModule module) : Emblazon(module)
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (Baiters[slot])
-            hints.AddForbiddenZone(p => DangerTile(Tiles.GetTile(p)), Activation);
+        {
+            var mask = _tiles.Mask;
+            hints.AddForbiddenZone(p => DangerTile(mask, Tiles.GetTile(p)), Activation);
+        }
     }
 
-    private bool DangerTile(int t)
+    private static bool DangerTile(BitMask _tiles, int t)
     {
         var tileNext = t is 7 or 15 ? t - 7 : t + 1;
         var tilePrev = t is 0 or 8 ? t + 7 : t - 1;
@@ -100,8 +103,9 @@ class TileExplosion(BossModule module) : Components.CastCounter(module, AID.Tile
             return;
 
         var ts = _tiles.TileShape();
+        var soakers = _forbiddenSoakers;
 
-        hints.AddForbiddenZone(p => _forbiddenSoakers[slot] ? ts(p) : !ts(p), Activation);
+        hints.AddForbiddenZone(p => soakers[slot] ? ts(p) : !ts(p), Activation);
 
         hints.AddPredictedDamage(Raid.WithSlot().Where(r => ts(r.Item2.Position)).Mask(), Activation);
     }

@@ -67,12 +67,17 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
             yield return new(c.Position, WallCheck(actor.Position) ? 19 - (actor.Position - Module.Arena.Center).Length() : Distance, Module.CastFinishAt(c.CastInfo));
     }
 
-    private bool WallCheck(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w.Angle, 3.Degrees().Rad));
+    private bool WallCheck(WPos pos) => WallCheck(Arena.Center, Walls, pos);
+    private static bool WallCheck(WPos center, List<(ulong, Angle Angle)> walls, WPos pos) => walls.Any(w => Angle.FromDirection(pos - center).AlmostEqual(w.Angle, 3.Degrees().Rad));
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.FirstOrDefault() is Actor c)
-            hints.AddForbiddenZone(p => !WallCheck(p), Module.CastFinishAt(c.CastInfo));
+        {
+            var walls = Walls.ToList();
+            var center = Arena.Center;
+            hints.AddForbiddenZone(p => !WallCheck(center, walls, p), Module.CastFinishAt(c.CastInfo));
+        }
     }
 }
 

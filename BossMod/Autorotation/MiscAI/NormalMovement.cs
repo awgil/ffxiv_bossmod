@@ -119,10 +119,11 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
             if (Hints.InteractWithTarget != null)
             {
+                var targetPos = Hints.InteractWithTarget.Position;
                 // strongly prefer moving towards interact target
                 Hints.GoalZones.Add(p =>
                 {
-                    var length = (p - Hints.InteractWithTarget.Position).Length();
+                    var length = (p - targetPos).Length();
 
                     // 99% of eventobjects have an interact range of 3.5y, while the rest have a range of 2.09y
                     // checking only for the shorter range here would be fine in the vast majority of cases, but it can break interact pathfinding in the case that the target object is partially covered by a forbidden zone with a radius between 2.1 and 3.5
@@ -195,6 +196,8 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                             if (navi.LeewaySeconds > (rangeStrategy == RangeStrategy.GreedGCDExplicit ? GCD : 0))
                                 navi.Destination = uptimePosition;
                             break;
+
+                        // TODO: don't use a _navCtx that's being modified in a background thread; we should hold onto two of them and swap them when the task completes
                         case RangeStrategy.GreedAutomatic:
                             var uptimeCell = _navCtx.Map.GridToIndex(_navCtx.Map.WorldToGrid(uptimePosition));
                             var curCell = _navCtx.ThetaStar.StartNodeIndex;

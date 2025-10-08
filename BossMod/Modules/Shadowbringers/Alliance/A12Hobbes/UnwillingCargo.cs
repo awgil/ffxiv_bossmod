@@ -125,11 +125,13 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
         foreach (var src in Sources(slot, actor))
         {
             var dir = src.Direction.ToDirection() * src.Distance;
+#pragma warning disable VBM006 // Reference type captured in closure
             hints.AddForbiddenZone(p =>
             {
                 var dir = ExpectedDirection(p);
                 return dir != default && !(p + dir).InCircle(new WPos(-805, -270), 17.5f);
             }, Activation);
+#pragma warning restore VBM006 // Reference type captured in closure
         }
     }
 }

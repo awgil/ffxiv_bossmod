@@ -106,10 +106,12 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
     public override bool Contains(WDir offset) => offset.LengthSq() <= Radius * Radius;
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayCircle(originOffset, dir, Radius);
 
-    public override WDir ClampToBounds(WDir offset)
+    public override WDir ClampToBounds(WDir offset) => ClampToBounds(offset, Radius);
+
+    public static WDir ClampToBounds(WDir offset, float radius)
     {
-        if (offset.LengthSq() > Radius * Radius)
-            offset *= Radius / offset.Length();
+        if (offset.LengthSq() > radius * radius)
+            offset *= radius / offset.Length();
         return offset;
     }
 

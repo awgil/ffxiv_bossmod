@@ -681,9 +681,9 @@ public abstract class AutoClear : ZoneModule
             return;
         }
 
+        var pp = player.Position;
         hints.GoalZones.Add(p =>
         {
-            var pp = player.Position;
             var improvement = d switch
             {
                 Direction.North => pp.Z - p.Z,

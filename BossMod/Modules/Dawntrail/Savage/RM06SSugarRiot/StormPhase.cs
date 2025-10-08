@@ -132,6 +132,6 @@ class LightningStorm(BossModule module) : Components.BaitAwayIcon(module, new AO
             hints.AddForbiddenZone(p => !IsOnBridge(p), CurrentBaits[0].Activation);
     }
 
-    private bool IsOnBridge(Actor p) => IsOnBridge(p.Position);
-    private bool IsOnBridge(WPos p) => RM06SSugarRiot.Bridges.Any(b => RM06SSugarRiot.BridgeShape.Check(p, b.Center, b.Rotation));
+    private static bool IsOnBridge(Actor p) => IsOnBridge(p.Position);
+    private static bool IsOnBridge(WPos p) => RM06SSugarRiot.Bridges.Any(b => RM06SSugarRiot.BridgeShape.Check(p, b.Center, b.Rotation));
 }
