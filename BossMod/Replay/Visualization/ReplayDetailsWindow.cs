@@ -500,12 +500,11 @@ class ReplayDetailsWindow : UIWindow
         if (player == null)
             return;
 
-        _pfVisu ??= new(_hints, _mgr.WorldState, player, _pfTargetRadius, _pfCushion);
+        _pfVisu ??= new(_hints, _mgr.WorldState, player, _pfCushion);
         _pfVisu.Draw(_pfTree);
 
         bool rebuild = false;
         rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0, 5);
-        rebuild |= ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25);
         rebuild |= UICombo.Enum("Ability positional", ref _pfPositional);
         if (rebuild)
             ResetPF();

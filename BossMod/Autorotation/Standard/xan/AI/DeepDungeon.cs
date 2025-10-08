@@ -25,7 +25,8 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         Manticore,
         Succubus,
         Kuribu,
-        Dreadnaught
+        Dreadnaught,
+        Bomb
     }
 
     enum SID : uint
@@ -47,6 +48,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 42 => Transformation.Manticore,
                 43 => Transformation.Succubus,
                 49 => Transformation.Kuribu,
+                55 => Transformation.Bomb,
                 244 => Transformation.Dreadnaught,
                 _ => Transformation.None
             };
@@ -72,6 +74,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             DeepDungeonState.DungeonType.POTD => (ActionDefinitions.IDPotionSustaining, ActionDefinitions.IDPotionMax),
             DeepDungeonState.DungeonType.HOH => (ActionDefinitions.IDPotionEmpyrean, ActionDefinitions.IDPotionSuper),
             DeepDungeonState.DungeonType.EO => (ActionDefinitions.IDPotionOrthos, ActionDefinitions.IDPotionHyper),
+            DeepDungeonState.DungeonType.PT => (ActionDefinitions.IDPotionPilgrim, ActionDefinitions.IDPotionUltra),
             _ => (default, default)
         };
 

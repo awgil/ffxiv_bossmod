@@ -9,7 +9,8 @@ public sealed class DeepDungeonState
         None = 0,
         POTD = 1,
         HOH = 2,
-        EO = 3
+        EO = 3,
+        PT = 4
     }
 
     public readonly record struct DungeonProgress(byte Floor, byte Tileset, byte WeaponLevel, byte ArmorLevel, byte SyncedGearLevel, byte HoardCount, byte ReturnProgress, byte PassageProgress);

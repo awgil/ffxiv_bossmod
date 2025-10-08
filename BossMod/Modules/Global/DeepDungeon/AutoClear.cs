@@ -512,7 +512,7 @@ public abstract class AutoClear : ZoneModule
         {
             wantCoffer = xxx;
             hints.GoalZones.Add(hints.GoalSingleTarget(xxx.Position, 25));
-            hints.InteractWithTarget = coffer;
+            hints.InteractWithTarget ??= coffer;
         }
 
         if (revealedTraps.Count > 0)

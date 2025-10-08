@@ -56,11 +56,10 @@ internal sealed class DTRProvider : IDisposable
         _aiEntry.Shown = _aiConfig.ShowDTR;
         _aiEntry.Text = "AI: " + (_ai.Behaviour == null ? "Off" : "On");
 
-        _statsEntry.Shown = true;
-        if (_mgr.LastPathfindMs > 0)
-            _statsEntry.Text = $"Pathfind: {_mgr.LastRasterizeMs:f1}ms (r) {_mgr.LastPathfindMs:f1}ms (p)";
-        else
-            _statsEntry.Text = $"Pathfind: -";
+        _statsEntry.Shown = _mgr.Config.ShowStatsDTR;
+        _statsEntry.Text = _mgr.LastPathfindMs > 0
+            ? $"Pathfind: {_mgr.LastRasterizeMs:f1}ms (r) {_mgr.LastPathfindMs:f1}ms (p)"
+            : $"Pathfind: -";
 
         if (_wantOpenPopup && _mgr.Player != null)
         {

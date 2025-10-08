@@ -37,15 +37,8 @@ public struct NavigationDecision
 
     public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
     {
-        var t = BuildAsync(ctx, ws, hints, player, playerSpeed, forbiddenZoneCushion);
-        t.Wait();
-        return t.Result;
-    }
-
-    public static Task<NavigationDecision> BuildAsync(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
-    {
         var startTime = DateTime.Now;
-        // do rasterization synchronously so we don't have to clone the hints structure (TODO this still needs optimization xd)
+
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
             RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
@@ -57,17 +50,16 @@ public struct NavigationDecision
 
         var rasterFinish = DateTime.Now;
 
-        return Task.Run(() =>
-        {
-            // execute pathfinding
-            ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
-            var bestNodeIndex = ctx.ThetaStar.Execute();
-            ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
-            var waypoints = GetFirstWaypoints(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
-            var finishTime = DateTime.Now;
-            return new NavigationDecision() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, PathfindTime = finishTime - rasterFinish, RasterizeTime = rasterFinish - startTime, TotalTime = finishTime - startTime };
-        });
+        // execute pathfinding
+        ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
+        var bestNodeIndex = ctx.ThetaStar.Execute();
+        ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
+        var waypoints = GetFirstWaypoints(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
+        var finishTime = DateTime.Now;
+        return new NavigationDecision() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, PathfindTime = finishTime - rasterFinish, RasterizeTime = rasterFinish - startTime, TotalTime = finishTime - startTime };
     }
+
+    public static Task<NavigationDecision> BuildAsync(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion) => Task.Run(() => Build(ctx, ws, hints, player, playerSpeed, forbiddenZoneCushion));
 
     public static void AvoidForbiddenZone(Map map, float forbiddenZoneCushion)
     {

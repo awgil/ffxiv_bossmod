@@ -19,6 +19,9 @@ public sealed class AutorotationConfig : ConfigNode
     [PropertyDisplay("Show autorotation preset in the server info bar")]
     public DtrStatus ShowDTR = DtrStatus.None;
 
+    [PropertyDisplay("Show performance stats in the server info bar")]
+    public bool ShowStatsDTR = false;
+
     [PropertyDisplay("Hide built-in presets", tooltip: "If you've created your own presets and no longer need the included defaults, this option will prevent them from being shown in the Autorotation and Preset Editor windows.", since: "0.0.0.253")]
     public bool HideDefaultPreset = false;
 

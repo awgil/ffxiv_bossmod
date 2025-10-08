@@ -40,7 +40,7 @@ public class GenericChasingAOEs(BossModule module, Enum? aid = default, string w
 
         if (Chasers.FirstOrDefault(c => c.Target == actor) is { } chaser && chaser.Shape is AOEShapeCircle(float radius))
         {
-            var zoneSizeMulti = chaser.NumRemaining > 1 ? 2 : 1;
+            var zoneSizeMulti = Math.Min(3, chaser.NumRemaining);
             hints.AddForbiddenZone(new AOEShapeCircle(radius + chaser.ExpectedMoveDist * zoneSizeMulti), chaser.PrevPos, default, chaser.NextActivation);
         }
     }

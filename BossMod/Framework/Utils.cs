@@ -8,7 +8,7 @@ namespace BossMod;
 
 public static partial class Utils
 {
-    public static string ObjectString(IGameObject obj) => $"{obj.DataId:X} '{obj.Name}' <{obj.EntityId:X}>";
+    public static string ObjectString(IGameObject obj) => $"{obj.BaseId:X} '{obj.Name}' <{obj.EntityId:X}>";
 
     public static string ObjectString(ulong id)
     {

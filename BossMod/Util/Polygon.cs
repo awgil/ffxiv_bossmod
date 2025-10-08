@@ -188,6 +188,18 @@ public class PolygonClipper
     public RelSimplifiedComplexPolygon Difference(Operand starting, Operand remove, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Difference, fillRule, starting, remove);
     public RelSimplifiedComplexPolygon Xor(Operand p1, Operand p2, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Xor, fillRule, p1, p2);
 
+    public RelSimplifiedComplexPolygon UnionAll(Operand p1, params Operand[] ps)
+    {
+        if (ps.Length == 0)
+            return Simplify(p1);
+
+        var shape = Union(p1, ps[0]);
+        for (var i = 1; i < ps.Length; i++)
+            shape = Union(new(shape), ps[i]);
+
+        return shape;
+    }
+
     private RelSimplifiedComplexPolygon Execute(ClipType operation, FillRule fillRule, Operand subject, Operand clip)
     {
         subject.Assign(_clipper, PathType.Subject);
