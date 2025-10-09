@@ -3,10 +3,15 @@
 // list of disjoint segments (defined by min/max values)
 public class DisjointSegmentList
 {
-    public List<(float Min, float Max)> Segments { get; } = [];
+    public List<(float Min, float Max)> Segments { get; private init; } = [];
 
     public (float Min, float Max) this[Index index] => Segments[index];
     public int Count => Segments.Count;
+
+    public DisjointSegmentList Clone() => new()
+    {
+        Segments = [.. Segments]
+    };
 
     public void Add(float min, float max)
     {

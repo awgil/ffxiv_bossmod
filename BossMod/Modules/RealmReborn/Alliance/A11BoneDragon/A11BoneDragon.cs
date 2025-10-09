@@ -30,9 +30,9 @@ class Poison(BossModule module) : BossComponent(module)
 {
     private int _poisonStage;
 
-    bool Safe(WPos p)
+    private static bool Safe(WPos center, int poisonStage, WPos p)
     {
-        if (_poisonStage == 0 || p.InCircle(Arena.Center, 8))
+        if (poisonStage == 0 || p.InCircle(center, 8))
             return true;
 
         for (var i = 0; i < 8; i++)
@@ -40,25 +40,26 @@ class Poison(BossModule module) : BossComponent(module)
             var deg = (45 * i).Degrees();
 
             // long platforms
-            if (_poisonStage == 1)
+            if (poisonStage == 1)
             {
-                if (p.InRect(Arena.Center + new WDir(0, 31.87f).Rotate(deg), deg, 17.675f, 17.675f, 3.9f))
+                if (p.InRect(center + new WDir(0, 31.87f).Rotate(deg), deg, 17.675f, 17.675f, 3.9f))
                     return true;
             }
 
-            if (_poisonStage == 2)
+            if (poisonStage == 2)
             {
-                if (p.InRect(Arena.Center + new WDir(0, 18.02f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
+                if (p.InRect(center + new WDir(0, 18.02f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
                     return true;
-                if (p.InRect(Arena.Center + new WDir(0, 32.13f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
+                if (p.InRect(center + new WDir(0, 32.13f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
                     return true;
-                if (p.InRect(Arena.Center + new WDir(0, 45.745f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
+                if (p.InRect(center + new WDir(0, 45.745f).Rotate(deg), deg, 2.95f, 2.95f, 2.95f))
                     return true;
             }
         }
 
         return false;
     }
+    private bool Safe(WPos p) => Safe(Arena.Center, _poisonStage, p);
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
@@ -88,9 +89,11 @@ class Poison(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_poisonStage > 0)
-#pragma warning disable VBM006 // Reference type captured in closure
-            hints.AddForbiddenZone(p => !Safe(p), DateTime.MaxValue);
-#pragma warning restore VBM006 // Reference type captured in closure
+        {
+            var center = Arena.Center;
+            var stage = _poisonStage;
+            hints.AddForbiddenZone(p => !Safe(center, stage, p), DateTime.MaxValue);
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

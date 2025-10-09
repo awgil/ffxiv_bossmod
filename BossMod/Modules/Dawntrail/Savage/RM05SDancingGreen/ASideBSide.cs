@@ -163,9 +163,7 @@ class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, AID
         var r0 = rects[0];
         var r1 = rects[1];
 
-#pragma warning disable VBM006 // Reference type captured in closure
         hints.AddForbiddenZone(p => r0(p) == r1(p), Activation);
-#pragma warning restore VBM006 // Reference type captured in closure
 
         hints.AddPredictedDamage(Raid.WithSlot().Mask(), Activation);
     }

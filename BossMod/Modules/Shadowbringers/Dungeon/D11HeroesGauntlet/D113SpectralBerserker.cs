@@ -233,13 +233,13 @@ class WildHole(BossModule module) : Components.CastCounter(module, AID.WildRampa
         if (_zones.Count > 0)
         {
             var safe = UnsafeAt > WorldState.CurrentTime;
-#pragma warning disable VBM006 // Reference type captured in closure
+            var zones = _zones.ToList();
+            var hs = HoleSize;
             hints.AddForbiddenZone(p =>
             {
-                var inHole = _zones.Any(z => p.InCircle(z, HoleSize));
+                var inHole = zones.Any(z => p.InCircle(z, hs));
                 return safe ? !inHole : inHole;
             }, UnsafeAt);
-#pragma warning restore VBM006 // Reference type captured in closure
         }
     }
 

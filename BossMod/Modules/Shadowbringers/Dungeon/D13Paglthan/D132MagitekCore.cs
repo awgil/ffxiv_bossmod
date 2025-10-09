@@ -80,14 +80,13 @@ class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastT
             return;
 
         var source = Casters[0].CastInfo!.LocXZ;
-#pragma warning disable VBM006 // Reference type captured in closure
+        var clamp = Arena.ClampToBounds;
         hints.AddForbiddenZone(p =>
         {
             var dist = (p - source).Normalized();
-            var proj = Arena.ClampToBounds(p + dist * 10);
+            var proj = clamp(p + dist * 10);
             return aoes.Any(e => e.Check(proj));
         }, Module.CastFinishAt(Casters[0].CastInfo));
-#pragma warning restore VBM006 // Reference type captured in closure
     }
 }
 
