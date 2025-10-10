@@ -38,9 +38,9 @@ class SaltwaterShot(BossModule module) : Components.KnockbackFromCastTarget(modu
         {
             var safeCone = srcs.Count > 1
                 // aim roughly for next caster
-                ? ShapeContains.InvertedCone(srcs[0].Origin, 4.5f, (srcs[1].Origin - srcs[0].Origin).ToAngle(), 21.Degrees())
+                ? ShapeContains.InvertedCone(srcs[0].Origin, 3, (srcs[1].Origin - srcs[0].Origin).ToAngle(), 21.Degrees())
                 // just aim inside arena, safe angle is ~51.32 degrees
-                : ShapeContains.InvertedCone(srcs[0].Origin, 4.5f, srcs[0].Direction, 51.Degrees());
+                : ShapeContains.InvertedCone(srcs[0].Origin, 3, srcs[0].Direction, 51.Degrees());
 
             hints.AddForbiddenZone(safeCone, srcs[0].Activation);
         }
