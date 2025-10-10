@@ -45,11 +45,13 @@ public abstract class AutoClear : ZoneModule
         // HoH
         1036, 1037, 1038, 1039, 1040, 1041, 1042, 1043, 1044, 1045, 1046, 1047, 1048, 1049,
         // EO
-        1541, 1542, 1543, 1544, 1545, 1546, 1547, 1548, 1549, 1550, 1551, 1552, 1553, 1554
+        1541, 1542, 1543, 1544, 1545, 1546, 1547, 1548, 1549, 1550, 1551, 1552, 1553, 1554,
+        // PT
+        1884, 1885, 1886
     ];
     public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0, 0x1EB864];
 
-    protected readonly List<(Actor Source, float Inner, float Outer)> Donuts = [];
+    protected readonly List<(Actor Source, float Inner, float Outer, Angle HalfAngle)> Donuts = [];
     protected readonly List<(Actor Source, float Radius)> Circles = [];
     protected readonly List<(Actor Source, float Radius)> KnockbackZones = [];
     protected readonly List<(Actor Source, AOEShape Zone)> Voidzones = [];
@@ -249,6 +251,7 @@ public abstract class AutoClear : ZoneModule
 
     protected void AddGaze(Actor Source, AOEShape Shape) => Gazes.Add(new(Source, Shape));
     protected void AddGaze(Actor Source, float Radius) => AddGaze(Source, new AOEShapeCircle(Radius));
+    protected void AddDonut(Actor Source, float Inner, float Outer, Angle? HalfAngle = null) => Donuts.Add((Source, Inner, Outer, HalfAngle ?? 180.Degrees()));
 
     protected void AddLOS(Actor Source, float Range)
     {
@@ -296,7 +299,8 @@ public abstract class AutoClear : ZoneModule
     public override void DrawExtra()
     {
         var player = World.Party.Player();
-        var targetRoom = new Minimap(Palace, player?.Rotation ?? default, DesiredRoom).Draw();
+        var playerSlot = Array.FindIndex(Palace.Party, p => p.EntityId == player?.InstanceID);
+        var targetRoom = new Minimap(Palace, player?.Rotation ?? default, DesiredRoom, Math.Max(0, playerSlot)).Draw();
         if (targetRoom >= 0)
             DesiredRoom = targetRoom;
 
@@ -388,18 +392,29 @@ public abstract class AutoClear : ZoneModule
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (!_config.Enable || Palace.IsBossFloor || BetweenFloors)
+        if (Palace.IsBossFloor || BetweenFloors)
+            return;
+
+        foreach (var (w, rot) in Walls)
+            hints.TemporaryObstacles.Add(ShapeContains.Rect(w.Position, (rot ? 90f : 0f).Degrees(), w.Depth, w.Depth, 20));
+
+        if (_config.TrapHints && _trapsHidden)
+        {
+            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeContains.Circle(t, 2)).ToList();
+            if (traps.Count > 0)
+                hints.AddForbiddenZone(ShapeContains.Union(traps));
+        }
+
+        DrawAOEs(playerSlot, player, hints);
+
+        if (!_config.Enable)
             return;
 
         var canNavigate = _config.MaxPull == 0 ? !player.InCombat : hints.PotentialTargets.Count(t => t.Actor.AggroPlayer && !t.Actor.IsDeadOrDestroyed) < _config.MaxPull;
 
-        foreach (var (w, rot) in Walls)
-            hints.AddForbiddenZone(new AOEShapeRect(w.Depth, 20, w.Depth), w.Position, (rot ? 90f : 0f).Degrees());
-
         if (canNavigate)
             HandleFloorPathfind(player, hints);
 
-        DrawAOEs(playerSlot, player, hints);
         CalculateExtraHints(playerSlot, player, hints);
 
         var isStunned = IsPlayerTransformed(player) || player.Statuses.Any(s => (SID)s.ID is SID.Silence or SID.Pacification);
@@ -459,13 +474,6 @@ public abstract class AutoClear : ZoneModule
                 DesiredRoom = unexplored;
                 fullClear = true;
             }
-        }
-
-        if (_config.TrapHints && _trapsHidden)
-        {
-            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeContains.Circle(t, 2)).ToList();
-            if (traps.Count > 0)
-                hints.AddForbiddenZone(ShapeContains.Union(traps));
         }
 
         if (coffer != null)
@@ -573,7 +581,7 @@ public abstract class AutoClear : ZoneModule
 
         IterAndExpire(Donuts, d => d.Source.CastInfo == null, d =>
         {
-            hints.AddForbiddenZone(new AOEShapeDonut(d.Inner, d.Outer), d.Source.Position, default, CastFinishAt(d.Source));
+            hints.AddForbiddenZone(new AOEShapeDonutSector(d.Inner, d.Outer, d.HalfAngle), d.Source.Position, d.Source.CastInfo!.Rotation, CastFinishAt(d.Source));
         });
 
         IterAndExpire(Circles, d => d.Source.CastInfo == null, d =>

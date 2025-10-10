@@ -4,7 +4,7 @@ using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceConten
 
 namespace BossMod.Global.DeepDungeon;
 
-public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int CurrentDestination)
+public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int CurrentDestination, int PlayerSlot)
 {
     enum IconID : uint
     {
@@ -39,7 +39,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
             if (c.Room > 0)
                 chests[c.Room] |= (RoomChest)(1 << (c.Type - 1));
 
-        var playerCell = State.Party[0].Room;
+        var playerCell = State.Party[PlayerSlot].Room;
 
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0f, 0f));
 

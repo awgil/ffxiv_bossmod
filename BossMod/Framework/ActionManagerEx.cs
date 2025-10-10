@@ -257,10 +257,19 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     public bool CanMoveWhileCasting(ActionID action)
     {
+        var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        var inCombat = player->InCombat;
+
         return action switch
         {
-            { Type: ActionType.Spell, ID: 29391 or 29402 } => true, // phys ranged PVP actions
             { Type: ActionType.Mount } => true,
+
+            // phys ranged PVP actions
+            { Type: ActionType.Spell, ID: 29391 or 29402 } => true,
+
+            // player actions that can be cast instantly out of combat (1 RPR and all PCT motifs)
+            { Type: ActionType.Spell, ID: 24387 or 34689 or 34664 or 34665 or 34690 or 34668 or 34669 or 34691 or 34667 or 34666 } => !inCombat,
+
             _ => false
         };
     }

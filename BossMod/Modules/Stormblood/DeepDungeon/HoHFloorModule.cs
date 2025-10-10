@@ -52,11 +52,11 @@ public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
                 AddGaze(actor, 30);
                 break;
             case AID.AtropineSpore:
-                Donuts.Add((actor, 9.5f, 41));
+                AddDonut(actor, 9.5f, 41);
                 HintDisabled.Add(actor);
                 break;
             case AID.TheDragonsVoice:
-                Donuts.Add((actor, 8, 30));
+                AddDonut(actor, 8, 30);
                 HintDisabled.Add(actor);
                 break;
         }

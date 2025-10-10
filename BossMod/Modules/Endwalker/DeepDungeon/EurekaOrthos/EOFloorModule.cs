@@ -108,15 +108,15 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             // donut AOEs
             case AID.TheDragonsVoice:
             case AID.TheDragonsVoice2:
-                Donuts.Add((actor, 8, 30));
+                AddDonut(actor, 8, 30);
                 HintDisabled.Add(actor);
                 break;
             case AID.ElectricCachexia:
-                Donuts.Add((actor, 8, 44));
+                AddDonut(actor, 8, 44);
                 HintDisabled.Add(actor);
                 break;
             case AID.ElectricWhorl:
-                Donuts.Add((actor, 8, 60));
+                AddDonut(actor, 8, 60);
                 HintDisabled.Add(actor);
                 break;
 

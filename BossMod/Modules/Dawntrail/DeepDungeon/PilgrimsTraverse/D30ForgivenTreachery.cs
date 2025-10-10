@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse;
+﻿namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D30ForgivenTreachery;
 
 public enum OID : uint
 {

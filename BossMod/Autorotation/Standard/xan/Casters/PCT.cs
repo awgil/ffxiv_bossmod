@@ -378,6 +378,6 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool ShouldCreaturePortrait(StrategyValues strategy)
     {
-        return StarryMuseLeft > AnimLock;
+        return StarryMuseLeft > AnimLock || ReadyIn(AID.StarryMuse) > 20;
     }
 }
