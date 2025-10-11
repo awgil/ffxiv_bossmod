@@ -32,7 +32,7 @@ class ClamorousBait(BossModule module) : Components.CastCounterMulti(module, [AI
 {
     private readonly int[] _order = Utils.MakeArray(8, -1);
     private readonly Actor?[] _targets = Utils.MakeArray<Actor?>(8, null);
-    private int _side = 0;
+    private int _side;
     private int _nextBait = -1;
     private WPos _source;
     private DateTime _nextJump;

@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali;
 
 public enum OID : uint
 {
@@ -168,5 +169,5 @@ class D50OgbunabaliStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1036, NameID = 14263)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1036, NameID = 14263, DevOnly = true)]
 public class D50Ogbunabali(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(15));
