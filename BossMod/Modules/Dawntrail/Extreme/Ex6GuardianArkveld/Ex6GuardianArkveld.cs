@@ -54,5 +54,5 @@ class ForgedFury(BossModule module) : Components.CastHint(module, null, "Raidwid
 class SmallCrystal(BossModule module) : Components.StandardAOEs(module, AID.SmallCrystalExplosion, 6);
 class BigCrystal(BossModule module) : Components.StandardAOEs(module, AID.BigCrystalExplosion, 12);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1044, NameID = 14237)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1044, NameID = 14237, PlanLevel = 100)]
 public class Ex6GuardianArkveld(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
