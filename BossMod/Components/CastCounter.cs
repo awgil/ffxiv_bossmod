@@ -27,7 +27,7 @@ public class CastCounterMulti(BossModule module, Enum[] aids) : BossComponent(mo
 
 public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float expireAfter = 30, uint color = 0) : CastCounterMulti(module, aids)
 {
-    private readonly List<(WPos Source, Angle Direction, DateTime Timestamp)> _casts = [];
+    private readonly List<(WPos Source, Angle Direction, float SincePull)> _casts = [];
     public float ExpireAfter = expireAfter;
     public uint Color = color == 0 ? ArenaColor.Object : color;
 
@@ -36,20 +36,20 @@ public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float ex
         if (WatchedActions.Contains(spell.Action))
         {
             NumCasts++;
-            _casts.Add((spell.TargetXZ.AlmostEqual(default, 1) ? caster.Position : spell.TargetXZ, spell.Rotation, WorldState.CurrentTime));
+            _casts.Add((spell.TargetXZ.AlmostEqual(default, 1) ? caster.Position : spell.TargetXZ, spell.Rotation, Module.StateMachine.TimeSinceActivation));
         }
     }
 
     public override void Update()
     {
         if (ExpireAfter < float.MaxValue)
-            _casts.RemoveAll(c => c.Timestamp.AddSeconds(ExpireAfter) < WorldState.CurrentTime);
+            _casts.RemoveAll(c => c.SincePull + ExpireAfter < Module.StateMachine.TimeSinceActivation);
     }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (_casts.Count > 0)
-            hints.Add($"Casts of {string.Join(", ", WatchedActions)}: {string.Join(", ", _casts)}");
+            hints.Add($"Casts of {string.Join(", ", WatchedActions)}:\n{string.Join("\n", _casts)}");
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
