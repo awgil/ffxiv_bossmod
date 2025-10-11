@@ -3,8 +3,10 @@ namespace BossMod.Dawntrail.Extreme.Ex6GuardianArkveld;
 
 public enum OID : uint
 {
-    Boss = 0x48E5,
-    Helper = 0x233C,
+    Boss = 0x48E5, // R7.800, x1
+    Helper = 0x233C, // R0.500, x25 (spawn during fight), Helper type
+    _Gen_CrackedCrystal = 0x48E7, // R1.200, x0 (spawn during fight)
+    _Gen_CrackedCrystal1 = 0x48E6, // R0.700, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -69,20 +71,25 @@ public enum AID : uint
     _Weaponskill_WyvernsVengeance = 43926, // Helper->self, 5.0s cast, range 6 circle
     _Weaponskill_WyvernsOuroblade2 = 43915, // Boss->self, 6.0+1.5s cast, single-target
     _Weaponskill_WyvernsOuroblade3 = 43916, // Helper->self, 7.0s cast, range 40 180-degree cone
+    _Weaponskill_WyvernsVengeance1 = 43927, // Helper->location, no cast, range 6 circle
+
+    // visual only
     _Weaponskill_WyvernsRadiance13 = 43924, // 48E6->self, 0.5s cast, range 6 circle
     _Weaponskill_WyvernsRadiance14 = 43925, // 48E7->self, 0.5s cast, range 12 circle
-    _Weaponskill_WyvernsVengeance1 = 43927, // Helper->location, no cast, range 6 circle
+
+    // aoe
     _Weaponskill_WyvernsRadiance15 = 44809, // Helper->self, 1.0s cast, range 6 circle
     _Weaponskill_WyvernsRadiance16 = 44810, // Helper->self, 1.0s cast, range 12 circle
+
     _Weaponskill_ForgedFury = 43934, // Boss->self, 5.0s cast, single-target
     _Weaponskill_ForgedFury1 = 43935, // Helper->self, 7.0s cast, range 60 circle
     _Weaponskill_ForgedFury2 = 44792, // Helper->self, 7.8s cast, range 60 circle
     _Weaponskill_ForgedFury3 = 44793, // Helper->self, 10.2s cast, range 60 circle
     _Weaponskill_Roar1 = 45202, // Boss->self, 5.0s cast, range 60 circle
-    _Weaponskill_ClamorousChase = 43958, // Boss->self, 8.0s cast, single-target
+    _Weaponskill_ClamorousChase = 43958, // Boss->self, 8.0s cast, single-target, right wing
     _Weaponskill_ClamorousChase1 = 43959, // Boss->location, no cast, range 6 circle
     _Weaponskill_ClamorousChase2 = 43960, // Helper->self, 1.0s cast, range 60 ?-degree cone
-    _Weaponskill_ClamorousChase3 = 43955, // Boss->self, 8.0s cast, single-target
+    _Weaponskill_ClamorousChase3 = 43955, // Boss->self, 8.0s cast, single-target, left wing
     _Weaponskill_ClamorousChase11 = 43956, // Boss->location, no cast, range 6 circle
     _Weaponskill_ClamorousChase21 = 43957, // Helper->self, 1.0s cast, range 60 ?-degree cone
     _Weaponskill_WyvernsWeal = 43936, // Boss->self, 8.0s cast, single-target

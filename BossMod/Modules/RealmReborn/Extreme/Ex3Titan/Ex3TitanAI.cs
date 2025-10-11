@@ -26,7 +26,7 @@ sealed class Ex3TitanAIRotation(RotationModuleManager manager, Actor player) : A
 
     private WPos CalculateDestination(StrategyValues.OptionRef strategy) => strategy.As<MovementStrategy>() switch
     {
-        MovementStrategy.Pathfind => NavigationDecision.Build(NavigationContext, World, Hints, Player, Speed()).Destination ?? Player.Position,
+        MovementStrategy.Pathfind => NavigationDecision.Build(NavigationContext, World.CurrentTime, Hints, Player.Position, Speed()).Destination ?? Player.Position,
         MovementStrategy.Explicit => ResolveTargetLocation(strategy.Value),
         _ => Player.Position
     };

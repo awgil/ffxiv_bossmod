@@ -80,13 +80,13 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 if (_decisionTask.Exception is { } exception)
                     Service.Log($"exception during pathfind: {exception}");
 
-                _decisionTask = NavigationDecision.BuildAsync(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize);
+                _decisionTask = NavigationDecision.BuildAsync(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
             }
 
             return _lastDecision;
         }
 
-        var decision = NavigationDecision.Build(_navCtx, World, Hints, Player, speed, forbiddenZoneCushion: cushionSize);
+        var decision = NavigationDecision.Build(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
         Manager.LastRasterizeMs = (float)decision.RasterizeTime.TotalMilliseconds;
         Manager.LastPathfindMs = (float)decision.PathfindTime.TotalMilliseconds;
         return decision;

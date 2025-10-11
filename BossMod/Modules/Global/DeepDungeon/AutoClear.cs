@@ -363,7 +363,7 @@ public abstract class AutoClear : ZoneModule
         PomanderID.ProtoAffluence
     ];
 
-    private bool CanAutoUse(PomanderID p) => AutoUsable.Contains(p);
+    private bool CanAutoUse(PomanderID p) => Palace.Party.Count(p => p.EntityId > 0) == 1 && AutoUsable.Contains(p);
 
     private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action, Action<T>? onRemove = null)
     {

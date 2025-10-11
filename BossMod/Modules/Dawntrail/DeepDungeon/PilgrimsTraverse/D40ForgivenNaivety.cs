@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D40ForgivenNaivety;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D40ForgivenNaivety;
 
 public enum OID : uint
 {
@@ -26,6 +27,7 @@ public enum AID : uint
     _Ability_FarTide = 45122, // Boss->self, 6.2+0.8s cast, single-target
     _Ability_FarTide1 = 45170, // Helper->self, 7.0s cast, range 8-60 donut
     _Ability_Chaser = 44047, // Helper->location, 3.0s cast, range 5 circle
+    _Ability_Chaser1 = 42131, // Helper->location, 3.0s cast, range 5 circle
 }
 
 class ShiningShot(BossModule module) : Components.StandardAOEs(module, AID._Ability_ShiningShot, 20, maxCasts: 2);
@@ -49,7 +51,7 @@ class SaltwaterShot(BossModule module) : Components.KnockbackFromCastTarget(modu
 class Adulation(BossModule module) : Components.Adds(module, (uint)OID._Gen_ForgivenAdulation1, 1);
 class NearTide(BossModule module) : Components.StandardAOEs(module, AID._Ability_NearTide1, 13);
 class FarTide(BossModule module) : Components.StandardAOEs(module, AID._Ability_FarTide1, new AOEShapeDonut(8, 60));
-class Chaser(BossModule module) : Components.StandardAOEs(module, AID._Ability_Chaser, 5);
+class Chaser(BossModule module) : Components.GroupedAOEs(module, [AID._Ability_Chaser, AID._Ability_Chaser1], new AOEShapeCircle(5));
 
 class ForgivenNaivetyStates : StateMachineBuilder
 {

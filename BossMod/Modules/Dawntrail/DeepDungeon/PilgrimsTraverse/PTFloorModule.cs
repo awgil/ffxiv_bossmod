@@ -11,7 +11,7 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
 {
     protected override void CalculateExtraHints(int playerSlot, Actor player, AIHints hints)
     {
-        if (!player.InCombat)
+        if (!player.InCombat && hints.InteractWithTarget == null)
             hints.InteractWithOID(World, 0x1EBE27);
     }
 
