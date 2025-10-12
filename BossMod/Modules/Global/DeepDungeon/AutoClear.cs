@@ -47,7 +47,7 @@ public abstract class AutoClear : ZoneModule
         // EO
         1541, 1542, 1543, 1544, 1545, 1546, 1547, 1548, 1549, 1550, 1551, 1552, 1553, 1554,
         // PT
-        1884, 1885, 1886
+        1884, 1885, 1886, 1887, 1888
     ];
     public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0, 0x1EB864];
 
@@ -145,6 +145,13 @@ public abstract class AutoClear : ZoneModule
         _subscriptions.Dispose();
         _obstacles.Dispose();
         base.Dispose(disposing);
+    }
+
+    public override void OnWindowClose()
+    {
+        _config.Enable = false;
+        _config.EnableMinimap = false;
+        _config.Modified.Fire();
     }
 
     protected virtual void OnCastStarted(Actor actor) { }
@@ -284,7 +291,7 @@ public abstract class AutoClear : ZoneModule
 
             return Palace.DungeonId switch
             {
-                DeepDungeonState.DungeonType.HOH or DeepDungeonState.DungeonType.EO => Palace.Floor >= 7, // magicite/demiclones start dropping on floor 7
+                DeepDungeonState.DungeonType.HOH or DeepDungeonState.DungeonType.EO or DeepDungeonState.DungeonType.PT => Palace.Floor >= 7, // per-dungeon gimmick items start dropping on floor 7
                 _ => false,
             };
         }
@@ -838,11 +845,12 @@ static class PalacePalInterop
                 }
             }
 
+            Service.Log($"loaded {locations.Count} traps for zone {zone}");
             return locations;
         }
         catch (SQLiteException e)
         {
-            Service.Log($"unable to load traps for zone ${zone}: ${e}");
+            Service.Log($"unable to load traps for zone {zone}: {e}");
             return [];
         }
     }
