@@ -43,6 +43,11 @@ public enum PomanderID : uint
     ProtoIntuition,
     ProtoRaising,
 
+    // PT
+    Haste,
+    Purification,
+    Devotion,
+
     Count
 }
 

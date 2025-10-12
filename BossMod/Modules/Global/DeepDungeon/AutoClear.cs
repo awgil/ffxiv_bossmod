@@ -373,7 +373,9 @@ public abstract class AutoClear : ZoneModule
         PomanderID.ProtoRaising,
         PomanderID.ProtoLethargy,
         PomanderID.ProtoFortune,
-        PomanderID.ProtoAffluence
+        PomanderID.ProtoAffluence,
+        PomanderID.Haste,
+        PomanderID.Purification
     ];
 
     private bool CanAutoUse(PomanderID p) => Palace.Party.Count(p => p.EntityId > 0) == 1 && AutoUsable.Contains(p);
