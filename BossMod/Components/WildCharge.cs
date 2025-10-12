@@ -70,14 +70,15 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
                 break;
             case PlayerRole.Target:
             case PlayerRole.TargetNotFirst: // TODO: consider some hint to hide behind others?..
-                // TODO: improve this - for now, just stack with closest player...
                 if (Source != null)
                 {
-                    var closest = Raid.WithSlot().WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().Closest(actor.Position);
-                    if (closest != null)
+                    // try to stack with furthest target (by angle delta) to hit as many teammates as possible
+                    var baitDir = (actor.Position - Source.Position).ToAngle();
+                    var farthest = Raid.WithSlot().WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().MaxBy(a => baitDir.DistanceToAngle((a.Position - Source.Position).ToAngle()).Abs().Deg);
+                    if (farthest != null)
                     {
-                        var stack = GetAOEForTarget(Source.Position, closest.Position);
-                        hints.AddForbiddenZone(ShapeContains.InvertedRect(stack.origin, stack.dir, stack.length, 0, HalfWidth * 0.5f), Activation);
+                        var stack = GetAOEForTarget(Source.Position, farthest.Position);
+                        hints.AddForbiddenZone(ShapeContains.InvertedCone(stack.origin, 100, stack.dir.ToAngle(), Angle.Asin(HalfWidth / (Source.Position - farthest.Position).Length())), Activation);
                     }
                 }
                 break;
