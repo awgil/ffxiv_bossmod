@@ -74,7 +74,7 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
                 {
                     // try to stack with furthest target (by angle delta) to hit as many teammates as possible
                     var baitDir = (actor.Position - Source.Position).ToAngle();
-                    var farthest = Raid.WithSlot().WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().MaxBy(a => baitDir.DistanceToAngle((a.Position - Source.Position).ToAngle()).Abs().Deg);
+                    var farthest = Raid.WithSlot().WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().MaxBy(a => baitDir.DistanceToAngle((a.Position - Source.Position).ToAngle()).Abs());
                     if (farthest != null)
                     {
                         var stack = GetAOEForTarget(Source.Position, farthest.Position);
