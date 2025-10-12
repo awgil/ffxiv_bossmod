@@ -100,7 +100,7 @@ class Rocks(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_bitingWind < WorldState.FutureTime(2))
+        if (_bitingWind != default && _bitingWind < WorldState.FutureTime(2))
             hints.AddForbiddenZone(RockShape.CheckFn(Arena.Center, default), _bitingWind);
         else if (_drowning[slot] != default)
         {
