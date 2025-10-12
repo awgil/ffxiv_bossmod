@@ -3,8 +3,8 @@
 public enum OID : uint
 {
     Boss = 0x4609, // R14.000, x1
-    Indulgence = 0x460A, // R4.000, x8
     Helper = 0x233C, // R0.500, x31, Helper type
+    Indulgence = 0x460A, // R4.000, x8
 }
 
 public enum AID : uint

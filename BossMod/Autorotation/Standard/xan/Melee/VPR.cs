@@ -122,8 +122,16 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         BestGenerationTarget = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget).Best;
         NumAOETargets = NumMeleeAOETargets(strategy);
 
-        if (CountdownRemaining > 0 || primaryTarget == null)
+        if (primaryTarget == null)
             return;
+
+        if (CountdownRemaining > 0)
+        {
+            if (CountdownRemaining < 0.7f)
+                PushGCD(AID.Slither, primaryTarget);
+
+            return;
+        }
 
         var aoeBreakpoint = DreadCombo switch
         {
@@ -131,9 +139,6 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
             DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen or DreadCombo.PitOfDread => 1,
             _ => Anguine > 0 ? 50 : 3
         };
-
-        if (CombatTimer < 0.7f && Player.DistanceToHitbox(primaryTarget) > 3)
-            PushGCD(AID.Slither, primaryTarget);
 
         if (ShouldReawaken(strategy))
             PushGCD(AID.Reawaken, Player);

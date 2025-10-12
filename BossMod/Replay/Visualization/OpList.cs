@@ -119,6 +119,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             PartyState.OpLimitBreakChange => false,
             ClientState.OpActionRequest => false,
             //ClientState.OpActionReject => false,
+            ClientState.OpProcTimersChange => false,
             ClientState.OpAnimationLockChange => false,
             ClientState.OpComboChange => false,
             ClientState.OpCooldown => false,

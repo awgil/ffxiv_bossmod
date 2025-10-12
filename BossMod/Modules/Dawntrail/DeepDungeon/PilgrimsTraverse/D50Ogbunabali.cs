@@ -1,6 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-
-namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali;
+﻿namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali;
 
 public enum OID : uint
 {
@@ -10,32 +8,31 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 45130, // Boss->player, no cast, single-target
-    _Weaponskill_Liquefaction = 43531, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_FallingRock = 43532, // Helper->self, 3.0s cast, range 5 circle
-    _Ability_ = 43539, // Boss->location, no cast, single-target
-    _Weaponskill_Sandpit = 43533, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_PitAmbush = 43534, // Boss->self, 3.0s cast, range 6 circle
-    _Weaponskill_PitAmbush1 = 43535, // Boss->location, no cast, range 6 circle
-    _Weaponskill_PitAmbush2 = 43536, // Boss->location, no cast, range 6 circle
-    _Weaponskill_Windraiser = 43537, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_BitingWind = 45113, // Helper->self, no cast, range 3 circle
-    _Weaponskill_BitingWind1 = 43538, // Helper->self, 8.0s cast, range 20 circle
+    AutoAttack = 45130, // Boss->player, no cast, single-target
+    Jump = 43539, // Boss->location, no cast, single-target
+    Liquefaction = 43531, // Boss->self, 3.0s cast, single-target, activates quicksand
+    FallingRock = 43532, // Helper->self, 3.0s cast, range 5 circle
+    Sandpit = 43533, // Boss->self, 3.0s cast, single-target
+    PitAmbushCast = 43534, // Boss->self, 3.0s cast, range 6 circle
+    PitAmbushInstant1 = 43535, // Boss->location, no cast, range 6 circle
+    PitAmbushInstant2 = 43536, // Boss->location, no cast, range 6 circle
+    Windraiser = 43537, // Boss->self, 3.0s cast, single-target
+    BitingWindVoidzone = 45113, // Helper->self, no cast, range 3 circle
+    BitingWindKB = 43538, // Helper->self, 8.0s cast, range 20 circle, 20y knockback, negated by quicksand
 }
 
 public enum SID : uint
 {
-    _Gen_SixFulmsUnder = 567, // none->player, extra=0x40E/0x410/0x412/0x400
-    _Gen_BreakerOfWind = 4625, // none->player, extra=0x0
-    _Gen_VulnerabilityUp = 2213, // Boss->player, extra=0x1
-    _Gen_Windburn = 3069, // none->player, extra=0x0
-    _Gen_Windburn1 = 3070, // none->player, extra=0x0
+    SixFulmsUnder = 567, // none->player, extra=0x40E/0x410/0x412/0x400
+    BreakerOfWind = 4625, // none->player, extra=0x0
+    Windburn1 = 3069, // none->player, extra=0x0
+    Windburn2 = 3070, // none->player, extra=0x0
 }
 
 public enum IconID : uint
 {
-    _Gen_Icon_tracking_lockon02t = 640, // player->self
-    _Gen_Icon_com_s8count03x = 587, // Helper->self
+    Tracking = 640, // player->self
+    Countdown = 587, // Helper->self, whirlwind knockback indicator
 }
 
 class Rocks(BossModule module) : BossComponent(module)
@@ -63,25 +60,25 @@ class Rocks(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_SixFulmsUnder && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID == SID.SixFulmsUnder && Raid.TryFindSlot(actor, out var slot))
             _drowning[slot] = status.ExpireAt;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_SixFulmsUnder && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID == SID.SixFulmsUnder && Raid.TryFindSlot(actor, out var slot))
             _drowning[slot] = default;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_BitingWind1)
+        if ((AID)spell.Action.ID == AID.BitingWindKB)
             _bitingWind = Module.CastFinishAt(spell);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_BitingWind1)
+        if ((AID)spell.Action.ID == AID.BitingWindKB)
             _bitingWind = default;
     }
 
@@ -113,13 +110,13 @@ class Rocks(BossModule module) : BossComponent(module)
     }
 }
 
-class FallingRock(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_FallingRock, 5);
+class FallingRock(BossModule module) : Components.StandardAOEs(module, AID.FallingRock, 5);
 
-class PitAmbush(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), AID._Weaponskill_PitAmbush, AID._Weaponskill_PitAmbush1, 5, 2.1f, 4)
+class PitAmbush(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), AID.PitAmbushCast, AID.PitAmbushInstant1, 5, 2.1f, 4)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_PitAmbush or AID._Weaponskill_PitAmbush1 or AID._Weaponskill_PitAmbush2)
+        if ((AID)spell.Action.ID is AID.PitAmbushCast or AID.PitAmbushInstant1 or AID.PitAmbushInstant2)
         {
             var pos = spell.MainTargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ;
             var advanced = Advance(pos, MoveDistance, WorldState.CurrentTime);
@@ -153,7 +150,7 @@ class Whirlwind(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BitingWind(BossModule module) : Components.Knockback(module, AID._Weaponskill_BitingWind1, ignoreImmunes: true)
+class BitingWind(BossModule module) : Components.Knockback(module, AID.BitingWindKB, ignoreImmunes: true)
 {
     private Actor? _caster;
     private readonly Rocks _rocks = module.FindComponent<Rocks>()!;
@@ -190,5 +187,5 @@ class D50OgbunabaliStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1036, NameID = 14263, DevOnly = true)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1036, NameID = 14263)]
 public class D50Ogbunabali(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(15));
