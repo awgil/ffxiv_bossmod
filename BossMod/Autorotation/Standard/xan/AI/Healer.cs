@@ -297,8 +297,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
                     if (gauge.CurrentCards.Contains(card))
                         UseOGCD(action, target);
 
-                if (!Unlocked(BossMod.AST.AID.CelestialIntersection) && NextChargeIn(BossMod.AST.AID.EssentialDignity) > 2.5f)
-                    UseGCD(BossMod.AST.AID.Benefic, target);
+                if (NextChargeIn(BossMod.AST.AID.CelestialIntersection) > GCD && NextChargeIn(BossMod.AST.AID.EssentialDignity) > GCD)
+                    UseGCD(BestActionUnlocked(BossMod.AST.AID.BeneficII, BossMod.AST.AID.Benefic), target);
             }
         });
 
@@ -306,6 +306,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         {
             if (gauge.CurrentArcana == AstrologianCard.Lady)
                 UseOGCD(BossMod.AST.AID.LadyOfCrowns, Player);
+
+            UseOGCD(BossMod.AST.AID.CelestialOpposition, Player);
 
             if (Player.FindStatus(Unlocked(BossMod.AST.AID.HeliosConjunction) ? BossMod.AST.SID.HeliosConjunction : BossMod.AST.SID.AspectedHelios, World.FutureTime(15)) == null)
                 UseGCD(BossMod.AST.AID.AspectedHelios, Player);
@@ -316,6 +318,10 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         if (Player.InCombat)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.AST.AID.EarthlyStar), Player, ActionQueue.Priority.Medium, targetPos: Player.PosRot.XYZ());
+
+        foreach (var rw in Raidwides)
+            if (World.FutureTime(5) > rw)
+                UseOGCD(BossMod.AST.AID.CollectiveUnconscious, Player);
     }
 
     private void AutoSCH(StrategyValues strategy, Actor? primaryTarget)
@@ -395,7 +401,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         });
 
         foreach (var rw in Raidwides)
-            if ((rw - World.CurrentTime).TotalSeconds < 5 && NextChargeIn(BossMod.SCH.AID.SacredSoil) == 0)
+            if (World.FutureTime(5) > rw && NextChargeIn(BossMod.SCH.AID.SacredSoil) == 0)
                 UseSoil(GetBestPartyCoverage(15));
     }
 

@@ -47,7 +47,7 @@ public abstract class AutoClear : ZoneModule
         // EO
         1541, 1542, 1543, 1544, 1545, 1546, 1547, 1548, 1549, 1550, 1551, 1552, 1553, 1554,
         // PT
-        1884, 1885, 1886, 1887, 1888
+        1881, 1882, 1883, 1884, 1885, 1886, 1887, 1888
     ];
     public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0, 0x1EB864];
 
@@ -211,8 +211,13 @@ public abstract class AutoClear : ZoneModule
             case 7256: // sight used
                 _trapsHidden = false;
                 break;
+            case 9208: // magicite overcap
             case 10287: // demiclone overcap
                 _lastChestMagicite = true;
+                break;
+            case 11251:
+                if (op.Args[1] == 4) // mazeroot balm used, reveals map and traps
+                    _trapsHidden = false;
                 break;
         }
     }
@@ -291,7 +296,8 @@ public abstract class AutoClear : ZoneModule
 
             return Palace.DungeonId switch
             {
-                DeepDungeonState.DungeonType.HOH or DeepDungeonState.DungeonType.EO or DeepDungeonState.DungeonType.PT => Palace.Floor >= 7, // per-dungeon gimmick items start dropping on floor 7
+                DeepDungeonState.DungeonType.PT => true,
+                DeepDungeonState.DungeonType.HOH or DeepDungeonState.DungeonType.EO => Palace.Floor >= 7, // per-dungeon gimmick items start dropping on floor 7
                 _ => false,
             };
         }

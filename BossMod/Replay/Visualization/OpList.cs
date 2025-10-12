@@ -170,7 +170,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ClientState.OpBozjaHolsterChange op => $"Player bozja holster change: {string.Join(", ", op.Contents.Select(e => $"{e.count}x {e.entry}"))}",
             WorldState.OpMapEffect op => $"MapEffect: {op.Index:X2} {op.State:X8}",
             WorldState.OpLegacyMapEffect op => $"MapEffect (legacy): seq={op.Sequence} param={op.Param} data={string.Join(" ", op.Data.Select(d => d.ToString("X2")))}",
-            WorldState.OpSystemLogMessage op => $"LogMessage {op.MessageId}: \"{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(op.MessageId)?.Text}\"",
+            WorldState.OpSystemLogMessage op => $"LogMessage {op.MessageId}: \"{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(op.MessageId)?.Text}\" [{string.Join(", ", op.Args)}]",
             _ => DumpOp(o)
         };
     }
