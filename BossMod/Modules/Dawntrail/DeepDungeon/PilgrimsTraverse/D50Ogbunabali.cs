@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+
 namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali;
 
 public enum OID : uint
@@ -102,11 +103,8 @@ class Rocks(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_bitingWind != default)
-        {
-            if (_bitingWind < WorldState.FutureTime(2))
-                hints.AddForbiddenZone(RockShape.CheckFn(Arena.Center, default), _bitingWind);
-        }
+        if (_bitingWind < WorldState.FutureTime(2))
+            hints.AddForbiddenZone(RockShape.CheckFn(Arena.Center, default), _bitingWind);
         else if (_drowning[slot] != default)
         {
             var check = RockShape.CheckFn(Arena.Center, default);
@@ -129,6 +127,28 @@ class PitAmbush(BossModule module) : Components.StandardChasingAOEs(module, new 
                 ReportError($"unexpected cast from chasing AOE at {pos}");
             if (advanced?.NumRemaining <= 0)
                 ExcludedTargets.Clear(Raid.FindSlot(advanced.Target.InstanceID));
+        }
+    }
+}
+
+class Whirlwind(BossModule module) : Components.GenericAOEs(module)
+{
+    private bool _active;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_active)
+            yield return new(new AOEShapeCircle(3), Arena.Center);
+    }
+
+    public override void OnMapEffect(byte index, uint state)
+    {
+        if (index == 1)
+        {
+            if (state == 0x00020001)
+                _active = true;
+            if (state == 0x00100004)
+                _active = false;
         }
     }
 }
@@ -165,6 +185,7 @@ class D50OgbunabaliStates : StateMachineBuilder
             .ActivateOnEnter<Rocks>()
             .ActivateOnEnter<FallingRock>()
             .ActivateOnEnter<PitAmbush>()
+            .ActivateOnEnter<Whirlwind>()
             .ActivateOnEnter<BitingWind>();
     }
 }
