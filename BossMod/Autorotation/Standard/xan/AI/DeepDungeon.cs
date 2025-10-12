@@ -26,13 +26,15 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         Succubus,
         Kuribu,
         Dreadnaught,
-        Bomb
+        Bomb,
+        Mudball
     }
 
     enum SID : uint
     {
         Transfiguration = 565,
         ItemPenalty = 1094,
+        Transfiguration2 = 4708,
     }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -41,13 +43,15 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return;
 
         var transformation = Transformation.None;
-        if (Player.FindStatus(SID.Transfiguration) is { } status)
+        var stat = Player.FindStatus(SID.Transfiguration) ?? Player.FindStatus(SID.Transfiguration2);
+        if (stat is { } status)
         {
             transformation = (status.Extra & 0xFF) switch
             {
                 42 => Transformation.Manticore,
                 43 => Transformation.Succubus,
                 49 => Transformation.Kuribu,
+                54 => Transformation.Mudball,
                 55 => Transformation.Bomb,
                 244 => Transformation.Dreadnaught,
                 _ => Transformation.None
@@ -79,10 +83,10 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         };
 
         if (regenAction != default && ShouldPotion(strategy))
-            Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.Medium);
+            Hints.ActionsToExecute.Push(regenAction, Player, ActionQueue.Priority.ManualGCD - 1);
 
         if (potAction != default && Player.HPRatio <= 0.3f)
-            Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.VeryHigh);
+            Hints.ActionsToExecute.Push(potAction, Player, ActionQueue.Priority.ManualGCD - 1);
     }
 
     private bool IsRanged => Player.Class.GetRole() is Role.Ranged or Role.Healer;
@@ -179,6 +183,16 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 numTargets = 1;
                 attack = ActionID.MakeSpell(Roleplay.AID.Rotosmash);
                 break;
+            case Transformation.Bomb:
+                numTargets = 1;
+                goal = Hints.GoalSingleTarget(primaryTarget, 15);
+                attack = ActionID.MakeSpell(Roleplay.AID.BigBurst);
+                break;
+            case Transformation.Mudball:
+                numTargets = 1;
+                goal = Hints.GoalSingleTarget(primaryTarget.Position, 25);
+                attack = ActionID.MakeSpell(Roleplay.AID.RockyRoll);
+                break;
             default:
                 return;
         }
@@ -187,12 +201,23 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return;
 
         Hints.GoalZones.Add(goal);
-        Hints.ActionsToExecute.Push(attack, primaryTarget, ActionQueue.Priority.High, targetPos: primaryTarget.PosRot.XYZ(), castTime: castTime - 0.5f);
+        if (t == Transformation.Mudball)
+        {
+            if (primaryTarget.Position.InCircle(Player.Position, 25))
+                Hints.ActionsToExecute.Push(attack, Player, ActionQueue.Priority.High, facingAngle: Player.AngleTo(primaryTarget));
+        }
+        else if (t == Transformation.Bomb)
+        {
+            if (primaryTarget.Position.InCircle(Player.Position, 15 + primaryTarget.HitboxRadius))
+                Hints.ActionsToExecute.Push(attack, Player, ActionQueue.Priority.High, castTime: 1);
+        }
+        else
+            Hints.ActionsToExecute.Push(attack, primaryTarget, ActionQueue.Priority.High, targetPos: primaryTarget.PosRot.XYZ(), castTime: castTime - 0.5f);
     }
 
     private bool ShouldPotion(StrategyValues strategy)
     {
-        if (World.Actors.Any(w => w.OID == (uint)OID.Unei) || !strategy.Enabled(Track.Potion))
+        if (!strategy.Enabled(Track.Potion) || World.Actors.Any(w => w.OID == (uint)OID.Unei))
             return false;
 
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.4f : 0.6f;

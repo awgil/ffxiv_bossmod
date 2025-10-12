@@ -47,9 +47,9 @@ public abstract class AutoClear : ZoneModule
         // EO
         1541, 1542, 1543, 1544, 1545, 1546, 1547, 1548, 1549, 1550, 1551, 1552, 1553, 1554,
         // PT
-        1881, 1882, 1883, 1884, 1885, 1886, 1887, 1888
+        1881, 1882, 1883, 1884, 1885, 1886, 1887, 1888, 1889, 1906
     ];
-    public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0, 0x1EB864];
+    public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0, 0x1EB864, 0x1EBEDB];
 
     protected readonly List<(Actor Source, float Inner, float Outer, Angle HalfAngle)> Donuts = [];
     protected readonly List<(Actor Source, float Radius)> Circles = [];
@@ -421,6 +421,9 @@ public abstract class AutoClear : ZoneModule
         }
 
         DrawAOEs(playerSlot, player, hints);
+
+        foreach (var pt in hints.PotentialTargets)
+            pt.AllowDOTs = false;
 
         if (!_config.Enable)
             return;

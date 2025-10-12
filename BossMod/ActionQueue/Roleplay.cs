@@ -2,12 +2,14 @@
 
 public enum AID : uint
 {
-    // palace of the dead/EO transformations
+    // deep dungeon transformations
     Pummel = 6273,
     VoidFireII = 6274,
     HeavenlyJudge = 6871,
     Rotosmash = 32781,
     WreckingBall = 32782,
+    RockyRoll = 44628,
+    BigBurst = 44629,
 
     // magitek reaper in Fly Free, My Pretty
     MagitekCannon = 7619, // range 30 radius 6 ground targeted aoe
@@ -280,6 +282,8 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.HeavenlyJudge);
         d.RegisterSpell(AID.Rotosmash);
         d.RegisterSpell(AID.WreckingBall);
+        d.RegisterSpell(AID.RockyRoll);
+        d.RegisterSpell(AID.BigBurst);
 
         d.RegisterSpell(AID.MagitekCannon);
         d.RegisterSpell(AID.PhotonStream);

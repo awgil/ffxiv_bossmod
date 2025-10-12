@@ -239,7 +239,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.BuffsOk())
         {
             // wait for soul slice in opener
-            if (OnCooldown(AID.SoulSlice) || CombatTimer > 60)
+            if (OnCooldown(AID.SoulSlice) || CombatTimer > 10)
                 PushOGCD(AID.ArcaneCircle, Player, delay: GCD - 1.6f);
         }
 
@@ -354,7 +354,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         var prio = GCDPriority.Lemure;
 
         if (CanWeave(AID.ArcaneCircle, 2, extraFixedDelay: 1.5f) && BlueSouls < 5)
-            prio = GCDPriority.None;
+            prio = GCDPriority.Filler;
 
         if (RaidBuffsLeft > 0)
             prio = GCDPriority.Lemure;

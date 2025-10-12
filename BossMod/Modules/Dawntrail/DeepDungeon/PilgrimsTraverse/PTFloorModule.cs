@@ -5,14 +5,25 @@ namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse;
 public enum AID : uint
 {
     Malice = 44852, // 49CB->player, 3.0s cast, single-target
+
     MagneticShock = 41427, // 4917->self, 3.0s cast, range 15 circle, draw-in
     Plaincracker = 41512, // 4917->self, 4.0s cast, range 15 circle
+
+    SmolderingScales = 42212, // 4922->self, 3.0s cast, spikes
+    PainfulGust = 44727, // 4987->self, 5.0s cast, range 20 circle
+
     EarthenAuger = 42091, // 4920->self, 4.0s cast, range 3-30 270-degree donut
+    MasterOfLevin = 44732, // 4988->self, 4.0s cast, range 5-30 donut
 }
 
 public enum OID : uint
 {
     TraverseTroubadour = 0x491B
+}
+
+public enum SID : uint
+{
+    BlazeSpikes = 4579,
 }
 
 public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
@@ -21,8 +32,12 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
     {
         base.CalculateAIHints(playerSlot, player, hints);
 
-        if (!player.InCombat && hints.InteractWithTarget == null)
-            hints.InteractWithOID(World, 0x1EBE27);
+        if (!player.InCombat)
+        {
+            var interactDist = hints.InteractWithTarget is { } t ? player.DistanceToPoint(t.Position) : float.MaxValue;
+            if (World.Actors.FirstOrDefault(t => t.OID == 0x1EBE27 && t.IsTargetable) is { } v && player.DistanceToPoint(v.Position) < interactDist)
+                hints.InteractWithTarget = v;
+        }
 
         foreach (var tar in World.Actors.Where(o => o.OID == (uint)OID.TraverseTroubadour && !o.IsDead))
         {
@@ -36,7 +51,8 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
 
     protected override void OnCastStarted(Actor actor)
     {
-        // TODO: one-two march (double rect)
+        // TODO:
+
         switch ((AID)actor.CastInfo!.Action.ID)
         {
             case AID.EarthenAuger:
@@ -54,7 +70,33 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
 
             // stun for melee uptime
             case AID.Plaincracker:
+            case AID.PainfulGust:
                 Stuns.Add(actor);
+                break;
+
+            case AID.MasterOfLevin:
+                AddDonut(actor, 5, 30);
+                HintDisabled.Add(actor);
+                break;
+        }
+    }
+
+    protected override void OnCastFinished(Actor actor)
+    {
+        switch ((AID)actor.CastInfo!.Action.ID)
+        {
+            case AID.SmolderingScales:
+                Spikes.Add((actor, World.FutureTime(10)));
+                break;
+        }
+    }
+
+    protected override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID.BlazeSpikes:
+                Spikes.RemoveAll(s => s.Actor == actor);
                 break;
         }
     }
