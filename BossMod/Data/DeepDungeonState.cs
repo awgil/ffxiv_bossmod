@@ -39,7 +39,19 @@ public sealed class DeepDungeonState
     public bool ReturnActive => Progress.ReturnProgress >= 11;
     public bool PassageActive => Progress.PassageProgress >= 11;
     public byte Floor => Progress.Floor;
-    public bool IsBossFloor => Progress.Floor % 10 == 0;
+    public bool IsBossFloor
+    {
+        get
+        {
+            if (Progress.Floor % 10 == 0)
+                return true;
+
+            if (DungeonId is DungeonType.EO or DungeonType.PT && Progress.Floor == 99)
+                return true;
+
+            return false;
+        }
+    }
 
     public Lumina.Excel.Sheets.DeepDungeon GetDungeonDefinition() => Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeon>((uint)DungeonId)!.Value;
     public int GetPomanderSlot(PomanderID pid) => GetDungeonDefinition().PomanderSlot.FindIndex(p => p.RowId == (uint)pid);

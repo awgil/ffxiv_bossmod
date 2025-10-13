@@ -322,7 +322,7 @@ public abstract class AutoClear : ZoneModule
         var maxPull = _config.MaxPull;
 
         ImGui.SetNextItemWidth(200);
-        if (ImGui.DragInt("Max mobs to pull", ref maxPull, 0.05f, 0, 15))
+        if (ImGui.DragInt("Max mobs to pull", ref maxPull, 0.05f, 1, 15))
         {
             _config.MaxPull = maxPull;
             _config.Modified.Fire();
