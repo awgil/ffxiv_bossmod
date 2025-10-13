@@ -53,10 +53,13 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
     {
         // TODO:
         // X-sided shockwave (forgiven riot)
-        // crystalline stingers (LOS?)
-        // talos accelerate -> some point blank circle AOE
+        // crystalline stingers (LOS, maybe stun?)
+        // accelerate -> point blank aoe (cast by talos)
         // shrinking/growing circles of ablution -> donut/circle
         // hail of heels -> multiple frontal cones
+        // Passions' Heat -> targeted AOE (with marker) and applies pyretic
+
+        // does Tail Drive have a cast bar
 
         switch ((AID)actor.CastInfo!.Action.ID)
         {
@@ -125,3 +128,5 @@ public class PT70(WorldState ws) : PTFloorModule(ws);
 public class PT80(WorldState ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1040)]
 public class PT90(WorldState ws) : PTFloorModule(ws);
+[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1041)]
+public class PT100(WorldState ws) : PTFloorModule(ws);

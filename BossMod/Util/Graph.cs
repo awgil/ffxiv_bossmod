@@ -22,23 +22,23 @@ public class Graph<T> where T : IEquatable<T>
     {
         sorted = [];
 
-        var S = new Queue<T>(Nodes.Where(n => Edges.All(e => !e.Item2.Equals(n))));
-        var E = new HashSet<(T, T)>(Edges);
+        var queue = new Queue<T>(Nodes.Where(n => Edges.All(e => !e.Item2.Equals(n))));
+        var edges = new HashSet<(T, T)>(Edges);
 
-        while (S.TryDequeue(out var n))
+        while (queue.TryDequeue(out var n))
         {
             sorted.Add(n);
 
-            foreach (var e in E.Where(e => e.Item1.Equals(n)).ToList())
+            foreach (var e in edges.Where(e => e.Item1.Equals(n)).ToList())
             {
                 var m = e.Item2;
-                E.Remove(e);
+                edges.Remove(e);
 
-                if (E.All(me => !me.Item2.Equals(m)))
-                    S.Enqueue(m);
+                if (edges.All(me => !me.Item2.Equals(m)))
+                    queue.Enqueue(m);
             }
         }
 
-        return E.Count == 0;
+        return edges.Count == 0;
     }
 }
