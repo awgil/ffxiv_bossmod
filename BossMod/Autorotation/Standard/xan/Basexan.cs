@@ -280,7 +280,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
 
         var newTarget = initial;
-        var initialTimer = getTimer(initial?.Actor);
+        var initialTimer = forbidden ? getTimer(null) : getTimer(initial?.Actor);
         var newTimer = initialTimer;
 
         var numTargets = 0;

@@ -24,7 +24,17 @@ public enum AID : uint
 }
 
 class HedgeMazing(BossModule module) : Components.GroupedAOEs(module, [AID.HedgeMazingBossAOE, AID.HedgeMazingShrubAOE], new AOEShapeCircle(14));
-class Shrublet(BossModule module) : Components.Adds(module, (uint)OID.Shrublet, 1);
+class Shrublet(BossModule module) : Components.Adds(module, (uint)OID.Shrublet, 1)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var target in hints.PotentialTargets.Where(t => t.Actor.OID == (uint)OID.Shrublet))
+        {
+            target.Priority = 1;
+            target.ForbidDOTs = true;
+        }
+    }
+}
 
 class Leafmash(BossModule module) : Components.GenericAOEs(module)
 {

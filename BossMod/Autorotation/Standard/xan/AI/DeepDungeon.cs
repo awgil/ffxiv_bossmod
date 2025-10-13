@@ -185,7 +185,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 break;
             case Transformation.Bomb:
                 numTargets = 1;
-                goal = Hints.GoalSingleTarget(primaryTarget, 15);
+                goal = Hints.GoalSingleTarget(primaryTarget, 14);
                 attack = ActionID.MakeSpell(Roleplay.AID.BigBurst);
                 break;
             case Transformation.Mudball:

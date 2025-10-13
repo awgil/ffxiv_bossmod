@@ -576,6 +576,10 @@ public abstract class AutoClear : ZoneModule
             else if (pp.Actor.FindStatus(SID.AutoHealPenalty) != null && pp.Actor.HPMP.CurHP < 10)
                 pickBetterTarget(pp.Actor);
 
+            // we are a bomb and can oneshot everything on the floor
+            else if (player.FindStatus(4708) is { } transfiguration && (transfiguration.Extra & 0xff) == 55)
+                pickBetterTarget(pp.Actor);
+
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
             else if (shouldTargetMobs && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
                 pickBetterTarget(pp.Actor);
