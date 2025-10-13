@@ -55,6 +55,8 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
         // X-sided shockwave (forgiven riot)
         // crystalline stingers (LOS?)
         // talos accelerate -> some point blank circle AOE
+        // shrinking/growing circles of ablution -> donut/circle
+        // hail of heels -> multiple frontal cones
 
         switch ((AID)actor.CastInfo!.Action.ID)
         {
