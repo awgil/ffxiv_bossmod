@@ -52,6 +52,9 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
     protected override void OnCastStarted(Actor actor)
     {
         // TODO:
+        // X-sided shockwave (forgiven riot)
+        // crystalline stingers (LOS?)
+        // talos accelerate -> some point blank circle AOE
 
         switch ((AID)actor.CastInfo!.Action.ID)
         {
