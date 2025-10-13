@@ -58,6 +58,10 @@ public record struct Angle(float Rad) : IComparable<Angle>
 
     public override readonly string ToString() => Deg.ToString("f0");
     public readonly int CompareTo(Angle other) => Rad.CompareTo(other.Rad);
+    public static bool operator <(Angle left, Angle right) => left.Rad < right.Rad;
+    public static bool operator <=(Angle left, Angle right) => left.Rad <= right.Rad;
+    public static bool operator >(Angle left, Angle right) => left.Rad > right.Rad;
+    public static bool operator >=(Angle left, Angle right) => left.Rad >= right.Rad;
 }
 
 public static class AngleExtensions
