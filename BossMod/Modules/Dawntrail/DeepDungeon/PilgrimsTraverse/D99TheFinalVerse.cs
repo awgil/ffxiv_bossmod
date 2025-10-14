@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse;
 
 public enum OID : uint
 {

@@ -51,9 +51,9 @@ public class AutoDDConfig : ConfigNode
     [PropertyDisplay("Reveal all rooms before proceeding to next floor")]
     public bool FullClear = false;
 
-    public BitMask AutoPoms = new();
-    public BitMask AutoMagicite = new();
-    public BitMask AutoDemiclone = new();
+    public BitMask AutoPoms;
+    public BitMask AutoMagicite;
+    public BitMask AutoDemiclone;
 
     public override void DrawCustom(UITree tree, WorldState ws)
     {
