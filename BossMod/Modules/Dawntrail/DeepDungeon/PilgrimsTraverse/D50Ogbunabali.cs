@@ -61,7 +61,8 @@ class Rocks(BossModule module) : BossComponent(module)
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.SixFulmsUnder && Raid.TryFindSlot(actor, out var slot))
-            _drowning[slot] = status.ExpireAt;
+            // don't trust netcode
+            _drowning[slot] = status.ExpireAt.AddSeconds(-0.5f);
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)

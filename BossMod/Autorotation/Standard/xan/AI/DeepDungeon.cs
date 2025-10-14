@@ -123,7 +123,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)
     {
-        if (!IsRanged || primaryTarget == null || !Player.InCombat || !strategy.Enabled(Track.Kite))
+        if (!IsRanged || primaryTarget == null || !Player.InCombat || !strategy.Enabled(Track.Kite) || World.DeepDungeon.IsBossFloor)
             return;
 
         // wew
