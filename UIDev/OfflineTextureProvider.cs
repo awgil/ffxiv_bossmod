@@ -34,7 +34,9 @@ internal class OfflineTextureProvider(IRenderer render, Device device) : ITextur
     public Task<IDalamudTextureWrap> CreateFromRawAsync(RawImageSpecification specs, ReadOnlyMemory<byte> bytes, string? debugName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     public Task<IDalamudTextureWrap> CreateFromRawAsync(RawImageSpecification specs, Stream stream, bool leaveOpen = false, string? debugName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 
-    public IDalamudTextureWrap CreateFromTexFile(TexFile file)
+    public IDalamudTextureWrap CreateFromTexFile(TexFile file) => CreateFromTexFileInternal(file);
+
+    private OfflineTextureWrap CreateFromTexFileInternal(TexFile file)
     {
         var buffer = file.TextureBuffer;
         var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
@@ -45,10 +47,12 @@ internal class OfflineTextureProvider(IRenderer render, Device device) : ITextur
         }
 
         var spec = new RawImageSpecification(buffer.Width, buffer.Height, dxgiFormat);
-        return CreateFromRaw(spec, buffer.RawData);
+        return CreateFromRawInternal(spec, buffer.RawData);
     }
 
-    public IDalamudTextureWrap CreateFromRaw(RawImageSpecification specs, ReadOnlySpan<byte> bytes, string? debugName = null)
+    public IDalamudTextureWrap CreateFromRaw(RawImageSpecification specs, ReadOnlySpan<byte> bytes, string? debugName = null) => CreateFromRawInternal(specs, bytes, debugName);
+
+    private OfflineTextureWrap CreateFromRawInternal(RawImageSpecification specs, ReadOnlySpan<byte> bytes, string? debugName = null)
     {
         var texd = new Texture2DDescription()
         {
@@ -88,7 +92,7 @@ internal class OfflineTextureProvider(IRenderer render, Device device) : ITextur
     {
         if (!_cachedFromGame.TryGetValue(path, out var cached))
         {
-            cached = new OfflineSharedImmediateTexture(Renderer, (OfflineTextureWrap)CreateFromTexFile(Service.LuminaGameData!.GetFile<TexFile>(path)!));
+            cached = new OfflineSharedImmediateTexture(Renderer, CreateFromTexFileInternal(Service.LuminaGameData!.GetFile<TexFile>(path)!));
             _cachedFromGame.Add(path, cached);
         }
 

@@ -358,27 +358,7 @@ public abstract class AutoClear : ZoneModule
         }
     }
 
-    private readonly List<PomanderID> AutoUsable = [
-        PomanderID.Steel,
-        PomanderID.Strength,
-        PomanderID.Sight,
-        PomanderID.Raising,
-        PomanderID.Fortune,
-        PomanderID.Concealment,
-        PomanderID.Affluence,
-        PomanderID.Frailty,
-        PomanderID.ProtoSteel,
-        PomanderID.ProtoStrength,
-        PomanderID.ProtoSight,
-        PomanderID.ProtoRaising,
-        PomanderID.ProtoLethargy,
-        PomanderID.ProtoFortune,
-        PomanderID.ProtoAffluence,
-        PomanderID.Haste,
-        PomanderID.Purification
-    ];
-
-    private bool CanAutoUse(PomanderID p) => Palace.Party.Count(p => p.EntityId > 0) == 1 && AutoUsable.Contains(p);
+    private bool CanAutoUse(PomanderID p) => Palace.Party.Count(p => p.EntityId > 0) == 1 && _config.AutoPoms[(int)p];
 
     private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action, Action<T>? onRemove = null)
     {
@@ -422,13 +402,13 @@ public abstract class AutoClear : ZoneModule
 
         DrawAOEs(playerSlot, player, hints);
 
-        if (!_config.Enable)
-            return;
-
         var canNavigate = _config.MaxPull == 0 ? !player.InCombat : hints.PotentialTargets.Count(t => t.Actor.AggroPlayer && !t.Actor.IsDeadOrDestroyed) < _config.MaxPull;
 
         if (canNavigate)
             HandleFloorPathfind(player, hints);
+
+        if (!_config.Enable)
+            return;
 
         CalculateExtraHints(playerSlot, player, hints);
 
@@ -509,7 +489,9 @@ public abstract class AutoClear : ZoneModule
             }
         }
 
-        if (!isStunned && pomanderToUseHere is PomanderID p2 && player.FindStatus(SID.ItemPenalty) == null)
+        var playerInAOE = hints.ForbiddenZones.Any(p => p.containsFn(player.Position));
+
+        if (!isStunned && pomanderToUseHere is PomanderID p2 && player.FindStatus(SID.ItemPenalty) == null && !playerInAOE)
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
 
         Actor? wantCoffer = null;
@@ -535,7 +517,8 @@ public abstract class AutoClear : ZoneModule
         {
             wantCoffer = xxx;
             hints.GoalZones.Add(hints.GoalSingleTarget(xxx.Position, 25));
-            hints.InteractWithTarget ??= coffer;
+            if (!playerInAOE)
+                hints.InteractWithTarget ??= coffer;
         }
 
         if (revealedTraps.Count > 0)
@@ -571,10 +554,6 @@ public abstract class AutoClear : ZoneModule
 
             // pomander of storms was used, enemy can't autoheal; any damage will kill
             else if (pp.Actor.FindStatus(SID.AutoHealPenalty) != null && pp.Actor.HPMP.CurHP < 10)
-                pickBetterTarget(pp.Actor);
-
-            // we are a bomb and can oneshot everything on the floor
-            else if (player.FindStatus(4708) is { } transfiguration && (transfiguration.Extra & 0xff) is 54 or 55)
                 pickBetterTarget(pp.Actor);
 
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies

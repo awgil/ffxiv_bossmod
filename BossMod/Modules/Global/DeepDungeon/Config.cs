@@ -1,4 +1,8 @@
-﻿namespace BossMod.Global.DeepDungeon;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
+using Lumina.Excel.Sheets;
+
+namespace BossMod.Global.DeepDungeon;
 
 [ConfigDisplay(Name = "Auto-DeepDungeon (Experimental)", Parent = typeof(ModuleConfig))]
 public class AutoDDConfig : ConfigNode
@@ -46,4 +50,36 @@ public class AutoDDConfig : ConfigNode
 
     [PropertyDisplay("Reveal all rooms before proceeding to next floor")]
     public bool FullClear = false;
+
+    public BitMask AutoPoms = new();
+    public BitMask AutoMagicite = new();
+    public BitMask AutoDemiclone = new();
+
+    public override void DrawCustom(UITree tree, WorldState ws)
+    {
+        foreach (var _ in tree.Node("Automatic pomander usage"))
+        {
+            ImGui.TextWrapped("Highlighted pomanders will be used when a gold chest contains one that you can't carry.");
+            ImGui.TextWrapped("This feature is disabled in parties.");
+
+            for (var i = 1; i < (int)PomanderID.Count; i++)
+                using (ImRaii.PushId($"pom{i}"))
+                {
+                    var row = Service.LuminaRow<DeepDungeonItem>((uint)i)!.Value;
+                    var wrap = Service.Texture.GetFromGameIcon(row.Icon).GetWrapOrEmpty();
+                    ImGui.Image(wrap.Handle, new Vector2(32, 32), new Vector2(0, 0), tintCol: AutoPoms[i] ? new(1, 1, 1, 1) : new(1, 1, 1, 0.4f));
+                    if (ImGui.IsItemClicked())
+                    {
+                        AutoPoms.Toggle(i);
+                        Modified.Fire();
+                    }
+                    if (ImGui.IsItemHovered())
+                        ImGui.SetTooltip(row.Name.ToString());
+                    if (i % 8 > 0)
+                        ImGui.SameLine();
+                }
+
+            ImGui.Text(""); // undo last sameline
+        }
+    }
 }
