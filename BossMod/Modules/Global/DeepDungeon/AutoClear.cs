@@ -422,9 +422,6 @@ public abstract class AutoClear : ZoneModule
 
         DrawAOEs(playerSlot, player, hints);
 
-        foreach (var pt in hints.PotentialTargets)
-            pt.AllowDOTs = false;
-
         if (!_config.Enable)
             return;
 
@@ -577,7 +574,7 @@ public abstract class AutoClear : ZoneModule
                 pickBetterTarget(pp.Actor);
 
             // we are a bomb and can oneshot everything on the floor
-            else if (player.FindStatus(4708) is { } transfiguration && (transfiguration.Extra & 0xff) == 55)
+            else if (player.FindStatus(4708) is { } transfiguration && (transfiguration.Extra & 0xff) is 54 or 55)
                 pickBetterTarget(pp.Actor);
 
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies

@@ -47,7 +47,7 @@ class SaltwaterShot(BossModule module) : Components.KnockbackFromCastTarget(modu
         }
     }
 }
-class Adulation(BossModule module) : Components.Adds(module, (uint)OID.ForgivenAdulation, 1);
+class Adulation(BossModule module) : Components.Adds(module, (uint)OID.ForgivenAdulation, 1, forbidDots: true);
 class NearTide(BossModule module) : Components.StandardAOEs(module, AID.NearTide, 13);
 class FarTide(BossModule module) : Components.StandardAOEs(module, AID.FarTide, new AOEShapeDonut(8, 60));
 class Chaser(BossModule module) : Components.GroupedAOEs(module, [AID.Chaser1, AID.Chaser2], new AOEShapeCircle(5));

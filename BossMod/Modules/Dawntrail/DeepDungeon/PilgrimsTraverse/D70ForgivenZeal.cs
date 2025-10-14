@@ -36,15 +36,20 @@ public enum AID : uint
     DisorientingGroan = 43431, // Helper->self, 7.0+1.0s cast, distance 7 knockback
     OctupleSwipeIndicator = 43437, // Helper->self, 1.0s cast, range 40 90-degree cone
     OctupleSwipeCast = 43432, // Boss->self, 10.0s cast, single-target
-    OctupleSwipe1 = 43433, // Boss->self, no cast, range 40 90-degree cone
-    OctupleSwipe2 = 43432, // Boss->self, no cast, range 40 90-degree cone
-    OctupleSwipe3 = 43435, // Boss->self, no cast, range 40 90-degree cone
-    OctupleSwipe4 = 43436, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe1 = 43432, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe2 = 43433, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe3 = 43434, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe4 = 43435, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe5 = 43436, // Boss->self, no cast, range 40 90-degree cone
+    W2000MinaSwingCast = 43428, // Boss->self, 6.0s cast, single-target
+    W2000MinaSwing = 43429, // Helper->self, 7.0+1.0s cast, range 8 circle
 }
 
 class ZealousGlower(BossModule module) : Components.GroupedAOEs(module, [AID.ZealousGlowerClose1, AID.ZealousGlowerClose2, AID.ZealousGlowerClose3, AID.ZealousGlowerClose4, AID.ZealousGlowerFar1, AID.ZealousGlowerFar2, AID.ZealousGlowerFar3, AID.ZealousGlowerFar4], new AOEShapeRect(5, 5, 0));
 
 class ArdorousEye(BossModule module) : Components.GroupedAOEs(module, [AID.ArdorousEyeCCW1, AID.ArdorousEyeCCW2, AID.ArdorousEyeCCW3, AID.ArdorousEyeCCW4, AID.ArdorousEyeCW1, AID.ArdorousEyeCW2, AID.ArdorousEyeCW3, AID.ArdorousEyeCW4], new AOEShapeDonutSector(5, 10, 45.Degrees()));
+
+class W2000MinaSwing(BossModule module) : Components.StandardAOEs(module, AID.W2000MinaSwing, 8);
 
 class BrutalHalo(BossModule module) : Components.GenericAOEs(module)
 {
@@ -141,7 +146,7 @@ class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.OctupleSwipeIndicator)
             _predicted.Add(new(new AOEShapeCone(40, 45.Degrees()), Arena.Center, spell.Rotation, WorldState.FutureTime(8.3f + 2 * _predicted.Count)));
 
-        if ((AID)spell.Action.ID is AID.OctupleSwipe1 or AID.OctupleSwipe2 or AID.OctupleSwipe3 or AID.OctupleSwipe4)
+        if ((AID)spell.Action.ID is AID.OctupleSwipe1 or AID.OctupleSwipe2 or AID.OctupleSwipe3 or AID.OctupleSwipe4 or AID.OctupleSwipe5)
         {
             NumCasts++;
             if (NumCasts >= 8)
@@ -162,6 +167,7 @@ class D70ForgivenZealStates : StateMachineBuilder
             .ActivateOnEnter<ZealousGlower>()
             .ActivateOnEnter<ArdorousEye>()
             .ActivateOnEnter<DisorientingGroan>()
+            .ActivateOnEnter<W2000MinaSwing>()
             .ActivateOnEnter<OctupleSwipe>();
     }
 }

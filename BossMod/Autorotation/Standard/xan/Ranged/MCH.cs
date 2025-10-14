@@ -114,7 +114,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
         if (primaryTarget != null)
         {
-            var aoebreakpoint = Overheated && Unlocked(AID.AutoCrossbow) ? 4 : 3;
+            var aoebreakpoint = Overheated && Unlocked(AID.AutoCrossbow) ? 6 : 3;
             GoalZoneCombined(strategy, 25, Hints.GoalAOECone(primaryTarget.Actor, 12, 60.Degrees()), AID.SpreadShot, aoebreakpoint);
         }
 
@@ -123,7 +123,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             if (FMFLeft > GCD)
                 PushGCD(AID.FullMetalField, BestRangedAOETarget);
 
-            if (NumAOETargets > 2)
+            if (NumAOETargets > 5)
                 PushGCD(AID.AutoCrossbow, BestAOETarget);
 
             PushGCD(BestActionUnlocked(AID.BlazingShot, AID.HeatBlast), primaryTarget);
@@ -143,7 +143,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
                 if (ReadyIn(AID.ChainSaw) <= GCD)
                     PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
 
-                if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 1)
+                if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 2)
                     PushGCD(AID.Bioblaster, BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
 
                 if (ReadyIn(AID.Drill) <= GCD)

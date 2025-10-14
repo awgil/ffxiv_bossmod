@@ -14,6 +14,20 @@ public enum AID : uint
 
     EarthenAuger = 42091, // 4920->self, 4.0s cast, range 3-30 270-degree donut
     MasterOfLevin = 44732, // 4988->self, 4.0s cast, range 5-30 donut
+
+    Accelerate = 42516, // 4927->location, 4.0s cast, range 6 circle
+    Subduction = 42517, // 4927->self, no cast, range 6-10 donut
+
+    PeripheralLasers = 44758, // 4995->self, 5.0s cast, range 5-60 donut
+    GrowingCirclesOfAblution1 = 42578, // 492A->self, 5.0s cast, range 10 circle
+    GrowingCirclesOfAblution2 = 42749, // 492A->self, no cast, range 10-40 donut
+    ShrinkingCirclesOfAblution1 = 42748, // 492A->self, 5.0s cast, range 10-40 donut
+    ShrinkingCirclesOfAblution2 = 42746, // 492A->self, no cast, range 10 circle
+
+    RightSidedShockwaveCast = 42214, // 4923->self, 5.0s cast, range 30 180-degree cone
+    RightSidedShockwave = 42215, // 4923->self, no cast, range 30 180-degree cone
+    LeftSidedShockwaveCast = 42216, // 4923->self, 5.0s cast, range 30 180-degree cone
+    LeftSidedShockwave = 42217, // 4923->self, no cast, range 30 180-degree cone
 }
 
 public enum OID : uint
@@ -52,10 +66,8 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
     protected override void OnCastStarted(Actor actor)
     {
         // TODO:
-        // X-sided shockwave (forgiven riot)
-        // crystalline stingers (LOS, maybe stun?)
-        // accelerate -> point blank aoe (cast by talos)
-        // shrinking/growing circles of ablution -> donut/circle
+        // X-sided shockwave (forgiven riot, 61-70)
+        // crystalline stingers (LOS, maybe stun?, 61-70)
         // hail of heels -> multiple frontal cones
         // Passions' Heat -> targeted AOE (with marker) and applies pyretic
 
@@ -65,6 +77,10 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
         {
             case AID.EarthenAuger:
                 AddDonut(actor, 3, 30, 135.Degrees());
+                break;
+
+            case AID.PeripheralLasers:
+                AddDonut(actor, 5, 60);
                 break;
 
             case AID.Malice:
@@ -85,6 +101,37 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
             case AID.MasterOfLevin:
                 AddDonut(actor, 5, 30);
                 HintDisabled.Add(actor);
+                break;
+        }
+    }
+
+    protected override void OnEventCast(Actor actor, ActorCastEvent ev)
+    {
+        switch ((AID)ev.Action.ID)
+        {
+            case AID.ShrinkingCirclesOfAblution1:
+                Voidzones.Add((actor, new AOEShapeCircle(10)));
+                break;
+            case AID.GrowingCirclesOfAblution1:
+                Voidzones.Add((actor, new AOEShapeDonut(10, 40)));
+                break;
+            case AID.Accelerate:
+                Voidzones.Add((actor, new AOEShapeDonut(6, 10)));
+                break;
+
+            case AID.RightSidedShockwaveCast:
+                Voidzones.Add((actor, new AOEShapeCone(30, 90.Degrees(), 90.Degrees())));
+                break;
+            case AID.LeftSidedShockwaveCast:
+                Voidzones.Add((actor, new AOEShapeCone(30, 90.Degrees(), -90.Degrees())));
+                break;
+
+            case AID.ShrinkingCirclesOfAblution2:
+            case AID.GrowingCirclesOfAblution2:
+            case AID.RightSidedShockwave:
+            case AID.LeftSidedShockwave:
+            case AID.Subduction:
+                Voidzones.RemoveAll(v => v.Source == actor);
                 break;
         }
     }
