@@ -62,7 +62,7 @@ class Rocks(BossModule module) : BossComponent(module)
     {
         if ((SID)status.ID == SID.SixFulmsUnder && Raid.TryFindSlot(actor, out var slot))
             // sigh
-            _drowning[slot] = status.ExpireAt.AddSeconds(-0.8f);
+            _drowning[slot] = status.ExpireAt;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
@@ -101,13 +101,17 @@ class Rocks(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        var check = RockShape.CheckFn(Arena.Center, default);
+
+        // movement speed in quicksand is 0.86 x base, so if not currently drowning we have 3.44s of leeway
+        // if already drowning, movespeed has already been adjusted on the client so we can let pathfinder do its thing
+        var drownTime = _drowning[slot] == default ? WorldState.FutureTime(3.44f) : _drowning[slot];
+
+        if (_quicksand)
+            hints.AddForbiddenZone(p => !check(p), drownTime);
+
         if (_bitingWind != default && _bitingWind < WorldState.FutureTime(2))
-            hints.AddForbiddenZone(RockShape.CheckFn(Arena.Center, default), _bitingWind);
-        else if (_drowning[slot] != default)
-        {
-            var check = RockShape.CheckFn(Arena.Center, default);
-            hints.AddForbiddenZone(p => !check(p), _drowning[slot]);
-        }
+            hints.AddForbiddenZone(check, _bitingWind);
     }
 }
 
@@ -115,6 +119,9 @@ class FallingRock(BossModule module) : Components.StandardAOEs(module, AID.Falli
 
 class PitAmbush(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), AID.PitAmbushCast, AID.PitAmbushInstant1, 5, 2.1f, 4)
 {
+    private int _target = -1;
+    private DateTime _start;
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.PitAmbushCast or AID.PitAmbushInstant1 or AID.PitAmbushInstant2)
@@ -125,6 +132,33 @@ class PitAmbush(BossModule module) : Components.StandardChasingAOEs(module, new 
                 ReportError($"unexpected cast from chasing AOE at {pos}");
             if (advanced?.NumRemaining <= 0)
                 ExcludedTargets.Clear(Raid.FindSlot(advanced.Target.InstanceID));
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if (spell.Action == ActionFirst)
+            _target = -1;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // bait away from center of arena so we have a safe zone to run to
+        if (slot == _target)
+            hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 10), _start);
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.Tracking && Raid.TryFindSlot(actor, out var slot))
+        {
+            // 18.79 -> 23.89
+            _target = slot;
+            _start = WorldState.FutureTime(5.1f);
         }
     }
 }
