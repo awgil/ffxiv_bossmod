@@ -236,8 +236,8 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             var numTargets = targetOutOfCombat && numForbidden == 1 && numOk == 0
                 // primary target will be the only one hit by aoe so they are ok to target
                 ? 1
-                // unwanted targets will be hit
                 : numForbidden > 0
+                    // unwanted targets will be hit
                     ? 0
                     // wanted targets will be hit
                     : numOk;
