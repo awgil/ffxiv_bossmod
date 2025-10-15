@@ -16,7 +16,7 @@ public enum AID : uint
     MasterOfLevin = 44732, // 4988->self, 4.0s cast, range 5-30 donut
 
     Accelerate = 42516, // 4927->location, 4.0s cast, range 6 circle
-    Subduction = 42517, // 4927->self, no cast, range 6-10 donut
+    Subduction = 42517, // 4927->self, no cast, range 5-10 donut
 
     PeripheralLasers = 44758, // 4995->self, 5.0s cast, range 5-60 donut
     GrowingCirclesOfAblution1 = 42578, // 492A->self, 5.0s cast, range 10 circle
@@ -116,7 +116,7 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
                 Voidzones.Add((actor, new AOEShapeDonut(10, 40)));
                 break;
             case AID.Accelerate:
-                Voidzones.Add((actor, new AOEShapeDonut(6, 10)));
+                Voidzones.Add((actor, new AOEShapeDonut(5, 10)));
                 break;
 
             case AID.RightSidedShockwaveCast:

@@ -36,11 +36,10 @@ public enum AID : uint
     DisorientingGroan = 43431, // Helper->self, 7.0+1.0s cast, distance 7 knockback
     OctupleSwipeIndicator = 43437, // Helper->self, 1.0s cast, range 40 90-degree cone
     OctupleSwipeCast = 43432, // Boss->self, 10.0s cast, single-target
-    OctupleSwipe1 = 43432, // Boss->self, no cast, range 40 90-degree cone
-    OctupleSwipe2 = 43433, // Boss->self, no cast, range 40 90-degree cone
-    OctupleSwipe3 = 43434, // Boss->self, no cast, range 40 90-degree cone
-    OctupleSwipe4 = 43435, // Boss->self, no cast, range 40 90-degree cone
-    OctupleSwipe5 = 43436, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe1 = 43433, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe2 = 43434, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe3 = 43435, // Boss->self, no cast, range 40 90-degree cone
+    OctupleSwipe4 = 43436, // Boss->self, no cast, range 40 90-degree cone
     W2000MinaSwingCast = 43428, // Boss->self, 6.0s cast, single-target
     W2000MinaSwing = 43429, // Helper->self, 7.0+1.0s cast, range 8 circle
 }
@@ -141,12 +140,15 @@ class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.OctupleSwipeIndicator)
             _predicted.Add(new(new AOEShapeCone(40, 45.Degrees()), Arena.Center, spell.Rotation, WorldState.FutureTime(8.3f + 2 * _predicted.Count)));
+    }
 
-        if ((AID)spell.Action.ID is AID.OctupleSwipe1 or AID.OctupleSwipe2 or AID.OctupleSwipe3 or AID.OctupleSwipe4 or AID.OctupleSwipe5)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.OctupleSwipe1 or AID.OctupleSwipe2 or AID.OctupleSwipe3 or AID.OctupleSwipe4)
         {
             NumCasts++;
             if (NumCasts >= 8)
