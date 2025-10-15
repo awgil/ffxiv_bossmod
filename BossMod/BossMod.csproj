@@ -36,6 +36,7 @@
     <Using Include="System.Collections.Immutable" />
     <Using Include="System.Linq" />
     <Using Include="System.Numerics" />
+    <Using Include="Lumina.Extensions" />
   </ItemGroup>
 
   <PropertyGroup>

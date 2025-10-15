@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Shadowbringers.Alliance.A14Engels;
+﻿namespace BossMod.Shadowbringers.Alliance.A14Engels;
 
 class GuidedMissileBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.Chase, centerAtTarget: true)
 {

@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Endwalker.Dungeon.D02TowerOfBabil.D023Anima;
+﻿namespace BossMod.Endwalker.Dungeon.D02TowerOfBabil.D023Anima;
 
 public enum OID : uint
 {

@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
 class SagesStaff(BossModule module) : Components.MultiLineStack(module, 2, 40, (AID)0, AID.ManaExpulsion, 11.3f)
 {

@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Shadowbringers.Alliance.A13GoliathTank;
+﻿namespace BossMod.Shadowbringers.Alliance.A13GoliathTank;
 
 public enum OID : uint
 {

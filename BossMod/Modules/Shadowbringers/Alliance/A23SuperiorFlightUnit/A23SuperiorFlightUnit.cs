@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Shadowbringers.Alliance.A23SuperiorFlightUnit;
+﻿namespace BossMod.Shadowbringers.Alliance.A23SuperiorFlightUnit;
 
 public enum OID : uint
 {

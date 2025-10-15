@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
 class RuneAxe(BossModule module) : Components.GenericAOEs(module)
 {

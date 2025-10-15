@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Dawntrail.Alliance.A22OmegaTheOne;
+﻿namespace BossMod.Dawntrail.Alliance.A22OmegaTheOne;
 
 class GuidedMissile(BossModule module) : Components.StandardAOEs(module, AID.GuidedMissile, 6);
 class GuidedMissileBait(BossModule module) : Components.CastCounter(module, AID.GuidedMissile)

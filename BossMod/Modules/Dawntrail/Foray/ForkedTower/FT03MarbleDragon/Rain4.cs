@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Dawntrail.Foray.ForkedTower.FT03MarbleDragon;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT03MarbleDragon;
 
 class ImitationBlizzard4(BossModule module) : ImitationBlizzard(module, 10, imminentOnly: true)
 {

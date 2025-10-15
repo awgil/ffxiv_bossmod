@@ -1,6 +1,4 @@
-﻿using Lumina.Extensions;
-
-namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT04Magitaur;
 
 class HolyLance(BossModule module) : Components.GenericAOEs(module, AID.LanceAppear)
 {
