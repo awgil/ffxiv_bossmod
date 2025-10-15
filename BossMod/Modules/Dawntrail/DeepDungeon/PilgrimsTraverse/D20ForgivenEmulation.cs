@@ -137,7 +137,7 @@ class Burst(BossModule module) : Components.GenericAOEs(module)
                     if (_predicted.Count == 3)
                         SafeDir = (actor.Rotation + angle).Normalized();
 
-                    _predicted.Add(new(new AOEShapeCircle(11), actor.Position + (actor.Rotation + angle).ToDirection() * 10, default, WorldState.FutureTime(advanceTime)));
+                    _predicted.Add(new(new AOEShapeCircle(11), actor.Position + (actor.Rotation + angle).ToDirection() * 9.25f, default, WorldState.FutureTime(advanceTime)));
                 }
             }
         }
@@ -147,6 +147,9 @@ class Burst(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.Touchdown)
             _risky = false;
+
+        if ((AID)spell.Action.ID is AID.Burst1 or AID.Burst2 or AID.Burst3 or AID.Burst4)
+            _predicted.Clear();
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -156,15 +159,10 @@ class Burst(BossModule module) : Components.GenericAOEs(module)
             _risky = true;
             SafeDir = default;
         }
-
-        if ((AID)spell.Action.ID is AID.Burst1 or AID.Burst2 or AID.Burst3 or AID.Burst4)
-        {
-            NumCasts++;
-            if (_predicted.Count > 0)
-                _predicted.RemoveAt(0);
-        }
     }
 }
+
+class BurstAOE(BossModule module) : Components.GroupedAOEs(module, [AID.Burst1, AID.Burst2, AID.Burst3, AID.Burst4], new AOEShapeCircle(11), maxCasts: 3);
 
 class Touchdown(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Touchdown, 10)
 {
@@ -190,6 +188,7 @@ class D20ForgivenEmulationStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<Burst>()
+            .ActivateOnEnter<BurstAOE>()
             .ActivateOnEnter<Touchdown>()
             .ActivateOnEnter<WoodsEmbrace>()
             .ActivateOnEnter<Planting>()
