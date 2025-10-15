@@ -226,9 +226,22 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         var aoe = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
         var targeting = strategy.Option(SharedTrack.Targeting).As<Targeting>();
 
+        var targetOutOfCombat = primaryTarget?.Priority == Enemy.PriorityUndesirable;
+
         P targetPrio(Actor potentialTarget)
         {
-            var numTargets = Hints.NumPriorityTargetsInAOE(enemy => isInAOE(potentialTarget, enemy.Actor));
+            var numForbidden = Hints.ForbiddenTargets.Count(enemy => isInAOE(potentialTarget, enemy.Actor));
+            var numOk = Hints.PriorityTargets.Count(enemy => isInAOE(potentialTarget, enemy.Actor));
+
+            var numTargets = targetOutOfCombat && numForbidden == 1 && numOk == 0
+                // primary target will be the only one hit by aoe so they are ok to target
+                ? 1
+                // unwanted targets will be hit
+                : numForbidden > 0
+                    ? 0
+                    // wanted targets will be hit
+                    : numOk;
+
             return prioritize(AdjustNumTargets(strategy, numTargets), potentialTarget);
         }
 
