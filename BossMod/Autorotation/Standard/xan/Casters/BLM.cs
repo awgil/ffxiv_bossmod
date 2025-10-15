@@ -261,7 +261,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        if (primaryTarget == null)
+        if (!Hints.PriorityTargets.Any())
         {
             if (ReadyIn(AID.Transpose) == 0)
             {
@@ -280,9 +280,10 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
             if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts || Player.HPMP.CurMP < Player.HPMP.MaxMP))
                 PushGCD(AID.UmbralSoul, Player, GCDPriority.Standard);
-
-            return;
         }
+
+        if (primaryTarget == null)
+            return;
 
         GoalZoneSingle(25);
 
@@ -319,13 +320,13 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             }
         }
 
-        if (Polyglot < MaxPolyglot)
-            PushOGCD(AID.Amplifier, Player);
-
         UseLeylines(strategy, primaryTarget);
         UseTriplecastForced(strategy);
 
-        if (Fire > 0)
+        if (Player.InCombat)
+            PushOGCD(AID.Amplifier, Player);
+
+        if (Fire > 0 && Player.InCombat)
         {
             var manafontOk = strategy.Option(Track.Manafont).As<OffensiveStrategy>() switch
             {
@@ -679,6 +680,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     private void UseLeylines(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Player.FindStatus(SID.LeyLines) != null)
+            return;
+
+        if (!Player.InCombat && CountdownRemaining == null)
             return;
 
         var opt = strategy.Option(Track.Leylines);

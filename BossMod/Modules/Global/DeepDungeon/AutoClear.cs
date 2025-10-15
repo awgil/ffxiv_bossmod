@@ -656,7 +656,10 @@ public abstract class AutoClear : ZoneModule
 
     private void HandleFloorPathfind(Actor player, AIHints hints)
     {
-        var playerRoom = Palace.Party[0].Room;
+        var slot = Array.FindIndex(Palace.Party, p => p.EntityId == player.InstanceID);
+        if (slot < 0)
+            return;
+        var playerRoom = Palace.Party[slot].Room;
 
         if (DesiredRoom == playerRoom || DesiredRoom == 0)
         {
