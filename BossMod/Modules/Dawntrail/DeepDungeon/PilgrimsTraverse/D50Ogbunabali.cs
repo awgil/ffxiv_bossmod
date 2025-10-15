@@ -156,7 +156,6 @@ class PitAmbush(BossModule module) : Components.StandardChasingAOEs(module, new 
     {
         if ((IconID)iconID == IconID.Tracking && Raid.TryFindSlot(actor, out var slot))
         {
-            // 18.79 -> 23.89
             _target = slot;
             _start = WorldState.FutureTime(5.1f);
         }

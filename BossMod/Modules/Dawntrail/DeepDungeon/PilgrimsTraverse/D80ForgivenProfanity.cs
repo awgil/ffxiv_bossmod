@@ -10,9 +10,11 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 45130, // Boss->player, no cast, single-target
-    RoaringRingCast = 43465, // Boss->self, 5.2+0.8s cast, single-target
+    RoaringRingCast1 = 43465, // Boss->self, 5.2+0.8s cast, single-target
+    RoaringRingCast2 = 43467, // Boss->self, 5.2+0.8s cast, single-target
     RoaringRing = 43468, // Helper->self, 6.0s cast, range 8-40 donut
-    PerilousLairCast = 43471, // Boss->self, 5.2+0.8s cast, single-target
+    PerilousLairCast1 = 43469, // Boss->self, 5.2+0.8s cast, single-target
+    PerilousLairCast2 = 43471, // Boss->self, 5.2+0.8s cast, single-target
     PerilousLair = 43472, // Helper->self, 6.0s cast, range 12 circle
     ProfaneWaul = 43473, // Helper->self, 6.0s cast, range 40 180-degree cone
     StalkingStaticCast = 43476, // Boss->self, 3.0s cast, range 40 circle
@@ -35,7 +37,7 @@ public enum SID : uint
 }
 
 class RoaringRing(BossModule module) : Components.StandardAOEs(module, AID.RoaringRing, new AOEShapeDonut(8, 40));
-class PerilousLair(BossModule module) : Components.StandardAOEs(module, AID.PerilousLairCast, 12);
+class PerilousLair(BossModule module) : Components.StandardAOEs(module, AID.PerilousLair, 12);
 
 class ProfaneWaul(BossModule module) : Components.StandardAOEs(module, AID.ProfaneWaul, new AOEShapeCone(40, 90.Degrees()))
 {

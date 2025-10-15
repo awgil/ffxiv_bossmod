@@ -28,6 +28,10 @@ public enum AID : uint
     RightSidedShockwave = 42215, // 4923->self, no cast, range 30 180-degree cone
     LeftSidedShockwaveCast = 42216, // 4923->self, 5.0s cast, range 30 180-degree cone
     LeftSidedShockwave = 42217, // 4923->self, no cast, range 30 180-degree cone
+
+    RollingBarrage = 42523, // 4929->self, 16.0s cast, range 45 circle
+
+    IncineratingLahar = 43133, // 492E->self, 16.0s cast, range 46 circle
 }
 
 public enum OID : uint
@@ -66,7 +70,6 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
     protected override void OnCastStarted(Actor actor)
     {
         // TODO:
-        // X-sided shockwave (forgiven riot, 61-70)
         // crystalline stingers (LOS, maybe stun?, 61-70)
         // hail of heels -> multiple frontal cones
         // Passions' Heat -> targeted AOE (with marker) and applies pyretic
@@ -77,10 +80,12 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
         {
             case AID.EarthenAuger:
                 AddDonut(actor, 3, 30, 135.Degrees());
+                HintDisabled.Add(actor);
                 break;
 
             case AID.PeripheralLasers:
                 AddDonut(actor, 5, 60);
+                HintDisabled.Add(actor);
                 break;
 
             case AID.Malice:
@@ -90,6 +95,15 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
 
             case AID.MagneticShock:
                 KnockbackZones.Add((actor, 15));
+                HintDisabled.Add(actor);
+                break;
+
+            case AID.RollingBarrage:
+                Circles.Add((actor, 45));
+                break;
+
+            case AID.IncineratingLahar:
+                Circles.Add((actor, 46));
                 break;
 
             // stun for melee uptime

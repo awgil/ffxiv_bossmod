@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Lumina.Excel.Sheets;
 
@@ -67,7 +68,8 @@ public class AutoDDConfig : ConfigNode
                 {
                     var row = Service.LuminaRow<DeepDungeonItem>((uint)i)!.Value;
                     var wrap = Service.Texture.GetFromGameIcon(row.Icon).GetWrapOrEmpty();
-                    ImGui.Image(wrap.Handle, new Vector2(32, 32), new Vector2(0, 0), tintCol: AutoPoms[i] ? new(1, 1, 1, 1) : new(1, 1, 1, 0.4f));
+                    var scale = new Vector2(32, 32) * ImGuiHelpers.GlobalScale;
+                    ImGui.Image(wrap.Handle, scale, new Vector2(0, 0), tintCol: AutoPoms[i] ? new(1, 1, 1, 1) : new(1, 1, 1, 0.4f));
                     if (ImGui.IsItemClicked())
                     {
                         AutoPoms.Toggle(i);

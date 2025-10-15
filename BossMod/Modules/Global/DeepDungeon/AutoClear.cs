@@ -358,7 +358,19 @@ public abstract class AutoClear : ZoneModule
         }
     }
 
-    private bool CanAutoUse(PomanderID p) => Palace.Party.Count(p => p.EntityId > 0) == 1 && _config.AutoPoms[(int)p];
+    private bool CanAutoUse(PomanderID p, Actor player)
+    {
+        if (Palace.Party.Count(p => p.EntityId > 0) > 1)
+            return false;
+
+        if (!_config.AutoPoms[(int)p])
+            return false;
+
+        if (p is PomanderID.Purity or PomanderID.ProtoPurity)
+            return player.FindStatus(1087) != null;
+
+        return true;
+    }
 
     private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action, Action<T>? onRemove = null)
     {
@@ -426,7 +438,7 @@ public abstract class AutoClear : ZoneModule
         {
             if (_chestContentsGold.TryGetValue(a.InstanceID, out var pid) && Palace.GetPomanderState(pid).Count == 3 && a.IsTargetable)
             {
-                if (CanAutoUse(pid))
+                if (CanAutoUse(pid, player))
                     pomanderToUseHere ??= pid;
                 continue;
             }
