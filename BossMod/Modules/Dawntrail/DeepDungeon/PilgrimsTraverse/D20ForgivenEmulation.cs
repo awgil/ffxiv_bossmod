@@ -152,7 +152,10 @@ class Burst(BossModule module) : Components.GenericAOEs(module)
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Touchdown)
+        {
             _risky = true;
+            SafeDir = default;
+        }
 
         if ((AID)spell.Action.ID is AID.Burst1 or AID.Burst2 or AID.Burst3 or AID.Burst4)
         {
@@ -174,7 +177,8 @@ class Touchdown(BossModule module) : Components.KnockbackFromCastTarget(module, 
             if (!IsImmune(slot, src.Activation))
             {
                 hints.AddForbiddenZone(ShapeContains.Donut(Arena.Center, 4.9f, 30), src.Activation);
-                hints.AddForbiddenZone(ShapeContains.InvertedCone(Arena.Center, 30, Burst.SafeDir, 30.Degrees()), src.Activation);
+                if (Burst.SafeDir != default)
+                    hints.AddForbiddenZone(ShapeContains.InvertedCone(Arena.Center, 30, Burst.SafeDir, 30.Degrees()), src.Activation);
             }
         }
     }

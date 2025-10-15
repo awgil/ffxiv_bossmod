@@ -57,10 +57,7 @@ class D10OrnamentalLeafmanStates : StateMachineBuilder
     {
         // loop is about 55s
         for (var i = 0u; i <= 40; i++)
-        {
-            var delay = i == 0 ? 7.5f : 10;
-            Loop(id + 0x100 * i, delay);
-        }
+            Loop(id + 0x100 * i, i == 0 ? 7.5f : 10);
 
         Timeout(id + 0xFF0000, 10000, "???");
     }
@@ -74,7 +71,7 @@ class D10OrnamentalLeafmanStates : StateMachineBuilder
             .ActivateOnEnter<Shrublet>()
             .DeactivateOnExit<HedgeMazing>();
 
-        // encourage AI mode not to hold when shrublets appear
+        // encourage autorot not to hold when shrublets appear
         ComponentCondition<Shrublet>(id + 0x10, 1.1f, s => s.ActiveActors.Count() == 3, "Adds appear")
             .ActivateOnEnter<Leafmash>()
             .SetHint(StateMachine.StateHint.VulnerableStart);
