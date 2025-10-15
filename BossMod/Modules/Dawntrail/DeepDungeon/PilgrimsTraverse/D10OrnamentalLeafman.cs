@@ -50,10 +50,40 @@ class D10OrnamentalLeafmanStates : StateMachineBuilder
 {
     public D10OrnamentalLeafmanStates(BossModule module) : base(module)
     {
-        TrivialPhase()
-            .ActivateOnEnter<HedgeMazing>()
+        DeathPhase(0, P0);
+    }
+
+    private void P0(uint id)
+    {
+        // loop is about 55s
+        for (var i = 0u; i <= 40; i++)
+        {
+            var delay = i == 0 ? 7.5f : 10;
+            Loop(id + 0x100 * i, delay);
+        }
+
+        Timeout(id + 0xFF0000, 10000, "???");
+    }
+
+    private void Loop(uint id, float delay)
+    {
+        CastStart(id, AID.BranchOut, delay)
+            .ActivateOnEnter<HedgeMazing>();
+
+        ComponentCondition<HedgeMazing>(id + 1, 22, h => h.NumCasts == 4, "Hedges")
             .ActivateOnEnter<Shrublet>()
-            .ActivateOnEnter<Leafmash>();
+            .DeactivateOnExit<HedgeMazing>();
+
+        // encourage AI mode not to hold when shrublets appear
+        ComponentCondition<Shrublet>(id + 0x10, 1.1f, s => s.ActiveActors.Count() == 3, "Adds appear")
+            .ActivateOnEnter<Leafmash>()
+            .SetHint(StateMachine.StateHint.VulnerableStart);
+
+        ComponentCondition<Leafmash>(id + 0x20, 19, l => l.NumCasts == 1, "Jump 1")
+            .SetHint(StateMachine.StateHint.VulnerableEnd);
+        ComponentCondition<Leafmash>(id + 0x21, 5.3f, l => l.NumCasts == 4, "Jump 4")
+            .DeactivateOnExit<Shrublet>()
+            .DeactivateOnExit<Leafmash>();
     }
 }
 
