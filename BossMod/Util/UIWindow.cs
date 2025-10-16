@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Windowing;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Windowing;
 
 namespace BossMod;
 
@@ -22,7 +22,7 @@ public abstract class UIWindow : Window, IDisposable
         DisposeOnClose = detached;
         Size = initialSize;
         SizeCondition = ImGuiCond.FirstUseEver;
-        AllowClickthrough = AllowPinning = false; // this breaks uidev
+        AllowClickthrough = AllowPinning = !Service.IsUIDev;
         if (titleBarButtons != null)
         {
             TitleBarButtons = titleBarButtons;

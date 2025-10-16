@@ -1,5 +1,4 @@
 ﻿using BossMod.Pathfinding;
-using Dalamud.Bindings.ImGui;
 using System.Data.SQLite;
 using System.IO;
 using System.Reflection;
@@ -35,7 +34,7 @@ enum SID : uint
     AutoHealPenalty = 1097,
 }
 
-public abstract class AutoClear : ZoneModule
+public abstract partial class AutoClear : ZoneModule
 {
     public readonly int LevelCap;
 
@@ -86,7 +85,7 @@ public abstract class AutoClear : ZoneModule
 
     private int Kills;
     private int DesiredRoom;
-    private bool BetweenFloors;
+    private bool BetweenFloors = true;
 
     protected struct PlayerImmuneState
     {
@@ -126,9 +125,12 @@ public abstract class AutoClear : ZoneModule
             ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
             ws.DeepDungeon.MapDataChanged.Subscribe(_ =>
             {
-                BetweenFloors = false;
-                if (Walls.Count == 0)
+                if (BetweenFloors)
+                {
                     LoadWalls();
+                    LoadGeometry();
+                }
+                BetweenFloors = false;
             })
         );
 
@@ -309,55 +311,6 @@ public abstract class AutoClear : ZoneModule
 
     public sealed override string WindowName() => "VBM DD minimap###VBMDD";
 
-    public override void DrawExtra()
-    {
-        var player = World.Party.Player();
-        var playerSlot = Array.FindIndex(Palace.Party, p => p.EntityId == player?.InstanceID);
-        var targetRoom = new Minimap(Palace, player?.Rotation ?? default, DesiredRoom, Math.Max(0, playerSlot)).Draw();
-        if (targetRoom >= 0)
-            DesiredRoom = targetRoom;
-
-        ImGui.Text($"Kills: {Kills}");
-
-        var maxPull = _config.MaxPull;
-
-        ImGui.SetNextItemWidth(200);
-        if (ImGui.DragInt("Max mobs to pull", ref maxPull, 0.05f, 1, 15))
-        {
-            _config.MaxPull = maxPull;
-            _config.Modified.Fire();
-        }
-
-        if (ImGui.Button("Reload obstacles"))
-        {
-            _obstacles.Dispose();
-            _obstacles = new(World);
-        }
-
-        if (player == null)
-            return;
-
-        var (entry, data) = _obstacles.Find(player.PosRot.XYZ());
-        if (entry == null)
-        {
-            ImGui.SameLine();
-            UIMisc.HelpMarker(() => "Obstacle map missing for floor!", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
-        }
-
-        if (data != null && data.PixelSize != 0.5f)
-        {
-            ImGui.SameLine();
-            UIMisc.HelpMarker(() => $"Wrong resolution for map; should be 0.5, got {data.PixelSize}", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
-        }
-
-        if (ImGui.Button("Set closest trap location as ignored"))
-        {
-            var pos = _trapsCurrentZone.Except(ProblematicTrapLocations).MinBy(t => (t - player.Position).LengthSq()).Rounded(0.1f);
-            ProblematicTrapLocations.Add(pos);
-            IgnoreTraps.Add(pos);
-        }
-    }
-
     private bool CanAutoUse(PomanderID p, Actor player)
     {
         if (Palace.Party.Count(p => p.EntityId > 0) > 1)
@@ -414,7 +367,7 @@ public abstract class AutoClear : ZoneModule
 
         DrawAOEs(playerSlot, player, hints);
 
-        var canNavigate = _config.MaxPull == 0 ? !player.InCombat : hints.PotentialTargets.Count(t => t.Actor.AggroPlayer && !t.Actor.IsDeadOrDestroyed) < _config.MaxPull;
+        var canNavigate = _config.MaxPull == 0 ? !player.InCombat : hints.PotentialTargets.Count(t => t.Actor.AggroPlayer && !t.Actor.IsDeadOrDestroyed) <= _config.MaxPull;
 
         if (canNavigate)
             HandleFloorPathfind(player, hints);
@@ -715,51 +668,6 @@ public abstract class AutoClear : ZoneModule
             };
             return improvement > 10 ? 10 : 0;
         });
-    }
-
-    private void LoadWalls()
-    {
-        Service.Log($"loading walls for current floor...");
-        Walls.Clear();
-        var floorset = Palace.Floor / 10;
-        var key = $"{(int)Palace.DungeonId}.{floorset + 1}";
-        if (!LoadedFloors.TryGetValue(key, out var floor))
-        {
-            Service.Log($"unable to load floorset {key}");
-            return;
-        }
-        Tileset<Wall> tileset;
-        switch (Palace.Progress.Tileset)
-        {
-            case 0:
-                tileset = floor.RoomsA;
-                break;
-            case 1:
-                tileset = floor.RoomsB;
-                break;
-            case 2:
-                Service.Log($"hall of fallacies - nothing to do");
-                return;
-            default:
-                Service.Log($"unrecognized tileset number {Palace.Progress.Tileset}");
-                return;
-        }
-        foreach (var (room, i) in Palace.Rooms.Select((m, i) => (m, i)))
-        {
-            if (room > 0)
-            {
-                var roomdata = tileset[i];
-                RoomCenters.Add(roomdata.Center.Position);
-                if (roomdata.North != default && !room.HasFlag(RoomFlags.ConnectionN))
-                    Walls.Add((roomdata.North, false));
-                if (roomdata.South != default && !room.HasFlag(RoomFlags.ConnectionS))
-                    Walls.Add((roomdata.South, false));
-                if (roomdata.East != default && !room.HasFlag(RoomFlags.ConnectionE))
-                    Walls.Add((roomdata.East, true));
-                if (roomdata.West != default && !room.HasFlag(RoomFlags.ConnectionW))
-                    Walls.Add((roomdata.West, true));
-            }
-        }
     }
 
     protected void AddLOSFromTerrain(Actor Source, float Range)
