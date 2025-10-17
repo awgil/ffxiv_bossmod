@@ -1,5 +1,6 @@
 ﻿using Clipper2Lib;
 using EarcutNet;
+using Newtonsoft.Json;
 
 // currently we use Clipper2 library (based on Vatti algorithm) for boolean operations and Earcut.net library (earcutting) for triangulating
 // note: the major user of these primitives is bounds clipper; since they operate in 'local' coordinates, we use WDir everywhere (offsets from center) and call that 'relative polygons' - i'm not quite happy with that, it's not very intuitive
@@ -10,7 +11,9 @@ public readonly record struct RelTriangle(WDir A, WDir B, WDir C);
 
 // a complex polygon that is a single simple-polygon exterior minus 0 or more simple-polygon holes; all edges are assumed to be non intersecting
 // hole-starts list contains starting index of each hole
-public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStarts)
+[JsonObject(MemberSerialization.OptIn)]
+[method: JsonConstructor]
+public record class RelPolygonWithHoles([property: JsonProperty] List<WDir> Vertices, [property: JsonProperty] List<int> HoleStarts)
 {
     // constructor for simple polygon
     public RelPolygonWithHoles(List<WDir> simpleVertices) : this(simpleVertices, []) { }
@@ -105,7 +108,8 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
 }
 
 // generic 'simplified' complex polygon that consists of 0 or more non-intersecting polygons with holes (note however that some polygons could be fully inside other polygon's hole)
-public record class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> Parts)
+[JsonObject(MemberSerialization.OptIn)]
+public record class RelSimplifiedComplexPolygon([property: JsonProperty] List<RelPolygonWithHoles> Parts)
 {
     public bool IsSimple => Parts.Count == 1 && Parts[0].IsSimple;
     public bool IsConvex => Parts.Count == 1 && Parts[0].IsConvex;

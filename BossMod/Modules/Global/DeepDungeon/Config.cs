@@ -32,6 +32,9 @@ public class AutoDDConfig : ConfigNode
     [PropertyDisplay("Automatic mob targeting behavior")]
     public ClearBehavior AutoClear = ClearBehavior.Leveling;
 
+    [PropertyDisplay("Disable DoTs on non-boss floors (only affects VBM autorotation)")]
+    public bool ForbidDOTs = false;
+
     [PropertyDisplay("Max number of mobs to pull before pausing navigation (0 = do not navigate while in combat)")]
     [PropertySlider(0, 15)]
     public int MaxPull = 0;

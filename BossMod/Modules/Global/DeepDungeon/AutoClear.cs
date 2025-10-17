@@ -372,6 +372,10 @@ public abstract partial class AutoClear : ZoneModule
         if (canNavigate)
             HandleFloorPathfind(player, hints);
 
+        if (_config.ForbidDOTs)
+            foreach (var hpt in hints.PotentialTargets)
+                hpt.ForbidDOTs = true;
+
         if (!_config.Enable)
             return;
 

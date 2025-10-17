@@ -9,6 +9,7 @@ public enum OID : uint
     DevouredEater = 0x48EB, // R15.000, x1, Part type
     VodorigaMinion = 0x48EC, // R1.200, x0 (spawn during fight)
     _Gen_ = 0x48ED, // R1.000, x0 (spawn during fight)
+    AbyssalBlaze = 0x1EBE70,
 }
 
 public enum AID : uint
@@ -36,10 +37,10 @@ public enum AID : uint
     _Weaponskill_Spinelash = 44086, // Boss->self, 1.0+0.8s cast, single-target
     _Weaponskill_Spinelash1 = 45118, // Helper->self, 1.8s cast, range 60 width 4 rect
     _Ability_ = 44087, // Boss->self, no cast, single-target
-    _Spell_AbyssalBlaze = 44074, // Boss->self, 3.0s cast, single-target, vertical first
-    _Spell_AbyssalBlaze4 = 44075, // Boss->self, 3.0s cast, single-target, horizontal first
-    _Spell_AbyssalBlaze5 = 44076, // Boss->self, no cast, single-target, vertical second
-    _Spell_AbyssalBlaze1 = 44077, // Boss->self, no cast, single-target, horizontal second
+    _Spell_AbyssalBlaze = 44074, // Boss->self, 3.0s cast, single-target, horizontal first
+    _Spell_AbyssalBlaze4 = 44075, // Boss->self, 3.0s cast, single-target, vertical first
+    _Spell_AbyssalBlaze5 = 44076, // Boss->self, no cast, single-target, horizontal second
+    _Spell_AbyssalBlaze1 = 44077, // Boss->self, no cast, single-target, vertical second
     _Spell_2 = 44078, // Helper->location, no cast, single-target
     _Spell_3 = 44314, // Helper->none, no cast, single-target
     _Spell_DrainAether3 = 44088, // Boss->self, 7.0s cast, range 50 width 50 rect
@@ -243,13 +244,113 @@ class SpinelashBait(BossModule module) : Components.GenericBaitAway(module, cent
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID._Gen_Icon_lockon6_t0t)
-            CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeRect(30, 2, 30), default, true));
+            CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeRect(30, 2, 30), WorldState.FutureTime(6.3f), true));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID._Weaponskill_Spinelash1)
             CurrentBaits.Clear();
+    }
+}
+
+class Spinelash(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Spinelash1, new AOEShapeRect(60, 2));
+
+class ChainsOfCondemnation(BossModule module) : Components.StayMove(module)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID._Spell_ChainsOfCondemnation1 or AID._Spell_ChainsOfCondemnation3)
+            Array.Fill(PlayerStates, new(Requirement.Stay, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID._Gen_ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
+            SetState(slot, new(Requirement.Stay, default));
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID._Gen_ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
+            ClearState(slot);
+    }
+}
+
+class AbyssalBlaze(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(5))
+{
+    private WDir _nextDir;
+
+    private readonly List<(WPos Source, WDir Direction)> _orbs = [];
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze or AID._Spell_AbyssalBlaze5)
+            _nextDir = new WDir(1, 0);
+
+        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze4 or AID._Spell_AbyssalBlaze1)
+            _nextDir = new WDir(0, 1);
+
+        if ((AID)spell.Action.ID == AID._Spell_2)
+            _orbs.Add((spell.TargetXZ, _nextDir));
+
+        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze2)
+        {
+            var lines = Lines.Where(l => l.Next.InCircle(spell.TargetXZ, 1));
+            foreach (var l in lines)
+                AdvanceLine(l, spell.TargetXZ);
+        }
+
+        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze3)
+        {
+            var ix = Lines.FindIndex(l => l.Next.AlmostEqual(spell.TargetXZ, 0.5f));
+            if (ix >= 0)
+                AdvanceLine(Lines[ix], spell.TargetXZ);
+            else
+                ReportError($"unrecognized exaflare at {spell.TargetXZ}");
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze or AID._Spell_AbyssalBlaze4)
+        {
+            _orbs.Clear();
+            Lines.Clear();
+        }
+
+        if ((AID)spell.Action.ID == AID._Spell_AbyssalBlaze2)
+        {
+            foreach (var orb in _orbs)
+            {
+                if (orb.Source.InCircle(spell.LocXZ, 1))
+                {
+                    AddLine(spell.LocXZ, orb.Direction * 4, Module.CastFinishAt(spell));
+                    AddLine(spell.LocXZ, orb.Direction * -4, Module.CastFinishAt(spell));
+                }
+            }
+        }
+    }
+
+    private void AddLine(WPos source, WDir advance, DateTime next)
+    {
+        var numExplosions = 0;
+        var tmp = source;
+        while (tmp.InRect(Arena.Center, 0.Degrees(), 14.5f, 14.5f, 19.5f))
+        {
+            tmp += advance;
+            numExplosions++;
+        }
+
+        Lines.Add(new()
+        {
+            Next = source,
+            Advance = advance,
+            NextExplosion = next,
+            TimeToMove = 1.2f,
+            ExplosionsLeft = numExplosions,
+            MaxShownExplosions = Math.Min(5, numExplosions)
+        });
     }
 }
 
@@ -266,9 +367,16 @@ class D99TheFinalVerseStates : StateMachineBuilder
             .ActivateOnEnter<BoundsOfSinIcicle>()
             .ActivateOnEnter<BoundsOfSinJail>()
             .ActivateOnEnter<BoundsOfSinCollision>()
-            .ActivateOnEnter<SpinelashBait>();
+            .ActivateOnEnter<SpinelashBait>()
+            .ActivateOnEnter<Spinelash>()
+            .ActivateOnEnter<ChainsOfCondemnation>()
+            .ActivateOnEnter<AbyssalBlaze>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1041, NameID = 14037, DevOnly = true)]
-public class D99TheFinalVerse(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsRect(20, 15));
+public class D99TheFinalVerse(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsRect(20, 15))
+{
+    private readonly RelSimplifiedComplexPolygon _white = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Light.json");
+    private readonly RelSimplifiedComplexPolygon _dark = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Dark.json");
+}

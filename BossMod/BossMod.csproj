@@ -111,13 +111,16 @@
       <HintPath>$(DalamudLibPath)SharpDX.Direct3D11.dll</HintPath>
       <Private>false</Private>
     </Reference>
+	<Reference Include="Newtonsoft.Json">
+	  <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <None Update="DefaultRotationPresets.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <EmbeddedResource Include="Modules\Global\DeepDungeon\*.json" />
+    <EmbeddedResource Include="Modules\**\*.json" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
