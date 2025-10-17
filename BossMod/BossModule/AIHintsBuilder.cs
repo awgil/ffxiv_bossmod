@@ -111,7 +111,7 @@ public sealed class AIHintsBuilder : IDisposable
     private void FillEnemies(AIHints hints, bool playerIsDefaultTank, int priorityPassive = AIHints.Enemy.PriorityUndesirable)
     {
         var allowedFateID = Utils.IsPlayerSyncedToFate(_ws) ? _ws.Client.ActiveFate.ID : 0;
-        foreach (var actor in _ws.Actors.Where(a => a.IsTargetable && !a.IsAlly && !a.IsDead))
+        foreach (var actor in _ws.Actors.Where(a => IsTargetable(a) && !a.IsAlly && !a.IsDead))
         {
             var index = actor.CharacterSpawnIndex;
             if (index < 0 || index >= hints.Enemies.Length)
@@ -133,6 +133,8 @@ public sealed class AIHintsBuilder : IDisposable
             hints.PotentialTargets.Add(enemy);
         }
     }
+
+    private bool IsTargetable(Actor a) => a.IsTargetable; //|| a.Statuses.Any(s => s.ID is 676 or 1621 or 3997);
 
     private void CalculateAutoHints(AIHints hints, Actor player)
     {

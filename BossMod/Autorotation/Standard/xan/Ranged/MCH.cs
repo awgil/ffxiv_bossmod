@@ -185,13 +185,13 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (!Player.InCombat || primaryTarget == null)
             return;
 
-        if (ShouldWildfire(strategy))
+        if (ShouldWildfire(strategy, primaryTarget))
             PushOGCD(AID.Wildfire, primaryTarget, delay: GCD - 0.8f);
 
         if (ShouldReassemble(strategy, primaryTarget))
             PushOGCD(AID.Reassemble, Player);
 
-        if (ShouldStabilize(strategy))
+        if (ShouldStabilize(strategy, primaryTarget))
             PushOGCD(AID.BarrelStabilizer, Player);
 
         UseCharges(strategy, primaryTarget);
@@ -199,7 +199,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (ShouldMinion(strategy, primaryTarget))
             PushOGCD(AID.RookAutoturret, Player);
 
-        if (ShouldHypercharge(strategy))
+        if (ShouldHypercharge(strategy, primaryTarget))
             PushOGCD(AID.Hypercharge, Player);
     }
 
@@ -233,7 +233,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldReassemble(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (ReassembleLeft > 0 || !Unlocked(AID.Reassemble) || Overheated || primaryTarget == null)
+        if (ReassembleLeft > 0 || !Unlocked(AID.Reassemble) || Overheated || primaryTarget == null || primaryTarget?.Priority == Enemy.PriorityPointless)
             return false;
 
         if (AlwaysReassemble(NextGCD))
@@ -263,7 +263,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldMinion(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (!Unlocked(AID.RookAutoturret) || primaryTarget == null || HasMinion || Battery < 50 || ShouldWildfire(strategy))
+        if (!Unlocked(AID.RookAutoturret) || primaryTarget == null || HasMinion || Battery < 50 || ShouldWildfire(strategy, primaryTarget) || primaryTarget?.Priority < 0)
             return false;
 
         var almostFull = Battery == 90 && BatteryFromAction(NextGCD) == 20;
@@ -278,7 +278,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         };
     }
 
-    private bool ShouldHypercharge(StrategyValues strategy)
+    private bool ShouldHypercharge(StrategyValues strategy, Enemy? primaryTarget)
     {
         // strategy-independent preconditions, hypercharge cannot be used at all in these cases 
         if (!Unlocked(AID.Hypercharge) || HyperchargedLeft == 0 && Heat < 50 || Overheated)
@@ -286,6 +286,10 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
         // don't want to use reassemble on heat blast, even if strategy is Force, since presumably next GCD will be a tool charge
         if (ReassembleLeft > GCD)
+            return false;
+
+        // primary target is dying
+        if (primaryTarget?.Priority < 0)
             return false;
 
         switch (strategy.Simple(Track.Hypercharge))
@@ -300,7 +304,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
         // avoid delaying wildfire
         // TODO figure out how long we actually need to wait to ensure enough heat
-        if (ReadyIn(AID.Wildfire) < 20 && !ShouldWildfire(strategy))
+        if (ReadyIn(AID.Wildfire) < 20 && !ShouldWildfire(strategy, primaryTarget))
             return false;
 
         // we can't early weave if the overheat window will contain a regular GCD, because then it will expire before last HB
@@ -315,11 +319,14 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         return NextToolCap > GCD + 7.5f;
     }
 
-    private bool ShouldWildfire(StrategyValues strategy)
+    private bool ShouldWildfire(StrategyValues strategy, Enemy? primaryTarget)
     {
         var wfStrat = strategy.Option(Track.Wildfire).As<WildfireStrategy>();
 
         if (!Unlocked(AID.Wildfire) || !CanWeave(AID.Wildfire) || wfStrat == WildfireStrategy.Delay)
+            return false;
+
+        if (primaryTarget?.Priority < 0)
             return false;
 
         if (wfStrat == WildfireStrategy.Hypercharge)
@@ -332,9 +339,9 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         return FMFLeft == 0;
     }
 
-    private bool ShouldStabilize(StrategyValues strategy)
+    private bool ShouldStabilize(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (!Unlocked(AID.BarrelStabilizer) || !CanWeave(AID.BarrelStabilizer) || !strategy.BuffsOk())
+        if (!Unlocked(AID.BarrelStabilizer) || !CanWeave(AID.BarrelStabilizer) || !strategy.BuffsOk() || primaryTarget?.Priority < 0)
             return false;
 
         return OnCooldown(AID.Drill);

@@ -172,7 +172,7 @@ class Touchdown(BossModule module) : Components.KnockbackFromCastTarget(module, 
         {
             if (!IsImmune(slot, src.Activation))
             {
-                hints.AddForbiddenZone(ShapeContains.Donut(Arena.Center, 5, 30), src.Activation);
+                hints.AddForbiddenZone(ShapeContains.Donut(Arena.Center, 4.5f, 30), src.Activation);
                 if (Burst.SafeDir != default)
                     hints.AddForbiddenZone(ShapeContains.InvertedCone(Arena.Center, 30, Burst.SafeDir, 30.Degrees()), src.Activation);
             }
@@ -194,7 +194,6 @@ class D20ForgivenEmulationStates : StateMachineBuilder
     }
 }
 
-// arena is a pixel smaller than 15y??
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1033, NameID = 13973)]
-public class D20ForgivenEmulation(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(15));
+public class D20ForgivenEmulation(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(14.5f));
 
