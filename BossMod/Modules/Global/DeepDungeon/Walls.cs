@@ -81,7 +81,7 @@ abstract partial class AutoClear : ZoneModule
 
         foreach (var layer in levelData.Layers)
         {
-            if (layer.Name.Contains("LVD_Boss_"))
+            if (layer.Name.Contains("LVD_Boss_", StringComparison.InvariantCultureIgnoreCase))
                 continue;
 
             foreach (var obj in layer.InstanceObjects)

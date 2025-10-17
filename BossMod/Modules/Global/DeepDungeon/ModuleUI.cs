@@ -51,18 +51,20 @@ abstract partial class AutoClear : ZoneModule
         if (player == null)
             return;
 
-        var (entry, data) = _obstacles.Find(player.PosRot.XYZ());
-        if (entry == null)
+        void err(string text)
         {
             ImGui.SameLine();
-            UIMisc.HelpMarker(() => "Obstacle map missing for floor!", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
+            UIMisc.HelpMarker(() => text, Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
         }
 
+        var (entry, data) = _obstacles.Find(player.PosRot.XYZ());
+        if (entry == null)
+            err("Obstacle map missing");
+        else if (entry.ViewHeight != 60 || entry.ViewWidth != 60)
+            err($"View size is wrong ({entry.ViewWidth}x{entry.ViewHeight})");
+
         if (data != null && data.PixelSize != 0.5f)
-        {
-            ImGui.SameLine();
-            UIMisc.HelpMarker(() => $"Wrong resolution for map; should be 0.5, got {data.PixelSize}", Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
-        }
+            err($"Map resolution is wrong ({data.PixelSize})");
 
         if (ImGui.Button("Set closest trap location as ignored"))
         {

@@ -12,18 +12,41 @@ public readonly record struct RelTriangle(WDir A, WDir B, WDir C);
 // a complex polygon that is a single simple-polygon exterior minus 0 or more simple-polygon holes; all edges are assumed to be non intersecting
 // hole-starts list contains starting index of each hole
 [JsonObject(MemberSerialization.OptIn)]
-[method: JsonConstructor]
-public record class RelPolygonWithHoles([property: JsonProperty] List<WDir> Vertices, [property: JsonProperty] List<int> HoleStarts)
+public class RelPolygonWithHoles
 {
+    public readonly List<WDir> Vertices;
+    public readonly List<int> HoleStarts;
+
+    public readonly List<(WDir, WDir)> ExteriorEdges = [];
+    private readonly List<List<(WDir, WDir)>> _interiorEdges = [];
+
+    [JsonConstructor]
+    public RelPolygonWithHoles(List<WDir> vertices, List<int> holeStarts)
+    {
+        Vertices = vertices;
+        HoleStarts = holeStarts;
+
+        CalcEdges();
+    }
+
     // constructor for simple polygon
     public RelPolygonWithHoles(List<WDir> simpleVertices) : this(simpleVertices, []) { }
+
+    private void CalcEdges()
+    {
+        ExteriorEdges.Clear();
+        ExteriorEdges.AddRange(PolygonUtil.EnumerateEdges(Vertices.Take(ExteriorEnd)));
+        _interiorEdges.Clear();
+        for (var index = 0; index < HoleStarts.Count; index++)
+            _interiorEdges.Add([.. PolygonUtil.EnumerateEdges(Vertices.Skip(HoleStarts[index]).Take(HoleEnd(index) - HoleStarts[index]))]);
+    }
 
     public ReadOnlySpan<WDir> AllVertices => Vertices.AsSpan();
     public ReadOnlySpan<WDir> Exterior => AllVertices[..ExteriorEnd];
     public ReadOnlySpan<WDir> Interior(int index) => AllVertices[HoleStarts[index]..HoleEnd(index)];
     public IEnumerable<int> Holes => Enumerable.Range(0, HoleStarts.Count);
-    public IEnumerable<(WDir, WDir)> ExteriorEdges => PolygonUtil.EnumerateEdges(Vertices.Take(ExteriorEnd));
-    public IEnumerable<(WDir, WDir)> InteriorEdges(int index) => PolygonUtil.EnumerateEdges(Vertices.Skip(HoleStarts[index]).Take(HoleEnd(index) - HoleStarts[index]));
+
+    public List<(WDir, WDir)> InteriorEdges(int index) => index < _interiorEdges.Count ? _interiorEdges[index] : [];
 
     public bool IsSimple => HoleStarts.Count == 0;
     public bool IsConvex => IsSimple && PolygonUtil.IsConvex(Exterior);
@@ -36,11 +59,13 @@ public record class RelPolygonWithHoles([property: JsonProperty] List<WDir> Vert
     {
         HoleStarts.Add(Vertices.Count);
         Vertices.AddRange(simpleHole);
+        CalcEdges();
     }
     public void AddHole(IEnumerable<WDir> simpleHole)
     {
         HoleStarts.Add(Vertices.Count);
         Vertices.AddRange(simpleHole);
+        CalcEdges();
     }
 
     // build a triangulation of the polygon

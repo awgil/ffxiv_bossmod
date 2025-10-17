@@ -35,9 +35,9 @@ public enum IconID : uint
     Countdown = 587, // Helper->self, whirlwind knockback indicator
 }
 
-class Rocks(BossModule module) : BossComponent(module)
+public class Rocks(BossModule module) : BossComponent(module)
 {
-    public readonly AOEShapeCustom RockShape = new(new RelSimplifiedComplexPolygon([
+    public static readonly AOEShapeCustom RockShape = new(new RelSimplifiedComplexPolygon([
         new RelPolygonWithHoles([new WDir(-8.46f, -9.37f), new WDir(-8.24f, -9.31f), new WDir(-8.18f, -9.02f), new WDir(-7.87f, -9.02f), new WDir(-7.69f, -9.07f), new WDir(-7.41f, -8.79f), new WDir(-7.42f, -7.87f), new WDir(-7.00f, -7.54f), new WDir(-7.15f, -7.09f), new WDir(-7.76f, -6.65f), new WDir(-7.96f, -6.64f), new WDir(-8.33f, -6.11f), new WDir(-8.46f, -6.04f), new WDir(-8.87f, -6.53f), new WDir(-9.21f, -6.42f), new WDir(-9.25f, -6.26f), new WDir(-9.54f, -6.19f), new WDir(-9.83f, -6.51f), new WDir(-10.22f, -6.98f), new WDir(-10.49f, -7.59f), new WDir(-10.59f, -7.82f), new WDir(-10.49f, -7.99f), new WDir(-10.38f, -8.09f), new WDir(-10.45f, -8.23f), new WDir(-9.73f, -9.01f), new WDir(-9.47f, -8.99f), new WDir(-9.25f, -9.36f), new WDir(-9.01f, -9.42f), new WDir(-8.58f, -9.42f)]),
         new([new WDir(7.08f, -11.09f), new WDir(7.98f, -10.49f), new WDir(8.10f, -9.94f), new WDir(8.09f, -9.38f), new WDir(7.51f, -8.91f), new WDir(7.58f, -8.84f), new WDir(7.60f, -8.55f), new WDir(7.08f, -7.61f), new WDir(6.78f, -7.55f), new WDir(6.65f, -7.62f), new WDir(6.59f, -7.75f), new WDir(6.05f, -8.18f), new WDir(5.82f, -8.40f), new WDir(5.57f, -8.48f), new WDir(5.45f, -8.29f), new WDir(5.30f, -7.98f), new WDir(4.77f, -8.50f), new WDir(4.65f, -8.41f), new WDir(3.84f, -9.29f), new WDir(4.23f, -9.51f), new WDir(4.09f, -10.44f), new WDir(4.02f, -10.48f), new WDir(4.21f, -10.57f), new WDir(4.70f, -11.06f), new WDir(4.80f, -11.15f), new WDir(5.11f, -11.21f), new WDir(5.73f, -10.92f), new WDir(6.31f, -11.09f), new WDir(6.33f, -11.35f), new WDir(6.59f, -11.36f)]),
         new([new WDir(0.33f, -6.33f), new WDir(1.03f, -6.28f), new WDir(1.14f, -6.19f), new WDir(1.29f, -5.81f), new WDir(1.41f, -5.13f), new WDir(1.65f, -5.00f), new WDir(1.73f, -4.73f), new WDir(1.27f, -3.95f), new WDir(0.76f, -3.22f), new WDir(0.45f, -3.07f), new WDir(-0.47f, -3.30f), new WDir(-1.11f, -4.14f), new WDir(-1.22f, -4.22f), new WDir(-1.46f, -4.44f), new WDir(-1.97f, -5.03f), new WDir(-1.89f, -5.36f), new WDir(-1.95f, -5.43f), new WDir(-1.83f, -5.51f), new WDir(-1.67f, -5.54f), new WDir(-1.37f, -5.70f), new WDir(-1.03f, -5.85f), new WDir(-0.98f, -5.94f), new WDir(-0.71f, -6.42f), new WDir(0.17f, -6.42f)]),
@@ -187,11 +187,10 @@ class Whirlwind(BossModule module) : Components.GenericAOEs(module)
 class BitingWind(BossModule module) : Components.Knockback(module, AID.BitingWindKB, ignoreImmunes: true)
 {
     private Actor? _caster;
-    private readonly Rocks _rocks = module.FindComponent<Rocks>()!;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (_caster != null && _rocks.RockShape.Check(actor.Position, Arena.Center, default))
+        if (_caster != null && Rocks.RockShape.Check(actor.Position, Arena.Center, default))
             yield return new(Arena.Center, 20, Module.CastFinishAt(_caster.CastInfo));
     }
 
