@@ -93,13 +93,13 @@ public static class Intersect
 
     public static float RaySegments(WDir rayOriginOffset, WDir rayDir, ReadOnlySpan<WDir> verts)
     {
-        var min = float.MaxValue;
+        if (verts.Length < 2)
+            throw new ArgumentException("not enough vertices");
 
-        for (int i = 0, j = verts.Length - 1; i < verts.Length; j = i++)
+        var min = RaySegment(rayOriginOffset, rayDir, verts[^1], verts[0]);
+
+        for (int i = 1, j = 0; i < verts.Length; j = i++)
             min = MathF.Min(min, RaySegment(rayOriginOffset, rayDir, verts[j], verts[i]));
-
-        if (min == float.MaxValue)
-            throw new ArgumentException("empty polygon");
 
         return min;
     }
