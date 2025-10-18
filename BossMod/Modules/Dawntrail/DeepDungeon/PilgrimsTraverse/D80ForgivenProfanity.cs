@@ -43,13 +43,7 @@ class ProfaneWaul(BossModule module) : Components.StandardAOEs(module, AID.Profa
 {
     private BitMask _shadow;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        foreach (var b in base.ActiveAOEs(slot, actor))
-        {
-            yield return b with { Rotation = _shadow[slot] ? b.Rotation + 180.Degrees() : b.Rotation };
-        }
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).Select(a => a with { Inverted = _shadow[slot] });
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

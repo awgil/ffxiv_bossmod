@@ -1,34 +1,45 @@
 ﻿namespace BossMod.Components;
 
 // generic component that shows arbitrary shapes representing avoidable aoes
-public abstract class GenericAOEs(BossModule module, Enum? aid = default, string warningText = "GTFO from aoe!") : CastCounter(module, aid)
+public abstract class GenericAOEs(BossModule module, Enum? aid = default, string warningText = "GTFO from aoe!", string invertedText = "Go to safe zone!") : CastCounter(module, aid)
 {
-    public record struct AOEInstance(AOEShape Shape, WPos Origin, Angle Rotation = default, DateTime Activation = default, uint Color = 0, bool Risky = true)
+    public record struct AOEInstance(AOEShape Shape, WPos Origin, Angle Rotation = default, DateTime Activation = default, uint Color = 0, bool Risky = true, bool Inverted = false)
     {
-        public readonly bool Check(WPos pos) => Shape.Check(pos, Origin, Rotation);
+        public readonly bool Check(WPos pos)
+        {
+            var res = Shape.Check(pos, Origin, Rotation);
+            return Inverted ? !res : res;
+        }
     }
 
     public string WarningText = warningText;
+    public string InvertedText = invertedText;
 
     public abstract IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (ActiveAOEs(slot, actor).Any(c => c.Risky && c.Check(actor.Position)))
-            hints.Add(WarningText);
+        if (ActiveAOEs(slot, actor).FirstOrNull(c => c.Risky && c.Check(actor.Position)) is { } aoe)
+            hints.Add(aoe.Inverted ? InvertedText : WarningText);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var c in ActiveAOEs(slot, actor))
             if (c.Risky)
-                hints.AddForbiddenZone(c.Shape, c.Origin, c.Rotation, c.Activation);
+                hints.AddForbiddenZone(c.Check, c.Activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var c in ActiveAOEs(pcSlot, pc))
-            c.Shape.Draw(Arena, c.Origin, c.Rotation, c.Color);
+        {
+            var col = c.Color;
+            if (col == 0 && c.Inverted)
+                col = ArenaColor.SafeFromAOE;
+
+            c.Shape.Draw(Arena, c.Origin, c.Rotation, col);
+        }
     }
 }
 
