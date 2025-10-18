@@ -1,5 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using BossMod;
 using Microsoft.VSDiagnostics;
 using SharpDX;
@@ -30,12 +33,13 @@ public class RasterizeTest
     }
 
     [Benchmark]
-    public void RasterizeComplex()
+    public void RasterizeWind()
     {
         var hit = 0;
         foreach (var c in coords)
         {
-            if (BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali.Rocks.RockShape.Check(c, arenaCenter, default))
+            var dir = c - arenaCenter;
+            if (BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali.Rocks.RockShape.Poly.Contains(dir))
                 hit++;
         }
     }
@@ -57,6 +61,8 @@ public class Program
 {
     public static void Main()
     {
-        BenchmarkRunner.Run(typeof(Program).Assembly);
+        var config = DefaultConfig.Instance.AddJob(Job.MediumRun.WithLaunchCount(1).WithToolchain(InProcessNoEmitToolchain.Instance));
+        BenchmarkRunner.Run<RasterizeTest>(config);
+        //BenchmarkRunner.Run<RasterizeTest>();
     }
 }

@@ -12,41 +12,16 @@ public readonly record struct RelTriangle(WDir A, WDir B, WDir C);
 // a complex polygon that is a single simple-polygon exterior minus 0 or more simple-polygon holes; all edges are assumed to be non intersecting
 // hole-starts list contains starting index of each hole
 [JsonObject(MemberSerialization.OptIn)]
-public class RelPolygonWithHoles
+[method: JsonConstructor]
+public record class RelPolygonWithHoles([property: JsonProperty] List<WDir> Vertices, [property: JsonProperty] List<int> HoleStarts)
 {
-    public readonly List<WDir> Vertices;
-    public readonly List<int> HoleStarts;
-
-    public readonly List<(WDir, WDir)> ExteriorEdges = [];
-    private readonly List<List<(WDir, WDir)>> _interiorEdges = [];
-
-    [JsonConstructor]
-    public RelPolygonWithHoles(List<WDir> vertices, List<int> holeStarts)
-    {
-        Vertices = vertices;
-        HoleStarts = holeStarts;
-
-        CalcEdges();
-    }
-
     // constructor for simple polygon
     public RelPolygonWithHoles(List<WDir> simpleVertices) : this(simpleVertices, []) { }
-
-    private void CalcEdges()
-    {
-        ExteriorEdges.Clear();
-        ExteriorEdges.AddRange(PolygonUtil.EnumerateEdges(Vertices.Take(ExteriorEnd)));
-        _interiorEdges.Clear();
-        for (var index = 0; index < HoleStarts.Count; index++)
-            _interiorEdges.Add([.. PolygonUtil.EnumerateEdges(Vertices.Skip(HoleStarts[index]).Take(HoleEnd(index) - HoleStarts[index]))]);
-    }
 
     public ReadOnlySpan<WDir> AllVertices => Vertices.AsSpan();
     public ReadOnlySpan<WDir> Exterior => AllVertices[..ExteriorEnd];
     public ReadOnlySpan<WDir> Interior(int index) => AllVertices[HoleStarts[index]..HoleEnd(index)];
     public IEnumerable<int> Holes => Enumerable.Range(0, HoleStarts.Count);
-
-    public List<(WDir, WDir)> InteriorEdges(int index) => index < _interiorEdges.Count ? _interiorEdges[index] : [];
 
     public bool IsSimple => HoleStarts.Count == 0;
     public bool IsConvex => IsSimple && PolygonUtil.IsConvex(Exterior);
@@ -59,13 +34,11 @@ public class RelPolygonWithHoles
     {
         HoleStarts.Add(Vertices.Count);
         Vertices.AddRange(simpleHole);
-        CalcEdges();
     }
     public void AddHole(IEnumerable<WDir> simpleHole)
     {
         HoleStarts.Add(Vertices.Count);
         Vertices.AddRange(simpleHole);
-        CalcEdges();
     }
 
     // build a triangulation of the polygon
@@ -79,7 +52,7 @@ public class RelPolygonWithHoles
         }
 
         var tess = Earcut.Tessellate(pts, HoleStarts);
-        for (int i = 0; i < tess.Count; i += 3)
+        for (var i = 0; i < tess.Count; i += 3)
             result.Add(new(Vertices[tess[i]], Vertices[tess[i + 1]], Vertices[tess[i + 2]]));
         return tess.Count > 0;
     }
@@ -97,22 +70,26 @@ public class RelPolygonWithHoles
     // point-in-polygon test; point is defined as offset from shape center
     public bool Contains(WDir p)
     {
-        if (!InSimplePolygon(p, ExteriorEdges))
+        if (!InSimplePolygon(p, Exterior))
             return false;
         foreach (var h in Holes)
-            if (InSimplePolygon(p, InteriorEdges(h)))
+            if (InSimplePolygon(p, Interior(h)))
                 return false;
         return true;
     }
 
-    private static bool InSimplePolygon(WDir p, IEnumerable<(WDir, WDir)> edges)
+    private static bool InSimplePolygon(WDir p, ReadOnlySpan<WDir> points)
     {
         // for simple polygons, it doesn't matter which rule (even-odd, non-zero, etc) we use
         // so let's just use non-zero rule and calculate winding order
         // we need to select arbitrary direction to count winding intersections - let's select unit X
-        int winding = 0;
-        foreach (var (a, b) in edges)
+        var winding = 0;
+        var count = points.Length;
+        for (int i = 0, j = count - 1; i < count; j = i++)
         {
+            var a = points[i];
+            var b = points[j];
+
             // see whether edge ab intersects our test ray - it has to intersect the infinite line on the correct side
             var pa = a - p;
             var pb = b - p;
