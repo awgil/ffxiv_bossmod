@@ -176,10 +176,15 @@ public enum SID : uint
     SpickAndSpan = 3637, // applied by Deep Clean to self
     MortalFlame = 3643, // applied by Mortal Flame to target
     BreathOfMagic = 3712, // applied by Breath of Magic to target
-
+    WaxingNocturne = 1718, //Applied by Moonflute
+    WaningNocturne = 1727, //Applied by Moonflute
+    WingedRedemption = 3641, //Appied at the end of Winged Redemption
+    WingedReprobation = 3640, //Applied by Surpanakha, repeat executable
     AethericMimicryTank = 2124,
     AethericMimicryDPS = 2125,
     AethericMimicryHealer = 2126,
+    Harmonize = 2118,// applied by Whistle
+    Tingling = 2492,// applied by Tingle
 }
 
 public sealed class Definitions : IDisposable
