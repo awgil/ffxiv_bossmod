@@ -114,6 +114,9 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 return; // pyretic is imminent, do not move
             }
 
+            if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.PyreticMove && Hints.ImminentSpecialMode.activation <= World.FutureTime(1))
+                return;
+
             if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Freezing && Hints.ImminentSpecialMode.activation <= World.FutureTime(0.5f))
                 Hints.WantJump = true;
 
