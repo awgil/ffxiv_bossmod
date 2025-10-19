@@ -160,7 +160,16 @@ class Burst(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BurstAOE(BossModule module) : Components.GroupedAOEs(module, [AID.Burst1, AID.Burst2, AID.Burst3, AID.Burst4], new AOEShapeCircle(11), maxCasts: 3);
+class BurstAOE(BossModule module) : Components.GroupedAOEs(module, [AID.Burst1, AID.Burst2, AID.Burst3, AID.Burst4], new AOEShapeCircle(11), maxCasts: 3)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if (IDs.Contains(spell.Action))
+            Casters.SortBy(c => Module.CastFinishAt(c.CastInfo));
+    }
+}
 
 class Touchdown(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Touchdown, 10)
 {

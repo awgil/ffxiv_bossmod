@@ -36,7 +36,7 @@ public sealed class AIHints
         Pyretic, // pyretic/acceleration bomb type of effects - no movement, no actions, no casting allowed at activation time
         Freezing, // should be moving at activation time
         Misdirection, // temporary misdirection - if current time is greater than activation, use special pathfinding codepath
-        PyreticMove, // movement not allowed, but actions ok (aka caloric)
+        PyreticMove, // movement not allowed, but actions ok (e.g. caloric)
     }
 
     public enum PredictedDamageType
