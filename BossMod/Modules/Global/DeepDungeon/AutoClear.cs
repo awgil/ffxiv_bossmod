@@ -2,7 +2,6 @@
 using System.Data.SQLite;
 using System.IO;
 using System.Reflection;
-using System.Text.Json;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
@@ -136,8 +135,8 @@ public abstract partial class AutoClear : ZoneModule
 
         _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
 
-        LoadedFloors = JsonSerializer.Deserialize<Dictionary<string, Floor<Wall>>>(GetEmbeddedResource("Walls.json"))!;
-        ProblematicTrapLocations = JsonSerializer.Deserialize<List<WPos>>(GetEmbeddedResource("BadTraps.json"))!;
+        LoadedFloors = Utils.LoadFromAssembly<Dictionary<string, Floor<Wall>>>("BossMod.Modules.Global.DeepDungeon.Walls.json");
+        ProblematicTrapLocations = Utils.LoadFromAssembly<List<WPos>>("BossMod.Modules.Global.DeepDungeon.BadTraps.json");
 
         IgnoreTraps.AddRange(ProblematicTrapLocations);
     }

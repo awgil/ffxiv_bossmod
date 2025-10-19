@@ -14,91 +14,156 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _Spell_Attack = 44094, // Boss->self, no cast, single-target
-    _Spell_ = 44820, // EminentGrief->player, 0.5s cast, single-target
-    _Spell_Attack1 = 44813, // Helper->player, 0.8s cast, single-target
-    _Spell_Attack2 = 44095, // DevouredEater->self, no cast, single-target
-    _Spell_1 = 44802, // EminentGrief->player, 0.5s cast, single-target
-    _Spell_Attack3 = 44096, // Helper->player, 0.8s cast, single-target
     BallOfFireFast = 44061, // Boss->self, 6.0s cast, single-target
-    BallOfFireSlow = 44068, // Boss->self, 9.0s cast, single-target
     BallOfFirePuddle = 44062, // Helper->location, 2.1s cast, range 6 circle
-    _Weaponskill_BladeOfFirstLight5 = 44065, // DevouredEater->self, 5.2+0.8s cast, single-target
-    _Weaponskill_BladeOfFirstLight3 = 44066, // DevouredEater->self, 5.2+0.8s cast, single-target
-    _Weaponskill_BladeOfFirstLight4 = 44067, // Helper->self, 6.0s cast, range 30 width 15 rect
-    _Weaponskill_BladeOfFirstLight2 = 44071, // DevouredEater->self, 8.2+0.8s cast, single-target
-    _Weaponskill_BladeOfFirstLight = 44072, // DevouredEater->self, 8.2+0.8s cast, single-target
-    _Weaponskill_BladeOfFirstLight1 = 44073, // Helper->self, 9.0s cast, range 30 width 15 rect
-    _Spell_BoundsOfSin = 44081, // DevouredEater->self, 3.3+0.7s cast, single-target
-    _Spell_BoundsOfSin1 = 44082, // Helper->self, 4.0s cast, range 40 circle
-    _Weaponskill_BoundsOfSin = 44083, // Helper->self, 3.0s cast, range 3 circle
-    _Spell_BoundsOfSin2 = 44084, // Helper->self, no cast, range 8 circle
-    _Ability_Spinelash = 44085, // Boss->self, 2.0s cast, single-target
-    _Weaponskill_Spinelash = 44086, // Boss->self, 1.0+0.8s cast, single-target
-    _Weaponskill_Spinelash1 = 45118, // Helper->self, 1.8s cast, range 60 width 4 rect
-    _Ability_ = 44087, // Boss->self, no cast, single-target
-    _Spell_AbyssalBlaze = 44074, // Boss->self, 3.0s cast, single-target, horizontal first
-    _Spell_AbyssalBlaze4 = 44075, // Boss->self, 3.0s cast, single-target, vertical first
-    _Spell_AbyssalBlaze5 = 44076, // Boss->self, no cast, single-target, horizontal second
-    _Spell_AbyssalBlaze1 = 44077, // Boss->self, no cast, single-target, vertical second
-    _Spell_2 = 44078, // Helper->location, no cast, single-target
-    _Spell_3 = 44314, // Helper->none, no cast, single-target
-    _Spell_DrainAether3 = 44088, // Boss->self, 7.0s cast, range 50 width 50 rect
-    _Spell_DrainAether2 = 44089, // Boss->self, 12.0s cast, range 50 width 50 rect
-    _Spell_DrainAether = 44090, // DevouredEater->self, 6.0+1.0s cast, single-target
-    _Spell_DrainAether1 = 44091, // EminentGrief->self, 7.0s cast, range 50 width 50 rect
-    _Spell_DrainAether4 = 44092, // DevouredEater->self, 11.0+1.0s cast, single-target
-    _Spell_DrainAether5 = 44093, // EminentGrief->self, 12.0s cast, range 50 width 50 rect
-    _Spell_AbyssalBlaze2 = 44079, // Helper->location, 7.0s cast, range 5 circle
-    _Spell_AbyssalBlaze3 = 44080, // Helper->location, no cast, range 5 circle
-    _Spell_ChainsOfCondemnation = 44063, // Boss->location, 5.3+0.7s cast, single-target
-    _Spell_ChainsOfCondemnation1 = 44064, // Helper->location, 6.0s cast, range 30 circle
-    _Spell_TerrorEye = 45115, // VodorigaMinion->location, 3.0s cast, range 6 circle
-    _AutoAttack_ = 45196, // VodorigaMinion->player, no cast, single-target
-    _Weaponskill_BloodyClaw = 45114, // VodorigaMinion->player, no cast, single-target
-    _Spell_4 = 44270, // Helper->Boss, no cast, single-target
-    _Spell_ChainsOfCondemnation2 = 44069, // Boss->location, 8.3+0.7s cast, single-target
-    _Spell_ChainsOfCondemnation3 = 44070, // Helper->location, 9.0s cast, range 30 circle
+
+    ChainsOfCondemnationFastCast = 44063, // Boss->location, 5.3+0.7s cast, single-target
+    ChainsOfCondemnationFast = 44064, // Helper->location, 6.0s cast, range 30 circle
+
+    BladeOfFirstLightInFast = 44065, // DevouredEater->self, 5.2+0.8s cast, single-target
+    BladeOfFirstLightOutFast = 44066, // DevouredEater->self, 5.2+0.8s cast, single-target
+    BladeOfFirstLightFast = 44067, // Helper->self, 6.0s cast, range 30 width 15 rect
+
+    BallOfFireSlow = 44068, // Boss->self, 9.0s cast, single-target
+
+    ChainsOfCondemnationSlowCast = 44069, // Boss->location, 8.3+0.7s cast, single-target
+    ChainsOfCondemnationSlow = 44070, // Helper->location, 9.0s cast, range 30 circle
+
+    BladeOfFirstLightInSlow = 44071, // DevouredEater->self, 8.2+0.8s cast, single-target
+    BladeOfFirstLightOutSlow = 44072, // DevouredEater->self, 8.2+0.8s cast, single-target
+    BladeOfFirstLightSlow = 44073, // Helper->self, 9.0s cast, range 30 width 15 rect
+
+    AbyssalBlazeHorizontalFirst = 44074, // Boss->self, 3.0s cast, single-target
+    AbyssalBlazeVerticalFirst = 44075, // Boss->self, 3.0s cast, single-target
+    AbyssalBlazeHorizontalSecond = 44076, // Boss->self, no cast, single-target
+    AbyssalBlazeVerticalSecond = 44077, // Boss->self, no cast, single-target
+
+    CrystalAppear = 44078, // Helper->location, no cast, single-target
+    AbyssalBlazeFirst = 44079, // Helper->location, 7.0s cast, range 5 circle
+    AbyssalBlazeRest = 44080, // Helper->location, no cast, range 5 circle
+
+    BoundsOfSinCast = 44081, // DevouredEater->self, 3.3+0.7s cast, single-target
+    BoundsOfSinBind = 44082, // Helper->self, 4.0s cast, range 40 circle
+    BoundsOfSinIcicle = 44083, // Helper->self, 3.0s cast, range 3 circle
+    BoundsOfSinJail = 44084, // Helper->self, no cast, range 8 circle
+
+    SpinelashStart = 44085, // Boss->self, 2.0s cast, single-target
+    SpinelashCast = 44086, // Boss->self, 1.0+0.8s cast, single-target
+
+    DrainLightFast = 44088, // Boss->self, 7.0s cast, range 50 width 50 rect
+    DrainLightSlow = 44089, // Boss->self, 12.0s cast, range 50 width 50 rect
+    DrainDarkFastVisual = 44090, // DevouredEater->self, 6.0+1.0s cast, single-target
+    DrainDarkFast = 44091, // EminentGrief->self, 7.0s cast, range 50 width 50 rect
+    DrainDarkSlowVisual = 44092, // DevouredEater->self, 11.0+1.0s cast, single-target
+    DrainDarkSlow = 44093, // EminentGrief->self, 12.0s cast, range 50 width 50 rect
+
+    AutoVisual1 = 44094, // Boss->self, no cast, single-target
+    AutoVisual2 = 44095, // DevouredEater->self, no cast, single-target
+    Auto1 = 44096, // Helper->player, 0.8s cast, single-target
+    Auto2 = 44802, // EminentGrief->player, 0.5s cast, single-target
+    Auto3 = 44813, // Helper->player, 0.8s cast, single-target
+    Auto4 = 44820, // EminentGrief->player, 0.5s cast, single-target
+
+    BloodyClaw = 45114, // VodorigaMinion->player, no cast, single-target
+    TerrorEye = 45115, // VodorigaMinion->location, 3.0s cast, range 6 circle
+    Spinelash = 45118, // Helper->self, 1.8s cast, range 60 width 4 rect
+    VodorigaAuto = 45196, // VodorigaMinion->player, no cast, single-target
+
+    Unk1 = 44087, // Boss->self, no cast, single-target
+    Unk2 = 44270, // Helper->Boss, no cast, single-target
+    Unk3 = 44314, // Helper->none, no cast, single-target
 }
 
 public enum SID : uint
 {
-    _Gen_DarkVengeance = 4559, // none->player, extra=0x0
-    _Gen_LightVengeance = 4560, // none->player, extra=0x0
-    _Gen_Bind = 4510, // Helper->player, extra=0x0
-    _Gen_Rehabilitation = 4191, // none->DevouredEater/Boss, extra=0x1/0x2/0x3
-    _Gen_DamageUp = 2550, // none->Boss/DevouredEater, extra=0x1/0x2/0x3
+    DarkVengeance = 4559, // none->player, extra=0x0
+    LightVengeance = 4560, // none->player, extra=0x0
+    Bind = 4510, // Helper->player, extra=0x0
+    Rehabilitation = 4191, // none->DevouredEater/Boss, extra=0x1/0x2/0x3
+    DamageUp = 2550, // none->Boss/DevouredEater, extra=0x1/0x2/0x3
     _Gen_ = 3913, // Boss->Boss, extra=0x3C6
-    _Gen_ChainsOfCondemnation = 4562, // Helper->player, extra=0x0
-    _Gen_BorrowedTime = 4561, // none->Boss, extra=0x0
+    ChainsOfCondemnation = 4562, // Helper->player, extra=0x0
+    BorrowedTime = 4561, // none->Boss, extra=0x0
 }
 
 public enum IconID : uint
 {
-    _Gen_Icon_lockon6_t0t = 234, // player->self
+    Spinelash = 234, // player->self
 }
 
-class LightDebuff(BossModule module) : Components.GenericInvincible(module)
+[Flags]
+public enum Color
 {
-    [Flags]
-    enum Shade
+    None,
+    Dark,
+    Light
+}
+
+public class Buff
+{
+    public Color Color;
+    public DateTime Expire;
+}
+
+class LightDark(BossModule module) : BossComponent(module)
+{
+
+    private readonly Buff[] _playerStates = Utils.MakeArray(4, new Buff());
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        None,
-        Dark,
-        Light
+        if ((SID)status.ID == SID.DarkVengeance && Raid.TryFindSlot(actor, out var slot))
+        {
+            _playerStates[slot].Color |= Color.Dark;
+            _playerStates[slot].Expire = status.ExpireAt;
+        }
+
+        if ((SID)status.ID == SID.LightVengeance && Raid.TryFindSlot(actor, out var slot2))
+        {
+            _playerStates[slot2].Color |= Color.Light;
+            _playerStates[slot2].Expire = status.ExpireAt;
+        }
     }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.DarkVengeance && Raid.TryFindSlot(actor, out var slot))
+            _playerStates[slot].Color ^= Color.Dark;
+
+        if ((SID)status.ID == SID.LightVengeance && Raid.TryFindSlot(actor, out var slot2))
+            _playerStates[slot2].Color ^= Color.Light;
+    }
+
+    public float ColorLeft(int slot, Color color) => _playerStates[slot].Color.HasFlag(color) ? (float)(_playerStates[slot].Expire - WorldState.CurrentTime).TotalSeconds : 0;
+
+    public Color GetColor(int slot) => _playerStates.BoundSafeAt(slot)?.Color ?? Color.None;
+
+    public static RelSimplifiedComplexPolygon ColorShape(Color c) => c == Color.Light ? D99TheFinalVerse.LightShape : D99TheFinalVerse.DarkShape;
+    public static RelSimplifiedComplexPolygon OppositeColorShape(Color c) => c == Color.Light ? D99TheFinalVerse.DarkShape : D99TheFinalVerse.LightShape;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_playerStates[slot].Color == Color.None)
+        {
+            var ctr = Arena.Center;
+            hints.GoalZones.Add(p => D99TheFinalVerse.DarkShape.Contains(p - ctr) || D99TheFinalVerse.LightShape.Contains(p - ctr) ? 100 : 0);
+        }
+    }
+}
+
+class BossLightDark(BossModule module) : Components.GenericInvincible(module)
+{
+    private readonly LightDark _lightDark = module.FindComponent<LightDark>()!;
 
     private Actor? Grief;
     private Actor? Eater;
 
-    private readonly Shade[] _playerStates = Utils.MakeArray(4, Shade.None);
-
     protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor)
     {
-        var st = _playerStates.BoundSafeAt(slot);
-        if (!st.HasFlag(Shade.Dark) && Eater != null)
+        var color = _lightDark.GetColor(slot);
+        if (!color.HasFlag(Color.Dark) && Eater != null)
             yield return Eater;
-        if (!st.HasFlag(Shade.Light) && Grief != null)
+        if (!color.HasFlag(Color.Light) && Grief != null)
             yield return Grief;
     }
 
@@ -106,24 +171,6 @@ class LightDebuff(BossModule module) : Components.GenericInvincible(module)
     {
         Grief ??= Module.PrimaryActor;
         Eater ??= Module.Enemies(OID.DevouredEater).FirstOrDefault();
-    }
-
-    public override void OnStatusGain(Actor actor, ActorStatus status)
-    {
-        if ((SID)status.ID == SID._Gen_DarkVengeance && Raid.TryFindSlot(actor, out var slot))
-            _playerStates[slot] |= Shade.Dark;
-
-        if ((SID)status.ID == SID._Gen_LightVengeance && Raid.TryFindSlot(actor, out var slot2))
-            _playerStates[slot2] |= Shade.Light;
-    }
-
-    public override void OnStatusLose(Actor actor, ActorStatus status)
-    {
-        if ((SID)status.ID == SID._Gen_DarkVengeance && Raid.TryFindSlot(actor, out var slot))
-            _playerStates[slot] ^= Shade.Dark;
-
-        if ((SID)status.ID == SID._Gen_LightVengeance && Raid.TryFindSlot(actor, out var slot2))
-            _playerStates[slot2] ^= Shade.Light;
     }
 
     public override void AddGlobalHints(GlobalHints hints)
@@ -152,7 +199,72 @@ class LightDebuff(BossModule module) : Components.GenericInvincible(module)
     }
 }
 
-class BladeOfFirstLight(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_BladeOfFirstLight1, AID._Weaponskill_BladeOfFirstLight4], new AOEShapeRect(30, 7.5f));
+class DrainAether(BossModule module) : Components.CastCounterMulti(module, [AID.DrainLightFast, AID.DrainLightSlow, AID.DrainDarkFast, AID.DrainDarkSlow])
+{
+    private readonly LightDark _ld = module.FindComponent<LightDark>()!;
+    private readonly List<(Color, DateTime)> _colors = [];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            // eminent grief
+            case AID.DrainLightFast:
+            case AID.DrainLightSlow:
+                _colors.Add((Color.Light, Module.CastFinishAt(spell)));
+                _colors.SortBy(c => c.Item2);
+                break;
+            case AID.DrainDarkFast:
+            case AID.DrainDarkSlow:
+                _colors.Add((Color.Dark, Module.CastFinishAt(spell)));
+                _colors.SortBy(c => c.Item2);
+                break;
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_colors.Count > 0)
+        {
+            var nextColor = _colors[0].Item1;
+            hints.Add($"Correct color: {nextColor}", !_ld.GetColor(slot).HasFlag(nextColor));
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_colors.Count > 0)
+        {
+            var (nextColor, deadline) = _colors[0];
+            if (_ld.GetColor(slot).HasFlag(nextColor))
+            {
+                // avoid moving into other zone
+                var badShape = LightDark.OppositeColorShape(nextColor);
+                var ctr = Arena.Center;
+                hints.AddForbiddenZone(p => badShape.Contains(p - ctr), deadline.AddSeconds(-1));
+            }
+            else
+            {
+                // move to correct zone
+                var targetShape = LightDark.ColorShape(nextColor);
+                var ctr = Arena.Center;
+                hints.AddForbiddenZone(p => !targetShape.Contains(p - ctr), deadline.AddSeconds(-1));
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (WatchedActions.Contains(spell.Action))
+        {
+            NumCasts++;
+            if (_colors.Count > 0)
+                _colors.RemoveAt(0);
+        }
+    }
+}
+
+class BladeOfFirstLight(BossModule module) : Components.GroupedAOEs(module, [AID.BladeOfFirstLightSlow, AID.BladeOfFirstLightFast], new AOEShapeRect(30, 7.5f));
 
 class BallOfFireBait(BossModule module) : BossComponent(module)
 {
@@ -163,6 +275,7 @@ class BallOfFireBait(BossModule module) : BossComponent(module)
         switch ((AID)spell.Action.ID)
         {
             case AID.BallOfFireFast:
+            case AID.BallOfFireSlow:
                 _active = true;
                 break;
             case AID.BallOfFirePuddle:
@@ -180,8 +293,8 @@ class BallOfFireBait(BossModule module) : BossComponent(module)
 
 class BallOfFirePuddle(BossModule module) : Components.StandardAOEs(module, AID.BallOfFirePuddle, 6);
 
-class BoundsOfSinIcicle(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BoundsOfSin, 3, maxCasts: 11);
-class BoundsOfSinJail(BossModule module) : Components.GenericAOEs(module, AID._Spell_BoundsOfSin2)
+class BoundsOfSinIcicle(BossModule module) : Components.StandardAOEs(module, AID.BoundsOfSinIcicle, 3, maxCasts: 11);
+class BoundsOfSinJail(BossModule module) : Components.GenericAOEs(module, AID.BoundsOfSinJail)
 {
     private DateTime _activation;
     private bool _risky;
@@ -194,17 +307,16 @@ class BoundsOfSinJail(BossModule module) : Components.GenericAOEs(module, AID._S
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        // 33.62 -> 40.71
-        if ((AID)spell.Action.ID == AID._Spell_BoundsOfSin)
+        if ((AID)spell.Action.ID == AID.BoundsOfSinCast)
             _activation = Module.CastFinishAt(spell, 7.1f);
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_BoundsOfSin)
+        if ((AID)spell.Action.ID == AID.BoundsOfSinIcicle)
             _risky = true;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_BoundsOfSin2)
+        if ((AID)spell.Action.ID == AID.BoundsOfSinJail)
         {
             NumCasts++;
             _risky = false;
@@ -243,36 +355,36 @@ class SpinelashBait(BossModule module) : Components.GenericBaitAway(module, cent
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_lockon6_t0t)
+        if ((IconID)iconID == IconID.Spinelash)
             CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeRect(30, 2, 30), WorldState.FutureTime(6.3f), true));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Spinelash1)
+        if ((AID)spell.Action.ID == AID.Spinelash)
             CurrentBaits.Clear();
     }
 }
 
-class Spinelash(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Spinelash1, new AOEShapeRect(60, 2));
+class Spinelash(BossModule module) : Components.StandardAOEs(module, AID.Spinelash, new AOEShapeRect(60, 2));
 
 class ChainsOfCondemnation(BossModule module) : Components.StayMove(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Spell_ChainsOfCondemnation1 or AID._Spell_ChainsOfCondemnation3)
-            Array.Fill(PlayerStates, new(Requirement.Stay, Module.CastFinishAt(spell)));
+        if ((AID)spell.Action.ID is AID.ChainsOfCondemnationFast or AID.ChainsOfCondemnationSlow)
+            Array.Fill(PlayerStates, new(Requirement.NoMove, Module.CastFinishAt(spell)));
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
-            SetState(slot, new(Requirement.Stay, default));
+        if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
+            SetState(slot, new(Requirement.NoMove, WorldState.CurrentTime));
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
             ClearState(slot);
     }
 }
@@ -285,23 +397,23 @@ class AbyssalBlaze(BossModule module) : Components.Exaflare(module, new AOEShape
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze or AID._Spell_AbyssalBlaze5)
+        if ((AID)spell.Action.ID is AID.AbyssalBlazeHorizontalFirst or AID.AbyssalBlazeHorizontalSecond)
             _nextDir = new WDir(1, 0);
 
-        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze4 or AID._Spell_AbyssalBlaze1)
+        if ((AID)spell.Action.ID is AID.AbyssalBlazeVerticalFirst or AID.AbyssalBlazeVerticalSecond)
             _nextDir = new WDir(0, 1);
 
-        if ((AID)spell.Action.ID == AID._Spell_2)
+        if ((AID)spell.Action.ID == AID.CrystalAppear)
             _orbs.Add((spell.TargetXZ, _nextDir));
 
-        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze2)
+        if ((AID)spell.Action.ID is AID.AbyssalBlazeFirst)
         {
             var lines = Lines.Where(l => l.Next.InCircle(spell.TargetXZ, 1));
             foreach (var l in lines)
                 AdvanceLine(l, spell.TargetXZ);
         }
 
-        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze3)
+        if ((AID)spell.Action.ID is AID.AbyssalBlazeRest)
         {
             var ix = Lines.FindIndex(l => l.Next.AlmostEqual(spell.TargetXZ, 0.5f));
             if (ix >= 0)
@@ -313,13 +425,13 @@ class AbyssalBlaze(BossModule module) : Components.Exaflare(module, new AOEShape
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Spell_AbyssalBlaze or AID._Spell_AbyssalBlaze4)
+        if ((AID)spell.Action.ID is AID.AbyssalBlazeHorizontalFirst or AID.AbyssalBlazeVerticalFirst)
         {
             _orbs.Clear();
             Lines.Clear();
         }
 
-        if ((AID)spell.Action.ID == AID._Spell_AbyssalBlaze2)
+        if ((AID)spell.Action.ID == AID.AbyssalBlazeFirst)
         {
             foreach (var orb in _orbs)
             {
@@ -360,7 +472,8 @@ class D99TheFinalVerseStates : StateMachineBuilder
     {
         // no extra checks needed, boss is locked at 1 HP until devoured eater is also dead
         TrivialPhase()
-            .ActivateOnEnter<LightDebuff>()
+            .ActivateOnEnter<LightDark>()
+            .ActivateOnEnter<BossLightDark>()
             .ActivateOnEnter<BladeOfFirstLight>()
             .ActivateOnEnter<BallOfFireBait>()
             .ActivateOnEnter<BallOfFirePuddle>()
@@ -370,13 +483,14 @@ class D99TheFinalVerseStates : StateMachineBuilder
             .ActivateOnEnter<SpinelashBait>()
             .ActivateOnEnter<Spinelash>()
             .ActivateOnEnter<ChainsOfCondemnation>()
-            .ActivateOnEnter<AbyssalBlaze>();
+            .ActivateOnEnter<AbyssalBlaze>()
+            .ActivateOnEnter<DrainAether>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1041, NameID = 14037, DevOnly = true)]
 public class D99TheFinalVerse(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsRect(20, 15))
 {
-    //private readonly RelSimplifiedComplexPolygon _white = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Light.json");
-    //private readonly RelSimplifiedComplexPolygon _dark = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Dark.json");
+    public static readonly RelSimplifiedComplexPolygon LightShape = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Light.json");
+    public static readonly RelSimplifiedComplexPolygon DarkShape = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Dark.json");
 }

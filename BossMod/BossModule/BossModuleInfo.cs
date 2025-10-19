@@ -50,6 +50,7 @@ public static class BossModuleInfo
         PVP,
         MaskedCarnivale,
         GoldSaucer,
+        Quantum,
 
         Count
     }

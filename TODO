@@ -11,6 +11,8 @@ immediate plans
 
 - "buggy" knockback is applied by ActorControl packet, normal knockbacks are applied by action effects; figure out where the actioneffect goes in the first case
 
+- all modules should start with X## (letter indicating content type, ## indicating sequence); write an analyzer to enforce it
+
 general:
 
 - horizontal timeline / cooldown planner
