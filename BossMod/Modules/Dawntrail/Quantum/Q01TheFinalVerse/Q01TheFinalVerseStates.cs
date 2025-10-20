@@ -17,7 +17,7 @@ public class ColorTime
 class LightDark(BossModule module) : BossComponent(module)
 {
 
-    private readonly ColorTime[] _playerStates = Utils.MakeArray(4, new ColorTime());
+    private readonly ColorTime[] _playerStates = [new ColorTime(), new ColorTime(), new ColorTime(), new ColorTime()];
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

@@ -31,7 +31,7 @@ class ClamorousCleave(BossModule module) : Components.GenericAOEs(module)
 class ClamorousBait(BossModule module) : Components.CastCounterMulti(module, [AID.ClamorousCleave1, AID.ClamorousCleave2])
 {
     private readonly int[] _order = Utils.MakeArray(8, -1);
-    private readonly Actor?[] _targets = Utils.MakeArray<Actor?>(8, null);
+    private readonly Actor?[] _targets = new Actor?[8];
     private int _side;
     private int _nextBait = -1;
     private WPos _source;

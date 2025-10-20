@@ -108,7 +108,7 @@ public class Buff
 class LightDark(BossModule module) : BossComponent(module)
 {
 
-    private readonly Buff[] _playerStates = Utils.MakeArray(4, new Buff());
+    private readonly Buff[] _playerStates = Utils.GenArray(4, () => new Buff());
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

@@ -10,7 +10,7 @@ class UnsealAutos(BossModule module) : Components.CastCounterMulti(module, [AID.
     }
 
     public Weapon CurrentWeapon;
-    private readonly List<Actor>[] _targets = Utils.MakeArray<List<Actor>>(3, []);
+    private readonly List<Actor>[] _targets = [[], [], []];
     private IEnumerable<Actor> AllTargets => _targets.SelectMany(t => t);
 
     public DateTime NextActivation;
