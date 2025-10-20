@@ -18,6 +18,9 @@ public enum AID : uint
     Accelerate = 42516, // 4927->location, 4.0s cast, range 6 circle
     Subduction = 42517, // 4927->self, no cast, range 5-10 donut
 
+    HailOfHeelsCast = 44759, // 4996->self, 3.0s cast, range 8 180-degree cone
+    HailOfHeels = 44760, // 4996->self, no cast, range 8 180-degree cone
+
     PeripheralLasers = 44758, // 4995->self, 5.0s cast, range 5-60 donut
     GrowingCirclesOfAblution1 = 42578, // 492A->self, 5.0s cast, range 10 circle
     GrowingCirclesOfAblution2 = 42749, // 492A->self, no cast, range 10-40 donut
@@ -124,20 +127,34 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
         switch ((AID)ev.Action.ID)
         {
             case AID.ShrinkingCirclesOfAblution1:
-                Voidzones.Add((actor, new AOEShapeCircle(10)));
+                AddVoidzone(actor, new AOEShapeCircle(10));
                 break;
             case AID.GrowingCirclesOfAblution1:
-                Voidzones.Add((actor, new AOEShapeDonut(10, 40)));
+                AddVoidzone(actor, new AOEShapeDonut(10, 40));
                 break;
             case AID.Accelerate:
-                Voidzones.Add((actor, new AOEShapeDonut(5, 10)));
+                AddVoidzone(actor, new AOEShapeDonut(5, 10));
                 break;
 
             case AID.RightSidedShockwaveCast:
-                Voidzones.Add((actor, new AOEShapeCone(30, 90.Degrees(), 90.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(30, 90.Degrees(), 90.Degrees()));
                 break;
             case AID.LeftSidedShockwaveCast:
-                Voidzones.Add((actor, new AOEShapeCone(30, 90.Degrees(), -90.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(30, 90.Degrees(), -90.Degrees()));
+                break;
+
+            case AID.HailOfHeelsCast:
+                AddVoidzone(actor, new AOEShapeCone(8, 90.Degrees()), 3);
+                break;
+
+            case AID.HailOfHeels:
+                var vz = Voidzones.FindIndex(v => v.Source.InstanceID == actor.InstanceID);
+                if (vz >= 0)
+                {
+                    Voidzones.Ref(vz).Counter--;
+                    if (Voidzones[vz].Counter <= 0)
+                        Voidzones.RemoveAt(vz);
+                }
                 break;
 
             case AID.ShrinkingCirclesOfAblution2:

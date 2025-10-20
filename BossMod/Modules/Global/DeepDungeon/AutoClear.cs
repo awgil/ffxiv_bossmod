@@ -45,14 +45,14 @@ public abstract partial class AutoClear : ZoneModule
         // EO
         1541, 1542, 1543, 1544, 1545, 1546, 1547, 1548, 1549, 1550, 1551, 1552, 1553, 1554,
         // PT
-        1881, 1882, 1883, 1884, 1885, 1886, 1887, 1888, 1889, 1890, 1906, 1907
+        1881, 1882, 1883, 1884, 1885, 1886, 1887, 1888, 1889, 1890, 1891, 1906, 1907, 1908
     ];
     public static readonly HashSet<uint> RevealedTrapOIDs = [0x1EA08E, 0x1EA08F, 0x1EA090, 0x1EA091, 0x1EA092, 0x1EA9A0, 0x1EB864, 0x1EBEDB];
 
     protected readonly List<(Actor Source, float Inner, float Outer, Angle HalfAngle)> Donuts = [];
     protected readonly List<(Actor Source, float Radius)> Circles = [];
     protected readonly List<(Actor Source, float Radius)> KnockbackZones = [];
-    protected readonly List<(Actor Source, AOEShape Zone)> Voidzones = [];
+    protected readonly List<(Actor Source, AOEShape Zone, int Counter)> Voidzones = [];
     private readonly List<Gaze> Gazes = [];
     protected readonly List<Actor> Interrupts = [];
     protected readonly List<Actor> Stuns = [];
@@ -265,6 +265,7 @@ public abstract partial class AutoClear : ZoneModule
     protected void AddGaze(Actor Source, AOEShape Shape) => Gazes.Add(new(Source, Shape));
     protected void AddGaze(Actor Source, float Radius) => AddGaze(Source, new AOEShapeCircle(Radius));
     protected void AddDonut(Actor Source, float Inner, float Outer, Angle? HalfAngle = null) => Donuts.Add((Source, Inner, Outer, HalfAngle ?? 180.Degrees()));
+    protected void AddVoidzone(Actor Source, AOEShape Shape, int Counter = 0) => Voidzones.Add((Source, Shape, Counter));
 
     protected void AddLOS(Actor Source, float Range)
     {

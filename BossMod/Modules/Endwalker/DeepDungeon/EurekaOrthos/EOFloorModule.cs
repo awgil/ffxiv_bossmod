@@ -180,25 +180,25 @@ public abstract class EOFloorModule(WorldState ws) : AutoClear(ws, 90)
         switch ((AID)ev.Action.ID)
         {
             case AID.GoobInhale:
-                Voidzones.Add((actor, new AOEShapeCone(7, 45.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(7, 45.Degrees()));
                 break;
             case AID.GourmInhale:
-                Voidzones.Add((actor, new AOEShapeCone(6, 45.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(6, 45.Degrees()));
                 break;
             case AID.KillingPaw:
-                Voidzones.Add((actor, new AOEShapeCone(6, 60.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(6, 60.Degrees()));
                 break;
             case AID.SewerWaterCastFront:
-                Voidzones.Add((actor, new AOEShapeCone(12, 90.Degrees(), 180.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(12, 90.Degrees(), 180.Degrees()));
                 break;
             case AID.SewerWaterCastBack:
-                Voidzones.Add((actor, new AOEShapeCone(12, 90.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(12, 90.Degrees()));
                 break;
             case AID.Electromagnetism:
-                Voidzones.Add((actor, new AOEShapeCircle(6)));
+                AddVoidzone(actor, new AOEShapeCircle(6));
                 break;
             case AID.RipeBanana:
-                Voidzones.Add((actor, new AOEShapeCircle(52)));
+                AddVoidzone(actor, new AOEShapeCircle(52));
                 break;
 
             case AID.GoobSneeze:
