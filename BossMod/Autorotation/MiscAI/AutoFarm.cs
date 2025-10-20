@@ -112,8 +112,12 @@ public sealed class AutoFarm(RotationModuleManager manager, Actor player) : Rota
             Hints.HighestPotentialTargetPriority = Math.Max(0, Hints.PotentialTargets[0].Priority);
         }
 
+        // player has manually targeted an ally for some reason, probably healing/raise, so we don't want to mess with it (but keep priority changes)
+        if (World.Actors.Find(Player.TargetID) is { IsAlly: true })
+            return;
+
         // if we did not select an enemy to pull, see if we can target something higher-priority than what we have now
-        if (switchTarget == null && Player.InCombat)
+        if (switchTarget == null && allowPulling)
         {
             var curTargetPrio = Hints.FindEnemy(primaryTarget)?.Priority ?? int.MinValue;
             switchTarget = ResolveTargetOverride(generalOpt.Value) ?? (curTargetPrio < Hints.HighestPotentialTargetPriority ? Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null);
