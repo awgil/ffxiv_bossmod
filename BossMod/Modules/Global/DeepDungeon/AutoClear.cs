@@ -504,33 +504,23 @@ public abstract partial class AutoClear : ZoneModule
             _ => false
         };
 
-        if (player.InCombat || World.Actors.Find(player.TargetID) is Actor t2 && !t2.IsAlly)
+        if (player.InCombat)
             return;
-
-        Actor? bestTarget = null;
-
-        void pickBetterTarget(Actor t)
-        {
-            if (player.DistanceToHitbox(t) < player.DistanceToHitbox(bestTarget))
-                bestTarget = t;
-        }
 
         foreach (var pp in hints.PotentialTargets)
         {
             // enemy is petrified, any damage will kill
             if (pp.Actor.FindStatus(SID.StoneCurse)?.ExpireAt > World.FutureTime(1.5f))
-                pickBetterTarget(pp.Actor);
+                pp.Priority = 0;
 
             // pomander of storms was used, enemy can't autoheal; any damage will kill
             else if (pp.Actor.FindStatus(SID.AutoHealPenalty) != null && pp.Actor.HPMP.CurHP < 10)
-                pickBetterTarget(pp.Actor);
+                pp.Priority = 0;
 
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
             else if (shouldTargetMobs && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
-                pickBetterTarget(pp.Actor);
+                pp.Priority = 0;
         }
-
-        hints.SetPriority(bestTarget, 1);
     }
 
     private void DrawAOEs(int playerSlot, Actor player, AIHints hints)
