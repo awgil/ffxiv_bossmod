@@ -95,6 +95,9 @@ public sealed class ActionQueue
         if (!allowDismount && AutoDismountTweak.IsMountPreventingAction(ws, def.ID))
             return false;
 
+        if (def.ID.Type == ActionType.Item && ws.Client.GetItemQuantity(def.ID.ID) == 0)
+            return false;
+
         if (def.Range > 0)
         {
             var to = entry.Target?.Position ?? new(entry.TargetPos.XZ());
@@ -103,6 +106,7 @@ public sealed class ActionQueue
             if (distSq > effRange * effRange)
                 return false;
         }
+
         return def.ForbidExecute == null || !def.ForbidExecute.Invoke(ws, player, entry, hints);
     }
 }

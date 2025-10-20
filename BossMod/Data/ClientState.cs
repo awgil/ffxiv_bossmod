@@ -69,6 +69,17 @@ public sealed class ClientState
     public uint[] ContentKeyValueData = new uint[6]; // used for content-specific persistent player attributes, like bozja resistance rank
     public HateInfo CurrentTargetHate = new(0, new Hate[32]);
 
+    public readonly Dictionary<uint, uint> Inventory; // only tracks items in ActionDefinitions' SupportedItems set
+
+    public uint GetItemQuantity(uint itemId) => Inventory.TryGetValue(itemId, out var q) ? q : 0;
+
+    public ClientState()
+    {
+        Inventory = [];
+        foreach (var it in ActionDefinitions.Instance.SupportedItems)
+            Inventory[it] = 0;
+    }
+
     // if an action has SecondaryCostType between 1 and 4, it's considered usable as long as the corresponding timer in this array is >0; the timer is set to 5 when certain ActionEffects are received and ticks down each frame
     // 1: unknown - referenced in ActionManager code but not present in sheets, included for completeness
     // 2: block
@@ -153,6 +164,10 @@ public sealed class ClientState
 
         if (CurrentTargetHate.InstanceID != 0 || CurrentTargetHate.Targets.Any(t => t != default))
             yield return new OpHateChange(CurrentTargetHate.InstanceID, CurrentTargetHate.Targets);
+
+        foreach (var (id, quant) in Inventory)
+            if (quant > 0)
+                yield return new OpInventoryChange(id, quant);
     }
 
     public void Tick(float dt)
@@ -466,6 +481,20 @@ public sealed class ClientState
         public override void Write(ReplayRecorder.Output output)
         {
             output.EmitFourCC("CLPR"u8).Emit(Value[0]).Emit(Value[1]).Emit(Value[2]).Emit(Value[3]);
+        }
+    }
+
+    public Event<OpInventoryChange> InventoryChanged = new();
+    public sealed record class OpInventoryChange(uint ItemId, uint Quantity) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.Inventory[ItemId] = Quantity;
+            ws.Client.InventoryChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("INVT"u8).Emit(ItemId).Emit(Quantity);
         }
     }
 }
