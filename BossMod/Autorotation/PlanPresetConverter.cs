@@ -86,6 +86,15 @@ public static class PlanPresetConverter
 
             return j;
         });
+
+        res.Converters.Add((j, _, _) =>
+        {
+            foreach (var m in EnumerateEntriesModules(j, plan))
+                // replaced by AutoTarget, only user (questionable) has an updated preset now
+                m.Remove("BossMod.Autorotation.MiscAI.AutoPull");
+
+            return j;
+        });
         return res;
     }
 
