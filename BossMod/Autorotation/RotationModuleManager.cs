@@ -332,8 +332,6 @@ public sealed class RotationModuleManager : IDisposable
     {
         if (prev != null)
             Deactivate(prev);
-        if (curr != null)
-            Activate(curr);
     }
 
     private void OnActionRequested(ClientState.OpActionRequest op)

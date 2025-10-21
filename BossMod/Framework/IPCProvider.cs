@@ -1,6 +1,8 @@
 ﻿using BossMod.AI;
 using BossMod.Autorotation;
+using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace BossMod;
 
@@ -26,7 +28,20 @@ sealed class IPCProvider : IDisposable
         });
         Register("Presets.Create", (string presetSerialized, bool overwrite) =>
         {
-            var p = JsonSerializer.Deserialize<Preset>(presetSerialized, Serialization.BuildSerializationOptions());
+            var node = JsonNode.Parse(presetSerialized, documentOptions: new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
+            if (node == null)
+                return false;
+
+            // preset converter operates on array of presets; plan converter doesn't but expects an `Encounter` key in the object
+            node = new JsonArray(node);
+
+            var version = 0;
+            var finfo = new FileInfo("<in-memory preset>");
+
+            foreach (var conv in PlanPresetConverter.PresetSchema.Converters)
+                node = conv(node, version, finfo);
+
+            var p = node.AsArray()[0].Deserialize<Preset>(Serialization.BuildSerializationOptions());
             if (p == null)
                 return false;
             var index = autorotation.Database.Presets.UserPresets.FindIndex(x => x.Name == p.Name);
