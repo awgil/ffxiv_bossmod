@@ -102,11 +102,58 @@ class BossLightDark(BossModule module) : Components.GenericInvincible(module)
     }
 }
 
+class ChainsOfCondemnation(BossModule module) : Components.StayMove(module)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.ChainsOfCondemnationFast or AID.ChainsOfCondemnationSlow)
+            Array.Fill(PlayerStates, new PlayerState(Requirement.NoMove, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
+            SetState(slot, new PlayerState(Requirement.NoMove, WorldState.CurrentTime));
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
+            ClearState(slot);
+    }
+}
+
 class ScourgingBlaze(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(5))
 {
     private WDir _nextDir;
+    private WPos? _safeSpot;
+
+    public bool Draw
+    {
+        get;
+        set
+        {
+            field = value;
+            if (value)
+                DrawSafespot = false;
+        }
+    }
+    public bool DrawSafespot
+    {
+        get;
+        set
+        {
+            field = value;
+            if (value)
+                Draw = false;
+        }
+    }
 
     private readonly List<(WPos Source, WDir Direction)> _orbs = [];
+
+    private readonly WPos[] _safeSpots = [new(-605.75f, -287), new(-594.25f, -287), new(-605.75f, -313), new(-594.25f, -313)];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Draw ? base.ActiveAOEs(slot, actor) : [];
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -117,7 +164,10 @@ class ScourgingBlaze(BossModule module) : Components.Exaflare(module, new AOESha
             _nextDir = new WDir(0, 1);
 
         if ((AID)spell.Action.ID == AID.CrystalAppear)
+        {
             _orbs.Add((spell.TargetXZ, _nextDir));
+            CalcSafespot();
+        }
 
         if ((AID)spell.Action.ID is AID.ScourgingBlazeFirst)
         {
@@ -181,6 +231,24 @@ class ScourgingBlaze(BossModule module) : Components.Exaflare(module, new AOESha
             MaxShownExplosions = Math.Min(5, numExplosions)
         });
     }
+
+    private void CalcSafespot()
+    {
+        var candidates = _safeSpots.ToList();
+        foreach (var orb in _orbs)
+            candidates.RemoveAll(c => c.InRect(orb.Source, orb.Direction, 60, 60, 5));
+
+        if (candidates.Count == 1)
+            _safeSpot = candidates[0];
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+
+        if (DrawSafespot && _safeSpot is { } spot)
+            Arena.AddCircle(spot, 0.6f, ArenaColor.Safe);
+    }
 }
 
 class BoundsOfSinInOut(BossModule module) : Components.GenericAOEs(module)
@@ -228,6 +296,9 @@ class Neutralize(BossModule module) : BossComponent(module)
     private readonly Color[] _colors = new Color[4];
     public int NumIcons { get; private set; }
 
+    // random guess
+    private DateTime _resolve;
+
     public const float Radius = 1.5f; // todo verify
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -238,6 +309,9 @@ class Neutralize(BossModule module) : BossComponent(module)
             IconID.RingDark => Color.Dark,
             _ => Color.None
         };
+
+        if (_resolve == default)
+            _resolve = WorldState.FutureTime(5.1f);
 
         if (color != Color.None && Raid.TryFindSlot(actor, out var slot))
         {
@@ -270,11 +344,11 @@ class Neutralize(BossModule module) : BossComponent(module)
                 if (_colors[s] != _colors[slot])
                     _partners.Add(ShapeContains.Donut(a.Position, Radius, 60));
                 else
-                    hints.AddForbiddenZone(ShapeContains.Circle(a.Position, Radius));
+                    hints.AddForbiddenZone(ShapeContains.Circle(a.Position, Radius), _resolve);
             }
 
             if (_partners.Count > 0)
-                hints.AddForbiddenZone(ShapeContains.Intersection(_partners));
+                hints.AddForbiddenZone(ShapeContains.Intersection(_partners), _resolve);
         }
     }
 
@@ -292,10 +366,11 @@ class Neutralize(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventDirectorUpdate(uint updateID, uint param1, uint param2, uint param3, uint param4)
+    public override void Update()
     {
-        if (updateID == 0x80000026 && param2 == 9)
+        if (_resolve != default && _resolve <= WorldState.CurrentTime)
         {
+            _resolve = default;
             Array.Fill(_colors, default);
             NumIcons = 0;
         }
@@ -322,6 +397,14 @@ class BleedTower : Components.GenericTowers
         _forbiddenPlayers = Raid.WithSlot().WhereActor(a => a.FindStatus(SID.DarkVengeance) != null).Mask();
 
         Towers.AddRange(_towerPositions.Select(p => new Tower(p, 2, forbiddenSoakers: _forbiddenPlayers)));
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+
+        if (EnableHints && _forbiddenPlayers[slot])
+            hints.Add("Get light debuff!");
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -390,14 +473,8 @@ class BallOfFire(BossModule module) : Components.StandardAOEs(module, AID.BallOf
 
 class SearingChain(BossModule module) : Components.Chains(module, (uint)TetherID._Gen_Tether_chn_hfchain1f, chainLength: 20, activationDelay: 5);
 
-class SearingChainCross : Components.GenericBaitAway
+class SearingChainCross(BossModule module) : Components.GenericBaitAway(module, AID._Spell_SearingChains, true, centerAtTarget: true)
 {
-    public SearingChainCross(BossModule module) : base(module, AID._Spell_SearingChains, true, centerAtTarget: true)
-    {
-        foreach (var p in Raid.WithoutSlot())
-            CurrentBaits.Add(new(Module.PrimaryActor, p, new AOEShapeCross(50, 3), WorldState.FutureTime(5.6f), IgnoreRotation: true));
-    }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (CurrentBaits.Count > 0)
@@ -407,6 +484,12 @@ class SearingChainCross : Components.GenericBaitAway
 
             hints.AddPredictedDamage(Raid.WithSlot().Mask(), CurrentBaits[0].Activation.AddSeconds(1.1f));
         }
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.SearingChains)
+            CurrentBaits.Add(new(Module.PrimaryActor, actor, new AOEShapeCross(50, 3), WorldState.FutureTime(5.6f), IgnoreRotation: true));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -487,61 +570,329 @@ class Vodoriga(BossModule module) : Components.Adds(module, (uint)OID.VodorigaMi
 class TerrorEye(BossModule module) : Components.StandardAOEs(module, AID._Spell_TerrorEye, 6);
 class Eruption(BossModule module) : Components.StandardAOEs(module, AID._Spell_Eruption, 6);
 
+class BladeHints(BossModule module) : BossComponent(module)
+{
+    private readonly string?[] _hints = new string?[2];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.BladeOfFirstLightInsideFast:
+                _hints[0] = "Outside safe";
+                break;
+            case AID.BladeOfFirstLightInsideSlow:
+                _hints[1] = "outside safe";
+                break;
+            case AID.BladeOfFirstLightOutsideFast:
+                _hints[0] = "Inside safe";
+                break;
+            case AID.BladeOfFirstLightOutsideSlow:
+                _hints[1] = "outside safe";
+                break;
+
+            case AID.BallOfFireCastFast:
+                _hints[0] = "Baited puddles";
+                break;
+            case AID.BallOfFireCastSlow:
+                _hints[1] = "baited puddles";
+                break;
+
+            case AID.ChainsOfCondemnationFast:
+                _hints[0] = "Stay";
+                break;
+            case AID.ChainsOfCondemnationSlow:
+                _hints[1] = "stay";
+                break;
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_hints[0] is { } h1 && _hints[1] is { } h2)
+            hints.Add($"{h1} => {h2}", false);
+    }
+}
+
+class ShackleSpreadHint(BossModule module) : Components.GenericStackSpread(module, alwaysShowSpreads: true, raidwideOnResolve: false)
+{
+    public bool Shackles { get; private set; }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Spell_ShacklesOfGreaterSanctity)
+        {
+            foreach (var player in Raid.WithoutSlot())
+            {
+                if (player.Role == Role.Healer)
+                    Spreads.Add(new(player, 21, Module.CastFinishAt(spell)));
+                else if (player.Role != Role.Tank)
+                    Spreads.Add(new(player, 8, Module.CastFinishAt(spell)));
+            }
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.ShackledHealing)
+        {
+            Shackles = true;
+            Spreads.Clear();
+        }
+    }
+}
+
+// only draw spread on healer to reduce visual clutter
+// DPS will naturally avoid healer (because of defam) and tank (because of jail)
+class ShackleHint(BossModule module) : BossComponent(module)
+{
+    private Actor? Healer;
+    public bool Expired;
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.ShackledHealing)
+            Healer = actor;
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.ShackledHealing)
+        {
+            Healer = null;
+            Expired = true;
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (Healer != null)
+            Arena.AddCircle(Healer.Position, 21, ArenaColor.Danger);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (actor == Healer)
+        {
+            var count = Raid.WithoutSlot().InRadiusExcluding(actor, 21).Count();
+            hints.Add($"Allies in radius: {count}", false);
+        }
+    }
+
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => player == Healer ? PlayerPriority.Interesting : base.CalcPriority(pcSlot, pc, playerSlot, player, ref customColor);
+}
+
+class ArcaneFont(BossModule module) : Components.Adds(module, (uint)OID.ArcaneFont)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var jail = actor.FindStatus(SID.HellishEarth) != null;
+
+        foreach (var add in ActiveActors)
+            hints.SetPriority(add, jail ? AIHints.Enemy.PriorityInvincible : 1);
+    }
+}
+
+class HellishEarthPull(BossModule module) : Components.Knockback(module, ignoreImmunes: true)
+{
+    private Actor? Caster;
+    private Actor? Target;
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        if (Caster != null)
+        {
+            var activation = Module.CastFinishAt(Caster.CastInfo);
+
+            if (actor == Target)
+                yield return new(Caster.Position, 60, activation, Kind: Kind.TowardsOrigin);
+            else if (!PlayerImmunes[slot].ImmuneAt(activation))
+                yield return new(Caster.Position, 10, activation, Kind: Kind.TowardsOrigin);
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (actor == Target)
+        {
+            if (actor.Role != Role.Tank)
+                hints.Add("Too far from boss!");
+        }
+        else if (Target != null && actor.Role == Role.Tank)
+            hints.Add("Go far to bait tether!");
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.HellishEarthPullTether)
+            Caster = caster;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.HellishEarthPullTether or AID.HellishEarthPull)
+        {
+            Target = null;
+            Caster = null;
+            NumCasts++;
+        }
+    }
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_fire001f && WorldState.Actors.Find(tether.Target) is { } tar)
+            Target = tar;
+    }
+}
+
+class ManifoldLashingsTower(BossModule module) : Components.GenericTowers(module, damageType: AIHints.PredictedDamageType.Tankbuster)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_ManifoldLashings1)
+        {
+            Towers.Add(new(caster.Position, 2, forbiddenSoakers: Raid.WithSlot().WhereActor(a => a.Role != Role.Tank).Mask(), activation: Module.CastFinishAt(spell)));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_ManifoldLashings1 or AID._Weaponskill_ManifoldLashings2)
+            NumCasts++;
+    }
+}
+class ManifoldLashingsTail(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_ManifoldLashings3, new AOEShapeRect(42, 4.5f));
+
+class UnholyDarkness(BossModule module) : Components.RaidwideCast(module, AID._Spell_UnholyDarkness1);
+
 class Q01TheFinalVerseStates : StateMachineBuilder
 {
-    //private readonly Q01TheFinalVerse _module;
+    private readonly Q01TheFinalVerse _module;
 
     public Q01TheFinalVerseStates(Q01TheFinalVerse module) : base(module)
     {
-        //_module = module;
+        _module = module;
 
-        DeathPhase(0, Phase1)
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<LightDark>()
             .ActivateOnEnter<BossLightDark>()
-            .ActivateOnEnter<Vodoriga>()
-            .ActivateOnEnter<TerrorEye>();
+            .ActivateOnEnter<ArcaneFont>()
+            .ActivateOnEnter<BladeOfFirstLight>()
+            .ActivateOnEnter<BallOfFireBait>()
+            .ActivateOnEnter<BallOfFire>()
+            .ActivateOnEnter<ChainsOfCondemnation>();
     }
 
-    private void Phase1(uint id)
+    private void SinglePhase(uint id)
     {
         CastStartMulti(id, [AID.ScourgingBlazeHorizontalFirst, AID.ScourgingBlazeVerticalFirst], 9.3f)
-            .ActivateOnEnter<ScourgingBlaze>();
-
-        ComponentCondition<BoundsOfSinBind>(id + 0x10, 24, b => b.NumCasts > 0, "Bind")
-            .ActivateOnEnter<BoundsOfSinBind>()
-            .ActivateOnEnter<BoundsOfSinInOut>()
-            .ActivateOnEnter<BoundsOfSinIcicle>()
+            .ActivateOnEnter<ScourgingBlaze>()
             .ActivateOnEnter<Neutralize>();
 
-        ComponentCondition<BoundsOfSinInOut>(id + 0x20, 6.7f, b => b.NumCasts > 0, "In/out")
-            .DeactivateOnExit<BoundsOfSinInOut>()
-            .DeactivateOnExit<BoundsOfSinIcicle>();
+        BoundsOfSin(id + 0x10, 20, 6.8f);
 
-        ComponentCondition<Neutralize>(id + 0x30, 0.3f, n => n.NumIcons == 0, "Light/dark")
+        ComponentCondition<Neutralize>(id + 0x30, 1.3f, n => n.NumIcons == 0, "Light/dark")
             .ActivateOnEnter<BleedTower>()
             .DeactivateOnExit<Neutralize>()
             .ExecOnExit<BleedTower>(t => t.EnableHints = true);
 
-        ComponentCondition<BleedTower>(id + 0x40, 5, t => t.Towers.Count == 0, "Towers");
+        ComponentCondition<BleedTower>(id + 0x40, 4.2f, t => t.Towers.Count == 0, "Towers")
+            .DeactivateOnExit<BleedTower>();
 
-        ComponentCondition<ScourgingBlaze>(id + 0x100, 7.1f, b => b.NumCasts > 0, "Exaflares start")
-            .ActivateOnEnter<BladeOfFirstLight>()
-            .ActivateOnEnter<BallOfFire>()
-            .ActivateOnEnter<BallOfFireBait>();
+        ComponentCondition<ScourgingBlaze>(id + 0x100, 7.1f, b => b.NumCasts > 0, "Exaflares start");
 
-        // 73.27 -> 78.815 (bind) 79.914 (cross)
-        ComponentCondition<SearingChain>(id + 0x10000, 20.9f, s => s.TethersAssigned, "Chains appear")
+        // TODO: figure out better hints for slow/fast blade of light, chains, fireball
+        // it's kind of a mess atm but i really don't want to introduce forks since that will make cdplan complicated
+        CastStartMulti(id + 0x10000, [AID.ChainsOfCondemnationCastFast, AID.ChainsOfCondemnationCastSlow, AID.BallOfFireCastFast, AID.BallOfFireCastSlow], 3.9f);
+
+        ComponentCondition<SearingChain>(id + 0x10001, 17, s => s.TethersAssigned, "Chains appear")
             .ActivateOnEnter<SearingChain>();
 
-        ComponentCondition<SearingChainCross>(id + 0x10100, 6.6f, s => s.NumCasts > 0, "Crosses")
+        ComponentCondition<SearingChainCross>(id + 0x10002, 6.2f, s => s.NumCasts > 0, "Crosses")
             .ActivateOnEnter<SearingChainCross>()
-            .ActivateOnEnter<Spinelash>();
+            .ActivateOnEnter<Spinelash>()
+            .DeactivateOnExit<SearingChain>()
+            .DeactivateOnExit<SearingChainCross>();
 
-        ComponentCondition<Spinelash>(id + 0x20000, 2.2f, s => s.Source != null, "Target select");
-        ComponentCondition<Spinelash>(id + 0x20001, 10.5f, s => s.NumCasts > 0, "Wild charge")
+        ComponentCondition<Spinelash>(id + 0x20000, 2.6f, s => s.Source != null, "Target select");
+        ComponentCondition<Spinelash>(id + 0x20001, 10.4f, s => s.NumCasts > 0, "Wild charge")
             .DeactivateOnExit<Spinelash>();
 
-        Timeout(id + 0xFF0000, 10000, "???")
-            .ActivateOnEnter<Eruption>();
+        ComponentCondition<Vodoriga>(id + 0x20010, 6.2f, v => v.ActiveActors.Any(), "Add appears")
+            .ActivateOnEnter<Vodoriga>()
+            .ActivateOnEnter<TerrorEye>();
+
+        ActorCastStart(id + 0x30000, _module.Eater, AID._Spell_ShacklesOfGreaterSanctity, 7)
+            .ActivateOnEnter<ShackleSpreadHint>()
+            .ActivateOnEnter<ShackleHint>();
+
+        ComponentCondition<ShackleSpreadHint>(id + 0x30010, 4.3f, s => s.Shackles, "Shackles appear")
+            .DeactivateOnExit<ShackleSpreadHint>();
+
+        CastStart(id + 0x30100, AID.HellishEarthCast, 3.7f)
+            .ActivateOnEnter<Eruption>()
+            .ActivateOnEnter<HellishEarthPull>();
+
+        ComponentCondition<HellishEarthPull>(id + 0x30200, 6, p => p.NumCasts > 0, "Attract to middle")
+            .DeactivateOnExit<HellishEarthPull>();
+
+        ManifoldLashings(id + 0x30300, 3.1f);
+
+        ActorCast(id + 0x30500, _module.Eater, AID._Spell_UnholyDarkness, 5.5f, 6)
+            .ActivateOnEnter<UnholyDarkness>();
+
+        ComponentCondition<UnholyDarkness>(id + 0x30502, 0.7f, u => u.NumCasts > 0, "Raidwide (bleed)")
+            .DeactivateOnExit<UnholyDarkness>();
+
+        ManifoldLashings(id + 0x30600, 2.3f);
+
+        ComponentCondition<ShackleHint>(id + 0x30610, 16.6f, s => s.Expired, "Shackles disappear")
+            .DeactivateOnExit<ShackleHint>()
+            .DeactivateOnExit<ArcaneFont>();
+
+        BoundsOfSin(id + 0x40000, 15.3f, 7.7f)
+            .ActivateOnEnter<Neutralize>()
+            .ExecOnEnter<ScourgingBlaze>(b => b.DrawSafespot = true)
+            .ExecOnExit<ScourgingBlaze>(b => b.Draw = true);
+
+        ComponentCondition<Neutralize>(id + 0x40100, 7.1f, n => n.NumIcons > 0);
+        ComponentCondition<Neutralize>(id + 0x40101, 5.1f, n => n.NumIcons == 0, "Light/dark")
+            .DeactivateOnExit<Neutralize>();
+
+        ActorCast(id + 0x50000, _module.Eater, AID._Spell_CrimeAndPunishment, 11.9f, 6, false, "Apply rot");
+
+        Timeout(id + 0xFF0000, 10000, "???");
+    }
+
+    private State BoundsOfSin(uint id, float delay, float jailDelay)
+    {
+        ActorCastStart(id, _module.Eater, AID.BoundsOfSinBossCast, delay)
+            .ActivateOnEnter<BoundsOfSinBind>()
+            .ActivateOnEnter<BoundsOfSinInOut>()
+            .ActivateOnEnter<BoundsOfSinIcicle>();
+
+        ComponentCondition<BoundsOfSinBind>(id + 1, 4, b => b.NumCasts > 0, "Bind")
+            .DeactivateOnExit<BoundsOfSinBind>();
+
+        return ComponentCondition<BoundsOfSinInOut>(id + 2, jailDelay, b => b.NumCasts > 0, "In/out")
+            .DeactivateOnExit<BoundsOfSinInOut>()
+            .DeactivateOnExit<BoundsOfSinIcicle>();
+    }
+
+    private void ManifoldLashings(uint id, float delay)
+    {
+        // TODO: tail direction determined by this cast, we should show the hint early
+        CastStartMulti(id, [AID._Weaponskill_ManifoldLashings, AID._Weaponskill_ManifoldLashings4], delay)
+            .ActivateOnEnter<ManifoldLashingsTower>()
+            .ActivateOnEnter<ManifoldLashingsTail>();
+
+        ComponentCondition<ManifoldLashingsTower>(id + 1, 6.2f, m => m.NumCasts > 0, "Tankbuster 1")
+            .SetHint(StateMachine.StateHint.Tankbuster);
+        ComponentCondition<ManifoldLashingsTower>(id + 2, 1.4f, m => m.NumCasts == 3, "Tankbuster 3")
+            .SetHint(StateMachine.StateHint.Tankbuster)
+            .DeactivateOnExit<ManifoldLashingsTower>();
+
+        ComponentCondition<ManifoldLashingsTail>(id + 3, 2.9f, m => m.NumCasts > 0, "Tail")
+            .DeactivateOnExit<ManifoldLashingsTail>();
     }
 }

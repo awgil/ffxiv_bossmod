@@ -77,9 +77,9 @@ public enum AID : uint
     ShackleHealerExplosion = 44149, // Helper->players, no cast, range 21 circle, triggered on healing spell
     ShackleDPSExplosion = 44150, // Helper->players, no cast, range 8 circle, triggered on ability use
 
-    _Spell_HellishEarth = 44151, // Boss->location, 5.0+1.0s cast, single-target
-    _Spell_HellishEarth1 = 44153, // Helper->self, 6.0s cast, ???
-    _Spell_HellishEarth2 = 44152, // Helper->self, 6.0s cast, ???
+    HellishEarthCast = 44151, // Boss->location, 5.0+1.0s cast, single-target
+    HellishEarthPull = 44152, // Helper->self, 6.0s cast, distance 10 attract on non-tethered players
+    HellishEarthPullTether = 44153, // Helper->self, 6.0s cast, distance 60 attract on tethered (furthest) player
     _Spell_HellishTorment = 44155, // Helper->player, no cast, single-target
     _Spell_HellishTorment1 = 44154, // Helper->self, no cast, range 50 circle
     _Weaponskill_ManifoldLashings = 44157, // Boss->self, 5.0+1.3s cast, single-target
@@ -92,6 +92,11 @@ public enum AID : uint
     _Weaponskill_BigBurst = 44162, // Helper->self, no cast, range 80 circle
     _Spell_UnholyDarkness = 44163, // DevouredEater->self, 6.0+0.7s cast, single-target
     _Spell_UnholyDarkness1 = 44164, // Helper->self, 6.7s cast, range 30 circle
+
+    _Spell_CrimeAndPunishment = 44165, // DevouredEater->self, 6.0+0.7s cast, single-target
+    _Spell_CrimeAndPunishment1 = 44166, // Helper->player, no cast, single-target
+    _Spell_Explosion = 44167, // Helper->players, no cast, range 4 circle, rot pass
+    _Spell_BigBurst = 44168, // Helper->player, no cast, range 60 circle
 }
 
 public enum SID : uint
@@ -111,6 +116,18 @@ public enum SID : uint
     HPBoost = 586, // none->ArcaneFont, extra=0x8
     Petrification = 1, // none->player, extra=0x0
     Poison = 3462, // Helper->player, extra=0x1/0x2/0x3
+
+    Bleeding1 = 2922, // none->player, extra=0x0
+    Bleeding2 = 2951, // Helper->player, extra=0x0
+    DamageDown = 3304, // Helper->player, extra=0x1/0x2/0x3/0x4
+    Weakness = 43, // none->player, extra=0x0
+    Transcendent = 418, // none->player, extra=0x0
+    Bleeding3 = 2088, // Helper->player, extra=0x0
+    SinBearer = 4567, // Helper->player, extra=1-16
+    Doom = 4594, // none->player, extra=0x0
+    WithoutSin = 4569, // none->player, extra=0x0
+    SumOfAllSins = 4568, // none->player, extra=0xEC7
+    Unk1 = 4685, // none->player, extra=0x0
 }
 
 public enum IconID : uint
