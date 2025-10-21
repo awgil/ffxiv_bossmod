@@ -1,5 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse;
+﻿namespace BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse;
 
 public enum OID : uint
 {
@@ -8,7 +7,7 @@ public enum OID : uint
     EminentGrief = 0x486D, // R1.000, x2
     DevouredEater = 0x48EB, // R15.000, x1, Part type
     VodorigaMinion = 0x48EC, // R1.200, x0 (spawn during fight)
-    _Gen_ = 0x48ED, // R1.000, x0 (spawn during fight)
+    UnkObj = 0x48ED, // R1.000, x0 (spawn during fight)
     AbyssalBlaze = 0x1EBE70,
 }
 
@@ -488,7 +487,7 @@ class D99TheFinalVerseStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1041, NameID = 14037, DevOnly = true)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1041, NameID = 14037)]
 public class D99TheFinalVerse(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsRect(20, 15))
 {
     public static readonly RelSimplifiedComplexPolygon LightShape = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Light.json");
