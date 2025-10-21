@@ -127,8 +127,16 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < 0.7f)
-                PushGCD(AID.Slither, primaryTarget);
+            if (Player.DistanceToHitbox(primaryTarget) > 3)
+            {
+                if (CountdownRemaining < 0.7f)
+                    PushGCD(AID.Slither, primaryTarget);
+            }
+            else
+            {
+                if (CountdownRemaining < 1.16f)
+                    PushGCD(AID.SteelFangs, primaryTarget);
+            }
 
             return;
         }
