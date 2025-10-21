@@ -105,7 +105,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                     continue;
                 }
 
-                if (targetFates && target.Actor.FateID == World.Client.ActiveFate.ID)
+                if (targetFates && target.Actor.FateID == World.Client.ActiveFate.ID && target.Priority == AIHints.Enemy.PriorityUndesirable)
                 {
                     var isForlorn = target.Actor.NameID is 6737 or 6738;
                     prioritize(target, isForlorn ? 1 : 0);
