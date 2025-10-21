@@ -750,7 +750,7 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));
 
         var curFate = FateManager.Instance()->CurrentFate;
-        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius) : default;
+        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius, curFate->Progress, curFate->HandInCount) : default;
         if (_ws.Client.ActiveFate != activeFate)
             _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
 
@@ -794,14 +794,34 @@ sealed class WorldStateGameSync : IDisposable
         if (!MemoryExtensions.SequenceEqual(timers, _ws.Client.ProcTimers))
             _ws.Execute(new ClientState.OpProcTimersChange(timers.ToArray()));
 
+        void updateQuantity(uint itemId, uint count)
+        {
+            if (itemId == 0)
+                return;
+            if (count != _ws.Client.GetItemQuantity(itemId))
+                _ws.Execute(new ClientState.OpInventoryChange(itemId, count));
+        }
+
         if (_needInventoryUpdate)
         {
             var im = InventoryManager.Instance();
+            // update tracked items
             foreach (var id in ActionDefinitions.Instance.SupportedItems)
             {
                 var count = im->GetInventoryItemCount(id % 500000, id > 1000000, checkEquipped: false, checkArmory: false);
-                if (count != _ws.Client.Inventory[id])
-                    _ws.Execute(new ClientState.OpInventoryChange(id, (uint)count));
+                updateQuantity(id, (uint)count);
+            }
+
+            // update all key items (smaller set)
+            var ic = im->GetInventoryContainer(InventoryType.KeyItems);
+            if (ic->IsLoaded)
+            {
+                for (var i = 0; i < ic->Size; i++)
+                {
+                    var keyItem = ic->GetInventorySlot(i);
+                    if (keyItem != null)
+                        updateQuantity(keyItem->GetItemId(), keyItem->GetQuantity());
+                }
             }
             _needInventoryUpdate = false;
         }
@@ -998,6 +1018,9 @@ sealed class WorldStateGameSync : IDisposable
                 break;
             case Network.ServerIPC.ActorControlCategory.DirectorUpdate:
                 _globalOps.Add(new WorldState.OpDirectorUpdate(p1, p2, p3, p4, p5, p6));
+                break;
+            case Network.ServerIPC.ActorControlCategory.FateReceiveItem:
+                _needInventoryUpdate = true;
                 break;
         }
     }

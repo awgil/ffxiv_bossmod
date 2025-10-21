@@ -666,6 +666,7 @@ public enum ActorControlCategory : ushort
     TripleTriadUnknown = 1205, // from dissector
     FateNpc = 2351, // from dissector
     FateInit = 2353, // from dissector
+    FateReceiveItem = 2354,
     FateAssignID = 2356, // p1 = fate id, assigned to main obj
     FateStart = 2357, // from dissector
     FateEnd = 2358, // from dissector

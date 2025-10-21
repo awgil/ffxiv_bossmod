@@ -32,7 +32,7 @@ public record struct Cooldown(float Elapsed, float Total)
 // this is generally not available for non-player party members, but we can try to guess
 public sealed class ClientState
 {
-    public readonly record struct Fate(uint ID, Vector3 Center, float Radius);
+    public readonly record struct Fate(uint ID, Vector3 Center, float Radius, byte Progress, byte HandInCount);
     public record struct Combo(uint Action, float Remaining);
     public record struct Gauge(ulong Low, ulong High);
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
@@ -69,7 +69,7 @@ public sealed class ClientState
     public uint[] ContentKeyValueData = new uint[6]; // used for content-specific persistent player attributes, like bozja resistance rank
     public HateInfo CurrentTargetHate = new(0, new Hate[32]);
 
-    public readonly Dictionary<uint, uint> Inventory; // only tracks items in ActionDefinitions' SupportedItems set
+    public readonly Dictionary<uint, uint> Inventory; // tracks supported regular items and all key items
 
     public uint GetItemQuantity(uint itemId) => Inventory.TryGetValue(itemId, out var q) ? q : 0;
 
@@ -390,7 +390,7 @@ public sealed class ClientState
             ws.Client.ActiveFate = Value;
             ws.Client.ActiveFateChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3").Emit(Value.Progress).Emit(Value.HandInCount);
     }
 
     public Event<OpActivePetChange> ActivePetChanged = new();
