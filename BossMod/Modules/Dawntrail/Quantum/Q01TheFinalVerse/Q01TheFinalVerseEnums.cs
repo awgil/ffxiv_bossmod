@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Quantum.Q01TheFinalVerse;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Quantum.Q01TheFinalVerse;
 
 public enum OID : uint
 {

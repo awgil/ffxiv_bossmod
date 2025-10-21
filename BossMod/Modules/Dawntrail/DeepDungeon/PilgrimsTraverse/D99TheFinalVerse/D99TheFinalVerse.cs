@@ -80,7 +80,6 @@ public enum SID : uint
     Bind = 4510, // Helper->player, extra=0x0
     Rehabilitation = 4191, // none->DevouredEater/Boss, extra=0x1/0x2/0x3
     DamageUp = 2550, // none->Boss/DevouredEater, extra=0x1/0x2/0x3
-    _Gen_ = 3913, // Boss->Boss, extra=0x3C6
     ChainsOfCondemnation = 4562, // Helper->player, extra=0x0
     BorrowedTime = 4561, // none->Boss, extra=0x0
 }

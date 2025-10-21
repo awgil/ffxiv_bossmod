@@ -1,7 +1,6 @@
 ﻿using BossMod.Pathfinding;
 using System.Data.SQLite;
 using System.IO;
-using System.Reflection;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
@@ -719,8 +718,6 @@ public abstract partial class AutoClear : ZoneModule
 
         return false;
     }
-
-    private Stream GetEmbeddedResource(string name) => Assembly.GetExecutingAssembly().GetManifestResourceStream($"BossMod.Modules.Global.DeepDungeon.{name}") ?? throw new InvalidDataException($"Missing embedded resource {name}");
 }
 
 static class PalacePalInterop

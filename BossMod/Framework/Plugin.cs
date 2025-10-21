@@ -357,7 +357,6 @@ public sealed class Plugin : IDalamudPlugin
                 if (distSq < 2500)
                     FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->Target = obj;
             }
-
         }
         foreach (var s in _hints.StatusesToCancel)
         {
