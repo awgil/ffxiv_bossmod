@@ -253,6 +253,11 @@ public enum SID : uint
     HighPoweredSniperCannonFodder = 3426, // none->player, extra=0x0
     Invincibility = 671, // none->OmegaM, extra=0x0
 
+    OmegaF = 1675, // OmegaM->OmegaF/OmegaM, extra=0x1EB
+    OmegaM = 3454, // OmegaF->OmegaM/OmegaF, extra=0x1EA
+    PacketFilterM = 3499, // none->player, extra=0x0
+    PacketFilterF = 3500, // none->player, extra=0x0
+
     // hello world: all 'prep' statuses are replaced with actual statuses on expiration
     HWPrepStack = 3436, // none->player, extra=0x0 - 'synchronization code smell', stack preparation
     HWPrepDefamation = 3437, // none->player, extra=0x0 - 'overflow code smell', defamation preparation

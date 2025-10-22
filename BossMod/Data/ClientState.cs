@@ -102,7 +102,7 @@ public sealed class ClientState
     public int ClassJobLevel(Class c)
     {
         var index = Service.LuminaRow<Lumina.Excel.Sheets.ClassJob>((uint)c)?.ExpArrayIndex ?? -1;
-        return index >= 0 && index < ClassJobLevels.Length ? ClassJobLevels[index] : -1;
+        return ClassJobLevels.BoundSafeAt(index, (short)-1);
     }
 
     // TODO: think about how to improve it...
