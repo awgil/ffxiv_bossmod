@@ -47,8 +47,11 @@ public abstract record class StrategyConfig(
     float UIPriority // tracks are sorted by UI priority for display; negative are hidden by default
 )
 {
-    public abstract Type ValueType();
-    public abstract StrategyValue CreateEmptyValue();
+    public abstract StrategyValue CreateEmpty();
+    public abstract StrategyValue CreateForEditor();
+
+    public abstract string ToDisplayString(StrategyValue val);
+    public abstract void WriteValue(Utf8JsonWriter writer, StrategyValue val);
 
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 }
@@ -61,24 +64,36 @@ public record class StrategyConfigTrack(
     float UIPriority
 ) : StrategyConfig(InternalName, DisplayName, UIPriority)
 {
-    public override Type ValueType() => typeof(StrategyValueTrack);
-
-    public override StrategyValue CreateEmptyValue() => new StrategyValueTrack() { Option = Options.Count > 1 ? 1 : 0 };
+    public override StrategyValueTrack CreateEmpty() => new();
+    public override StrategyValueTrack CreateForEditor() => new() { Option = Options.Count > 1 ? 1 : 0 };
 
     public readonly List<StrategyOption> Options = [];
     public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
+
+    public override string ToDisplayString(StrategyValue val) => Options[((StrategyValueTrack)val).Option].DisplayName;
+    public override void WriteValue(Utf8JsonWriter writer, StrategyValue val)
+    {
+        writer.WriteString(nameof(StrategyValueTrack.Option), Options[((StrategyValueTrack)val).Option].InternalName);
+    }
 }
 
 public record class StrategyConfigScalar(
     string InternalName,
     string DisplayName,
+    bool IsInt,
     float MinValue,
     float MaxValue,
     float UIPriority
 ) : StrategyConfig(InternalName, DisplayName, UIPriority)
 {
-    public override Type ValueType() => typeof(StrategyValueScalar);
-    public override StrategyValue CreateEmptyValue() => new StrategyValueScalar() { Value = MinValue };
+    public override StrategyValueScalar CreateEmpty() => new() { Value = MinValue };
+    public override StrategyValueScalar CreateForEditor() => new() { Value = MinValue };
+
+    public override string ToDisplayString(StrategyValue val) => ((StrategyValueScalar)val).Value.ToString();
+    public override void WriteValue(Utf8JsonWriter writer, StrategyValue val)
+    {
+        writer.WriteNumber(nameof(StrategyValueScalar.Value), ((StrategyValueScalar)val).Value);
+    }
 }
 
 // each strategy config has a unique set of allowed options; each option has a set of properties describing how it is rendered in planner and what further configuration parameters it supports
@@ -102,9 +117,6 @@ public abstract record class StrategyValue
     public string Comment = "";
     public float ExpireIn = float.MaxValue;
 
-    public abstract string DisplayString(StrategyConfig config);
-    public abstract string InternalString(StrategyConfig config);
-
     public abstract void ReadFromElement(JsonElement js);
     public abstract void WriteJSON(Utf8JsonWriter writer);
 }
@@ -118,9 +130,6 @@ public record class StrategyValueTrack : StrategyValue
     public int TargetParam; // strategy-specific parameter
     public float Offset1; // x or r coordinate
     public float Offset2; // y or phi coordinate
-
-    public override string DisplayString(StrategyConfig config) => (config as StrategyConfigTrack)!.Options[Option].DisplayName;
-    public override string InternalString(StrategyConfig config) => (config as StrategyConfigTrack)!.Options[Option].InternalName;
 
     public override void ReadFromElement(JsonElement js)
     {
@@ -159,9 +168,6 @@ public record class StrategyValueScalar : StrategyValue
 {
     public float Value;
 
-    public override string DisplayString(StrategyConfig config) => Value.ToString();
-    public override string InternalString(StrategyConfig config) => Value.ToString();
-
     public override void ReadFromElement(JsonElement js)
     {
         if (js.TryGetProperty(nameof(Value), out var v))
@@ -176,7 +182,7 @@ public record class StrategyValueScalar : StrategyValue
 
 public readonly record struct StrategyValues(List<StrategyConfig> Configs)
 {
-    public readonly StrategyValue[] Values = [.. Configs.Select(c => (StrategyValue)Activator.CreateInstance(c.ValueType())!)];
+    public readonly StrategyValue[] Values = [.. Configs.Select(c => c.CreateEmpty())];
 
     // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
     public readonly struct OptionRef(StrategyConfigTrack config, StrategyValueTrack value)
@@ -198,8 +204,8 @@ public readonly record struct StrategyValues(List<StrategyConfig> Configs)
     public readonly OptionRef Option<TrackIndex>(TrackIndex index) where TrackIndex : Enum
     {
         var idx = (int)(object)index;
-        if (Configs[idx] is StrategyConfigTrack c && Values[idx] is StrategyValueTrack t)
-            return new(c, t);
+        if (Configs[idx] is StrategyConfigTrack c)
+            return new(c, (StrategyValueTrack)Values[idx]);
         throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Track type");
     }
 }

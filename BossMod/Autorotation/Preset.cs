@@ -114,27 +114,28 @@ public class JsonPresetConverter : JsonConverter<Preset>
                     continue;
                 }
 
-                if (md.Definition.Configs[s.Track] is StrategyConfigTrack cfgTrack)
+                switch (md.Definition.Configs[s.Track])
                 {
-                    var optionName = js.GetProperty(nameof(StrategyValueTrack.Option)).GetString() ?? "";
-                    var t = new StrategyValueTrack
-                    {
-                        Option = cfgTrack.Options.FindIndex(o => o.InternalName == optionName)
-                    };
-                    s.Value = t;
+                    case StrategyConfigTrack cfgTrack:
+                        var optionName = js.GetProperty(nameof(StrategyValueTrack.Option)).GetString() ?? "";
+                        var t = new StrategyValueTrack
+                        {
+                            Option = cfgTrack.Options.FindIndex(o => o.InternalName == optionName)
+                        };
+                        s.Value = t;
 
-                    if (t.Option < 0)
-                    {
-                        Service.Log($"Error while deserializing preset {res.Name}: failed to find option {optionName} in track {trackName} in module {jm.Name}");
-                        continue;
-                    }
-                }
-                else if (md.Definition.Configs[s.Track] is StrategyConfigScalar cfgScalar)
-                {
-                    s.Value = new StrategyValueScalar()
-                    {
-                        Value = (float)js.GetProperty(nameof(StrategyValueScalar.Value)).GetDouble()
-                    };
+                        if (t.Option < 0)
+                        {
+                            Service.Log($"Error while deserializing preset {res.Name}: failed to find option {optionName} in track {trackName} in module {jm.Name}");
+                            continue;
+                        }
+                        break;
+                    case StrategyConfigScalar cfgScalar:
+                        s.Value = new StrategyValueScalar()
+                        {
+                            Value = (float)js.GetProperty(nameof(StrategyValueScalar.Value)).GetDouble()
+                        };
+                        break;
                 }
 
                 if (js.TryGetProperty(nameof(Preset.ModuleSetting.Mod), out var jmod))
@@ -161,15 +162,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 writer.WriteStartObject();
                 writer.WriteString(nameof(Preset.ModuleSetting.Track), m.Definition.Configs[s.Track].InternalName);
 
-                switch (s.Value)
-                {
-                    case StrategyValueTrack tr:
-                        writer.WriteString(nameof(StrategyValueTrack.Option), ((StrategyConfigTrack)m.Definition.Configs[s.Track]).Options[tr.Option].InternalName);
-                        break;
-                    case StrategyValueScalar sc:
-                        writer.WriteNumber(nameof(StrategyValueScalar.Value), sc.Value);
-                        break;
-                }
+                m.Definition.Configs[s.Track].WriteValue(writer, s.Value);
 
                 if (s.Mod != Preset.Modifier.None)
                     writer.WriteString(nameof(Preset.ModuleSetting.Mod), s.Mod.ToString());

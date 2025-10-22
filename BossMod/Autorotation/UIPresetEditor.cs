@@ -288,7 +288,7 @@ public sealed class UIPresetEditor
             if (ImGui.Selectable(cfg.UIName))
             {
                 _selectedSettingIndex = ms.SerializedSettings.Count;
-                ms.SerializedSettings.Add(new(Preset.Modifier.None, i, cfg.CreateEmptyValue()));
+                ms.SerializedSettings.Add(new(Preset.Modifier.None, i, cfg.CreateForEditor()));
                 Modified = true;
                 RebuildSettingGuids();
             }

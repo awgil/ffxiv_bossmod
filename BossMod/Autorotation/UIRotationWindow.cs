@@ -118,7 +118,7 @@ public sealed class UIRotationWindow : UIWindow
                         foreach (var s in m.TransientSettings)
                         {
                             var track = m.Definition.Configs[s.Track];
-                            ImGui.TextUnformatted($"{track.InternalName} = {s.Value.InternalString(track)}");
+                            ImGui.TextUnformatted($"{track.InternalName} = {track.ToDisplayString(s.Value)}");
                         }
                     }
                 }
