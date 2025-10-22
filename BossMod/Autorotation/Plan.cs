@@ -194,14 +194,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 foreach (ref var s in track.AsSpan())
                 {
                     writer.WriteStartObject();
-                    if (cfg is StrategyConfigTrack cfgTrack)
-                    {
-                        writer.WriteString(nameof(StrategyValueTrack.Option), cfgTrack.Options[((StrategyValueTrack)s.Value).Option].InternalName);
-                    }
-                    else if (cfg is StrategyConfigScalar)
-                    {
-                        writer.WriteNumber(nameof(StrategyValueScalar.Value), ((StrategyValueScalar)s.Value).Value);
-                    }
+                    cfg.WriteValue(writer, s.Value);
                     WriteEntryFields(writer, in s);
                     writer.WriteEndObject();
                 }
