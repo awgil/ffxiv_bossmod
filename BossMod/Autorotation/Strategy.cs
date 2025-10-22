@@ -1,4 +1,6 @@
-﻿namespace BossMod.Autorotation;
+﻿using System.Text.Json;
+
+namespace BossMod.Autorotation;
 
 // target selection strategies; there is an extra int parameter that targets can use for storing more info
 public enum StrategyTarget
@@ -79,6 +81,38 @@ public record struct StrategyValue()
     public float Offset2; // y or phi coordinate
     public string Comment = ""; // user-editable comment string
     public float ExpireIn = float.MaxValue; // time until strategy expires
+
+    public void ReadFromElement(JsonElement js)
+    {
+        if (js.TryGetProperty(nameof(PriorityOverride), out var jprio))
+            PriorityOverride = jprio.GetSingle();
+        if (js.TryGetProperty(nameof(Target), out var jtarget))
+            Target = Enum.Parse<StrategyTarget>(jtarget.GetString() ?? "");
+        if (js.TryGetProperty(nameof(TargetParam), out var jtp))
+            TargetParam = jtp.GetInt32();
+        if (js.TryGetProperty(nameof(Offset1), out var joff1))
+            Offset1 = joff1.GetSingle();
+        if (js.TryGetProperty(nameof(Offset2), out var joff2))
+            Offset2 = joff2.GetSingle();
+        if (js.TryGetProperty(nameof(Comment), out var jcomment))
+            Comment = jcomment.GetString() ?? "";
+    }
+
+    public readonly void WriteJSON(Utf8JsonWriter writer)
+    {
+        if (!float.IsNaN(PriorityOverride))
+            writer.WriteNumber(nameof(PriorityOverride), PriorityOverride);
+        if (Target != StrategyTarget.Automatic)
+            writer.WriteString(nameof(Target), Target.ToString());
+        if (TargetParam != 0)
+            writer.WriteNumber(nameof(TargetParam), TargetParam);
+        if (Offset1 != 0)
+            writer.WriteNumber(nameof(Offset1), Offset1);
+        if (Offset2 != 0)
+            writer.WriteNumber(nameof(Offset2), Offset2);
+        if (Comment.Length > 0)
+            writer.WriteString(nameof(Comment), Comment);
+    }
 }
 
 public readonly record struct StrategyValues(List<StrategyConfig> Configs)

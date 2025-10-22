@@ -211,18 +211,8 @@ public class JsonPlanConverter : JsonConverter<Plan>
         entry.WindowLength = jelem.GetProperty(nameof(Plan.Entry.WindowLength)).GetSingle();
         if (jelem.TryGetProperty(nameof(Plan.Entry.Disabled), out var jdisabled))
             entry.Disabled = jdisabled.GetBoolean();
-        if (jelem.TryGetProperty(nameof(StrategyValue.PriorityOverride), out var jprio))
-            entry.Value.PriorityOverride = jprio.GetSingle();
-        if (jelem.TryGetProperty(nameof(StrategyValue.Target), out var jtarget))
-            entry.Value.Target = Enum.Parse<StrategyTarget>(jtarget.GetString() ?? "");
-        if (jelem.TryGetProperty(nameof(StrategyValue.TargetParam), out var jtp))
-            entry.Value.TargetParam = jtp.GetInt32();
-        if (jelem.TryGetProperty(nameof(StrategyValue.Offset1), out var joff1))
-            entry.Value.Offset1 = joff1.GetSingle();
-        if (jelem.TryGetProperty(nameof(StrategyValue.Offset2), out var joff2))
-            entry.Value.Offset2 = joff2.GetSingle();
-        if (jelem.TryGetProperty(nameof(StrategyValue.Comment), out var jcomment))
-            entry.Value.Comment = jcomment.GetString() ?? "";
+
+        entry.Value.ReadFromElement(jelem);
     }
 
     private void WriteEntryFields(Utf8JsonWriter writer, in Plan.Entry entry)
@@ -232,17 +222,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
         writer.WriteNumber(nameof(Plan.Entry.WindowLength), entry.WindowLength);
         if (entry.Disabled)
             writer.WriteBoolean(nameof(Plan.Entry.Disabled), entry.Disabled);
-        if (!float.IsNaN(entry.Value.PriorityOverride))
-            writer.WriteNumber(nameof(StrategyValue.PriorityOverride), entry.Value.PriorityOverride);
-        if (entry.Value.Target != StrategyTarget.Automatic)
-            writer.WriteString(nameof(StrategyValue.Target), entry.Value.Target.ToString());
-        if (entry.Value.TargetParam != 0)
-            writer.WriteNumber(nameof(StrategyValue.TargetParam), entry.Value.TargetParam);
-        if (entry.Value.Offset1 != 0)
-            writer.WriteNumber(nameof(StrategyValue.Offset1), entry.Value.Offset1);
-        if (entry.Value.Offset2 != 0)
-            writer.WriteNumber(nameof(StrategyValue.Offset2), entry.Value.Offset2);
-        if (entry.Value.Comment.Length > 0)
-            writer.WriteString(nameof(StrategyValue.Comment), entry.Value.Comment);
+
+        entry.Value.WriteJSON(writer);
     }
 }

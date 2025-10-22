@@ -124,18 +124,8 @@ public class JsonPresetConverter : JsonConverter<Preset>
 
                 if (js.TryGetProperty(nameof(Preset.ModuleSetting.Mod), out var jmod))
                     s.Mod = Enum.Parse<Preset.Modifier>(jmod.GetString() ?? "");
-                if (js.TryGetProperty(nameof(StrategyValue.PriorityOverride), out var jprio))
-                    s.Value.PriorityOverride = jprio.GetSingle();
-                if (js.TryGetProperty(nameof(StrategyValue.Target), out var jtarget))
-                    s.Value.Target = Enum.Parse<StrategyTarget>(jtarget.GetString() ?? "");
-                if (js.TryGetProperty(nameof(StrategyValue.TargetParam), out var jtp))
-                    s.Value.TargetParam = jtp.GetInt32();
-                if (js.TryGetProperty(nameof(StrategyValue.Offset1), out var joff1))
-                    s.Value.Offset1 = joff1.GetSingle();
-                if (js.TryGetProperty(nameof(StrategyValue.Offset2), out var joff2))
-                    s.Value.Offset2 = joff2.GetSingle();
-                if (js.TryGetProperty(nameof(StrategyValue.Comment), out var jcomment))
-                    s.Value.Comment = jcomment.GetString() ?? "";
+
+                s.Value.ReadFromElement(js);
 
                 m.SerializedSettings.Add(s);
             }
@@ -158,18 +148,9 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 writer.WriteString(nameof(StrategyValue.Option), m.Definition.Configs[s.Track].Options[s.Value.Option].InternalName);
                 if (s.Mod != Preset.Modifier.None)
                     writer.WriteString(nameof(Preset.ModuleSetting.Mod), s.Mod.ToString());
-                if (!float.IsNaN(s.Value.PriorityOverride))
-                    writer.WriteNumber(nameof(StrategyValue.PriorityOverride), s.Value.PriorityOverride);
-                if (s.Value.Target != StrategyTarget.Automatic)
-                    writer.WriteString(nameof(StrategyValue.Target), s.Value.Target.ToString());
-                if (s.Value.TargetParam != 0)
-                    writer.WriteNumber(nameof(StrategyValue.TargetParam), s.Value.TargetParam);
-                if (s.Value.Offset1 != 0)
-                    writer.WriteNumber(nameof(StrategyValue.Offset1), s.Value.Offset1);
-                if (s.Value.Offset2 != 0)
-                    writer.WriteNumber(nameof(StrategyValue.Offset2), s.Value.Offset2);
-                if (s.Value.Comment.Length > 0)
-                    writer.WriteString(nameof(StrategyValue.Comment), s.Value.Comment);
+
+                s.Value.WriteJSON(writer);
+
                 writer.WriteEndObject();
             }
             writer.WriteEndArray();
