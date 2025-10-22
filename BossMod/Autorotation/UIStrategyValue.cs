@@ -51,7 +51,7 @@ public static class UIStrategyValue
         var modified = false;
         if (value is StrategyValueTrack tr)
         {
-            modified |= DrawEditorOption(tr, cfg, level);
+            modified |= DrawEditorTrackOption(tr, cfg, level);
             modified |= ImGui.InputText("Comment", ref value.Comment, 512);
             modified |= DrawEditorPriority(tr);
             modified |= DrawEditorTarget(tr, cfg.Options[tr.Option].SupportedTargets, moduleInfo);
@@ -59,7 +59,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool DrawEditorOption(StrategyValueTrack value, StrategyConfigTrack cfg, int? level, string label = "Option")
+    public static bool DrawEditorTrackOption(StrategyValueTrack value, StrategyConfigTrack cfg, int? level, string label = "Option")
     {
         var modified = false;
         using (var combo = ImRaii.Combo(label, cfg.Options[value.Option].UIName))

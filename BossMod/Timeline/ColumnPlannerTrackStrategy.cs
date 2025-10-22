@@ -72,7 +72,7 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
             if (popup)
             {
                 var def = DefaultOverride;
-                if (UIStrategyValue.DrawEditorOption(def, config, level, "Plan default"))
+                if (UIStrategyValue.DrawEditorTrackOption(def, config, level, "Plan default"))
                 {
                     DefaultOverride = def;
                     NotifyModified();
