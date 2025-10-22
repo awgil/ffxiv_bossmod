@@ -16,7 +16,7 @@ class P2PacketFilter(BossModule module) : Components.GenericInvincible(module)
 
     private readonly Firewall[] _playerStates = Utils.MakeArray(PartyState.MaxPartySize, Firewall.None);
 
-    protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor) => _playerStates[slot] switch
+    protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor) => _playerStates.BoundSafeAt(slot) switch
     {
         Firewall.PacketFilterF => _omegaF,
         Firewall.PacketFilterM => _omegaM,
