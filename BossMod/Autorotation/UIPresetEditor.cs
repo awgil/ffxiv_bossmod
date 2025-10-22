@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
@@ -232,7 +232,16 @@ public sealed class UIPresetEditor
                 {
                     ref var m = ref ms.SerializedSettings.Ref(i);
                     var cfg = ms.Definition.Configs[m.Track];
-                    if (ImGui.Selectable($"[{i + 1}] {cfg.UIName} [{m.Mod}] = {cfg.Options[m.Value.Option].UIName}###setting{_settingGuids[i]}", i == _selectedSettingIndex))
+
+                    var selLabel = $"[{i + 1}] {cfg.UIName} [{m.Mod}] = ";
+                    if (cfg is StrategyConfigTrack tr)
+                        selLabel += tr.Options[((StrategyValueTrack)m.Value).Option].UIName;
+                    else
+                        selLabel += ((StrategyValueScalar)m.Value).Value.ToString("f1");
+
+                    selLabel += $"###setting{_settingGuids[i]}";
+
+                    if (ImGui.Selectable(selLabel, i == _selectedSettingIndex))
                     {
                         _selectedSettingIndex = i;
                     }
@@ -279,7 +288,7 @@ public sealed class UIPresetEditor
             if (ImGui.Selectable(cfg.UIName))
             {
                 _selectedSettingIndex = ms.SerializedSettings.Count;
-                ms.SerializedSettings.Add(new(Preset.Modifier.None, i, new() { Option = cfg.Options.Count > 1 ? 1 : 0 }));
+                ms.SerializedSettings.Add(new(Preset.Modifier.None, i, cfg.CreateEmptyValue()));
                 Modified = true;
                 RebuildSettingGuids();
             }
@@ -311,7 +320,14 @@ public sealed class UIPresetEditor
         foreach (var i in _orderedTrackList)
         {
             ref var val = ref values.Values[i];
-            ImGui.TextUnformatted($"{ms.Definition.Configs[i].UIName} = {ms.Definition.Configs[i].Options[val.Option].UIName}");
+            var keyStr = ms.Definition.Configs[i].UIName;
+            var valStr = val switch
+            {
+                StrategyValueTrack t => ((StrategyConfigTrack)ms.Definition.Configs[i]).Options[t.Option].UIName,
+                StrategyValueScalar s => s.Value.ToString(),
+                _ => null!
+            };
+            ImGui.TextUnformatted($"{keyStr} = {valStr}");
         }
     }
 
@@ -325,7 +341,8 @@ public sealed class UIPresetEditor
         Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Shift, "Shift");
         Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Ctrl, "Ctrl");
         Modified |= DrawModifier(ref s.Mod, Preset.Modifier.Alt, "Alt");
-        Modified |= UIStrategyValue.DrawEditor(ref s.Value, cfg, null, null);
+        if (s.Value is StrategyValueTrack v && cfg is StrategyConfigTrack t)
+            Modified |= UIStrategyValue.DrawEditor(v, t, null, null);
     }
 
     private bool DrawModifier(ref Preset.Modifier mod, Preset.Modifier flag, string label)

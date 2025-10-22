@@ -41,17 +41,44 @@ public enum StrategyEnemySelection : int
     HighestMaxHP = 4,
 }
 
-// the tuning knobs of the rotation module are represented by strategy config rather than usual global config classes, since we they need to be changed dynamically by planner or manual input
-public record class StrategyConfig(
-    Type OptionEnum, // type of the enum used for options
+public abstract record class StrategyConfig(
     string InternalName, // unique name of the config; it is used for serialization, so it can't really be changed without losing user data (or writing config converter)
     string DisplayName, // if non-empty, this name is used for all UI instead of internal name
-    float UIPriority) // tracks are sorted by UI priority for display; negative are hidden by default
+    float UIPriority // tracks are sorted by UI priority for display; negative are hidden by default
+)
 {
-    public readonly List<StrategyOption> Options = [];
-    public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
+    public abstract Type ValueType();
+    public abstract StrategyValue CreateEmptyValue();
 
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
+}
+
+// the tuning knobs of the rotation module are represented by strategy config rather than usual global config classes, since we they need to be changed dynamically by planner or manual input
+public record class StrategyConfigTrack(
+    Type OptionEnum, // type of the enum used for options
+    string InternalName,
+    string DisplayName,
+    float UIPriority
+) : StrategyConfig(InternalName, DisplayName, UIPriority)
+{
+    public override Type ValueType() => typeof(StrategyValueTrack);
+
+    public override StrategyValue CreateEmptyValue() => new StrategyValueTrack() { Option = Options.Count > 1 ? 1 : 0 };
+
+    public readonly List<StrategyOption> Options = [];
+    public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
+}
+
+public record class StrategyConfigScalar(
+    string InternalName,
+    string DisplayName,
+    float MinValue,
+    float MaxValue,
+    float UIPriority
+) : StrategyConfig(InternalName, DisplayName, UIPriority)
+{
+    public override Type ValueType() => typeof(StrategyValueScalar);
+    public override StrategyValue CreateEmptyValue() => new StrategyValueScalar() { Value = MinValue };
 }
 
 // each strategy config has a unique set of allowed options; each option has a set of properties describing how it is rendered in planner and what further configuration parameters it supports
@@ -70,8 +97,20 @@ public record class StrategyOption(string InternalName, string DisplayName)
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 }
 
+public abstract record class StrategyValue
+{
+    public string Comment = "";
+    public float ExpireIn = float.MaxValue;
+
+    public abstract string DisplayString(StrategyConfig config);
+    public abstract string InternalString(StrategyConfig config);
+
+    public abstract void ReadFromElement(JsonElement js);
+    public abstract void WriteJSON(Utf8JsonWriter writer);
+}
+
 // value represents the concrete option of a config that is selected at a given time; it can be either put on the planner timeline, or configured as part of manual overrides
-public record struct StrategyValue()
+public record class StrategyValueTrack : StrategyValue
 {
     public int Option; // index of the selected option among the Options list of the corresponding config
     public float PriorityOverride = float.NaN; // priority override for the action controlled by the config; not all configs support it, if not set the default priority is used
@@ -79,10 +118,11 @@ public record struct StrategyValue()
     public int TargetParam; // strategy-specific parameter
     public float Offset1; // x or r coordinate
     public float Offset2; // y or phi coordinate
-    public string Comment = ""; // user-editable comment string
-    public float ExpireIn = float.MaxValue; // time until strategy expires
 
-    public void ReadFromElement(JsonElement js)
+    public override string DisplayString(StrategyConfig config) => (config as StrategyConfigTrack)!.Options[Option].DisplayName;
+    public override string InternalString(StrategyConfig config) => (config as StrategyConfigTrack)!.Options[Option].InternalName;
+
+    public override void ReadFromElement(JsonElement js)
     {
         if (js.TryGetProperty(nameof(PriorityOverride), out var jprio))
             PriorityOverride = jprio.GetSingle();
@@ -98,7 +138,7 @@ public record struct StrategyValue()
             Comment = jcomment.GetString() ?? "";
     }
 
-    public readonly void WriteJSON(Utf8JsonWriter writer)
+    public override void WriteJSON(Utf8JsonWriter writer)
     {
         if (!float.IsNaN(PriorityOverride))
             writer.WriteNumber(nameof(PriorityOverride), PriorityOverride);
@@ -115,15 +155,34 @@ public record struct StrategyValue()
     }
 }
 
+public record class StrategyValueScalar : StrategyValue
+{
+    public float Value;
+
+    public override string DisplayString(StrategyConfig config) => Value.ToString();
+    public override string InternalString(StrategyConfig config) => Value.ToString();
+
+    public override void ReadFromElement(JsonElement js)
+    {
+        if (js.TryGetProperty(nameof(Value), out var v))
+            Value = (float)v.GetDouble();
+    }
+
+    public override void WriteJSON(Utf8JsonWriter writer)
+    {
+        writer.WriteNumber(nameof(Value), Value);
+    }
+}
+
 public readonly record struct StrategyValues(List<StrategyConfig> Configs)
 {
-    public readonly StrategyValue[] Values = Utils.MakeArray(Configs.Count, new StrategyValue());
+    public readonly StrategyValue[] Values = [.. Configs.Select(c => (StrategyValue)Activator.CreateInstance(c.ValueType())!)];
 
     // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
-    public readonly ref struct OptionRef(ref StrategyConfig config, ref StrategyValue value)
+    public readonly struct OptionRef(StrategyConfigTrack config, StrategyValueTrack value)
     {
-        public readonly ref readonly StrategyConfig Config = ref config;
-        public readonly ref readonly StrategyValue Value = ref value;
+        public readonly StrategyConfigTrack Config = config;
+        public readonly StrategyValueTrack Value = value;
 
         public OptionType As<OptionType>() where OptionType : Enum
         {
@@ -139,6 +198,8 @@ public readonly record struct StrategyValues(List<StrategyConfig> Configs)
     public readonly OptionRef Option<TrackIndex>(TrackIndex index) where TrackIndex : Enum
     {
         var idx = (int)(object)index;
-        return new(ref Configs.Ref(idx), ref Values[idx]);
+        if (Configs[idx] is StrategyConfigTrack c && Values[idx] is StrategyValueTrack t)
+            return new(c, t);
+        throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Track type");
     }
 }

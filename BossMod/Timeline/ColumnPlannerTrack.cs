@@ -1,6 +1,5 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
-using System.Runtime.CompilerServices;
 
 namespace BossMod;
 
@@ -180,7 +179,7 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
             UpdateElement(e);
     }
 
-    protected abstract StrategyValue GetDefaultValue();
+    protected abstract StrategyValueTrack GetDefaultValue();
     protected abstract void RefreshElement(Element e);
     protected abstract bool EditElement(Element e);
     protected abstract List<string> DescribeElement(Element e);

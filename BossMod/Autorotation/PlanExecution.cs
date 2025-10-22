@@ -23,7 +23,7 @@ public sealed class PlanExecution
         public bool IsActive(float t, StateData s) => t >= WindowStart && t <= WindowEnd && IntersectBranchRange(s.BranchID, s.NumBranches);
     }
 
-    public readonly record struct ModuleData(Type Type, RotationModuleDefinition Definition, List<List<EntryData>> Tracks, List<StrategyValue> Defaults);
+    public readonly record struct ModuleData(Type Type, RotationModuleDefinition Definition, List<List<EntryData>> Tracks, List<StrategyValueTrack> Defaults);
 
     public readonly BossModule Module;
     public readonly Plan? Plan;
@@ -98,11 +98,11 @@ public sealed class PlanExecution
         return res;
     }
 
-    public StrategyValue? ActiveForcedTarget()
+    public StrategyValueTrack? ActiveForcedTarget()
     {
         var s = FindCurrentStateData();
         var t = GetVirtualTime(s);
-        return GetEntryAt(ForcedTargets, t, s)?.Value;
+        return GetEntryAt(ForcedTargets, t, s)?.Value as StrategyValueTrack;
     }
 
     private StateData ProcessState(StateMachineTree tree, StateMachineTree.Node curState, StateData? prev, StateData? nextPhaseStart)

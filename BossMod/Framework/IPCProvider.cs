@@ -131,13 +131,28 @@ sealed class IPCProvider : IDisposable
             var iTrack = md.Definition.Configs.FindIndex(td => td.InternalName == trackName);
             if (iTrack < 0)
                 return false;
-            var iOpt = md.Definition.Configs[iTrack].Options.FindIndex(od => od.InternalName == value);
-            if (iOpt < 0)
-                return false;
+
+            StrategyValue tempValue;
+
+            switch (md.Definition.Configs[iTrack])
+            {
+                case StrategyConfigTrack tr:
+                    var iOpt = tr.Options.FindIndex(od => od.InternalName == value);
+                    if (iOpt < 0)
+                        return false;
+                    tempValue = new StrategyValueTrack() { Option = iOpt, Target = target, TargetParam = targetParam };
+                    break;
+                case StrategyConfigScalar sc:
+                    tempValue = new StrategyValueScalar() { Value = Math.Clamp(float.Parse(value), sc.MinValue, sc.MaxValue) };
+                    break;
+                case var x:
+                    throw new ArgumentException($"unhandled config type {x.GetType()}");
+            }
+
             var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == mt);
             if (ms == null)
                 return false;
-            var setting = new Preset.ModuleSetting(default, iTrack, new() { Option = iOpt, Target = target, TargetParam = targetParam });
+            var setting = new Preset.ModuleSetting(default, iTrack, tempValue);
             var index = ms.TransientSettings.FindIndex(s => s.Track == iTrack);
             if (index < 0)
                 ms.TransientSettings.Add(setting);

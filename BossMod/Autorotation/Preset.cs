@@ -104,7 +104,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
             var m = res.Modules[mi];
             foreach (var js in jm.Value.EnumerateArray())
             {
-                var s = new Preset.ModuleSetting() { Value = new() };
+                var s = new Preset.ModuleSetting() { Value = null! };
 
                 var trackName = js.GetProperty(nameof(Preset.ModuleSetting.Track)).GetString() ?? "";
                 s.Track = md.Definition.Configs.FindIndex(s => s.InternalName == trackName);
@@ -114,12 +114,27 @@ public class JsonPresetConverter : JsonConverter<Preset>
                     continue;
                 }
 
-                var optionName = js.GetProperty(nameof(StrategyValue.Option)).GetString() ?? "";
-                s.Value.Option = md.Definition.Configs[s.Track].Options.FindIndex(o => o.InternalName == optionName);
-                if (s.Value.Option < 0)
+                if (md.Definition.Configs[s.Track] is StrategyConfigTrack cfgTrack)
                 {
-                    Service.Log($"Error while deserializing preset {res.Name}: failed to find option {optionName} in track {trackName} in module {jm.Name}");
-                    continue;
+                    var optionName = js.GetProperty(nameof(StrategyValueTrack.Option)).GetString() ?? "";
+                    var t = new StrategyValueTrack
+                    {
+                        Option = cfgTrack.Options.FindIndex(o => o.InternalName == optionName)
+                    };
+                    s.Value = t;
+
+                    if (t.Option < 0)
+                    {
+                        Service.Log($"Error while deserializing preset {res.Name}: failed to find option {optionName} in track {trackName} in module {jm.Name}");
+                        continue;
+                    }
+                }
+                else if (md.Definition.Configs[s.Track] is StrategyConfigScalar cfgScalar)
+                {
+                    s.Value = new StrategyValueScalar()
+                    {
+                        Value = (float)js.GetProperty(nameof(StrategyValueScalar.Value)).GetDouble()
+                    };
                 }
 
                 if (js.TryGetProperty(nameof(Preset.ModuleSetting.Mod), out var jmod))
@@ -141,11 +156,21 @@ public class JsonPresetConverter : JsonConverter<Preset>
         foreach (var m in value.Modules)
         {
             writer.WriteStartArray(m.Type.FullName!);
-            foreach (ref var s in m.SerializedSettings.AsSpan())
+            foreach (var s in m.SerializedSettings)
             {
                 writer.WriteStartObject();
                 writer.WriteString(nameof(Preset.ModuleSetting.Track), m.Definition.Configs[s.Track].InternalName);
-                writer.WriteString(nameof(StrategyValue.Option), m.Definition.Configs[s.Track].Options[s.Value.Option].InternalName);
+
+                switch (s.Value)
+                {
+                    case StrategyValueTrack tr:
+                        writer.WriteString(nameof(StrategyValueTrack.Option), ((StrategyConfigTrack)m.Definition.Configs[s.Track]).Options[tr.Option].InternalName);
+                        break;
+                    case StrategyValueScalar sc:
+                        writer.WriteNumber(nameof(StrategyValueScalar.Value), sc.Value);
+                        break;
+                }
+
                 if (s.Mod != Preset.Modifier.None)
                     writer.WriteString(nameof(Preset.ModuleSetting.Mod), s.Mod.ToString());
 

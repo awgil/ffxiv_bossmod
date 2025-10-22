@@ -16,7 +16,7 @@ public sealed record class Plan(string Name, Type Encounter)
         public StrategyValue Value = Value;
     }
 
-    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks, List<StrategyValue> Defaults) : IRotationModuleData
+    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks, List<StrategyValueTrack> Defaults) : IRotationModuleData
     {
         public readonly Module MakeClone() => this with { Tracks = [.. Tracks.Select(t => new List<Entry>([.. t]))], Defaults = [.. Defaults] };
     }
@@ -36,11 +36,11 @@ public sealed record class Plan(string Name, Type Encounter)
     public int AddModule(Type t, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder)
     {
         List<List<Entry>> tracks = [];
-        List<StrategyValue> defaults = [];
+        List<StrategyValueTrack> defaults = [];
         foreach (var _ in def.Configs)
         {
             tracks.Add([]);
-            defaults.Add(default);
+            defaults.Add(new StrategyValueTrack());
         }
 
         var insertionIndex = Modules.Count;
@@ -101,9 +101,9 @@ public class JsonPlanConverter : JsonConverter<Plan>
                             continue;
                         }
                         var optionName = jd.Value.GetString() ?? "";
-                        var s = new StrategyValue()
+                        var s = new StrategyValueTrack()
                         {
-                            Option = md.Definition.Configs[dTrack].Options.FindIndex(o => o.InternalName == optionName)
+                            Option = ((StrategyConfigTrack)md.Definition.Configs[dTrack]).Options.FindIndex(o => o.InternalName == optionName)
                         };
                         if (s.Option < 0)
                         {
@@ -125,14 +125,35 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 var cfg = md.Definition.Configs[iTrack];
                 foreach (var js in jt.Value.EnumerateArray())
                 {
-                    var s = new Plan.Entry(new());
-                    var optionName = js.GetProperty(nameof(StrategyValue.Option)).GetString() ?? "";
-                    s.Value.Option = cfg.Options.FindIndex(o => o.InternalName == optionName);
-                    if (s.Value.Option < 0)
+                    Plan.Entry s;
+                    if (cfg is StrategyConfigTrack cfgTrack)
                     {
-                        Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jt.Name} in module {jm.Name}");
+                        var optionName = js.GetProperty(nameof(StrategyValueTrack.Option)).GetString() ?? "";
+                        var t = new StrategyValueTrack
+                        {
+                            Option = cfgTrack.Options.FindIndex(o => o.InternalName == optionName)
+                        };
+                        if (t.Option < 0)
+                        {
+                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jt.Name} in module {jm.Name}");
+                            continue;
+                        }
+                        s = new Plan.Entry(t);
+                    }
+                    else if (cfg is StrategyConfigScalar cfgScalar)
+                    {
+                        var t = new StrategyValueScalar
+                        {
+                            Value = (float)js.GetProperty(nameof(StrategyValueScalar.Value)).GetDouble()
+                        };
+                        s = new Plan.Entry(t);
+                    }
+                    else
+                    {
+                        Service.Log($"Error while deserializing: unrecognized config type {cfg.GetType()}");
                         continue;
                     }
+
                     ReadEntryFields(ref s, in js);
                     track.Add(s);
                 }
@@ -140,7 +161,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
         }
         foreach (var jt in jdoc.RootElement.GetProperty(nameof(Plan.Targeting)).EnumerateArray())
         {
-            var s = new Plan.Entry(new());
+            var s = new Plan.Entry(new StrategyValueTrack());
             ReadEntryFields(ref s, in jt);
             res.Targeting.Add(s);
         }
@@ -173,7 +194,14 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 foreach (ref var s in track.AsSpan())
                 {
                     writer.WriteStartObject();
-                    writer.WriteString(nameof(StrategyValue.Option), cfg.Options[s.Value.Option].InternalName);
+                    if (cfg is StrategyConfigTrack cfgTrack)
+                    {
+                        writer.WriteString(nameof(StrategyValueTrack.Option), cfgTrack.Options[((StrategyValueTrack)s.Value).Option].InternalName);
+                    }
+                    else if (cfg is StrategyConfigScalar)
+                    {
+                        writer.WriteNumber(nameof(StrategyValueScalar.Value), ((StrategyValueScalar)s.Value).Value);
+                    }
                     WriteEntryFields(writer, in s);
                     writer.WriteEndObject();
                 }
@@ -186,7 +214,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 if (def == default)
                     continue;
 
-                var cfg = m.Definition.Configs[iDef];
+                var cfg = (StrategyConfigTrack)m.Definition.Configs[iDef];
                 writer.WriteString(cfg.InternalName, cfg.Options[def.Option].InternalName);
             }
             writer.WriteEndObject();

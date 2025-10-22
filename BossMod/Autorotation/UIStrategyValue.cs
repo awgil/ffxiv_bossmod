@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
@@ -14,18 +14,24 @@ public static class UIStrategyValue
         ("Very High", ActionQueue.Priority.VeryHigh),
     ];
 
-    public static List<string> Preview(ref StrategyValue value, StrategyConfig cfg, BossModuleRegistry.Info? moduleInfo)
+    public static List<string> Preview(StrategyValue value, StrategyConfigTrack cfg, BossModuleRegistry.Info? moduleInfo)
     {
-        var opt = cfg.Options[value.Option];
-        return [
-            $"Option: {opt.UIName}",
-            $"Comment: {value.Comment}",
-            $"Priority: {(float.IsNaN(value.PriorityOverride) ? $"default ({opt.DefaultPriority:f})" : value.PriorityOverride.ToString("f"))}",
-            $"Target: {PreviewTarget(ref value, moduleInfo)}"
-        ];
+        switch (value)
+        {
+            case StrategyValueTrack t:
+                var opt = cfg.Options[t.Option];
+                return [
+                    $"Option: {opt.UIName}",
+                    $"Comment: {value.Comment}",
+                    $"Priority: {(float.IsNaN(t.PriorityOverride) ? $"default ({opt.DefaultPriority:f})" : t.PriorityOverride.ToString("f"))}",
+                    $"Target: {PreviewTarget(t, moduleInfo)}"
+                ];
+            default:
+                return [];
+        }
     }
 
-    public static string PreviewTarget(ref StrategyValue value, BossModuleRegistry.Info? moduleInfo)
+    public static string PreviewTarget(StrategyValueTrack value, BossModuleRegistry.Info? moduleInfo)
     {
         var targetDetails = value.Target switch
         {
@@ -40,17 +46,20 @@ public static class UIStrategyValue
         return (targetDetails.Length > 0 ? $"{value.Target} ({targetDetails})" : $"{value.Target}") + offsetDetails;
     }
 
-    public static bool DrawEditor(ref StrategyValue value, StrategyConfig cfg, BossModuleRegistry.Info? moduleInfo, int? level)
+    public static bool DrawEditor(StrategyValue value, StrategyConfigTrack cfg, BossModuleRegistry.Info? moduleInfo, int? level)
     {
         var modified = false;
-        modified |= DrawEditorOption(ref value, cfg, level);
-        modified |= ImGui.InputText("Comment", ref value.Comment, 512);
-        modified |= DrawEditorPriority(ref value);
-        modified |= DrawEditorTarget(ref value, cfg.Options[value.Option].SupportedTargets, moduleInfo);
+        if (value is StrategyValueTrack tr)
+        {
+            modified |= DrawEditorOption(tr, cfg, level);
+            modified |= ImGui.InputText("Comment", ref value.Comment, 512);
+            modified |= DrawEditorPriority(tr);
+            modified |= DrawEditorTarget(tr, cfg.Options[tr.Option].SupportedTargets, moduleInfo);
+        }
         return modified;
     }
 
-    public static bool DrawEditorOption(ref StrategyValue value, StrategyConfig cfg, int? level, string label = "Option")
+    public static bool DrawEditorOption(StrategyValueTrack value, StrategyConfigTrack cfg, int? level, string label = "Option")
     {
         var modified = false;
         using (var combo = ImRaii.Combo(label, cfg.Options[value.Option].UIName))
@@ -74,7 +83,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool DrawEditorPriority(ref StrategyValue value)
+    public static bool DrawEditorPriority(StrategyValueTrack value)
     {
         var modified = false;
         var overridePriority = !float.IsNaN(value.PriorityOverride);
@@ -136,7 +145,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool DrawEditorTarget(ref StrategyValue value, ActionTargets supportedTargets, BossModuleRegistry.Info? moduleInfo)
+    public static bool DrawEditorTarget(StrategyValueTrack value, ActionTargets supportedTargets, BossModuleRegistry.Info? moduleInfo)
     {
         var modified = false;
         using (var combo = ImRaii.Combo("Target", value.Target.ToString()))

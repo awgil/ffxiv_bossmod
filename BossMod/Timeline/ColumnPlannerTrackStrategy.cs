@@ -1,17 +1,17 @@
 ﻿using BossMod.Autorotation;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, StrategyConfig config, int level, BossModuleRegistry.Info? moduleInfo, StrategyValue defaultOverride)
+public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, StrategyConfigTrack config, int level, BossModuleRegistry.Info? moduleInfo, StrategyValueTrack defaultOverride)
     : ColumnPlannerTrack(timeline, tree, phaseBranches, config.InternalName)
 {
-    public StrategyValue DefaultOverride { get; private set; } = defaultOverride;
+    public StrategyValueTrack DefaultOverride { get; private set; } = defaultOverride;
 
-    protected override StrategyValue GetDefaultValue()
+    protected override StrategyValueTrack GetDefaultValue()
     {
-        var res = new StrategyValue();
+        var res = new StrategyValueTrack();
         for (int i = 1; i < config.Options.Count; ++i)
         {
             if (level >= config.Options[i].MinLevel && level <= config.Options[i].MaxLevel)
@@ -72,7 +72,7 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
             if (popup)
             {
                 var def = DefaultOverride;
-                if (UIStrategyValue.DrawEditorOption(ref def, config, level, "Plan default"))
+                if (UIStrategyValue.DrawEditorOption(def, config, level, "Plan default"))
                 {
                     DefaultOverride = def;
                     NotifyModified();
@@ -94,12 +94,15 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
 
     protected override void RefreshElement(Element e)
     {
-        var opt = config.Options[e.Value.Option];
-        e.Window.Color = e.Value.Option > 0 && e.Value.Option <= Timeline.Colors.PlannerWindow.Length ? Timeline.Colors.PlannerWindow[e.Value.Option - 1] : Timeline.Colors.PlannerFallback;
-        e.CooldownLength = opt.Cooldown;
-        e.EffectLength = opt.Effect;
+        if (e.Value is StrategyValueTrack t)
+        {
+            var opt = config.Options[t.Option];
+            e.Window.Color = t.Option > 0 && t.Option <= Timeline.Colors.PlannerWindow.Length ? Timeline.Colors.PlannerWindow[t.Option - 1] : Timeline.Colors.PlannerFallback;
+            e.CooldownLength = opt.Cooldown;
+            e.EffectLength = opt.Effect;
+        }
     }
 
-    protected override List<string> DescribeElement(Element e) => UIStrategyValue.Preview(ref e.Value, config, moduleInfo);
-    protected override bool EditElement(Element e) => UIStrategyValue.DrawEditor(ref e.Value, config, moduleInfo, level) | EditElementWindow(e);
+    protected override List<string> DescribeElement(Element e) => UIStrategyValue.Preview(e.Value, config, moduleInfo);
+    protected override bool EditElement(Element e) => UIStrategyValue.DrawEditor(e.Value, config, moduleInfo, level) | EditElementWindow(e);
 }
