@@ -1,12 +1,16 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
+using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(PresetDatabase db)
+public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
 {
+    private readonly PresetDatabase PresetDB = rotationDB.Presets;
+
     private int _selectedPresetIndex = -1;
     private bool _selectedPresetDefault;
     private int _pendingSelectPresetIndex = -1; // if >= 0, we want to select different preset, but current one has modifications
@@ -92,7 +96,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         ImGui.SameLine();
 
         ImGui.SetNextItemWidth(200);
-        using (var combo = ImRaii.Combo("Preset", _selectedPreset == null ? "" : _selectedPresetIndex < 0 ? "<new>" : (_selectedPresetDefault ? db.DefaultPresets : db.UserPresets)[_selectedPresetIndex].Name))
+        using (var combo = ImRaii.Combo("Preset", _selectedPreset == null ? "" : _selectedPresetIndex < 0 ? "<new>" : (_selectedPresetDefault ? PresetDB.DefaultPresets : PresetDB.UserPresets)[_selectedPresetIndex].Name))
         {
             if (combo)
             {
@@ -130,7 +134,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
 
     private void DrawPresetListElements(bool defaultPresets)
     {
-        var presets = defaultPresets ? db.DefaultPresets : db.UserPresets;
+        var presets = defaultPresets ? PresetDB.DefaultPresets : PresetDB.UserPresets;
         for (int i = 0; i < presets.Count; ++i)
         {
             var preset = presets[i];
@@ -150,7 +154,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
                         _selectedPresetIndex = j;
                     else if (_selectedPresetIndex == j && _selectedPresetDefault == defaultPresets)
                         _selectedPresetIndex = i;
-                    db.Modify(-1, null);
+                    PresetDB.Modify(-1, null);
                     ImGui.ResetMouseDragDelta();
                 }
             }
@@ -159,15 +163,15 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
 
     private bool DrawSaveCurrentPresetButton() => UIMisc.Button("Save", 0, (!HaveUnsavedModifications, "Current preset is not modified"), (_selectedPreset?.NameConflict ?? false, "Current preset name is empty or duplicates name of other existing preset"));
 
-    private void RevertCurrentPreset() => _selectedPreset = new(db, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
+    private void RevertCurrentPreset() => _selectedPreset = new(PresetDB, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
 
     private void SaveCurrentPreset()
     {
         if (!_selectedPresetDefault && _selectedPreset != null && _selectedPreset.Modified && !_selectedPreset.NameConflict)
         {
-            db.Modify(_selectedPresetIndex, _selectedPreset.Preset);
+            PresetDB.Modify(_selectedPresetIndex, _selectedPreset.Preset);
             if (_selectedPresetIndex < 0)
-                _selectedPresetIndex = db.UserPresets.Count - 1;
+                _selectedPresetIndex = PresetDB.UserPresets.Count - 1;
             RevertCurrentPreset();
         }
         else
@@ -182,9 +186,9 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
         {
             _selectedPreset.DetachFromSource();
             _selectedPreset.MakeNameUnique();
-            _selectedPresetIndex = db.UserPresets.Count;
+            _selectedPresetIndex = PresetDB.UserPresets.Count;
             _selectedPresetDefault = false;
-            db.Modify(-1, _selectedPreset.Preset);
+            PresetDB.Modify(-1, _selectedPreset.Preset);
             RevertCurrentPreset();
         }
         else
@@ -197,7 +201,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
     {
         _selectedPresetIndex = -1;
         _selectedPresetDefault = false;
-        _selectedPreset = new(db, referenceIndex, referenceDefault, _selectedModuleType);
+        _selectedPreset = new(PresetDB, referenceIndex, referenceDefault, _selectedModuleType);
         _selectedPreset.DetachFromSource();
         _selectedPreset.MakeNameUnique();
     }
@@ -206,7 +210,7 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
     {
         if (!_selectedPresetDefault && _selectedPresetIndex >= 0)
         {
-            db.Modify(_selectedPresetIndex, null);
+            PresetDB.Modify(_selectedPresetIndex, null);
             _selectedPresetIndex = -1;
             _selectedPreset = null;
         }
@@ -241,10 +245,37 @@ public sealed class UIPresetDatabaseEditor(PresetDatabase db)
     {
         try
         {
-            var preset = JsonSerializer.Deserialize<Preset>(ImGui.GetClipboardText(), Serialization.BuildSerializationOptions())!;
+            var finfo = new FileInfo("<import from clipboard>");
+
+            // let users import encounter-specific plans from here for convenience
+            var json = JsonNode.Parse(ImGui.GetClipboardText());
+            if (json?.AsObject()?.ContainsKey("Encounter") == true)
+            {
+                foreach (var conv in PlanPresetConverter.PlanSchema.Converters)
+                    json = conv(json, 0, finfo);
+
+                var plan = JsonSerializer.Deserialize<Plan>(json, Serialization.BuildSerializationOptions())!;
+                plan.Guid = Guid.NewGuid().ToString();
+
+                rotationDB.Plans.ModifyPlan(null, plan);
+
+                Service.Notifications.AddNotification(new()
+                {
+                    Content = $"Imported plan '{plan.Name}' for L{plan.Level} {plan.Class}"
+                });
+
+                return;
+            }
+
+            json = new JsonArray(json);
+
+            foreach (var conv in PlanPresetConverter.PresetSchema.Converters)
+                json = conv(json, 0, finfo);
+
+            var preset = JsonSerializer.Deserialize<Preset>(json.AsArray()[0], Serialization.BuildSerializationOptions())!;
             _selectedPresetIndex = -1;
             _selectedPresetDefault = false;
-            _selectedPreset = new(db, preset, _selectedModuleType);
+            _selectedPreset = new(PresetDB, preset, _selectedModuleType);
         }
         catch (Exception ex)
         {

@@ -1,6 +1,8 @@
 ﻿using BossMod;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.Utility;
+using Dalamud.Plugin.Services;
 using ImGuiScene;
 using Microsoft.Win32;
 using System.Diagnostics;
@@ -13,6 +15,16 @@ namespace UIDev;
 
 class UITest
 {
+    class OfflineNotificationManager : INotificationManager
+    {
+        public IActiveNotification AddNotification(Notification notification)
+        {
+            Debug.WriteLine("User notification:");
+            Debug.WriteLine(notification);
+            return null!; // result is never used in uidev
+        }
+    }
+
     public static void Main(string[] args)
     {
         var windowInfo = new WindowCreateInfo()
@@ -53,6 +65,7 @@ class UITest
         Service.LuminaGameData.Options.PanicOnSheetChecksumMismatch = false; // TODO: remove - temporary workaround until lumina is updated
         Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
         Service.WindowSystem = new("uitest");
+        typeof(Service).GetProperty("Notifications")!.SetValue(null, new OfflineNotificationManager());
         var device = (SharpDX.Direct3D11.Device)scene.Renderer.GetType().GetField("_device", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(scene.Renderer)!;
         typeof(Service).GetProperty("Texture")!.SetValue(null, new OfflineTextureProvider(scene.Renderer, device));
         //Service.Device = (SharpDX.Direct3D11.Device?)scene.Renderer.GetType().GetField("_device", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(scene.Renderer);

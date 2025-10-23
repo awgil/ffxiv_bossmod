@@ -105,13 +105,26 @@ public static class PlanPresetConverter
                     foreach (var obj in node!.AsArray())
                     {
                         if (obj?["Track"]?.AsValue().GetValue<string>() == "General" && obj?["Option"]?.AsValue().GetValue<string>() == "Conservative")
-                            obj["Option"] = JsonValue.Create<string>("Aggressive");
+                            obj["Option"] = "Aggressive";
                     }
                 }
             }
 
             return j;
         });
+
+        // fix module name
+        res.Converters.Add((j, _, _) =>
+        {
+            if (plan)
+            {
+                if (j["Encounter"]?.AsValue().GetValue<string>() == "BossMod.Dawntrail.Savage.M08SHowlingBlade.M08SHowlingBlade")
+                    j["Encounter"] = "BossMod.Dawntrail.Savage.RM08SHowlingBlade.RM08SHowlingBlade";
+            }
+
+            return j;
+        });
+
         return res;
     }
 
