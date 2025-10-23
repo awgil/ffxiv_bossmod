@@ -141,7 +141,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 if (js.TryGetProperty(nameof(Preset.ModuleSetting.Mod), out var jmod))
                     s.Mod = Enum.Parse<Preset.Modifier>(jmod.GetString() ?? "");
 
-                s.Value.ReadFromElement(js);
+                s.Value.DeserializeFields(js);
 
                 m.SerializedSettings.Add(s);
             }
@@ -162,12 +162,12 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 writer.WriteStartObject();
                 writer.WriteString(nameof(Preset.ModuleSetting.Track), m.Definition.Configs[s.Track].InternalName);
 
-                m.Definition.Configs[s.Track].WriteValue(writer, s.Value);
+                m.Definition.Configs[s.Track].SerializeValue(writer, s.Value);
 
                 if (s.Mod != Preset.Modifier.None)
                     writer.WriteString(nameof(Preset.ModuleSetting.Mod), s.Mod.ToString());
 
-                s.Value.WriteJSON(writer);
+                s.Value.SerializeFields(writer);
 
                 writer.WriteEndObject();
             }

@@ -51,7 +51,7 @@ public abstract record class StrategyConfig(
     public abstract StrategyValue CreateForEditor();
 
     public abstract string ToDisplayString(StrategyValue val);
-    public abstract void WriteValue(Utf8JsonWriter writer, StrategyValue val);
+    public abstract void SerializeValue(Utf8JsonWriter writer, StrategyValue val);
 
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 }
@@ -71,7 +71,7 @@ public record class StrategyConfigTrack(
     public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
 
     public override string ToDisplayString(StrategyValue val) => Options[((StrategyValueTrack)val).Option].DisplayName;
-    public override void WriteValue(Utf8JsonWriter writer, StrategyValue val)
+    public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
     {
         writer.WriteString(nameof(StrategyValueTrack.Option), Options[((StrategyValueTrack)val).Option].InternalName);
     }
@@ -90,7 +90,7 @@ public record class StrategyConfigScalar(
     public override StrategyValueScalar CreateForEditor() => new() { Value = MinValue };
 
     public override string ToDisplayString(StrategyValue val) => ((StrategyValueScalar)val).Value.ToString();
-    public override void WriteValue(Utf8JsonWriter writer, StrategyValue val)
+    public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
     {
         writer.WriteNumber(nameof(StrategyValueScalar.Value), ((StrategyValueScalar)val).Value);
     }
@@ -117,8 +117,8 @@ public abstract record class StrategyValue
     public string Comment = "";
     public float ExpireIn = float.MaxValue;
 
-    public abstract void ReadFromElement(JsonElement js);
-    public abstract void WriteJSON(Utf8JsonWriter writer);
+    public abstract void DeserializeFields(JsonElement js);
+    public abstract void SerializeFields(Utf8JsonWriter writer);
 }
 
 // value represents the concrete option of a config that is selected at a given time; it can be either put on the planner timeline, or configured as part of manual overrides
@@ -131,7 +131,7 @@ public record class StrategyValueTrack : StrategyValue
     public float Offset1; // x or r coordinate
     public float Offset2; // y or phi coordinate
 
-    public override void ReadFromElement(JsonElement js)
+    public override void DeserializeFields(JsonElement js)
     {
         if (js.TryGetProperty(nameof(PriorityOverride), out var jprio))
             PriorityOverride = jprio.GetSingle();
@@ -147,7 +147,7 @@ public record class StrategyValueTrack : StrategyValue
             Comment = jcomment.GetString() ?? "";
     }
 
-    public override void WriteJSON(Utf8JsonWriter writer)
+    public override void SerializeFields(Utf8JsonWriter writer)
     {
         if (!float.IsNaN(PriorityOverride))
             writer.WriteNumber(nameof(PriorityOverride), PriorityOverride);
@@ -168,13 +168,13 @@ public record class StrategyValueScalar : StrategyValue
 {
     public float Value;
 
-    public override void ReadFromElement(JsonElement js)
+    public override void DeserializeFields(JsonElement js)
     {
         if (js.TryGetProperty(nameof(Value), out var v))
             Value = (float)v.GetDouble();
     }
 
-    public override void WriteJSON(Utf8JsonWriter writer)
+    public override void SerializeFields(Utf8JsonWriter writer)
     {
         writer.WriteNumber(nameof(Value), Value);
     }

@@ -194,7 +194,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 foreach (ref var s in track.AsSpan())
                 {
                     writer.WriteStartObject();
-                    cfg.WriteValue(writer, s.Value);
+                    cfg.SerializeValue(writer, s.Value);
                     WriteEntryFields(writer, in s);
                     writer.WriteEndObject();
                 }
@@ -233,7 +233,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
         if (jelem.TryGetProperty(nameof(Plan.Entry.Disabled), out var jdisabled))
             entry.Disabled = jdisabled.GetBoolean();
 
-        entry.Value.ReadFromElement(jelem);
+        entry.Value.DeserializeFields(jelem);
     }
 
     private void WriteEntryFields(Utf8JsonWriter writer, in Plan.Entry entry)
@@ -244,6 +244,6 @@ public class JsonPlanConverter : JsonConverter<Plan>
         if (entry.Disabled)
             writer.WriteBoolean(nameof(Plan.Entry.Disabled), entry.Disabled);
 
-        entry.Value.WriteJSON(writer);
+        entry.Value.SerializeFields(writer);
     }
 }
