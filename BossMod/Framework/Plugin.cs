@@ -350,7 +350,7 @@ public sealed class Plugin : IDalamudPlugin
                 Service.Log($"[ExecHints] Unexpected new target: expected {_hints.ForcedTarget.InstanceID:X} at #{_hints.ForcedTarget.SpawnIndex}, but found {obj->EntityId:X}");
 
             // 50 in-game units is the maximum distance before nameplates stop rendering (making the mob effectively untargetable)
-            // we want to avoid targeting a mob that isn't visible, since it's bad UI
+            // targeting a mob that isn't visible is bad UX
             if (_ws.Party.Player() is { } player)
             {
                 var distSq = (player.PosRot.XYZ() - _hints.ForcedTarget.PosRot.XYZ()).LengthSquared();

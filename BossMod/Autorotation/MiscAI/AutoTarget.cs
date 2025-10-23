@@ -118,7 +118,10 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                 prioritize(target, target.Priority);
         }
 
-        // resort target array
+        // prioritizer yielded no results meaning there are no targets to pick, do nothing
+        if (bestTarget == null)
+            return;
+
         Hints.PotentialTargets.SortByReverse(x => x.Priority);
         Hints.HighestPotentialTargetPriority = Math.Max(0, Hints.PotentialTargets[0].Priority);
 
