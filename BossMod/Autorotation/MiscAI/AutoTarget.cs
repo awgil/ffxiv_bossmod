@@ -3,7 +3,7 @@
 public sealed class AutoTarget(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum Track { General, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything }
-    public enum GeneralStrategy { Passive, Conservative, Aggressive }
+    public enum GeneralStrategy { Conservative, Aggressive, Passive }
     public enum Flag { Disabled, Enabled }
 
     public static RotationModuleDefinition Definition()
@@ -11,9 +11,9 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel, CanUseWhileRoleplaying: true);
 
         res.Define(Track.General).As<GeneralStrategy>("General")
-            .AddOption(GeneralStrategy.Passive, "Passive", "Do nothing")
             .AddOption(GeneralStrategy.Conservative, "Conservative", "Automatically select targets if player is not in combat", supportedTargets: ActionTargets.Hostile)
-            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Always automatically select targets", supportedTargets: ActionTargets.Hostile);
+            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Always automatically select targets", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.Passive, "Passive", "Do nothing");
 
         res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Prioritize bosses in quest battles")
             .AddOption(Flag.Disabled, "Disabled")

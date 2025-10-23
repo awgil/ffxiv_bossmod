@@ -137,7 +137,7 @@ class ScourgingBlaze(BossModule module) : Components.Exaflare(module, new AOESha
             if (value)
                 DrawSafespot = false;
         }
-    }
+    } = true;
     public bool DrawSafespot
     {
         get;
