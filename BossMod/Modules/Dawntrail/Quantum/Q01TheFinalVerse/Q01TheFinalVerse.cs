@@ -7,6 +7,20 @@ public class Q01TheFinalVerse(WorldState ws, Actor primary) : BossModule(ws, pri
 
     public Actor? Eater() => _eater;
 
+    public override Actor? GetDefaultTarget(int slot)
+    {
+        if (Raid[slot] is { } player)
+        {
+            if (player.FindStatus(SID.DarkVengeance) != null)
+                return Enemies(OID.DevouredEater).FirstOrDefault();
+
+            if (player.FindStatus(SID.LightVengeance) != null)
+                return PrimaryActor;
+        }
+
+        return null;
+    }
+
     protected override void UpdateModule()
     {
         _eater ??= Enemies(OID.DevouredEater).FirstOrDefault();

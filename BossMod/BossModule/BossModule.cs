@@ -41,6 +41,14 @@ public abstract class BossModule : IDisposable
     }
     public IReadOnlyList<Actor> Enemies<OID>(OID oid) where OID : Enum => Enemies((uint)(object)oid);
 
+    public virtual Actor? GetDefaultTarget(int slot)
+    {
+        if (!PrimaryActor.IsDeadOrDestroyed && PrimaryActor.IsTargetable)
+            return PrimaryActor;
+
+        return null;
+    }
+
     // component management: at most one component of any given type can be active at any time
     private readonly List<BossComponent> _components = [];
     public IReadOnlyList<BossComponent> Components => _components;

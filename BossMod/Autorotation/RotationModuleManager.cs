@@ -17,7 +17,7 @@ public sealed class RotationModuleManager : IDisposable
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
-    public readonly int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
+    public int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
     public PlanExecution? Planner { get; private set; }
     private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
@@ -120,7 +120,7 @@ public sealed class RotationModuleManager : IDisposable
         {
             Hints.ForcedTarget = forced.Target != StrategyTarget.Automatic
                 ? ResolveTargetOverride(forced.Target, forced.TargetParam)
-                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? (Bossmods.ActiveModule?.PrimaryActor is var primary && primary != null && !primary.IsDeadOrDestroyed && primary.IsTargetable ? primary : null));
+                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? Bossmods.ActiveModule?.GetDefaultTarget(PlayerSlot));
         }
 
         // auto actions

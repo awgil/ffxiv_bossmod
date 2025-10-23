@@ -774,8 +774,6 @@ class Q01TheFinalVerseStates : StateMachineBuilder
         _module = module;
 
         DeathPhase(0, SinglePhase)
-            .ActivateOnEnter<LightDark>()
-            .ActivateOnEnter<BossLightDark>()
             .ActivateOnEnter<ArcaneFont>()
             .ActivateOnEnter<BladeOfFirstLight>()
             .ActivateOnEnter<BallOfFireBait>()

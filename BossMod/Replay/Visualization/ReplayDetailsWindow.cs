@@ -392,6 +392,7 @@ class ReplayDetailsWindow : UIWindow
             if (ImGui.Checkbox("###POV", ref isPOV) && isPOV)
             {
                 _povSlot = slot;
+                _rmm.PlayerSlot = slot;
                 resetPF = true;
             }
 
