@@ -308,7 +308,7 @@ public sealed class RotationModuleManager : IDisposable
             return; // don't care
 
         // note: if combat ends while player is dead, we'll reset the preset, which is desirable
-        if (actor.IsDead && actor.InCombat)
+        if (actor.IsDead && actor.InCombat && Config.ClearPresetOnDeath)
         {
             // player died in combat => force disable (otherwise there's a risk of dying immediately after rez)
             Service.Log($"[RMM] Player died in combat => force-disabling from '{PresetNames}'");
@@ -351,6 +351,12 @@ public sealed class RotationModuleManager : IDisposable
             LastCast = (WorldState.CurrentTime, cast);
             if (Service.IsDev)
                 Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", ActiveModulesFlat.Select(m => m.Module.DescribeState()))}]");
+        }
+
+        if (cast.Action.ID == 6276 && Config.ClearPresetOnLuring)
+        {
+            Service.Log($"[RMM] Luring Trap triggered, force-disabling from '{PresetNames}'");
+            SetForceDisabled();
         }
     }
 }

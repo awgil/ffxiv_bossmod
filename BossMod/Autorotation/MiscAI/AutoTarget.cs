@@ -139,7 +139,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         };
 
         // if we have target to switch to, do that
-        if (changeTarget && bestTarget != null)
+        if (changeTarget)
             primaryTarget = Hints.ForcedTarget = bestTarget;
     }
 }
