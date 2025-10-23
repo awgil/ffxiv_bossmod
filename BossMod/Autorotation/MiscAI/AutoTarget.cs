@@ -3,7 +3,7 @@
 public sealed class AutoTarget(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum Track { General, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything }
-    public enum GeneralStrategy { Aggressive, Conservative, Passive }
+    public enum GeneralStrategy { Aggressive, Passive }
     public enum Flag { Disabled, Enabled }
 
     public static RotationModuleDefinition Definition()
@@ -11,8 +11,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel, CanUseWhileRoleplaying: true);
 
         res.Define(Track.General).As<GeneralStrategy>("General")
-            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Always automatically select targets", supportedTargets: ActionTargets.Hostile)
-            .AddOption(GeneralStrategy.Conservative, "Conservative", "Automatically select targets if player is not in combat", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Automatically select targets", supportedTargets: ActionTargets.Hostile)
             .AddOption(GeneralStrategy.Passive, "Passive", "Do nothing");
 
         res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Prioritize bosses in quest battles")
@@ -49,24 +48,21 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         if (generalStrategy == GeneralStrategy.Passive)
             return;
 
-        var shouldSelectTarget = generalStrategy switch
-        {
-            GeneralStrategy.Conservative => !Player.InCombat,
-            GeneralStrategy.Aggressive => true,
-            _ => false
-        };
-
-        Actor? switchTarget = null; // non-null if we bump any priorities
-        (int, float) switchTargetKey = (0, float.MinValue); // priority and negated squared distance
+        Actor? bestTarget = null; // non-null if we bump any priorities
+        (int, float) bestTargetKey = (0, float.MinValue); // priority and negated squared distance
         void prioritize(AIHints.Enemy e, int prio)
         {
+            // always ignore dying enemies
+            if (e.Priority == AIHints.Enemy.PriorityPointless)
+                return;
+
             e.Priority = prio;
 
             var key = (prio, -(e.Actor.Position - Player.Position).LengthSq());
-            if (key.CompareTo(switchTargetKey) > 0)
+            if (key.CompareTo(bestTargetKey) > 0)
             {
-                switchTarget = e.Actor;
-                switchTargetKey = key;
+                bestTarget = e.Actor;
+                bestTargetKey = key;
             }
         }
 
@@ -89,49 +85,44 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         var targetFates = strategy.Option(Track.FATE).As<Flag>() == Flag.Enabled && Utils.IsPlayerSyncedToFate(World);
 
         // first deal with pulling new enemies
-        if (shouldSelectTarget)
+        foreach (var target in Hints.PotentialTargets)
         {
-            foreach (var target in Hints.PotentialTargets)
+            if (target.Actor.InstanceID == huntTarget)
             {
-                if (target.Actor.InstanceID == huntTarget)
-                {
-                    prioritize(target, 0);
-                    continue;
-                }
-
-                if (allowAll && !target.Actor.IsStrikingDummy && target.Priority == AIHints.Enemy.PriorityUndesirable)
-                {
-                    prioritize(target, 0);
-                    continue;
-                }
-
-                if (targetFates && target.Actor.FateID == World.Client.ActiveFate.ID && target.Priority == AIHints.Enemy.PriorityUndesirable)
-                {
-                    var isForlorn = target.Actor.NameID is 6737 or 6738;
-                    prioritize(target, isForlorn ? 1 : 0);
-                    continue;
-                }
-
-                // add all other targets to potential targets list (e.g. if modules modify out-of-combat mob priority)
-                if (target.Priority >= 0)
-                    prioritize(target, target.Priority);
+                prioritize(target, 0);
+                continue;
             }
+
+            if (allowAll && !target.Actor.IsStrikingDummy && target.Priority == AIHints.Enemy.PriorityUndesirable)
+            {
+                prioritize(target, 0);
+                continue;
+            }
+
+            if (targetFates && target.Actor.FateID == World.Client.ActiveFate.ID)
+            {
+                var isForlorn = target.Actor.NameID is 6737 or 6738;
+                prioritize(target, isForlorn ? 1 : 0);
+                continue;
+            }
+
+            // add all other targets to potential targets list (e.g. if modules modify out-of-combat mob priority)
+            if (target.Priority >= 0)
+                prioritize(target, target.Priority);
         }
 
-        // we are done with priority changes
-        // if we've updated any priorities, we need to re-sort target array
-        if (switchTarget != null)
-        {
-            Hints.PotentialTargets.SortByReverse(x => x.Priority);
-            Hints.HighestPotentialTargetPriority = Math.Max(0, Hints.PotentialTargets[0].Priority);
-        }
+        // resort target array
+        Hints.PotentialTargets.SortByReverse(x => x.Priority);
+        Hints.HighestPotentialTargetPriority = Math.Max(0, Hints.PotentialTargets[0].Priority);
 
+        var currentTarget = World.Actors.Find(Player.TargetID);
         // never switch target away from party member/pet/etc, but retain our priority changes (e.g. for AOE rotations)
-        if (World.Actors.Find(Player.TargetID) is { IsAlly: true })
+        // this assumes that modules never set forcedtarget to an ally
+        if (currentTarget is { IsAlly: true, Type: ActorType.Pet or ActorType.Player or ActorType.Chocobo or ActorType.DutySupport })
             return;
 
         // if we have target to switch to, do that
-        if (switchTarget != null)
-            primaryTarget = Hints.ForcedTarget = switchTarget;
+        if (bestTarget != null)
+            primaryTarget = Hints.ForcedTarget = bestTarget;
     }
 }

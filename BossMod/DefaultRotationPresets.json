@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "payload": [
     {
       "Name": "VBM Default",
@@ -400,6 +400,10 @@
       "Name": "VBM AI",
       "Modules": {
         "BossMod.Autorotation.MiscAI.AutoTarget": [
+          {
+            "Track": "General",
+            "Option": "Aggressive"
+          },
           {
             "Track": "FATE",
             "Option": "Enabled"
