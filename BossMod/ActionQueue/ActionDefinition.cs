@@ -189,6 +189,9 @@ public sealed class ActionDefinitions : IDisposable
 
     public static readonly ActionID IDPotionEureka = new(ActionType.Item, 22306);
 
+    // items we support
+    public static readonly ActionID IDMiscItemGreens = new(ActionType.Item, 4868);
+
     // special general actions that we support
     public static readonly ActionID IDGeneralLimitBreak = new(ActionType.General, 3);
     public static readonly ActionID IDGeneralSprint = new(ActionType.General, 4);
@@ -229,21 +232,23 @@ public sealed class ActionDefinitions : IDisposable
         ];
 
         // items (TODO: more generic approach is needed...)
-        RegisterPotion(IDPotionStr);
-        RegisterPotion(IDPotionDex);
-        RegisterPotion(IDPotionVit);
-        RegisterPotion(IDPotionInt);
-        RegisterPotion(IDPotionMnd);
+        RegisterItem(IDPotionStr);
+        RegisterItem(IDPotionDex);
+        RegisterItem(IDPotionVit);
+        RegisterItem(IDPotionInt);
+        RegisterItem(IDPotionMnd);
 
-        RegisterPotion(IDPotionSustaining, 1.1f);
-        RegisterPotion(IDPotionMax, 1.1f);
-        RegisterPotion(IDPotionEmpyrean, 1.1f);
-        RegisterPotion(IDPotionSuper, 1.1f);
-        RegisterPotion(IDPotionOrthos, 1.1f);
-        RegisterPotion(IDPotionHyper, 1.1f);
-        RegisterPotion(IDPotionEureka, 1.1f);
-        RegisterPotion(IDPotionUltra, 1.1f);
-        RegisterPotion(IDPotionPilgrim, 1.1f);
+        RegisterItem(IDPotionSustaining, 1.1f);
+        RegisterItem(IDPotionMax, 1.1f);
+        RegisterItem(IDPotionEmpyrean, 1.1f);
+        RegisterItem(IDPotionSuper, 1.1f);
+        RegisterItem(IDPotionOrthos, 1.1f);
+        RegisterItem(IDPotionHyper, 1.1f);
+        RegisterItem(IDPotionEureka, 1.1f);
+        RegisterItem(IDPotionUltra, 1.1f);
+        RegisterItem(IDPotionPilgrim, 1.1f);
+
+        RegisterItem(IDMiscItemGreens, 2.1f);
 
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
@@ -508,7 +513,7 @@ public sealed class ActionDefinitions : IDisposable
 
     private void Register(ActionID aid, ActionDefinition definition) => _definitions.Add(aid, definition);
 
-    private void RegisterPotion(ActionID aid, float animLock = 0.6f)
+    private void RegisterItem(ActionID aid, float animLock = 0.6f)
     {
         var baseId = aid.ID % 500000;
         var item = ItemData(baseId);
