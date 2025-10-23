@@ -2,8 +2,9 @@
 
 public sealed class AutoTarget(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { General, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything }
+    public enum Track { General, Retarget, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything }
     public enum GeneralStrategy { Aggressive, Passive }
+    public enum RetargetStrategy { NoTarget, Hostiles, Always, Never }
     public enum Flag { Disabled, Enabled }
 
     public static RotationModuleDefinition Definition()
@@ -11,8 +12,14 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel, CanUseWhileRoleplaying: true);
 
         res.Define(Track.General).As<GeneralStrategy>("General")
-            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Automatically select targets", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Automatically prioritize targets", supportedTargets: ActionTargets.Hostile)
             .AddOption(GeneralStrategy.Passive, "Passive", "Do nothing");
+
+        res.Define(Track.Retarget).As<RetargetStrategy>("Retarget")
+            .AddOption(RetargetStrategy.NoTarget, "NoTarget", "Only switch target if player has no target")
+            .AddOption(RetargetStrategy.Hostiles, "Hostiles", "Only switch target if player is not targeting an ally")
+            .AddOption(RetargetStrategy.Always, "Always", "Always switch target to the highest priority enemy")
+            .AddOption(RetargetStrategy.Never, "Never", "Never switch target; only apply priority changes to enemies");
 
         res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Prioritize bosses in quest battles")
             .AddOption(Flag.Disabled, "Disabled")
@@ -115,14 +122,21 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         Hints.PotentialTargets.SortByReverse(x => x.Priority);
         Hints.HighestPotentialTargetPriority = Math.Max(0, Hints.PotentialTargets[0].Priority);
 
-        var currentTarget = World.Actors.Find(Player.TargetID);
-        // never switch target away from party member/pet/etc, but retain our priority changes (e.g. for AOE rotations)
-        // this assumes that modules never set forcedtarget to an ally
-        if (currentTarget is { IsAlly: true, Type: ActorType.Pet or ActorType.Player or ActorType.Chocobo or ActorType.DutySupport })
+        var retargetStrategy = strategy.Option(Track.Retarget).As<RetargetStrategy>();
+        if (retargetStrategy == RetargetStrategy.Never)
             return;
 
+        var currentTarget = World.Actors.Find(Player.TargetID);
+
+        var changeTarget = retargetStrategy switch
+        {
+            RetargetStrategy.Hostiles => currentTarget == null || !currentTarget.IsAlly,
+            RetargetStrategy.NoTarget => currentTarget == null,
+            _ => true
+        };
+
         // if we have target to switch to, do that
-        if (bestTarget != null)
+        if (changeTarget && bestTarget != null)
             primaryTarget = Hints.ForcedTarget = bestTarget;
     }
 }
