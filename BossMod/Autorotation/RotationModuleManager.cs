@@ -330,8 +330,12 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnPresetModified(Preset? prev, Preset? curr)
     {
+        var wasActive = prev != null && Presets.Any(p => p.Name == prev.Name);
+
         if (prev != null)
             Deactivate(prev);
+        if (wasActive && curr != null)
+            Activate(curr);
     }
 
     private void OnActionRequested(ClientState.OpActionRequest op)
