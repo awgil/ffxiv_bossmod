@@ -4282,5 +4282,385 @@
       "ViewHeight": 60,
       "Filename": "241.93.1.bmp"
     }
+  ],
+  "179": [
+    {
+      "MinBoundsX": -5,
+      "MinBoundsY": -1,
+      "MinBoundsZ": -7,
+      "MaxBoundsX": 5,
+      "MaxBoundsY": 10,
+      "MaxBoundsZ": 7.5,
+      "OriginX": -5,
+      "OriginZ": -7,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "179.0.1.bmp"
+    }
+  ],
+  "132": [
+    {
+      "MinBoundsX": -118,
+      "MinBoundsY": -20,
+      "MinBoundsZ": -23.5,
+      "MaxBoundsX": 232.5,
+      "MaxBoundsY": 16,
+      "MaxBoundsZ": 166.5,
+      "OriginX": -118,
+      "OriginZ": -23.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "132.0.1.bmp"
+    }
+  ],
+  "133": [
+    {
+      "MinBoundsX": -337,
+      "MinBoundsY": -7,
+      "MinBoundsZ": -355.5,
+      "MaxBoundsX": 221.5,
+      "MaxBoundsY": 28.5,
+      "MaxBoundsZ": 25.5,
+      "OriginX": -337,
+      "OriginZ": -355.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "133.0.1.bmp"
+    }
+  ],
+  "340": [
+    {
+      "MinBoundsX": -968,
+      "MinBoundsY": -1,
+      "MinBoundsZ": -867,
+      "MaxBoundsX": -512,
+      "MaxBoundsY": 82,
+      "MaxBoundsZ": -433,
+      "OriginX": -968,
+      "OriginZ": -867,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "340.0.1.bmp"
+    },
+    {
+      "MinBoundsX": -163,
+      "MinBoundsY": -1,
+      "MinBoundsZ": -192.5,
+      "MaxBoundsX": 271,
+      "MaxBoundsY": 82,
+      "MaxBoundsZ": 264,
+      "OriginX": -163,
+      "OriginZ": -192.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "340.0.4.bmp"
+    }
+  ],
+  "242.94": [
+    {
+      "MinBoundsX": -69,
+      "MinBoundsY": -105,
+      "MinBoundsZ": -7,
+      "MaxBoundsX": 63,
+      "MaxBoundsY": 10.5,
+      "MaxBoundsZ": 125,
+      "OriginX": -69,
+      "OriginZ": -7,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "242.94.1.bmp"
+    }
+  ],
+  "243.95": [
+    {
+      "MinBoundsX": -7.5,
+      "MinBoundsY": -1,
+      "MinBoundsZ": -8,
+      "MaxBoundsX": 7.5,
+      "MaxBoundsY": 11,
+      "MaxBoundsZ": 8,
+      "OriginX": -7.5,
+      "OriginZ": -8,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.3.bmp"
+    },
+    {
+      "MinBoundsX": -51.5,
+      "MinBoundsY": -2,
+      "MinBoundsZ": -27.5,
+      "MaxBoundsX": -8.5,
+      "MaxBoundsY": 11,
+      "MaxBoundsZ": 33,
+      "OriginX": -51.5,
+      "OriginZ": -27.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.1.bmp"
+    },
+    {
+      "MinBoundsX": -45.5,
+      "MinBoundsY": -39.5,
+      "MinBoundsZ": 36,
+      "MaxBoundsX": 24,
+      "MaxBoundsY": -26.5,
+      "MaxBoundsZ": 72.5,
+      "OriginX": -45.5,
+      "OriginZ": 36,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.2.bmp"
+    },
+    {
+      "MinBoundsX": 14.5,
+      "MinBoundsY": -77.5,
+      "MinBoundsZ": 17.5,
+      "MaxBoundsX": 57.5,
+      "MaxBoundsY": -64,
+      "MaxBoundsZ": 63,
+      "OriginX": 14.5,
+      "OriginZ": 17.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.4.bmp"
+    },
+    {
+      "MinBoundsX": 36.5,
+      "MinBoundsY": -39.5,
+      "MinBoundsZ": -13.5,
+      "MaxBoundsX": 72.5,
+      "MaxBoundsY": -26.5,
+      "MaxBoundsZ": 53.5,
+      "OriginX": 36.5,
+      "OriginZ": -13.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.5.bmp"
+    },
+    {
+      "MinBoundsX": -48.5,
+      "MinBoundsY": -114.5,
+      "MinBoundsZ": 2.5,
+      "MaxBoundsX": -5.5,
+      "MaxBoundsY": -101.5,
+      "MaxBoundsZ": 47,
+      "OriginX": -48.5,
+      "OriginZ": 2.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.6.bmp"
+    },
+    {
+      "MinBoundsX": -28,
+      "MinBoundsY": -152,
+      "MinBoundsZ": -1.5,
+      "MaxBoundsX": -4,
+      "MaxBoundsY": -140,
+      "MaxBoundsZ": 27,
+      "OriginX": -28,
+      "OriginZ": -1.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.7.bmp"
+    },
+    {
+      "MinBoundsX": -62,
+      "MinBoundsY": -190,
+      "MinBoundsZ": -30,
+      "MaxBoundsX": -24.5,
+      "MaxBoundsY": -176.5,
+      "MaxBoundsZ": 30,
+      "OriginX": -62,
+      "OriginZ": -30,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.8.bmp"
+    },
+    {
+      "MinBoundsX": -39,
+      "MinBoundsY": -190,
+      "MinBoundsZ": 30.5,
+      "MaxBoundsX": -6.5,
+      "MaxBoundsY": -176.5,
+      "MaxBoundsZ": 60.5,
+      "OriginX": -39,
+      "OriginZ": 30.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.9.bmp"
+    },
+    {
+      "MinBoundsX": 47,
+      "MinBoundsY": -226,
+      "MinBoundsZ": 11.5,
+      "MaxBoundsX": 70.5,
+      "MaxBoundsY": -214,
+      "MaxBoundsZ": 45.5,
+      "OriginX": 47,
+      "OriginZ": 11.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.10.bmp"
+    },
+    {
+      "MinBoundsX": 41.5,
+      "MinBoundsY": -264,
+      "MinBoundsZ": 0.5,
+      "MaxBoundsX": 61,
+      "MaxBoundsY": -251.5,
+      "MaxBoundsZ": 30,
+      "OriginX": 41.5,
+      "OriginZ": 0.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.11.bmp"
+    },
+    {
+      "MinBoundsX": -24,
+      "MinBoundsY": -302,
+      "MinBoundsZ": 12,
+      "MaxBoundsX": 20.5,
+      "MaxBoundsY": -289.5,
+      "MaxBoundsZ": 38,
+      "OriginX": -24,
+      "OriginZ": 12,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.12.bmp"
+    },
+    {
+      "MinBoundsX": -46,
+      "MinBoundsY": -350.5,
+      "MinBoundsZ": -32,
+      "MaxBoundsX": 11.5,
+      "MaxBoundsY": -337,
+      "MaxBoundsZ": 46,
+      "OriginX": -46,
+      "OriginZ": -32,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.13.bmp"
+    },
+    {
+      "MinBoundsX": -71,
+      "MinBoundsY": -387.5,
+      "MinBoundsZ": -24.5,
+      "MaxBoundsX": -22.5,
+      "MaxBoundsY": -373.5,
+      "MaxBoundsZ": 24,
+      "OriginX": -71,
+      "OriginZ": -24.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.14.bmp"
+    },
+    {
+      "MinBoundsX": -61,
+      "MinBoundsY": -387,
+      "MinBoundsZ": -61,
+      "MaxBoundsX": -30.5,
+      "MaxBoundsY": -374,
+      "MaxBoundsZ": -25,
+      "OriginX": -61,
+      "OriginZ": -61,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.15.bmp"
+    },
+    {
+      "MinBoundsX": -5,
+      "MinBoundsY": -425,
+      "MinBoundsZ": -68.5,
+      "MaxBoundsX": 55.5,
+      "MaxBoundsY": -412,
+      "MaxBoundsZ": -13,
+      "OriginX": -5,
+      "OriginZ": -68.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.16.bmp"
+    },
+    {
+      "MinBoundsX": 8.5,
+      "MinBoundsY": -424,
+      "MinBoundsZ": 49.5,
+      "MaxBoundsX": 34,
+      "MaxBoundsY": -412,
+      "MaxBoundsZ": 67.5,
+      "OriginX": 8.5,
+      "OriginZ": 49.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.17.bmp"
+    },
+    {
+      "MinBoundsX": -58.5,
+      "MinBoundsY": -425,
+      "MinBoundsZ": 14.5,
+      "MaxBoundsX": -0.5,
+      "MaxBoundsY": -412,
+      "MaxBoundsZ": 68.5,
+      "OriginX": -58.5,
+      "OriginZ": 14.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "243.95.18.bmp"
+    }
+  ],
+  "244.96": [
+    {
+      "MinBoundsX": -25,
+      "MinBoundsY": -1,
+      "MinBoundsZ": -25,
+      "MaxBoundsX": 25,
+      "MaxBoundsY": 10.5,
+      "MaxBoundsZ": 25,
+      "OriginX": -25,
+      "OriginZ": -25,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "244.96.1.bmp"
+    }
+  ],
+  "245.97": [
+    {
+      "MinBoundsX": -41.5,
+      "MinBoundsY": 96,
+      "MinBoundsZ": -155,
+      "MaxBoundsX": 12,
+      "MaxBoundsY": 114,
+      "MaxBoundsZ": -101,
+      "OriginX": -41.5,
+      "OriginZ": -155,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "245.97.1.bmp"
+    },
+    {
+      "MinBoundsX": -54,
+      "MinBoundsY": 89.5,
+      "MinBoundsZ": -122.5,
+      "MaxBoundsX": -16.5,
+      "MaxBoundsY": 106.5,
+      "MaxBoundsZ": -88,
+      "OriginX": -54,
+      "OriginZ": -122.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "245.97.2.bmp"
+    },
+    {
+      "MinBoundsX": -74,
+      "MinBoundsY": 43.5,
+      "MinBoundsZ": -97.5,
+      "MaxBoundsX": 101,
+      "MaxBoundsY": 105,
+      "MaxBoundsZ": 108.5,
+      "OriginX": -74,
+      "OriginZ": -97.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "245.97.3.bmp"
+    }
   ]
 }
