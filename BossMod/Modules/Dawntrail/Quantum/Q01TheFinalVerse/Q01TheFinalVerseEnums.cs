@@ -97,6 +97,20 @@ public enum AID : uint
     _Spell_CrimeAndPunishment1 = 44166, // Helper->player, no cast, single-target
     _Spell_Explosion = 44167, // Helper->players, no cast, range 4 circle, rot pass
     _Spell_BigBurst = 44168, // Helper->player, no cast, range 60 circle
+
+    DrainAetherLightFast = 44129, // Boss->self, 7.0s cast, range 50 width 50 rect
+    DrainAetherLightSlow = 44130, // Boss->self, 12.0s cast, range 50 width 50 rect
+    DrainAetherDarkFastCast = 44131, // DevouredEater->self, 6.0+1.0s cast, single-target
+    DrainAetherDarkFast = 44132, // EminentGrief->self, 7.0s cast, range 50 width 50 rect
+    DrainAetherDarkSlowCast = 44133, // DevouredEater->self, 11.0+1.0s cast, single-target
+    DrainAetherDarkSlow = 44134, // EminentGrief->self, 12.0s cast, range 50 width 50 rect
+    _Spell_FeveredFlame = 44170, // Boss->self, 4.0s cast, single-target
+    _Weaponskill_SelfDestruct = 44171, // 48F3->self, 2.0s cast, range 60 circle
+    _Weaponskill_Fuse = 44172, // 48F3->48F3, no cast, single-target
+    _Weaponskill_ = 44173, // Helper->self, no cast, ???
+    _Spell_UnholyDarkness2 = 44175, // DevouredEater->self, 9.0+0.7s cast, single-target
+    _Spell_UnholyDarkness3 = 44176, // Helper->self, 9.7s cast, range 30 circle
+    _Spell_HellishEarth = 44174, // Boss->location, 27.0s cast, range 60 circle
 }
 
 public enum SID : uint

@@ -11,7 +11,17 @@ public sealed class AIHints
         public const int PriorityForbidden = -4; // attacking this enemy will probably lead to a wipe; autoattacks and actions that target it will be forcibly prevented (if custom queueing is enabled)
 
         public Actor Actor = actor;
-        public int Priority = priority;
+        private int _priority = priority;
+        public int Priority
+        {
+            get => _priority;
+            set
+            {
+                // we should never change priority if it has been set to pointless, since that means the target is dying and further actions targeting it are a waste
+                if (_priority != PriorityPointless)
+                    _priority = value;
+            }
+        }
         //public float TimeToKill;
         public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
         public WPos DesiredPosition = actor.Position; // tank AI will try to move enemy to this position
@@ -28,6 +38,11 @@ public sealed class AIHints
 
         // easier to read
         public bool AllowDOTs { get => !ForbidDOTs; set => ForbidDOTs = !value; }
+
+        public void ForcePriority(int priority)
+        {
+            _priority = priority;
+        }
     }
 
     public enum SpecialMode

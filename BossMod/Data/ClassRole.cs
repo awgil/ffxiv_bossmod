@@ -114,4 +114,6 @@ public static class ClassRole
 
     public static bool IsSupport(this Class cls) => cls.GetClassCategory() is ClassCategory.Tank or ClassCategory.Healer;
     public static bool IsDD(this Class cls) => cls.GetClassCategory() is ClassCategory.Melee or ClassCategory.PhysRanged or ClassCategory.Caster;
+
+    public static bool CanEsuna(this Class cls) => cls.GetRole() == Role.Healer || cls == Class.BRD;
 }

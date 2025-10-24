@@ -28,13 +28,13 @@ public sealed class AutorotationConfig : ConfigNode
     [PropertyDisplay("Show positional hints in world", tooltip: "Show tips for positional abilities, indicating to move to the flank or rear of your target")]
     public bool ShowPositionals = false;
 
-    [PropertyDisplay("Automatically disable autorotation on death")]
+    [PropertyDisplay("Automatically disable autorotation on death", since: "0.4.4.1")]
     public bool ClearPresetOnDeath = true;
 
     [PropertyDisplay("Automatically disable autorotation when exiting combat")]
     public bool ClearPresetOnCombatEnd = false;
 
-    [PropertyDisplay("Automatically disable autorotation if a Luring Trap is triggered", tooltip: "Only applicable in Deep Dungeons")]
+    [PropertyDisplay("Automatically disable autorotation if a Luring Trap is triggered", tooltip: "Only applicable in Deep Dungeons", since: "0.4.4.1")]
     public bool ClearPresetOnLuring = false;
 
     [PropertyDisplay("Automatically reenable force-disabled autorotation when exiting combat")]

@@ -257,8 +257,6 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
         GoalZoneSingle(25);
 
-        OGCDs(strategy, primaryTarget);
-
         if (CrimsonStrikeReady)
         {
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget.Actor, 3));
@@ -329,10 +327,14 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
         PushGCD(BestRuin, primaryTarget);
 
+        OGCDs(strategy, primaryTarget);
     }
 
     private void OGCDs(StrategyValues strategy, Enemy? primaryTarget)
     {
+        if (NextGCD == AID.Slipstream)
+            PushOGCD(AID.Swiftcast, Player);
+
         if (!Player.InCombat || primaryTarget == null)
             return;
 
@@ -360,11 +362,9 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
                 if (CanWeave(AID.Rekindle))
                 {
-                    static float HPRatio(Actor a) => (float)a.HPMP.CurHP / a.HPMP.MaxHP;
-
-                    var rekindleTarget = World.Party.WithoutSlot(excludeAlliance: true).Where(x => HPRatio(x) < 1).MinBy(HPRatio);
-                    if (rekindleTarget is Actor a)
-                        PushOGCD(AID.Rekindle, a);
+                    var rekindleTarget = World.Party.WithoutSlot(excludeAlliance: true).MinBy(x => x.HPRatio);
+                    if (rekindleTarget?.HPRatio < 1)
+                        PushOGCD(AID.Rekindle, rekindleTarget);
 
                     if (SummonLeft < 2)
                         PushOGCD(AID.Rekindle, Player);
