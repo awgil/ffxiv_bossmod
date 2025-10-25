@@ -1,5 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Dawntrail.Quantum.Q01TheFinalVerse;
+﻿namespace BossMod.Dawntrail.Quantum.Q01TheFinalVerse;
 
 public enum OID : uint
 {
@@ -8,19 +7,22 @@ public enum OID : uint
     DevouredEater = 0x48EF, // R15.000, x0-1, Part type
     EminentGrief = 0x486C, // R1.000, x1-2
     VodorigaMinion = 0x48F0, // R1.200, x0 (spawn during fight)
-    _Gen_ = 0x48F2, // R1.000, x0 (spawn during fight)
     ArcaneFont = 0x48F4, // R2.000, x0 (spawn during fight)
     ScourgingBlaze = 0x1EBE70,
+    Flameborn = 0x48F3, // R2.600-5.200, x0 (spawn during fight)
+
+    Unk = 0x48F2, // R1.000, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    _Spell_Attack = 44135, // Boss->self, no cast, single-target
-    _Spell_ = 44820, // EminentGrief->player, 0.5s cast, single-target
-    _Spell_Attack1 = 44814, // Helper->player, 0.8s cast, single-target
-    _Spell_Attack2 = 44136, // DevouredEater->self, no cast, single-target
-    _Spell_1 = 44802, // EminentGrief->player, 0.5s cast, single-target
-    _Spell_Attack3 = 44137, // Helper->player, 0.8s cast, single-target
+    AutoAttackVisual = 44135, // Boss->self, no cast, single-target
+    EaterAttackVisual = 44136, // DevouredEater->self, no cast, single-target
+    AutoAttack1 = 44137, // Helper->player, 0.8s cast, single-target
+    AutoAttack2 = 44820, // EminentGrief->player, 0.5s cast, single-target
+    AutoAttack3 = 44814, // Helper->player, 0.8s cast, single-target
+    AutoAttack4 = 44802, // EminentGrief->player, 0.5s cast, single-target
+
     CrystalAppear = 44115, // Helper->location, no cast, single-target
 
     ScourgingBlazeHorizontalFirst = 44797, // Boss->self, 3.0s cast, single-target
@@ -60,43 +62,43 @@ public enum AID : uint
 
     BallOfFirePuddle = 44098, // Helper->location, 2.1s cast, range 6 circle
 
-    _Spell_SearingChains = 44144, // Helper->self, no cast, range 50 width 6 cross
-    _Ability_Spinelash = 44125, // Boss->self, 2.0s cast, single-target
-    _Weaponskill_Spinelash = 44126, // Boss->self, 2.2+0.8s cast, single-target
-    _Weaponskill_Spinelash1 = 45119, // Helper->self, 3.0s cast, range 60 width 8 rect
-    _Ability_ = 44127, // Boss->self, no cast, single-target
-    _Spell_Explosion1 = 44140, // Helper->player, no cast, single-target
-    _AutoAttack_ = 45197, // VodorigaMinion->player, no cast, single-target
-    _Weaponskill_BloodyClaw = 45116, // VodorigaMinion->player, no cast, single-target
-    _Spell_ShacklesOfGreaterSanctity = 44801, // DevouredEater->self, 3.0s cast, single-target
-    _Spell_ShacklesOfSanctity1 = 44147, // Helper->player, no cast, single-target
-    _Spell_ShacklesOfSanctity = 44148, // Helper->player, no cast, single-target
+    SearingChainsCross = 44144, // Helper->self, no cast, range 50 width 6 cross
 
-    _Spell_TerrorEye = 45117, // VodorigaMinion->location, 3.0s cast, range 6 circle
+    SpinelashVisual1 = 44125, // Boss->self, 2.0s cast, single-target
+    SpinelashVisual2 = 44126, // Boss->self, 2.2+0.8s cast, single-target
+    Spinelash = 45119, // Helper->self, 3.0s cast, range 60 width 8 rect
 
+    VodorigaAuto = 45197, // VodorigaMinion->player, no cast, single-target
+    BloodyClaw = 45116, // VodorigaMinion->player, no cast, single-target
+    TerrorEye = 45117, // VodorigaMinion->location, 3.0s cast, range 6 circle
+
+    ShacklesOfGreaterSanctity = 44801, // DevouredEater->self, 3.0s cast, single-target
+    ShacklesOfSanctityHealer = 44147, // Helper->player, no cast, single-target
+    ShacklesOfSanctityDPS = 44148, // Helper->player, no cast, single-target
     ShackleHealerExplosion = 44149, // Helper->players, no cast, range 21 circle, triggered on healing spell
     ShackleDPSExplosion = 44150, // Helper->players, no cast, range 8 circle, triggered on ability use
 
     HellishEarthCast = 44151, // Boss->location, 5.0+1.0s cast, single-target
     HellishEarthPull = 44152, // Helper->self, 6.0s cast, distance 10 attract on non-tethered players
     HellishEarthPullTether = 44153, // Helper->self, 6.0s cast, distance 60 attract on tethered (furthest) player
-    _Spell_HellishTorment = 44155, // Helper->player, no cast, single-target
-    _Spell_HellishTorment1 = 44154, // Helper->self, no cast, range 50 circle
-    _Weaponskill_ManifoldLashings = 44157, // Boss->self, 5.0+1.3s cast, single-target
-    _Weaponskill_ManifoldLashings1 = 44159, // Helper->self, 6.3s cast, range 2 circle
-    _Spell_Eruption = 44156, // Helper->location, 3.0s cast, range 6 circle
-    _Weaponskill_ManifoldLashings2 = 44160, // Helper->self, no cast, range 2 circle
-    _Weaponskill_ManifoldLashings3 = 44161, // Helper->self, 2.3s cast, range 42 width 9 rect
-    _Spell_BurningChains = 44145, // Helper->self, no cast, ???
-    _Weaponskill_ManifoldLashings4 = 44158, // Boss->self, 5.0+1.3s cast, single-target
-    _Weaponskill_BigBurst = 44162, // Helper->self, no cast, range 80 circle
-    _Spell_UnholyDarkness = 44163, // DevouredEater->self, 6.0+0.7s cast, single-target
-    _Spell_UnholyDarkness1 = 44164, // Helper->self, 6.7s cast, range 30 circle
+    HellishTormentTowerFailure = 44154, // Helper->self, no cast, range 50 circle
 
-    _Spell_CrimeAndPunishment = 44165, // DevouredEater->self, 6.0+0.7s cast, single-target
-    _Spell_CrimeAndPunishment1 = 44166, // Helper->player, no cast, single-target
-    _Spell_Explosion = 44167, // Helper->players, no cast, range 4 circle, rot pass
-    _Spell_BigBurst = 44168, // Helper->player, no cast, range 60 circle
+    Eruption = 44156, // Helper->location, 3.0s cast, range 6 circle
+
+    ManifoldLashingsCast1 = 44157, // Boss->self, 5.0+1.3s cast, single-target
+    ManifoldLashingsCast2 = 44158, // Boss->self, 5.0+1.3s cast, single-target
+    ManifoldLashingsTower = 44159, // Helper->self, 6.3s cast, range 2 circle
+    ManifoldLashingsTowerRepeat = 44160, // Helper->self, no cast, range 2 circle
+    ManifoldLashingsTail = 44161, // Helper->self, 2.3s cast, range 42 width 9 rect
+
+    BurningChains = 44145, // Helper->self, no cast, ???
+    UnholyDarknessVisual = 44163, // DevouredEater->self, 6.0+0.7s cast, single-target
+    UnholyDarkness = 44164, // Helper->self, 6.7s cast, range 30 circle, bleed raidwide
+
+    CrimeAndPunishmentCast = 44165, // DevouredEater->self, 6.0+0.7s cast, single-target
+    CrimeAndPunishment = 44166, // Helper->player, no cast, single-target, apply Sin Bearer
+    Explosion = 44167, // Helper->players, no cast, range 4 circle, triggers on Sin Bearer expiration
+    SinBurst = 44168, // Helper->player, no cast, range 60 circle, triggered on failed Sin Bearer pass
 
     DrainAetherLightFast = 44129, // Boss->self, 7.0s cast, range 50 width 50 rect
     DrainAetherLightSlow = 44130, // Boss->self, 12.0s cast, range 50 width 50 rect
@@ -104,13 +106,20 @@ public enum AID : uint
     DrainAetherDarkFast = 44132, // EminentGrief->self, 7.0s cast, range 50 width 50 rect
     DrainAetherDarkSlowCast = 44133, // DevouredEater->self, 11.0+1.0s cast, single-target
     DrainAetherDarkSlow = 44134, // EminentGrief->self, 12.0s cast, range 50 width 50 rect
-    _Spell_FeveredFlame = 44170, // Boss->self, 4.0s cast, single-target
-    _Weaponskill_SelfDestruct = 44171, // 48F3->self, 2.0s cast, range 60 circle
-    _Weaponskill_Fuse = 44172, // 48F3->48F3, no cast, single-target
-    _Weaponskill_ = 44173, // Helper->self, no cast, ???
-    _Spell_UnholyDarkness2 = 44175, // DevouredEater->self, 9.0+0.7s cast, single-target
-    _Spell_UnholyDarkness3 = 44176, // Helper->self, 9.7s cast, range 30 circle
-    _Spell_HellishEarth = 44174, // Boss->location, 27.0s cast, range 60 circle
+
+    FeveredFlame = 44170, // Boss->self, 4.0s cast, single-target
+    SelfDestruct = 44171, // 48F3->self, 2.0s cast, range 60 circle
+    Fuse = 44172, // 48F3->48F3, no cast, single-target
+
+    UnholyDarknessEnrageCast = 44175, // DevouredEater->self, 9.0+0.7s cast, single-target
+    UnholyDarknessEnrage = 44176, // Helper->self, 9.7s cast, range 30 circle
+    HellishEarthEnrage = 44174, // Boss->location, 27.0s cast, range 60 circle
+
+    Unk1 = 44173, // Helper->self, no cast, ???
+    Unk2 = 44127, // Boss->self, no cast, single-target
+    UnkExplosion = 44140, // Helper->player, no cast, single-target
+    UnkHellishTorment = 44155, // Helper->player, no cast, single-target
+    UnkBigBurst = 44162, // Helper->self, no cast, range 80 circle
 }
 
 public enum SID : uint
@@ -122,7 +131,10 @@ public enum SID : uint
     SearingChains = 4563, // none->player, extra=0x0
     FireResistanceDownII = 2937, // Helper->player, extra=0x0
     Burns = 2082, // Helper->player, extra=0x0
-    _Gen_ = 3913, // Boss->Boss, extra=0x3C6
+
+    // param changes when adds merge, 0x399 is base size
+    _Gen_ = 3913, // Boss->Boss/48F3, extra=0x3C6/0x399/0x39A/0x39B
+
     Suppuration = 4512, // Helper->player, extra=0x4/0x2/0x1
     ShackledAbilities = 4565, // none->player, extra=0x0
     ShackledHealing = 4564, // none->player, extra=0x0
@@ -130,9 +142,8 @@ public enum SID : uint
     HPBoost = 586, // none->ArcaneFont, extra=0x8
     Petrification = 1, // none->player, extra=0x0
     Poison = 3462, // Helper->player, extra=0x1/0x2/0x3
-
-    Bleeding1 = 2922, // none->player, extra=0x0
-    Bleeding2 = 2951, // Helper->player, extra=0x0
+    BleedingTower = 2922, // none->player, extra=0x0
+    Bleeding = 2951, // Helper->player, extra=0x0
     DamageDown = 3304, // Helper->player, extra=0x1/0x2/0x3/0x4
     Weakness = 43, // none->player, extra=0x0
     Transcendent = 418, // none->player, extra=0x0
@@ -148,13 +159,13 @@ public enum IconID : uint
 {
     RingLight = 77, // player->self
     RingDark = 78, // player->self
-    _Gen_Icon_m0376trg_fire3_a0p = 97, // player->self
-    _Gen_Icon_lockon5_t0h = 23, // player->self
-    _Gen_Icon_share_laser_3sec_0t = 527, // Boss->player
+    SearingChains = 97, // player->self
+    Target = 23, // player->self
+    LineStack = 527, // Boss->player
 }
 
 public enum TetherID : uint
 {
-    _Gen_Tether_chn_hfchain1f = 9, // player->player
-    _Gen_Tether_chn_fire001f = 5, // Boss->player
+    HellishEarth = 5, // Boss->player
+    SearingChains = 9, // player->player
 }

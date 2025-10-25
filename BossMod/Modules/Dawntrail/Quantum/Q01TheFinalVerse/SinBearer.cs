@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Quantum.Q01TheFinalVerse;
 
-class CrimeAndPunishmentHint(BossModule module) : Components.CastHint(module, AID._Spell_CrimeAndPunishment, "")
+class CrimeAndPunishmentHint(BossModule module) : Components.CastHint(module, AID.CrimeAndPunishmentCast, "")
 {
     private readonly LightDark _light = module.FindComponent<LightDark>()!;
 
@@ -142,13 +142,22 @@ class SinBearer(BossModule module) : BossComponent(module)
                 return; // no order defined
 
             case Q01TheFinalVerseConfig.SinBearer.AccelFirst:
-                PassSlots[0] = first;
-                PassSlots[1] = Array.IndexOf(roles, PartnerMMRR(roles[PassSlots[0]]));
-                PassSlots[2] = Array.IndexOf(roles, PartnerRole(roles[PassSlots[1]]));
-                PassSlots[3] = Array.IndexOf(roles, PartnerMMRR(roles[PassSlots[2]]));
-                for (var i = 0; i < PassSlots.Length; i++)
-                    PassOrder[PassSlots[i]] = i;
-                HaveValidOrder = true;
+                try
+                {
+                    PassSlots[0] = first;
+                    PassSlots[1] = Array.IndexOf(roles, PartnerMMRR(roles[PassSlots[0]]));
+                    PassSlots[2] = Array.IndexOf(roles, PartnerRole(roles[PassSlots[1]]));
+                    PassSlots[3] = Array.IndexOf(roles, PartnerMMRR(roles[PassSlots[2]]));
+                    for (var i = 0; i < PassSlots.Length; i++)
+                        PassOrder[PassSlots[i]] = i;
+                    HaveValidOrder = true;
+                }
+                catch (IndexOutOfRangeException) // assignments invalid somehow
+                {
+                    Array.Fill(PassSlots, -1);
+                    Array.Fill(PassOrder, -1);
+                    HaveValidOrder = false;
+                }
                 break;
         }
     }
