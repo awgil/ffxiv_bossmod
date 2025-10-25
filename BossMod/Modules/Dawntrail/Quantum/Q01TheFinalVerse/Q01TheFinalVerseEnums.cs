@@ -133,7 +133,7 @@ public enum SID : uint
     Burns = 2082, // Helper->player, extra=0x0
 
     // param changes when adds merge, 0x399 is base size
-    _Gen_ = 3913, // Boss->Boss/48F3, extra=0x3C6/0x399/0x39A/0x39B
+    UnkAura = 3913, // Boss->Boss/48F3, extra=0x3C6/0x399/0x39A/0x39B
 
     Suppuration = 4512, // Helper->player, extra=0x4/0x2/0x1
     ShackledAbilities = 4565, // none->player, extra=0x0

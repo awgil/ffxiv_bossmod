@@ -42,7 +42,7 @@ public class Q01TheFinalVerseConfig : ConfigNode
         public static readonly FlamebornAssignment ThreeWayMerge = Build(Role.Ranged, Role.Healer, Role.Tank, Role.Melee, Role.Healer);
     }
 
-    public FlamebornAssignment FlamebornAssignments = default;
+    public FlamebornAssignment FlamebornAssignments;
 
     public override void DrawCustom(UITree tree, WorldState ws)
     {
