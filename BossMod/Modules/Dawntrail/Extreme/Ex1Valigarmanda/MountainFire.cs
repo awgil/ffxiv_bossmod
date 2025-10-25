@@ -34,7 +34,7 @@ class MountainFireCone(BossModule module) : Components.GenericAOEs(module)
     private readonly MountainFire? _tower = module.FindComponent<MountainFire>();
     private AOEInstance? _aoe;
 
-    private static readonly AOEShapeCone _shape = new(40, 160.Degrees()); // TODO: verify angle
+    private static readonly AOEShapeCone _shape = new(40, 165.Degrees()); // TODO: verify angle
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

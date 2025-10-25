@@ -38,7 +38,7 @@ class FireScourgeOfFire(BossModule module) : Components.UniformStackSpread(modul
     }
 }
 
-class FireScourgeOfFireVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.FireScourgeOfFire, module => module.Enemies(OID.ScourgeOfFireVoidzone).Where(z => z.EventState != 7), 0.9f);
+class FireScourgeOfFireVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.FireScourgeOfFire, module => module.Enemies(OID.ScourgeOfFireVoidzone).Where(z => z.EventState != 7), 0.9f);
 
 class FireScourgeOfIce(BossModule module) : Components.StayMove(module)
 {
