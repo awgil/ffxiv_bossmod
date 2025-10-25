@@ -29,6 +29,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly IPCProvider _ipc;
     private readonly DTRProvider _dtr;
     private readonly SlashCommandProvider _slashCmd;
+    private readonly MultiboxManager _mbox;
     private TimeSpan _prevUpdateTime;
     private DateTime _throttleJump;
     private DateTime _throttleInteract;
@@ -94,6 +95,7 @@ public sealed class Plugin : IDalamudPlugin
         _ipc = new(_rotation, _amex, _movementOverride, _ai);
         _dtr = new(_rotation, _ai);
         _slashCmd = new(commandManager, "/vbm");
+        _mbox = new(_rotation, _ws);
 
         var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
@@ -125,6 +127,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _configUI.Dispose();
+        _mbox.Dispose();
         _slashCmd.Dispose();
         _dtr.Dispose();
         _ipc.Dispose();
@@ -342,22 +345,11 @@ public sealed class Plugin : IDalamudPlugin
         _movementOverride.DesiredDirection = _hints.ForcedMovement;
         _movementOverride.MisdirectionThreshold = _hints.MisdirectionThreshold;
         _movementOverride.DesiredSpinDirection = _hints.SpinDirection;
-        // update forced target, if needed (TODO: move outside maybe?)
-        if (_hints.ForcedTarget != null && _hints.ForcedTarget.IsTargetable)
-        {
-            var obj = _hints.ForcedTarget.SpawnIndex >= 0 ? FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[_hints.ForcedTarget.SpawnIndex].Value : null;
-            if (obj != null && obj->EntityId != _hints.ForcedTarget.InstanceID)
-                Service.Log($"[ExecHints] Unexpected new target: expected {_hints.ForcedTarget.InstanceID:X} at #{_hints.ForcedTarget.SpawnIndex}, but found {obj->EntityId:X}");
 
-            // 50 in-game units is the maximum distance before nameplates stop rendering (making the mob effectively untargetable)
-            // targeting a mob that isn't visible is bad UX
-            if (_ws.Party.Player() is { } player)
-            {
-                var distSq = (player.PosRot.XYZ() - _hints.ForcedTarget.PosRot.XYZ()).LengthSquared();
-                if (distSq < 2500)
-                    FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->Target = obj;
-            }
-        }
+        var targetSystem = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
+        SetTarget(_hints.ForcedTarget, &targetSystem->Target);
+        SetTarget(_hints.ForcedFocusTarget, &targetSystem->FocusTarget);
+
         foreach (var s in _hints.StatusesToCancel)
         {
             var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : 0xE0000000);
@@ -380,6 +372,25 @@ public sealed class Plugin : IDalamudPlugin
                 FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(_hints.InteractWithTarget), false);
                 _throttleInteract = _ws.FutureTime(0.1f);
             }
+        }
+    }
+
+    private unsafe void SetTarget(Actor? target, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject** targetPtr)
+    {
+        if (target == null || !target.IsTargetable)
+            return;
+
+        var obj = target.SpawnIndex >= 0 ? FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[target.SpawnIndex].Value : null;
+        if (obj != null && obj->EntityId != target.InstanceID)
+            Service.Log($"[ExecHints] Unexpected new target: expected {target.InstanceID:X} at #{target.SpawnIndex}, but found {obj->EntityId:X}");
+
+        // 50 in-game units is the maximum distance before nameplates stop rendering (making the mob effectively untargetable)
+        // targeting a mob that isn't visible is bad UX
+        if (_ws.Party.Player() is { } player)
+        {
+            var distSq = (player.PosRot.XYZ() - target.PosRot.XYZ()).LengthSquared();
+            if (distSq < 2500)
+                *targetPtr = obj;
         }
     }
 

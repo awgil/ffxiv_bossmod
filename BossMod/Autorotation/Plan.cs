@@ -140,11 +140,19 @@ public class JsonPlanConverter : JsonConverter<Plan>
                         }
                         s = new Plan.Entry(t);
                     }
-                    else if (cfg is StrategyConfigScalar cfgScalar)
+                    else if (cfg is StrategyConfigFloat cfgScalar)
                     {
-                        var t = new StrategyValueScalar
+                        var t = new StrategyValueFloat
                         {
-                            Value = (float)js.GetProperty(nameof(StrategyValueScalar.Value)).GetDouble()
+                            Value = js.GetProperty(nameof(StrategyValueFloat.Value)).GetSingle()
+                        };
+                        s = new Plan.Entry(t);
+                    }
+                    else if (cfg is StrategyConfigInt cfgInt)
+                    {
+                        var t = new StrategyValueInt
+                        {
+                            Value = js.GetProperty(nameof(StrategyValueInt.Value)).GetInt64()
                         };
                         s = new Plan.Entry(t);
                     }

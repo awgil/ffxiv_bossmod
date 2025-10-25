@@ -85,6 +85,7 @@ public sealed class AIHints
     // forced target
     // this should be set only if either explicitly planned by user or by ai, otherwise it will be annoying to user
     public Actor? ForcedTarget;
+    public Actor? ForcedFocusTarget;
 
     // low-level forced movement - if set, character will move in specified direction (ignoring casts, uptime, forbidden zones, etc), or stay in place if set to default
     public Vector3? ForcedMovement;
@@ -152,6 +153,7 @@ public sealed class AIHints
         Array.Fill(Enemies, null);
         PotentialTargets.Clear();
         ForcedTarget = null;
+        ForcedFocusTarget = null;
         ForcedMovement = null;
         InteractWithTarget = null;
         ForbiddenZones.Clear();

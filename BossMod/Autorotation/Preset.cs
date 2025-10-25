@@ -8,6 +8,8 @@ namespace BossMod.Autorotation;
 [JsonConverter(typeof(JsonPresetConverter))]
 public sealed record class Preset(string Name)
 {
+    public bool HiddenByDefault;
+
     [Flags]
     public enum Modifier
     {
@@ -130,10 +132,16 @@ public class JsonPresetConverter : JsonConverter<Preset>
                             continue;
                         }
                         break;
-                    case StrategyConfigScalar cfgScalar:
-                        s.Value = new StrategyValueScalar()
+                    case StrategyConfigFloat:
+                        s.Value = new StrategyValueFloat()
                         {
-                            Value = (float)js.GetProperty(nameof(StrategyValueScalar.Value)).GetDouble()
+                            Value = js.GetProperty(nameof(StrategyValueFloat.Value)).GetSingle()
+                        };
+                        break;
+                    case StrategyConfigInt:
+                        s.Value = new StrategyValueInt()
+                        {
+                            Value = js.GetProperty(nameof(StrategyValueInt.Value)).GetInt64()
                         };
                         break;
                 }

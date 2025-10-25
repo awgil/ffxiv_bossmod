@@ -77,22 +77,33 @@ public record class StrategyConfigTrack(
     }
 }
 
-public record class StrategyConfigScalar(
+public record class StrategyConfigFloat(
     string InternalName,
     string DisplayName,
-    bool IsInt,
     float MinValue,
     float MaxValue,
     float UIPriority
 ) : StrategyConfig(InternalName, DisplayName, UIPriority)
 {
-    public override StrategyValueScalar CreateEmpty() => new() { Value = MinValue };
-    public override StrategyValueScalar CreateForEditor() => new() { Value = MinValue };
+    public override StrategyValueFloat CreateEmpty() => new() { Value = MinValue };
+    public override StrategyValueFloat CreateForEditor() => new() { Value = MinValue };
 
-    public override string ToDisplayString(StrategyValue val) => ((StrategyValueScalar)val).Value.ToString();
+    public override string ToDisplayString(StrategyValue val) => ((StrategyValueFloat)val).Value.ToString("f1");
     public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
     {
-        writer.WriteNumber(nameof(StrategyValueScalar.Value), ((StrategyValueScalar)val).Value);
+        writer.WriteNumber(nameof(StrategyValueFloat.Value), ((StrategyValueFloat)val).Value);
+    }
+}
+
+public record class StrategyConfigInt(string InternalName, string DisplayName, long MinValue, long MaxValue, float UIPriority) : StrategyConfig(InternalName, DisplayName, UIPriority)
+{
+    public override StrategyValueInt CreateEmpty() => new() { Value = MinValue };
+    public override StrategyValueInt CreateForEditor() => throw new NotImplementedException();
+
+    public override string ToDisplayString(StrategyValue val) => ((StrategyValueInt)val).Value.ToString();
+    public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
+    {
+        writer.WriteNumber(nameof(StrategyValueInt.Value), ((StrategyValueInt)val).Value);
     }
 }
 
@@ -164,14 +175,30 @@ public record class StrategyValueTrack : StrategyValue
     }
 }
 
-public record class StrategyValueScalar : StrategyValue
+public record class StrategyValueFloat : StrategyValue
 {
     public float Value;
 
     public override void DeserializeFields(JsonElement js)
     {
         if (js.TryGetProperty(nameof(Value), out var v))
-            Value = (float)v.GetDouble();
+            Value = v.GetSingle();
+    }
+
+    public override void SerializeFields(Utf8JsonWriter writer)
+    {
+        writer.WriteNumber(nameof(Value), Value);
+    }
+}
+
+public record class StrategyValueInt : StrategyValue
+{
+    public long Value;
+
+    public override void DeserializeFields(JsonElement js)
+    {
+        if (js.TryGetProperty(nameof(Value), out var v))
+            Value = v.GetInt64();
     }
 
     public override void SerializeFields(Utf8JsonWriter writer)

@@ -237,7 +237,7 @@ public sealed class UIPresetEditor
                     if (cfg is StrategyConfigTrack tr)
                         selLabel += tr.Options[((StrategyValueTrack)m.Value).Option].UIName;
                     else
-                        selLabel += ((StrategyValueScalar)m.Value).Value.ToString("f1");
+                        selLabel += ((StrategyValueFloat)m.Value).Value.ToString("f1");
 
                     selLabel += $"###setting{_settingGuids[i]}";
 
@@ -324,7 +324,7 @@ public sealed class UIPresetEditor
             var valStr = val switch
             {
                 StrategyValueTrack t => ((StrategyConfigTrack)ms.Definition.Configs[i]).Options[t.Option].UIName,
-                StrategyValueScalar s => s.Value.ToString(),
+                StrategyValueFloat s => s.Value.ToString(),
                 _ => null!
             };
             ImGui.TextUnformatted($"{keyStr} = {valStr}");

@@ -164,6 +164,8 @@ public sealed class UIRotationWindow : UIWindow
         foreach (var p in mgr.Database.Presets.PresetsForClass(mgr.Player.Class))
         {
             var isActive = mgr.Presets.Contains(p);
+            if (!isActive && p.HiddenByDefault)
+                continue;
             ImGui.SameLine();
             using var col = ImRaii.PushColor(ImGuiCol.Button, 0xff008080, isActive);
             using var colHovered = ImRaii.PushColor(ImGuiCol.ButtonHovered, 0xff005050, isActive);

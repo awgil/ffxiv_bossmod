@@ -14,7 +14,7 @@ public sealed class PresetDatabase
 
     private readonly FileInfo _dbPath;
 
-    public IEnumerable<Preset> VisiblePresets => _cfg.HideDefaultPreset ? UserPresets : DefaultPresets.Concat(UserPresets);
+    public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset }).Concat(UserPresets);
 
     public PresetDatabase(string rootPath, FileInfo defaultPresets)
     {
@@ -70,11 +70,11 @@ public sealed class PresetDatabase
         }
     }
 
-    public IEnumerable<Preset> PresetsForClass(Class c) => VisiblePresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
+    public IEnumerable<Preset> PresetsForClass(Class c) => AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
 
     public Preset? FindPresetByName(ReadOnlySpan<char> name, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
     {
-        foreach (var p in VisiblePresets)
+        foreach (var p in AllPresets)
             if (name.Equals(p.Name, cmp))
                 return p;
         return null;
