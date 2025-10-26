@@ -523,6 +523,7 @@ public sealed class ReplayParserLog : IDisposable
                 targetable,
                 ally,
                 owner,
+                0,
                 0
             );
         }
@@ -545,7 +546,8 @@ public sealed class ReplayParserLog : IDisposable
                 _input.ReadBool(),
                 _input.ReadBool(),
                 _input.ReadActorID(),
-                _version >= 14 ? _input.ReadUInt(false) : 0
+                _version >= 14 ? _input.ReadUInt(false) : 0,
+                _version >= 28 ? _input.ReadUInt(false) : 0
             );
         }
     }
