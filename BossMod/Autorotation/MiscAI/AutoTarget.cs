@@ -114,10 +114,15 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             if (targetFates && target.Actor.FateID == World.Client.ActiveFate.ID)
             {
                 if (target.Actor.NameID is 6737 or 6738)
+                {
                     prioritize(target, 1);
-                else if (handinCount < 10)
+                    continue;
+                }
+                if (handinCount < 10)
+                {
                     prioritize(target, 0);
-                continue;
+                    continue;
+                }
             }
 
             // add all other targets to potential targets list (e.g. if modules modify out-of-combat mob priority)
