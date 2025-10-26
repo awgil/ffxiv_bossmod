@@ -87,6 +87,15 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
         var targetFates = strategy.Option(Track.FATE).As<Flag>() == Flag.Enabled && Utils.IsPlayerSyncedToFate(World);
 
+        var handinCount = 0;
+
+        if (targetFates)
+        {
+            var handinId = Utils.GetFateItem(World.Client.ActiveFate.ID);
+            if (handinId > 0)
+                handinCount = World.Client.ActiveFate.HandInCount + (int)World.Client.GetItemQuantity(handinId);
+        }
+
         // first deal with pulling new enemies
         foreach (var target in Hints.PotentialTargets)
         {
@@ -104,8 +113,10 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
             if (targetFates && target.Actor.FateID == World.Client.ActiveFate.ID)
             {
-                var isForlorn = target.Actor.NameID is 6737 or 6738;
-                prioritize(target, isForlorn ? 1 : 0);
+                if (target.Actor.NameID is 6737 or 6738)
+                    prioritize(target, 1);
+                else if (handinCount < 10)
+                    prioritize(target, 0);
                 continue;
             }
 
