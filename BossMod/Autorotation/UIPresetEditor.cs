@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
@@ -82,19 +83,16 @@ public sealed class UIPresetEditor
             }
         }
 
-        using var table = ImRaii.Table("preset_details", 3);
+        using var table = ImRaii.Table("preset_details", 2);
         if (!table)
             return;
-        ImGui.TableSetupColumn("Modules");
+        ImGui.TableSetupColumn("Modules", ImGuiTableColumnFlags.WidthFixed, 300 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("Strategies");
-        ImGui.TableSetupColumn("Details");
-        ImGui.TableHeadersRow();
         ImGui.TableNextColumn();
         DrawModulesList();
         ImGui.TableNextColumn();
         DrawSettingsList();
-        ImGui.TableNextColumn();
-        DrawDetails();
+        //DrawDetails();
     }
 
     public void DetachFromSource()
@@ -224,22 +222,35 @@ public sealed class UIPresetEditor
         var ms = Preset.Modules[_selectedModuleIndex];
         DrawAddSettingPopup(ms, ms.Definition);
 
+        ImGui.TextUnformatted(ms.Definition.DisplayName);
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+        var values = Preset.ActiveStrategyOverrides(_selectedModuleIndex);
+
+        for (var track = 0; track < values.Values.Length; track++)
+        {
+            var cfg = values.Configs[track];
+            var val = values.Values[track];
+
+            if (cfg.DrawForSimpleEditor(ref val))
+            {
+                ms.SerializedSettings.RemoveAll(s => s.Track == track);
+                ms.SerializedSettings.Add(new(default, track, val));
+            }
+        }
+
+        /*
         using (var list = ImRaii.ListBox("###settings", width))
         {
             if (list)
             {
                 for (int i = 0; i < ms.SerializedSettings.Count; ++i)
                 {
-                    ref var m = ref ms.SerializedSettings.Ref(i);
+                    var m = ms.SerializedSettings[i];
                     var cfg = ms.Definition.Configs[m.Track];
 
-                    var selLabel = $"[{i + 1}] {cfg.UIName} [{m.Mod}] = ";
-                    if (cfg is StrategyConfigTrack tr)
-                        selLabel += tr.Options[((StrategyValueTrack)m.Value).Option].UIName;
-                    else
-                        selLabel += ((StrategyValueFloat)m.Value).Value.ToString("f1");
-
-                    selLabel += $"###setting{_settingGuids[i]}";
+                    var selLabel = $"[{i + 1}] {cfg.UIName} [{m.Mod}] = {cfg.ToDisplayString(m.Value)}###setting{_settingGuids[i]}";
 
                     if (ImGui.Selectable(selLabel, i == _selectedSettingIndex))
                     {
@@ -274,6 +285,7 @@ public sealed class UIPresetEditor
             _selectedSettingIndex = -1;
             RebuildSettingGuids();
         }
+        */
     }
 
     private void DrawAddSettingPopup(Preset.ModuleSettings ms, RotationModuleDefinition def)
@@ -324,7 +336,8 @@ public sealed class UIPresetEditor
             var valStr = val switch
             {
                 StrategyValueTrack t => ((StrategyConfigTrack)ms.Definition.Configs[i]).Options[t.Option].UIName,
-                StrategyValueFloat s => s.Value.ToString(),
+                StrategyValueInt it => it.Value.ToString(),
+                StrategyValueFloat s => s.Value.ToString("f1"),
                 _ => null!
             };
             ImGui.TextUnformatted($"{keyStr} = {valStr}");

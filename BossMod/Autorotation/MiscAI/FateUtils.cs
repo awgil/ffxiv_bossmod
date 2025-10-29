@@ -8,13 +8,8 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
     {
         var res = new RotationModuleDefinition("FATE helper", "Utilities for completing FATEs", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000, 1);
 
-        res.Define(Track.Handin).As<Flag>("Hand-in")
-            .AddOption(Flag.Enabled, "Automatically hand in FATE items at 10+")
-            .AddOption(Flag.Disabled, "Do nothing");
-
-        res.Define(Track.Collect).As<Flag>("Collect")
-            .AddOption(Flag.Enabled, "Try to collect FATE items instead of engaging in combat")
-            .AddOption(Flag.Disabled, "Do nothing");
+        res.Define(Track.Handin).As<Flag>("Hand-in", "Automatically hand in FATE items").AddOption(Flag.Enabled).AddOption(Flag.Disabled);
+        res.Define(Track.Collect).As<Flag>("Collect", "Try to pick up FATE items").AddOption(Flag.Enabled).AddOption(Flag.Disabled);
 
         return res;
     }

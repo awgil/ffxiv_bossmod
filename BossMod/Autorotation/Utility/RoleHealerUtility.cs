@@ -19,9 +19,9 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
 
         // TODO: combine standard/ex options
         def.Define(SharedTrack.Swiftcast).As<SwiftcastOption>("Swiftcast", "Swift", 20)
-            .AddOption(SwiftcastOption.None, "None", "Do not use automatically")
-            .AddOption(SwiftcastOption.Use, "Use", "Use Swiftcast (10s)", 60, 10, ActionTargets.Self, 22, 93)
-            .AddOption(SwiftcastOption.UseEx, "UseEx", "Use Swiftcast (15s)", 40, 10, ActionTargets.Self, 94)
+            .AddOption(SwiftcastOption.None, "Do not use automatically")
+            .AddOption(SwiftcastOption.Use, "Use Swiftcast (10s)", 60, 10, ActionTargets.Self, 22, 93)
+            .AddOption(SwiftcastOption.UseEx, "Use Swiftcast (15s)", 40, 10, ActionTargets.Self, 94)
             .AddAssociatedActions(ClassShared.AID.Swiftcast);
 
         DefineSimpleConfig(def, SharedTrack.Surecast, "Surecast", "", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s

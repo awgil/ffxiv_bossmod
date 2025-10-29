@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Dalamud.Bindings.ImGui;
+using System.Text.Json;
 
 namespace BossMod.Autorotation;
 
@@ -50,6 +51,8 @@ public abstract record class StrategyConfig(
     public abstract StrategyValue CreateEmpty();
     public abstract StrategyValue CreateForEditor();
 
+    public abstract bool DrawForSimpleEditor(ref StrategyValue currentValue);
+
     public abstract string ToDisplayString(StrategyValue val);
     public abstract void SerializeValue(Utf8JsonWriter writer, StrategyValue val);
 
@@ -64,13 +67,24 @@ public record class StrategyConfigTrack(
     float UIPriority
 ) : StrategyConfig(InternalName, DisplayName, UIPriority)
 {
-    public override StrategyValueTrack CreateEmpty() => new();
-    public override StrategyValueTrack CreateForEditor() => new() { Option = Options.Count > 1 ? 1 : 0 };
-
     public readonly List<StrategyOption> Options = [];
     public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
 
-    public override string ToDisplayString(StrategyValue val) => Options[((StrategyValueTrack)val).Option].DisplayName;
+    public override StrategyValueTrack CreateEmpty() => new();
+    public override StrategyValueTrack CreateForEditor() => new() { Option = Options.Count > 1 ? 1 : 0 };
+
+    public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
+    {
+        var opt = ((StrategyValueTrack)currentValue).Option;
+        if (UICombo.EnumIndex(UIName, OptionEnum, ref opt, (int ix) => Options[ix].DisplayName != "" ? Options[ix].DisplayName : UICombo.EnumString((Enum)OptionEnum.GetEnumValues().GetValue(ix))))
+        {
+            currentValue = new StrategyValueTrack() { Option = opt };
+            return true;
+        }
+        return false;
+    }
+
+    public override string ToDisplayString(StrategyValue val) => Options[((StrategyValueTrack)val).Option].UIName;
     public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
     {
         writer.WriteString(nameof(StrategyValueTrack.Option), Options[((StrategyValueTrack)val).Option].InternalName);
@@ -82,11 +96,36 @@ public record class StrategyConfigFloat(
     string DisplayName,
     float MinValue,
     float MaxValue,
-    float UIPriority
+    float UIPriority,
+    bool Drag = true,
+    float Speed = 1
 ) : StrategyConfig(InternalName, DisplayName, UIPriority)
 {
     public override StrategyValueFloat CreateEmpty() => new() { Value = MinValue };
     public override StrategyValueFloat CreateForEditor() => new() { Value = MinValue };
+
+    public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
+    {
+        var f = ((StrategyValueFloat)currentValue).Value;
+        if (Drag)
+        {
+            if (ImGui.DragFloat(UIName, ref f, Speed, MinValue, MaxValue))
+            {
+                currentValue = new StrategyValueFloat() { Value = f };
+                return true;
+            }
+        }
+        else
+        {
+            if (ImGui.InputFloat(UIName, ref f, Speed))
+            {
+                currentValue = new StrategyValueFloat() { Value = f };
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public override string ToDisplayString(StrategyValue val) => ((StrategyValueFloat)val).Value.ToString("f1");
     public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
@@ -95,10 +134,41 @@ public record class StrategyConfigFloat(
     }
 }
 
-public record class StrategyConfigInt(string InternalName, string DisplayName, long MinValue, long MaxValue, float UIPriority) : StrategyConfig(InternalName, DisplayName, UIPriority)
+public record class StrategyConfigInt(
+    string InternalName,
+    string DisplayName,
+    long MinValue,
+    long MaxValue,
+    float UIPriority,
+    bool Drag = true,
+    float Speed = 1
+) : StrategyConfig(InternalName, DisplayName, UIPriority)
 {
     public override StrategyValueInt CreateEmpty() => new() { Value = MinValue };
     public override StrategyValueInt CreateForEditor() => throw new NotImplementedException();
+
+    public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
+    {
+        var i = ((StrategyValueInt)currentValue).Value;
+        if (Drag)
+        {
+            if (ImGui.DragLong(UIName, ref i, Speed, MinValue, MaxValue))
+            {
+                currentValue = new StrategyValueInt() { Value = i };
+                return true;
+            }
+        }
+        else
+        {
+            if (ImGui.InputLong(UIName, ref i, (long)Speed))
+            {
+                currentValue = new StrategyValueInt() { Value = i };
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public override string ToDisplayString(StrategyValue val) => ((StrategyValueInt)val).Value.ToString();
     public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
@@ -236,10 +306,18 @@ public readonly record struct StrategyValues(List<StrategyConfig> Configs)
         throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Track type");
     }
 
+    public float GetFloat<TrackIndex>(TrackIndex index) where TrackIndex : Enum
+    {
+        var idx = (int)(object)index;
+        if (Configs[idx] is StrategyConfigFloat)
+            return ((StrategyValueFloat)Values[idx]).Value;
+        throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Float type");
+    }
+
     public long GetInt<TrackIndex>(TrackIndex index) where TrackIndex : Enum
     {
         var idx = (int)(object)index;
-        if (Configs[idx] is StrategyConfigInt i)
+        if (Configs[idx] is StrategyConfigInt)
             return ((StrategyValueInt)Values[idx]).Value;
         throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Int type");
     }

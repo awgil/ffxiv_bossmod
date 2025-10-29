@@ -16,8 +16,8 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.TechnicalStep);
 
         def.Define(Track.Partner).As<PartnerStrategy>("Partner")
-            .AddOption(PartnerStrategy.Automatic, "Auto", "Choose dance partner automatically (based on job aDPS)")
-            .AddOption(PartnerStrategy.Manual, "Manual", "Do not choose dance partner automatically");
+            .AddOption(PartnerStrategy.Automatic, "Choose dance partner automatically (based on job aDPS)")
+            .AddOption(PartnerStrategy.Manual, "Do not choose dance partner automatically");
 
         return def;
     }

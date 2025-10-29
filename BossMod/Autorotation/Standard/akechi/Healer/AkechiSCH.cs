@@ -24,23 +24,23 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionMnd);
         res.Define(Track.ST).As<STOption>("Single Target", "ST", uiPriority: 200)
-            .AddOption(STOption.Ruin2, "Ruin2", "Use Ruin if single target is forced")
-            .AddOption(STOption.Broil, "Broil", "Use Broil if single target is forced")
+            .AddOption(STOption.Ruin2, "Use Ruin if single target is forced")
+            .AddOption(STOption.Broil, "Use Broil if single target is forced")
             .AddAssociatedActions(AID.Ruin1, AID.Ruin2, AID.Broil1, AID.Broil2, AID.Broil3, AID.Broil4);
         res.Define(Track.Bio).As<BioStrategy>("Damage Over Time", "Bio", uiPriority: 190)
-            .AddOption(BioStrategy.Bio3, "Bio3", "Use Bio if target has 3s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
-            .AddOption(BioStrategy.Bio6, "Bio6", "Use Bio if target has 6s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
-            .AddOption(BioStrategy.Bio9, "Bio9", "Use Bio if target has 9s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
-            .AddOption(BioStrategy.Bio0, "Bio0", "Use Bio if target does not have DoT effect", 0, 30, ActionTargets.Hostile, 2)
-            .AddOption(BioStrategy.Force, "Force", "Force use of Bio regardless of DoT effect", 0, 30, ActionTargets.Hostile, 2)
-            .AddOption(BioStrategy.Delay, "Delay", "Delay the use of Bio for manual or strategic usage", 0, 0, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Bio3, "Use Bio if target has 3s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Bio6, "Use Bio if target has 6s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Bio9, "Use Bio if target has 9s or less remaining on DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Bio0, "Use Bio if target does not have DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Force, "Force use of Bio regardless of DoT effect", 0, 30, ActionTargets.Hostile, 2)
+            .AddOption(BioStrategy.Delay, "Delay the use of Bio for manual or strategic usage", 0, 0, ActionTargets.Hostile, 2)
             .AddAssociatedActions(AID.Bio1, AID.Bio2, AID.Biolysis);
         res.Define(Track.EnergyDrain).As<EnergyStrategy>("Energy Drain", "E.Drain", uiPriority: 150)
-            .AddOption(EnergyStrategy.Use3, "UseAll", "Uses all stacks of Aetherflow for Energy Drain; conserves no stacks for manual usage", 0, 0, ActionTargets.Hostile, 45)
-            .AddOption(EnergyStrategy.Use2, "Use2", "Uses 2 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage, but consumes any remaining when Aetherflow ability is about to be up", 0, 0, ActionTargets.Hostile, 45)
-            .AddOption(EnergyStrategy.Use1, "Use1", "Uses 1 stack of Aetherflow for Energy Drain; conserves 2 stacks for manual usage, but consumes any remaining when Aetherflow ability is about to be up", 0, 0, ActionTargets.Hostile, 45)
-            .AddOption(EnergyStrategy.Force, "Force", "Force use of Energy Drain if any Aetherflow is available", 0, 0, ActionTargets.None, 45)
-            .AddOption(EnergyStrategy.Delay, "Delay", "Delay use of Energy Drain", 0, 0, ActionTargets.None, 45)
+            .AddOption(EnergyStrategy.Use3, "Uses all stacks of Aetherflow for Energy Drain; conserves no stacks for manual usage", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Use2, "Uses 2 stacks of Aetherflow for Energy Drain; conserves 1 stack for manual usage, but consumes any remaining when Aetherflow ability is about to be up", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Use1, "Uses 1 stack of Aetherflow for Energy Drain; conserves 2 stacks for manual usage, but consumes any remaining when Aetherflow ability is about to be up", 0, 0, ActionTargets.Hostile, 45)
+            .AddOption(EnergyStrategy.Force, "Force use of Energy Drain if any Aetherflow is available", 0, 0, ActionTargets.None, 45)
+            .AddOption(EnergyStrategy.Delay, "Delay use of Energy Drain", 0, 0, ActionTargets.None, 45)
             .AddAssociatedActions(AID.EnergyDrain);
         res.DefineOGCD(Track.ChainStratagem, AID.ChainStratagem, "Chain Stratagem", "C.Strat", uiPriority: 170, 120, 20, ActionTargets.Hostile, 66);
         res.DefineOGCD(Track.Aetherflow, AID.Aetherflow, "Aetherflow", "A.flow", uiPriority: 160, 60, 10, ActionTargets.Self, 45);

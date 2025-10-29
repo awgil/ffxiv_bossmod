@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace BossMod.Autorotation.MiscAI;
+﻿namespace BossMod.Autorotation.MiscAI;
 
 public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
@@ -22,17 +20,9 @@ public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor pl
         var roleRef = def.Define(Tracks.Role).As<Role>("Role", "Role to stay close to");
 
         foreach (var role in Enum.GetValues<Role>())
-        {
-            roleRef.AddOption(role, role.ToString());
-        }
+            roleRef.AddOption(role);
 
-        var rangeRef = def.Define(Tracks.Range).As<RangeDefinition>("range");
-
-        rangeRef.AddOption(RangeDefinition.OnHitbox, "OnHitbox", "Stay on edge of hitbox (+/- 1 unit)");
-        for (var f = 1.1f; f <= 30f; f = MathF.Round(f + 0.1f, 1))
-        {
-            rangeRef.AddOption((RangeDefinition)(f * 10f - 10f), f.ToString(CultureInfo.InvariantCulture));
-        }
+        def.DefineFloat(Tracks.Range, "Range", minValue: 1.1f, maxValue: 30f);
 
         return def;
     }
@@ -47,11 +37,8 @@ public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor pl
             {
                 var position = roleActor.Position;
                 var radius = roleActor.HitboxRadius;
-                var range = strategy.Option(Tracks.Range);
-                if (range.As<RangeDefinition>() == RangeDefinition.OnHitbox)
-                    Hints.GoalZones.Add(p => p.InDonut(position, radius - 1, radius + 1) ? 0.5f : 0);
-                else
-                    Hints.GoalZones.Add(Hints.GoalSingleTarget(position, (range.Value.Option + 10f) / 10f + roleActor.HitboxRadius, 1f));
+                var range = strategy.GetFloat(Tracks.Range);
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(position, range + roleActor.HitboxRadius, 1f));
             }
         }
     }

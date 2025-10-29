@@ -60,11 +60,11 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         def.DefineShared().AddAssociatedActions(AID.SearingLight);
 
         def.Define(Track.Cyclone).As<CycloneUse>("Cyclone")
-            .AddOption(CycloneUse.Automatic, "Auto", "Use when Ifrit is summoned")
-            .AddOption(CycloneUse.Delay, "Delay", "Delay automatic use, but do not overwrite Ifrit with any other summon")
-            .AddOption(CycloneUse.DelayMove, "DelayMove", "Delay automatic use until player is not holding a movement key - do not overwrite Ifrit with any other summon")
-            .AddOption(CycloneUse.SkipMove, "SkipMove", "Skip if a movement key is held, otherwise use")
-            .AddOption(CycloneUse.Skip, "Skip", "Do not use at all");
+            .AddOption(CycloneUse.Automatic, "Use when Ifrit is summoned")
+            .AddOption(CycloneUse.Delay, "Delay automatic use, but do not overwrite Ifrit with any other summon")
+            .AddOption(CycloneUse.DelayMove, "Delay automatic use until player is not holding a movement key - do not overwrite Ifrit with any other summon")
+            .AddOption(CycloneUse.SkipMove, "Skip if a movement key is held, otherwise use")
+            .AddOption(CycloneUse.Skip, "Do not use at all");
 
         return def;
     }

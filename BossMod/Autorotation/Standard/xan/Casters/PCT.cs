@@ -16,9 +16,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         def.DefineShared().AddAssociatedActions(AID.StarryMuse);
 
         def.Define(Track.Motif).As<MotifStrategy>("Motifs")
-            .AddOption(MotifStrategy.Combat, "Combat", "Cast motifs in combat, outside of burst window")
-            .AddOption(MotifStrategy.Downtime, "Downtime", "Cast motifs in combat if there are no targets nearby")
-            .AddOption(MotifStrategy.Instant, "Instant", "Only cast motifs when they are instant (out of combat)");
+            .AddOption(MotifStrategy.Combat, "Cast motifs in combat, outside of burst window")
+            .AddOption(MotifStrategy.Downtime, "Cast motifs in combat if there are no targets nearby")
+            .AddOption(MotifStrategy.Instant, "Only cast motifs when they are instant (out of combat)");
 
         def.DefineSimple(Track.Holy, "Holy").AddAssociatedActions(AID.HolyInWhite, AID.CometInBlack);
         def.DefineSimple(Track.Hammer, "Hammer").AddAssociatedActions(AID.HammerStamp);

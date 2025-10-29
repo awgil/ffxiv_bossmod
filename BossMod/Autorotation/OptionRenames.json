@@ -1,0 +1,3128 @@
+[
+  {
+    "Module": "BossMod.Autorotation.VeynBRD",
+    "Option": "AOE",
+    "Internal": "ST",
+    "Enum": "SingleTarget"
+  },
+  {
+    "Module": "BossMod.Autorotation.VeynBRD",
+    "Option": "AOE",
+    "Internal": "AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.VeynBRD",
+    "Option": "Songs",
+    "Internal": "Automatic (3-6-9)",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.VeynWAR",
+    "Option": "AOE",
+    "Internal": "ST",
+    "Enum": "SingleTarget"
+  },
+  {
+    "Module": "BossMod.Autorotation.VeynWAR",
+    "Option": "AOE",
+    "Internal": "AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassASTUtility",
+    "Option": "EarthlyStar",
+    "Internal": "Earthly Star",
+    "Enum": "Use"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassASTUtility",
+    "Option": "EarthlyStar",
+    "Internal": "Stellar Detonation",
+    "Enum": "End"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassASTUtility",
+    "Option": "Horoscope",
+    "Internal": "UseEx",
+    "Enum": "End"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassASTUtility",
+    "Option": "Macrocosmos",
+    "Internal": "UseEx",
+    "Enum": "End"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassBRDUtility",
+    "Option": "Troubadour",
+    "Internal": "Use",
+    "Enum": "Use87"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassBRDUtility",
+    "Option": "Troubadour",
+    "Internal": "UseIfNotActive",
+    "Enum": "Use87IfNotActive"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDNCUtility",
+    "Option": "Shield Samba",
+    "Internal": "Use",
+    "Enum": "Use87"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDNCUtility",
+    "Option": "Shield Samba",
+    "Internal": "UseIfNotActive",
+    "Enum": "Use87IfNotActive"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDRKUtility",
+    "Option": "ShadowWall",
+    "Internal": "Use",
+    "Enum": "ShadowWall"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDRKUtility",
+    "Option": "ShadowWall",
+    "Internal": "UseEx",
+    "Enum": "ShadowedVigil"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDRKUtility",
+    "Option": "TheBlackestNight",
+    "Internal": "Use",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDRKUtility",
+    "Option": "Oblation",
+    "Internal": "Use",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassGNBUtility",
+    "Option": "Aurora",
+    "Internal": "Use",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassGNBUtility",
+    "Option": "Aurora",
+    "Internal": "UseHold1",
+    "Enum": "ForceHold1"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassGNBUtility",
+    "Option": "HeartOfCorundum",
+    "Internal": "HoS",
+    "Enum": "HeartOfStone"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassGNBUtility",
+    "Option": "HeartOfCorundum",
+    "Internal": "HoC",
+    "Enum": "HeartOfCorundum"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassMCHUtility",
+    "Option": "Tactician",
+    "Internal": "Use",
+    "Enum": "Use87"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassMCHUtility",
+    "Option": "Tactician",
+    "Internal": "UseIfNotActive",
+    "Enum": "Use87IfNotActive"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassNINUtility",
+    "Option": "Shukuchi",
+    "Internal": "Automatic",
+    "Enum": "None"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPCTUtility",
+    "Option": "Tempera Coat",
+    "Internal": "Tempera Coat Only",
+    "Enum": "CoatOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPCTUtility",
+    "Option": "Tempera Coat",
+    "Internal": "Tempera Coat \u002B Grassa ASAP",
+    "Enum": "CoatGrassaASAP"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPCTUtility",
+    "Option": "Tempera Coat",
+    "Internal": "Tempera Coat \u002B Grassa when available",
+    "Enum": "CoatGrassaWhenever"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPLDUtility",
+    "Option": "Sentinel",
+    "Internal": "Use",
+    "Enum": "Sentinel"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPLDUtility",
+    "Option": "Sentinel",
+    "Internal": "UseEx",
+    "Enum": "Guardian"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSAMUtility",
+    "Option": "ThirdEye",
+    "Internal": "Use",
+    "Enum": "ThirdEye"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSAMUtility",
+    "Option": "ThirdEye",
+    "Internal": "UseEx",
+    "Enum": "Tengentsu"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSCHUtility",
+    "Option": "Succor",
+    "Internal": "Use",
+    "Enum": "Succor"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSCHUtility",
+    "Option": "Succor",
+    "Internal": "UseEx",
+    "Enum": "Concitation"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSCHUtility",
+    "Option": "Aetherpact",
+    "Internal": "UseEx",
+    "Enum": "End"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "Vengeance",
+    "Internal": "Use",
+    "Enum": "Vengeance"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "Vengeance",
+    "Internal": "UseEx",
+    "Enum": "Damnation"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "BW",
+    "Internal": "BW",
+    "Enum": "Bloodwhetting"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "BW",
+    "Internal": "RI",
+    "Enum": "RawIntuition"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "BW",
+    "Internal": "NF",
+    "Enum": "NascentFlash"
+  },
+  {
+    "Module": "BossMod.Autorotation.Utility.RolePvPUtility",
+    "Option": "Guard",
+    "Internal": "2 Targets",
+    "Enum": "Two"
+  },
+  {
+    "Module": "BossMod.Autorotation.Utility.RolePvPUtility",
+    "Option": "Guard",
+    "Internal": "3 Targets",
+    "Enum": "Three"
+  },
+  {
+    "Module": "BossMod.Autorotation.Utility.RolePvPUtility",
+    "Option": "Guard",
+    "Internal": "4 Targets",
+    "Enum": "Four"
+  },
+  {
+    "Module": "BossMod.Autorotation.Standard.xan.Utility.ThirdEye",
+    "Option": "ThirdEye",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "Raise",
+    "Internal": "Don\u0027t automatically raise",
+    "Enum": "None"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "Raise",
+    "Internal": "Raise using Swiftcast only",
+    "Enum": "Swiftcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "Raise",
+    "Internal": "Allow raising without Swiftcast (not applicable to RDM)",
+    "Enum": "Slowcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "RaiseTargets",
+    "Internal": "Party members",
+    "Enum": "Party"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "RaiseTargets",
+    "Internal": "Alliance raid members",
+    "Enum": "Alliance"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "RaiseTargets",
+    "Internal": "Any dead player",
+    "Enum": "Everyone"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "Raise",
+    "Internal": "Don\u0027t automatically raise",
+    "Enum": "None"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "Raise",
+    "Internal": "Raise using Swiftcast only",
+    "Enum": "Swiftcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "Raise",
+    "Internal": "Raise without requiring Swiftcast to be available",
+    "Enum": "Slowcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "Raise",
+    "Internal": "Never use Swiftcast to raise",
+    "Enum": "Hardcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "RaiseTargets",
+    "Internal": "Party members",
+    "Enum": "Party"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "RaiseTargets",
+    "Internal": "Alliance raid members",
+    "Enum": "Alliance"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "RaiseTargets",
+    "Internal": "Any dead player",
+    "Enum": "Everyone"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Internal": "Use first available damage action that isn\u0027t Starfall",
+    "Enum": "AutoConservative"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Internal": "Use first available damage action; allow Starfall if HP is high enough",
+    "Enum": "AutoGreedy"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Internal": "Use Starfall, regardless of HP",
+    "Enum": "AutoSuperGreedy"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Internal": "Use Blessing (heal)",
+    "Enum": "HealOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Internal": "Don\u0027t use",
+    "Enum": "Disabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.TankAI",
+    "Option": "Stance",
+    "Internal": "Leech",
+    "Enum": "LeechMode"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.VariantAI",
+    "Option": "Rampart",
+    "Internal": "Shield",
+    "Enum": "PermaShield"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.VariantAI",
+    "Option": "Rampart",
+    "Internal": "Buff",
+    "Enum": "PermaBuff"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.BLU",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.BLM",
+    "Option": "LL",
+    "Internal": "Opener",
+    "Enum": "OpenerOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PCT",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PCT",
+    "Option": "Holy",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PCT",
+    "Option": "Hammer",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RDM",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SMN",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SMN",
+    "Option": "Cyclone",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.AST",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SCH",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SCH",
+    "Option": "FairyPlace",
+    "Internal": "Do not automatically move fairy",
+    "Enum": "Manual"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SCH",
+    "Option": "FairyPlace",
+    "Internal": "Automatically order fairy to follow player when combat ends",
+    "Enum": "AutoHeel"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SCH",
+    "Option": "FairyPlace",
+    "Internal": "Automatically place fairy at arena center (if one exists) - order fairy to follow when out of combat",
+    "Enum": "FullAuto"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SGE",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.WHM",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.WHM",
+    "Option": "Afflatus Misery",
+    "Internal": "Buffs",
+    "Enum": "BuffedOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRG",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "BH",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "RoF",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "RoF",
+    "Internal": "ForceMid",
+    "Enum": "ForceMidWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FiresReply",
+    "Internal": "Use after Opo GCD",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FiresReply",
+    "Internal": "Use when out of melee range, or if about to expire",
+    "Enum": "Ranged"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FiresReply",
+    "Internal": "Use ASAP",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FiresReply",
+    "Internal": "Do not use",
+    "Enum": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "RoW",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "WindsReply",
+    "Internal": "Use out of melee range, or if about to expire",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "WindsReply",
+    "Internal": "Use ASAP",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "WindsReply",
+    "Internal": "Ensure usage at least 2 GCDs before next downtime",
+    "Enum": "PreDowntime"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Internal": "Automatically use after Opo before or during Riddle of Fire",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Internal": "Use ASAP after next Opo",
+    "Enum": "ForceOpo"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Internal": "Use ASAP",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Internal": "Do not use",
+    "Enum": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Internal": "Downtime prep: Solar",
+    "Enum": "DowntimeSolar"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Internal": "Downtime prep: Lunar",
+    "Enum": "DowntimeLunar"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Nadi",
+    "Internal": "Automatically choose best nadi (double lunar opener, otherwise alternate)",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Internal": "Use ASAP",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Internal": "Hold blitz until Riddle of Fire is active",
+    "Enum": "RoF"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Internal": "Hold blitz until at least two targets will be hit",
+    "Enum": "Multi"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Internal": "Hold blitz until Riddle of Fire and 2\u002B targets",
+    "Enum": "MultiRoF"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Internal": "Do not use",
+    "Enum": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "SixSidedStar",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FormShift",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Meditate",
+    "Internal": "Use out of combat, during countdown, or if no enemies are targetable",
+    "Enum": "Safe"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Meditate",
+    "Internal": "Allow using when primary enemy is targetable, but out of range",
+    "Enum": "Greedy"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Meditate",
+    "Internal": "Use even if enemy is in melee range",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Meditate",
+    "Internal": "Do not use",
+    "Enum": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "TC",
+    "Internal": "Do not use",
+    "Enum": "None"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "TC",
+    "Internal": "Use if outside melee range",
+    "Enum": "GapClose"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Pot",
+    "Internal": "Do not automatically use",
+    "Enum": "Manual"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Pot",
+    "Internal": "Use ~4 GCDs before raid buff window",
+    "Enum": "PreBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Pot",
+    "Internal": "Use ASAP",
+    "Enum": "Now"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Engage",
+    "Internal": "Thunderclap to target",
+    "Enum": "TC"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Engage",
+    "Internal": "Sprint to melee range",
+    "Enum": "Sprint"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Engage",
+    "Internal": "Precast Dragon Kick from melee range",
+    "Enum": "FacepullDK"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Engage",
+    "Internal": "Precast Demolish from melee range",
+    "Enum": "FacepullDemo"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "TrueNorth",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.NIN",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.NIN",
+    "Option": "Hide",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.NIN",
+    "Option": "Forked Raiju",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RPR",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RPR",
+    "Option": "Harpe",
+    "Internal": "Use out of melee range if Enhanced Harpe is active",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RPR",
+    "Option": "Harpe",
+    "Internal": "Don\u0027t use",
+    "Enum": "Forbid"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RPR",
+    "Option": "Harpe",
+    "Internal": "Use out of melee range",
+    "Enum": "Ranged"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SAM",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SAM",
+    "Option": "Higanbana",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.VPR",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.BRD",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DNC",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DNC",
+    "Option": "Partner",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Queen",
+    "Internal": "Min",
+    "Enum": "MinGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Queen",
+    "Internal": "Full",
+    "Enum": "FullGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Queen",
+    "Internal": "Buffed",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Hypercharge",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Tools",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Internal": "Use to refresh Darkside, or during raid buffs",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Internal": "Use to refresh Darkside, or during raid buffs - save MP for TBN",
+    "Enum": "AutomaticTBN"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Internal": "Do not use",
+    "Enum": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Internal": "Use ASAP",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Internal": "Use ASAP - save MP for TBN",
+    "Enum": "ForceTBN"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.GNB",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Buffs",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Intervene",
+    "Internal": "Use during burst window",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Intervene",
+    "Internal": "Use if outside melee range",
+    "Enum": "GapCloser"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Intervene",
+    "Internal": "Do not use",
+    "Enum": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Internal": "Use during Divine Might only; ASAP in burst, otherwise when out of melee range, or if next GCD will overwrite DM",
+    "Enum": "Standard"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Internal": "Use ASAP during next Divine Might proc, regardless of range",
+    "Enum": "ForceDM"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Internal": "Use now, even if in melee range or if DM is not active",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Internal": "Always use when out of melee range",
+    "Enum": "Ranged"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Internal": "Do not use",
+    "Enum": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Atone",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Combo",
+    "Internal": "Break",
+    "Enum": "BreakCombo"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AOE",
+    "Internal": "Auto (Finish combo)",
+    "Enum": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AOE",
+    "Internal": "Auto (Break combo)",
+    "Enum": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AOE",
+    "Internal": "Force ST",
+    "Enum": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AOE",
+    "Internal": "Force AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Internal": "Dont Hold",
+    "Enum": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Internal": "Hold",
+    "Enum": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Internal": "Hold Gauge",
+    "Enum": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Internal": "Hold Buffs",
+    "Enum": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Internal": "Hold Abilities",
+    "Enum": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Internal": "Hold Everything",
+    "Enum": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Potion",
+    "Internal": "With Buffs",
+    "Enum": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Potion",
+    "Internal": "With RaidBuffs",
+    "Enum": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AF.Ender",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Polyglot",
+    "Internal": "Force Polyglot",
+    "Enum": "ForceAny"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Polyglot",
+    "Internal": "Force Xenoglossy",
+    "Enum": "ForceXeno"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Polyglot",
+    "Internal": "Force Foul",
+    "Enum": "ForceFoul"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "MF",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "3xCast",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Swift",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "LL",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Amplifier",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Amplifier",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Rt",
+    "Internal": "Allow No Moving",
+    "Enum": "AllowNoMoving"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "BTL",
+    "Internal": "Allow No Moving",
+    "Enum": "AllowNoMoving"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "AOE",
+    "Internal": "Auto (Finish combo)",
+    "Enum": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "AOE",
+    "Internal": "Auto (Break combo)",
+    "Enum": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "AOE",
+    "Internal": "Force ST",
+    "Enum": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "AOE",
+    "Internal": "Force AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Internal": "Dont Hold",
+    "Enum": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Internal": "Hold",
+    "Enum": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Internal": "Hold Gauge",
+    "Enum": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Internal": "Hold Buffs",
+    "Enum": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Internal": "Hold Abilities",
+    "Enum": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Internal": "Hold Everything",
+    "Enum": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Potion",
+    "Internal": "With Buffs",
+    "Enum": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Potion",
+    "Internal": "With RaidBuffs",
+    "Enum": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Combo",
+    "Internal": "Force Normal ST",
+    "Enum": "Force123ST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Combo",
+    "Internal": "Force Buffs ST",
+    "Enum": "ForceBuffsST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Dives",
+    "Internal": "Allow Max Melee",
+    "Enum": "AllowMaxMelee"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Dives",
+    "Internal": "Allow Close Melee",
+    "Enum": "AllowCloseMelee"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Elusive Jump",
+    "Internal": "Character Forward",
+    "Enum": "CharacterForward"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Elusive Jump",
+    "Internal": "Character Backward",
+    "Enum": "CharacterBackward"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Elusive Jump",
+    "Internal": "Camera Forward",
+    "Enum": "CameraForward"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Elusive Jump",
+    "Internal": "Camera Backward",
+    "Enum": "CameraBackward"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Lance Charge",
+    "Internal": "Raid Buffs Only",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Lance Charge",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "BattleLitany",
+    "Internal": "Raid Buffs Only",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "BattleLitany",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Life Surge",
+    "Internal": "When Buffed",
+    "Enum": "WhenBuffed"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Life Surge",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Life Surge",
+    "Internal": "Force Optimally",
+    "Enum": "ForceNextOpti"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Life Surge",
+    "Internal": "Force Weave Optimally",
+    "Enum": "ForceNextOptiWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Dragonfire Dive",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Dragonfire Dive",
+    "Internal": "Force Weave (EX)",
+    "Enum": "ForceWeaveEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Geirskogul",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Geirskogul",
+    "Internal": "Force Weave (EX)",
+    "Enum": "ForceWeaveEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Stardiver",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Stardiver",
+    "Internal": "Force Weave (EX)",
+    "Enum": "ForceWeaveEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Jump",
+    "Internal": "Force Jump",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Jump",
+    "Internal": "Force Jump (EX)",
+    "Enum": "ForceEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Jump",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Jump",
+    "Internal": "Force Weave (EX)",
+    "Enum": "ForceWeaveEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Mirage Dive",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Mirage Dive",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Nastrond",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Nastrond",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Wyrmwind Thrust",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Wyrmwind Thrust",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Rise Of The Dragon",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Rise Of The Dragon",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Starcross",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Starcross",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "AOE",
+    "Internal": "Auto (Finish combo)",
+    "Enum": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "AOE",
+    "Internal": "Auto (Break combo)",
+    "Enum": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "AOE",
+    "Internal": "Force ST",
+    "Enum": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "AOE",
+    "Internal": "Force AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Internal": "Dont Hold",
+    "Enum": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Internal": "Hold",
+    "Enum": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Internal": "Hold Gauge",
+    "Enum": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Internal": "Hold Buffs",
+    "Enum": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Internal": "Hold Abilities",
+    "Enum": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Internal": "Hold Everything",
+    "Enum": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Potion",
+    "Internal": "With Buffs",
+    "Enum": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Potion",
+    "Internal": "With RaidBuffs",
+    "Enum": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Opener",
+    "Internal": "Air Anchor",
+    "Enum": "AirAnchor"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Opener",
+    "Internal": "Chain Saw",
+    "Enum": "ChainSaw"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Heat Option",
+    "Internal": "Heat Blast",
+    "Enum": "OnlyHeatBlast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Heat Option",
+    "Internal": "Auto Crossbow",
+    "Enum": "OnlyAutoCrossbow"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Battery",
+    "Internal": "50",
+    "Enum": "Fifty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Battery",
+    "Internal": "100",
+    "Enum": "Hundred"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Battery",
+    "Internal": "Raid Buffs",
+    "Enum": "RaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Reassemble",
+    "Internal": "Hold One",
+    "Enum": "HoldOne"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Internal": "Hold One",
+    "Enum": "HoldOne"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Internal": "Only Drill",
+    "Enum": "OnlyDrill"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Internal": "Only Bioblaster",
+    "Enum": "OnlyBioblaster"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Internal": "Force Drill",
+    "Enum": "ForceDrill"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Internal": "Force Bioblaster",
+    "Enum": "ForceBioblaster"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Barrel Stabilizer",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Barrel Stabilizer",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Air Anchor",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Air Anchor",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "ChainSaw",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "ChainSaw",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Gauss Round",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Gauss Round",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Double Check",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Double Check",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Ricochet",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Ricochet",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Checkmate",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Checkmate",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Excavator",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Excavator",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Full Metal Field",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Full Metal Field",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "AOE",
+    "Internal": "Auto (Finish combo)",
+    "Enum": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "AOE",
+    "Internal": "Auto (Break combo)",
+    "Enum": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "AOE",
+    "Internal": "Force ST",
+    "Enum": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "AOE",
+    "Internal": "Force AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Internal": "Dont Hold",
+    "Enum": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Internal": "Hold",
+    "Enum": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Internal": "Hold Gauge",
+    "Enum": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Internal": "Hold Buffs",
+    "Enum": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Internal": "Hold Abilities",
+    "Enum": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Internal": "Hold Everything",
+    "Enum": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Potion",
+    "Internal": "With Buffs",
+    "Enum": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Potion",
+    "Internal": "With RaidBuffs",
+    "Enum": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Energy Drain",
+    "Internal": "UseAll",
+    "Enum": "Use3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Chain Stratagem",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Chain Stratagem",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Aetherflow",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Aetherflow",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Targeting",
+    "Internal": "Automatic",
+    "Enum": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Role Actions",
+    "Internal": "Full Swing",
+    "Enum": "FullSwing"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Internal": "5 Stacks",
+    "Enum": "Five"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Internal": "4 Stacks",
+    "Enum": "Four"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Internal": "3 Stacks",
+    "Enum": "Three"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Internal": "2 Stacks",
+    "Enum": "Two"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Internal": "1 Stack",
+    "Enum": "One"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "Automatic",
+    "Enum": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "2 Targets",
+    "Enum": "Two"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "3 Targets",
+    "Enum": "Three"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "4 Targets",
+    "Enum": "Four"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "80% HP",
+    "Enum": "Eighty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "70% HP",
+    "Enum": "Seventy"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "60% HP",
+    "Enum": "Sixty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "50% HP",
+    "Enum": "Fifty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "40% HP",
+    "Enum": "Fourty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Internal": "30% HP",
+    "Enum": "Thirty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Rough Divide",
+    "Internal": "Automatic",
+    "Enum": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Rough Divide",
+    "Internal": "Automatic (Melee Range)",
+    "Enum": "AutoMelee"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Blasting Zone",
+    "Internal": "Half HPP",
+    "Enum": "HalfHPP"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Blasting Zone",
+    "Internal": "Buff or Half HPP",
+    "Enum": "BuffOrHalfHPP"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Blasting Zone",
+    "Internal": "Buff and Half HPP",
+    "Enum": "BuffAndHalfHPP"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Targeting",
+    "Internal": "Automatic",
+    "Enum": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Role Actions",
+    "Internal": "Eagle Eye Shot",
+    "Enum": "EagleEyeShot"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Limit Break",
+    "Internal": "Less than 70%",
+    "Enum": "LessThan70"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Limit Break",
+    "Internal": "Less than 60%",
+    "Enum": "LessThan60"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Limit Break",
+    "Internal": "Less than 50%",
+    "Enum": "LessThan50"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Limit Break",
+    "Internal": "Less than 40%",
+    "Enum": "LessThan40"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Analysis",
+    "Internal": "Drill",
+    "Enum": "DrillAA"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Analysis",
+    "Internal": "Bioblaster",
+    "Enum": "BBCS"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Tools",
+    "Internal": "Buff or Overcap",
+    "Enum": "BuffOrOvercap"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Turret Placement",
+    "Internal": "Crystal or Target",
+    "Enum": "CrystalOrTarget"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Targeting",
+    "Internal": "Automatic",
+    "Enum": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Role Actions",
+    "Internal": "Phantom Dart",
+    "Enum": "PhantomDart"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "LB Placement",
+    "Internal": "Crystal or Target",
+    "Enum": "CrystalOrTarget"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Internal": "Automatic",
+    "Enum": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Internal": "2 Targets",
+    "Enum": "Two"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Internal": "3 Targets",
+    "Enum": "Three"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Internal": "4 Targets",
+    "Enum": "Four"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Internal": "Less than Full",
+    "Enum": "LessThanFull"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Internal": "Less than 75%",
+    "Enum": "LessThan75"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Internal": "Less than 50%",
+    "Enum": "LessThan50"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Crimson Cyclone",
+    "Internal": "5 yalms",
+    "Enum": "Five"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Crimson Cyclone",
+    "Internal": "10 yalms",
+    "Enum": "Ten"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Crimson Cyclone",
+    "Internal": "15 yalms",
+    "Enum": "Fifteen"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Crimson Cyclone",
+    "Internal": "20 yalms",
+    "Enum": "Twenty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Targeting",
+    "Internal": "Automatic",
+    "Enum": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Internal": "80%",
+    "Enum": "Eighty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Internal": "70%",
+    "Enum": "Seventy"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Internal": "60%",
+    "Enum": "Sixty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Internal": "50%",
+    "Enum": "Fifty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Internal": "40%",
+    "Enum": "Fourty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure Target",
+    "Internal": "Self or Party",
+    "Enum": "SelfOrParty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Aquaveil",
+    "Internal": "Less than Full",
+    "Enum": "LessThanFull"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Aquaveil",
+    "Internal": "Less than 75%",
+    "Enum": "LessThan75"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Aquaveil",
+    "Internal": "Less than 50%",
+    "Enum": "LessThan50"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Aquaveil",
+    "Internal": "Debuff Only",
+    "Enum": "DebuffOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Seraph Strike",
+    "Internal": "20y",
+    "Enum": "Twenty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Seraph Strike",
+    "Internal": "15y",
+    "Enum": "Fifteen"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Seraph Strike",
+    "Internal": "10y",
+    "Enum": "Ten"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Seraph Strike",
+    "Internal": "5y",
+    "Enum": "Five"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "AOE",
+    "Internal": "Auto (Finish combo)",
+    "Enum": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "AOE",
+    "Internal": "Auto (Break combo)",
+    "Enum": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "AOE",
+    "Internal": "Force ST",
+    "Enum": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "AOE",
+    "Internal": "Force AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Internal": "Dont Hold",
+    "Enum": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Internal": "Hold",
+    "Enum": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Internal": "Hold Gauge",
+    "Enum": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Internal": "Hold Buffs",
+    "Enum": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Internal": "Hold Abilities",
+    "Enum": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Internal": "Hold Everything",
+    "Enum": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Potion",
+    "Internal": "With Buffs",
+    "Enum": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Potion",
+    "Internal": "With RaidBuffs",
+    "Enum": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Internal": "Only Bloodspiller",
+    "Enum": "OnlyBloodspiller"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Internal": "Only Quietus",
+    "Enum": "OnlyQuietus"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Internal": "ASAP",
+    "Enum": "ForceBest"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Internal": "Force Bloodspiller",
+    "Enum": "ForceBloodspiller"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Internal": "Force Quietus",
+    "Enum": "ForceQuietus"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Optimal",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Auto 3k",
+    "Enum": "Auto3k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Auto 6k",
+    "Enum": "Auto6k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Auto 9k",
+    "Enum": "Auto9k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Auto Refresh",
+    "Enum": "AutoRefresh"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Edge 3k",
+    "Enum": "Edge3k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Edge 6k",
+    "Enum": "Edge6k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Edge 9k",
+    "Enum": "Edge9k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Edge Refresh",
+    "Enum": "EdgeRefresh"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Flood 3k",
+    "Enum": "Flood3k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Flood 6k",
+    "Enum": "Flood6k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Flood 9k",
+    "Enum": "Flood9k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Flood Refresh",
+    "Enum": "FloodRefresh"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Force Edge",
+    "Enum": "ForceEdge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Internal": "Force Flood",
+    "Enum": "ForceFlood"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Internal": "Only Carve and Spit",
+    "Enum": "OnlyCarve"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Internal": "Only Abysssal Drain",
+    "Enum": "OnlyDrain"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Internal": "Force Carve and Spit",
+    "Enum": "ForceCarve"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Internal": "Force Abyssal Drain",
+    "Enum": "ForceDrain"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "DeliCombo",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "DeliCombo",
+    "Internal": "Scarlet Delirium",
+    "Enum": "ScarletDelirum"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Ranged",
+    "Internal": "Far (Opener)",
+    "Enum": "OpenerFar"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Ranged",
+    "Internal": "Force (Opener)",
+    "Enum": "OpenerForce"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Deli",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Deli",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "SE",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "SE",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "S\u0026D",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "S\u0026D",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "LS",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "LS",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "SB",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "SB",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Disesteem",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Disesteem",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "AOE",
+    "Internal": "Auto (Finish combo)",
+    "Enum": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "AOE",
+    "Internal": "Auto (Break combo)",
+    "Enum": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "AOE",
+    "Internal": "Force ST",
+    "Enum": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "AOE",
+    "Internal": "Force AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Internal": "Dont Hold",
+    "Enum": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Internal": "Hold",
+    "Enum": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Internal": "Hold Gauge",
+    "Enum": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Internal": "Hold Buffs",
+    "Enum": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Internal": "Hold Abilities",
+    "Enum": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Internal": "Hold Everything",
+    "Enum": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Potion",
+    "Internal": "With Buffs",
+    "Enum": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Potion",
+    "Internal": "With RaidBuffs",
+    "Enum": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Combo",
+    "Internal": "Force ST with Overcap",
+    "Enum": "ForceSTwithO"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Combo",
+    "Internal": "Force ST without Overcap",
+    "Enum": "ForceSTwithoutO"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Combo",
+    "Internal": "Force AOE with Overcap",
+    "Enum": "ForceAOEwithO"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Combo",
+    "Internal": "Force AOE without Overcap",
+    "Enum": "ForceAOEwithoutO"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Only Burst Strike",
+    "Enum": "OnlyBS"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Only Fated Circle",
+    "Enum": "OnlyFC"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Force Burst Strike",
+    "Enum": "ForceBS"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Force Burst Strike (1 cart)",
+    "Enum": "ForceBS1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Force Burst Strike (2 cart)",
+    "Enum": "ForceBS2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Force Burst Strike (3 cart)",
+    "Enum": "ForceBS3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Force Fated Circle",
+    "Enum": "ForceFC"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Force Fated Circle (1 cart)",
+    "Enum": "ForceFC1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Force Fated Circle (2 cart)",
+    "Enum": "ForceFC2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Internal": "Force Fated Circle (3 cart)",
+    "Enum": "ForceFC3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Lightning Shot",
+    "Internal": "Far (Opener)",
+    "Enum": "OpenerFar"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Lightning Shot",
+    "Internal": "Force (Opener)",
+    "Enum": "OpenerForce"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Zone",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Zone",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Burst Ready",
+    "Enum": "BurstReady"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (Weave)",
+    "Enum": "ForceW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (Q.Weave)",
+    "Enum": "ForceQW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (1 cart)",
+    "Enum": "Force1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (1 cart, Weave)",
+    "Enum": "Force1W"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (1 cart, Q.Weave)",
+    "Enum": "Force1QW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (2 carts)",
+    "Enum": "Force2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (2 carts, Weave)",
+    "Enum": "Force2W"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (2 carts, Q.Weave)",
+    "Enum": "Force2QW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (3 carts)",
+    "Enum": "Force3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (3 carts, Weave)",
+    "Enum": "Force3W"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Internal": "Force (3 carts, Q.Weave)",
+    "Enum": "Force3QW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Sonic Break",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Sonic Break",
+    "Internal": "Early Sonic Break",
+    "Enum": "Early"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Sonic Break",
+    "Internal": "Late Sonic Break",
+    "Enum": "Late"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Internal": "Force",
+    "Enum": "ForceGnash"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Internal": "Force (1 cart)",
+    "Enum": "ForceGnash1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Internal": "Force (2 carts)",
+    "Enum": "ForceGnash2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Internal": "Force (3 carts)",
+    "Enum": "ForceGnash3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Internal": "Force Savage Claw",
+    "Enum": "ForceClaw"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Internal": "Force Talon",
+    "Enum": "ForceTalon"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "BowShock",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "BowShock",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Continuation",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Bloodfest",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Bloodfest",
+    "Internal": "Force (Weave)",
+    "Enum": "ForceW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Bloodfest",
+    "Internal": "Force (0 cart)",
+    "Enum": "Force0"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Bloodfest",
+    "Internal": "Force (0 cart, Weave)",
+    "Enum": "Force0W"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "DoubleDown",
+    "Internal": "Force Double Down",
+    "Enum": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "DoubleDown",
+    "Internal": "Force Double Down (1 cart)",
+    "Enum": "Force1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "DoubleDown",
+    "Internal": "Force Double Down (2 cart)",
+    "Enum": "Force2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "DoubleDown",
+    "Internal": "Force Double Down (3 cart)",
+    "Enum": "Force3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Reign of Beasts",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Reign of Beasts",
+    "Internal": "Force",
+    "Enum": "ForceReign"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Reign of Beasts",
+    "Internal": "Force",
+    "Enum": "ForceNoble"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Reign of Beasts",
+    "Internal": "Force",
+    "Enum": "ForceLion"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "AOE",
+    "Internal": "Auto (Finish combo)",
+    "Enum": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "AOE",
+    "Internal": "Auto (Break combo)",
+    "Enum": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "AOE",
+    "Internal": "Force ST",
+    "Enum": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "AOE",
+    "Internal": "Force AOE",
+    "Enum": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Internal": "Dont Hold",
+    "Enum": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Internal": "Hold",
+    "Enum": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Internal": "Hold Gauge",
+    "Enum": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Internal": "Hold Buffs",
+    "Enum": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Internal": "Hold Abilities",
+    "Enum": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Internal": "Hold Everything",
+    "Enum": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Potion",
+    "Internal": "With Buffs",
+    "Enum": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Potion",
+    "Internal": "With RaidBuffs",
+    "Enum": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Atones",
+    "Internal": "Force Atonement",
+    "Enum": "ForceAtonement"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Atones",
+    "Internal": "Force Supplication",
+    "Enum": "ForceSupplication"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Atones",
+    "Internal": "Force Sepulchre",
+    "Enum": "ForceSepulchre"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Blades",
+    "Internal": "Force",
+    "Enum": "ForceConfiteor"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Blades",
+    "Internal": "Force Faith",
+    "Enum": "ForceFaith"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Blades",
+    "Internal": "Force Truth",
+    "Enum": "ForceTruth"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Blades",
+    "Internal": "Force Valor",
+    "Enum": "ForceValor"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "FoF",
+    "Internal": "Raid Buffs Only",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "FoF",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Req.",
+    "Internal": "Raid Buffs Only",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Req.",
+    "Internal": "Force Weave",
+    "Enum": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Holy",
+    "Internal": "Spirit",
+    "Enum": "OnlySpirit"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Holy",
+    "Internal": "Circle",
+    "Enum": "OnlyCircle"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Holy",
+    "Internal": "Spirit",
+    "Enum": "ForceSpirit"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Holy",
+    "Internal": "Circle",
+    "Enum": "ForceCircle"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Dash",
+    "Internal": "Force (Hold 1)",
+    "Enum": "Force1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Dash",
+    "Internal": "Gap Close",
+    "Enum": "GapClose"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Dash",
+    "Internal": "Gap Close (Hold 1)",
+    "Enum": "GapClose1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Internal": "Opener (Cast)",
+    "Enum": "OpenerRangedCast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Internal": "Opener",
+    "Enum": "OpenerCast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Internal": "Force Cast",
+    "Enum": "ForceCast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Internal": "Ranged Cast",
+    "Enum": "RangedCast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Internal": "Ranged Cast Stationary",
+    "Enum": "RangedCastStationary"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Internal": "Opener (Lob)",
+    "Enum": "OpenerRanged"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "SW",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "SW",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "CoS",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "CoS",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "BoH",
+    "Internal": "Auto",
+    "Enum": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "BoH",
+    "Internal": "With Buffs",
+    "Enum": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.FateUtils",
+    "Option": "Hand-in",
+    "Internal": "Automatically hand in FATE items at 10\u002B",
+    "Enum": "Enabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.FateUtils",
+    "Option": "Hand-in",
+    "Internal": "Do nothing",
+    "Enum": "Disabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.FateUtils",
+    "Option": "Collect",
+    "Internal": "Try to collect FATE items instead of engaging in combat",
+    "Enum": "Enabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.FateUtils",
+    "Option": "Collect",
+    "Internal": "Do nothing",
+    "Enum": "Disabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.NormalMovement",
+    "Option": "Range",
+    "Internal": "MaxMelee",
+    "Enum": "MaxRange"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.NormalMovement",
+    "Option": "Range",
+    "Internal": "MeleeGreedGCDExplicit",
+    "Enum": "GreedGCDExplicit"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.NormalMovement",
+    "Option": "Range",
+    "Internal": "MeleeGreedLastMomentExplicit",
+    "Enum": "GreedLastMomentExplicit"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.NormalMovement",
+    "Option": "Range",
+    "Internal": "MeleeGreedAutomatic",
+    "Enum": "GreedAutomatic"
+  }
+]

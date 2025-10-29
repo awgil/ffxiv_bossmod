@@ -12,8 +12,8 @@ sealed class AutoPotionModule(RotationModuleManager manager, Actor player) : Rot
         var res = new RotationModuleDefinition("Auto-Potion", "Automatically use Pilgrim's Potions", "Encounter AI", "xan", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Actions, typeof(Q01TheFinalVerse));
 
         res.Define(Track.Potion).As<PotionStrategy>("Potion", "Potion")
-            .AddOption(PotionStrategy.None, "None", "Don't use")
-            .AddOption(PotionStrategy.Use, "Use", "Use potion ASAP");
+            .AddOption(PotionStrategy.None, "Don't use")
+            .AddOption(PotionStrategy.Use, "Use potion ASAP");
 
         return res;
     }

@@ -19,67 +19,67 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
     {
         var res = new RotationModuleDefinition("Akechi SMN (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.SMN), 100, 30);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
-            .AddOption(TargetingStrategy.Auto, "Automatic", "Automatically select best target")
-            .AddOption(TargetingStrategy.Manual, "Manual", "Manually select target");
+            .AddOption(TargetingStrategy.Auto, "Automatically select best target")
+            .AddOption(TargetingStrategy.Manual, "Manually select target");
 
         res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
-            .AddOption(RoleActionStrategy.Forbid, "Forbid", "Do not use any role actions")
-            .AddOption(RoleActionStrategy.Comet, "Comet", "Use Comet when available")
-            .AddOption(RoleActionStrategy.PhantomDart, "Phantom Dart", "Use Phantom Dart when available")
-            .AddOption(RoleActionStrategy.Rust, "Rust", "Use Rust when available")
+            .AddOption(RoleActionStrategy.Forbid, "Do not use any role actions")
+            .AddOption(RoleActionStrategy.Comet, "Use Comet when available")
+            .AddOption(RoleActionStrategy.PhantomDart, "Use Phantom Dart when available")
+            .AddOption(RoleActionStrategy.Rust, "Use Rust when available")
             .AddAssociatedActions(AID.CometPvP, AID.PhantomDartPvP, AID.RustPvP);
 
         res.Define(Track.LimitBreak).As<LBStrategy>("LB Summon", "", 300)
-            .AddOption(LBStrategy.Bahamut, "Bahamut", "Allow use of Bahamut only for Limit Break when available")
-            .AddOption(LBStrategy.Phoenix, "Phoenix", "Allow use of Phoenix only for Limit Break when available")
-            .AddOption(LBStrategy.Forbid, "Forbid", "Do not use Limit Break")
+            .AddOption(LBStrategy.Bahamut, "Allow use of Bahamut only for Limit Break when available")
+            .AddOption(LBStrategy.Phoenix, "Allow use of Phoenix only for Limit Break when available")
+            .AddOption(LBStrategy.Forbid, "Do not use Limit Break")
             .AddAssociatedActions(AID.SummonBahamutPvP, AID.SummonPhoenixPvP);
 
         res.Define(Track.Placement).As<LBPlacement>("LB Placement", "", 300)
-            .AddOption(LBPlacement.Self, "Self", "Place Limit Break summon on self")
-            .AddOption(LBPlacement.Target, "Target", "Place Limit Break summon on current target")
-            .AddOption(LBPlacement.Crystal, "Crystal", "Place Limit Break summon on crystal only; will hold LB until near the crystal (only works for Crystalline Conflict)")
-            .AddOption(LBPlacement.CrystalOrTarget, "Crystal or Target", "Place Limit Break summon on crystal or target if crystal is unavailable (intended for Crystalline Conflict, but works in others too)");
+            .AddOption(LBPlacement.Self, "Place Limit Break summon on self")
+            .AddOption(LBPlacement.Target, "Place Limit Break summon on current target")
+            .AddOption(LBPlacement.Crystal, "Place Limit Break summon on crystal only; will hold LB until near the crystal (only works for Crystalline Conflict)")
+            .AddOption(LBPlacement.CrystalOrTarget, "Place Limit Break summon on crystal or target if crystal is unavailable (intended for Crystalline Conflict, but works in others too)");
 
         res.Define(Track.RadiantAegis).As<AegisStrategy>("Radiant Aegis", "", 300)
-            .AddOption(AegisStrategy.Auto, "Automatic", "Use Radiant Aegis when HP is less than 75% and two or more targets are targeting you, or when HP is below 33%")
-            .AddOption(AegisStrategy.Two, "2 Targets", "Use Radiant Aegis when HP is not full and two or more targets are targeting you")
-            .AddOption(AegisStrategy.Three, "3 Targets", "Use Radiant Aegis when HP is not full and three or more targets are targeting you")
-            .AddOption(AegisStrategy.Four, "4 Targets", "Use Radiant Aegis when HP is not full and four or more targets are targeting you")
-            .AddOption(AegisStrategy.LessThanFull, "Less than Full", "Use Radiant Aegis when HP is less than 100%")
-            .AddOption(AegisStrategy.LessThan75, "Less than 75%", "Use Radiant Aegis when HP is less than 75%")
-            .AddOption(AegisStrategy.LessThan50, "Less than 50%", "Use Radiant Aegis when HP is less than 50%")
-            .AddOption(AegisStrategy.Forbid, "Forbid", "Do not use Radiant Aegis")
+            .AddOption(AegisStrategy.Auto, "Use Radiant Aegis when HP is less than 75% and two or more targets are targeting you, or when HP is below 33%")
+            .AddOption(AegisStrategy.Two, "Use Radiant Aegis when HP is not full and two or more targets are targeting you")
+            .AddOption(AegisStrategy.Three, "Use Radiant Aegis when HP is not full and three or more targets are targeting you")
+            .AddOption(AegisStrategy.Four, "Use Radiant Aegis when HP is not full and four or more targets are targeting you")
+            .AddOption(AegisStrategy.LessThanFull, "Use Radiant Aegis when HP is less than 100%")
+            .AddOption(AegisStrategy.LessThan75, "Use Radiant Aegis when HP is less than 75%")
+            .AddOption(AegisStrategy.LessThan50, "Use Radiant Aegis when HP is less than 50%")
+            .AddOption(AegisStrategy.Forbid, "Do not use Radiant Aegis")
             .AddAssociatedActions(AID.RadiantAegisPvP);
 
         res.Define(Track.RuinIV).As<Ruin4Strategy>("Ruin IV", "", 300)
-            .AddOption(Ruin4Strategy.Early, "Early", "Use Ruin IV as soon as it is available")
-            .AddOption(Ruin4Strategy.Late, "Late", "Use Ruin IV as late as possible")
-            .AddOption(Ruin4Strategy.Forbid, "Forbid", "Do not use Ruin IV")
+            .AddOption(Ruin4Strategy.Early, "Use Ruin IV as soon as it is available")
+            .AddOption(Ruin4Strategy.Late, "Use Ruin IV as late as possible")
+            .AddOption(Ruin4Strategy.Forbid, "Do not use Ruin IV")
             .AddAssociatedActions(AID.Ruin4PvP);
 
         res.Define(Track.CrimsonCyclone).As<CycloneStrategy>("Crimson Cyclone", "", 300)
-            .AddOption(CycloneStrategy.Five, "5 yalms", "Use Crimson Cyclone only within 5 yalms of target")
-            .AddOption(CycloneStrategy.Ten, "10 yalms", "Use Crimson Cyclone only within 10 yalms of target")
-            .AddOption(CycloneStrategy.Fifteen, "15 yalms", "Use Crimson Cyclone only within 15 yalms of target")
-            .AddOption(CycloneStrategy.Twenty, "20 yalms", "Use Crimson Cyclone only within 20 yalms of target")
-            .AddOption(CycloneStrategy.Allow, "Allow", "Use Crimson Cyclone when available at any range")
-            .AddOption(CycloneStrategy.Forbid, "Forbid", "Do not use Crimson Cyclone")
+            .AddOption(CycloneStrategy.Five, "Use Crimson Cyclone only within 5 yalms of target")
+            .AddOption(CycloneStrategy.Ten, "Use Crimson Cyclone only within 10 yalms of target")
+            .AddOption(CycloneStrategy.Fifteen, "Use Crimson Cyclone only within 15 yalms of target")
+            .AddOption(CycloneStrategy.Twenty, "Use Crimson Cyclone only within 20 yalms of target")
+            .AddOption(CycloneStrategy.Allow, "Use Crimson Cyclone when available at any range")
+            .AddOption(CycloneStrategy.Forbid, "Do not use Crimson Cyclone")
             .AddAssociatedActions(AID.CrimsonCyclonePvP);
 
         res.Define(Track.MountainBuster).As<CommonStrategy>("Mountain Buster", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Mountain Buster when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Mountain Buster")
+            .AddOption(CommonStrategy.Allow, "Use Mountain Buster when available")
+            .AddOption(CommonStrategy.Forbid, "Do not use Mountain Buster")
             .AddAssociatedActions(AID.MountainBusterPvP);
 
         res.Define(Track.Slipstream).As<CommonStrategy>("Slipstream", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Slipstream when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Slipstream")
+            .AddOption(CommonStrategy.Allow, "Use Slipstream when available")
+            .AddOption(CommonStrategy.Forbid, "Do not use Slipstream")
             .AddAssociatedActions(AID.SlipstreamPvP);
 
         res.Define(Track.Necrotize).As<CommonStrategy>("Necrotize", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Necrotize when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Necrotize")
+            .AddOption(CommonStrategy.Allow, "Use Necrotize when available")
+            .AddOption(CommonStrategy.Forbid, "Do not use Necrotize")
             .AddAssociatedActions(AID.NecrotizePvP);
 
         return res;

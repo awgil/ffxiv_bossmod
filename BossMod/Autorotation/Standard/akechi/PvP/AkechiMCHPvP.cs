@@ -18,63 +18,63 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
     {
         var res = new RotationModuleDefinition("Akechi MCH (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.MCH), 100, 30);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
-            .AddOption(TargetingStrategy.Auto, "Automatic", "Automatically select best target")
-            .AddOption(TargetingStrategy.Manual, "Manual", "Manually select target");
+            .AddOption(TargetingStrategy.Auto, "Automatically select best target")
+            .AddOption(TargetingStrategy.Manual, "Manually select target");
 
         res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
-            .AddOption(RoleActionStrategy.Forbid, "Forbid", "Do not use any role actions")
-            .AddOption(RoleActionStrategy.Dervish, "Dervish", "Use Dervish when available")
-            .AddOption(RoleActionStrategy.Bravery, "Bravery", "Use Bravery when available")
-            .AddOption(RoleActionStrategy.EagleEyeShot, "Eagle Eye Shot", "Use Eagle Eye Shot when available")
+            .AddOption(RoleActionStrategy.Forbid, "Do not use any role actions")
+            .AddOption(RoleActionStrategy.Dervish, "Use Dervish when available")
+            .AddOption(RoleActionStrategy.Bravery, "Use Bravery when available")
+            .AddOption(RoleActionStrategy.EagleEyeShot, "Use Eagle Eye Shot when available")
             .AddAssociatedActions(AID.DervishPvP, AID.BraveryPvP, AID.EagleEyeShotPvP);
 
         res.Define(Track.LimitBreak).As<LBStrategy>("Limit Break", "", 300)
-            .AddOption(LBStrategy.ASAP, "ASAP", "Use Limit Break as soon as it is available")
-            .AddOption(LBStrategy.LessThan70, "Less than 70%", "Use Limit Break when target's HP is less than 70%")
-            .AddOption(LBStrategy.LessThan60, "Less than 60%", "Use Limit Break when target's HP is less than 60%")
-            .AddOption(LBStrategy.LessThan50, "Less than 50%", "Use Limit Break when target's HP is less than 50%")
-            .AddOption(LBStrategy.LessThan40, "Less than 40%", "Use Limit Break when target's HP is less than 40%")
-            .AddOption(LBStrategy.Forbid, "Forbid", "Forbid use of Limit Break entirely")
+            .AddOption(LBStrategy.ASAP, "Use Limit Break as soon as it is available")
+            .AddOption(LBStrategy.LessThan70, "Use Limit Break when target's HP is less than 70%")
+            .AddOption(LBStrategy.LessThan60, "Use Limit Break when target's HP is less than 60%")
+            .AddOption(LBStrategy.LessThan50, "Use Limit Break when target's HP is less than 50%")
+            .AddOption(LBStrategy.LessThan40, "Use Limit Break when target's HP is less than 40%")
+            .AddOption(LBStrategy.Forbid, "Forbid use of Limit Break entirely")
             .AddAssociatedActions(AID.MarksmansSpitePvP);
 
         res.Define(Track.Analysis).As<AnalysisStrategy>("Analysis", "", 300)
-            .AddOption(AnalysisStrategy.Any, "Any", "Use Analysis to buff any tool")
-            .AddOption(AnalysisStrategy.DrillAA, "Drill", "Use Analysis to buff Drill and Air Anchor only")
-            .AddOption(AnalysisStrategy.BBCS, "Bioblaster", "Use Analysis to buff Bioblaster and ChainSaw only")
-            .AddOption(AnalysisStrategy.Forbid, "Forbid", "Do not use Analysis")
+            .AddOption(AnalysisStrategy.Any, "Use Analysis to buff any tool")
+            .AddOption(AnalysisStrategy.DrillAA, "Use Analysis to buff Drill and Air Anchor only")
+            .AddOption(AnalysisStrategy.BBCS, "Use Analysis to buff Bioblaster and ChainSaw only")
+            .AddOption(AnalysisStrategy.Forbid, "Do not use Analysis")
             .AddAssociatedActions(AID.AnalysisPvP);
 
         res.Define(Track.Tools).As<ToolsStrategy>("Tools", "", 300)
-            .AddOption(ToolsStrategy.ASAP, "ASAP", "Use Tools as soon as it is available")
-            .AddOption(ToolsStrategy.BuffOrOvercap, "Buff or Overcap", "Use Tools when buffed by Analysis or about to overcap on charges")
-            .AddOption(ToolsStrategy.Forbid, "Forbid", "Do not use Tools")
+            .AddOption(ToolsStrategy.ASAP, "Use Tools as soon as it is available")
+            .AddOption(ToolsStrategy.BuffOrOvercap, "Use Tools when buffed by Analysis or about to overcap on charges")
+            .AddOption(ToolsStrategy.Forbid, "Do not use Tools")
             .AddAssociatedActions(AID.DrillPvP, AID.BioblasterPvP, AID.AirAnchorPvP, AID.ChainSawPvP);
 
         res.Define(Track.Scattergun).As<CommonStrategy>("Scattergun", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Scattergun when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Scattergun")
+            .AddOption(CommonStrategy.Allow, "Use Scattergun when available")
+            .AddOption(CommonStrategy.Forbid, "Do not use Scattergun")
             .AddAssociatedActions(AID.ScattergunPvP);
 
         res.Define(Track.FullMetalField).As<CommonStrategy>("Full Metal Field", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Full Metal Field when available and not Overheated")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Full Metal Field")
+            .AddOption(CommonStrategy.Allow, "Use Full Metal Field when available and not Overheated")
+            .AddOption(CommonStrategy.Forbid, "Do not use Full Metal Field")
             .AddAssociatedActions(AID.FullMetalFieldPvP);
 
         res.Define(Track.Wildfire).As<CommonStrategy>("Wildfire", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Wildfire when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Wildfire")
+            .AddOption(CommonStrategy.Allow, "Use Wildfire when available")
+            .AddOption(CommonStrategy.Forbid, "Do not use Wildfire")
             .AddAssociatedActions(AID.WildfirePvP);
 
         res.Define(Track.BishopAutoturret).As<CommonStrategy>("Bishop Autoturret", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Bishop Autoturret on target's location when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Bishop Autoturret")
+            .AddOption(CommonStrategy.Allow, "Use Bishop Autoturret on target's location when available")
+            .AddOption(CommonStrategy.Forbid, "Do not use Bishop Autoturret")
             .AddAssociatedActions(AID.BishopAutoturretPvP);
 
         res.Define(Track.TurretPlacement).As<TurretPlacement>("Turret Placement", "", 300)
-            .AddOption(TurretPlacement.Self, "Self", "Place turret on self")
-            .AddOption(TurretPlacement.Target, "Target", "Place turret on target's location")
-            .AddOption(TurretPlacement.Crystal, "Crystal", "Place turret on crystal only; will hold turret until near the crystal (only works for Crystalline Conflict)")
-            .AddOption(TurretPlacement.CrystalOrTarget, "Crystal or Target", "Place turret on crystal or target if crystal is unavailable (intended for Crystalline Conflict, but works in others too)");
+            .AddOption(TurretPlacement.Self, "Place turret on self")
+            .AddOption(TurretPlacement.Target, "Place turret on target's location")
+            .AddOption(TurretPlacement.Crystal, "Place turret on crystal only; will hold turret until near the crystal (only works for Crystalline Conflict)")
+            .AddOption(TurretPlacement.CrystalOrTarget, "Place turret on crystal or target if crystal is unavailable (intended for Crystalline Conflict, but works in others too)");
 
         return res;
     }

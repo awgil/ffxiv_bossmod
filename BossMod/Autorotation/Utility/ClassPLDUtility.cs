@@ -18,16 +18,16 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
         res.Define(Track.Sheltron).As<ShelOption>("Sheltron", "Shel", 350) //Sheltron definitions
-            .AddOption(ShelOption.None, "None", "Do not use automatically")
-            .AddOption(ShelOption.Sheltron, "Sheltron", "Use Sheltron", 0, 4, ActionTargets.Self, 35, 81) //5s CD, 6s duration, -50 OathGauge cost
-            .AddOption(ShelOption.HolySheltron, "HolySheltron", "Use Holy Sheltron", 0, 4, ActionTargets.Self, 82) //5s CD, 8s duration (similar to GNB/WAR we only really care about the first 4s of the mit), -50 OathGauge cost
-            .AddOption(ShelOption.Intervention, "Intervention", "Use Intervention", 0, 4, ActionTargets.Party, 62) //10s CD, 8s duration (similar to GNB/WAR we only really care about the first 4s of the buddy mit), -50 OathGauge cost
+            .AddOption(ShelOption.None, "Do not use automatically")
+            .AddOption(ShelOption.Sheltron, "Use Sheltron", 0, 4, ActionTargets.Self, 35, 81) //5s CD, 6s duration, -50 OathGauge cost
+            .AddOption(ShelOption.HolySheltron, "Use Holy Sheltron", 0, 4, ActionTargets.Self, 82) //5s CD, 8s duration (similar to GNB/WAR we only really care about the first 4s of the mit), -50 OathGauge cost
+            .AddOption(ShelOption.Intervention, "Use Intervention", 0, 4, ActionTargets.Party, 62) //10s CD, 8s duration (similar to GNB/WAR we only really care about the first 4s of the buddy mit), -50 OathGauge cost
             .AddAssociatedActions(PLD.AID.Sheltron, PLD.AID.HolySheltron, PLD.AID.Intervention);
 
         res.Define(Track.Sentinel).As<SentOption>("Sentinel", "Sent", 550) //Sentinel definition for CD plans
-            .AddOption(SentOption.None, "None", "Do not use automatically")
-            .AddOption(SentOption.Sentinel, "Use", "Use Sentinel", 120, 15, ActionTargets.Self, 38, 91) //120s CD, 15s duration
-            .AddOption(SentOption.Guardian, "UseEx", "Use Guardian", 120, 15, ActionTargets.Self, 92) //120s CD, 15s duration
+            .AddOption(SentOption.None, "Do not use automatically")
+            .AddOption(SentOption.Sentinel, "Use Sentinel", 120, 15, ActionTargets.Self, 38, 91) //120s CD, 15s duration
+            .AddOption(SentOption.Guardian, "Use Guardian", 120, 15, ActionTargets.Self, 92) //120s CD, 15s duration
             .AddAssociatedActions(PLD.AID.Sentinel, PLD.AID.Guardian);
 
         DefineSimpleConfig(res, Track.Cover, "Cover", "", 320, PLD.AID.Cover, 12); //120s CD, 12s duration, -50 OathGauge cost
@@ -35,11 +35,11 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.DivineVeil, "DivineVeil", "Veil", 220, PLD.AID.DivineVeil, 30); //90s CD, 30s duration
 
         res.Define(Track.PassageOfArms).As<ArmsDirection>("PassageOfArms", "PoA", 400) //PassageOfArms definition for CD plans
-            .AddOption(ArmsDirection.None, "None", "Do not use automatically")
-            .AddOption(ArmsDirection.CharacterForward, "CharacterForward", "Faces the Forward direction relative to the Character", 120, 18, ActionTargets.Self, 70)
-            .AddOption(ArmsDirection.CharacterBackward, "CharacterBackward", "Faces the Backward direction relative to the Character", 120, 18, ActionTargets.Self, 70)
-            .AddOption(ArmsDirection.CameraForward, "CameraForward", "Faces the Forward direction relative to the Camera", 120, 18, ActionTargets.Self, 70)
-            .AddOption(ArmsDirection.CameraBackward, "CameraBackward", "Faces the Backward direction relative to the Camera", 120, 18, ActionTargets.Self, 70)
+            .AddOption(ArmsDirection.None, "Do not use automatically")
+            .AddOption(ArmsDirection.CharacterForward, "Faces the Forward direction relative to the Character", 120, 18, ActionTargets.Self, 70)
+            .AddOption(ArmsDirection.CharacterBackward, "Faces the Backward direction relative to the Character", 120, 18, ActionTargets.Self, 70)
+            .AddOption(ArmsDirection.CameraForward, "Faces the Forward direction relative to the Camera", 120, 18, ActionTargets.Self, 70)
+            .AddOption(ArmsDirection.CameraBackward, "Faces the Backward direction relative to the Camera", 120, 18, ActionTargets.Self, 70)
             .AddAssociatedActions(PLD.AID.PassageOfArms);
 
         DefineSimpleConfig(res, Track.HallowedGround, "HallowedGround", "Inv", 400, PLD.AID.HallowedGround, 10); //420s CD, 10s duration

@@ -19,8 +19,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         def.DefineShared().AddAssociatedActions(AID.Reawaken);
         def.Define(Track.Snap).As<SnapStrategy>("WrithingSnap")
-            .AddOption(SnapStrategy.None, "None", "Don't use")
-            .AddOption(SnapStrategy.Ranged, "Ranged", "Use when out of melee range, if out of Coil stacks")
+            .AddOption(SnapStrategy.None, "Don't use")
+            .AddOption(SnapStrategy.Ranged, "Use when out of melee range, if out of Coil stacks")
             .AddAssociatedActions(AID.WrithingSnap);
 
         return def;

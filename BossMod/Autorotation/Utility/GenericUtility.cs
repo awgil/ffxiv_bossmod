@@ -14,8 +14,8 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
         var action = ActionID.MakeSpell(aid);
         var adata = adefs[action]!;
         def.Define(expectedIndex).As<SimpleOption>(internalName, displayName, uiPriority)
-            .AddOption(SimpleOption.None, "None", "Do not use automatically")
-            .AddOption(SimpleOption.Use, "Use", $"Use {action.Name()}", adata.Cooldown, effect, adata.AllowedTargets, adefs.ActionMinLevel(action), defaultPriority: defaultPriority)
+            .AddOption(SimpleOption.None, "Do not use automatically")
+            .AddOption(SimpleOption.Use, $"Use {action.Name()}", adata.Cooldown, effect, adata.AllowedTargets, adefs.ActionMinLevel(action), defaultPriority: defaultPriority)
             .AddAssociatedActions(aid);
     }
 
@@ -23,13 +23,13 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
     {
         // note: it assumes that effect durations are either 0's or correspond to tank LB (so lb2 > lb1 > lb3)
         return def.Define(expectedIndex).As<LBOption>("LB")
-            .AddOption(LBOption.None, "None", "Do not use automatically")
-            .AddOption(LBOption.LB3, "LB3", "Use LB3 if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
-            .AddOption(LBOption.LB2, "LB2", "Use LB2/3 if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
-            .AddOption(LBOption.LB1, "LB1", "Use any LB if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
-            .AddOption(LBOption.LB2Only, "LB2Only", "Use LB2 if available, but not LB3", 0, effectLB2, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
-            .AddOption(LBOption.LB1Only, "LB1Only", "Use LB1 if available, but not LB2+", 0, effectLB1, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
-            .AddOption(LBOption.LB12, "LB12", "Use LB1/2 if available, but not LB3", 0, effectLB1, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh);
+            .AddOption(LBOption.None, "Do not use automatically")
+            .AddOption(LBOption.LB3, "Use LB3 if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB2, "Use LB2/3 if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB1, "Use any LB if available", 0, effectLB3, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB2Only, "Use LB2 if available, but not LB3", 0, effectLB2, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB1Only, "Use LB1 if available, but not LB2+", 0, effectLB1, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(LBOption.LB12, "Use LB1/2 if available, but not LB3", 0, effectLB1, allowedTargets, defaultPriority: ActionQueue.Priority.VeryHigh);
     }
 
     protected void ExecuteSimple<AID>(in StrategyValues.OptionRef opt, AID aid, Actor? defaultTarget, float castTime = 0) where AID : Enum

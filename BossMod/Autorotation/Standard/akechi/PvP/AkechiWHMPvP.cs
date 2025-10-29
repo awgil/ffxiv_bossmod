@@ -19,59 +19,59 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
     {
         var res = new RotationModuleDefinition("Akechi WHM (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.WHM), 100, 30);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
-            .AddOption(TargetingStrategy.Auto, "Automatic", "Automatically select best target")
-            .AddOption(TargetingStrategy.Manual, "Manual", "Manually select target");
+            .AddOption(TargetingStrategy.Auto, "Automatically select best target")
+            .AddOption(TargetingStrategy.Manual, "Manually select target");
 
         res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
-            .AddOption(RoleActionStrategy.Forbid, "Forbid", "Do not use any role actions")
-            .AddOption(RoleActionStrategy.Haelan, "Haelan", "Use Haelan when available")
-            .AddOption(RoleActionStrategy.Stoneskin2, "Stoneskin2", "Use Stoneskin II when available")
-            .AddOption(RoleActionStrategy.Diabrosis, "Diabrosis", "Use Diabrosis when available");
+            .AddOption(RoleActionStrategy.Forbid, "Do not use any role actions")
+            .AddOption(RoleActionStrategy.Haelan, "Use Haelan when available")
+            .AddOption(RoleActionStrategy.Stoneskin2, "Use Stoneskin II when available")
+            .AddOption(RoleActionStrategy.Diabrosis, "Use Diabrosis when available");
 
         res.Define(Track.LimitBreak).As<LBStrategy>("Limit Break", "", 300)
-            .AddOption(LBStrategy.Any, "Any", "Use Limit Break when available")
-            .AddOption(LBStrategy.Two, "Two", "Use Limit Break when two or more enemies will be hit")
-            .AddOption(LBStrategy.Three, "Three", "Use Limit Break when three or more enemies will be hit")
-            .AddOption(LBStrategy.Forbid, "Forbid", "Do not use Limit Break");
+            .AddOption(LBStrategy.Any, "Use Limit Break when available")
+            .AddOption(LBStrategy.Two, "Use Limit Break when two or more enemies will be hit")
+            .AddOption(LBStrategy.Three, "Use Limit Break when three or more enemies will be hit")
+            .AddOption(LBStrategy.Forbid, "Do not use Limit Break");
 
         res.Define(Track.Cure).As<CureStrategy>("Cure", "", 300)
-            .AddOption(CureStrategy.Eighty, "80%", "Use Cure when HP is below 80%")
-            .AddOption(CureStrategy.Seventy, "70%", "Use Cure when HP is below 70%")
-            .AddOption(CureStrategy.Sixty, "60%", "Use Cure when HP is below 60%")
-            .AddOption(CureStrategy.Fifty, "50%", "Use Cure when HP is below 50%")
-            .AddOption(CureStrategy.Fourty, "40%", "Use Cure when HP is below 40%")
-            .AddOption(CureStrategy.Forbid, "Forbid", "Do not use Cure");
+            .AddOption(CureStrategy.Eighty, "Use Cure when HP is below 80%")
+            .AddOption(CureStrategy.Seventy, "Use Cure when HP is below 70%")
+            .AddOption(CureStrategy.Sixty, "Use Cure when HP is below 60%")
+            .AddOption(CureStrategy.Fifty, "Use Cure when HP is below 50%")
+            .AddOption(CureStrategy.Fourty, "Use Cure when HP is below 40%")
+            .AddOption(CureStrategy.Forbid, "Do not use Cure");
 
         res.Define(Track.CureTarget).As<CureTargetStrategy>("Cure Target", "", 300)
-            .AddOption(CureTargetStrategy.Self, "Self", "Use Cure on self only")
-            .AddOption(CureTargetStrategy.Party, "Party", "Use Cure on party members only")
-            .AddOption(CureTargetStrategy.SelfOrParty, "Self or Party", "Use Cure on self or party members");
+            .AddOption(CureTargetStrategy.Self, "Use Cure on self only")
+            .AddOption(CureTargetStrategy.Party, "Use Cure on party members only")
+            .AddOption(CureTargetStrategy.SelfOrParty, "Use Cure on self or party members");
 
         res.Define(Track.Aquaveil).As<AquaveilStrategy>("Aquaveil", "", 300)
-            .AddOption(AquaveilStrategy.Auto, "Auto", "Use Aquaveil when HP is not full and two or more enemies are targeting you")
-            .AddOption(AquaveilStrategy.Two, "Two", "Use Aquaveil when two or more enemies are targeting you")
-            .AddOption(AquaveilStrategy.Three, "Three", "Use Aquaveil when three or more enemies are targeting you")
-            .AddOption(AquaveilStrategy.Four, "Four", "Use Aquaveil when four or more enemies are targeting you")
-            .AddOption(AquaveilStrategy.LessThanFull, "Less than Full", "Use Aquaveil when HP is below 100%")
-            .AddOption(AquaveilStrategy.LessThan75, "Less than 75%", "Use Aquaveil when HP is below 75%")
-            .AddOption(AquaveilStrategy.LessThan50, "Less than 50%", "Use Aquaveil when HP is below 50%")
-            .AddOption(AquaveilStrategy.DebuffOnly, "Debuff Only", "Use Aquaveil only when under a cleansible debuff")
-            .AddOption(AquaveilStrategy.Forbid, "Forbid", "Do not use Aquaveil");
+            .AddOption(AquaveilStrategy.Auto, "Use Aquaveil when HP is not full and two or more enemies are targeting you")
+            .AddOption(AquaveilStrategy.Two, "Use Aquaveil when two or more enemies are targeting you")
+            .AddOption(AquaveilStrategy.Three, "Use Aquaveil when three or more enemies are targeting you")
+            .AddOption(AquaveilStrategy.Four, "Use Aquaveil when four or more enemies are targeting you")
+            .AddOption(AquaveilStrategy.LessThanFull, "Use Aquaveil when HP is below 100%")
+            .AddOption(AquaveilStrategy.LessThan75, "Use Aquaveil when HP is below 75%")
+            .AddOption(AquaveilStrategy.LessThan50, "Use Aquaveil when HP is below 50%")
+            .AddOption(AquaveilStrategy.DebuffOnly, "Use Aquaveil only when under a cleansible debuff")
+            .AddOption(AquaveilStrategy.Forbid, "Do not use Aquaveil");
 
         res.Define(Track.SeraphStrike).As<SeraphStrategy>("Seraph Strike", "", 300)
-            .AddOption(SeraphStrategy.Twenty, "20y", "Use Seraph Strike when target is within 20 yalms")
-            .AddOption(SeraphStrategy.Fifteen, "15y", "Use Seraph Strike when target is within 15 yalms")
-            .AddOption(SeraphStrategy.Ten, "10y", "Use Seraph Strike when target is within 10 yalms")
-            .AddOption(SeraphStrategy.Five, "5y", "Use Seraph Strike when target is within 5 yalms")
-            .AddOption(SeraphStrategy.Forbid, "Forbid", "Do not use Seraph Strike");
+            .AddOption(SeraphStrategy.Twenty, "Use Seraph Strike when target is within 20 yalms")
+            .AddOption(SeraphStrategy.Fifteen, "Use Seraph Strike when target is within 15 yalms")
+            .AddOption(SeraphStrategy.Ten, "Use Seraph Strike when target is within 10 yalms")
+            .AddOption(SeraphStrategy.Five, "Use Seraph Strike when target is within 5 yalms")
+            .AddOption(SeraphStrategy.Forbid, "Do not use Seraph Strike");
 
         res.Define(Track.MiracleOfNature).As<CommonStrategy>("Miracle of Nature", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Miracle of Nature when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Miracle of Nature");
+            .AddOption(CommonStrategy.Allow, "Use Miracle of Nature when available")
+            .AddOption(CommonStrategy.Forbid, "Do not use Miracle of Nature");
 
         res.Define(Track.AfflatusMisery).As<CommonStrategy>("Afflatus Misery", "", 300)
-            .AddOption(CommonStrategy.Allow, "Allow", "Use Afflatus Misery when available")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Do not use Afflatus Misery");
+            .AddOption(CommonStrategy.Allow, "Use Afflatus Misery when available")
+            .AddOption(CommonStrategy.Forbid, "Do not use Afflatus Misery");
 
         return res;
     }

@@ -20,24 +20,24 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Nebula, "Nebula", "Nebula", 550, GNB.AID.Nebula, 15); //120s CD, 15s duration
 
         res.Define(Track.Aurora).As<AuroraStrategy>("Aurora", "", 150) //60s (120s total), 18s duration, 2 charges
-            .AddOption(AuroraStrategy.None, "None", "Do not use automatically")
-            .AddOption(AuroraStrategy.Force, "Use", "Use Aurora", 60, 18, ActionTargets.Self | ActionTargets.Party, 45)
-            .AddOption(AuroraStrategy.ForceHold1, "UseHold1", "Use Aurora; Holds 1 charge for manual usage", 60, 18, ActionTargets.Self | ActionTargets.Party, 82)
+            .AddOption(AuroraStrategy.None, "Do not use automatically")
+            .AddOption(AuroraStrategy.Force, "Use Aurora", 60, 18, ActionTargets.Self | ActionTargets.Party, 45)
+            .AddOption(AuroraStrategy.ForceHold1, "Use Aurora; Holds 1 charge for manual usage", 60, 18, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(GNB.AID.Aurora);
 
         DefineSimpleConfig(res, Track.Superbolide, "Superbolide", "Bolide", 600, GNB.AID.Superbolide, 10); //360s CD, 10s duration
         DefineSimpleConfig(res, Track.HeartOfLight, "HeartOfLight", "HoL", 245, GNB.AID.HeartOfLight, 15); //90s CD, 15s duration
 
         res.Define(Track.HeartOfCorundum).As<HoCOption>("HeartOfCorundum", "HoC", 350) //25s CD, 4s duration is what we really care about
-            .AddOption(HoCOption.None, "None", "Do not use automatically")
-            .AddOption(HoCOption.HeartOfStone, "HoS", "Use Heart of Stone", 25, 7, ActionTargets.Self | ActionTargets.Party, 68, 81)
-            .AddOption(HoCOption.HeartOfCorundum, "HoC", "Use Heart of Corundum", 25, 4, ActionTargets.Self | ActionTargets.Party, 82)
+            .AddOption(HoCOption.None, "Do not use automatically")
+            .AddOption(HoCOption.HeartOfStone, "Use Heart of Stone", 25, 7, ActionTargets.Self | ActionTargets.Party, 68, 81)
+            .AddOption(HoCOption.HeartOfCorundum, "Use Heart of Corundum", 25, 4, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(GNB.AID.HeartOfStone, GNB.AID.HeartOfCorundum);
 
         res.Define(Track.Trajectory).As<DashStrategy>("Trajectory", "Dash", 20)
-            .AddOption(DashStrategy.None, "None", "No use")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Hostile, 56)
-            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 84)
+            .AddOption(DashStrategy.None, "No use")
+            .AddOption(DashStrategy.GapClose, "Use as gapcloser if outside melee range", 30, 0, ActionTargets.Hostile, 56)
+            .AddOption(DashStrategy.GapCloseHold1, "Use as gapcloser if outside melee range; conserves 1 charge for manual usage", 60, 0, ActionTargets.Hostile, 84)
             .AddAssociatedActions(GNB.AID.Trajectory);
 
         return res;

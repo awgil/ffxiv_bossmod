@@ -20,26 +20,26 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Adloquium, "Adloquium", "Adlo.", 100, SCH.AID.Adloquium, 30);
 
         res.Define(Track.Succor).As<SuccorOption>("Succor", "Succor", 200)
-            .AddOption(SuccorOption.None, "None", "Do not use automatically")
-            .AddOption(SuccorOption.Succor, "Use", "Use Succor", 2, 30, ActionTargets.Self, 35, 95)
-            .AddOption(SuccorOption.Concitation, "UseEx", "Use Concitation", 2, 30, ActionTargets.Self, 96)
+            .AddOption(SuccorOption.None, "Do not use automatically")
+            .AddOption(SuccorOption.Succor, "Use Succor", 2, 30, ActionTargets.Self, 35, 95)
+            .AddOption(SuccorOption.Concitation, "Use Concitation", 2, 30, ActionTargets.Self, 96)
             .AddAssociatedActions(SCH.AID.Succor, SCH.AID.Concitation);
 
         DefineSimpleConfig(res, Track.FeyIllumination, "Fey Illumination", "F.Illum.", 240, SCH.AID.FeyIllumination, 20);
         DefineSimpleConfig(res, Track.Lustrate, "Lustrate", "Lustrate", 150, SCH.AID.Lustrate);
 
         res.Define(Track.SacredSoil).As<SacredSoilOption>("Sacred Soil", "S.Soil", 200)
-            .AddOption(SacredSoilOption.None, "None", "Do not use automatically")
-            .AddOption(SacredSoilOption.Use, "Use", "Use Sacred Soil", 30, 15, ActionTargets.Area, 50, 77)
-            .AddOption(SacredSoilOption.UseEx, "UseEx", "Use Enhanced Sacred Soil", 30, 15, ActionTargets.Area, 78)
+            .AddOption(SacredSoilOption.None, "Do not use automatically")
+            .AddOption(SacredSoilOption.Use, "Use Sacred Soil", 30, 15, ActionTargets.Area, 50, 77)
+            .AddOption(SacredSoilOption.UseEx, "Use Enhanced Sacred Soil", 30, 15, ActionTargets.Area, 78)
             .AddAssociatedActions(SCH.AID.SacredSoil);
 
         DefineSimpleConfig(res, Track.Indomitability, "Indomitability", "Indom.", 90, SCH.AID.Indomitability);
 
         res.Define(Track.DeploymentTactics).As<DeployOption>("DeploymentTactics", "Deploy.", 150)
-            .AddOption(DeployOption.None, "None", "Do not use automatically")
-            .AddOption(DeployOption.Use, "Use", "Use Deployment Tactics", 120, 0, ActionTargets.Self, 56, 87)
-            .AddOption(DeployOption.UseEx, "UseEx", "Use Enhanced Deployment Tactics", 90, 0, ActionTargets.Self, 88)
+            .AddOption(DeployOption.None, "Do not use automatically")
+            .AddOption(DeployOption.Use, "Use Deployment Tactics", 120, 0, ActionTargets.Self, 56, 87)
+            .AddOption(DeployOption.UseEx, "Use Enhanced Deployment Tactics", 90, 0, ActionTargets.Self, 88)
             .AddAssociatedActions(SCH.AID.DeploymentTactics);
 
         DefineSimpleConfig(res, Track.EmergencyTactics, "EmergencyTactics", "Emerg.", 100, SCH.AID.EmergencyTactics, 15);
@@ -47,15 +47,15 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Excogitation, "Excogitation", "Excog.", 100, SCH.AID.Excogitation, 45);
 
         res.Define(Track.Aetherpact).As<AetherpactOption>("Aetherpact", "A.pact", 300)
-            .AddOption(AetherpactOption.None, "None", "Do not use automatically")
-            .AddOption(AetherpactOption.Use, "Use", "Use Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
-            .AddOption(AetherpactOption.End, "UseEx", "End Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
+            .AddOption(AetherpactOption.None, "Do not use automatically")
+            .AddOption(AetherpactOption.Use, "Use Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
+            .AddOption(AetherpactOption.End, "End Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
             .AddAssociatedActions(SCH.AID.Aetherpact, SCH.AID.DissolveUnion);
 
         res.Define(Track.Recitation).As<RecitationOption>("Recitation", "Recit.", 130)
-            .AddOption(RecitationOption.None, "None", "Do not use automatically")
-            .AddOption(RecitationOption.Use, "Use", "Use Recitation", 90, 0, ActionTargets.Self, 74, 97)
-            .AddOption(RecitationOption.UseEx, "UseEx", "Use Enhanced Recitation", 60, 0, ActionTargets.Self, 98)
+            .AddOption(RecitationOption.None, "Do not use automatically")
+            .AddOption(RecitationOption.Use, "Use Recitation", 90, 0, ActionTargets.Self, 74, 97)
+            .AddOption(RecitationOption.UseEx, "Use Enhanced Recitation", 60, 0, ActionTargets.Self, 98)
             .AddAssociatedActions(SCH.AID.Recitation);
 
         DefineSimpleConfig(res, Track.FeyBlessing, "FeyBlessing", "F.Blessing", 120, SCH.AID.FeyBlessing);

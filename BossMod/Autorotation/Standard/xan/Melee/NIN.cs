@@ -19,12 +19,12 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.Dokumori);
 
         def.Define(Track.Hide).As<HideStrategy>("Hide")
-            .AddOption(HideStrategy.Automatic, "Auto", "Use when out of combat to restore charges")
-            .AddOption(HideStrategy.Manual, "Manual", "Do not use automatically");
+            .AddOption(HideStrategy.Automatic, "Use when out of combat to restore charges")
+            .AddOption(HideStrategy.Manual, "Do not use automatically");
 
         def.Define(Track.ForkedRaiju).As<RaijuStrategy>("Forked Raiju")
-            .AddOption(RaijuStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(RaijuStrategy.Automatic, "Auto", "Use when out of melee range");
+            .AddOption(RaijuStrategy.Manual, "Do not use automatically")
+            .AddOption(RaijuStrategy.Automatic, "Use when out of melee range");
 
         def.AbilityTrack(Track.PhantomCannon, "PCAN", "Phantom Cannoneer: use cannons on primary target ASAP").AddAssociatedActions(PhantomID.PhantomFire, PhantomID.HolyCannon, PhantomID.DarkCannon, PhantomID.ShockCannon, PhantomID.SilverCannon);
 

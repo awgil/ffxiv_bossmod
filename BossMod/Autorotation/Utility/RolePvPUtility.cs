@@ -20,37 +20,37 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
                 Class.BLM, Class.SMN, Class.RDM, Class.PCT), 100, 30);
 
         res.Define(Track.Elixir).As<ElixirStrategy>("Elixir", uiPriority: 150)
-            .AddOption(ElixirStrategy.Far, "Far", "Allows use of Elixir if resources are low and no targets are nearby within 50 yalms")
-            .AddOption(ElixirStrategy.Close, "Close", "Allows use of Elixir if resources are low and no targets are nearby within 30 yalms")
-            .AddOption(ElixirStrategy.Forbid, "Forbid", "Forbid use of Elixir")
+            .AddOption(ElixirStrategy.Far, "Allows use of Elixir if resources are low and no targets are nearby within 50 yalms")
+            .AddOption(ElixirStrategy.Close, "Allows use of Elixir if resources are low and no targets are nearby within 30 yalms")
+            .AddOption(ElixirStrategy.Forbid, "Forbid use of Elixir")
             .AddAssociatedActions(ClassShared.AID.ElixirPvP);
 
         res.Define(Track.Recuperate).As<ThresholdStrategy>("Recuperate", uiPriority: 150)
-            .AddOption(ThresholdStrategy.Seventy, "Seventy", "Automatically use Recuperate when HP% is under 70%")
-            .AddOption(ThresholdStrategy.Fifty, "Fifty", "Automatically use Recuperate when HP% is under 50%")
-            .AddOption(ThresholdStrategy.Thirty, "Thirty", "Automatically use Recuperate when HP% is under 30%")
-            .AddOption(ThresholdStrategy.Forbid, "Forbid", "Forbid use of Recuperate")
+            .AddOption(ThresholdStrategy.Seventy, "Automatically use Recuperate when HP% is under 70%")
+            .AddOption(ThresholdStrategy.Fifty, "Automatically use Recuperate when HP% is under 50%")
+            .AddOption(ThresholdStrategy.Thirty, "Automatically use Recuperate when HP% is under 30%")
+            .AddOption(ThresholdStrategy.Forbid, "Forbid use of Recuperate")
             .AddAssociatedActions(ClassShared.AID.RecuperatePvP);
 
         res.Define(Track.Guard).As<GuardStrategy>("Guard", uiPriority: 150)
-            .AddOption(GuardStrategy.Auto, "Auto", "Automatically use Guard when HP% is under 75% and two or more targets are targeting you, or when HP% is below 33%")
-            .AddOption(GuardStrategy.Two, "2 Targets", "Automatically use Guard when HP is not full and two or more targets are targeting you")
-            .AddOption(GuardStrategy.Three, "3 Targets", "Automatically use Guard when HP is not full and three or more targets are targeting you")
-            .AddOption(GuardStrategy.Four, "4 Targets", "Automatically use Guard when HP is not full and four or more targets are targeting you")
-            .AddOption(GuardStrategy.Seventy, "Seventy", "Automatically use Guard when HP% is under 70%")
-            .AddOption(GuardStrategy.Fifty, "Fifty", "Automatically use Guard when HP% is under 50%")
-            .AddOption(GuardStrategy.Thirty, "Thirty", "Automatically use Guard when HP% is under 30%")
-            .AddOption(GuardStrategy.Forbid, "Forbid", "Forbid use of Guard")
+            .AddOption(GuardStrategy.Auto, "Automatically use Guard when HP% is under 75% and two or more targets are targeting you, or when HP% is below 33%")
+            .AddOption(GuardStrategy.Two, "Automatically use Guard when HP is not full and two or more targets are targeting you")
+            .AddOption(GuardStrategy.Three, "Automatically use Guard when HP is not full and three or more targets are targeting you")
+            .AddOption(GuardStrategy.Four, "Automatically use Guard when HP is not full and four or more targets are targeting you")
+            .AddOption(GuardStrategy.Seventy, "Automatically use Guard when HP% is under 70%")
+            .AddOption(GuardStrategy.Fifty, "Automatically use Guard when HP% is under 50%")
+            .AddOption(GuardStrategy.Thirty, "Automatically use Guard when HP% is under 30%")
+            .AddOption(GuardStrategy.Forbid, "Forbid use of Guard")
             .AddAssociatedActions(ClassShared.AID.GuardPvP);
 
         res.Define(Track.Purify).As<DefensiveStrategy>("Purify", uiPriority: 150)
-            .AddOption(DefensiveStrategy.Allow, "Allow", "Allow use of Purify when under any debuff that can be cleansed")
-            .AddOption(DefensiveStrategy.Forbid, "Forbid", "Forbid use of Purify")
+            .AddOption(DefensiveStrategy.Allow, "Allow use of Purify when under any debuff that can be cleansed")
+            .AddOption(DefensiveStrategy.Forbid, "Forbid use of Purify")
             .AddAssociatedActions(ClassShared.AID.PurifyPvP);
 
         res.Define(Track.Sprint).As<DefensiveStrategy>("Sprint", uiPriority: 150)
-            .AddOption(DefensiveStrategy.Allow, "Allow", "Allow use of Sprint when no target is nearby within 30 yalms")
-            .AddOption(DefensiveStrategy.Forbid, "Forbid", "Forbid use of Sprint")
+            .AddOption(DefensiveStrategy.Allow, "Allow use of Sprint when no target is nearby within 30 yalms")
+            .AddOption(DefensiveStrategy.Forbid, "Forbid use of Sprint")
             .AddAssociatedActions(ClassShared.AID.Sprint);
 
         return res;

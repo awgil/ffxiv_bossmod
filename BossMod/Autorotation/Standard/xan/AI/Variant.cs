@@ -22,14 +22,14 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase(man
         var def = new RotationModuleDefinition("Variant AI", "Variant dungeon utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 90);
 
         def.Define(Track.Rampart).As<RampartStrategy>("Rampart", "Variant Rampart")
-            .AddOption(RampartStrategy.PermaShield, "Shield", "Use on cooldown (for shield)")
-            .AddOption(RampartStrategy.PermaBuff, "Buff", "Use if buff is about to expire")
-            .AddOption(RampartStrategy.Disabled, "Disabled", "Do not automatically use")
+            .AddOption(RampartStrategy.PermaShield, "Use on cooldown (for shield)")
+            .AddOption(RampartStrategy.PermaBuff, "Use if buff is about to expire")
+            .AddOption(RampartStrategy.Disabled, "Do not automatically use")
             .AddAssociatedActions(ClassShared.AID.VariantRampart1, ClassShared.AID.VariantRampart2);
 
         def.Define(Track.Cure).As<CureStrategy>("Cure", "Variant Cure")
-            .AddOption(CureStrategy.Enabled, "Enabled", "Use at half HP or lower")
-            .AddOption(CureStrategy.Disabled, "Disabled", "Do not use")
+            .AddOption(CureStrategy.Enabled, "Use at half HP or lower")
+            .AddOption(CureStrategy.Disabled, "Do not use")
             .AddAssociatedActions(ClassShared.AID.VariantCure1, ClassShared.AID.VariantCure2);
 
         return def;

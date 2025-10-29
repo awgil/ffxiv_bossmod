@@ -16,22 +16,22 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
     {
         var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(RM02SHoneyBLovely), DevMode: true);
         res.Define(Track.DragBoss).As<DragBossStrategy>("DragBoss", "Drag")
-            .AddOption(DragBossStrategy.None, "None", "Do nothing")
-            .AddOption(DragBossStrategy.SCenterFaceN, "SCenterFaceN", "Position boss in center or slightly to the south, then face north")
-            .AddOption(DragBossStrategy.NorthFaceS, "NorthFaceS", "Position boss in the north, then face center");
+            .AddOption(DragBossStrategy.None, "Do nothing")
+            .AddOption(DragBossStrategy.SCenterFaceN, "Position boss in center or slightly to the south, then face north")
+            .AddOption(DragBossStrategy.NorthFaceS, "Position boss in the north, then face center");
         res.Define(Track.DropSplash).As<DropSplashStrategy>("DropSplash")
-            .AddOption(DropSplashStrategy.None, "None", "Do nothing")
-            .AddOption(DropSplashStrategy.NWMeleeCW, "NWMeleeCW", "NW, melee/CW");
+            .AddOption(DropSplashStrategy.None, "Do nothing")
+            .AddOption(DropSplashStrategy.NWMeleeCW, "NW, melee/CW");
         res.Define(Track.StageCombo).As<StageComboStrategy>("StageCombo")
-            .AddOption(StageComboStrategy.None, "None", "Do nothing")
-            .AddOption(StageComboStrategy.NNW, "NNW", "N/NW")
-            .AddOption(StageComboStrategy.NNWOrHeart, "NNWOrHeart", "N/NW, keep uptime if <3 hearts");
+            .AddOption(StageComboStrategy.None, "Do nothing")
+            .AddOption(StageComboStrategy.NNW, "N/NW")
+            .AddOption(StageComboStrategy.NNWOrHeart, "N/NW, keep uptime if <3 hearts");
         res.Define(Track.Pheromones2).As<Pheromones2Strategy>("Pheromones2", "Phero2")
-            .AddOption(Pheromones2Strategy.None, "None", "Do nothing")
-            .AddOption(Pheromones2Strategy.Nearest, "Nearest", "Go to nearest safespot");
+            .AddOption(Pheromones2Strategy.None, "Do nothing")
+            .AddOption(Pheromones2Strategy.Nearest, "Go to nearest safespot");
         res.Define(Track.DefamationsTowers).As<DefamationsTowersStrategy>("DefamationsTowers", "D/T")
-            .AddOption(DefamationsTowersStrategy.None, "None", "Do nothing")
-            .AddOption(DefamationsTowersStrategy.NNW, "NNW", "Defamations N, towers NW");
+            .AddOption(DefamationsTowersStrategy.None, "Do nothing")
+            .AddOption(DefamationsTowersStrategy.NNW, "Defamations N, towers NW");
         return res;
     }
 

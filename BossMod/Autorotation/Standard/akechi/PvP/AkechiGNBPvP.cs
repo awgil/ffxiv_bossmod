@@ -20,68 +20,68 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     {
         var res = new RotationModuleDefinition("Akechi GNB (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.GNB), 100, 30);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
-            .AddOption(TargetingStrategy.Auto, "Automatic", "Automatically select best target")
-            .AddOption(TargetingStrategy.Manual, "Manual", "Manually select target");
+            .AddOption(TargetingStrategy.Auto, "Automatically select best target")
+            .AddOption(TargetingStrategy.Manual, "Manually select target");
 
         res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
-            .AddOption(RoleActionStrategy.Forbid, "Forbid", "Do not use any role actions")
-            .AddOption(RoleActionStrategy.Rampage, "Rampage", "Use Rampage when available and targets are nearby")
-            .AddOption(RoleActionStrategy.Rampart, "Rampart", "Use Rampart when available")
-            .AddOption(RoleActionStrategy.FullSwing, "Full Swing", "Use Full Swing when available")
+            .AddOption(RoleActionStrategy.Forbid, "Do not use any role actions")
+            .AddOption(RoleActionStrategy.Rampage, "Use Rampage when available and targets are nearby")
+            .AddOption(RoleActionStrategy.Rampart, "Use Rampart when available")
+            .AddOption(RoleActionStrategy.FullSwing, "Use Full Swing when available")
             .AddAssociatedActions(AID.RampagePvP, AID.RampartPvP, AID.FullSwingPvP);
 
         res.Define(Track.LimitBreak).As<LBStrategy>("Limit Break", "", 300)
-            .AddOption(LBStrategy.Allow, "Allow", "Allow use of Limit Break (Relentless Rush) automatically when nearby enemies")
-            .AddOption(LBStrategy.Forbid, "Forbid", "Forbid use of Limit Break (Relentless Rush) entirely");
+            .AddOption(LBStrategy.Allow, "Allow use of Limit Break (Relentless Rush) automatically when nearby enemies")
+            .AddOption(LBStrategy.Forbid, "Forbid use of Limit Break (Relentless Rush) entirely");
 
         res.Define(Track.TerminalTrigger).As<TriggerStrategy>("Terminal Trigger", "", 300)
-            .AddOption(TriggerStrategy.Five, "5 Stacks", "Use when 5 stacks of Relentless Shrapnel are available on target")
-            .AddOption(TriggerStrategy.Four, "4 Stacks", "Use when 4+ stacks of Relentless Shrapnel are available on target")
-            .AddOption(TriggerStrategy.Three, "3 Stacks", "Use when 3+ stacks of Relentless Shrapnel are available on target")
-            .AddOption(TriggerStrategy.Two, "2 Stacks", "Use when 2+ stacks of Relentless Shrapnel are available on target")
-            .AddOption(TriggerStrategy.One, "1 Stack", "Use when 1+ stacks of Relentless Shrapnel is available on target")
-            .AddOption(TriggerStrategy.Forbid, "Forbid", "Let Terminal Trigger happen automatically at the end of its duration")
+            .AddOption(TriggerStrategy.Five, "Use when 5 stacks of Relentless Shrapnel are available on target")
+            .AddOption(TriggerStrategy.Four, "Use when 4+ stacks of Relentless Shrapnel are available on target")
+            .AddOption(TriggerStrategy.Three, "Use when 3+ stacks of Relentless Shrapnel are available on target")
+            .AddOption(TriggerStrategy.Two, "Use when 2+ stacks of Relentless Shrapnel are available on target")
+            .AddOption(TriggerStrategy.One, "Use when 1+ stacks of Relentless Shrapnel is available on target")
+            .AddOption(TriggerStrategy.Forbid, "Let Terminal Trigger happen automatically at the end of its duration")
             .AddAssociatedActions(AID.TerminalTriggerPvP);
 
         res.Define(Track.Corundum).As<CorundumStrategy>("Heart of Corundum", "", 300)
-            .AddOption(CorundumStrategy.Auto, "Automatic", "Use automatically when HP is below 80% or two or more enemies are targeting you")
-            .AddOption(CorundumStrategy.Two, "2 Targets", "Use when HP is not full and two or more enemies are targeting you")
-            .AddOption(CorundumStrategy.Three, "3 Targets", "Use when HP is not full and three or more enemies are targeting you")
-            .AddOption(CorundumStrategy.Four, "4 Targets", "Use when HP is not full and four or more enemies are targeting you")
-            .AddOption(CorundumStrategy.Eighty, "80% HP", "Use when HP is at or below 80%")
-            .AddOption(CorundumStrategy.Seventy, "70% HP", "Use when HP is at or below 70%")
-            .AddOption(CorundumStrategy.Sixty, "60% HP", "Use when HP is at or below 60%")
-            .AddOption(CorundumStrategy.Fifty, "50% HP", "Use when HP is at or below 50%")
-            .AddOption(CorundumStrategy.Fourty, "40% HP", "Use when HP is at or below 40%")
-            .AddOption(CorundumStrategy.Thirty, "30% HP", "Use when HP is at or below 30%")
-            .AddOption(CorundumStrategy.Forbid, "Forbid", "Forbid use of Heart of Corundum entirely")
+            .AddOption(CorundumStrategy.Auto, "Use automatically when HP is below 80% or two or more enemies are targeting you")
+            .AddOption(CorundumStrategy.Two, "Use when HP is not full and two or more enemies are targeting you")
+            .AddOption(CorundumStrategy.Three, "Use when HP is not full and three or more enemies are targeting you")
+            .AddOption(CorundumStrategy.Four, "Use when HP is not full and four or more enemies are targeting you")
+            .AddOption(CorundumStrategy.Eighty, "Use when HP is at or below 80%")
+            .AddOption(CorundumStrategy.Seventy, "Use when HP is at or below 70%")
+            .AddOption(CorundumStrategy.Sixty, "Use when HP is at or below 60%")
+            .AddOption(CorundumStrategy.Fifty, "Use when HP is at or below 50%")
+            .AddOption(CorundumStrategy.Fourty, "Use when HP is at or below 40%")
+            .AddOption(CorundumStrategy.Thirty, "Use when HP is at or below 30%")
+            .AddOption(CorundumStrategy.Forbid, "Forbid use of Heart of Corundum entirely")
             .AddAssociatedActions(AID.HeartOfCorundumPvP);
 
         res.Define(Track.RoughDivide).As<DivideStrategy>("Rough Divide", "", 300)
-            .AddOption(DivideStrategy.Auto, "Automatic", "Use automatically when No Mercy buff is not active")
-            .AddOption(DivideStrategy.AutoMelee, "Automatic (Melee Range)", "Use only when in Melee range of target and when No Mercy buff is not active")
-            .AddOption(DivideStrategy.Forbid, "Forbid", "Forbid use of Rough Divide entirely")
+            .AddOption(DivideStrategy.Auto, "Use automatically when No Mercy buff is not active")
+            .AddOption(DivideStrategy.AutoMelee, "Use only when in Melee range of target and when No Mercy buff is not active")
+            .AddOption(DivideStrategy.Forbid, "Forbid use of Rough Divide entirely")
             .AddAssociatedActions(AID.RoughDividePvP);
 
         res.Define(Track.Zone).As<ZoneStrategy>("Blasting Zone", "", 300)
-            .AddOption(ZoneStrategy.Buff, "Buff", "Use only when under No Mercy buff regardless target HP%")
-            .AddOption(ZoneStrategy.HalfHPP, "Half HPP", "Use when target is less than 50% HP regardless of No Mercy buff")
-            .AddOption(ZoneStrategy.BuffOrHalfHPP, "Buff or Half HPP", "Use when under No Mercy buff or target is less than 50% HP")
-            .AddOption(ZoneStrategy.BuffAndHalfHPP, "Buff and Half HPP", "Use when under No Mercy buff and target is less than 50% HP")
-            .AddOption(ZoneStrategy.ASAP, "ASAP", "Use ASAP regardless of No Mercy buff or target HP%")
-            .AddOption(ZoneStrategy.Forbid, "Forbid", "Forbid use of Blasting Zone entirely")
+            .AddOption(ZoneStrategy.Buff, "Use only when under No Mercy buff regardless target HP%")
+            .AddOption(ZoneStrategy.HalfHPP, "Use when target is less than 50% HP regardless of No Mercy buff")
+            .AddOption(ZoneStrategy.BuffOrHalfHPP, "Use when under No Mercy buff or target is less than 50% HP")
+            .AddOption(ZoneStrategy.BuffAndHalfHPP, "Use when under No Mercy buff and target is less than 50% HP")
+            .AddOption(ZoneStrategy.ASAP, "Use ASAP regardless of No Mercy buff or target HP%")
+            .AddOption(ZoneStrategy.Forbid, "Forbid use of Blasting Zone entirely")
             .AddAssociatedActions(AID.BlastingZonePvP);
 
         res.Define(Track.GnashingFang).As<CommonStrategy>("Gnashing Fang", "", 300)
-            .AddOption(CommonStrategy.Buff, "Buff", "Use ASAP when under No Mercy buff")
-            .AddOption(CommonStrategy.ASAP, "ASAP", "Use ASAP regardless of No Mercy buff")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Forbid use of Gnashing Fang entirely")
+            .AddOption(CommonStrategy.Buff, "Use ASAP when under No Mercy buff")
+            .AddOption(CommonStrategy.ASAP, "Use ASAP regardless of No Mercy buff")
+            .AddOption(CommonStrategy.Forbid, "Forbid use of Gnashing Fang entirely")
             .AddAssociatedActions(AID.GnashingFangPvP);
 
         res.Define(Track.FatedCircle).As<CommonStrategy>("Fated Circle", "", 300)
-            .AddOption(CommonStrategy.Buff, "Buff", "Use ASAP when under No Mercy buff")
-            .AddOption(CommonStrategy.ASAP, "ASAP", "Use ASAP regardless of No Mercy buff")
-            .AddOption(CommonStrategy.Forbid, "Forbid", "Forbid use of Fated Circle entirely")
+            .AddOption(CommonStrategy.Buff, "Use ASAP when under No Mercy buff")
+            .AddOption(CommonStrategy.ASAP, "Use ASAP regardless of No Mercy buff")
+            .AddOption(CommonStrategy.Forbid, "Forbid use of Fated Circle entirely")
             .AddAssociatedActions(AID.FatedCirclePvP);
 
         return res;

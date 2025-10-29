@@ -125,7 +125,46 @@ public static class PlanPresetConverter
             return j;
         });
 
+        res.Converters.Add((j, _, _) =>
+        {
+            var optionRenames = Utils.LoadFromAssembly<List<OptionRename>>("BossMod.Autorotation.OptionRenames.json");
+
+            foreach (var m in EnumerateEntriesModules(j, plan))
+            {
+                foreach (var (modName, opts) in m)
+                {
+                    var optsArray = opts!.AsArray();
+                    foreach (var optsNode in optsArray)
+                    {
+                        var optsObject = optsNode!.AsObject()!;
+
+                        if (optsObject.TryGetPropertyValue("Track", out var trackName))
+                        {
+                            var tn = trackName!.GetValue<string>()!;
+                            if (optsObject.TryGetPropertyValue("Option", out var optName))
+                            {
+                                var on = optName!.GetValue<string>()!;
+
+                                if (optionRenames.FirstOrNull(r => r.Module == modName && r.Option == tn && r.Before == on) is { } rename)
+                                    optsObject["Option"] = rename.After;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return j;
+        });
+
         return res;
+    }
+
+    struct OptionRename
+    {
+        public required string Module;
+        public required string Option;
+        public required string Before;
+        public required string After;
     }
 
     // returns always 1 element for plans, or multiple (1 per preset) for preset database

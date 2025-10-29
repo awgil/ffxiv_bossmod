@@ -8,7 +8,7 @@ public sealed class Multibox(RotationModuleManager manager, Actor player) : Rota
     {
         var def = new RotationModuleDefinition("Multibox functionality for linked clients", "", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000, Order: RotationModuleOrder.HighLevel);
 
-        def.DefineInt(Track.Leader, "Leader");
+        def.DefineInt(Track.Leader);
 
         return def;
     }

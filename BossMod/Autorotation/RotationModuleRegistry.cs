@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text.Json;
 
 namespace BossMod.Autorotation;
 
@@ -12,6 +13,9 @@ public static class RotationModuleRegistry
     private static Dictionary<Type, Entry> BuildModules()
     {
         Dictionary<Type, Entry> res = [];
+
+        List<Dictionary<string, string>> _objs = [];
+
         foreach (var t in Utils.GetDerivedTypes<RotationModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
         {
             var defMethod = t.GetMethod("Definition", BindingFlags.Static | BindingFlags.Public);
@@ -22,9 +26,34 @@ public static class RotationModuleRegistry
                 continue;
             }
 
+            foreach (var tr in def.Configs.OfType<StrategyConfigTrack>())
+            {
+                for (var i = 0; i < tr.Options.Count; i++)
+                {
+                    var opt = tr.Options[i];
+                    var ename = tr.OptionEnum.GetEnumValues().Cast<Enum>().ToArray();
+                    var enameNice = i < ename.Length ? ename[i].ToString() : "???";
+
+                    if (opt.InternalName != enameNice)
+                    {
+                        _objs.Add(new()
+                        {
+                            ["Module"] = t.FullName!,
+                            ["Option"] = tr.InternalName,
+                            ["Internal"] = opt.InternalName,
+                            ["Enum"] = enameNice
+                        });
+                    }
+                }
+            }
+
             var factory = New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t);
             res[t] = new(def, factory);
         }
+
+        if (_objs.Count > 0)
+            Service.Log(JsonSerializer.Serialize(_objs));
+
         return res;
     }
 }
