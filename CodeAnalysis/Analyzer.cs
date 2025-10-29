@@ -38,7 +38,7 @@ public class Analyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeUseInlineFindSlot, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeNoRealDatetime, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeNoRefsInHints, SyntaxKind.Block);
-        context.RegisterSyntaxNodeAction(AnalyzeOptionInternalNames, SyntaxKind.Block);
+        //context.RegisterSyntaxNodeAction(AnalyzeOptionInternalNames, SyntaxKind.Block);
     }
 
     private static void AnalyzeNoMutableStatics(SymbolAnalysisContext context)
