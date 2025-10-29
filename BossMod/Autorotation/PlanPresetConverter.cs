@@ -133,20 +133,46 @@ public static class PlanPresetConverter
             {
                 foreach (var (modName, opts) in m)
                 {
-                    var optsArray = opts!.AsArray();
-                    foreach (var optsNode in optsArray)
+                    if (plan)
                     {
-                        var optsObject = optsNode!.AsObject()!;
-
-                        if (optsObject.TryGetPropertyValue("Track", out var trackName))
+                        foreach (var (trackName, entries) in opts!.AsObject())
                         {
-                            var tn = trackName!.GetValue<string>()!;
-                            if (optsObject.TryGetPropertyValue("Option", out var optName))
+                            if (trackName == "_defaults")
                             {
-                                var on = optName!.GetValue<string>()!;
+                                foreach (var (defName, defNode) in entries!.AsObject())
+                                {
+                                    var defVal = defNode!.GetValue<string>()!;
+                                    if (optionRenames.FirstOrNull(r => r.Module == modName && r.Option == defName && r.Before == defVal) is { } rename)
+                                        defNode.ReplaceWith(rename.After);
+                                }
+                                continue;
+                            }
 
-                                if (optionRenames.FirstOrNull(r => r.Module == modName && r.Option == tn && r.Before == on) is { } rename)
-                                    optsObject["Option"] = rename.After;
+                            foreach (var entry in entries!.AsArray())
+                            {
+                                var optName = entry!["Option"]!.GetValue<string>()!;
+                                if (optionRenames.FirstOrNull(r => r.Module == modName && r.Option == trackName && r.Before == optName) is { } rename)
+                                    entry["Option"] = rename.After;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var optsArray = opts!.AsArray();
+                        foreach (var optsNode in optsArray)
+                        {
+                            var optsObject = optsNode!.AsObject()!;
+
+                            if (optsObject.TryGetPropertyValue("Track", out var trackName))
+                            {
+                                var tn = trackName!.GetValue<string>()!;
+                                if (optsObject.TryGetPropertyValue("Option", out var optName))
+                                {
+                                    var on = optName!.GetValue<string>()!;
+
+                                    if (optionRenames.FirstOrNull(r => r.Module == modName && r.Option == tn && r.Before == on) is { } rename)
+                                        optsObject["Option"] = rename.After;
+                                }
                             }
                         }
                     }
@@ -159,13 +185,7 @@ public static class PlanPresetConverter
         return res;
     }
 
-    struct OptionRename
-    {
-        public required string Module;
-        public required string Option;
-        public required string Before;
-        public required string After;
-    }
+    record struct OptionRename(string Module, string Option, string Before, string After);
 
     // returns always 1 element for plans, or multiple (1 per preset) for preset database
     private static IEnumerable<JsonObject> EnumerateEntriesModules(JsonNode root, bool plan)

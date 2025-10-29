@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "payload": [
     {
       "Name": "VBM Default",
@@ -7,7 +7,7 @@
         "BossMod.Autorotation.xan.DNC": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -26,7 +26,7 @@
         "BossMod.Autorotation.xan.MCH": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -45,15 +45,15 @@
         "BossMod.Autorotation.xan.MNK": [
           {
             "Track": "RoF",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "BH",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "RoW",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "RoF",
@@ -82,7 +82,7 @@
         "BossMod.Autorotation.xan.PCT": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -105,7 +105,7 @@
         "BossMod.Autorotation.xan.PLD": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -124,7 +124,7 @@
         "BossMod.Autorotation.xan.SAM": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -153,7 +153,7 @@
         "BossMod.Autorotation.xan.VPR": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -172,7 +172,7 @@
         "BossMod.Autorotation.xan.NIN": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -191,7 +191,7 @@
         "BossMod.Autorotation.xan.GNB": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -210,7 +210,7 @@
         "BossMod.Autorotation.xan.SMN": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -229,7 +229,7 @@
         "BossMod.Autorotation.xan.DRK": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -248,7 +248,7 @@
         "BossMod.Autorotation.xan.RPR": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -267,7 +267,7 @@
         "BossMod.Autorotation.xan.WHM": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -286,7 +286,7 @@
         "BossMod.Autorotation.xan.AST": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -305,7 +305,7 @@
         "BossMod.Autorotation.xan.BRD": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -324,7 +324,7 @@
         "BossMod.Autorotation.xan.SCH": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -359,7 +359,7 @@
         "BossMod.Autorotation.xan.RDM": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
@@ -378,7 +378,7 @@
         "BossMod.Autorotation.xan.DRG": [
           {
             "Track": "Buffs",
-            "Option": "Auto"
+            "Option": "Automatic"
           },
           {
             "Track": "Buffs",
