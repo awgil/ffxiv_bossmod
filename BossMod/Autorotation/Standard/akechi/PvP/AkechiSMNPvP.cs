@@ -19,13 +19,13 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
     {
         var res = new RotationModuleDefinition("Akechi SMN (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.SMN), 100, 30);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
-            .AddOption(TargetingStrategy.Auto, "Automatic", "Automatically select best target")
+            .AddOption(TargetingStrategy.Auto, "Auto", "Automatically select best target")
             .AddOption(TargetingStrategy.Manual, "Manual", "Manually select target");
 
         res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
             .AddOption(RoleActionStrategy.Forbid, "Forbid", "Do not use any role actions")
             .AddOption(RoleActionStrategy.Comet, "Comet", "Use Comet when available")
-            .AddOption(RoleActionStrategy.PhantomDart, "Phantom Dart", "Use Phantom Dart when available")
+            .AddOption(RoleActionStrategy.PhantomDart, "PhantomDart", "Use Phantom Dart when available")
             .AddOption(RoleActionStrategy.Rust, "Rust", "Use Rust when available")
             .AddAssociatedActions(AID.CometPvP, AID.PhantomDartPvP, AID.RustPvP);
 
@@ -39,16 +39,16 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
             .AddOption(LBPlacement.Self, "Self", "Place Limit Break summon on self")
             .AddOption(LBPlacement.Target, "Target", "Place Limit Break summon on current target")
             .AddOption(LBPlacement.Crystal, "Crystal", "Place Limit Break summon on crystal only; will hold LB until near the crystal (only works for Crystalline Conflict)")
-            .AddOption(LBPlacement.CrystalOrTarget, "Crystal or Target", "Place Limit Break summon on crystal or target if crystal is unavailable (intended for Crystalline Conflict, but works in others too)");
+            .AddOption(LBPlacement.CrystalOrTarget, "CrystalOrTarget", "Place Limit Break summon on crystal or target if crystal is unavailable (intended for Crystalline Conflict, but works in others too)");
 
         res.Define(Track.RadiantAegis).As<AegisStrategy>("Radiant Aegis", "", 300)
-            .AddOption(AegisStrategy.Auto, "Automatic", "Use Radiant Aegis when HP is less than 75% and two or more targets are targeting you, or when HP is below 33%")
-            .AddOption(AegisStrategy.Two, "2 Targets", "Use Radiant Aegis when HP is not full and two or more targets are targeting you")
-            .AddOption(AegisStrategy.Three, "3 Targets", "Use Radiant Aegis when HP is not full and three or more targets are targeting you")
-            .AddOption(AegisStrategy.Four, "4 Targets", "Use Radiant Aegis when HP is not full and four or more targets are targeting you")
-            .AddOption(AegisStrategy.LessThanFull, "Less than Full", "Use Radiant Aegis when HP is less than 100%")
-            .AddOption(AegisStrategy.LessThan75, "Less than 75%", "Use Radiant Aegis when HP is less than 75%")
-            .AddOption(AegisStrategy.LessThan50, "Less than 50%", "Use Radiant Aegis when HP is less than 50%")
+            .AddOption(AegisStrategy.Auto, "Auto", "Use Radiant Aegis when HP is less than 75% and two or more targets are targeting you, or when HP is below 33%")
+            .AddOption(AegisStrategy.Two, "Two", "Use Radiant Aegis when HP is not full and two or more targets are targeting you")
+            .AddOption(AegisStrategy.Three, "Three", "Use Radiant Aegis when HP is not full and three or more targets are targeting you")
+            .AddOption(AegisStrategy.Four, "Four", "Use Radiant Aegis when HP is not full and four or more targets are targeting you")
+            .AddOption(AegisStrategy.LessThanFull, "LessThanFull", "Use Radiant Aegis when HP is less than 100%")
+            .AddOption(AegisStrategy.LessThan75, "LessThan75", "Use Radiant Aegis when HP is less than 75%")
+            .AddOption(AegisStrategy.LessThan50, "LessThan50", "Use Radiant Aegis when HP is less than 50%")
             .AddOption(AegisStrategy.Forbid, "Forbid", "Do not use Radiant Aegis")
             .AddAssociatedActions(AID.RadiantAegisPvP);
 
@@ -59,10 +59,10 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
             .AddAssociatedActions(AID.Ruin4PvP);
 
         res.Define(Track.CrimsonCyclone).As<CycloneStrategy>("Crimson Cyclone", "", 300)
-            .AddOption(CycloneStrategy.Five, "5 yalms", "Use Crimson Cyclone only within 5 yalms of target")
-            .AddOption(CycloneStrategy.Ten, "10 yalms", "Use Crimson Cyclone only within 10 yalms of target")
-            .AddOption(CycloneStrategy.Fifteen, "15 yalms", "Use Crimson Cyclone only within 15 yalms of target")
-            .AddOption(CycloneStrategy.Twenty, "20 yalms", "Use Crimson Cyclone only within 20 yalms of target")
+            .AddOption(CycloneStrategy.Five, "Five", "Use Crimson Cyclone only within 5 yalms of target")
+            .AddOption(CycloneStrategy.Ten, "Ten", "Use Crimson Cyclone only within 10 yalms of target")
+            .AddOption(CycloneStrategy.Fifteen, "Fifteen", "Use Crimson Cyclone only within 15 yalms of target")
+            .AddOption(CycloneStrategy.Twenty, "Twenty", "Use Crimson Cyclone only within 20 yalms of target")
             .AddOption(CycloneStrategy.Allow, "Allow", "Use Crimson Cyclone when available at any range")
             .AddOption(CycloneStrategy.Forbid, "Forbid", "Do not use Crimson Cyclone")
             .AddAssociatedActions(AID.CrimsonCyclonePvP);

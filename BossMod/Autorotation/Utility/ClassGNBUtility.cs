@@ -21,8 +21,8 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Aurora).As<AuroraStrategy>("Aurora", "", 150) //60s (120s total), 18s duration, 2 charges
             .AddOption(AuroraStrategy.None, "None", "Do not use automatically")
-            .AddOption(AuroraStrategy.Force, "Use", "Use Aurora", 60, 18, ActionTargets.Self | ActionTargets.Party, 45)
-            .AddOption(AuroraStrategy.ForceHold1, "UseHold1", "Use Aurora; Holds 1 charge for manual usage", 60, 18, ActionTargets.Self | ActionTargets.Party, 82)
+            .AddOption(AuroraStrategy.Force, "Force", "Use Aurora", 60, 18, ActionTargets.Self | ActionTargets.Party, 45)
+            .AddOption(AuroraStrategy.ForceHold1, "ForceHold1", "Use Aurora; Holds 1 charge for manual usage", 60, 18, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(GNB.AID.Aurora);
 
         DefineSimpleConfig(res, Track.Superbolide, "Superbolide", "Bolide", 600, GNB.AID.Superbolide, 10); //360s CD, 10s duration
@@ -30,8 +30,8 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.HeartOfCorundum).As<HoCOption>("HeartOfCorundum", "HoC", 350) //25s CD, 4s duration is what we really care about
             .AddOption(HoCOption.None, "None", "Do not use automatically")
-            .AddOption(HoCOption.HeartOfStone, "HoS", "Use Heart of Stone", 25, 7, ActionTargets.Self | ActionTargets.Party, 68, 81)
-            .AddOption(HoCOption.HeartOfCorundum, "HoC", "Use Heart of Corundum", 25, 4, ActionTargets.Self | ActionTargets.Party, 82)
+            .AddOption(HoCOption.HeartOfStone, "HeartOfStone", "Use Heart of Stone", 25, 7, ActionTargets.Self | ActionTargets.Party, 68, 81)
+            .AddOption(HoCOption.HeartOfCorundum, "HeartOfCorundum", "Use Heart of Corundum", 25, 4, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(GNB.AID.HeartOfStone, GNB.AID.HeartOfCorundum);
 
         res.Define(Track.Trajectory).As<DashStrategy>("Trajectory", "Dash", 20)

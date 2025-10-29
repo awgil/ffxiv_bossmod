@@ -26,8 +26,8 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Sentinel).As<SentOption>("Sentinel", "Sent", 550) //Sentinel definition for CD plans
             .AddOption(SentOption.None, "None", "Do not use automatically")
-            .AddOption(SentOption.Sentinel, "Use", "Use Sentinel", 120, 15, ActionTargets.Self, 38, 91) //120s CD, 15s duration
-            .AddOption(SentOption.Guardian, "UseEx", "Use Guardian", 120, 15, ActionTargets.Self, 92) //120s CD, 15s duration
+            .AddOption(SentOption.Sentinel, "Sentinel", "Use Sentinel", 120, 15, ActionTargets.Self, 38, 91) //120s CD, 15s duration
+            .AddOption(SentOption.Guardian, "Guardian", "Use Guardian", 120, 15, ActionTargets.Self, 92) //120s CD, 15s duration
             .AddAssociatedActions(PLD.AID.Sentinel, PLD.AID.Guardian);
 
         DefineSimpleConfig(res, Track.Cover, "Cover", "", 320, PLD.AID.Cover, 12); //120s CD, 12s duration, -50 OathGauge cost

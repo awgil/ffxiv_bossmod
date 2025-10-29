@@ -22,8 +22,8 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase(man
         var def = new RotationModuleDefinition("Variant AI", "Variant dungeon utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 90);
 
         def.Define(Track.Rampart).As<RampartStrategy>("Rampart", "Variant Rampart")
-            .AddOption(RampartStrategy.PermaShield, "Shield", "Use on cooldown (for shield)")
-            .AddOption(RampartStrategy.PermaBuff, "Buff", "Use if buff is about to expire")
+            .AddOption(RampartStrategy.PermaShield, "PermaShield", "Use on cooldown (for shield)")
+            .AddOption(RampartStrategy.PermaBuff, "PermaBuff", "Use if buff is about to expire")
             .AddOption(RampartStrategy.Disabled, "Disabled", "Do not automatically use")
             .AddAssociatedActions(ClassShared.AID.VariantRampart1, ClassShared.AID.VariantRampart2);
 

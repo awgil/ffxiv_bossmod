@@ -31,26 +31,26 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionDex);
         res.Define(Track.Opener).As<OpenerOption>("Opener", "Opener", 199)
-            .AddOption(OpenerOption.AirAnchor, "Air Anchor", "Use Hot Shot / Air Anchor as first tool in opener", minLevel: 4)
+            .AddOption(OpenerOption.AirAnchor, "AirAnchor", "Use Hot Shot / Air Anchor as first tool in opener", minLevel: 4)
             .AddOption(OpenerOption.Drill, "Drill", "Use Drill as first tool in opener", minLevel: 58)
-            .AddOption(OpenerOption.ChainSaw, "Chain Saw", "Use Chain Saw as first tool in opener", minLevel: 90);
+            .AddOption(OpenerOption.ChainSaw, "ChainSaw", "Use Chain Saw as first tool in opener", minLevel: 90);
         res.Define(Track.Heat).As<HeatOption>("Heat Option", "Heat", 198)
             .AddOption(HeatOption.Automatic, "Automatic", "Automatically use Heat Blast or Auto-Crossbow based on targets nearby")
-            .AddOption(HeatOption.OnlyHeatBlast, "Heat Blast", "Only use Heat Blast, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
-            .AddOption(HeatOption.OnlyAutoCrossbow, "Auto Crossbow", "Only use Auto Crossbow, regardless of targets", 0, 0, ActionTargets.Hostile, 52)
+            .AddOption(HeatOption.OnlyHeatBlast, "OnlyHeatBlast", "Only use Heat Blast, regardless of targets", 0, 0, ActionTargets.Hostile, 35)
+            .AddOption(HeatOption.OnlyAutoCrossbow, "OnlyAutoCrossbow", "Only use Auto Crossbow, regardless of targets", 0, 0, ActionTargets.Hostile, 52)
             .AddAssociatedActions(AID.HeatBlast, AID.AutoCrossbow, AID.BlazingShot);
         res.Define(Track.Battery).As<BatteryStrategy>("Battery", "", 189)
             .AddOption(BatteryStrategy.Automatic, "Automatic", "Use Battery actions when optimal")
-            .AddOption(BatteryStrategy.Fifty, "50", "Use Battery actions ASAP when 50+ Battery Gauge is available", minLevel: 40)
-            .AddOption(BatteryStrategy.Hundred, "100", "Use Battery actions ASAP when 100 Battery Gauge is available", minLevel: 40)
-            .AddOption(BatteryStrategy.RaidBuffs, "Raid Buffs", "Use Battery actions ASAP when raid buffs are active", minLevel: 40)
+            .AddOption(BatteryStrategy.Fifty, "Fifty", "Use Battery actions ASAP when 50+ Battery Gauge is available", minLevel: 40)
+            .AddOption(BatteryStrategy.Hundred, "Hundred", "Use Battery actions ASAP when 100 Battery Gauge is available", minLevel: 40)
+            .AddOption(BatteryStrategy.RaidBuffs, "RaidBuffs", "Use Battery actions ASAP when raid buffs are active", minLevel: 40)
             .AddOption(BatteryStrategy.End, "End", "Ends Battery action ASAP with Overdrive (assuming it's currently active)", minLevel: 40)
             .AddOption(BatteryStrategy.Delay, "Delay", "Delay use of Battery actions", minLevel: 40)
             .AddAssociatedActions(AID.RookAutoturret, AID.RookOverdrive, AID.AutomatonQueen, AID.QueenOverdrive);
         res.Define(Track.Reassemble).As<ReassembleStrategy>("Reassemble", "R.semble", 184)
             .AddOption(ReassembleStrategy.Automatic, "Automatic", "Use Reassemble when optimal")
             .AddOption(ReassembleStrategy.Any, "Any", "Use Reassemble when any tool is available; uses both charges")
-            .AddOption(ReassembleStrategy.HoldOne, "Hold One", "Use Reassemble when any tool is available; holds one charge for manual usage")
+            .AddOption(ReassembleStrategy.HoldOne, "HoldOne", "Use Reassemble when any tool is available; holds one charge for manual usage")
             .AddOption(ReassembleStrategy.Force, "Force", "Force use of Reassemble, regardless of weaving", 55, 5, ActionTargets.Self, 10)
             .AddOption(ReassembleStrategy.ForceWeave, "ForceWeave", "Force use of Reassemble in next possible weave window", 55, 5, ActionTargets.Self, 10)
             .AddOption(ReassembleStrategy.Delay, "Delay", "Delay use of Reassemble", minLevel: 10)
@@ -63,11 +63,11 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Hypercharge);
         res.Define(Track.Drill).As<DrillStrategy>("Drill", "", 179)
             .AddOption(DrillStrategy.Automatic, "Automatic", "Automatically use Drill or Bioblaster based on targets nearby; uses both charges")
-            .AddOption(DrillStrategy.HoldOne, "Hold One", "Automatically use Drill or Bioblaster based on targets nearby; holds one charge for manual usage")
-            .AddOption(DrillStrategy.OnlyDrill, "Only Drill", "Only use Drill, regardless of targets", minLevel: 58)
-            .AddOption(DrillStrategy.OnlyBioblaster, "Only Bioblaster", "Only use Bioblaster, regardless of targets", minLevel: 72)
-            .AddOption(DrillStrategy.ForceDrill, "Force Drill", "Force use of Drill", 20, 0, ActionTargets.Hostile, 58)
-            .AddOption(DrillStrategy.ForceBioblaster, "Force Bioblaster", "Force use of Bioblaster", 20, 15, ActionTargets.Hostile, 72)
+            .AddOption(DrillStrategy.HoldOne, "HoldOne", "Automatically use Drill or Bioblaster based on targets nearby; holds one charge for manual usage")
+            .AddOption(DrillStrategy.OnlyDrill, "OnlyDrill", "Only use Drill, regardless of targets", minLevel: 58)
+            .AddOption(DrillStrategy.OnlyBioblaster, "OnlyBioblaster", "Only use Bioblaster, regardless of targets", minLevel: 72)
+            .AddOption(DrillStrategy.ForceDrill, "ForceDrill", "Force use of Drill", 20, 0, ActionTargets.Hostile, 58)
+            .AddOption(DrillStrategy.ForceBioblaster, "ForceBioblaster", "Force use of Bioblaster", 20, 15, ActionTargets.Hostile, 72)
             .AddOption(DrillStrategy.Delay, "Delay", "Delay use of Drill", minLevel: 58)
             .AddAssociatedActions(AID.Drill, AID.Bioblaster);
         res.Define(Track.Wildfire).As<WildfireStrategy>("Wildfire", "W.fire", 183)

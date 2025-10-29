@@ -16,8 +16,8 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Troubadour).As<TroubOption>("Troubadour", "Troub", 500)
             .AddOption(TroubOption.None, "None", "Do not use automatically")
-            .AddOption(TroubOption.Use87, "Use", "Use Troubadour (120s CD), regardless if equivalent ranged buff is already active", 120, 15, ActionTargets.Self, 62, 87)
-            .AddOption(TroubOption.Use87IfNotActive, "UseIfNotActive", "Use Troubadour (120s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 62, 87)
+            .AddOption(TroubOption.Use87, "Use87", "Use Troubadour (120s CD), regardless if equivalent ranged buff is already active", 120, 15, ActionTargets.Self, 62, 87)
+            .AddOption(TroubOption.Use87IfNotActive, "Use87IfNotActive", "Use Troubadour (120s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 62, 87)
             .AddOption(TroubOption.Use88, "Use88", "Use Troubadour (90s CD), regardless if equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddOption(TroubOption.Use88IfNotActive, "Use88IfNotActive", "Use Troubadour (90s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(BRD.AID.Troubadour);

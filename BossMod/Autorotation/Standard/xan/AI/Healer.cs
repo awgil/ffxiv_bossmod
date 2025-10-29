@@ -30,15 +30,15 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         var def = new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.SCH, Class.SGE, Class.AST), 100);
 
         def.Define(Track.Raise).As<RaiseStrategy>("Raise")
-            .AddOption(RaiseStrategy.None, "Don't automatically raise")
-            .AddOption(RaiseStrategy.Swiftcast, "Raise using Swiftcast only")
-            .AddOption(RaiseStrategy.Slowcast, "Raise without requiring Swiftcast to be available")
-            .AddOption(RaiseStrategy.Hardcast, "Never use Swiftcast to raise");
+            .AddOption(RaiseStrategy.None, "None", "Don't automatically raise")
+            .AddOption(RaiseStrategy.Swiftcast, "Swiftcast", "Raise using Swiftcast only")
+            .AddOption(RaiseStrategy.Slowcast, "Slowcast", "Raise without requiring Swiftcast to be available")
+            .AddOption(RaiseStrategy.Hardcast, "Hardcast", "Never use Swiftcast to raise");
 
         def.Define(Track.RaiseTarget).As<RaiseUtil.Targets>("RaiseTargets", "Raise targets")
-            .AddOption(RaiseUtil.Targets.Party, "Party members")
-            .AddOption(RaiseUtil.Targets.Alliance, "Alliance raid members")
-            .AddOption(RaiseUtil.Targets.Everyone, "Any dead player");
+            .AddOption(RaiseUtil.Targets.Party, "Party", "Party members")
+            .AddOption(RaiseUtil.Targets.Alliance, "Alliance", "Alliance raid members")
+            .AddOption(RaiseUtil.Targets.Everyone, "Everyone", "Any dead player");
 
         def.AbilityTrack(Track.Heal, "Heal");
 

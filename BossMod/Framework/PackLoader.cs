@@ -4,7 +4,7 @@ using System.Runtime.Loader;
 
 namespace BossMod;
 
-class PackLoader : IDisposable
+sealed class PackLoader : IDisposable
 {
     class LoadContext() : AssemblyLoadContext(true)
     {
@@ -44,7 +44,7 @@ class PackLoader : IDisposable
     private void Reload(string packDirectory)
     {
         Service.Log($"triggered reload from {packDirectory}");
-        if (packDirectory == "")
+        if (packDirectory.Length == 0)
             return;
 
         _context = new();

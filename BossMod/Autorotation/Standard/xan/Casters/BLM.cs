@@ -55,7 +55,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             .AddOption(ThunderStrategy.ForbidInstant, "ForbidInstant", "Use only for standard refresh, not as a utility instant cast", supportedTargets: ActionTargets.Hostile);
 
         def.Define(Track.Leylines).As<LeylinesStrategy>("LL", "Leylines")
-            .AddOption(LeylinesStrategy.OpenerOnly, "Opener", "Use Leylines in opener; otherwise do not use automatically")
+            .AddOption(LeylinesStrategy.OpenerOnly, "OpenerOnly", "Use Leylines in opener; otherwise do not use automatically")
             .AddOption(LeylinesStrategy.Delay, "Delay", "Do not use")
             .AddOption(LeylinesStrategy.Force, "Force", "Use ASAP", effect: 20, defaultPriority: DefaultOGCDPriority)
             .AddAssociatedActions(AID.LeyLines, AID.Retrace, AID.BetweenTheLines);

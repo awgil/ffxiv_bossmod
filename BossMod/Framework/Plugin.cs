@@ -126,7 +126,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _configUI.Dispose();
-        //_packs.Dispose();
+        _packs.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();
         _dtr.Dispose();

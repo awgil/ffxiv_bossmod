@@ -23,15 +23,15 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         var res = new RotationModuleDefinition("Veyn BRD", "Standard rotation module", "Standard rotation (veyn)", "veyn", RotationModuleQuality.Basic, BitMask.Build((int)Class.BRD, (int)Class.ARC), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 110)
-            .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")
+            .AddOption(AOEStrategy.SingleTarget, "SingleTarget", "Use single-target actions")
             .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use aoe actions if profitable, select best target that ensures primary target is hit")
             .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use aoe actions if profitable, select a target that ensures maximal number of targets are hit")
             .AddOption(AOEStrategy.AutoOnPrimary, "AutoOnPrimary", "Use aoe actions on primary target if profitable")
-            .AddOption(AOEStrategy.ForceAOE, "AOE", "Use aoe rotation on primary target even if it's less total damage than single-target")
+            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Use aoe rotation on primary target even if it's less total damage than single-target")
             .AddAssociatedActions(BRD.AID.QuickNock, BRD.AID.WideVolley, BRD.AID.Ladonsbite, BRD.AID.RainOfDeath, BRD.AID.Shadowbite);
 
         res.Define(Track.Songs).As<SongStrategy>("Songs", uiPriority: 100)
-            .AddOption(SongStrategy.Automatic, "Automatic (3-6-9)")
+            .AddOption(SongStrategy.Automatic, "Automatic", "Automatic (3-6-9)")
             .AddOption(SongStrategy.Extend, "Extend", "Extend until last tick")
             .AddOption(SongStrategy.Overextend, "Overextend", "Extend until last possible moment")
             .AddOption(SongStrategy.ForceWM, "ForceWM", "Force switch to Wanderer's Minuet")

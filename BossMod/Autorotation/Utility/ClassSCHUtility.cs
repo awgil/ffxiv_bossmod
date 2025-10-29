@@ -21,8 +21,8 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Succor).As<SuccorOption>("Succor", "Succor", 200)
             .AddOption(SuccorOption.None, "None", "Do not use automatically")
-            .AddOption(SuccorOption.Succor, "Use", "Use Succor", 2, 30, ActionTargets.Self, 35, 95)
-            .AddOption(SuccorOption.Concitation, "UseEx", "Use Concitation", 2, 30, ActionTargets.Self, 96)
+            .AddOption(SuccorOption.Succor, "Succor", "Use Succor", 2, 30, ActionTargets.Self, 35, 95)
+            .AddOption(SuccorOption.Concitation, "Concitation", "Use Concitation", 2, 30, ActionTargets.Self, 96)
             .AddAssociatedActions(SCH.AID.Succor, SCH.AID.Concitation);
 
         DefineSimpleConfig(res, Track.FeyIllumination, "Fey Illumination", "F.Illum.", 240, SCH.AID.FeyIllumination, 20);
@@ -49,7 +49,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
         res.Define(Track.Aetherpact).As<AetherpactOption>("Aetherpact", "A.pact", 300)
             .AddOption(AetherpactOption.None, "None", "Do not use automatically")
             .AddOption(AetherpactOption.Use, "Use", "Use Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
-            .AddOption(AetherpactOption.End, "UseEx", "End Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
+            .AddOption(AetherpactOption.End, "End", "End Aetherpact", 0, 0, ActionTargets.Self | ActionTargets.Party, 70)
             .AddAssociatedActions(SCH.AID.Aetherpact, SCH.AID.DissolveUnion);
 
         res.Define(Track.Recitation).As<RecitationOption>("Recitation", "Recit.", 130)

@@ -307,7 +307,9 @@ public sealed class UIPresetEditor
         }
     }
 
+#pragma warning disable IDE0051 // Remove unused private members
     private void DrawDetails()
+#pragma warning restore IDE0051 // Remove unused private members
     {
         if (_selectedModuleIndex < 0)
         {

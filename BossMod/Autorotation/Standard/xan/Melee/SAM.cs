@@ -38,7 +38,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.Ikishoten, AID.HissatsuSenei);
 
         def.Define(Track.Higanbana).As<OffensiveStrategy>("Higanbana")
-            .AddOption(OffensiveStrategy.Automatic, "Auto", "Refresh every 60s according to standard rotation", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Refresh every 60s according to standard rotation", supportedTargets: ActionTargets.Hostile)
             .AddOption(OffensiveStrategy.Delay, "Delay", "Don't apply")
             .AddOption(OffensiveStrategy.Force, "Force", "Apply to target ASAP, regardless of remaining duration", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(AID.Higanbana);

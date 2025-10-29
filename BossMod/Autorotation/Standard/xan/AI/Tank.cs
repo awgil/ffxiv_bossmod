@@ -20,7 +20,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         def.Define(Track.Stance).As<StanceStrategy>("Stance")
             .AddOption(StanceStrategy.Enabled, "Enabled")
             .AddOption(StanceStrategy.Disabled, "Disabled")
-            .AddOption(StanceStrategy.LeechMode, "Leech", "Leech mode: enable stance only in FATEs");
+            .AddOption(StanceStrategy.LeechMode, "LeechMode", "Leech mode: enable stance only in FATEs");
         def.AbilityTrack(Track.Ranged, "Ranged GCD");
 
         def.Define(Track.Interject).As<HintedStrategy>("Interject2", "Interject")

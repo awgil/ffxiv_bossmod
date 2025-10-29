@@ -28,9 +28,9 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.BarrelStabilizer);
 
         def.Define(Track.Queen).As<QueenStrategy>("Queen", "Queen")
-            .AddOption(QueenStrategy.MinGauge, "Min", "Summon at 50+ gauge")
-            .AddOption(QueenStrategy.FullGauge, "Full", "Summon at 100 gauge")
-            .AddOption(QueenStrategy.RaidBuffsOnly, "Buffed", "Delay summon until raid buffs, regardless of gauge")
+            .AddOption(QueenStrategy.MinGauge, "MinGauge", "Summon at 50+ gauge")
+            .AddOption(QueenStrategy.FullGauge, "FullGauge", "Summon at 100 gauge")
+            .AddOption(QueenStrategy.RaidBuffsOnly, "RaidBuffsOnly", "Delay summon until raid buffs, regardless of gauge")
             .AddOption(QueenStrategy.Never, "Never", "Do not automatically summon Queen at all")
             .AddAssociatedActions(AID.AutomatonQueen, AID.RookAutoturret);
 

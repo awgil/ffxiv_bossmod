@@ -21,7 +21,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             .AddOption(AssizeStrategy.HitEverything, "HitEverything", "Use if it would hit all priority targets");
         def.Define(Track.Misery).As<MiseryStrategy>("Afflatus Misery")
             .AddOption(MiseryStrategy.ASAP, "ASAP", "Use on best target at 3 Blood Lilies")
-            .AddOption(MiseryStrategy.BuffedOnly, "Buffs", "Use during raid buffs")
+            .AddOption(MiseryStrategy.BuffedOnly, "BuffedOnly", "Use during raid buffs")
             .AddOption(MiseryStrategy.Delay, "Delay", "Do not use");
 
         return def;

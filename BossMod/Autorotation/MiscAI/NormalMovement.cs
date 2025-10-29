@@ -26,10 +26,10 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         // note that these options used to be melee-specific - internal names are kept unchanged for convenience
         res.Define(Track.Range).As<RangeStrategy>("Range", "Range", 20)
             .AddOption(RangeStrategy.Any, "Any", "Go directly to destination")
-            .AddOption(RangeStrategy.MaxRange, "MaxMelee", "Stay within maximum effective range of target closest to destination", supportedTargets: ActionTargets.Hostile)
-            .AddOption(RangeStrategy.GreedGCDExplicit, "MeleeGreedGCDExplicit", "Stay within effective range until last GCD; ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
-            .AddOption(RangeStrategy.GreedLastMomentExplicit, "MeleeGreedLastMomentExplicit", "Stay within effective range until last possible moment; ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
-            .AddOption(RangeStrategy.GreedAutomatic, "MeleeGreedAutomatic", "Stay within effective range as long as possible; try to ensure safety is reached before mechanic resolves", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.MaxRange, "MaxRange", "Stay within maximum effective range of target closest to destination", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.GreedGCDExplicit, "GreedGCDExplicit", "Stay within effective range until last GCD; ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.GreedLastMomentExplicit, "GreedLastMomentExplicit", "Stay within effective range until last possible moment; ensure destination is reached by the plan entry end", supportedTargets: ActionTargets.Hostile)
+            .AddOption(RangeStrategy.GreedAutomatic, "GreedAutomatic", "Stay within effective range as long as possible; try to ensure safety is reached before mechanic resolves", supportedTargets: ActionTargets.Hostile)
             /*.AddOption(RangeStrategy.Drag, "Drag", "Drag the target to specified spot, but maintain gcd uptime", supportedTargets: ActionTargets.Hostile)*/; // TODO
 
         res.Define(Track.Cast).As<CastStrategy>("Cast", "Cast", 10)

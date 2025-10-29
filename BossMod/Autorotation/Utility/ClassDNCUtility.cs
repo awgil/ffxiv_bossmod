@@ -16,8 +16,8 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.ShieldSamba).As<SambaOption>("Shield Samba", "S.Samba", 500)
             .AddOption(SambaOption.None, "None", "Do not use automatically")
-            .AddOption(SambaOption.Use87, "Use", "Use Shield Samba (120s CD), regardless if equivalent ranged buff is already active", 120, 15, ActionTargets.Self, 56, 87)
-            .AddOption(SambaOption.Use87IfNotActive, "UseIfNotActive", "Use Shield Samba  (120s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 56, 87)
+            .AddOption(SambaOption.Use87, "Use87", "Use Shield Samba (120s CD), regardless if equivalent ranged buff is already active", 120, 15, ActionTargets.Self, 56, 87)
+            .AddOption(SambaOption.Use87IfNotActive, "Use87IfNotActive", "Use Shield Samba  (120s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 56, 87)
             .AddOption(SambaOption.Use88, "Use88", "Use Shield Samba  (90s CD), regardless if equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddOption(SambaOption.Use88IfNotActive, "Use88IfNotActive", "Use Shield Samba  (90s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(DNC.AID.ShieldSamba);

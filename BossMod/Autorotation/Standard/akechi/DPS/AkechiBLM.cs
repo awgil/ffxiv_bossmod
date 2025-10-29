@@ -40,7 +40,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Thunder1, AID.Thunder2, AID.Thunder3, AID.Thunder4, AID.HighThunder, AID.HighThunder2);
 
         res.Define(Track.Ender).As<EnderStrategy>("AF.Ender", "Despair / Flare", 194)
-            .AddOption(EnderStrategy.Automatic, "Auto", "Automatically end fire phase with Despair or Flare based on targets nearby", 0, 0, ActionTargets.Hostile, 50)
+            .AddOption(EnderStrategy.Automatic, "Automatic", "Automatically end fire phase with Despair or Flare based on targets nearby", 0, 0, ActionTargets.Hostile, 50)
             .AddOption(EnderStrategy.OnlyDespair, "OnlyDespair", "End fire phase with Despair only, regardless of targets", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(EnderStrategy.OnlyFlare, "OnlyFlare", "End fire phase with Flare only, regardless of targets", 0, 0, ActionTargets.Hostile, 50)
             .AddOption(EnderStrategy.ForceDespair, "ForceDespair", "Force the use of Despair if possible", 0, 0, ActionTargets.Hostile, 72)
@@ -60,14 +60,14 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(PolyglotStrategy.FoulHold1, "FoulHold1", "Use Foul as Polyglot spender, regardless of targets nearby; holds 1 Polyglot for manual usage", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.FoulHold2, "FoulHold2", "Use Foul as Polyglot spender, regardless of targets nearby; holds 2 Polyglots for manual usage", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.FoulHold3, "FoulHold3", "Use Foul as Polyglot spender; Holds all Polyglots for as long as possible", 0, 0, ActionTargets.Hostile, 70)
-            .AddOption(PolyglotStrategy.ForceAny, "Force Polyglot", "Force use of best polyglot based on targets", 0, 0, ActionTargets.Hostile, 70)
-            .AddOption(PolyglotStrategy.ForceXeno, "Force Xenoglossy", "Force use of Xenoglossy", 0, 0, ActionTargets.Hostile, 80)
-            .AddOption(PolyglotStrategy.ForceFoul, "Force Foul", "Force use of Foul", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.ForceAny, "ForceAny", "Force use of best polyglot based on targets", 0, 0, ActionTargets.Hostile, 70)
+            .AddOption(PolyglotStrategy.ForceXeno, "ForceXeno", "Force use of Xenoglossy", 0, 0, ActionTargets.Hostile, 80)
+            .AddOption(PolyglotStrategy.ForceFoul, "ForceFoul", "Force use of Foul", 0, 0, ActionTargets.Hostile, 70)
             .AddOption(PolyglotStrategy.Delay, "Delay", "Delay the use of Polyglot abilities for manual or strategic usage", 0, 0, ActionTargets.Hostile, 70)
             .AddAssociatedActions(AID.Xenoglossy, AID.Foul);
 
         res.Define(Track.Manafont).As<UpgradeStrategy>("MF", "Manafont", 196)
-            .AddOption(UpgradeStrategy.Automatic, "Auto", "Automatically use Manafont optimally", 0, 0, ActionTargets.Self, 30)
+            .AddOption(UpgradeStrategy.Automatic, "Automatic", "Automatically use Manafont optimally", 0, 0, ActionTargets.Self, 30)
             .AddOption(UpgradeStrategy.Force, "Force", "Force the use of Manafont (180s cooldown), regardless of weaving conditions", 180, 0, ActionTargets.Self, 30, 83)
             .AddOption(UpgradeStrategy.ForceWeave, "ForceWeave", "Force the use of Manafont (180s cooldown) in any next possible weave slot", 180, 0, ActionTargets.Self, 30, 83)
             .AddOption(UpgradeStrategy.ForceEX, "ForceEX", "Force the use of Manafont (100s cooldown), regardless of weaving conditions", 100, 0, ActionTargets.Self, 84)
@@ -76,7 +76,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Manafont);
 
         res.Define(Track.Triplecast).As<ChargeStrategy>("3xCast", "Triplecast", 195)
-            .AddOption(ChargeStrategy.Automatic, "Auto", "Use any charges available to maintain swift rotation by instant-casting Blizzard III after Fire Phase (e.g. Despair->Transpose->Triplecast->B3 etc.)", 0, 0, ActionTargets.Self, 66)
+            .AddOption(ChargeStrategy.Automatic, "Automatic", "Use any charges available to maintain swift rotation by instant-casting Blizzard III after Fire Phase (e.g. Despair->Transpose->Triplecast->B3 etc.)", 0, 0, ActionTargets.Self, 66)
             .AddOption(ChargeStrategy.Force, "Force", "Force the use of Triplecast; uses all charges", 0, 15, ActionTargets.Self, 66)
             .AddOption(ChargeStrategy.Force1, "Force1", "Force the use of Triplecast; holds one charge for manual usage", 0, 15, ActionTargets.Self, 66)
             .AddOption(ChargeStrategy.ForceWeave, "ForceWeave", "Force the use of Triplecast in any next possible weave slot", 0, 15, ActionTargets.Self, 66)
@@ -85,7 +85,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Triplecast);
 
         res.Define(Track.Swiftcast).As<UpgradeStrategy>("Swift", "Swiftcast", 195)
-            .AddOption(UpgradeStrategy.Automatic, "Auto", "Use Swiftcast to maintain swift rotation by instant-casting Blizzard III after Fire Phase (e.g. Despair->Transpose->Swiftcast->B3 etc.)", 0, 0, ActionTargets.Self, 66)
+            .AddOption(UpgradeStrategy.Automatic, "Automatic", "Use Swiftcast to maintain swift rotation by instant-casting Blizzard III after Fire Phase (e.g. Despair->Transpose->Swiftcast->B3 etc.)", 0, 0, ActionTargets.Self, 66)
             .AddOption(UpgradeStrategy.Force, "Force", "Force the use of Swiftcast (60s cooldown), regardless of weaving conditions", 0, 10, ActionTargets.Self, 18, 93)
             .AddOption(UpgradeStrategy.ForceWeave, "ForceWeave", "Force the use of Swiftcast (60s cooldown) in any next possible weave slot", 0, 10, ActionTargets.Self, 18, 93)
             .AddOption(UpgradeStrategy.ForceEX, "ForceEX", "Force the use of Swiftcast (40s cooldown), regardless of weaving conditions", 0, 10, ActionTargets.Self, 94)
@@ -94,7 +94,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Swiftcast);
 
         res.Define(Track.LeyLines).As<ChargeStrategy>("LL", "Ley Lines", 197)
-            .AddOption(ChargeStrategy.Automatic, "Auto", "Automatically decide when to use Ley Lines", 0, 0, ActionTargets.Self, 52)
+            .AddOption(ChargeStrategy.Automatic, "Automatic", "Automatically decide when to use Ley Lines", 0, 0, ActionTargets.Self, 52)
             .AddOption(ChargeStrategy.Force, "Force", "Force the use of Ley Lines, regardless of weaving conditions", 0, 20, ActionTargets.Self, 52)
             .AddOption(ChargeStrategy.Force1, "Force1", "Force the use of Ley Lines; holds one charge for manual usage", 0, 20, ActionTargets.Self, 52)
             .AddOption(ChargeStrategy.ForceWeave, "ForceWeave", "Force the use of Ley Lines in any next possible weave slot", 0, 20, ActionTargets.Self, 52)
@@ -124,13 +124,13 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         res.Define(Track.Retrace).As<CommonOption>("Rt", "Retrace", 197)
             .AddOption(CommonOption.Forbid, "Forbid", "Forbid the use of Retrace")
             .AddOption(CommonOption.Allow, "Allow", "Allow the use of Retrace")
-            .AddOption(CommonOption.AllowNoMoving, "Allow No Moving", "Allow the use of Retrace only when not moving")
+            .AddOption(CommonOption.AllowNoMoving, "AllowNoMoving", "Allow the use of Retrace only when not moving")
             .AddAssociatedActions(AID.Retrace);
 
         res.Define(Track.BTL).As<CommonOption>("BTL", "Between The Lines", 197)
             .AddOption(CommonOption.Forbid, "Forbid", "Forbid the use of Between the Lines")
             .AddOption(CommonOption.Allow, "Allow", "Allow the use of Between the Lines")
-            .AddOption(CommonOption.AllowNoMoving, "Allow No Moving", "Allow the use of Between the Lines only when not moving")
+            .AddOption(CommonOption.AllowNoMoving, "AllowNoMoving", "Allow the use of Between the Lines only when not moving")
             .AddAssociatedActions(AID.BetweenTheLines);
 
         return res;

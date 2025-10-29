@@ -21,20 +21,20 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.ShadowWall).As<WallOption>("ShadowWall", "Wall", 550)
             .AddOption(WallOption.None, "None", "Do not use automatically")
-            .AddOption(WallOption.ShadowWall, "Use", "Use Shadow Wall", 120, 15, ActionTargets.Self, 38, 91)
-            .AddOption(WallOption.ShadowedVigil, "UseEx", "Use Shadowed Vigil", 120, 15, ActionTargets.Self, 92)
+            .AddOption(WallOption.ShadowWall, "ShadowWall", "Use Shadow Wall", 120, 15, ActionTargets.Self, 38, 91)
+            .AddOption(WallOption.ShadowedVigil, "ShadowedVigil", "Use Shadowed Vigil", 120, 15, ActionTargets.Self, 92)
             .AddAssociatedActions(DRK.AID.ShadowWall, DRK.AID.ShadowedVigil);
 
         DefineSimpleConfig(res, Track.LivingDead, "LivingDead", "LD", 400, DRK.AID.LivingDead, 10);
 
         res.Define(Track.TheBlackestNight).As<TBNStrategy>("TheBlackestNight", "TBN", 550)
             .AddOption(TBNStrategy.None, "None", "Do not use automatically")
-            .AddOption(TBNStrategy.Force, "Use", "Use The Blackest Night", 15, 7, ActionTargets.Self | ActionTargets.Party, 70)
+            .AddOption(TBNStrategy.Force, "Force", "Use The Blackest Night", 15, 7, ActionTargets.Self | ActionTargets.Party, 70)
             .AddAssociatedActions(DRK.AID.TheBlackestNight);
 
         res.Define(Track.Oblation).As<OblationStrategy>("Oblation", "", 550)
             .AddOption(OblationStrategy.None, "None", "Do not use automatically")
-            .AddOption(OblationStrategy.Force, "Use", "Use Oblation", 60, 10, ActionTargets.Self | ActionTargets.Party, 82)
+            .AddOption(OblationStrategy.Force, "Force", "Use Oblation", 60, 10, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(DRK.AID.Oblation);
 
         DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15);

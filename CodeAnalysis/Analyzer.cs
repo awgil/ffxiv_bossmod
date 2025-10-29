@@ -26,6 +26,7 @@ public class Analyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor RuleUseSingleLineFindSlot = Register("Conditional can be inlined", "Use TryFindSlot instead of testing against 0", DiagnosticSeverity.Warning);
     private static readonly DiagnosticDescriptor RuleNoRealDatetimeInComponents = Register("Use of DateTime.Now in boss module", "DateTime.Now will behave unexpectedly in replays. Use WorldState.CurrentTime instead", DiagnosticSeverity.Error);
     private static readonly DiagnosticDescriptor RuleNoRefTypesInHintFuncs = Register("Reference type captured in closure", "This point test function captures a reference of type {0}, which might be modified before the function is called", DiagnosticSeverity.Error);
+    public static readonly DiagnosticDescriptor RuleInternalNamesForOptions = Register("Bad arguments to AddOption", "Second argument ({1}) should match variant name ({0})", DiagnosticSeverity.Error);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -37,6 +38,7 @@ public class Analyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeUseInlineFindSlot, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeNoRealDatetime, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeNoRefsInHints, SyntaxKind.Block);
+        context.RegisterSyntaxNodeAction(AnalyzeOptionInternalNames, SyntaxKind.Block);
     }
 
     private static void AnalyzeNoMutableStatics(SymbolAnalysisContext context)
@@ -133,6 +135,29 @@ public class Analyzer : DiagnosticAnalyzer
                 foreach (var captured in anal.CapturedInside)
                     if (captured is IParameterSymbol p && p.Type.IsReferenceType)
                         context.ReportDiagnostic(Diagnostic.Create(RuleNoRefTypesInHintFuncs, lam.GetLocation(), $"{p.Type}"));
+            }
+        }
+    }
+
+    private static void AnalyzeOptionInternalNames(SyntaxNodeAnalysisContext context)
+    {
+        foreach (var node in context.Node.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (node.Expression is MemberAccessExpressionSyntax mem && mem.Name.ToString() == "AddOption")
+            {
+                var argList = node.ArgumentList.Arguments;
+
+                // only one arg
+                if (argList.Count < 2)
+                    continue;
+
+                if (argList[0].Expression is MemberAccessExpressionSyntax mem2)
+                {
+                    var variantName = mem2.Name.ToString();
+                    var internalName = (argList[1].Expression as LiteralExpressionSyntax)?.Token.ValueText ?? "";
+                    if (variantName != internalName)
+                        context.ReportDiagnostic(Diagnostic.Create(RuleInternalNamesForOptions, node.ArgumentList.GetLocation(), variantName, internalName));
+                }
             }
         }
     }

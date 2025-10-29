@@ -14,8 +14,8 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Tactician).As<TactOption>("Tactician", "Tact", 400)
             .AddOption(TactOption.None, "None", "Do not use automatically")
-            .AddOption(TactOption.Use87, "Use", "Use Tactician (120s CD), regardless if equivalent ranged buff is already active", 120, 15, ActionTargets.Self, 56, 87)
-            .AddOption(TactOption.Use87IfNotActive, "UseIfNotActive", "Use Tactician (120s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 56, 87)
+            .AddOption(TactOption.Use87, "Use87", "Use Tactician (120s CD), regardless if equivalent ranged buff is already active", 120, 15, ActionTargets.Self, 56, 87)
+            .AddOption(TactOption.Use87IfNotActive, "Use87IfNotActive", "Use Tactician (120s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 56, 87)
             .AddOption(TactOption.Use88, "Use88", "Use Tactician (90s CD), regardless if equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddOption(TactOption.Use88IfNotActive, "Use88IfNotActive", "Use Tactician (90s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(MCH.AID.Tactician);

@@ -79,11 +79,11 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.Counterstance, PhantomID.OccultCounter);
 
         def.Define(Track.Predict).As<PredictStrategy>("Predict", "Oracle: Predict")
-            .AddOption(PredictStrategy.AutoConservative, "Use first available damage action that isn't Starfall")
-            .AddOption(PredictStrategy.AutoGreedy, "Use first available damage action; allow Starfall if HP is high enough")
-            .AddOption(PredictStrategy.AutoSuperGreedy, "Use Starfall, regardless of HP")
-            .AddOption(PredictStrategy.HealOnly, "Use Blessing (heal)")
-            .AddOption(PredictStrategy.Disabled, "Don't use")
+            .AddOption(PredictStrategy.AutoConservative, "AutoConservative", "Use first available damage action that isn't Starfall")
+            .AddOption(PredictStrategy.AutoGreedy, "AutoGreedy", "Use first available damage action; allow Starfall if HP is high enough")
+            .AddOption(PredictStrategy.AutoSuperGreedy, "AutoSuperGreedy", "Use Starfall, regardless of HP")
+            .AddOption(PredictStrategy.HealOnly, "HealOnly", "Use Blessing (heal)")
+            .AddOption(PredictStrategy.Disabled, "Disabled", "Don't use")
             .AddAssociatedActions(PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall);
 
         def.Define(Track.Chakra).As<ChakraStrategy>("Chakra", "Monk: Use Occult Chakra")
