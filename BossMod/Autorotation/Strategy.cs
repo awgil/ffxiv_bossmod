@@ -76,7 +76,7 @@ public record class StrategyConfigTrack(
     public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
     {
         var opt = ((StrategyValueTrack)currentValue).Option;
-        if (UICombo.EnumIndex(UIName, OptionEnum, ref opt, (int ix) => Options[ix].DisplayName != "" ? Options[ix].DisplayName : UICombo.EnumString((Enum)OptionEnum.GetEnumValues().GetValue(ix))))
+        if (UICombo.EnumIndex(UIName, OptionEnum, ref opt, (int ix) => Options[ix].DisplayName != "" ? Options[ix].DisplayName : UICombo.EnumString((Enum)OptionEnum.GetEnumValues().GetValue(ix)!)))
         {
             currentValue = new StrategyValueTrack() { Option = opt };
             return true;

@@ -42,26 +42,26 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.FightOrFlight);
 
         def.Define(Track.Intervene).As<DashStrategy>("Intervene")
-            .AddOption(DashStrategy.Automatic, minLevel: 66)
-            .AddOption(DashStrategy.GapCloser, minLevel: 66)
-            .AddOption(DashStrategy.Delay, minLevel: 66)
+            .AddOption(DashStrategy.Automatic, "Use during burst window", minLevel: 66)
+            .AddOption(DashStrategy.GapCloser, "Use if outside melee range", minLevel: 66)
+            .AddOption(DashStrategy.Delay, "Do not use", minLevel: 66)
             .AddAssociatedActions(AID.Intervene);
 
         def.Define(Track.HolySpirit).As<HSStrategy>("HS")
-            .AddOption(HSStrategy.Standard, minLevel: 64)
-            .AddOption(HSStrategy.ForceDM, minLevel: 64)
-            .AddOption(HSStrategy.Force, minLevel: 64)
-            .AddOption(HSStrategy.Ranged, minLevel: 64)
-            .AddOption(HSStrategy.Delay, minLevel: 64)
+            .AddOption(HSStrategy.Standard, "Use during Divine Might only; ASAP in burst, otherwise when out of melee range, or if next GCD will overwrite DM", minLevel: 64)
+            .AddOption(HSStrategy.ForceDM, "Use ASAP during next Divine Might proc, regardless of range", minLevel: 64)
+            .AddOption(HSStrategy.Force, "Use now, even if in melee range or if DM is not active", minLevel: 64)
+            .AddOption(HSStrategy.Ranged, "Always use when out of melee range", minLevel: 64)
+            .AddOption(HSStrategy.Delay, "Do not use", minLevel: 64)
             .AddAssociatedActions(AID.HolySpirit);
 
         def.DefineSimple(Track.Atonement, "Atone", minLevel: 76)
             .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
 
         def.Define(Track.Combo).As<ComboStrategy>("Combo")
-            .AddOption(ComboStrategy.FinishAOE, "Finish AOE combo, even on 1 target, if it would grant Divine Might")
-            .AddOption(ComboStrategy.BreakCombo, "Break AOE/single-target combo if number of targets changes")
-            .AddOption(ComboStrategy.FinishAlways, "Finish AOE or single target combo if it would grant Divine Might, even if number of targets changes");
+            .AddOption(ComboStrategy.FinishAOE, "FinishAOE", "Finish AOE combo, even on 1 target, if it would grant Divine Might")
+            .AddOption(ComboStrategy.BreakCombo, "Break", "Break AOE/single-target combo if number of targets changes")
+            .AddOption(ComboStrategy.FinishAlways, "FinishAlways", "Finish AOE or single target combo if it would grant Divine Might, even if number of targets changes");
 
         return def;
     }

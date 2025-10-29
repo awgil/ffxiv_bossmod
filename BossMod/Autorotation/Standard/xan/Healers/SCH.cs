@@ -21,9 +21,9 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         def.DefineShared().AddAssociatedActions(AID.ChainStratagem, AID.Dissipation);
 
         def.Define(Track.Place).As<FairyPlacement>("FairyPlace", "Fairy placement")
-            .AddOption(FairyPlacement.Manual)
-            .AddOption(FairyPlacement.AutoHeel)
-            .AddOption(FairyPlacement.FullAuto);
+            .AddOption(FairyPlacement.Manual, "Do not automatically move fairy")
+            .AddOption(FairyPlacement.AutoHeel, "Automatically order fairy to follow player when combat ends")
+            .AddOption(FairyPlacement.FullAuto, "Automatically place fairy at arena center (if one exists) - order fairy to follow when out of combat");
 
         return def;
     }

@@ -12,42 +12,42 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel, CanUseWhileRoleplaying: true);
 
         res.Define(Track.General).As<GeneralStrategy>("General")
-            .AddOption(GeneralStrategy.Aggressive, "Automatically prioritize targets", supportedTargets: ActionTargets.Hostile)
-            .AddOption(GeneralStrategy.Passive, "Do nothing");
+            .AddOption(GeneralStrategy.Aggressive, "Aggressive", "Automatically prioritize targets", supportedTargets: ActionTargets.Hostile)
+            .AddOption(GeneralStrategy.Passive, "Passive", "Do nothing");
 
         res.Define(Track.Retarget).As<RetargetStrategy>("Retarget")
-            .AddOption(RetargetStrategy.NoTarget, "Only switch target if player has no target")
-            .AddOption(RetargetStrategy.Hostiles, "Only switch target if player is not targeting an ally")
-            .AddOption(RetargetStrategy.Always, "Always switch target to the highest priority enemy")
-            .AddOption(RetargetStrategy.Never, "Never switch target; only apply priority changes to enemies");
+            .AddOption(RetargetStrategy.NoTarget, "NoTarget", "Only switch target if player has no target")
+            .AddOption(RetargetStrategy.Hostiles, "Hostiles", "Only switch target if player is not targeting an ally")
+            .AddOption(RetargetStrategy.Always, "Always", "Always switch target to the highest priority enemy")
+            .AddOption(RetargetStrategy.Never, "Never", "Never switch target; only apply priority changes to enemies");
 
         res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Prioritize bosses in quest battles")
-            .AddOption(Flag.Disabled)
-            .AddOption(Flag.Enabled);
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
 
         res.Define(Track.DeepDungeon).As<Flag>("DD", "Prioritize deep dungeon bosses (solo only)")
-            .AddOption(Flag.Disabled)
-            .AddOption(Flag.Enabled);
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
 
         res.Define(Track.EpicEcho).As<Flag>("EE", "Prioritize all targets in unsynced duties")
-            .AddOption(Flag.Disabled)
-            .AddOption(Flag.Enabled);
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
 
         res.Define(Track.Hunt).As<Flag>("Hunt", "Prioritize hunt marks once they have been pulled")
-            .AddOption(Flag.Disabled)
-            .AddOption(Flag.Enabled);
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
 
         res.Define(Track.FATE).As<Flag>("FATE", "Prioritize mobs in the current FATE")
-            .AddOption(Flag.Disabled)
-            .AddOption(Flag.Enabled);
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
 
         res.Define(Track.Everything).As<Flag>("Everything", "Prioritize EVERYTHING")
-            .AddOption(Flag.Disabled)
-            .AddOption(Flag.Enabled);
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
 
         res.Define(Track.CollectFATE).As<Flag>("CollectFATE", "Ignore passive mobs in hand-in FATEs")
-            .AddOption(Flag.Disabled)
-            .AddOption(Flag.Enabled);
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
 
         return res;
     }

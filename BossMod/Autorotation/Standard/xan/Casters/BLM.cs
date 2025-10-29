@@ -44,26 +44,26 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         def.DefineSharedTA();
 
         def.Define(Track.Scathe).As<ScatheStrategy>("Scathe")
-            .AddOption(ScatheStrategy.Forbid)
-            .AddOption(ScatheStrategy.Allow);
+            .AddOption(ScatheStrategy.Forbid, "Forbid")
+            .AddOption(ScatheStrategy.Allow, "Allow");
 
         def.Define(Track.Thunder).As<ThunderStrategy>("DoT", "Thunder")
-            .AddOption(ThunderStrategy.Automatic, "Automatically refresh on main target according to standard rotation", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ThunderStrategy.Delay, "Don't apply")
-            .AddOption(ThunderStrategy.Force, "Force refresh ASAP", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ThunderStrategy.InstantOnly, "Allow Thunder if an instant cast is needed, but don't try to maintain uptime", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ThunderStrategy.ForbidInstant, "Use only for standard refresh, not as a utility instant cast", supportedTargets: ActionTargets.Hostile);
+            .AddOption(ThunderStrategy.Automatic, "Automatic", "Automatically refresh on main target according to standard rotation", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.Delay, "Delay", "Don't apply")
+            .AddOption(ThunderStrategy.Force, "Force", "Force refresh ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.InstantOnly, "InstantOnly", "Allow Thunder if an instant cast is needed, but don't try to maintain uptime", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.ForbidInstant, "ForbidInstant", "Use only for standard refresh, not as a utility instant cast", supportedTargets: ActionTargets.Hostile);
 
         def.Define(Track.Leylines).As<LeylinesStrategy>("LL", "Leylines")
-            .AddOption(LeylinesStrategy.OpenerOnly, "Use Leylines in opener; otherwise do not use automatically")
-            .AddOption(LeylinesStrategy.Delay, "Do not use")
-            .AddOption(LeylinesStrategy.Force, "Use ASAP", effect: 20, defaultPriority: DefaultOGCDPriority)
+            .AddOption(LeylinesStrategy.OpenerOnly, "Opener", "Use Leylines in opener; otherwise do not use automatically")
+            .AddOption(LeylinesStrategy.Delay, "Delay", "Do not use")
+            .AddOption(LeylinesStrategy.Force, "Force", "Use ASAP", effect: 20, defaultPriority: DefaultOGCDPriority)
             .AddAssociatedActions(AID.LeyLines, AID.Retrace, AID.BetweenTheLines);
 
         def.Define(Track.Triplecast).As<TriplecastStrategy>("TC", "Triplecast")
-            .AddOption(TriplecastStrategy.Automatic, "Use for instant fire/ice swaps, otherwise hold")
-            .AddOption(TriplecastStrategy.Delay, "Don't use")
-            .AddOption(TriplecastStrategy.Force, "Use ASAP", effect: 15, defaultPriority: DefaultOGCDPriority)
+            .AddOption(TriplecastStrategy.Automatic, "Automatic", "Use for instant fire/ice swaps, otherwise hold")
+            .AddOption(TriplecastStrategy.Delay, "Delay", "Don't use")
+            .AddOption(TriplecastStrategy.Force, "Force", "Use ASAP", effect: 15, defaultPriority: DefaultOGCDPriority)
             .AddAssociatedActions(AID.Triplecast);
 
         def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki on cooldown", uiPriority: -10);
@@ -76,9 +76,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             .AddAssociatedActions(PhantomID.OccultQuick, PhantomID.OccultComet);
 
         def.Define(Track.Manafont).As<OffensiveStrategy>("Manafont")
-            .AddOption(OffensiveStrategy.Automatic, "Use at 0 MP")
-            .AddOption(OffensiveStrategy.Delay, "Do not use")
-            .AddOption(OffensiveStrategy.Force, "Use ASAP")
+            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use at 0 MP")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Do not use")
+            .AddOption(OffensiveStrategy.Force, "Force", "Use ASAP")
             .AddAssociatedActions(AID.Manafont);
 
         return def;

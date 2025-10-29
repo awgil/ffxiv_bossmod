@@ -15,7 +15,7 @@ public sealed class GoToPositional(RotationModuleManager manager, Actor player) 
 
         foreach (var positional in Enum.GetValues<Positional>())
         {
-            track.AddOption(positional);
+            track.AddOption(positional, positional.ToString());
         }
         return def;
     }

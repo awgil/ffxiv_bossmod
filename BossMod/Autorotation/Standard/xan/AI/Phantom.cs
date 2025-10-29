@@ -64,9 +64,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddAssociatedActions(PhantomID.OccultComet, PhantomID.OccultQuick);
 
         def.Define(Track.Chemist).As<RaiseStrategy>("Chemist", "Chemist: Raise")
-            .AddOption(RaiseStrategy.Never, "Disabled")
-            .AddOption(RaiseStrategy.OutOfCombat, "Out of combat")
-            .AddOption(RaiseStrategy.InCombat, "Always")
+            .AddOption(RaiseStrategy.Never, "Never", "Disabled")
+            .AddOption(RaiseStrategy.OutOfCombat, "OutOfCombat", "Out of combat")
+            .AddOption(RaiseStrategy.InCombat, "InCombat", "Always")
             .AddAssociatedActions(PhantomID.Revive);
 
         def.AbilityTrack(Track.Samurai, "Samurai", "Samurai: Use Iainuki on best AOE target")
@@ -79,18 +79,18 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.Counterstance, PhantomID.OccultCounter);
 
         def.Define(Track.Predict).As<PredictStrategy>("Predict", "Oracle: Predict")
-            .AddOption(PredictStrategy.AutoConservative)
-            .AddOption(PredictStrategy.AutoGreedy)
-            .AddOption(PredictStrategy.AutoSuperGreedy)
-            .AddOption(PredictStrategy.HealOnly)
-            .AddOption(PredictStrategy.Disabled)
+            .AddOption(PredictStrategy.AutoConservative, "Use first available damage action that isn't Starfall")
+            .AddOption(PredictStrategy.AutoGreedy, "Use first available damage action; allow Starfall if HP is high enough")
+            .AddOption(PredictStrategy.AutoSuperGreedy, "Use Starfall, regardless of HP")
+            .AddOption(PredictStrategy.HealOnly, "Use Blessing (heal)")
+            .AddOption(PredictStrategy.Disabled, "Don't use")
             .AddAssociatedActions(PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall);
 
         def.Define(Track.Chakra).As<ChakraStrategy>("Chakra", "Monk: Use Occult Chakra")
-            .AddOption(ChakraStrategy.Any, "If HP or MP is low")
-            .AddOption(ChakraStrategy.HP, "Only if HP is below 30%")
-            .AddOption(ChakraStrategy.MP, "Only if MP is below 30%")
-            .AddOption(ChakraStrategy.Disabled, "Never")
+            .AddOption(ChakraStrategy.Any, "Any", "If HP or MP is low")
+            .AddOption(ChakraStrategy.HP, "HP", "Only if HP is below 30%")
+            .AddOption(ChakraStrategy.MP, "MP", "Only if MP is below 30%")
+            .AddOption(ChakraStrategy.Disabled, "Disabled", "Never")
             .AddAssociatedActions(PhantomID.OccultChakra);
 
         return def;

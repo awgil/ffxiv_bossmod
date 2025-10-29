@@ -10,13 +10,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     public enum Track { Raise, RaiseTarget, Heal, Esuna, StayNearParty, OutOfCombat }
     public enum RaiseStrategy
     {
-        [PropertyDisplay("Don't automatically raise")]
         None,
-        [PropertyDisplay("Raise using Swiftcast only")]
         Swiftcast,
-        [PropertyDisplay("Raise without requiring Swiftcast to be available")]
         Slowcast,
-        [PropertyDisplay("Never use Swiftcast to raise")]
         Hardcast,
     }
 
@@ -34,22 +30,22 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         var def = new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.SCH, Class.SGE, Class.AST), 100);
 
         def.Define(Track.Raise).As<RaiseStrategy>("Raise")
-            .AddOption(RaiseStrategy.None)
-            .AddOption(RaiseStrategy.Swiftcast)
-            .AddOption(RaiseStrategy.Slowcast)
-            .AddOption(RaiseStrategy.Hardcast);
+            .AddOption(RaiseStrategy.None, "Don't automatically raise")
+            .AddOption(RaiseStrategy.Swiftcast, "Raise using Swiftcast only")
+            .AddOption(RaiseStrategy.Slowcast, "Raise without requiring Swiftcast to be available")
+            .AddOption(RaiseStrategy.Hardcast, "Never use Swiftcast to raise");
 
         def.Define(Track.RaiseTarget).As<RaiseUtil.Targets>("RaiseTargets", "Raise targets")
-            .AddOption(RaiseUtil.Targets.Party)
-            .AddOption(RaiseUtil.Targets.Alliance)
-            .AddOption(RaiseUtil.Targets.Everyone);
+            .AddOption(RaiseUtil.Targets.Party, "Party members")
+            .AddOption(RaiseUtil.Targets.Alliance, "Alliance raid members")
+            .AddOption(RaiseUtil.Targets.Everyone, "Any dead player");
 
         def.AbilityTrack(Track.Heal, "Heal");
 
         def.Define(Track.Esuna).As<HintedStrategy>("Esuna2", "Esuna")
-            .AddOption(HintedStrategy.Disabled, "Don't use")
-            .AddOption(HintedStrategy.HintOnly, "Cleanse targets suggested by active module")
-            .AddOption(HintedStrategy.Enabled, "Cleanse all eligible party members")
+            .AddOption(HintedStrategy.Disabled, "Disabled", "Don't use")
+            .AddOption(HintedStrategy.HintOnly, "HintOnly", "Cleanse targets suggested by active module")
+            .AddOption(HintedStrategy.Enabled, "Enabled", "Cleanse all eligible party members")
             .AddAssociatedActions(ClassShared.AID.Esuna);
 
         def.AbilityTrack(Track.StayNearParty, "Stay near party");

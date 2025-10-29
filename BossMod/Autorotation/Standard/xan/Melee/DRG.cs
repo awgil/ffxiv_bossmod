@@ -31,24 +31,24 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.BattleLitany);
 
         def.Define(Track.Dive).As<DiveStrategy>("Dive")
-            .AddOption(DiveStrategy.Allow, "Use dives according to standard rotation")
-            .AddOption(DiveStrategy.NoMove, "Disallow dive actions that move you to the target")
-            .AddOption(DiveStrategy.NoLock, "Disallow dive actions that prevent you from moving (all except Mirage Dive)");
+            .AddOption(DiveStrategy.Allow, "Allow", "Use dives according to standard rotation")
+            .AddOption(DiveStrategy.NoMove, "NoMove", "Disallow dive actions that move you to the target")
+            .AddOption(DiveStrategy.NoLock, "NoLock", "Disallow dive actions that prevent you from moving (all except Mirage Dive)");
 
         def.AbilityTrack(Track.Iainuki, "Iainuki", "Phantom Samurai: Use Iainuki during burst", -50);
         def.AbilityTrack(Track.Zeninage, "Zeninage", "Phantom Samurai: Use Zeninage during burst - requires a coffer", -100);
 
         def.Define(Track.LanceCharge).As<OffensiveStrategy>("LC", "Lance Charge")
-            .AddOption(OffensiveStrategy.Automatic, "Use on cooldown, once Power Surge is active")
-            .AddOption(OffensiveStrategy.Delay, "Don't use", cooldown: 20) // hack to make UI display how long LC will last if we use it immediately after a Delay track
-            .AddOption(OffensiveStrategy.Force, "Use ASAP", effect: 20, cooldown: 60)
+            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use on cooldown, once Power Surge is active")
+            .AddOption(OffensiveStrategy.Delay, "Delay", "Don't use", cooldown: 20) // hack to make UI display how long LC will last if we use it immediately after a Delay track
+            .AddOption(OffensiveStrategy.Force, "Force", "Use ASAP", effect: 20, cooldown: 60)
             .AddAssociatedActions(AID.LanceCharge);
 
         def.Define(Track.HJMD).As<HJMDStrategy>("HJMD", "High Jump/Mirage Dive")
-            .AddOption(HJMDStrategy.AfterBuffs, "Use on cooldown under buffs, or if Lance Charge is on cooldown")
-            .AddOption(HJMDStrategy.HoldMD, "Use HJ ASAP, hold Mirage Dive until buffs are active", effect: 15, cooldown: 30)
-            .AddOption(HJMDStrategy.Delay, "Do not use")
-            .AddOption(HJMDStrategy.Force, "Use both ASAP", effect: 15, cooldown: 30)
+            .AddOption(HJMDStrategy.AfterBuffs, "AfterBuffs", "Use on cooldown under buffs, or if Lance Charge is on cooldown")
+            .AddOption(HJMDStrategy.HoldMD, "HoldMD", "Use HJ ASAP, hold Mirage Dive until buffs are active", effect: 15, cooldown: 30)
+            .AddOption(HJMDStrategy.Delay, "Delay", "Do not use")
+            .AddOption(HJMDStrategy.Force, "Force", "Use both ASAP", effect: 15, cooldown: 30)
             .AddAssociatedActions(AID.Jump, AID.HighJump, AID.MirageDive);
 
         return def;

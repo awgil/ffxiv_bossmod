@@ -21,9 +21,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         def.DefineShared().AddAssociatedActions(AID.ArcaneCircle);
         def.Define(Track.Harpe).As<HarpeStrategy>("Harpe")
-            .AddOption(HarpeStrategy.Automatic)
-            .AddOption(HarpeStrategy.Forbid)
-            .AddOption(HarpeStrategy.Ranged);
+            .AddOption(HarpeStrategy.Automatic, "Use out of melee range if Enhanced Harpe is active")
+            .AddOption(HarpeStrategy.Forbid, "Don't use")
+            .AddOption(HarpeStrategy.Ranged, "Use out of melee range");
 
         def.AbilityTrack(Track.Crest, "Crest", "Arcane Crest").AddAssociatedActions(AID.ArcaneCrest);
 
