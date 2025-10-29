@@ -23,11 +23,11 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         def.DefineShared().AddAssociatedActions(AID.LivingShadow);
 
         def.Define(Track.Edge).As<EdgeStrategy>("Edge")
-            .AddOption(EdgeStrategy.Automatic, "Automatic", "Use to refresh Darkside, or during raid buffs")
-            .AddOption(EdgeStrategy.AutomaticTBN, "AutomaticTBN", "Use to refresh Darkside, or during raid buffs - save MP for TBN")
-            .AddOption(EdgeStrategy.Delay, "Delay", "Do not use")
-            .AddOption(EdgeStrategy.Force, "Force", "Use ASAP")
-            .AddOption(EdgeStrategy.ForceTBN, "ForceTBN", "Use ASAP - save MP for TBN");
+            .AddOption(EdgeStrategy.Automatic, "Use to refresh Darkside, or during raid buffs")
+            .AddOption(EdgeStrategy.AutomaticTBN, "Use to refresh Darkside, or during raid buffs - save MP for TBN")
+            .AddOption(EdgeStrategy.Delay, "Do not use")
+            .AddOption(EdgeStrategy.Force, "Use ASAP")
+            .AddOption(EdgeStrategy.ForceTBN, "Use ASAP - save MP for TBN");
 
         return def;
     }

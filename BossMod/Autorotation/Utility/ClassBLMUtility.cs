@@ -15,8 +15,8 @@ public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.Manaward, "Manaward", "", 600, BLM.AID.Manaward, 20);
 
         res.Define(Track.AetherialManipulation).As<DashStrategy>("Dash", "", 20)
-            .AddOption(DashStrategy.None, "None", "No use.")
-            .AddOption(DashStrategy.Force, "Force", "Use ASAP", 10, 0, ActionTargets.Party, 50)
+            .AddOption(DashStrategy.None, "No use.")
+            .AddOption(DashStrategy.Force, "Use ASAP", 10, 0, ActionTargets.Party, 50)
             .AddAssociatedActions(BLM.AID.AetherialManipulation);
 
         return res;

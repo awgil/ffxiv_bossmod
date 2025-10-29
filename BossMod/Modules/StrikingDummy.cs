@@ -32,8 +32,8 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
     {
         var res = new RotationModuleDefinition("Custom dummy rotation", "Example encounter-specific rotation", "Encounter-specific modules", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Actions, typeof(StrikingDummy));
         res.Define(Track.Test).As<Strategy>("Test")
-            .AddOption(Strategy.None, "None", "Do nothing")
-            .AddOption(Strategy.Some, "Some", "I have some strategy and I follow it");
+            .AddOption(Strategy.None, "Do nothing")
+            .AddOption(Strategy.Some, "I have some strategy and I follow it");
         return res;
     }
 

@@ -55,8 +55,8 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
 
     public readonly ref struct ConfigRef<Index>(StrategyConfigTrack config) where Index : Enum
     {
-        public ConfigRef<Index> AddOption(Index expectedIndex, string internalName2, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1,
-            int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium)
+        public ConfigRef<Index> AddOption(Index expectedIndex, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = int.MaxValue,
+            float defaultPriority = ActionQueue.Priority.Medium)
         {
             var idx = (int)(object)expectedIndex;
             var internalName = expectedIndex.ToString();

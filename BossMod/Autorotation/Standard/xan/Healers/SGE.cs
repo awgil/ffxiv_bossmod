@@ -17,11 +17,11 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         def.DefineShared();
 
         def.Define(Track.Kardia).As<KardiaStrategy>("Kardia")
-            .AddOption(KardiaStrategy.Auto, "Auto", "Automatically choose Kardia target")
-            .AddOption(KardiaStrategy.Manual, "Manual", "Don't automatically choose Kardia target");
+            .AddOption(KardiaStrategy.Auto, "Automatically choose Kardia target")
+            .AddOption(KardiaStrategy.Manual, "Don't automatically choose Kardia target");
         def.Define(Track.Druo).As<DruoStrategy>("Druochole")
-            .AddOption(DruoStrategy.Auto, "Auto", "Prevent Addersgall overcap by using Druochole on lowest-HP ally")
-            .AddOption(DruoStrategy.Manual, "Manual", "Do not automatically use Druochole");
+            .AddOption(DruoStrategy.Auto, "Prevent Addersgall overcap by using Druochole on lowest-HP ally")
+            .AddOption(DruoStrategy.Manual, "Do not automatically use Druochole");
 
         return def;
     }

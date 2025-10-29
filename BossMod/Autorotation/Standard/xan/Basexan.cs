@@ -561,16 +561,16 @@ static class Extendxan
     public static RotationModuleDefinition DefineSharedTA(this RotationModuleDefinition def)
     {
         def.Define(SharedTrack.Targeting).As<Targeting>("Targeting")
-            .AddOption(xan.Targeting.Manual, "Manual", "Use player's current target for all actions")
-            .AddOption(xan.Targeting.Auto, "Auto", "Automatically select best target (highest number of nearby targets) for AOE actions")
-            .AddOption(xan.Targeting.AutoPrimary, "AutoPrimary", "Automatically select best target for AOE actions - ensure player target is hit")
-            .AddOption(xan.Targeting.AutoTryPri, "AutoTryPri", "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
+            .AddOption(xan.Targeting.Manual, "Use player's current target for all actions")
+            .AddOption(xan.Targeting.Auto, "Automatically select best target (highest number of nearby targets) for AOE actions")
+            .AddOption(xan.Targeting.AutoPrimary, "Automatically select best target for AOE actions - ensure player target is hit")
+            .AddOption(xan.Targeting.AutoTryPri, "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
 
         def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE")
-            .AddOption(AOEStrategy.AOE, "AOE", "Use AOE actions if beneficial")
-            .AddOption(AOEStrategy.ST, "ST", "Use single-target actions")
-            .AddOption(AOEStrategy.ForceAOE, "ForceAOE", "Always use AOE actions, even on one target")
-            .AddOption(AOEStrategy.ForceST, "ForceST", "Forbid any action that can hit multiple targets");
+            .AddOption(AOEStrategy.AOE, "Use AOE actions if beneficial")
+            .AddOption(AOEStrategy.ST, "Use single-target actions")
+            .AddOption(AOEStrategy.ForceAOE, "Always use AOE actions, even on one target")
+            .AddOption(AOEStrategy.ForceST, "Forbid any action that can hit multiple targets");
 
         return def;
     }
@@ -578,9 +578,9 @@ static class Extendxan
     public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineSimple<Index>(this RotationModuleDefinition def, Index track, string name, int minLevel = 1, float uiPriority = 0) where Index : Enum
     {
         return def.Define(track).As<OffensiveStrategy>(name, uiPriority: uiPriority)
-            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use when optimal", minLevel: minLevel)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Don't use", minLevel: minLevel)
-            .AddOption(OffensiveStrategy.Force, "Force", "Use ASAP", minLevel: minLevel);
+            .AddOption(OffensiveStrategy.Automatic, "Use when optimal", minLevel: minLevel)
+            .AddOption(OffensiveStrategy.Delay, "Don't use", minLevel: minLevel)
+            .AddOption(OffensiveStrategy.Force, "Use ASAP", minLevel: minLevel);
     }
 
     public static AOEStrategy AOE(this StrategyValues strategy) => strategy.Option(SharedTrack.AOE).As<AOEStrategy>();

@@ -23,15 +23,15 @@ public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor pl
 
         foreach (var role in Enum.GetValues<Role>())
         {
-            roleRef.AddOption(role, role.ToString());
+            roleRef.AddOption(role);
         }
 
         var rangeRef = def.Define(Tracks.Range).As<RangeDefinition>("range");
 
-        rangeRef.AddOption(RangeDefinition.OnHitbox, "OnHitbox", "Stay on edge of hitbox (+/- 1 unit)");
+        rangeRef.AddOption(RangeDefinition.OnHitbox, "Stay on edge of hitbox (+/- 1 unit)");
         for (var f = 1.1f; f <= 30f; f = MathF.Round(f + 0.1f, 1))
         {
-            rangeRef.AddOption((RangeDefinition)(f * 10f - 10f), f.ToString(CultureInfo.InvariantCulture));
+            rangeRef.AddOption((RangeDefinition)(f * 10f - 10f));
         }
 
         return def;
