@@ -33,6 +33,7 @@ public sealed class Plugin : IDalamudPlugin
     private TimeSpan _prevUpdateTime;
     private DateTime _throttleJump;
     private DateTime _throttleInteract;
+    private readonly PackLoader _packs;
 
     // windows
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
@@ -72,13 +73,11 @@ public sealed class Plugin : IDalamudPlugin
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
-        Service.Config.Modified.Subscribe(() =>
-        {
-            Service.Log($"saving configuration to {dalamud.ConfigFile}");
-            Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile));
-        });
+        Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
 
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
+
+        _packs = new();
 
         var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
         _rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
@@ -127,6 +126,7 @@ public sealed class Plugin : IDalamudPlugin
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _configUI.Dispose();
+        //_packs.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();
         _dtr.Dispose();

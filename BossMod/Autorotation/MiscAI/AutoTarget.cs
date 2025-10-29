@@ -2,7 +2,7 @@
 
 public sealed class AutoTarget(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { General, Retarget, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything }
+    public enum Track { General, Retarget, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything, CollectFATE }
     public enum GeneralStrategy { Aggressive, Passive }
     public enum RetargetStrategy { NoTarget, Hostiles, Always, Never }
     public enum Flag { Disabled, Enabled }
@@ -45,6 +45,10 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             .AddOption(Flag.Disabled, "Disabled")
             .AddOption(Flag.Enabled, "Enabled");
 
+        res.Define(Track.CollectFATE).As<Flag>("CollectFATE", "Ignore passive mobs in hand-in FATEs")
+            .AddOption(Flag.Disabled, "Disabled")
+            .AddOption(Flag.Enabled, "Enabled");
+
         return res;
     }
 
@@ -82,10 +86,11 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
         ulong huntTarget = 0;
 
-        if (strategy.Option(Track.Hunt).As<Flag>() == Flag.Enabled && Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Hunt && Bossmods.ActiveModule?.PrimaryActor is Actor p && p.InCombat && p.HPRatio < 0.95f)
-            huntTarget = p.InstanceID;
+        if (strategy.Option(Track.Hunt).As<Flag>() == Flag.Enabled && Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Hunt && Bossmods.ActiveModule?.PrimaryActor is { InCombat: true, HPRatio: < 0.95f, InstanceID: var i })
+            huntTarget = i;
 
         var targetFates = strategy.Option(Track.FATE).As<Flag>() == Flag.Enabled && Utils.IsPlayerSyncedToFate(World);
+        var skipFate = false;
 
         var handinCount = 0;
 
@@ -93,7 +98,10 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         {
             var handinId = Utils.GetFateItem(World.Client.ActiveFate.ID);
             if (handinId > 0)
+            {
                 handinCount = World.Client.ActiveFate.HandInCount + (int)World.Client.GetItemQuantity(handinId);
+                skipFate = strategy.Option(Track.CollectFATE).As<Flag>() == Flag.Enabled;
+            }
         }
 
         // first deal with pulling new enemies
@@ -118,7 +126,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                     prioritize(target, 1);
                     continue;
                 }
-                if (handinCount < 10)
+                if (handinCount < 10 && !skipFate)
                 {
                     prioritize(target, 0);
                     continue;

@@ -32,7 +32,7 @@ public record struct Cooldown(float Elapsed, float Total)
 // this is generally not available for non-player party members, but we can try to guess
 public sealed class ClientState
 {
-    public readonly record struct Fate(uint ID, Vector3 Center, float Radius, byte Progress, byte HandInCount);
+    public readonly record struct Fate(uint ID, Vector3 Center, float Radius, byte Progress, byte HandInCount, uint ObjectiveNpc);
     public record struct Combo(uint Action, float Remaining);
     public record struct Gauge(ulong Low, ulong High);
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
@@ -390,7 +390,7 @@ public sealed class ClientState
             ws.Client.ActiveFate = Value;
             ws.Client.ActiveFateChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3").Emit(Value.Progress).Emit(Value.HandInCount);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3").Emit(Value.Progress).Emit(Value.HandInCount).Emit(Value.ObjectiveNpc);
     }
 
     public Event<OpActivePetChange> ActivePetChanged = new();

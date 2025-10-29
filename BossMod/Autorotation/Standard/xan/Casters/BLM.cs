@@ -104,6 +104,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     public int MaxPolyglot => Unlocked(TraitID.EnhancedPolyglotII) ? 3 : Unlocked(TraitID.EnhancedPolyglot) ? 2 : 1;
     public int MaxHearts => Unlocked(TraitID.UmbralHeart) ? 3 : 0;
 
+    public float MaxPolyglotIn => Polyglot >= MaxPolyglot ? 0 : NextPolyglot + (MaxPolyglot - Polyglot - 1) * 30f;
+
     public int NumAOETargets;
     public int NumAOEDotTargets;
 
@@ -323,7 +325,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         UseLeylines(strategy, primaryTarget);
         UseTriplecastForced(strategy);
 
-        if (Player.InCombat)
+        if (Player.InCombat && MaxPolyglotIn > 10)
             PushOGCD(AID.Amplifier, Player);
 
         if (Fire > 0 && Player.InCombat)

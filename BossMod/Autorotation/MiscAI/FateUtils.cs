@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Autorotation.MiscAI;
 public sealed class FateUtils(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { Handin }
+    public enum Track { Handin, Collect }
     public enum Flag { Enabled, Disabled }
 
     public static RotationModuleDefinition Definition()
@@ -10,6 +10,10 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
 
         res.Define(Track.Handin).As<Flag>("Hand-in")
             .AddOption(Flag.Enabled, "Automatically hand in FATE items at 10+")
+            .AddOption(Flag.Disabled, "Do nothing");
+
+        res.Define(Track.Collect).As<Flag>("Collect")
+            .AddOption(Flag.Enabled, "Try to collect FATE items instead of engaging in combat")
             .AddOption(Flag.Disabled, "Do nothing");
 
         return res;
@@ -30,11 +34,15 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
             return;
 
         var itemsHeld = (int)World.Client.GetItemQuantity(item);
+        var itemsTurnin = World.Client.ActiveFate.HandInCount;
+        var itemsTotal = itemsTurnin + itemsHeld;
 
-        if (World.Client.ActiveFate.HandInCount < 10 && World.Client.ActiveFate.HandInCount + itemsHeld >= 10)
+        if (itemsTurnin < 10)
         {
-            var handinNpc = World.Actors.FirstOrDefault(a => a.FateID == fateID && a.IsTargetable && a.IsAlly && a.EventID > 0);
-            Hints.InteractWithTarget = handinNpc;
+            if (itemsTotal >= 10)
+                Hints.InteractWithTarget = World.Actors.Find(World.Client.ActiveFate.ObjectiveNpc);
+            else if (strategy.Option(Track.Collect).As<Flag>() == Flag.Enabled && !Player.InCombat)
+                Hints.InteractWithTarget = World.Actors.Where(a => a.FateID == fateID && a.IsTargetable && a.Type == ActorType.EventObj).MinBy(Player.DistanceToHitbox);
         }
     }
 }

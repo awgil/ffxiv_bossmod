@@ -123,7 +123,7 @@
     <EmbeddedResource Include="Modules\**\*.json" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+  <ItemGroup>
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
   </ItemGroup>
 </Project>

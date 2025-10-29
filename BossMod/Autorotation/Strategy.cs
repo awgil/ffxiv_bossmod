@@ -235,4 +235,12 @@ public readonly record struct StrategyValues(List<StrategyConfig> Configs)
             return new(c, (StrategyValueTrack)Values[idx]);
         throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Track type");
     }
+
+    public long GetInt<TrackIndex>(TrackIndex index) where TrackIndex : Enum
+    {
+        var idx = (int)(object)index;
+        if (Configs[idx] is StrategyConfigInt i)
+            return ((StrategyValueInt)Values[idx]).Value;
+        throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Int type");
+    }
 }

@@ -25,7 +25,7 @@ public sealed class ActorState : IEnumerable<Actor>
     {
         foreach (var act in this)
         {
-            yield return new OpCreate(act.InstanceID, act.OID, act.SpawnIndex, act.LayoutID, act.Name, act.NameID, act.Type, act.Class, act.Level, act.PosRot, act.HitboxRadius, act.HPMP, act.IsTargetable, act.IsAlly, act.OwnerID, act.FateID, act.EventID);
+            yield return new OpCreate(act.InstanceID, act.OID, act.SpawnIndex, act.LayoutID, act.Name, act.NameID, act.Type, act.Class, act.Level, act.PosRot, act.HitboxRadius, act.HPMP, act.IsTargetable, act.IsAlly, act.OwnerID, act.FateID);
             if (act.IsDead)
                 yield return new OpDead(act.InstanceID, true);
             if (act.InCombat)
@@ -124,13 +124,13 @@ public sealed class ActorState : IEnumerable<Actor>
     // implementation of operations
     public Event<Actor> Added = new();
     public sealed record class OpCreate(ulong InstanceID, uint OID, int SpawnIndex, uint LayoutID, string Name, uint NameID, ActorType Type, Class Class, int Level, Vector4 PosRot, float HitboxRadius,
-        ActorHPMP HPMP, bool IsTargetable, bool IsAlly, ulong OwnerID, uint FateID, uint EventID)
+        ActorHPMP HPMP, bool IsTargetable, bool IsAlly, ulong OwnerID, uint FateID)
         : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) { }
         protected override void Exec(WorldState ws)
         {
-            var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, LayoutID, Name, NameID, Type, Class, Level, PosRot, HitboxRadius, HPMP, IsTargetable, IsAlly, OwnerID, FateID, EventID);
+            var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, LayoutID, Name, NameID, Type, Class, Level, PosRot, HitboxRadius, HPMP, IsTargetable, IsAlly, OwnerID, FateID);
             ws.Actors.Added.Fire(actor);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ACT+"u8)
@@ -154,8 +154,7 @@ public sealed class ActorState : IEnumerable<Actor>
             .Emit(IsTargetable)
             .Emit(IsAlly)
             .EmitActor(OwnerID)
-            .Emit(FateID)
-            .Emit(EventID);
+            .Emit(FateID);
     }
 
     public Event<Actor> Removed = new();

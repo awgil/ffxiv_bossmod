@@ -40,8 +40,6 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
     public readonly BitMask Classes = Classes;
     public readonly List<StrategyConfig> Configs = [];
 
-    public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);
-
     // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
     public readonly ref struct DefineRef(List<StrategyConfig> configs, int index)
     {
@@ -87,6 +85,16 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                 config.AssociatedActions.Add(ActionID.MakeSpell(aid));
             return this;
         }
+    }
+
+    public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);
+
+    public void DefineInt<Index>(Index expectedIndex, string internalName, string displayName = "", long minValue = 0, long maxValue = long.MaxValue, float uiPriority = 0) where Index : Enum
+    {
+        var idx = (int)(object)expectedIndex;
+        if (Configs.Count != idx)
+            throw new ArgumentException($"Unexpected index value for {internalName}: expected {idx}, cur size {Configs.Count}");
+        Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority));
     }
 }
 
