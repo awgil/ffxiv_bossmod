@@ -122,8 +122,9 @@ public sealed class UIPresetEditor
                 DrawModuleAddPopup(_availableModules, ref post);
         post?.Invoke();
 
-        var width = new Vector2(ImGui.GetContentRegionAvail().X, 0);
-        using (var list = ImRaii.ListBox("###modules", width))
+        var size = ImGui.GetContentRegionAvail();
+        var width = new Vector2(size.X, 0);
+        using (var list = ImRaii.ListBox("###modules", new(size.X, size.Y - 100)))
         {
             if (list)
             {
