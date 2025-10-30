@@ -38,7 +38,7 @@ class Q01TheFinalVerseStates : StateMachineBuilder
 
         BladeMechanic(id + 0x10000, 4);
 
-        ComponentCondition<SearingChain>(id + 0x10100, 17, s => s.TethersAssigned, "Chains appear")
+        ComponentCondition<SearingChain>(id + 0x10100, 9.2f, s => s.TethersAssigned, "Chains appear")
             .ActivateOnEnter<SearingChain>();
 
         // TODO: this delay is actually based on when the chains break, not a fixed timer
