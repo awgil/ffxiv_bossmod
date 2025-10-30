@@ -42,6 +42,29 @@ public enum StrategyEnemySelection : int
     HighestMaxHP = 4,
 }
 
+[AttributeUsage(AttributeTargets.Field)]
+public class TrackAttribute(string name = "", float order = 0, object[]? actions = null) : Attribute
+{
+    public TrackAttribute(string name, float order, object action) : this(name, order, actions: [action]) { }
+    public TrackAttribute(string name, object action) : this(name, 0, actions: [action]) { }
+
+    public readonly string DisplayName = name;
+    public readonly float UiPriority = order;
+    public readonly ActionID[] Actions = [.. (actions ?? []).Select(a => ActionID.MakeSpell((Enum)a))];
+}
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Enum)]
+public class OptionAttribute(string label = "", float cooldown = 0, float effect = 0, ActionTargets targets = ActionTargets.None, int minLevel = 1, int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium) : Attribute
+{
+    public string DisplayName = label;
+    public float Cooldown = cooldown;
+    public float Effect = effect;
+    public ActionTargets Targets = targets;
+    public int MinLevel = minLevel;
+    public int MaxLevel = maxLevel;
+    public float DefaultPriority = defaultPriority;
+}
+
 public abstract record class StrategyConfig(
     string InternalName, // unique name of the config; it is used for serialization, so it can't really be changed without losing user data (or writing config converter)
     string DisplayName, // if non-empty, this name is used for all UI instead of internal name

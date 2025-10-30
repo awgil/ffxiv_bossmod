@@ -4,26 +4,57 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public enum Targeting { Manual, Auto, AutoPrimary, AutoTryPri }
-public enum OffensiveStrategy { Automatic, Delay, Force }
-public enum AOEStrategy { AOE, ST, ForceAOE, ForceST }
+public enum Targeting
+{
+    [Option("Use player's current target for all actions")]
+    Manual,
+    [Option("Automatically select best target (highest number of nearby targets) for AOE actions")]
+    Auto,
+    [Option("Automatically select best target for AOE actions - ensure player target is hit")]
+    AutoPrimary,
+    [Option("Automatically select best target for AOE actions - if player has a target, ensure that target is hit")]
+    AutoTryPri
+}
+public enum OffensiveStrategy
+{
+    [Option("Use when optimal")]
+    Automatic,
+    [Option("Don't use")]
+    Delay,
+    [Option("Use ASAP")]
+    Force
+}
+public enum AOEStrategy
+{
+    [Option("Use AOE actions if beneficial")]
+    AOE,
+    [Option("Use single-target actions")]
+    ST,
+    [Option("Always use AOE actions, even on one target")]
+    ForceAOE,
+    [Option("Do not use any action that can hit multiple targets")]
+    ForceST
+}
 
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
 
 public abstract class Attackxan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
-    where AID : struct, Enum where TraitID : Enum
+    where AID : struct, Enum
+    where TraitID : Enum
 {
     protected sealed override float GCDLength => AttackGCDLength;
 }
 
 public abstract class Castxan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
-    where AID : struct, Enum where TraitID : Enum
+    where AID : struct, Enum
+    where TraitID : Enum
 {
     protected sealed override float GCDLength => SpellGCDLength;
 }
 
 public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType) : RotationModule(manager, player)
-    where AID : struct, Enum where TraitID : Enum
+    where AID : struct, Enum
+    where TraitID : Enum
 {
     public PotionType PotionType { get; init; } = potType;
 
