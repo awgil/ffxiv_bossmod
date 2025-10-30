@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace BossMod.Autorotation;
+﻿namespace BossMod.Autorotation;
 
 public enum RotationModuleQuality
 {
@@ -108,39 +106,6 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         if (Configs.Count != idx)
             throw new ArgumentException($"Unexpected index value for {internalName}: expected {idx}, cur size {Configs.Count}");
         Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority));
-    }
-
-    public void DefineStrategies<S>() where S : struct
-    {
-        var sType = typeof(S);
-
-        foreach (var field in sType.GetFields())
-        {
-            if (field.GetCustomAttribute<TrackAttribute>() is { } trackInfo)
-            {
-                if (!field.FieldType.IsEnum)
-                    throw new ArgumentException($"field {field.Name} of {sType.Name} should be an enum if it is marked as Track");
-                var trackCfg = new StrategyConfigTrack(field.FieldType, field.Name, trackInfo.DisplayName, trackInfo.UiPriority);
-
-                foreach (var variantName in field.FieldType.GetEnumNames())
-                {
-                    var variantField = field.FieldType.GetField(variantName)!;
-                    var fieldSettings = variantField.GetCustomAttribute<OptionAttribute>() ?? new OptionAttribute();
-
-                    trackCfg.Options.Add(new(variantField.Name, fieldSettings.DisplayName)
-                    {
-                        Cooldown = fieldSettings.Cooldown,
-                        Effect = fieldSettings.Effect,
-                        SupportedTargets = fieldSettings.Targets,
-                        MinLevel = fieldSettings.MinLevel,
-                        MaxLevel = fieldSettings.MaxLevel,
-                        DefaultPriority = fieldSettings.DefaultPriority
-                    });
-                }
-
-                Configs.Add(trackCfg);
-            }
-        }
     }
 }
 

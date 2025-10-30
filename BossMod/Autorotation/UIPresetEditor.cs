@@ -1,5 +1,4 @@
 ﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
@@ -83,16 +82,19 @@ public sealed class UIPresetEditor
             }
         }
 
-        using var table = ImRaii.Table("preset_details", 2);
+        using var table = ImRaii.Table("preset_details", 3);
         if (!table)
             return;
-        ImGui.TableSetupColumn("Modules", ImGuiTableColumnFlags.WidthFixed, 300 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("Modules");
         ImGui.TableSetupColumn("Strategies");
+        ImGui.TableSetupColumn("Details");
+        ImGui.TableHeadersRow();
         ImGui.TableNextColumn();
         DrawModulesList();
         ImGui.TableNextColumn();
         DrawSettingsList();
-        //DrawDetails();
+        ImGui.TableNextColumn();
+        DrawDetails();
     }
 
     public void DetachFromSource()
@@ -122,9 +124,8 @@ public sealed class UIPresetEditor
                 DrawModuleAddPopup(_availableModules, ref post);
         post?.Invoke();
 
-        var size = ImGui.GetContentRegionAvail();
-        var width = new Vector2(size.X, 0);
-        using (var list = ImRaii.ListBox("###modules", new(size.X, size.Y - 100)))
+        var width = new Vector2(ImGui.GetContentRegionAvail().X, 0);
+        using (var list = ImRaii.ListBox("###modules", width))
         {
             if (list)
             {
@@ -223,35 +224,22 @@ public sealed class UIPresetEditor
         var ms = Preset.Modules[_selectedModuleIndex];
         DrawAddSettingPopup(ms, ms.Definition);
 
-        ImGui.TextUnformatted(ms.Definition.DisplayName);
-        ImGui.Spacing();
-        ImGui.Separator();
-        ImGui.Spacing();
-        var values = Preset.ActiveStrategyOverrides(_selectedModuleIndex);
-
-        for (var track = 0; track < values.Values.Length; track++)
-        {
-            var cfg = values.Configs[track];
-            var val = values.Values[track];
-
-            if (cfg.DrawForSimpleEditor(ref val))
-            {
-                ms.SerializedSettings.RemoveAll(s => s.Track == track);
-                ms.SerializedSettings.Add(new(default, track, val));
-            }
-        }
-
-        /*
         using (var list = ImRaii.ListBox("###settings", width))
         {
             if (list)
             {
                 for (int i = 0; i < ms.SerializedSettings.Count; ++i)
                 {
-                    var m = ms.SerializedSettings[i];
+                    ref var m = ref ms.SerializedSettings.Ref(i);
                     var cfg = ms.Definition.Configs[m.Track];
 
-                    var selLabel = $"[{i + 1}] {cfg.UIName} [{m.Mod}] = {cfg.ToDisplayString(m.Value)}###setting{_settingGuids[i]}";
+                    var selLabel = $"[{i + 1}] {cfg.UIName} [{m.Mod}] = ";
+                    if (cfg is StrategyConfigTrack tr)
+                        selLabel += tr.Options[((StrategyValueTrack)m.Value).Option].UIName;
+                    else
+                        selLabel += ((StrategyValueFloat)m.Value).Value.ToString("f1");
+
+                    selLabel += $"###setting{_settingGuids[i]}";
 
                     if (ImGui.Selectable(selLabel, i == _selectedSettingIndex))
                     {
@@ -286,7 +274,6 @@ public sealed class UIPresetEditor
             _selectedSettingIndex = -1;
             RebuildSettingGuids();
         }
-        */
     }
 
     private void DrawAddSettingPopup(Preset.ModuleSettings ms, RotationModuleDefinition def)
@@ -308,9 +295,7 @@ public sealed class UIPresetEditor
         }
     }
 
-#pragma warning disable IDE0051 // Remove unused private members
     private void DrawDetails()
-#pragma warning restore IDE0051 // Remove unused private members
     {
         if (_selectedModuleIndex < 0)
         {
@@ -339,8 +324,7 @@ public sealed class UIPresetEditor
             var valStr = val switch
             {
                 StrategyValueTrack t => ((StrategyConfigTrack)ms.Definition.Configs[i]).Options[t.Option].UIName,
-                StrategyValueInt it => it.Value.ToString(),
-                StrategyValueFloat s => s.Value.ToString("f1"),
+                StrategyValueFloat s => s.Value.ToString(),
                 _ => null!
             };
             ImGui.TextUnformatted($"{keyStr} = {valStr}");
