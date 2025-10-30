@@ -21,7 +21,7 @@ public class AutoDDConfig : ConfigNode
     }
 
     [PropertyDisplay("Enable module", tooltip: "WARNING: This feature is very experimental and most likely will contain bugs or unintended behavior.\nTo enable this feature in its current state, you must activate 'Work-in-Progress' maturity modules in the `Full Duty Automation` tab.")]
-    public bool Enable = true;
+    public bool EnableModule = true;
     [PropertyDisplay("Enable minimap")]
     public bool EnableMinimap = true;
     [PropertyDisplay("Try to avoid traps", tooltip: "Avoid known trap locations sourced from PalacePal data. (Traps revealed by a Pomander of Sight will always be avoided regardless of this setting.)")]
