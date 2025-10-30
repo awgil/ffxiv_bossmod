@@ -258,3 +258,12 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         return (bestTarget, bestPrio);
     }
 }
+
+public abstract class TypedRotationModule<TStrategy>(RotationModuleManager manager, Actor player) : RotationModule(manager, player) where TStrategy : struct
+{
+    protected abstract TStrategy Convert(StrategyValues values);
+
+    protected abstract void Execute(TStrategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
+
+    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) => Execute(Convert(strategy), ref primaryTarget, estimatedAnimLockDelay, isMoving);
+}

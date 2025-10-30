@@ -12,52 +12,52 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         [Track] public AOEStrategy AOE;
 
         // buffs
-        [Track("Brotherhood", order: 99, action: AID.Brotherhood)]
+        [Track("Brotherhood", UiPriority = 99, Action = AID.Brotherhood)]
         public OffensiveStrategy BH;
 
-        [Track("Riddle of Fire", order: 96, action: AID.RiddleOfFire)]
+        [Track("Riddle of Fire", UiPriority = 96, Action = AID.RiddleOfFire)]
         public RoFStrategy RoF;
 
-        [Track("Fire's Reply", order: 95, action: AID.FiresReply)]
+        [Track("Fire's Reply", UiPriority = 95, Action = AID.FiresReply)]
         public FRStrategy FiresReply;
 
-        [Track("Riddle of Wind", order: 94, action: AID.RiddleOfWind)]
+        [Track("Riddle of Wind", UiPriority = 94, Action = AID.RiddleOfWind)]
         public OffensiveStrategy RoW;
 
-        [Track("Wind's Reply", order: 93, action: AID.WindsReply)]
+        [Track("Wind's Reply", UiPriority = 93, Action = AID.WindsReply)]
         public WRStrategy WindsReply;
 
         // PB stuff
-        [Track("Perfect Balance", order: 89, action: AID.PerfectBalance)]
+        [Track("Perfect Balance", UiPriority = 89, Action = AID.PerfectBalance)]
         public PBStrategy PB;
 
-        [Track(order: 88)]
+        [Track(UiPriority = 88)]
         public NadiStrategy Nadi;
 
-        [Track(order: 87, actions: [AID.ElixirField, AID.FlintStrike, AID.TornadoKick, AID.ElixirBurst, AID.RisingPhoenix, AID.PhantomRush])]
+        [Track(UiPriority = 87, Actions = [AID.ElixirField, AID.FlintStrike, AID.TornadoKick, AID.ElixirBurst, AID.RisingPhoenix, AID.PhantomRush])]
         public BlitzStrategy Blitz;
 
         // downtime stuff
-        [Track("Six-Sided Star", order: 79, action: AID.SixSidedStar)]
+        [Track("Six-Sided Star", UiPriority = 79, Action = AID.SixSidedStar)]
         public OffensiveStrategy SixSidedStar;
 
-        [Track("Form Shift", order: 78, action: AID.FormShift)]
+        [Track("Form Shift", UiPriority = 78, Action = AID.FormShift)]
         public OffensiveStrategy FormShift;
 
-        [Track("Meditation", order: 77, actions: [AID.SteeledMeditation, AID.ForbiddenMeditation, AID.EnlightenedMeditation, AID.InspiritedMeditation])]
+        [Track("Meditation", UiPriority = 77, Actions = [AID.SteeledMeditation, AID.ForbiddenMeditation, AID.EnlightenedMeditation, AID.InspiritedMeditation])]
         public MeditationStrategy Meditate;
 
         // other utils
-        [Track("Thunderclap", order: 69, action: AID.Thunderclap)]
+        [Track("Thunderclap", UiPriority = 69, Action = AID.Thunderclap)]
         public TCStrategy TC;
 
-        [Track("Potion", order: 59)]
+        [Track("Potion", UiPriority = 59)]
         public PotionStrategy Pot;
 
-        [Track("Pull strategy", order: 49)]
+        [Track("Pull strategy", UiPriority = 49)]
         public EngageStrategy Engage;
 
-        [Track("True North", order: 48, action: AID.TrueNorth)]
+        [Track("True North", UiPriority = 48, Action = AID.TrueNorth)]
         public OffensiveStrategy TrueNorth;
     }
 

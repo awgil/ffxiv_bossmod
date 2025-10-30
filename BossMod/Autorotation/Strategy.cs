@@ -43,14 +43,27 @@ public enum StrategyEnemySelection : int
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public class TrackAttribute(string name = "", float order = 0, object[]? actions = null) : Attribute
+public class TrackAttribute() : Attribute
 {
-    public TrackAttribute(string name, float order, object action) : this(name, order, actions: [action]) { }
-    public TrackAttribute(string name, object action) : this(name, 0, actions: [action]) { }
+    public TrackAttribute(string name) : this()
+    {
+        DisplayName = name;
+    }
 
-    public readonly string DisplayName = name;
-    public readonly float UiPriority = order;
-    public readonly ActionID[] Actions = [.. (actions ?? []).Select(a => ActionID.MakeSpell((Enum)a))];
+    public string DisplayName = "";
+    public float UiPriority;
+    public ActionID[] ActionIDs = [];
+
+    public object Action
+    {
+        set => Actions = [value];
+        get => Actions[0];
+    }
+    public object[] Actions
+    {
+        set => ActionIDs = [.. value.Select(v => ActionID.MakeSpell((Enum)v))];
+        get => [.. ActionIDs];
+    }
 }
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Enum)]
