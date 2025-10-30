@@ -61,7 +61,7 @@ class DeathWall(BossModule module) : Components.GenericAOEs(module, AID.CursedNo
             hints.Add("Raidwide + poison wall spawn", false);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 1 && state == 0x00020001)
         {

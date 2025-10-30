@@ -13,9 +13,9 @@ public sealed class ClassSAMUtility(RotationModuleManager manager, Actor player)
         DefineShared(res, IDLimitBreak3);
 
         res.Define(Track.ThirdEye).As<EyeOption>("ThirdEye", "Eye", 600)
-            .AddOption(EyeOption.None, "None", "Do not use automatically")
-            .AddOption(EyeOption.ThirdEye, "Use", "Use Third Eye", 15, 4, ActionTargets.Self, 6, 81)
-            .AddOption(EyeOption.Tengentsu, "UseEx", "Use Tengentsu", 15, 4, ActionTargets.Self, 82)
+            .AddOption(EyeOption.None, "Do not use automatically")
+            .AddOption(EyeOption.ThirdEye, "Use Third Eye", 15, 4, ActionTargets.Self, 6, 81)
+            .AddOption(EyeOption.Tengentsu, "Use Tengentsu", 15, 4, ActionTargets.Self, 82)
             .AddAssociatedActions(SAM.AID.ThirdEye, SAM.AID.Tengentsu);
 
         return res;

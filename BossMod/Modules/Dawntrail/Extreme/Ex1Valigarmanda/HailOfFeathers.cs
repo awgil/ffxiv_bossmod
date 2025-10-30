@@ -26,7 +26,23 @@ class HailOfFeathers(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FeatherOfRuin(BossModule module) : Components.Adds(module, (uint)OID.FeatherOfRuin);
+class FeatherOfRuin(BossModule module) : Components.Adds(module, (uint)OID.FeatherOfRuin)
+{
+    // only first feather needs to be killed
+    private Actor? Feather1;
+
+    public override void OnTargetable(Actor actor)
+    {
+        if (Feather1 == null && (OID)actor.OID == OID.FeatherOfRuin)
+            Feather1 = actor;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var feather in ActiveActors)
+            hints.SetPriority(feather, feather.InstanceID == Feather1?.InstanceID ? 0 : -1);
+    }
+}
 
 class BlightedBolt : Components.GenericAOEs
 {

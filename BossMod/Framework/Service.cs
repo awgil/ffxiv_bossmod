@@ -28,6 +28,7 @@ public sealed class Service
     [PluginService] public static IObjectTable ObjectTable { get; private set; }
     [PluginService] public static ITargetManager TargetManager { get; private set; }
     [PluginService] public static IKeyState KeyState { get; private set; }
+    [PluginService] public static INotificationManager Notifications { get; private set; }
 #pragma warning restore CS8618
 
 #pragma warning disable CA2211
@@ -45,6 +46,8 @@ public sealed class Service
 
     public static WindowSystem? WindowSystem;
 #pragma warning restore CA2211
+
+    public static bool IsUIDev => PluginInterface == null;
 
     public static readonly ConfigRoot Config = new();
 

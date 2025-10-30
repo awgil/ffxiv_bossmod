@@ -1,6 +1,8 @@
 ﻿using BossMod;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.Utility;
-using ImGuiNET;
+using Dalamud.Plugin.Services;
 using ImGuiScene;
 using Microsoft.Win32;
 using System.Diagnostics;
@@ -13,6 +15,16 @@ namespace UIDev;
 
 class UITest
 {
+    class OfflineNotificationManager : INotificationManager
+    {
+        public IActiveNotification AddNotification(Notification notification)
+        {
+            Debug.WriteLine("User notification:");
+            Debug.WriteLine(notification);
+            return null!; // result is never used in uidev
+        }
+    }
+
     public static void Main(string[] args)
     {
         var windowInfo = new WindowCreateInfo()
@@ -53,19 +65,20 @@ class UITest
         Service.LuminaGameData.Options.PanicOnSheetChecksumMismatch = false; // TODO: remove - temporary workaround until lumina is updated
         Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
         Service.WindowSystem = new("uitest");
-        typeof(Service).GetProperty("Texture")!.SetValue(null, new OfflineTextureProvider(scene.Renderer));
+        typeof(Service).GetProperty("Notifications")!.SetValue(null, new OfflineNotificationManager());
+        var device = (SharpDX.Direct3D11.Device)scene.Renderer.GetType().GetField("_device", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(scene.Renderer)!;
+        typeof(Service).GetProperty("Texture")!.SetValue(null, new OfflineTextureProvider(scene.Renderer, device));
         //Service.Device = (SharpDX.Direct3D11.Device?)scene.Renderer.GetType().GetField("_device", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(scene.Renderer);
 
         // esc should close focused window
         bool escDown = false;
-        scene.Window.OnSDLEvent += (ref SDL_Event sdlEvent) =>
+        scene.Window.OnSDLEvent += (ref sdlEvent) =>
         {
             if (sdlEvent.type == SDL_EventType.SDL_KEYDOWN && sdlEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_ESCAPE && !escDown)
             {
                 escDown = true;
                 var focusWindow = Service.WindowSystem.HasAnyFocus ? Service.WindowSystem.Windows.FirstOrDefault(w => w.IsFocused && w.RespectCloseHotkey) : null;
-                if (focusWindow != null)
-                    focusWindow.IsOpen = false;
+                focusWindow?.IsOpen = false;
             }
             else if (sdlEvent.type == SDL_EventType.SDL_KEYUP && sdlEvent.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_ESCAPE)
             {
@@ -78,6 +91,11 @@ class UITest
         {
             // this hack is needed to ensure we use correct global scale
             newFrame.Invoke();
+
+            // dalamud trying to draw a fadeout effect causes a deadlock in uidev as the TextureManager service isn't present
+            foreach (var w in Service.WindowSystem.Windows)
+                w.DisableFadeInFadeOut = true;
+
             Service.WindowSystem.Draw();
         };
 
@@ -101,11 +119,11 @@ class UITest
         var cont = dala.GetType("Dalamud.IoC.Internal.ServiceContainer")!;
 
         var provideFn = wrapper.GetMethod("Provide", BindingFlags.Static | BindingFlags.Public);
-        var inst = Activator.CreateInstance(cont);
-        provideFn!.Invoke(null, [inst]);
+        provideFn!.Invoke(null, [Activator.CreateInstance(cont)]);
+        // provideFn!.Invoke(null, [Activator.CreateInstance(texManager)]);
 
         // all of this is taken straight from dalamud
-        ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+        ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig();
         fontConfig.MergeMode = true;
         fontConfig.PixelSnapH = true;
 
@@ -114,7 +132,7 @@ class UITest
 
         var fontPathGame = "gamesym.ttf";
         var rangeHandle = GCHandle.Alloc(new ushort[] { 0xE020, 0xE0DB, 0 }, GCHandleType.Pinned);
-        ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, rangeHandle.AddrOfPinnedObject());
+        ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, (ushort*)rangeHandle.AddrOfPinnedObject());
 
         ImGui.GetIO().Fonts.Build();
 

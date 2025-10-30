@@ -14,13 +14,13 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
     {
         var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(FRU));
         res.Define(Track.Movement).As<MovementStrategy>("Movement", "Movement")
-            .AddOption(MovementStrategy.None, "None", "No automatic movement")
-            .AddOption(MovementStrategy.Pathfind, "Pathfind", "Use standard pathfinding to move")
-            .AddOption(MovementStrategy.PathfindMeleeGreed, "PathfindMeleeGreed", "Melee greed: find closest safespot, then move to maxmelee closest to it")
-            .AddOption(MovementStrategy.Explicit, "Explicit", "Move to specific point", supportedTargets: ActionTargets.Area)
-            .AddOption(MovementStrategy.ExplicitMelee, "ExplicitMelee", "Move to the point in maxmelee that is closest to specific point", supportedTargets: ActionTargets.Area)
-            .AddOption(MovementStrategy.Prepull, "Prepull", "Pre-pull position: as close to the clock-spot as possible")
-            .AddOption(MovementStrategy.DragToCenter, "DragToCenter", "Drag boss to the arena center");
+            .AddOption(MovementStrategy.None, "No automatic movement")
+            .AddOption(MovementStrategy.Pathfind, "Use standard pathfinding to move")
+            .AddOption(MovementStrategy.PathfindMeleeGreed, "Melee greed: find closest safespot, then move to maxmelee closest to it")
+            .AddOption(MovementStrategy.Explicit, "Move to specific point", supportedTargets: ActionTargets.Area)
+            .AddOption(MovementStrategy.ExplicitMelee, "Move to the point in maxmelee that is closest to specific point", supportedTargets: ActionTargets.Area)
+            .AddOption(MovementStrategy.Prepull, "Pre-pull position: as close to the clock-spot as possible")
+            .AddOption(MovementStrategy.DragToCenter, "Drag boss to the arena center");
         return res;
     }
 
@@ -28,7 +28,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (Bossmods.ActiveModule is FRU module && module.Raid.FindSlot(Player.InstanceID) is var playerSlot && playerSlot >= 0)
+        if (Bossmods.ActiveModule is FRU module && module.Raid.TryFindSlot(Player.InstanceID, out var playerSlot))
         {
             SetForcedMovement(CalculateDestination(module, primaryTarget, strategy.Option(Track.Movement), Service.Config.Get<PartyRolesConfig>()[module.Raid.Members[playerSlot].ContentId]));
         }
@@ -48,7 +48,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
     // TODO: account for leeway for casters
     private WPos PathfindPosition(Actor? meleeGreedTarget)
     {
-        var res = NavigationDecision.Build(NavigationContext, World, Hints, Player, Speed());
+        var res = NavigationDecision.Build(NavigationContext, World.CurrentTime, Hints, Player.Position, Speed());
         return meleeGreedTarget != null && res.Destination != null ? ClosestInMelee(res.Destination.Value, meleeGreedTarget) : (res.Destination ?? Player.Position);
     }
 

@@ -13,8 +13,8 @@ public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player)
         DefineShared(res, IDLimitBreak3);
 
         res.Define(Track.RadiantAegis).As<AegisStrategy>("Radiant Aegis", "Aegis", 20)
-            .AddOption(AegisStrategy.None, "None", "No use")
-            .AddOption(AegisStrategy.Use, "Use", "Use Radiant Aegis", 60, 30, ActionTargets.Self, 2);
+            .AddOption(AegisStrategy.None, "No use")
+            .AddOption(AegisStrategy.Use, "Use Radiant Aegis", 60, 30, ActionTargets.Self, 2);
 
         //TODO: Rekindle here or inside own module?
 

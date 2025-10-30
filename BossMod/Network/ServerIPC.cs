@@ -167,10 +167,10 @@ public enum PacketID
     ServerRequestCallbackResponse1 = 378,
     ServerRequestCallbackResponse2 = 379,
     ServerRequestCallbackResponse3 = 380,
-    EnvControl = 402,
-    EnvControl4 = 403,
-    EnvControl8 = 404,
-    EnvControl12 = 405,
+    MapEffect = 402,
+    MapEffect4 = 403,
+    MapEffect8 = 404,
+    MapEffect12 = 405,
     SystemLogMessage1 = 408,
     SystemLogMessage2 = 409,
     SystemLogMessage4 = 410,
@@ -558,6 +558,7 @@ public enum ActorControlCategory : ushort
     UnlockAetherCurrentMsg = 164, // from dissector
     RemoveName = 168, // from dissector
     ScreenFadeOut = 170, // from dissector
+    TargetVFX = 184,
     ZoneIn = 200, // from dissector
     ZoneInDefaultPos = 201, // from dissector
     TeleportStart = 203, // from dissector
@@ -665,6 +666,7 @@ public enum ActorControlCategory : ushort
     TripleTriadUnknown = 1205, // from dissector
     FateNpc = 2351, // from dissector
     FateInit = 2353, // from dissector
+    FateReceiveItem = 2354,
     FateAssignID = 2356, // p1 = fate id, assigned to main obj
     FateStart = 2357, // from dissector
     FateEnd = 2358, // from dissector
@@ -1156,7 +1158,7 @@ public unsafe struct DecodeServerRequestCallbackResponse
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct EnvControl
+public struct MapEffect
 {
     public uint DirectorID;
     public ushort State1; // typically has 1 bit set

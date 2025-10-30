@@ -49,10 +49,13 @@ public sealed class ReplayBuilder : IDisposable
             _ws.Actors.IconAppeared.Subscribe(EventIcon),
             _ws.Actors.CastEvent.Subscribe(EventCast),
             _ws.Actors.EffectResult.Subscribe(EventConfirm),
+            _ws.Actors.EventObjectAnimation.Subscribe(EventObjectAnimation),
+            _ws.Actors.EventStateChanged.Subscribe(EventState),
+            _ws.Actors.PlayActionTimelineEvent.Subscribe(PlayActionTimeline),
             _ws.UserMarkerAdded.Subscribe(EventUserMarker),
             _ws.CurrentZoneChanged.Subscribe(EventZoneChange),
             _ws.DirectorUpdate.Subscribe(EventDirectorUpdate),
-            _ws.EnvControl.Subscribe(EventEnvControl),
+            _ws.MapEffect.Subscribe(EventMapEffect),
             _ws.Client.ActionRequested.Subscribe(ClientActionRequested),
             _ws.Client.ActionRejected.Subscribe(ClientActionRejected),
             _mgr.ModuleLoaded.Subscribe(ModuleLoaded),
@@ -126,7 +129,7 @@ public sealed class ReplayBuilder : IDisposable
                     m.Encounter.FirstTether = _res.Tethers.Count;
                     m.Encounter.FirstIcon = _res.Icons.Count;
                     m.Encounter.FirstDirectorUpdate = _res.DirectorUpdates.Count;
-                    m.Encounter.FirstEnvControl = _res.EnvControls.Count;
+                    m.Encounter.FirstEnvControl = _res.MapEffects.Count;
                     foreach (var p in _participants.Values.Where(p => p.WorldExistence.Count > 0 && p.WorldExistence[^1].End == default)) // include only live actors
                         m.Encounter.ParticipantsByOID.GetOrAdd(p.OID).Add(p);
                     foreach (var p in _ws.Party.WithoutSlot(true))
@@ -399,6 +402,21 @@ public sealed class ReplayBuilder : IDisposable
         }
     }
 
+    private void EventObjectAnimation(Actor actor, ushort param1, ushort param2)
+    {
+        _participants[actor.InstanceID].EventObjectAnimation[_ws.CurrentTime] = ((uint)param1 << 16) | param2;
+    }
+
+    private void EventState(Actor actor)
+    {
+        _participants[actor.InstanceID].EventState[_ws.CurrentTime] = actor.EventState;
+    }
+
+    private void PlayActionTimeline(Actor actor, ushort id)
+    {
+        _participants[actor.InstanceID].ActionTimeline[_ws.CurrentTime] = id;
+    }
+
     private void EventUserMarker(WorldState.OpUserMarker op)
     {
         _res.UserMarkers.Add(_ws.CurrentTime, op.Text);
@@ -417,9 +435,9 @@ public sealed class ReplayBuilder : IDisposable
         _res.DirectorUpdates.Add(new(op.DirectorID, op.UpdateID, op.Param1, op.Param2, op.Param3, op.Param4, _ws.CurrentTime));
     }
 
-    private void EventEnvControl(WorldState.OpEnvControl op)
+    private void EventMapEffect(WorldState.OpMapEffect op)
     {
-        _res.EnvControls.Add(new(op.Index, op.State, _ws.CurrentTime));
+        _res.MapEffects.Add(new(op.Index, op.State, _ws.CurrentTime));
     }
 
     private void ClientActionRequested(ClientState.OpActionRequest op)

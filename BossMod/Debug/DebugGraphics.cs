@@ -1,6 +1,6 @@
 ﻿using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Text;
 
 namespace BossMod;
@@ -38,7 +38,7 @@ class DebugGraphics
         {
             var nodeText = $"{SceneNodeText(o)}###{(IntPtr)o}";
             ImGuiTreeNodeFlags nodeFlags = (o->ChildObject != null ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf) | ImGuiTreeNodeFlags.OpenOnArrow;
-            bool showNode = !_showGraphicsLeafCharactersOnly || o->ChildObject != null || o->GetObjectType() == FFXIVClientStructs.FFXIV.Client.Graphics.Scene.ObjectType.CharacterBase;
+            bool showNode = !_showGraphicsLeafCharactersOnly || o->ChildObject != null || o->GetObjectType() == ObjectType.CharacterBase;
             if (showNode && ImGui.TreeNodeEx(nodeText, nodeFlags))
             {
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
@@ -49,10 +49,10 @@ class DebugGraphics
                         int size = 0x80;
                         switch (o->GetObjectType())
                         {
-                            case FFXIVClientStructs.FFXIV.Client.Graphics.Scene.ObjectType.CharacterBase:
+                            case ObjectType.CharacterBase:
                                 size = 0x8F0;
                                 break;
-                            case FFXIVClientStructs.FFXIV.Client.Graphics.Scene.ObjectType.VfxObject:
+                            case ObjectType.VfxObject:
                                 size = 0x1C8;
                                 break;
                         }
@@ -441,7 +441,7 @@ class DebugGraphics
         var s = $"0x{(IntPtr)o:X}: t={t}, flags={Utils.SceneObjectFlags(o):X}, pos={Utils.Vec3String(o->Position)}, rot={Utils.QuatString(o->Rotation)}, scale={Utils.Vec3String(o->Scale)}";
         switch (t)
         {
-            case FFXIVClientStructs.FFXIV.Client.Graphics.Scene.ObjectType.VfxObject:
+            case ObjectType.VfxObject:
                 s += $", ac={Utils.ReadField<int>(o, 0x128):X}, at={Utils.ReadField<int>(o, 0x130):X}, sc={Utils.ReadField<int>(o, 0x1B8):X}, st={Utils.ReadField<int>(o, 0x1C0)}:X";
                 break;
         }

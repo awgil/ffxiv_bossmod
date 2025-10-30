@@ -26,7 +26,7 @@ class Abyss(BossModule module) : Components.BaitAwayCast(module, AID.Abyss, new 
 class Catapult(BossModule module) : Components.StandardAOEs(module, AID.Catapult, 6);
 class CorseAdds(BossModule module) : Components.AddsMulti(module, [OID.BicephalicCorse, OID.GiantCorse, OID.IronCorse]);
 class Doom(BossModule module) : Components.StandardAOEs(module, AID.Doom, new AOEShapeCone(47.4f, 60.Degrees()));
-class Shackle(BossModule module) : Components.StandardAOEs(module, AID.Shackle, new AOEShapeRect(52.4f, 4, 0));
+class Shackle(BossModule module) : Components.StandardAOEs(module, AID.Shackle, new AOEShapeRect(52.4f, 4));
 class SummonDarkness(BossModule module) : Components.CastHint(module, AID.SummonDarkness, "Summoning the corse, incoming Adds! \nRemember to use a resolution to make them permanently disappear");
 
 class EncounterHints(BossModule module) : BossComponent(module)

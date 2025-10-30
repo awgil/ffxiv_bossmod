@@ -54,8 +54,7 @@ class LimitCut(BossModule module, float alphaDelay) : Components.GenericBaitAway
     {
         if (iconID is >= 79 and <= 86)
         {
-            int slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
                 PlayerOrder[slot] = (int)iconID - 78;
 
             if (_chaser == null)

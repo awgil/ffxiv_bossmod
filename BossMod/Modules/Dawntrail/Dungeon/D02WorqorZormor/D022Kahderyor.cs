@@ -48,7 +48,7 @@ class CrystallineCrush(BossModule module) : Components.CastTowers(module, AID.Cr
             hints.AddForbiddenZone(new AOEShapeDonut(6, 40), Towers[0].Position);
     }
 }
-class CrystallineStorm(BossModule module) : Components.StandardAOEs(module, AID.CrystallineStormAOE, new AOEShapeRect(25, 1, 25));
+class CrystallineStorm(BossModule module) : Components.StandardAOEs(module, AID.CrystallineStormAOE, new AOEShapeRect(50, 1));
 class WindShot(BossModule module) : Components.BaitAwayCast(module, AID.WindShotAOE, new AOEShapeDonut(5, 10), true); // TODO: verify inner radius
 class EarthenShot(BossModule module) : Components.SpreadFromCastTargets(module, AID.EarthenShotAOE, 6);
 

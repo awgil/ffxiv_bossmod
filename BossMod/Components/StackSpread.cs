@@ -31,11 +31,16 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
     public IEnumerable<Stack> ActiveStacks => IncludeDeadTargets ? Stacks : Stacks.Where(s => !s.Target.IsDead);
     public IEnumerable<Spread> ActiveSpreads => IncludeDeadTargets ? Spreads : Spreads.Where(s => !s.Target.IsDead);
 
+    public bool EnableHints = true;
+
     public bool IsStackTarget(Actor? actor) => Stacks.Any(s => s.Target == actor);
     public bool IsSpreadTarget(Actor? actor) => Spreads.Any(s => s.Target == actor);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
+        if (!EnableHints)
+            return;
+
         if (Spreads.FindIndex(s => s.Target == actor) is var iSpread && iSpread >= 0)
         {
             hints.Add("Spread!", Raid.WithoutSlot().InRadiusExcluding(actor, Spreads[iSpread].Radius).Any());
@@ -86,6 +91,11 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (!EnableHints)
+            return;
+
+        int numOthersInside(Stack s) => Raid.WithoutSlot().Exclude(actor).InRadius(s.Target.Position, s.Radius).Count();
+
         // forbid standing next to spread markers
         // TODO: think how to improve this, current implementation works, but isn't particularly good - e.g. nearby players tend to move to same spot, turn around, etc.
         // ideally we should provide per-mechanic spread spots, but for simple cases we should try to let melee spread close and healers/rdd spread far from main target...
@@ -98,7 +108,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
             foreach (var p in Raid.WithoutSlot().Exclude(actor))
                 hints.AddForbiddenZone(ShapeContains.Circle(p.Position, actorSpread.Radius), actorSpread.Activation);
 
-        foreach (var avoid in ActiveStacks.Where(s => s.Target != actor && s.ForbiddenPlayers[slot]))
+        foreach (var avoid in ActiveStacks.Where(s => s.Target != actor && (s.ForbiddenPlayers[slot] || numOthersInside(s) >= s.MaxSize)))
             hints.AddForbiddenZone(ShapeContains.Circle(avoid.Target.Position, avoid.Radius), avoid.Activation);
 
         if (Stacks.FirstOrDefault(s => s.Target == actor) is var actorStack && actorStack.Target != null)
@@ -114,28 +124,32 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         else if (actorSpread.Target == null)
         {
             // TODO: handle multi stacks better...
-            var closestStack = ActiveStacks.Where(s => !s.ForbiddenPlayers[slot]).MinBy(s => (s.Target.Position - actor.Position).LengthSq());
+            var closestStack = ActiveStacks.Where(s => !s.ForbiddenPlayers[slot] && numOthersInside(s) < s.MaxSize).MinBy(s => (s.Target.Position - actor.Position).LengthSq());
             if (closestStack.Target != null)
                 hints.AddForbiddenZone(ShapeContains.InvertedCircle(closestStack.Target.Position, closestStack.Radius), closestStack.Activation);
         }
 
+        var spreadMask = new BitMask();
+        var stackMask = new BitMask();
+
         if (RaidwideOnResolve)
         {
-            DateTime firstActivation = DateTime.MaxValue;
-            BitMask damageMask = new();
+            var firstActivation = DateTime.MaxValue;
             foreach (var s in ActiveSpreads)
             {
-                damageMask.Set(Raid.FindSlot(s.Target.InstanceID));
+                spreadMask.Set(Raid.FindSlot(s.Target.InstanceID));
                 firstActivation = firstActivation < s.Activation ? firstActivation : s.Activation;
             }
             foreach (var s in ActiveStacks)
             {
-                damageMask |= Raid.WithSlot().Mask() & ~s.ForbiddenPlayers; // assume everyone will take damage except forbidden players (so-so assumption really...)
+                stackMask |= Raid.WithSlot().Mask() & ~s.ForbiddenPlayers; // assume everyone will take damage except forbidden players (so-so assumption really...)
                 firstActivation = firstActivation < s.Activation ? firstActivation : s.Activation;
             }
 
-            if (damageMask.Any())
-                hints.PredictedDamage.Add((damageMask, firstActivation));
+            if (spreadMask.Any())
+                hints.AddPredictedDamage(spreadMask, firstActivation, AIHints.PredictedDamageType.Raidwide);
+            if (stackMask.Any())
+                hints.AddPredictedDamage(stackMask, firstActivation, AIHints.PredictedDamageType.Shared);
         }
     }
 

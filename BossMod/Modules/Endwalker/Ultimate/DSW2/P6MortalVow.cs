@@ -46,8 +46,7 @@ class P6MortalVow : Components.UniformStackSpread
                 _vowExpiration = status.ExpireAt;
                 break;
             case SID.MortalAtonement:
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                     _atonementExpiration[slot] = status.ExpireAt;
                 break;
         }
@@ -62,8 +61,7 @@ class P6MortalVow : Components.UniformStackSpread
                     _vow = null;
                 break;
             case SID.MortalAtonement:
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                     _atonementExpiration[slot] = default;
                 break;
         }

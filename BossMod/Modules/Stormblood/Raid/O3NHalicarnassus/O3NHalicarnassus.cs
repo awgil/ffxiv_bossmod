@@ -1,4 +1,5 @@
 namespace BossMod.Stormblood.Raid.O3NHalicarnassus;
+
 public enum OID : uint
 {
     Boss = 0x1E14, // R0.5

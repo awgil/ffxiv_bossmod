@@ -38,7 +38,7 @@ public enum AID : uint
 }
 
 class Innocence(BossModule module) : Components.StandardAOEs(module, AID.Innocence, 5);
-class HydroPush(BossModule module) : Components.StandardAOEs(module, AID.HydroPush, new AOEShapeRect(49.4f, 22, 5));
+class HydroPush(BossModule module) : Components.StandardAOEs(module, AID.HydroPush, new AOEShapeRect(49.4f, 22));
 
 class BloodyPuddle(BossModule module) : Components.GenericAOEs(module)
 {
@@ -70,7 +70,7 @@ class BloodyPuddle(BossModule module) : Components.GenericAOEs(module)
 
 class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Torpedo);
 class RisingSeas(BossModule module) : Components.RaidwideCast(module, AID.RisingSeas);
-class HydroPushKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPush, 20, shape: new AOEShapeRect(49.4f, 22, 5), kind: Kind.DirForward, stopAtWall: true);
+class HydroPushKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPush, 20, shape: new AOEShapeRect(49.4f, 22), kind: Kind.DirForward, stopAtWall: true);
 
 class RisingSeasKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.RisingSeas, 20, stopAtWall: true)
 {

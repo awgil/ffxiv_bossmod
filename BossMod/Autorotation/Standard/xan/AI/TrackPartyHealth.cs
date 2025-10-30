@@ -1,4 +1,4 @@
-﻿namespace BossMod.Autorotation.xan.AI;
+﻿namespace BossMod.Autorotation.xan;
 
 public class TrackPartyHealth(WorldState World)
 {
@@ -44,15 +44,6 @@ public class TrackPartyHealth(WorldState World)
     private BitMask _trackedActors;
 
     public IEnumerable<(int, Actor)> TrackedMembers => World.Party.WithSlot().IncludedInMask(_trackedActors);
-
-    // looking up this field in sheets is noticeably expensive somehow
-    private static readonly Dictionary<uint, bool> _esunaCache = [];
-    private static bool StatusIsRemovable(uint statusID)
-    {
-        if (_esunaCache.TryGetValue(statusID, out var value))
-            return value;
-        return _esunaCache[statusID] = Utils.StatusIsRemovable(statusID);
-    }
 
     private static readonly uint[] NoHealStatuses = [
         82, // Hallowed Ground
@@ -176,7 +167,8 @@ public class TrackPartyHealth(WorldState World)
             }
 
             var actor = World.Party[i];
-            _haveRealPartyMembers |= actor?.Type == ActorType.Player;
+            if (i > 0)
+                _haveRealPartyMembers |= actor?.Type == ActorType.Player;
 
             if (actor == null || actor.IsDead || actor.HPMP.MaxHP == 0 || actor.FateID > 0 || shouldSkip)
             {
@@ -200,7 +192,7 @@ public class TrackPartyHealth(WorldState World)
             var canEsuna = actor.IsTargetable && !esunas[i];
             foreach (var s in actor.Statuses)
             {
-                if (canEsuna && StatusIsRemovable(s.ID))
+                if (canEsuna && Utils.StatusIsRemovable(s.ID))
                     state.EsunableStatusRemaining = Math.Max(StatusDuration(s.ExpireAt), state.EsunableStatusRemaining);
 
                 if (NoHealStatuses.Contains(s.ID))
@@ -237,7 +229,7 @@ public class TrackPartyHealth(WorldState World)
         }
 
         foreach (var predicted in Hints.PredictedDamage)
-            foreach (var bit in predicted.players.SetBits())
+            foreach (var bit in predicted.Players.SetBits())
                 PartyMemberStates[bit].PredictedHPRatio -= 0.30f;
 
         PartyHealth = CalculatePartyHealthState(_ => true);

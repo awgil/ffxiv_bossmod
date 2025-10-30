@@ -31,7 +31,7 @@ class Mechanics(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var mtSlot = WorldState.Party.FindSlot(Module.PrimaryActor.TargetID);
+        var haveMt = WorldState.Party.TryFindSlot(Module.PrimaryActor.TargetID, out var mtSlot);
         if (actor.Role == Role.Tank)
         {
             if (Module.PrimaryActor.TargetID == actor.InstanceID)
@@ -41,7 +41,7 @@ class Mechanics(BossModule module) : BossComponent(module)
             }
             else
             {
-                if (mtSlot >= 0 && _tankStacks[mtSlot] >= 4)
+                if (haveMt && _tankStacks[mtSlot] >= 4)
                     hints.Add("Taunt boss!");
             }
         }
@@ -173,8 +173,7 @@ class Mechanics(BossModule module) : BossComponent(module)
 
     private void SetTankStacks(Actor actor, int stacks)
     {
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             _tankStacks[slot] = stacks;
     }
 }

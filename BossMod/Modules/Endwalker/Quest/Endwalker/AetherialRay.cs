@@ -13,7 +13,7 @@ class AetherialRay(BossModule module) : Components.GenericBaitAway(module, cente
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_activation != default)
-            hints.PredictedDamage.Add((new(1), _activation));
+            hints.AddPredictedDamage(new(1), _activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

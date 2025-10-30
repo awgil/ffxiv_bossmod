@@ -3,14 +3,16 @@
 class P2QuadrupleSlap(BossModule module) : Components.TankSwap(module, AID.QuadrupleSlapFirst, AID.QuadrupleSlapFirst, AID.QuadrupleSlapSecond, 4.1f, null, true);
 class P3Junction(BossModule module) : Components.CastCounter(module, AID.Junction);
 class P3BlackHalo(BossModule module) : Components.CastSharedTankbuster(module, AID.BlackHalo, new AOEShapeCone(60, 45.Degrees())); // TODO: verify angle
-class P4HallowedWingsL(BossModule module) : Components.StandardAOEs(module, AID.HallowedWingsL, new AOEShapeRect(80, 20, 0, 90.Degrees()));
-class P4HallowedWingsR(BossModule module) : Components.StandardAOEs(module, AID.HallowedWingsR, new AOEShapeRect(80, 20, 0, -90.Degrees()));
+class P4HallowedWingsL(BossModule module) : Components.StandardAOEs(module, AID.HallowedWingsL, new AOEShapeRect(80, 20));
+class P4HallowedWingsR(BossModule module) : Components.StandardAOEs(module, AID.HallowedWingsR, new AOEShapeRect(80, 20));
 class P5ParadiseLost(BossModule module) : Components.CastCounter(module, AID.ParadiseLostP5AOE);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1006, NameID = 9707, PlanLevel = 100)]
 public class FRU(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
 {
     public static readonly ArenaBoundsSquare PathfindHugBorderBounds = new(20); // this is a hack to allow precise positioning near border by some mechanics, TODO reconsider
+
+    public override bool ShouldPrioritizeAllEnemies => true;
 
     private Actor? _bossP2;
     private Actor? _iceVeil;

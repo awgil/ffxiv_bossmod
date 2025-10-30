@@ -1,4 +1,5 @@
 namespace BossMod.Heavensward.Dungeon.D17BaelsarsWall.D173TheGriffin;
+
 public enum OID : uint
 {
     Boss = 0x193D, // R1.500, x?

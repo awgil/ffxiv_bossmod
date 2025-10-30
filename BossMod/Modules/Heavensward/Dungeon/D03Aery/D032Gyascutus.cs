@@ -21,9 +21,7 @@ public enum AID : uint
 }
 
 class ProximityPyre(BossModule module) : Components.StandardAOEs(module, AID.ProximityPyre, new AOEShapeCircle(12));
-class InflammableFumes(BossModule module) : Components.SingleTargetCast(module, AID.InflammableFumes);
 class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, 10);
-class Burst2(BossModule module) : Components.StandardAOEs(module, AID.Burst2, 10);
 class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, AID.DeafeningBellow);
 class AshenOuroboros(BossModule module) : Components.StandardAOEs(module, AID.AshenOuroboros, new AOEShapeDonut(11, 20));
 class BodySlam(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodySlam, 10, stopAtWall: false);
@@ -34,9 +32,7 @@ class D032GyascutusStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<ProximityPyre>()
-            .ActivateOnEnter<InflammableFumes>()
             .ActivateOnEnter<Burst>()
-            .ActivateOnEnter<Burst2>()
             .ActivateOnEnter<DeafeningBellow>()
             .ActivateOnEnter<AshenOuroboros>()
             .ActivateOnEnter<BodySlam>()

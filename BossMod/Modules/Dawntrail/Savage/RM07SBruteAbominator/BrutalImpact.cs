@@ -14,7 +14,7 @@ class BrutalImpact(BossModule module) : Components.CastCounter(module, AID.Bruta
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (ShowHint)
-            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Activation));
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Activation);
     }
 
     public override void AddGlobalHints(GlobalHints hints)

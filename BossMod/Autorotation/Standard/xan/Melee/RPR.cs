@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
 {
-    public enum Track { Harpe = SharedTrack.Count }
+    public enum Track { Harpe = SharedTrack.Count, Crest }
 
     public enum HarpeStrategy
     {
@@ -24,6 +24,8 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             .AddOption(HarpeStrategy.Automatic, "Use out of melee range if Enhanced Harpe is active")
             .AddOption(HarpeStrategy.Forbid, "Don't use")
             .AddOption(HarpeStrategy.Ranged, "Use out of melee range");
+
+        def.AbilityTrack(Track.Crest, "Crest", "Arcane Crest").AddAssociatedActions(AID.ArcaneCrest);
 
         return def;
     }
@@ -130,6 +132,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         if (CountdownRemaining > 0)
         {
+            if (CountdownRemaining > GetCastTime(AID.Harpe) + 2.55f && !Soulsow)
+                PushGCD(AID.SoulSow, Player, GCDPriority.Soulsow);
+
             if (CountdownRemaining < GetCastTime(AID.Harpe))
                 PushGCD(AID.Harpe, primaryTarget);
 
@@ -162,8 +167,15 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             return; // every other GCD breaks soul reaver
         }
 
-        if (!Player.InCombat && Player.MountId == 0 && !Soulsow)
-            PushGCD(AID.SoulSow, Player, GCDPriority.Soulsow);
+        if (!Player.InCombat)
+        {
+            if (!Soulsow)
+                PushGCD(AID.SoulSow, Player, GCDPriority.Soulsow);
+
+            // if we exit combat while casting, cancel it so we get instant cast instead
+            if (Player.CastInfo?.Action.ID == (uint)AID.SoulSow)
+                Hints.ForceCancelCast = true;
+        }
 
         switch (strategy.Option(Track.Harpe).As<HarpeStrategy>())
         {
@@ -227,7 +239,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.BuffsOk())
         {
             // wait for soul slice in opener
-            if (OnCooldown(AID.SoulSlice) || CombatTimer > 60)
+            if (OnCooldown(AID.SoulSlice) || CombatTimer > 10)
                 PushOGCD(AID.ArcaneCircle, Player, delay: GCD - 1.6f);
         }
 
@@ -252,6 +264,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.Enshroud, Player);
 
         UseSoul(strategy, primaryTarget);
+
+        if (strategy.Enabled(Track.Crest) && Hints.PredictedDamage.Any(p => p.Players[0] && p.Activation < World.FutureTime(5)))
+            PushOGCD(AID.ArcaneCrest, Player);
     }
 
     private void DDRefresh(Enemy? primaryTarget)
@@ -339,7 +354,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         var prio = GCDPriority.Lemure;
 
         if (CanWeave(AID.ArcaneCircle, 2, extraFixedDelay: 1.5f) && BlueSouls < 5)
-            prio = GCDPriority.None;
+            prio = GCDPriority.Filler;
 
         if (RaidBuffsLeft > 0)
             prio = GCDPriority.Lemure;

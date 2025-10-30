@@ -35,7 +35,7 @@ class DelugeOfDarkness2(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Phase2AIHints(BossModule module) : BossComponent(module)
+class Phase2AIHints(BossModule module) : Components.GenericInvincible(module)
 {
     [Flags]
     enum Position
@@ -47,30 +47,18 @@ class Phase2AIHints(BossModule module) : BossComponent(module)
 
     private readonly Position[] _playerPositions = new Position[PartyState.MaxAllianceSize];
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor)
     {
         var pos = _playerPositions[slot];
-        foreach (var enemy in hints.PotentialTargets)
-        {
-            switch ((OID)enemy.Actor.OID)
-            {
-                case OID.Atomos:
-                    if (pos.HasFlag(Position.Inside))
-                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
-                    else if (actor.Class.GetRole() == Role.Ranged)
-                        enemy.Priority = 5;
-                    break;
-                case OID.StygianShadow:
-                    if (pos.HasFlag(Position.Inside))
-                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
-                    break;
-                case OID.Boss:
-                    if (pos.HasFlag(Position.Outside))
-                        enemy.Priority = AIHints.Enemy.PriorityInvincible;
-                    break;
+        var e = Enumerable.Empty<Actor>();
 
-            }
-        }
+        if (pos.HasFlag(Position.Inside))
+            e = e.Concat(Module.Enemies(OID.Atomos)).Concat(Module.Enemies(OID.StygianShadow));
+
+        if (pos.HasFlag(Position.Outside))
+            e = e.Concat([Module.PrimaryActor]);
+
+        return e;
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -101,15 +89,13 @@ class Phase2AIHints(BossModule module) : BossComponent(module)
 
     private void SetState(Actor a, Position flag)
     {
-        var slot = Raid.FindSlot(a.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(a, out var slot))
             _playerPositions[slot] |= flag;
     }
 
     private void ClearState(Actor a, Position flag)
     {
-        var slot = Raid.FindSlot(a.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(a, out var slot))
             _playerPositions[slot] &= ~flag;
     }
 }
@@ -129,7 +115,7 @@ class Phase2OuterRing(BossModule module) : Components.GenericAOEs(module)
             _aoe = new(_shape, Module.Center, default, Module.CastFinishAt(spell, 1.1f));
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index != 2)
             return;
@@ -164,7 +150,7 @@ class Phase2InnerCells(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // 03-1E = mid squares
         // - 08000001 - init

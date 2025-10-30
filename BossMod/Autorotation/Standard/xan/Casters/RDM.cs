@@ -28,15 +28,15 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         def.DefineShared().AddAssociatedActions(AID.Embolden, AID.Manafication);
 
         def.Define(Track.Combo).As<ComboStrategy>("Melee Combo")
-            .AddOption(ComboStrategy.Complete, "Complete", "Require melee combo to be completed - do nothing while target is out of range")
-            .AddOption(ComboStrategy.Break, "Break", "Allow breaking melee combo if target moves out of range");
+            .AddOption(ComboStrategy.Complete, "Require melee combo to be completed - do nothing while target is out of range")
+            .AddOption(ComboStrategy.Break, "Allow breaking melee combo if target moves out of range");
 
         def.Define(Track.Dash).As<DashStrategy>("Corps-a-Corps")
-            .AddOption(DashStrategy.CloseMove, "CloseMove", "Only use while close to target and not moving")
-            .AddOption(DashStrategy.Close, "Close", "Only use while close to target")
-            .AddOption(DashStrategy.Move, "Move", "Only use while not moving")
-            .AddOption(DashStrategy.Any, "Any", "Use ASAP")
-            .AddOption(DashStrategy.Forbid, "Forbid", "Don't use at all");
+            .AddOption(DashStrategy.CloseMove, "Only use while close to target and not moving")
+            .AddOption(DashStrategy.Close, "Only use while close to target")
+            .AddOption(DashStrategy.Move, "Only use while not moving")
+            .AddOption(DashStrategy.Any, "Use ASAP")
+            .AddOption(DashStrategy.Forbid, "Don't use at all");
 
         return def;
     }

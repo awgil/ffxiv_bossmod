@@ -19,7 +19,7 @@ class MousseDripStack(BossModule module) : Components.GenericStackSpread(module)
         if ((AID)spell.Action.ID == AID.MousseDrip)
         {
             NumCasts++;
-            if (Raid.FindSlot(spell.MainTargetID) is var slot && slot >= 0)
+            if (Raid.TryFindSlot(spell.MainTargetID, out var slot))
             {
                 Counters[slot]++;
                 if (Counters[slot] >= 4)

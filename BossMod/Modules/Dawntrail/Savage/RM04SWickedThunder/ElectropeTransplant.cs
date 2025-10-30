@@ -57,8 +57,7 @@ class ForkedFissures : Components.GenericWildCharge
         {
             case AID.ConductionPoint:
                 Source = caster;
-                var slot = Raid.FindSlot(spell.MainTargetID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(spell.MainTargetID, out var slot))
                     PlayerRoles[slot] = PlayerRole.TargetNotFirst;
                 break;
             case AID.ForkedFissures:

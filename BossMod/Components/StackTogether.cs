@@ -8,15 +8,11 @@ public class StackTogether(BossModule module, uint iconId, float activationDelay
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID == Icon)
+        if (iconID == Icon && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
-            {
-                Targets.Set(slot);
-                if (Activation == default)
-                    Activation = WorldState.FutureTime(activationDelay);
-            }
+            Targets.Set(slot);
+            if (Activation == default)
+                Activation = WorldState.FutureTime(activationDelay);
         }
     }
 

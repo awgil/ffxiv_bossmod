@@ -127,8 +127,7 @@ class ForbiddenFruitCommon(BossModule module, Enum watchedAction) : Components.G
     {
         if ((TetherID)tether.ID is TetherID.Bull or TetherID.MinotaurClose or TetherID.MinotaurFar or TetherID.Bird)
         {
-            int slot = Raid.FindSlot(tether.Target);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(tether.Target, out var slot))
             {
                 TetherSources[slot] = source;
                 ++NumAssignedTethers;

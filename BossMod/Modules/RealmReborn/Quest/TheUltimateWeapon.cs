@@ -95,7 +95,7 @@ class DeathWall(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(new AOEShapeDonut(15, 100), Arena.Center);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0 && state == 0x20001)
         {

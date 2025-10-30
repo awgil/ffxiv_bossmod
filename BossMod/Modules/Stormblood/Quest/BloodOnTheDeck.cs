@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Stormblood.Quest;
+
 public enum OID : uint
 {
     Boss = 0x1BED,

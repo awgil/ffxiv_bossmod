@@ -2,12 +2,14 @@
 
 public enum AID : uint
 {
-    // palace of the dead/EO transformations
+    // deep dungeon transformations
     Pummel = 6273,
     VoidFireII = 6274,
     HeavenlyJudge = 6871,
     Rotosmash = 32781,
     WreckingBall = 32782,
+    RockyRoll = 44628,
+    BigBurst = 44629,
 
     // magitek reaper in Fly Free, My Pretty
     MagitekCannon = 7619, // range 30 radius 6 ground targeted aoe
@@ -139,6 +141,12 @@ public enum AID : uint
     CureII = 21886,
     MedicaII = 21888,
     Break = 21921,
+
+    // ShB alliance raid 3 hacking minigame
+    LiminalFireWhite = 24619,
+    LiminalFireBlack = 24620,
+    F0SwitchToBlack = 24621,
+    F0SwitchToWhite = 24622,
 
     // Thancred - Frosty Reception
     SwiftDeception = 27432,
@@ -274,6 +282,8 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.HeavenlyJudge);
         d.RegisterSpell(AID.Rotosmash);
         d.RegisterSpell(AID.WreckingBall);
+        d.RegisterSpell(AID.RockyRoll);
+        d.RegisterSpell(AID.BigBurst);
 
         d.RegisterSpell(AID.MagitekCannon);
         d.RegisterSpell(AID.PhotonStream);
@@ -391,6 +401,11 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.CureII);
         d.RegisterSpell(AID.MedicaII);
         d.RegisterSpell(AID.Break);
+
+        d.RegisterSpell(AID.LiminalFireWhite);
+        d.RegisterSpell(AID.LiminalFireBlack);
+        d.RegisterSpell(AID.F0SwitchToBlack);
+        d.RegisterSpell(AID.F0SwitchToWhite);
 
         d.RegisterSpell(AID.SwiftDeception);
         d.RegisterSpell(AID.SilentTakedown);

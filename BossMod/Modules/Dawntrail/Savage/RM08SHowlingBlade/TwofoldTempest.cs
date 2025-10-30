@@ -110,13 +110,13 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _vulns[slot] = status.ExpireAt;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _vulns[slot] = default;
     }
 
@@ -163,7 +163,7 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
         }
         else
         {
-            hints.PredictedDamage.Add((Raid.WithSlot().OnPlatform(NextBait).Mask(), _nextActivation));
+            hints.AddPredictedDamage(Raid.WithSlot().OnPlatform(NextBait).Mask(), _nextActivation);
         }
     }
 }

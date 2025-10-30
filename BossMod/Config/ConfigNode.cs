@@ -11,11 +11,12 @@ public sealed class ConfigDisplayAttribute : Attribute
     public int Order { get; set; }
     public Type? Parent { get; set; }
     public string? Since { get; set; }
+    public string[]? Tags { get; set; }
 }
 
 // attribute that specifies how config node field or enumeration value is shown in the UI
 [AttributeUsage(AttributeTargets.Field)]
-public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", bool separator = false, string? since = null, string? depends = null) : Attribute
+public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", bool separator = false, string? since = null, string? depends = null, string[]? tags = null) : Attribute
 {
     public string Label { get; } = label;
     public uint Color { get; } = color;
@@ -23,6 +24,7 @@ public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffff
     public bool Separator { get; } = separator;
     public string? Since { get; } = since;
     public string? Depends { get; } = depends;
+    public string[] Tags { get; } = tags ?? [];
 }
 
 // attribute that specifies combobox should be used for displaying int/bool property
@@ -60,19 +62,31 @@ public abstract class ConfigNode
     // deserialize fields from json; default implementation should work fine for most cases
     public virtual void Deserialize(JsonElement j, JsonSerializerOptions ser)
     {
+        var agg = new List<JsonException>();
+
         var type = GetType();
         foreach (var jfield in j.EnumerateObject())
         {
             var field = type.GetField(jfield.Name);
             if (field != null)
             {
-                var value = jfield.Value.Deserialize(field.FieldType, ser);
-                if (value != null)
+                try
                 {
-                    field.SetValue(this, value);
+                    var value = jfield.Value.Deserialize(field.FieldType, ser);
+                    if (value != null)
+                    {
+                        field.SetValue(this, value);
+                    }
+                }
+                catch (JsonException jsonException)
+                {
+                    agg.Add(jsonException);
                 }
             }
         }
+
+        if (agg.Count > 0)
+            throw new AggregateException($"While loading {type.Name}:", agg);
     }
 
     // serialize node to json; default implementation should work fine for most cases

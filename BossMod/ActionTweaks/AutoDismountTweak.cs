@@ -7,7 +7,9 @@ public sealed class AutoDismountTweak(WorldState ws)
 
     public bool AutoDismountEnabled => _config.AutoDismount;
 
-    public bool IsMountPreventingAction(ActionID action)
+    public bool IsMountPreventingAction(ActionID action) => IsMountPreventingAction(ws, action);
+
+    public static bool IsMountPreventingAction(WorldState ws, ActionID action)
     {
         var player = ws.Party.Player();
         if (player == null || player.MountId == 0)

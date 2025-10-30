@@ -63,7 +63,7 @@ class DropSplashOfVenom(BossModule module) : Components.UniformStackSpread(modul
 
 class TemptingTwist(BossModule module) : Components.StandardAOEs(module, AID.TemptingTwistAOE, new AOEShapeDonut(6, 30)); // TODO: verify inner radius
 class TemptingTwistBeat(BossModule module) : Components.StandardAOEs(module, AID.TemptingTwistBeatAOE, new AOEShapeDonut(6, 30)); // TODO: verify inner radius
-class HoneyBeeline(BossModule module) : Components.StandardAOEs(module, AID.HoneyBeelineAOE, new AOEShapeRect(30, 7, 30));
-class HoneyBeelineBeat(BossModule module) : Components.StandardAOEs(module, AID.HoneyBeelineBeatAOE, new AOEShapeRect(30, 7, 30));
+class HoneyBeeline(BossModule module) : Components.StandardAOEs(module, AID.HoneyBeelineAOE, new AOEShapeRect(60, 7));
+class HoneyBeelineBeat(BossModule module) : Components.StandardAOEs(module, AID.HoneyBeelineBeatAOE, new AOEShapeRect(60, 7));
 class PoisonCloudSplinter(BossModule module) : Components.StandardAOEs(module, AID.PoisonCloudSplinter, new AOEShapeCircle(8));
 class SweetheartSplinter(BossModule module) : Components.StandardAOEs(module, AID.SweetheartSplinter, new AOEShapeCircle(8));

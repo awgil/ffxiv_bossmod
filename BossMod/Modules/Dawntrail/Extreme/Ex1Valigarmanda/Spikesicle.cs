@@ -6,9 +6,9 @@ class Spikesicle(BossModule module) : Components.GenericAOEs(module)
 
     private static readonly AOEShape[] _shapes = [new AOEShapeDonut(20, 25), new AOEShapeDonut(25, 30), new AOEShapeDonut(30, 35), new AOEShapeDonut(35, 40), new AOEShapeRect(40, 2.5f)]; // TODO: verify inner radius
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Skip(NumCasts).Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Skip(NumCasts).Take(2).Select((a, b) => a with { Color = b == 0 ? ArenaColor.Danger : ArenaColor.AOE }).Reverse();
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020004 && index is >= 4 and <= 13)
         {
@@ -45,7 +45,7 @@ class SphereShatter(BossModule module) : Components.GenericAOEs(module, AID.Sphe
 
     private static readonly AOEShapeCircle _shape = new(13);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Skip(NumCasts).Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Skip(NumCasts).Take(2).Select((a, b) => a with { Color = b == 0 ? ArenaColor.Danger : ArenaColor.AOE }).Reverse();
 
     public override void OnActorCreated(Actor actor)
     {

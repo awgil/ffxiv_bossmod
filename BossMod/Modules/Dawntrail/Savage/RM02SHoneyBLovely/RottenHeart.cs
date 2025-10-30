@@ -25,7 +25,7 @@ class RottenHeartBigBurst(BossModule module) : Components.CastCounter(module, AI
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.BeelovedVenomA or SID.BeelovedVenomB && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID is SID.BeelovedVenomA or SID.BeelovedVenomB && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             _order[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds switch
             {

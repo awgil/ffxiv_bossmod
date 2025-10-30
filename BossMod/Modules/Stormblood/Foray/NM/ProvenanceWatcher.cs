@@ -34,7 +34,7 @@ public enum AID : uint
 
 class TheScarletPrice(BossModule module) : Components.BaitAwayCast(module, AID.TheScarletPrice, new AOEShapeCircle(3), true, true);
 class TheScarletWhisper(BossModule module) : Components.StandardAOEs(module, AID.TheScarletWhisper, new AOEShapeCone(22, 60.Degrees()));
-class EuhedralSwat(BossModule module) : Components.StandardAOEs(module, AID.EuhedralSwat, new AOEShapeRect(100, 13, 20));
+class EuhedralSwat(BossModule module) : Components.StandardAOEs(module, AID.EuhedralSwat, new AOEShapeRect(100, 13));
 class Touchdown(BossModule module) : Components.RaidwideInstant(module, AID.Touchdown, 3.1f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -89,7 +89,7 @@ class Charybdis(BossModule module) : Components.GenericAOEs(module, AID.Charybdi
         }
     }
 }
-class HotTail(BossModule module) : Components.StandardAOEs(module, AID.HotTailFirst, new AOEShapeRect(77, 8, 77));
+class HotTail(BossModule module) : Components.StandardAOEs(module, AID.HotTailFirst, new AOEShapeRect(77, 8));
 class HotTailSecond(BossModule module) : Components.GenericAOEs(module)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);

@@ -94,7 +94,7 @@ class PlayASide(BossModule module) : BossComponent(module)
         if (!Active)
             return;
 
-        hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Activation));
+        hints.AddPredictedDamage(Raid.WithSlot().Mask(), Activation);
 
         var cones = DifferentRole(actor).Select(p => ShapeContains.Cone(Module.PrimaryActor.Position, 60, Module.PrimaryActor.AngleTo(p), 22.5f.Degrees())).ToList();
         if (cones.Count > 0)
@@ -165,7 +165,7 @@ class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, AID
 
         hints.AddForbiddenZone(p => r0(p) == r1(p), Activation);
 
-        hints.PredictedDamage.Add((Raid.WithSlot().Where(p => r0(p.Item2.Position) || r1(p.Item2.Position)).Mask(), Activation));
+        hints.AddPredictedDamage(Raid.WithSlot().Mask(), Activation);
     }
 }
 

@@ -6,13 +6,13 @@ class AddsExplosion(BossModule module) : Components.CastTowers(module, AID.AddsE
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID.SpearpointPush && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+        if ((TetherID)tether.ID == TetherID.SpearpointPush && Raid.TryFindSlot(tether.Target, out var slot))
             TetheredPlayers.Set(slot);
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID.SpearpointPush && Raid.FindSlot(tether.Target) is var slot && slot >= 0)
+        if ((TetherID)tether.ID == TetherID.SpearpointPush && Raid.TryFindSlot(tether.Target, out var slot))
             TetheredPlayers.Clear(slot);
     }
 

@@ -67,7 +67,7 @@ class HotBlast(BossModule module) : Components.CastCounter(module, AID.HotBlast)
             return;
 
         hints.AddForbiddenZone(new AOEShapeDonut(4, 40), Module.PrimaryActor.Position, activation: Module.CastFinishAt(Casters[0].CastInfo));
-        hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Module.CastFinishAt(Casters[0].CastInfo)));
+        hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
 

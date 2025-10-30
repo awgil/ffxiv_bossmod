@@ -1,5 +1,6 @@
 ﻿using Clipper2Lib;
 using EarcutNet;
+using Newtonsoft.Json;
 
 // currently we use Clipper2 library (based on Vatti algorithm) for boolean operations and Earcut.net library (earcutting) for triangulating
 // note: the major user of these primitives is bounds clipper; since they operate in 'local' coordinates, we use WDir everywhere (offsets from center) and call that 'relative polygons' - i'm not quite happy with that, it's not very intuitive
@@ -10,7 +11,9 @@ public readonly record struct RelTriangle(WDir A, WDir B, WDir C);
 
 // a complex polygon that is a single simple-polygon exterior minus 0 or more simple-polygon holes; all edges are assumed to be non intersecting
 // hole-starts list contains starting index of each hole
-public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStarts)
+[JsonObject(MemberSerialization.OptIn)]
+[method: JsonConstructor]
+public record class RelPolygonWithHoles([property: JsonProperty] List<WDir> Vertices, [property: JsonProperty] List<int> HoleStarts)
 {
     // constructor for simple polygon
     public RelPolygonWithHoles(List<WDir> simpleVertices) : this(simpleVertices, []) { }
@@ -19,8 +22,6 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
     public ReadOnlySpan<WDir> Exterior => AllVertices[..ExteriorEnd];
     public ReadOnlySpan<WDir> Interior(int index) => AllVertices[HoleStarts[index]..HoleEnd(index)];
     public IEnumerable<int> Holes => Enumerable.Range(0, HoleStarts.Count);
-    public IEnumerable<(WDir, WDir)> ExteriorEdges => PolygonUtil.EnumerateEdges(Vertices.Take(ExteriorEnd));
-    public IEnumerable<(WDir, WDir)> InteriorEdges(int index) => PolygonUtil.EnumerateEdges(Vertices.Skip(HoleStarts[index]).Take(HoleEnd(index) - HoleStarts[index]));
 
     public bool IsSimple => HoleStarts.Count == 0;
     public bool IsConvex => IsSimple && PolygonUtil.IsConvex(Exterior);
@@ -51,7 +52,7 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
         }
 
         var tess = Earcut.Tessellate(pts, HoleStarts);
-        for (int i = 0; i < tess.Count; i += 3)
+        for (var i = 0; i < tess.Count; i += 3)
             result.Add(new(Vertices[tess[i]], Vertices[tess[i + 1]], Vertices[tess[i + 2]]));
         return tess.Count > 0;
     }
@@ -69,22 +70,26 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
     // point-in-polygon test; point is defined as offset from shape center
     public bool Contains(WDir p)
     {
-        if (!InSimplePolygon(p, ExteriorEdges))
+        if (!InSimplePolygon(p, Exterior))
             return false;
         foreach (var h in Holes)
-            if (InSimplePolygon(p, InteriorEdges(h)))
+            if (InSimplePolygon(p, Interior(h)))
                 return false;
         return true;
     }
 
-    private static bool InSimplePolygon(WDir p, IEnumerable<(WDir, WDir)> edges)
+    private static bool InSimplePolygon(WDir p, ReadOnlySpan<WDir> points)
     {
         // for simple polygons, it doesn't matter which rule (even-odd, non-zero, etc) we use
         // so let's just use non-zero rule and calculate winding order
         // we need to select arbitrary direction to count winding intersections - let's select unit X
-        int winding = 0;
-        foreach (var (a, b) in edges)
+        var winding = 0;
+        var count = points.Length;
+        for (int i = 0, j = count - 1; i < count; j = i++)
         {
+            var a = points[i];
+            var b = points[j];
+
             // see whether edge ab intersects our test ray - it has to intersect the infinite line on the correct side
             var pa = a - p;
             var pb = b - p;
@@ -105,7 +110,8 @@ public record class RelPolygonWithHoles(List<WDir> Vertices, List<int> HoleStart
 }
 
 // generic 'simplified' complex polygon that consists of 0 or more non-intersecting polygons with holes (note however that some polygons could be fully inside other polygon's hole)
-public record class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> Parts)
+[JsonObject(MemberSerialization.OptIn)]
+public record class RelSimplifiedComplexPolygon([property: JsonProperty] List<RelPolygonWithHoles> Parts)
 {
     public bool IsSimple => Parts.Count == 1 && Parts[0].IsSimple;
     public bool IsConvex => Parts.Count == 1 && Parts[0].IsConvex;
@@ -187,6 +193,18 @@ public class PolygonClipper
     public RelSimplifiedComplexPolygon Union(Operand p1, Operand p2, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Union, fillRule, p1, p2);
     public RelSimplifiedComplexPolygon Difference(Operand starting, Operand remove, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Difference, fillRule, starting, remove);
     public RelSimplifiedComplexPolygon Xor(Operand p1, Operand p2, FillRule fillRule = FillRule.EvenOdd) => Execute(ClipType.Xor, fillRule, p1, p2);
+
+    public RelSimplifiedComplexPolygon UnionAll(Operand p1, params Operand[] ps)
+    {
+        if (ps.Length == 0)
+            return Simplify(p1);
+
+        var shape = Union(p1, ps[0]);
+        for (var i = 1; i < ps.Length; i++)
+            shape = Union(new(shape), ps[i]);
+
+        return shape;
+    }
 
     private RelSimplifiedComplexPolygon Execute(ClipType operation, FillRule fillRule, Operand subject, Operand clip)
     {

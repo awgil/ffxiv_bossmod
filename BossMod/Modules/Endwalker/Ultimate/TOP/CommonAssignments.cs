@@ -31,8 +31,7 @@ abstract class CommonAssignments(BossModule module) : BossComponent(module)
     {
         if (order > 0)
         {
-            var slot = Raid.FindSlot(player.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(player, out var slot))
                 PlayerStates[slot].Order = order;
             if (++_numOrdersAssigned == PartyState.MaxPartySize)
                 InitAssignments();

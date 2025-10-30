@@ -1,8 +1,8 @@
 ﻿using BossMod.Autorotation;
 using BossMod.ReplayVisualization;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
 using System.Text.Json;
 
 namespace BossMod;
@@ -222,7 +222,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             var state = _tree.Nodes.GetValueOrDefault(o.StateID);
             if (state != null)
             {
-                _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Disabled, o.Value);
+                _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Disabled, (StrategyValueTrack)o.Value);
             }
         }
     }
@@ -271,13 +271,16 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         uiOrder.SortByReverse(i => m.Definition.Configs[i].UIPriority);
         foreach (int i in uiOrder)
         {
-            var config = m.Definition.Configs[i];
+            var c1 = m.Definition.Configs[i];
+            if (c1 is not StrategyConfigTrack config)
+                continue; // TODO draw
+
             if (config.Options.Count(opt => Plan.Level >= opt.MinLevel && Plan.Level <= opt.MaxLevel) <= 1)
                 continue; // don't bother showing tracks that have no customization options
 
-            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo), insertionPoint);
+            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo, m.Defaults[i]), insertionPoint);
             col.Width = config.UIPriority >= 0 || m.Tracks[i].Count > 0 ? _trackWidth : 0;
-            col.NotifyModified = () => OnModifiedStrategy(m.Tracks[i], col);
+            col.NotifyModified = () => OnModifiedStrategy(m, i, col);
             foreach (var entry in m.Tracks[i])
             {
                 var state = _tree.Nodes.GetValueOrDefault(entry.StateID);
@@ -305,9 +308,11 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         return _colTarget;
     }
 
-    private void OnModifiedStrategy(List<Plan.Entry> entries, ColumnPlannerTrackStrategy track)
+    private void OnModifiedStrategy(Plan.Module mod, int index, ColumnPlannerTrackStrategy track)
     {
         Modified = true;
+        mod.Defaults[index] = track.DefaultOverride;
+        var entries = mod.Tracks[index];
         entries.Clear();
         foreach (var e in track.Elements)
         {

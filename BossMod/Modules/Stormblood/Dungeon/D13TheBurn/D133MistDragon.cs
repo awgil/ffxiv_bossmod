@@ -1,4 +1,5 @@
 namespace BossMod.Stormblood.Dungeon.D13TheBurn.D133MistDragon;
+
 public enum OID : uint
 {
     Boss = 0x2431, // R3.000-7.000, x?
@@ -88,8 +89,8 @@ class ColdFogGrowth(BossModule module) : Components.GenericAOEs(module, AID.Cold
 class ChillingAspiration(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(40, 3), (uint)IconID.ChillingAspiration, AID.ChillingAspiration);
 class ChillingPuddles(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7));
 class FrostBreath(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(20, 45.Degrees()), (uint)IconID.FrostBreathCleave, AID.FrostBreath);
-class CauterizeDB(BossModule module) : Components.StandardAOEs(module, AID.Cauterize, new AOEShapeRect(40, 8, 5));
-class CauterizeDB2(BossModule module) : Components.StandardAOEs(module, AID.Cauterize2, new AOEShapeRect(40, 8, 5));
+class CauterizeDB(BossModule module) : Components.StandardAOEs(module, AID.Cauterize, new AOEShapeRect(40, 8));
+class CauterizeDB2(BossModule module) : Components.StandardAOEs(module, AID.Cauterize2, new AOEShapeRect(40, 8));
 class CauterizeConceal(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];

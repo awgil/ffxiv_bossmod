@@ -8,7 +8,7 @@ namespace BossMod;
 
 public static partial class Utils
 {
-    public static string ObjectString(IGameObject obj) => $"{obj.DataId:X} '{obj.Name}' <{obj.EntityId:X}>";
+    public static string ObjectString(IGameObject obj) => $"{obj.BaseId:X} '{obj.Name}' <{obj.EntityId:X}>";
 
     public static string ObjectString(ulong id)
     {
@@ -35,11 +35,12 @@ public static partial class Utils
     public static string PosRotString(Vector4 posRot) => $"[{posRot.X:f2}, {posRot.Y:f2}, {posRot.Z:f2}, {posRot.W.Radians()}]";
     public static bool CharacterIsOmnidirectional(uint oid) => Service.LuminaRow<Lumina.Excel.Sheets.BNpcBase>(oid)?.IsOmnidirectional ?? false;
     public static string StatusString(uint statusID) => $"{statusID} '{Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.Name ?? "<not found>"}'";
-    public static bool StatusIsRemovable(uint statusID) => Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.CanDispel ?? false;
     public static string StatusTimeString(DateTime expireAt, DateTime now) => $"{Math.Max(0, (expireAt - now).TotalSeconds):f3}";
     public static string CastTimeString(float current, float total) => $"{current:f2}/{total:f2}";
     public static string CastTimeString(ActorCastInfo cast, DateTime now) => CastTimeString(cast.ElapsedTime, cast.TotalTime);
     public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(id)?.Text}'";
+
+    public static readonly Func<uint, bool> StatusIsRemovable = Memoize((uint statusID) => Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.CanDispel ?? false);
 
     public static unsafe T ReadField<T>(void* address, int offset) where T : unmanaged => *(T*)((IntPtr)address + offset);
     public static unsafe void WriteField<T>(void* address, int offset, T value) where T : unmanaged => *(T*)((IntPtr)address + offset) = value;
@@ -62,6 +63,41 @@ public static partial class Utils
         return fate.Value.EurekaFate == 1
             ? world.Client.ElementalLevelSynced <= fate.Value.ClassJobLevelMax
             : world.Party.Player()?.Level <= fate.Value.ClassJobLevelMax;
+    }
+    public static readonly Func<uint, bool> IsBossFate = Memoize((uint fateID) => Service.LuminaRow<Lumina.Excel.Sheets.Fate>(fateID)?.MapIcon is 60502 or 60802);
+    public static bool IsNonBossFate(uint fateID) => fateID > 0 && !IsBossFate(fateID);
+
+    public static readonly Func<uint, uint> GetFateItem = Memoize((uint fateID) => Service.LuminaRow<Lumina.Excel.Sheets.Fate>(fateID)?.EventItem.RowId ?? 0);
+
+    private static readonly string[] _omenDonutTags = [
+        "sircle_",
+        "sicle_",
+        "circle_",
+        "circle"
+    ];
+
+    // returns false only if the action has no valid omen at all; if it's a regular omen but we can't parse it, return value will be true but out-param will still be null
+    public static bool DetermineDonutInner(Lumina.Excel.Sheets.Action data, out float? innerRadius)
+    {
+        innerRadius = null;
+
+        if (data.Omen.ValueNullable is not { } omen || omen.RowId == 0)
+            return false;
+
+        var path = omen.Path.ToString();
+
+        foreach (var tag in _omenDonutTags)
+        {
+            var tagLen = tag.Length;
+            var pos = path.IndexOf(tag, StringComparison.Ordinal);
+            if (pos >= 0 && pos + tagLen + 4 <= path.Length && int.TryParse(path.AsSpan(pos + tagLen + 2, 2), out var inner))
+            {
+                innerRadius = inner;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // lumina extensions
@@ -219,6 +255,23 @@ public static partial class Utils
         }
     }
 
+    // useful for grouping AOEs on radar; input must already be sorted in activation order
+    public static IEnumerable<T> TakeWhileTime<T>(IEnumerable<T> source, Func<T, DateTime> getTimestamp, float delay)
+    {
+        DateTime nextTs = default;
+        foreach (var s in source)
+        {
+            var ts = getTimestamp(s);
+            if (nextTs == default)
+                nextTs = ts;
+
+            if (ts > nextTs.AddSeconds(delay))
+                yield break;
+
+            yield return s;
+        }
+    }
+
     // swap two values
     public static void Swap<T>(ref T l, ref T r) => (r, l) = (l, r);
 
@@ -246,12 +299,22 @@ public static partial class Utils
     public static float Lerp(float a, float b, float t) => a + (b - a) * t;
 
     // build an array with N copies of same element
-    public static T[] MakeArray<T>(int count, T value)
+    public static T[] MakeArray<T>(int count, T value) where T : struct
     {
         var res = new T[count];
         Array.Fill(res, value);
         return res;
     }
+
+    public static T[] GenArray<T>(int count, Func<T> gen)
+    {
+        var res = new T[count];
+        for (var i = 0; i < count; i++)
+            res[i] = gen();
+        return res;
+    }
+
+    public static bool TextMatch(string haystack, string needle) => haystack.Contains(needle, StringComparison.InvariantCultureIgnoreCase);
 
     // bounds-checking access
     public static T? BoundSafeAt<T>(this T[] array, int index, T? outOfBounds = default) => index >= 0 && index < array.Length ? array[index] : outOfBounds;
@@ -306,4 +369,16 @@ public static partial class Utils
     }
 
     public static IEnumerable<(string, T)> DedupKeys<T>(Dictionary<string, T> items) => DedupKeys(items.Select(i => (i.Key, i.Value)));
+
+    public static Func<TIn, TOut> Memoize<TIn, TOut>(this Func<TIn, TOut> func) where TIn : notnull
+    {
+        var cache = new Dictionary<TIn, TOut>();
+        return input =>
+        {
+            if (cache.TryGetValue(input, out var cached))
+                return cached;
+
+            return cache[input] = func(input);
+        };
+    }
 }

@@ -63,7 +63,7 @@ class DecisiveBattle(BossModule module) : Components.GenericInvincible(module, "
 
     private void Assign(Actor a, Color c)
     {
-        if (Raid.TryGetSlot(a, out var slot))
+        if (Raid.TryFindSlot(a, out var slot))
             _colors[slot] = c;
     }
 

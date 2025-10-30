@@ -41,17 +41,13 @@ class CurtainCall(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.Thornpricked)
+        if ((SID)status.ID == SID.Thornpricked && Raid.TryFindSlot(actor, out var slot))
         {
-            int slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
-            {
-                _playerOrder[slot] = 2 * (int)((status.ExpireAt - WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
-                bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
-                if (ddFirst != actor.Role is Role.Tank or Role.Healer)
-                    --_playerOrder[slot];
-                _playersInBreakOrder = null;
-            }
+            _playerOrder[slot] = 2 * (int)((status.ExpireAt - WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
+            bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
+            if (ddFirst != actor.Role is Role.Tank or Role.Healer)
+                --_playerOrder[slot];
+            _playersInBreakOrder = null;
         }
     }
 

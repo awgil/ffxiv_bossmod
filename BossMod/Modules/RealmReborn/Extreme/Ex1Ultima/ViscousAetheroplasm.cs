@@ -7,8 +7,7 @@ class ViscousAetheroplasm(BossModule module) : Components.Cleave(module, AID.Vis
 
     public override void Update()
     {
-        var tankSlot = WorldState.Party.FindSlot(Module.PrimaryActor.TargetID);
-        NeedTankSwap = tankSlot >= 0 && _stacks[tankSlot] >= 4;
+        NeedTankSwap = Raid.TryFindSlot(Module.PrimaryActor.TargetID, out var tankSlot) && _stacks[tankSlot] >= 4;
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -33,8 +32,7 @@ class ViscousAetheroplasm(BossModule module) : Components.Cleave(module, AID.Vis
 
     private void UpdateStacks(Actor actor, int stacks)
     {
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             _stacks[slot] = stacks;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod.Autorotation;
 

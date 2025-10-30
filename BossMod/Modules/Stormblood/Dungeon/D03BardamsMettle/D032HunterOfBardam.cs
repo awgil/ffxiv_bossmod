@@ -71,7 +71,7 @@ class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, AI
     }
 }
 
-class Charge(BossModule module) : Components.StandardAOEs(module, AID.Charge, new AOEShapeRect(41.25f, 2.5f, 5));
+class Charge(BossModule module) : Components.StandardAOEs(module, AID.Charge, new AOEShapeRect(46.25f, 2.5f));
 class EmptyGaze(BossModule module) : Components.CastGaze(module, AID.EmptyGaze);
 class Sacrifice(BossModule module) : Components.CastTowers(module, AID.Sacrifice, 3);
 class Reconstruct(BossModule module) : Components.StandardAOEs(module, AID.Reconstruct, 5);

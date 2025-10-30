@@ -37,6 +37,8 @@ sealed class WorldStateGameSync : IDisposable
     private readonly Dictionary<ulong, Vector3> _lastCastPositions = []; // unfortunately, game only saves cast location for area-targeted spells
     private readonly Actor?[] _actorsByIndex = new Actor?[ObjectTableSize];
 
+    private bool _needInventoryUpdate = true;
+
     private readonly Network.OpcodeMap _opcodeMap = new();
     private readonly Network.PacketInterceptor _interceptor = new();
     private readonly Network.PacketDecoderGame _decoder = new();
@@ -57,8 +59,16 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void ProcessPacketNpcYellDelegate(Network.ServerIPC.NpcYell* packet);
     private readonly Hook<ProcessPacketNpcYellDelegate> _processPacketNpcYellHook;
 
-    private unsafe delegate void ProcessEnvControlDelegate(void* self, uint index, ushort s1, ushort s2);
-    private readonly Hook<ProcessEnvControlDelegate> _processEnvControlHook;
+    public unsafe delegate void ProcessMapEffectDelegate(void* self, uint index, ushort s1, ushort s2);
+    private readonly Hook<ProcessMapEffectDelegate> _processMapEffectHook;
+
+    private unsafe delegate void ProcessMapEffectNDelegate(ContentDirector* director, byte* packet);
+    private readonly Hook<ProcessMapEffectNDelegate> _processMapEffect1Hook;
+    private readonly Hook<ProcessMapEffectNDelegate> _processMapEffect2Hook;
+    private readonly Hook<ProcessMapEffectNDelegate> _processMapEffect3Hook;
+
+    public unsafe delegate byte ProcessLegacyMapEffectDelegate(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length);
+    private readonly Hook<ProcessLegacyMapEffectDelegate> _processLegacyMapEffectHook;
 
     private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
     private readonly Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
@@ -74,11 +84,11 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
-    private unsafe delegate void ProcessMapEffectDelegate(byte* data);
+    private unsafe delegate void ApplyKnockbackDelegate(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6);
+    private readonly Hook<ApplyKnockbackDelegate> _applyKnockbackHook;
 
-    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect1Hook;
-    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect2Hook;
-    private readonly Hook<ProcessMapEffectDelegate> _processMapEffect3Hook;
+    private unsafe delegate void InventoryAckDelegate(uint a1, void* a2);
+    private readonly Hook<InventoryAckDelegate> _inventoryAckHook;
 
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
     {
@@ -100,7 +110,7 @@ sealed class WorldStateGameSync : IDisposable
             amex.ActionEffectReceived.Subscribe(OnActionEffect)
         );
 
-        _processPacketActorCastHook = Service.Hook.HookFromSignature<ProcessPacketActorCastDelegate>("40 56 41 56 48 81 EC ?? ?? ?? ?? 48 8B F2", ProcessPacketActorCastDetour);
+        _processPacketActorCastHook = Service.Hook.HookFromSignature<ProcessPacketActorCastDelegate>("40 53 57 48 81 EC ?? ?? ?? ?? 48 8B FA 8B D1", ProcessPacketActorCastDetour);
         _processPacketActorCastHook.Enable();
         Service.Log($"[WSG] ProcessPacketActorCast address = 0x{_processPacketActorCastHook.Address:X}");
 
@@ -117,19 +127,31 @@ sealed class WorldStateGameSync : IDisposable
         Service.Log($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
 
         // alt sig - impl: "45 33 D2 48 8D 41 48"
-        _processPacketNpcYellHook = Service.Hook.HookFromSignature<ProcessPacketNpcYellDelegate>("48 83 EC 58 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 0F 10 41 10", ProcessPacketNpcYellDetour);
+        _processPacketNpcYellHook = Service.Hook.HookFromSignature<ProcessPacketNpcYellDelegate>("48 83 EC 68 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 0F 10 41 10", ProcessPacketNpcYellDetour);
         _processPacketNpcYellHook.Enable();
         Service.Log($"[WSG] ProcessPacketNpcYell address = 0x{_processPacketNpcYellHook.Address:X}");
 
-        _processEnvControlHook = Service.Hook.HookFromSignature<ProcessEnvControlDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessEnvControlDetour);
-        _processEnvControlHook.Enable();
-        Service.Log($"[WSG] ProcessEnvControl address = 0x{_processEnvControlHook.Address:X}");
+        _processMapEffectHook = Service.Hook.HookFromSignature<ProcessMapEffectDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessMapEffectDetour);
+        _processMapEffectHook.Enable();
+        Service.Log($"[WSG] ProcessMapEffect address = 0x{_processMapEffectHook.Address:X}");
+
+        var mapEffectAddrs = Service.SigScanner.ScanAllText("40 55 41 57 48 83 EC ?? 48 83 B9");
+        if (mapEffectAddrs.Length != 3)
+            throw new InvalidOperationException($"expected 3 matches for multi-MapEffect handlers, but got {mapEffectAddrs.Length}");
+
+        _processMapEffect1Hook = Service.Hook.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[0], ProcessMapEffect1Detour);
+        _processMapEffect1Hook.Enable();
+        _processMapEffect2Hook = Service.Hook.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[1], ProcessMapEffect2Detour);
+        _processMapEffect2Hook.Enable();
+        _processMapEffect3Hook = Service.Hook.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[2], ProcessMapEffect3Detour);
+        _processMapEffect3Hook.Enable();
+        Service.Log($"[WSG] ProcessMapEffectN addresses = 0x{_processMapEffect1Hook.Address:X}, 0x{_processMapEffect2Hook.Address:X}, 0x{_processMapEffect3Hook.Address:X}");
 
         _processPacketRSVDataHook = Service.Hook.HookFromSignature<ProcessPacketRSVDataDelegate>("44 8B 09 4C 8D 41 34", ProcessPacketRSVDataDetour);
         _processPacketRSVDataHook.Enable();
         Service.Log($"[WSG] ProcessPacketRSVData address = 0x{_processPacketRSVDataHook.Address:X}");
 
-        _processSystemLogMessageHook = Service.Hook.HookFromSignature<ProcessSystemLogMessageDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 46 28", ProcessSystemLogMessageDetour);
+        _processSystemLogMessageHook = Service.Hook.HookFromSignature<ProcessSystemLogMessageDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 47 28", ProcessSystemLogMessageDetour);
         _processSystemLogMessageHook.Enable();
         Service.Log($"[WSG] ProcessSystemLogMessage address = 0x{_processSystemLogMessageHook.Address:X}");
 
@@ -137,25 +159,34 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketOpenTreasureHook.Enable();
         Service.Log($"[WSG] ProcessPacketOpenTreasure address = 0x{_processPacketOpenTreasureHook.Address:X}");
 
-        _processPacketFateInfoHook = Service.Hook.HookFromSignature<ProcessPacketFateInfoDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4E 10 48 8D 56 12 41 B8 ?? ?? ?? ??", ProcessPacketFateInfoDetour);
+        _processPacketFateInfoHook = Service.Hook.HookFromSignature<ProcessPacketFateInfoDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4F 10 48 8D 57 12 41 B8", ProcessPacketFateInfoDetour);
         _processPacketFateInfoHook.Enable();
         Service.Log($"[WSG] ProcessPacketFateInfo address = 0x{_processPacketFateInfoHook.Address:X}");
 
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
 
-        var processMapEffectAddr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 46 10 8B D7 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4E 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 4C 8D 46 10 8B D7 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8D 4E 10 E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 4E 10 BA ?? ?? ?? ??");
-        _processMapEffect1Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr, ProcessMapEffect1Detour);
-        _processMapEffect1Hook.Enable();
-        _processMapEffect2Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x40, ProcessMapEffect2Detour);
-        _processMapEffect2Hook.Enable();
-        _processMapEffect3Hook = Service.Hook.HookFromAddress<ProcessMapEffectDelegate>(processMapEffectAddr + 0x80, ProcessMapEffect3Detour);
-        _processMapEffect3Hook.Enable();
-        Service.Log($"[WSG] MapEffect addresses = 0x{_processMapEffect1Hook.Address:X}, 0x{_processMapEffect2Hook.Address:X}, 0x{_processMapEffect3Hook.Address:X}");
+        _processLegacyMapEffectHook = Service.Hook.HookFromSignature<ProcessLegacyMapEffectDelegate>("89 54 24 10 48 89 4C 24 ?? 53 56 57 41 55 41 57 48 83 EC 30 48 8B 99 ?? ?? ?? ??", ProcessLegacyMapEffectDetour);
+        _processLegacyMapEffectHook.Enable();
+        Service.Log($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
+
+        _applyKnockbackHook = Service.Hook.HookFromSignature<ApplyKnockbackDelegate>("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? FF C6", ApplyKnockbackDetour);
+        if (Service.IsDev)
+        {
+            _applyKnockbackHook.Enable();
+            Service.Log($"[WSG] ApplyKnockback address = {_applyKnockbackHook.Address:X}");
+        }
+
+        _inventoryAckHook = Service.Hook.HookFromSignature<InventoryAckDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8D 57 10 41 8B CE E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B D7", InventoryAckDetour);
+        _inventoryAckHook.Enable();
+        Service.Log($"[WSG] InventoryAck address = {_inventoryAckHook.Address:X}");
     }
 
     public void Dispose()
     {
+        _inventoryAckHook.Dispose();
+        _applyKnockbackHook.Dispose();
+        _processLegacyMapEffectHook.Dispose();
         _processMapEffect1Hook.Dispose();
         _processMapEffect2Hook.Dispose();
         _processMapEffect3Hook.Dispose();
@@ -164,7 +195,7 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketEffectResultHook.Dispose();
         _processPacketActorControlHook.Dispose();
         _processPacketNpcYellHook.Dispose();
-        _processEnvControlHook.Dispose();
+        _processMapEffectHook.Dispose();
         _processPacketRSVDataHook.Dispose();
         _processSystemLogMessageHook.Dispose();
         _processPacketOpenTreasureHook.Dispose();
@@ -228,6 +259,15 @@ sealed class WorldStateGameSync : IDisposable
                 _ws.Execute(new WaymarkState.OpWaymarkChange(wm, pos));
             ++wm;
         }
+
+        var sgn = Sign.Attack1;
+        foreach (ref var marker in MarkingController.Instance()->Markers)
+        {
+            var id = SanitizedObjectID(marker.Id);
+            if (_ws.Waymarks[sgn] != id)
+                _ws.Execute(new WaymarkState.OpSignChange(sgn, id));
+            ++sgn;
+        }
     }
 
     private unsafe void UpdateActors()
@@ -247,7 +287,9 @@ sealed class WorldStateGameSync : IDisposable
                 obj = null;
             }
 
-            if (actor != null && (obj == null || actor.InstanceID != obj->EntityId))
+            var existing = obj != null ? _ws.Actors.Find(obj->EntityId) : null;
+
+            if (actor != null && (obj == null || existing == null || actor.InstanceID != obj->EntityId))
             {
                 _actorsByIndex[i] = null;
                 RemoveActor(actor);
@@ -256,10 +298,9 @@ sealed class WorldStateGameSync : IDisposable
 
             if (obj != null)
             {
-                if (actor != _ws.Actors.Find(obj->EntityId))
-                {
+                if (actor != existing)
                     Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
-                }
+
                 UpdateActor(obj, i, actor);
             }
         }
@@ -309,7 +350,7 @@ sealed class WorldStateGameSync : IDisposable
         if (act == null)
         {
             var type = (ActorType)(((int)obj->ObjectKind << 8) + obj->SubKind);
-            _ws.Execute(new ActorState.OpCreate(obj->EntityId, obj->BaseId, index, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj->OwnerId), obj->FateId));
+            _ws.Execute(new ActorState.OpCreate(obj->EntityId, obj->BaseId, index, obj->LayoutId, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj->OwnerId), obj->FateId));
             act = _actorsByIndex[index] = _ws.Actors.Find(obj->EntityId)!;
 
             // note: for now, we continue relying on network messages for tether changes, since sometimes multiple changes can happen in a single frame, and some components rely on seeing all of them...
@@ -357,7 +398,7 @@ sealed class WorldStateGameSync : IDisposable
         var castInfo = chr != null ? chr->GetCastInfo() : null;
         if (castInfo != null)
         {
-            var curCast = castInfo->IsCasting != 0
+            var curCast = castInfo->IsCasting
                 ? new ActorCastInfo
                 {
                     Action = new((ActionType)castInfo->ActionType, castInfo->ActionId),
@@ -366,7 +407,7 @@ sealed class WorldStateGameSync : IDisposable
                     Location = _lastCastPositions.GetValueOrDefault(act.InstanceID, castInfo->TargetLocation),
                     ElapsedTime = castInfo->CurrentCastTime,
                     TotalTime = castInfo->BaseCastTime,
-                    Interruptible = castInfo->Interruptible != 0,
+                    Interruptible = castInfo->Interruptible
                 } : null;
             UpdateActorCastInfo(act, curCast);
         }
@@ -384,7 +425,7 @@ sealed class WorldStateGameSync : IDisposable
                 {
                     var dur = Math.Min(Math.Abs(s.RemainingTime), 100000);
                     curStatus.ID = s.StatusId;
-                    curStatus.SourceID = SanitizedObjectID(s.SourceId);
+                    curStatus.SourceID = SanitizedObjectID(s.SourceObject);
                     curStatus.Extra = s.Param;
                     curStatus.ExpireAt = _ws.CurrentTime.AddSeconds(dur);
                 }
@@ -480,7 +521,7 @@ sealed class WorldStateGameSync : IDisposable
         {
             // in normal mode, the primary data source is playerstate
             var ui = UIState.Instance();
-            if (ui->PlayerState.IsLoaded != 0)
+            if (ui->PlayerState.IsLoaded)
             {
                 var inCutscene = Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
                 player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, inCutscene, ui->PlayerState.CharacterNameString);
@@ -667,7 +708,7 @@ sealed class WorldStateGameSync : IDisposable
         var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (pc != null)
         {
-            var baseSpeed = *(float*)((nint)Control.Instance() + 0x7108);
+            var baseSpeed = ControlEx.Instance()->BaseMoveSpeed;
             var c8 = new CharacterContainer() { Character = pc };
             var factor = _calculateMoveSpeedMulti((ContainerInterface*)&c8);
             var speed = baseSpeed * factor;
@@ -685,9 +726,9 @@ sealed class WorldStateGameSync : IDisposable
                 _ws.Execute(new ClientState.OpCooldown(false, CalcCooldownDifference(cooldowns, _ws.Client.Cooldowns.AsSpan())));
         }
 
-        var (dutyAction0, dutyAction1) = _amex.GetDutyActions();
-        if (_ws.Client.DutyActions[0] != dutyAction0 || _ws.Client.DutyActions[1] != dutyAction1)
-            _ws.Execute(new ClientState.OpDutyActionsChange(dutyAction0, dutyAction1));
+        var dutyActions = _amex.GetDutyActions();
+        if (!MemoryExtensions.SequenceEqual(_ws.Client.DutyActions.AsSpan(), dutyActions))
+            _ws.Execute(new ClientState.OpDutyActionsChange(dutyActions));
 
         Span<byte> bozjaHolster = stackalloc byte[_ws.Client.BozjaHolster.Length];
         bozjaHolster.Clear();
@@ -707,7 +748,7 @@ sealed class WorldStateGameSync : IDisposable
             _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));
 
         var curFate = FateManager.Instance()->CurrentFate;
-        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius) : default;
+        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius, curFate->Progress, curFate->HandInCount, Utils.ReadField<uint>(curFate, 0x14)) : default;
         if (_ws.Client.ActiveFate != activeFate)
             _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
 
@@ -746,6 +787,42 @@ sealed class WorldStateGameSync : IDisposable
 
         if (hatePrimary != _ws.Client.CurrentTargetHate.InstanceID || !MemoryExtensions.SequenceEqual(hateTargets, _ws.Client.CurrentTargetHate.Targets))
             _ws.Execute(new ClientState.OpHateChange(hatePrimary, hateTargets));
+
+        var timers = actionManager->ProcTimers[1..];
+        if (!MemoryExtensions.SequenceEqual(timers, _ws.Client.ProcTimers))
+            _ws.Execute(new ClientState.OpProcTimersChange(timers.ToArray()));
+
+        void updateQuantity(uint itemId, uint count)
+        {
+            if (itemId == 0)
+                return;
+            if (count != _ws.Client.GetItemQuantity(itemId))
+                _ws.Execute(new ClientState.OpInventoryChange(itemId, count));
+        }
+
+        if (_needInventoryUpdate)
+        {
+            var im = InventoryManager.Instance();
+            // update tracked items
+            foreach (var id in ActionDefinitions.Instance.SupportedItems)
+            {
+                var count = im->GetInventoryItemCount(id % 500000, id > 1000000, checkEquipped: false, checkArmory: false);
+                updateQuantity(id, (uint)count);
+            }
+
+            // update all key items (smaller set)
+            var ic = im->GetInventoryContainer(InventoryType.KeyItems);
+            if (ic->IsLoaded)
+            {
+                for (var i = 0; i < ic->Size; i++)
+                {
+                    var keyItem = ic->GetInventorySlot(i);
+                    if (keyItem != null)
+                        updateQuantity(keyItem->GetItemId(), keyItem->GetQuantity());
+                }
+            }
+            _needInventoryUpdate = false;
+        }
     }
 
     private unsafe void UpdateDeepDungeon()
@@ -914,6 +991,9 @@ sealed class WorldStateGameSync : IDisposable
             case Network.ServerIPC.ActorControlCategory.TargetIcon:
                 _actorOps.GetOrAdd(actorID).Add(new ActorState.OpIcon(actorID, p1 - Network.IDScramble.Delta, p2));
                 break;
+            case Network.ServerIPC.ActorControlCategory.TargetVFX:
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpVFX(actorID, p1, p2));
+                break;
             case Network.ServerIPC.ActorControlCategory.Tether:
                 _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether(actorID, new(p2, p3)));
                 break;
@@ -937,6 +1017,9 @@ sealed class WorldStateGameSync : IDisposable
             case Network.ServerIPC.ActorControlCategory.DirectorUpdate:
                 _globalOps.Add(new WorldState.OpDirectorUpdate(p1, p2, p3, p4, p5, p6));
                 break;
+            case Network.ServerIPC.ActorControlCategory.FateReceiveItem:
+                _needInventoryUpdate = true;
+                break;
         }
     }
 
@@ -946,11 +1029,11 @@ sealed class WorldStateGameSync : IDisposable
         _actorOps.GetOrAdd(packet->SourceID).Add(new ActorState.OpEventNpcYell(packet->SourceID, packet->Message));
     }
 
-    private unsafe void ProcessEnvControlDetour(void* self, uint index, ushort s1, ushort s2)
+    private unsafe void ProcessMapEffectDetour(void* self, uint index, ushort s1, ushort s2)
     {
         // note: this function is only executed for incoming packets that pass some checks (validation that currently active director is what is expected) - don't think it's a big deal?
-        _processEnvControlHook.Original(self, index, s1, s2);
-        _globalOps.Add(new WorldState.OpEnvControl((byte)index, s1 | ((uint)s2 << 16)));
+        _processMapEffectHook.Original(self, index, s1, s2);
+        _globalOps.Add(new WorldState.OpMapEffect((byte)index, s1 | ((uint)s2 << 16)));
     }
 
     private unsafe void ProcessPacketRSVDataDetour(byte* packet)
@@ -959,9 +1042,10 @@ sealed class WorldStateGameSync : IDisposable
         _globalOps.Add(new WorldState.OpRSVData(MemoryHelper.ReadStringNullTerminated((nint)(packet + 4)), MemoryHelper.ReadString((nint)(packet + 0x34), *(int*)packet)));
     }
 
-    private unsafe void ProcessPacketOpenTreasureDetour(uint actorID, byte* packet)
+    private unsafe void ProcessPacketOpenTreasureDetour(uint playerID, byte* packet)
     {
-        _processPacketOpenTreasureHook.Original(actorID, packet);
+        _processPacketOpenTreasureHook.Original(playerID, packet);
+        var actorID = *(uint*)(packet + 16);
         _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventOpenTreasure(actorID));
     }
 
@@ -979,22 +1063,22 @@ sealed class WorldStateGameSync : IDisposable
         return res;
     }
 
-    private unsafe void ProcessMapEffect1Detour(byte* data)
+    private unsafe void ProcessMapEffect1Detour(ContentDirector* director, byte* packet)
     {
-        _processMapEffect1Hook.Original(data);
-        ProcessMapEffect(data, 10, 18);
+        _processMapEffect1Hook.Original(director, packet);
+        ProcessMapEffect(packet, 10, 18);
     }
 
-    private unsafe void ProcessMapEffect2Detour(byte* data)
+    private unsafe void ProcessMapEffect2Detour(ContentDirector* director, byte* packet)
     {
-        _processMapEffect2Hook.Original(data);
-        ProcessMapEffect(data, 18, 34);
+        _processMapEffect2Hook.Original(director, packet);
+        ProcessMapEffect(packet, 18, 34);
     }
 
-    private unsafe void ProcessMapEffect3Detour(byte* data)
+    private unsafe void ProcessMapEffect3Detour(ContentDirector* director, byte* packet)
     {
-        _processMapEffect3Hook.Original(data);
-        ProcessMapEffect(data, 26, 50);
+        _processMapEffect3Hook.Original(director, packet);
+        ProcessMapEffect(packet, 26, 50);
     }
 
     private unsafe void ProcessMapEffect(byte* data, byte offLow, byte offIndex)
@@ -1004,7 +1088,28 @@ sealed class WorldStateGameSync : IDisposable
             var low = *(ushort*)(data + 2 * i + offLow);
             var high = *(ushort*)(data + 2 * i + 2);
             var index = data[i + offIndex];
-            _globalOps.Add(new WorldState.OpEnvControl(index, low | ((uint)high << 16)));
+            _globalOps.Add(new WorldState.OpMapEffect(index, low | ((uint)high << 16)));
         }
+    }
+
+    private unsafe void ApplyKnockbackDetour(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6)
+    {
+        Service.Log("applying knockback to player");
+        _applyKnockbackHook.Original(thisPtr, a2, a3, a4, a5, a6);
+    }
+
+    private unsafe byte ProcessLegacyMapEffectDetour(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length)
+    {
+        var res = _processLegacyMapEffectHook.Original(fwk, eventId, seq, unk, data, length);
+
+        _globalOps.Add(new WorldState.OpLegacyMapEffect(seq, unk, new Span<byte>(data, (int)length).ToArray()));
+
+        return res;
+    }
+
+    private unsafe void InventoryAckDetour(uint a1, void* a2)
+    {
+        _inventoryAckHook.Original(a1, a2);
+        _needInventoryUpdate = true;
     }
 }

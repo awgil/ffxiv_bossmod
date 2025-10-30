@@ -39,11 +39,11 @@ class HighConceptCommon(BossModule module) : BossComponent(module)
 
         if (role != PlayerRole.Unassigned)
         {
-            var slot = Raid.FindSlot(actor.InstanceID);
             ++NumAssignedRoles;
-            _roleSlots[(int)role] = slot;
-            if (slot >= 0 && _playerRoles[slot] < role) // priority order: letters > stacks (important for HC2)
+            if (Raid.TryFindSlot(actor, out var slot) && _playerRoles[slot] < role) // priority order: letters > stacks (important for HC2)
                 _playerRoles[slot] = role;
+
+            _roleSlots[(int)role] = slot;
         }
     }
 
@@ -67,7 +67,7 @@ class HighConceptCommon(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state != 0x00020001)
             return;

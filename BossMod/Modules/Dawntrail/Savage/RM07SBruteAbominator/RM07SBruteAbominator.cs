@@ -15,7 +15,7 @@ class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosi
         base.AddAIHints(slot, actor, assignment, hints);
 
         foreach (var c in Casters)
-            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Module.CastFinishAt(c.CastInfo)));
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(c.CastInfo));
     }
 }
 
@@ -30,7 +30,7 @@ class AbominableBlink(BossModule module) : Components.BaitAwayIcon(module, new A
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (CurrentBaits.Count > 0)
-            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), CurrentBaits[0].Activation));
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), CurrentBaits[0].Activation);
     }
 }
 

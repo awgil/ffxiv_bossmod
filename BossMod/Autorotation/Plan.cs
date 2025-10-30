@@ -16,9 +16,9 @@ public sealed record class Plan(string Name, Type Encounter)
         public StrategyValue Value = Value;
     }
 
-    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks) : IRotationModuleData
+    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks, List<StrategyValueTrack> Defaults) : IRotationModuleData
     {
-        public readonly Module MakeClone() => this with { Tracks = [.. Tracks.Select(t => new List<Entry>([.. t]))] };
+        public readonly Module MakeClone() => this with { Tracks = [.. Tracks.Select(t => new List<Entry>([.. t]))], Defaults = [.. Defaults] };
     }
 
     public string Guid = "";
@@ -36,14 +36,18 @@ public sealed record class Plan(string Name, Type Encounter)
     public int AddModule(Type t, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder)
     {
         List<List<Entry>> tracks = [];
+        List<StrategyValueTrack> defaults = [];
         foreach (var _ in def.Configs)
+        {
             tracks.Add([]);
+            defaults.Add(new StrategyValueTrack());
+        }
 
         var insertionIndex = Modules.Count;
         while (insertionIndex > 0 && Modules[insertionIndex - 1].Definition.Order > def.Order)
             --insertionIndex;
 
-        Modules.Insert(insertionIndex, new(t, def, builder, tracks));
+        Modules.Insert(insertionIndex, new(t, def, builder, tracks, defaults));
         return insertionIndex;
     }
 }
@@ -86,6 +90,31 @@ public class JsonPlanConverter : JsonConverter<Plan>
             var m = res.Modules[mi].Tracks;
             foreach (var jt in jm.Value.EnumerateObject())
             {
+                if (jt.Name == "_defaults")
+                {
+                    foreach (var jd in jt.Value.EnumerateObject())
+                    {
+                        var dTrack = md.Definition.Configs.FindIndex(s => s.InternalName == jd.Name);
+                        if (dTrack < 0)
+                        {
+                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find track {jd.Name} in module {jm.Name}");
+                            continue;
+                        }
+                        var optionName = jd.Value.GetString() ?? "";
+                        var s = new StrategyValueTrack()
+                        {
+                            Option = ((StrategyConfigTrack)md.Definition.Configs[dTrack]).Options.FindIndex(o => o.InternalName == optionName)
+                        };
+                        if (s.Option < 0)
+                        {
+                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jd.Name} in module {jm.Name}");
+                            continue;
+                        }
+                        res.Modules[mi].Defaults[dTrack] = s;
+                    }
+                    continue;
+                }
+
                 var iTrack = md.Definition.Configs.FindIndex(s => s.InternalName == jt.Name);
                 if (iTrack < 0)
                 {
@@ -96,14 +125,43 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 var cfg = md.Definition.Configs[iTrack];
                 foreach (var js in jt.Value.EnumerateArray())
                 {
-                    var s = new Plan.Entry(new());
-                    var optionName = js.GetProperty(nameof(StrategyValue.Option)).GetString() ?? "";
-                    s.Value.Option = cfg.Options.FindIndex(o => o.InternalName == optionName);
-                    if (s.Value.Option < 0)
+                    Plan.Entry s;
+                    if (cfg is StrategyConfigTrack cfgTrack)
                     {
-                        Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jt.Name} in module {jm.Name}");
+                        var optionName = js.GetProperty(nameof(StrategyValueTrack.Option)).GetString() ?? "";
+                        var t = new StrategyValueTrack
+                        {
+                            Option = cfgTrack.Options.FindIndex(o => o.InternalName == optionName)
+                        };
+                        if (t.Option < 0)
+                        {
+                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jt.Name} in module {jm.Name}");
+                            continue;
+                        }
+                        s = new Plan.Entry(t);
+                    }
+                    else if (cfg is StrategyConfigFloat cfgScalar)
+                    {
+                        var t = new StrategyValueFloat
+                        {
+                            Value = js.GetProperty(nameof(StrategyValueFloat.Value)).GetSingle()
+                        };
+                        s = new Plan.Entry(t);
+                    }
+                    else if (cfg is StrategyConfigInt cfgInt)
+                    {
+                        var t = new StrategyValueInt
+                        {
+                            Value = js.GetProperty(nameof(StrategyValueInt.Value)).GetInt64()
+                        };
+                        s = new Plan.Entry(t);
+                    }
+                    else
+                    {
+                        Service.Log($"Error while deserializing: unrecognized config type {cfg.GetType()}");
                         continue;
                     }
+
                     ReadEntryFields(ref s, in js);
                     track.Add(s);
                 }
@@ -111,7 +169,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
         }
         foreach (var jt in jdoc.RootElement.GetProperty(nameof(Plan.Targeting)).EnumerateArray())
         {
-            var s = new Plan.Entry(new());
+            var s = new Plan.Entry(new StrategyValueTrack());
             ReadEntryFields(ref s, in jt);
             res.Targeting.Add(s);
         }
@@ -144,12 +202,23 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 foreach (ref var s in track.AsSpan())
                 {
                     writer.WriteStartObject();
-                    writer.WriteString(nameof(StrategyValue.Option), cfg.Options[s.Value.Option].InternalName);
+                    cfg.SerializeValue(writer, s.Value);
                     WriteEntryFields(writer, in s);
                     writer.WriteEndObject();
                 }
                 writer.WriteEndArray();
             }
+            writer.WriteStartObject("_defaults");
+            for (int iDef = 0; iDef < m.Defaults.Count; ++iDef)
+            {
+                var def = m.Defaults[iDef];
+                if (def == default)
+                    continue;
+
+                var cfg = (StrategyConfigTrack)m.Definition.Configs[iDef];
+                writer.WriteString(cfg.InternalName, cfg.Options[def.Option].InternalName);
+            }
+            writer.WriteEndObject();
             writer.WriteEndObject();
         }
         writer.WriteEndObject();
@@ -171,18 +240,8 @@ public class JsonPlanConverter : JsonConverter<Plan>
         entry.WindowLength = jelem.GetProperty(nameof(Plan.Entry.WindowLength)).GetSingle();
         if (jelem.TryGetProperty(nameof(Plan.Entry.Disabled), out var jdisabled))
             entry.Disabled = jdisabled.GetBoolean();
-        if (jelem.TryGetProperty(nameof(StrategyValue.PriorityOverride), out var jprio))
-            entry.Value.PriorityOverride = jprio.GetSingle();
-        if (jelem.TryGetProperty(nameof(StrategyValue.Target), out var jtarget))
-            entry.Value.Target = Enum.Parse<StrategyTarget>(jtarget.GetString() ?? "");
-        if (jelem.TryGetProperty(nameof(StrategyValue.TargetParam), out var jtp))
-            entry.Value.TargetParam = jtp.GetInt32();
-        if (jelem.TryGetProperty(nameof(StrategyValue.Offset1), out var joff1))
-            entry.Value.Offset1 = joff1.GetSingle();
-        if (jelem.TryGetProperty(nameof(StrategyValue.Offset2), out var joff2))
-            entry.Value.Offset2 = joff2.GetSingle();
-        if (jelem.TryGetProperty(nameof(StrategyValue.Comment), out var jcomment))
-            entry.Value.Comment = jcomment.GetString() ?? "";
+
+        entry.Value.DeserializeFields(jelem);
     }
 
     private void WriteEntryFields(Utf8JsonWriter writer, in Plan.Entry entry)
@@ -192,17 +251,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
         writer.WriteNumber(nameof(Plan.Entry.WindowLength), entry.WindowLength);
         if (entry.Disabled)
             writer.WriteBoolean(nameof(Plan.Entry.Disabled), entry.Disabled);
-        if (!float.IsNaN(entry.Value.PriorityOverride))
-            writer.WriteNumber(nameof(StrategyValue.PriorityOverride), entry.Value.PriorityOverride);
-        if (entry.Value.Target != StrategyTarget.Automatic)
-            writer.WriteString(nameof(StrategyValue.Target), entry.Value.Target.ToString());
-        if (entry.Value.TargetParam != 0)
-            writer.WriteNumber(nameof(StrategyValue.TargetParam), entry.Value.TargetParam);
-        if (entry.Value.Offset1 != 0)
-            writer.WriteNumber(nameof(StrategyValue.Offset1), entry.Value.Offset1);
-        if (entry.Value.Offset2 != 0)
-            writer.WriteNumber(nameof(StrategyValue.Offset2), entry.Value.Offset2);
-        if (entry.Value.Comment.Length > 0)
-            writer.WriteString(nameof(StrategyValue.Comment), entry.Value.Comment);
+
+        entry.Value.SerializeFields(writer);
     }
 }

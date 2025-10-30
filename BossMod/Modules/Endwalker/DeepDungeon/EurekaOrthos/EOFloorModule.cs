@@ -61,7 +61,7 @@ public enum SID : uint
     IceSpikes = 198,
 }
 
-public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false) : AutoClear(ws, 90)
+public abstract class EOFloorModule(WorldState ws) : AutoClear(ws, 90)
 {
     protected override void OnCastStarted(Actor actor)
     {
@@ -108,15 +108,15 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
             // donut AOEs
             case AID.TheDragonsVoice:
             case AID.TheDragonsVoice2:
-                Donuts.Add((actor, 8, 30));
+                AddDonut(actor, 8, 30);
                 HintDisabled.Add(actor);
                 break;
             case AID.ElectricCachexia:
-                Donuts.Add((actor, 8, 44));
+                AddDonut(actor, 8, 44);
                 HintDisabled.Add(actor);
                 break;
             case AID.ElectricWhorl:
-                Donuts.Add((actor, 8, 60));
+                AddDonut(actor, 8, 60);
                 HintDisabled.Add(actor);
                 break;
 
@@ -180,25 +180,25 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
         switch ((AID)ev.Action.ID)
         {
             case AID.GoobInhale:
-                Voidzones.Add((actor, new AOEShapeCone(7, 45.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(7, 45.Degrees()));
                 break;
             case AID.GourmInhale:
-                Voidzones.Add((actor, new AOEShapeCone(6, 45.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(6, 45.Degrees()));
                 break;
             case AID.KillingPaw:
-                Voidzones.Add((actor, new AOEShapeCone(6, 60.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(6, 60.Degrees()));
                 break;
             case AID.SewerWaterCastFront:
-                Voidzones.Add((actor, new AOEShapeCone(12, 90.Degrees(), 180.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(12, 90.Degrees(), 180.Degrees()));
                 break;
             case AID.SewerWaterCastBack:
-                Voidzones.Add((actor, new AOEShapeCone(12, 90.Degrees())));
+                AddVoidzone(actor, new AOEShapeCone(12, 90.Degrees()));
                 break;
             case AID.Electromagnetism:
-                Voidzones.Add((actor, new AOEShapeCircle(6)));
+                AddVoidzone(actor, new AOEShapeCircle(6));
                 break;
             case AID.RipeBanana:
-                Voidzones.Add((actor, new AOEShapeCircle(52)));
+                AddVoidzone(actor, new AOEShapeCircle(52));
                 break;
 
             case AID.GoobSneeze:
@@ -223,18 +223,6 @@ public abstract class EOFloorModule(WorldState ws, bool autoRaiseOnEnter = false
                 break;
         }
     }
-
-    public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
-    {
-        base.CalculateAIHints(playerSlot, player, hints);
-
-        if (autoRaiseOnEnter && Palace.Floor % 10 == 1)
-        {
-            var raising = Palace.GetPomanderState(PomanderID.ProtoRaising);
-            if (!raising.Active && raising.Count > 0)
-                hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)PomanderID.ProtoRaising), player, ActionQueue.Priority.VeryHigh);
-        }
-    }
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 897)]
@@ -252,8 +240,8 @@ public class EO60(WorldState ws) : EOFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 903)]
 public class EO70(WorldState ws) : EOFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 904)]
-public class EO80(WorldState ws) : EOFloorModule(ws, true);
+public class EO80(WorldState ws) : EOFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 905)]
-public class EO90(WorldState ws) : EOFloorModule(ws, true);
+public class EO90(WorldState ws) : EOFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 906)]
-public class EO100(WorldState ws) : EOFloorModule(ws, true);
+public class EO100(WorldState ws) : EOFloorModule(ws);

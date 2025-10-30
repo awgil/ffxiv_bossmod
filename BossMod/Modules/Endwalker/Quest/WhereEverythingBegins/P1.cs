@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Endwalker.Quest.WhereEverythingBegins.P1;
+
 public enum OID : uint
 {
     Boss = 0x39B3,

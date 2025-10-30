@@ -25,14 +25,14 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
         switch ((SID)status.ID)
         {
             case SID.UnstableFactor:
-                if (Raid.FindSlot(actor.InstanceID) is var slotUnstable && slotUnstable >= 0)
+                if (Raid.TryFindSlot(actor.InstanceID, out var slotUnstable))
                 {
                     _states[slotUnstable].UnstableCount = status.Extra;
                 }
                 break;
             case SID.UmbralTilt:
             case SID.AstralTilt:
-                if (Raid.FindSlot(actor.InstanceID) is var slotColor && slotColor >= 0)
+                if (Raid.TryFindSlot(actor.InstanceID, out var slotColor))
                 {
                     _states[slotColor].Color = (SID)status.ID == SID.UmbralTilt ? Color.Light : Color.Dark;
                     _states[slotColor].ColorExpire = status.ExpireAt;
@@ -110,8 +110,7 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
             // note: tower will assign new color in ~0.4s; clear previous colors immediately, since new towers will start before debuffs are gone
             foreach (var t in spell.Targets)
             {
-                var slot = Raid.FindSlot(t.ID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(t.ID, out var slot))
                 {
                     _states[slot].Color = Color.None;
                     _states[slot].AssignedSide = caster.Position.X < Module.Center.X ? -1 : 1; // ensure correct side is assigned

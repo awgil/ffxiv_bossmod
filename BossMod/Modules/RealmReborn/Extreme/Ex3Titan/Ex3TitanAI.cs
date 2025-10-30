@@ -13,9 +13,9 @@ sealed class Ex3TitanAIRotation(RotationModuleManager manager, Actor player) : A
     {
         var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 1000, 1, RotationModuleOrder.Movement, typeof(Ex3Titan));
         res.Define(Track.Movement).As<MovementStrategy>("Movement", "Movement")
-            .AddOption(MovementStrategy.None, "None", "No automatic movement")
-            .AddOption(MovementStrategy.Pathfind, "Pathfind", "Use standard pathfinding to move")
-            .AddOption(MovementStrategy.Explicit, "Explicit", "Move to specific point", supportedTargets: ActionTargets.Area);
+            .AddOption(MovementStrategy.None, "No automatic movement")
+            .AddOption(MovementStrategy.Pathfind, "Use standard pathfinding to move")
+            .AddOption(MovementStrategy.Explicit, "Move to specific point", supportedTargets: ActionTargets.Area);
         return res;
     }
 
@@ -26,7 +26,7 @@ sealed class Ex3TitanAIRotation(RotationModuleManager manager, Actor player) : A
 
     private WPos CalculateDestination(StrategyValues.OptionRef strategy) => strategy.As<MovementStrategy>() switch
     {
-        MovementStrategy.Pathfind => NavigationDecision.Build(NavigationContext, World, Hints, Player, Speed()).Destination ?? Player.Position,
+        MovementStrategy.Pathfind => NavigationDecision.Build(NavigationContext, World.CurrentTime, Hints, Player.Position, Speed()).Destination ?? Player.Position,
         MovementStrategy.Explicit => ResolveTargetLocation(strategy.Value),
         _ => Player.Position
     };

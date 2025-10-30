@@ -52,10 +52,13 @@ class DirectSeeding(BossModule module) : BossComponent(module)
         new(-15, 5), new(5, 5), new(-5, 15), new(15, 15)
     ];
     private Angle? CurrentTileset;
+
+    private readonly bool _interactOk = Service.Config.Get<BossModuleConfig>().AllowAutomaticInteract;
+
     private IEnumerable<Actor> Seeds => WorldState.Actors.Where(x => (OID)x.OID is OID.LeannanSeed1 or OID.LeannanSeed2 or OID.LeannanSeed3 or OID.LeannanSeed4);
     private IEnumerable<WPos> TileCenters => CurrentTileset == null ? [] : Tileset.Select(t => t.Rotate(CurrentTileset.Value) + Arena.Center);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index != 0x0B)
             return;
@@ -100,6 +103,9 @@ class DirectSeeding(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (!_interactOk)
+            return;
+
         if (actor.FindStatus(SID.Transporting) == null)
             hints.InteractWithTarget = GetDangerSeeds().MinBy(actor.DistanceToHitbox);
         else

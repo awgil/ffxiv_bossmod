@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Endwalker.Dungeon.D06DeadEnds.D063RaLa;
+
 public enum OID : uint
 {
     Boss = 0x34C7,

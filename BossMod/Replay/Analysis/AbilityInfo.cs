@@ -1,5 +1,5 @@
 ﻿using BossMod.Components;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Globalization;
 using System.Text;
 
@@ -515,6 +515,15 @@ class AbilityInfo : CommonEnumInfo
                 sb.AppendLine($"    {key} = {value}");
             ImGui.SetClipboardText(sb.ToString());
         }
+
+        if (ImGui.MenuItem("Generate components for boss module"))
+        {
+            var sb = new StringBuilder();
+            foreach (var (key, value) in _data)
+                if (ComponentString(key, value) is { } str)
+                    sb.AppendLine(str);
+            ImGui.SetClipboardText(sb.ToString());
+        }
     }
 
     private void AddActionData(Replay replay, Replay.Encounter? enc, Replay.Action action)
@@ -610,18 +619,62 @@ class AbilityInfo : CommonEnumInfo
 
     private float? DetermineDonutInner(Lumina.Excel.Sheets.Action data)
     {
-        var omen = data.Omen.ValueNullable;
-        if (omen == null)
+        Utils.DetermineDonutInner(data, out var innerRadius);
+        return innerRadius;
+    }
+
+    private string? ComponentString(ActionID aid, ActionData d)
+    {
+        var ldata = aid.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.Sheets.Action>(aid.ID) : null;
+        if (ldata is not { } data)
             return null;
 
-        var path = omen.Value.Path.ToString();
-        var pos = path.IndexOf("sircle_", StringComparison.Ordinal);
-        if (pos >= 0 && pos + 11 <= path.Length && int.TryParse(path.AsSpan(pos + 9, 2), out var inner))
-            return inner;
+        // no point in generating components for actions with no cast time, they require custom components
+        if (data.Cast100ms == 0)
+            return null;
 
-        pos = path.IndexOf("circle", StringComparison.Ordinal);
-        if (pos >= 0 && pos + 10 <= path.Length && int.TryParse(path.AsSpan(pos + 8, 2), out inner))
-            return inner;
+        var (idName, _) = EnumMemberString(aid, d);
+        var casterHitbox = d.Casts.Count > 0 ? d.Casts[0].Item2.MinRadius : 0;
+
+        // assume that any player-targeted mechanics are stacks, spreads, bait-away TB, etc, that need to be implemented manually
+        // except for type=1 which is the standard tankbuster cast
+        if (d.SeenTargetPlayer && data.CastType != 1)
+            return null;
+
+        switch (data.CastType)
+        {
+            case 1:
+                if (d.SeenTargetPlayer)
+                    return $"class {idName}(BossModule module) : Components.SingleTargetCast(module, AID.{idName});";
+                break;
+            case 2:
+            case 5:
+                if (data.EffectRange >= AIHintsBuilder.RaidwideSize)
+                    return $"class {idName}(BossModule module) : Components.RaidwideCast(module, AID.{idName});";
+
+                var range0 = data.EffectRange + (data.CastType == 5 ? casterHitbox : 0);
+
+                return $"class {idName}(BossModule module) : Components.StandardAOEs(module, AID.{idName}, {range0}f);";
+            case 3:
+            case 13:
+                var range1 = data.EffectRange + (data.CastType == 3 ? casterHitbox : 0);
+
+                var angle = DetermineConeAngle(data) is { } a ? $"{a.Deg / 2}.Degrees()" : "TODO";
+                return $"class {idName}(BossModule module) : Components.StandardAOEs(module, AID.{idName}, new AOEShapeCone({range1}f, {angle}));";
+            case 4:
+            case 12:
+                var range2 = data.EffectRange + (data.CastType == 4 ? casterHitbox : 0);
+
+                return $"class {idName}(BossModule module) : Components.StandardAOEs(module, AID.{idName}, new AOEShapeRect({range2}f, {data.XAxisModifier * 0.5f}f));";
+            case 8:
+                return $"class {idName}(BossModule module) : Components.ChargeAOEs(module, AID.{idName}, {data.XAxisModifier * 0.5f}f);";
+            case 10:
+                var inner = DetermineDonutInner(data)?.ToString() ?? "TODO";
+
+                return $"class {idName}(BossModule module) : Components.StandardAOEs(module, AID.{idName}, new AOEShapeDonut({inner}, {data.EffectRange}));";
+            case 11:
+                return $"class {idName}(BossModule module) : Components.StandardAOEs(module, AID.{idName}, new AOEShapeCross({data.EffectRange}, {data.XAxisModifier * 0.5f}f));";
+        }
 
         return null;
     }

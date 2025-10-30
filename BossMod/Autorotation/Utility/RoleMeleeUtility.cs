@@ -22,9 +22,9 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
         // TODO: combine standard/ex options
         // TODO: add 'if-not-active' strategy with configurable min-time-left
         def.Define(SharedTrack.Feint).As<FeintOption>("Feint", "", 250)
-            .AddOption(FeintOption.None, "None", "Do not use automatically")
-            .AddOption(FeintOption.Use, "Use", "Use Feint (10s)", 90, 10, ActionTargets.Hostile, 22, 97)
-            .AddOption(FeintOption.UseEx, "UseEx", "Use Feint (15s)", 90, 15, ActionTargets.Hostile, 98)
+            .AddOption(FeintOption.None, "Do not use automatically")
+            .AddOption(FeintOption.Use, "Use Feint (10s)", 90, 10, ActionTargets.Hostile, 22, 97)
+            .AddOption(FeintOption.UseEx, "Use Feint (15s)", 90, 15, ActionTargets.Hostile, 98)
             .AddAssociatedActions(ClassShared.AID.Feint);
 
         DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s

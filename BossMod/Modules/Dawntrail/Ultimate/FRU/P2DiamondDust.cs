@@ -289,8 +289,7 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
 
         if (master != null)
         {
-            var masterSlot = Raid.FindSlot(master.InstanceID);
-            if (masterSlot >= 0 && NumCasts > 0)
+            if (NumCasts > 0 && Raid.TryFindSlot(master, out var masterSlot))
             {
                 var masterMovement = preferredDir.Dot(master.Position - _initialSpots[masterSlot]);
                 if (masterMovement < -2)

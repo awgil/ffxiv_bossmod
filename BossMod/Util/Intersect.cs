@@ -90,13 +90,25 @@ public static class Intersect
         var u = lineDir.Dot(p - oa);
         return u >= 0 && u <= lineDir.LengthSq() ? t : float.MaxValue;
     }
-    public static float RaySegments(WDir rayOriginOffset, WDir rayDir, IEnumerable<(WDir, WDir)> edges) => edges.Min(e => RaySegment(rayOriginOffset, rayDir, e.Item1, e.Item2));
+
+    public static float RaySegments(WDir rayOriginOffset, WDir rayDir, ReadOnlySpan<WDir> verts)
+    {
+        if (verts.Length < 2)
+            throw new ArgumentException("not enough vertices");
+
+        var min = RaySegment(rayOriginOffset, rayDir, verts[^1], verts[0]);
+
+        for (int i = 1, j = 0; i < verts.Length; j = i++)
+            min = MathF.Min(min, RaySegment(rayOriginOffset, rayDir, verts[j], verts[i]));
+
+        return min;
+    }
 
     public static float RayPolygon(WDir rayOriginOffset, WDir rayDir, RelPolygonWithHoles poly)
     {
-        var dist = RaySegments(rayOriginOffset, rayDir, poly.ExteriorEdges);
+        var dist = RaySegments(rayOriginOffset, rayDir, poly.Exterior);
         foreach (var h in poly.Holes)
-            dist = Math.Min(dist, RaySegments(rayOriginOffset, rayDir, poly.InteriorEdges(h)));
+            dist = Math.Min(dist, RaySegments(rayOriginOffset, rayDir, poly.Interior(h)));
         return dist;
     }
     public static float RayPolygon(WDir rayOriginOffset, WDir rayDir, RelSimplifiedComplexPolygon poly) => poly.Parts.Min(part => RayPolygon(rayOriginOffset, rayDir, part));

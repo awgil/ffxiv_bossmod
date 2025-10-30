@@ -39,7 +39,7 @@ public enum IconID : uint
 
 class Voidzone(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x00)
         {
@@ -71,7 +71,7 @@ class ForkedFissures(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(16);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state is 0x00200010 or 0x00020001)
         {

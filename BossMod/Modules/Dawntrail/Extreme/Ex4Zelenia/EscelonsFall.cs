@@ -32,7 +32,7 @@ class EscelonsFall : Components.GenericBaitAway
             HintOrder.Add(Order[^1]);
         }
 
-        if (status.ID == (uint)SID.SlashingResistanceDown && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (status.ID == (uint)SID.SlashingResistanceDown && Raid.TryFindSlot(actor.InstanceID, out var slot))
             Vulns[slot] = status.ExpireAt;
     }
 

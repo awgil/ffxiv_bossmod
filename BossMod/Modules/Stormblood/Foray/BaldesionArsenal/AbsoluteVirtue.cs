@@ -132,8 +132,7 @@ class Balls(BossModule module) : BossComponent(module)
             {
                 var color = tether.ID == (uint)TetherID.DarkTether ? Color.Dark : Color.Light;
                 Tethers.Add((source, actor, color));
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                     TetherColors[slot] = color;
             }
         }
@@ -142,8 +141,7 @@ class Balls(BossModule module) : BossComponent(module)
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
         Tethers.RemoveAll(t => t.Source == source);
-        var slot = Raid.FindSlot(tether.Target);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(tether.Target, out var slot))
             TetherColors[slot] = default;
 
         if (Tethers.Count == 0)

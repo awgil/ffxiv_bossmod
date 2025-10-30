@@ -19,8 +19,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         def.DefineShared().AddAssociatedActions(AID.Reawaken);
         def.Define(Track.Snap).As<SnapStrategy>("WrithingSnap")
-            .AddOption(SnapStrategy.None, "None", "Don't use")
-            .AddOption(SnapStrategy.Ranged, "Ranged", "Use when out of melee range, if out of Coil stacks")
+            .AddOption(SnapStrategy.None, "Don't use")
+            .AddOption(SnapStrategy.Ranged, "Use when out of melee range, if out of Coil stacks")
             .AddAssociatedActions(AID.WrithingSnap);
 
         return def;
@@ -122,8 +122,24 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         BestGenerationTarget = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget).Best;
         NumAOETargets = NumMeleeAOETargets(strategy);
 
-        if (CountdownRemaining > 0 || primaryTarget == null)
+        if (primaryTarget == null)
             return;
+
+        if (CountdownRemaining > 0)
+        {
+            if (Player.DistanceToHitbox(primaryTarget) > 3)
+            {
+                if (CountdownRemaining < 0.7f)
+                    PushGCD(AID.Slither, primaryTarget);
+            }
+            else
+            {
+                if (CountdownRemaining < 1.16f)
+                    PushGCD(AID.SteelFangs, primaryTarget);
+            }
+
+            return;
+        }
 
         var aoeBreakpoint = DreadCombo switch
         {
@@ -131,9 +147,6 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
             DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen or DreadCombo.PitOfDread => 1,
             _ => Anguine > 0 ? 50 : 3
         };
-
-        if (CombatTimer < 0.7f && Player.DistanceToHitbox(primaryTarget) > 3)
-            PushGCD(AID.Slither, primaryTarget);
 
         if (ShouldReawaken(strategy))
             PushGCD(AID.Reawaken, Player);

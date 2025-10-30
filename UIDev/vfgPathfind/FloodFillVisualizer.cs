@@ -1,5 +1,5 @@
 ﻿using BossMod;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace UIDev.vfgPathfind;
 
@@ -155,7 +155,6 @@ public class FloodFillVisualizer
                 var toS = tl + new Vector2(to.x + 0.5f, toY + 0.5f) * ScreenPixelSize;
                 if (fromY >= 0 && fromY <= h && toY >= 0 && toY <= h)
                     dl.AddLine(fromS, toS, Path[i].W <= CurrT ? 0x80800080 : 0xffff00ff, 2);
-                from = to;
                 fromY = toY;
                 fromS = toS;
                 //if (CurrT == i && fromY >= 0 && fromY <= h)

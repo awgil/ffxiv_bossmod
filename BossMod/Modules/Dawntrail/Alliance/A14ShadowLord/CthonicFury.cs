@@ -45,7 +45,7 @@ class BurningCourtMoatKeepBattlements(BossModule module) : Components.GenericAOE
 
     private static readonly AOEShape _shapeC = new AOEShapeCircle(8);
     private static readonly AOEShape _shapeM = new AOEShapeDonut(5, 15);
-    private static readonly AOEShape _shapeK = new AOEShapeRect(11.5f, 11.5f, 11.5f);
+    private static readonly AOEShape _shapeK = new AOEShapeRect(23, 11.5f);
     private static readonly AOEShape _shapeB = new AOEShapeCustom(BuildBattlementsPolygon());
 
     private static RelSimplifiedComplexPolygon BuildBattlementsPolygon()

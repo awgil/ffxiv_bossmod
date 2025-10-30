@@ -31,7 +31,7 @@ class StableCannon(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 8 and <= 10)
         {
@@ -80,10 +80,11 @@ class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastT
             return;
 
         var source = Casters[0].CastInfo!.LocXZ;
+        var clamp = Arena.ClampToBounds;
         hints.AddForbiddenZone(p =>
         {
             var dist = (p - source).Normalized();
-            var proj = Arena.ClampToBounds(p + dist * 10);
+            var proj = clamp(p + dist * 10);
             return aoes.Any(e => e.Check(proj));
         }, Module.CastFinishAt(Casters[0].CastInfo));
     }
@@ -95,7 +96,7 @@ class Launchpad(BossModule module) : BossComponent(module)
 
     private static readonly WPos Position = new(-175, 30);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x0D)
         {

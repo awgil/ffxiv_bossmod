@@ -74,8 +74,7 @@ class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot < 0)
+        if (!Raid.TryFindSlot(actor, out var slot))
             return;
 
         switch ((IconID)iconID)

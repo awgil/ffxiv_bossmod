@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Components;
 
-abstract class GenericInvincible(BossModule module, string hint = "Attacking invincible target!") : BossComponent(module)
+abstract class GenericInvincible(BossModule module, string hint = "Attacking invincible target!", int priority = AIHints.Enemy.PriorityInvincible) : BossComponent(module)
 {
     public bool EnableHints = true;
 
@@ -15,7 +15,7 @@ abstract class GenericInvincible(BossModule module, string hint = "Attacking inv
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var a in ForbiddenTargets(slot, actor))
-            hints.SetPriority(a, AIHints.Enemy.PriorityInvincible);
+            hints.SetPriority(a, priority);
     }
 }
 
@@ -27,7 +27,7 @@ class InvincibleStatus(BossModule module, uint statusId, string hint = "Attackin
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if (status.ID == statusId)
+        if (status.ID == statusId && !_actors.Contains(actor))
             _actors.Add(actor);
     }
 
@@ -35,5 +35,18 @@ class InvincibleStatus(BossModule module, uint statusId, string hint = "Attackin
     {
         if (status.ID == statusId)
             _actors.Remove(actor);
+    }
+}
+
+class HPThreshold(BossModule module, uint oid, float ratio) : BossComponent(module)
+{
+    public uint ID = oid;
+    public float Ratio = ratio;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var enemy in Module.Enemies(ID))
+            if (enemy.PendingHPRatio < Ratio)
+                hints.SetPriority(enemy, AIHints.Enemy.PriorityPointless);
     }
 }

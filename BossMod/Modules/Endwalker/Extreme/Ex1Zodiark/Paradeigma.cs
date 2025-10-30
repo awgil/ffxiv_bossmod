@@ -47,7 +47,7 @@ class Paradeigma(BossModule module) : BossComponent(module)
             Arena.AddLine(Module.Center + _fireLine[0], Module.Center + _fireLine[1], ArenaColor.Danger);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // notable env controls that we don't care too much about:
         // 1: common for all flows, 00020001 = activate, 00080004 = deactivate

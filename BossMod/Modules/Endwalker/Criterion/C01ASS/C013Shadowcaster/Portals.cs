@@ -75,8 +75,7 @@ class PortalsWave(BossModule module) : BossComponent(module)
     {
         if ((SID)status.ID == SID.PlayerPortal)
         {
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
             {
                 _playerPortals[slot] = status.Extra switch
                 {

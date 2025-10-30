@@ -142,7 +142,7 @@ class Intemperance(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // we get the following env-control messages:
         // 1. ~2.8s after 26142 cast, we get 25 EnvControl messages with directorID 800375A0

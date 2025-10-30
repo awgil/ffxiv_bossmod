@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation;
-
-namespace BossMod.QuestBattle.Endwalker.MSQ;
+﻿namespace BossMod.QuestBattle.Endwalker.MSQ;
 
 class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
 {
@@ -69,7 +67,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
             .Named("Medkit")
             .Hints((player, hints) => hints.PrioritizeTargetsByOID(0x3507))
             .WithInteract(0x3507)
-            .With(obj => obj.OnDutyActionsChange += (op) => obj.CompleteIf(op.Slot0.Action.ID == 27315)),
+            .With(obj => obj.OnDutyActionsChange += (op) => obj.CompleteIf(op.Slots[0].Action.ID == 27315)),
 
         new QuestObjective(ws)
             .Named("F")

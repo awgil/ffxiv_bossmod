@@ -1,4 +1,6 @@
-﻿namespace BossMod.Pathfinding;
+﻿using System.Threading.Tasks;
+
+namespace BossMod.Pathfinding;
 
 // utility for selecting player's navigation target
 // there are several goals that navigation has to meet, in following rough priority
@@ -22,24 +24,76 @@ public struct NavigationDecision
     public float LeewaySeconds; // can be used for finishing casts / slidecasting etc.
     public float TimeToGoal;
 
-    public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
-    public const float ActivationTimeCushion = 1; // reduce time between now and activation by this value in seconds; increase for more conservativeness
+    public TimeSpan RasterizeTime;
+    public TimeSpan PathfindTime;
+    public TimeSpan TotalTime;
 
-    public static NavigationDecision Build(Context ctx, WorldState ws, AIHints hints, Actor player, float playerSpeed = 6)
+    public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
+
+    // reduce time between now and activation by this value in seconds; increase for more conservativeness
+    public static readonly float ActivationTimeCushion = Service.IsDev
+        ? ActorCastInfo.NPCFinishDelay + 0.2f
+        : 1;
+
+    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
     {
-        // build a pathfinding map: rasterize all forbidden zones and goals
+        var startTime = DateTime.Now;
+
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, ws.CurrentTime, ref ctx.Scratch);
+            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.Scratch);
         if (hints.GoalZones.Count > 0)
             RasterizeGoalZones(ctx.Map, hints.GoalZones);
 
+        if (forbiddenZoneCushion > 0)
+            AvoidForbiddenZone(ctx.Map, forbiddenZoneCushion);
+
+        var rasterFinish = DateTime.Now;
+
         // execute pathfinding
-        ctx.ThetaStar.Start(ctx.Map, player.Position, 1.0f / playerSpeed);
+        ctx.ThetaStar.Start(ctx.Map, playerPosition, 1.0f / playerSpeed);
         var bestNodeIndex = ctx.ThetaStar.Execute();
         ref var bestNode = ref ctx.ThetaStar.NodeByIndex(bestNodeIndex);
-        var waypoints = GetFirstWaypoints(ctx.ThetaStar, ctx.Map, bestNodeIndex, player.Position);
-        return new() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore };
+        var waypoints = GetFirstWaypoints(ctx.ThetaStar, ctx.Map, bestNodeIndex, playerPosition);
+        var finishTime = DateTime.Now;
+        return new NavigationDecision() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, PathfindTime = finishTime - rasterFinish, RasterizeTime = rasterFinish - startTime, TotalTime = finishTime - startTime };
+    }
+
+    public static Task<NavigationDecision> BuildAsync(Context ctx, DateTime currentTime, AIHints hints, WPos playerPos, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
+    {
+        var hintsCopy = new AIHints()
+        {
+            PathfindMapBounds = hints.PathfindMapBounds,
+            PathfindMapCenter = hints.PathfindMapCenter,
+            PathfindMapObstacles = hints.PathfindMapObstacles,
+            TemporaryObstacles = [.. hints.TemporaryObstacles],
+            ForbiddenZones = [.. hints.ForbiddenZones],
+            GoalZones = [.. hints.GoalZones]
+        };
+        return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, forbiddenZoneCushion));
+    }
+
+    public static void AvoidForbiddenZone(Map map, float forbiddenZoneCushion)
+    {
+        int d = (int)(forbiddenZoneCushion / map.Resolution);
+        map.MaxPriority = -1;
+        foreach (var (x, y, _) in map.EnumeratePixels())
+        {
+            var cellIndex = map.GridToIndex(x, y);
+            if (map.PixelMaxG[cellIndex] == float.MaxValue)
+            {
+                var neighbourhood = new[]
+                {
+                    (x + d, y), (x - d, y), (x, y + d), (x, y - d),
+                    (x + d, y + d), (x - d, y + d), (x + d, y - d), (x - d, y - d)
+                };
+                if (neighbourhood.Any(p => map.PixelMaxG[map.GridToIndex(map.ClampToGrid(p))] != float.MaxValue))
+                {
+                    map.PixelPriority[cellIndex] -= 0.125f;
+                }
+            }
+            map.MaxPriority = Math.Max(map.MaxPriority, map.PixelPriority[cellIndex]);
+        }
     }
 
     public static void RasterizeForbiddenZones(Map map, List<(Func<WPos, bool> containsFn, DateTime activation, ulong source)> zones, DateTime current, ref float[] scratch)

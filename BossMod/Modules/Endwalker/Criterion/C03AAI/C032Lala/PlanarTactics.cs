@@ -29,11 +29,11 @@ class PlanarTactics(BossModule module) : Components.GenericAOEs(module)
         switch ((SID)status.ID)
         {
             case SID.SubtractiveSuppressorAlpha:
-                if (Raid.FindSlot(actor.InstanceID) is var slot3 && slot3 >= 0 && slot3 < Players.Length)
+                if (Raid.TryFindSlot(actor.InstanceID, out var slot3) && slot3 < Players.Length)
                     Players[slot3].SubtractiveStacks = status.Extra;
                 break;
             case SID.SurgeVector:
-                if (Raid.FindSlot(actor.InstanceID) is var slot4 && slot4 >= 0 && slot4 < Players.Length)
+                if (Raid.TryFindSlot(actor.InstanceID, out var slot4) && slot4 < Players.Length)
                     Players[slot4].StackTarget = true;
                 break;
         }
@@ -102,12 +102,12 @@ class PlanarTacticsForcedMarch : Components.GenericForcedMarch
         {
             case SID.TimesThreePlayer:
                 _activation = status.ExpireAt;
-                if (Raid.FindSlot(actor.InstanceID) is var slot1 && slot1 >= 0 && slot1 < _rotationCount.Length)
+                if (Raid.TryFindSlot(actor.InstanceID, out var slot1) && slot1 < _rotationCount.Length)
                     _rotationCount[slot1] = -1;
                 break;
             case SID.TimesFivePlayer:
                 _activation = status.ExpireAt;
-                if (Raid.FindSlot(actor.InstanceID) is var slot2 && slot2 >= 0 && slot2 < _rotationCount.Length)
+                if (Raid.TryFindSlot(actor.InstanceID, out var slot2) && slot2 < _rotationCount.Length)
                     _rotationCount[slot2] = 1;
                 break;
             case SID.ForcedMarch:
@@ -125,7 +125,7 @@ class PlanarTacticsForcedMarch : Components.GenericForcedMarch
             IconID.PlayerRotateCCW => 90.Degrees(),
             _ => default
         };
-        if (rot != default && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotationCount.Length)
+        if (rot != default && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot < _rotationCount.Length)
         {
             _rotation[slot] = rot * _rotationCount[slot];
             AddForcedMovement(actor, _rotation[slot], 6, _activation);

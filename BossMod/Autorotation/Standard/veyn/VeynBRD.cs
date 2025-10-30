@@ -23,105 +23,105 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         var res = new RotationModuleDefinition("Veyn BRD", "Standard rotation module", "Standard rotation (veyn)", "veyn", RotationModuleQuality.Basic, BitMask.Build((int)Class.BRD, (int)Class.ARC), 100);
 
         res.Define(Track.AOE).As<AOEStrategy>("AOE", uiPriority: 110)
-            .AddOption(AOEStrategy.SingleTarget, "ST", "Use single-target actions")
-            .AddOption(AOEStrategy.AutoTargetHitPrimary, "AutoTargetHitPrimary", "Use aoe actions if profitable, select best target that ensures primary target is hit")
-            .AddOption(AOEStrategy.AutoTargetHitMost, "AutoTargetHitMost", "Use aoe actions if profitable, select a target that ensures maximal number of targets are hit")
-            .AddOption(AOEStrategy.AutoOnPrimary, "AutoOnPrimary", "Use aoe actions on primary target if profitable")
-            .AddOption(AOEStrategy.ForceAOE, "AOE", "Use aoe rotation on primary target even if it's less total damage than single-target")
+            .AddOption(AOEStrategy.SingleTarget, "Use single-target actions")
+            .AddOption(AOEStrategy.AutoTargetHitPrimary, "Use aoe actions if profitable, select best target that ensures primary target is hit")
+            .AddOption(AOEStrategy.AutoTargetHitMost, "Use aoe actions if profitable, select a target that ensures maximal number of targets are hit")
+            .AddOption(AOEStrategy.AutoOnPrimary, "Use aoe actions on primary target if profitable")
+            .AddOption(AOEStrategy.ForceAOE, "Use aoe rotation on primary target even if it's less total damage than single-target")
             .AddAssociatedActions(BRD.AID.QuickNock, BRD.AID.WideVolley, BRD.AID.Ladonsbite, BRD.AID.RainOfDeath, BRD.AID.Shadowbite);
 
         res.Define(Track.Songs).As<SongStrategy>("Songs", uiPriority: 100)
             .AddOption(SongStrategy.Automatic, "Automatic (3-6-9)")
-            .AddOption(SongStrategy.Extend, "Extend", "Extend until last tick")
-            .AddOption(SongStrategy.Overextend, "Overextend", "Extend until last possible moment")
-            .AddOption(SongStrategy.ForceWM, "ForceWM", "Force switch to Wanderer's Minuet")
-            .AddOption(SongStrategy.ForceMB, "ForceMB", "Force switch to Mage's Ballad")
-            .AddOption(SongStrategy.ForceAP, "ForceAP", "Force switch to Army's Paeon")
-            .AddOption(SongStrategy.ForcePP, "ForcePP", "Force Pitch Perfect (assuming WM is up)", supportedTargets: ActionTargets.Hostile)
-            .AddOption(SongStrategy.Delay, "Delay", "Do not use any songs; stay songless if needed")
+            .AddOption(SongStrategy.Extend, "Extend until last tick")
+            .AddOption(SongStrategy.Overextend, "Extend until last possible moment")
+            .AddOption(SongStrategy.ForceWM, "Force switch to Wanderer's Minuet")
+            .AddOption(SongStrategy.ForceMB, "Force switch to Mage's Ballad")
+            .AddOption(SongStrategy.ForceAP, "Force switch to Army's Paeon")
+            .AddOption(SongStrategy.ForcePP, "Force Pitch Perfect (assuming WM is up)", supportedTargets: ActionTargets.Hostile)
+            .AddOption(SongStrategy.Delay, "Do not use any songs; stay songless if needed")
             .AddAssociatedActions(BRD.AID.WanderersMinuet, BRD.AID.MagesBallad, BRD.AID.ArmysPaeon, BRD.AID.PitchPerfect);
 
         res.Define(Track.Buffs).As<BuffsStrategy>("Buffs", uiPriority: 95)
-            .AddOption(BuffsStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(BuffsStrategy.Delay, "Delay", "Delay")
-            .AddOption(BuffsStrategy.ForceRF, "ForceRF", "Force use Radiant Finale ASAP")
-            .AddOption(BuffsStrategy.ForceBV, "ForceBV", "Force use Battle Voice ASAP")
-            .AddOption(BuffsStrategy.ForceRS, "ForceRS", "Force use Raging Strikes ASAP")
+            .AddOption(BuffsStrategy.Automatic, "Use normally")
+            .AddOption(BuffsStrategy.Delay, "Delay")
+            .AddOption(BuffsStrategy.ForceRF, "Force use Radiant Finale ASAP")
+            .AddOption(BuffsStrategy.ForceBV, "Force use Battle Voice ASAP")
+            .AddOption(BuffsStrategy.ForceRS, "Force use Raging Strikes ASAP")
             .AddAssociatedActions(BRD.AID.RagingStrikes, BRD.AID.BattleVoice, BRD.AID.RadiantFinale);
 
         res.Define(Track.Potion).As<PotionStrategy>("Potion", uiPriority: 90)
-            .AddOption(PotionStrategy.Manual, "Manual", "Do not use automatically")
-            .AddOption(PotionStrategy.Burst, "Burst", "Use right before burst", 270, 30)
-            .AddOption(PotionStrategy.Force, "Force", "Use ASAP", 270, 30)
+            .AddOption(PotionStrategy.Manual, "Do not use automatically")
+            .AddOption(PotionStrategy.Burst, "Use right before burst", 270, 30)
+            .AddOption(PotionStrategy.Force, "Use ASAP", 270, 30)
             .AddAssociatedAction(ActionDefinitions.IDPotionDex);
 
         // TODO: consider multidotting - should it be a separate track (default is primary only, think about interactions with ij etc)? for now user can just do it via planner where it matters
         res.Define(Track.DOTs).As<DotStrategy>("DOTs", uiPriority: 80)
-            .AddOption(DotStrategy.Automatic, "Automatic", "Apply dots asap (unless aoe filler is better), reapply when either dots about to expire or in buff window", supportedTargets: ActionTargets.Hostile)
-            .AddOption(DotStrategy.ApplyOrExtend, "ApplyOrExtend", "Apply dots asap (even if aoe filler is better), extend existing normally with IJ", supportedTargets: ActionTargets.Hostile)
-            .AddOption(DotStrategy.AutomaticExtendOnly, "AutomaticExtendOnly", "Do not apply new dots, extend existing normally with IJ", supportedTargets: ActionTargets.Hostile)
-            .AddOption(DotStrategy.Forbid, "Forbid", "Do not apply new or extend existing dots")
-            .AddOption(DotStrategy.ForceExtend, "ForceExtend", "Force extend dots via IJ ASAP", supportedTargets: ActionTargets.Hostile)
-            .AddOption(DotStrategy.ExtendIgnoreBuffs, "ExtendIgnoreBuffs", "Extend dots via IJ only if they are about to fall off (but don't risk proc overwrites), don't extend early under buffs", supportedTargets: ActionTargets.Hostile)
-            .AddOption(DotStrategy.ExtendDelayed, "ExtendDelayed", "Extend dots via IJ at last possible moment, even if it might overwrite proc", supportedTargets: ActionTargets.Hostile)
+            .AddOption(DotStrategy.Automatic, "Apply dots asap (unless aoe filler is better), reapply when either dots about to expire or in buff window", supportedTargets: ActionTargets.Hostile)
+            .AddOption(DotStrategy.ApplyOrExtend, "Apply dots asap (even if aoe filler is better), extend existing normally with IJ", supportedTargets: ActionTargets.Hostile)
+            .AddOption(DotStrategy.AutomaticExtendOnly, "Do not apply new dots, extend existing normally with IJ", supportedTargets: ActionTargets.Hostile)
+            .AddOption(DotStrategy.Forbid, "Do not apply new or extend existing dots")
+            .AddOption(DotStrategy.ForceExtend, "Force extend dots via IJ ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(DotStrategy.ExtendIgnoreBuffs, "Extend dots via IJ only if they are about to fall off (but don't risk proc overwrites), don't extend early under buffs", supportedTargets: ActionTargets.Hostile)
+            .AddOption(DotStrategy.ExtendDelayed, "Extend dots via IJ at last possible moment, even if it might overwrite proc", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.VenomousBite, BRD.AID.Windbite, BRD.AID.IronJaws, BRD.AID.CausticBite, BRD.AID.Stormbite);
 
         res.Define(Track.ApexArrow).As<ApexArrowStrategy>("Apex", uiPriority: 70)
-            .AddOption(ApexArrowStrategy.Automatic, "Automatic", "Use at 80+ if buffs are about to run off, use at 100 asap unless raid buffs are imminent", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ApexArrowStrategy.Delay, "Delay", "Delay")
-            .AddOption(ApexArrowStrategy.ForceAnyGauge, "ForceAnyGauge", "Force at any gauge (even if it means no BA)", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ApexArrowStrategy.ForceHighGauge, "ForceHighGauge", "Force at 80+ gauge", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ApexArrowStrategy.ForceCapGauge, "ForceCapGauge", "Force at 100 gauge (don't delay until raidbuffs)", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ApexArrowStrategy.Automatic, "Use at 80+ if buffs are about to run off, use at 100 asap unless raid buffs are imminent", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ApexArrowStrategy.Delay, "Delay")
+            .AddOption(ApexArrowStrategy.ForceAnyGauge, "Force at any gauge (even if it means no BA)", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ApexArrowStrategy.ForceHighGauge, "Force at 80+ gauge", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ApexArrowStrategy.ForceCapGauge, "Force at 100 gauge (don't delay until raidbuffs)", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.ApexArrow);
 
         res.Define(Track.BlastArrow).As<OffensiveStrategy>("Blast", uiPriority: -10)
-            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally", supportedTargets: ActionTargets.Hostile)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Automatic, "Use normally", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Delay, "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force use ASAP", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.BlastArrow);
 
         res.Define(Track.ResonantArrow).As<OffensiveStrategy>("Reso", uiPriority: -20)
-            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally", supportedTargets: ActionTargets.Hostile)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Automatic, "Use normally", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Delay, "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force use ASAP", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.ResonantArrow);
 
         res.Define(Track.RadiantEncore).As<OffensiveStrategy>("Encore", uiPriority: -30)
-            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally", supportedTargets: ActionTargets.Hostile)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Automatic, "Use normally", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Delay, "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force use ASAP", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.RadiantEncore);
 
         res.Define(Track.Bloodletter).As<BloodletterStrategy>("BL", uiPriority: 40)
-            .AddOption(BloodletterStrategy.Automatic, "Automatic", "Pool for raid buffs, otherwise use freely", supportedTargets: ActionTargets.Hostile)
-            .AddOption(BloodletterStrategy.Delay, "Delay", "Do not use, allowing overcap")
-            .AddOption(BloodletterStrategy.Force, "Force", "Force use all charges", supportedTargets: ActionTargets.Hostile)
-            .AddOption(BloodletterStrategy.KeepOneCharge, "KeepOneCharge", "Keep 1 charge, use if 2+ charges available", supportedTargets: ActionTargets.Hostile)
-            .AddOption(BloodletterStrategy.KeepTwoCharges, "KeepTwoCharges", "Keep 2 charges, use if overcap is imminent", supportedTargets: ActionTargets.Hostile)
+            .AddOption(BloodletterStrategy.Automatic, "Pool for raid buffs, otherwise use freely", supportedTargets: ActionTargets.Hostile)
+            .AddOption(BloodletterStrategy.Delay, "Do not use, allowing overcap")
+            .AddOption(BloodletterStrategy.Force, "Force use all charges", supportedTargets: ActionTargets.Hostile)
+            .AddOption(BloodletterStrategy.KeepOneCharge, "Keep 1 charge, use if 2+ charges available", supportedTargets: ActionTargets.Hostile)
+            .AddOption(BloodletterStrategy.KeepTwoCharges, "Keep 2 charges, use if overcap is imminent", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.Bloodletter, BRD.AID.RainOfDeath);
 
         res.Define(Track.EmpyrealArrow).As<OffensiveStrategy>("EA", uiPriority: 30)
-            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally", supportedTargets: ActionTargets.Hostile)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Automatic, "Use normally", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Delay, "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force use ASAP", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.EmpyrealArrow);
 
         res.Define(Track.Barrage).As<OffensiveStrategy>("Barrage", uiPriority: 20)
-            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally")
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP")
+            .AddOption(OffensiveStrategy.Automatic, "Use normally")
+            .AddOption(OffensiveStrategy.Delay, "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force use ASAP")
             .AddAssociatedActions(BRD.AID.Barrage);
 
         res.Define(Track.Sidewinder).As<OffensiveStrategy>("SW", uiPriority: 10)
-            .AddOption(OffensiveStrategy.Automatic, "Automatic", "Use normally", supportedTargets: ActionTargets.Hostile)
-            .AddOption(OffensiveStrategy.Delay, "Delay", "Delay")
-            .AddOption(OffensiveStrategy.Force, "Force", "Force use ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Automatic, "Use normally", supportedTargets: ActionTargets.Hostile)
+            .AddOption(OffensiveStrategy.Delay, "Delay")
+            .AddOption(OffensiveStrategy.Force, "Force use ASAP", supportedTargets: ActionTargets.Hostile)
             .AddAssociatedActions(BRD.AID.Sidewinder);
 
         res.Define(Track.GCDDelay).As<GCDDelayStrategy>("GCDDelay", "GCD", uiPriority: 5)
-            .AddOption(GCDDelayStrategy.NoPrepull, "NoPrepull", "Delay first GCD until pull (for better raidbuff timings)")
-            .AddOption(GCDDelayStrategy.EarlyPrepull, "EarlyPrepull", "Use first GCD as early as possible, so that it hits boss exactly at countdown end")
-            .AddOption(GCDDelayStrategy.Delay, "Delay", "Do not use any GCDs");
+            .AddOption(GCDDelayStrategy.NoPrepull, "Delay first GCD until pull (for better raidbuff timings)")
+            .AddOption(GCDDelayStrategy.EarlyPrepull, "Use first GCD as early as possible, so that it hits boss exactly at countdown end")
+            .AddOption(GCDDelayStrategy.Delay, "Do not use any GCDs");
 
         return res;
     }

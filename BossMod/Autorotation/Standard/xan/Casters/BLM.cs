@@ -1,4 +1,5 @@
 ﻿using BossMod.BLM;
+using BossMod.Data;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
 
@@ -6,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
-    public enum Track { Scathe = SharedTrack.Count, Thunder }
+    public enum Track { Scathe = SharedTrack.Buffs, Thunder, Leylines, Triplecast, Iainuki, Zeninage, LLMove, TimeMage, Manafont }
     public enum ScatheStrategy
     {
         Forbid,
@@ -22,22 +23,63 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         ForbidInstant
     }
 
+    public enum LeylinesStrategy
+    {
+        OpenerOnly,
+        Delay,
+        Force
+    }
+
+    public enum TriplecastStrategy
+    {
+        Automatic,
+        Delay,
+        Force
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan BLM", "Black Mage", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.BLM, Class.THM), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.LeyLines);
+        def.DefineSharedTA();
 
         def.Define(Track.Scathe).As<ScatheStrategy>("Scathe")
-            .AddOption(ScatheStrategy.Forbid, "Forbid")
-            .AddOption(ScatheStrategy.Allow, "Allow");
+            .AddOption(ScatheStrategy.Forbid)
+            .AddOption(ScatheStrategy.Allow);
 
-        def.Define(Track.Thunder).As<ThunderStrategy>("DoT")
-            .AddOption(ThunderStrategy.Automatic, "Automatic", "Automatically refresh on main target according to standard rotation", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ThunderStrategy.Delay, "Delay", "Don't apply")
-            .AddOption(ThunderStrategy.Force, "Force", "Force refresh ASAP", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ThunderStrategy.InstantOnly, "InstantOnly", "Allow Thunder if an instant cast is needed, but don't try to maintain uptime", supportedTargets: ActionTargets.Hostile)
-            .AddOption(ThunderStrategy.ForbidInstant, "ForbidInstant", "Use only for standard refresh, not as a utility instant cast", supportedTargets: ActionTargets.Hostile);
+        def.Define(Track.Thunder).As<ThunderStrategy>("DoT", "Thunder")
+            .AddOption(ThunderStrategy.Automatic, "Automatically refresh on main target according to standard rotation", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.Delay, "Don't apply")
+            .AddOption(ThunderStrategy.Force, "Force refresh ASAP", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.InstantOnly, "Allow Thunder if an instant cast is needed, but don't try to maintain uptime", supportedTargets: ActionTargets.Hostile)
+            .AddOption(ThunderStrategy.ForbidInstant, "Use only for standard refresh, not as a utility instant cast", supportedTargets: ActionTargets.Hostile);
+
+        def.Define(Track.Leylines).As<LeylinesStrategy>("LL", "Leylines")
+            .AddOption(LeylinesStrategy.OpenerOnly, "Use Leylines in opener; otherwise do not use automatically")
+            .AddOption(LeylinesStrategy.Delay, "Do not use")
+            .AddOption(LeylinesStrategy.Force, "Use ASAP", effect: 20, defaultPriority: DefaultOGCDPriority)
+            .AddAssociatedActions(AID.LeyLines, AID.Retrace, AID.BetweenTheLines);
+
+        def.Define(Track.Triplecast).As<TriplecastStrategy>("TC", "Triplecast")
+            .AddOption(TriplecastStrategy.Automatic, "Use for instant fire/ice swaps, otherwise hold")
+            .AddOption(TriplecastStrategy.Delay, "Don't use")
+            .AddOption(TriplecastStrategy.Force, "Use ASAP", effect: 15, defaultPriority: DefaultOGCDPriority)
+            .AddAssociatedActions(AID.Triplecast);
+
+        def.AbilityTrack(Track.Iainuki, "Iainuki", "PSAM: Use Iainuki on cooldown", uiPriority: -10);
+        def.AbilityTrack(Track.Zeninage, "Zeninage", "PSAM: Use Zeninage under raid buffs (costs 10,000 gil)", uiPriority: -10);
+
+        def.AbilityTrack(Track.LLMove, "LLMove", "Allow automatic usage of Leylines while moving")
+            .AddAssociatedActions(AID.LeyLines);
+
+        def.AbilityTrack(Track.TimeMage, "AutoTimeMage", "PTME: Use Occult Quick/Occult Comet on cooldown", uiPriority: -10)
+            .AddAssociatedActions(PhantomID.OccultQuick, PhantomID.OccultComet);
+
+        def.Define(Track.Manafont).As<OffensiveStrategy>("Manafont")
+            .AddOption(OffensiveStrategy.Automatic, "Use at 0 MP")
+            .AddOption(OffensiveStrategy.Delay, "Do not use")
+            .AddOption(OffensiveStrategy.Force, "Use ASAP")
+            .AddAssociatedActions(AID.Manafont);
 
         return def;
     }
@@ -54,12 +96,15 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     public bool Thunderhead;
     public bool Firestarter;
     public bool InLeyLines;
+    public bool HaveLeyLines;
 
     public int Fire => Math.Max(0, Element);
     public int Ice => Math.Max(0, -Element);
 
     public int MaxPolyglot => Unlocked(TraitID.EnhancedPolyglotII) ? 3 : Unlocked(TraitID.EnhancedPolyglot) ? 2 : 1;
     public int MaxHearts => Unlocked(TraitID.UmbralHeart) ? 3 : 0;
+
+    public float MaxPolyglotIn => Polyglot >= MaxPolyglot ? 0 : NextPolyglot + (MaxPolyglot - Polyglot - 1) * 30f;
 
     public int NumAOETargets;
     public int NumAOEDotTargets;
@@ -121,7 +166,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private readonly float[] EnemyDotTimers = new float[100];
 
-    private float CalculateDotTimer(Actor? t) => t == null ? float.MaxValue : Utils.MaxAll(
+    private float CalculateDotTimer(Actor? t) => t == null || t.PendingDead ? float.MaxValue : Utils.MaxAll(
         StatusDetails(t, SID.Thunder, Player.InstanceID, 24).Left,
         StatusDetails(t, SID.ThunderII, Player.InstanceID, 18).Left,
         StatusDetails(t, SID.ThunderIII, Player.InstanceID, 27).Left,
@@ -145,8 +190,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         InstantMove = 100,
         Standard = 500, // aka F4
         InstantWeave = 600, // if we want to use manafont/transpose ASAP (TODO: or utility actions?)
-        DotRefresh = 650, // thunder refresh - could logically be grouped with instant weave
-        High = 700, // anything more important than F4 filler - paradox so we don't miss our FS proc, xeno to prevent overcap
+        High = 650, // anything more important than F4 filler - paradox so we don't miss our FS proc, xeno to prevent overcap
+        DotRefresh = 700, // thunder refresh
         Max = 900, // flare star
     }
 
@@ -155,7 +200,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         TP = 0,
         Paradox = 5,
         Firestarter = 10,
-        Polyglot = 15
+        Polyglot = 15,
+        Despair = 20
     }
 
     private static GCDPriority ForMove(InstantCastPriority p) => GCDPriority.InstantMove + (int)p;
@@ -177,6 +223,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         Thunderhead = Player.FindStatus(SID.Thunderhead) != null;
         Firestarter = Player.FindStatus(SID.Firestarter) != null;
         InLeyLines = Player.FindStatus(SID.CircleOfPower) != null;
+        HaveLeyLines = Player.FindStatus(SID.LeyLines) != null;
 
         for (var i = 0; i < Hints.Enemies.Length; i++)
             EnemyDotTimers[i] = CalculateDotTimer(Hints.Enemies[i]?.Actor);
@@ -199,13 +246,24 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < GetCastTime(AID.Fire3))
-                PushGCD(AID.Fire3, primaryTarget, GCDPriority.Standard);
+            if (Fire == 3)
+            {
+                if (CountdownRemaining < GetCastTime(AID.Fire4))
+                    PushGCD(AID.Fire4, primaryTarget, GCDPriority.Standard);
+            }
+            else
+            {
+                if (CountdownRemaining < GetCastTime(AID.Fire3))
+                    PushGCD(AID.Fire3, primaryTarget, GCDPriority.Standard);
+            }
+
+            if (strategy.Option(Track.Leylines).As<LeylinesStrategy>() == LeylinesStrategy.Force && !HaveLeyLines)
+                PushAction(AID.LeyLines, Player, strategy.Option(Track.Leylines).Priority(), 0);
 
             return;
         }
 
-        if (primaryTarget == null)
+        if (!Hints.PriorityTargets.Any())
         {
             if (ReadyIn(AID.Transpose) == 0)
             {
@@ -224,32 +282,66 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
             if (Unlocked(AID.UmbralSoul) && Ice > 0 && (Ice < 3 || Hearts < MaxHearts || Player.HPMP.CurMP < Player.HPMP.MaxMP))
                 PushGCD(AID.UmbralSoul, Player, GCDPriority.Standard);
-
-            return;
         }
+
+        if (primaryTarget == null)
+            return;
 
         GoalZoneSingle(25);
 
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID) is Actor ll)
             Hints.GoalZones.Add(p => p.InCircle(ll.Position, 3) ? 0.5f : 0);
 
-        if (Polyglot < MaxPolyglot)
+        if (strategy.Enabled(Track.Zeninage) && RaidBuffsLeft > GCD && DutyActionReadyIn(PhantomID.Zeninage) <= GCD)
+            PushGCD((AID)PhantomID.Zeninage, primaryTarget, GCDPriority.Max);
+
+        if (strategy.Enabled(Track.Iainuki) && (CombatTimer > 10 || RaidBuffsLeft > GCD))
+        {
+            var ready = DutyActionReadyIn(PhantomID.Iainuki);
+            if (ready <= GCD)
+                PushGCD((AID)PhantomID.Iainuki, primaryTarget, GCDPriority.Max);
+
+            if (ready <= GCD + GCDLength * 2)
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget.Actor, 8));
+        }
+
+        if (strategy.Enabled(Track.TimeMage))
+        {
+            if (DutyActionReadyIn(PhantomID.OccultQuick) <= GCD && (InLeyLines || CombatTimer > 10))
+                PushGCD((AID)PhantomID.OccultQuick, Player, GCDPriority.Max);
+
+            if ((CombatTimer > 10 || RaidBuffsLeft > GCD) && DutyActionReadyIn(PhantomID.OccultComet) <= GCD)
+            {
+                if (InstantCastLeft > GCD)
+                    PushGCD((AID)PhantomID.OccultComet, BestAOETarget, GCDPriority.Max);
+                else
+                {
+                    PushOGCD(AID.Swiftcast, Player);
+                    PushOGCD(AID.Triplecast, Player);
+                }
+            }
+        }
+
+        UseLeylines(strategy, primaryTarget);
+        UseTriplecastForced(strategy);
+
+        if (Player.InCombat && MaxPolyglotIn > 10)
             PushOGCD(AID.Amplifier, Player);
 
-        if (ShouldTriplecast(strategy))
-            PushOGCD(AID.Triplecast, Player);
-
-        if (ShouldUseLeylines(strategy))
-            PushOGCD(AID.LeyLines, Player);
-
-        if (MP < MinAstralFireMP && Fire > 0)
-            PushOGCD(AID.Manafont, Player);
+        if (Fire > 0 && Player.InCombat)
+        {
+            var manafontOk = strategy.Option(Track.Manafont).As<OffensiveStrategy>() switch
+            {
+                OffensiveStrategy.Automatic => MP < MinAstralFireMP,
+                OffensiveStrategy.Force => true,
+                _ => false
+            };
+            if (manafontOk)
+                PushOGCD(AID.Manafont, Player);
+        }
 
         if (ShouldTranspose(strategy))
             PushOGCD(AID.Transpose, Player);
-
-        if (ShouldUseLeylines(strategy, 1) && !CanFitGCD(InstantCastLeft))
-            TryInstantCast(strategy, primaryTarget, GCDPriority.InstantWeave);
 
         T2(strategy);
         T1(strategy);
@@ -295,7 +387,19 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     private void FirePhaseST(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Fire < 3)
-            PushGCD(AID.Fire3, primaryTarget, GCDPriority.High); // technically this prioritizes F3 over FS but i'm pretty sure it's impossible to use flare star without being in AF3
+        {
+            if (!Firestarter)
+            {
+                // generate firestarter via paradox, then use fs to get f3
+                // this results in us not getting another free paradox until next manafont
+                if (Paradox)
+                    PushGCD(AID.Paradox, primaryTarget, GCDPriority.High);
+                else if (!CanFitGCD(InstantCastLeft) && Unlocked(AID.Fire3))
+                    PushGCD(AID.Swiftcast, Player, GCDPriority.High);
+            }
+
+            PushGCD(AID.Fire3, primaryTarget, GCDPriority.High);
+        }
 
         if (AstralSoul == 6)
             PushGCD(AID.FlareStar, BestAOETarget, GCDPriority.Max);
@@ -336,9 +440,22 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Paradox, primaryTarget, paraPrio);
         }
 
-        // force instant cast if we want to manafont
-        if (MP < 800 && CanWeave(AID.Manafont, 1))
+        // force instant cast if we want to manafont or accelerate B3 swap
+        if (MP < MinAstralFireMP && (ManafontOk(strategy) && CanWeave(AID.Manafont, 1) || SwiftB3(strategy) && CanWeave(AID.Triplecast, 1)))
             TryInstantCast(strategy, primaryTarget, GCDPriority.InstantWeave);
+
+        // flare acceleration
+        if (AstralSoul >= 3)
+        {
+            var castsNeeded = 6 - AstralSoul;
+            var f4MPNeeded = 1600 * castsNeeded;
+            var canManafont = CanWeave(AID.Manafont, castsNeeded + 1); // assume we can spend at least one instant cast on manafont weave
+            if (MP < f4MPNeeded && !canManafont)
+                PushGCD(AID.Flare, BestAOETarget, GCDPriority.High);
+        }
+
+        if (MP < 2400 && !Unlocked(AID.FlareStar))
+            PushGCD(AID.Despair, primaryTarget, GCDPriority.Standard);
 
         // TODO: BLM doesn't really fit the priority system that well because of the MP cutoff stuff
         PushGCD(AID.Fire4, primaryTarget, GCDPriority.Standard);
@@ -398,8 +515,8 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         if (Ice < 3)
         {
-            if (!CanFitGCD(InstantCastLeft) && Unlocked(AID.Blizzard3))
-                PushGCD(AID.Swiftcast, Player, GCDPriority.High);
+            if (SwiftB3(strategy) && !CanFitGCD(InstantCastLeft))
+                PushGCD(AID.Triplecast, Player, GCDPriority.High);
 
             PushGCD(AID.Blizzard3, primaryTarget, GCDPriority.Standard);
         }
@@ -537,6 +654,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (Firestarter && useFirestarter)
             PushGCD(AID.Fire3, primaryTarget, prioBase + (int)InstantCastPriority.Firestarter);
 
+        if (Fire > 0 && Unlocked(TraitID.EnhancedAstralFire))
+            PushGCD(AID.Despair, primaryTarget, prioBase + (int)InstantCastPriority.Despair, mpCutoff: FireSpellCost);
+
         if (useThunderhead)
         {
             T2(strategy, prioBase);
@@ -559,13 +679,47 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Transpose, Player, GCDPriority.Standard);
     }
 
-    private bool ShouldTriplecast(StrategyValues strategy) => CanWeave(MaxChargesIn(AID.Triplecast), 0.6f); // add strategy track, triplecast is no longer a gain during burst
+    private void UseLeylines(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        if (Player.FindStatus(SID.LeyLines) != null)
+            return;
 
-    private bool ShouldUseLeylines(StrategyValues strategy, int extraGCDs = 0)
-        => CanWeave(MaxChargesIn(AID.LeyLines), 0.6f, extraGCDs)
-        && strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
+        if (!Player.InCombat && CountdownRemaining == null)
+            return;
 
-    // TODO: in downtime, transpose to AF1 and stay there if we have firestarter
+        var opt = strategy.Option(Track.Leylines);
+        var prio = opt.As<LeylinesStrategy>() switch
+        {
+            LeylinesStrategy.OpenerOnly => CombatTimer < 20 ? DefaultOGCDPriority : 0,
+            LeylinesStrategy.Force => opt.Priority(),
+            _ => 0,
+        };
+
+        if (!strategy.Enabled(Track.LLMove) && IsMoving)
+            return;
+
+        if (prio > 0)
+        {
+            PushAction(AID.LeyLines, Player, prio, 0);
+            if (CanWeave(AID.LeyLines, 1) && !CanFitGCD(InstantCastLeft))
+                TryInstantCast(strategy, primaryTarget, GCDPriority.InstantWeave);
+        }
+    }
+
+    private void UseTriplecastForced(StrategyValues strategy)
+    {
+        if (Player.FindStatus(SID.Triplecast) != null)
+            return;
+
+        var opt = strategy.Option(Track.Triplecast);
+        if (opt.As<TriplecastStrategy>() == TriplecastStrategy.Force)
+            PushAction(AID.Triplecast, Player, opt.Priority(), 0);
+    }
+
+    private bool ManafontOk(StrategyValues strategy) => strategy.Option(Track.Manafont).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
+
+    private bool SwiftB3(StrategyValues strategy) => strategy.Option(Track.Triplecast).As<TriplecastStrategy>() == TriplecastStrategy.Automatic;
+
     private bool ShouldTranspose(StrategyValues strategy)
     {
         if (!Unlocked(AID.Fire3))
@@ -577,8 +731,17 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
                 AstralSoul < 6 && Fire > 0 && MP < 800
                 // UI: transpose with at least one heart and enough MP to double flare
                 || Ice > 0 && Hearts > 0 && MP >= 2400;
-        else
-            return Firestarter && Ice > 0 && Hearts == MaxHearts;
+
+        // fire phase transpose: use TC B3
+        if (Fire > 0 && MP < MinAstralFireMP && CanWeave(AID.Triplecast) && SwiftB3(strategy) && AstralSoul < 6)
+            return true;
+
+        // ice phase transpose
+        var haveInstantFire = Firestarter && Ice > 0 // we have a firestarter
+            || Ice == 3 && Unlocked(AID.Paradox) // transpose will give us firestarter
+            || InstantCastLeft > GCD; // use tc/sc to cast regular f3
+
+        return Hearts == MaxHearts && AlmostMaxMP && haveInstantFire && !Paradox;
     }
 
     private void PushGCD(AID aid, Enemy? target, GCDPriority priority, float delay = 0, int mpCutoff = int.MaxValue)
@@ -586,11 +749,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (MP >= GetManaCost(aid))
         {
             if (MP >= mpCutoff)
-            {
-                if (Service.IsDev)
-                    Service.Log($"rejecting {aid}, too much MP ({MP})");
                 return;
-            }
             base.PushGCD(aid, target, priority, delay);
         }
     }

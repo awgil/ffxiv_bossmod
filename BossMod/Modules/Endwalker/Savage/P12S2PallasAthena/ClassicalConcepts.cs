@@ -89,7 +89,7 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
             SID.BetaTarget => Debuff.Beta,
             _ => Debuff.None
         };
-        if (debuff != Debuff.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (debuff != Debuff.None && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _states[slot].Debuff = debuff;
     }
 
@@ -103,7 +103,7 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
             IconID.ClassicalConceptsTriangle => 3, // G
             _ => -1
         };
-        if (column >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (column >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             var partner = Array.FindIndex(_states, s => s.Column == column);
             _states[slot].Column = column;
@@ -175,7 +175,7 @@ class Implode(BossModule module) : Components.StandardAOEs(module, AID.Implode, 
 
 class PalladianRayBait(BossModule module) : Components.GenericBaitAway(module, AID.PalladianRayAOEFirst)
 {
-    private readonly Actor[] _dummies = [new(0, 0, -1, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0))];
+    private readonly Actor[] _dummies = [new(0, 0, -1, 0, "L dummy", 0, ActorType.None, Class.None, 0, new(92, 0, 92, 0)), new(0, 0, -1, 0, "R dummy", 0, ActorType.None, Class.None, 0, new(108, 0, 92, 0))];
 
     private static readonly AOEShapeCone _shape = new(100, 15.Degrees());
 

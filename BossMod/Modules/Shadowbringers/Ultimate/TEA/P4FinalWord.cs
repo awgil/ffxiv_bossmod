@@ -38,8 +38,7 @@ class P4FinalWordDebuffs(BossModule module) : P4ForcedMarchDebuffs(module)
 
     private void AssignDebuff(Actor actor, Debuff debuff)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             Debuffs[slot] = debuff;
     }
 }
@@ -70,8 +69,7 @@ class P4FinalWordStillnessMotion(BossModule module) : Components.StayMove(module
     {
         if ((AID)spell.Action.ID is AID.OrdainedMotionSuccess or AID.OrdainedMotionFail or AID.OrdainedStillnessSuccess or AID.OrdainedStillnessFail)
         {
-            var slot = Raid.FindSlot(spell.MainTargetID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(spell.MainTargetID, out var slot))
             {
                 PlayerStates[slot] = PlayerStates[slot].Requirement != _first ? default : new(_first == Requirement.Move ? Requirement.Stay : Requirement.Move, WorldState.FutureTime(11));
             }

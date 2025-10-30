@@ -23,7 +23,7 @@ class WindOfChange(BossModule module) : Components.Knockback(module, AID.WindOfC
             SID.EastWindOfChange => -90.Degrees(),
             _ => default
         };
-        if (dir != default && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (dir != default && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             _directions[slot] = dir;
             _activation = status.ExpireAt;
@@ -35,7 +35,7 @@ class WindOfChange(BossModule module) : Components.Knockback(module, AID.WindOfC
         if (spell.Action == WatchedAction)
         {
             ++NumCasts;
-            if (Raid.FindSlot(spell.MainTargetID) is var slot && slot >= 0)
+            if (Raid.TryFindSlot(spell.MainTargetID, out var slot))
                 _directions[slot] = default;
         }
     }

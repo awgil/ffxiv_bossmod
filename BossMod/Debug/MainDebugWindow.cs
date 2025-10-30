@@ -1,12 +1,13 @@
 ﻿using BossMod.Autorotation;
-using BossMod.Autorotation.xan.AI;
+using BossMod.Autorotation.xan;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using ImGuiNET;
 
 namespace BossMod;
 
@@ -15,7 +16,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();
-    private readonly DebugEnvControl _debugEnvControl = new(ws);
+    private readonly DebugMapEffect _debugMapEffect = new(ws);
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new(ws);
@@ -31,7 +32,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         _debugAction.Dispose();
         _debugInput.Dispose();
         _debugAddon.Dispose();
-        _debugEnvControl.Dispose();
+        _debugMapEffect.Dispose();
         _debugVfx.Dispose();
         base.Dispose(disposing);
     }
@@ -42,7 +43,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var player = Service.ClientState.LocalPlayer;
         ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
         // ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
-        ImGui.TextUnformatted($"Player mode: {Utils.CharacterInternal(player)->Mode}");
+        ImGui.TextUnformatted($"Player mode: {(player is null ? "No player found" : Utils.CharacterInternal(player)->Mode.ToString())}");
 
         var eventFwk = FFXIVClientStructs.FFXIV.Client.Game.Event.EventFramework.Instance();
         var instanceDirector = eventFwk != null ? eventFwk->GetInstanceContentDirector() : null;
@@ -82,9 +83,13 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             _debugParty.Draw(true);
         }
-        if (ImGui.CollapsingHeader("EnvControl"))
+        if (ImGui.CollapsingHeader("Action effects"))
         {
-            _debugEnvControl.Draw();
+            DrawEffects();
+        }
+        if (ImGui.CollapsingHeader("Map effects"))
+        {
+            _debugMapEffect.Draw();
         }
         if (ImGui.CollapsingHeader("Autorotation"))
         {
@@ -143,6 +148,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             _debugInput.Draw();
         }
+        if (ImGui.CollapsingHeader("Markers"))
+        {
+            DrawMarkers();
+        }
         if (ImGui.CollapsingHeader("Player attributes"))
         {
             DrawPlayerAttributes();
@@ -179,19 +188,26 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     private unsafe void DrawStatuses()
     {
+        var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        if (player == null)
+            return;
+
         ImGui.TextUnformatted($"Forced movement direction: {MovementOverride.ForcedMovementDirection->Radians()}");
         ImGui.SameLine();
         if (ImGui.Button("Add misdirection"))
-        {
-            var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-            player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, 0xE0000000, true);
-        }
+            player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, (GameObjectId)0xE0000000, true);
         ImGui.SameLine();
         if (ImGui.Button("Add thin ice"))
-        {
-            var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-            player->GetStatusManager()->SetStatus(20, 911, 20.0f, 50, 0xE0000000, true); // param = distance * 10
-        }
+            player->GetStatusManager()->SetStatus(20, 911, 20.0f, 50, (GameObjectId)0xE0000000, true); // param = distance * 10
+        ImGui.SameLine();
+        if (ImGui.Button("Add spinning"))
+            player->GetStatusManager()->SetStatus(20, 2973, 20.0f, 7, (GameObjectId)0xE0000000, true);
+
+        if (ImGui.Button("Clear temp status"))
+            player->GetStatusManager()->RemoveStatus(20);
+
+        ImGui.SameLine();
+        ImGui.TextUnformatted($"Forced movement direction: {ws.Client.ForcedMovementDirection}");
 
         ImGui.TextUnformatted($"Player move speed: {ws.Client.MoveSpeed:f2}");
 
@@ -205,7 +221,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
                     foreach (var status in chara.StatusList)
                     {
                         var src = status.SourceObject != null ? Utils.ObjectString(status.SourceObject) : "none";
-                        ImGui.TextUnformatted($"{status.StatusId} '{status.GameData.Value.Name}': param={status.Param}, stacks={status.Param}, time={status.RemainingTime:f2}, source={src}");
+                        ImGui.TextUnformatted($"{status.StatusId} '{status.GameData.Value.Name}': param={status.Param}, stacks={status.Param}, time={status.RemainingTime:f2}, source={src} ({status.SourceId:X8})");
                     }
                 }
                 ImGui.TreePop();
@@ -226,7 +242,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         ImGui.TableHeadersRow();
         foreach (var elem in ws.Actors)
         {
-            if (elem.CastInfo == null || elem.Type != ActorType.Enemy)
+            if (elem.CastInfo == null || elem.IsAlly)
                 continue;
 
             ImGui.TableNextRow();
@@ -244,6 +260,52 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             ImGui.TextUnformatted(elem.Position.ToString());
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(elem.CastInfo.Rotation.ToString());
+        }
+        ImGui.EndTable();
+    }
+
+    private unsafe void DrawEffects()
+    {
+        var player = Service.ClientState.LocalPlayer;
+        if (player == null)
+            return;
+
+        var aeh = ((BattleChara*)player.Address)->GetActionEffectHandler();
+        if (aeh == null)
+            return;
+
+        ImGui.TextUnformatted($"Effecthandler address: {(nint)aeh:X}");
+
+        ImGui.BeginTable("effects", 6, ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg);
+        ImGui.TableSetupColumn("Seq", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Action");
+        ImGui.TableSetupColumn("Source");
+        ImGui.TableSetupColumn("Target");
+        ImGui.TableSetupColumn("Effects");
+        ImGui.TableHeadersRow();
+        foreach (var entry in aeh->IncomingEffects)
+        {
+            if (entry.ActionId == 0)
+                continue;
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(entry.GlobalSequence.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(entry.TargetIndex.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{new ActionID((ActionType)entry.ActionType, entry.ActionId)} ({entry.SpellId})");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{entry.Source.Id:X} confirmed={entry.SourceConfirmed}");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{entry.Target.Id:X} confirmed={entry.TargetConfirmed}");
+            ImGui.TableNextColumn();
+            foreach (var eff in entry.Effects.Effects)
+            {
+                if (eff.Type > 0)
+                    ImGui.TextUnformatted($"{(ActionEffectType)eff.Type} {eff.Param0:X2} {eff.Param1:X2} {eff.Param2:X2} {eff.Param3:X2} {eff.Param4:X2} {eff.Value}");
+            }
         }
         ImGui.EndTable();
     }
@@ -303,7 +365,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         }
     }
 
-    private unsafe void DrawTarget(string kind, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* obj, Vector3 selfPos, Angle refAngle)
+    private unsafe void DrawTarget(string kind, GameObject* obj, Vector3 selfPos, Angle refAngle)
     {
         if (obj == null)
             return;
@@ -313,6 +375,36 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var angle = Angle.FromDirection(new(selfToObj.XZ())) - refAngle;
         var visHalf = Angle.Asin(obj->HitboxRadius / dist);
         ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->EntityId)} {obj->BaseId}:{obj->GetNameId()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
+    }
+
+    private static readonly string[] FieldMarkers = ["A", "B", "C", "D", "1", "2", "3", "4"];
+
+    private unsafe void DrawMarkers()
+    {
+        var markers = MarkingController.Instance();
+        using (ImRaii.Table("Field", 2))
+        {
+            for (var i = 0; i < markers->FieldMarkers.Length; i++)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text(FieldMarkers[i]);
+                ImGui.TableNextColumn();
+                ImGui.Text(markers->FieldMarkers[i].Active ? markers->FieldMarkers[i].Position.ToString() : "-");
+            }
+        }
+
+        using (ImRaii.Table("Target", 2))
+        {
+            for (var i = 0; i < markers->Markers.Length; i++)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text($"{i} ???");
+                ImGui.TableNextColumn();
+                ImGui.Text(markers->Markers[i].ObjectId.ToString("X8"));
+            }
+        }
     }
 
     private unsafe void DrawPlayerAttributes()

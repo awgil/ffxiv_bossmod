@@ -100,7 +100,7 @@ class StormPhaseArena(BossModule module) : Components.GenericAOEs(module, warnin
     public ArenaType CurArena;
     public ArenaType NextArena;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         switch ((index, state))
         {

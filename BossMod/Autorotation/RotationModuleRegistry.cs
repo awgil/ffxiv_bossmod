@@ -12,6 +12,7 @@ public static class RotationModuleRegistry
     private static Dictionary<Type, Entry> BuildModules()
     {
         Dictionary<Type, Entry> res = [];
+
         foreach (var t in Utils.GetDerivedTypes<RotationModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
         {
             var defMethod = t.GetMethod("Definition", BindingFlags.Static | BindingFlags.Public);
@@ -25,6 +26,7 @@ public static class RotationModuleRegistry
             var factory = New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t);
             res[t] = new(def, factory);
         }
+
         return res;
     }
 }

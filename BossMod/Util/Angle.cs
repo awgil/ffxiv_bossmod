@@ -2,7 +2,7 @@
 
 // wrapper around float, stores angle in radians, provides type-safety and convenience
 // when describing rotation in world, common convention is 0 for 'south'/'down'/(0, -1) and increasing counterclockwise - so +90 is 'east'/'right'/(1, 0)
-public record struct Angle(float Rad)
+public record struct Angle(float Rad) : IComparable<Angle>
 {
     public const float RadToDeg = 180 / MathF.PI;
     public const float DegToRad = MathF.PI / 180;
@@ -57,6 +57,11 @@ public record struct Angle(float Rad)
     }
 
     public override readonly string ToString() => Deg.ToString("f0");
+    public readonly int CompareTo(Angle other) => Rad.CompareTo(other.Rad);
+    public static bool operator <(Angle left, Angle right) => left.Rad < right.Rad;
+    public static bool operator <=(Angle left, Angle right) => left.Rad <= right.Rad;
+    public static bool operator >(Angle left, Angle right) => left.Rad > right.Rad;
+    public static bool operator >=(Angle left, Angle right) => left.Rad >= right.Rad;
 }
 
 public static class AngleExtensions

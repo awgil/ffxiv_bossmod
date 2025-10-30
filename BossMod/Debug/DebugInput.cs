@@ -1,7 +1,7 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Hooking;
-using ImGuiNET;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -155,6 +155,16 @@ internal sealed unsafe class DebugInput : IDisposable
         ImGui.TextUnformatted($"Speed={speedAbs:f3}, SpeedH={speed.XZ().Length():f3}, SpeedV={speed.Y:f3}, RSpeed={rotSpeed}, Accel={accel:f3}, Azimuth={Angle.FromDirection(new(speed.XZ()))}, Altitude={Angle.FromDirection(new(speed.Y, speed.XZ().Length()))}");
         ImGui.TextUnformatted($"MO: desired={_move.DesiredDirection}, user={_move.UserMove}, actual={_move.ActualMove}");
         //Service.Log($"Speed: {speedAbs:f3}, accel: {accel:f3}");
+
+        var pobj = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        if (pobj != null)
+        {
+            var pm = ((PlayerMove*)pobj)->Move;
+            ImGui.TextUnformatted($"Turn {(nint)pobj:X}");
+            ImGui.TextUnformatted($"Desired={pm.Interpolation.DesiredRotation}");
+            ImGui.TextUnformatted($"Original={pm.Interpolation.OriginalRotation}");
+            ImGui.TextUnformatted($"Progress={pm.Interpolation.RotationInterpolationInProgress}");
+        }
 
         ImGui.SliderFloat("Move direction", ref _moveDir, -180, 180);
         ImGui.SameLine();

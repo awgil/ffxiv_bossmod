@@ -50,9 +50,7 @@ class P5Sigma(BossModule module) : BossComponent(module)
     {
         if (tether.ID == (uint)TetherID.PartySynergy)
         {
-            var s1 = Raid.FindSlot(source.InstanceID);
-            var s2 = Raid.FindSlot(tether.Target);
-            if (s1 >= 0 && s2 >= 0)
+            if (Raid.TryFindSlot(source.InstanceID, out var s1) && Raid.TryFindSlot(tether.Target, out var s2))
             {
                 Players[s1].PartnerSlot = s2;
                 Players[s2].PartnerSlot = s1;
@@ -81,8 +79,7 @@ class P5Sigma(BossModule module) : BossComponent(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot < 0)
+        if (!Raid.TryFindSlot(actor, out var slot))
             return;
 
         // assuming standard 'blue-purple-orange-green' order

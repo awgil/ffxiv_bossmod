@@ -32,7 +32,7 @@ public record struct Cooldown(float Elapsed, float Total)
 // this is generally not available for non-player party members, but we can try to guess
 public sealed class ClientState
 {
-    public readonly record struct Fate(uint ID, Vector3 Center, float Radius);
+    public readonly record struct Fate(uint ID, Vector3 Center, float Radius, byte Progress, byte HandInCount, uint ObjectiveNpc);
     public record struct Combo(uint Action, float Remaining);
     public record struct Gauge(ulong Low, ulong High);
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
@@ -46,8 +46,8 @@ public sealed class ClientState
     }
     public record struct Hate(ulong InstanceID, int Enmity);
 
-    public const int NumCooldownGroups = 82;
-    public const int NumClassLevels = 32; // see ClassJob.ExpArrayIndex
+    public const int NumCooldownGroups = 87;
+    public const int NumClassLevels = 35; // see ClassJob.ExpArrayIndex
     public const int NumBlueMageSpells = 24;
 
     public float? CountdownRemaining;
@@ -58,7 +58,7 @@ public sealed class ClientState
     public Stats PlayerStats;
     public float MoveSpeed = 6f;
     public readonly Cooldown[] Cooldowns = new Cooldown[NumCooldownGroups];
-    public readonly DutyAction[] DutyActions = new DutyAction[2];
+    public readonly DutyAction[] DutyActions = new DutyAction[5];
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
     public readonly uint[] BlueMageSpells = new uint[NumBlueMageSpells];
     public readonly short[] ClassJobLevels = new short[NumClassLevels];
@@ -68,6 +68,24 @@ public sealed class ClientState
     public Angle ForcedMovementDirection; // used for temporary misdirection and spinning states
     public uint[] ContentKeyValueData = new uint[6]; // used for content-specific persistent player attributes, like bozja resistance rank
     public HateInfo CurrentTargetHate = new(0, new Hate[32]);
+
+    public readonly Dictionary<uint, uint> Inventory; // tracks supported regular items and all key items
+
+    public uint GetItemQuantity(uint itemId) => Inventory.TryGetValue(itemId, out var q) ? q : 0;
+
+    public ClientState()
+    {
+        Inventory = [];
+        foreach (var it in ActionDefinitions.Instance.SupportedItems)
+            Inventory[it] = 0;
+    }
+
+    // if an action has SecondaryCostType between 1 and 4, it's considered usable as long as the corresponding timer in this array is >0; the timer is set to 5 when certain ActionEffects are received and ticks down each frame
+    // 1: unknown - referenced in ActionManager code but not present in sheets, included for completeness
+    // 2: block
+    // 3: parry
+    // 4: dodge
+    public float[] ProcTimers = new float[4];
 
     public uint GetContentValue(uint key) => ContentKeyValueData[0] == key
         ? ContentKeyValueData[1]
@@ -84,7 +102,7 @@ public sealed class ClientState
     public int ClassJobLevel(Class c)
     {
         var index = Service.LuminaRow<Lumina.Excel.Sheets.ClassJob>((uint)c)?.ExpArrayIndex ?? -1;
-        return index >= 0 && index < ClassJobLevels.Length ? ClassJobLevels[index] : -1;
+        return ClassJobLevels.BoundSafeAt(index, (short)-1);
     }
 
     // TODO: think about how to improve it...
@@ -120,7 +138,7 @@ public sealed class ClientState
             yield return new OpCooldown(false, cooldowns);
 
         if (DutyActions.Any(a => a != default))
-            yield return new OpDutyActionsChange(DutyActions[0], DutyActions[1]);
+            yield return new OpDutyActionsChange(DutyActions);
 
         var bozjaHolster = BozjaHolster.Select((v, i) => ((BozjaHolsterID)i, v)).Where(iv => iv.v > 0).ToList();
         if (BozjaHolster.Any(count => count != 0))
@@ -146,6 +164,10 @@ public sealed class ClientState
 
         if (CurrentTargetHate.InstanceID != 0 || CurrentTargetHate.Targets.Any(t => t != default))
             yield return new OpHateChange(CurrentTargetHate.InstanceID, CurrentTargetHate.Targets);
+
+        foreach (var (id, quant) in Inventory)
+            if (quant > 0)
+                yield return new OpInventoryChange(id, quant);
     }
 
     public void Tick(float dt)
@@ -281,15 +303,24 @@ public sealed class ClientState
     }
 
     public Event<OpDutyActionsChange> DutyActionsChanged = new();
-    public sealed record class OpDutyActionsChange(DutyAction Slot0, DutyAction Slot1) : WorldState.Operation
+    public sealed record class OpDutyActionsChange(DutyAction[] Slots) : WorldState.Operation
     {
+        public readonly DutyAction[] Slots = Slots;
+
         protected override void Exec(WorldState ws)
         {
-            ws.Client.DutyActions[0] = Slot0;
-            ws.Client.DutyActions[1] = Slot1;
+            Array.Fill(ws.Client.DutyActions, default);
+            for (var i = 0; i < Slots.Length; i++)
+                ws.Client.DutyActions[i] = Slots[i];
             ws.Client.DutyActionsChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLDA"u8).Emit(Slot0.Action).Emit(Slot0.CurCharges).Emit(Slot0.MaxCharges).Emit(Slot1.Action).Emit(Slot1.CurCharges).Emit(Slot1.MaxCharges);
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CLDA"u8);
+            output.Emit((byte)Slots.Length);
+            foreach (var s in Slots)
+                output.Emit(s.Action).Emit(s.CurCharges).Emit(s.MaxCharges);
+        }
     }
 
     public Event<OpBozjaHolsterChange> BozjaHolsterChanged = new();
@@ -359,7 +390,7 @@ public sealed class ClientState
             ws.Client.ActiveFate = Value;
             ws.Client.ActiveFateChanged.Fire(this);
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CLAF"u8).Emit(Value.ID).Emit(Value.Center).Emit(Value.Radius, "f3").Emit(Value.Progress).Emit(Value.HandInCount).Emit(Value.ObjectiveNpc);
     }
 
     public Event<OpActivePetChange> ActivePetChanged = new();
@@ -435,6 +466,35 @@ public sealed class ClientState
             output.Emit(countNonEmpty);
             for (var i = 0; i < countNonEmpty; i++)
                 output.EmitActor(Targets[i].InstanceID).Emit(Targets[i].Enmity);
+        }
+    }
+
+    public Event<OpProcTimersChange> ProcTimersChanged = new();
+    public sealed record class OpProcTimersChange(float[] Value) : WorldState.Operation
+    {
+        public readonly float[] Value = Value;
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.ProcTimers = Value;
+            ws.Client.ProcTimersChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CLPR"u8).Emit(Value[0]).Emit(Value[1]).Emit(Value[2]).Emit(Value[3]);
+        }
+    }
+
+    public Event<OpInventoryChange> InventoryChanged = new();
+    public sealed record class OpInventoryChange(uint ItemId, uint Quantity) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.Inventory[ItemId] = Quantity;
+            ws.Client.InventoryChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("INVT"u8).Emit(ItemId).Emit(Quantity);
         }
     }
 }

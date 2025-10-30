@@ -25,12 +25,12 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
         RotationModuleDefinition def = new("Misc AI: Stay within leylines when active", "Black Mage utility module.", "AI", "Taurenkey", RotationModuleQuality.Basic, BitMask.Build(Class.BLM), 1000);
 
         var retrace = def.Define(Tracks.UseRetrace).As<RetraceDefinition>("Use Retrace", "Use Retrace");
-        retrace.AddOption(RetraceDefinition.No, "No");
-        retrace.AddOption(RetraceDefinition.Yes, "Yes");
+        retrace.AddOption(RetraceDefinition.No);
+        retrace.AddOption(RetraceDefinition.Yes);
 
         var btl = def.Define(Tracks.UseBetweenTheLines).As<BetweenTheLinesDefinition>("Use Between The Lines", "Use Between The Lines");
-        btl.AddOption(BetweenTheLinesDefinition.No, "No");
-        btl.AddOption(BetweenTheLinesDefinition.Yes, "Yes");
+        btl.AddOption(BetweenTheLinesDefinition.No);
+        btl.AddOption(BetweenTheLinesDefinition.Yes);
 
         return def;
     }

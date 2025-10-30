@@ -8,7 +8,7 @@ class VirtualShiftIce(BossModule module) : Components.GenericAOEs(module, defaul
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _unsafeBridges;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state is not 0x00200010 and not 0x00400001)
             return;
@@ -112,8 +112,7 @@ class Rush(BossModule module) : Components.GenericBaitAway(module)
             CurrentBaits.RemoveAll(b => b.Source == source);
             CurrentBaits.Add(new(source, target, _shapeTether, Activation));
 
-            var slot = Raid.FindSlot(tether.Target);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(tether.Target, out var slot))
                 _unstretched[slot] = (TetherID)tether.ID == TetherID.RushShort;
         }
     }
@@ -185,13 +184,13 @@ class RaisedTribute(BossModule module) : Components.GenericWildCharge(module, 4,
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.IceDart && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0 && PlayerRoles[slot] != PlayerRole.Target)
+        if (tether.ID == (uint)TetherID.IceDart && Raid.TryFindSlot(source.InstanceID, out var slot) && PlayerRoles[slot] != PlayerRole.Target)
             PlayerRoles[slot] = PlayerRole.Avoid;
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.IceDart && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0 && PlayerRoles[slot] != PlayerRole.Target)
+        if (tether.ID == (uint)TetherID.IceDart && Raid.TryFindSlot(source.InstanceID, out var slot) && PlayerRoles[slot] != PlayerRole.Target)
             PlayerRoles[slot] = PlayerRole.Share;
     }
 }

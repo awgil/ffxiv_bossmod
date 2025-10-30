@@ -1,5 +1,5 @@
 ﻿using BossMod;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.IO;
 
 namespace UIDev;

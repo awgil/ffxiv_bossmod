@@ -17,7 +17,7 @@ class Uplift(BossModule module) : Components.StandardAOEs(module, AID.Uplift, ne
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // state 00080004 => remove walls
         if (index is 2 or 3 && state == 0x00020001)

@@ -112,7 +112,7 @@ class P3AethericProfusion(BossModule module) : Components.CastCounter(module, AI
         hints.FindEnemy(Module.PrimaryActor)?.PreferProvoking = true;
 
         // mitigate heavy raidwide
-        hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _activation));
+        hints.AddPredictedDamage(Raid.WithSlot().Mask(), _activation);
         if (actor.Role == Role.Ranged)
             hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), Module.PrimaryActor, ActionQueue.Priority.High, (float)(_activation - WorldState.CurrentTime).TotalSeconds);
     }

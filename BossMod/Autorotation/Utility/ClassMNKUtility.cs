@@ -16,10 +16,10 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
         DefineSimpleConfig(res, Track.RiddleOfEarth, "RiddleOfEarth", "RoE", 150, MNK.AID.RiddleOfEarth, 10); // note: secondary effect is 15s hot
 
         res.Define(Track.Thunderclap).As<DashStrategy>("Thunderclap", "Dash", 20)
-            .AddOption(DashStrategy.None, "None", "No use")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range; uses all charges if needed", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
-            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; holds 1 charge for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
-            .AddOption(DashStrategy.GapCloseHold2, "GapCloseHold2", "Use as gapcloser if outside melee range; holds 2 charges for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 84)
+            .AddOption(DashStrategy.None, "No use")
+            .AddOption(DashStrategy.GapClose, "Use as gapcloser if outside melee range; uses all charges if needed", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
+            .AddOption(DashStrategy.GapCloseHold1, "Use as gapcloser if outside melee range; holds 1 charge for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
+            .AddOption(DashStrategy.GapCloseHold2, "Use as gapcloser if outside melee range; holds 2 charges for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 84)
             .AddAssociatedActions(MNK.AID.Thunderclap);
 
         return res;

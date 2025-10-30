@@ -49,7 +49,7 @@ class P2Nisi : BossComponent
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var nisi = NisiForSID((SID)status.ID);
-        if (nisi != Nisi.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (nisi != Nisi.None && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             if (_current[slot] != nisi) // sometimes same nisi is reapplied, which is weird...
                 ++_numNisiApplications;
@@ -66,7 +66,7 @@ class P2Nisi : BossComponent
             SID.FinalJudgmentNisiDelta => Nisi.Delta,
             _ => Nisi.None
         };
-        if (judgment != Nisi.None && Raid.FindSlot(actor.InstanceID) is var judgmentSlot && judgmentSlot >= 0)
+        if (judgment != Nisi.None && Raid.TryFindSlot(actor.InstanceID, out var judgmentSlot))
         {
             _judgments[judgmentSlot] = judgment;
         }
@@ -75,7 +75,7 @@ class P2Nisi : BossComponent
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         var nisi = NisiForSID((SID)status.ID);
-        if (nisi != Nisi.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && nisi == _current[slot])
+        if (nisi != Nisi.None && Raid.TryFindSlot(actor.InstanceID, out var slot) && nisi == _current[slot])
         {
             _current[slot] = Nisi.None;
             --NumActiveNisi;

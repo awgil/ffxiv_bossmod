@@ -40,8 +40,6 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
     public readonly BitMask Classes = Classes;
     public readonly List<StrategyConfig> Configs = [];
 
-    public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);
-
     // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
     public readonly ref struct DefineRef(List<StrategyConfig> configs, int index)
     {
@@ -49,18 +47,19 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         {
             if (configs.Count != index)
                 throw new ArgumentException($"Unexpected index for {internalName}: expected {index}, cur size {configs.Count}");
-            var config = new StrategyConfig(typeof(Selector), internalName, displayName, uiPriority);
+            var config = new StrategyConfigTrack(typeof(Selector), internalName, displayName, uiPriority);
             configs.Add(config);
             return new(config);
         }
     }
 
-    public readonly ref struct ConfigRef<Index>(StrategyConfig config) where Index : Enum
+    public readonly ref struct ConfigRef<Index>(StrategyConfigTrack config) where Index : Enum
     {
-        public ConfigRef<Index> AddOption(Index expectedIndex, string internalName, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None,
-            int minLevel = 1, int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium)
+        public ConfigRef<Index> AddOption(Index expectedIndex, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = int.MaxValue,
+            float defaultPriority = ActionQueue.Priority.Medium)
         {
             var idx = (int)(object)expectedIndex;
+            var internalName = expectedIndex.ToString();
             if (config.Options.Count != idx)
                 throw new ArgumentException($"Unexpected index value for {internalName}: expected {expectedIndex} ({idx}), got {config.Options.Count}");
             config.Options.Add(new(internalName, displayName)
@@ -87,6 +86,26 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                 config.AssociatedActions.Add(ActionID.MakeSpell(aid));
             return this;
         }
+    }
+
+    public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);
+
+    public void DefineFloat<Index>(Index expectedIndex, string displayName = "", float minValue = 0, float maxValue = float.MaxValue, float uiPriority = 0) where Index : Enum
+    {
+        var idx = (int)(object)expectedIndex;
+        var internalName = expectedIndex.ToString();
+        if (Configs.Count != idx)
+            throw new ArgumentException($"Unexpected index value for {internalName}: expected {idx}, cur size {Configs.Count}");
+        Configs.Add(new StrategyConfigFloat(internalName, displayName, minValue, maxValue, uiPriority));
+    }
+
+    public void DefineInt<Index>(Index expectedIndex, string displayName = "", long minValue = 0, long maxValue = long.MaxValue, float uiPriority = 0) where Index : Enum
+    {
+        var idx = (int)(object)expectedIndex;
+        var internalName = expectedIndex.ToString();
+        if (Configs.Count != idx)
+            throw new ArgumentException($"Unexpected index value for {internalName}: expected {idx}, cur size {Configs.Count}");
+        Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority));
     }
 }
 
@@ -129,8 +148,8 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
-    protected Actor? ResolveTargetOverride(in StrategyValue strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
-    protected WPos ResolveTargetLocation(in StrategyValue strategy) => Manager.ResolveTargetLocation(strategy.Target, strategy.TargetParam, strategy.Offset1, strategy.Offset2);
+    protected Actor? ResolveTargetOverride(in StrategyValueTrack strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
+    protected WPos ResolveTargetLocation(in StrategyValueTrack strategy) => Manager.ResolveTargetLocation(strategy.Target, strategy.TargetParam, strategy.Offset1, strategy.Offset2);
 
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);
 
@@ -162,7 +181,11 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         return slot >= 0 && World.Client.DutyActions[1 - slot].Action == other ? slot : -1;
     }
 
-    public float DutyActionCD(int slot) => slot is >= 0 and < 2 ? World.Client.Cooldowns[ActionDefinitions.DutyAction0CDGroup + slot].Remaining : float.MaxValue;
+    public int FindDutyActionSlot<AID>(AID aid) where AID : Enum => FindDutyActionSlot(ActionID.MakeSpell(aid));
+
+    public float DutyActionCD(int slot) => slot is >= 0 and < 7
+        ? (ActionDefinitions.Instance[World.Client.DutyActions[slot].Action]?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) ?? float.MaxValue)
+        : float.MaxValue;
     public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
 
     protected (float Left, float In) EstimateRaidBuffTimings(Actor? primaryTarget)

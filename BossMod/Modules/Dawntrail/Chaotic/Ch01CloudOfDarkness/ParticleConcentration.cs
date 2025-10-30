@@ -84,7 +84,7 @@ class ParticleConcentration(BossModule module) : Components.GenericTowers(module
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state != 0x00020001) // appear
             return;

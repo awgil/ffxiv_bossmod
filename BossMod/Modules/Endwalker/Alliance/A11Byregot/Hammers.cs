@@ -47,7 +47,7 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, AID.Destr
             Active = true;
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 7 and <= 11)
         {

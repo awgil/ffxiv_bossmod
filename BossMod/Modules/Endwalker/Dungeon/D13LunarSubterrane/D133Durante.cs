@@ -39,7 +39,7 @@ public enum AID : uint
 
 class Voidzone(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x0A)
             Module.Arena.Bounds = new ArenaBoundsCircle(20);
@@ -126,7 +126,7 @@ class AntipodalAssault(BossModule module) : Components.GenericBaitAway(module)
 }
 
 class HardSlash(BossModule module) : Components.StandardAOEs(module, AID.HardSlash, new AOEShapeCone(50, 45.Degrees()));
-class TwilightPhase(BossModule module) : Components.StandardAOEs(module, AID.TwilightPhase2, new AOEShapeRect(30, 10, 30));
+class TwilightPhase(BossModule module) : Components.StandardAOEs(module, AID.TwilightPhase2, new AOEShapeRect(60, 10));
 class DarkImpact(BossModule module) : Components.StandardAOEs(module, AID.DarkImpact2, new AOEShapeCircle(25));
 class DeathsJourney(BossModule module) : Components.StandardAOEs(module, AID.DeathsJourney, new AOEShapeCircle(8));
 class DeathsJourney2(BossModule module) : Components.StandardAOEs(module, AID.DeathsJourney2, new AOEShapeCone(30, 15.Degrees()));

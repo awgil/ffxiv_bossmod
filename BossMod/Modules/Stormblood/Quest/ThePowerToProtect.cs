@@ -34,14 +34,14 @@ class ExtremeCaution(BossModule module) : Components.StayMove(module)
 {
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.ExtremeCaution && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
+        if ((SID)status.ID == SID.ExtremeCaution)
+            SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.ExtremeCaution && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = default;
+        if ((SID)status.ID == SID.ExtremeCaution)
+            ClearState(Raid.FindSlot(actor.InstanceID));
     }
 }
 class IronTempest(BossModule module) : Components.StandardAOEs(module, AID.IronTempest, new AOEShapeCircle(5.5f));

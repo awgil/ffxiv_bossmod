@@ -4,10 +4,10 @@ class LowerRealm(BossModule module) : Components.RaidwideCast(module, AID.LowerR
 class Ephemerality(BossModule module) : Components.RaidwideCast(module, AID.Ephemerality);
 class CuttingJewel(BossModule module) : Components.BaitAwayCast(module, AID.CuttingJewel, new AOEShapeCircle(4), true);
 class CuttingJewelHint(BossModule module) : Components.SingleTargetCast(module, AID.CuttingJewel);
-class IconographyPedestalPurge(BossModule module) : Components.StandardAOEs(module, AID.IconographyPedestalPurge, new AOEShapeCircle(10));
-class PedestalPurge(BossModule module) : Components.StandardAOEs(module, AID.PedestalPurge, new AOEShapeCircle(27)); // Note, this is not a raidwide, origin is outside of the arena
+class IconographyPedestalPurge(BossModule module) : Components.StandardAOEs(module, AID.IconographyPedestalPurge, 10);
+class PedestalPurge(BossModule module) : Components.StandardAOEs(module, AID.PedestalPurge, 60);
 class IconographyWheelOfDeincarnation(BossModule module) : Components.StandardAOEs(module, AID.IconographyWheelOfDeincarnation, new AOEShapeDonut(8, 40));
-class WheelOfDeincarnation(BossModule module) : Components.StandardAOEs(module, AID.WheelOfDeincarnation, new AOEShapeDonut(15, 96));
+class WheelOfDeincarnation(BossModule module) : Components.StandardAOEs(module, AID.WheelOfDeincarnation, new AOEShapeDonut(48, 96));
 class IconographyBladewise(BossModule module) : Components.StandardAOEs(module, AID.IconographyBladewise, new AOEShapeRect(50, 3));
 class Bladewise(BossModule module) : Components.StandardAOEs(module, AID.Bladewise, new AOEShapeRect(100, 14));
 class Scattering(BossModule module) : Components.StandardAOEs(module, AID.Scattering, new AOEShapeRect(20, 3));
@@ -43,5 +43,5 @@ class T08AsuraStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 944, NameID = 12351)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 944, NameID = 12351)]
 public class T08Asura(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(19));

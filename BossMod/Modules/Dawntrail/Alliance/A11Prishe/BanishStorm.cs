@@ -4,7 +4,7 @@ class BanishStorm(BossModule module) : Components.Exaflare(module, 6)
 {
     public bool Done;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is < 2 or > 13 and < 50 or > 53)
             return;

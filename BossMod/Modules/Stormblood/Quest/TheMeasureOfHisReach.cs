@@ -22,7 +22,7 @@ class Moonlight(BossModule module) : Components.StandardAOEs(module, AID.Howling
         base.AddAIHints(slot, actor, assignment, hints);
         // hits everyone (proximity damage)
         foreach (var c in Casters)
-            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Module.CastFinishAt(c.CastInfo)));
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(c.CastInfo));
     }
 }
 class Icewind(BossModule module) : Components.StandardAOEs(module, AID.HowlingIcewind, new AOEShapeRect(44, 2));

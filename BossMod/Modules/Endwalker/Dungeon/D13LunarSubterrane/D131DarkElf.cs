@@ -71,7 +71,7 @@ class HexingStaves(BossModule module) : Components.GenericAOEs(module)
 
 class StaffSmite(BossModule module) : Components.SingleTargetCast(module, AID.StaffSmite);
 class VoidDarkII(BossModule module) : Components.SpreadFromCastTargets(module, AID.VoidDarkII2, 6);
-class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeRect(4, 4, 4));
+class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeRect(8, 4));
 class AbyssalOutburst(BossModule module) : Components.RaidwideCast(module, AID.AbyssalOutburst);
 
 class Doom(BossModule module) : BossComponent(module)

@@ -75,8 +75,7 @@ class P3Inception1(BossModule module) : Components.CastCounter(module, AID.Judgm
         if (tether.ID == (uint)TetherID.Plasmasphere && (OID)source.OID == OID.Plasmasphere)
         {
             _plasmaspheres.Add(source);
-            var slot = Raid.FindSlot(tether.Target);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(tether.Target, out var slot))
                 _tetherSources[slot] = source;
 
             if (AllSpheresSpawned)

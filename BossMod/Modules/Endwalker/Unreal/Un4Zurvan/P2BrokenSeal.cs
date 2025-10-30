@@ -81,9 +81,7 @@ class P2BrokenSeal(BossModule module) : BossComponent(module)
     {
         if ((TetherID)tether.ID is TetherID.InfiniteAnguish or TetherID.InfiniteFire or TetherID.InfiniteIce)
         {
-            var from = Raid.FindSlot(source.InstanceID);
-            var to = Raid.FindSlot(tether.Target);
-            if (from >= 0 && to >= 0)
+            if (Raid.TryFindSlot(source, out var from) && Raid.TryFindSlot(tether.Target, out var to))
             {
                 _playerStates[from].Partner = to;
                 _playerStates[to].Partner = from;
@@ -95,8 +93,7 @@ class P2BrokenSeal(BossModule module) : BossComponent(module)
     private void AssignColor(ulong playerID, Color color)
     {
         ++NumAssigned;
-        var slot = Raid.FindSlot(playerID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(playerID, out var slot))
             _playerStates[slot].Color = color;
     }
 }

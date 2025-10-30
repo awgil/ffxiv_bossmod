@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
@@ -8,13 +8,18 @@ namespace BossMod;
 public abstract class BossModule : IDisposable
 {
     public readonly WorldState WorldState;
-    public readonly Actor PrimaryActor;
+    public Actor PrimaryActor { get; private set; }
     public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
     public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
     public readonly MiniArena Arena;
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
+
+    internal unsafe void SetPrimaryActor(Actor actor)
+    {
+        PrimaryActor = actor;
+    }
 
     private readonly EventSubscriptions _subscriptions;
 
@@ -35,6 +40,14 @@ public abstract class BossModule : IDisposable
         return entry;
     }
     public IReadOnlyList<Actor> Enemies<OID>(OID oid) where OID : Enum => Enemies((uint)(object)oid);
+
+    public virtual Actor? GetDefaultTarget(int slot)
+    {
+        if (!PrimaryActor.IsDeadOrDestroyed && PrimaryActor.IsTargetable)
+            return PrimaryActor;
+
+        return null;
+    }
 
     // component management: at most one component of any given type can be active at any time
     private readonly List<BossComponent> _components = [];
@@ -101,13 +114,15 @@ public abstract class BossModule : IDisposable
             WorldState.Actors.StatusGain.Subscribe(OnActorStatusGain),
             WorldState.Actors.StatusLose.Subscribe(OnActorStatusLose),
             WorldState.Actors.IconAppeared.Subscribe(OnActorIcon),
+            WorldState.Actors.VFXAppeared.Subscribe(OnActorVFX),
             WorldState.Actors.CastEvent.Subscribe(OnActorCastEvent),
             WorldState.Actors.EventObjectStateChange.Subscribe(OnActorEState),
             WorldState.Actors.EventObjectAnimation.Subscribe(OnActorEAnim),
             WorldState.Actors.PlayActionTimelineEvent.Subscribe(OnActorPlayActionTimelineEvent),
             WorldState.Actors.EventNpcYell.Subscribe(OnActorNpcYell),
             WorldState.Actors.ModelStateChanged.Subscribe(OnActorModelStateChange),
-            WorldState.EnvControl.Subscribe(OnEnvControl),
+            WorldState.MapEffect.Subscribe(OnMapEffect),
+            WorldState.LegacyMapEffect.Subscribe(OnLegacyMapEffect),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate)
         );
 
@@ -190,8 +205,8 @@ public abstract class BossModule : IDisposable
         // draw non-player alive party members
         DrawPartyMembers(pcSlot, pc);
 
-        // draw non-party pcs
-        if (DrawAllPlayers)
+        // draw non-party pcs, if requested
+        if (DrawAllPlayers && WindowConfig.ShowIrrelevantPlayers && WindowConfig.ShowAllPlayers)
             Arena.Actors(WorldState.Actors.Where(a => a.Type == ActorType.Player && Raid.FindSlot(a.InstanceID) < 0), ArenaColor.PlayerReallyGeneric);
 
         // draw foreground
@@ -248,6 +263,8 @@ public abstract class BossModule : IDisposable
         CalculateModuleAIHints(slot, actor, assignment, hints);
         if (!WindowConfig.AllowAutomaticActions)
             hints.ActionsToExecute.Clear();
+        if (!WindowConfig.AllowAutomaticInteract)
+            hints.InteractWithTarget = null;
     }
 
     public void ReportError(BossComponent? comp, string message)
@@ -270,6 +287,9 @@ public abstract class BossModule : IDisposable
 
     // return true if non-party player characters should be drawn on the minimap
     public virtual bool DrawAllPlayers => false;
+
+    // return true if out-of-combat enemies should be set to priority 0 - useful for multi-phase encounters when player wants to use automatic targeting via cdplan
+    public virtual bool ShouldPrioritizeAllEnemies => false;
 
     protected virtual void UpdateModule() { }
     protected virtual void DrawArenaBackground(int pcSlot, Actor pc) { } // before modules background
@@ -462,9 +482,15 @@ public abstract class BossModule : IDisposable
             comp.OnEventIcon(actor, iconID, targetID);
     }
 
+    private void OnActorVFX(Actor actor, uint vfxID, ulong targetID)
+    {
+        foreach (var comp in _components)
+            comp.OnEventVFX(actor, vfxID, targetID);
+    }
+
     private void OnActorCastEvent(Actor actor, ActorCastEvent cast)
     {
-        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && cast.IsSpell())
+        if (actor.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo) && cast.IsSpell())
             foreach (var comp in _components)
                 comp.OnEventCast(actor, cast);
     }
@@ -500,10 +526,16 @@ public abstract class BossModule : IDisposable
             comp.OnActorModelStateChange(actor, actor.ModelState.ModelState, actor.ModelState.AnimState1, actor.ModelState.AnimState2);
     }
 
-    private void OnEnvControl(WorldState.OpEnvControl op)
+    private void OnMapEffect(WorldState.OpMapEffect op)
     {
         foreach (var comp in _components)
-            comp.OnEventEnvControl(op.Index, op.State);
+            comp.OnMapEffect(op.Index, op.State);
+    }
+
+    private void OnLegacyMapEffect(WorldState.OpLegacyMapEffect op)
+    {
+        foreach (var comp in _components)
+            comp.OnLegacyMapEffect(op.Sequence, op.Param, op.Data);
     }
 
     private void OnDirectorUpdate(WorldState.OpDirectorUpdate op)

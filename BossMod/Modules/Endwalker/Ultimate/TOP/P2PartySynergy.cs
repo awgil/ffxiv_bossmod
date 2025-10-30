@@ -277,7 +277,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID == (uint)IconID.Spotlight && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && _synergy != null)
+        if (iconID == (uint)IconID.Spotlight && Raid.TryFindSlot(actor.InstanceID, out var slot) && _synergy != null)
         {
             if (_firstStackSlot < 0)
             {

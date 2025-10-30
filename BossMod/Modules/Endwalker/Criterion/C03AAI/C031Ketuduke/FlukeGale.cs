@@ -42,7 +42,7 @@ class FlukeGale(BossModule module) : Components.Knockback(module)
             SID.FoamyFetters => Debuff.FoamyFetters,
             _ => Debuff.None
         };
-        if (debuff != Debuff.None && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (debuff != Debuff.None && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _debuffs[slot] = debuff;
     }
 

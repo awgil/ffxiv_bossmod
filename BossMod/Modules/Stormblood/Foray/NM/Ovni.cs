@@ -59,8 +59,11 @@ class IonShower(BossModule module) : Components.GenericStackSpread(module, alway
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Spreads.Any(s => s.Target == actor))
+        {
+            var bossP = Module.PrimaryActor.Position;
             // just gtfo from boss as far as possible
-            hints.GoalZones.Add(p => (p - Module.PrimaryActor.Position).LengthSq() > 1600 ? 100 : 0);
+            hints.GoalZones.Add(p => (p - bossP).LengthSq() > 1600 ? 100 : 0);
+        }
         else
             base.AddAIHints(slot, actor, assignment, hints);
     }

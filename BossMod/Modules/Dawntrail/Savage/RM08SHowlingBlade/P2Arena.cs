@@ -4,7 +4,7 @@ class P2Arena(BossModule module) : BossComponent(module)
 {
     public bool Active;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0 && state == 0x00080004)
             Active = true;
@@ -18,7 +18,7 @@ class DestructiblePlatforms(BossModule module) : BossComponent(module)
     public int DisappearCounter;
     public int ReappearCounter;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         var ix = index - 0x16;
         if (ix is >= 0 and <= 4)

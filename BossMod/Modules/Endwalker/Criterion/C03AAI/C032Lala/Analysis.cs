@@ -14,7 +14,7 @@ class Analysis(BossModule module) : BossComponent(module)
             SID.RightUnseen => -90.Degrees(),
             _ => null
         };
-        if (offset != null && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < SafeDir.Length)
+        if (offset != null && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot < SafeDir.Length)
             SafeDir[slot] = offset.Value;
     }
 }
@@ -81,7 +81,7 @@ class TargetedLight(BossModule module) : Components.GenericGaze(module, default,
             SID.TimesFivePlayer => 1,
             _ => 0
         };
-        if (count != 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotationCount.Length)
+        if (count != 0 && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot < _rotationCount.Length)
             _rotationCount[slot] = count;
     }
 
@@ -93,7 +93,7 @@ class TargetedLight(BossModule module) : Components.GenericGaze(module, default,
             IconID.PlayerRotateCCW => 90.Degrees(),
             _ => default
         };
-        if (rot != default && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && slot < _rotation.Length)
+        if (rot != default && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot < _rotation.Length)
         {
             _rotation[slot] = rot * _rotationCount[slot];
             if (_analysis != null)

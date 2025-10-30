@@ -48,6 +48,6 @@ class UVRBait(BossModule module) : Components.CastCounter(module, AID.Ultraviole
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_activation != default)
-            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _activation));
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), _activation);
     }
 }

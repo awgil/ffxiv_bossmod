@@ -19,8 +19,11 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Minimal maturity for the module to be loaded", tooltip: "Some modules will have the \"WIP\" status and will not automatically load unless you change this")]
     public BossModuleInfo.Maturity MinMaturity = BossModuleInfo.Maturity.Contributed;
 
-    [PropertyDisplay("Allow modules to automatically use actions", tooltip: "Example: modules can automatically use anti-knockback abilities before a knockback happens")]
+    [PropertyDisplay("Allow modules to automatically use actions")]
     public bool AllowAutomaticActions = true;
+
+    [PropertyDisplay("Allow modules to automatically interact with objects", since: "0.3.5.6")]
+    public bool AllowAutomaticInteract = true;
 
     [PropertyDisplay("Show testing radar and hint window", tooltip: "Useful for configuring your radar and hint windows without being inside of a boss encounter", separator: true)]
     public bool ShowDemo = false;
@@ -76,6 +79,9 @@ public class BossModuleConfig : ConfigNode
 
     [PropertyDisplay("Always show all alive party members")]
     public bool ShowIrrelevantPlayers = false;
+
+    [PropertyDisplay("Allow drawing non-party players on radar", tooltip: "This option only affects certain categories of content, like adventuring forays.", depends: nameof(ShowIrrelevantPlayers))]
+    public bool ShowAllPlayers = true;
 
     [PropertyDisplay("Show role-based colors on otherwise uncolored players in the radar")]
     public bool ColorPlayersBasedOnRole = false;

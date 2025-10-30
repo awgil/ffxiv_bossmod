@@ -115,8 +115,7 @@ public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float 
             return null;
         }
 
-        var playerSlot = Raid.FindSlot(player.InstanceID);
-        if (playerSlot < 0)
+        if (!Raid.TryFindSlot(player, out var playerSlot))
         {
             ReportError($"Non-party-member player is tethered: {source.InstanceID:X} -> {target.InstanceID:X}");
             return null;

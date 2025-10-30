@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Bindings.ImGui;
 using System.IO;
 using System.Text;
 
@@ -113,12 +113,13 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ActorState.OpTarget op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpCastInfo op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(FindCast(replay.FindParticipant(op.InstanceID, op.Timestamp), op.Timestamp, op.Value != null)?.ID ?? new()),
             ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
-            ActorState.OpEffectResult => false,
             ActorState.OpStatus op => FilterInterestingStatuses(op.InstanceID, op.Index, op.Timestamp),
+            ActorState.OpEffectResult => false,
             ActorState.OpIncomingEffect => false,
             PartyState.OpLimitBreakChange => false,
             ClientState.OpActionRequest => false,
             //ClientState.OpActionReject => false,
+            ClientState.OpProcTimersChange => false,
             ClientState.OpAnimationLockChange => false,
             ClientState.OpComboChange => false,
             ClientState.OpCooldown => false,
@@ -160,12 +161,24 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ActorState.OpCastEvent op => $"Cast event: {ActorString(op.InstanceID, op.Timestamp)}: {op.Value.Action} ({ModuleInfo?.ActionIDType?.GetEnumName(op.Value.Action.ID)}) @ {CastEventTargetString(op.Value, op.Timestamp)} ({op.Value.Targets.Count} targets affected) #{op.Value.GlobalSequence}",
             ActorState.OpStatus op => $"Status change: {ActorString(op.InstanceID, op.Timestamp)} #{op.Index}: {StatusesString(op.InstanceID, op.Index, op.Timestamp)}",
             ActorState.OpIcon op => $"Icon: {ActorString(op.InstanceID, op.Timestamp)} -> {ActorString(op.TargetID, op.Timestamp)}: {op.IconID} ({ModuleInfo?.IconIDType?.GetEnumName(op.IconID)})",
+            ActorState.OpVFX op => $"VFX: {ActorString(op.InstanceID, op.Timestamp)} -> {ActorString(op.TargetID, op.Timestamp)}: {op.VfxID}",
             ActorState.OpEventObjectStateChange op => $"EObjState: {ActorString(op.InstanceID, op.Timestamp)} = {op.State:X4}",
             ActorState.OpEventObjectAnimation op => $"EObjAnim: {ActorString(op.InstanceID, op.Timestamp)} = {((uint)op.Param1 << 16) | op.Param2:X8}",
             ActorState.OpPlayActionTimelineEvent op => $"Play action timeline: {ActorString(op.InstanceID, op.Timestamp)} = {op.ActionTimelineID:X4}",
             ActorState.OpEventNpcYell op => $"Yell: {ActorString(op.InstanceID, op.Timestamp)} = {op.Message} '{Service.LuminaRow<Lumina.Excel.Sheets.NpcYell>(op.Message)?.Text}'",
-            ClientState.OpDutyActionsChange op => $"Player duty actions change: {op.Slot0}, {op.Slot1}",
+            ClientState.OpDutyActionsChange op => $"Player duty actions change: {string.Join(", ", op.Slots)}",
             ClientState.OpBozjaHolsterChange op => $"Player bozja holster change: {string.Join(", ", op.Contents.Select(e => $"{e.count}x {e.entry}"))}",
+            ClientState.OpPlayerStatsChange op => $"Player stats: sks={op.Value.SkillSpeed}, sps={op.Value.SpellSpeed}, haste={op.Value.Haste}",
+            ClientState.OpBlueMageSpellsChange op => $"Player BLU spellbook: {string.Join(", ", op.Values.Select(v => new ActionID(ActionType.Spell, v)))}",
+            ClientState.OpClassJobLevelsChange op => $"Player levels: {string.Join(", ", op.Values)}",
+            ClientState.OpActiveFateChange op => $"FATE: {op.Value.ID} '{Service.LuminaRow<Lumina.Excel.Sheets.Fate>(op.Value.ID)?.Name}' {op.Value.Progress}%",
+            ClientState.OpActivePetChange op => $"Player pet: {ActorString(op.Value.InstanceID, op.Timestamp)}",
+            ClientState.OpInventoryChange op => $"Item quantity: {op.ItemId % 500000} '{Service.LuminaRow<Lumina.Excel.Sheets.Item>(op.ItemId % 500000)?.Name}' (hq={op.ItemId > 1000000}) x{op.Quantity}",
+            PartyState.OpModify op => $"Party slot {op.Slot}: {op.Member.InstanceId:X8} {op.Member.Name}",
+            WorldState.OpMapEffect op => $"MapEffect: {op.Index:X2} {op.State:X8}",
+            WorldState.OpLegacyMapEffect op => $"MapEffect (legacy): seq={op.Sequence} param={op.Param} data={string.Join(" ", op.Data.Select(d => d.ToString("X2")))}",
+            WorldState.OpSystemLogMessage op => $"LogMessage {op.MessageId}: '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(op.MessageId)?.Text}' [{string.Join(", ", op.Args)}]",
+            WorldState.OpZoneChange op => $"Zone change: {op.Zone} ({Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(op.Zone)?.PlaceName.Value.Name}) / {op.CFCID} ({(op.CFCID > 0 ? Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(op.CFCID)?.Name : "n/a")})",
             _ => DumpOp(o)
         };
     }

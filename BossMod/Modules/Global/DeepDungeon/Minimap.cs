@@ -1,10 +1,10 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
 
-public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int CurrentDestination)
+public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int CurrentDestination, int PlayerSlot)
 {
     enum IconID : uint
     {
@@ -15,6 +15,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
         ChestBronze = 60911,
         ChestSilver = 60912,
         ChestGold = 60913,
+        Votive = 63988
     }
 
     [Flags]
@@ -39,7 +40,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
             if (c.Room > 0)
                 chests[c.Room] |= (RoomChest)(1 << (c.Type - 1));
 
-        var playerCell = State.Party[0].Room;
+        var playerCell = State.Party[PlayerSlot].Room;
 
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0f, 0f));
 
@@ -47,6 +48,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
         var mapTex = Service.Texture.GetFromGame("ui/uld/DeepDungeonNaviMap_hr1.tex").GetWrapOrEmpty();
         var passageTex = Service.Texture.GetFromGameIcon(new((uint)(State.PassageActive ? IconID.PassageOpen : IconID.PassageClosed))).GetWrapOrEmpty();
         var returnTex = Service.Texture.GetFromGameIcon(new((uint)(State.ReturnActive ? IconID.ReturnOpen : IconID.ReturnClosed))).GetWrapOrEmpty();
+        var votiveTex = Service.Texture.GetFromGameIcon(new((uint)IconID.Votive)).GetWrapOrEmpty();
         var bronzeTex = Service.Texture.GetFromGameIcon(new((uint)IconID.ChestBronze)).GetWrapOrEmpty();
         var silverTex = Service.Texture.GetFromGameIcon(new((uint)IconID.ChestSilver)).GetWrapOrEmpty();
         var goldTex = Service.Texture.GetFromGameIcon(new((uint)IconID.ChestGold)).GetWrapOrEmpty();
@@ -80,49 +82,55 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
             }
 
             ImGui.SetCursorPos(pos);
-            ImGui.Image(roomsTex.ImGuiHandle, highlight ? new(86) : new(88), new Vector2(xoff, yoff), new Vector2(xoffend, yoffend), tile > 0 ? new(1f) : new(0.6f), highlight ? new(0, 0.6f, 0, 1) : default);
+            ImGui.Image(roomsTex.Handle, highlight ? new(86) : new(88), new Vector2(xoff, yoff), new Vector2(xoffend, yoffend), tile > 0 ? new(1f) : new(0.6f), highlight ? new(0, 0.6f, 0, 1) : default);
 
             if (i == playerCell)
             {
                 isValidDestination = false;
                 ImGui.SetCursorPos(pos + new Vector2(12, 12));
-                ImGui.Image(mapTex.ImGuiHandle, new Vector2(64, 64), new Vector2(0.2424f, 0.4571f), new Vector2(0.4848f, 0.6857f));
+                ImGui.Image(mapTex.Handle, new Vector2(64, 64), new Vector2(0.2424f, 0.4571f), new Vector2(0.4848f, 0.6857f));
             }
 
             if (State.Rooms[i].HasFlag(RoomFlags.Passage))
             {
                 ImGui.SetCursorPos(pos + new Vector2(28, 44));
-                ImGui.Image(passageTex.ImGuiHandle, new Vector2(32, 32));
+                ImGui.Image(passageTex.Handle, new Vector2(32, 32));
             }
 
             if (State.Rooms[i].HasFlag(RoomFlags.Return))
             {
                 ImGui.SetCursorPos(pos + new Vector2(28, 44));
-                ImGui.Image(returnTex.ImGuiHandle, new Vector2(32, 32));
+                ImGui.Image(returnTex.Handle, new Vector2(32, 32));
+            }
+
+            if (((ushort)State.Rooms[i] & 0x100) != 0)
+            {
+                ImGui.SetCursorPos(pos + new Vector2(28, 44));
+                ImGui.Image(votiveTex.Handle, new Vector2(32, 32));
             }
 
             if (chests[i].HasFlag(RoomChest.Bronze))
             {
                 ImGui.SetCursorPos(pos + new Vector2(2, 2));
-                ImGui.Image(bronzeTex.ImGuiHandle, new Vector2(48, 48));
+                ImGui.Image(bronzeTex.Handle, new Vector2(48, 48));
             }
 
             if (chests[i].HasFlag(RoomChest.Silver))
             {
                 ImGui.SetCursorPos(pos + new Vector2(20, 2));
-                ImGui.Image(silverTex.ImGuiHandle, new Vector2(48, 48));
+                ImGui.Image(silverTex.Handle, new Vector2(48, 48));
             }
 
             if (chests[i].HasFlag(RoomChest.Gold))
             {
                 ImGui.SetCursorPos(pos + new Vector2(38, 2));
-                ImGui.Image(goldTex.ImGuiHandle, new Vector2(48, 48));
+                ImGui.Image(goldTex.Handle, new Vector2(48, 48));
             }
 
             if (i == playerCell)
             {
                 ImGui.SetCursorPos(pos + new Vector2(44, 44));
-                DrawPlayer(ImGui.GetCursorScreenPos(), PlayerRotation, mapTex.ImGuiHandle);
+                DrawPlayer(ImGui.GetCursorScreenPos(), PlayerRotation, mapTex.Handle);
             }
 
             ImGui.SetCursorPos(pos);
@@ -144,7 +152,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
         return dest;
     }
 
-    private static void DrawPlayer(Vector2 center, Angle rotation, nint texHandle)
+    private static void DrawPlayer(Vector2 center, Angle rotation, ImTextureID texHandle)
     {
         var cos = -rotation.Cos();
         var sin = rotation.Sin();

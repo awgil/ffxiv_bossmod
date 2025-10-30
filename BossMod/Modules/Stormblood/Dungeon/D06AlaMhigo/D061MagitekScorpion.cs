@@ -35,7 +35,7 @@ class TailLaser(BossModule module) : Components.GenericAOEs(module, AID.TailLase
 {
     private readonly List<AOEInstance> _aoes = [];
     private int eventCastCount;
-    private DateTime? _timeout;
+    private DateTime _timeout;
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -49,11 +49,10 @@ class TailLaser(BossModule module) : Components.GenericAOEs(module, AID.TailLase
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (_timeout != null && DateTime.Now >= _timeout || spell.Action.ID is (uint)AID.TailLaser4 or (uint)AID.TailLaser5 && eventCastCount++ > 12)
+        if (WorldState.CurrentTime >= _timeout || spell.Action.ID is (uint)AID.TailLaser4 or (uint)AID.TailLaser5 && eventCastCount++ > 12)
         {
             _aoes.Clear();
             eventCastCount = 0;
-            _timeout = null;
         }
     }
 }
@@ -61,7 +60,7 @@ class TailLaser(BossModule module) : Components.GenericAOEs(module, AID.TailLase
 class TargetSearch(BossModule module) : Components.GenericAOEs(module, AID.TargetSearch)
 {
     private readonly List<AOEInstance> _aoes = [];
-    private DateTime? _time;
+    private DateTime _time;
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
     public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
@@ -78,10 +77,10 @@ class TargetSearch(BossModule module) : Components.GenericAOEs(module, AID.Targe
 
     public override void Update()
     {
-        if (_time != null && DateTime.Now > _time)
+        if (WorldState.CurrentTime > _time)
         {
             _aoes.Clear();
-            _time = null;
+            _time = default;
         }
     }
 }

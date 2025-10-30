@@ -31,7 +31,7 @@ class StampedingThunder(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0 && state is 0x00400004 or 0x00800004)
         {
@@ -210,8 +210,7 @@ class ElectronStreamCurrent(BossModule module) : Components.GenericAOEs(module, 
     {
         if ((SID)status.ID is SID.RemoteCurrent or SID.ProximateCurrent or SID.SpinningConductor or SID.RoundhouseConductor or SID.ColliderConductor)
         {
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor.InstanceID, out var slot))
                 _status[slot] = (SID)status.ID;
             _activation = status.ExpireAt;
         }

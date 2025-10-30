@@ -2,6 +2,7 @@
 
 // generic 'exaflare' component - these mechanics are a bunch of moving aoes, with different lines either staggered or moving with different speed
 public class Exaflare(BossModule module, AOEShape shape, Enum? aid = default) : GenericAOEs(module, aid, "GTFO from exaflare!")
+
 {
     public class Line
     {
@@ -33,11 +34,11 @@ public class Exaflare(BossModule module, AOEShape shape, Enum? aid = default) : 
 
     protected IEnumerable<(WPos, DateTime, Angle)> ImminentAOEs() => Lines.Where(l => l.ExplosionsLeft > 0).Select(l => (l.Next, l.NextExplosion, l.Rotation));
 
-    protected IEnumerable<(WPos, DateTime, Angle)> FutureAOEs()
+    protected IEnumerable<(WPos, DateTime, Angle)> FutureAOEs(int limit = -1)
     {
         foreach (var l in Lines)
         {
-            int num = Math.Min(l.ExplosionsLeft, l.MaxShownExplosions);
+            int num = Math.Min(l.ExplosionsLeft, limit == -1 ? l.MaxShownExplosions : limit);
             var pos = l.Next;
             var time = l.NextExplosion > WorldState.CurrentTime ? l.NextExplosion : WorldState.CurrentTime;
             for (int i = 1; i < num; ++i)

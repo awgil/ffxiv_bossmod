@@ -36,7 +36,7 @@ public enum TetherID : uint
 class SpectralDream(BossModule module) : Components.SingleTargetCast(module, AID.SpectralDream);
 class SpectralWhirlwind(BossModule module) : Components.RaidwideCast(module, AID.SpectralWhirlwind);
 class SpectralGust(BossModule module) : Components.SpreadFromCastTargets(module, AID.SpectralGust2, 6);
-class CowardsCunning(BossModule module) : Components.StandardAOEs(module, AID.CowardsCunning, new AOEShapeRect(60, 1, 10));
+class CowardsCunning(BossModule module) : Components.StandardAOEs(module, AID.CowardsCunning, new AOEShapeRect(60, 1));
 
 class Markers(BossModule module) : Components.GenericAOEs(module)
 {

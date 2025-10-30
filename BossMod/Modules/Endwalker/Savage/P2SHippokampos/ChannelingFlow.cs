@@ -96,8 +96,7 @@ class ChannelingFlow(BossModule module) : BossComponent(module)
 
     private void SetArrow(Actor actor, WDir dir, DateTime expire)
     {
-        var slot = WorldState.Party.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor.InstanceID, out var slot))
             _arrows[slot] = (dir, expire);
     }
 

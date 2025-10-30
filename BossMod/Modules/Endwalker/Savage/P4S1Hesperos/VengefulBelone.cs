@@ -153,15 +153,13 @@ class VengefulBelone(BossModule module) : BossComponent(module)
 
     private void ModifyRuinStacks(Actor actor, ushort count)
     {
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             _playerRuinCount[slot] = count;
     }
 
     private void ModifyActingRole(Actor actor, Role role)
     {
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             _playerActingRole[slot] = role;
     }
 }

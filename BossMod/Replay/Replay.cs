@@ -51,6 +51,9 @@ public sealed class Replay
         public readonly SortedList<DateTime, Vector4> PosRotHistory = [];
         public readonly SortedList<DateTime, ActorHPMP> HPMPHistory = [];
         public readonly List<Cast> Casts = [];
+        public readonly SortedList<DateTime, uint> EventObjectAnimation = [];
+        public readonly SortedList<DateTime, byte> EventState = [];
+        public readonly SortedList<DateTime, ushort> ActionTimeline = [];
         public float MinRadius = float.MaxValue;
         public float MaxRadius = float.MinValue;
         public bool HasAnyActions;
@@ -88,7 +91,7 @@ public sealed class Replay
 
     public sealed record class DirectorUpdate(uint DirectorID, uint UpdateID, uint Param1, uint Param2, uint Param3, uint Param4, DateTime Timestamp);
 
-    public sealed record class EnvControl(byte Index, uint State, DateTime Timestamp);
+    public sealed record class MapEffect(byte Index, uint State, DateTime Timestamp);
 
     public sealed record class ClientAction(ActionID ID, uint SourceSequence, Participant? Target, Vector3 TargetPos, DateTime Requested)
     {
@@ -133,7 +136,7 @@ public sealed class Replay
     public readonly List<Tether> Tethers = [];
     public readonly List<Icon> Icons = [];
     public readonly List<DirectorUpdate> DirectorUpdates = [];
-    public readonly List<EnvControl> EnvControls = [];
+    public readonly List<MapEffect> MapEffects = [];
     public readonly List<ClientAction> ClientActions = [];
     public readonly List<Encounter> Encounters = [];
     public readonly SortedList<DateTime, string> UserMarkers = [];
@@ -143,7 +146,7 @@ public sealed class Replay
     public IEnumerable<Tether> EncounterTethers(Encounter e) => Tethers.Skip(e.FirstTether).TakeWhile(t => t.Time.Start <= e.Time.End);
     public IEnumerable<Icon> EncounterIcons(Encounter e) => Icons.Skip(e.FirstIcon).TakeWhile(i => i.Timestamp <= e.Time.End);
     public IEnumerable<DirectorUpdate> EncounterDirectorUpdates(Encounter e) => DirectorUpdates.Skip(e.FirstDirectorUpdate).TakeWhile(du => du.Timestamp <= e.Time.End);
-    public IEnumerable<EnvControl> EncounterEnvControls(Encounter e) => EnvControls.Skip(e.FirstEnvControl).TakeWhile(ec => ec.Timestamp <= e.Time.End);
+    public IEnumerable<MapEffect> EncounterMapEffects(Encounter e) => MapEffects.Skip(e.FirstEnvControl).TakeWhile(ec => ec.Timestamp <= e.Time.End);
 
     public Participant? FindParticipant(ulong instanceID, DateTime t) => Participants.FirstOrDefault(p => p.InstanceID == instanceID && p.EffectiveExistence.Contains(t));
 }

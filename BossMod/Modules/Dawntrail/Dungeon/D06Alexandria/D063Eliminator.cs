@@ -159,7 +159,7 @@ class LightOfDevotion(BossModule module) : Components.SimpleLineStack(module, 3,
     }
 }
 
-class EliminationExplosion(BossModule module) : Components.StandardAOEs(module, AID.EliminationExplosion, new AOEShapeRect(25, 4, 25), 4);
+class EliminationExplosion(BossModule module) : Components.StandardAOEs(module, AID.EliminationExplosion, new AOEShapeRect(50, 4), 4);
 
 class D063EliminatorStates : StateMachineBuilder
 {

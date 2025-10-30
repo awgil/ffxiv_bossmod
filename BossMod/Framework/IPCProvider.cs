@@ -1,6 +1,8 @@
 ﻿using BossMod.AI;
 using BossMod.Autorotation;
+using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace BossMod;
 
@@ -13,6 +15,12 @@ sealed class IPCProvider : IDisposable
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
 
+        DateTime lastModified = DateTime.Now;
+        Service.Config.Modified.Subscribe(() => lastModified = DateTime.Now);
+        Register("Configuration.LastModified", () => lastModified);
+
+        Register("Rotation.ActionQueue.HasEntries", () => autorotation.Hints.ActionsToExecute.Entries.Any(x => !x.Manual));
+
         Register("Presets.Get", (string name) =>
         {
             var preset = autorotation.Database.Presets.FindPresetByName(name);
@@ -20,7 +28,20 @@ sealed class IPCProvider : IDisposable
         });
         Register("Presets.Create", (string presetSerialized, bool overwrite) =>
         {
-            var p = JsonSerializer.Deserialize<Preset>(presetSerialized, Serialization.BuildSerializationOptions());
+            var node = JsonNode.Parse(presetSerialized, documentOptions: new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
+            if (node == null)
+                return false;
+
+            // preset converter operates on array of presets; plan converter doesn't but expects an `Encounter` key in the object
+            node = new JsonArray(node);
+
+            var version = 0;
+            var finfo = new FileInfo("<in-memory preset>");
+
+            foreach (var conv in PlanPresetConverter.PresetSchema.Converters)
+                node = conv(node, version, finfo);
+
+            var p = node.AsArray()[0].Deserialize<Preset>(Serialization.BuildSerializationOptions());
             if (p == null)
                 return false;
             var index = autorotation.Database.Presets.UserPresets.FindIndex(x => x.Name == p.Name);
@@ -110,13 +131,31 @@ sealed class IPCProvider : IDisposable
             var iTrack = md.Definition.Configs.FindIndex(td => td.InternalName == trackName);
             if (iTrack < 0)
                 return false;
-            var iOpt = md.Definition.Configs[iTrack].Options.FindIndex(od => od.InternalName == value);
-            if (iOpt < 0)
-                return false;
+
+            StrategyValue tempValue;
+
+            switch (md.Definition.Configs[iTrack])
+            {
+                case StrategyConfigTrack tr:
+                    var iOpt = tr.Options.FindIndex(od => od.InternalName == value);
+                    if (iOpt < 0)
+                        return false;
+                    tempValue = new StrategyValueTrack() { Option = iOpt, Target = target, TargetParam = targetParam };
+                    break;
+                case StrategyConfigFloat sc:
+                    tempValue = new StrategyValueFloat() { Value = Math.Clamp(float.Parse(value), sc.MinValue, sc.MaxValue) };
+                    break;
+                case StrategyConfigInt si:
+                    tempValue = new StrategyValueInt() { Value = Math.Clamp(long.Parse(value), si.MinValue, si.MaxValue) };
+                    break;
+                case var x:
+                    throw new ArgumentException($"unhandled config type {x.GetType()}");
+            }
+
             var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == mt);
             if (ms == null)
                 return false;
-            var setting = new Preset.ModuleSetting(default, iTrack, new() { Option = iOpt, Target = target, TargetParam = targetParam });
+            var setting = new Preset.ModuleSetting(default, iTrack, tempValue);
             var index = ms.TransientSettings.FindIndex(s => s.Track == iTrack);
             if (index < 0)
                 ms.TransientSettings.Add(setting);

@@ -1,6 +1,6 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
 using System.IO;
 
 namespace BossMod.ReplayVisualization;
@@ -31,7 +31,7 @@ class ReplayDetailsWindow : UIWindow
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
-    private float _pfTargetRadius = 3;
+    private float _pfCushion;
     private Positional _pfPositional = Positional.Any;
 
     public DateTime CurrentTime
@@ -40,7 +40,7 @@ class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, new(1500, 1000))
+    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1100, 1500) : new(1500, 1000))
     {
         _player = new(data);
         _rotationDB = rotationDB;
@@ -94,7 +94,7 @@ class ReplayDetailsWindow : UIWindow
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
         _hintsBuilder.Update(_hints, _povSlot, false);
-        _rmm.Update(0, false);
+        _rmm.Update(0, false, false);
         if (_mgr.ActiveModule != null)
         {
             var drawTimerPre = DateTime.Now;
@@ -174,7 +174,7 @@ class ReplayDetailsWindow : UIWindow
             var player = _mgr.WorldState.Party.Player();
             if (player != null)
             {
-                var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, player, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f);
+                var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, player, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f, false);
                 ImGui.TextUnformatted($"! {best.Action} ({best.Priority:f2}) in {best.Delay:f3} @ {best.Target}");
             }
             foreach (var a in _hints.ActionsToExecute.Entries)
@@ -392,6 +392,7 @@ class ReplayDetailsWindow : UIWindow
             if (ImGui.Checkbox("###POV", ref isPOV) && isPOV)
             {
                 _povSlot = slot;
+                _rmm.PlayerSlot = slot;
                 resetPF = true;
             }
 
@@ -499,12 +500,11 @@ class ReplayDetailsWindow : UIWindow
         if (player == null)
             return;
 
-        _pfVisu ??= new(_hints, _mgr.WorldState, player, _pfTargetRadius);
+        _pfVisu ??= new(_hints, _mgr.WorldState, player, _pfCushion);
         _pfVisu.Draw(_pfTree);
 
         bool rebuild = false;
-        //rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0.1f, 5);
-        rebuild |= ImGui.SliderFloat("Ability range", ref _pfTargetRadius, 3, 25);
+        rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0, 5);
         rebuild |= UICombo.Enum("Ability positional", ref _pfPositional);
         if (rebuild)
             ResetPF();

@@ -60,11 +60,11 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         def.DefineShared().AddAssociatedActions(AID.SearingLight);
 
         def.Define(Track.Cyclone).As<CycloneUse>("Cyclone")
-            .AddOption(CycloneUse.Automatic, "Auto", "Use when Ifrit is summoned")
-            .AddOption(CycloneUse.Delay, "Delay", "Delay automatic use, but do not overwrite Ifrit with any other summon")
-            .AddOption(CycloneUse.DelayMove, "DelayMove", "Delay automatic use until player is not holding a movement key - do not overwrite Ifrit with any other summon")
-            .AddOption(CycloneUse.SkipMove, "SkipMove", "Skip if a movement key is held, otherwise use")
-            .AddOption(CycloneUse.Skip, "Skip", "Do not use at all");
+            .AddOption(CycloneUse.Automatic, "Use when Ifrit is summoned")
+            .AddOption(CycloneUse.Delay, "Delay automatic use, but do not overwrite Ifrit with any other summon")
+            .AddOption(CycloneUse.DelayMove, "Delay automatic use until player is not holding a movement key - do not overwrite Ifrit with any other summon")
+            .AddOption(CycloneUse.SkipMove, "Skip if a movement key is held, otherwise use")
+            .AddOption(CycloneUse.Skip, "Do not use at all");
 
         return def;
     }
@@ -241,7 +241,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
         (BestMeleeTarget, NumMeleeTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
 
-        if (Carbuncle == null && Player.MountId == 0)
+        if (Carbuncle == null)
             PushGCD(AID.SummonCarbuncle, Player);
 
         if (primaryTarget == null)
@@ -256,8 +256,6 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         }
 
         GoalZoneSingle(25);
-
-        OGCDs(strategy, primaryTarget);
 
         if (CrimsonStrikeReady)
         {
@@ -329,10 +327,14 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
         PushGCD(BestRuin, primaryTarget);
 
+        OGCDs(strategy, primaryTarget);
     }
 
     private void OGCDs(StrategyValues strategy, Enemy? primaryTarget)
     {
+        if (NextGCD == AID.Slipstream)
+            PushOGCD(AID.Swiftcast, Player);
+
         if (!Player.InCombat || primaryTarget == null)
             return;
 
@@ -360,11 +362,9 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
                 if (CanWeave(AID.Rekindle))
                 {
-                    static float HPRatio(Actor a) => (float)a.HPMP.CurHP / a.HPMP.MaxHP;
-
-                    var rekindleTarget = World.Party.WithoutSlot(excludeAlliance: true).Where(x => HPRatio(x) < 1).MinBy(HPRatio);
-                    if (rekindleTarget is Actor a)
-                        PushOGCD(AID.Rekindle, a);
+                    var rekindleTarget = World.Party.WithoutSlot(excludeAlliance: true).MinBy(x => x.HPRatio);
+                    if (rekindleTarget?.HPRatio < 1)
+                        PushOGCD(AID.Rekindle, rekindleTarget);
 
                     if (SummonLeft < 2)
                         PushOGCD(AID.Rekindle, Player);

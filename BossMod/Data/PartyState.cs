@@ -40,8 +40,7 @@ public sealed class PartyState
     {
         void assign(ulong instanceID, Actor? actor)
         {
-            var slot = FindSlot(instanceID);
-            if (slot >= 0)
+            if (TryFindSlot(instanceID, out var slot))
                 _actors[slot] = actor;
         }
         actorState.Added.Subscribe(actor => assign(actor.InstanceID, actor));
@@ -93,15 +92,15 @@ public sealed class PartyState
         return -1;
     }
 
-    public bool TryGetSlot(ulong instanceID, out int slot)
+    public bool TryFindSlot(ulong instanceID, out int slot)
     {
         slot = FindSlot(instanceID);
         return slot >= 0;
     }
 
-    public bool TryGetSlot(Actor actor, out int slot) => TryGetSlot(actor.InstanceID, out slot);
+    public bool TryFindSlot(Actor actor, out int slot) => TryFindSlot(actor.InstanceID, out slot);
 
-    public bool TryGetSlot(ReadOnlySpan<char> name, out int slot, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
+    public bool TryFindSlot(ReadOnlySpan<char> name, out int slot, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
     {
         slot = FindSlot(name, cmp);
         return slot >= 0;

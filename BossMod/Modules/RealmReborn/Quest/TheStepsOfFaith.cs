@@ -167,7 +167,7 @@ class ScrollingBounds(BossModule module) : BossComponent(module)
     private int Phase = 1;
     private (float Min, float Max) ZBounds = (120, 300);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 3 && state == 0x20001)
         {

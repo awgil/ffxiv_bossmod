@@ -14,7 +14,7 @@ class Exodus(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_activation != default)
-            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), _activation));
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), _activation);
     }
 
     public override void OnActorDestroyed(Actor actor)

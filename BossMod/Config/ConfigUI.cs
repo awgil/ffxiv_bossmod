@@ -1,6 +1,6 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
 using System.IO;
 using System.Reflection;
 
@@ -15,6 +15,9 @@ public sealed class ConfigUI : IDisposable
         public int Order;
         public UINode? Parent;
         public List<UINode> Children = [];
+        public string[] Tags = [];
+
+        public List<string> Path = [];
     }
 
     private readonly List<UINode> _roots = [];
@@ -26,13 +29,15 @@ public sealed class ConfigUI : IDisposable
     private readonly WorldState _ws;
     private readonly UIPresetDatabaseEditor? _presets;
 
+    private readonly List<List<string>> _filterNodes = [];
+
     public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
         _about = new(replayDir);
         _mv = new(rotationDB?.Plans, ws);
-        _presets = rotationDB != null ? new(rotationDB.Presets) : null;
+        _presets = rotationDB != null ? new(rotationDB) : null;
 
         _tabs.Add("About", _about.Draw);
         _tabs.Add("Settings", DrawSettings);
@@ -51,12 +56,23 @@ public sealed class ConfigUI : IDisposable
             n.Name = props?.Name ?? GenerateNodeName(t);
             n.Order = props?.Order ?? 0;
             n.Parent = props?.Parent != null ? nodes.GetValueOrDefault(props.Parent) : null;
+            n.Tags = props?.Tags ?? [];
 
             var parentNodes = n.Parent?.Children ?? _roots;
             parentNodes.Add(n);
         }
 
         SortByOrder(_roots);
+        ResolvePaths(_roots, []);
+    }
+
+    private void ResolvePaths(List<UINode> nodes, IEnumerable<string> parent)
+    {
+        foreach (var n in nodes)
+        {
+            n.Path = [.. parent, n.Name];
+            ResolvePaths(n.Children, n.Path);
+        }
     }
 
     public void Dispose()
@@ -71,15 +87,73 @@ public sealed class ConfigUI : IDisposable
         _tabs.Draw();
     }
 
-    private void DrawSettings() => DrawNodes(_roots);
+    private string _searchText = "";
 
-    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws)
+    private void DrawSettings()
+    {
+        ImGui.SetNextItemWidth(300);
+        if (ImGui.InputTextEx("", "Search for a setting...", ref _searchText))
+            FilterNodes();
+
+        ImGui.SameLine();
+        using (ImRaii.Disabled(_searchText.Length == 0))
+            if (ImGui.Button("Clear"))
+            {
+                _searchText = "";
+                FilterNodes();
+            }
+
+        DrawNodes(_roots);
+    }
+
+    private void FilterNodes()
+    {
+        _filterNodes.Clear();
+
+        if (_searchText.Length == 0)
+            return;
+
+        foreach (var r in _roots)
+            foreach (var path in WalkNodes(r))
+                _filterNodes.Add(path);
+    }
+
+    private IEnumerable<List<string>> WalkNodes(UINode node)
+    {
+        // if node matches, show all children
+        if (Utils.TextMatch(node.Name, _searchText) || node.Tags.Any(t => Utils.TextMatch(t, _searchText)))
+        {
+            yield return [node.Name, "*"];
+            yield break;
+        }
+
+        // check for matching fields
+        foreach (var field in node.Node.GetType().GetFields())
+        {
+            var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
+            if (props == null)
+                continue;
+
+            if (Utils.TextMatch(props.Label, _searchText) || props.Tags.Any(t => Utils.TextMatch(t, _searchText)))
+                yield return [node.Name, props.Label];
+        }
+
+        // check for matching subnodes
+        foreach (var p in node.Children)
+            foreach (var path in WalkNodes(p))
+                yield return [node.Name, .. path];
+    }
+
+    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, Func<PropertyDisplayAttribute, bool>? filter = null)
     {
         // draw standard properties
         foreach (var field in node.GetType().GetFields())
         {
             var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
             if (props == null)
+                continue;
+
+            if (filter?.Invoke(props) == false)
                 continue;
 
             var disabled = false;
@@ -124,11 +198,36 @@ public sealed class ConfigUI : IDisposable
 
     private void DrawNodes(List<UINode> nodes)
     {
-        foreach (var n in _tree.Nodes(nodes, n => new(n.Name)))
+        foreach (var n in _tree.Nodes(nodes.Where(n => MatchesFilter(n.Path)), n => new(n.Name)))
         {
-            DrawNode(n.Node, _root, _tree, _ws);
+            DrawNode(n.Node, _root, _tree, _ws, props => MatchesFilter([.. n.Path, props.Label]));
             DrawNodes(n.Children);
         }
+    }
+
+    private bool MatchesFilter(List<string> path)
+    {
+        if (_filterNodes.Count == 0)
+            return true;
+
+        bool matchesOneFilter(List<string> filter)
+        {
+            var i = 0;
+            foreach (var f in filter)
+            {
+                if (f == "*" || i >= path.Count)
+                    return true;
+
+                if (f != path[i])
+                    return false;
+
+                i++;
+            }
+
+            return true;
+        }
+
+        return _filterNodes.Any(matchesOneFilter);
     }
 
     private static void DrawHelp(string tooltip)

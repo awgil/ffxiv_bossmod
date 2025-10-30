@@ -60,11 +60,10 @@ class IntegratedAetheromodulator(BossModule module) : Components.GenericAOEs(mod
 
     public override void Update()
     {
-        if (_aoes.Count > 0)
-            _aoes.RemoveAll(x => DateTime.Now >= x.Activation);
+        _aoes.RemoveAll(x => WorldState.CurrentTime >= x.Activation);
     }
 }
-class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(45, 2, 45));
+class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(45.6f, 2));
 class Demimagicks(BossModule module) : Components.SpreadFromCastTargets(module, AID.Demimagicks, 5);
 class Mindjack(BossModule module) : Components.Chains(module, (uint)TetherID.MindjackTether, AID.Mindjack, 1, false);
 

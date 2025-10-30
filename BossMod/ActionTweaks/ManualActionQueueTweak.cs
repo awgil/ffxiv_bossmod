@@ -47,19 +47,21 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (_emergencyMode)
         {
             ref var entry = ref _queue.Ref(0);
-            queue.Push(entry.Action, entry.Target, ActionQueue.Priority.ManualEmergency, 0, 0, 0, entry.TargetPos, entry.FacingAngle);
+            queue.Push(entry.Action, entry.Target, ActionQueue.Priority.ManualEmergency, 0, 0, 0, entry.TargetPos, entry.FacingAngle, true);
         }
         else
         {
             float expireOrder = 0; // we don't actually care about values, only ordering...
             foreach (ref var e in _queue.AsSpan())
-                queue.Push(e.Action, e.Target, e.Definition.IsGCD ? ActionQueue.Priority.ManualGCD : ActionQueue.Priority.ManualOGCD, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle);
+                queue.Push(e.Action, e.Target, e.Definition.IsGCD ? ActionQueue.Priority.ManualGCD : ActionQueue.Priority.ManualOGCD, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle, true);
         }
     }
 
-    public bool Push(ActionID action, ulong targetId, float castTime, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget)
+    public bool Enabled => _config.UseManualQueue;
+
+    public bool Push(ActionID action, ulong targetId, float castTime, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest)
     {
-        if (!_config.UseManualQueue)
+        if (!Enabled)
             return false; // we don't use queue at all
 
         var player = ws.Party.Player();
@@ -75,7 +77,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (def.ReadyIn(ws.Client.Cooldowns, ws.Client.DutyActions) > expire)
             return false; // don't bother trying to queue something that's on cd
 
-        if (!ResolveTarget(def, player, targetId, getAreaTarget, allowTargetOverride, out var target, out var targetPos))
+        if (!ResolveTarget(def, player, targetId, getAreaTarget, targetNearest, allowTargetOverride, out var target, out var targetPos))
             return false; // failed to resolve target
 
         Angle? angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
@@ -95,11 +97,6 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {target}");
             _queue.RemoveAt(index);
             _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime));
-        }
-        else if (isGCD)
-        {
-            // spamming GCD - just extend expiration time; don't bother moving stuff around, since GCD vs oGCD order doesn't matter
-            e = e with { ExpireAt = expireAt };
         }
         else
         {
@@ -125,7 +122,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             _emergencyMode = false;
     }
 
-    private bool ResolveTarget(ActionDefinition def, Actor player, ulong targetId, Func<(ulong, Vector3?)> getAreaTarget, bool allowSmartTarget, out Actor? target, out Vector3 targetPos)
+    private bool ResolveTarget(ActionDefinition def, Actor player, ulong targetId, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest, bool allowSmartTarget, out Actor? target, out Vector3 targetPos)
     {
         target = null;
         targetPos = default;
@@ -200,7 +197,15 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (allowSmartTarget && _config.SmartTargets && def.SmartTarget != null)
             target = def.SmartTarget(ws, player, target, hints);
 
-        // smart-targeting fallback: cast on self is target is not valid
+        // fallback: if requested, use native "target nearest" function to try to find a valid hostile target
+        // this conditional ensures we don't get a false positive for holmgang (can target self or hostile) or phantom oracle invuln (can target ally, but not self)
+        if (target == null && def.AllowedTargets.HasFlag(ActionTargets.Hostile) && !def.AllowedTargets.HasFlag(ActionTargets.Self))
+        {
+            target = ws.Actors.Find(targetNearest());
+            return true;
+        }
+
+        // smart-targeting fallback: cast on self if target is not valid
         var targetInvalid = target == null || !def.AllowedTargets.HasFlag(ActionTargets.Hostile) && !target.IsAlly;
         if (targetInvalid && def.AllowedTargets.HasFlag(ActionTargets.Self))
             target = player;

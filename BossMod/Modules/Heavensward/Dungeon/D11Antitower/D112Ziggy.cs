@@ -39,8 +39,7 @@ class JitteringJounceAOE(BossModule module) : Components.GenericLineOfSightAOE(m
     {
         if (tether.ID == (uint)TetherID.JitteringJounce)
         {
-            var slot = Raid.FindSlot(tether.Target);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(tether.Target, out var slot))
             {
                 IgnoredPlayers = ~BitMask.Build(slot);
                 Modify(Module.PrimaryActor.Position, Module.Enemies(OID.Stardust).Where(e => !e.IsDead).Select(s => (s.Position, 1f)), WorldState.FutureTime(6));

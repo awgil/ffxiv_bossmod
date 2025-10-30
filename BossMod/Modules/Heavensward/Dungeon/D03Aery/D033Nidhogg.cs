@@ -34,8 +34,8 @@ public enum AID : uint
 }
 
 class DeafeningBellow(BossModule module) : Components.RaidwideCast(module, AID.DeafeningBellow);
-class HotTail(BossModule module) : Components.StandardAOEs(module, AID.HotTail, new AOEShapeRect(60, 8, 60));
-class HotWing(BossModule module) : Components.StandardAOEs(module, AID.HotWing, new AOEShapeRect(30, 34, -4));
+class HotTail(BossModule module) : Components.StandardAOEs(module, AID.HotTail, new AOEShapeRect(68, 8));
+class HotWing(BossModule module) : Components.StandardAOEs(module, AID.HotWing, new AOEShapeRect(30, 34));
 class Cauterize(BossModule module) : Components.StandardAOEs(module, AID.Cauterize, new AOEShapeRect(80, 11));
 class HorridRoar(BossModule module) : Components.SpreadFromCastTargets(module, AID.HorridRoar, 6);
 class HorridRoar2(BossModule module) : Components.StandardAOEs(module, AID.HorridRoar2, 6);
@@ -56,14 +56,8 @@ class MultiAddModule(BossModule module) : Components.AddsMulti(module, [OID.TheS
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var e in hints.PotentialTargets)
-            e.Priority = (OID)e.Actor.OID switch
-            {
-                OID.TheSablePrice => 3,
-                OID.Liegedrake or OID.Ahleh => 2,
-                OID.Boss => 1,
-                _ => 0
-            };
+        hints.PrioritizeTargetsByOID(OID.TheSablePrice, 3);
+        hints.PrioritizeTargetsByOID([(uint)OID.Liegedrake, (uint)OID.Ahleh], 2);
     }
 };
 class Roast(BossModule module) : Components.StandardAOEs(module, AID.Roast, new AOEShapeRect(30, 4));

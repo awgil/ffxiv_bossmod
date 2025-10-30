@@ -49,8 +49,7 @@ class BrightenedFire(BossModule module) : Components.CastCounter(module, AID.Bri
     {
         if (iconID is >= 268 and <= 275)
         {
-            int slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
                 _playerOrder[slot] = (int)iconID - 267;
         }
     }
@@ -59,7 +58,7 @@ class BrightenedFire(BossModule module) : Components.CastCounter(module, AID.Bri
     {
         // TODO: consider how this can be improved...
         var markID = (int)Waymark.N1 + (order - 1) % 4;
-        var wm = WorldState.Waymarks[markID];
+        var wm = WorldState.Waymarks.GetFieldMark(markID);
         return wm != null ? new(wm.Value.XZ()) : Module.Center;
     }
 }

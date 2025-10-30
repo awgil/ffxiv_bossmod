@@ -11,7 +11,7 @@ class AddsVoidzone(BossModule module) : Components.GenericAOEs(module)
             yield return new(new AOEShapeCircle(8), Arena.Center, Activation: _activation);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 1)
         {
@@ -116,8 +116,7 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
 
     public Actor? MatchingWolf(Actor player)
     {
-        var slot = Raid.FindSlot(player.InstanceID);
-        return slot >= 0
+        return Raid.TryFindSlot(player, out var slot)
             ? Aspects[slot] switch
             {
                 Aspect.Stone => WolfOfStone,
@@ -129,8 +128,7 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
 
     public Actor? OtherWolf(Actor player)
     {
-        var slot = Raid.FindSlot(player.InstanceID);
-        return slot >= 0
+        return Raid.TryFindSlot(player, out var slot)
             ? Aspects[slot] switch
             {
                 Aspect.Stone => WolfOfWind,
@@ -214,11 +212,11 @@ class StalkingWindStone(BossModule module) : Components.CastCounter(module, null
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var b in Baits)
-            hints.PredictedDamage.Add((Raid.WithSlot().Where(p => b.Hits(p.Item2)).Mask(), b.Activation));
+            hints.AddPredictedDamage(Raid.WithSlot().Where(p => b.Hits(p.Item2)).Mask(), b.Activation);
     }
 }
 
-class AlphaWindStone(BossModule module) : Components.GenericBaitAway(module)
+class AlphaWindStone(BossModule module) : Components.GenericBaitAway(module, damageType: AIHints.PredictedDamageType.Tankbuster)
 {
     private readonly WolfOfWindStone? _wolves = module.FindComponent<WolfOfWindStone>();
 
@@ -349,7 +347,7 @@ class RavenousSaber(BossModule module) : Components.CastCounter(module, null)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var c in Casters)
-            hints.PredictedDamage.Add((Raid.WithSlot().Mask(), Module.CastFinishAt(c.CastInfo)));
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(c.CastInfo));
     }
 
     public override void AddGlobalHints(GlobalHints hints)

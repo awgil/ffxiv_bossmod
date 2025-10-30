@@ -88,7 +88,7 @@ class Puddles(BossModule module) : Components.GenericAOEs(module)
                 yield return new AOEInstance(new AOEShapeCircle(5), new(x, y));
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x0C && state == 0x00020001)
             Active = true;

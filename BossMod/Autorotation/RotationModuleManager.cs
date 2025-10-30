@@ -17,7 +17,7 @@ public sealed class RotationModuleManager : IDisposable
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
-    public readonly int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
+    public int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
     public PlanExecution? Planner { get; private set; }
     private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
@@ -39,6 +39,9 @@ public sealed class RotationModuleManager : IDisposable
     public DateTime CombatStart { get; private set; } // default value when player is not in combat, otherwise timestamp when player entered combat
     public (DateTime Time, ActorCastEvent? Data) LastCast { get; private set; }
 
+    public volatile float LastRasterizeMs;
+    public volatile float LastPathfindMs;
+
     // list of status effects that disable the player's default action set, but do not disable *all* actions
     // in these cases, we want to prevent active rotation modules from queueing any actions, because they might affect positioning or rotation, or interfere with player's attempt to manually use an action
     // TODO can this be sourced entirely from sheet data? i can't find a field that uniquely identifies these statuses while excluding "stuns" and transformations that do not inhibit the use of actions
@@ -46,11 +49,20 @@ public sealed class RotationModuleManager : IDisposable
         (uint)Roleplay.SID.RolePlaying, // used for almost all solo duties
         (uint)Roleplay.SID.BorrowedFlesh, // used specifically for In from the Cold (Endwalker)
         (uint)Roleplay.SID.FreshPerspective, // sapphire weapon quest
+
+        // hacking interlude gimmick in Paradigm's Breach boss 3
+        (uint)Shadowbringers.Alliance.A34RedGirl.SID.Program000000,
+        (uint)Shadowbringers.Alliance.A34RedGirl.SID.ProgramFFFFFFF,
+
         565, // "Transfiguration" from certain pomanders in Palace of the Dead
         439, // "Toad", palace of the dead
         1546, // "Odder", heaven-on-high
         3502, // "Owlet", EO
         404, // "Transporting", not a transformation but prevents actions
+        4235, // "Rage" status from Phantom Berserker, prevents all actions and movement
+        4376, // "Transporting", variant in Occult Crescent
+        4586, // "Away with the Fae", PT
+        4708, // "Transfiguration", PT
     ];
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
@@ -83,7 +95,7 @@ public sealed class RotationModuleManager : IDisposable
         _subscriptions.Dispose();
     }
 
-    public void Update(float estimatedAnimLockDelay, bool isMoving)
+    public void Update(float estimatedAnimLockDelay, bool isMoving, bool dutyRecorder)
     {
         // see whether current plan matches what should be active, and update if not; only rebuild actions if there is no active override
         var expectedPlan = CalculateExpectedPlan();
@@ -99,12 +111,16 @@ public sealed class RotationModuleManager : IDisposable
 
         _activeModules?.SortBy(m => m.module.Definition.Order);
 
+        // trying to change target or use actions is a waste of cpu cycles during duty recorder playback
+        if (dutyRecorder)
+            return;
+
         // forced target update
         if (Hints.ForcedTarget == null && Presets.Count == 0 && Planner?.ActiveForcedTarget() is var forced && forced != null)
         {
-            Hints.ForcedTarget = forced.Value.Target != StrategyTarget.Automatic
-                ? ResolveTargetOverride(forced.Value.Target, forced.Value.TargetParam)
-                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? (Bossmods.ActiveModule?.PrimaryActor is var primary && primary != null && !primary.IsDeadOrDestroyed && primary.IsTargetable ? primary : null));
+            Hints.ForcedTarget = forced.Target != StrategyTarget.Automatic
+                ? ResolveTargetOverride(forced.Target, forced.TargetParam)
+                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? Bossmods.ActiveModule?.GetDefaultTarget(PlayerSlot));
         }
 
         // auto actions
@@ -159,13 +175,14 @@ public sealed class RotationModuleManager : IDisposable
 
     public void Toggle(Preset p, bool exclusive = false)
     {
-        Presets.Remove(ForceDisable);
         if (!Presets.Remove(p))
         {
             if (exclusive)
                 Presets.Clear();
             Presets.Add(p);
         }
+        if (p != ForceDisable)
+            Presets.Remove(ForceDisable);
         DirtyActiveModules(true);
     }
 
@@ -190,7 +207,7 @@ public sealed class RotationModuleManager : IDisposable
             allowedMask.Clear(PlayerSlot);
         if (filter.HasFlag(StrategyPartyFiltering.ExcludeNoPredictedDamage))
         {
-            var predictedDamage = Hints.PredictedDamage.Aggregate(default(BitMask), (s, p) => s | p.players);
+            var predictedDamage = Hints.PredictedDamage.Aggregate(default(BitMask), (s, p) => s | p.Players);
             allowedMask &= predictedDamage;
         }
 
@@ -256,7 +273,11 @@ public sealed class RotationModuleManager : IDisposable
     private void DirtyActiveModules(bool condition)
     {
         if (condition)
+        {
+            LastRasterizeMs = 0;
+            LastPathfindMs = 0;
             _activeModules = null;
+        }
     }
 
     private void OnCombatChanged(Actor actor)
@@ -287,7 +308,7 @@ public sealed class RotationModuleManager : IDisposable
             return; // don't care
 
         // note: if combat ends while player is dead, we'll reset the preset, which is desirable
-        if (actor.IsDead && actor.InCombat)
+        if (actor.IsDead && actor.InCombat && Config.ClearPresetOnDeath)
         {
             // player died in combat => force disable (otherwise there's a risk of dying immediately after rez)
             Service.Log($"[RMM] Player died in combat => force-disabling from '{PresetNames}'");
@@ -309,9 +330,11 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnPresetModified(Preset? prev, Preset? curr)
     {
+        var wasActive = prev != null && Presets.Any(p => p.Name == prev.Name);
+
         if (prev != null)
             Deactivate(prev);
-        if (curr != null)
+        if (wasActive && curr != null)
             Activate(curr);
     }
 
@@ -328,6 +351,12 @@ public sealed class RotationModuleManager : IDisposable
             LastCast = (WorldState.CurrentTime, cast);
             if (Service.IsDev)
                 Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", ActiveModulesFlat.Select(m => m.Module.DescribeState()))}]");
+        }
+
+        if (cast.Action.ID == 6276 && Config.ClearPresetOnLuring)
+        {
+            Service.Log($"[RMM] Luring Trap triggered, force-disabling from '{PresetNames}'");
+            SetForceDisabled();
         }
     }
 }

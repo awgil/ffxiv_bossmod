@@ -44,15 +44,18 @@ class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(m
             if (IsImmune(slot, Module.CastFinishAt(c.CastInfo)))
                 return;
 
+            var center = Arena.Center;
+            var peacefireSources = _peacefire?.Casters.Select(c => c.CastInfo!.LocXZ).ToList() ?? [];
+
             hints.AddForbiddenZone(pos =>
             {
-                if ((pos - Arena.Center).Length() > 5)
+                if ((pos - center).Length() > 5)
                     return true;
 
-                var proj = pos + (pos - Arena.Center).Normalized() * 11;
+                var proj = pos + (pos - center).Normalized() * 11;
 
-                foreach (var p in _peacefire?.Casters ?? [])
-                    if (proj.InCircle(p.CastInfo!.LocXZ, 10))
+                foreach (var pf in peacefireSources)
+                    if (proj.InCircle(pf, 10))
                         return true;
 
                 return false;
@@ -64,7 +67,7 @@ class Firewall(BossModule module) : Components.GenericAOEs(module)
 {
     private bool Active;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x17)
         {

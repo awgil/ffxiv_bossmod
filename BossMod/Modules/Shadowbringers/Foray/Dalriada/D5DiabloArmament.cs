@@ -168,7 +168,7 @@ class PseudomenBounds(BossModule module) : Components.GenericAOEs(module)
             Activation = Module.CastFinishAt(spell);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x33)
         {

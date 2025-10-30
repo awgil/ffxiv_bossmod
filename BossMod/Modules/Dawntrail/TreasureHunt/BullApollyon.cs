@@ -48,12 +48,12 @@ public enum AID : uint
 class Blade(BossModule module) : Components.SingleTargetCast(module, AID.Blade);
 class BlazingBlast(BossModule module) : Components.StandardAOEs(module, AID.BlazingBlastHelper, 6);
 class BlazingBreath(BossModule module) : Components.StandardAOEs(module, AID.BlazingBreathHelper, new AOEShapeRect(44, 5));
-class CrossfireBladeBoss(BossModule module) : Components.StandardAOEs(module, AID.CrossfireBladeInitialBoss, new AOEShapeRect(20, 5, 20));
-class CrossfireBladeHelper(BossModule module) : Components.StandardAOEs(module, AID.CrossfireBladeInitialHelper, new AOEShapeRect(20, 5, 20));
-class CrossfireFollowup(BossModule module) : Components.StandardAOEs(module, AID.CrossfireBladeFollowUps, new AOEShapeRect(20, 2.5f, 20));
-class FlameBladeBoss(BossModule module) : Components.StandardAOEs(module, AID.FlameBladeInitalBoss, new AOEShapeRect(20, 5, 20));
-class FlameBladeHelper(BossModule module) : Components.StandardAOEs(module, AID.FlameBladeInitialHelper, new AOEShapeRect(20, 5, 20));
-class FlameBladeFollowup(BossModule module) : Components.StandardAOEs(module, AID.FlameBladeHelperFollowUps, new AOEShapeRect(20, 2.5f, 20));
+class CrossfireBladeBoss(BossModule module) : Components.StandardAOEs(module, AID.CrossfireBladeInitialBoss, new AOEShapeCross(20, 5));
+class CrossfireBladeHelper(BossModule module) : Components.StandardAOEs(module, AID.CrossfireBladeInitialHelper, new AOEShapeCross(20, 5));
+class CrossfireFollowup(BossModule module) : Components.StandardAOEs(module, AID.CrossfireBladeFollowUps, new AOEShapeRect(40, 2.5f));
+class FlameBladeBoss(BossModule module) : Components.StandardAOEs(module, AID.FlameBladeInitalBoss, new AOEShapeRect(40, 5));
+class FlameBladeHelper(BossModule module) : Components.StandardAOEs(module, AID.FlameBladeInitialHelper, new AOEShapeRect(40, 5));
+class FlameBladeFollowup(BossModule module) : Components.StandardAOEs(module, AID.FlameBladeHelperFollowUps, new AOEShapeRect(40, 2.5f));
 class PyreBurst(BossModule module) : Components.RaidwideCast(module, AID.PyreburstCast);
 
 class BonusAdds(BossModule module) : Components.AddsMulti(module, [OID.TuligoraQueen, OID.TuraliTomato, OID.TuraliGarlic, OID.TuraliEggplant, OID.TuraliOnion])

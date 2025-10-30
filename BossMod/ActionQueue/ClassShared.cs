@@ -1,8 +1,16 @@
-﻿namespace BossMod.ClassShared;
+﻿using BossMod.Data;
+
+namespace BossMod.ClassShared;
+
+[ConfigDisplay(Name = "Cross-class actions", Parent = typeof(ActionTweaksConfig), Order = -5)]
+public sealed class SharedActionsConfig : ConfigNode
+{
+    [PropertyDisplay("Align dash actions with camera direction (Lost Swift, Occult Featherfoot, etc)")]
+    public bool AlignDashToCamera = false;
+}
 
 public enum AID : uint
 {
-    #region PvE
     None = 0,
     Sprint = 3,
 
@@ -61,21 +69,47 @@ public enum AID : uint
     Shatterstone = 9823,
     Deflect = 10006,
     DeflectVeryEasy = 18863,
-    #endregion
+    MegaPotion = 10229,
+
+    // Variant actions
+    VariantCure1 = 29729, // available in sil'dih
+    VariantUltimatum = 29730,
+    VariantRaise = 29731,
+    VariantSpiritDart1 = 29732, // available in sil'dih
+    VariantRampart1 = 29733, // available in sil'dih
+    VariantRaiseII = 29734,
+    VariantCure2 = 33862, // available in mount rokkon and aloalo island
+    VariantSpiritDart2 = 33863, // available in mount rokkon and aloalo island
+    VariantRampart2 = 33864, // available in mount rokkon and aloalo island
 
     #region PvP
-    Elixir = 29055,
-    Recuperate = 29711,
-    Purify = 29056,
-    Guard = 29054,
-    //Guard = 29735,
+    ElixirPvP = 29055,
+    RecuperatePvP = 29711,
+    PurifyPvP = 29056,
+    GuardPvP = 29054,
     SprintPvP = 29057,
+
+    // Role actions
+    DiabrosisPvP = 43257,
+    StoneskinIIPvP = 43256,
+    HaelanPvP = 43255,
+    RustPvP = 43254,
+    PhantomDartPvP = 43291,
+    CometPvP = 43252,
+    EagleEyeShotPvP = 43251,
+    BraveryPvP = 43250,
+    DervishPvP = 43249,
+    SmitePvP = 43248,
+    SwiftPvP = 43247,
+    BloodbathPvP = 43246,
+    FullSwingPvP = 43245,
+    RampartPvP = 43244,
+    RampagePvP = 43243,
     #endregion
 }
 
 public enum SID : uint
 {
-    #region PvE
     None = 0,
 
     Sprint = 50, // applied by Sprint to self
@@ -99,9 +133,11 @@ public enum SID : uint
     Swiftcast = 167, // applied by Swiftcast to self
     Raise = 148, // applied by Raise to target
 
+    // Variant
+    VulnerabilityDown = 3360, // applied by Variant Rampart to self
+
     // Bozja
     LostChainspell = 2560, // instant cast
-
     MagicBurst = 1652, // magic damage buff
     BannerOfNobleEnds = 2326, // damage buff + healing disable
     BannerOfHonoredSacrifice = 2327, // damage buff + hp drain
@@ -110,24 +146,39 @@ public enum SID : uint
     LostExcellence = 2564, // damage buff + invincibility
     Memorable = 2565, // damage buff
     BloodRush = 2567, // damage buff + ability haste
-    #endregion
 
-    #region PvP
+    //PvP
     SprintPvP = 1342,
-    Guard = 3054,
-    Silence = 1347,
-    Bind = 1345,
+    GuardPvP = 3054,
+    SilencePvP = 1347,
+    BindPvP = 1345,
     StunPvP = 1343,
-    HalfAsleep = 3022,
-    Sleep = 1348,
-    DeepFreeze = 3219,
-    Heavy = 1344,
-    Unguarded = 3021,
-    #endregion
+    HalfAsleepPvP = 3022,
+    SleepPvP = 1348,
+    DeepFreezePvP = 3219,
+    HeavyPvP = 1344,
+    UnguardedPvP = 3021,
+    RampageEquippedPvP = 4483,
+    RampartEquippedPvP = 4484,
+    FullSwingEquippedPvP = 4485,
+    BloodbathEquippedPvP = 4486,
+    SwiftEquippedPvP = 4487,
+    SmiteEquippedPvP = 4488,
+    DervishEquippedPvP = 4489,
+    BraveryEquippedPvP = 4490,
+    EagleEyeShotEquippedPvP = 4491,
+    CometEquippedPvP = 4492,
+    PhantomDartEquippedPvP = 4516,
+    RustEquippedPvP = 4494,
+    HaelanEquippedPvP = 4495,
+    StoneskinEquippedPvP = 4496,
+    DiabrosisEquippedPvP = 4497,
 }
 
 public sealed class Definitions : IDisposable
 {
+    private readonly SharedActionsConfig _config = Service.Config.Get<SharedActionsConfig>();
+
     public Definitions(ActionDefinitions d)
     {
         #region PvE
@@ -188,14 +239,49 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.Shatterstone);
         d.RegisterSpell(AID.Deflect);
         d.RegisterSpell(AID.DeflectVeryEasy);
+        d.RegisterSpell(AID.MegaPotion);
+
+        // variant actions
+        d.RegisterSpell(AID.VariantCure1);
+        d.RegisterSpell(AID.VariantUltimatum);
+        d.RegisterSpell(AID.VariantRaise);
+        d.RegisterSpell(AID.VariantSpiritDart1);
+        d.RegisterSpell(AID.VariantRampart1);
+        d.RegisterSpell(AID.VariantRaiseII);
+        d.RegisterSpell(AID.VariantCure2);
+        d.RegisterSpell(AID.VariantSpiritDart2);
+        d.RegisterSpell(AID.VariantRampart2);
         #endregion
 
         #region PvP
-        d.RegisterSpell(AID.Elixir);
-        d.RegisterSpell(AID.Recuperate);
-        d.RegisterSpell(AID.Purify);
-        d.RegisterSpell(AID.Guard);
+        d.RegisterSpell(AID.ElixirPvP);
+        d.RegisterSpell(AID.RecuperatePvP);
+        d.RegisterSpell(AID.PurifyPvP);
+        d.RegisterSpell(AID.GuardPvP);
         d.RegisterSpell(AID.SprintPvP);
+
+        // role actions
+        d.RegisterSpell(AID.DiabrosisPvP);
+        d.RegisterSpell(AID.StoneskinIIPvP);
+        d.RegisterSpell(AID.HaelanPvP);
+        d.RegisterSpell(AID.RustPvP);
+        d.RegisterSpell(AID.PhantomDartPvP);
+        d.RegisterSpell(AID.CometPvP);
+        d.RegisterSpell(AID.EagleEyeShotPvP);
+        d.RegisterSpell(AID.BraveryPvP);
+        d.RegisterSpell(AID.DervishPvP);
+        d.RegisterSpell(AID.SmitePvP);
+        d.RegisterSpell(AID.SwiftPvP);
+        d.RegisterSpell(AID.BloodbathPvP);
+        d.RegisterSpell(AID.FullSwingPvP);
+        d.RegisterSpell(AID.RampartPvP);
+        d.RegisterSpell(AID.RampagePvP);
+        #endregion
+
+        #region Phantom actions
+        foreach (var action in typeof(PhantomID).GetEnumValues())
+            if ((uint)action > 0)
+                d.RegisterSpell((PhantomID)action);
         #endregion
 
         Customize(d);
@@ -225,5 +311,23 @@ public sealed class Definitions : IDisposable
         //d.Spell(AID.LucidDreaming)!.EffectDuration = 21;
         //d.Spell(AID.Swiftcast)!.EffectDuration = 10;
         //d.Spell(AID.Surecast)!.EffectDuration = 6;
+
+        // regular dash check doesn't work since this one is awkwardly fixed distance
+        d.Spell(PhantomID.PhantomKick)!.ForbidExecute = (_, player, action, hints) =>
+        {
+            var cfg = Service.Config.Get<ActionTweaksConfig>();
+            var target = action.Target;
+            if (target == null || !cfg.DashSafety)
+                return false;
+
+            if (player.PendingKnockbacks.Count > 0)
+                return true;
+
+            var dir = player.DirectionTo(target).Normalized() * 15;
+            return ActionDefinitions.IsDashDangerous(player.Position, player.Position + dir, hints);
+        };
+
+        d.Spell(PhantomID.OccultFeatherfoot)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
+        d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
     }
 }

@@ -202,8 +202,8 @@ class Shackles(BossModule module) : BossComponent(module)
 
     private void AssignOrder(Actor actor, int order, bool far)
     {
-        var way1 = WorldState.Waymarks[(int)Waymark.A + order];
-        var way2 = WorldState.Waymarks[(int)Waymark.N1 + order];
+        var way1 = WorldState.Waymarks.GetFieldMark((int)Waymark.A + order);
+        var way2 = WorldState.Waymarks.GetFieldMark((int)Waymark.N1 + order);
         if (way1 == null || way2 == null)
             return;
 
@@ -212,8 +212,7 @@ class Shackles(BossModule module) : BossComponent(module)
         var d1 = (w1 - Module.Center).LengthSq();
         var d2 = (w2 - Module.Center).LengthSq();
         bool use1 = far ? d1 > d2 : d1 < d2;
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor.InstanceID, out var slot))
             _preferredPositions[slot] = use1 ? w1 : w2;
     }
 }

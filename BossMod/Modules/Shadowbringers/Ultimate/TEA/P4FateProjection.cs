@@ -11,11 +11,8 @@ class P4FateProjection(BossModule module) : BossComponent(module)
     {
         if (tether.ID == (uint)TetherID.FateProjection)
         {
-            var slot = Raid.FindSlot(source.InstanceID);
-            if (slot >= 0)
-            {
+            if (Raid.TryFindSlot(source, out var slot))
                 Projections[slot] = tether.Target;
-            }
         }
     }
 }

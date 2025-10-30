@@ -1,4 +1,5 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.MSQ;
+
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 167)]
 public sealed class ASpectacleForTheAges(WorldState ws) : QuestBattle(ws)
 {

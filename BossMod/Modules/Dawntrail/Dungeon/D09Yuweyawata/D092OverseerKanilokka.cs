@@ -37,7 +37,7 @@ public enum IconID : uint
 
 class BoundsChange(BossModule module) : BossComponent(module)
 {
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index != 7)
             return;

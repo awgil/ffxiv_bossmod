@@ -16,11 +16,11 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         def.DefineShared().AddAssociatedActions(AID.StarryMuse);
 
         def.Define(Track.Motif).As<MotifStrategy>("Motifs")
-            .AddOption(MotifStrategy.Combat, "Combat", "Cast motifs in combat, outside of burst window")
-            .AddOption(MotifStrategy.Downtime, "Downtime", "Cast motifs in combat if there are no targets nearby")
-            .AddOption(MotifStrategy.Instant, "Instant", "Only cast motifs when they are instant (out of combat)");
+            .AddOption(MotifStrategy.Combat, "Cast motifs in combat, outside of burst window")
+            .AddOption(MotifStrategy.Downtime, "Cast motifs in combat if there are no targets nearby")
+            .AddOption(MotifStrategy.Instant, "Only cast motifs when they are instant (out of combat)");
 
-        def.DefineSimple(Track.Holy, "Holy").AddAssociatedActions(AID.HolyInWhite);
+        def.DefineSimple(Track.Holy, "Holy").AddAssociatedActions(AID.HolyInWhite, AID.CometInBlack);
         def.DefineSimple(Track.Hammer, "Hammer").AddAssociatedActions(AID.HammerStamp);
 
         return def;
@@ -68,6 +68,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         HolyMove = 100,
         HammerMove = 200,
         Standard = 500,
+        High = 600
     }
 
     private float GetApplicationDelay(AID action) => action switch
@@ -139,6 +140,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         BestLineTarget = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget).Best;
 
+        if (!Player.InCombat && Player.CastInfo is { Action: var act } && (AID)act.ID is AID.PomMotif or AID.WingMotif or AID.ClawMotif or AID.MawMotif or AID.HammerMotif or AID.StarrySkyMotif)
+            Hints.ForceCancelCast = true;
+
         var motifOk = IsMotifOk(strategy);
 
         if (motifOk)
@@ -169,15 +173,16 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID is LeylinesOID && x.OwnerID == Player.InstanceID) is Actor ll)
             Hints.GoalZones.Add(p => p.InCircle(ll.Position, 8) ? 0.5f : 0);
 
-        if (!Player.InCombat && primaryTarget != null && Paint == 0)
-            PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
+        //if (!Player.InCombat && primaryTarget != null && Paint == 0)
+        //    PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
 
         if (Player.InCombat && primaryTarget != null)
         {
             if (ShouldWeapon(strategy))
                 PushOGCD(AID.StrikingMuse, Player);
 
-            PushOGCD(BestLivingMuse, BestAOETarget);
+            if (ShouldCreatureMuse(strategy))
+                PushOGCD(BestLivingMuse, BestAOETarget);
 
             if (ShouldLandscape(strategy))
                 PushOGCD(AID.StarryMuse, Player, 2);
@@ -185,18 +190,19 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             if (ShouldSubtract(strategy))
                 PushOGCD(AID.SubtractivePalette, Player);
 
-            PushOGCD(BestPortrait, BestLineTarget);
+            if (ShouldCreaturePortrait(strategy))
+                PushOGCD(BestPortrait, BestLineTarget);
 
             if (MP <= Player.HPMP.MaxMP * 0.7f)
                 PushOGCD(AID.LucidDreaming, Player);
         }
 
-        if (!CanFitGCD(DowntimeIn - GetApplicationDelay(AID.RainbowDrip), 1))
+        if (DowntimeIn > 0 && !CanFitGCD(DowntimeIn - GetApplicationDelay(AID.RainbowDrip), 1))
         {
             PushOGCD(AID.Swiftcast, Player, 50);
 
             if (SwiftcastLeft > GCD)
-                PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.Standard);
+                PushGCD(AID.RainbowDrip, primaryTarget, GCDPriority.High);
         }
 
         if (Starstruck > GCD)
@@ -241,11 +247,11 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool IsMotifOk(StrategyValues strategy)
     {
-        if (Player.MountId > 0)
-            return false;
-
         if (!Player.InCombat)
             return true;
+
+        if (Utils.IsNonBossFate(World.Client.ActiveFate.ID) || World.DeepDungeon.DungeonId > 0 && !World.DeepDungeon.IsBossFloor)
+            return !Player.InCombat;
 
         // spend buffs instead of casting motifs
         if (Hyperphantasia > 0 || SpectrumLeft > GCD || RainbowBright > GCD || Starstruck > GCD)
@@ -281,16 +287,21 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void Hammer(StrategyValues strategy)
     {
-        if (HammerTime.Stacks == 0)
+        if (HammerTime.Stacks == 0 || strategy.Option(Track.Hammer).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
             return;
 
         var prio = GCDPriority.HammerMove;
 
-        if (RaidBuffsLeft > GCD)
-            prio = GCDPriority.Standard;
+        // hammer isnt that good in the opener anymore xddd
+        //if (RaidBuffsLeft > GCD)
+        //    prio = GCDPriority.Standard;
 
         // worst case scenario, give at least 8 extra seconds of leeway in case we want to cast both other motifs
         if (HammerTime.Left < GCD + GCDLength + (4 * HammerTime.Stacks - 1))
+            prio = GCDPriority.High;
+
+        // use to weave in opener, now that hammer sucks
+        if (ShouldSubtract(strategy, 1))
             prio = GCDPriority.Standard;
 
         if (NumAOETargets > 1)
@@ -303,7 +314,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void Holy(StrategyValues strategy)
     {
-        if (Paint == 0)
+        if (Paint == 0 || strategy.Option(Track.Holy).As<OffensiveStrategy>() == OffensiveStrategy.Delay)
             return;
 
         var prio = GCDPriority.HolyMove;
@@ -353,5 +364,20 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
             return false;
 
         return Palette > 75 || RaidBuffsLeft > 0 || SpectrumLeft > 0;
+    }
+
+    private bool ShouldCreatureMuse(StrategyValues strategy)
+    {
+        if (BestLivingMuse is AID.WingedMuse or AID.FangedMuse)
+            // prevent overcap
+            return BestPortrait == AID.None;
+
+        // otherwise should always be fine to use
+        return true;
+    }
+
+    private bool ShouldCreaturePortrait(StrategyValues strategy)
+    {
+        return StarryMuseLeft > AnimLock || ReadyIn(AID.StarryMuse) > 20;
     }
 }

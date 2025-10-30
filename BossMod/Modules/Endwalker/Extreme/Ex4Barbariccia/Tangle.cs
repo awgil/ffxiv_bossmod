@@ -19,9 +19,8 @@ class Tangle(BossModule module) : Components.StandardAOEs(module, AID.Tangle, ne
     {
         if (tether.ID == (uint)TetherID.Tangle)
         {
-            var slot = Raid.FindSlot(source.InstanceID);
             var target = WorldState.Actors.Find(tether.Target);
-            if (slot >= 0 && target != null)
+            if (Raid.TryFindSlot(source, out var slot) && target != null)
             {
                 _tethers[slot] = target;
                 ++NumTethers;
@@ -33,8 +32,7 @@ class Tangle(BossModule module) : Components.StandardAOEs(module, AID.Tangle, ne
     {
         if (tether.ID == (uint)TetherID.Tangle)
         {
-            var slot = Raid.FindSlot(source.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(source.InstanceID, out var slot))
             {
                 _tethers[slot] = null;
                 --NumTethers;

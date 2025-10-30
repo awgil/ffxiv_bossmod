@@ -40,6 +40,7 @@ public static class BossModuleInfo
         Alliance,
         Chaotic,
         Foray,
+        Variant,
         Criterion,
         DeepDungeon,
         FATE,
@@ -49,6 +50,7 @@ public static class BossModuleInfo
         PVP,
         MaskedCarnivale,
         GoldSaucer,
+        Quantum,
 
         Count
     }

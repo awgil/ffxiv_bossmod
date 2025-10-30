@@ -108,12 +108,8 @@ class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, AID.Ra
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        foreach (var b in ActiveBaits)
-        {
-            if (b.Target == actor)
-                hints.AddForbiddenZone(ShapeContains.Circle(b.Source.Position, _safeDistance));
-            hints.PredictedDamage.Add((new BitMask().WithBit(Raid.FindSlot(b.Target.InstanceID)), Module.CastFinishAt(b.Source.CastInfo)));
-        }
+        foreach (var b in ActiveBaitsOn(actor))
+            hints.AddForbiddenZone(ShapeContains.Circle(b.Source.Position, _safeDistance));
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

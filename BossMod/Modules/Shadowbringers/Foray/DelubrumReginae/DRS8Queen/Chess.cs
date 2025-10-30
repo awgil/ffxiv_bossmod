@@ -120,7 +120,7 @@ class QueensEdict(BossModule module) : Chess(module)
             --NumStuns;
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is 0x1C or 0x1D && state == 0x00020001)
             _safespotZOffset = index == 0x1D ? 2 : -2;

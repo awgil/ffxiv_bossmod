@@ -1,15 +1,16 @@
-﻿using BossMod.Autorotation.xan.AI;
+﻿using BossMod.Autorotation.xan;
 using BossMod.Pathfinding;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod;
 
-public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float preferredDistance)
+public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float cushionSize)
 {
     private readonly MapVisualizer?[] _zoneVisualizers = new MapVisualizer?[hints.ForbiddenZones.Count];
     private MapVisualizer? _pathfindVisualizer;
     private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _navi;
+    private float _naviTime;
     private readonly TrackPartyHealth _partyHealth = new(ws);
 
     public void Draw(UITree tree)
@@ -18,7 +19,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
 
         foreach (var _1 in tree.Node("Potential targets", hints.PotentialTargets.Count == 0))
         {
-            tree.LeafNodes(hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - player.Position).Length():f2}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}");
+            tree.LeafNodes(hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - player.Position).Length():f2}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}, dots={e.AllowDOTs}");
         }
         tree.LeafNode($"Forced target: {hints.ForcedTarget}{((hints.ForcedTarget?.IsTargetable ?? true) ? "" : " (untargetable)")}");
         tree.LeafNode($"Forced movement: {hints.ForcedMovement} (misdirection threshold={hints.MisdirectionThreshold})");
@@ -40,7 +41,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         }
         foreach (var _1 in tree.Node("Predicted damage", hints.PredictedDamage.Count == 0))
         {
-            tree.LeafNodes(hints.PredictedDamage, d => $"[{string.Join(", ", ws.Party.WithSlot().IncludedInMask(d.players).Select(ia => ia.Item2.Name))}], at {Math.Max(0, (d.activation - ws.CurrentTime).TotalSeconds):f3}");
+            tree.LeafNodes(hints.PredictedDamage, d => $"[{string.Join(", ", ws.Party.WithSlot().IncludedInMask(d.Players).Select(ia => ia.Item2.Name))}] ({d.Type}), at {Math.Max(0, (d.Activation - ws.CurrentTime).TotalSeconds):f3}");
         }
         foreach (var _1 in tree.Node("Party health"))
         {
@@ -61,6 +62,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
             ImGui.TextUnformatted($"Obstacles={hints.PathfindMapObstacles}");
             _pathfindVisualizer ??= BuildPathfindingVisualizer();
             _pathfindVisualizer!.Draw();
+            ImGui.TextUnformatted($"Rasterize Time={_naviTime:f3}");
             ImGui.TextUnformatted($"Leeway={_navi.LeewaySeconds:f3}, ttg={_navi.TimeToGoal:f3}, dist={(_navi.Destination != null ? $"{(_navi.Destination.Value - player.Position).Length():f3}" : "---")}");
         }
     }
@@ -75,10 +77,10 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
 
     private MapVisualizer BuildPathfindingVisualizer()
     {
-        // TODO: remove once the similar thing in AIBehaviour.BuildNavigationDecision is removed
-        if (hints.GoalZones.Count == 0 && ws.Actors.Find(player.TargetID) is var target && target != null)
-            hints.GoalZones.Add(hints.GoalSingleTarget(target, preferredDistance));
-        _navi = NavigationDecision.Build(_naviCtx, ws, hints, player);
+        var now = DateTime.Now;
+        _navi = NavigationDecision.Build(_naviCtx, ws.CurrentTime, hints, player.Position, forbiddenZoneCushion: cushionSize);
+        _naviTime = (float)(DateTime.Now - now).TotalSeconds;
+
         return new MapVisualizer(_naviCtx.Map, player.Position);
     }
 }

@@ -70,14 +70,15 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
                 break;
             case PlayerRole.Target:
             case PlayerRole.TargetNotFirst: // TODO: consider some hint to hide behind others?..
-                // TODO: improve this - for now, just stack with closest player...
                 if (Source != null)
                 {
-                    var closest = Raid.WithSlot().WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().Closest(actor.Position);
-                    if (closest != null)
+                    // try to stack with furthest target (by angle delta) to hit as many teammates as possible
+                    var baitDir = (actor.Position - Source.Position).ToAngle();
+                    var farthest = Raid.WithSlot().WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().MaxBy(a => baitDir.DistanceToAngle((a.Position - Source.Position).ToAngle()).Abs());
+                    if (farthest != null)
                     {
-                        var stack = GetAOEForTarget(Source.Position, closest.Position);
-                        hints.AddForbiddenZone(ShapeContains.InvertedRect(stack.origin, stack.dir, stack.length, 0, HalfWidth * 0.5f), Activation);
+                        var stack = GetAOEForTarget(Source.Position, farthest.Position);
+                        hints.AddForbiddenZone(ShapeContains.InvertedCone(stack.origin, 100, stack.dir.ToAngle(), Angle.Asin(HalfWidth / (Source.Position - farthest.Position).Length())), Activation);
                     }
                 }
                 break;
@@ -93,7 +94,8 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
         }
 
         foreach (var aoe in EnumerateAOEs())
-            hints.PredictedDamage.Add((Raid.WithSlot().Where(p => InAOE(aoe, p.Item2)).Mask(), Activation));
+            // TODO add separate "tankbuster" hint for PlayerRole.Share if there are any ShareNotFirsts in the party
+            hints.AddPredictedDamage(Raid.WithSlot().Where(p => InAOE(aoe, p.Item2)).Mask(), Activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -151,4 +153,136 @@ public class SimpleLineStack(BossModule module, float halfWidth, float fixedLeng
             Array.Fill(PlayerRoles, PlayerRole.Ignore);
         }
     }
+}
+
+public class IconLineStack(BossModule module, float halfWidth, float fixedLength, uint iconID, Enum aidResolve, float activationDelay) : GenericWildCharge(module, halfWidth, aidResolve, fixedLength)
+{
+    public uint Icon => iconID;
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (Icon == iconID)
+        {
+            Source = actor;
+            Activation = WorldState.FutureTime(activationDelay);
+            foreach (var (i, p) in Raid.WithSlot(true))
+                PlayerRoles[i] = p.InstanceID == targetID ? PlayerRole.Target : PlayerRole.Share;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            Source = null;
+            Array.Fill(PlayerRoles, PlayerRole.Ignore);
+        }
+    }
+}
+
+// component for multiple simultaneous line stacks from different sources
+// we assume getting hit by two line stacks is fatal (they typically give a vuln stack or something)
+public class MultiLineStack(BossModule module, float halfWidth, float fixedLength, Enum aidTargetSelect, Enum aidResolve, float activationDelay) : CastCounter(module, aidResolve)
+{
+    public float ActivationDelay = activationDelay;
+
+    public struct Stack(WPos source, Actor target, DateTime activation, BitMask forbiddenPlayers = default)
+    {
+        public WPos Source = source;
+        public Actor Target = target;
+        public DateTime Activation = activation;
+        public BitMask ForbiddenPlayers = forbiddenPlayers;
+    }
+
+    protected bool Check(Stack s, Actor player) => player.Position.InRect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
+
+    public readonly List<Stack> Stacks = [];
+
+    private Func<WPos, bool> ShapeFn(Stack s) => ShapeContains.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            Stacks.RemoveAll(c => c.Target.InstanceID == spell.MainTargetID);
+        }
+
+        if (spell.Action.ID == (uint)(object)aidTargetSelect)
+        {
+            if (WorldState.Actors.Find(spell.MainTargetID) is { } tar)
+                Stacks.Add(new(caster.Position, tar, WorldState.FutureTime(ActivationDelay)));
+            else
+                ReportError($"Unable to find target with ID {spell.MainTargetID:X} for stack");
+        }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var s in Stacks)
+            Arena.ZoneRect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth, s.ForbiddenPlayers[pcSlot] ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Stacks.Count == 0)
+            return;
+
+        if (Stacks.Any(s => s.Target == actor))
+            hints.Add("Stack with party!", false);
+        else
+        {
+            int countAllowed = 0, countOk = 0, countForbidden = 0;
+            foreach (var s in Stacks)
+            {
+                if (!s.ForbiddenPlayers[slot])
+                    countAllowed++;
+
+                if (Check(s, actor))
+                {
+                    if (s.ForbiddenPlayers[slot])
+                        countForbidden++;
+                    else
+                        countOk++;
+                }
+            }
+
+            if (countAllowed == 0)
+                return;
+
+            if (countForbidden > 0)
+                hints.Add("GTFO from forbidden stack!");
+            else if (countOk == 0)
+                hints.Add("Stack!");
+            else
+            {
+                hints.Add("Stack!", false);
+                if (countOk > 1)
+                    hints.Add("GTFO from other stacks!");
+            }
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Stacks.Count == 0)
+            return;
+
+        foreach (var group in Stacks.GroupBy(s => s.ForbiddenPlayers[slot]))
+        {
+            if (group.Key) // player is not allowed to stack with these
+            {
+                foreach (var s in group)
+                    hints.AddForbiddenZone(ShapeFn(s), s.Activation);
+            }
+            else
+            {
+                var zones = group.Select(ShapeFn).ToList();
+                hints.AddForbiddenZone(p => zones.Count(f => f(p)) != 1, group.First().Activation);
+            }
+        }
+    }
+
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Stacks.Any(s => s.Target == player) ? PlayerPriority.Interesting : PlayerPriority.Normal;
 }

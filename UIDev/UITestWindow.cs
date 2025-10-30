@@ -1,6 +1,6 @@
 ﻿using BossMod;
 using BossMod.Autorotation;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using ImGuiScene;
 using System.IO;
 using System.Reflection;
@@ -26,7 +26,7 @@ class UITestWindow : UIWindow
     public UITestWindow(SimpleImGuiScene scene, string configPath, string rotationRoot) : base("Boss mod UI development", false, new(600, 600))
     {
         _scene = scene;
-        _testTypes = Utils.GetDerivedTypes<TestWindow>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract).ToList();
+        _testTypes = [.. Utils.GetDerivedTypes<TestWindow>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract)];
         _configPath = configPath;
 
         Service.Config.Initialize();

@@ -88,7 +88,7 @@ class QuadrupleCrossingProtean(BossModule module) : Components.GenericBaitAway(m
         else if (_clone == source)
         {
             var origin = source.Position + 10 * (source.Rotation + _jumpDirection).ToDirection();
-            Origin = new(0, 0, -1, "", 0, ActorType.None, Class.None, 0, new(origin.X, source.PosRot.Y, origin.Z, source.PosRot.W));
+            Origin = new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new(origin.X, source.PosRot.Y, origin.Z, source.PosRot.W));
             _activation = Module.WorldState.FutureTime(17);
         }
     }

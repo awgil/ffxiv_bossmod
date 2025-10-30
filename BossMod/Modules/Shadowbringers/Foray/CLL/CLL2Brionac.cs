@@ -112,7 +112,7 @@ class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall
     // delay 8.2f
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.PolarMagnetism && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0 && WorldState.Actors.Find(tether.Target) is { } target)
+        if (tether.ID == (uint)TetherID.PolarMagnetism && Raid.TryFindSlot(source.InstanceID, out var slot) && WorldState.Actors.Find(tether.Target) is { } target)
         {
             tetheredTo[slot] = target;
             activations[slot] = WorldState.FutureTime(8.2f);
@@ -142,7 +142,7 @@ class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
-        if (tether.ID == (uint)TetherID.PolarMagnetism && Raid.FindSlot(source.InstanceID) is var slot && slot >= 0)
+        if (tether.ID == (uint)TetherID.PolarMagnetism && Raid.TryFindSlot(source.InstanceID, out var slot))
             tetheredTo[slot] = null;
     }
 

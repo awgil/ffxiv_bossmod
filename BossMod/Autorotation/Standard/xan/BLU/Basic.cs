@@ -39,9 +39,14 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 
     protected override bool CanUse(AID action) => action switch
     {
-        // TODO add other transformed actions here
-        AID.DivineCataract => true,
-        _ => World.Client.BlueMageSpells.Contains((uint)action)
+        // transformed blu spells
+        AID.DivineCataract or AID.PhantomFlurryEnd or AID.AethericMimicryReleaseTank or AID.AethericMimicryReleaseDPS or AID.AethericMimicryReleaseHealer => true,
+
+        // magic role actions
+        AID.Addle or AID.Sleep or AID.LucidDreaming or AID.Swiftcast or AID.Surecast => true,
+
+        // regular blu spells
+        _ => World.Client.BlueMageSpells.Contains((uint)action),
     };
 
     public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
@@ -61,22 +66,28 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
                 PushGCD(AID.BasicInstinct, Player);
         }
 
+        if (Player.FindStatus(SID.AuspiciousTrance) != null)
+            PushGCD(AID.DivineCataract, Player, GCDPriority.SurpanakhaRepeat);
+        if (Player.FindStatus(SID.ChelonianGate) != null)
+            return;
+
         if (Mimic == Mimicry.Tank)
-        {
             TankSpecific(primaryTarget);
-            // Chelonian Gate
-            if (Player.FindStatus(2496) != null)
-                return;
-        }
+
+        if (Mimic == Mimicry.DPS)
+            DpsSpecific(primaryTarget);
 
         var haveModule = Bossmods.ActiveModule?.StateMachine.ActiveState != null;
 
         // mortal flame
-        if (primaryTarget is { } p && StatusDetails(p.Actor, 3643, Player.InstanceID).Left == 0 && Hints.PriorityTargets.Count() == 1 && haveModule)
+        if (primaryTarget is { } p && StatusDetails(p.Actor, SID.MortalFlame, Player.InstanceID).Left == 0 && Hints.PriorityTargets.Count() == 1 && haveModule)
             PushGCD(AID.MortalFlame, p, GCDPriority.GCDWithCooldown);
 
         if (haveModule && currentHP * 2 < Player.HPMP.MaxHP)
+        {
+            PushGCD(AID.Swiftcast, Player, GCDPriority.SurpanakhaRepeat);
             PushGCD(AID.Rehydration, Player, GCDPriority.SurpanakhaRepeat);
+        }
 
         // bom
         var numBomTargets = Hints.NumPriorityTargetsInAOE(e => StatusDetails(e.Actor, SID.BreathOfMagic, Player.InstanceID).Left < 5 && e.Actor.Position.InCircleCone(Player.Position, 10 + Player.HitboxRadius + e.Actor.HitboxRadius, Player.Rotation.ToDirection(), 60.Degrees()));
@@ -96,20 +107,18 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.TheRoseOfDestruction, primaryTarget, GCDPriority.GCDWithCooldown);
 
         // standard filler spells
-        if (CanUse(AID.GoblinPunch))
-        {
-            if (primaryTarget is { } t)
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, Positional.Front, 3));
-            PushGCD(AID.GoblinPunch, primaryTarget, GCDPriority.FillerST);
-        }
+        PushGCD(AID.GoblinPunch, primaryTarget, GCDPriority.FillerST);
         PushGCD(AID.SonicBoom, primaryTarget, GCDPriority.FillerST);
+
+        if (World.Actors.Any(p => p.Type == ActorType.Chocobo && p.OwnerID == Player.InstanceID))
+            PushGCD(AID.ChocoMeteor, primaryTarget, GCDPriority.FillerST + 1);
 
         if (CanUse(AID.PeatPelt) && CanUse(AID.DeepClean) && StatusLeft(SID.SpickAndSpan) < GCDLength)
         {
             var (poopTarget, poopNum) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 6));
             if (poopTarget != null && poopNum > 2)
             {
-                var scoopNum = Hints.NumPriorityTargetsInAOE(act => StatusDetails(act.Actor, 3636, Player.InstanceID).Left > SpellGCDLength && Hints.TargetInAOECircle(act.Actor, poopTarget.Actor.Position, 6));
+                var scoopNum = Hints.NumPriorityTargetsInAOE(act => StatusDetails(act.Actor, SID.Begrimed, Player.InstanceID).Left > SpellGCDLength && Hints.TargetInAOECircle(act.Actor, poopTarget.Actor.Position, 6));
                 if (scoopNum > 2)
                     PushGCD(AID.DeepClean, poopTarget, GCDPriority.Scoop);
                 PushGCD(AID.PeatPelt, poopTarget, GCDPriority.Poop);
@@ -151,23 +160,30 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         PushOGCD(AID.FeatherRain, primaryTarget);
         PushOGCD(AID.ShockStrike, primaryTarget);
         PushOGCD(AID.JKick, primaryTarget);
+
+        if (Player.HPMP.CurMP < Player.HPMP.MaxMP * 0.7f)
+            PushOGCD(AID.LucidDreaming, Player);
+
+        if (NextGCD is AID.GoblinPunch or AID.Devour && primaryTarget is { } t)
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, Positional.Front, 3));
     }
 
     private void TankSpecific(Enemy? primaryTarget)
     {
         if (CanUse(AID.Devour) && !CanFitGCD(StatusLeft(SID.HPBoost), 1))
-        {
-            if (primaryTarget is { } t)
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, 3));
             PushGCD(AID.Devour, primaryTarget, GCDPriority.BuffRefresh);
-        }
 
-        var d = Hints.PredictedDamage.Count(p => p.players[0] && p.activation >= World.FutureTime(GCD + GetCastTime(AID.ChelonianGate)));
+        var d = Hints.PredictedDamage.Count(p => p.Players[0] && p.Activation >= World.FutureTime(GCD + GetCastTime(AID.ChelonianGate)) && p.Type is PredictedDamageType.Tankbuster or PredictedDamageType.Shared);
         if (d > 0)
+        {
             PushGCD(AID.ChelonianGate, Player, GCDPriority.BuffRefresh);
+            PushGCD(AID.DragonForce, Player, GCDPriority.BuffRefresh);
+        }
+    }
 
-        if (Player.FindStatus(2497u) != null)
-            PushGCD(AID.DivineCataract, Player, GCDPriority.SurpanakhaRepeat);
+    private void DpsSpecific(Enemy? primaryTarget)
+    {
+        PushGCD(AID.MatraMagic, primaryTarget, GCDPriority.GCDWithCooldown);
     }
 
     public Mimicry CurrentMimic()

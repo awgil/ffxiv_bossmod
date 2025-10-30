@@ -127,7 +127,7 @@ class P2AI(BossModule module) : BossComponent(module)
                 Role.Ranged => !hitHealers,
                 _ => Module.PrimaryActor.TargetID != a.InstanceID
             }).Mask();
-            hints.PredictedDamage.Add((hitPlayers, _fireball.ExplosionAt));
+            hints.AddPredictedDamage(hitPlayers, _fireball.ExplosionAt);
         }
     }
 }

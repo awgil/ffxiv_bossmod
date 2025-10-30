@@ -5,15 +5,14 @@
 public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum Track { Elixir, Recuperate, Guard, Purify, Sprint }
-    public enum ElixirStrategy { Automatic, Close, Far, Force, Delay }
-    public enum RecuperateStrategy { Automatic, Seventy, Fifty, Thirty, Force, Delay }
-    public enum GuardStrategy { Automatic, Seventy, Fifty, Thirty, Force, Delay }
-    public enum DefensiveStrategy { Automatic, Force, Delay }
+    public enum ElixirStrategy { Far, Close, Forbid }
+    public enum ThresholdStrategy { Seventy, Fifty, Thirty, Forbid }
+    public enum GuardStrategy { Auto, Two, Three, Four, Seventy, Fifty, Thirty, Forbid }
+    public enum DefensiveStrategy { Allow, Forbid }
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: PvP", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic,
-            BitMask.Build(
+        var res = new RotationModuleDefinition("Utility: PvP", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build(
                 Class.PLD, Class.WAR, Class.DRK, Class.GNB,
                 Class.WHM, Class.SCH, Class.AST, Class.SGE,
                 Class.MNK, Class.DRG, Class.NIN, Class.SAM, Class.RPR, Class.VPR,
@@ -21,155 +20,99 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
                 Class.BLM, Class.SMN, Class.RDM, Class.PCT), 100, 30);
 
         res.Define(Track.Elixir).As<ElixirStrategy>("Elixir", uiPriority: 150)
-            .AddOption(ElixirStrategy.Automatic, "Automatic", "Automatically use Elixir when no targets are nearby within 30 yalms")
-            .AddOption(ElixirStrategy.Close, "Close", "Automatically use Elixir when no targets are nearby within 15 yalms")
-            .AddOption(ElixirStrategy.Far, "Far", "Automatically use Elixir when no targets are nearby within 45 yalms")
-            .AddOption(ElixirStrategy.Force, "Force", "Force use Elixir")
-            .AddOption(ElixirStrategy.Delay, "Delay", "Forbids use of Elixir")
-            .AddAssociatedActions(ClassShared.AID.Elixir);
-        res.Define(Track.Recuperate).As<RecuperateStrategy>("Recuperate", uiPriority: 150)
-            .AddOption(RecuperateStrategy.Automatic, "Automatic", "Automatically use Recuperate when HP% is under 40%")
-            .AddOption(RecuperateStrategy.Seventy, "Seventy", "Automatically use Recuperate when HP% is under 70%")
-            .AddOption(RecuperateStrategy.Fifty, "Fifty", "Automatically use Recuperate when HP% is under 50%")
-            .AddOption(RecuperateStrategy.Thirty, "Thirty", "Automatically use Recuperate when HP% is under 30%")
-            .AddOption(RecuperateStrategy.Force, "Force", "Force use Recuperate")
-            .AddOption(RecuperateStrategy.Delay, "Delay", "Forbids use of Recuperate")
-            .AddAssociatedActions(ClassShared.AID.Recuperate);
+            .AddOption(ElixirStrategy.Far, "Allows use of Elixir if resources are low and no targets are nearby within 50 yalms")
+            .AddOption(ElixirStrategy.Close, "Allows use of Elixir if resources are low and no targets are nearby within 30 yalms")
+            .AddOption(ElixirStrategy.Forbid, "Forbid use of Elixir")
+            .AddAssociatedActions(ClassShared.AID.ElixirPvP);
+
+        res.Define(Track.Recuperate).As<ThresholdStrategy>("Recuperate", uiPriority: 150)
+            .AddOption(ThresholdStrategy.Seventy, "Automatically use Recuperate when HP% is under 70%")
+            .AddOption(ThresholdStrategy.Fifty, "Automatically use Recuperate when HP% is under 50%")
+            .AddOption(ThresholdStrategy.Thirty, "Automatically use Recuperate when HP% is under 30%")
+            .AddOption(ThresholdStrategy.Forbid, "Forbid use of Recuperate")
+            .AddAssociatedActions(ClassShared.AID.RecuperatePvP);
+
         res.Define(Track.Guard).As<GuardStrategy>("Guard", uiPriority: 150)
-            .AddOption(GuardStrategy.Automatic, "Automatic", "Automatically use Guard when HP% is under 35%")
-            .AddOption(GuardStrategy.Seventy, "Seventy", "Automatically use Guard when HP% is under 70%")
-            .AddOption(GuardStrategy.Fifty, "Fifty", "Automatically use Guard when HP% is under 50%")
-            .AddOption(GuardStrategy.Thirty, "Thirty", "Automatically use Guard when HP% is under 30%")
-            .AddOption(GuardStrategy.Force, "Force", "Force use Guard")
-            .AddOption(GuardStrategy.Delay, "Delay", "Forbids use of Guard")
-            .AddAssociatedActions(ClassShared.AID.Guard);
+            .AddOption(GuardStrategy.Auto, "Automatically use Guard when HP% is under 75% and two or more targets are targeting you, or when HP% is below 33%")
+            .AddOption(GuardStrategy.Two, "Automatically use Guard when HP is not full and two or more targets are targeting you")
+            .AddOption(GuardStrategy.Three, "Automatically use Guard when HP is not full and three or more targets are targeting you")
+            .AddOption(GuardStrategy.Four, "Automatically use Guard when HP is not full and four or more targets are targeting you")
+            .AddOption(GuardStrategy.Seventy, "Automatically use Guard when HP% is under 70%")
+            .AddOption(GuardStrategy.Fifty, "Automatically use Guard when HP% is under 50%")
+            .AddOption(GuardStrategy.Thirty, "Automatically use Guard when HP% is under 30%")
+            .AddOption(GuardStrategy.Forbid, "Forbid use of Guard")
+            .AddAssociatedActions(ClassShared.AID.GuardPvP);
+
         res.Define(Track.Purify).As<DefensiveStrategy>("Purify", uiPriority: 150)
-            .AddOption(DefensiveStrategy.Automatic, "Automatic", "Automatically use Purify when under any debuff that can be cleansed")
-            .AddOption(DefensiveStrategy.Force, "Force", "Force use Purify")
-            .AddOption(DefensiveStrategy.Delay, "Delay", "Forbids use of Purify")
-            .AddAssociatedActions(ClassShared.AID.Purify);
+            .AddOption(DefensiveStrategy.Allow, "Allow use of Purify when under any debuff that can be cleansed")
+            .AddOption(DefensiveStrategy.Forbid, "Forbid use of Purify")
+            .AddAssociatedActions(ClassShared.AID.PurifyPvP);
+
         res.Define(Track.Sprint).As<DefensiveStrategy>("Sprint", uiPriority: 150)
-            .AddOption(DefensiveStrategy.Automatic, "Automatic", "Automatically uses Sprint when no target is nearby within 15 yalms")
-            .AddOption(DefensiveStrategy.Force, "Force", "Force use Sprint")
-            .AddOption(DefensiveStrategy.Delay, "Delay", "Forbids use of Sprint")
+            .AddOption(DefensiveStrategy.Allow, "Allow use of Sprint when no target is nearby within 30 yalms")
+            .AddOption(DefensiveStrategy.Forbid, "Forbid use of Sprint")
             .AddAssociatedActions(ClassShared.AID.Sprint);
+
         return res;
     }
 
-    #region Priorities
-    public enum GCDPriority
-    {
-        None = 0,
-        Elixir = 500,
-        ForcedGCD = 900,
-    }
-    public enum OGCDPriority
-    {
-        None = 0,
-        Sprint = 300,
-        Recuperate = 400,
-        Guard = 600,
-        Purify = 700,
-        ForcedOGCD = 900,
-    }
-    #endregion
-
-    #region Module Helpers
-    public float PlayerHPP() => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
-    public float DebuffsLeft(Actor? target)
-    {
-        return target == null ? 0f
-            : Utils.MaxAll(
-            StatusDetails(target, ClassShared.SID.Silence, Player.InstanceID, 5).Left,
-            StatusDetails(target, ClassShared.SID.StunPvP, Player.InstanceID, 5).Left,
-            StatusDetails(target, ClassShared.SID.Bind, Player.InstanceID, 5).Left,
-            StatusDetails(target, ClassShared.SID.Heavy, Player.InstanceID, 5).Left,
-            StatusDetails(target, ClassShared.SID.Sleep, Player.InstanceID, 5).Left,
-            StatusDetails(target, ClassShared.SID.HalfAsleep, Player.InstanceID, 5).Left
-        );
-    }
-    public bool HasAnyDebuff(Actor? target) => DebuffsLeft(target) > 0;
-    private bool IsOffCooldown(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining < 0.6f;
-    #endregion
-
-    private bool hasSprint;
-    private bool canElixir;
-    private bool canRecuperate;
-    private bool canGuard;
-    private bool canPurify;
-    private bool canSprint;
+    public bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
+    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Service.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
+    public float PlayerHPP => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
+    public float DebuffsLeft(Actor? target) => Utils.MaxAll(
+        StatusDetails(target, ClassShared.SID.StunPvP, Player.InstanceID, 5).Left,
+        StatusDetails(target, ClassShared.SID.HeavyPvP, Player.InstanceID, 5).Left,
+        StatusDetails(target, ClassShared.SID.BindPvP, Player.InstanceID, 5).Left,
+        StatusDetails(target, ClassShared.SID.SilencePvP, Player.InstanceID, 5).Left,
+        StatusDetails(target, ClassShared.SID.DeepFreezePvP, Player.InstanceID, 5).Left,
+        StatusDetails(target, WHM.SID.MiracleOfNaturePvP, Player.InstanceID, 5).Left);
+    private bool TargetsNearby(float range) => Hints.PriorityTargets.Any(h =>
+            !h.Actor.IsDeadOrDestroyed &&
+            !h.Actor.IsFriendlyNPC &&
+            !h.Actor.IsAlly &&
+            h.Actor.DistanceToHitbox(Player) <= range);
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        hasSprint = Player.FindStatus(ClassShared.SID.SprintPvP) != null;
-        canElixir = IsOffCooldown(ClassShared.AID.Elixir) && strategy.Option(Track.Elixir).As<ElixirStrategy>() != ElixirStrategy.Delay;
-        canRecuperate = Player.HPMP.CurMP >= 2500 && strategy.Option(Track.Recuperate).As<RecuperateStrategy>() != RecuperateStrategy.Delay;
-        canGuard = IsOffCooldown(ClassShared.AID.Guard) && strategy.Option(Track.Guard).As<GuardStrategy>() != GuardStrategy.Delay;
-        canPurify = IsOffCooldown(ClassShared.AID.Purify) && strategy.Option(Track.Purify).As<DefensiveStrategy>() != DefensiveStrategy.Delay;
-        canSprint = !hasSprint && strategy.Option(Track.Sprint).As<DefensiveStrategy>() != DefensiveStrategy.Delay;
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+            return;
 
-        var elixirStrat = strategy.Option(Track.Elixir).As<ElixirStrategy>();
-        if (ShouldUseElixir(elixirStrat))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Elixir), Player, strategy.Option(Track.Elixir).Priority(), strategy.Option(Track.Elixir).Value.ExpireIn);
+        if (DebuffsLeft(Player) > 0 && IsReady(ClassShared.AID.PurifyPvP) &&
+            strategy.Option(Track.Purify).As<DefensiveStrategy>() == DefensiveStrategy.Allow)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.PurifyPvP), Player, (int)ActionQueue.Priority.VeryHigh);
 
-        var recuperateStrat = strategy.Option(Track.Recuperate).As<RecuperateStrategy>();
-        if (ShouldUseRecuperate(recuperateStrat))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Recuperate), Player, strategy.Option(Track.Recuperate).Priority(), strategy.Option(Track.Recuperate).Value.ExpireIn);
+        if (IsReady(ClassShared.AID.SprintPvP) && Player.MountId == 0 && Player.FindStatus(ClassShared.SID.SprintPvP) == null &&
+            !TargetsNearby(32) && strategy.Option(Track.Sprint).As<DefensiveStrategy>() == DefensiveStrategy.Allow)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SprintPvP), Player, (int)ActionQueue.Priority.High);
 
-        var guardStrat = strategy.Option(Track.Guard).As<GuardStrategy>();
-        if (ShouldUseGuard(guardStrat))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Guard), Player, strategy.Option(Track.Guard).Priority(), strategy.Option(Track.Guard).Value.ExpireIn);
+        if ((Player.HPMP.CurHP != Player.HPMP.MaxHP || Player.HPMP.CurMP != Player.HPMP.MaxMP) && strategy.Option(Track.Elixir).As<ElixirStrategy>() switch
+        {
+            ElixirStrategy.Close => !TargetsNearby(32),
+            ElixirStrategy.Far => !TargetsNearby(52),
+            _ => false
+        })
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.ElixirPvP), Player, (int)ActionQueue.Priority.High);
 
-        var purifyStrat = strategy.Option(Track.Purify).As<DefensiveStrategy>();
-        if (ShouldUsePurify(purifyStrat))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Purify), Player, strategy.Option(Track.Purify).Priority(), strategy.Option(Track.Purify).Value.ExpireIn);
+        if (Player.HPMP.CurMP >= 2500 && strategy.Option(Track.Recuperate).As<ThresholdStrategy>() switch
+        {
+            ThresholdStrategy.Seventy => PlayerHPP is < 70 and not 0,
+            ThresholdStrategy.Fifty => PlayerHPP is < 50 and not 0,
+            ThresholdStrategy.Thirty => PlayerHPP is < 30 and not 0,
+            _ => false
+        })
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.RecuperatePvP), Player, (int)ActionQueue.Priority.VeryHigh);
 
-        var sprintStrat = strategy.Option(Track.Sprint).As<DefensiveStrategy>();
-        if (ShouldUseSprint(sprintStrat))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), Player, strategy.Option(Track.Sprint).Priority(), strategy.Option(Track.Sprint).Value.ExpireIn);
+        if (IsReady(ClassShared.AID.GuardPvP) && strategy.Option(Track.Guard).As<GuardStrategy>() switch
+        {
+            GuardStrategy.Auto => (PlayerHPP is < 75 and not 0 && EnemiesTargetingSelf(2)) || PlayerHPP is < 33 and not 0,
+            GuardStrategy.Two => EnemiesTargetingSelf(2) && PlayerHPP is < 100 and not 0,
+            GuardStrategy.Three => EnemiesTargetingSelf(3) && PlayerHPP is < 100 and not 0,
+            GuardStrategy.Four => EnemiesTargetingSelf(4) && PlayerHPP is < 100 and not 0,
+            GuardStrategy.Seventy => PlayerHPP is < 70 and not 0,
+            GuardStrategy.Fifty => PlayerHPP is < 50 and not 0,
+            GuardStrategy.Thirty => PlayerHPP is < 30 and not 0,
+            _ => false
+        })
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.GuardPvP), Player, (int)ActionQueue.Priority.VeryHigh + 1);
     }
-
-    public bool ShouldUseElixir(ElixirStrategy strategy) => strategy switch
-    {
-        ElixirStrategy.Automatic => canElixir && PlayerHPP() <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 30) == 0,
-        ElixirStrategy.Close => canElixir && PlayerHPP() <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 15) == 0,
-        ElixirStrategy.Far => canElixir && PlayerHPP() <= 60 && Hints.NumPriorityTargetsInAOECircle(Player.Position, 45) == 0,
-        ElixirStrategy.Force => canElixir,
-        ElixirStrategy.Delay => false,
-        _ => false,
-    };
-    public bool ShouldUseRecuperate(RecuperateStrategy strategy) => strategy switch
-    {
-        RecuperateStrategy.Automatic => canRecuperate && PlayerHPP() <= 40,
-        RecuperateStrategy.Seventy => canRecuperate && PlayerHPP() <= 70,
-        RecuperateStrategy.Fifty => canRecuperate && PlayerHPP() <= 50,
-        RecuperateStrategy.Thirty => canRecuperate && PlayerHPP() <= 30,
-        RecuperateStrategy.Force => canRecuperate,
-        RecuperateStrategy.Delay => false,
-        _ => false,
-    };
-    public bool ShouldUseGuard(GuardStrategy strategy) => strategy switch
-    {
-        GuardStrategy.Automatic => canGuard && PlayerHPP() <= 35,
-        GuardStrategy.Seventy => canGuard && PlayerHPP() <= 70,
-        GuardStrategy.Fifty => canGuard && PlayerHPP() <= 50,
-        GuardStrategy.Thirty => canGuard && PlayerHPP() <= 30,
-        GuardStrategy.Force => canGuard,
-        GuardStrategy.Delay => false,
-        _ => false,
-    };
-    public bool ShouldUsePurify(DefensiveStrategy strategy) => strategy switch
-    {
-        DefensiveStrategy.Automatic => canPurify && HasAnyDebuff(Player),
-        DefensiveStrategy.Force => canPurify,
-        DefensiveStrategy.Delay => false,
-        _ => false,
-    };
-    public bool ShouldUseSprint(DefensiveStrategy strategy) => strategy switch
-    {
-        DefensiveStrategy.Automatic => Hints.NumPriorityTargetsInAOECircle(Player.Position, 15) == 0 && canSprint,
-        DefensiveStrategy.Force => canSprint,
-        DefensiveStrategy.Delay => false,
-        _ => false,
-    };
 }

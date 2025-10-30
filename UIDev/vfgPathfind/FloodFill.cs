@@ -7,7 +7,7 @@ public class FloodFill
     private readonly BitArray _solutions; // true if voxel is reachable
     private readonly List<(int dx, int dy)> _moves = [];
 
-    public bool Solution(int x, int y, int t) => _map.InBounds(x, y, t) ? _solutions[t * _map.Width * _map.Height + y * _map.Width + x] : false;
+    public bool Solution(int x, int y, int t) => _map.InBounds(x, y, t) && _solutions[t * _map.Width * _map.Height + y * _map.Width + x];
     public bool this[int x, int y, int t] => Solution(x, y, t);
 
     public FloodFill(Map map, float speed, int startX, int startY, int startT)
@@ -131,6 +131,6 @@ public class FloodFill
                 return FindSolution(minX, res.minY, res.t);
             }
         }
-        return Enumerable.Empty<(int, int, int)>();
+        return [];
     }
 }

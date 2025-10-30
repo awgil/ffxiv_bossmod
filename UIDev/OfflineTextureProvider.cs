@@ -1,21 +1,26 @@
 ﻿using BossMod;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
 using ImGuiScene;
 using Lumina.Data.Files;
+using SharpDX;
+using SharpDX.Direct3D11;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Format = SharpDX.DXGI.Format;
 
 namespace UIDev;
 
-internal class OfflineTextureProvider(IRenderer render) : ITextureProvider
+internal class OfflineTextureProvider(IRenderer render, Device device) : ITextureProvider
 {
     public readonly IRenderer Renderer = render;
+    public readonly Device Device = device;
 
     private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
     private const string HighResolutionIconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}_hr1.tex";
@@ -26,17 +31,56 @@ internal class OfflineTextureProvider(IRenderer render) : ITextureProvider
     public Task<IDalamudTextureWrap> CreateFromImageAsync(ReadOnlyMemory<byte> bytes, string? debugName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     public Task<IDalamudTextureWrap> CreateFromImageAsync(Stream stream, bool leaveOpen = false, string? debugName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     public Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(ImGuiViewportTextureArgs args, string? debugName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-    public IDalamudTextureWrap CreateFromRaw(RawImageSpecification specs, ReadOnlySpan<byte> bytes, string? debugName = null) => throw new NotImplementedException();
     public Task<IDalamudTextureWrap> CreateFromRawAsync(RawImageSpecification specs, ReadOnlyMemory<byte> bytes, string? debugName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     public Task<IDalamudTextureWrap> CreateFromRawAsync(RawImageSpecification specs, Stream stream, bool leaveOpen = false, string? debugName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-    public IDalamudTextureWrap CreateFromTexFile(TexFile file) => CreateOfflineFromTexFile(file);
 
-    private unsafe OfflineTextureWrap CreateOfflineFromTexFile(TexFile file)
+    public IDalamudTextureWrap CreateFromTexFile(TexFile file) => CreateFromTexFileInternal(file);
+
+    private OfflineTextureWrap CreateFromTexFileInternal(TexFile file)
     {
         var buffer = file.TextureBuffer;
-        fixed (byte* raw = buffer.RawData)
+        var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !IsDxgiFormatSupported(dxgiFormat))
         {
-            return new OfflineTextureWrap(Renderer.CreateTexture(raw, buffer.Width, buffer.Height, buffer.NumBytes / (buffer.Width * buffer.Height)));
+            dxgiFormat = (int)Format.B8G8R8A8_UNorm;
+            buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
+        }
+
+        var spec = new RawImageSpecification(buffer.Width, buffer.Height, dxgiFormat);
+        return CreateFromRawInternal(spec, buffer.RawData);
+    }
+
+    public IDalamudTextureWrap CreateFromRaw(RawImageSpecification specs, ReadOnlySpan<byte> bytes, string? debugName = null) => CreateFromRawInternal(specs, bytes, debugName);
+
+    private OfflineTextureWrap CreateFromRawInternal(RawImageSpecification specs, ReadOnlySpan<byte> bytes, string? debugName = null)
+    {
+        var texd = new Texture2DDescription()
+        {
+            Width = specs.Width,
+            Height = specs.Height,
+            MipLevels = 1,
+            ArraySize = 1,
+            Format = (Format)specs.DxgiFormat,
+            SampleDescription = new(1, 0),
+            Usage = ResourceUsage.Immutable,
+            BindFlags = BindFlags.ShaderResource,
+            CpuAccessFlags = CpuAccessFlags.None,
+            OptionFlags = ResourceOptionFlags.None
+        };
+        unsafe
+        {
+            fixed (byte* data = bytes)
+            {
+                var texture = new Texture2D(Device, texd, [new DataRectangle((nint)data, specs.Pitch)]);
+                var viewdesc = new ShaderResourceViewDescription()
+                {
+                    Format = texd.Format,
+                    Dimension = SharpDX.Direct3D.ShaderResourceViewDimension.Texture2D,
+                    Texture2D = new() { MipLevels = texd.MipLevels }
+                };
+                var view = new ShaderResourceView(Device, texture, viewdesc);
+                return new OfflineTextureWrap(view, texd.Width, texd.Height);
+            }
         }
     }
 
@@ -48,7 +92,7 @@ internal class OfflineTextureProvider(IRenderer render) : ITextureProvider
     {
         if (!_cachedFromGame.TryGetValue(path, out var cached))
         {
-            cached = new OfflineSharedImmediateTexture(Renderer, CreateOfflineFromTexFile(Service.LuminaGameData!.GetFile<TexFile>(path)!));
+            cached = new OfflineSharedImmediateTexture(Renderer, CreateFromTexFileInternal(Service.LuminaGameData!.GetFile<TexFile>(path)!));
             _cachedFromGame.Add(path, cached);
         }
 
@@ -61,7 +105,7 @@ internal class OfflineTextureProvider(IRenderer render) : ITextureProvider
     public ISharedImmediateTexture GetFromManifestResource(Assembly assembly, string name) => throw new NotImplementedException();
     public string GetIconPath(in GameIconLookup lookup) => TryGetIconPath(lookup, out var path) ? path : throw new FileNotFoundException();
     public IEnumerable<IBitmapCodecInfo> GetSupportedImageDecoderInfos() => throw new NotImplementedException();
-    public bool IsDxgiFormatSupported(int dxgiFormat) => throw new NotImplementedException();
+    public bool IsDxgiFormatSupported(int dxgiFormat) => Device.CheckFormatSupport((Format)dxgiFormat).HasFlag(FormatSupport.Texture2D);
     public bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat) => throw new NotImplementedException();
     public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture) => throw new NotImplementedException();
     public bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path)
@@ -139,17 +183,34 @@ internal class OfflineTextureProvider(IRenderer render) : ITextureProvider
 
         return string.Format(format, iconId / 1000, type, iconId);
     }
+
+    IDrawListTextureWrap ITextureProvider.CreateDrawListTexture(string? debugName) => throw new NotImplementedException();
+    Task<IDalamudTextureWrap> ITextureProvider.CreateFromClipboardAsync(string? debugName, CancellationToken cancellationToken) => throw new NotImplementedException();
+    bool ITextureProvider.HasClipboardImage() => throw new NotImplementedException();
 }
 
-internal record class OfflineTextureWrap(TextureWrap Wrap) : IDalamudTextureWrap
+internal class OfflineTextureWrap(nint native, int width, int height) : IDalamudTextureWrap
 {
-    public nint ImGuiHandle => Wrap.ImGuiHandle;
 
-    public int Width => Wrap.Width;
+    private readonly IDisposable? _resource;
 
-    public int Height => Wrap.Height;
+    public OfflineTextureWrap(ShaderResourceView view, int width, int height) : this(view.NativePointer, width, height)
+    {
+        _resource = view;
+    }
+    public OfflineTextureWrap(TextureWrap innerWrap) : this(innerWrap.ImGuiHandle, innerWrap.Width, innerWrap.Height)
+    {
+        _resource = innerWrap;
+    }
 
-    public void Dispose() => Wrap.Dispose();
+    public ImTextureID Handle => new(native);
+
+    public int Width => width;
+    public int Height => height;
+    public void Dispose()
+    {
+        _resource?.Dispose();
+    }
 }
 
 internal class OfflineSharedImmediateTexture : ISharedImmediateTexture

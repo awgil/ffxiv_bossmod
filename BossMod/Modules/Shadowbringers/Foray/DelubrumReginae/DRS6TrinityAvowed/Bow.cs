@@ -14,7 +14,7 @@ class FlamesOfBozja(BossModule module, bool risky) : Components.GenericAOEs(modu
             AOE = new(new AOEShapeRect(45, 25), caster.Position, spell.Rotation, Module.CastFinishAt(spell), Risky: _risky);
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index is 0x12 or 0x13 && state == 0x00080004) // 12/13 for east/west
             AOE = null;
@@ -68,7 +68,7 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
             ++NumCasts;
     }
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         var pattern = (index, state) switch
         {

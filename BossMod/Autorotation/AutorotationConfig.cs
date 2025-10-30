@@ -25,14 +25,23 @@ public sealed class AutorotationConfig : ConfigNode
     [PropertyDisplay("Show autorotation preset in the server info bar")]
     public DtrStatus ShowDTR = DtrStatus.None;
 
+    [PropertyDisplay("Show performance stats in the server info bar")]
+    public bool ShowStatsDTR = false;
+
     [PropertyDisplay("Hide built-in presets", tooltip: "If you've created your own presets and no longer need the included defaults, this option will prevent them from being shown in the Autorotation and Preset Editor windows.", since: "0.0.0.253")]
     public bool HideDefaultPreset = false;
 
     [PropertyDisplay("Show positional hints in world", tooltip: "Show tips for positional abilities, indicating to move to the flank or rear of your target")]
     public bool ShowPositionals = false;
 
+    [PropertyDisplay("Automatically disable autorotation on death", since: "0.4.4.1")]
+    public bool ClearPresetOnDeath = true;
+
     [PropertyDisplay("Automatically disable autorotation when exiting combat")]
     public bool ClearPresetOnCombatEnd = false;
+
+    [PropertyDisplay("Automatically disable autorotation if a Luring Trap is triggered", tooltip: "Only applicable in Deep Dungeons", since: "0.4.4.1")]
+    public bool ClearPresetOnLuring = false;
 
     [PropertyDisplay("Automatically reenable force-disabled autorotation when exiting combat")]
     public bool ClearForceDisableOnCombatEnd = true;

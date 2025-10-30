@@ -25,13 +25,13 @@ class Fusefield(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.Bombarium && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.Bombarium && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _orders[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 30 ? 1 : 2;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID.Bombarium && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.Bombarium && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _orders[slot] = 0;
     }
 
@@ -54,7 +54,7 @@ class FusefieldVoidzone(BossModule module) : Components.PersistentVoidzone(modul
 {
     public bool Active;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (index == 19 && state is 0x00200010 or 0x00080004)
             Active = state == 0x00200010;

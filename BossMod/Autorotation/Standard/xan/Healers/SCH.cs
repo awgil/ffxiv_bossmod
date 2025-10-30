@@ -3,6 +3,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
+
 public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Mind)
 {
     public enum Track { Place = SharedTrack.Count }

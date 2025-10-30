@@ -11,14 +11,14 @@ class HoneyBLiveHearts(BossModule module) : BossComponent(module)
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var hearts = NumHearts((SID)status.ID);
-        if (hearts >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if (hearts >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
             Hearts[slot] = hearts;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         var hearts = NumHearts((SID)status.ID);
-        if (hearts >= 0 && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0 && Hearts[slot] == hearts)
+        if (hearts >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot) && Hearts[slot] == hearts)
             Hearts[slot] = 0;
     }
 
@@ -167,8 +167,7 @@ class HoneyBLiveBeat3BigBurst(BossModule module) : Components.UniformStackSpread
         {
             var order = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds > 30 ? 1 : 0;
             Activation[order] = status.ExpireAt;
-            var slot = Raid.FindSlot(actor.InstanceID);
-            if (slot >= 0)
+            if (Raid.TryFindSlot(actor, out var slot))
                 Order[slot] = order + 1;
         }
     }

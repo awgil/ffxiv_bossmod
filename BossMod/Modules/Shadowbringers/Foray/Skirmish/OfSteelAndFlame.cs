@@ -33,7 +33,7 @@ class ThermalShock(BossModule module) : Components.StandardAOEs(module, AID.Ther
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (Casters.Count > 0)
-            hints.PredictedDamage.Add((Raid.WithSlot().InRadius(Casters[0].CastInfo!.LocXZ, 30).Mask(), Module.CastFinishAt(Casters[0].CastInfo)));
+            hints.AddPredictedDamage(Raid.WithSlot().InRadius(Casters[0].CastInfo!.LocXZ, 30).Mask(), Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
 class PyreticEruption(BossModule module) : Components.StandardAOEs(module, AID.PyreticEruption, 8);

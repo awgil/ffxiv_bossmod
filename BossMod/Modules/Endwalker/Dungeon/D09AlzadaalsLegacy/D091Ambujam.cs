@@ -46,7 +46,7 @@ class ToxinShowerCorrosiveVenom(BossModule module) : Components.GenericAOEs(modu
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         if (_statePositions.TryGetValue(index, out var statePosition) && statePosition.TryGetValue(state, out var position))
         {

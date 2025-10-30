@@ -19,9 +19,9 @@ public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<A
         var def = new RotationModuleDefinition("Auto-ThirdEye", "Third Eye before incoming damage", "Utility (xan)", "xan", RotationModuleQuality.Excellent, BitMask.Build(Class.SAM), 100, 6);
 
         def.Define(Track.ThirdEye).As<ThirdEyeStrategy>("ThirdEye")
-            .AddOption(ThirdEyeStrategy.Automatic, "Auto", "Use Third Eye ~3s before predicted damage", 15, 4)
-            .AddOption(ThirdEyeStrategy.AutoMax, "AutoMax", "Use Third Eye 4s before predicted damage", 15, 4)
-            .AddOption(ThirdEyeStrategy.Delay, "Delay", "Don't use")
+            .AddOption(ThirdEyeStrategy.Automatic, "Use Third Eye ~3s before predicted damage", 15, 4)
+            .AddOption(ThirdEyeStrategy.AutoMax, "Use Third Eye 4s before predicted damage", 15, 4)
+            .AddOption(ThirdEyeStrategy.Delay, "Don't use")
             .AddAssociatedActions(AID.ThirdEye, AID.Tengentsu);
 
         return def;
@@ -39,7 +39,10 @@ public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<A
             _ => 0
         };
 
-        if (advance > 0 && Hints.PredictedDamage.Any(x => x.players[0] && x.activation < World.FutureTime(advance)))
+        if (advance > 0 && Hints.PredictedDamage.Any(x => x.Players[0] && x.Activation < World.FutureTime(advance)))
+            PushOGCD(AID.ThirdEye, Player, -100);
+
+        if (Hints.PotentialTargets.Any(t => t.Actor.TargetID == Player.InstanceID && t.Actor.CastInfo == null && t.Actor.DistanceToHitbox(Player) < 6))
             PushOGCD(AID.ThirdEye, Player, -100);
     }
 }

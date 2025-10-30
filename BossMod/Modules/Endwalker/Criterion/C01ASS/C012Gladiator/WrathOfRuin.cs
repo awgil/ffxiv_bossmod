@@ -39,8 +39,7 @@ class GoldenSilverFlame(BossModule module) : BossComponent(module)
 
         if (debuff == 0)
             return;
-        var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
             _debuffs[slot] |= debuff;
     }
 

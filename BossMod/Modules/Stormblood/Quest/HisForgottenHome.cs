@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Stormblood.Quest.HisForgottenHome;
+
 public enum OID : uint
 {
     Boss = 0x213A,

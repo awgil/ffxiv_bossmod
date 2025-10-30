@@ -14,7 +14,8 @@ class CloudToCloud(BossModule module) : Components.GenericAOEs(module)
 
     public bool Active => _aoes.Count > 0;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+    /*
     {
         if (_aoes.Count > 0)
         {
@@ -23,6 +24,7 @@ class CloudToCloud(BossModule module) : Components.GenericAOEs(module)
                 yield return aoe;
         }
     }
+    */
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

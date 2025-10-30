@@ -1,6 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using System.Diagnostics;
 using System.IO;

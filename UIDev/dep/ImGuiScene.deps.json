@@ -1,0 +1,1388 @@
+{
+  "runtimeTarget": {
+    "name": ".NETStandard,Version=v2.0/",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETStandard,Version=v2.0": {},
+    ".NETStandard,Version=v2.0/": {
+      "ImGuiScene/1.0.0": {
+        "dependencies": {
+          "Costura.Fody": "5.3.0",
+          "Fody": "6.5.1",
+          "ImGui.NET": "1.0.0",
+          "NETStandard.Library": "2.0.3",
+          "PInvoke.DwmApi": "0.7.104",
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.User32": "0.7.104",
+          "PInvoke.Win32": "0.7.104",
+          "SDL2-CS": "1.0.0",
+          "SharpDX.Direct3D11": "4.2.0",
+          "SharpDX.Mathematics": "4.2.0",
+          "Silk.NET.OpenGL": "2.4.0",
+          "Silk.NET.Windowing": "2.4.0",
+          "StbiSharp": "1.0.13",
+          "System.Numerics.Vectors": "4.5.0",
+          "System.Runtime.CompilerServices.Unsafe": "5.0.0",
+          "ImGui.NET.Reference": "1.82.0.0"
+        },
+        "runtime": {
+          "ImGuiScene.dll": {}
+        }
+      },
+      "Costura.Fody/5.3.0": {
+        "dependencies": {
+          "Fody": "6.5.1",
+          "NETStandard.Library": "2.0.3"
+        },
+        "runtime": {
+          "lib/netstandard1.0/Costura.dll": {
+            "assemblyVersion": "5.3.0.0",
+            "fileVersion": "5.3.0.0"
+          }
+        }
+      },
+      "Fody/6.5.1": {},
+      "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
+        "dependencies": {
+          "System.Threading.Tasks.Extensions": "4.5.4"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Bcl.AsyncInterfaces.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "4.700.19.56404"
+          }
+        }
+      },
+      "Microsoft.Bcl.HashCode/1.1.0": {
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Bcl.HashCode.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "4.700.19.56404"
+          }
+        }
+      },
+      "Microsoft.CSharp/4.7.0": {
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.CSharp.dll": {
+            "assemblyVersion": "4.0.5.0",
+            "fileVersion": "4.700.19.56404"
+          }
+        }
+      },
+      "Microsoft.DotNet.PlatformAbstractions/3.1.6": {
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.DotNet.PlatformAbstractions.dll": {
+            "assemblyVersion": "3.1.6.0",
+            "fileVersion": "3.100.620.31604"
+          }
+        }
+      },
+      "Microsoft.Extensions.DependencyModel/3.1.1": {
+        "dependencies": {
+          "System.Text.Json": "4.7.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Extensions.DependencyModel.dll": {
+            "assemblyVersion": "3.1.1.0",
+            "fileVersion": "3.100.119.60804"
+          }
+        }
+      },
+      "Microsoft.NETCore.Platforms/1.1.0": {},
+      "Microsoft.Win32.Registry/4.5.0": {
+        "dependencies": {
+          "System.Buffers": "4.5.1",
+          "System.Memory": "4.5.4",
+          "System.Security.AccessControl": "4.5.0",
+          "System.Security.Principal.Windows": "4.5.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Win32.Registry.dll": {
+            "assemblyVersion": "4.1.1.0",
+            "fileVersion": "4.6.26515.6"
+          }
+        }
+      },
+      "NETStandard.Library/2.0.3": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.1.0"
+        }
+      },
+      "PInvoke.AdvApi32/0.7.104": {
+        "dependencies": {
+          "Microsoft.Win32.Registry": "4.5.0",
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.User32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104",
+          "System.Security.AccessControl": "4.5.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.AdvApi32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.BCrypt/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.BCrypt.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Cabinet/0.7.104": {
+        "dependencies": {
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Cabinet.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.CfgMgr32/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.CfgMgr32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Crypt32/0.7.104": {
+        "dependencies": {
+          "PInvoke.AdvApi32": "0.7.104",
+          "PInvoke.NCrypt": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Crypt32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.DbgHelp/0.7.104": {
+        "dependencies": {
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.DbgHelp.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.DwmApi/0.7.104": {
+        "dependencies": {
+          "PInvoke.UxTheme": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104",
+          "System.Drawing.Common": "4.5.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.DwmApi.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Gdi32/0.7.104": {
+        "dependencies": {
+          "PInvoke.User32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Gdi32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Hid/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Hid.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.ImageHlp/0.7.104": {
+        "dependencies": {
+          "PInvoke.DbgHelp": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.ImageHlp.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.IPHlpApi/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.IPHlpApi.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Kernel32/0.7.104": {
+        "dependencies": {
+          "PInvoke.Windows.Core": "0.7.104",
+          "System.Threading.Tasks.Extensions": "4.5.4"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Kernel32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Magnification/0.7.104": {
+        "dependencies": {
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Magnification.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Msi/0.7.104": {
+        "dependencies": {
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Msi.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.NCrypt/0.7.104": {
+        "dependencies": {
+          "PInvoke.BCrypt": "0.7.104",
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.NCrypt.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.NetApi32/0.7.104": {
+        "dependencies": {
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.NetApi32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.NewDev/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.SetupApi": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.NewDev.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.NTDll/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.NTDll.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Ole32/0.7.104": {
+        "dependencies": {
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Ole32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Psapi/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Psapi.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.SetupApi/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.SetupApi.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.SHCore/0.7.104": {
+        "dependencies": {
+          "PInvoke.User32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104",
+          "PInvoke.Windows.ShellScalingApi": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.SHCore.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Shell32/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Shell32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.User32/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104",
+          "PInvoke.Windows.ShellScalingApi": "0.7.104",
+          "Validation": "2.4.15"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.User32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Userenv/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Userenv.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.UxTheme/0.7.104": {
+        "dependencies": {
+          "PInvoke.User32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.UxTheme.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Win32/0.7.104": {
+        "dependencies": {
+          "PInvoke.AdvApi32": "0.7.104",
+          "PInvoke.BCrypt": "0.7.104",
+          "PInvoke.Cabinet": "0.7.104",
+          "PInvoke.CfgMgr32": "0.7.104",
+          "PInvoke.Crypt32": "0.7.104",
+          "PInvoke.DbgHelp": "0.7.104",
+          "PInvoke.DwmApi": "0.7.104",
+          "PInvoke.Gdi32": "0.7.104",
+          "PInvoke.Hid": "0.7.104",
+          "PInvoke.IPHlpApi": "0.7.104",
+          "PInvoke.ImageHlp": "0.7.104",
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Magnification": "0.7.104",
+          "PInvoke.Msi": "0.7.104",
+          "PInvoke.NCrypt": "0.7.104",
+          "PInvoke.NTDll": "0.7.104",
+          "PInvoke.NetApi32": "0.7.104",
+          "PInvoke.NewDev": "0.7.104",
+          "PInvoke.Ole32": "0.7.104",
+          "PInvoke.Psapi": "0.7.104",
+          "PInvoke.SHCore": "0.7.104",
+          "PInvoke.SetupApi": "0.7.104",
+          "PInvoke.Shell32": "0.7.104",
+          "PInvoke.User32": "0.7.104",
+          "PInvoke.Userenv": "0.7.104",
+          "PInvoke.UxTheme": "0.7.104",
+          "PInvoke.WinUsb": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104",
+          "PInvoke.Windows.ShellScalingApi": "0.7.104",
+          "PInvoke.WtsApi32": "0.7.104"
+        }
+      },
+      "PInvoke.Windows.Core/0.7.104": {
+        "dependencies": {
+          "System.Memory": "4.5.4"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Windows.Core.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.Windows.ShellScalingApi/0.7.104": {
+        "dependencies": {
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.Windows.ShellScalingApi.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.WinUsb/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104",
+          "System.Memory": "4.5.4",
+          "System.Threading.Tasks.Extensions": "4.5.4"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.WinUsb.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "PInvoke.WtsApi32/0.7.104": {
+        "dependencies": {
+          "PInvoke.Kernel32": "0.7.104",
+          "PInvoke.Windows.Core": "0.7.104"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PInvoke.WtsApi32.dll": {
+            "assemblyVersion": "0.7.0.0",
+            "fileVersion": "0.7.104.53878"
+          }
+        }
+      },
+      "SharpDX/4.2.0": {
+        "dependencies": {
+          "NETStandard.Library": "2.0.3"
+        },
+        "runtime": {
+          "lib/netstandard1.1/SharpDX.dll": {
+            "assemblyVersion": "4.2.0.0",
+            "fileVersion": "4.2.0.0"
+          }
+        }
+      },
+      "SharpDX.Direct3D11/4.2.0": {
+        "dependencies": {
+          "NETStandard.Library": "2.0.3",
+          "SharpDX": "4.2.0",
+          "SharpDX.DXGI": "4.2.0"
+        },
+        "runtime": {
+          "lib/netstandard1.1/SharpDX.Direct3D11.dll": {
+            "assemblyVersion": "4.2.0.0",
+            "fileVersion": "4.2.0.0"
+          }
+        }
+      },
+      "SharpDX.DXGI/4.2.0": {
+        "dependencies": {
+          "NETStandard.Library": "2.0.3",
+          "SharpDX": "4.2.0"
+        },
+        "runtime": {
+          "lib/netstandard1.1/SharpDX.DXGI.dll": {
+            "assemblyVersion": "4.2.0.0",
+            "fileVersion": "4.2.0.0"
+          }
+        }
+      },
+      "SharpDX.Mathematics/4.2.0": {
+        "dependencies": {
+          "NETStandard.Library": "2.0.3",
+          "SharpDX": "4.2.0"
+        },
+        "runtime": {
+          "lib/netstandard1.1/SharpDX.Mathematics.dll": {
+            "assemblyVersion": "4.2.0.0",
+            "fileVersion": "4.2.0.0"
+          }
+        }
+      },
+      "Silk.NET.Core/2.4.0": {
+        "dependencies": {
+          "Microsoft.Bcl.HashCode": "1.1.0",
+          "Microsoft.CSharp": "4.7.0",
+          "Microsoft.DotNet.PlatformAbstractions": "3.1.6",
+          "Microsoft.Extensions.DependencyModel": "3.1.1",
+          "System.Memory": "4.5.4",
+          "System.Numerics.Vectors": "4.5.0",
+          "System.Reflection.Emit": "4.7.0",
+          "System.Reflection.Emit.ILGeneration": "4.7.0",
+          "System.Runtime.CompilerServices.Unsafe": "5.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Silk.NET.Core.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.0.0"
+          }
+        }
+      },
+      "Silk.NET.GLFW/2.4.0": {
+        "dependencies": {
+          "Silk.NET.Core": "2.4.0",
+          "Ultz.Native.GLFW": "3.3.2.1"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Silk.NET.GLFW.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.0.0"
+          }
+        }
+      },
+      "Silk.NET.Maths/2.4.0": {
+        "dependencies": {
+          "Microsoft.Bcl.HashCode": "1.1.0",
+          "Ultz.Bcl.Half": "1.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Silk.NET.Maths.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.0.0"
+          }
+        }
+      },
+      "Silk.NET.OpenGL/2.4.0": {
+        "dependencies": {
+          "Silk.NET.Core": "2.4.0",
+          "Silk.NET.Maths": "2.4.0",
+          "Ultz.Bcl.Half": "1.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Silk.NET.OpenGL.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.0.0"
+          }
+        }
+      },
+      "Silk.NET.SDL/2.4.0": {
+        "dependencies": {
+          "Silk.NET.Core": "2.4.0",
+          "Silk.NET.Maths": "2.4.0",
+          "Ultz.Native.SDL": "2.0.12"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Silk.NET.SDL.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.0.0"
+          }
+        }
+      },
+      "Silk.NET.Windowing/2.4.0": {
+        "dependencies": {
+          "Silk.NET.Windowing.Common": "2.4.0",
+          "Silk.NET.Windowing.Glfw": "2.4.0",
+          "Silk.NET.Windowing.Sdl": "2.4.0"
+        }
+      },
+      "Silk.NET.Windowing.Common/2.4.0": {
+        "dependencies": {
+          "Silk.NET.Core": "2.4.0",
+          "Silk.NET.Maths": "2.4.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Silk.NET.Windowing.Common.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.0.0"
+          }
+        }
+      },
+      "Silk.NET.Windowing.Glfw/2.4.0": {
+        "dependencies": {
+          "Silk.NET.GLFW": "2.4.0",
+          "Silk.NET.Windowing.Common": "2.4.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Silk.NET.Windowing.Glfw.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.0.0"
+          }
+        }
+      },
+      "Silk.NET.Windowing.Sdl/2.4.0": {
+        "dependencies": {
+          "Silk.NET.SDL": "2.4.0",
+          "Silk.NET.Windowing.Common": "2.4.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Silk.NET.Windowing.Sdl.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.0.0"
+          }
+        }
+      },
+      "StbiSharp/1.0.13": {
+        "dependencies": {
+          "System.Memory": "4.5.4"
+        },
+        "runtime": {
+          "lib/netstandard2.0/StbiSharp.dll": {
+            "assemblyVersion": "1.0.13.0",
+            "fileVersion": "1.0.13.0"
+          }
+        }
+      },
+      "System.Buffers/4.5.1": {
+        "runtime": {
+          "lib/netstandard2.0/System.Buffers.dll": {
+            "assemblyVersion": "4.0.3.0",
+            "fileVersion": "4.6.28619.1"
+          }
+        }
+      },
+      "System.Drawing.Common/4.5.0": {
+        "runtime": {
+          "lib/netstandard2.0/System.Drawing.Common.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.6.26515.6"
+          }
+        }
+      },
+      "System.Memory/4.5.4": {
+        "dependencies": {
+          "System.Buffers": "4.5.1",
+          "System.Numerics.Vectors": "4.5.0",
+          "System.Runtime.CompilerServices.Unsafe": "5.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Memory.dll": {
+            "assemblyVersion": "4.0.1.1",
+            "fileVersion": "4.6.28619.1"
+          }
+        }
+      },
+      "System.Numerics.Vectors/4.5.0": {
+        "runtime": {
+          "lib/netstandard2.0/System.Numerics.Vectors.dll": {
+            "assemblyVersion": "4.1.4.0",
+            "fileVersion": "4.6.26515.6"
+          }
+        }
+      },
+      "System.Reflection.Emit/4.7.0": {
+        "dependencies": {
+          "System.Reflection.Emit.ILGeneration": "4.7.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Reflection.Emit.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.700.19.56404"
+          }
+        }
+      },
+      "System.Reflection.Emit.ILGeneration/4.7.0": {
+        "runtime": {
+          "lib/netstandard2.0/System.Reflection.Emit.ILGeneration.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.700.19.56404"
+          }
+        }
+      },
+      "System.Runtime.CompilerServices.Unsafe/5.0.0": {
+        "runtime": {
+          "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          }
+        }
+      },
+      "System.Security.AccessControl/4.5.0": {
+        "dependencies": {
+          "System.Security.Principal.Windows": "4.5.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Security.AccessControl.dll": {
+            "assemblyVersion": "4.1.1.0",
+            "fileVersion": "4.6.26515.6"
+          }
+        }
+      },
+      "System.Security.Principal.Windows/4.5.0": {
+        "runtime": {
+          "lib/netstandard2.0/System.Security.Principal.Windows.dll": {
+            "assemblyVersion": "4.1.1.0",
+            "fileVersion": "4.6.26515.6"
+          }
+        }
+      },
+      "System.Text.Encodings.Web/4.7.0": {
+        "dependencies": {
+          "System.Memory": "4.5.4"
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Text.Encodings.Web.dll": {
+            "assemblyVersion": "4.0.5.0",
+            "fileVersion": "4.700.19.56404"
+          }
+        }
+      },
+      "System.Text.Json/4.7.0": {
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "1.1.0",
+          "System.Buffers": "4.5.1",
+          "System.Memory": "4.5.4",
+          "System.Numerics.Vectors": "4.5.0",
+          "System.Runtime.CompilerServices.Unsafe": "5.0.0",
+          "System.Text.Encodings.Web": "4.7.0",
+          "System.Threading.Tasks.Extensions": "4.5.4"
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Text.Json.dll": {
+            "assemblyVersion": "4.0.1.0",
+            "fileVersion": "4.700.19.56404"
+          }
+        }
+      },
+      "System.Threading.Tasks.Extensions/4.5.4": {
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "5.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Threading.Tasks.Extensions.dll": {
+            "assemblyVersion": "4.2.0.1",
+            "fileVersion": "4.6.28619.1"
+          }
+        }
+      },
+      "Ultz.Bcl.Half/1.0.0": {
+        "dependencies": {
+          "Ultz.Bcl.Half.Fallback": "1.0.0"
+        }
+      },
+      "Ultz.Bcl.Half.Fallback/1.0.0": {
+        "dependencies": {
+          "System.Memory": "4.5.4",
+          "System.Runtime.CompilerServices.Unsafe": "5.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Ultz.Bcl.Half.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Ultz.Native.GLFW/3.3.2.1": {},
+      "Ultz.Native.SDL/2.0.12": {},
+      "Validation/2.4.15": {
+        "runtime": {
+          "lib/netstandard1.3/Validation.dll": {
+            "assemblyVersion": "2.4.0.0",
+            "fileVersion": "2.4.15.30595"
+          }
+        }
+      },
+      "ImGui.NET/1.0.0": {
+        "dependencies": {
+          "Costura.Fody": "5.3.0",
+          "Fody": "6.5.1",
+          "System.Numerics.Vectors": "4.5.0",
+          "System.Runtime.CompilerServices.Unsafe": "5.0.0"
+        },
+        "runtime": {
+          "ImGui.NET.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "SDL2-CS/1.0.0": {
+        "runtime": {
+          "SDL2-CS.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImGui.NET.Reference/1.82.0.0": {
+        "runtime": {
+          "ImGui.NET.dll": {
+            "assemblyVersion": "1.82.0.0",
+            "fileVersion": "1.82.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ImGuiScene/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Costura.Fody/5.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fb04fy7bJ7dNV7u3Ys0yvuINePnICWSwzpmtRjvQKuOl9nm0xxccsk2B1U3mLMFFCrb1luSMyu6vp/YWFIZRqw==",
+      "path": "costura.fody/5.3.0",
+      "hashPath": "costura.fody.5.3.0.nupkg.sha512"
+    },
+    "Fody/6.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-DEw9rPG5vrpaK4vPPze0f4q6Zd0mfzjGNKy49nrmINkftIHpkyf8KH+uC/qF8y6v1askPWu9NbJS9bkmN5wXaA==",
+      "path": "fody/6.5.1",
+      "hashPath": "fody.6.5.1.nupkg.sha512"
+    },
+    "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1Am6l4Vpn3/K32daEqZI+FFr96OlZkgwK2LcT3pZ2zWubR5zTPW3/FkO1Rat9kb7oQOa4rxgl9LJHc5tspCWfg==",
+      "path": "microsoft.bcl.asyncinterfaces/1.1.0",
+      "hashPath": "microsoft.bcl.asyncinterfaces.1.1.0.nupkg.sha512"
+    },
+    "Microsoft.Bcl.HashCode/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-J2G1k+u5unBV+aYcwxo94ip16Rkp65pgWFb0R6zwJipzWNMgvqlWeuI7/+R+e8bob66LnSG+llLJ+z8wI94cHg==",
+      "path": "microsoft.bcl.hashcode/1.1.0",
+      "hashPath": "microsoft.bcl.hashcode.1.1.0.nupkg.sha512"
+    },
+    "Microsoft.CSharp/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-pTj+D3uJWyN3My70i2Hqo+OXixq3Os2D1nJ2x92FFo6sk8fYS1m1WLNTs0Dc1uPaViH0YvEEwvzddQ7y4rhXmA==",
+      "path": "microsoft.csharp/4.7.0",
+      "hashPath": "microsoft.csharp.4.7.0.nupkg.sha512"
+    },
+    "Microsoft.DotNet.PlatformAbstractions/3.1.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-jek4XYaQ/PGUwDKKhwR8K47Uh1189PFzMeLqO83mXrXQVIpARZCcfuDedH50YDTepBkfijCZN5U/vZi++erxtg==",
+      "path": "microsoft.dotnet.platformabstractions/3.1.6",
+      "hashPath": "microsoft.dotnet.platformabstractions.3.1.6.nupkg.sha512"
+    },
+    "Microsoft.Extensions.DependencyModel/3.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JjNCPx5Jbk7WTjaFI9Kyq+ZRVwMJ7Ee2AmgLKraQUS8AuciAO+euxHAhlhv0AWCsVyibyRr+5USxjyc7U6VsMA==",
+      "path": "microsoft.extensions.dependencymodel/3.1.1",
+      "hashPath": "microsoft.extensions.dependencymodel.3.1.1.nupkg.sha512"
+    },
+    "Microsoft.NETCore.Platforms/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
+      "path": "microsoft.netcore.platforms/1.1.0",
+      "hashPath": "microsoft.netcore.platforms.1.1.0.nupkg.sha512"
+    },
+    "Microsoft.Win32.Registry/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-+FWlwd//+Tt56316p00hVePBCouXyEzT86Jb3+AuRotTND0IYn0OO3obs1gnQEs/txEnt+rF2JBGLItTG+Be6A==",
+      "path": "microsoft.win32.registry/4.5.0",
+      "hashPath": "microsoft.win32.registry.4.5.0.nupkg.sha512"
+    },
+    "NETStandard.Library/2.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+      "path": "netstandard.library/2.0.3",
+      "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
+    },
+    "PInvoke.AdvApi32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Z9rHSQmIHDdZsJF6zzq3bMVI2smZm15VaCiOgnr2yfM0NhHPg6rsqNWZF2siRoV6An5YBz0WK/1aUwSyB/+L/A==",
+      "path": "pinvoke.advapi32/0.7.104",
+      "hashPath": "pinvoke.advapi32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.BCrypt/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-68SMW6eyuEVX6zmmwkSaC+PRjKUMmU2d1XunbbPOvEc7CxcGVMgDgxA0KZiBRG7YB5o2QXaxA7RoBaOZPsCtdg==",
+      "path": "pinvoke.bcrypt/0.7.104",
+      "hashPath": "pinvoke.bcrypt.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Cabinet/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fdtuBFogeTzlWe0mVkJ+C4LcIJc4f3Pvwri+bbLJJzgoiiDFmlOgiPL7BODkyNV6YIxZHlJTsJKuAOCpZASI1Q==",
+      "path": "pinvoke.cabinet/0.7.104",
+      "hashPath": "pinvoke.cabinet.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.CfgMgr32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OmkghBNC+hPwRtwRk6dISQjSSlEYAfbbFApyOaM7Lcey6tXX+B7+e7f7gpP3Fxb4QdYyUSg8zSlXLZXPgaXyyg==",
+      "path": "pinvoke.cfgmgr32/0.7.104",
+      "hashPath": "pinvoke.cfgmgr32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Crypt32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-nnnwi4b7nugiIX/00Tg1bc1eHS6Fzqgul8afJ15jNlQVwAaf6RlKzNNRJ2Ze3inUu/h1TeFZeB/d/reWW01IVQ==",
+      "path": "pinvoke.crypt32/0.7.104",
+      "hashPath": "pinvoke.crypt32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.DbgHelp/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zAeLtvnp2R62bL0ibsw/Y1RVnQf7+/txe1qnEbtNTasDICuhEfJpG5k2KgRpxDL0y11j9gG62+FbS3tmaa/0SA==",
+      "path": "pinvoke.dbghelp/0.7.104",
+      "hashPath": "pinvoke.dbghelp.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.DwmApi/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zbgoEafO77LasDqbDFk5FJTgqgC8886hBGeX09bsLxzj/JTgyaqZbboLBdlw6HoGlA/CtOj+pact0OuRsAG/Qg==",
+      "path": "pinvoke.dwmapi/0.7.104",
+      "hashPath": "pinvoke.dwmapi.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Gdi32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JX9xraD7VkHH/79n0RCTjl7n2q5F4iK1BBCjBkDU+Wm0CJgje+bjG2y6c6Ra7lQbiNHAhi/qvrmgynVuet03hg==",
+      "path": "pinvoke.gdi32/0.7.104",
+      "hashPath": "pinvoke.gdi32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Hid/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-EWrnvILrq95m4NvwI8VscFLPuS7P7Rd8ChwSIBRi0ceANeOlTNigrbhA0ISZFZGMTVwQ0T2NOz+t5t5wjgHZ8g==",
+      "path": "pinvoke.hid/0.7.104",
+      "hashPath": "pinvoke.hid.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.ImageHlp/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-NxP6XI4qH9Nk0wNkUJF7bgGq81Gwi/33xMk0+FnY8otFxBzO/44aFCiPnWXRwxCZbk63G4+RioWobjIhzppa6g==",
+      "path": "pinvoke.imagehlp/0.7.104",
+      "hashPath": "pinvoke.imagehlp.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.IPHlpApi/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-37h0Hm3LiaZ6U3cUd0F7X7MIrcMDDXozZaaVqTOsvEPvI2zghm7fSsSrLsMYVCl6F6kRy47pOdJH7UYpTqpsCg==",
+      "path": "pinvoke.iphlpapi/0.7.104",
+      "hashPath": "pinvoke.iphlpapi.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Kernel32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xU9Wp22ej6NcVg4Uqelnhz27X6HdHaroAPOk5IsG8nTi82zHOznTOW2KIYCdpAGf67rHpQW6UtmjrG+5HPlnvA==",
+      "path": "pinvoke.kernel32/0.7.104",
+      "hashPath": "pinvoke.kernel32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Magnification/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tSTZvOvIfiYivyiM3CvDgkZ3ddlijsXxiwxWUoEhU0Gt5Y1d2gxxcTvvqCxaVxQR1YxwjXsnJBg5KMq0u3894w==",
+      "path": "pinvoke.magnification/0.7.104",
+      "hashPath": "pinvoke.magnification.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Msi/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-258Li0mCZ4912e0V77OxYzpKkACCr3pjuj9Se0GXvbpaTxGDu+cyyVXLdPFxmNenmDq4XIGQAgE6EkoG062tfw==",
+      "path": "pinvoke.msi/0.7.104",
+      "hashPath": "pinvoke.msi.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.NCrypt/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lvcMpumagHf3zaHOVxIKAuehaYUtrhqff/TVsCWCcWqt/bTsrmKpH8O/2HpQAY/08mWWdCKEJfoZEx38ULG5Jg==",
+      "path": "pinvoke.ncrypt/0.7.104",
+      "hashPath": "pinvoke.ncrypt.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.NetApi32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qnkjmHsagZxbSSZuY396sduvaDjlG72OxGQ53JrZjTtgHZ31ame9hWspT6reRT1ZYYvU5WBAMbGg1KftCvRmng==",
+      "path": "pinvoke.netapi32/0.7.104",
+      "hashPath": "pinvoke.netapi32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.NewDev/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-NXLw5t9Lw05xQADINslkF3djx4tXpnhcowoK4TigqAqGVwer1FbX3RjNBwuKykfVmeg1vbbCHr03XjJ5+jm7Aw==",
+      "path": "pinvoke.newdev/0.7.104",
+      "hashPath": "pinvoke.newdev.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.NTDll/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-sSFsxQoKDj06v+0wWKkZUFoqeqvBFMPhGYmIbQ3gBvpqLZtyLG60iAEm7S/NCdRdsibRkEjmye4jgr23f4eS2w==",
+      "path": "pinvoke.ntdll/0.7.104",
+      "hashPath": "pinvoke.ntdll.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Ole32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-N+qDQ5Anij9u3Av27kttcjgXONVWz+OiY6s1jZd/yrA9WA/mIcOxn+kF/ahPMSUaX+newYbUftQ85BAIqDmkyA==",
+      "path": "pinvoke.ole32/0.7.104",
+      "hashPath": "pinvoke.ole32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Psapi/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JWR05aAqcKcI/NccSGWXn7rKzQeIEzXPC7LFfl73tMPK5sSHbA4hAgsiAqP3vYk6MzInEYIM4AjoeYoGPSNSTg==",
+      "path": "pinvoke.psapi/0.7.104",
+      "hashPath": "pinvoke.psapi.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.SetupApi/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bFKAYSDn7+uK3+JU0CI/I7eCrhiyJpu4Yp0sXSmiye1fMuuwqJV73hKk/9Cs8Zqt7Eai989mMWTsi5ogvOMFSQ==",
+      "path": "pinvoke.setupapi/0.7.104",
+      "hashPath": "pinvoke.setupapi.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.SHCore/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xsbyRSsl0HXTzorqMhMRwxOylMWh93xFn3k5slk/ayctMJnwuFyK/45t9C5PpjiXCFmhefhDMYLpo+z9Aq63fA==",
+      "path": "pinvoke.shcore/0.7.104",
+      "hashPath": "pinvoke.shcore.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Shell32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3/CQUhpZYNezuqmqN7N62wldSCvP3HiH9Yc0Y2IRKCMSYiwdLBPKs2rRFmkgN3jbKE5IBktwN5VoCUcxiPrLSA==",
+      "path": "pinvoke.shell32/0.7.104",
+      "hashPath": "pinvoke.shell32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.User32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-MPJICVOtkCCuLY0hbu7tgBFE3S3WHVrym5ZF2NjGAMluhKdkWFSIOi+wadnMwX2PI7nhCQ4bPK/REKZtfYdgaQ==",
+      "path": "pinvoke.user32/0.7.104",
+      "hashPath": "pinvoke.user32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Userenv/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-SrrCxx8uOvjE+4zYO2mnX1C5XCax6qgjgMLpftiAx/I0xOyn4AU6KqSztIxrnNaKMiCJKu6aBCjeEUShSFgGsw==",
+      "path": "pinvoke.userenv/0.7.104",
+      "hashPath": "pinvoke.userenv.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.UxTheme/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-G+URZqixYWeyfwvHmv+9HITTo/lDMZyVSqoKrGOEPX/xrriYK8pHeLwQzqiiWm87IcMF95EHDWLb5Wajs7F9uQ==",
+      "path": "pinvoke.uxtheme/0.7.104",
+      "hashPath": "pinvoke.uxtheme.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Win32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-h5ImGdTHATMp6KIbUlJjqXVG7yN4U+Mmfb28NWZXZkWDmm5NTyXF4zdbLFtj3aJSMPiHAZCAoNYVVOasbTExeg==",
+      "path": "pinvoke.win32/0.7.104",
+      "hashPath": "pinvoke.win32.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Windows.Core/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-WI8ht+k0nk7YmeWD6OewGI+TzRdgtJSaO+e+PMPeYSBVwU9jl4ZlelizZNz271ZY4k4J8lk+mTWg5bo+I71mTA==",
+      "path": "pinvoke.windows.core/0.7.104",
+      "hashPath": "pinvoke.windows.core.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.Windows.ShellScalingApi/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-rgCP4i9U6oEHlBY1uOGEuw+aaS5U9zfNMs1Vj6dlgCgW5Rq1fazENQuAvf6GCHSAl4Cann4A90z+fCcXbwLqtg==",
+      "path": "pinvoke.windows.shellscalingapi/0.7.104",
+      "hashPath": "pinvoke.windows.shellscalingapi.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.WinUsb/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zvTzsrfdyPGtuWB9SUCw1WEdHgibXJKTvYhWeQlyw11nrWn7hJxrUlRNdqdoJ83zLkzMIeqf/XtM8xZ5EisgIQ==",
+      "path": "pinvoke.winusb/0.7.104",
+      "hashPath": "pinvoke.winusb.0.7.104.nupkg.sha512"
+    },
+    "PInvoke.WtsApi32/0.7.104": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dfW+Y4tlwTCam4+/xo16puxQaW4GnGmbYwwn68dp1ftm7cmDjwsO6+MIwENxrxQKhB9Fgq8U9XU1bXcTRrecvw==",
+      "path": "pinvoke.wtsapi32/0.7.104",
+      "hashPath": "pinvoke.wtsapi32.0.7.104.nupkg.sha512"
+    },
+    "SharpDX/4.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3pv0LFMvfK/dv1qISJnn8xBeeT6R/FRvr0EV4KI2DGsL84Qlv6P7isWqxGyU0LCwlSVCJN3jgHJ4Bl0KI2PJww==",
+      "path": "sharpdx/4.2.0",
+      "hashPath": "sharpdx.4.2.0.nupkg.sha512"
+    },
+    "SharpDX.Direct3D11/4.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-oTm/iT5X/IIuJ8kNYP+DTC/MhBhqtRF5dbgPPFgLBdQv0BKzNTzXQQXd7SveBFjQg6hXEAJ2jGCAzNYvGFc9LA==",
+      "path": "sharpdx.direct3d11/4.2.0",
+      "hashPath": "sharpdx.direct3d11.4.2.0.nupkg.sha512"
+    },
+    "SharpDX.DXGI/4.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UjKqkgWc8U+SP+j3LBzFP6OB6Ntapjih7Xo+g1rLcsGbIb5KwewBrBChaUu7sil8rWoeVU/k0EJd3SMN4VqNZw==",
+      "path": "sharpdx.dxgi/4.2.0",
+      "hashPath": "sharpdx.dxgi.4.2.0.nupkg.sha512"
+    },
+    "SharpDX.Mathematics/4.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-R2pcKLgdsP9p5WyTjHmGOZ0ka0zASAZYc6P4L6rSvjYhf6klGYbent7MiVwbkwkt9dD44p5brjy5IwAnVONWGw==",
+      "path": "sharpdx.mathematics/4.2.0",
+      "hashPath": "sharpdx.mathematics.4.2.0.nupkg.sha512"
+    },
+    "Silk.NET.Core/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-962CTIOmivOaoCkjQnD9owNcUtzwoHv049JVUQkDg8fsAvl917HZUmWWb42eDUnb2r2q/4OzbQjGFj6RSwQffg==",
+      "path": "silk.net.core/2.4.0",
+      "hashPath": "silk.net.core.2.4.0.nupkg.sha512"
+    },
+    "Silk.NET.GLFW/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-AV3LChWF3hJLV99RbMJkZ2SOa6M4gBX9O1Kq97g+bxVkNQn6Rm2cE5OyVf87JMnM4z1OLlD3bWcqgXhm0lSGdQ==",
+      "path": "silk.net.glfw/2.4.0",
+      "hashPath": "silk.net.glfw.2.4.0.nupkg.sha512"
+    },
+    "Silk.NET.Maths/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-o3pSvRRH8Z1lL3Q2obBTTFrUZ6CY97r1wPod1y4QnSlAwz2HTGaegEyNc+baTHfJAuCtYwTeik3yBCTNfZRzAQ==",
+      "path": "silk.net.maths/2.4.0",
+      "hashPath": "silk.net.maths.2.4.0.nupkg.sha512"
+    },
+    "Silk.NET.OpenGL/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1RUL28xDqkOEReOrsLAtaDUQuFddLYC9GeBObSrG/aaFzkmEsiMJUq7MBDvnxapEhn2Zcku1G38bbthmMCmTig==",
+      "path": "silk.net.opengl/2.4.0",
+      "hashPath": "silk.net.opengl.2.4.0.nupkg.sha512"
+    },
+    "Silk.NET.SDL/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vjF6OxcMXrCCrfZcuBqbhp0sFIt+7cJdjHA71zxcGEnJrm+aNkPDIQQnRkHFs+QZkAN4f3vfaOVUdUxYKFr3rw==",
+      "path": "silk.net.sdl/2.4.0",
+      "hashPath": "silk.net.sdl.2.4.0.nupkg.sha512"
+    },
+    "Silk.NET.Windowing/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-KvKqtrpKcfZG9AoTrrmy4tmRpMVMsC/AVfP9di0kEeaOMIZgs7LSoT5CwWmHoOT6re46CDwXRbfRvlggE/uN7Q==",
+      "path": "silk.net.windowing/2.4.0",
+      "hashPath": "silk.net.windowing.2.4.0.nupkg.sha512"
+    },
+    "Silk.NET.Windowing.Common/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-cm2tHliVXvspBKwaAHQ/zhkZuS5/5pIDzge6rVgNSOYhmX/Fiwv99hu0KqlQbqcod32CxMV47+kHT6AWYW2WRw==",
+      "path": "silk.net.windowing.common/2.4.0",
+      "hashPath": "silk.net.windowing.common.2.4.0.nupkg.sha512"
+    },
+    "Silk.NET.Windowing.Glfw/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qRL9PcMJG9+60BY6JaYtAQEyZpk3MMetzVK/eMNtWZtv9NKYqorwAAkrCkmxQpJsOOsnRjcdl1nznNunH018Yg==",
+      "path": "silk.net.windowing.glfw/2.4.0",
+      "hashPath": "silk.net.windowing.glfw.2.4.0.nupkg.sha512"
+    },
+    "Silk.NET.Windowing.Sdl/2.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Mz3lB39aIem3Aztyhg7gUk0Nec/X2TXZNoZUUiVvW/VRWmeEWSuMqizXqeuUVrozPsKeWQw9btC76o3xpteDFQ==",
+      "path": "silk.net.windowing.sdl/2.4.0",
+      "hashPath": "silk.net.windowing.sdl.2.4.0.nupkg.sha512"
+    },
+    "StbiSharp/1.0.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Hhq+PYQB8T+sFBHwFnzeNu0rpX9Rcg19Aeotz1u0RQQ4PcOA7oMeokUF7m4hZ/UgE1VhtEdJFnurW0cxNFY+Yg==",
+      "path": "stbisharp/1.0.13",
+      "hashPath": "stbisharp.1.0.13.nupkg.sha512"
+    },
+    "System.Buffers/4.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Rw7ijyl1qqRS0YQD/WycNst8hUUMgrMH4FCn1nNm27M4VxchZ1js3fVjQaANHO5f3sN4isvP4a+Met9Y4YomAg==",
+      "path": "system.buffers/4.5.1",
+      "hashPath": "system.buffers.4.5.1.nupkg.sha512"
+    },
+    "System.Drawing.Common/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+      "path": "system.drawing.common/4.5.0",
+      "hashPath": "system.drawing.common.4.5.0.nupkg.sha512"
+    },
+    "System.Memory/4.5.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1MbJTHS1lZ4bS4FmsJjnuGJOu88ZzTT2rLvrhW7Ygic+pC0NWA+3hgAen0HRdsocuQXCkUTdFn9yHJJhsijDXw==",
+      "path": "system.memory/4.5.4",
+      "hashPath": "system.memory.4.5.4.nupkg.sha512"
+    },
+    "System.Numerics.Vectors/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-QQTlPTl06J/iiDbJCiepZ4H//BVraReU4O4EoRw1U02H5TLUIT7xn3GnDp9AXPSlJUDyFs4uWjWafNX6WrAojQ==",
+      "path": "system.numerics.vectors/4.5.0",
+      "hashPath": "system.numerics.vectors.4.5.0.nupkg.sha512"
+    },
+    "System.Reflection.Emit/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VR4kk8XLKebQ4MZuKuIni/7oh+QGFmZW3qORd1GvBq/8026OpW501SzT/oypwiQl4TvT8ErnReh/NzY9u+C6wQ==",
+      "path": "system.reflection.emit/4.7.0",
+      "hashPath": "system.reflection.emit.4.7.0.nupkg.sha512"
+    },
+    "System.Reflection.Emit.ILGeneration/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-AucBYo3DSI0IDxdUjKksBcQJXPHyoPyrCXYURW1WDsLI4M65Ar/goSHjdnHOAY9MiYDNKqDlIgaYm+zL2hA1KA==",
+      "path": "system.reflection.emit.ilgeneration/4.7.0",
+      "hashPath": "system.reflection.emit.ilgeneration.4.7.0.nupkg.sha512"
+    },
+    "System.Runtime.CompilerServices.Unsafe/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ZD9TMpsmYJLrxbbmdvhwt9YEgG5WntEnZ/d1eH8JBX9LBp+Ju8BSBhUGbZMNVHHomWo2KVImJhTDl2hIgw/6MA==",
+      "path": "system.runtime.compilerservices.unsafe/5.0.0",
+      "hashPath": "system.runtime.compilerservices.unsafe.5.0.0.nupkg.sha512"
+    },
+    "System.Security.AccessControl/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vW8Eoq0TMyz5vAG/6ce483x/CP83fgm4SJe5P8Tb1tZaobcvPrbMEL7rhH1DRdrYbbb6F0vq3OlzmK0Pkwks5A==",
+      "path": "system.security.accesscontrol/4.5.0",
+      "hashPath": "system.security.accesscontrol.4.5.0.nupkg.sha512"
+    },
+    "System.Security.Principal.Windows/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U77HfRXlZlOeIXd//Yoj6Jnk8AXlbeisf1oq1os+hxOGVnuG+lGSfGqTwTZBoORFF6j/0q7HXIl8cqwQ9aUGqQ==",
+      "path": "system.security.principal.windows/4.5.0",
+      "hashPath": "system.security.principal.windows.4.5.0.nupkg.sha512"
+    },
+    "System.Text.Encodings.Web/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-IJanJWPQvya2sbGStt3Fkdy4IaomUBSadAfYWeJDQw0zclMk9ixSvMeei6cSmTTQ6ZkGIIAbhHZVCoLR7GgX7Q==",
+      "path": "system.text.encodings.web/4.7.0",
+      "hashPath": "system.text.encodings.web.4.7.0.nupkg.sha512"
+    },
+    "System.Text.Json/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-IPq/x/d5nAcnD3vIyM3AbPOaTgcqrh0AqPSx7U53UFu3M6k1TH1u/eXc9/h4jm/3mpP1WRUpevlPY4PACd7AWw==",
+      "path": "system.text.json/4.7.0",
+      "hashPath": "system.text.json.4.7.0.nupkg.sha512"
+    },
+    "System.Threading.Tasks.Extensions/4.5.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zteT+G8xuGu6mS+mzDzYXbzS7rd3K6Fjb9RiZlYlJPam2/hU7JCBZBVEcywNuR+oZ1ncTvc/cq0faRr3P01OVg==",
+      "path": "system.threading.tasks.extensions/4.5.4",
+      "hashPath": "system.threading.tasks.extensions.4.5.4.nupkg.sha512"
+    },
+    "Ultz.Bcl.Half/1.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-L4b7xAqEmgNgCYBGdyWhemEIazgr0rPhm9sDrrGjym9zJpt8JQx7mtiSGn8QsVM/9H0pL2CRvK1hdbDrTGydXg==",
+      "path": "ultz.bcl.half/1.0.0",
+      "hashPath": "ultz.bcl.half.1.0.0.nupkg.sha512"
+    },
+    "Ultz.Bcl.Half.Fallback/1.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VceNF0imvWAy3j+Eb+VWjvxSNjunQjYJjdzvVVF8NfMbgptbrFOMsYd9g7dsEDkIvwh73Ld4pkCh2xcT82Ofhg==",
+      "path": "ultz.bcl.half.fallback/1.0.0",
+      "hashPath": "ultz.bcl.half.fallback.1.0.0.nupkg.sha512"
+    },
+    "Ultz.Native.GLFW/3.3.2.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-6YpjNpHFPJ5+ogF8Nw56PZGkgBdnmi6e8XryDcEdWtRINTiJ5MUygOgL2InRq3iaNkPcD1+1OnpBrFvs8KHwaw==",
+      "path": "ultz.native.glfw/3.3.2.1",
+      "hashPath": "ultz.native.glfw.3.3.2.1.nupkg.sha512"
+    },
+    "Ultz.Native.SDL/2.0.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-c4APJMaBOs1hBFB1GmnEH/KytsOvqrI7pFOwy8aB3nixj8A96lz5S4TzCDXiIykYZYYjOyFx12LDo1AGjhnxHg==",
+      "path": "ultz.native.sdl/2.0.12",
+      "hashPath": "ultz.native.sdl.2.0.12.nupkg.sha512"
+    },
+    "Validation/2.4.15": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-KQFOtJKKhaXzuSiZhkFaFzQEdYsA+EN/XqKZDYwsGDOrS0Nxu6qzCvNTsDF4xtkiZbBA6u7I59QnsuP2O2fZgg==",
+      "path": "validation/2.4.15",
+      "hashPath": "validation.2.4.15.nupkg.sha512"
+    },
+    "ImGui.NET/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SDL2-CS/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImGui.NET.Reference/1.82.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

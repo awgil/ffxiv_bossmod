@@ -49,7 +49,7 @@ class CellShock(BossModule module) : Components.GenericAOEs(module, AID.CellShoc
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnEventEnvControl(byte index, uint state)
+    public override void OnMapEffect(byte index, uint state)
     {
         // potential origins are at intercardinals at distance 11.5 from center; there are 4 'tether sources', each can target one of 2 neighbouring intercardinals
         var dir = index switch

@@ -13,7 +13,7 @@ public class Map
     public float InvSpaceResolution { get; private init; }
     public float InvTimeResolution { get; private init; }
 
-    public bool this[int x, int y, int t] => InBounds(x, y, t) ? Voxels[t * Width * Height + y * Width + x] : false;
+    public bool this[int x, int y, int t] => InBounds(x, y, t) && Voxels[t * Width * Height + y * Width + x];
 
     public Map(float spaceResolution, float timeResolution, Vector3 center, float worldHalfWidth, float worldHalfHeight, float maxDuration)
     {

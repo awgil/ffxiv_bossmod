@@ -28,8 +28,7 @@ class AetheronecrosisPredation(BossModule module) : BossComponent(module)
                 _vulnWing.Set(Raid.FindSlot(actor.InstanceID));
                 break;
             case SID.Aetheronecrosis:
-                var slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                 {
                     _orders[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds switch
                     {

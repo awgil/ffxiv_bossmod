@@ -154,7 +154,7 @@ class DeathlyRayFaces(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Border : Components.GenericAOEs
+class Border(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly List<WDir> SidePlatforms = [new(-12, -8), new(12, -8), new(-12, 12), new(12, 12), new(-12, 32), new(12, 32), new(-12, 46), new(12, 46)];
     private static readonly int[] PlatformHalfLen = [48, 30, 20, 10];
@@ -167,11 +167,6 @@ class Border : Components.GenericAOEs
     private BitMask UnsafePlatforms;
 
     public IEnumerable<WPos> UnsafePlatformPositions => SidePlatforms.Where((_, i) => UnsafePlatforms[i]).Select(p => OriginalCenter + p);
-
-    public Border(BossModule module) : base(module)
-    {
-        WorldState.Actors.EventObjectAnimation.Subscribe(OnEventObjectAnimation);
-    }
 
     // TODO this really should be in a separate component lol
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -218,29 +213,30 @@ class Border : Components.GenericAOEs
         }
     }
 
+    // TODO: eventobjs moved???????
     private int FindPlatform(Actor act) => SidePlatforms.FindIndex(p => (OriginalCenter + p).AlmostEqual(act.Position, 1));
 
-    private void OnEventObjectAnimation(Actor act, ushort p1, ushort p2)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
-        if (act.OID == 0x1EA1A1)
+        if (actor.OID == 0x1EA1A1)
         {
-            switch ((p1, p2))
+            switch (state)
             {
-                case (1, 2):
+                case 0x00010002:
                     if (Stage == 0)
                         Advance(0);
                     break;
-                case (16, 32):
-                    var tile = FindPlatform(act);
+                case 0x00100020:
+                    var tile = FindPlatform(actor);
                     if (tile < 0)
-                        Module.ReportError(this, $"unmatched tile for {act} @ {act.Position}");
+                        Module.ReportError(this, $"unmatched tile for {actor} @ {actor.Position} ({actor.Position - OriginalCenter})");
                     else
                         UnsafePlatforms.Set(tile);
                     break;
-                case (4, 8):
-                    var tile2 = FindPlatform(act);
+                case 0x00040008:
+                    var tile2 = FindPlatform(actor);
                     if (tile2 < 0)
-                        Module.ReportError(this, $"unmatched tile for {act} @ {act.Position}");
+                        Module.ReportError(this, $"unmatched tile for {actor} @ {actor.Position} ({actor.Position - OriginalCenter})");
                     else
                     {
                         UnsafePlatforms.Clear(tile2);

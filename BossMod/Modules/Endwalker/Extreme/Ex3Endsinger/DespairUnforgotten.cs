@@ -49,8 +49,7 @@ class DespairUnforgotten(BossModule module) : BossComponent(module)
                     break;
                 }
 
-                int slot = Raid.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                     _states[slot * 4 + 3] = _states[slot * 4 + 3 - rings];
                 break;
             case SID.EchoesOfNausea:
@@ -76,8 +75,7 @@ class DespairUnforgotten(BossModule module) : BossComponent(module)
             case SID.EchoesOfBefoulment:
             case SID.EchoesOfFuture:
             case SID.EchoesOfBenevolence:
-                int slot = WorldState.Party.FindSlot(actor.InstanceID);
-                if (slot >= 0)
+                if (Raid.TryFindSlot(actor, out var slot))
                     Done |= ++_doneCasts[slot] > 3;
                 break;
         }
@@ -85,8 +83,7 @@ class DespairUnforgotten(BossModule module) : BossComponent(module)
 
     private void ModifyState(Actor actor, State state)
     {
-        int slot = Raid.FindSlot(actor.InstanceID);
-        if (slot >= 0)
+        if (Raid.TryFindSlot(actor, out var slot))
         {
             if (_doneCasts[slot] > 3)
                 ReportError($"Unexpected state change after {_doneCasts[slot]} casts");

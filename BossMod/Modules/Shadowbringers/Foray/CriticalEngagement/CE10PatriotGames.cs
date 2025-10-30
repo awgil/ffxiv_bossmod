@@ -120,7 +120,10 @@ class LightningRod(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Mines.Count > 0 && actor.Role == Role.Tank)
-            hints.GoalZones.Add(p => Mines.Any(m => p.InCircle(m, Radius)) ? 0.5f : 0);
+        {
+            var mineShape = ShapeContains.Union([.. Mines.Select(m => ShapeContains.Circle(m, Radius))]);
+            hints.GoalZones.Add(p => mineShape(p) ? 0.5f : 0);
+        }
     }
 }
 

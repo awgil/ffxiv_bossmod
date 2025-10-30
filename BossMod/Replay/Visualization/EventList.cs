@@ -1,5 +1,5 @@
 ﻿using BossMod.Autorotation;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Runtime.InteropServices;
 
 namespace BossMod.ReplayVisualization;
@@ -64,7 +64,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
         var statuses = filter != null ? r.EncounterStatuses(filter) : r.Statuses;
         var tethers = filter != null ? r.EncounterTethers(filter) : r.Tethers;
         var icons = filter != null ? r.EncounterIcons(filter) : r.Icons;
-        var envControls = filter != null ? r.EncounterEnvControls(filter) : r.EnvControls;
+        var mapEffects = filter != null ? r.EncounterMapEffects(filter) : r.MapEffects;
         var dirus = filter != null ? r.EncounterDirectorUpdates(filter) : r.DirectorUpdates;
 
         foreach (var n in _tree.Node("Participants"))
@@ -123,18 +123,18 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
             _tree.LeafNodes(icons, i => $"{tp(i.Timestamp)}: {i.ID} ({iidType?.GetEnumName(i.ID)}) @ {ReplayUtils.ParticipantString(i.Source, i.Timestamp)} -> {ReplayUtils.ParticipantString(i.Target, i.Timestamp)}");
         }
 
-        foreach (var n in _tree.Node("EnvControls", !envControls.Any()))
+        foreach (var n in _tree.Node("Map effects", !mapEffects.Any()))
         {
-            if (envControls.Any())
+            if (mapEffects.Any())
             {
                 foreach (var n2 in _tree.Node("All"))
                 {
-                    _tree.LeafNodes(envControls, ec => $"{tp(ec.Timestamp)}: {ec.Index:X2} = {ec.State:X8}");
+                    _tree.LeafNodes(mapEffects, ec => $"{tp(ec.Timestamp)}: {ec.Index:X2} = {ec.State:X8}");
                 }
             }
-            foreach (var index in _tree.Nodes(new SortedSet<byte>(envControls.Select(ec => ec.Index)), index => new($"Index {index:X2}")))
+            foreach (var index in _tree.Nodes(new SortedSet<byte>(mapEffects.Select(ec => ec.Index)), index => new($"Index {index:X2}")))
             {
-                _tree.LeafNodes(envControls.Where(ec => ec.Index == index), ec => $"{tp(ec.Timestamp)}: {ec.Index:X2} = {ec.State:X8}");
+                _tree.LeafNodes(mapEffects.Where(ec => ec.Index == index), ec => $"{tp(ec.Timestamp)}: {ec.Index:X2} = {ec.State:X8}");
             }
         }
 
@@ -178,6 +178,18 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
             foreach (var an in _tree.Node("Targetable", p.TargetableHistory.Count == 0))
             {
                 _tree.LeafNodes(p.TargetableHistory, r => $"{tp(r.Key)} = {r.Value}");
+            }
+            foreach (var an in _tree.Node("EObjAnim", p.EventObjectAnimation.Count == 0))
+            {
+                _tree.LeafNodes(p.EventObjectAnimation, r => $"{tp(r.Key)} = {r.Value:X8}");
+            }
+            foreach (var an in _tree.Node("Event state", p.EventState.Count == 0))
+            {
+                _tree.LeafNodes(p.EventState, r => $"{tp(r.Key)} = {r.Value}");
+            }
+            foreach (var an in _tree.Node("Action timeline events", p.ActionTimeline.Count == 0))
+            {
+                _tree.LeafNodes(p.ActionTimeline, r => $"{tp(r.Key)} = {r.Value:X4}");
             }
         }
     }

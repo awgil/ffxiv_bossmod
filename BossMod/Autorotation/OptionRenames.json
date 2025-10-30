@@ -1,0 +1,3128 @@
+[
+  {
+    "Module": "BossMod.Autorotation.VeynBRD",
+    "Option": "AOE",
+    "Before": "ST",
+    "After": "SingleTarget"
+  },
+  {
+    "Module": "BossMod.Autorotation.VeynBRD",
+    "Option": "AOE",
+    "Before": "AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.VeynBRD",
+    "Option": "Songs",
+    "Before": "Automatic (3-6-9)",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.VeynWAR",
+    "Option": "AOE",
+    "Before": "ST",
+    "After": "SingleTarget"
+  },
+  {
+    "Module": "BossMod.Autorotation.VeynWAR",
+    "Option": "AOE",
+    "Before": "AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassASTUtility",
+    "Option": "EarthlyStar",
+    "Before": "Earthly Star",
+    "After": "Use"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassASTUtility",
+    "Option": "EarthlyStar",
+    "Before": "Stellar Detonation",
+    "After": "End"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassASTUtility",
+    "Option": "Horoscope",
+    "Before": "UseEx",
+    "After": "End"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassASTUtility",
+    "Option": "Macrocosmos",
+    "Before": "UseEx",
+    "After": "End"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassBRDUtility",
+    "Option": "Troubadour",
+    "Before": "Use",
+    "After": "Use87"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassBRDUtility",
+    "Option": "Troubadour",
+    "Before": "UseIfNotActive",
+    "After": "Use87IfNotActive"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDNCUtility",
+    "Option": "Shield Samba",
+    "Before": "Use",
+    "After": "Use87"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDNCUtility",
+    "Option": "Shield Samba",
+    "Before": "UseIfNotActive",
+    "After": "Use87IfNotActive"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDRKUtility",
+    "Option": "ShadowWall",
+    "Before": "Use",
+    "After": "ShadowWall"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDRKUtility",
+    "Option": "ShadowWall",
+    "Before": "UseEx",
+    "After": "ShadowedVigil"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDRKUtility",
+    "Option": "TheBlackestNight",
+    "Before": "Use",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassDRKUtility",
+    "Option": "Oblation",
+    "Before": "Use",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassGNBUtility",
+    "Option": "Aurora",
+    "Before": "Use",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassGNBUtility",
+    "Option": "Aurora",
+    "Before": "UseHold1",
+    "After": "ForceHold1"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassGNBUtility",
+    "Option": "HeartOfCorundum",
+    "Before": "HoS",
+    "After": "HeartOfStone"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassGNBUtility",
+    "Option": "HeartOfCorundum",
+    "Before": "HoC",
+    "After": "HeartOfCorundum"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassMCHUtility",
+    "Option": "Tactician",
+    "Before": "Use",
+    "After": "Use87"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassMCHUtility",
+    "Option": "Tactician",
+    "Before": "UseIfNotActive",
+    "After": "Use87IfNotActive"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassNINUtility",
+    "Option": "Shukuchi",
+    "Before": "Automatic",
+    "After": "None"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPCTUtility",
+    "Option": "Tempera Coat",
+    "Before": "Tempera Coat Only",
+    "After": "CoatOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPCTUtility",
+    "Option": "Tempera Coat",
+    "Before": "Tempera Coat \u002B Grassa ASAP",
+    "After": "CoatGrassaASAP"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPCTUtility",
+    "Option": "Tempera Coat",
+    "Before": "Tempera Coat \u002B Grassa when available",
+    "After": "CoatGrassaWhenever"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPLDUtility",
+    "Option": "Sentinel",
+    "Before": "Use",
+    "After": "Sentinel"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassPLDUtility",
+    "Option": "Sentinel",
+    "Before": "UseEx",
+    "After": "Guardian"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSAMUtility",
+    "Option": "ThirdEye",
+    "Before": "Use",
+    "After": "ThirdEye"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSAMUtility",
+    "Option": "ThirdEye",
+    "Before": "UseEx",
+    "After": "Tengentsu"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSCHUtility",
+    "Option": "Succor",
+    "Before": "Use",
+    "After": "Succor"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSCHUtility",
+    "Option": "Succor",
+    "Before": "UseEx",
+    "After": "Concitation"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassSCHUtility",
+    "Option": "Aetherpact",
+    "Before": "UseEx",
+    "After": "End"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "Vengeance",
+    "Before": "Use",
+    "After": "Vengeance"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "Vengeance",
+    "Before": "UseEx",
+    "After": "Damnation"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "BW",
+    "Before": "BW",
+    "After": "Bloodwhetting"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "BW",
+    "Before": "RI",
+    "After": "RawIntuition"
+  },
+  {
+    "Module": "BossMod.Autorotation.ClassWARUtility",
+    "Option": "BW",
+    "Before": "NF",
+    "After": "NascentFlash"
+  },
+  {
+    "Module": "BossMod.Autorotation.Utility.RolePvPUtility",
+    "Option": "Guard",
+    "Before": "2 Targets",
+    "After": "Two"
+  },
+  {
+    "Module": "BossMod.Autorotation.Utility.RolePvPUtility",
+    "Option": "Guard",
+    "Before": "3 Targets",
+    "After": "Three"
+  },
+  {
+    "Module": "BossMod.Autorotation.Utility.RolePvPUtility",
+    "Option": "Guard",
+    "Before": "4 Targets",
+    "After": "Four"
+  },
+  {
+    "Module": "BossMod.Autorotation.Standard.xan.Utility.ThirdEye",
+    "Option": "ThirdEye",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "Raise",
+    "Before": "Don\u0027t automatically raise",
+    "After": "None"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "Raise",
+    "Before": "Raise using Swiftcast only",
+    "After": "Swiftcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "Raise",
+    "Before": "Allow raising without Swiftcast (not applicable to RDM)",
+    "After": "Slowcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "RaiseTargets",
+    "Before": "Party members",
+    "After": "Party"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "RaiseTargets",
+    "Before": "Alliance raid members",
+    "After": "Alliance"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.Caster",
+    "Option": "RaiseTargets",
+    "Before": "Any dead player",
+    "After": "Everyone"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "Raise",
+    "Before": "Don\u0027t automatically raise",
+    "After": "None"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "Raise",
+    "Before": "Raise using Swiftcast only",
+    "After": "Swiftcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "Raise",
+    "Before": "Raise without requiring Swiftcast to be available",
+    "After": "Slowcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "Raise",
+    "Before": "Never use Swiftcast to raise",
+    "After": "Hardcast"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "RaiseTargets",
+    "Before": "Party members",
+    "After": "Party"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "RaiseTargets",
+    "Before": "Alliance raid members",
+    "After": "Alliance"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.HealerAI",
+    "Option": "RaiseTargets",
+    "Before": "Any dead player",
+    "After": "Everyone"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Before": "Use first available damage action that isn\u0027t Starfall",
+    "After": "AutoConservative"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Before": "Use first available damage action; allow Starfall if HP is high enough",
+    "After": "AutoGreedy"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Before": "Use Starfall, regardless of HP",
+    "After": "AutoSuperGreedy"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Before": "Use Blessing (heal)",
+    "After": "HealOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PhantomAI",
+    "Option": "Predict",
+    "Before": "Don\u0027t use",
+    "After": "Disabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.TankAI",
+    "Option": "Stance",
+    "Before": "Leech",
+    "After": "LeechMode"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.VariantAI",
+    "Option": "Rampart",
+    "Before": "Shield",
+    "After": "PermaShield"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.VariantAI",
+    "Option": "Rampart",
+    "Before": "Buff",
+    "After": "PermaBuff"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.BLU",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.BLM",
+    "Option": "LL",
+    "Before": "Opener",
+    "After": "OpenerOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PCT",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PCT",
+    "Option": "Holy",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PCT",
+    "Option": "Hammer",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RDM",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SMN",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SMN",
+    "Option": "Cyclone",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.AST",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SCH",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SCH",
+    "Option": "FairyPlace",
+    "Before": "Do not automatically move fairy",
+    "After": "Manual"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SCH",
+    "Option": "FairyPlace",
+    "Before": "Automatically order fairy to follow player when combat ends",
+    "After": "AutoHeel"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SCH",
+    "Option": "FairyPlace",
+    "Before": "Automatically place fairy at arena center (if one exists) - order fairy to follow when out of combat",
+    "After": "FullAuto"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SGE",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.WHM",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.WHM",
+    "Option": "Afflatus Misery",
+    "Before": "Buffs",
+    "After": "BuffedOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRG",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "BH",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "RoF",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "RoF",
+    "Before": "ForceMid",
+    "After": "ForceMidWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FiresReply",
+    "Before": "Use after Opo GCD",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FiresReply",
+    "Before": "Use when out of melee range, or if about to expire",
+    "After": "Ranged"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FiresReply",
+    "Before": "Use ASAP",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FiresReply",
+    "Before": "Do not use",
+    "After": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "RoW",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "WindsReply",
+    "Before": "Use out of melee range, or if about to expire",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "WindsReply",
+    "Before": "Use ASAP",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "WindsReply",
+    "Before": "Ensure usage at least 2 GCDs before next downtime",
+    "After": "PreDowntime"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Before": "Automatically use after Opo before or during Riddle of Fire",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Before": "Use ASAP after next Opo",
+    "After": "ForceOpo"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Before": "Use ASAP",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Before": "Do not use",
+    "After": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Before": "Downtime prep: Solar",
+    "After": "DowntimeSolar"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "PB",
+    "Before": "Downtime prep: Lunar",
+    "After": "DowntimeLunar"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Nadi",
+    "Before": "Automatically choose best nadi (double lunar opener, otherwise alternate)",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Before": "Use ASAP",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Before": "Hold blitz until Riddle of Fire is active",
+    "After": "RoF"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Before": "Hold blitz until at least two targets will be hit",
+    "After": "Multi"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Before": "Hold blitz until Riddle of Fire and 2\u002B targets",
+    "After": "MultiRoF"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Blitz",
+    "Before": "Do not use",
+    "After": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "SixSidedStar",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "FormShift",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Meditate",
+    "Before": "Use out of combat, during countdown, or if no enemies are targetable",
+    "After": "Safe"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Meditate",
+    "Before": "Allow using when primary enemy is targetable, but out of range",
+    "After": "Greedy"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Meditate",
+    "Before": "Use even if enemy is in melee range",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Meditate",
+    "Before": "Do not use",
+    "After": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "TC",
+    "Before": "Do not use",
+    "After": "None"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "TC",
+    "Before": "Use if outside melee range",
+    "After": "GapClose"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Pot",
+    "Before": "Do not automatically use",
+    "After": "Manual"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Pot",
+    "Before": "Use ~4 GCDs before raid buff window",
+    "After": "PreBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Pot",
+    "Before": "Use ASAP",
+    "After": "Now"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Engage",
+    "Before": "Thunderclap to target",
+    "After": "TC"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Engage",
+    "Before": "Sprint to melee range",
+    "After": "Sprint"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Engage",
+    "Before": "Precast Dragon Kick from melee range",
+    "After": "FacepullDK"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "Engage",
+    "Before": "Precast Demolish from melee range",
+    "After": "FacepullDemo"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MNK",
+    "Option": "TrueNorth",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.NIN",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.NIN",
+    "Option": "Hide",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.NIN",
+    "Option": "Forked Raiju",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RPR",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RPR",
+    "Option": "Harpe",
+    "Before": "Use out of melee range if Enhanced Harpe is active",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RPR",
+    "Option": "Harpe",
+    "Before": "Don\u0027t use",
+    "After": "Forbid"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.RPR",
+    "Option": "Harpe",
+    "Before": "Use out of melee range",
+    "After": "Ranged"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SAM",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.SAM",
+    "Option": "Higanbana",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.VPR",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.BRD",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DNC",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DNC",
+    "Option": "Partner",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Queen",
+    "Before": "Min",
+    "After": "MinGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Queen",
+    "Before": "Full",
+    "After": "FullGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Queen",
+    "Before": "Buffed",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Hypercharge",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.MCH",
+    "Option": "Tools",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Before": "Use to refresh Darkside, or during raid buffs",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Before": "Use to refresh Darkside, or during raid buffs - save MP for TBN",
+    "After": "AutomaticTBN"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Before": "Do not use",
+    "After": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Before": "Use ASAP",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.DRK",
+    "Option": "Edge",
+    "Before": "Use ASAP - save MP for TBN",
+    "After": "ForceTBN"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.GNB",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Buffs",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Intervene",
+    "Before": "Use during burst window",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Intervene",
+    "Before": "Use if outside melee range",
+    "After": "GapCloser"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Intervene",
+    "Before": "Do not use",
+    "After": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Before": "Use during Divine Might only; ASAP in burst, otherwise when out of melee range, or if next GCD will overwrite DM",
+    "After": "Standard"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Before": "Use ASAP during next Divine Might proc, regardless of range",
+    "After": "ForceDM"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Before": "Use now, even if in melee range or if DM is not active",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Before": "Always use when out of melee range",
+    "After": "Ranged"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "HS",
+    "Before": "Do not use",
+    "After": "Delay"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Atone",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.xan.PLD",
+    "Option": "Combo",
+    "Before": "Break",
+    "After": "BreakCombo"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AOE",
+    "Before": "Auto (Finish combo)",
+    "After": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AOE",
+    "Before": "Auto (Break combo)",
+    "After": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AOE",
+    "Before": "Force ST",
+    "After": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AOE",
+    "Before": "Force AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Before": "Dont Hold",
+    "After": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Before": "Hold",
+    "After": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Before": "Hold Gauge",
+    "After": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Before": "Hold Buffs",
+    "After": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Before": "Hold Abilities",
+    "After": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Hold",
+    "Before": "Hold Everything",
+    "After": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Potion",
+    "Before": "With Buffs",
+    "After": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Potion",
+    "Before": "With RaidBuffs",
+    "After": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "AF.Ender",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Polyglot",
+    "Before": "Force Polyglot",
+    "After": "ForceAny"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Polyglot",
+    "Before": "Force Xenoglossy",
+    "After": "ForceXeno"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Polyglot",
+    "Before": "Force Foul",
+    "After": "ForceFoul"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "MF",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "3xCast",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Swift",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "LL",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Amplifier",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Amplifier",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "Rt",
+    "Before": "Allow No Moving",
+    "After": "AllowNoMoving"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiBLM",
+    "Option": "BTL",
+    "Before": "Allow No Moving",
+    "After": "AllowNoMoving"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "AOE",
+    "Before": "Auto (Finish combo)",
+    "After": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "AOE",
+    "Before": "Auto (Break combo)",
+    "After": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "AOE",
+    "Before": "Force ST",
+    "After": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "AOE",
+    "Before": "Force AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Before": "Dont Hold",
+    "After": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Before": "Hold",
+    "After": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Before": "Hold Gauge",
+    "After": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Before": "Hold Buffs",
+    "After": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Before": "Hold Abilities",
+    "After": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Hold",
+    "Before": "Hold Everything",
+    "After": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Potion",
+    "Before": "With Buffs",
+    "After": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Potion",
+    "Before": "With RaidBuffs",
+    "After": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Combo",
+    "Before": "Force Normal ST",
+    "After": "Force123ST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Combo",
+    "Before": "Force Buffs ST",
+    "After": "ForceBuffsST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Dives",
+    "Before": "Allow Max Melee",
+    "After": "AllowMaxMelee"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Dives",
+    "Before": "Allow Close Melee",
+    "After": "AllowCloseMelee"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Elusive Jump",
+    "Before": "Character Forward",
+    "After": "CharacterForward"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Elusive Jump",
+    "Before": "Character Backward",
+    "After": "CharacterBackward"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Elusive Jump",
+    "Before": "Camera Forward",
+    "After": "CameraForward"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Elusive Jump",
+    "Before": "Camera Backward",
+    "After": "CameraBackward"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Lance Charge",
+    "Before": "Raid Buffs Only",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Lance Charge",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "BattleLitany",
+    "Before": "Raid Buffs Only",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "BattleLitany",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Life Surge",
+    "Before": "When Buffed",
+    "After": "WhenBuffed"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Life Surge",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Life Surge",
+    "Before": "Force Optimally",
+    "After": "ForceNextOpti"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Life Surge",
+    "Before": "Force Weave Optimally",
+    "After": "ForceNextOptiWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Dragonfire Dive",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Dragonfire Dive",
+    "Before": "Force Weave (EX)",
+    "After": "ForceWeaveEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Geirskogul",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Geirskogul",
+    "Before": "Force Weave (EX)",
+    "After": "ForceWeaveEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Stardiver",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Stardiver",
+    "Before": "Force Weave (EX)",
+    "After": "ForceWeaveEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Jump",
+    "Before": "Force Jump",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Jump",
+    "Before": "Force Jump (EX)",
+    "After": "ForceEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Jump",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Jump",
+    "Before": "Force Weave (EX)",
+    "After": "ForceWeaveEX"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Mirage Dive",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Mirage Dive",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Nastrond",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Nastrond",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Wyrmwind Thrust",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Wyrmwind Thrust",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Rise Of The Dragon",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Rise Of The Dragon",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Starcross",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRG",
+    "Option": "Starcross",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "AOE",
+    "Before": "Auto (Finish combo)",
+    "After": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "AOE",
+    "Before": "Auto (Break combo)",
+    "After": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "AOE",
+    "Before": "Force ST",
+    "After": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "AOE",
+    "Before": "Force AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Before": "Dont Hold",
+    "After": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Before": "Hold",
+    "After": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Before": "Hold Gauge",
+    "After": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Before": "Hold Buffs",
+    "After": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Before": "Hold Abilities",
+    "After": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Hold",
+    "Before": "Hold Everything",
+    "After": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Potion",
+    "Before": "With Buffs",
+    "After": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Potion",
+    "Before": "With RaidBuffs",
+    "After": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Opener",
+    "Before": "Air Anchor",
+    "After": "AirAnchor"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Opener",
+    "Before": "Chain Saw",
+    "After": "ChainSaw"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Heat Option",
+    "Before": "Heat Blast",
+    "After": "OnlyHeatBlast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Heat Option",
+    "Before": "Auto Crossbow",
+    "After": "OnlyAutoCrossbow"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Battery",
+    "Before": "50",
+    "After": "Fifty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Battery",
+    "Before": "100",
+    "After": "Hundred"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Battery",
+    "Before": "Raid Buffs",
+    "After": "RaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Reassemble",
+    "Before": "Hold One",
+    "After": "HoldOne"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Before": "Hold One",
+    "After": "HoldOne"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Before": "Only Drill",
+    "After": "OnlyDrill"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Before": "Only Bioblaster",
+    "After": "OnlyBioblaster"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Before": "Force Drill",
+    "After": "ForceDrill"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Drill",
+    "Before": "Force Bioblaster",
+    "After": "ForceBioblaster"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Barrel Stabilizer",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Barrel Stabilizer",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Air Anchor",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Air Anchor",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "ChainSaw",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "ChainSaw",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Gauss Round",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Gauss Round",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Double Check",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Double Check",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Ricochet",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Ricochet",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Checkmate",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Checkmate",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Excavator",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Excavator",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Full Metal Field",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCH",
+    "Option": "Full Metal Field",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "AOE",
+    "Before": "Auto (Finish combo)",
+    "After": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "AOE",
+    "Before": "Auto (Break combo)",
+    "After": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "AOE",
+    "Before": "Force ST",
+    "After": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "AOE",
+    "Before": "Force AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Before": "Dont Hold",
+    "After": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Before": "Hold",
+    "After": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Before": "Hold Gauge",
+    "After": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Before": "Hold Buffs",
+    "After": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Before": "Hold Abilities",
+    "After": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Hold",
+    "Before": "Hold Everything",
+    "After": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Potion",
+    "Before": "With Buffs",
+    "After": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Potion",
+    "Before": "With RaidBuffs",
+    "After": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Energy Drain",
+    "Before": "UseAll",
+    "After": "Use3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Chain Stratagem",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Chain Stratagem",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Aetherflow",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSCH",
+    "Option": "Aetherflow",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Targeting",
+    "Before": "Automatic",
+    "After": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Role Actions",
+    "Before": "Full Swing",
+    "After": "FullSwing"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Before": "5 Stacks",
+    "After": "Five"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Before": "4 Stacks",
+    "After": "Four"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Before": "3 Stacks",
+    "After": "Three"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Before": "2 Stacks",
+    "After": "Two"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Terminal Trigger",
+    "Before": "1 Stack",
+    "After": "One"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "Automatic",
+    "After": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "2 Targets",
+    "After": "Two"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "3 Targets",
+    "After": "Three"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "4 Targets",
+    "After": "Four"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "80% HP",
+    "After": "Eighty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "70% HP",
+    "After": "Seventy"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "60% HP",
+    "After": "Sixty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "50% HP",
+    "After": "Fifty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "40% HP",
+    "After": "Fourty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Heart of Corundum",
+    "Before": "30% HP",
+    "After": "Thirty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Rough Divide",
+    "Before": "Automatic",
+    "After": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Rough Divide",
+    "Before": "Automatic (Melee Range)",
+    "After": "AutoMelee"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Blasting Zone",
+    "Before": "Half HPP",
+    "After": "HalfHPP"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Blasting Zone",
+    "Before": "Buff or Half HPP",
+    "After": "BuffOrHalfHPP"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNBPvP",
+    "Option": "Blasting Zone",
+    "Before": "Buff and Half HPP",
+    "After": "BuffAndHalfHPP"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Targeting",
+    "Before": "Automatic",
+    "After": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Role Actions",
+    "Before": "Eagle Eye Shot",
+    "After": "EagleEyeShot"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Limit Break",
+    "Before": "Less than 70%",
+    "After": "LessThan70"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Limit Break",
+    "Before": "Less than 60%",
+    "After": "LessThan60"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Limit Break",
+    "Before": "Less than 50%",
+    "After": "LessThan50"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Limit Break",
+    "Before": "Less than 40%",
+    "After": "LessThan40"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Analysis",
+    "Before": "Drill",
+    "After": "DrillAA"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Analysis",
+    "Before": "Bioblaster",
+    "After": "BBCS"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Tools",
+    "Before": "Buff or Overcap",
+    "After": "BuffOrOvercap"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiMCHPvP",
+    "Option": "Turret Placement",
+    "Before": "Crystal or Target",
+    "After": "CrystalOrTarget"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Targeting",
+    "Before": "Automatic",
+    "After": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Role Actions",
+    "Before": "Phantom Dart",
+    "After": "PhantomDart"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "LB Placement",
+    "Before": "Crystal or Target",
+    "After": "CrystalOrTarget"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Before": "Automatic",
+    "After": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Before": "2 Targets",
+    "After": "Two"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Before": "3 Targets",
+    "After": "Three"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Before": "4 Targets",
+    "After": "Four"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Before": "Less than Full",
+    "After": "LessThanFull"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Before": "Less than 75%",
+    "After": "LessThan75"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Radiant Aegis",
+    "Before": "Less than 50%",
+    "After": "LessThan50"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Crimson Cyclone",
+    "Before": "5 yalms",
+    "After": "Five"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Crimson Cyclone",
+    "Before": "10 yalms",
+    "After": "Ten"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Crimson Cyclone",
+    "Before": "15 yalms",
+    "After": "Fifteen"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiSMNPvP",
+    "Option": "Crimson Cyclone",
+    "Before": "20 yalms",
+    "After": "Twenty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Targeting",
+    "Before": "Automatic",
+    "After": "Auto"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Before": "80%",
+    "After": "Eighty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Before": "70%",
+    "After": "Seventy"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Before": "60%",
+    "After": "Sixty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Before": "50%",
+    "After": "Fifty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure",
+    "Before": "40%",
+    "After": "Fourty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Cure Target",
+    "Before": "Self or Party",
+    "After": "SelfOrParty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Aquaveil",
+    "Before": "Less than Full",
+    "After": "LessThanFull"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Aquaveil",
+    "Before": "Less than 75%",
+    "After": "LessThan75"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Aquaveil",
+    "Before": "Less than 50%",
+    "After": "LessThan50"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Aquaveil",
+    "Before": "Debuff Only",
+    "After": "DebuffOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Seraph Strike",
+    "Before": "20y",
+    "After": "Twenty"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Seraph Strike",
+    "Before": "15y",
+    "After": "Fifteen"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Seraph Strike",
+    "Before": "10y",
+    "After": "Ten"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiWHMPvP",
+    "Option": "Seraph Strike",
+    "Before": "5y",
+    "After": "Five"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "AOE",
+    "Before": "Auto (Finish combo)",
+    "After": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "AOE",
+    "Before": "Auto (Break combo)",
+    "After": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "AOE",
+    "Before": "Force ST",
+    "After": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "AOE",
+    "Before": "Force AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Before": "Dont Hold",
+    "After": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Before": "Hold",
+    "After": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Before": "Hold Gauge",
+    "After": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Before": "Hold Buffs",
+    "After": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Before": "Hold Abilities",
+    "After": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Hold",
+    "Before": "Hold Everything",
+    "After": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Potion",
+    "Before": "With Buffs",
+    "After": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Potion",
+    "Before": "With RaidBuffs",
+    "After": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Before": "Only Bloodspiller",
+    "After": "OnlyBloodspiller"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Before": "Only Quietus",
+    "After": "OnlyQuietus"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Before": "ASAP",
+    "After": "ForceBest"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Before": "Force Bloodspiller",
+    "After": "ForceBloodspiller"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Blood",
+    "Before": "Force Quietus",
+    "After": "ForceQuietus"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Optimal",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Auto 3k",
+    "After": "Auto3k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Auto 6k",
+    "After": "Auto6k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Auto 9k",
+    "After": "Auto9k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Auto Refresh",
+    "After": "AutoRefresh"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Edge 3k",
+    "After": "Edge3k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Edge 6k",
+    "After": "Edge6k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Edge 9k",
+    "After": "Edge9k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Edge Refresh",
+    "After": "EdgeRefresh"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Flood 3k",
+    "After": "Flood3k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Flood 6k",
+    "After": "Flood6k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Flood 9k",
+    "After": "Flood9k"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Flood Refresh",
+    "After": "FloodRefresh"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Force Edge",
+    "After": "ForceEdge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "MP",
+    "Before": "Force Flood",
+    "After": "ForceFlood"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Before": "Only Carve and Spit",
+    "After": "OnlyCarve"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Before": "Only Abysssal Drain",
+    "After": "OnlyDrain"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Before": "Force Carve and Spit",
+    "After": "ForceCarve"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "C\u0026S/AD",
+    "Before": "Force Abyssal Drain",
+    "After": "ForceDrain"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "DeliCombo",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "DeliCombo",
+    "Before": "Scarlet Delirium",
+    "After": "ScarletDelirum"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Ranged",
+    "Before": "Far (Opener)",
+    "After": "OpenerFar"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Ranged",
+    "Before": "Force (Opener)",
+    "After": "OpenerForce"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Deli",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Deli",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "SE",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "SE",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "S\u0026D",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "S\u0026D",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "LS",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "LS",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "SB",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "SB",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Disesteem",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiDRK",
+    "Option": "Disesteem",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "AOE",
+    "Before": "Auto (Finish combo)",
+    "After": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "AOE",
+    "Before": "Auto (Break combo)",
+    "After": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "AOE",
+    "Before": "Force ST",
+    "After": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "AOE",
+    "Before": "Force AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Before": "Dont Hold",
+    "After": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Before": "Hold",
+    "After": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Before": "Hold Gauge",
+    "After": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Before": "Hold Buffs",
+    "After": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Before": "Hold Abilities",
+    "After": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Hold",
+    "Before": "Hold Everything",
+    "After": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Potion",
+    "Before": "With Buffs",
+    "After": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Potion",
+    "Before": "With RaidBuffs",
+    "After": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Combo",
+    "Before": "Force ST with Overcap",
+    "After": "ForceSTwithO"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Combo",
+    "Before": "Force ST without Overcap",
+    "After": "ForceSTwithoutO"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Combo",
+    "Before": "Force AOE with Overcap",
+    "After": "ForceAOEwithO"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Combo",
+    "Before": "Force AOE without Overcap",
+    "After": "ForceAOEwithoutO"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Only Burst Strike",
+    "After": "OnlyBS"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Only Fated Circle",
+    "After": "OnlyFC"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Force Burst Strike",
+    "After": "ForceBS"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Force Burst Strike (1 cart)",
+    "After": "ForceBS1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Force Burst Strike (2 cart)",
+    "After": "ForceBS2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Force Burst Strike (3 cart)",
+    "After": "ForceBS3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Force Fated Circle",
+    "After": "ForceFC"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Force Fated Circle (1 cart)",
+    "After": "ForceFC1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Force Fated Circle (2 cart)",
+    "After": "ForceFC2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Cartridges",
+    "Before": "Force Fated Circle (3 cart)",
+    "After": "ForceFC3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Lightning Shot",
+    "Before": "Far (Opener)",
+    "After": "OpenerFar"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Lightning Shot",
+    "Before": "Force (Opener)",
+    "After": "OpenerForce"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Zone",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Zone",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Burst Ready",
+    "After": "BurstReady"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (Weave)",
+    "After": "ForceW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (Q.Weave)",
+    "After": "ForceQW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (1 cart)",
+    "After": "Force1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (1 cart, Weave)",
+    "After": "Force1W"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (1 cart, Q.Weave)",
+    "After": "Force1QW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (2 carts)",
+    "After": "Force2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (2 carts, Weave)",
+    "After": "Force2W"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (2 carts, Q.Weave)",
+    "After": "Force2QW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (3 carts)",
+    "After": "Force3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (3 carts, Weave)",
+    "After": "Force3W"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "No Mercy",
+    "Before": "Force (3 carts, Q.Weave)",
+    "After": "Force3QW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Sonic Break",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Sonic Break",
+    "Before": "Early Sonic Break",
+    "After": "Early"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Sonic Break",
+    "Before": "Late Sonic Break",
+    "After": "Late"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Before": "Force",
+    "After": "ForceGnash"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Before": "Force (1 cart)",
+    "After": "ForceGnash1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Before": "Force (2 carts)",
+    "After": "ForceGnash2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Before": "Force (3 carts)",
+    "After": "ForceGnash3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Before": "Force Savage Claw",
+    "After": "ForceClaw"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Gnashing Fang",
+    "Before": "Force Talon",
+    "After": "ForceTalon"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "BowShock",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "BowShock",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Continuation",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Bloodfest",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Bloodfest",
+    "Before": "Force (Weave)",
+    "After": "ForceW"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Bloodfest",
+    "Before": "Force (0 cart)",
+    "After": "Force0"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Bloodfest",
+    "Before": "Force (0 cart, Weave)",
+    "After": "Force0W"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "DoubleDown",
+    "Before": "Force Double Down",
+    "After": "Force"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "DoubleDown",
+    "Before": "Force Double Down (1 cart)",
+    "After": "Force1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "DoubleDown",
+    "Before": "Force Double Down (2 cart)",
+    "After": "Force2"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "DoubleDown",
+    "Before": "Force Double Down (3 cart)",
+    "After": "Force3"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Reign of Beasts",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Reign of Beasts",
+    "Before": "Force",
+    "After": "ForceReign"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Reign of Beasts",
+    "Before": "Force",
+    "After": "ForceNoble"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiGNB",
+    "Option": "Reign of Beasts",
+    "Before": "Force",
+    "After": "ForceLion"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "AOE",
+    "Before": "Auto (Finish combo)",
+    "After": "AutoFinish"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "AOE",
+    "Before": "Auto (Break combo)",
+    "After": "AutoBreak"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "AOE",
+    "Before": "Force ST",
+    "After": "ForceST"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "AOE",
+    "Before": "Force AOE",
+    "After": "ForceAOE"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Before": "Dont Hold",
+    "After": "DontHold"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Before": "Hold",
+    "After": "HoldCooldowns"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Before": "Hold Gauge",
+    "After": "HoldGauge"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Before": "Hold Buffs",
+    "After": "HoldBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Before": "Hold Abilities",
+    "After": "HoldAbilities"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Hold",
+    "Before": "Hold Everything",
+    "After": "HoldEverything"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Potion",
+    "Before": "With Buffs",
+    "After": "AlignWithBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Potion",
+    "Before": "With RaidBuffs",
+    "After": "AlignWithRaidBuffs"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Atones",
+    "Before": "Force Atonement",
+    "After": "ForceAtonement"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Atones",
+    "Before": "Force Supplication",
+    "After": "ForceSupplication"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Atones",
+    "Before": "Force Sepulchre",
+    "After": "ForceSepulchre"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Blades",
+    "Before": "Force",
+    "After": "ForceConfiteor"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Blades",
+    "Before": "Force Faith",
+    "After": "ForceFaith"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Blades",
+    "Before": "Force Truth",
+    "After": "ForceTruth"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Blades",
+    "Before": "Force Valor",
+    "After": "ForceValor"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "FoF",
+    "Before": "Raid Buffs Only",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "FoF",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Req.",
+    "Before": "Raid Buffs Only",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Req.",
+    "Before": "Force Weave",
+    "After": "ForceWeave"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Holy",
+    "Before": "Spirit",
+    "After": "OnlySpirit"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Holy",
+    "Before": "Circle",
+    "After": "OnlyCircle"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Holy",
+    "Before": "Spirit",
+    "After": "ForceSpirit"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Holy",
+    "Before": "Circle",
+    "After": "ForceCircle"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Dash",
+    "Before": "Force (Hold 1)",
+    "After": "Force1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Dash",
+    "Before": "Gap Close",
+    "After": "GapClose"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Dash",
+    "Before": "Gap Close (Hold 1)",
+    "After": "GapClose1"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Before": "Opener (Cast)",
+    "After": "OpenerRangedCast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Before": "Opener",
+    "After": "OpenerCast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Before": "Force Cast",
+    "After": "ForceCast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Before": "Ranged Cast",
+    "After": "RangedCast"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Before": "Ranged Cast Stationary",
+    "After": "RangedCastStationary"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "Ranged",
+    "Before": "Opener (Lob)",
+    "After": "OpenerRanged"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "SW",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "SW",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "CoS",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "CoS",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "BoH",
+    "Before": "Auto",
+    "After": "Automatic"
+  },
+  {
+    "Module": "BossMod.Autorotation.akechi.AkechiPLD",
+    "Option": "BoH",
+    "Before": "With Buffs",
+    "After": "RaidBuffsOnly"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.FateUtils",
+    "Option": "Hand-in",
+    "Before": "Automatically hand in FATE items at 10\u002B",
+    "After": "Enabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.FateUtils",
+    "Option": "Hand-in",
+    "Before": "Do nothing",
+    "After": "Disabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.FateUtils",
+    "Option": "Collect",
+    "Before": "Try to collect FATE items instead of engaging in combat",
+    "After": "Enabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.FateUtils",
+    "Option": "Collect",
+    "Before": "Do nothing",
+    "After": "Disabled"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.NormalMovement",
+    "Option": "Range",
+    "Before": "MaxMelee",
+    "After": "MaxRange"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.NormalMovement",
+    "Option": "Range",
+    "Before": "MeleeGreedGCDExplicit",
+    "After": "GreedGCDExplicit"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.NormalMovement",
+    "Option": "Range",
+    "Before": "MeleeGreedLastMomentExplicit",
+    "After": "GreedLastMomentExplicit"
+  },
+  {
+    "Module": "BossMod.Autorotation.MiscAI.NormalMovement",
+    "Option": "Range",
+    "Before": "MeleeGreedAutomatic",
+    "After": "GreedAutomatic"
+  }
+]

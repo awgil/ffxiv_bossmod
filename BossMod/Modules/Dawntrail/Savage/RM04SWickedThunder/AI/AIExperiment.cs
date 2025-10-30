@@ -14,15 +14,15 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
     {
         var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(RM04SWickedThunder), DevMode: true);
         res.Define(Track.ElectrifyingWitchHunt).As<ElectrifyingWitchHuntStrategy>("ElectrifyingWitchHunt", "EWH")
-            .AddOption(ElectrifyingWitchHuntStrategy.None, "None", "Do nothing")
-            .AddOption(ElectrifyingWitchHuntStrategy.NWNear, "NWNear", "NW prefer near (MT spot)");
+            .AddOption(ElectrifyingWitchHuntStrategy.None, "Do nothing")
+            .AddOption(ElectrifyingWitchHuntStrategy.NWNear, "NW prefer near (MT spot)");
         res.Define(Track.WNWitchHunt).As<WNWitchHuntStrategy>("WNWitchHuntStrategy", "WNWH")
-            .AddOption(WNWitchHuntStrategy.None, "None", "Do nothing")
-            .AddOption(WNWitchHuntStrategy.BaitFirstAny, "BaitFirstAny", "Bait first any")
-            .AddOption(WNWitchHuntStrategy.BaitFirstNear, "BaitFirstNear", "Bait first near (first or second)");
+            .AddOption(WNWitchHuntStrategy.None, "Do nothing")
+            .AddOption(WNWitchHuntStrategy.BaitFirstAny, "Bait first any")
+            .AddOption(WNWitchHuntStrategy.BaitFirstNear, "Bait first near (first or second)");
         res.Define(Track.IonClusterPlatform).As<IonClusterPlatformStrategy>("IonClusterPlatformStrategy", "IonPlatform")
-            .AddOption(IonClusterPlatformStrategy.None, "None", "Do nothing")
-            .AddOption(IonClusterPlatformStrategy.MaxUptime, "MaxUptime", "Max uptime");
+            .AddOption(IonClusterPlatformStrategy.None, "Do nothing")
+            .AddOption(IonClusterPlatformStrategy.MaxUptime, "Max uptime");
         return res;
     }
 

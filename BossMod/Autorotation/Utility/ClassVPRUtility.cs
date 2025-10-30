@@ -13,10 +13,10 @@ public sealed class ClassVPRUtility(RotationModuleManager manager, Actor player)
         DefineShared(res, IDLimitBreak3);
 
         res.Define(Track.Slither).As<DashStrategy>("Slither", "", 20)
-            .AddOption(DashStrategy.None, "None", "No use")
-            .AddOption(DashStrategy.GapClose, "GapClose", "Use as gapcloser if outside melee range; uses all charges if needed", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
-            .AddOption(DashStrategy.GapCloseHold1, "GapCloseHold1", "Use as gapcloser if outside melee range; holds 1 charge for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
-            .AddOption(DashStrategy.GapCloseHold2, "GapCloseHold2", "Use as gapcloser if outside melee range; holds 2 charges for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 84)
+            .AddOption(DashStrategy.None, "No use")
+            .AddOption(DashStrategy.GapClose, "Use as gapcloser if outside melee range; uses all charges if needed", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
+            .AddOption(DashStrategy.GapCloseHold1, "Use as gapcloser if outside melee range; holds 1 charge for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 35)
+            .AddOption(DashStrategy.GapCloseHold2, "Use as gapcloser if outside melee range; holds 2 charges for manual usage", 30, 0, ActionTargets.Party | ActionTargets.Hostile, 84)
             .AddAssociatedActions(VPR.AID.Slither);
 
         return res;
