@@ -216,9 +216,9 @@ class Border(BossModule module) : Components.GenericAOEs(module)
     // TODO: eventobjs moved???????
     private int FindPlatform(Actor act) => SidePlatforms.FindIndex(p => (OriginalCenter + p).AlmostEqual(act.Position, 1));
 
-    public override void OnActorEAnim(Actor act, uint state)
+    public override void OnActorEAnim(Actor actor, uint state)
     {
-        if (act.OID == 0x1EA1A1)
+        if (actor.OID == 0x1EA1A1)
         {
             switch (state)
             {
@@ -227,16 +227,16 @@ class Border(BossModule module) : Components.GenericAOEs(module)
                         Advance(0);
                     break;
                 case 0x00100020:
-                    var tile = FindPlatform(act);
+                    var tile = FindPlatform(actor);
                     if (tile < 0)
-                        Module.ReportError(this, $"unmatched tile for {act} @ {act.Position} ({act.Position - OriginalCenter})");
+                        Module.ReportError(this, $"unmatched tile for {actor} @ {actor.Position} ({actor.Position - OriginalCenter})");
                     else
                         UnsafePlatforms.Set(tile);
                     break;
                 case 0x00040008:
-                    var tile2 = FindPlatform(act);
+                    var tile2 = FindPlatform(actor);
                     if (tile2 < 0)
-                        Module.ReportError(this, $"unmatched tile for {act} @ {act.Position} ({act.Position - OriginalCenter})");
+                        Module.ReportError(this, $"unmatched tile for {actor} @ {actor.Position} ({actor.Position - OriginalCenter})");
                     else
                     {
                         UnsafePlatforms.Clear(tile2);
