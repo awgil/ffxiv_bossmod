@@ -198,6 +198,8 @@ public abstract record class StrategyValue
     public string Comment = "";
     public float ExpireIn = float.MaxValue;
 
+    public virtual bool IsDefault() => false;
+
     public abstract void DeserializeFields(JsonElement js);
     public abstract void SerializeFields(Utf8JsonWriter writer);
 }
@@ -211,6 +213,8 @@ public record class StrategyValueTrack : StrategyValue
     public int TargetParam; // strategy-specific parameter
     public float Offset1; // x or r coordinate
     public float Offset2; // y or phi coordinate
+
+    public override bool IsDefault() => Option == 0;
 
     public override void DeserializeFields(JsonElement js)
     {
