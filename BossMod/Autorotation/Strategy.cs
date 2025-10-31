@@ -42,8 +42,11 @@ public enum StrategyEnemySelection : int
     HighestMaxHP = 4,
 }
 
+[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
+public sealed class StrategyAttribute : Attribute { }
+
 [AttributeUsage(AttributeTargets.Field)]
-public class TrackAttribute() : Attribute
+public sealed class TrackAttribute() : Attribute
 {
     public TrackAttribute(string name) : this()
     {
@@ -67,15 +70,20 @@ public class TrackAttribute() : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Enum)]
-public class OptionAttribute(string label = "", float cooldown = 0, float effect = 0, ActionTargets targets = ActionTargets.None, int minLevel = 1, int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium) : Attribute
+public sealed class OptionAttribute() : Attribute
 {
-    public string DisplayName = label;
-    public float Cooldown = cooldown;
-    public float Effect = effect;
-    public ActionTargets Targets = targets;
-    public int MinLevel = minLevel;
-    public int MaxLevel = maxLevel;
-    public float DefaultPriority = defaultPriority;
+    public OptionAttribute(string name) : this()
+    {
+        DisplayName = name;
+    }
+
+    public string DisplayName = "";
+    public float Cooldown;
+    public float Effect;
+    public ActionTargets Targets = ActionTargets.None;
+    public int MinLevel = 1;
+    public int MaxLevel = int.MaxValue;
+    public float DefaultPriority = ActionQueue.Priority.Medium;
 }
 
 public abstract record class StrategyConfig(

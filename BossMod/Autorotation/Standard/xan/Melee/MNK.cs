@@ -98,41 +98,41 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public enum PBStrategy
     {
-        [Option("Use in Raptor form, during or right before burst window", minLevel: 50)]
+        [Option("Use in Raptor form, during or right before burst window", MinLevel = 50)]
         Automatic,
-        [Option("Use ASAP in next Raptor form", minLevel: 50)]
+        [Option("Use ASAP in next Raptor form", MinLevel = 50)]
         ForceOpo,
-        [Option("Use immediately", minLevel: 50)]
+        [Option("Use immediately", MinLevel = 50)]
         Force,
-        [Option("Don't use", minLevel: 50)]
+        [Option("Don't use", MinLevel = 50)]
         Delay,
-        [Option("Downtime prep: Solar", minLevel: 60, effect: 39)]
+        [Option("Downtime prep: Solar", MinLevel = 60, Effect = 39)]
         DowntimeSolar,
-        [Option("Downtime prep: Lunar", minLevel: 60, effect: 39)]
+        [Option("Downtime prep: Lunar", MinLevel = 60, Effect = 39)]
         DowntimeLunar
     }
 
     public enum NadiStrategy
     {
-        [Option("Automatically choose best nadi", minLevel: 60)]
+        [Option("Automatically choose best nadi", MinLevel = 60)]
         Automatic,
-        [PropertyDisplay("Lunar", 0xFFDB8BCA), Option(minLevel: 60)]
+        [PropertyDisplay("Lunar", 0xFFDB8BCA), Option(MinLevel = 60)]
         Lunar,
-        [PropertyDisplay("Solar", 0xFF8EE6FA), Option(minLevel: 60)]
+        [PropertyDisplay("Solar", 0xFF8EE6FA), Option(MinLevel = 60)]
         Solar
     }
 
     public enum BlitzStrategy
     {
-        [Option("Use ASAP", minLevel: 60)]
+        [Option("Use ASAP", MinLevel = 60)]
         Automatic,
-        [Option("Hold until Riddle of Fire is active", minLevel: 60)]
+        [Option("Hold until Riddle of Fire is active", MinLevel = 60)]
         RoF,
-        [Option("Hold until at least two targets will be hit", minLevel: 60)]
+        [Option("Hold until at least two targets will be hit", MinLevel = 60)]
         Multi,
-        [Option("Hold until RoF and multiple targets", minLevel: 60)]
+        [Option("Hold until RoF and multiple targets", MinLevel = 60)]
         MultiRoF,
-        [Option("Don't use", minLevel: 60)]
+        [Option("Don't use", MinLevel = 60)]
         Delay
     }
 
@@ -150,9 +150,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public enum TCStrategy
     {
-        [Option("Don't use", minLevel: 35)]
+        [Option("Don't use", MinLevel = 35)]
         None,
-        [Option("Use if outside melee range", minLevel: 35, targets: ActionTargets.Party | ActionTargets.Hostile)]
+        [Option("Use if outside melee range", MinLevel = 35, Targets = ActionTargets.Party | ActionTargets.Hostile)]
         GapClose
     }
 
