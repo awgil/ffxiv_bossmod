@@ -7,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Mind)
 {
     public enum Track { Assize = SharedTrack.Count, Misery }
-    public enum AssizeStrategy { None, HitSomething, HitEverything }
+    public enum AssizeStrategy { HitSomething, None, HitEverything }
     public enum MiseryStrategy { ASAP, BuffedOnly, Delay }
 
     public static RotationModuleDefinition Definition()
@@ -16,8 +16,8 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         def.DefineShared().AddAssociatedActions(AID.PresenceOfMind);
         def.Define(Track.Assize).As<AssizeStrategy>("Assize")
-            .AddOption(AssizeStrategy.None, "Don't automatically use")
             .AddOption(AssizeStrategy.HitSomething, "Use if it would hit any priority target")
+            .AddOption(AssizeStrategy.None, "Don't automatically use")
             .AddOption(AssizeStrategy.HitEverything, "Use if it would hit all priority targets");
         def.Define(Track.Misery).As<MiseryStrategy>("Afflatus Misery")
             .AddOption(MiseryStrategy.ASAP, "Use on best target at 3 Blood Lilies")
