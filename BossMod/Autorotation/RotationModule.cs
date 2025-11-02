@@ -57,11 +57,10 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
 
     public readonly ref struct ConfigRef<Index>(StrategyConfigTrack config) where Index : Enum
     {
-        public ConfigRef<Index> AddOption(Index expectedIndex, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = int.MaxValue,
-            float defaultPriority = ActionQueue.Priority.Medium)
+        public ConfigRef<Index> AddOption(Index expectedIndex, string displayName = "", float cooldown = 0, float effect = 0, ActionTargets supportedTargets = ActionTargets.None, int minLevel = 1, int maxLevel = int.MaxValue, float defaultPriority = ActionQueue.Priority.Medium, string? internalNameOverride = null)
         {
             var idx = (int)(object)expectedIndex;
-            var internalName = expectedIndex.ToString();
+            var internalName = internalNameOverride ?? expectedIndex.ToString();
             if (config.Options.Count != idx)
                 throw new ArgumentException($"Unexpected index value for {internalName}: expected {expectedIndex} ({idx}), got {config.Options.Count}");
             config.Options.Add(new(internalName, displayName)
@@ -110,39 +109,56 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority));
     }
 
-    public RotationModuleDefinition WithConfig<S>() where S : struct
+    public RotationModuleDefinition WithStrategies<S>()
     {
-        var sType = typeof(S);
-
-        foreach (var field in sType.GetFields())
+        foreach (var field in typeof(S).GetFields())
         {
-            if (field.GetCustomAttribute<TrackAttribute>() is { } trackInfo)
+            if (field.FieldType.Name == typeof(Track<>).Name)
             {
-                var inner = field.FieldType;
-                if (inner.GetGenericArguments().Count() > 0)
-                    inner = field.FieldType.GetGenericArguments()[0];
-                if (!inner.IsEnum)
-                    throw new ArgumentException($"field {field.Name} of {sType.Name} should be an enum if it is marked as Track");
-                var trackCfg = new StrategyConfigTrack(inner, field.Name, trackInfo.DisplayName, trackInfo.UiPriority);
+                var inner = field.FieldType.GetGenericArguments()[0];
 
-                foreach (var variantName in inner.GetEnumNames())
+                if (inner.IsEnum)
                 {
-                    var variantField = inner.GetField(variantName)!;
-                    var fieldSettings = variantField.GetCustomAttribute<OptionAttribute>() ?? new OptionAttribute();
+                    var trackInfo = field.GetCustomAttribute<TrackAttribute>() ?? new();
 
-                    trackCfg.Options.Add(new(variantField.Name, fieldSettings.DisplayName)
+                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName, trackInfo.UiPriority);
+
+                    foreach (var variantName in inner.GetEnumNames())
                     {
-                        Cooldown = fieldSettings.Cooldown,
-                        Effect = fieldSettings.Effect,
-                        SupportedTargets = fieldSettings.Targets,
-                        MinLevel = fieldSettings.MinLevel,
-                        MaxLevel = fieldSettings.MaxLevel,
-                        DefaultPriority = fieldSettings.DefaultPriority
-                    });
+                        var variantField = inner.GetField(variantName)!;
+                        var fieldSettings = variantField.GetCustomAttribute<OptionAttribute>() ?? new OptionAttribute();
+
+                        trackCfg.Options.Add(new(variantField.Name, fieldSettings.DisplayName)
+                        {
+                            Cooldown = fieldSettings.Cooldown,
+                            Effect = fieldSettings.Effect,
+                            SupportedTargets = fieldSettings.Targets,
+                            MinLevel = fieldSettings.MinLevel,
+                            MaxLevel = fieldSettings.MaxLevel,
+                            DefaultPriority = fieldSettings.DefaultPriority
+                        });
+                    }
+
+                    Configs.Add(trackCfg);
+                    continue;
                 }
 
-                Configs.Add(trackCfg);
+                if (inner == typeof(float))
+                {
+                    var attr = field.GetCustomAttribute<NumberAttribute>() ?? new();
+                    Configs.Add(new StrategyConfigFloat(field.Name, attr.DisplayName, attr.MinValue, attr.MaxValue, attr.UiPriority, attr.Slider, attr.Speed));
+                    continue;
+                }
+
+                if (inner == typeof(int))
+                {
+                    var attr = field.GetCustomAttribute<NumberAttribute>() ?? new();
+                    Configs.Add(new StrategyConfigInt(field.Name, attr.DisplayName, (long)attr.MinValue, (long)attr.MaxValue, attr.UiPriority, attr.Slider, attr.Speed));
+                    continue;
+                }
             }
+
+            throw new ArgumentException($"not sure what to do with field {field.Name} of type {field.FieldType}");
         }
 
         return this;

@@ -238,55 +238,9 @@ public sealed class UIPresetEditor
             {
                 ms.SerializedSettings.RemoveAll(s => s.Track == track);
                 ms.SerializedSettings.Add(new(default, track, val));
+                Modified = true;
             }
         }
-
-        /*
-        using (var list = ImRaii.ListBox("###settings", width))
-        {
-            if (list)
-            {
-                for (int i = 0; i < ms.SerializedSettings.Count; ++i)
-                {
-                    var m = ms.SerializedSettings[i];
-                    var cfg = ms.Definition.Configs[m.Track];
-
-                    var selLabel = $"[{i + 1}] {cfg.UIName} [{m.Mod}] = {cfg.ToDisplayString(m.Value)}###setting{_settingGuids[i]}";
-
-                    if (ImGui.Selectable(selLabel, i == _selectedSettingIndex))
-                    {
-                        _selectedSettingIndex = i;
-                    }
-
-                    if (ImGui.IsItemActive() && !ImGui.IsItemHovered())
-                    {
-                        var j = ImGui.GetMouseDragDelta().Y < 0 ? i - 1 : i + 1;
-                        if (j >= 0 && j < ms.SerializedSettings.Count)
-                        {
-                            (ms.SerializedSettings[i], ms.SerializedSettings[j]) = (ms.SerializedSettings[j], ms.SerializedSettings[i]);
-                            (_settingGuids[i], _settingGuids[j]) = (_settingGuids[j], _settingGuids[i]);
-                            Modified = true;
-                            if (_selectedSettingIndex == i)
-                                _selectedSettingIndex = j;
-                            else if (_selectedSettingIndex == j)
-                                _selectedSettingIndex = i;
-                            ImGui.ResetMouseDragDelta();
-                        }
-                    }
-                }
-            }
-        }
-        if (UIMisc.Button("Add##setting", ms.Definition.Configs.Count == 0, "Module does not support configuration", width.X))
-            ImGui.OpenPopup("add_setting");
-
-        if (UIMisc.Button("Remove##setting", width.X, (_selectedSettingIndex < 0, "Select any strategy to remove"), (!ImGui.GetIO().KeyShift, "Hold shift")))
-        {
-            ms.SerializedSettings.RemoveAt(_selectedSettingIndex);
-            Modified = true;
-            _selectedSettingIndex = -1;
-            RebuildSettingGuids();
-        }
-        */
     }
 
     private void DrawAddSettingPopup(Preset.ModuleSettings ms, RotationModuleDefinition def)

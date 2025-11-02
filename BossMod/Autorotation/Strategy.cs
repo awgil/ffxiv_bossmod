@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using System.Text.Json;
 
 namespace BossMod.Autorotation;
@@ -42,9 +43,6 @@ public enum StrategyEnemySelection : int
     HighestMaxHP = 4,
 }
 
-[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
-public sealed class StrategyAttribute : Attribute { }
-
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class TrackAttribute() : Attribute
 {
@@ -54,6 +52,7 @@ public sealed class TrackAttribute() : Attribute
     }
 
     public string DisplayName = "";
+    public string? InternalName;
     public float UiPriority;
     public ActionID[] ActionIDs = [];
 
@@ -67,6 +66,18 @@ public sealed class TrackAttribute() : Attribute
         set => ActionIDs = [.. value.Select(v => ActionID.MakeSpell((Enum)v))];
         get => [.. ActionIDs];
     }
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class NumberAttribute() : Attribute
+{
+    public float UiPriority;
+    public string DisplayName = "";
+
+    public float MinValue;
+    public float MaxValue = float.MaxValue;
+    public float Speed = 1;
+    public bool Slider = true;
 }
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Enum)]
@@ -151,6 +162,7 @@ public record class StrategyConfigFloat(
     public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
     {
         var f = ((StrategyValueFloat)currentValue).Value;
+        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
         if (Drag)
         {
             if (ImGui.DragFloat(UIName, ref f, Speed, MinValue, MaxValue))
@@ -194,6 +206,7 @@ public record class StrategyConfigInt(
     public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
     {
         var i = ((StrategyValueInt)currentValue).Value;
+        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
         if (Drag)
         {
             if (ImGui.DragLong(UIName, ref i, Speed, MinValue, MaxValue))

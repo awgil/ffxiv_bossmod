@@ -24,7 +24,7 @@ public sealed class StayCloseToTarget(RotationModuleManager manager, Actor playe
 
         for (float f = 1.1f; f <= 30f; f = MathF.Round(f + 0.1f, 1))
         {
-            configRef.AddOption((RangeDefinition)(f * 10f - 10f));
+            configRef.AddOption((RangeDefinition)(f * 10f - 10f), internalNameOverride: f.ToString(CultureInfo.InvariantCulture));
         }
 
         return def;

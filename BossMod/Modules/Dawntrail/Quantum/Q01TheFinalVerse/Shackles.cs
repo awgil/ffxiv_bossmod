@@ -75,7 +75,13 @@ class ArcaneFont(BossModule module) : Components.Adds(module, (uint)OID.ArcaneFo
         var jail = actor.FindStatus(SID.HellishEarth) != null;
 
         foreach (var add in ActiveActors)
-            hints.SetPriority(add, jail ? AIHints.Enemy.PriorityInvincible : 1);
+        {
+            if (hints.FindEnemy(add) is { } enemy)
+            {
+                enemy.Priority = jail ? AIHints.Enemy.PriorityInvincible : 1;
+                enemy.ForbidDOTs = true;
+            }
+        }
     }
 }
 

@@ -4,14 +4,17 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, WHM.Config>(manager, player, PotionType.Mind)
+public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, WHM.Strategy>(manager, player, PotionType.Mind)
 {
-    public struct Config
+    public struct Strategy
     {
-        [Track] public Track<Targeting> Targeting;
-        [Track] public Track<AOEStrategy> AOE;
-        [Track] public Track<AssizeStrategy> Assize;
-        [Track("Afflatus Misery")] public Track<MiseryStrategy> Misery;
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        public Track<OffensiveStrategy> Buffs;
+        public Track<AssizeStrategy> Assize;
+
+        [Track(InternalName = "Afflatus Misery")]
+        public Track<MiseryStrategy> Misery;
     }
 
     public enum AssizeStrategy
@@ -36,7 +39,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     public static RotationModuleDefinition Definition()
     {
         return new RotationModuleDefinition("xan WHM", "White Mage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.WHM, Class.CNJ), 100)
-            .WithConfig<Config>();
+            .WithStrategies<Strategy>();
     }
 
     public uint Lily;
@@ -53,7 +56,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     private Enemy? BestDotTarget;
     private Enemy? BestMiseryTarget;
 
-    public override void Exec(Config strategy, Enemy? primaryTarget)
+    public override void Exec(Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 25);
 
