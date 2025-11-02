@@ -2,13 +2,13 @@
 
 public enum OID : uint
 {
-    Luminescence       = 0xD64, // R1.000, x1 (spawn during fight)
-    Boss                    = 0xD62, // R1.800, x1
+    Luminescence = 0xD64, // R1.000, x1 (spawn during fight)
+    Boss = 0xD62, // R1.800, x1
 }
 
 public enum SID : uint
 {
-    Invisible  = 616, // Boss->Boss, extra=0x0
+    Invisible = 616, // Boss->Boss, extra=0x0
     Irradiated = 617, // none->player, extra=0x0
 }
 
@@ -22,11 +22,11 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if(invisibles.Any())
+        if (invisibles.Count > 0)
         {
             if (!irradiated[slot])
             {
-                if (!luminescences.Any())
+                if (luminescences.Count > 0)
                 {
                     if (lastLuminescence.HasValue)
                     {
@@ -51,10 +51,8 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if((OID)actor.OID == OID.Luminescence)
-        {
+        if ((OID)actor.OID == OID.Luminescence)
             luminescences.Add(actor);
-        }
     }
 
     public override void OnActorDestroyed(Actor actor)
@@ -71,7 +69,8 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
         if (status.ID == (uint)SID.Invisible)
         {
             invisibles.Add(actor);
-        } else if (status.ID == (uint)SID.Irradiated)
+        }
+        else if (status.ID == (uint)SID.Irradiated)
         {
             irradiated.Set(Raid.FindSlot(actor.InstanceID));
         }
@@ -81,7 +80,8 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
         if (status.ID == (uint)SID.Invisible && actor == Module.PrimaryActor)
         {
             invisibles.Remove(actor);
-        } else if (status.ID == (uint)SID.Irradiated)
+        }
+        else if (status.ID == (uint)SID.Irradiated)
         {
             irradiated.Clear(Raid.FindSlot(actor.InstanceID));
         }
