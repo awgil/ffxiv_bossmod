@@ -219,8 +219,11 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// <param name="range">Maximum distance from the player to search for a candidate target</param>
     protected void SelectPrimaryTarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
     {
-        var t = strategy.Option(SharedTrack.Targeting).As<Targeting>();
+        SelectPrimaryTarget(strategy.Option(SharedTrack.Targeting).As<Targeting>(), ref primaryTarget, range);
+    }
 
+    protected void SelectPrimaryTarget(Targeting t, ref Enemy? primaryTarget, float range)
+    {
         if (t is Targeting.Auto or Targeting.AutoTryPri)
         {
             if (Player.DistanceToHitbox(primaryTarget) > range)
@@ -242,6 +245,14 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         PositionCheck isInAOE
     ) => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
 
+    protected (Enemy? Best, int Targets) SelectTarget(
+        Targeting targeting,
+        AOEStrategy aoe,
+        Enemy? primaryTarget,
+        float range,
+        PositionCheck isInAOE
+    ) => SelectTarget(targeting, aoe, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
+
     protected (Enemy? Best, int Targets) SelectTargetByHP(StrategyValues strategy, Enemy? primaryTarget, float range, PositionCheck isInAOE)
         => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0), args => args.numTargets);
 
@@ -252,11 +263,18 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         PositionCheck isInAOE,
         PriorityFunc<P> prioritize,
         Func<P, int> simplify
+    ) where P : struct, IComparable => SelectTarget(strategy.Targeting(), strategy.AOE(), primaryTarget, range, isInAOE, prioritize, simplify);
+
+    protected (Enemy? Best, int Priority) SelectTarget<P>(
+        Targeting targeting,
+        AOEStrategy aoe,
+        Enemy? primaryTarget,
+        float range,
+        PositionCheck isInAOE,
+        PriorityFunc<P> prioritize,
+        Func<P, int> simplify
     ) where P : struct, IComparable
     {
-        var aoe = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
-        var targeting = strategy.Option(SharedTrack.Targeting).As<Targeting>();
-
         var targetOutOfCombat = primaryTarget?.Priority == Enemy.PriorityUndesirable;
 
         P targetPrio(Actor potentialTarget)
@@ -273,7 +291,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
                     // wanted targets will be hit
                     : numOk;
 
-            return prioritize(AdjustNumTargets(strategy, numTargets), potentialTarget);
+            return prioritize(AdjustNumTargets(aoe, numTargets), potentialTarget);
         }
 
         // in regular ST mode and when using a skill that deals splash damage (like Primal Rend), it is possible that primary target has prio 0 if the splash damage would hit a forbidden target
@@ -309,10 +327,12 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// <param name="getTimer"></param>
     /// <param name="maxAllowedTargets"></param>
     /// <returns></returns>
-    protected (Enemy? Target, P Timer) SelectDotTarget<P>(StrategyValues strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    protected (Enemy? Target, P Timer) SelectDotTarget<P>(StrategyValues strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable => SelectDotTarget(strategy.Targeting(), initial, getTimer, maxAllowedTargets);
+
+    protected (Enemy? Target, P Timer) SelectDotTarget<P>(Targeting targeting, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
     {
         var forbidden = initial?.ForbidDOTs ?? false;
-        switch (strategy.Targeting())
+        switch (targeting)
         {
             case Targeting.Manual:
             case Targeting.AutoPrimary:
@@ -355,7 +375,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, range));
     }
 
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
+    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null) => GoalZoneCombined(strategy.AOE(), range, fAoe, firstUnlockedAoeAction, minAoe, maximumActionRange);
+
+    protected void GoalZoneCombined(AOEStrategy strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
         var (_, positional, imminent, _) = Hints.RecommendedPositional;
 
@@ -377,10 +399,13 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
     protected int NumMeleeAOETargets(StrategyValues strategy) => NumNearbyTargets(strategy, 5);
 
-    protected int NumNearbyTargets(StrategyValues strategy, float range) => AdjustNumTargets(strategy, Hints.NumPriorityTargetsInAOECircle(Player.Position, range));
+    protected int NumNearbyTargets(StrategyValues strategy, float range) => NumNearbyTargets(strategy.AOE(), range);
+    protected int NumNearbyTargets(AOEStrategy aoe, float range) => AdjustNumTargets(aoe, Hints.NumPriorityTargetsInAOECircle(Player.Position, range));
 
-    protected int AdjustNumTargets(StrategyValues strategy, int reported)
-        => reported == 0 ? 0 : strategy.AOE() switch
+    protected int AdjustNumTargets(StrategyValues strategy, int reported) => AdjustNumTargets(strategy.AOE(), reported);
+
+    protected int AdjustNumTargets(AOEStrategy aoe, int reported)
+        => reported == 0 ? 0 : aoe switch
         {
             AOEStrategy.AOE => reported,
             AOEStrategy.ST => 1,
@@ -618,6 +643,7 @@ static class Extendxan
     public static Targeting Targeting(this StrategyValues strategy) => strategy.Option(SharedTrack.Targeting).As<Targeting>();
     public static OffensiveStrategy Simple<Index>(this StrategyValues strategy, Index track) where Index : Enum => strategy.Option(track).As<OffensiveStrategy>();
     public static bool BuffsOk(this StrategyValues strategy) => strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
-    public static bool AOEOk(this StrategyValues strategy) => strategy.AOE() is AOEStrategy.AOE or AOEStrategy.ForceAOE;
+    public static bool AOEOk(this StrategyValues strategy) => strategy.AOE().AOEOk();
+    public static bool AOEOk(this AOEStrategy aoe) => aoe is AOEStrategy.AOE or AOEStrategy.ForceAOE;
     public static float DistanceToHitbox(this Actor actor, Enemy? other) => actor.DistanceToHitbox(other?.Actor);
 }

@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
 {
-    public struct Strategies
+    public struct Strategy
     {
         [Track] public Targeting Targeting;
         [Track] public AOEStrategy AOE;
@@ -182,7 +182,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan MNK", "Monk", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
 
-        def.DefineStrategies<Strategies>();
+        def.DefineStrategies<Strategy>();
 
         return def;
     }
