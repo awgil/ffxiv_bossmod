@@ -4,27 +4,39 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class WHM(RotationModuleManager manager, Actor player) : CastxanTyped<AID, TraitID, WHMStrategy>(manager, player, PotionType.Mind)
+public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, WHM.Config>(manager, player, PotionType.Mind)
 {
-    [Strategy]
-    public struct Strategies
+    public struct Config
     {
-        [Track] public Targeting Targeting;
-        [Track] public AOEStrategy AOE;
-        [Track] public AssizeStrategy Assize;
-        [Track] public MiseryStrategy Misery;
+        [Track] public Track<Targeting> Targeting;
+        [Track] public Track<AOEStrategy> AOE;
+        [Track] public Track<AssizeStrategy> Assize;
+        [Track("Afflatus Misery")] public Track<MiseryStrategy> Misery;
     }
 
-    public enum AssizeStrategy { None, HitSomething, HitEverything }
-    public enum MiseryStrategy { ASAP, BuffedOnly, Delay }
+    public enum AssizeStrategy
+    {
+        [Option("Use if it would hit any target")]
+        HitSomething,
+        [Option("Use if it would hit all targets")]
+        HitEverything,
+        [Option("Don't use")]
+        None
+    }
+    public enum MiseryStrategy
+    {
+        [Option("Use ASAP")]
+        ASAP,
+        [Option("Only use during raid buffs")]
+        BuffedOnly,
+        [Option("Don't use")]
+        Delay
+    }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan WHM", "White Mage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.WHM, Class.CNJ), 100);
-
-        def.DefineStrategies<Strategies>();
-
-        return def;
+        return new RotationModuleDefinition("xan WHM", "White Mage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.WHM, Class.CNJ), 100)
+            .WithConfig<Config>();
     }
 
     public uint Lily;
@@ -41,7 +53,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : CastxanTy
     private Enemy? BestDotTarget;
     private Enemy? BestMiseryTarget;
 
-    public override void Exec(WHMStrategy strategy, Enemy? primaryTarget)
+    public override void Exec(Config strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 25);
 

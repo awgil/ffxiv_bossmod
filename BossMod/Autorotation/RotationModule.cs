@@ -110,7 +110,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority));
     }
 
-    public void DefineStrategies<S>() where S : struct
+    public RotationModuleDefinition WithConfig<S>() where S : struct
     {
         var sType = typeof(S);
 
@@ -118,13 +118,16 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         {
             if (field.GetCustomAttribute<TrackAttribute>() is { } trackInfo)
             {
-                if (!field.FieldType.IsEnum)
+                var inner = field.FieldType;
+                if (inner.GetGenericArguments().Count() > 0)
+                    inner = field.FieldType.GetGenericArguments()[0];
+                if (!inner.IsEnum)
                     throw new ArgumentException($"field {field.Name} of {sType.Name} should be an enum if it is marked as Track");
-                var trackCfg = new StrategyConfigTrack(field.FieldType, field.Name, trackInfo.DisplayName, trackInfo.UiPriority);
+                var trackCfg = new StrategyConfigTrack(inner, field.Name, trackInfo.DisplayName, trackInfo.UiPriority);
 
-                foreach (var variantName in field.FieldType.GetEnumNames())
+                foreach (var variantName in inner.GetEnumNames())
                 {
-                    var variantField = field.FieldType.GetField(variantName)!;
+                    var variantField = inner.GetField(variantName)!;
                     var fieldSettings = variantField.GetCustomAttribute<OptionAttribute>() ?? new OptionAttribute();
 
                     trackCfg.Options.Add(new(variantField.Name, fieldSettings.DisplayName)
@@ -141,6 +144,8 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                 Configs.Add(trackCfg);
             }
         }
+
+        return this;
     }
 }
 
@@ -257,4 +262,13 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         }
         return (bestTarget, bestPrio);
     }
+}
+
+public abstract class TypedRotationModule<TValues>(RotationModuleManager manager, Actor player) : RotationModule(manager, player) where TValues : struct
+{
+    public abstract void Execute(TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
+
+    protected abstract TValues FromValues(StrategyValues strategy);
+
+    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) => Execute(FromValues(strategy), ref primaryTarget, estimatedAnimLockDelay, isMoving);
 }

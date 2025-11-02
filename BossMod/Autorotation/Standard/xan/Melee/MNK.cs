@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
+public sealed class MNK(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Strength)
 {
     public struct Strategy
     {
@@ -182,9 +182,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan MNK", "Monk", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Good, BitMask.Build(Class.MNK, Class.PGL), 100);
 
-        def.DefineStrategies<Strategy>();
-
-        return def;
+        return def.WithConfig<Strategy>();
     }
 
     public enum Form { None, OpoOpo, Raptor, Coeurl }

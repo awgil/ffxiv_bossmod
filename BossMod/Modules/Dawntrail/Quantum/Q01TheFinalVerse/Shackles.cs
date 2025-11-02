@@ -68,7 +68,7 @@ class ShackleHint(BossModule module) : BossComponent(module)
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => player == Healer ? PlayerPriority.Interesting : base.CalcPriority(pcSlot, pc, playerSlot, player, ref customColor);
 }
 
-class ArcaneFont(BossModule module) : Components.Adds(module, (uint)OID.ArcaneFont)
+class ArcaneFont(BossModule module) : Components.Adds(module, (uint)OID.ArcaneFont, forbidDots: true)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

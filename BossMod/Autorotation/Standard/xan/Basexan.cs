@@ -38,23 +38,39 @@ public enum AOEStrategy
 
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
 
-public abstract class Attackxan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
+public abstract class AttackxanOld<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
 {
     protected sealed override float GCDLength => AttackGCDLength;
 }
 
-public abstract class Castxan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
+public abstract class CastxanOld<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
 {
     protected sealed override float GCDLength => SpellGCDLength;
 }
 
-public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType) : RotationModule(manager, player)
+public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType) : Basexan<AID, TraitID, StrategyValues>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
+{
+    protected sealed override StrategyValues FromValues(StrategyValues strategy) => strategy;
+}
+
+public abstract class Castxan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID, TValues>(manager, player, potType)
+    where AID : struct, Enum
+    where TraitID : Enum
+    where TValues : struct
+{
+    protected sealed override float GCDLength => SpellGCDLength;
+}
+
+public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType) : TypedRotationModule<TValues>(manager, player)
+    where AID : struct, Enum
+    where TraitID : Enum
+    where TValues : struct
 {
     public PotionType PotionType { get; init; } = potType;
 
@@ -498,7 +514,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
     }
 
-    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    protected override TValues FromValues(StrategyValues strategy) => ValueConverter.FromValues<TValues>(strategy);
+
+    public sealed override void Execute(TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         IsMoving = isMoving;
         NextGCD = default;
@@ -594,7 +612,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         _ => false
     };
 
-    public abstract void Exec(StrategyValues strategy, Enemy? primaryTarget);
+    public abstract void Exec(TValues strategy, Enemy? primaryTarget);
 
     protected (float Left, int Stacks) Status<SID>(SID status, float? pendingDuration = null) where SID : Enum => Player.FindStatus(status, pendingDuration == null ? null : World.FutureTime(pendingDuration.Value)) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
     protected float StatusLeft<SID>(SID status, float? pendingDuration = null) where SID : Enum => Status(status, pendingDuration).Left;

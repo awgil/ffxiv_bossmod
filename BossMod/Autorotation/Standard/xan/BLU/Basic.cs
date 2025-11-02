@@ -3,7 +3,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
+public sealed class BLU(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
     public static RotationModuleDefinition Definition()
     {
@@ -107,7 +107,9 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.TheRoseOfDestruction, primaryTarget, GCDPriority.GCDWithCooldown);
 
         // standard filler spells
-        PushGCD(AID.GoblinPunch, primaryTarget, GCDPriority.FillerST);
+        if (primaryTarget != null && GetCurrentPositional(primaryTarget.Actor) is Positional.Front or Positional.Any)
+            PushGCD(AID.GoblinPunch, primaryTarget, GCDPriority.FillerST);
+
         PushGCD(AID.SonicBoom, primaryTarget, GCDPriority.FillerST);
 
         if (World.Actors.Any(p => p.Type == ActorType.Chocobo && p.OwnerID == Player.InstanceID))

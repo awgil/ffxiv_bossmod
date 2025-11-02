@@ -11,7 +11,7 @@ public class StrategiesGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+        //context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
     }
 
     private static readonly SymbolDisplayFormat Qualified = new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted, typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces, genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters, miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -19,9 +19,7 @@ public class StrategiesGenerator : ISourceGenerator
     public void Execute(GeneratorExecutionContext context)
     {
         if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
-        {
-            throw new Exception("SyntaxReceiver is missing");
-        }
+            return;
 
         //throw new Exception($"SyntaxReceiver found nodes: {string.Join(", ", receiver.Symbols.Select(s => s.ToDisplayString()))}");
 

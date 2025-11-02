@@ -370,3 +370,40 @@ public readonly record struct StrategyValues(List<StrategyConfig> Configs)
         throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Int type");
     }
 }
+
+public record struct Track<T>(T Value, StrategyValue Raw) where T : struct
+{
+    public readonly float ExpireIn => Raw.ExpireIn;
+
+    public static implicit operator T(Track<T> self) => self.Value;
+
+    public override readonly string ToString() => $"Track({Value}, Raw={Raw})";
+}
+
+static class ValueConverter
+{
+    public static T FromValues<T>(StrategyValues values) where T : struct
+    {
+        object val = default(T);
+
+        var i = 0;
+        foreach (var field in typeof(T).GetFields())
+        {
+            switch (values.Values[i])
+            {
+                case StrategyValueTrack t:
+                    field.SetValue(val, Activator.CreateInstance(field.FieldType, [Enum.ToObject(field.FieldType.GenericTypeArguments[0], t.Option), t]));
+                    break;
+                case StrategyValueFloat f:
+                    field.SetValue(val, new Track<float>(f.Value, f));
+                    break;
+                case StrategyValueInt i2:
+                    field.SetValue(val, new Track<long>(i2.Value, i2));
+                    break;
+            }
+            i++;
+        }
+
+        return (T)val;
+    }
+}
