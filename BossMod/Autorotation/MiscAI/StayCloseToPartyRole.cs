@@ -31,7 +31,7 @@ public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor pl
         rangeRef.AddOption(RangeDefinition.OnHitbox, "Stay on edge of hitbox (+/- 1 unit)");
         for (var f = 1.1f; f <= 30f; f = MathF.Round(f + 0.1f, 1))
         {
-            rangeRef.AddOption((RangeDefinition)(f * 10f - 10f));
+            rangeRef.AddOption((RangeDefinition)(f * 10f - 10f), internalNameOverride: f.ToString(CultureInfo.InvariantCulture));
         }
 
         return def;
