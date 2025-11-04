@@ -91,6 +91,12 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
                 ImGui.Image(mapTex.Handle, new Vector2(64, 64), new Vector2(0.2424f, 0.4571f), new Vector2(0.4848f, 0.6857f));
             }
 
+            if (State.Rooms[i].HasFlag(RoomFlags.Home))
+            {
+                ImGui.SetCursorPos(pos + new Vector2(12, 12));
+                ImGui.Image(mapTex.Handle, new Vector2(64, 64), new Vector2(0.4848f, 0.4571f), new Vector2(0.7272f, 0.6857f));
+            }
+
             if (State.Rooms[i].HasFlag(RoomFlags.Passage))
             {
                 ImGui.SetCursorPos(pos + new Vector2(28, 44));
