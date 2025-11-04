@@ -1,6 +1,6 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using Dalamud.Bindings.ImGui;
 using System.Text;
 
 namespace BossMod;
