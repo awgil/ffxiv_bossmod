@@ -241,19 +241,7 @@ public sealed class AIHintsBuilder : IDisposable
             hints.SetPriority(inv, AIHints.Enemy.PriorityInvincible);
     }
 
-    private bool IsValidEnemy(Actor actor)
-    {
-        if (actor.IsAlly)
-            return false;
-
-        if (actor.Type == ActorType.Enemy)
-            return true;
-
-        if (_hintConfig.EnableHelperHints && actor.Type == ActorType.Helper)
-            return true;
-
-        return false;
-    }
+    private bool IsValidEnemy(Actor actor) => !actor.IsAlly && actor.Type is ActorType.Enemy or ActorType.Helper;
 
     private void OnCastStarted(Actor actor)
     {
