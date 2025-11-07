@@ -60,8 +60,32 @@ public static class UICombo
         }
         if (showLabelPopup && ImGui.IsItemHovered())
             ImGui.SetTooltip(labelCur);
-        ImGui.SameLine();
-        ImGui.TextWrapped(label);
+        if (!label.StartsWith('#'))
+        {
+            ImGui.SameLine();
+            ImGui.TextWrapped(label);
+        }
+        return res;
+    }
+
+    public static bool Radio(Type type, ref int v, bool oneLine, Func<int, string>? print = null)
+    {
+        var values = System.Enum.GetValues(type).Cast<Enum>().ToArray();
+        print ??= p => EnumString(values[p]);
+        var res = false;
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            var opt = values[i];
+            if (ImGui.RadioButton(print(i), i == v))
+            {
+                v = i;
+                res = true;
+            }
+            if (oneLine && i + 1 < values.Length)
+                ImGui.SameLine();
+        }
+
         return res;
     }
 

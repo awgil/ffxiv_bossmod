@@ -262,3 +262,27 @@ public static class UIStrategyValue
         return true;
     }
 }
+
+[AttributeUsage(AttributeTargets.Enum)]
+public sealed class RendererAttribute(Type renderWith) : Attribute
+{
+    public Type Type = renderWith;
+}
+
+public class DefaultStrategyRenderer
+{
+    public virtual void DrawLabel(StrategyConfigTrack config) => ImGui.TextUnformatted(config.UIName);
+    public virtual bool Draw(StrategyConfigTrack config, ref StrategyValue currentValue)
+    {
+        var opt = ((StrategyValueTrack)currentValue).Option;
+        using (ImRaii.PushId($"###{config.InternalName}"))
+        {
+            if (UICombo.EnumIndex("", config.OptionEnum, ref opt, ix => config.Options[ix].DisplayName.Length > 0 ? config.Options[ix].DisplayName : UICombo.EnumString((Enum)config.OptionEnum.GetEnumValues().GetValue(ix)!)))
+            {
+                currentValue = new StrategyValueTrack() { Option = opt };
+                return true;
+            }
+        }
+        return false;
+    }
+}

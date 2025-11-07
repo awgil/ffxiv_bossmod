@@ -49,7 +49,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         {
             if (configs.Count != index)
                 throw new ArgumentException($"Unexpected index for {internalName}: expected {index}, cur size {configs.Count}");
-            var config = new StrategyConfigTrack(typeof(Selector), internalName, displayName, uiPriority);
+            var config = new StrategyConfigTrack(typeof(Selector), internalName, displayName, uiPriority, typeof(DefaultStrategyRenderer));
             configs.Add(config);
             return new(config);
         }
@@ -121,7 +121,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                 {
                     var trackInfo = field.GetCustomAttribute<TrackAttribute>() ?? new();
 
-                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName, trackInfo.UiPriority);
+                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName, trackInfo.UiPriority, inner.GetCustomAttribute<RendererAttribute>()?.Type ?? typeof(DefaultStrategyRenderer));
 
                     foreach (var variantName in inner.GetEnumNames())
                     {

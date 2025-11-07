@@ -224,11 +224,14 @@ public sealed class UIPresetEditor
         DrawAddSettingPopup(ms, ms.Definition);
 
         ImGui.TextUnformatted(ms.Definition.DisplayName);
-        ImGui.Spacing();
-        ImGui.Separator();
-        ImGui.Spacing();
         var values = Preset.ActiveStrategyOverrides(_selectedModuleIndex);
 
+        using var _ = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(5, 5));
+        using var table = ImRaii.Table("preset_options", 2, ImGuiTableFlags.BordersInnerH);
+        if (!table)
+            return;
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("");
         for (var track = 0; track < values.Values.Length; track++)
         {
             var cfg = values.Configs[track];

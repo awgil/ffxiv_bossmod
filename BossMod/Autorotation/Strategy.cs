@@ -119,7 +119,8 @@ public record class StrategyConfigTrack(
     Type OptionEnum, // type of the enum used for options
     string InternalName,
     string DisplayName,
-    float UIPriority
+    float UIPriority,
+    Type Renderer
 ) : StrategyConfig(InternalName, DisplayName, UIPriority)
 {
     public readonly List<StrategyOption> Options = [];
@@ -128,15 +129,16 @@ public record class StrategyConfigTrack(
     public override StrategyValueTrack CreateEmpty() => new();
     public override StrategyValueTrack CreateForEditor() => new() { Option = Options.Count > 1 ? 1 : 0 };
 
+    private DefaultStrategyRenderer? _draw;
+
     public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
     {
-        var opt = ((StrategyValueTrack)currentValue).Option;
-        if (UICombo.EnumIndex(UIName, OptionEnum, ref opt, ix => Options[ix].DisplayName.Length > 0 ? Options[ix].DisplayName : UICombo.EnumString((Enum)OptionEnum.GetEnumValues().GetValue(ix)!)))
-        {
-            currentValue = new StrategyValueTrack() { Option = opt };
-            return true;
-        }
-        return false;
+        _draw ??= (DefaultStrategyRenderer)Activator.CreateInstance(Renderer)!;
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        _draw.DrawLabel(this);
+        ImGui.TableNextColumn();
+        return _draw.Draw(this, ref currentValue);
     }
 
     public override string ToDisplayString(StrategyValue val) => Options[((StrategyValueTrack)val).Option].UIName;
