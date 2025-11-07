@@ -18,6 +18,9 @@ public static class UICombo
         var values = System.Enum.GetValues(et).Cast<T>().ToArray();
         var idxCur = Array.IndexOf(values, v);
 
+        if (idxCur < 0)
+            idxCur = 0;
+
         print ??= p => EnumString(p);
 
         var res = false;
