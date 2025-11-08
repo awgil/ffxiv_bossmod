@@ -265,9 +265,9 @@ public static class UIStrategyValue
 }
 
 [AttributeUsage(AttributeTargets.Enum)]
-public sealed class RendererAttribute(Type renderWith) : Attribute
+public sealed class RendererAttribute(Type type) : Attribute
 {
-    public Type Type = renderWith;
+    public Type Type => type;
 }
 
 public class RendererFactory

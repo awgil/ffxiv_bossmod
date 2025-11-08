@@ -49,6 +49,7 @@ public sealed class TrackAttribute() : Attribute
         DisplayName = name;
     }
 
+    public string Name => DisplayName;
     public string DisplayName = "";
     public string? InternalName;
     public float UiPriority;
@@ -89,6 +90,7 @@ public sealed class OptionAttribute() : Attribute
         DisplayName = name;
     }
 
+    public string Name => DisplayName;
     public string DisplayName = "";
     public float Cooldown;
     public float Effect;

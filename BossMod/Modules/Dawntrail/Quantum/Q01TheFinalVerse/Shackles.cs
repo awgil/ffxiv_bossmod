@@ -78,7 +78,7 @@ class ArcaneFont(BossModule module) : Components.Adds(module, (uint)OID.ArcaneFo
         {
             if (hints.FindEnemy(add) is { } enemy)
             {
-                enemy.Priority = jail ? AIHints.Enemy.PriorityInvincible : 1;
+                enemy.Priority = jail ? AIHints.Enemy.PriorityInvincible : 0;
                 enemy.ForbidDOTs = true;
             }
         }

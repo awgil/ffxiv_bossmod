@@ -5,14 +5,14 @@ namespace BossMod.Autorotation.xan;
 
 public class TargetingRenderer : TrackRenderer
 {
-    public override void DrawLabel(StrategyConfig _)
+    public override void DrawLabel(StrategyConfig config)
     {
         ImGui.Text("Targeting");
         ImGui.SameLine();
         UIMisc.HelpMarker("These settings only affect what the rotation module chooses to use actions on. Regardless of which one you choose, this module will not change your in-game target ('hard target').\n\nFor a module that will automatically change your hard target, use AI -> Automatic targeting.");
     }
 
-    public override bool DrawValue(StrategyConfigTrack _, ref StrategyValueTrack value)
+    public override bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value)
     {
         var ix = value.Option;
         var modified = false;
@@ -61,18 +61,18 @@ public class OffensiveStrategyRenderer : TrackRenderer
 {
     private static readonly List<string> optionNames = ["Automatic", "Disabled", "Forced"];
 
-    public override bool DrawValue(StrategyConfigTrack _, ref StrategyValueTrack value) => UICombo.Radio(typeof(OffensiveStrategy), ref value.Option, true, i => optionNames.BoundSafeAt(i, "")!);
+    public override bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value) => UICombo.Radio(typeof(OffensiveStrategy), ref value.Option, true, i => optionNames.BoundSafeAt(i, "")!);
 }
 
 public class DefaultOnRenderer : TrackRenderer
 {
-    public override bool DrawValue(StrategyConfigTrack _, ref StrategyValueTrack currentValue)
+    public override bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value)
     {
-        var enabled = currentValue.Option == 0;
+        var enabled = value.Option == 0;
 
         if (ImGui.Checkbox("Enabled", ref enabled))
         {
-            currentValue.Option = enabled ? 0 : 1;
+            value.Option = enabled ? 0 : 1;
             return true;
         }
 
@@ -82,13 +82,13 @@ public class DefaultOnRenderer : TrackRenderer
 
 public class DefaultOffRenderer : TrackRenderer
 {
-    public override bool DrawValue(StrategyConfigTrack _, ref StrategyValueTrack currentValue)
+    public override bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value)
     {
-        var enabled = currentValue.Option == 1;
+        var enabled = value.Option == 1;
 
         if (ImGui.Checkbox("Enabled", ref enabled))
         {
-            currentValue.Option = enabled ? 1 : 0;
+            value.Option = enabled ? 1 : 0;
             return true;
         }
 
