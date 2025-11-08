@@ -57,7 +57,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : CastxanOl
     {
         var def = new RotationModuleDefinition("xan SMN", "Summoner", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SMN, Class.ACN), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.SearingLight);
+        def.DefineShared("Searing Light").AddAssociatedActions(AID.SearingLight);
 
         def.Define(Track.Cyclone).As<CycloneUse>("Cyclone")
             .AddOption(CycloneUse.Automatic, "Use when Ifrit is summoned")

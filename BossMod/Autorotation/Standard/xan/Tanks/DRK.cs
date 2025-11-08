@@ -20,7 +20,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan DRK", "Dark Knight", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.DRK), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.LivingShadow);
+        def.DefineShared("Living Shadow").AddAssociatedActions(AID.LivingShadow);
 
         def.Define(Track.Edge).As<EdgeStrategy>("Edge")
             .AddOption(EdgeStrategy.Automatic, "Use to refresh Darkside, or during raid buffs")

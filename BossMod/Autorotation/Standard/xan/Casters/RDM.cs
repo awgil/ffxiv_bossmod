@@ -25,7 +25,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOl
     {
         var def = new RotationModuleDefinition("xan RDM", "Red Mage", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RDM), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.Embolden, AID.Manafication);
+        def.DefineShared("Embolden").AddAssociatedActions(AID.Embolden, AID.Manafication);
 
         def.Define(Track.Combo).As<ComboStrategy>("Melee Combo")
             .AddOption(ComboStrategy.Complete, "Require melee combo to be completed - do nothing while target is out of range")

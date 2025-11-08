@@ -54,6 +54,7 @@ public sealed class TrackAttribute() : Attribute
     public string DisplayName = "";
     public string? InternalName;
     public float UiPriority;
+    public Type? Renderer;
     public ActionID[] ActionIDs = [];
 
     public object Action
@@ -136,6 +137,7 @@ public record class StrategyConfigTrack(
         _draw ??= (DefaultStrategyRenderer)Activator.CreateInstance(Renderer)!;
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
+        ImGui.AlignTextToFramePadding();
         _draw.DrawLabel(this);
         ImGui.TableNextColumn();
         return _draw.Draw(this, ref currentValue);

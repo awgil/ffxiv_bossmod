@@ -45,11 +45,11 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
     // unfortunately, c# doesn't support partial type inference, and forcing user to spell out track enum twice is obnoxious, so here's the hopefully cheap solution
     public readonly ref struct DefineRef(List<StrategyConfig> configs, int index)
     {
-        public ConfigRef<Selector> As<Selector>(string internalName, string displayName = "", float uiPriority = 0) where Selector : Enum
+        public ConfigRef<Selector> As<Selector>(string internalName, string displayName = "", float uiPriority = 0, Type? renderer = null) where Selector : Enum
         {
             if (configs.Count != index)
                 throw new ArgumentException($"Unexpected index for {internalName}: expected {index}, cur size {configs.Count}");
-            var config = new StrategyConfigTrack(typeof(Selector), internalName, displayName, uiPriority, typeof(DefaultStrategyRenderer));
+            var config = new StrategyConfigTrack(typeof(Selector), internalName, displayName, uiPriority, renderer ?? typeof(DefaultStrategyRenderer));
             configs.Add(config);
             return new(config);
         }
@@ -120,8 +120,9 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                 if (inner.IsEnum)
                 {
                     var trackInfo = field.GetCustomAttribute<TrackAttribute>() ?? new();
+                    var renderer = trackInfo.Renderer ?? inner.GetCustomAttribute<RendererAttribute>()?.Type ?? typeof(DefaultStrategyRenderer);
 
-                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName, trackInfo.UiPriority, inner.GetCustomAttribute<RendererAttribute>()?.Type ?? typeof(DefaultStrategyRenderer));
+                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName, trackInfo.UiPriority, renderer);
 
                     foreach (var variantName in inner.GetEnumNames())
                     {

@@ -72,6 +72,7 @@ public static class UICombo
     {
         var values = System.Enum.GetValues(type).Cast<Enum>().ToArray();
         print ??= p => EnumString(values[p]);
+        var orig = v;
         var res = false;
 
         for (var i = 0; i < values.Length; i++)
@@ -80,7 +81,7 @@ public static class UICombo
             if (ImGui.RadioButton(print(i), i == v))
             {
                 v = i;
-                res = true;
+                res = i != orig;
             }
             if (oneLine && i + 1 < values.Length)
                 ImGui.SameLine();

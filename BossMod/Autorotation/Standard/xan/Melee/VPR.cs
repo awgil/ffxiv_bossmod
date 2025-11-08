@@ -17,7 +17,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan VPR", "Viper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.Reawaken);
+        def.DefineShared("Reawaken").AddAssociatedActions(AID.Reawaken);
         def.Define(Track.Snap).As<SnapStrategy>("WrithingSnap")
             .AddOption(SnapStrategy.None, "Don't use")
             .AddOption(SnapStrategy.Ranged, "Use when out of melee range, if out of Coil stacks")

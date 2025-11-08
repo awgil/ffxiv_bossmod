@@ -16,7 +16,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan NIN", "Ninja", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ROG, Class.NIN), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.Dokumori);
+        def.DefineShared("Mug/Dokumori").AddAssociatedActions(AID.Dokumori);
 
         def.Define(Track.Hide).As<HideStrategy>("Hide")
             .AddOption(HideStrategy.Automatic, "Use when out of combat to restore charges")

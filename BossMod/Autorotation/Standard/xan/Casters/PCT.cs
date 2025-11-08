@@ -13,7 +13,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : CastxanOl
     {
         var def = new RotationModuleDefinition("xan PCT", "Pictomancer", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PCT), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.StarryMuse);
+        def.DefineShared("Starry Muse").AddAssociatedActions(AID.StarryMuse);
 
         def.Define(Track.Motif).As<MotifStrategy>("Motifs")
             .AddOption(MotifStrategy.Combat, "Cast motifs in combat, outside of burst window")

@@ -1,6 +1,4 @@
 ﻿using BossMod.Data;
-using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility.Raii;
 using System.Diagnostics.CodeAnalysis;
 using static BossMod.AIHints;
 
@@ -15,6 +13,7 @@ public enum Targeting
     AutoTryPri
 }
 
+[Renderer(typeof(OffensiveStrategyRenderer))]
 public enum OffensiveStrategy
 {
     Automatic,
@@ -36,76 +35,6 @@ public enum AOEStrategy
 }
 
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
-
-public class TargetingRenderer : DefaultStrategyRenderer
-{
-    public override void DrawLabel(StrategyConfigTrack _)
-    {
-        ImGui.Text("Targeting");
-        ImGui.SameLine();
-        UIMisc.HelpMarker("These settings only affect what the rotation module chooses to use actions on. Regardless of which one you choose, this module will not change your in-game target ('hard target').\n\nFor a module that will automatically change your hard target, use AI -> Automatic targeting.");
-    }
-
-    public override bool Draw(StrategyConfigTrack _track, ref StrategyValue value)
-    {
-        var ix = ((StrategyValueTrack)value).Option;
-        var modified = false;
-        var opt = (Targeting)ix;
-
-        var forcepri = opt == Targeting.AutoPrimary;
-        var trypri = forcepri || opt == Targeting.AutoTryPri;
-
-        if (ImGui.RadioButton("Use player's target", opt == Targeting.Manual))
-        {
-            value = new StrategyValueTrack() { Option = 0 };
-            modified = true;
-        }
-        if (ImGui.RadioButton("Automatically pick best target", opt != Targeting.Manual))
-        {
-            if (opt != Targeting.Auto)
-            {
-                value = new StrategyValueTrack() { Option = 1 };
-                modified = true;
-            }
-        }
-        using (ImRaii.Disabled(opt == Targeting.Manual))
-        {
-            ImGui.Indent();
-            if (ImGui.Checkbox("Make sure player's target is hit", ref trypri))
-            {
-                value = new StrategyValueTrack() { Option = trypri ? 3 : 1 };
-                modified = true;
-            }
-            using (ImRaii.Disabled(!trypri))
-            {
-                if (ImGui.Checkbox("Do nothing if the player doesn't have a target", ref forcepri))
-                {
-                    value = new StrategyValueTrack() { Option = forcepri ? 2 : 3 };
-                    modified = true;
-                }
-            }
-            ImGui.Unindent();
-        }
-
-        return modified;
-    }
-}
-
-public class AOERenderer : DefaultStrategyRenderer
-{
-    public override bool Draw(StrategyConfigTrack config, ref StrategyValue value)
-    {
-        var opt = ((StrategyValueTrack)value).Option;
-
-        if (UICombo.Radio(config.OptionEnum, ref opt, false, ix => config.Options[ix].DisplayName.Length > 0 ? config.Options[ix].DisplayName : UICombo.EnumString((Enum)config.OptionEnum.GetEnumValues().GetValue(ix)!)))
-        {
-            value = new StrategyValueTrack() { Option = opt };
-            return true;
-        }
-
-        return false;
-    }
-}
 
 public abstract class AttackxanOld<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
     where AID : struct, Enum
@@ -696,31 +625,31 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
 
 static class Extendxan
 {
-    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineShared(this RotationModuleDefinition def)
+    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineShared(this RotationModuleDefinition def, string buffTrackName)
     {
-        return def.DefineSharedTA().DefineSimple(SharedTrack.Buffs, "Buffs");
+        return def.DefineSharedTA().DefineSimple(SharedTrack.Buffs, "Buffs", displayName: buffTrackName, renderer: typeof(OffensiveStrategyRenderer));
     }
 
     public static RotationModuleDefinition DefineSharedTA(this RotationModuleDefinition def)
     {
-        def.Define(SharedTrack.Targeting).As<Targeting>("Targeting")
+        def.Define(SharedTrack.Targeting).As<Targeting>("Targeting", renderer: typeof(TargetingRenderer))
             .AddOption(xan.Targeting.Manual, "Use player's current target for all actions")
             .AddOption(xan.Targeting.Auto, "Automatically select best target (highest number of nearby targets) for AOE actions")
             .AddOption(xan.Targeting.AutoPrimary, "Automatically select best target for AOE actions - ensure player target is hit")
             .AddOption(xan.Targeting.AutoTryPri, "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
 
-        def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE")
-            .AddOption(AOEStrategy.AOE, "Use AOE actions if beneficial")
-            .AddOption(AOEStrategy.ST, "Use single-target actions")
-            .AddOption(AOEStrategy.ForceAOE, "Always use AOE actions, even on one target")
-            .AddOption(AOEStrategy.ForceST, "Forbid any action that can hit multiple targets");
+        def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", renderer: typeof(AOERenderer))
+            .AddOption(AOEStrategy.AOE, "Use AOE rotation if beneficial")
+            .AddOption(AOEStrategy.ST, "Use single-target rotation")
+            .AddOption(AOEStrategy.ForceAOE, "Always use AOE rotation, even on one target")
+            .AddOption(AOEStrategy.ForceST, "Use single-target rotation; do not use ANY actions that hit multiple targets");
 
         return def;
     }
 
-    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineSimple<Index>(this RotationModuleDefinition def, Index track, string name, int minLevel = 1, float uiPriority = 0) where Index : Enum
+    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineSimple<Index>(this RotationModuleDefinition def, Index track, string name, string displayName = "", int minLevel = 1, float uiPriority = 0, Type? renderer = null) where Index : Enum
     {
-        return def.Define(track).As<OffensiveStrategy>(name, uiPriority: uiPriority)
+        return def.Define(track).As<OffensiveStrategy>(name, displayName, uiPriority: uiPriority, renderer: renderer)
             .AddOption(OffensiveStrategy.Automatic, "Use when optimal", minLevel: minLevel)
             .AddOption(OffensiveStrategy.Delay, "Don't use", minLevel: minLevel)
             .AddOption(OffensiveStrategy.Force, "Use ASAP", minLevel: minLevel);

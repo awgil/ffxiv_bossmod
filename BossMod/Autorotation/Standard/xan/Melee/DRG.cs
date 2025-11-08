@@ -28,7 +28,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan DRG", "Dragoon", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.BattleLitany);
+        def.DefineShared("Battle Litany").AddAssociatedActions(AID.BattleLitany);
 
         def.Define(Track.Dive).As<DiveStrategy>("Dive")
             .AddOption(DiveStrategy.Allow, "Use dives according to standard rotation")

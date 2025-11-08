@@ -10,7 +10,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan GNB", "Gunbreaker", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.GNB), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.Bloodfest);
+        def.DefineShared("Bloodfest").AddAssociatedActions(AID.Bloodfest);
 
         return def;
     }

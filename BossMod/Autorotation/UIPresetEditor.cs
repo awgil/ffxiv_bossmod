@@ -86,7 +86,7 @@ public sealed class UIPresetEditor
         using var table = ImRaii.Table("preset_details", 2);
         if (!table)
             return;
-        ImGui.TableSetupColumn("Modules", ImGuiTableColumnFlags.WidthFixed, 300 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("Modules", ImGuiTableColumnFlags.WidthFixed, 200 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("Strategies");
         ImGui.TableNextColumn();
         DrawModulesList();

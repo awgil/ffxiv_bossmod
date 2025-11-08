@@ -18,7 +18,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
     {
         var def = new RotationModuleDefinition("xan SCH", "Scholar", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SCH), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.ChainStratagem, AID.Dissipation);
+        def.DefineShared("Chain Stratagem").AddAssociatedActions(AID.ChainStratagem, AID.Dissipation);
 
         def.Define(Track.Place).As<FairyPlacement>("FairyPlace", "Fairy placement")
             .AddOption(FairyPlacement.Manual, "Do not automatically move fairy")

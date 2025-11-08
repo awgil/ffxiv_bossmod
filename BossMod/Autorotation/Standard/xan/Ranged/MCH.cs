@@ -25,7 +25,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan MCH", "Machinist", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.BarrelStabilizer);
+        def.DefineShared("Barrel Stabilizer").AddAssociatedActions(AID.BarrelStabilizer);
 
         def.Define(Track.Queen).As<QueenStrategy>("Queen", "Queen")
             .AddOption(QueenStrategy.MinGauge, "Summon at 50+ gauge")

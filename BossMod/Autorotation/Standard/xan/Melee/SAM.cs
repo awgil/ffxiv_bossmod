@@ -35,7 +35,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan SAM", "Samurai", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SAM), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.Ikishoten, AID.HissatsuSenei);
+        def.DefineShared("Ikishoten/Ogi").AddAssociatedActions(AID.Ikishoten, AID.HissatsuSenei);
 
         def.Define(Track.Higanbana).As<OffensiveStrategy>("Higanbana")
             .AddOption(OffensiveStrategy.Automatic, "Refresh every 60s according to standard rotation", supportedTargets: ActionTargets.Hostile)
