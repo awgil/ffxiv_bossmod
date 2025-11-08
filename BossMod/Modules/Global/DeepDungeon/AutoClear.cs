@@ -149,7 +149,7 @@ public abstract partial class AutoClear : ZoneModule
 
     public override void OnWindowClose()
     {
-        _config.Enable = false;
+        _config.EnableModule = false;
         _config.EnableMinimap = false;
         _config.Modified.Fire();
     }
@@ -375,7 +375,7 @@ public abstract partial class AutoClear : ZoneModule
             foreach (var hpt in hints.PotentialTargets)
                 hpt.ForbidDOTs = true;
 
-        if (!_config.Enable)
+        if (!_config.EnableModule)
             return;
 
         CalculateExtraHints(playerSlot, player, hints);
