@@ -90,3 +90,19 @@ public class OffensiveStrategyRenderer : DefaultStrategyRenderer
         return false;
     }
 }
+
+public class CheckboxRenderer : DefaultStrategyRenderer
+{
+    public override bool Draw(StrategyConfigTrack config, ref StrategyValue currentValue)
+    {
+        var opt = ((StrategyValueTrack)currentValue).Option == 1;
+
+        if (ImGui.Checkbox("Enabled", ref opt))
+        {
+            currentValue = new StrategyValueTrack() { Option = opt ? 1 : 0 };
+            return true;
+        }
+
+        return false;
+    }
+}

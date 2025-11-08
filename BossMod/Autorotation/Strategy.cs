@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using System.Text.Json;
 
 namespace BossMod.Autorotation;
@@ -136,6 +137,7 @@ public record class StrategyConfigTrack(
     {
         _draw ??= (DefaultStrategyRenderer)Activator.CreateInstance(Renderer)!;
         ImGui.TableNextRow();
+        using var _ = ImRaii.PushId(InternalName);
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
         _draw.DrawLabel(this);
