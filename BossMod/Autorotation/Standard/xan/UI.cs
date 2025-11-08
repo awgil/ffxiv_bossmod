@@ -57,11 +57,6 @@ public class TargetingRenderer : TrackRenderer
     }
 }
 
-public class AOERenderer : TrackRenderer
-{
-    public override bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value) => UICombo.Radio(config.OptionEnum, ref value.Option, false, ix => config.Options[ix].DisplayName.Length > 0 ? config.Options[ix].DisplayName : UICombo.EnumString((Enum)config.OptionEnum.GetEnumValues().GetValue(ix)!));
-}
-
 public class OffensiveStrategyRenderer : TrackRenderer
 {
     private static readonly List<string> optionNames = ["Automatic", "Disabled", "Forced"];

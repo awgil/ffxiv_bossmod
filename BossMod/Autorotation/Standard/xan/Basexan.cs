@@ -21,16 +21,11 @@ public enum OffensiveStrategy
     Force
 }
 
-[Renderer(typeof(AOERenderer))]
 public enum AOEStrategy
 {
-    [Option("Use AOE rotation if beneficial")]
     AOE,
-    [Option("Use single-target rotation")]
     ST,
-    [Option("Always use AOE rotation, even on one target")]
     ForceAOE,
-    [Option("Use single-target rotation; do not use ANY actions that hit multiple targets")]
     ForceST
 }
 
@@ -638,7 +633,7 @@ static class Extendxan
             .AddOption(xan.Targeting.AutoPrimary, "Automatically select best target for AOE actions - ensure player target is hit")
             .AddOption(xan.Targeting.AutoTryPri, "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
 
-        def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 499, renderer: typeof(AOERenderer))
+        def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 499)
             .AddOption(AOEStrategy.AOE, "Use AOE rotation if beneficial")
             .AddOption(AOEStrategy.ST, "Use single-target rotation")
             .AddOption(AOEStrategy.ForceAOE, "Always use AOE rotation, even on one target")

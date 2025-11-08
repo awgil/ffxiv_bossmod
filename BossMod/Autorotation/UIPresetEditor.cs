@@ -243,7 +243,7 @@ public sealed class UIPresetEditor
         ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 150 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("");
 
-        if (SuggestHealerAI(ms))
+        if (!_sourcePresetDefault && SuggestHealerAI(ms))
             return;
 
         foreach (var track in _orderedTrackList)
@@ -340,7 +340,7 @@ public sealed class UIPresetEditor
                 return true;
             }
             ImGui.SameLine();
-            if (ImGui.Button("Hide this message"))
+            if (ImGui.Button("Don't show this suggestion again"))
             {
                 _autorotConfig.SuggestHealerAI = false;
                 _autorotConfig.Modified.Fire();
