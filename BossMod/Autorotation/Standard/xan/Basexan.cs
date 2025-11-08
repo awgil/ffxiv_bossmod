@@ -627,18 +627,18 @@ static class Extendxan
 {
     public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineShared(this RotationModuleDefinition def, string buffTrackName)
     {
-        return def.DefineSharedTA().DefineSimple(SharedTrack.Buffs, "Buffs", displayName: buffTrackName, renderer: typeof(OffensiveStrategyRenderer));
+        return def.DefineSharedTA().DefineSimple(SharedTrack.Buffs, "Buffs", displayName: buffTrackName, uiPriority: 498, renderer: typeof(OffensiveStrategyRenderer));
     }
 
     public static RotationModuleDefinition DefineSharedTA(this RotationModuleDefinition def)
     {
-        def.Define(SharedTrack.Targeting).As<Targeting>("Targeting", renderer: typeof(TargetingRenderer))
+        def.Define(SharedTrack.Targeting).As<Targeting>("Targeting", uiPriority: 500, renderer: typeof(TargetingRenderer))
             .AddOption(xan.Targeting.Manual, "Use player's current target for all actions")
             .AddOption(xan.Targeting.Auto, "Automatically select best target (highest number of nearby targets) for AOE actions")
             .AddOption(xan.Targeting.AutoPrimary, "Automatically select best target for AOE actions - ensure player target is hit")
             .AddOption(xan.Targeting.AutoTryPri, "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
 
-        def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", renderer: typeof(AOERenderer))
+        def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 499, renderer: typeof(AOERenderer))
             .AddOption(AOEStrategy.AOE, "Use AOE rotation if beneficial")
             .AddOption(AOEStrategy.ST, "Use single-target rotation")
             .AddOption(AOEStrategy.ForceAOE, "Always use AOE rotation, even on one target")
@@ -649,7 +649,7 @@ static class Extendxan
 
     public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineSimple<Index>(this RotationModuleDefinition def, Index track, string name, string displayName = "", int minLevel = 1, float uiPriority = 0, Type? renderer = null) where Index : Enum
     {
-        return def.Define(track).As<OffensiveStrategy>(name, displayName, uiPriority: uiPriority, renderer: renderer)
+        return def.Define(track).As<OffensiveStrategy>(name, displayName, uiPriority: uiPriority, renderer: renderer ?? typeof(OffensiveStrategyRenderer))
             .AddOption(OffensiveStrategy.Automatic, "Use when optimal", minLevel: minLevel)
             .AddOption(OffensiveStrategy.Delay, "Don't use", minLevel: minLevel)
             .AddOption(OffensiveStrategy.Force, "Use ASAP", minLevel: minLevel);

@@ -49,7 +49,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         {
             if (configs.Count != index)
                 throw new ArgumentException($"Unexpected index for {internalName}: expected {index}, cur size {configs.Count}");
-            var config = new StrategyConfigTrack(typeof(Selector), internalName, displayName, uiPriority, renderer ?? typeof(DefaultStrategyRenderer));
+            var config = new StrategyConfigTrack(typeof(Selector), internalName, displayName, uiPriority, renderer ?? typeof(TrackRenderer));
             configs.Add(config);
             return new(config);
         }
@@ -97,7 +97,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         var internalName = expectedIndex.ToString();
         if (Configs.Count != idx)
             throw new ArgumentException($"Unexpected index value for {internalName}: expected {idx}, cur size {Configs.Count}");
-        Configs.Add(new StrategyConfigFloat(internalName, displayName, minValue, maxValue, uiPriority));
+        Configs.Add(new StrategyConfigFloat(internalName, displayName, minValue, maxValue, uiPriority, typeof(FloatRenderer)));
     }
 
     public void DefineInt<Index>(Index expectedIndex, string displayName = "", long minValue = 0, long maxValue = long.MaxValue, float uiPriority = 0) where Index : Enum
@@ -106,7 +106,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         var internalName = expectedIndex.ToString();
         if (Configs.Count != idx)
             throw new ArgumentException($"Unexpected index value for {internalName}: expected {idx}, cur size {Configs.Count}");
-        Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority));
+        Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority, typeof(IntRenderer)));
     }
 
     public RotationModuleDefinition WithStrategies<S>()
@@ -120,7 +120,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                 if (inner.IsEnum)
                 {
                     var trackInfo = field.GetCustomAttribute<TrackAttribute>() ?? new();
-                    var renderer = trackInfo.Renderer ?? inner.GetCustomAttribute<RendererAttribute>()?.Type ?? typeof(DefaultStrategyRenderer);
+                    var renderer = trackInfo.Renderer ?? inner.GetCustomAttribute<RendererAttribute>()?.Type ?? typeof(TrackRenderer);
 
                     var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName, trackInfo.UiPriority, renderer);
 
@@ -147,14 +147,14 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                 if (inner == typeof(float))
                 {
                     var attr = field.GetCustomAttribute<NumberAttribute>() ?? new();
-                    Configs.Add(new StrategyConfigFloat(field.Name, attr.DisplayName, attr.MinValue, attr.MaxValue, attr.UiPriority, attr.Slider, attr.Speed));
+                    Configs.Add(new StrategyConfigFloat(field.Name, attr.DisplayName, attr.MinValue, attr.MaxValue, attr.UiPriority, attr.Renderer ?? typeof(FloatRenderer), attr.Slider, attr.Speed));
                     continue;
                 }
 
                 if (inner == typeof(int))
                 {
                     var attr = field.GetCustomAttribute<NumberAttribute>() ?? new();
-                    Configs.Add(new StrategyConfigInt(field.Name, attr.DisplayName, (long)attr.MinValue, (long)attr.MaxValue, attr.UiPriority, attr.Slider, attr.Speed));
+                    Configs.Add(new StrategyConfigInt(field.Name, attr.DisplayName, (long)attr.MinValue, (long)attr.MaxValue, attr.UiPriority, attr.Renderer ?? typeof(IntRenderer), attr.Slider, attr.Speed));
                     continue;
                 }
             }

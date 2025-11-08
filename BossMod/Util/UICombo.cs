@@ -37,7 +37,7 @@ public static class UICombo
         var values = System.Enum.GetValues(type).Cast<Enum>().ToArray();
         print ??= p => EnumString(values[p]);
         var res = false;
-        var width = 200 * ImGuiHelpers.GlobalScale;
+        var width = 300 * ImGuiHelpers.GlobalScale;
         ImGui.SetNextItemWidth(width);
 
         var labelCur = print(v);

@@ -3,18 +3,18 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation.xan;
 
-public class TargetingRenderer : DefaultStrategyRenderer
+public class TargetingRenderer : TrackRenderer
 {
-    public override void DrawLabel(StrategyConfigTrack t)
+    public override void DrawLabel(StrategyConfig _)
     {
         ImGui.Text("Targeting");
         ImGui.SameLine();
         UIMisc.HelpMarker("These settings only affect what the rotation module chooses to use actions on. Regardless of which one you choose, this module will not change your in-game target ('hard target').\n\nFor a module that will automatically change your hard target, use AI -> Automatic targeting.");
     }
 
-    public override bool Draw(StrategyConfigTrack _track, ref StrategyValue value)
+    public override bool DrawValue(StrategyConfigTrack _, ref StrategyValueTrack value)
     {
-        var ix = ((StrategyValueTrack)value).Option;
+        var ix = value.Option;
         var modified = false;
         var opt = (Targeting)ix;
 
@@ -23,14 +23,14 @@ public class TargetingRenderer : DefaultStrategyRenderer
 
         if (ImGui.RadioButton("Use player's target", opt == Targeting.Manual))
         {
-            value = new StrategyValueTrack() { Option = 0 };
+            value.Option = 0;
             modified = true;
         }
         if (ImGui.RadioButton("Automatically pick best target", opt != Targeting.Manual))
         {
             if (opt != Targeting.Auto)
             {
-                value = new StrategyValueTrack() { Option = 1 };
+                value.Option = 1;
                 modified = true;
             }
         }
@@ -39,14 +39,14 @@ public class TargetingRenderer : DefaultStrategyRenderer
             ImGui.Indent();
             if (ImGui.Checkbox("Make sure player's target is hit", ref trypri))
             {
-                value = new StrategyValueTrack() { Option = trypri ? 3 : 1 };
+                value.Option = trypri ? 3 : 1;
                 modified = true;
             }
             using (ImRaii.Disabled(!trypri))
             {
                 if (ImGui.Checkbox("Do nothing if the player doesn't have a target", ref forcepri))
                 {
-                    value = new StrategyValueTrack() { Option = forcepri ? 2 : 3 };
+                    value.Option = forcepri ? 2 : 3;
                     modified = true;
                 }
             }
@@ -57,33 +57,27 @@ public class TargetingRenderer : DefaultStrategyRenderer
     }
 }
 
-public class AOERenderer : DefaultStrategyRenderer
+public class AOERenderer : TrackRenderer
 {
-    public override bool Draw(StrategyConfigTrack config, ref StrategyValue value)
-    {
-        var opt = ((StrategyValueTrack)value).Option;
-
-        if (UICombo.Radio(config.OptionEnum, ref opt, false, ix => config.Options[ix].DisplayName.Length > 0 ? config.Options[ix].DisplayName : UICombo.EnumString((Enum)config.OptionEnum.GetEnumValues().GetValue(ix)!)))
-        {
-            value = new StrategyValueTrack() { Option = opt };
-            return true;
-        }
-
-        return false;
-    }
+    public override bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value) => UICombo.Radio(config.OptionEnum, ref value.Option, false, ix => config.Options[ix].DisplayName.Length > 0 ? config.Options[ix].DisplayName : UICombo.EnumString((Enum)config.OptionEnum.GetEnumValues().GetValue(ix)!));
 }
 
-public class OffensiveStrategyRenderer : DefaultStrategyRenderer
+public class OffensiveStrategyRenderer : TrackRenderer
 {
     private static readonly List<string> optionNames = ["Automatic", "Disabled", "Forced"];
 
-    public override bool Draw(StrategyConfigTrack config, ref StrategyValue value)
-    {
-        var opt = ((StrategyValueTrack)value).Option;
+    public override bool DrawValue(StrategyConfigTrack _, ref StrategyValueTrack value) => UICombo.Radio(typeof(OffensiveStrategy), ref value.Option, true, i => optionNames.BoundSafeAt(i, "")!);
+}
 
-        if (UICombo.Radio(typeof(OffensiveStrategy), ref opt, true, i => optionNames.BoundSafeAt(i, "")!))
+public class DefaultOnRenderer : TrackRenderer
+{
+    public override bool DrawValue(StrategyConfigTrack _, ref StrategyValueTrack currentValue)
+    {
+        var enabled = currentValue.Option == 0;
+
+        if (ImGui.Checkbox("Enabled", ref enabled))
         {
-            value = new StrategyValueTrack() { Option = opt };
+            currentValue.Option = enabled ? 0 : 1;
             return true;
         }
 
@@ -91,15 +85,15 @@ public class OffensiveStrategyRenderer : DefaultStrategyRenderer
     }
 }
 
-public class CheckboxRenderer : DefaultStrategyRenderer
+public class DefaultOffRenderer : TrackRenderer
 {
-    public override bool Draw(StrategyConfigTrack config, ref StrategyValue currentValue)
+    public override bool DrawValue(StrategyConfigTrack _, ref StrategyValueTrack currentValue)
     {
-        var opt = ((StrategyValueTrack)currentValue).Option == 1;
+        var enabled = currentValue.Option == 1;
 
-        if (ImGui.Checkbox("Enabled", ref opt))
+        if (ImGui.Checkbox("Enabled", ref enabled))
         {
-            currentValue = new StrategyValueTrack() { Option = opt ? 1 : 0 };
+            currentValue.Option = enabled ? 1 : 0;
             return true;
         }
 

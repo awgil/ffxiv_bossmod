@@ -1,7 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace BossMod.Autorotation;
 
@@ -76,6 +73,8 @@ public sealed class NumberAttribute() : Attribute
     public float UiPriority;
     public string DisplayName = "";
 
+    public Type? Renderer;
+
     public float MinValue;
     public float MaxValue = float.MaxValue;
     public float Speed = 1;
@@ -102,14 +101,14 @@ public sealed class OptionAttribute() : Attribute
 public abstract record class StrategyConfig(
     string InternalName, // unique name of the config; it is used for serialization, so it can't really be changed without losing user data (or writing config converter)
     string DisplayName, // if non-empty, this name is used for all UI instead of internal name
-    float UIPriority // tracks are sorted by UI priority for display; negative are hidden by default
+    float UIPriority, // tracks are sorted by UI priority for display; negative are hidden by default
+    Type Renderer // custom drawing for regular config, plan UI still uses old editor
 )
 {
     public abstract StrategyValue CreateEmpty();
     public abstract StrategyValue CreateForEditor();
 
-    public abstract bool DrawForSimpleEditor(ref StrategyValue currentValue);
-
+    public abstract bool IsDefault(StrategyValue val);
     public abstract string ToDisplayString(StrategyValue val);
     public abstract void SerializeValue(Utf8JsonWriter writer, StrategyValue val);
 
@@ -123,7 +122,7 @@ public record class StrategyConfigTrack(
     string DisplayName,
     float UIPriority,
     Type Renderer
-) : StrategyConfig(InternalName, DisplayName, UIPriority)
+) : StrategyConfig(InternalName, DisplayName, UIPriority, Renderer)
 {
     public readonly List<StrategyOption> Options = [];
     public readonly List<ActionID> AssociatedActions = []; // these actions will be shown on the track in the planner ui
@@ -131,20 +130,7 @@ public record class StrategyConfigTrack(
     public override StrategyValueTrack CreateEmpty() => new();
     public override StrategyValueTrack CreateForEditor() => new() { Option = Options.Count > 1 ? 1 : 0 };
 
-    private DefaultStrategyRenderer? _draw;
-
-    public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
-    {
-        _draw ??= (DefaultStrategyRenderer)Activator.CreateInstance(Renderer)!;
-        ImGui.TableNextRow();
-        using var _ = ImRaii.PushId(InternalName);
-        ImGui.TableNextColumn();
-        ImGui.AlignTextToFramePadding();
-        _draw.DrawLabel(this);
-        ImGui.TableNextColumn();
-        return _draw.Draw(this, ref currentValue);
-    }
-
+    public override bool IsDefault(StrategyValue val) => ((StrategyValueTrack)val).Option == 0;
     public override string ToDisplayString(StrategyValue val) => Options[((StrategyValueTrack)val).Option].UIName;
     public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
     {
@@ -158,37 +144,15 @@ public record class StrategyConfigFloat(
     float MinValue,
     float MaxValue,
     float UIPriority,
+    Type Renderer,
     bool Drag = true,
     float Speed = 1
-) : StrategyConfig(InternalName, DisplayName, UIPriority)
+) : StrategyConfig(InternalName, DisplayName, UIPriority, Renderer)
 {
     public override StrategyValueFloat CreateEmpty() => new() { Value = MinValue };
     public override StrategyValueFloat CreateForEditor() => new() { Value = MinValue };
 
-    public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
-    {
-        var f = ((StrategyValueFloat)currentValue).Value;
-        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
-        if (Drag)
-        {
-            if (ImGui.DragFloat(UIName, ref f, Speed, MinValue, MaxValue))
-            {
-                currentValue = new StrategyValueFloat() { Value = f };
-                return true;
-            }
-        }
-        else
-        {
-            if (ImGui.InputFloat(UIName, ref f, Speed))
-            {
-                currentValue = new StrategyValueFloat() { Value = f };
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    public override bool IsDefault(StrategyValue val) => (((StrategyValueFloat)val).Value - MinValue) < 1e-8;
     public override string ToDisplayString(StrategyValue val) => ((StrategyValueFloat)val).Value.ToString("f1");
     public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
     {
@@ -202,37 +166,15 @@ public record class StrategyConfigInt(
     long MinValue,
     long MaxValue,
     float UIPriority,
+    Type Renderer,
     bool Drag = true,
     float Speed = 1
-) : StrategyConfig(InternalName, DisplayName, UIPriority)
+) : StrategyConfig(InternalName, DisplayName, UIPriority, Renderer)
 {
     public override StrategyValueInt CreateEmpty() => new() { Value = MinValue };
     public override StrategyValueInt CreateForEditor() => throw new NotImplementedException();
 
-    public override bool DrawForSimpleEditor(ref StrategyValue currentValue)
-    {
-        var i = ((StrategyValueInt)currentValue).Value;
-        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
-        if (Drag)
-        {
-            if (ImGui.DragLong(UIName, ref i, Speed, MinValue, MaxValue))
-            {
-                currentValue = new StrategyValueInt() { Value = i };
-                return true;
-            }
-        }
-        else
-        {
-            if (ImGui.InputLong(UIName, ref i, (long)Speed))
-            {
-                currentValue = new StrategyValueInt() { Value = i };
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    public override bool IsDefault(StrategyValue val) => ((StrategyValueInt)val).Value == MinValue;
     public override string ToDisplayString(StrategyValue val) => ((StrategyValueInt)val).Value.ToString();
     public override void SerializeValue(Utf8JsonWriter writer, StrategyValue val)
     {
