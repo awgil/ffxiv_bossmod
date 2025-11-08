@@ -3,13 +3,13 @@ using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
 namespace BossMod.Autorotation.xan;
 
-public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Mind)
+public sealed class AST(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Mind)
 {
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan AST", "Astrologian", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.AST), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.Divination);
+        def.DefineShared("Divination").AddAssociatedActions(AID.Divination);
 
         return def;
     }

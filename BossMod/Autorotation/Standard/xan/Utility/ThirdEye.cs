@@ -3,7 +3,7 @@ using BossMod.SAM;
 
 namespace BossMod.Autorotation.Standard.xan.Utility;
 
-public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player)
+public class ThirdEye(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player)
 {
     public enum Track { ThirdEye }
 

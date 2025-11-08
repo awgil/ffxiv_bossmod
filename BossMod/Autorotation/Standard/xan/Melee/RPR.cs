@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
+public sealed class RPR(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Strength)
 {
     public enum Track { Harpe = SharedTrack.Count, Crest }
 
@@ -19,7 +19,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan RPR", "Reaper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RPR), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.ArcaneCircle);
+        def.DefineShared("Arcane Circle").AddAssociatedActions(AID.ArcaneCircle);
         def.Define(Track.Harpe).As<HarpeStrategy>("Harpe")
             .AddOption(HarpeStrategy.Automatic, "Use out of melee range if Enhanced Harpe is active")
             .AddOption(HarpeStrategy.Forbid, "Don't use")

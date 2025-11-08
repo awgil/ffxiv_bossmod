@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Dexterity)
+public sealed class DNC(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Dexterity)
 {
     public enum Track { Partner = SharedTrack.Count }
     public enum PartnerStrategy { Automatic, Manual }
@@ -13,7 +13,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan DNC", "Dancer", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DNC), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.TechnicalStep);
+        def.DefineShared("Technical Step").AddAssociatedActions(AID.TechnicalStep);
 
         def.Define(Track.Partner).As<PartnerStrategy>("Partner")
             .AddOption(PartnerStrategy.Automatic, "Choose dance partner automatically (based on job aDPS)")

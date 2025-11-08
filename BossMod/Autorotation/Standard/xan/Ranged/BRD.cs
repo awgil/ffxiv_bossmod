@@ -4,13 +4,13 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Dexterity)
+public sealed class BRD(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Dexterity)
 {
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan BRD", "Bard", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.RagingStrikes, AID.MagesBallad, AID.ArmysPaeon, AID.WanderersMinuet, AID.BattleVoice, AID.ApexArrow);
+        def.DefineShared("BV/Finale").AddAssociatedActions(AID.RagingStrikes, AID.MagesBallad, AID.ArmysPaeon, AID.WanderersMinuet, AID.BattleVoice, AID.ApexArrow);
 
         return def;
     }

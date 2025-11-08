@@ -5,13 +5,12 @@ namespace BossMod.Autorotation.MiscAI;
 
 public sealed class NormalMovement(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion, Async }
+    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion }
     public enum DestinationStrategy { None, Pathfind, Explicit }
     public enum RangeStrategy { Any, MaxRange, GreedGCDExplicit, GreedLastMomentExplicit, GreedAutomatic }
     public enum CastStrategy { Leeway, Explicit, Greedy, FinishMove, DropMove, FinishInstants, DropInstants }
     public enum ForbiddenZoneCushionStrategy { None, Small, Medium, Large }
     public enum SpecialModesStrategy { Automatic, Ignore }
-    public enum AsyncStrategy { Off, On }
 
     public const float GreedTolerance = 0.15f;
 
@@ -49,10 +48,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             .AddOption(ForbiddenZoneCushionStrategy.Medium, "Prefer to stay 1.5y away from forbidden zones")
             .AddOption(ForbiddenZoneCushionStrategy.Large, "Prefer to stay 3y away from forbidden zones");
 
-        res.Define(Track.Async).As<AsyncStrategy>("Async", "Async pathfinding")
-            .AddOption(AsyncStrategy.Off, "Disabled")
-            .AddOption(AsyncStrategy.On, "Enabled - in the future this behavior will be the default and this option will be removed");
-
         return res;
     }
 
@@ -64,32 +59,24 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
     private Task<NavigationDecision> _decisionTask = Task.FromResult(default(NavigationDecision));
     private NavigationDecision _lastDecision;
 
-    private NavigationDecision GetDecision(StrategyValues strategy, float speed, float cushionSize)
+    private NavigationDecision GetDecision(float speed, float cushionSize)
     {
-        if (strategy.Option(Track.Async).As<AsyncStrategy>() == AsyncStrategy.On)
+        if (_decisionTask.IsCompletedSuccessfully)
         {
-            if (_decisionTask.IsCompletedSuccessfully)
-            {
-                _lastDecision = _decisionTask.Result;
-                Manager.LastRasterizeMs = (float)_lastDecision.RasterizeTime.TotalMilliseconds;
-                Manager.LastPathfindMs = (float)_lastDecision.PathfindTime.TotalMilliseconds;
-            }
-
-            if (_decisionTask.IsCompleted)
-            {
-                if (_decisionTask.Exception is { } exception)
-                    Service.Log($"exception during pathfind: {exception}");
-
-                _decisionTask = NavigationDecision.BuildAsync(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
-            }
-
-            return _lastDecision;
+            _lastDecision = _decisionTask.Result;
+            Manager.LastRasterizeMs = (float)_lastDecision.RasterizeTime.TotalMilliseconds;
+            Manager.LastPathfindMs = (float)_lastDecision.PathfindTime.TotalMilliseconds;
         }
 
-        var decision = NavigationDecision.Build(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
-        Manager.LastRasterizeMs = (float)decision.RasterizeTime.TotalMilliseconds;
-        Manager.LastPathfindMs = (float)decision.PathfindTime.TotalMilliseconds;
-        return decision;
+        if (_decisionTask.IsCompleted)
+        {
+            if (_decisionTask.Exception is { } exception)
+                Service.Log($"exception during pathfind: {exception}");
+
+            _decisionTask = NavigationDecision.BuildAsync(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
+        }
+
+        return _lastDecision;
     }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -152,7 +139,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         switch (destinationStrategy)
         {
             case DestinationStrategy.Pathfind:
-                navi = GetDecision(strategy, speed, cushionSize);
+                navi = GetDecision(speed, cushionSize);
                 resetStats = false;
                 break;
             case DestinationStrategy.Explicit:

@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
+public sealed class PCT(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Intelligence)
 {
     public enum Track { Motif = SharedTrack.Count, Holy, Hammer }
     public enum MotifStrategy { Combat, Downtime, Instant }
@@ -13,7 +13,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
     {
         var def = new RotationModuleDefinition("xan PCT", "Pictomancer", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PCT), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.StarryMuse);
+        def.DefineShared("Starry Muse").AddAssociatedActions(AID.StarryMuse);
 
         def.Define(Track.Motif).As<MotifStrategy>("Motifs")
             .AddOption(MotifStrategy.Combat, "Cast motifs in combat, outside of burst window")

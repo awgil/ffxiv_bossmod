@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID>(manager, player, PotionType.Strength)
+public sealed class PLD(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Strength)
 {
     public enum Track { Intervene = SharedTrack.Count, HolySpirit, Atonement, Combo }
 
@@ -39,7 +39,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
     {
         var def = new RotationModuleDefinition("xan PLD", "Paladin", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA), 100);
 
-        def.DefineShared().AddAssociatedActions(AID.FightOrFlight);
+        def.DefineShared("Fight or Flight").AddAssociatedActions(AID.FightOrFlight);
 
         def.Define(Track.Intervene).As<DashStrategy>("Intervene")
             .AddOption(DashStrategy.Automatic, "Use during burst window", minLevel: 66)

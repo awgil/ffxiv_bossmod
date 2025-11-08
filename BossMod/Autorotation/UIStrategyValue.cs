@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
@@ -260,5 +261,113 @@ public static class UIStrategyValue
             return false;
         current ^= (int)flag;
         return true;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Enum)]
+public sealed class RendererAttribute(Type renderWith) : Attribute
+{
+    public Type Type = renderWith;
+}
+
+public class RendererFactory
+{
+    private static RendererFactory? _instance;
+    private readonly Dictionary<Type, IStrategyRenderer> _dict = [];
+
+    public static bool Draw(StrategyConfig config, ref StrategyValue value)
+    {
+        var inst = (_instance ??= new()).Get(config.Renderer);
+
+        ImGui.TableNextRow();
+        using var _ = ImRaii.PushId(config.InternalName);
+        ImGui.TableNextColumn();
+        ImGui.AlignTextToFramePadding();
+        inst.DrawLabel(config);
+        ImGui.TableNextColumn();
+        return inst.DrawValue(config, ref value);
+    }
+
+    private IStrategyRenderer Get(Type t) => _dict.TryGetValue(t, out var r) ? r : (_dict[t] = (IStrategyRenderer)Activator.CreateInstance(t)!);
+}
+
+public interface IStrategyRenderer
+{
+    public void DrawLabel(StrategyConfig config);
+    public bool DrawValue(StrategyConfig config, ref StrategyValue value);
+}
+
+public class TrackRenderer : IStrategyRenderer
+{
+    public virtual void DrawLabel(StrategyConfig config) => ImGui.TextWrapped(config.UIName);
+    public bool DrawValue(StrategyConfig config, ref StrategyValue value)
+    {
+        var v = (StrategyValueTrack)value;
+        if (DrawValue((StrategyConfigTrack)config, ref v))
+        {
+            value = v;
+            return true;
+        }
+        return false;
+    }
+
+    public virtual bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value) => UICombo.EnumIndex("", config.OptionEnum, ref value.Option, ix => config.Options[ix].DisplayName.Length > 0 ? config.Options[ix].DisplayName : UICombo.EnumString((Enum)config.OptionEnum.GetEnumValues().GetValue(ix)!));
+}
+
+public class FloatRenderer : IStrategyRenderer
+{
+    public void DrawLabel(StrategyConfig config) => ImGui.TextWrapped(config.UIName);
+    public bool DrawValue(StrategyConfig config, ref StrategyValue value)
+    {
+        var cfg = (StrategyConfigFloat)config;
+        var f = ((StrategyValueFloat)value).Value;
+        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
+        if (cfg.Drag)
+        {
+            if (ImGui.DragFloat("", ref f, cfg.Speed, cfg.MinValue, cfg.MaxValue))
+            {
+                value = new StrategyValueFloat() { Value = f };
+                return true;
+            }
+        }
+        else
+        {
+            if (ImGui.InputFloat("", ref f, cfg.Speed))
+            {
+                value = new StrategyValueFloat() { Value = f };
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+public class IntRenderer : IStrategyRenderer
+{
+    public void DrawLabel(StrategyConfig config) => ImGui.TextWrapped(config.UIName);
+    public bool DrawValue(StrategyConfig config, ref StrategyValue value)
+    {
+        var cfg = (StrategyConfigInt)config;
+        var f = ((StrategyValueInt)value).Value;
+        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
+        if (cfg.Drag)
+        {
+            if (ImGui.DragLong("", ref f, cfg.Speed, cfg.MinValue, cfg.MaxValue))
+            {
+                value = new StrategyValueInt() { Value = f };
+                return true;
+            }
+        }
+        else
+        {
+            if (ImGui.InputLong("", ref f, (long)cfg.Speed))
+            {
+                value = new StrategyValueInt() { Value = f };
+                return true;
+            }
+        }
+
+        return false;
     }
 }

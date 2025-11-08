@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Mind)
+public sealed class SGE(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Mind)
 {
     public enum Track { Kardia = SharedTrack.Count, Druo }
     public enum KardiaStrategy { Auto, Manual }
@@ -14,7 +14,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
     {
         var def = new RotationModuleDefinition("xan SGE", "Sage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100);
 
-        def.DefineShared();
+        def.DefineShared("Phlegma");
 
         def.Define(Track.Kardia).As<KardiaStrategy>("Kardia")
             .AddOption(KardiaStrategy.Auto, "Automatically choose Kardia target")
