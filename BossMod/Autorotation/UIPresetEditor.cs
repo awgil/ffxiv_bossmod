@@ -102,7 +102,6 @@ public sealed class UIPresetEditor
         DrawModulesList();
         ImGui.TableNextColumn();
         DrawSettingsList();
-        //DrawDetails();
     }
 
     public void DetachFromSource()
