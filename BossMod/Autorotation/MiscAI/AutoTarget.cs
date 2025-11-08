@@ -1,4 +1,6 @@
-﻿namespace BossMod.Autorotation.MiscAI;
+﻿using BossMod.Autorotation.xan;
+
+namespace BossMod.Autorotation.MiscAI;
 
 public sealed class AutoTarget(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
@@ -21,31 +23,31 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             .AddOption(RetargetStrategy.Always, "Always switch target to the highest priority enemy")
             .AddOption(RetargetStrategy.Never, "Never switch target; only apply priority changes to enemies");
 
-        res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Prioritize bosses in quest battles")
+        res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Prioritize bosses in quest battles", renderer: typeof(DefaultOffRenderer))
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.DeepDungeon).As<Flag>("DD", "Prioritize deep dungeon bosses (solo only)")
+        res.Define(Track.DeepDungeon).As<Flag>("DD", "Prioritize deep dungeon bosses (solo only)", renderer: typeof(DefaultOffRenderer))
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.EpicEcho).As<Flag>("EE", "Prioritize all targets in unsynced duties")
+        res.Define(Track.EpicEcho).As<Flag>("EE", "Prioritize all targets in unsynced duties", renderer: typeof(DefaultOffRenderer))
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.Hunt).As<Flag>("Hunt", "Prioritize hunt marks once they have been pulled")
+        res.Define(Track.Hunt).As<Flag>("Hunt", "Prioritize hunt marks once they have been pulled", renderer: typeof(DefaultOffRenderer))
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.FATE).As<Flag>("FATE", "Prioritize mobs in the current FATE")
+        res.Define(Track.FATE).As<Flag>("FATE", "Prioritize mobs in the current FATE", renderer: typeof(DefaultOffRenderer))
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.Everything).As<Flag>("Everything", "Prioritize EVERYTHING")
+        res.Define(Track.Everything).As<Flag>("Everything", "Prioritize EVERYTHING", renderer: typeof(DefaultOffRenderer))
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.CollectFATE).As<Flag>("CollectFATE", "Ignore passive mobs in hand-in FATEs")
+        res.Define(Track.CollectFATE).As<Flag>("CollectFATE", "Ignore passive mobs in hand-in FATEs", renderer: typeof(DefaultOffRenderer))
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
