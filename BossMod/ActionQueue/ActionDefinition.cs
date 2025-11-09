@@ -238,7 +238,6 @@ public sealed class ActionDefinitions : IDisposable
         RegisterItem(IDPotionInt);
         RegisterItem(IDPotionMnd);
 
-        // TODO: expected anim lock says 0.5
         RegisterItem(IDPotionSustaining, 1.1f);
         RegisterItem(IDPotionMax, 1.1f);
         RegisterItem(IDPotionEmpyrean, 1.1f);

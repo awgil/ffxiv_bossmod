@@ -579,7 +579,6 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return res;
     }
 
-    // pomander and magicite funcs are both extremely basic, they just check if animlock <= 0 and call executecommand
     private void UsePomanderDetour(InstanceContentDeepDungeon* self, uint slot)
     {
         var action = _ws.DeepDungeon.GetPomanderActionID((int)slot);
@@ -591,7 +590,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     private void UseStoneDetour(InstanceContentDeepDungeon* self, uint slot)
     {
-        var action = new ActionID(ActionType.Magicite, slot);
+        var action = new ActionID(ActionType.Magicite, slot + 1);
         if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
             return;
 
@@ -621,7 +620,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
         if (dd != null)
         {
-            _useStoneHook.Original(dd, action.ID);
+            _useStoneHook.Original(dd, action.ID - 1);
             _inst->AnimationLock = 2.1f;
             HandleActionRequest(action, 0, 0xE0000000, default, GetPlayerRotation(), GetPlayerRotation());
         }
