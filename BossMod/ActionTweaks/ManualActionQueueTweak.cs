@@ -53,7 +53,14 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         {
             float expireOrder = 0; // we don't actually care about values, only ordering...
             foreach (ref var e in _queue.AsSpan())
-                queue.Push(e.Action, e.Target, e.Definition.IsGCD ? ActionQueue.Priority.ManualGCD : ActionQueue.Priority.ManualOGCD, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle, true);
+            {
+                var prio = ActionQueue.Priority.ManualOGCD;
+
+                if (e.Definition.IsGCD || e.Action.Type is ActionType.Pomander or ActionType.Magicite)
+                    prio = ActionQueue.Priority.ManualGCD;
+
+                queue.Push(e.Action, e.Target, prio, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle, true);
+            }
         }
     }
 

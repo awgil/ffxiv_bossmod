@@ -57,6 +57,7 @@ public sealed class DeepDungeonState
     public int GetPomanderSlot(PomanderID pid) => GetDungeonDefinition().PomanderSlot.FindIndex(p => p.RowId == (uint)pid);
     public PomanderState GetPomanderState(PomanderID pid) => GetPomanderSlot(pid) is var s && s >= 0 ? Pomanders[s] : default;
     public PomanderID GetPomanderID(int slot) => GetDungeonDefinition().PomanderSlot is var slots && slot >= 0 && slot < slots.Count ? (PomanderID)slots[slot].RowId : PomanderID.None;
+    public ActionID GetPomanderActionID(int slot) => new(ActionType.Pomander, GetDungeonDefinition().PomanderSlot[slot].RowId);
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {

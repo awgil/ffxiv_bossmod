@@ -246,6 +246,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
     {
         if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
             action = BozjaActionID.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
+
+        // the spell that corresponds with pomanders/magicite can't directly be used by players, so actionstatus will always be 579
+        if (action.Type is ActionType.Pomander or ActionType.Magicite)
+            return 0;
+
         return _inst->GetActionStatus((CSActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
     }
 
@@ -364,22 +369,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
                 var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
                 return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
             case ActionType.Pomander:
-                var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-                var slot = _ws.DeepDungeon.GetPomanderSlot((PomanderID)action.ID);
-                if (dd != null && slot >= 0)
-                {
-                    dd->UsePomander((uint)slot);
-                    return true;
-                }
-                return false;
+                UsePomanderNative(action);
+                return true;
             case ActionType.Magicite:
-                dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-                if (dd != null)
-                {
-                    dd->UseStone(action.ID);
-                    return true;
-                }
-                return false;
+                UseStoneNative(action);
+                return true;
 
             default:
                 // fall back to UAL hook for everything not covered explicitly
@@ -566,12 +560,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return ret;
     }
 
-    private bool UseBozjaFromHolsterDirectorDetour(PublicContentBozja* self, uint holsterIndex, uint slot)
+    private Angle GetPlayerRotation()
     {
         var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-        var prevRot = player != null ? player->Rotation.Radians() : default;
+        return player != null ? player->Rotation.Radians() : default;
+    }
+
+    private bool UseBozjaFromHolsterDirectorDetour(PublicContentBozja* self, uint holsterIndex, uint slot)
+    {
+        var prevRot = GetPlayerRotation();
         var res = _useBozjaFromHolsterDirectorHook.Original(self, holsterIndex, slot);
-        var currRot = player != null ? player->Rotation.Radians() : default;
+        var currRot = GetPlayerRotation();
         if (res)
         {
             var entry = (BozjaHolsterID)self->State.HolsterActions[(int)holsterIndex];
@@ -580,15 +579,52 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return res;
     }
 
-    // TODO add to manual queue (and also add holsters)
+    // pomander and magicite funcs are both extremely basic, they just check if animlock <= 0 and call executecommand
     private void UsePomanderDetour(InstanceContentDeepDungeon* self, uint slot)
     {
-        _usePomanderHook.Original(self, slot);
+        var action = _ws.DeepDungeon.GetPomanderActionID((int)slot);
+        if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
+            return;
+
+        UsePomanderNative(action);
     }
 
     private void UseStoneDetour(InstanceContentDeepDungeon* self, uint slot)
     {
-        _useStoneHook.Original(self, slot);
+        var action = new ActionID(ActionType.Magicite, slot);
+        if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
+            return;
+
+        UseStoneNative(action);
+    }
+
+    private void UsePomanderNative(ActionID action)
+    {
+        if (_inst->AnimationLock > 0)
+            return;
+
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        var slot = _ws.DeepDungeon.GetPomanderSlot((PomanderID)action.ID);
+        if (dd != null && slot >= 0)
+        {
+            _usePomanderHook.Original(dd, (uint)slot);
+            _inst->AnimationLock = 2.1f;
+            HandleActionRequest(action, 0, 0xE0000000, default, GetPlayerRotation(), GetPlayerRotation());
+        }
+    }
+
+    private void UseStoneNative(ActionID action)
+    {
+        if (_inst->AnimationLock > 0)
+            return;
+
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        if (dd != null)
+        {
+            _useStoneHook.Original(dd, action.ID);
+            _inst->AnimationLock = 2.1f;
+            HandleActionRequest(action, 0, 0xE0000000, default, GetPlayerRotation(), GetPlayerRotation());
+        }
     }
 
     private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)

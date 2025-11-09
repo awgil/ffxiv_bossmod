@@ -503,9 +503,6 @@ public abstract partial class AutoClear : ZoneModule
             _ => false
         };
 
-        if (player.InCombat)
-            return;
-
         foreach (var pp in hints.PotentialTargets)
         {
             // enemy is petrified, any damage will kill
