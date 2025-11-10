@@ -38,8 +38,8 @@ public enum AID : uint
     RuinfallTB = 36187, // Valigarmanda2->self, 5.6s cast, range 6 circle
     RuinfallKnockback = 36189, // Valigarmanda2->self, 8.0s cast, range 40 width 40 rect
     RuinfallAOEs = 39129, // Valigarmanda2->location, 9.7s cast, range 6 circle
-    NorthernCross = 36168, // Valigarmanda2->self, 3.0s cast, range 60 width 25 rect
-    NorthernCross1 = 36169, // Valigarmanda2->self, 3.0s cast, range 60 width 25 rect
+    NorthernCrossNE = 36168, // Valigarmanda2->self, 3.0s cast, range 60 width 25 rect NE Avalanche
+    NorthernCrossSW = 36169, // Valigarmanda2->self, 3.0s cast, range 60 width 25 rect SW Avalanche
     FreezingDust = 36177, // Boss->self, 5.0+0.8s cast, range 80 circle
     ChillingCataclysm = 39265, // Valigarmanda2->self, 1.5s cast, range 40 width 5 cross
     RuinForetold = 38545, // Boss->self, 5.0s cast, range 80 circle
@@ -106,8 +106,37 @@ class FreezingDust(BossModule module) : Components.StayMove(module)
         }
     }
 }
-class NorthernCross(BossModule module) : Components.StandardAOEs(module, AID.NorthernCross, new AOEShapeRect(60, 12.5f));
-class NorthernCross1(BossModule module) : Components.StandardAOEs(module, AID.NorthernCross1, new AOEShapeRect(60, 12.5f));
+class NorthernCross(BossModule module) : Components.GenericAOEs(module)
+{
+    public AOEInstance? AOE;
+
+    private static readonly AOEShapeRect _shape = new(25, 30);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(AOE);
+
+    public override void OnMapEffect(byte index, uint state)
+    {
+        if (index != 2)
+            return;
+        var offset = state switch
+        {
+            0x00200010 => -90.Degrees(),
+            0x00020001 => 90.Degrees(),
+            _ => default
+        };
+        if (offset != default)
+            AOE = new(_shape, Module.Center, -127.Degrees() + offset, WorldState.FutureTime(9.2f));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.NorthernCrossNE or AID.NorthernCrossSW)
+        {
+            ++NumCasts;
+            AOE = null;
+        }
+    }
+}
 class HailOfFeathers(BossModule module) : Components.RaidwideCast(module, AID.HailOfFeathers1);
 class RuinfallKnockback(BossModule module) : Components.Knockback(module)
 {
@@ -134,15 +163,23 @@ class RuinfallKnockback(BossModule module) : Components.Knockback(module)
             _casters.Add(caster);
         }
     }
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.RuinfallKnockback)
         {
-            _casters.Remove(caster);
+            _casters.Clear();
+            _source = null;
         }
+    }
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
         if ((AID)spell.Action.ID is AID.RuinfallTB)
         {
             tbSoaked = true;
+        }
+        if ((AID) spell.Action.ID is AID.RuinfallKnockback)
+        {
+            _casters.Clear();
         }
     }
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
@@ -156,13 +193,13 @@ class RuinfallKnockback(BossModule module) : Components.Knockback(module)
     }
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_casters != null)
+        if (_source != null)
         {
             if (actor.Role == Role.Tank && !tbSoaked)
             {
                 hints.AddForbiddenZone(new AOEShapeRect(30, 20f, 3), Module.Center);
             }
-            else
+            else if (actor.Role == Role.Tank && tbSoaked || actor.Role != Role.Tank)
             {
                 hints.AddForbiddenZone(new AOEShapeRect(30, 20f, 10), Module.Center);
             }
@@ -363,7 +400,6 @@ class T01ValigarmandaStates : StateMachineBuilder
             .ActivateOnEnter<Skyruin2>()
             .ActivateOnEnter<FreezingDust>()
             .ActivateOnEnter<NorthernCross>()
-            .ActivateOnEnter<NorthernCross1>()
             .ActivateOnEnter<RuinfallKnockback>()
             .ActivateOnEnter<RuinfallTankbuster>()
             .ActivateOnEnter<RuinfallAOEs>()
