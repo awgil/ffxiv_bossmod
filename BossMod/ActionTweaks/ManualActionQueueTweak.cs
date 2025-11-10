@@ -56,7 +56,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             {
                 var prio = ActionQueue.Priority.ManualOGCD;
 
-                if (e.Definition.IsGCD || e.Action.Type is ActionType.Pomander or ActionType.Magicite)
+                if (e.Definition.IsGCD || e.Action.Type is ActionType.Pomander or ActionType.Magicite or ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
                     prio = ActionQueue.Priority.ManualGCD;
 
                 queue.Push(e.Action, e.Target, prio, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle, true);
