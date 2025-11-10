@@ -110,7 +110,6 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layou
     public ActorCastInfo? CastInfo;
     public ActorTetherInfo Tether;
     public ActorStatus[] Statuses = new ActorStatus[60]; // empty slots have ID=0
-    public ActorIncomingEffect[] IncomingEffects = new ActorIncomingEffect[32];
 
     // all pending lists are sorted by expiration time
     public List<PendingEffectDelta> PendingHPDifferences = []; // damage and heal effects applied to the target that were not confirmed yet

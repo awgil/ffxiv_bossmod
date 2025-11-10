@@ -432,23 +432,6 @@ sealed class WorldStateGameSync : IDisposable
                 UpdateActorStatus(act, i, curStatus);
             }
         }
-
-        var aeh = chr != null ? chr->GetActionEffectHandler() : null;
-        if (aeh != null)
-        {
-            for (int i = 0; i < aeh->IncomingEffects.Length; ++i)
-            {
-                ref var eff = ref aeh->IncomingEffects[i];
-                ref var prev = ref act.IncomingEffects[i];
-                if ((prev.GlobalSequence, prev.TargetIndex) != (eff.GlobalSequence != 0 ? (eff.GlobalSequence, eff.TargetIndex) : (0, 0)))
-                {
-                    var effects = new ActionEffects();
-                    for (int j = 0; j < ActionEffects.MaxCount; ++j)
-                        effects[j] = *(ulong*)eff.Effects.Effects.GetPointer(j);
-                    _ws.Execute(new ActorState.OpIncomingEffect(act.InstanceID, i, new(eff.GlobalSequence, eff.TargetIndex, eff.Source, new((ActionType)eff.ActionType, eff.ActionId), effects)));
-                }
-            }
-        }
     }
 
     private void UpdateActorCastInfo(Actor act, ActorCastInfo? cast)

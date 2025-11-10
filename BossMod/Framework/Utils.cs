@@ -381,4 +381,16 @@ public static partial class Utils
             return cache[input] = func(input);
         };
     }
+
+    public static DateTime Clamp(this DateTime dt, DateTime min, DateTime max) => dt < min ? min : dt > max ? max : dt;
+
+    public static IEnumerable<T> Drain<T>(this List<T> list, Predicate<T> predicate)
+    {
+        for (var i = list.Count - 1; i >= 0; i--)
+            if (predicate(list[i]))
+            {
+                yield return list[i];
+                list.RemoveAt(i);
+            }
+    }
 }
