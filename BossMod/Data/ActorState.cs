@@ -118,11 +118,11 @@ public sealed class ActorState : IEnumerable<Actor>
     }
 
     private delegate bool RemovePendingEffectPredicate(in PendingEffect effect);
-    private void RemovePendingEffects(Actor target, RemovePendingEffectPredicate predicate, bool log = false)
+    private void RemovePendingEffects(Actor target, RemovePendingEffectPredicate predicate)
     {
-        void clear<T>(string label, List<T> items, Predicate<T> pred)
+        static void clear<T>(string label, List<T> items, Predicate<T> pred)
         {
-            if (log)
+            if (Service.IsDev)
             {
                 foreach (var item in items.Drain(pred))
                     Service.Log($"[ActorState] pending {label} effect expires: {item}");

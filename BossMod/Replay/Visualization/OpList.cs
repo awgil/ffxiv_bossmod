@@ -115,7 +115,6 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ActorState.OpCastEvent op => FilterInterestingActor(op.InstanceID, op.Timestamp, false) && !_filteredActions.Contains(op.Value.Action),
             ActorState.OpStatus op => FilterInterestingStatuses(op.InstanceID, op.Index, op.Timestamp),
             ActorState.OpEffectResult => false,
-            ActorState.OpIncomingEffect => false,
             PartyState.OpLimitBreakChange => false,
             ClientState.OpActionRequest => false,
             //ClientState.OpActionReject => false,

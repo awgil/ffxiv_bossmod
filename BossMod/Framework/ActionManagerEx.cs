@@ -569,7 +569,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var state = PublicContentBozja.GetState();
         if (state == null)
             return false;
-        var action = new ActionID(holsterIndex == 0 ? ActionType.BozjaHolsterSlot0 : ActionType.BozjaHolsterSlot1, state->HolsterActions[(int)slot]);
+        var action = new ActionID(slot == 0 ? ActionType.BozjaHolsterSlot0 : ActionType.BozjaHolsterSlot1, state->HolsterActions[(int)holsterIndex]);
 
         if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
             return true;
