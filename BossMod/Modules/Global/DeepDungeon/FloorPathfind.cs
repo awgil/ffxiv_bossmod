@@ -59,3 +59,56 @@ internal class FloorPathfind(ReadOnlySpan<RoomFlags> Map)
             yield return roomIndex + 1;
     }
 }
+
+abstract partial class AutoClear : ZoneModule
+{
+    private void HandleFloorPathfind(Actor player, AIHints hints)
+    {
+        var slot = Array.FindIndex(Palace.Party, p => p.EntityId == player.InstanceID);
+        if (slot < 0)
+            return;
+        var reportedRoom = Palace.Party[slot].Room;
+        if (DesiredRoom == reportedRoom || DesiredRoom == 0)
+        {
+            DesiredRoom = 0;
+            return;
+        }
+
+        var path = new FloorPathfind(Palace.Rooms).Pathfind(PlayerRoom, DesiredRoom);
+
+        var next = path.Count > 0 ? path[0] : DesiredRoom;
+        var destBox = _floorRects[Palace.Progress.Tileset][next];
+
+        var destToSrc = ToCardinal(PlayerRoomBox.Pos - destBox.Pos).Sign();
+        var (destLength, destWidth) = destToSrc.X != 0 ? destBox.Size.OrthoR().Abs() : destBox.Size.Abs();
+
+        destLength *= 0.8f;
+
+        hints.GoalZones.Add(p =>
+        {
+            var pdir = p - destBox.Pos;
+            var pdot = pdir.Dot(destToSrc);
+            var pdotNormal = MathF.Abs(pdir.Dot(destToSrc.OrthoL()));
+            var distToRect = pdotNormal - destWidth;
+
+            // behind target room, we aren't really likely to ever hit this case
+            if (pdot < -destLength)
+                return 0;
+
+            // inside target room
+            if (distToRect < 0 && MathF.Abs(pdot) <= destLength)
+                return 10;
+
+            // create a goal cone extending from room edge, with gradually decreasing priority - makes corners more consistent
+            var distToRoomEdge = pdot - destLength;
+            if (distToRect < distToRoomEdge * 0.2f)
+            {
+                var weight = 120 - Math.Clamp(distToRoomEdge, 0, 120);
+                return MathF.Floor(weight / 12f);
+            }
+
+            // outside cone
+            return 0;
+        });
+    }
+}

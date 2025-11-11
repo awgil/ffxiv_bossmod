@@ -1,10 +1,16 @@
-﻿using Lumina.Data.Files;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
+using Lumina.Data.Files;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
+using static Lumina.Data.Parsing.Layer.LayerCommon;
 
 namespace BossMod.Global.DeepDungeon;
 
 abstract partial class AutoClear : ZoneModule
 {
+    private readonly Dictionary<string, Floor<Wall>> LoadedFloors;
+    private readonly List<(Wall Wall, bool Rotated)> Walls = [];
+
     private void LoadWalls()
     {
         Service.Log($"loading walls for current floor...");
@@ -37,7 +43,6 @@ abstract partial class AutoClear : ZoneModule
             if (room > 0)
             {
                 var roomdata = tileset[i];
-                RoomCenters.Add(roomdata.Center.Position);
                 if (roomdata.North != default && !room.HasFlag(RoomFlags.ConnectionN))
                     Walls.Add((roomdata.North, false));
                 if (roomdata.South != default && !room.HasFlag(RoomFlags.ConnectionS))
@@ -54,6 +59,9 @@ abstract partial class AutoClear : ZoneModule
     {
         public readonly WPos Pos => new(Position.XZ());
         public readonly WDir Size => new(Scale.XZ());
+
+        public readonly bool Contains(WPos p) => p.InRect(Pos, default(Angle), Size.Z, Size.Z, Size.X);
+        public readonly bool Contains(Vector3 v) => Contains(new WPos(v.X, v.Z));
     }
 
     private readonly List<List<RoomBox>> _floorRects = [];
@@ -81,46 +89,29 @@ abstract partial class AutoClear : ZoneModule
 
         foreach (var layer in levelData.Layers)
         {
-            var roomRanges = layer.InstanceObjects.Where(o => o.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.EventRange).Take(21).ToList();
+            var roomRanges = layer.InstanceObjects.Where(o => o.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.EventRange).ToList();
 
             // boss room layer has one object
             if (roomRanges.Count < 21)
                 continue;
 
-            var boxesOrdered = roomRanges.Select(r => new RoomBox(0, r.Transform.Translation.ToSystem(), r.Transform.Scale.ToSystem(), r.Transform.Rotation.ToSystem())).ToList();
+            var roomsPrio = roomRanges.GroupBy(r => r.Object is EventRangeInstanceObject eo ? eo.ParentData.Priority : 0);
 
-            // level data boxes are ordered by column, room data is ordered by row
-            _floorRects.Add([
-                default,
-                boxesOrdered[ 3] with { Room = 1 },
-                boxesOrdered[ 8] with { Room = 2 },
-                boxesOrdered[13] with { Room = 3 },
-                default,
+            _floorRects.Add([.. Enumerable.Repeat(default(RoomBox), 25)]);
+            var fr = _floorRects[^1];
 
-                boxesOrdered[ 0] with { Room = 5 },
-                boxesOrdered[ 4] with { Room = 6 },
-                boxesOrdered[ 9] with { Room = 7 },
-                boxesOrdered[14] with { Room = 8 },
-                boxesOrdered[18] with { Room = 9 },
+            foreach (var grouping in roomsPrio)
+            {
+                var prio = grouping.Key;
+                // assume largest box is the room collider and any others are hallways
+                var box = grouping.MaxBy(r => r.Transform.Scale.X * r.Transform.Scale.Z);
 
-                boxesOrdered[ 1] with { Room = 10 },
-                boxesOrdered[ 5] with { Room = 11 },
-                boxesOrdered[10] with { Room = 12 },
-                boxesOrdered[15] with { Room = 13 },
-                boxesOrdered[19] with { Room = 14 },
+                var roomIndex = prio - 100;
+                if (roomIndex is < 0 or > 24)
+                    throw new ArgumentException($"got unrecognized priority {prio} for collision box");
 
-                boxesOrdered[ 2] with { Room = 15 },
-                boxesOrdered[ 6] with { Room = 16 },
-                boxesOrdered[11] with { Room = 17 },
-                boxesOrdered[16] with { Room = 18 },
-                boxesOrdered[20] with { Room = 19 },
-
-                default,
-                boxesOrdered[ 7] with { Room = 21 },
-                boxesOrdered[12] with { Room = 22 },
-                boxesOrdered[17] with { Room = 23 },
-                default,
-            ]);
+                fr[roomIndex] = new(roomIndex, box.Transform.Translation.ToSystem(), box.Transform.Scale.ToSystem(), box.Transform.Rotation.ToSystem());
+            }
         }
     }
 
@@ -147,6 +138,8 @@ abstract partial class AutoClear : ZoneModule
 
     private bool IsRoomAdjacent(int i, int j)
     {
+        if (i is >= 25 or < 0)
+            return false;
         var md = Palace.Rooms[i];
         if (md.HasFlag(RoomFlags.ConnectionN) && i - 5 == j)
             return true;
@@ -157,5 +150,61 @@ abstract partial class AutoClear : ZoneModule
         if (md.HasFlag(RoomFlags.ConnectionE) && i + 1 == j)
             return true;
         return false;
+    }
+
+    private bool IsInThisRoomOrAdjacent(WPos p)
+    {
+        var (_, r) = FindClosestRoom(p);
+        return PlayerRoom == r || IsRoomAdjacent(r, PlayerRoom);
+    }
+
+    private bool IsInThisRoomOrAdjacent(Actor a) => IsInThisRoomOrAdjacent(a.Position);
+
+    private bool _drawGeometry;
+
+    private void DrawBoxes(Actor? player)
+    {
+        ImGui.Checkbox("Draw geometry", ref _drawGeometry);
+        if (player == null || !_drawGeometry)
+            return;
+
+        var windowPos = ImGui.GetWindowPos();
+        var cursorPos = ImGui.GetCursorPos();
+
+        var dims = ImGui.GetContentRegionAvail();
+
+        ImGui.Dummy(dims);
+
+        var worldCenter = dims * -0.5f + player.Position.ToVec2();
+
+        Vector2 worldToWindow(WPos p) => windowPos + cursorPos + p.ToVec2() - worldCenter;
+        WPos windowToWorld(Vector2 v) => new(v + worldCenter - cursorPos - windowPos);
+
+        var mousePos = ImGui.GetMousePos();
+        var mouseWorld = windowToWorld(mousePos);
+
+        var hovered = _floorRects[Palace.Progress.Tileset].FindIndex(r => player.Position.InRect(r.Pos, default(Angle), r.Scale.Z, r.Scale.Z, r.Scale.X));
+
+        for (var i = 0; i < _floorRects[Palace.Progress.Tileset].Count; i++)
+        {
+            var r = _floorRects[Palace.Progress.Tileset][i];
+
+            if (hovered == i)
+                ImGui.GetWindowDrawList().AddRectFilled(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), ArenaColor.Object);
+            else
+                ImGui.GetWindowDrawList().AddRect(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), ArenaColor.Border);
+
+            var label = i.ToString();
+
+            var ts = ImGui.CalcTextSize(label);
+            ImGui.GetWindowDrawList().AddText(worldToWindow(r.Pos) - ts * 0.5f, 0xFFFFFFFF, label);
+        }
+
+        if (player is { } p)
+            ImGui.GetWindowDrawList().AddCircleFilled(worldToWindow(p.Position), 5 * ImGuiHelpers.GlobalScale, ArenaColor.Safe);
+
+        ImGui.GetWindowDrawList().AddCircle(worldToWindow(default), 10, 0xFFFF0000);
+
+        ImGui.Text($"{windowToWorld(mousePos)}");
     }
 }

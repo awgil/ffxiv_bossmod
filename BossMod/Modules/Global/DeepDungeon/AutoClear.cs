@@ -66,7 +66,6 @@ public abstract partial class AutoClear : ZoneModule
 
     protected readonly AutoDDConfig _config = Service.Config.Get<AutoDDConfig>();
     private readonly EventSubscriptions _subscriptions;
-    private readonly List<WPos> _trapsCurrentZone = [];
 
     private readonly Dictionary<ulong, PomanderID> _chestContentsGold = [];
     private readonly Dictionary<ulong, int> _chestContentsSilver = [];
@@ -74,12 +73,6 @@ public abstract partial class AutoClear : ZoneModule
     private readonly HashSet<ulong> _fakeExits = [];
     private PomanderID? _lastChestContentsGold;
     private bool _lastChestMagicite;
-    private bool _trapsHidden = true;
-
-    private readonly Dictionary<string, Floor<Wall>> LoadedFloors;
-    private readonly List<(Wall Wall, bool Rotated)> Walls = [];
-    private readonly List<WPos> RoomCenters = [];
-    private readonly List<WPos> ProblematicTrapLocations = [];
 
     private int Kills;
     private int DesiredRoom;
@@ -109,8 +102,8 @@ public abstract partial class AutoClear : ZoneModule
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
-            ws.Actors.CastEvent.Subscribe(OnEventCast),
-            ws.Actors.Added.Subscribe(OnActorCreated),
+            ws.Actors.CastEvent.Subscribe(HandleCastEvent),
+            ws.Actors.Added.Subscribe(HandleActorAdd),
             ws.Actors.InCombatChanged.Subscribe(OnActorCombatChanged),
             ws.Actors.StatusGain.Subscribe(OnActorStatusGain),
             ws.Actors.StatusLose.Subscribe(OnActorStatusLose),
@@ -127,12 +120,11 @@ public abstract partial class AutoClear : ZoneModule
                 {
                     LoadWalls();
                     LoadGeometry();
+                    FilterTraps();
                 }
                 BetweenFloors = false;
             })
         );
-
-        _trapsCurrentZone = PalacePalInterop.GetTrapLocationsForZone(ws.CurrentZone);
 
         LoadedFloors = Utils.LoadFromAssembly<Dictionary<string, Floor<Wall>>>("BossMod.Modules.Global.DeepDungeon.Walls.json");
         ProblematicTrapLocations = Utils.LoadFromAssembly<List<WPos>>("BossMod.Modules.Global.DeepDungeon.BadTraps.json");
@@ -157,6 +149,11 @@ public abstract partial class AutoClear : ZoneModule
     protected virtual void OnCastStarted(Actor actor) { }
 
     protected virtual void OnCastFinished(Actor actor) { }
+    private void HandleCastEvent(Actor actor, ActorCastEvent ev)
+    {
+        HandleTrap(actor, ev);
+        OnEventCast(actor, ev);
+    }
     protected virtual void OnEventCast(Actor actor, ActorCastEvent ev) { }
 
     private void OnActorStatusGain(Actor actor, int index)
@@ -209,7 +206,7 @@ public abstract partial class AutoClear : ZoneModule
                 break;
             case 7255: // safety used
             case 7256: // sight used
-                _trapsHidden = false;
+                _trapsCurrentFloor.Clear();
                 break;
             case 9208: // magicite overcap
             case 10287: // demiclone overcap
@@ -217,7 +214,7 @@ public abstract partial class AutoClear : ZoneModule
                 break;
             case 11251:
                 if (op.Args[1] == 4) // mazeroot balm used, reveals map and traps
-                    _trapsHidden = false;
+                    _trapsCurrentFloor.Clear();
                 break;
         }
     }
@@ -244,7 +241,6 @@ public abstract partial class AutoClear : ZoneModule
         HintDisabled.Clear();
         LOS.Clear();
         Walls.Clear();
-        RoomCenters.Clear();
         IgnoreTraps.Clear();
         IgnoreTraps.AddRange(ProblematicTrapLocations);
         DesiredRoom = 0;
@@ -339,11 +335,12 @@ public abstract partial class AutoClear : ZoneModule
         }
     }
 
-    protected virtual void OnActorCreated(Actor c)
+    private void HandleActorAdd(Actor c)
     {
-        if ((OID)c.OID is OID.BeaconHoH or OID.BandedCofferIndicator)
-            IgnoreTraps.Add(c.Position);
+        HandleBeacon(c);
+        OnActorCreated(c);
     }
+    protected virtual void OnActorCreated(Actor c) { }
 
     private DateTime CastFinishAt(Actor c) => World.FutureTime(c.CastInfo!.NPCRemainingTime);
 
@@ -362,9 +359,9 @@ public abstract partial class AutoClear : ZoneModule
 
         if (_config.TrapHints && _trapsHidden)
         {
-            var traps = _trapsCurrentZone.Where(t => t.InCircle(player.Position, 30) && !IgnoreTraps.Any(b => b.AlmostEqual(t, 1))).Select(t => ShapeContains.Circle(t, 2)).ToList();
-            if (traps.Count > 0)
-                hints.AddForbiddenZone(ShapeContains.Union(traps));
+            var tshape = _trapsCurrentFloor.Select(t => new WPos(t.X, t.Z)).Where(f => f.InCircle(player.Position, 30)).Select(f => ShapeContains.Circle(f, 2)).ToList();
+            if (tshape.Count > 0)
+                hints.AddForbiddenZone(ShapeContains.Union(tshape));
         }
 
         DrawAOEs(playerSlot, player, hints);
@@ -412,7 +409,7 @@ public abstract partial class AutoClear : ZoneModule
                 continue;
 
             var oid = (OID)a.OID;
-            if (a.IsTargetable && (
+            if (a.IsTargetable && IsInThisRoomOrAdjacent(a) && (
                 oid == OID.GoldCoffer && OpenGold ||
                 oid == OID.SilverCoffer && OpenSilver && player.HPMP.CurHP > player.HPMP.MaxHP * 0.7f ||
                 BronzeChestIDs.Contains(a.OID) && OpenBronze ||
@@ -521,9 +518,7 @@ public abstract partial class AutoClear : ZoneModule
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
             else if (shouldTargetMobs && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
             {
-                var (_, targetRoom) = FindClosestRoom(pp.Actor.Position);
-
-                if (PlayerRoom == targetRoom || IsRoomAdjacent(PlayerRoom, targetRoom))
+                if (IsInThisRoomOrAdjacent(pp.Actor))
                     pp.Priority = 0;
             }
         }
@@ -619,54 +614,6 @@ public abstract partial class AutoClear : ZoneModule
     private static bool IsPlayerTransformed(Actor player) => player.Statuses.Any(Autorotation.RotationModuleManager.IsTransformStatus);
     private static bool IsDangerousOutOfCombatStatus(uint statusRaw) => (SID)statusRaw is SID.DamageUp or SID.DreadBeastAura or SID.PhysicalDamageUp;
 
-    private void HandleFloorPathfind(Actor player, AIHints hints)
-    {
-        var slot = Array.FindIndex(Palace.Party, p => p.EntityId == player.InstanceID);
-        if (slot < 0)
-            return;
-        var reportedRoom = Palace.Party[slot].Room;
-        if (DesiredRoom == reportedRoom || DesiredRoom == 0)
-        {
-            DesiredRoom = 0;
-            return;
-        }
-
-        var path = new FloorPathfind(Palace.Rooms).Pathfind(PlayerRoom, DesiredRoom);
-        if (path.Count == 0)
-            return;
-
-        var next = path[0];
-        var destBox = _floorRects[Palace.Progress.Tileset][next];
-
-        var destToSrc = ToCardinal(PlayerRoomBox.Pos - destBox.Pos).Sign();
-        var (destLength, destWidth) = destToSrc.X != 0 ? destBox.Size.OrthoR().Abs() : destBox.Size.Abs();
-
-        var pessimistLen = destLength * 0.5f;
-
-        hints.GoalZones.Add(p =>
-        {
-            var pdir = p - destBox.Pos;
-            var pdot = pdir.Dot(destToSrc);
-            var pdotNormal = pdir.Dot(destToSrc.OrthoL());
-
-            if (MathF.Abs(pdotNormal) <= destWidth)
-            {
-                // inside target room
-                if (MathF.Abs(pdot) <= pessimistLen)
-                    return 10;
-                // behind target room (i don't think we can really hit this one)
-                else if (pdot < 0)
-                    return 0;
-
-                var cl = 60 - Math.Clamp(pdot - pessimistLen, 0, 60);
-
-                return MathF.Floor(cl / 6f);
-            }
-
-            return 0;
-        });
-    }
-
     protected void AddLOSFromTerrain(Actor Source, float Range)
     {
         var (entry, data) = _obstacles.Find(Source.PosRot.XYZ());
@@ -729,9 +676,9 @@ static class PalacePalInterop
     // TODO make an IPC for this? wouldn't work in uidev
     private static readonly string PalacePalDbFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "PalacePal", "palace-pal.data.sqlite3");
 
-    public static List<WPos> GetTrapLocationsForZone(uint zone)
+    public static List<Vector3> GetTrapLocationsForZone(uint zone)
     {
-        List<WPos> locations = [];
+        List<Vector3> locations = [];
 
         try
         {
@@ -741,7 +688,7 @@ static class PalacePalInterop
 
                 var command = connection.CreateCommand();
                 command.CommandText = @"
-                select X,Z from Locations where Type = 1 and TerritoryType = $tt
+                select X,Y,Z from Locations where Type = 1 and TerritoryType = $tt
             ";
                 command.Parameters.AddWithValue("$tt", zone);
 
@@ -749,8 +696,9 @@ static class PalacePalInterop
                 while (reader.Read())
                 {
                     var x = reader.GetFloat(0);
-                    var z = reader.GetFloat(1);
-                    locations.Add(new(x, z));
+                    var y = reader.GetFloat(1);
+                    var z = reader.GetFloat(2);
+                    locations.Add(new(x, y, z));
                 }
             }
 

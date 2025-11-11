@@ -6,11 +6,15 @@ abstract partial class AutoClear : ZoneModule
 {
     private int DrawMap(Actor? player, int playerSlot)
     {
+        DrawBoxes(player);
+
         return new Minimap(Palace, player?.Rotation ?? default, DesiredRoom, Math.Max(0, playerSlot)).Draw();
     }
 
     public override void DrawExtra()
     {
+        DrawTraps();
+
         var player = World.Party.Player();
         var playerSlot = Array.FindIndex(Palace.Party, p => p.EntityId == player?.InstanceID);
         var targetRoom = DrawMap(player, playerSlot);
@@ -57,7 +61,7 @@ abstract partial class AutoClear : ZoneModule
 
         if (ImGui.Button("Set closest trap location as ignored"))
         {
-            var pos = _trapsCurrentZone.Except(ProblematicTrapLocations).MinBy(t => (t - player.Position).LengthSq()).Rounded(0.1f);
+            var pos = _trapsCurrentZone.Select(z => new WPos(z.X, z.Z)).Except(ProblematicTrapLocations).MinBy(t => (t - player.Position).LengthSq()).Rounded(0.1f);
             ProblematicTrapLocations.Add(pos);
             IgnoreTraps.Add(pos);
         }

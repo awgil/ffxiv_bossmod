@@ -52,7 +52,7 @@ class Camera
 
         var dl = ImGui.GetBackgroundDrawList();
         foreach (var l in _worldDrawLines)
-            dl.AddLine(l.from, l.to, l.col);
+            dl.AddLine(l.from, l.to, l.col, 2);
         _worldDrawLines.Clear();
     }
 
