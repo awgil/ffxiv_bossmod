@@ -4,19 +4,8 @@ namespace BossMod.Global.DeepDungeon;
 
 abstract partial class AutoClear : ZoneModule
 {
-    bool _triggerboxView;
-
     private int DrawMap(Actor? player, int playerSlot)
     {
-        if (Service.IsDev)
-            ImGui.Checkbox("Geometry view", ref _triggerboxView);
-
-        if (_triggerboxView)
-        {
-            DrawBoxes(player);
-            return -1;
-        }
-
         return new Minimap(Palace, player?.Rotation ?? default, DesiredRoom, Math.Max(0, playerSlot)).Draw();
     }
 

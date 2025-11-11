@@ -77,5 +77,5 @@ class Spinelash(BossModule module) : Components.GenericWildCharge(module, 4, nul
     }
 }
 
-class Vodoriga(BossModule module) : Components.Adds(module, (uint)OID.VodorigaMinion, 1, forbidDots: true);
+class Vodoriga(BossModule module) : Components.Adds(module, (uint)OID.VodorigaMinion, forbidDots: true);
 class TerrorEye(BossModule module) : Components.StandardAOEs(module, AID.TerrorEye, 6);

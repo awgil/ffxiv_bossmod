@@ -349,6 +349,9 @@ public abstract partial class AutoClear : ZoneModule
 
     protected virtual void CalculateExtraHints(int playerSlot, Actor player, AIHints hints) { }
 
+    private RoomBox PlayerRoomBox;
+    private int PlayerRoom;
+
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
         if (Palace.IsBossFloor || BetweenFloors)
@@ -367,6 +370,8 @@ public abstract partial class AutoClear : ZoneModule
         DrawAOEs(playerSlot, player, hints);
 
         var canNavigate = _config.MaxPull == 0 ? !player.InCombat : hints.PotentialTargets.Count(t => t.Actor.AggroPlayer && !t.Actor.IsDeadOrDestroyed) <= _config.MaxPull;
+
+        (PlayerRoomBox, PlayerRoom) = FindClosestRoom(player.Position);
 
         if (canNavigate)
             HandleFloorPathfind(player, hints);
@@ -515,7 +520,12 @@ public abstract partial class AutoClear : ZoneModule
 
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
             else if (shouldTargetMobs && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
-                pp.Priority = 0;
+            {
+                var (_, targetRoom) = FindClosestRoom(pp.Actor.Position);
+
+                if (PlayerRoom == targetRoom || IsRoomAdjacent(PlayerRoom, targetRoom))
+                    pp.Priority = 0;
+            }
         }
     }
 
@@ -614,49 +624,46 @@ public abstract partial class AutoClear : ZoneModule
         var slot = Array.FindIndex(Palace.Party, p => p.EntityId == player.InstanceID);
         if (slot < 0)
             return;
-        var playerRoom = Palace.Party[slot].Room;
-
-        if (DesiredRoom == playerRoom || DesiredRoom == 0)
+        var reportedRoom = Palace.Party[slot].Room;
+        if (DesiredRoom == reportedRoom || DesiredRoom == 0)
         {
             DesiredRoom = 0;
             return;
         }
 
-        var path = new FloorPathfind(Palace.Rooms).Pathfind(playerRoom, DesiredRoom);
+        var path = new FloorPathfind(Palace.Rooms).Pathfind(PlayerRoom, DesiredRoom);
         if (path.Count == 0)
-        {
-            Service.Log($"uh-oh, no path from {playerRoom} to {DesiredRoom}");
             return;
-        }
-        var next = path[0];
-        Direction d;
-        if (next == playerRoom + 1)
-            d = Direction.East;
-        else if (next == playerRoom - 1)
-            d = Direction.West;
-        else if (next == playerRoom + 5)
-            d = Direction.South;
-        else if (next == playerRoom - 5)
-            d = Direction.North;
-        else
-        {
-            Service.Log($"pathfinding instructions are nonsense: {string.Join(", ", path)}");
-            DesiredRoom = 0;
-            return;
-        }
 
-        var pp = player.Position;
+        var next = path[0];
+        var destBox = _floorRects[Palace.Progress.Tileset][next];
+
+        var destToSrc = ToCardinal(PlayerRoomBox.Pos - destBox.Pos).Sign();
+        var (destLength, destWidth) = destToSrc.X != 0 ? destBox.Size.OrthoR().Abs() : destBox.Size.Abs();
+
+        var pessimistLen = destLength * 0.5f;
+
         hints.GoalZones.Add(p =>
         {
-            var improvement = d switch
+            var pdir = p - destBox.Pos;
+            var pdot = pdir.Dot(destToSrc);
+            var pdotNormal = pdir.Dot(destToSrc.OrthoL());
+
+            if (MathF.Abs(pdotNormal) <= destWidth)
             {
-                Direction.North => pp.Z - p.Z,
-                Direction.South => p.Z - pp.Z,
-                Direction.East => p.X - pp.X,
-                Direction.West => pp.X - p.X,
-                _ => 0,
-            };
-            return improvement > 10 ? 10 : 0;
+                // inside target room
+                if (MathF.Abs(pdot) <= pessimistLen)
+                    return 10;
+                // behind target room (i don't think we can really hit this one)
+                else if (pdot < 0)
+                    return 0;
+
+                var cl = 60 - Math.Clamp(pdot - pessimistLen, 0, 60);
+
+                return MathF.Floor(cl / 6f);
+            }
+
+            return 0;
         });
     }
 

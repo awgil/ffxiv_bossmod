@@ -1,7 +1,6 @@
-﻿using Dalamud.Interface.Utility;
-using Dalamud.Utility;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
-using Dalamud.Bindings.ImGui;
 
 namespace BossMod;
 
@@ -51,19 +50,10 @@ class Camera
         if (_worldDrawLines.Count == 0)
             return;
 
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
-        ImGuiHelpers.ForceNextWindowMainViewport();
-        ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0));
-        ImGui.Begin("world_overlay", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground);
-        ImGui.SetWindowSize(ImGui.GetIO().DisplaySize);
-
-        var dl = ImGui.GetWindowDrawList();
+        var dl = ImGui.GetBackgroundDrawList();
         foreach (var l in _worldDrawLines)
             dl.AddLine(l.from, l.to, l.col);
         _worldDrawLines.Clear();
-
-        ImGui.End();
-        ImGui.PopStyleVar();
     }
 
     public void DrawWorldLine(Vector3 start, Vector3 end, uint color)

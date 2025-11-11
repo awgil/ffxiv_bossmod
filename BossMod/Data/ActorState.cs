@@ -58,7 +58,7 @@ public sealed class ActorState : IEnumerable<Actor>
             act.PrevPosRot = act.PosRot;
             act.CastInfo?.ElapsedTime = Math.Min(act.CastInfo.ElapsedTime + frame.Duration, act.CastInfo.AdjustedTotalTime);
             // TODO: can we skip this whole step if we instead expire effects where the source has died?
-            RemovePendingEffects(act, (in p) => p.Expiration < ts);
+            RemovePendingEffects(act, (in p) => p.Expiration < ts, true);
         }
     }
 
@@ -118,11 +118,11 @@ public sealed class ActorState : IEnumerable<Actor>
     }
 
     private delegate bool RemovePendingEffectPredicate(in PendingEffect effect);
-    private void RemovePendingEffects(Actor target, RemovePendingEffectPredicate predicate)
+    private void RemovePendingEffects(Actor target, RemovePendingEffectPredicate predicate, bool log)
     {
-        static void clear<T>(string label, List<T> items, Predicate<T> pred)
+        void clear<T>(string label, List<T> items, Predicate<T> pred)
         {
-            if (Service.IsDev)
+            if (Service.IsDev && log)
             {
                 foreach (var item in items.Drain(pred))
                     Service.Log($"[ActorState] pending {label} effect expires: {item}");
@@ -131,7 +131,7 @@ public sealed class ActorState : IEnumerable<Actor>
                 items.RemoveAll(pred);
         }
 
-        clear("HP", target.PendingHPDifferences, e => predicate(e.Effect));
+        target.PendingHPDifferences.RemoveAll(e => predicate(e.Effect));
         clear("MP", target.PendingMPDifferences, e => predicate(e.Effect));
         clear("status", target.PendingStatuses, e => predicate(e.Effect));
         clear("dispel", target.PendingDispels, e => predicate(e.Effect));
@@ -443,7 +443,7 @@ public sealed class ActorState : IEnumerable<Actor>
     {
         protected override void ExecActor(WorldState ws, Actor actor)
         {
-            ws.Actors.RemovePendingEffects(actor, (in p) => p.GlobalSequence == Seq && p.TargetIndex == TargetIndex);
+            ws.Actors.RemovePendingEffects(actor, (in p) => p.GlobalSequence == Seq && p.TargetIndex == TargetIndex, false);
             ws.Actors.EffectResult.Fire(actor, Seq, TargetIndex);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ER  "u8).EmitActor(InstanceID).Emit(Seq).Emit(TargetIndex);

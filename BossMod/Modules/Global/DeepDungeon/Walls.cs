@@ -1,6 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility;
-using Lumina.Data.Files;
+﻿using Lumina.Data.Files;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
@@ -52,15 +50,17 @@ abstract partial class AutoClear : ZoneModule
         }
     }
 
-    record struct FloorRect(string Tileset, WPos Position, WDir Scale, Vector3 Rotation);
+    private record struct RoomBox(int Room, Vector3 Position, Vector3 Scale, Vector3 Rotation)
+    {
+        public readonly WPos Pos => new(Position.XZ());
+        public readonly WDir Size => new(Scale.XZ());
+    }
 
-    private readonly List<FloorRect> _floorRects = [];
-    private readonly List<(int, int)> _connections = [];
+    private readonly List<List<RoomBox>> _floorRects = [];
 
     private void LoadGeometry()
     {
         _floorRects.Clear();
-        _connections.Clear();
 
         var tt = Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(World.CurrentZone);
         if (tt == null)
@@ -81,99 +81,81 @@ abstract partial class AutoClear : ZoneModule
 
         foreach (var layer in levelData.Layers)
         {
-            if (layer.Name.Contains("LVD_Boss_", StringComparison.InvariantCultureIgnoreCase))
+            var roomRanges = layer.InstanceObjects.Where(o => o.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.EventRange).Take(21).ToList();
+
+            // boss room layer has one object
+            if (roomRanges.Count < 21)
                 continue;
 
-            foreach (var obj in layer.InstanceObjects)
-            {
-                if (obj.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.EventRange)
-                {
-                    var trans = obj.Transform;
-                    var pos = new WPos(trans.Translation.X, trans.Translation.Z);
-                    var scale = new WDir(trans.Scale.X, trans.Scale.Z);
-                    _floorRects.Add(new(layer.Name, pos, scale, new(trans.Rotation.X, trans.Rotation.Y, trans.Rotation.Z)));
-                }
-            }
-        }
+            var boxesOrdered = roomRanges.Select(r => new RoomBox(0, r.Transform.Translation.ToSystem(), r.Transform.Scale.ToSystem(), r.Transform.Rotation.ToSystem())).ToList();
 
-        for (var i = 0; i < _floorRects.Count; i++)
-        {
-            var rect = _floorRects[i];
-            var x1 = rect.Position.X - rect.Scale.X;
-            var x2 = rect.Position.X + rect.Scale.X;
-            var z1 = rect.Position.Z - rect.Scale.Z;
-            var z2 = rect.Position.Z + rect.Scale.Z;
+            // level data boxes are ordered by column, room data is ordered by row
+            _floorRects.Add([
+                default,
+                boxesOrdered[ 3] with { Room = 1 },
+                boxesOrdered[ 8] with { Room = 2 },
+                boxesOrdered[13] with { Room = 3 },
+                default,
 
-            for (var j = i + 1; j < _floorRects.Count; j++)
-            {
-                var rect2 = _floorRects[j];
-                var xj1 = rect2.Position.X - rect2.Scale.X;
-                var xj2 = rect2.Position.X + rect2.Scale.X;
-                var zj1 = rect2.Position.Z - rect2.Scale.Z;
-                var zj2 = rect2.Position.Z + rect2.Scale.Z;
+                boxesOrdered[ 0] with { Room = 5 },
+                boxesOrdered[ 4] with { Room = 6 },
+                boxesOrdered[ 9] with { Room = 7 },
+                boxesOrdered[14] with { Room = 8 },
+                boxesOrdered[18] with { Room = 9 },
 
-                if (x1 < xj2 && x2 > xj1 && z1 < zj2 && z2 > zj1)
-                    _connections.Add((i, j));
-            }
+                boxesOrdered[ 1] with { Room = 10 },
+                boxesOrdered[ 5] with { Room = 11 },
+                boxesOrdered[10] with { Room = 12 },
+                boxesOrdered[15] with { Room = 13 },
+                boxesOrdered[19] with { Room = 14 },
+
+                boxesOrdered[ 2] with { Room = 15 },
+                boxesOrdered[ 6] with { Room = 16 },
+                boxesOrdered[11] with { Room = 17 },
+                boxesOrdered[16] with { Room = 18 },
+                boxesOrdered[20] with { Room = 19 },
+
+                default,
+                boxesOrdered[ 7] with { Room = 21 },
+                boxesOrdered[12] with { Room = 22 },
+                boxesOrdered[17] with { Room = 23 },
+                default,
+            ]);
         }
     }
 
-    private void DrawBoxes(Actor? player)
+    private static WDir ToCardinal(WDir x)
     {
-        if (player == null)
-            return;
+        var abs = x.Abs();
+        if (abs.X < abs.Z)
+            x.X = 0;
+        else
+            x.Z = 0;
+        return x;
+    }
 
-        var windowPos = ImGui.GetWindowPos();
-        var cursorPos = ImGui.GetCursorPos();
+    private float DistanceBox2D(WPos p, Vector2 rectMin, Vector2 rectMax)
+    {
+        var dx = MathF.Max(MathF.Max(rectMin.X - p.X, 0), p.X - rectMax.X);
+        var dy = MathF.Max(MathF.Max(rectMin.Y - p.Z, 0), p.Z - rectMax.Y);
+        return dx * dx + dy * dy;
+    }
 
-        var dims = ImGui.GetContentRegionAvail();
+    private float DistanceBox2D(WPos p, RoomBox rect) => DistanceBox2D(p, (rect.Position - rect.Scale).XZ(), (rect.Position + rect.Scale).XZ());
 
-        ImGui.Dummy(dims);
+    private (RoomBox Room, int Index) FindClosestRoom(WPos p) => _floorRects[Palace.Progress.Tileset].Select((box, i) => (box, i)).MinBy(r => DistanceBox2D(p, r.box));
 
-        var worldCenter = dims * -0.5f + player.Position.ToVec2();
-
-        Vector2 worldToWindow(WPos p) => windowPos + cursorPos + p.ToVec2() - worldCenter;
-        WPos windowToWorld(Vector2 v) => new(v + worldCenter - cursorPos - windowPos);
-
-        var mousePos = ImGui.GetMousePos();
-        var mouseWorld = windowToWorld(mousePos);
-
-        var hovered = _floorRects.FindIndex(r => player.Position.InRect(r.Position, 0.Degrees(), r.Scale.Z, r.Scale.Z, r.Scale.X));
-
-        var connected = new HashSet<int>();
-        if (hovered >= 0)
-        {
-            foreach (var c in _connections)
-            {
-                if (c.Item2 == hovered)
-                    connected.Add(c.Item1);
-                if (c.Item1 == hovered)
-                    connected.Add(c.Item2);
-            }
-        }
-
-        for (var i = 0; i < _floorRects.Count; i++)
-        {
-            var r = _floorRects[i];
-
-            if (hovered == i)
-                ImGui.GetWindowDrawList().AddRectFilled(worldToWindow(r.Position + r.Scale), worldToWindow(r.Position - r.Scale), ArenaColor.Object);
-            else if (connected.Contains(i))
-                ImGui.GetWindowDrawList().AddRectFilled(worldToWindow(r.Position + r.Scale), worldToWindow(r.Position - r.Scale), 0x80FFFFFF);
-            else
-                ImGui.GetWindowDrawList().AddRect(worldToWindow(r.Position + r.Scale), worldToWindow(r.Position - r.Scale), ArenaColor.Border);
-
-            var label = $"{r.Tileset} {i}";
-            var ts = ImGui.CalcTextSize(label);
-            ImGui.GetWindowDrawList().AddText(worldToWindow(r.Position) - ts * 0.5f, 0xFFFFFFFF, label);
-        }
-
-        if (player is { } p)
-            ImGui.GetWindowDrawList().AddCircleFilled(worldToWindow(p.Position), 5 * ImGuiHelpers.GlobalScale, ArenaColor.Safe);
-
-        ImGui.GetWindowDrawList().AddCircle(worldToWindow(default), 10, 0xFFFF0000);
-
-        ImGui.Text($"{windowToWorld(mousePos)}");
-        ImGui.Text($"connected: {_connections.Count}");
+    private bool IsRoomAdjacent(int i, int j)
+    {
+        var md = Palace.Rooms[i];
+        if (md.HasFlag(RoomFlags.ConnectionN) && i - 5 == j)
+            return true;
+        if (md.HasFlag(RoomFlags.ConnectionS) && i + 5 == j)
+            return true;
+        if (md.HasFlag(RoomFlags.ConnectionW) && i - 1 == j)
+            return true;
+        if (md.HasFlag(RoomFlags.ConnectionE) && i + 1 == j)
+            return true;
+        return false;
     }
 }
