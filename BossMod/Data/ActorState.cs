@@ -44,9 +44,12 @@ public sealed class ActorState : IEnumerable<Actor>
                 yield return new OpTether(act.InstanceID, act.Tether);
             if (act.CastInfo != null)
                 yield return new OpCastInfo(act.InstanceID, act.CastInfo);
-            for (var i = 0; i < act.Statuses.Length; ++i)
+            for (int i = 0; i < act.Statuses.Length; ++i)
                 if (act.Statuses[i].ID != 0)
                     yield return new OpStatus(act.InstanceID, i, act.Statuses[i]);
+            for (int i = 0; i < act.IncomingEffects.Length; ++i)
+                if (act.IncomingEffects[i].GlobalSequence != 0)
+                    yield return new OpIncomingEffect(act.InstanceID, i, act.IncomingEffects[i]);
         }
     }
 
@@ -58,14 +61,14 @@ public sealed class ActorState : IEnumerable<Actor>
             act.PrevPosRot = act.PosRot;
             act.CastInfo?.ElapsedTime = Math.Min(act.CastInfo.ElapsedTime + frame.Duration, act.CastInfo.AdjustedTotalTime);
             // TODO: can we skip this whole step if we instead expire effects where the source has died?
-            RemovePendingEffects(act, (in p) => p.Expiration < ts, true);
+            RemovePendingEffects(act, (in p) => p.Expiration < ts);
         }
     }
 
     private void AddPendingEffects(Actor source, ActorCastEvent ev, DateTime timestamp)
     {
         var expiration = timestamp.AddSeconds(3);
-        for (var i = 0; i < ev.Targets.Count; ++i)
+        for (int i = 0; i < ev.Targets.Count; ++i)
         {
             var target = ev.Targets[i].ID == source.InstanceID ? source : Find(ev.Targets[i].ID); // most common case by far is self-target
             if (target == null)
@@ -104,38 +107,19 @@ public sealed class ActorState : IEnumerable<Actor>
                     case ActionEffectType.LoseStatusEffectSource:
                         effTarget.PendingDispels.Add(new(header, eff.Value));
                         break;
-                    case ActionEffectType.Knockback:
-                    case ActionEffectType.Attract1:
-                    case ActionEffectType.Attract2:
-                    case ActionEffectType.AttractCustom1:
-                    case ActionEffectType.AttractCustom2:
-                    case ActionEffectType.AttractCustom3:
-                        effTarget.PendingKnockbacks.Add(header);
-                        break;
                 }
             }
         }
     }
 
     private delegate bool RemovePendingEffectPredicate(in PendingEffect effect);
-    private void RemovePendingEffects(Actor target, RemovePendingEffectPredicate predicate, bool log)
+    private void RemovePendingEffects(Actor target, RemovePendingEffectPredicate predicate)
     {
-        void clear<T>(string label, List<T> items, Predicate<T> pred)
-        {
-            if (Service.IsDev && log)
-            {
-                foreach (var item in items.Drain(pred))
-                    Service.Log($"[ActorState] pending {label} effect expires: {item}");
-            }
-            else
-                items.RemoveAll(pred);
-        }
-
         target.PendingHPDifferences.RemoveAll(e => predicate(e.Effect));
-        clear("MP", target.PendingMPDifferences, e => predicate(e.Effect));
-        clear("status", target.PendingStatuses, e => predicate(e.Effect));
-        clear("dispel", target.PendingDispels, e => predicate(e.Effect));
-        clear("knockback", target.PendingKnockbacks, e => predicate(e));
+        target.PendingMPDifferences.RemoveAll(e => predicate(e.Effect));
+        target.PendingStatuses.RemoveAll(e => predicate(e.Effect));
+        target.PendingDispels.RemoveAll(e => predicate(e.Effect));
+        target.PendingKnockbacks.RemoveAll(e => predicate(e));
     }
 
     // implementation of operations
@@ -443,7 +427,7 @@ public sealed class ActorState : IEnumerable<Actor>
     {
         protected override void ExecActor(WorldState ws, Actor actor)
         {
-            ws.Actors.RemovePendingEffects(actor, (in p) => p.GlobalSequence == Seq && p.TargetIndex == TargetIndex, false);
+            ws.Actors.RemovePendingEffects(actor, (in p) => p.GlobalSequence == Seq && p.TargetIndex == TargetIndex);
             ws.Actors.EffectResult.Fire(actor, Seq, TargetIndex);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ER  "u8).EmitActor(InstanceID).Emit(Seq).Emit(TargetIndex);
@@ -477,6 +461,38 @@ public sealed class ActorState : IEnumerable<Actor>
                 output.EmitFourCC("STA+"u8).EmitActor(InstanceID).Emit(Index).Emit(Value);
             else
                 output.EmitFourCC("STA-"u8).EmitActor(InstanceID).Emit(Index);
+        }
+    }
+
+    public Event<Actor, int> IncomingEffectAdd = new();
+    public Event<Actor, int> IncomingEffectRemove = new();
+    public sealed record class OpIncomingEffect(ulong InstanceID, int Index, ActorIncomingEffect Value) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            ref var prev = ref actor.IncomingEffects[Index];
+            var prevSeq = prev.GlobalSequence;
+            var prevIdx = prev.TargetIndex;
+            if (prevSeq != 0 && (prevSeq != Value.GlobalSequence || prevIdx != Value.TargetIndex))
+            {
+                if (prev.Effects.Any(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3))
+                    actor.PendingKnockbacks.RemoveAll(e => e.GlobalSequence == prevSeq && e.TargetIndex == prevIdx);
+                ws.Actors.IncomingEffectRemove.Fire(actor, Index);
+            }
+            actor.IncomingEffects[Index] = Value;
+            if (Value.GlobalSequence != 0)
+            {
+                if (Value.Effects.Any(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3))
+                    actor.PendingKnockbacks.Add(new(Value.GlobalSequence, Value.TargetIndex, Value.SourceInstanceId, ws.FutureTime(3))); // note: sometimes effect can never be applied (eg if source dies shortly after actioneffect), so we need a timeout
+                ws.Actors.IncomingEffectAdd.Fire(actor, Index);
+            }
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            if (Value.GlobalSequence != 0)
+                output.EmitFourCC("AIE+"u8).EmitActor(InstanceID).Emit(Index).Emit(Value.GlobalSequence).Emit(Value.TargetIndex).EmitActor(Value.SourceInstanceId).Emit(Value.Action).Emit(Value.Effects);
+            else
+                output.EmitFourCC("AIE-"u8).EmitActor(InstanceID).Emit(Index);
         }
     }
 

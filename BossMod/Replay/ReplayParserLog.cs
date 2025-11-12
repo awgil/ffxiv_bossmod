@@ -647,21 +647,7 @@ public sealed class ReplayParserLog : IDisposable
 
     private ActorState.OpEffectResult ParseActorEffectResult() => new(_input.ReadActorID(), _input.ReadUInt(false), _input.ReadInt());
     private ActorState.OpStatus ParseActorStatus(bool gainOrUpdate) => new(_input.ReadActorID(), _input.ReadInt(), gainOrUpdate ? _input.ReadStatus() : default);
-    // replaced by actioneffect + effectresult + manual expiration
-    private ActorState.OpStatus? ParseActorIncomingEffect(bool add)
-    {
-        _input.ReadActorID();
-        _input.ReadInt();
-        if (add)
-        {
-            _input.ReadUInt(false);
-            _input.ReadInt();
-            _input.ReadActorID();
-            _input.ReadAction();
-            _input.ReadActionEffects();
-        }
-        return null;
-    }
+    private ActorState.OpIncomingEffect ParseActorIncomingEffect(bool add) => new(_input.ReadActorID(), _input.ReadInt(), add ? new(_input.ReadUInt(false), _input.ReadInt(), _input.ReadActorID(), _input.ReadAction(), _input.ReadActionEffects()) : default);
     private ActorState.OpIcon ParseActorIcon() => new(_input.ReadActorID(), _input.ReadUInt(false), _version >= 22 ? _input.ReadActorID() : 0);
     private ActorState.OpVFX ParseActorVFX() => new(_input.ReadActorID(), _input.ReadUInt(false), _input.ReadActorID());
     private ActorState.OpEventObjectStateChange ParseActorEventObjectStateChange() => new(_input.ReadActorID(), _input.ReadUShort(true));
