@@ -60,7 +60,6 @@ public sealed class ActorState : IEnumerable<Actor>
         {
             act.PrevPosRot = act.PosRot;
             act.CastInfo?.ElapsedTime = Math.Min(act.CastInfo.ElapsedTime + frame.Duration, act.CastInfo.AdjustedTotalTime);
-            // TODO: can we skip this whole step if we instead expire effects where the source has died?
             RemovePendingEffects(act, (in p) => p.Expiration < ts);
         }
     }
@@ -78,7 +77,7 @@ public sealed class ActorState : IEnumerable<Actor>
             {
                 var effSource = eff.FromTarget ? target : source;
                 var effTarget = eff.AtSource ? source : target;
-                var header = new PendingEffect(ev.GlobalSequence, i, effSource.InstanceID, expiration);
+                var header = new PendingEffect(ev.GlobalSequence, i, effSource.InstanceID, expiration, false);
                 switch (eff.Type)
                 {
                     case ActionEffectType.Damage:
@@ -476,14 +475,23 @@ public sealed class ActorState : IEnumerable<Actor>
             if (prevSeq != 0 && (prevSeq != Value.GlobalSequence || prevIdx != Value.TargetIndex))
             {
                 if (prev.Effects.Any(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3))
-                    actor.PendingKnockbacks.RemoveAll(e => e.GlobalSequence == prevSeq && e.TargetIndex == prevIdx);
+                    actor.PendingKnockbacks.RemoveAll(e => e.GlobalSequence == prevSeq && e.TargetIndex == prevIdx && !e.RequiresEffectResult);
                 ws.Actors.IncomingEffectRemove.Fire(actor, Index);
             }
             actor.IncomingEffects[Index] = Value;
             if (Value.GlobalSequence != 0)
             {
-                if (Value.Effects.Any(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3))
-                    actor.PendingKnockbacks.Add(new(Value.GlobalSequence, Value.TargetIndex, Value.SourceInstanceId, ws.FutureTime(3))); // note: sometimes effect can never be applied (eg if source dies shortly after actioneffect), so we need a timeout
+                if (Value.Effects.FirstOrNull(eff => eff.Type is ActionEffectType.Knockback or ActionEffectType.Attract1 or ActionEffectType.Attract2 or ActionEffectType.AttractCustom1 or ActionEffectType.AttractCustom2 or ActionEffectType.AttractCustom3) is { } val)
+                {
+                    // two annoying cases to handle with pending knockback:
+                    // 1: effectresult never arrives
+                    //    * can happen if source dies
+                    //    * some actions just do not get an effectresult - e.g. Inhale cast by the eldthurs-type mobs in Eureka Orthos and Pilgrim's Traverse, knockback is simply applied when the next globalseq action arrives
+                    // 2. effectresult arrives AFTER actioneffect entry is already cleared - in this case we need the kb to stick around until we do receive effectresult
+                    //    * only observed this with type=Knockback direction=6
+                    var requiresEffectResult = val.Type == ActionEffectType.Knockback && Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(val.Value)?.Direction == 6;
+                    actor.PendingKnockbacks.Add(new(Value.GlobalSequence, Value.TargetIndex, Value.SourceInstanceId, ws.FutureTime(3), requiresEffectResult));
+                }
                 ws.Actors.IncomingEffectAdd.Fire(actor, Index);
             }
         }

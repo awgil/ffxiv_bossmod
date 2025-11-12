@@ -74,7 +74,7 @@ public record struct ActorModelState(byte ModelState, byte AnimState1, byte Anim
 public record struct ActorForayInfo(byte Level, byte Element);
 
 public readonly record struct ActorIncomingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, ActionID Action, ActionEffects Effects);
-public record struct PendingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, DateTime Expiration);
+public record struct PendingEffect(uint GlobalSequence, int TargetIndex, ulong SourceInstanceId, DateTime Expiration, bool RequiresEffectResult);
 public record struct PendingEffectDelta(PendingEffect Effect, int Value);
 public record struct PendingEffectStatus(PendingEffect Effect, uint StatusId);
 public record struct PendingEffectStatusExtra(PendingEffect Effect, uint StatusId, byte ExtraLo);
