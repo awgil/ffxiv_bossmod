@@ -82,7 +82,7 @@ abstract partial class AutoClear : ZoneModule
         var destToSrc = ToCardinal(PlayerRoomBox.Pos - destBox.Pos).Sign();
         var (destLength, destWidth) = destToSrc.X != 0 ? destBox.Size.OrthoR().Abs() : destBox.Size.Abs();
 
-        destLength *= 0.8f;
+        destLength *= 0.5f;
 
         hints.GoalZones.Add(p =>
         {

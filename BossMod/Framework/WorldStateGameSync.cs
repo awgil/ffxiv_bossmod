@@ -1077,8 +1077,9 @@ sealed class WorldStateGameSync : IDisposable
 
     private unsafe void ApplyKnockbackDetour(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6)
     {
-        Service.Log("applying knockback to player");
         _applyKnockbackHook.Original(thisPtr, a2, a3, a4, a5, a6);
+        Service.Log("applying knockback to player");
+        _globalOps.Add(new WorldState.OpUserMarker($"Knockback applied to player with a2={a2:f3}, a3={a3:f3}, a4={a4:f3}, a5={a5:X2}, a6={a6:X8}"));
     }
 
     private unsafe byte ProcessLegacyMapEffectDetour(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length)

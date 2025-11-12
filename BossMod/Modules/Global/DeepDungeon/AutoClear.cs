@@ -114,15 +114,15 @@ public abstract partial class AutoClear : ZoneModule
             }),
             ws.Actors.EventOpenTreasure.Subscribe(OnOpenTreasure),
             ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
-            ws.DeepDungeon.MapDataChanged.Subscribe(_ =>
+            ws.DeepDungeon.MapDataChanged.Subscribe(op =>
             {
-                if (BetweenFloors)
+                if (BetweenFloors && op.Rooms.Any(r => r > 0))
                 {
                     LoadWalls();
                     LoadGeometry();
                     FilterTraps();
+                    BetweenFloors = false;
                 }
-                BetweenFloors = false;
             })
         );
 

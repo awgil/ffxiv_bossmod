@@ -81,7 +81,7 @@ public enum PacketID
     ActorControlSelf = 225,
     ActorControlTarget = 226,
     UpdateHpMpTp = 227,
-    ActionEffect1 = 228,
+    ActionEffect1 = 229,
     ActionEffect8 = 231,
     ActionEffect16 = 232,
     ActionEffect24 = 233,
