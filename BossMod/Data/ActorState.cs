@@ -485,10 +485,10 @@ public sealed class ActorState : IEnumerable<Actor>
                 {
                     // two annoying cases to handle with pending knockback:
                     // 1: effectresult never arrives
-                    //    * can happen if source dies
-                    //    * some actions just do not get an effectresult - e.g. Inhale cast by the eldthurs-type mobs in Eureka Orthos and Pilgrim's Traverse, knockback is simply applied when the next globalseq action arrives
-                    // 2. effectresult arrives AFTER actioneffect entry is already cleared - in this case we need the kb to stick around until we do receive effectresult
-                    //    * only observed this with type=Knockback direction=6
+                    //    * happens if source dies
+                    //    * happens always for some actions, such as Inhale from Traverse Gigant in Pilgrim's Traverse; effect is simply applied on the next globalseq
+                    // 2. effecthandler entry disappears before effectresult arrives
+                    //    * happens (always?) if type = knockback and direction = 6
                     var requiresEffectResult = val.Type == ActionEffectType.Knockback && Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(val.Value)?.Direction == 6;
                     actor.PendingKnockbacks.Add(new(Value.GlobalSequence, Value.TargetIndex, Value.SourceInstanceId, ws.FutureTime(3), requiresEffectResult));
                 }
