@@ -6,7 +6,7 @@ namespace BossMod;
 
 public sealed class ReplayRecorder : IDisposable
 {
-    public const int Version = 28;
+    public const int Version = 29;
 
     public abstract class Output : IDisposable
     {

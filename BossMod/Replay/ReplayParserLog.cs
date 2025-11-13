@@ -761,7 +761,7 @@ public sealed class ReplayParserLog : IDisposable
         _input.ReadUInt(false),
     ]);
 
-    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new((DeepDungeonState.DungeonType)_input.ReadByte(false), new(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
+    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new((DeepDungeonState.DungeonType)_input.ReadByte(false), new(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _version >= 29 && _input.ReadBool()));
     private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap()
     {
         var rooms = new FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags[DeepDungeonState.NumRooms];
@@ -773,7 +773,10 @@ public sealed class ReplayParserLog : IDisposable
         else
         {
             for (var i = 0; i < rooms.Length; ++i)
-                rooms[i] = (FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags)_input.ReadByte(true);
+            {
+                var roomRaw = _version >= 29 ? _input.ReadUShort(true) : _input.ReadByte(true);
+                rooms[i] = (FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags)roomRaw;
+            }
         }
         return new(rooms);
     }

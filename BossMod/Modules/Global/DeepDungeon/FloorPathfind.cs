@@ -104,7 +104,7 @@ abstract partial class AutoClear : ZoneModule
             if (distToRect < distToRoomEdge * 0.2f)
             {
                 var weight = 120 - Math.Clamp(distToRoomEdge, 0, 120);
-                return MathF.Floor(weight / 12f);
+                return weight / 12f;
             }
 
             // outside cone
