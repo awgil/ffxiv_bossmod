@@ -17,7 +17,9 @@ class Camera
     public float CameraAltitude; // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
     public Vector2 ViewportSize;
 
-    private readonly List<(Vector2 from, Vector2 to, uint col)> _worldDrawLines = [];
+    record struct DrawLine(Vector2 From, Vector2 To, uint Color, float Thickness = 1);
+
+    private readonly List<DrawLine> _worldDrawLines = [];
 
     public unsafe void Update()
     {
@@ -52,11 +54,11 @@ class Camera
 
         var dl = ImGui.GetBackgroundDrawList();
         foreach (var l in _worldDrawLines)
-            dl.AddLine(l.from, l.to, l.col, 2);
+            dl.AddLine(l.From, l.To, l.Color, l.Thickness);
         _worldDrawLines.Clear();
     }
 
-    public void DrawWorldLine(Vector3 start, Vector3 end, uint color)
+    public void DrawWorldLine(Vector3 start, Vector3 end, uint color, float thickness = 1)
     {
         var p1w = start;
         var p2w = end;
@@ -69,38 +71,38 @@ class Camera
         var p2c = p2p.XY() * (1 / p2p.W);
         var p1screen = new Vector2(0.5f * ViewportSize.X * (1 + p1c.X), 0.5f * ViewportSize.Y * (1 - p1c.Y)) + ImGuiHelpers.MainViewport.Pos;
         var p2screen = new Vector2(0.5f * ViewportSize.X * (1 + p2c.X), 0.5f * ViewportSize.Y * (1 - p2c.Y)) + ImGuiHelpers.MainViewport.Pos;
-        _worldDrawLines.Add((p1screen, p2screen, color));
+        _worldDrawLines.Add(new(p1screen, p2screen, color, thickness));
     }
 
-    public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color)
+    public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color, float thickness = 1)
     {
         int numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, 1 / 90f);
         var delta = halfWidth / numSegments;
 
         var prev = center + radius * (direction - delta * numSegments).ToDirection().ToVec3();
-        DrawWorldLine(center, prev, color);
+        DrawWorldLine(center, prev, color, thickness);
         for (int i = -numSegments + 1; i <= numSegments; ++i)
         {
             var curr = center + radius * (direction + delta * i).ToDirection().ToVec3();
-            DrawWorldLine(prev, curr, color);
+            DrawWorldLine(prev, curr, color, thickness);
             prev = curr;
         }
-        DrawWorldLine(prev, center, color);
+        DrawWorldLine(prev, center, color, thickness);
     }
 
-    public void DrawWorldCircle(Vector3 center, float radius, uint color)
+    public void DrawWorldCircle(Vector3 center, float radius, uint color, float thickness = 1)
     {
         int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1 / 90f);
         var prev = center + new Vector3(0, 0, radius);
         for (int i = 1; i <= numSegments; ++i)
         {
             var curr = center + radius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
-            DrawWorldLine(curr, prev, color);
+            DrawWorldLine(curr, prev, color, thickness);
             prev = curr;
         }
     }
 
-    public void DrawWorldSphere(Vector3 center, float radius, uint color)
+    public void DrawWorldSphere(Vector3 center, float radius, uint color, float thickness = 1)
     {
         int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1 / 90f);
         var prev1 = center + new Vector3(0, 0, radius);
@@ -112,16 +114,16 @@ class Camera
             var curr1 = center + radius * new Vector3(dir.X, 0, dir.Z);
             var curr2 = center + radius * new Vector3(0, dir.Z, dir.X);
             var curr3 = center + radius * new Vector3(dir.Z, dir.X, 0);
-            DrawWorldLine(curr1, prev1, color);
-            DrawWorldLine(curr2, prev2, color);
-            DrawWorldLine(curr3, prev3, color);
+            DrawWorldLine(curr1, prev1, color, thickness);
+            DrawWorldLine(curr2, prev2, color, thickness);
+            DrawWorldLine(curr3, prev3, color, thickness);
             prev1 = curr1;
             prev2 = curr2;
             prev3 = curr3;
         }
     }
 
-    public void DrawWorldUnitCylinder(SharpDX.Matrix transform, uint color)
+    public void DrawWorldUnitCylinder(SharpDX.Matrix transform, uint color, float thickness = 1)
     {
         int numSegments = CurveApprox.CalculateCircleSegments(transform.Row1.Length(), 360.Degrees(), 1 / 90f);
         var prev1 = SharpDX.Vector3.TransformCoordinate(new(0, +1, 1), transform).ToSystem();
@@ -131,15 +133,15 @@ class Camera
             var dir = (i * 360.0f / numSegments).Degrees().ToDirection();
             var curr1 = SharpDX.Vector3.TransformCoordinate(new(dir.X, +1, dir.Z), transform).ToSystem();
             var curr2 = SharpDX.Vector3.TransformCoordinate(new(dir.X, -1, dir.Z), transform).ToSystem();
-            DrawWorldLine(curr1, prev1, color);
-            DrawWorldLine(curr2, prev2, color);
-            DrawWorldLine(curr1, curr2, color);
+            DrawWorldLine(curr1, prev1, color, thickness);
+            DrawWorldLine(curr2, prev2, color, thickness);
+            DrawWorldLine(curr1, curr2, color, thickness);
             prev1 = curr1;
             prev2 = curr2;
         }
     }
 
-    public void DrawWorldOBB(Vector3 min, Vector3 max, SharpDX.Matrix transform, uint color)
+    public void DrawWorldOBB(Vector3 min, Vector3 max, SharpDX.Matrix transform, uint color, float thickness = 1)
     {
         var aaa = SharpDX.Vector3.TransformCoordinate(new(min.X, min.Y, min.Z), transform).ToSystem();
         var aab = SharpDX.Vector3.TransformCoordinate(new(min.X, min.Y, max.Z), transform).ToSystem();
@@ -149,18 +151,18 @@ class Camera
         var bab = SharpDX.Vector3.TransformCoordinate(new(max.X, min.Y, max.Z), transform).ToSystem();
         var bba = SharpDX.Vector3.TransformCoordinate(new(max.X, max.Y, min.Z), transform).ToSystem();
         var bbb = SharpDX.Vector3.TransformCoordinate(new(max.X, max.Y, max.Z), transform).ToSystem();
-        DrawWorldLine(aaa, aab, color);
-        DrawWorldLine(aab, bab, color);
-        DrawWorldLine(bab, baa, color);
-        DrawWorldLine(baa, aaa, color);
-        DrawWorldLine(aba, abb, color);
-        DrawWorldLine(abb, bbb, color);
-        DrawWorldLine(bbb, bba, color);
-        DrawWorldLine(bba, aba, color);
-        DrawWorldLine(aaa, aba, color);
-        DrawWorldLine(aab, abb, color);
-        DrawWorldLine(baa, bba, color);
-        DrawWorldLine(bab, bbb, color);
+        DrawWorldLine(aaa, aab, color, thickness);
+        DrawWorldLine(aab, bab, color, thickness);
+        DrawWorldLine(bab, baa, color, thickness);
+        DrawWorldLine(baa, aaa, color, thickness);
+        DrawWorldLine(aba, abb, color, thickness);
+        DrawWorldLine(abb, bbb, color, thickness);
+        DrawWorldLine(bbb, bba, color, thickness);
+        DrawWorldLine(bba, aba, color, thickness);
+        DrawWorldLine(aaa, aba, color, thickness);
+        DrawWorldLine(aab, abb, color, thickness);
+        DrawWorldLine(baa, bba, color, thickness);
+        DrawWorldLine(bab, bbb, color, thickness);
     }
 
     private bool ClipLineToNearPlane(ref Vector3 a, ref Vector3 b)

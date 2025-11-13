@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BossMod;
@@ -20,6 +21,23 @@ public static partial class Utils
         => obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc ? $"{obj.ObjectKind}/{(Dalamud.Game.ClientState.Objects.Enums.BattleNpcSubKind)obj.SubKind}"
         : obj.SubKind == 0 ? $"{obj.ObjectKind}"
         : $"{obj.ObjectKind}/{obj.SubKind}";
+
+    public static string ShowObject<T>(T obj)
+    {
+        var sb = new StringBuilder(typeof(T).Name);
+        sb.Append(" {");
+        var first = true;
+        foreach (var f in typeof(T).GetFields())
+        {
+            if (!first)
+                sb.Append(',');
+            var v = f.GetValue(obj);
+            sb.Append($" {f.Name} = {v}");
+            first = false;
+        }
+        sb.Append(" }");
+        return sb.ToString();
+    }
 
     public static Vector2 XY(this Vector4 v) => new(v.X, v.Y);
     public static Vector3 XYZ(this Vector4 v) => new(v.X, v.Y, v.Z);

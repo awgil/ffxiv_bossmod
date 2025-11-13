@@ -26,9 +26,9 @@ abstract partial class AutoClear : ZoneModule
 
     private void DrawTraps()
     {
-        if (Service.IsDev)
+        if (_config.DrawTraps)
             foreach (var p in _trapsCurrentFloor)
-                Camera.Instance?.DrawWorldCircle(p, 2, 0xFF0000FF);
+                Camera.Instance?.DrawWorldCircle(p, 2, 0xFF0000FF, 2);
     }
 
     private void HandleTrap(Actor actor, ActorCastEvent ev)
@@ -45,8 +45,7 @@ abstract partial class AutoClear : ZoneModule
             case 11287: // otter trap
             case 32375: // owl trap
             case 44038: // fae trap
-                Service.Log($"trap triggered ({ev.Action}), clearing trap hints in room");
-                var (box, _) = FindClosestRoom(actor.Position);
+                var box = FindClosestRoom(actor.Position).Room;
                 _trapsCurrentFloor.RemoveAll(box.Contains);
                 break;
         }
@@ -55,8 +54,6 @@ abstract partial class AutoClear : ZoneModule
     private void HandleBeacon(Actor c)
     {
         if ((OID)c.OID is OID.BeaconHoH or OID.BandedCofferIndicator)
-        {
             _trapsCurrentFloor.RemoveAll(t => new WPos(t.X, t.Z).InCircle(c.Position, 2));
-        }
     }
 }
