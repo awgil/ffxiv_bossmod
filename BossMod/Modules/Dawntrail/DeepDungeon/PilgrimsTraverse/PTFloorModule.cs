@@ -53,7 +53,7 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
     {
         base.CalculateAIHints(playerSlot, player, hints);
 
-        if (_config.Enable && !player.InCombat)
+        if (_config.EnableModule && !player.InCombat)
         {
             var interactDist = hints.InteractWithTarget is { } t ? player.DistanceToPoint(t.Position) : float.MaxValue;
             if (World.Actors.FirstOrDefault(t => t.OID == 0x1EBE27 && t.IsTargetable) is { } v && player.DistanceToPoint(v.Position) < interactDist)
