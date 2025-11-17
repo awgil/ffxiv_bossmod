@@ -113,6 +113,12 @@ abstract partial class AutoClear : ZoneModule
                 fr[roomIndex] = new(roomIndex, box.Transform.Translation.ToSystem(), box.Transform.Scale.ToSystem(), box.Transform.Rotation.ToSystem());
             }
         }
+
+        // TODO: reverse more layout stuff so we can use a less stupid solution
+        // tileset 0 is almost always SW and tileset 1 is NE but palace swaps them for certain floors
+        var layerRow = Service.LuminaSheet<Lumina.Excel.Sheets.DeepDungeonLayer>()?.FirstOrNull(l => l.DeepDungeon.RowId == (uint)Palace.DungeonId && l.FloorSet == (byte)(Palace.Floor / 10));
+        if (layerRow?.RoomA.RowId > layerRow?.RoomB.RowId)
+            _floorRects.Reverse();
     }
 
     private static WDir ToCardinal(WDir x)
@@ -196,8 +202,8 @@ abstract partial class AutoClear : ZoneModule
 
             var label = i.ToString();
 
-            var ts = ImGui.CalcTextSize(label);
-            ImGui.GetWindowDrawList().AddText(worldToWindow(r.Pos) - ts * 0.5f, 0xFFFFFFFF, label);
+            var ts2 = ImGui.CalcTextSize(label);
+            ImGui.GetWindowDrawList().AddText(worldToWindow(r.Pos) - ts2 * 0.5f, 0xFFFFFFFF, label);
         }
 
         if (player is { } p)

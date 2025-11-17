@@ -58,7 +58,6 @@ public abstract partial class AutoClear : ZoneModule
     protected readonly List<(Actor Actor, DateTime Timeout)> Spikes = [];
     protected readonly List<Actor> HintDisabled = [];
     private readonly List<Actor> LOS = [];
-    private readonly List<WPos> IgnoreTraps = [];
 
     private readonly Dictionary<ulong, (WPos, Bitmap)> _losCache = [];
 
@@ -128,8 +127,6 @@ public abstract partial class AutoClear : ZoneModule
 
         LoadedFloors = Utils.LoadFromAssembly<Dictionary<string, Floor<Wall>>>("BossMod.Modules.Global.DeepDungeon.Walls.json");
         ProblematicTrapLocations = Utils.LoadFromAssembly<List<WPos>>("BossMod.Modules.Global.DeepDungeon.BadTraps.json");
-
-        IgnoreTraps.AddRange(ProblematicTrapLocations);
     }
 
     protected override void Dispose(bool disposing)
@@ -241,8 +238,6 @@ public abstract partial class AutoClear : ZoneModule
         HintDisabled.Clear();
         LOS.Clear();
         Walls.Clear();
-        IgnoreTraps.Clear();
-        IgnoreTraps.AddRange(ProblematicTrapLocations);
         DesiredRoom = 0;
         Kills = 0;
         Array.Fill(_playerImmunes, default);
@@ -420,7 +415,7 @@ public abstract partial class AutoClear : ZoneModule
                     coffer = a;
             }
 
-            if (a.OID == (uint)OID.BandedCofferIndicator)
+            if (a.OID == (uint)OID.BandedCofferIndicator && Palace.Progress.HoardCurrentFloor)
                 hoardLight = a;
 
             if ((OID)a.OID is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && (passage?.DistanceToHitbox(player) ?? float.MaxValue) > a.DistanceToHitbox(player))

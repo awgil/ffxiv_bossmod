@@ -14,7 +14,10 @@ abstract partial class AutoClear : ZoneModule
     {
         _trapsCurrentFloor.Clear();
         if (_trapsCurrentZone.Count == 0)
+        {
             _trapsCurrentZone.AddRange(PalacePalInterop.GetTrapLocationsForZone(World.CurrentZone));
+            _trapsCurrentZone.RemoveAll(t => ProblematicTrapLocations.Any(l => l.AlmostEqual(t.ToWPos(), 0.1f)));
+        }
 
         for (var i = 0; i < Palace.Rooms.Length; i++)
             if (Palace.Rooms[i] > 0 && !Palace.Rooms[i].HasFlag(RoomFlags.Home))
@@ -54,6 +57,6 @@ abstract partial class AutoClear : ZoneModule
     private void HandleBeacon(Actor c)
     {
         if ((OID)c.OID is OID.BeaconHoH or OID.BandedCofferIndicator)
-            _trapsCurrentFloor.RemoveAll(t => new WPos(t.X, t.Z).InCircle(c.Position, 2));
+            _trapsCurrentFloor.RemoveAll(t => t.ToWPos().InCircle(c.Position, 2));
     }
 }

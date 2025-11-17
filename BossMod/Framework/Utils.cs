@@ -45,6 +45,8 @@ public static partial class Utils
     public static Vector2 XZ(this Vector3 v) => new(v.X, v.Z);
     public static Vector3 ToSystem(this FFXIVClientStructs.FFXIV.Common.Math.Vector3 v) => new(v.X, v.Y, v.Z);
 
+    public static WPos ToWPos(this Vector3 v) => new(v.X, v.Z);
+
     public static bool AlmostEqual(float a, float b, float eps) => MathF.Abs(a - b) <= eps;
     public static bool AlmostEqual(Vector3 a, Vector3 b, float eps) => (a - b).LengthSquared() <= eps * eps;
 

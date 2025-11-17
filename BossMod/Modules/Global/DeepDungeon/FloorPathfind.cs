@@ -67,47 +67,57 @@ abstract partial class AutoClear : ZoneModule
         var slot = Array.FindIndex(Palace.Party, p => p.EntityId == player.InstanceID);
         if (slot < 0)
             return;
-        var reportedRoom = Palace.Party[slot].Room;
-        if (DesiredRoom == reportedRoom || DesiredRoom == 0)
+
+        var destRoom = _floorRects[Palace.Progress.Tileset][DesiredRoom];
+        if (destRoom.Contains(player.Position) || DesiredRoom == 0)
         {
             DesiredRoom = 0;
             return;
         }
 
+        // player is in a hallway/bridge near destination room, move closer
+        if (PlayerRoom == DesiredRoom)
+        {
+            hints.GoalZones.Add(p => p.InRect(destRoom.Pos, default(Angle), destRoom.Scale.Z, destRoom.Scale.Z, destRoom.Scale.X) ? 10 : 0);
+            return;
+        }
+
         var path = new FloorPathfind(Palace.Rooms).Pathfind(PlayerRoom, DesiredRoom);
+        if (path.Count == 0)
+        {
+            Service.Logger.Warning($"no path from {PlayerRoom} to {DesiredRoom}, doing nothing");
+            return;
+        }
 
-        var next = path.Count > 0 ? path[0] : DesiredRoom;
-        var destBox = _floorRects[Palace.Progress.Tileset][next];
+        var destBox = _floorRects[Palace.Progress.Tileset][path[0]];
+        var srcBox = PlayerRoomBox;
 
-        var destToSrc = ToCardinal(PlayerRoomBox.Pos - destBox.Pos).Sign();
-        var (destLength, destWidth) = destToSrc.X != 0 ? destBox.Size.OrthoR().Abs() : destBox.Size.Abs();
+        var srcToDest = destBox.Pos - srcBox.Pos;
+        var srcToDestLen = srcToDest.Length();
+        var playerPos = player.Position;
+        var srcToPlayer = playerPos - srcBox.Pos;
+        var playerProgress = srcToDest.Dot(srcToPlayer) / srcToDestLen;
+        var srcToDestCardinal = ToCardinal(srcToDest).Sign();
 
-        destLength *= 0.5f;
+        var rectWidth = 10f;
+
+        var a = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
+        var b = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();
+        var c = destBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();
+        var d = destBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
+        Camera.Instance?.DrawWorldLine(a, b, 0xFFFF00FF);
+        Camera.Instance?.DrawWorldLine(b, c, 0xFFFF00FF);
+        Camera.Instance?.DrawWorldLine(c, d, 0xFFFF00FF);
+        Camera.Instance?.DrawWorldLine(d, a, 0xFFFF00FF);
 
         hints.GoalZones.Add(p =>
         {
-            var pdir = p - destBox.Pos;
-            var pdot = pdir.Dot(destToSrc);
-            var pdotNormal = MathF.Abs(pdir.Dot(destToSrc.OrthoL()));
-            var distToRect = pdotNormal - destWidth;
-
-            // behind target room, we aren't really likely to ever hit this case
-            if (pdot < -destLength)
+            // align the near side of the goal rect to the grid since we get annoying jittering otherwise
+            if (p.InRect(playerPos, srcToDestCardinal, 10, 100, 100))
                 return 0;
 
-            // inside target room
-            if (distToRect < 0 && MathF.Abs(pdot) <= destLength)
-                return 10;
-
-            // create a goal cone extending from room edge, with gradually decreasing priority - makes corners more consistent
-            var distToRoomEdge = pdot - destLength;
-            if (distToRect < distToRoomEdge * 0.2f)
-            {
-                var weight = 120 - Math.Clamp(distToRoomEdge, 0, 120);
-                return weight / 12f;
-            }
-
-            // outside cone
+            if (p.InRect(srcBox.Pos, srcToDest.ToAngle(), srcToDestLen, srcToDestLen, rectWidth))
+                return 1;
             return 0;
         });
     }
