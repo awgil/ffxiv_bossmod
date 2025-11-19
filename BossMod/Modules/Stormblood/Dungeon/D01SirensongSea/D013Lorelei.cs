@@ -1,5 +1,4 @@
-﻿using BossMod;
-using BossMod.Components;
+﻿using BossMod.Components;
 
 namespace BossMod.Stormblood.Dungeon.D01SirensongSea.D013Lorelei;
 
@@ -114,7 +113,7 @@ class D013LoreleiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 238, NameID = 6074)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 238, NameID = 6074)]
 public class D013Lorelei(WorldState ws, Actor primary) : BossModule(ws, primary, new WPos(-44.564f, 465.154f), new ArenaBoundsCircle(25))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(Enemies(OID.Boss), ArenaColor.Enemy);
