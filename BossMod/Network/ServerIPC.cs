@@ -233,6 +233,10 @@ public enum PacketID
     SubmarineProgressionStatus = 555,
     SubmarineExplorationResult = 556,
     SubmarineTimers = 558,
+    DeepDungeonMap = 565,
+    DeepDungeonItems = 567,
+    DeepDungeonParty = 568,
+    DeepDungeonChests = 569,
     PrepareZoning = 588,
     ActorGauge = 589,
     CharaVisualEffect = 590,
@@ -1209,4 +1213,25 @@ public struct ActorGauge
 {
     public Class ClassJobID;
     public ulong Payload;
+}
+
+public enum DeepDungeonLayout : byte
+{
+    None = 0,
+    A = 1,
+    B = 2,
+    Boss = 3,
+    C = 5
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct DeepDungeonMap
+{
+    public DeepDungeonLayout LayoutInitType;
+    public byte StatusId;
+    public byte BanId;
+    public byte DangerId;
+    public byte Unk1;
+    public byte Flags1;
+    public fixed ushort MapData[25];
 }

@@ -115,6 +115,7 @@ public abstract unsafe class PacketDecoder
         PacketID.WaymarkPreset when (WaymarkPreset*)payload is var p => DecodeWaymarkPreset(p),
         PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),
         PacketID.ActorGauge when (ActorGauge*)payload is var p => new($"{p->ClassJobID} = {p->Payload:X16}"),
+        PacketID.DeepDungeonMap when (DeepDungeonMap*)payload is var p => DecodeDDMap(p),
         _ => null
     };
 
@@ -371,6 +372,19 @@ public abstract unsafe class PacketDecoder
         return res;
     }
     private TextNode DecodeWaymark(ServerIPC.Waymark* p) => new($"{p->ID}: {p->Active != 0} at {Utils.Vec3String(new(p->PosX * 0.001f, p->PosY * 0.001f, p->PosZ * 0.001f))}, pad={p->pad2:X4}");
+
+    private TextNode DecodeDDMap(DeepDungeonMap* p)
+    {
+        List<Lumina.Excel.Sheets.DeepDungeonFloorEffectUI> effects = [];
+        if (Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonStatus>(p->StatusId)?.Name.ValueNullable is { } v && v.RowId > 0)
+            effects.Add(v);
+        if (Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonBan>(p->BanId)?.Name.ValueNullable is { } v2 && v2.RowId > 0)
+            effects.Add(v2);
+        if (Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonDanger>(p->DangerId)?.Name.ValueNullable is { } v3 && v3.RowId > 0)
+            effects.Add(v3);
+
+        return new($"Layout={p->LayoutInitType}, effects=[{string.Join(", ", effects.Select(e => e.Name))}]");
+    }
 
     public static Vector3 IntToFloatCoords(ushort x, ushort y, ushort z)
     {

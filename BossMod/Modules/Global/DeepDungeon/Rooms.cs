@@ -89,13 +89,12 @@ abstract partial class AutoClear : ZoneModule
 
         foreach (var layer in levelData.Layers)
         {
-            var roomRanges = layer.InstanceObjects.Where(o => o.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.EventRange).ToList();
+            var roomRanges = layer.InstanceObjects.Where(o => o.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.EventRange && ((EventRangeInstanceObject)o.Object).ParentData.Priority is > 100 and < 126).ToList();
 
-            // boss room layer has one object
-            if (roomRanges.Count < 21)
+            if (roomRanges.Count == 0)
                 continue;
 
-            var roomsPrio = roomRanges.GroupBy(r => r.Object is EventRangeInstanceObject eo ? eo.ParentData.Priority : 0);
+            var roomsPrio = roomRanges.GroupBy(r => ((EventRangeInstanceObject)r.Object).ParentData.Priority);
 
             _floorRects.Add([.. Enumerable.Repeat(default(RoomBox), 25)]);
             var fr = _floorRects[^1];
@@ -120,6 +119,8 @@ abstract partial class AutoClear : ZoneModule
         if (layerRow?.RoomA.RowId > layerRow?.RoomB.RowId)
             _floorRects.Reverse();
     }
+
+    //private static bool IsRoomRange(Eve)
 
     private static WDir ToCardinal(WDir x)
     {
@@ -189,25 +190,41 @@ abstract partial class AutoClear : ZoneModule
         var mousePos = ImGui.GetMousePos();
         var mouseWorld = windowToWorld(mousePos);
 
-        var hovered = _floorRects[Palace.Progress.Tileset].FindIndex(r => player.Position.InRect(r.Pos, default(Angle), r.Scale.Z, r.Scale.Z, r.Scale.X));
-
-        for (var i = 0; i < _floorRects[Palace.Progress.Tileset].Count; i++)
+        for (var t = 0; t < _floorRects.Count; t++)
         {
-            var r = _floorRects[Palace.Progress.Tileset][i];
+            var hovered = _floorRects[t].FindIndex(r => player.Position.InRect(r.Pos, default(Angle), r.Scale.Z, r.Scale.Z, r.Scale.X));
 
-            if (hovered == i)
-                ImGui.GetWindowDrawList().AddRectFilled(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), ArenaColor.Object);
-            else
-                ImGui.GetWindowDrawList().AddRect(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), ArenaColor.Border);
+            var labelTs = false;
+            for (var i = 0; i < _floorRects[t].Count; i++)
+            {
+                var r = _floorRects[t][i];
 
-            var label = i.ToString();
+                if (r.Scale == default)
+                    continue;
 
-            var ts2 = ImGui.CalcTextSize(label);
-            ImGui.GetWindowDrawList().AddText(worldToWindow(r.Pos) - ts2 * 0.5f, 0xFFFFFFFF, label);
+                if (hovered == i)
+                    ImGui.GetWindowDrawList().AddRectFilled(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), ArenaColor.Object);
+                else
+                    ImGui.GetWindowDrawList().AddRect(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), ArenaColor.Border);
+
+                var label = i.ToString();
+
+                var ts2 = ImGui.CalcTextSize(label);
+                ImGui.GetWindowDrawList().AddText(worldToWindow(r.Pos) - ts2 * 0.5f, 0xFFFFFFFF, label);
+
+                if (!labelTs)
+                {
+                    var xmin = _floorRects[t].Where(r => r.Scale != default).Min(r => r.Position.X);
+                    var zmin = _floorRects[t].Where(r => r.Scale != default).Min(r => r.Position.Z);
+
+                    ImGui.GetWindowDrawList().AddText(worldToWindow(new WPos(xmin, zmin) - new WDir(40, 40)), 0xFFFFFFFF, $"Tileset {t}");
+                    labelTs = true;
+                }
+            }
+
+            if (player is { } p)
+                ImGui.GetWindowDrawList().AddCircleFilled(worldToWindow(p.Position), 5 * ImGuiHelpers.GlobalScale, ArenaColor.Safe);
         }
-
-        if (player is { } p)
-            ImGui.GetWindowDrawList().AddCircleFilled(worldToWindow(p.Position), 5 * ImGuiHelpers.GlobalScale, ArenaColor.Safe);
 
         ImGui.GetWindowDrawList().AddCircle(worldToWindow(default), 10, 0xFFFF0000);
 

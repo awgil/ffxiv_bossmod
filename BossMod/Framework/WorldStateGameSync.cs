@@ -833,7 +833,16 @@ sealed class WorldStateGameSync : IDisposable
             var currentId = (DeepDungeonState.DungeonType)dd->DeepDungeonId;
             var fullUpdate = currentId != _ws.DeepDungeon.DungeonId;
 
-            var progress = new DeepDungeonState.DungeonProgress(dd->Floor, dd->ActiveLayoutIndex, dd->WeaponLevel, dd->ArmorLevel, dd->SyncedGearLevel, dd->HoardCount, dd->ReturnProgress, dd->PassageProgress, (Utils.ReadField<byte>(dd, 0x211E) & 1) != 0);
+            // TODO: dd->ActiveLayoutIndex is named incorrectly, i don't actually know what it does (both RoomA and RoomC get ActiveLayoutIndex=0)
+            byte tileset = dd->LayoutInitializationType switch
+            {
+                1 => 0,
+                2 => 1,
+                5 => 2,
+                _ => 0xFF
+            };
+
+            var progress = new DeepDungeonState.DungeonProgress(dd->Floor, tileset, dd->WeaponLevel, dd->ArmorLevel, dd->SyncedGearLevel, dd->HoardCount, dd->ReturnProgress, dd->PassageProgress, (Utils.ReadField<byte>(dd, 0x211E) & 1) != 0);
             if (fullUpdate || progress != _ws.DeepDungeon.Progress)
                 _ws.Execute(new DeepDungeonState.OpProgressChange(currentId, progress));
 

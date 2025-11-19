@@ -85,7 +85,7 @@ abstract partial class AutoClear : ZoneModule
         var path = new FloorPathfind(Palace.Rooms).Pathfind(PlayerRoom, DesiredRoom);
         if (path.Count == 0)
         {
-            Service.Logger.Warning($"no path from {PlayerRoom} to {DesiredRoom}, doing nothing");
+            Service.Log($"no path from {PlayerRoom} to {DesiredRoom}, doing nothing");
             return;
         }
 
