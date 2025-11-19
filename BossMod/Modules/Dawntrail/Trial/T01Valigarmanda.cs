@@ -177,7 +177,7 @@ class RuinfallKnockback(BossModule module) : Components.Knockback(module)
         {
             tbSoaked = true;
         }
-        if ((AID) spell.Action.ID is AID.RuinfallKnockback)
+        if ((AID)spell.Action.ID is AID.RuinfallKnockback)
         {
             _casters.Clear();
         }
