@@ -101,14 +101,17 @@ abstract partial class AutoClear : ZoneModule
 
         var rectWidth = 10f;
 
-        var a = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
-        var b = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();
-        var c = destBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();
-        var d = destBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
-        Camera.Instance?.DrawWorldLine(a, b, 0xFFFF00FF);
-        Camera.Instance?.DrawWorldLine(b, c, 0xFFFF00FF);
-        Camera.Instance?.DrawWorldLine(c, d, 0xFFFF00FF);
-        Camera.Instance?.DrawWorldLine(d, a, 0xFFFF00FF);
+        if (Service.IsDev)
+        {
+            var a = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
+            var b = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();
+            var c = destBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();
+            var d = destBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
+            Camera.Instance?.DrawWorldLine(a, b, 0xFFFF00FF);
+            Camera.Instance?.DrawWorldLine(b, c, 0xFFFF00FF);
+            Camera.Instance?.DrawWorldLine(c, d, 0xFFFF00FF);
+            Camera.Instance?.DrawWorldLine(d, a, 0xFFFF00FF);
+        }
 
         hints.GoalZones.Add(p =>
         {
