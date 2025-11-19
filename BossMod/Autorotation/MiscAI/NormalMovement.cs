@@ -81,6 +81,10 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        // do nothing if we're already being moved by some other module (i.e. quest battle pathfinding)
+        if (Hints.ForcedMovement != null)
+            return;
+
         var castOpt = strategy.Option(Track.Cast);
         var castStrategy = castOpt.As<CastStrategy>();
         if (castStrategy is CastStrategy.FinishInstants or CastStrategy.DropInstants)
