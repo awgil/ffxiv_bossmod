@@ -140,6 +140,18 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         };
         NavigationDecision navi = default;
         var resetStats = true;
+
+        // Don't overwrite ForcedMovement if already set
+        if (Hints.ForcedMovement != null)
+        {
+            resetStats = true; // clear pathfinding state
+            _lastDecision = default; // reset last decision
+            // reset stats
+            Manager.LastPathfindMs = 0;
+            Manager.LastRasterizeMs = 0;
+            return;
+        }
+
         switch (destinationStrategy)
         {
             case DestinationStrategy.Pathfind:
