@@ -2669,6 +2669,19 @@
   ],
   "613": [
     {
+      "MinBoundsX": -885.5,
+      "MinBoundsY": -1,
+      "MinBoundsZ": 2.5,
+      "MaxBoundsX": -521.5,
+      "MaxBoundsY": 68,
+      "MaxBoundsZ": 468,
+      "OriginX": -885.5,
+      "OriginZ": 2.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "613.0.2.bmp"
+    },
+    {
       "MinBoundsX": -968,
       "MinBoundsY": -11,
       "MinBoundsZ": -989.5,
