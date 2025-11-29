@@ -239,7 +239,7 @@ public sealed class UIPresetEditor
         using var table = ImRaii.Table("preset_options", 2, ImGuiTableFlags.BordersInnerH);
         if (!table)
             return;
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 150 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 250 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("");
 
         if (!_sourcePresetDefault && SuggestHealerAI(ms))

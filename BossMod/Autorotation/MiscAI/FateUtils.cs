@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Autorotation.MiscAI;
 public sealed class FateUtils(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { Handin, Collect }
+    public enum Track { Handin, Collect, Sync }
     public enum Flag { Enabled, Disabled }
 
     public static RotationModuleDefinition Definition()
@@ -16,11 +16,18 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
             .AddOption(Flag.Enabled, "Try to collect FATE items instead of engaging in combat")
             .AddOption(Flag.Disabled, "Do nothing");
 
+        res.Define(Track.Sync).As<AIHints.FateSync>("Sync")
+            .AddOption(AIHints.FateSync.None, "Do nothing")
+            .AddOption(AIHints.FateSync.SyncEnable, "Always enable level sync if possible")
+            .AddOption(AIHints.FateSync.SyncDisable, "Always disable level sync if possible");
+
         return res;
     }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        Hints.WantFateSync = strategy.Option(Track.Sync).As<AIHints.FateSync>();
+
         if (strategy.Option(Track.Handin).As<Flag>() != Flag.Enabled)
             return;
 

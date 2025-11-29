@@ -170,7 +170,7 @@ public record class StrategyConfigInt(
     float UIPriority,
     Type Renderer,
     bool Drag = true,
-    float Speed = 1
+    float Speed = 0.25f
 ) : StrategyConfig(InternalName, DisplayName, UIPriority, Renderer)
 {
     public override StrategyValueInt CreateEmpty() => new() { Value = MinValue };
