@@ -85,6 +85,8 @@ public sealed record class ActionDefinition(ActionID ID)
     public SmartTargetDelegate? SmartTarget; // optional target transformation for 'smart targeting' feature
     public TransformAngleDelegate? TransformAngle; // optional facing angle transformation
 
+    public float TotalDuration => CastTime > 0 ? CastTime + CastAnimLock : InstantAnimLock;
+
     // note: this does *not* include quest-locked overrides
     // the way game works is - when you use first charge, total is set to cd*max-at-cap, and elapsed is set to cd*(max-at-level - 1)
     public int MaxChargesAtCap()
@@ -248,7 +250,7 @@ public sealed class ActionDefinitions : IDisposable
         RegisterItem(IDPotionUltra, 1.1f);
         RegisterItem(IDPotionPilgrim, 1.1f);
 
-        RegisterItem(IDMiscItemGreens, 2.1f);
+        RegisterItem(IDMiscItemGreens, 1.1f);
 
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
@@ -525,6 +527,7 @@ public sealed class ActionDefinitions : IDisposable
         var range = SpellRange(spellId);
         var castTime = item.CastTimeSeconds /*?? 2*/;
         var aidNQ = new ActionID(ActionType.Item, baseId);
+        var castAnimLock = castTime > 0 ? animLock : 0.1f;
         _definitions[aidNQ] = new(aidNQ)
         {
             AllowedTargets = targets,
@@ -533,6 +536,7 @@ public sealed class ActionDefinitions : IDisposable
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown,
             InstantAnimLock = animLock,
+            CastAnimLock = castAnimLock
         };
         var aidHQ = new ActionID(ActionType.Item, baseId + 1000000);
         _definitions[aidHQ] = new(aidHQ)
@@ -542,7 +546,8 @@ public sealed class ActionDefinitions : IDisposable
             CastTime = castTime,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown * 0.9f,
-            InstantAnimLock = animLock
+            InstantAnimLock = animLock,
+            CastAnimLock = castAnimLock
         };
 
         SupportedItems.Add(aidNQ.ID);
