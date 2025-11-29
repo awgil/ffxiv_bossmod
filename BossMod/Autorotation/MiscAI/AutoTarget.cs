@@ -126,14 +126,14 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                 continue;
             }
 
-            if (canPullMore && targetFates && target.Actor.FateID == World.Client.ActiveFate.ID)
+            if (targetFates && target.Actor.FateID == World.Client.ActiveFate.ID)
             {
                 if (target.Actor.NameID is 6737 or 6738)
                 {
                     prioritize(target, 1);
                     continue;
                 }
-                if (handinCount < 10 && !skipFate)
+                if (handinCount < 10 && !skipFate && canPullMore)
                 {
                     prioritize(target, 0);
                     continue;
