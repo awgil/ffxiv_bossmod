@@ -101,7 +101,16 @@ public class ConfigRoot
             List<ConfigNode> matchingNodes = [];
             foreach (var (t, n) in _nodes)
                 if (t.Name.AsSpan().Contains(cmdType, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    // check for exact match
+                    if (t.Name.Length == cmdType.Length)
+                    {
+                        matchingNodes.Clear();
+                        matchingNodes.Add(n);
+                        break;
+                    }
                     matchingNodes.Add(n);
+                }
             if (matchingNodes.Count == 0)
             {
                 result.Add("Config type not found. Valid types:");
@@ -126,8 +135,19 @@ public class ConfigRoot
                 var cmdField = cmd[ranges[1]];
                 List<FieldInfo> matchingFields = [];
                 foreach (var f in matchingNodes[0].GetType().GetFields().Where(f => f.GetCustomAttribute<PropertyDisplayAttribute>() != null))
+                {
                     if (f.Name.AsSpan().Contains(cmdField, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        // check for exact match
+                        if (f.Name.Length == cmdField.Length)
+                        {
+                            matchingFields.Clear();
+                            matchingFields.Add(f);
+                            break;
+                        }
                         matchingFields.Add(f);
+                    }
+                }
                 if (matchingFields.Count == 0)
                 {
                     result.Add($"Field not found {cmdField}, Valid fields:");
