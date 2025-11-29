@@ -18,8 +18,8 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
 
         res.Define(Track.Sync).As<AIHints.FateSync>("Sync")
             .AddOption(AIHints.FateSync.None, "Do nothing")
-            .AddOption(AIHints.FateSync.SyncEnable, "Always enable level sync if possible")
-            .AddOption(AIHints.FateSync.SyncDisable, "Always disable level sync if possible");
+            .AddOption(AIHints.FateSync.Enable, "Always enable level sync if possible")
+            .AddOption(AIHints.FateSync.Disable, "Always disable level sync if possible");
 
         return res;
     }

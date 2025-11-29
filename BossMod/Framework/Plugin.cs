@@ -419,8 +419,8 @@ public sealed class Plugin : IDalamudPlugin
 
         var shouldDoSomething = _hints.WantFateSync switch
         {
-            AIHints.FateSync.SyncEnable => !fm->IsSyncedToFate(fate),
-            AIHints.FateSync.SyncDisable => fm->IsSyncedToFate(fate),
+            AIHints.FateSync.Enable => !fm->IsSyncedToFate(fate),
+            AIHints.FateSync.Disable => fm->IsSyncedToFate(fate),
             _ => false
         };
 

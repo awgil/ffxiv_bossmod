@@ -65,8 +65,8 @@ public sealed class AIHints
     public enum FateSync
     {
         None, // do nothing
-        SyncEnable, // level sync to fate
-        SyncDisable // unsync from fate
+        Enable, // level sync to fate
+        Disable // unsync from fate
     }
 
     public record struct DamagePrediction(BitMask Players, DateTime Activation, PredictedDamageType Type = PredictedDamageType.None)
