@@ -71,7 +71,7 @@ class Eruption(BossModule module) : Components.StandardAOEs(module, AID.Eruption
 class UnholyDarkness(BossModule module) : Components.RaidwideCast(module, AID.UnholyDarkness);
 class UnholyDarknessEnrage(BossModule module) : Components.RaidwideCast(module, AID.UnholyDarknessEnrage);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1063, NameID = 14037, PlanLevel = 100)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1063, NameID = 14037, PlanLevel = 100)]
 public class Q01TheFinalVerse(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsRect(20, 15))
 {
     private Actor? _eater;
