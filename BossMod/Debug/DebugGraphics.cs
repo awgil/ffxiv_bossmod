@@ -118,7 +118,7 @@ class DebugGraphics
         foreach (var v in _watchedRenderObjects)
         {
             var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
-            Camera.Instance?.DrawWorldLine(Service.ClientState.LocalPlayer!.Position, obj->Position, 0xff0000ff);
+            Camera.Instance?.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
         }
     }
 
@@ -357,7 +357,7 @@ class DebugGraphics
 
     public void DrawOverlay()
     {
-        if (Camera.Instance == null || Service.ClientState.LocalPlayer == null)
+        if (Camera.Instance == null || Service.ObjectTable.LocalPlayer == null)
             return;
 
         ImGui.Checkbox("Circle", ref _overlayCircle);
@@ -370,7 +370,7 @@ class DebugGraphics
 
         int mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
         int mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
-        float y = Service.ClientState.LocalPlayer.Position.Y;
+        float y = Service.ObjectTable.LocalPlayer.Position.Y;
         if (_overlayCircle)
         {
             var center = new Vector3(_overlayCenter.X, y, _overlayCenter.Y);
@@ -401,7 +401,7 @@ class DebugGraphics
 
     public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()
     {
-        var player = Utils.GameObjectInternal(Service.ClientState.LocalPlayer);
+        var player = Utils.GameObjectInternal(Service.ObjectTable.LocalPlayer);
         if (player == null || player->DrawObject == null)
             return null;
 

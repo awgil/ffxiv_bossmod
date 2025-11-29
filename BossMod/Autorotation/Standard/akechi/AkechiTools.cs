@@ -511,7 +511,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     }
 
     /// <summary>Checks the <b>quantity of enemies</b> currently targeting the <b>Player</b></summary>
-    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Service.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
+    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Player.InstanceID) >= numEnemies;
     //public bool TeammatesTargetingEnemy() => World.Party.WithoutSlot().Count(a => a.TargetID == )?.A;
 
     /// <summary>Attempts to <b>select</b> the most suitable <b>PvP target</b> automatically, prioritizing the target with the <b>lowest HP percentage</b> within range.<para/>

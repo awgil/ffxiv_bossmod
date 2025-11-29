@@ -1,8 +1,8 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Vfx;
 using FFXIVClientStructs.Interop;
-using Dalamud.Bindings.ImGui;
 using System.Runtime.InteropServices;
 
 namespace BossMod;
@@ -46,7 +46,7 @@ public sealed unsafe class DebugVfx : IDisposable
 
     public void Draw()
     {
-        var player = Utils.CharacterInternal(Service.ClientState.LocalPlayer);
+        var player = Utils.CharacterInternal(Service.ObjectTable.LocalPlayer);
         if (player == null)
             return;
 
@@ -82,7 +82,7 @@ public sealed unsafe class DebugVfx : IDisposable
 
     private void CreateTestVfx()
     {
-        var pos = Service.ClientState.LocalPlayer?.Position ?? new();
+        var pos = Service.ObjectTable.LocalPlayer?.Position ?? new();
         var path = "vfx/omen/eff/gl_circle_5007_x1.avfx";
         var pathBytes = System.Text.Encoding.UTF8.GetBytes(path);
 

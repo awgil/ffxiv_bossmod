@@ -40,7 +40,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     public override unsafe void Draw()
     {
         var playerCID = UIState.Instance()->PlayerState.ContentId;
-        var player = Service.ClientState.LocalPlayer;
+        var player = Service.ObjectTable.LocalPlayer;
         ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
         // ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
         ImGui.TextUnformatted($"Player mode: {(player is null ? "No player found" : Utils.CharacterInternal(player)->Mode.ToString())}");
@@ -266,7 +266,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     private unsafe void DrawEffects()
     {
-        var player = Service.ClientState.LocalPlayer;
+        var player = Service.ObjectTable.LocalPlayer;
         if (player == null)
             return;
 
@@ -344,9 +344,9 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var cursorPos = amex.GetWorldPosUnderCursor();
         ImGui.TextUnformatted($"World pos under cursor: {(cursorPos == null ? "n/a" : Utils.Vec3String(cursorPos.Value))}");
 
-        var player = Service.ClientState.LocalPlayer;
+        var player = Service.ObjectTable.LocalPlayer;
         var selfPos = player?.Position ?? new();
-        var targPos = Service.ClientState.LocalPlayer?.TargetObject?.Position ?? new();
+        var targPos = Service.ObjectTable.LocalPlayer?.TargetObject?.Position ?? new();
         var angle = player?.Rotation.Radians() ?? default; //Angle.FromDirection(new((targPos - selfPos).XZ()));
         var ts = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
         DrawTarget("Target", ts->Target, selfPos, angle);
