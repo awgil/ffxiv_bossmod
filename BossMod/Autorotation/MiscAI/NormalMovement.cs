@@ -157,7 +157,8 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             case DestinationStrategy.Pathfind:
                 navi = GetDecision(speed, cushionSize);
                 resetStats = false;
-                TimeToMove ??= World.FutureTime(delay);
+                if (delay > 0)
+                    TimeToMove ??= World.FutureTime(delay);
                 break;
             case DestinationStrategy.Explicit:
                 navi = new() { Destination = ResolveTargetLocation(destinationOpt.Value), TimeToGoal = destinationOpt.Value.ExpireIn };
@@ -177,7 +178,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             return; // nothing to do
         }
 
-        if (TimeToMove.HasValue && World.CurrentTime < TimeToMove.Value)
+        if (World.CurrentTime < TimeToMove)
             return; // delaying movement
 
         var rangeOpt = strategy.Option(Track.Range);
