@@ -5,12 +5,13 @@ namespace BossMod.Autorotation.MiscAI;
 
 public sealed class NormalMovement(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion }
+    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion, DelayMovement }
     public enum DestinationStrategy { None, Pathfind, Explicit }
     public enum RangeStrategy { Any, MaxRange, GreedGCDExplicit, GreedLastMomentExplicit, GreedAutomatic }
     public enum CastStrategy { Leeway, Explicit, Greedy, FinishMove, DropMove, FinishInstants, DropInstants }
     public enum ForbiddenZoneCushionStrategy { None, Small, Medium, Large }
     public enum SpecialModesStrategy { Automatic, Ignore }
+    public enum DelayMovementStrategy { None, Short, Long }
 
     public const float GreedTolerance = 0.15f;
 
@@ -47,6 +48,10 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             .AddOption(ForbiddenZoneCushionStrategy.Small, "Prefer to stay 0.5y away from forbidden zones")
             .AddOption(ForbiddenZoneCushionStrategy.Medium, "Prefer to stay 1.5y away from forbidden zones")
             .AddOption(ForbiddenZoneCushionStrategy.Large, "Prefer to stay 3y away from forbidden zones");
+        res.Define(Track.DelayMovement).As<DelayMovementStrategy>("DelayMovement", "Delay Movement", 9)
+            .AddOption(DelayMovementStrategy.None, "Do not delay movement")
+            .AddOption(DelayMovementStrategy.Short, "Delay movement by 0.5s")
+            .AddOption(DelayMovementStrategy.Long, "Delay movement by 1s");
 
         return res;
     }
@@ -59,6 +64,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
     private Task<NavigationDecision> _decisionTask = Task.FromResult(default(NavigationDecision));
     private NavigationDecision _lastDecision;
 
+    private DateTime? TimeToMove;
     private NavigationDecision GetDecision(float speed, float cushionSize)
     {
         if (_decisionTask.IsCompletedSuccessfully)
@@ -138,6 +144,12 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             ForbiddenZoneCushionStrategy.Large => 3.0f,
             _ => 0f
         };
+        var delay = strategy.Option(Track.DelayMovement).As<DelayMovementStrategy>() switch
+        {
+            DelayMovementStrategy.Short => 0.5f,
+            DelayMovementStrategy.Long => 1.0f,
+            _ => 0f
+        };
         NavigationDecision navi = default;
         var resetStats = true;
         switch (destinationStrategy)
@@ -145,6 +157,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             case DestinationStrategy.Pathfind:
                 navi = GetDecision(speed, cushionSize);
                 resetStats = false;
+                TimeToMove ??= World.FutureTime(delay);
                 break;
             case DestinationStrategy.Explicit:
                 navi = new() { Destination = ResolveTargetLocation(destinationOpt.Value), TimeToGoal = destinationOpt.Value.ExpireIn };
@@ -159,7 +172,13 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         }
 
         if (navi.Destination == null)
+        {
+            TimeToMove = null;
             return; // nothing to do
+        }
+
+        if (TimeToMove.HasValue && World.CurrentTime < TimeToMove.Value)
+            return; // delaying movement
 
         var rangeOpt = strategy.Option(Track.Range);
         var rangeStrategy = rangeOpt.As<RangeStrategy>();
