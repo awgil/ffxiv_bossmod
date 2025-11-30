@@ -179,6 +179,7 @@ public sealed class AIHints
         StatusesToCancel.Clear();
         WantJump = false;
         WantDismount = false;
+        WantFateSync = FateSync.None;
     }
 
     public void PrioritizeTargetsByOID(uint oid, int priority = 0)
