@@ -324,7 +324,7 @@ public class FloatRenderer : IStrategyRenderer
         ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
         if (cfg.Drag)
         {
-            if (ImGui.DragFloat("", ref f, cfg.Speed, cfg.MinValue, cfg.MaxValue))
+            if (ImGui.SliderFloat("", ref f, cfg.MinValue, cfg.MaxValue))
             {
                 value = new StrategyValueFloat() { Value = f };
                 return true;
@@ -353,7 +353,7 @@ public class IntRenderer : IStrategyRenderer
         ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
         if (cfg.Drag)
         {
-            if (ImGui.DragLong("", ref f, cfg.Speed, cfg.MinValue, cfg.MaxValue))
+            if (ImGui.SliderLong("", ref f, cfg.MinValue, cfg.MaxValue))
             {
                 value = new StrategyValueInt() { Value = f };
                 return true;
@@ -369,5 +369,29 @@ public class IntRenderer : IStrategyRenderer
         }
 
         return false;
+    }
+}
+
+public class FakeFloatRenderer : TrackRenderer
+{
+    public override bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value)
+    {
+        var cur = (value.Option + 10) / 10f;
+        var isOnHitbox = value.Option == 0;
+        var modified = false;
+        using (ImRaii.Disabled(isOnHitbox))
+        {
+            if (ImGui.SliderFloat("", ref cur, 1.1f, 30, "%.1f"))
+            {
+                value.Option = (int)(cur * 10f - 10f);
+                modified = true;
+            }
+        }
+        if (ImGui.Checkbox("Stay on edge of hitbox", ref isOnHitbox))
+        {
+            value.Option = isOnHitbox ? 0 : 1;
+            modified = true;
+        }
+        return modified;
     }
 }
