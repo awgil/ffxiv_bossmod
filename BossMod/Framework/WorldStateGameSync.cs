@@ -323,7 +323,7 @@ sealed class WorldStateGameSync : IDisposable
         var nameID = chr != null ? chr->NameId : 0;
         var classID = chr != null ? (Class)chr->ClassJob : Class.None;
         var level = chr != null ? chr->Level : 0;
-        var posRot = new Vector4(obj->Position, obj->Rotation);
+        var posRot = new Vector4(*obj->GetPosition(), obj->Rotation);
         var hpmp = new ActorHPMP();
         bool inCombat = false;
         if (chr != null)
@@ -756,6 +756,11 @@ sealed class WorldStateGameSync : IDisposable
         var pet = new ClientState.Pet(petinfo.Pet->EntityId, petinfo.Order, petinfo.Stance);
         if (_ws.Client.ActivePet != pet)
             _ws.Execute(new ClientState.OpActivePetChange(pet));
+
+        var chocoinfo = uiState->Buddy.CompanionInfo;
+        var chocobo = new ClientState.Companion(chocoinfo.Companion->EntityId, chocoinfo.ActiveCommand, chocoinfo.TimeLeft);
+        if (_ws.Client.ActiveCompanion != chocobo)
+            _ws.Execute(new ClientState.OpActiveCompanionChange(chocobo));
 
         var focusTarget = TargetSystem.Instance()->FocusTarget;
         var focusTargetId = focusTarget != null ? SanitizedObjectID(focusTarget->GetGameObjectId()) : 0;

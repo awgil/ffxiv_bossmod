@@ -37,6 +37,7 @@ public sealed class ClientState
     public record struct Gauge(ulong Low, ulong High);
     public record struct Stats(int SkillSpeed, int SpellSpeed, int Haste);
     public record struct Pet(ulong InstanceID, byte Order, byte Stance);
+    public record struct Companion(ulong InstanceID, byte Stance, float TimeLeft);
     public record struct DutyAction(ActionID Action, byte CurCharges, byte MaxCharges);
     public record struct HateInfo(ulong InstanceID, Hate[] Targets)
     {
@@ -64,6 +65,7 @@ public sealed class ClientState
     public readonly short[] ClassJobLevels = new short[NumClassLevels];
     public Fate ActiveFate;
     public Pet ActivePet;
+    public Companion ActiveCompanion;
     public ulong FocusTargetId;
     public Angle ForcedMovementDirection; // used for temporary misdirection and spinning states
     public uint[] ContentKeyValueData = new uint[6]; // used for content-specific persistent player attributes, like bozja resistance rank
@@ -155,6 +157,9 @@ public sealed class ClientState
 
         if (ActivePet.InstanceID != 0)
             yield return new OpActivePetChange(ActivePet);
+
+        if (ActiveCompanion.InstanceID != 0)
+            yield return new OpActiveCompanionChange(ActiveCompanion);
 
         if (FocusTargetId != 0)
             yield return new OpFocusTargetChange(FocusTargetId);
@@ -402,6 +407,17 @@ public sealed class ClientState
             ws.Client.ActivePetChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CPET"u8).Emit(Value.InstanceID, "X8").Emit(Value.Order).Emit(Value.Stance);
+    }
+
+    public Event<OpActiveCompanionChange> ActiveCompanionChanged = new();
+    public sealed record class OpActiveCompanionChange(Companion Value) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Client.ActiveCompanion = Value;
+            ws.Client.ActiveCompanionChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("CHOC"u8).Emit(Value.InstanceID, "X8").Emit(Value.Stance).Emit(Value.TimeLeft);
     }
 
     public Event<OpFocusTargetChange> FocusTargetChanged = new();
