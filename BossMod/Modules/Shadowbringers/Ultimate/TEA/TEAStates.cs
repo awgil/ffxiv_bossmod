@@ -326,7 +326,8 @@ class TEAStates : StateMachineBuilder
         ActorCastEnd(id + 0x20, _module.BruteJustice, 1.8f); // judgment debuffs appear ~0.8s after cast end
 
         ActorCast(id + 0x100, _module.CruiseChaser, AID.LimitCutP2, 3.2f, 2, false, "CC invuln") // note: BJ starts flarethrower cast together with CC; invuln is applied ~0.6s after cast end
-            .ActivateOnEnter<P2Flarethrower>();
+            .ActivateOnEnter<P2Flarethrower>()
+            .ActivateOnEnter<P2CCInvincible>();
         ActorCastEnd(id + 0x102, _module.BruteJustice, 1.9f)
             .ActivateOnEnter<P2PlasmaShield>();
         ComponentCondition<P2Flarethrower>(id + 0x103, 0.3f, comp => comp.NumCasts > 0, "Baited flamethrower")
@@ -339,6 +340,7 @@ class TEAStates : StateMachineBuilder
 
         ComponentCondition<P2CompressedWaterLightning>(id + 0x200, 8.7f, comp => !comp.ResolveImminent, "Water/lightning 3")
             .DeactivateOnExit<P2CompressedWaterLightning>()
+            .DeactivateOnExit<P2CCInvincible>()
             .ExecOnExit<P2Nisi>(comp => comp.ShowPassHint = 4); // fourth nisi pass should happen after last stacks, while resolving propeller wind
 
         ActorCastStart(id + 0x300, _module.CruiseChaser, AID.PropellerWind, 12.5f);

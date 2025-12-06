@@ -2,7 +2,7 @@
 
 // generic 'directional parry' component that shows actors and sides it's forbidden to attack them from
 // uses common status + custom prediction
-public class DirectionalParry(BossModule module, uint actorOID) : Adds(module, actorOID)
+public class DirectionalParry(BossModule module, uint actorOID, int forbiddenPriority = AIHints.Enemy.PriorityForbidden) : Adds(module, actorOID)
 {
     [Flags]
     public enum Side
@@ -17,7 +17,9 @@ public class DirectionalParry(BossModule module, uint actorOID) : Adds(module, a
 
     public const uint ParrySID = 680; // common 'directional parry' status
 
-    private readonly Dictionary<ulong, int> _actorStates = []; // value == active-side | (imminent-side << 4)
+    public readonly int ForbiddenPriority = forbiddenPriority;
+
+    protected readonly Dictionary<ulong, int> _actorStates = []; // value == active-side | (imminent-side << 4)
     public bool Active => _actorStates.Values.Any(s => ActiveSides(s) != Side.None);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -61,7 +63,7 @@ public class DirectionalParry(BossModule module, uint actorOID) : Adds(module, a
 
             if (attackingFromForbidden)
             {
-                hints.SetPriority(target, AIHints.Enemy.PriorityForbidden);
+                hints.SetPriority(target, ForbiddenPriority);
 
                 // make AI move to an area where it can attack target safely
                 if (actor.TargetID == id)

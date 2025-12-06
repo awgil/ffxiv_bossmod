@@ -123,7 +123,7 @@ class P1JagdDolls(BossModule module) : BossComponent(module)
 
         foreach (var (slot, ass) in _assignment.Resolve(Raid))
         {
-            if (ass >= 0)
+            if (ass is >= 0 and < 4)
                 _dollsByAssignment[slot] = dolls[ass];
         }
     }
