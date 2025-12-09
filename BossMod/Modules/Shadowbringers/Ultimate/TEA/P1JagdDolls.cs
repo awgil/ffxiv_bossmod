@@ -99,6 +99,10 @@ class P1JagdDolls(BossModule module) : BossComponent(module)
         if (!_assignment.Validate())
             return;
 
+        var pairs = _assignment.Resolve(Raid).ToList();
+        if (pairs.Count == 0)
+            return;
+
         var rages = Module.Enemies(OID.LiquidRage).ToList();
         var ragesPos = rages.Select(r => r.Position).Aggregate((a, b) => new WPos(a.X + b.X, a.Z + b.Z));
         var average = new WPos(ragesPos.X / 3f, ragesPos.Z / 3f);
@@ -121,7 +125,7 @@ class P1JagdDolls(BossModule module) : BossComponent(module)
             dolls[dollOrder] = doll;
         }
 
-        foreach (var (slot, ass) in _assignment.Resolve(Raid))
+        foreach (var (slot, ass) in pairs)
         {
             if (ass is >= 0 and < 4)
                 _dollsByAssignment[slot] = dolls[ass];

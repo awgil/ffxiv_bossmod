@@ -1,6 +1,7 @@
 ﻿using BossMod;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
+using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
@@ -187,6 +188,7 @@ internal class OfflineTextureProvider(IRenderer render, Device device) : ITextur
     IDrawListTextureWrap ITextureProvider.CreateDrawListTexture(string? debugName) => throw new NotImplementedException();
     Task<IDalamudTextureWrap> ITextureProvider.CreateFromClipboardAsync(string? debugName, CancellationToken cancellationToken) => throw new NotImplementedException();
     bool ITextureProvider.HasClipboardImage() => throw new NotImplementedException();
+    public IDalamudTextureWrap CreateTextureFromSeString(ReadOnlySpan<byte> text, scoped in SeStringDrawParams drawParams = default, string? debugName = null) => throw new NotImplementedException();
 }
 
 internal class OfflineTextureWrap(nint native, int width, int height) : IDalamudTextureWrap

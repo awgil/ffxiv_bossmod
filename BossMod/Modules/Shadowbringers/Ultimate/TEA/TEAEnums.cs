@@ -244,6 +244,8 @@ public enum SID : uint
     EscapeDetectionOrdained = 3058, // none->player, extra=0x0
     FateCalibrationBeta = 2195, // none->player, extra=0x84 (light) / 0x85 (dark)
     TemporalPrison = 2165, // none->player, extra=0x0
+
+    PhysicalVulnerabilityUp = 695, // none->player
     //_Gen_EnigmaCodex = 2147, // none->TrueHeart, extra=0x171
     //_Gen_EnigmaCodex = 2146, // TrueHeart->player, extra=0x0
     //_Gen_DamageDown = 1016, // none->Plasmasphere, extra=0x1/0x2/0x3/0x4
