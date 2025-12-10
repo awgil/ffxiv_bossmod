@@ -4266,6 +4266,19 @@
   ],
   "959": [
     {
+      "MinBoundsX": 215,
+      "MinBoundsY": 79,
+      "MinBoundsZ": -39,
+      "MaxBoundsX": 794.5,
+      "MaxBoundsY": 186.5,
+      "MaxBoundsZ": 473.5,
+      "OriginX": 215,
+      "OriginZ": -39,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "959.0.5.bmp"
+    },
+    {
       "MinBoundsX": -150.5,
       "MinBoundsY": 32.5,
       "MinBoundsZ": 119,
