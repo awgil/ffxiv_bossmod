@@ -18,7 +18,7 @@ insert_final_newline = true
 #dotnet_code_quality.CA1000.api_surface = all
 
 # note: we enable analyzers on csproj level rather than here, so that we can avoid build time increase in debug builds
-dotnet_analyzer_diagnostic.severity = warning
+#dotnet_analyzer_diagnostic.severity = warning
 
 dotnet_code_quality.api_surface = all # all rules should apply to all types
 dotnet_code_quality.CA1826.exclude_ordefault_methods = true # there is no good replacement for FirstOrDefault / LastOrDefault
@@ -150,16 +150,17 @@ dotnet_diagnostic.IDE0034.severity = warning # prefer default to default(T) if t
 csharp_prefer_simple_default_expression = true
 dotnet_diagnostic.IDE0035.severity = warning # disallow unreachable code
 dotnet_diagnostic.IDE0036.severity = warning # prefer standard modifier order
-csharp_preferred_modifier_order = public private protected internal file static extern new virtual abstract sealed override readonly unsafe required volatile async
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 dotnet_diagnostic.IDE0037.severity = warning # prefer inferred member names for tuples and anonymous types
 dotnet_style_prefer_inferred_tuple_names = true
 dotnet_style_prefer_inferred_anonymous_type_member_names = true
 dotnet_diagnostic.IDE0039.severity = warning # prefer local functions to lambdas
 csharp_style_prefer_local_over_anonymous_function = true
-dotnet_diagnostic.IDE0040.severity = warning # no strong preference for default accessibility modifiers (TODO: reconsider severity and interfaces)
-dotnet_style_require_accessibility_modifiers = omit_if_default
+dotnet_diagnostic.IDE0040.severity = silent # no strong preference for default accessibility modifiers (TODO: reconsider severity and interfaces)
+dotnet_style_require_accessibility_modifiers = for_non_interface_members
 dotnet_diagnostic.IDE0041.severity = warning # prefer is null checks
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true
+dotnet_diagnostic.IDE0042.severity = silent # would be a good rule if it only suggested deconstructed non-named tuples, otherwise just leave it for refactoring
 csharp_style_deconstructed_variable_declaration = true
 dotnet_diagnostic.IDE0044.severity = warning # prefer marking fields as readonly if possible
 dotnet_style_readonly_field = true
@@ -267,6 +268,7 @@ csharp_style_implicit_object_creation_when_type_is_apparent = true
 dotnet_diagnostic.IDE0100.severity = warning # avoid redundant '== true' comparisons
 dotnet_diagnostic.IDE0110.severity = warning # avoid unnecessary _ placeholders
 dotnet_diagnostic.IDE0120.severity = warning # prefer simpler linq, eg any(...) vs where(...).any()
+dotnet_diagnostic.IDE0130.severity = none # TODO: reconsider - currently namespaces and folder structure don't match at all
 dotnet_style_namespace_match_folder = true
 dotnet_diagnostic.IDE0150.severity = warning # prefer null checks over misleading type checks
 csharp_style_prefer_null_check_over_type_check = true
