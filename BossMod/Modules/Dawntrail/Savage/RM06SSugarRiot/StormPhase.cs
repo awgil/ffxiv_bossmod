@@ -12,7 +12,6 @@ class TasteOfLightningBait(BossModule module) : BossComponent(module)
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        base.DrawArenaForeground(pcSlot, pc);
         if (Baiting)
             foreach (var p in Raid.WithoutSlot())
                 Arena.AddCircle(p.Position, 3, ArenaColor.Danger);
