@@ -10,7 +10,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
-        [Track("Presence of Mind")]
+        [Track("Presence of Mind", Action = AID.PresenceOfMind)]
         public Track<OffensiveStrategy> Buffs;
         public Track<AssizeStrategy> Assize;
 

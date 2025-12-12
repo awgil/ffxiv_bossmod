@@ -4,26 +4,36 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class SGE(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Mind)
+public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, SGE.Strategy>(manager, player, PotionType.Mind)
 {
-    public enum Track { Kardia = SharedTrack.Count, Druo }
-    public enum KardiaStrategy { Auto, Manual }
-    public enum DruoStrategy { Auto, Manual }
+    public struct Strategy
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Phlegma", Actions = [AID.Phlegma, AID.PhlegmaII, AID.PhlegmaIII])]
+        public Track<OffensiveStrategy> Buffs;
+        public Track<KardiaStrategy> Kardia;
+        public Track<DruocholeStrategy> Druochole;
+    }
+
+    public enum KardiaStrategy
+    {
+        [Option("Automatically choose Kardia target")]
+        Auto,
+        [Option("Don't automatically use Kardia")]
+        Manual
+    }
+    public enum DruocholeStrategy
+    {
+        [Option("Use on a low-HP or otherwise random ally if it's about to overcap")]
+        Auto,
+        [Option("Don't automatically use")]
+        Manual
+    }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SGE", "Sage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100);
-
-        def.DefineShared("Phlegma");
-
-        def.Define(Track.Kardia).As<KardiaStrategy>("Kardia")
-            .AddOption(KardiaStrategy.Auto, "Automatically choose Kardia target")
-            .AddOption(KardiaStrategy.Manual, "Don't automatically choose Kardia target");
-        def.Define(Track.Druo).As<DruoStrategy>("Druochole")
-            .AddOption(DruoStrategy.Auto, "Prevent Addersgall overcap by using Druochole on lowest-HP ally")
-            .AddOption(DruoStrategy.Manual, "Do not automatically use Druochole");
-
-        return def;
+        return new RotationModuleDefinition("xan SGE", "Sage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100).WithStrategies<Strategy>();
     }
 
     public int Gall;
@@ -47,9 +57,9 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : CastxanOl
 
     protected override float GetCastTime(AID aid) => Eukrasia ? 0 : base.GetCastTime(aid);
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
+        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, range: 25);
 
         var gauge = World.Client.GetGauge<SageGauge>();
 
@@ -58,21 +68,21 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : CastxanOl
         NextGall = MathF.Max(0, 20f - gauge.AddersgallTimer / 1000f);
         Eukrasia = gauge.EukrasiaActive;
 
-        (BestPhlegmaTarget, NumPhlegmaTargets) = SelectTarget(strategy, primaryTarget, 6, IsSplashTarget);
-        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
-        (BestPneumaTarget, NumPneumaTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
+        (BestPhlegmaTarget, NumPhlegmaTargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 6, IsSplashTarget);
+        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, IsSplashTarget);
+        (BestPneumaTarget, NumPneumaTargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, Is25yRectTarget);
 
-        NumAOETargets = NumNearbyTargets(strategy, 5);
+        NumAOETargets = NumNearbyTargets(strategy.AOE, 5);
 
-        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotDuration, 2);
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy.Targeting, primaryTarget, DotDuration, 2);
 
         DoGCD(strategy, primaryTarget);
         DoOGCD(strategy, primaryTarget);
     }
 
-    private void DoGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void DoGCD(Strategy strategy, Enemy? primaryTarget)
     {
-        if (strategy.Option(Track.Kardia).As<KardiaStrategy>() == KardiaStrategy.Auto
+        if (strategy.Kardia == KardiaStrategy.Auto
             && Unlocked(AID.Kardia)
             && Player.FindStatus((uint)SID.Kardia) == null
             && FindKardiaTarget() is Actor kardiaTarget
@@ -87,7 +97,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : CastxanOl
             return;
         }
 
-        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(5), AID.Dyskrasia, 2);
+        GoalZoneCombined(strategy.AOE, 25, Hints.GoalAOECircle(5), AID.Dyskrasia, 2);
 
         if (!Player.InCombat && Unlocked(AID.Eukrasia) && !Eukrasia)
             PushGCD(AID.Eukrasia, Player);
@@ -125,9 +135,12 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : CastxanOl
             PushGCD(AID.Dyskrasia, Player);
     }
 
-    private bool ShouldPhlegma(StrategyValues strategy)
+    private bool ShouldPhlegma(Strategy strategy)
     {
-        if (MaxChargesIn(AID.Phlegma) <= GCD)
+        if (strategy.Buffs == OffensiveStrategy.Delay)
+            return false;
+
+        if (MaxChargesIn(AID.Phlegma) <= GCD || strategy.Buffs == OffensiveStrategy.Force)
             return true;
 
         if (ReadyIn(AID.Phlegma) > GCD)
@@ -136,7 +149,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : CastxanOl
         return NumPhlegmaTargets > 2 || RaidBuffsLeft > GCD || RaidBuffsIn > 9000;
     }
 
-    private void DoOGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void DoOGCD(Strategy strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat)
             return;
@@ -144,7 +157,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : CastxanOl
         if (Gall < 2 && NextGall > 10)
             PushOGCD(AID.Rhizomata, Player);
 
-        if ((Gall == 3 || Gall == 2 && NextGall < 2.5f) && Player.HPMP.CurMP <= 9000 && strategy.Option(Track.Druo).As<DruoStrategy>() == DruoStrategy.Auto)
+        if ((Gall == 3 || Gall == 2 && NextGall < 2.5f) && Player.HPMP.CurMP <= 9000 && strategy.Druochole == DruocholeStrategy.Auto)
         {
             var healTarget = World.Party.WithoutSlot(excludeAlliance: true).MinBy(x => (float)x.HPMP.CurHP / x.HPMP.MaxHP);
             PushOGCD(AID.Druochole, healTarget);

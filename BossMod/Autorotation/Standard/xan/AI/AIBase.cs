@@ -60,4 +60,7 @@ internal static class AIExt
         HintedStrategy.Enabled => true,
         _ => false
     };
+
+    public static bool IsEnabled(this AbilityUse a) => a == AbilityUse.Enabled;
+    public static bool IsEnabled(this Track<AbilityUse> t) => t.Value == AbilityUse.Enabled;
 }

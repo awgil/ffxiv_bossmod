@@ -4,28 +4,31 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Mind)
+public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, SCH.Strategy>(manager, player, PotionType.Mind)
 {
-    public enum Track { Place = SharedTrack.Count }
+    public struct Strategy
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Chain Stratagem", Actions = [AID.ChainStratagem, AID.Dissipation])]
+        public Track<OffensiveStrategy> Buffs;
+        [Track("Fairy placement")]
+        public Track<FairyPlacement> FairyPlace;
+    }
+
     public enum FairyPlacement
     {
+        [Option("Leave fairy alone")]
         Manual,
+        [Option("Automatically use Heel when combat ends")]
         AutoHeel,
+        [Option("Automatically place fairy at arena center, if applicable, and automatically Heel when combat ends")]
         FullAuto,
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SCH", "Scholar", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SCH), 100);
-
-        def.DefineShared("Chain Stratagem").AddAssociatedActions(AID.ChainStratagem, AID.Dissipation);
-
-        def.Define(Track.Place).As<FairyPlacement>("FairyPlace", "Fairy placement")
-            .AddOption(FairyPlacement.Manual, "Do not automatically move fairy")
-            .AddOption(FairyPlacement.AutoHeel, "Automatically order fairy to follow player when combat ends")
-            .AddOption(FairyPlacement.FullAuto, "Automatically place fairy at arena center (if one exists) - order fairy to follow when out of combat");
-
-        return def;
+        return new RotationModuleDefinition("xan SCH", "Scholar", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SCH), 100).WithStrategies<Strategy>();
     }
 
     public int Aetherflow;
@@ -53,9 +56,9 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
 
     private DateTime _summonWait;
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy, ref primaryTarget, 25);
+        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 25);
 
         var gauge = World.Client.GetGauge<ScholarGauge>();
         Aetherflow = gauge.Aetherflow;
@@ -71,9 +74,9 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
 
         ImpactImminent = StatusLeft(SID.ImpactImminent);
 
-        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotDuration, 2);
-        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
-        NumAOETargets = NumMeleeAOETargets(strategy);
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy.Targeting, primaryTarget, DotDuration, 2);
+        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, IsSplashTarget);
+        NumAOETargets = NumMeleeAOETargets(strategy.AOE);
 
         // annoying hack to work around delay between no-pet status ending and pet actor reappearing
         if (Eos != null || FairyGone)
@@ -108,7 +111,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
 
         var needAOETargets = Unlocked(AID.Broil1) ? 2 : 1;
 
-        GoalZoneCombined(strategy, rangeToTarget, Hints.GoalAOECircle(5), AID.ArtOfWar1, needAOETargets);
+        GoalZoneCombined(strategy.AOE, rangeToTarget, Hints.GoalAOECircle(5), AID.ArtOfWar1, needAOETargets);
 
         if (NumAOETargets >= needAOETargets)
             PushGCD(AID.ArtOfWar1, Player);
@@ -119,12 +122,12 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
         PushGCD(AID.Ruin2, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(Strategy strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat)
             return;
 
-        if (strategy.BuffsOk())
+        if (strategy.Buffs != OffensiveStrategy.Delay)
         {
             //if (Eos != null)
             //    PushOGCD(AID.Dissipation, Player);
@@ -146,7 +149,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
             PushOGCD(AID.LucidDreaming, Player);
     }
 
-    private void OrderFairy(StrategyValues strategy)
+    private void OrderFairy(Strategy strategy)
     {
         if (Eos == null)
             return;
@@ -166,9 +169,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
             }
         }
 
-        var strat = strategy.Option(Track.Place).As<FairyPlacement>();
-
-        switch (strat)
+        switch (strategy.FairyPlace.Value)
         {
             case FairyPlacement.Manual:
                 return;

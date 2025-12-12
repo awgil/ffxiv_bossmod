@@ -122,7 +122,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                     var trackInfo = field.GetCustomAttribute<TrackAttribute>() ?? new();
                     var renderer = trackInfo.Renderer ?? inner.GetCustomAttribute<RendererAttribute>()?.Type ?? typeof(TrackRenderer);
 
-                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName, trackInfo.UiPriority, renderer);
+                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName == "" ? field.Name : trackInfo.DisplayName, trackInfo.UiPriority, renderer);
 
                     foreach (var variantName in inner.GetEnumNames())
                     {

@@ -23,9 +23,13 @@ public enum OffensiveStrategy
 
 public enum AOEStrategy
 {
+    [Option("Use AOE rotation if beneficial")]
     AOE,
+    [Option("Use single-target rotation")]
     ST,
+    [Option("Always use AOE rotation, even on one target")]
     ForceAOE,
+    [Option("Use single-target rotation; do not use ANY actions that can hit multiple targets")]
     ForceST
 }
 
@@ -262,8 +266,9 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         PositionCheck isInAOE
     ) => SelectTarget(targeting, aoe, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
 
-    protected (Enemy? Best, int Targets) SelectTargetByHP(StrategyValues strategy, Enemy? primaryTarget, float range, PositionCheck isInAOE)
-        => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0), args => args.numTargets);
+    protected (Enemy? Best, int Targets) SelectTargetByHP(StrategyValues strategy, Enemy? primaryTarget, float range, PositionCheck isInAOE) => SelectTargetByHP(strategy.Targeting(), strategy.AOE(), primaryTarget, range, isInAOE);
+    protected (Enemy? Best, int Targets) SelectTargetByHP(Targeting targeting, AOEStrategy aoe, Enemy? primaryTarget, float range, PositionCheck isInAOE)
+        => SelectTarget(targeting, aoe, primaryTarget, range, isInAOE, (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0), args => args.numTargets);
 
     protected (Enemy? Best, int Priority) SelectTarget<P>(
         StrategyValues strategy,
@@ -407,6 +412,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     }
 
     protected int NumMeleeAOETargets(StrategyValues strategy) => NumNearbyTargets(strategy, 5);
+    protected int NumMeleeAOETargets(AOEStrategy aoe) => NumNearbyTargets(aoe, 5);
 
     protected int NumNearbyTargets(StrategyValues strategy, float range) => NumNearbyTargets(strategy.AOE(), range);
     protected int NumNearbyTargets(AOEStrategy aoe, float range) => AdjustNumTargets(aoe, Hints.NumPriorityTargetsInAOECircle(Player.Position, range));
