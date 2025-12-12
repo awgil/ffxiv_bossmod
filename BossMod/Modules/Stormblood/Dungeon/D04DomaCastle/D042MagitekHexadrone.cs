@@ -1,10 +1,8 @@
-using BossMod.Endwalker.Criterion.C02AMR.C023Moko;
-
 namespace BossMod.Stormblood.Dungeon.D04DomaCastle.D042MagitekHexadrone;
 
 public enum OID : uint
 {
-    Boss = 0x1BD0, // R4.240, x? 
+    Boss = 0x1BD0, // R4.240, x?
     MagitekHexadroneHelper = 0x1BD1, // R0.500, x?
     HexadroneBit = 0x1BD2, // R0.900, x10 / x16 --- ChainMine
     HexadroneBit2 = 0x1BD3, // R0.500, x8 --- ChainMine2

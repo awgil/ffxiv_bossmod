@@ -1,5 +1,4 @@
 ﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Utility.Numerics;
 using Dalamud.Bindings.ImGui;
 
 namespace BossMod;

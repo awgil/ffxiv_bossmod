@@ -1,6 +1,4 @@
-﻿using BossMod;
-
-namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara;
+﻿namespace BossMod.Endwalker.Criterion.C01ASS.C010Udumbara;
 
 public enum OID : uint
 {

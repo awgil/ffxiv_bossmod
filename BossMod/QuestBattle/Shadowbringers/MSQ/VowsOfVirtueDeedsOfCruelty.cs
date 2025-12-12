@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation;
-
-namespace BossMod.QuestBattle.Shadowbringers.MSQ;
+﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
 class AutoEstinien(WorldState ws) : UnmanagedRotation(ws, 10)
 {

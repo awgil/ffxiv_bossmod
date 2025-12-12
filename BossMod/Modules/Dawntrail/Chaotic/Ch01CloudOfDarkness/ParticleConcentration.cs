@@ -1,6 +1,4 @@
-﻿using System.Collections.Specialized;
-
-namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
+﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
 // envcontrols:
 // 1F-2E = 1-man towers

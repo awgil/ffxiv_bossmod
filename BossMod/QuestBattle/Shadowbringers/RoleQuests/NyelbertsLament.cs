@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation;
-
-namespace BossMod.QuestBattle.Shadowbringers.RoleQuests;
+﻿namespace BossMod.QuestBattle.Shadowbringers.RoleQuests;
 
 public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 20)
 {

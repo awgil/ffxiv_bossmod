@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation;
-
-namespace BossMod.QuestBattle.Stormblood.MSQ;
+﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
 public class AutoAlphi(WorldState ws) : UnmanagedRotation(ws, 25)
 {

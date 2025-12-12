@@ -1,6 +1,4 @@
-﻿using BossMod;
-
-namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
+﻿namespace BossMod.Endwalker.Criterion.C03AAI.C030Trash1;
 
 class Hydrocannon(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeRect(15, 3));
 class NHydrocannon(BossModule module) : Hydrocannon(module, AID.NHydrocannon);

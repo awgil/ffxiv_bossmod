@@ -1,6 +1,4 @@
-﻿using BossMod.Global.MaskedCarnivale.Stage19.Act1;
-
-namespace BossMod.Dawntrail.Savage.RM03SBruteBomber;
+﻿namespace BossMod.Dawntrail.Savage.RM03SBruteBomber;
 
 class RM03SBruteBomberStates : StateMachineBuilder
 {

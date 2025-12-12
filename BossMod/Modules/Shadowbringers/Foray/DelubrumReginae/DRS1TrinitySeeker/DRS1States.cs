@@ -1,6 +1,4 @@
-﻿using System.Xml.Linq;
-
-namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
+﻿namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS1TrinitySeeker;
 
 class DRS1States : StateMachineBuilder
 {

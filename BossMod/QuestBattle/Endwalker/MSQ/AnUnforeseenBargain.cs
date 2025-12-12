@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation;
-using RID = BossMod.Roleplay.AID;
+﻿using RID = BossMod.Roleplay.AID;
 
 namespace BossMod.QuestBattle.Endwalker.MSQ;
 
@@ -64,4 +63,3 @@ internal class AnUnforeseenBargain(WorldState ws) : QuestBattle(ws)
             _zero.Execute(player, hints);
     }
 }
-
