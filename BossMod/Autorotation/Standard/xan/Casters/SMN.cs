@@ -210,7 +210,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : CastxanOl
         }
     }
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 

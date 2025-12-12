@@ -49,7 +49,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : CastxanOl
         _ => World.Client.BlueMageSpells.Contains((uint)action),
     };
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 

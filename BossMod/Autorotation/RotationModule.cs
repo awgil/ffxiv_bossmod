@@ -109,6 +109,19 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority, typeof(IntRenderer)));
     }
 
+    internal T NonDefault<T>(T first, params T[] rest) where T : struct
+    {
+        var last = first;
+        foreach (var arg in Enumerable.Concat([first], rest))
+        {
+            if (EqualityComparer<T>.Default.Equals(arg, default))
+                return arg;
+            last = arg;
+        }
+
+        return last;
+    }
+
     public RotationModuleDefinition WithStrategies<S>()
     {
         foreach (var field in typeof(S).GetFields())
@@ -122,21 +135,21 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                     var trackInfo = field.GetCustomAttribute<TrackAttribute>() ?? new();
                     var renderer = trackInfo.Renderer ?? inner.GetCustomAttribute<RendererAttribute>()?.Type ?? typeof(TrackRenderer);
 
-                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName == "" ? field.Name : trackInfo.DisplayName, trackInfo.UiPriority, renderer);
+                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName ?? field.Name, trackInfo.UiPriority, renderer);
 
                     foreach (var variantName in inner.GetEnumNames())
                     {
                         var variantField = inner.GetField(variantName)!;
                         var fieldSettings = variantField.GetCustomAttribute<OptionAttribute>() ?? new OptionAttribute();
 
-                        trackCfg.Options.Add(new(variantField.Name, fieldSettings.DisplayName)
+                        trackCfg.Options.Add(new(variantField.Name, fieldSettings.DisplayName ?? "")
                         {
-                            Cooldown = fieldSettings.Cooldown,
-                            Effect = fieldSettings.Effect,
-                            SupportedTargets = fieldSettings.Targets,
-                            MinLevel = fieldSettings.MinLevel,
-                            MaxLevel = fieldSettings.MaxLevel,
-                            DefaultPriority = fieldSettings.DefaultPriority
+                            Cooldown = NonDefault(fieldSettings.Cooldown, trackInfo.Cooldown, 0),
+                            Effect = NonDefault(fieldSettings.Effect, trackInfo.Effect, 0),
+                            SupportedTargets = NonDefault(fieldSettings.Targets, trackInfo.Targets, ActionTargets.None),
+                            MinLevel = NonDefault(fieldSettings.MinLevel, trackInfo.MinLevel, 1),
+                            MaxLevel = NonDefault(fieldSettings.MaxLevel, trackInfo.MaxLevel, int.MaxValue),
+                            DefaultPriority = NonDefault(fieldSettings.DefaultPriority, trackInfo.DefaultPriority, ActionQueue.Priority.Medium)
                         });
                     }
 
@@ -283,7 +296,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
 public abstract class TypedRotationModule<TValues>(RotationModuleManager manager, Actor player) : RotationModule(manager, player) where TValues : struct
 {
-    public abstract void Execute(TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
+    public abstract void Execute(in TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
 
     protected abstract TValues FromValues(StrategyValues strategy);
 

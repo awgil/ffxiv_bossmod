@@ -30,7 +30,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     public bool FastGCD => GCDLength <= 2.47f;
     public int MaxAmmo => Unlocked(TraitID.CartridgeChargeII) ? 3 : 2;
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 

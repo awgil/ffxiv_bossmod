@@ -50,7 +50,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     private Enemy? BestRangedAOETarget;
     private Enemy? BestLineTarget;
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 

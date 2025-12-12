@@ -91,7 +91,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOl
         return base.GetCastTime(aid);
     }
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 

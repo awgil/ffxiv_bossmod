@@ -7,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, DRG.Strategy>(manager, player, PotionType.Strength)
 {
-    public struct Strategy
+    public struct Strategy : IStrategyCommon
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
@@ -28,6 +28,9 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         [Track("High Jump/Mirage Dive", Actions = [AID.Jump, AID.HighJump, AID.MirageDive])]
         public Track<HJMDStrategy> HJMD;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
     public enum DiveStrategy
@@ -90,9 +93,9 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     private Enemy? BestLongAOETarget;
     private Enemy? BestDiveTarget;
 
-    public override void Exec(Strategy strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 3);
+        SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
         var gauge = World.Client.GetGauge<DragoonGauge>();
 
@@ -114,9 +117,9 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             StatusDetails(primaryTarget, SID.ChaoticSpring, Player.InstanceID).Left
         );
 
-        (BestAOETarget, NumAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2));
-        (BestLongAOETarget, NumLongAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 15, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2));
-        (BestDiveTarget, NumDiveTargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 20, IsSplashTarget);
+        (BestAOETarget, NumAOETargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2));
+        (BestLongAOETarget, NumLongAOETargets) = SelectTarget(strategy, primaryTarget, 15, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2));
+        (BestDiveTarget, NumDiveTargets) = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget);
 
         var pos = GetPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos);
@@ -135,7 +138,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         if (primaryTarget != null)
-            GoalZoneCombined(strategy.AOE, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
+            GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
 
         if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Zeninage.IsEnabled() && DutyActionReadyIn(PhantomID.Zeninage) <= GCD)
             PushGCD((AID)(uint)PhantomID.Zeninage, primaryTarget, priority: 100);
@@ -207,7 +210,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         OGCD(strategy, primaryTarget);
     }
 
-    private void OGCD(Strategy strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         var moveOk = MoveOk(strategy);
 
@@ -256,7 +259,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.RiseOfTheDragon, BestDiveTarget);
     }
 
-    private bool StrategyOk(Track<OffensiveStrategy> t, Enemy? primaryTarget, bool extraCondition = true) => t.Value switch
+    private bool StrategyOk(OffensiveStrategy t, Enemy? primaryTarget, bool extraCondition = true) => t switch
     {
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Automatic => primaryTarget?.Priority >= 0 && Player.InCombat && PowerSurge > GCD && extraCondition,

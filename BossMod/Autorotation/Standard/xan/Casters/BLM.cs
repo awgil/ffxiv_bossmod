@@ -7,7 +7,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, BLM.Strategy>(manager, player, PotionType.Intelligence)
 {
-    public struct Strategy
+    public struct Strategy : IStrategyCommon
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
@@ -38,6 +38,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         [Track(Action = AID.Manafont)]
         public Track<OffensiveStrategy> Manafont;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
     public enum ScatheStrategy
@@ -207,9 +210,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private static GCDPriority ForMove(InstantCastPriority p) => GCDPriority.InstantMove + (int)p;
 
-    public override void Exec(Strategy strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, range: 25);
+        SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
         var gauge = World.Client.GetGauge<BlackMageGauge>();
 
@@ -229,7 +232,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         for (var i = 0; i < Hints.Enemies.Length; i++)
             EnemyDotTimers[i] = CalculateDotTimer(Hints.Enemies[i]?.Actor);
 
-        (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy.Targeting, strategy.AOE, primaryTarget, 25, IsSplashTarget);
+        (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
 
         var dotTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Thunder.TrackRaw)) ?? primaryTarget;
 
@@ -240,10 +243,10 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         }
         else
         {
-            (BestThunderTarget, TargetThunderLeft) = SelectDotTarget(strategy.Targeting, dotTarget, GetTargetThunderLeft, 2);
+            (BestThunderTarget, TargetThunderLeft) = SelectDotTarget(strategy, dotTarget, GetTargetThunderLeft, 2);
         }
 
-        (BestAOEThunderTarget, NumAOEDotTargets) = SelectTarget(strategy.Targeting, strategy.AOE, dotTarget, 25, (primary, other) => DotExpiring(other) && Hints.TargetInAOECircle(other, primary.Position, 5));
+        (BestAOEThunderTarget, NumAOEDotTargets) = SelectTarget(strategy, dotTarget, 25, (primary, other) => DotExpiring(other) && Hints.TargetInAOECircle(other, primary.Position, 5));
 
         if (CountdownRemaining > 0)
         {
@@ -370,7 +373,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Scathe, primaryTarget, GCDPriority.InstantMove - 50);
     }
 
-    private void FirePhase(Strategy strategy, Enemy? primaryTarget)
+    private void FirePhase(in Strategy strategy, Enemy? primaryTarget)
     {
         if (NumAOETargets >= AOEBreakpoint)
         {
@@ -385,7 +388,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             FirePhaseST(strategy, primaryTarget);
     }
 
-    private void FirePhaseST(Strategy strategy, Enemy? primaryTarget)
+    private void FirePhaseST(in Strategy strategy, Enemy? primaryTarget)
     {
         if (Fire < 3)
         {
@@ -426,7 +429,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    private void StandardF4(Strategy strategy, Enemy? primaryTarget)
+    private void StandardF4(in Strategy strategy, Enemy? primaryTarget)
     {
         if (Paradox)
         {
@@ -469,7 +472,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     }
 
-    private void FirePhaseAOE(Strategy strategy)
+    private void FirePhaseAOE(in Strategy strategy)
     {
         T2(strategy, GCDPriority.InstantMove);
 
@@ -485,7 +488,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         TryInstantCast(strategy, BestAOETarget, GCDPriority.InstantMove);
     }
 
-    private void FireAOELowLevel(Strategy strategy, Enemy? primaryTarget)
+    private void FireAOELowLevel(in Strategy strategy, Enemy? primaryTarget)
     {
         T2(strategy);
         T1(strategy);
@@ -499,7 +502,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(AID.Blizzard2, BestAOETarget, GCDPriority.Standard, mpCutoff: MinAstralFireMP);
     }
 
-    private void IcePhase(Strategy strategy, Enemy? primaryTarget)
+    private void IcePhase(in Strategy strategy, Enemy? primaryTarget)
     {
         if (NumAOETargets >= AOEBreakpoint && Unlocked(AID.Blizzard2))
         {
@@ -512,7 +515,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             IcePhaseST(strategy, primaryTarget);
     }
 
-    private void IcePhaseST(Strategy strategy, Enemy? primaryTarget)
+    private void IcePhaseST(in Strategy strategy, Enemy? primaryTarget)
     {
         if (Ice < 3)
         {
@@ -543,7 +546,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Blizzard1, primaryTarget, GCDPriority.Standard);
     }
 
-    private void IcePhaseAOE(Strategy strategy, Enemy? primaryTarget)
+    private void IcePhaseAOE(in Strategy strategy, Enemy? primaryTarget)
     {
         if (Ice == 0)
         {
@@ -567,7 +570,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         TryInstantCast(strategy, primaryTarget, GCDPriority.InstantMove);
     }
 
-    private void IceAOELowLevel(Strategy strategy, Enemy? primaryTarget)
+    private void IceAOELowLevel(in Strategy strategy, Enemy? primaryTarget)
     {
         if (AlmostMaxMP)
         {
@@ -585,7 +588,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private static GCDPriority Priomax(GCDPriority g1, GCDPriority g2) => g1 > g2 ? g1 : g2;
 
-    private void T1(Strategy strategy, GCDPriority prioForInstant = GCDPriority.InstantMove)
+    private void T1(in Strategy strategy, GCDPriority prioForInstant = GCDPriority.InstantMove)
     {
         if (!Thunderhead)
             return;
@@ -608,7 +611,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(AID.Thunder1, BestThunderTarget, prio);
     }
 
-    private void T2(Strategy strategy, GCDPriority prioForInstant = GCDPriority.InstantMove)
+    private void T2(in Strategy strategy, GCDPriority prioForInstant = GCDPriority.InstantMove)
     {
         if (!Thunderhead)
             return;
@@ -641,7 +644,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     }
 
     private void TryInstantCast(
-        Strategy strategy,
+        in Strategy strategy,
         Enemy? primaryTarget,
         GCDPriority prioBase,
         bool useFirestarter = true,
@@ -665,7 +668,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    private void TryInstantOrTranspose(Strategy strategy, Enemy? primaryTarget, bool useThunderhead = true)
+    private void TryInstantOrTranspose(in Strategy strategy, Enemy? primaryTarget, bool useThunderhead = true)
     {
         if (useThunderhead)
         {
@@ -680,7 +683,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Transpose, Player, GCDPriority.Standard);
     }
 
-    private void UseLeylines(Strategy strategy, Enemy? primaryTarget)
+    private void UseLeylines(in Strategy strategy, Enemy? primaryTarget)
     {
         if (Player.FindStatus(SID.LeyLines) != null)
             return;
@@ -707,7 +710,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    private void UseTriplecastForced(Strategy strategy)
+    private void UseTriplecastForced(in Strategy strategy)
     {
         if (Player.FindStatus(SID.Triplecast) != null)
             return;
@@ -716,11 +719,11 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushAction(AID.Triplecast, Player, strategy.Triplecast.Priority(), 0);
     }
 
-    private bool ManafontOk(Strategy strategy) => strategy.Manafont != OffensiveStrategy.Delay;
+    private bool ManafontOk(in Strategy strategy) => strategy.Manafont != OffensiveStrategy.Delay;
 
-    private bool SwiftB3(Strategy strategy) => strategy.Triplecast == TriplecastStrategy.Automatic;
+    private bool SwiftB3(in Strategy strategy) => strategy.Triplecast == TriplecastStrategy.Automatic;
 
-    private bool ShouldTranspose(Strategy strategy)
+    private bool ShouldTranspose(in Strategy strategy)
     {
         if (!Unlocked(AID.Fire3))
             return Fire > 0 && MP < 1600 || Ice > 0 && MP > Player.HPMP.MaxMP * 0.9f;

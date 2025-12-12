@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using BossMod.Autorotation.xan;
+using System.Text.Json;
 
 namespace BossMod.Autorotation;
 
@@ -49,8 +50,7 @@ public sealed class TrackAttribute() : Attribute
         DisplayName = name;
     }
 
-    public string Name => DisplayName;
-    public string DisplayName = "";
+    public string? DisplayName;
     public string? InternalName;
     public float UiPriority;
     public Type? Renderer;
@@ -66,6 +66,19 @@ public sealed class TrackAttribute() : Attribute
         set => ActionIDs = [.. value.Select(v => ActionID.MakeSpell((Enum)v))];
         get => [.. ActionIDs];
     }
+    public object Item
+    {
+        set => ActionIDs = [new(ActionType.Item, (uint)(int)value)];
+        get => ActionIDs[0];
+    }
+
+    // fallback values for all options in track
+    public float Cooldown;
+    public float Effect;
+    public ActionTargets Targets;
+    public int MinLevel;
+    public int MaxLevel;
+    public float DefaultPriority;
 }
 
 [AttributeUsage(AttributeTargets.Field)]
@@ -90,14 +103,13 @@ public sealed class OptionAttribute() : Attribute
         DisplayName = name;
     }
 
-    public string Name => DisplayName;
     public string DisplayName = "";
     public float Cooldown;
     public float Effect;
-    public ActionTargets Targets = ActionTargets.None;
-    public int MinLevel = 1;
-    public int MaxLevel = int.MaxValue;
-    public float DefaultPriority = ActionQueue.Priority.Medium;
+    public ActionTargets Targets;
+    public int MinLevel;
+    public int MaxLevel;
+    public float DefaultPriority;
 }
 
 public abstract record class StrategyConfig(
@@ -288,7 +300,7 @@ public record class StrategyValueInt : StrategyValue
     }
 }
 
-public readonly record struct StrategyValues(List<StrategyConfig> Configs)
+public readonly record struct StrategyValues(List<StrategyConfig> Configs) : IStrategyCommon
 {
     public readonly StrategyValue[] Values = [.. Configs.Select(c => c.CreateEmpty())];
 
@@ -332,6 +344,9 @@ public readonly record struct StrategyValues(List<StrategyConfig> Configs)
             return ((StrategyValueInt)Values[idx]).Value;
         throw new ArgumentException($"wrong type for strategy option: got {Configs[idx].GetType()}/{Values[idx].GetType()}, expected Int type");
     }
+
+    public Targeting Targeting => Option(SharedTrack.Targeting).As<Targeting>();
+    public AOEStrategy AOE => Option(SharedTrack.AOE).As<AOEStrategy>();
 }
 
 public record struct Track<T>(T Value, StrategyValue Raw, float DefaultPriority) where T : struct

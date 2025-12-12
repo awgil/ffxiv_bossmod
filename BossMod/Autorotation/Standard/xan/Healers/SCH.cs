@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, SCH.Strategy>(manager, player, PotionType.Mind)
 {
-    public struct Strategy
+    public struct Strategy : IStrategyCommon
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
@@ -14,6 +14,9 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         public Track<OffensiveStrategy> Buffs;
         [Track("Fairy placement")]
         public Track<FairyPlacement> FairyPlace;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
     public enum FairyPlacement
@@ -56,9 +59,9 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
     private DateTime _summonWait;
 
-    public override void Exec(Strategy strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 25);
+        SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
         var gauge = World.Client.GetGauge<ScholarGauge>();
         Aetherflow = gauge.Aetherflow;
@@ -74,9 +77,9 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
         ImpactImminent = StatusLeft(SID.ImpactImminent);
 
-        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy.Targeting, primaryTarget, DotDuration, 2);
-        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, IsSplashTarget);
-        NumAOETargets = NumMeleeAOETargets(strategy.AOE);
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotDuration, 2);
+        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
+        NumAOETargets = NumMeleeAOETargets(strategy);
 
         // annoying hack to work around delay between no-pet status ending and pet actor reappearing
         if (Eos != null || FairyGone)
@@ -111,7 +114,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
         var needAOETargets = Unlocked(AID.Broil1) ? 2 : 1;
 
-        GoalZoneCombined(strategy.AOE, rangeToTarget, Hints.GoalAOECircle(5), AID.ArtOfWar1, needAOETargets);
+        GoalZoneCombined(strategy, rangeToTarget, Hints.GoalAOECircle(5), AID.ArtOfWar1, needAOETargets);
 
         if (NumAOETargets >= needAOETargets)
             PushGCD(AID.ArtOfWar1, Player);

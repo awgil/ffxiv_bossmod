@@ -62,7 +62,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
 
     public int Codas => (Coda.HasFlag(CodaSongs.MagesBallad) ? 1 : 0) + (Coda.HasFlag(CodaSongs.ArmysPaeon) ? 1 : 0) + (Coda.HasFlag(CodaSongs.WanderersMinuet) ? 1 : 0);
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 

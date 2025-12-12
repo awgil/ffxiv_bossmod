@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, SGE.Strategy>(manager, player, PotionType.Mind)
 {
-    public struct Strategy
+    public struct Strategy : IStrategyCommon
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
@@ -14,6 +14,9 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         public Track<OffensiveStrategy> Buffs;
         public Track<KardiaStrategy> Kardia;
         public Track<DruocholeStrategy> Druochole;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
     public enum KardiaStrategy
@@ -57,9 +60,9 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
 
     protected override float GetCastTime(AID aid) => Eukrasia ? 0 : base.GetCastTime(aid);
 
-    public override void Exec(Strategy strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, range: 25);
+        SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
         var gauge = World.Client.GetGauge<SageGauge>();
 
@@ -68,13 +71,13 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         NextGall = MathF.Max(0, 20f - gauge.AddersgallTimer / 1000f);
         Eukrasia = gauge.EukrasiaActive;
 
-        (BestPhlegmaTarget, NumPhlegmaTargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 6, IsSplashTarget);
-        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, IsSplashTarget);
-        (BestPneumaTarget, NumPneumaTargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, Is25yRectTarget);
+        (BestPhlegmaTarget, NumPhlegmaTargets) = SelectTarget(strategy, primaryTarget, 6, IsSplashTarget);
+        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
+        (BestPneumaTarget, NumPneumaTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
 
-        NumAOETargets = NumNearbyTargets(strategy.AOE, 5);
+        NumAOETargets = NumNearbyTargets(strategy, 5);
 
-        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy.Targeting, primaryTarget, DotDuration, 2);
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotDuration, 2);
 
         DoGCD(strategy, primaryTarget);
         DoOGCD(strategy, primaryTarget);
@@ -97,7 +100,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        GoalZoneCombined(strategy.AOE, 25, Hints.GoalAOECircle(5), AID.Dyskrasia, 2);
+        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(5), AID.Dyskrasia, 2);
 
         if (!Player.InCombat && Unlocked(AID.Eukrasia) && !Eukrasia)
             PushGCD(AID.Eukrasia, Player);

@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, WHM.Strategy>(manager, player, PotionType.Mind)
 {
-    public struct Strategy
+    public struct Strategy : IStrategyCommon
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
@@ -16,6 +16,9 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         [Track(InternalName = "Afflatus Misery")]
         public Track<MiseryStrategy> Misery;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
     public enum AssizeStrategy
@@ -57,9 +60,9 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     private Enemy? BestDotTarget;
     private Enemy? BestMiseryTarget;
 
-    public override void Exec(Strategy strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 25);
+        SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
 
@@ -69,10 +72,10 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         SacredSight = StatusStacks(SID.SacredSight);
 
-        NumHolyTargets = NumNearbyTargets(strategy.AOE, 8);
-        NumAssizeTargets = NumNearbyTargets(strategy.AOE, 15);
-        (BestMiseryTarget, NumMiseryTargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, IsSplashTarget);
-        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy.Targeting, primaryTarget, DotLeft, 2);
+        NumHolyTargets = NumNearbyTargets(strategy, 8);
+        NumAssizeTargets = NumNearbyTargets(strategy, 15);
+        (BestMiseryTarget, NumMiseryTargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotLeft, 2);
 
         if (CountdownRemaining > 0)
         {
@@ -82,7 +85,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        GoalZoneCombined(strategy.AOE, 25, Hints.GoalAOECircle(8), AID.Holy, 3);
+        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(8), AID.Holy, 3);
 
         if (!CanFitGCD(TargetDotLeft, 1))
             PushGCD(AID.Aero, BestDotTarget);

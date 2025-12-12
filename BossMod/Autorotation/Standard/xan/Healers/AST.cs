@@ -5,12 +5,15 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, AST.Strategy>(manager, player, PotionType.Mind)
 {
-    public struct Strategy
+    public struct Strategy : IStrategyCommon
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
         [Track("Divination", Action = AID.Divination)]
         public Track<OffensiveStrategy> Buffs;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
     public static RotationModuleDefinition Definition()
@@ -43,9 +46,9 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         return b;
     }
 
-    public override void Exec(Strategy strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 25);
+        SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
         var gauge = World.Client.GetGauge<AstrologianGauge>();
 
@@ -56,9 +59,9 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         DivinationLeft = StatusDetails(Player, SID.Divination, Player.InstanceID, 20).Left;
         Divining = StatusLeft(SID.Divining);
 
-        (BestAOETarget, NumAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 8));
-        NumCrownTargets = NumNearbyTargets(strategy.AOE, 20);
-        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy.Targeting, primaryTarget, CombustLeft, 2);
+        (BestAOETarget, NumAOETargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 8));
+        NumCrownTargets = NumNearbyTargets(strategy, 20);
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, CombustLeft, 2);
 
         OGCD(strategy, primaryTarget);
 
@@ -81,7 +84,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(AID.Malefic, primaryTarget);
     }
 
-    private void OGCD(Strategy strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;
@@ -114,7 +117,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
             PushOGCD(AID.LucidDreaming, Player);
     }
 
-    private bool ShouldLightspeed(Strategy strategy) => LightspeedLeft == 0 && (strategy.Buffs != OffensiveStrategy.Delay && CanWeave(AID.Divination, 2) || DivinationLeft > 10);
+    private bool ShouldLightspeed(in Strategy strategy) => LightspeedLeft == 0 && (strategy.Buffs != OffensiveStrategy.Delay && CanWeave(AID.Divination, 2) || DivinationLeft > 10);
 
     private float CombustLeft(Actor? actor) => actor == null ? float.MaxValue : Utils.MaxAll(
         StatusDetails(actor, SID.Combust, Player.InstanceID).Left,
@@ -128,7 +131,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool HasCard(Actor actor) => StatusDetails(actor, SID.TheBalance, Player.InstanceID).Left > 0 || StatusDetails(actor, SID.TheSpear, Player.InstanceID).Left > 0;
 
-    private Actor FindBestCardTarget(Strategy strategy, bool isRanged)
+    private Actor FindBestCardTarget(in Strategy strategy, bool isRanged)
     {
         int MeleePrioBase(Class klass) => klass switch
         {

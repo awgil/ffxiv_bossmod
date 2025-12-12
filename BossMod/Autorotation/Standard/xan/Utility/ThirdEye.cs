@@ -27,7 +27,7 @@ public class ThirdEye(RotationModuleManager manager, Actor player) : AttackxanOl
         return def;
     }
 
-    public override void Exec(StrategyValues strategy, AIHints.Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, AIHints.Enemy? primaryTarget)
     {
         if (Player.FindStatus(SID.Meditate) != null)
             return;

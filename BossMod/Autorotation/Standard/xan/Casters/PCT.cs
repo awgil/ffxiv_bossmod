@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.xan;
 
 public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, PCT.Strategy>(manager, player, PotionType.Intelligence)
 {
-    public struct Strategy
+    public struct Strategy : IStrategyCommon
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
@@ -27,6 +27,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         [Track(Actions = [AID.MogOfTheAges, AID.RetributionOfTheMadeen])]
         public Track<PortraitStrategy> Portrait;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
     public enum MotifStrategy
@@ -175,9 +178,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    public override void Exec(Strategy strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 25);
+        SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
         var gauge = World.Client.GetGauge<PictomancerGauge>();
         Palette = gauge.PalleteGauge;
@@ -199,9 +202,9 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         Hues = ah1 > 0 ? AetherHues.One : ah2 > 0 ? AetherHues.Two : AetherHues.None;
 
-        (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy.Targeting, strategy.AOE, primaryTarget, 25, IsSplashTarget);
+        (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
 
-        BestLineTarget = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 25, Is25yRectTarget).Best;
+        BestLineTarget = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget).Best;
 
         MuseTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Muse.TrackRaw));
         PortraitTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Portrait.TrackRaw));
@@ -310,7 +313,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         }
     }
 
-    private bool IsMotifOk(Strategy strategy)
+    private bool IsMotifOk(in Strategy strategy)
     {
         if (!Player.InCombat)
             return true;
@@ -331,7 +334,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
     }
 
     // only relevant during opener
-    private bool ShouldPaintInOpener(Strategy strategy)
+    private bool ShouldPaintInOpener(in Strategy strategy)
     {
         if (strategy.Motifs != MotifStrategy.Combat)
             return false;
@@ -350,7 +353,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         _ => base.GetCastTime(aid)
     };
 
-    private void Hammer(Strategy strategy)
+    private void Hammer(in Strategy strategy)
     {
         if (HammerTime.Stacks == 0 || strategy.Hammer == HammerStrategy.Delay)
             return;
@@ -377,7 +380,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool PaintOvercap => Paint == 5 && Hues == AetherHues.Two;
 
-    private void Holy(Strategy strategy)
+    private void Holy(in Strategy strategy)
     {
         if (Paint == 0 || strategy.Holy == HolyStrategy.Delay)
             return;
@@ -406,14 +409,14 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         PushGCD(Monochrome ? AID.CometInBlack : AID.HolyInWhite, HolyTarget ?? BestAOETarget, prio);
     }
 
-    private bool ShouldWeapon(Strategy strategy)
+    private bool ShouldWeapon(in Strategy strategy)
     {
         // ensure muse alignment
         // ReadyIn will return float.max if not unlocked so no additional check needed
         return WeaponPainted && ReadyIn(AID.StarryMuse) is < 10 or > 60;
     }
 
-    private bool ShouldLandscape(Strategy strategy, int gcdsAhead = 0)
+    private bool ShouldLandscape(in Strategy strategy, int gcdsAhead = 0)
     {
         if (!LandscapePainted)
             return false;
@@ -432,7 +435,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         return CanWeave(AID.StarryMuse, gcdsAhead);
     }
 
-    private bool ShouldSubtract(Strategy strategy, int gcdsAhead = 0)
+    private bool ShouldSubtract(in Strategy strategy, int gcdsAhead = 0)
     {
         if (!CanWeave(AID.SubtractivePalette, gcdsAhead)
             || Subtractive > 0
@@ -443,7 +446,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         return Palette > 75 || RaidBuffsLeft > 0 || SpectrumLeft > 0;
     }
 
-    private bool ShouldCreatureMuse(Strategy strategy)
+    private bool ShouldCreatureMuse(in Strategy strategy)
     {
         switch (strategy.Muse.Value)
         {
@@ -461,7 +464,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         return true;
     }
 
-    private bool ShouldCreaturePortrait(Strategy strategy) => strategy.Portrait.Value switch
+    private bool ShouldCreaturePortrait(in Strategy strategy) => strategy.Portrait.Value switch
     {
         PortraitStrategy.Force => true,
         PortraitStrategy.Automatic => StarryMuseLeft > AnimLock || ReadyIn(AID.StarryMuse) > 20,

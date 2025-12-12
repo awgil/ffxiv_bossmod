@@ -157,7 +157,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
     // TODO: fix GCD priorities - use kaeshi as fallback action (during forced movement, etc)
     // use kaeshi goken asap in aoe?
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
 

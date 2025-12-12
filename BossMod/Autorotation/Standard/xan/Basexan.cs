@@ -35,6 +35,12 @@ public enum AOEStrategy
 
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
 
+public interface IStrategyCommon
+{
+    public abstract Targeting Targeting { get; }
+    public abstract AOEStrategy AOE { get; }
+}
+
 public abstract class AttackxanOld<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
@@ -238,14 +244,9 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     /// <param name="strategy">Targeting strategy</param>
     /// <param name="primaryTarget">Player's current target - may be null</param>
     /// <param name="range">Maximum distance from the player to search for a candidate target</param>
-    protected void SelectPrimaryTarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
+    protected void SelectPrimaryTarget(in IStrategyCommon strategy, ref Enemy? primaryTarget, float range)
     {
-        SelectPrimaryTarget(strategy.Option(SharedTrack.Targeting).As<Targeting>(), ref primaryTarget, range);
-    }
-
-    protected void SelectPrimaryTarget(Targeting t, ref Enemy? primaryTarget, float range)
-    {
-        if (t is Targeting.Auto or Targeting.AutoTryPri)
+        if (strategy.Targeting is Targeting.Auto or Targeting.AutoTryPri)
         {
             if (Player.DistanceToHitbox(primaryTarget) > range)
             {
@@ -260,36 +261,17 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     protected delegate P PriorityFunc<P>(int totalTargets, Actor primaryTarget);
 
     protected (Enemy? Best, int Targets) SelectTarget(
-        StrategyValues strategy,
+        in IStrategyCommon strategy,
         Enemy? primaryTarget,
         float range,
         PositionCheck isInAOE
     ) => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
 
-    protected (Enemy? Best, int Targets) SelectTarget(
-        Targeting targeting,
-        AOEStrategy aoe,
-        Enemy? primaryTarget,
-        float range,
-        PositionCheck isInAOE
-    ) => SelectTarget(targeting, aoe, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
-
-    protected (Enemy? Best, int Targets) SelectTargetByHP(StrategyValues strategy, Enemy? primaryTarget, float range, PositionCheck isInAOE) => SelectTargetByHP(strategy.Targeting(), strategy.AOE(), primaryTarget, range, isInAOE);
-    protected (Enemy? Best, int Targets) SelectTargetByHP(Targeting targeting, AOEStrategy aoe, Enemy? primaryTarget, float range, PositionCheck isInAOE)
-        => SelectTarget(targeting, aoe, primaryTarget, range, isInAOE, (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0), args => args.numTargets);
+    protected (Enemy? Best, int Targets) SelectTargetByHP(in IStrategyCommon strategy, Enemy? primaryTarget, float range, PositionCheck isInAOE)
+        => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0), args => args.numTargets);
 
     protected (Enemy? Best, int Priority) SelectTarget<P>(
-        StrategyValues strategy,
-        Enemy? primaryTarget,
-        float range,
-        PositionCheck isInAOE,
-        PriorityFunc<P> prioritize,
-        Func<P, int> simplify
-    ) where P : struct, IComparable => SelectTarget(strategy.Targeting(), strategy.AOE(), primaryTarget, range, isInAOE, prioritize, simplify);
-
-    protected (Enemy? Best, int Priority) SelectTarget<P>(
-        Targeting targeting,
-        AOEStrategy aoe,
+        in IStrategyCommon strategy,
         Enemy? primaryTarget,
         float range,
         PositionCheck isInAOE,
@@ -297,6 +279,9 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         Func<P, int> simplify
     ) where P : struct, IComparable
     {
+        var targeting = strategy.Targeting;
+        var aoe = strategy.AOE;
+
         var targetOutOfCombat = primaryTarget?.Priority == Enemy.PriorityUndesirable;
 
         P targetPrio(Actor potentialTarget)
@@ -349,12 +334,10 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     /// <param name="getTimer"></param>
     /// <param name="maxAllowedTargets"></param>
     /// <returns></returns>
-    protected (Enemy? Target, P Timer) SelectDotTarget<P>(StrategyValues strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable => SelectDotTarget(strategy.Targeting(), initial, getTimer, maxAllowedTargets);
-
-    protected (Enemy? Target, P Timer) SelectDotTarget<P>(Targeting targeting, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    protected (Enemy? Target, P Timer) SelectDotTarget<P>(in IStrategyCommon strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
     {
         var forbidden = initial?.ForbidDOTs ?? false;
-        switch (targeting)
+        switch (strategy.Targeting)
         {
             case Targeting.Manual:
             case Targeting.AutoPrimary:
@@ -397,13 +380,12 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, range));
     }
 
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null) => GoalZoneCombined(strategy.AOE(), range, fAoe, firstUnlockedAoeAction, minAoe, maximumActionRange);
-
-    protected void GoalZoneCombined(AOEStrategy strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
+    protected void GoalZoneCombined(in IStrategyCommon strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
+        var a = strategy.AOE;
         var (_, positional, imminent, _) = Hints.RecommendedPositional;
 
-        if (!strategy.AOEOk() || !Unlocked(firstUnlockedAoeAction))
+        if (!strategy.AOE.AOEOk() || !Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
         if (PlayerTarget == null)
@@ -419,11 +401,9 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         }
     }
 
-    protected int NumMeleeAOETargets(StrategyValues strategy) => NumNearbyTargets(strategy, 5);
-    protected int NumMeleeAOETargets(AOEStrategy aoe) => NumNearbyTargets(aoe, 5);
+    protected int NumMeleeAOETargets(IStrategyCommon strategy) => NumNearbyTargets(strategy, 5);
 
-    protected int NumNearbyTargets(StrategyValues strategy, float range) => NumNearbyTargets(strategy.AOE(), range);
-    protected int NumNearbyTargets(AOEStrategy aoe, float range) => AdjustNumTargets(aoe, Hints.NumPriorityTargetsInAOECircle(Player.Position, range));
+    protected int NumNearbyTargets(IStrategyCommon strategy, float range) => AdjustNumTargets(strategy.AOE, Hints.NumPriorityTargetsInAOECircle(Player.Position, range));
 
     protected int AdjustNumTargets(StrategyValues strategy, int reported) => AdjustNumTargets(strategy.AOE(), reported);
 
@@ -523,7 +503,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
 
     protected override TValues FromValues(StrategyValues strategy) => ValueConverter.FromValues<TValues>(strategy);
 
-    public sealed override void Execute(TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public sealed override void Execute(in TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         IsMoving = isMoving;
         NextGCD = default;
@@ -619,7 +599,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         _ => false
     };
 
-    public abstract void Exec(TValues strategy, Enemy? primaryTarget);
+    public abstract void Exec(in TValues strategy, Enemy? primaryTarget);
 
     protected (float Left, int Stacks) Status<SID>(SID status, float? pendingDuration = null) where SID : Enum => Player.FindStatus(status, pendingDuration == null ? null : World.FutureTime(pendingDuration.Value)) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
     protected float StatusLeft<SID>(SID status, float? pendingDuration = null) where SID : Enum => Status(status, pendingDuration).Left;

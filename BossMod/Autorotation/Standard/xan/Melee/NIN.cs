@@ -90,7 +90,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         452
     ];
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
 

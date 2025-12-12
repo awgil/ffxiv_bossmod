@@ -80,7 +80,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool Enshrouded => BlueSouls > 0;
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
