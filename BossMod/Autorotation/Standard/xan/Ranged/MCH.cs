@@ -135,22 +135,26 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
             var toolOk = strategy.Simple(Track.Tools) != OffensiveStrategy.Delay;
 
+            // frame alignment/cooldown reduction produces inconsistent results in combat, i.e. 2.5 GCD drills will occasionally not be considered ready in time
+            // TODO: figure out if this is an inherent limitation of the system or if our frame alignment implementation is bugged somehow
+            // 0.05s is overly conservative, lower GCDs will result in way bigger drifts than that
+            var gcdExtra = GCD + 0.05f;
             if (toolOk)
             {
-                if (ReadyIn(AID.AirAnchor) <= GCD)
+                if (ReadyIn(AID.AirAnchor) < gcdExtra)
                     PushGCD(AID.AirAnchor, primaryTarget, priority: 20);
 
-                if (ReadyIn(AID.ChainSaw) <= GCD)
+                if (ReadyIn(AID.ChainSaw) < gcdExtra)
                     PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
 
-                if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 2)
+                if (ReadyIn(AID.Bioblaster) < gcdExtra && NumAOETargets > 2)
                     PushGCD(AID.Bioblaster, BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
 
-                if (ReadyIn(AID.Drill) <= GCD)
+                if (ReadyIn(AID.Drill) < gcdExtra)
                     PushGCD(AID.Drill, primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
 
                 // different cdgroup fsr
-                if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) <= GCD)
+                if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) < gcdExtra)
                     PushGCD(AID.HotShot, primaryTarget);
             }
 
@@ -280,7 +284,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldHypercharge(StrategyValues strategy, Enemy? primaryTarget)
     {
-        // strategy-independent preconditions, hypercharge cannot be used at all in these cases 
+        // strategy-independent preconditions, hypercharge cannot be used at all in these cases
         if (!Unlocked(AID.Hypercharge) || HyperchargedLeft == 0 && Heat < 50 || Overheated)
             return false;
 

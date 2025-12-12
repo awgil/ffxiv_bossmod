@@ -344,6 +344,8 @@ public record struct Track<T>(T Value, StrategyValue Raw, float DefaultPriority)
 
     public static implicit operator T(Track<T> self) => self.Value;
 
+    public readonly Track<U> Cast<U>() where U : struct => new((U)(object)Value, Raw, DefaultPriority);
+
     public override readonly string ToString() => $"Track({Value}, Raw={Raw})";
 }
 

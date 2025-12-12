@@ -5,53 +5,66 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class DRG(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Strength)
+public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, DRG.Strategy>(manager, player, PotionType.Strength)
 {
-    public enum Track { Dive = SharedTrack.Count, Iainuki, Zeninage, LanceCharge, HJMD }
+    public struct Strategy
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track(Action = AID.BattleLitany)]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Track(UiPriority = -10, Actions = [AID.Jump, AID.HighJump, AID.MirageDive, AID.DragonfireDive, AID.Stardiver])]
+        public Track<DiveStrategy> Dive;
+
+        [Track("Phantom Samurai: Use Iainuki on cooldown", UiPriority = -10, Action = PhantomID.Iainuki)]
+        public Track<AbilityUse> Iainuki;
+
+        [Track("Phantom Samurai: Use Zeninage under raid buffs (coffer required)", UiPriority = -10, Action = PhantomID.Zeninage)]
+        public Track<AbilityUse> Zeninage;
+
+        [Track("Lance Charge", InternalName = "LC", Action = AID.LanceCharge)]
+        public Track<LanceChargeStrategy> LanceCharge;
+
+        [Track("High Jump/Mirage Dive", Actions = [AID.Jump, AID.HighJump, AID.MirageDive])]
+        public Track<HJMDStrategy> HJMD;
+    }
 
     public enum DiveStrategy
     {
+        [Option("Use dives according to standard rotation")]
         Allow,
+        [Option("Only use dives that do not change your position")]
         NoMove,
+        [Option("Only use dives that do not pause your movement (i.e., only Mirage Dive)")]
         NoLock
+    }
+
+    public enum LanceChargeStrategy
+    {
+        [Option("Use on cooldown, once Power Surge is active")]
+        Automatic,
+        [Option("Don't use", Cooldown = 20)] // hack to make UI display how long LC will last if we use it immediately at the end of the window
+        Delay,
+        [Option("Use ASAP", Effect = 20, Cooldown = 60)]
+        Force
     }
 
     public enum HJMDStrategy
     {
+        [Option("Use ASAP if buffs are active, or if Lance Charge is on cooldown")]
         AfterBuffs,
+        [Option("Use High Jump ASAP; hold Mirage Dive until buffs", Effect = 15, Cooldown = 30)]
         HoldMD,
+        [Option("Do not use either")]
         Delay,
+        [Option("Use ASAP", Effect = 15, Cooldown = 30)]
         Force
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan DRG", "Dragoon", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100);
-
-        def.DefineShared("Battle Litany").AddAssociatedActions(AID.BattleLitany);
-
-        def.Define(Track.Dive).As<DiveStrategy>("Dive")
-            .AddOption(DiveStrategy.Allow, "Use dives according to standard rotation")
-            .AddOption(DiveStrategy.NoMove, "Disallow dive actions that move you to the target")
-            .AddOption(DiveStrategy.NoLock, "Disallow dive actions that prevent you from moving (all except Mirage Dive)");
-
-        def.AbilityTrack(Track.Iainuki, "Iainuki", "Phantom Samurai: Use Iainuki during burst", -50);
-        def.AbilityTrack(Track.Zeninage, "Zeninage", "Phantom Samurai: Use Zeninage during burst - requires a coffer", -100);
-
-        def.Define(Track.LanceCharge).As<OffensiveStrategy>("LC", "Lance Charge")
-            .AddOption(OffensiveStrategy.Automatic, "Use on cooldown, once Power Surge is active")
-            .AddOption(OffensiveStrategy.Delay, "Don't use", cooldown: 20) // hack to make UI display how long LC will last if we use it immediately after a Delay track
-            .AddOption(OffensiveStrategy.Force, "Use ASAP", effect: 20, cooldown: 60)
-            .AddAssociatedActions(AID.LanceCharge);
-
-        def.Define(Track.HJMD).As<HJMDStrategy>("HJMD", "High Jump/Mirage Dive")
-            .AddOption(HJMDStrategy.AfterBuffs, "Use on cooldown under buffs, or if Lance Charge is on cooldown")
-            .AddOption(HJMDStrategy.HoldMD, "Use HJ ASAP, hold Mirage Dive until buffs are active", effect: 15, cooldown: 30)
-            .AddOption(HJMDStrategy.Delay, "Do not use")
-            .AddOption(HJMDStrategy.Force, "Use both ASAP", effect: 15, cooldown: 30)
-            .AddAssociatedActions(AID.Jump, AID.HighJump, AID.MirageDive);
-
-        return def;
+        return new RotationModuleDefinition("xan DRG", "Dragoon", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DRG, Class.LNC), 100).WithStrategies<Strategy>();
     }
 
     public int Eyes;
@@ -77,9 +90,9 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     private Enemy? BestLongAOETarget;
     private Enemy? BestDiveTarget;
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(Strategy strategy, Enemy? primaryTarget)
     {
-        SelectPrimaryTarget(strategy, ref primaryTarget, 3);
+        SelectPrimaryTarget(strategy.Targeting, ref primaryTarget, 3);
 
         var gauge = World.Client.GetGauge<DragoonGauge>();
 
@@ -101,9 +114,9 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             StatusDetails(primaryTarget, SID.ChaoticSpring, Player.InstanceID).Left
         );
 
-        (BestAOETarget, NumAOETargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2));
-        (BestLongAOETarget, NumLongAOETargets) = SelectTarget(strategy, primaryTarget, 15, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2));
-        (BestDiveTarget, NumDiveTargets) = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget);
+        (BestAOETarget, NumAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 10, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2));
+        (BestLongAOETarget, NumLongAOETargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 15, (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 15, 2));
+        (BestDiveTarget, NumDiveTargets) = SelectTarget(strategy.Targeting, strategy.AOE, primaryTarget, 20, IsSplashTarget);
 
         var pos = GetPositional(strategy, primaryTarget);
         UpdatePositionals(primaryTarget, ref pos);
@@ -122,12 +135,12 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         if (primaryTarget != null)
-            GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
+            GoalZoneCombined(strategy.AOE, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
 
-        if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Enabled(Track.Zeninage) && DutyActionReadyIn(PhantomID.Zeninage) <= GCD)
+        if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Zeninage.IsEnabled() && DutyActionReadyIn(PhantomID.Zeninage) <= GCD)
             PushGCD((AID)(uint)PhantomID.Zeninage, primaryTarget, priority: 100);
 
-        if (strategy.Enabled(Track.Iainuki) && DutyActionReadyIn(PhantomID.Iainuki) <= GCD && DutyActionReadyIn(PhantomID.Zeninage) > GCD)
+        if (strategy.Iainuki.IsEnabled() && DutyActionReadyIn(PhantomID.Iainuki) <= GCD && DutyActionReadyIn(PhantomID.Zeninage) > GCD)
             PushGCD((AID)(uint)PhantomID.Iainuki, primaryTarget, priority: 90);
 
         if (NumAOETargets > 2)
@@ -194,14 +207,14 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         OGCD(strategy, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(Strategy strategy, Enemy? primaryTarget)
     {
         var moveOk = MoveOk(strategy);
 
-        if (StrategyOk(strategy, Track.LanceCharge, primaryTarget))
+        if (StrategyOk(strategy.LanceCharge.Cast<OffensiveStrategy>(), primaryTarget))
             PushOGCD(AID.LanceCharge, Player);
 
-        if (StrategyOk(strategy, SharedTrack.Buffs, primaryTarget, extraCondition: LanceCharge > AnimLock))
+        if (StrategyOk(strategy.Buffs, primaryTarget, extraCondition: LanceCharge > AnimLock))
             PushOGCD(AID.BattleLitany, Player);
 
         if (NastrondReady == 0 && LanceCharge > AnimLock)
@@ -243,21 +256,21 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.RiseOfTheDragon, BestDiveTarget);
     }
 
-    private bool StrategyOk<Track>(StrategyValues strategy, Track t, Enemy? primaryTarget, bool extraCondition = true) where Track : Enum => strategy.Simple(t) switch
+    private bool StrategyOk(Track<OffensiveStrategy> t, Enemy? primaryTarget, bool extraCondition = true) => t.Value switch
     {
         OffensiveStrategy.Force => true,
         OffensiveStrategy.Automatic => primaryTarget?.Priority >= 0 && Player.InCombat && PowerSurge > GCD && extraCondition,
         _ => false
     };
 
-    private void HJMD(StrategyValues strategy, Enemy? primaryTarget)
+    private void HJMD(Strategy strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null)
             return;
 
         var haveTarget = primaryTarget.Priority >= 0;
 
-        var opt = strategy.Option(Track.HJMD).As<HJMDStrategy>();
+        var opt = strategy.HJMD.Value;
 
         var hjOk = DiveReady == 0 && PosLockOk(strategy) && opt switch
         {
@@ -300,13 +313,13 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         };
     }
 
-    private bool ShouldWT(StrategyValues strategy)
+    private bool ShouldWT(Strategy strategy)
         => Focus == 2 && (LotD > AnimLock || NextGCD is AID.RaidenThrust or AID.DraconianFury);
 
-    private bool MoveOk(StrategyValues strategy) => strategy.Option(Track.Dive).As<DiveStrategy>() == DiveStrategy.Allow;
-    private bool PosLockOk(StrategyValues strategy) => strategy.Option(Track.Dive).As<DiveStrategy>() != DiveStrategy.NoLock;
+    private bool MoveOk(Strategy strategy) => strategy.Dive == DiveStrategy.Allow;
+    private bool PosLockOk(Strategy strategy) => strategy.Dive != DiveStrategy.NoLock;
 
-    private (Positional, bool) GetPositional(StrategyValues strategy, Enemy? primaryTarget)
+    private (Positional, bool) GetPositional(Strategy strategy, Enemy? primaryTarget)
     {
         // no positional
         if (NumAOETargets > 2 && Unlocked(AID.DoomSpike) || !Unlocked(AID.ChaosThrust) || primaryTarget == null)

@@ -40,7 +40,6 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         public Track<OffensiveStrategy> Manafont;
     }
 
-    public enum Track { Scathe = SharedTrack.Buffs, Thunder, Leylines, Triplecast, Iainuki, Zeninage, LLMove, TimeMage, Manafont }
     public enum ScatheStrategy
     {
         Forbid,

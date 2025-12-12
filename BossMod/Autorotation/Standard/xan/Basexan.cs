@@ -56,6 +56,14 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected sealed override StrategyValues FromValues(StrategyValues strategy) => strategy;
 }
 
+public abstract class Attackxan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID, TValues>(manager, player, potType)
+    where AID : struct, Enum
+    where TraitID : Enum
+    where TValues : struct
+{
+    protected sealed override float GCDLength => AttackGCDLength;
+}
+
 public abstract class Castxan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID, TValues>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
