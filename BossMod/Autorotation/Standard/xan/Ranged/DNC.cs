@@ -4,22 +4,35 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class DNC(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Dexterity)
+public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, DNC.Strategy>(manager, player, PotionType.Dexterity)
 {
-    public enum Track { Partner = SharedTrack.Count }
-    public enum PartnerStrategy { Automatic, Manual }
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Tech Step", Actions = [AID.TechnicalStep, AID.SingleTechnicalFinish, AID.DoubleTechnicalFinish, AID.TripleTechnicalFinish, AID.QuadrupleTechnicalFinish, AID.SingleTechnicalFinish2, AID.DoubleTechnicalFinish2, AID.TripleTechnicalFinish2, AID.QuadrupleTechnicalFinish2], MinLevel = 70)]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Track("Dance Partner", Action = AID.ClosedPosition, MinLevel = 60)]
+        public Track<PartnerStrategy> Partner;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan DNC", "Dancer", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DNC), 100);
+        return new RotationModuleDefinition("xan DNC", "Dancer", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DNC), 100).WithStrategies<Strategy>();
+    }
 
-        def.DefineShared("Technical Step").AddAssociatedActions(AID.TechnicalStep);
-
-        def.Define(Track.Partner).As<PartnerStrategy>("Partner")
-            .AddOption(PartnerStrategy.Automatic, "Choose dance partner automatically (based on job aDPS)")
-            .AddOption(PartnerStrategy.Manual, "Do not choose dance partner automatically");
-
-        return def;
+    public enum PartnerStrategy
+    {
+        [Option("Choose based on job DPS")]
+        Automatic,
+        [Option("Do not automatically choose")]
+        Manual,
+        [Option("Use on a specific party member", Targets = ActionTargets.Party, Context = StrategyContext.Plan)]
+        SelectTarget
     }
 
     public byte Feathers;
@@ -68,7 +81,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
-    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
@@ -106,11 +119,10 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         NumAOETargets = NumMeleeAOETargets(strategy);
 
         if (Unlocked(AID.ClosedPosition)
-            && strategy.Option(Track.Partner).As<PartnerStrategy>() == PartnerStrategy.Automatic
             && StatusLeft(SID.ClosedPosition) == 0
             && ReadyIn(AID.ClosedPosition) == 0
             && !IsDancing
-            && FindDancePartner() is Actor partner)
+            && FindDancePartner(strategy.Partner) is Actor partner)
             PushGCD(AID.ClosedPosition, partner);
 
         OGCD(strategy, primaryTarget);
@@ -216,7 +228,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         if (CountdownRemaining > 0)
         {
@@ -251,7 +263,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(f1ToUse, primaryTarget);
     }
 
-    private bool ShouldStdStep(StrategyValues strategy)
+    private bool ShouldStdStep(in Strategy strategy)
     {
         if (ReadyIn(AID.StandardStep) > GCD)
             return false;
@@ -264,9 +276,9 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
             (TechFinishLeft == 0 || TechFinishLeft > stdFinishCast || !Unlocked(AID.TechnicalStep));
     }
 
-    private bool ShouldTechStep(StrategyValues strategy)
+    private bool ShouldTechStep(in Strategy strategy)
     {
-        if (!strategy.BuffsOk())
+        if (strategy.Buffs.Value == OffensiveStrategy.Delay)
             return false;
 
         const float TechStepDuration = 5.5f;
@@ -312,7 +324,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         return danceTimeLeft > GCD && NumDanceTargets > 0;
     }
 
-    private bool ShouldSaberDance(StrategyValues strategy, int minimumEsprit)
+    private bool ShouldSaberDance(in Strategy strategy, int minimumEsprit)
     {
         if (Esprit < 50 || !Unlocked(AID.SaberDance))
             return false;
@@ -320,7 +332,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         return Esprit >= minimumEsprit && NumRangedAOETargets > 0;
     }
 
-    private bool ShouldSpendFeathers(StrategyValues strategy)
+    private bool ShouldSpendFeathers(in Strategy strategy)
     {
         if (Feathers == 0)
             return false;
@@ -333,9 +345,28 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool IsFan4Target(Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 15, Player.DirectionTo(primary), 60.Degrees());
 
-    private Actor? FindDancePartner()
+    private Actor? FindDancePartner(in Track<PartnerStrategy> p)
     {
-        var partner = World.Party.WithoutSlot(excludeAlliance: true, excludeNPCs: true).Exclude(Player).Where(x => Player.DistanceToHitbox(x) <= 30).MaxBy(p => p.Class switch
+        var partner = p.Value switch
+        {
+            PartnerStrategy.Automatic => FindAutoPartner(),
+            PartnerStrategy.SelectTarget => ResolveTargetOverride(p.TrackRaw),
+            _ => null
+        };
+
+        if (partner != null)
+        {
+            // target is in cutscene, we're probably in a raid or something - wait for it to finish
+            if (World.Party.Members[World.Party.FindSlot(partner.InstanceID)].InCutscene)
+                return null;
+        }
+
+        return partner;
+    }
+
+    private Actor? FindAutoPartner()
+    {
+        return World.Party.WithoutSlot(excludeAlliance: true, excludeNPCs: true).Exclude(Player).Where(x => Player.DistanceToHitbox(x) <= 30).MaxBy(p => p.Class switch
         {
             Class.SAM => 100,
             Class.NIN or Class.VPR or Class.ROG => 99,
@@ -349,17 +380,6 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
             Class.BRD or Class.ARC => 68,
             Class.DNC => 67,
             _ => 1
-        });
-
-        if (partner != null)
-        {
-            // target is in cutscene, we're probably in a raid or something - wait for it to finish
-            if (World.Party.Members[World.Party.FindSlot(partner.InstanceID)].InCutscene)
-                return null;
-
-            return partner;
-        }
-
-        return World.Actors.FirstOrDefault(x => x.Type == ActorType.Chocobo && x.OwnerID == Player.InstanceID);
+        }) ?? World.Actors.FirstOrDefault(x => x.Type == ActorType.Chocobo && x.OwnerID == Player.InstanceID);
     }
 }

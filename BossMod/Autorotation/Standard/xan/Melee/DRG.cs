@@ -17,11 +17,11 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         [Track(UiPriority = -10, Actions = [AID.Jump, AID.HighJump, AID.MirageDive, AID.DragonfireDive, AID.Stardiver])]
         public Track<DiveStrategy> Dive;
 
-        [Track("Phantom Samurai: Use Iainuki on cooldown", UiPriority = -10, Action = PhantomID.Iainuki)]
-        public Track<AbilityUse> Iainuki;
+        [Track("Phantom Samurai: Use Iainuki on cooldown", UiPriority = -10, MinLevel = 100, Action = PhantomID.Iainuki)]
+        public Track<EnabledByDefault> Iainuki;
 
-        [Track("Phantom Samurai: Use Zeninage under raid buffs (coffer required)", UiPriority = -10, Action = PhantomID.Zeninage)]
-        public Track<AbilityUse> Zeninage;
+        [Track("Phantom Samurai: Use Zeninage under raid buffs (coffer required)", UiPriority = -10, MinLevel = 100, Action = PhantomID.Zeninage)]
+        public Track<EnabledByDefault> Zeninage;
 
         [Track("Lance Charge", InternalName = "LC", Action = AID.LanceCharge)]
         public Track<LanceChargeStrategy> LanceCharge;
@@ -55,13 +55,13 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
     public enum HJMDStrategy
     {
-        [Option("Use ASAP if buffs are active, or if Lance Charge is on cooldown")]
+        [Option("Use ASAP if buffs are active, or if Lance Charge is on cooldown", Targets = ActionTargets.Hostile)]
         AfterBuffs,
-        [Option("Use High Jump ASAP; hold Mirage Dive until buffs", Effect = 15, Cooldown = 30)]
+        [Option("Use High Jump ASAP; hold Mirage Dive until buffs", Effect = 15, Cooldown = 30, Targets = ActionTargets.Hostile)]
         HoldMD,
         [Option("Do not use either")]
         Delay,
-        [Option("Use ASAP", Effect = 15, Cooldown = 30)]
+        [Option("Use ASAP", Effect = 15, Cooldown = 30, Targets = ActionTargets.Hostile)]
         Force
     }
 
@@ -268,10 +268,12 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
     private void HJMD(Strategy strategy, Enemy? primaryTarget)
     {
-        if (primaryTarget == null)
+        var target = ResolveTargetOverride(strategy.HJMD) ?? primaryTarget;
+
+        if (target == null)
             return;
 
-        var haveTarget = primaryTarget.Priority >= 0;
+        var haveTarget = target.Priority >= 0;
 
         var opt = strategy.HJMD.Value;
 
@@ -291,9 +293,9 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         };
 
         if (hjOk)
-            PushOGCD(AID.Jump, primaryTarget);
+            PushOGCD(AID.Jump, target);
         if (mdOk)
-            PushOGCD(AID.MirageDive, primaryTarget);
+            PushOGCD(AID.MirageDive, target);
     }
 
     private bool ShouldLifeSurge()

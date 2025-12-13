@@ -32,9 +32,9 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
     }
     public enum MiseryStrategy
     {
-        [Option("Use ASAP")]
+        [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         ASAP,
-        [Option("Only use during raid buffs")]
+        [Option("Only use during raid buffs", Targets = ActionTargets.Hostile)]
         BuffedOnly,
         [Option("Don't use")]
         Delay
@@ -55,10 +55,10 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
     public int NumHolyTargets;
     public int NumAssizeTargets;
-    public int NumMiseryTargets;
+    public int NumRangedAOETargets;
 
     private Enemy? BestDotTarget;
-    private Enemy? BestMiseryTarget;
+    private Enemy? BestRangedAOETarget;
 
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
@@ -74,7 +74,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         NumHolyTargets = NumNearbyTargets(strategy, 8);
         NumAssizeTargets = NumNearbyTargets(strategy, 15);
-        (BestMiseryTarget, NumMiseryTargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
+        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
         (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotLeft, 2);
 
         if (CountdownRemaining > 0)
@@ -90,22 +90,22 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         if (!CanFitGCD(TargetDotLeft, 1))
             PushGCD(AID.Aero, BestDotTarget);
 
-        if (BloodLily == 3 && NumMiseryTargets > 0)
+        if (BloodLily == 3 && NumRangedAOETargets > 0)
         {
             switch (strategy.Misery.Value)
             {
                 case MiseryStrategy.ASAP:
-                    PushGCD(AID.AfflatusMisery, BestMiseryTarget);
+                    PushGCD(AID.AfflatusMisery, ResolveTargetOverride(strategy.Misery) ?? BestRangedAOETarget);
                     break;
                 case MiseryStrategy.BuffedOnly:
                     if (RaidBuffsLeft > GCD)
-                        PushGCD(AID.AfflatusMisery, BestMiseryTarget);
+                        PushGCD(AID.AfflatusMisery, ResolveTargetOverride(strategy.Misery) ?? BestRangedAOETarget);
                     break;
             }
         }
 
         if (SacredSight > 0)
-            PushGCD(AID.GlareIV, BestMiseryTarget);
+            PushGCD(AID.GlareIV, BestRangedAOETarget);
 
         if (NumHolyTargets > 2)
             PushGCD(AID.Holy, Player);

@@ -21,6 +21,20 @@ public enum OffensiveStrategy
     Force
 }
 
+[Renderer(typeof(DefaultOnRenderer))]
+public enum EnabledByDefault
+{
+    Enabled,
+    Disabled
+}
+
+[Renderer(typeof(DefaultOffRenderer))]
+public enum DisabledByDefault
+{
+    Disabled,
+    Enabled
+}
+
 public enum AOEStrategy
 {
     [Option("Use AOE rotation if beneficial")]
@@ -405,8 +419,6 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
 
     protected int NumNearbyTargets(IStrategyCommon strategy, float range) => AdjustNumTargets(strategy.AOE, Hints.NumPriorityTargetsInAOECircle(Player.Position, range));
 
-    protected int AdjustNumTargets(StrategyValues strategy, int reported) => AdjustNumTargets(strategy.AOE(), reported);
-
     protected int AdjustNumTargets(AOEStrategy aoe, int reported)
         => reported == 0 ? 0 : aoe switch
         {
@@ -651,4 +663,9 @@ static class Extendxan
     public static bool AOEOk(this StrategyValues strategy) => strategy.AOE().AOEOk();
     public static bool AOEOk(this AOEStrategy aoe) => aoe is AOEStrategy.AOE or AOEStrategy.ForceAOE;
     public static float DistanceToHitbox(this Actor actor, Enemy? other) => actor.DistanceToHitbox(other?.Actor);
+
+    public static bool IsEnabled(this EnabledByDefault d) => d == EnabledByDefault.Enabled;
+    public static bool IsEnabled(this DisabledByDefault d) => d == DisabledByDefault.Enabled;
+    public static bool IsEnabled(this Track<EnabledByDefault> d) => d.Value == EnabledByDefault.Enabled;
+    public static bool IsEnabled(this Track<DisabledByDefault> d) => d.Value == DisabledByDefault.Enabled;
 }

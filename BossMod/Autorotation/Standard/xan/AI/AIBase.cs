@@ -22,12 +22,6 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
             .Select(player => (player.Item2, d.Activation)));
 }
 
-public enum AbilityUse
-{
-    Enabled,
-    Disabled
-}
-
 public enum HintedStrategy
 {
     Disabled,
@@ -37,13 +31,13 @@ public enum HintedStrategy
 
 internal static class AIExt
 {
-    public static RotationModuleDefinition.ConfigRef<AbilityUse> AbilityTrack<Track>(this RotationModuleDefinition def, Track track, string name, string display = "", float uiPriority = 0) where Track : Enum
+    public static RotationModuleDefinition.ConfigRef<EnabledByDefault> AbilityTrack<Track>(this RotationModuleDefinition def, Track track, string name, string display = "", float uiPriority = 0) where Track : Enum
     {
-        return def.Define(track).As<AbilityUse>(name, display, uiPriority, renderer: typeof(DefaultOnRenderer)).AddOption(AbilityUse.Enabled).AddOption(AbilityUse.Disabled);
+        return def.Define(track).As<EnabledByDefault>(name, display, uiPriority, renderer: typeof(DefaultOnRenderer)).AddOption(EnabledByDefault.Enabled).AddOption(EnabledByDefault.Disabled);
     }
 
     public static bool Enabled<Track>(this StrategyValues strategy, Track track) where Track : Enum
-        => strategy.Option(track).As<AbilityUse>() == AbilityUse.Enabled;
+        => strategy.Option(track).As<EnabledByDefault>().IsEnabled();
 
     public static bool HintEnabled<Track>(this StrategyValues strategy, Track track, bool hintValue) where Track : Enum
         => strategy.Option(track).As<HintedStrategy>() switch
@@ -60,7 +54,4 @@ internal static class AIExt
         HintedStrategy.Enabled => true,
         _ => false
     };
-
-    public static bool IsEnabled(this AbilityUse a) => a == AbilityUse.Enabled;
-    public static bool IsEnabled(this Track<AbilityUse> t) => t.Value == AbilityUse.Enabled;
 }

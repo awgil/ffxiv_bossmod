@@ -4,26 +4,33 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class VPR(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Dexterity)
+public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, VPR.Strategy>(manager, player, PotionType.Dexterity)
 {
-    public enum Track { Snap = SharedTrack.Count }
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Reawaken", Action = AID.Reawaken, MinLevel = 90)]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Track("Writhing Snap", InternalName = "WrithingSnap", Action = AID.WrithingSnap)]
+        public Track<SnapStrategy> Snap;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public enum SnapStrategy
     {
+        [Option("Don't use")]
         None,
+        [Option("Use outside melee range, if out of Coil stacks", Targets = ActionTargets.Hostile)]
         Ranged
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan VPR", "Viper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100);
-
-        def.DefineShared("Reawaken").AddAssociatedActions(AID.Reawaken);
-        def.Define(Track.Snap).As<SnapStrategy>("WrithingSnap")
-            .AddOption(SnapStrategy.None, "Don't use")
-            .AddOption(SnapStrategy.Ranged, "Use when out of melee range, if out of Coil stacks")
-            .AddAssociatedActions(AID.WrithingSnap);
-
-        return def;
+        return new RotationModuleDefinition("xan VPR", "Viper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100).WithStrategies<Strategy>();
     }
 
     public enum TwinType
@@ -69,7 +76,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
 
-    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -278,8 +285,8 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.UncoiledFury, BestRangedAOETarget);
 
         // fallback 2 for out of range
-        if (strategy.Option(Track.Snap).As<SnapStrategy>() == SnapStrategy.Ranged)
-            PushGCD(AID.WrithingSnap, primaryTarget);
+        if (strategy.Snap == SnapStrategy.Ranged)
+            PushGCD(AID.WrithingSnap, ResolveTargetOverride(strategy.Snap) ?? primaryTarget);
 
         var pos = GetPositional(strategy);
         UpdatePositionals(primaryTarget, ref pos);
@@ -289,12 +296,12 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.SteelMaw, aoeBreakpoint, 20);
     }
 
-    private bool ShouldReawaken(StrategyValues strategy)
+    private bool ShouldReawaken(in Strategy strategy)
     {
-        if (!Unlocked(AID.Reawaken) || ReawakenReady == 0 && Offering < 50 || ReawakenLeft > 0 || !strategy.BuffsOk())
+        if (!Unlocked(AID.Reawaken) || ReawakenReady == 0 && Offering < 50 || ReawakenLeft > 0 || strategy.Buffs == OffensiveStrategy.Delay)
             return false;
 
-        if (strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() == OffensiveStrategy.Force)
+        if (strategy.Buffs == OffensiveStrategy.Force)
             return true;
 
         // full reawaken combo is reawaken (2.2) + generation 1-4 (2s each) = 10.2s (scaled by skill speed) (ouroboros not accounted for since we only really care about casting it with the debuff active)
@@ -313,11 +320,11 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         return Offering == 100 && ComboLastMove is AID.HuntersSting or AID.SwiftskinsSting or AID.HuntersBite or AID.SwiftskinsBite;
     }
 
-    private bool ShouldVice(StrategyValues strategy) => Swiftscaled > GCD && DreadCombo == 0 && ReadyIn(AID.Vicewinder) <= GCD;
+    private bool ShouldVice(in Strategy strategy) => Swiftscaled > GCD && DreadCombo == 0 && ReadyIn(AID.Vicewinder) <= GCD;
 
-    private bool ShouldCoil(StrategyValues strategy) => Coil == CoilMax && Swiftscaled > GCD && DreadCombo == 0;
+    private bool ShouldCoil(in Strategy strategy) => Coil == CoilMax && Swiftscaled > GCD && DreadCombo == 0;
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;
@@ -359,7 +366,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.TrueNorth, Player, -10, GCD - 0.8f);
     }
 
-    private (Positional, bool) GetPositional(StrategyValues strategy)
+    private (Positional, bool) GetPositional(in Strategy strategy)
     {
         (Positional, bool) getmain()
         {

@@ -19,6 +19,16 @@ public enum StrategyTarget
     Count
 }
 
+[Flags]
+public enum StrategyContext
+{
+    None = 0,
+    Preset = 1 << 0,
+    Plan = 1 << 1,
+
+    All = Preset | Plan
+}
+
 // parameter for party member filtering
 [Flags]
 public enum StrategyPartyFiltering : int
@@ -110,6 +120,8 @@ public sealed class OptionAttribute() : Attribute
     public int MinLevel;
     public int MaxLevel;
     public float DefaultPriority;
+    public StrategyContext Context;
+    public uint Color;
 }
 
 public abstract record class StrategyConfig(
@@ -208,6 +220,8 @@ public record class StrategyOption(string InternalName, string DisplayName)
     public int MinLevel = 1; // min character level for this option to be available
     public int MaxLevel = int.MaxValue; // max character level for this option to be available
     public float DefaultPriority = ActionQueue.Priority.Medium; // default priority that is used if no override is defined
+    public StrategyContext Context = StrategyContext.All;
+    public uint Color; // used in CD planner timeline instead of default planner colors, if set
 
     public string UIName => DisplayName.Length > 0 ? DisplayName : InternalName;
 }

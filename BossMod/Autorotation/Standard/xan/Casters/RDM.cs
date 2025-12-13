@@ -4,41 +4,36 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Intelligence)
+public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, RDM.Strategy>(manager, player, PotionType.Intelligence)
 {
-    public enum Track { Combo = SharedTrack.Count, Dash }
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track(Actions = [AID.Embolden, AID.Manafication])]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Track("Melee combo")]
+        public Track<ComboStrategy> Combo;
+
+        [Track("Corps-a-corps", Targets = ActionTargets.Hostile)]
+        public Track<EnabledByDefault> Dash;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public enum ComboStrategy
     {
+        [Option("Always complete combo; if target moves out of melee range, wait")]
         Complete,
+        [Option("Break combo if target moves out of melee range")]
         Break
-    }
-    public enum DashStrategy
-    {
-        CloseMove,
-        Close,
-        Move,
-        Any,
-        Forbid
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan RDM", "Red Mage", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RDM), 100);
-
-        def.DefineShared("Embolden").AddAssociatedActions(AID.Embolden, AID.Manafication);
-
-        def.Define(Track.Combo).As<ComboStrategy>("Melee Combo")
-            .AddOption(ComboStrategy.Complete, "Require melee combo to be completed - do nothing while target is out of range")
-            .AddOption(ComboStrategy.Break, "Allow breaking melee combo if target moves out of range");
-
-        def.Define(Track.Dash).As<DashStrategy>("Corps-a-Corps")
-            .AddOption(DashStrategy.CloseMove, "Only use while close to target and not moving")
-            .AddOption(DashStrategy.Close, "Only use while close to target")
-            .AddOption(DashStrategy.Move, "Only use while not moving")
-            .AddOption(DashStrategy.Any, "Use ASAP")
-            .AddOption(DashStrategy.Forbid, "Don't use at all");
-
-        return def;
+        return new RotationModuleDefinition("xan RDM", "Red Mage", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RDM), 100).WithStrategies<Strategy>();
     }
 
     public uint BlackMana;
@@ -91,7 +86,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOl
         return base.GetCastTime(aid);
     }
 
-    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -153,7 +148,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOl
         if (ComboLastMove == AID.EnchantedMoulinet)
             PushGCD(AID.EnchantedMoulinetDeux, BestConeTarget);
 
-        if (InCombo && strategy.Option(Track.Combo).As<ComboStrategy>() == ComboStrategy.Complete)
+        if (InCombo && strategy.Combo == ComboStrategy.Complete)
             return;
 
         if (GrandImpact > GCD)
@@ -206,7 +201,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOl
         PushGCD(AID.Jolt, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(Strategy strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;
@@ -219,7 +214,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOl
         if (CanWeave(MaxChargesIn(AID.Acceleration), 0.6f))
             PushOGCD(AID.Acceleration, Player);
 
-        if (strategy.BuffsOk())
+        if (strategy.Buffs != OffensiveStrategy.Delay)
         {
             PushOGCD(AID.Embolden, Player);
             if (!InCombo)
@@ -229,8 +224,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOl
         PushOGCD(AID.ContreSixte, BestAOETarget);
         PushOGCD(AID.Engagement, primaryTarget);
 
-        if (DashOk(strategy, primaryTarget))
-            PushOGCD(AID.CorpsACorps, primaryTarget);
+        if (strategy.Dash.IsEnabled())
+            PushOGCD(AID.CorpsACorps, ResolveTargetOverride(strategy.Dash) ?? primaryTarget);
 
         if (ThornedFlourish > 0)
             PushOGCD(AID.ViceOfThorns, BestAOETarget);
@@ -244,13 +239,4 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : CastxanOl
         if (MP <= Player.HPMP.MaxMP * 0.7f)
             PushOGCD(AID.LucidDreaming, Player);
     }
-
-    private bool DashOk(StrategyValues strategy, Enemy? primaryTarget) => strategy.Option(Track.Dash).As<DashStrategy>() switch
-    {
-        DashStrategy.Any => true,
-        DashStrategy.Move => !IsMoving,
-        DashStrategy.Close => Player.DistanceToHitbox(primaryTarget) < 3,
-        DashStrategy.CloseMove => Player.DistanceToHitbox(primaryTarget) < 3 && !IsMoving,
-        _ => false
-    };
 }

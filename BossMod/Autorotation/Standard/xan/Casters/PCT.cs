@@ -206,10 +206,10 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         BestLineTarget = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget).Best;
 
-        MuseTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Muse.TrackRaw));
-        PortraitTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Portrait.TrackRaw));
-        HammerTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Hammer.TrackRaw));
-        HolyTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Holy.TrackRaw));
+        MuseTarget = ResolveTargetOverride(strategy.Muse) ?? BestAOETarget;
+        PortraitTarget = ResolveTargetOverride(strategy.Portrait) ?? BestLineTarget;
+        HammerTarget = ResolveTargetOverride(strategy.Hammer) ?? BestAOETarget;
+        HolyTarget = ResolveTargetOverride(strategy.Holy) ?? BestAOETarget;
 
         if (!Player.InCombat && Player.CastInfo is { Action: var act } && (AID)act.ID is AID.PomMotif or AID.WingMotif or AID.ClawMotif or AID.MawMotif or AID.HammerMotif or AID.StarrySkyMotif)
             Hints.ForceCancelCast = true;
@@ -250,7 +250,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
                 PushOGCD(AID.StrikingMuse, Player);
 
             if (ShouldCreatureMuse(strategy))
-                PushOGCD(BestLivingMuse, MuseTarget ?? BestAOETarget);
+                PushOGCD(BestLivingMuse, MuseTarget);
 
             if (ShouldLandscape(strategy))
                 PushOGCD(AID.StarryMuse, Player, 2);
@@ -259,7 +259,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
                 PushOGCD(AID.SubtractivePalette, Player);
 
             if (ShouldCreaturePortrait(strategy))
-                PushOGCD(BestPortrait, PortraitTarget ?? BestLineTarget);
+                PushOGCD(BestPortrait, PortraitTarget);
 
             if (MP <= Player.HPMP.MaxMP * 0.7f)
                 PushOGCD(AID.LucidDreaming, Player);
@@ -375,7 +375,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (NumAOETargets > 1)
             prio = GCDPriority.Standard;
 
-        PushGCD(AID.HammerStamp, HammerTarget ?? BestAOETarget, prio);
+        PushGCD(AID.HammerStamp, HammerTarget, prio);
     }
 
     private bool PaintOvercap => Paint == 5 && Hues == AetherHues.Two;
@@ -406,7 +406,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (NumAOETargets > 1)
             prio = GCDPriority.Standard;
 
-        PushGCD(Monochrome ? AID.CometInBlack : AID.HolyInWhite, HolyTarget ?? BestAOETarget, prio);
+        PushGCD(Monochrome ? AID.CometInBlack : AID.HolyInWhite, HolyTarget, prio);
     }
 
     private bool ShouldWeapon(in Strategy strategy)

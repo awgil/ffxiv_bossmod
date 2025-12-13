@@ -24,17 +24,17 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         [Track(InternalName = "TC", Action = AID.Triplecast)]
         public Track<TriplecastStrategy> Triplecast;
 
-        [Track("Phantom Samurai: Use Iainuki on cooldown", UiPriority = -10, Action = PhantomID.Iainuki)]
-        public Track<AbilityUse> Iainuki;
+        [Track("Phantom Samurai: Use Iainuki on cooldown", UiPriority = -10, MinLevel = 100, Action = PhantomID.Iainuki)]
+        public Track<EnabledByDefault> Iainuki;
 
-        [Track("Phantom Samurai: Use Zeninage under raid buffs (coffer required)", UiPriority = -10, Action = PhantomID.Zeninage)]
-        public Track<AbilityUse> Zeninage;
+        [Track("Phantom Samurai: Use Zeninage under raid buffs (coffer required)", UiPriority = -10, MinLevel = 100, Action = PhantomID.Zeninage)]
+        public Track<EnabledByDefault> Zeninage;
 
         [Track("Allow automatic usage of Leylines while moving", Action = AID.LeyLines)]
-        public Track<AbilityUse> LLMove;
+        public Track<DisabledByDefault> LLMove;
 
-        [Track("Phantom Time Mage: Use Occult Quick/Occult Comet on cooldown", UiPriority = -10, Actions = [PhantomID.OccultQuick, PhantomID.OccultComet])]
-        public Track<AbilityUse> AutoTimeMage;
+        [Track("Phantom Time Mage: Use Occult Quick/Occult Comet on cooldown", UiPriority = -10, MinLevel = 100, Actions = [PhantomID.OccultQuick, PhantomID.OccultComet])]
+        public Track<EnabledByDefault> AutoTimeMage;
 
         [Track(Action = AID.Manafont)]
         public Track<OffensiveStrategy> Manafont;
@@ -234,7 +234,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
 
-        var dotTarget = Hints.FindEnemy(ResolveTargetOverride(strategy.Thunder.TrackRaw)) ?? primaryTarget;
+        var dotTarget = ResolveTargetOverride(strategy.Thunder) ?? primaryTarget;
 
         if (strategy.Thunder.Value is ThunderStrategy.Force or ThunderStrategy.Delay)
         {

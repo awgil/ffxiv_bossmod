@@ -4,15 +4,22 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class GNB(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Strength)
+public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, GNB.Strategy>(manager, player, PotionType.Strength)
 {
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Bloodfest", MinLevel = 76, Actions = [AID.Bloodfest, AID.NoMercy])]
+        public Track<OffensiveStrategy> Buffs;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan GNB", "Gunbreaker", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.GNB), 100);
-
-        def.DefineShared("Bloodfest").AddAssociatedActions(AID.Bloodfest);
-
-        return def;
+        return new RotationModuleDefinition("xan GNB", "Gunbreaker", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.GNB), 100).WithStrategies<Strategy>();
     }
 
     public int Ammo;
@@ -30,7 +37,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     public bool FastGCD => GCDLength <= 2.47f;
     public int MaxAmmo => Unlocked(TraitID.CartridgeChargeII) ? 3 : 2;
 
-    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -113,7 +120,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
     }
 
     // TODO handle forced 2 cartridge burst
-    private bool ShouldBust(StrategyValues strategy, AID spend)
+    private bool ShouldBust(in Strategy strategy, AID spend)
     {
         if (!Unlocked(spend) || Ammo == 0)
             return false;
@@ -126,14 +133,14 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         return ComboLastMove is AID.BrutalShell or AID.DemonSlice && Ammo == MaxAmmo;
     }
 
-    private void CalcNextBestOGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void CalcNextBestOGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;
 
         PushOGCD(Continuation, primaryTarget);
 
-        if (strategy.BuffsOk() && Unlocked(AID.Bloodfest) && Ammo == 0)
+        if (strategy.Buffs != OffensiveStrategy.Delay && Unlocked(AID.Bloodfest) && Ammo == 0)
             PushOGCD(AID.Bloodfest, primaryTarget);
 
         UseNoMercy(strategy);
@@ -149,7 +156,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void UseNoMercy(StrategyValues strategy)
+    private void UseNoMercy(in Strategy strategy)
     {
         if (FastGCD)
         {

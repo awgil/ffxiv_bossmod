@@ -24,7 +24,9 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         [Option("Automatically choose Kardia target")]
         Auto,
         [Option("Don't automatically use Kardia")]
-        Manual
+        Manual,
+        [Option("Place Kardia on specified ally", Targets = ActionTargets.Party, Context = StrategyContext.Plan)]
+        Specific
     }
     public enum DruocholeStrategy
     {
@@ -83,14 +85,9 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         DoOGCD(strategy, primaryTarget);
     }
 
-    private void DoGCD(Strategy strategy, Enemy? primaryTarget)
+    private void DoGCD(in Strategy strategy, Enemy? primaryTarget)
     {
-        if (strategy.Kardia == KardiaStrategy.Auto
-            && Unlocked(AID.Kardia)
-            && Player.FindStatus((uint)SID.Kardia) == null
-            && FindKardiaTarget() is Actor kardiaTarget
-            && !World.Party.Members[World.Party.FindSlot(kardiaTarget.InstanceID)].InCutscene)
-            PushGCD(AID.Kardia, kardiaTarget);
+        AutoKardia(strategy);
 
         if (CountdownRemaining > 0)
         {
@@ -190,8 +187,42 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         return 0;
     }
 
-    private Actor? FindKardiaTarget()
+    private void AutoKardia(in Strategy strategy)
     {
+        // early exits
+        switch (strategy.Kardia.Value)
+        {
+            case KardiaStrategy.Manual:
+                return;
+            case KardiaStrategy.Auto:
+                // fast path, assume any target is good enough if Auto is active
+                if (Player.FindStatus(SID.Kardia) != null)
+                    return;
+                break;
+        }
+
+        if (FindKardiaTarget(strategy) is not Actor k)
+            return;
+
+        if (k.Statuses.Any(s => s.ID == (uint)SID.Kardion && s.SourceID == Player.InstanceID))
+            return;
+
+        if (Player.InCombat)
+            PushOGCD(AID.Kardia, k);
+        else
+            PushGCD(AID.Kardia, k);
+    }
+
+    private Actor? FindKardiaTarget(in Strategy strategy)
+    {
+        switch (strategy.Kardia.Value)
+        {
+            case KardiaStrategy.Specific:
+                return ResolveTargetOverride(strategy.Kardia.TrackRaw);
+            case KardiaStrategy.Manual:
+                return null;
+        }
+
         var total = 0;
         var tanks = 0;
         Actor? tank = null;

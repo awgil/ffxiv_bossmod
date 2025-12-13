@@ -4,32 +4,39 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class DRK(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Strength)
+public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, DRK.Strategy>(manager, player, PotionType.Strength)
 {
-    public enum Track { Edge = SharedTrack.Count }
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Living Shadow", MinLevel = 80, Action = AID.LivingShadow)]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Track("Edge of Shadow", MinLevel = 40)]
+        public Track<EdgeStrategy> Edge;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public enum EdgeStrategy
     {
+        [Option("Use to refresh Darkside, or during raid buffs", Targets = ActionTargets.Hostile)]
         Automatic,
+        [Option("Automatic usage, but save 3000 MP for TBN", MinLevel = 70, Targets = ActionTargets.Hostile)]
         AutomaticTBN,
+        [Option("Do not use")]
         Delay,
+        [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         Force,
+        [Option("Use ASAP, but save 3000 MP for TBN", MinLevel = 70, Targets = ActionTargets.Hostile)]
         ForceTBN
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan DRK", "Dark Knight", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.DRK), 100);
-
-        def.DefineShared("Living Shadow").AddAssociatedActions(AID.LivingShadow);
-
-        def.Define(Track.Edge).As<EdgeStrategy>("Edge")
-            .AddOption(EdgeStrategy.Automatic, "Use to refresh Darkside, or during raid buffs")
-            .AddOption(EdgeStrategy.AutomaticTBN, "Use to refresh Darkside, or during raid buffs - save MP for TBN")
-            .AddOption(EdgeStrategy.Delay, "Do not use")
-            .AddOption(EdgeStrategy.Force, "Use ASAP")
-            .AddOption(EdgeStrategy.ForceTBN, "Use ASAP - save MP for TBN");
-
-        return def;
+        return new RotationModuleDefinition("xan DRK", "Dark Knight", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.DRK), 100).WithStrategies<Strategy>();
     }
 
     public int BloodWeapon;
@@ -50,7 +57,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     private Enemy? BestRangedAOETarget;
     private Enemy? BestLineTarget;
 
-    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -140,14 +147,14 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         EdgeRefresh = 900,
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat)
             return;
 
         Edge(strategy, primaryTarget);
 
-        if (Darkside > 0 && strategy.BuffsOk())
+        if (Darkside > 0 && strategy.Buffs != OffensiveStrategy.Delay)
             PushOGCD(AID.LivingShadow, Player, OGCDPriority.LivingShadow);
 
         if (!Unlocked(AID.Delirium))
@@ -174,7 +181,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private bool ShouldBlood(StrategyValues strategy)
+    private bool ShouldBlood(in Strategy strategy)
     {
         if (Darkside < GCD)
             return false;
@@ -193,20 +200,22 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         return Blood + (impendingBlood ? 20 : 0) > 100;
     }
 
-    private void Edge(StrategyValues strategy, Enemy? primaryTarget)
+    private void Edge(in Strategy strategy, Enemy? primaryTarget)
     {
         var canUse = MP >= 3000 || DarkArts;
         var canUseTBN = MP >= 6000 || DarkArts || !Unlocked(AID.TheBlackestNight);
 
+        var track = strategy.Edge;
+        var edgeTarget = ResolveTargetOverride(track);
+
         void use(OGCDPriority prio)
         {
             if (NumLineTargets > 2 || !Unlocked(AID.EdgeOfDarkness))
-                PushOGCD(AID.FloodOfDarkness, BestLineTarget, prio);
+                PushOGCD(AID.FloodOfDarkness, edgeTarget ?? BestLineTarget, prio);
 
-            PushOGCD(AID.EdgeOfDarkness, primaryTarget, prio);
+            PushOGCD(AID.EdgeOfDarkness, edgeTarget ?? primaryTarget, prio);
         }
 
-        var track = strategy.Option(Track.Edge).As<EdgeStrategy>();
         if (track == EdgeStrategy.Delay || !canUse)
             return;
 
@@ -218,7 +227,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         var buffs = RaidBuffsLeft > GCD || RaidBuffsIn > 9000;
 
-        switch (track)
+        switch (track.Value)
         {
             case EdgeStrategy.Automatic:
                 if (buffs)

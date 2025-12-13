@@ -4,30 +4,38 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class RPR(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Strength)
+public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, RPR.Strategy>(manager, player, PotionType.Strength)
 {
-    public enum Track { Harpe = SharedTrack.Count, Crest }
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Arcane Circle", MinLevel = 72, Action = AID.ArcaneCircle)]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Track(Action = AID.Harpe)]
+        public Track<HarpeStrategy> Harpe;
+
+        [Track("Auto-Arcane Crest", InternalName = "Crest", Action = AID.ArcaneCrest, MinLevel = 40)]
+        public Track<EnabledByDefault> AutoCrest;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
 
     public enum HarpeStrategy
     {
+        [Option("Use out of melee range if Enhanced Harpe is active", Targets = ActionTargets.Hostile)]
         Automatic,
+        [Option("Don't use")]
         Forbid,
+        [Option("Always use when out of melee range", Targets = ActionTargets.Hostile)]
         Ranged,
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan RPR", "Reaper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RPR), 100);
-
-        def.DefineShared("Arcane Circle").AddAssociatedActions(AID.ArcaneCircle);
-        def.Define(Track.Harpe).As<HarpeStrategy>("Harpe")
-            .AddOption(HarpeStrategy.Automatic, "Use out of melee range if Enhanced Harpe is active")
-            .AddOption(HarpeStrategy.Forbid, "Don't use")
-            .AddOption(HarpeStrategy.Ranged, "Use out of melee range");
-
-        def.AbilityTrack(Track.Crest, "Crest", "Arcane Crest").AddAssociatedActions(AID.ArcaneCrest);
-
-        return def;
+        return new RotationModuleDefinition("xan RPR", "Reaper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RPR), 100).WithStrategies<Strategy>();
     }
 
     public int RedGauge;
@@ -80,7 +88,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool Enshrouded => BlueSouls > 0;
 
-    public override void Exec(in StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
@@ -109,12 +117,12 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         TargetDDLeft = DDLeft(primaryTarget);
         ShortestNearbyDDLeft = float.MaxValue;
 
-        switch (strategy.AOE())
+        switch (strategy.AOE.Value)
         {
             case AOEStrategy.AOE:
             case AOEStrategy.ForceAOE:
                 var nearbyDD = Hints.PriorityTargets.Where(x => Hints.TargetInAOECircle(x.Actor, Player.Position, 5)).Select(DDLeft);
-                var minNeeded = strategy.AOE() == AOEStrategy.ForceAOE ? 1 : 3;
+                var minNeeded = strategy.AOE.Value == AOEStrategy.ForceAOE ? 1 : 3;
                 if (MinIfEnoughElements(nearbyDD.Where(x => x < 30), minNeeded) is float m)
                     ShortestNearbyDDLeft = m;
                 break;
@@ -177,14 +185,14 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
                 Hints.ForceCancelCast = true;
         }
 
-        switch (strategy.Option(Track.Harpe).As<HarpeStrategy>())
+        switch (strategy.Harpe.Value)
         {
             case HarpeStrategy.Automatic:
                 if (EnhancedHarpe > GCD)
-                    PushGCD(AID.Harpe, primaryTarget, GCDPriority.EnhancedHarpe);
+                    PushGCD(AID.Harpe, ResolveTargetOverride(strategy.Harpe) ?? primaryTarget, GCDPriority.EnhancedHarpe);
                 break;
             case HarpeStrategy.Ranged:
-                PushOGCD(AID.Harpe, primaryTarget, 50);
+                PushOGCD(AID.Harpe, ResolveTargetOverride(strategy.Harpe) ?? primaryTarget, 50);
                 break;
         }
 
@@ -231,12 +239,12 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         PushGCD(AID.Slice, primaryTarget, GCDPriority.Filler);
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(Strategy strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat)
             return;
 
-        if (strategy.BuffsOk())
+        if (strategy.Buffs != OffensiveStrategy.Delay)
         {
             // wait for soul slice in opener
             if (OnCooldown(AID.SoulSlice) || CombatTimer > 10)
@@ -265,7 +273,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         UseSoul(strategy, primaryTarget);
 
-        if (strategy.Enabled(Track.Crest) && Hints.PredictedDamage.Any(p => p.Players[0] && p.Activation < World.FutureTime(5)))
+        if (strategy.AutoCrest.IsEnabled() && Hints.PredictedDamage.Any(p => p.Players[0] && p.Activation < World.FutureTime(5)))
             PushOGCD(AID.ArcaneCrest, Player);
     }
 
@@ -284,7 +292,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         Extend(TargetDDLeft, AID.ShadowofDeath, primaryTarget);
     }
 
-    private bool ShouldEnshroud(StrategyValues strategy)
+    private bool ShouldEnshroud(in Strategy strategy)
     {
         if (Enshrouded)
             return false;
@@ -305,7 +313,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         return ReadyIn(AID.ArcaneCircle) > 65;
     }
 
-    private void UseSoul(StrategyValues strategy, Enemy? primaryTarget)
+    private void UseSoul(in Strategy strategy, Enemy? primaryTarget)
     {
         // can't
         if (RedGauge < 50 || Enshrouded)
@@ -343,7 +351,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private void EnshroudGCDs(StrategyValues strategy, Enemy? primaryTarget)
+    private void EnshroudGCDs(in Strategy strategy, Enemy? primaryTarget)
     {
         if (BlueSouls == 0)
             return;

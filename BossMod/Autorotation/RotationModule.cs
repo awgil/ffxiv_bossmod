@@ -109,12 +109,12 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority, typeof(IntRenderer)));
     }
 
-    internal T NonDefault<T>(T first, params T[] rest) where T : struct
+    internal T NonDefault<T>(params T[] args) where T : struct
     {
-        var last = first;
-        foreach (var arg in Enumerable.Concat([first], rest))
+        T last = default;
+        foreach (var arg in args)
         {
-            if (EqualityComparer<T>.Default.Equals(arg, default))
+            if (!EqualityComparer<T>.Default.Equals(arg, default))
                 return arg;
             last = arg;
         }
@@ -149,7 +149,9 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                             SupportedTargets = NonDefault(fieldSettings.Targets, trackInfo.Targets, ActionTargets.None),
                             MinLevel = NonDefault(fieldSettings.MinLevel, trackInfo.MinLevel, 1),
                             MaxLevel = NonDefault(fieldSettings.MaxLevel, trackInfo.MaxLevel, int.MaxValue),
-                            DefaultPriority = NonDefault(fieldSettings.DefaultPriority, trackInfo.DefaultPriority, ActionQueue.Priority.Medium)
+                            DefaultPriority = NonDefault(fieldSettings.DefaultPriority, trackInfo.DefaultPriority, ActionQueue.Priority.Medium),
+                            Context = NonDefault(fieldSettings.Context, StrategyContext.All),
+                            Color = fieldSettings.Color
                         });
                     }
 
@@ -219,6 +221,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
     protected Actor? ResolveTargetOverride(in StrategyValueTrack strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
+    protected AIHints.Enemy? ResolveTargetOverride<T>(in Track<T> track) where T : struct => Hints.FindEnemy(Manager.ResolveTargetOverride(track.TrackRaw.Target, track.TrackRaw.TargetParam));
     protected WPos ResolveTargetLocation(in StrategyValueTrack strategy) => Manager.ResolveTargetLocation(strategy.Target, strategy.TargetParam, strategy.Offset1, strategy.Offset2);
 
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);

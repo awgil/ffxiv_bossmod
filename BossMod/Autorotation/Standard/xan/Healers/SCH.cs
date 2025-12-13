@@ -23,10 +23,12 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
     {
         [Option("Leave fairy alone")]
         Manual,
-        [Option("Automatically use Heel when combat ends")]
+        [Option("Automatically use Heel when combat ends", Context = StrategyContext.Preset)]
         AutoHeel,
         [Option("Automatically place fairy at arena center, if applicable, and automatically Heel when combat ends")]
         FullAuto,
+        [Option("Place fairy at specified location", Targets = ActionTargets.Area, Context = StrategyContext.Plan)]
+        Specific
     }
 
     public static RotationModuleDefinition Definition()
@@ -152,6 +154,8 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
             PushOGCD(AID.LucidDreaming, Player);
     }
 
+    private DateTime _fairyMoveTimer;
+
     private void OrderFairy(Strategy strategy)
     {
         if (Eos == null)
@@ -183,6 +187,17 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
                 autoheel();
                 autoplace();
                 return;
+            case FairyPlacement.Specific:
+                var dest = ResolveTargetLocation(strategy.FairyPlace.TrackRaw);
+                if (dest == default // no destination, user messed up
+                || Eos.Position.AlmostEqual(dest, 1) // fairy already in position (we can't check current FairyOrder, because she may already be Placed, i.e. at arena center)
+                || _fairyMoveTimer > World.CurrentTime // spam prevention
+                )
+                    return;
+
+                Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 3), null, ActionQueue.Priority.VeryHigh, targetPos: dest.ToVec3(Player.PosRot.Y));
+                _fairyMoveTimer = World.FutureTime(1);
+                break;
         }
     }
 

@@ -102,9 +102,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     {
         [Option("Automatically choose best nadi (cycle L/L/S); use double lunar opener")]
         Automatic,
-        [PropertyDisplay("Lunar", 0xFFDB8BCA)]
+        [Option(Color = 0xFFDB8BCA)]
         Lunar,
-        [PropertyDisplay("Solar", 0xFF8EE6FA)]
+        [Option(Color = 0xFF8EE6FA)]
         Solar
     }
     public enum RoFStrategy
@@ -589,7 +589,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         var tc = strategy.TC;
         if (tc.Value == TCStrategy.GapClose)
         {
-            var tcTarget = ResolveTargetOverride(tc.TrackRaw) ?? primaryTarget?.Actor;
+            var tcTarget = ResolveTargetOverride(tc) ?? primaryTarget;
             if (Player.DistanceToHitbox(tcTarget) is > 3 and < 25)
                 PushOGCD(AID.Thunderclap, tcTarget, OGCDPriority.TrueNorth);
         }
@@ -692,9 +692,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         if (!CanFitGCD(FiresReplyLeft, 1))
             prio = GCDPriority.FiresReply;
 
-        var target = Hints.FindEnemy(ResolveTargetOverride(strategy.FiresReply.TrackRaw));
-
-        PushGCD(AID.FiresReply, target ?? BestRangedTarget, prio);
+        PushGCD(AID.FiresReply, ResolveTargetOverride(strategy.FiresReply) ?? BestRangedTarget, prio);
     }
 
     private void WindsReply(in Strategy strategy)
@@ -720,9 +718,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 break;
         }
 
-        var target = Hints.FindEnemy(ResolveTargetOverride(strategy.WindsReply.TrackRaw));
-
-        PushGCD(AID.WindsReply, target ?? BestLineTarget, prio);
+        PushGCD(AID.WindsReply, ResolveTargetOverride(strategy.WindsReply) ?? BestLineTarget, prio);
     }
 
     private float DesiredFireWindow => GCDLength * 10;
