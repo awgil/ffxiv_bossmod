@@ -275,7 +275,7 @@ public class RendererFactory
     private static RendererFactory? _instance;
     private readonly Dictionary<Type, IStrategyRenderer> _dict = [];
 
-    public static bool Draw(StrategyConfig config, ref StrategyValue value)
+    public static bool Draw(StrategyContext context, StrategyConfig config, ref StrategyValue value)
     {
         var inst = (_instance ??= new()).Get(config.Renderer);
 
@@ -283,9 +283,9 @@ public class RendererFactory
         using var _ = ImRaii.PushId(config.InternalName);
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        inst.DrawLabel(config);
+        inst.DrawLabel(context, config);
         ImGui.TableNextColumn();
-        return inst.DrawValue(config, ref value);
+        return inst.DrawValue(context, config, ref value);
     }
 
     private IStrategyRenderer Get(Type t) => _dict.TryGetValue(t, out var r) ? r : (_dict[t] = (IStrategyRenderer)Activator.CreateInstance(t)!);
@@ -293,17 +293,17 @@ public class RendererFactory
 
 public interface IStrategyRenderer
 {
-    public void DrawLabel(StrategyConfig config);
-    public bool DrawValue(StrategyConfig config, ref StrategyValue value);
+    public void DrawLabel(StrategyContext context, StrategyConfig config);
+    public bool DrawValue(StrategyContext context, StrategyConfig config, ref StrategyValue value);
 }
 
 public class TrackRenderer : IStrategyRenderer
 {
-    public virtual void DrawLabel(StrategyConfig config) => ImGui.TextWrapped(config.UIName);
-    public bool DrawValue(StrategyConfig config, ref StrategyValue value)
+    public virtual void DrawLabel(StrategyContext context, StrategyConfig config) => ImGui.TextWrapped(config.UIName);
+    public bool DrawValue(StrategyContext context, StrategyConfig config, ref StrategyValue value)
     {
         var v = (StrategyValueTrack)value;
-        if (DrawValue((StrategyConfigTrack)config, ref v))
+        if (DrawValue(context, (StrategyConfigTrack)config, ref v))
         {
             value = v;
             return true;
@@ -311,13 +311,27 @@ public class TrackRenderer : IStrategyRenderer
         return false;
     }
 
-    public virtual bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value) => UICombo.EnumIndex("", config.OptionEnum, ref value.Option, ix => config.Options[ix].DisplayName.Length > 0 ? config.Options[ix].DisplayName : UICombo.EnumString((Enum)config.OptionEnum.GetEnumValues().GetValue(ix)!));
+    public virtual bool DrawValue(StrategyContext context, StrategyConfigTrack config, ref StrategyValueTrack value)
+    {
+        string print(int ix) => config.Options[ix].DisplayName.Length > 0
+            ? config.Options[ix].DisplayName
+            : UICombo.EnumString((Enum)config.OptionEnum.GetEnumValues().GetValue(ix)!);
+        bool filter(int ix) => (config.Options[ix].Context & context) != StrategyContext.None;
+
+        return UICombo.EnumIndex(
+            "",
+            config.OptionEnum,
+            ref value.Option,
+            print,
+            filter
+        );
+    }
 }
 
 public class FloatRenderer : IStrategyRenderer
 {
-    public void DrawLabel(StrategyConfig config) => ImGui.TextWrapped(config.UIName);
-    public bool DrawValue(StrategyConfig config, ref StrategyValue value)
+    public void DrawLabel(StrategyContext context, StrategyConfig config) => ImGui.TextWrapped(config.UIName);
+    public bool DrawValue(StrategyContext context, StrategyConfig config, ref StrategyValue value)
     {
         var cfg = (StrategyConfigFloat)config;
         var f = ((StrategyValueFloat)value).Value;
@@ -345,8 +359,8 @@ public class FloatRenderer : IStrategyRenderer
 
 public class IntRenderer : IStrategyRenderer
 {
-    public void DrawLabel(StrategyConfig config) => ImGui.TextWrapped(config.UIName);
-    public bool DrawValue(StrategyConfig config, ref StrategyValue value)
+    public void DrawLabel(StrategyContext context, StrategyConfig config) => ImGui.TextWrapped(config.UIName);
+    public bool DrawValue(StrategyContext context, StrategyConfig config, ref StrategyValue value)
     {
         var cfg = (StrategyConfigInt)config;
         var f = ((StrategyValueInt)value).Value;
@@ -374,7 +388,7 @@ public class IntRenderer : IStrategyRenderer
 
 public class FakeFloatRenderer : TrackRenderer
 {
-    public override bool DrawValue(StrategyConfigTrack config, ref StrategyValueTrack value)
+    public override bool DrawValue(StrategyContext context, StrategyConfigTrack config, ref StrategyValueTrack value)
     {
         var cur = (value.Option + 10) / 10f;
         var isOnHitbox = value.Option == 0;

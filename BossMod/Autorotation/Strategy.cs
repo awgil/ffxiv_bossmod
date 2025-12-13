@@ -55,12 +55,12 @@ public enum StrategyEnemySelection : int
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class TrackAttribute() : Attribute
 {
-    public TrackAttribute(string name) : this()
+    public TrackAttribute(string displayName) : this()
     {
-        DisplayName = name;
+        DisplayName = displayName;
     }
 
-    public string? DisplayName;
+    public string? DisplayName { get; }
     public string? InternalName;
     public float UiPriority;
     public Type? Renderer;
@@ -108,12 +108,12 @@ public sealed class NumberAttribute() : Attribute
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Enum)]
 public sealed class OptionAttribute() : Attribute
 {
-    public OptionAttribute(string name) : this()
+    public OptionAttribute(string displayName) : this()
     {
-        DisplayName = name;
+        DisplayName = displayName;
     }
 
-    public string DisplayName = "";
+    public string? DisplayName { get; }
     public float Cooldown;
     public float Effect;
     public ActionTargets Targets;

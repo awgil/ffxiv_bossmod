@@ -257,7 +257,7 @@ public sealed class UIPresetEditor
                 if (active >= 0)
                 {
                     var v2 = ms.SerializedSettings[active].Value with { }; // make clone
-                    if (RendererFactory.Draw(cfg, ref v2))
+                    if (RendererFactory.Draw(StrategyContext.Preset, cfg, ref v2))
                     {
                         ms.SerializedSettings.RemoveAt(active);
                         if (!cfg.IsDefault(v2))
@@ -268,7 +268,7 @@ public sealed class UIPresetEditor
                 else
                 {
                     var v1 = cfg.CreateEmpty();
-                    if (RendererFactory.Draw(cfg, ref v1))
+                    if (RendererFactory.Draw(StrategyContext.Preset, cfg, ref v1))
                     {
                         if (!cfg.IsDefault(v1))
                             ms.SerializedSettings.Add(new(default, track, v1));
@@ -307,7 +307,7 @@ public sealed class UIPresetEditor
 
             using var _i2 = ImRaii.PushId($"{cfg.InternalName}_override_{i}");
 
-            Modified |= RendererFactory.Draw(cfg, ref val.Value);
+            Modified |= RendererFactory.Draw(StrategyContext.Preset, cfg, ref val.Value);
 
             Modified |= DrawModifier(ref val.Mod, Preset.Modifier.Shift, "Shift");
             ImGui.SameLine();
