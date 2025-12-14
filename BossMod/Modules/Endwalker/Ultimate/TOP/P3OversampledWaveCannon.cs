@@ -31,16 +31,16 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
             movementHints.Add(actor.Position, p.pos, ArenaColor.Safe);
     }
 
-    public override void AddAIHints(int pcSlot, Actor pc, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         hints.PredictedDamage.Add(new(Raid.WithSlot().Mask(), _resolve, AIHints.PredictedDamageType.Raidwide));
 
-        if (!IsMonitor(pcSlot))
+        if (!IsMonitor(slot))
             return;
 
         var safeCW = _bossAngle.Rad > 0;
 
-        var targetCW = (_config.P3LastMonitorSouth, _playerOrder[pcSlot]) switch
+        var targetCW = (_config.P3LastMonitorSouth, _playerOrder[slot]) switch
         {
             (_, 1) => safeCW,
             (_, 3) => !safeCW,
@@ -49,21 +49,21 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
             _ => false
         };
 
-        var al = _safeAngles[pcSlot];
+        var al = _safeAngles[slot];
         al.Forbidden.Clear();
-        al.Center = pc.Position;
+        al.Center = actor.Position;
 
-        var safeConePlayers = Raid.WithSlot().ClockOrder(pc, Arena.Center, !targetCW).Skip(2).Take(2).Select(i => i.Item2).ToList();
+        var safeConePlayers = Raid.WithSlot().ClockOrder(actor, Arena.Center, !targetCW).Skip(2).Take(2).Select(i => i.Item2).ToList();
         if (targetCW)
             safeConePlayers.Reverse();
 
-        var angleRight = pc.AngleTo(safeConePlayers[0]);
-        var angleLeft = pc.AngleTo(safeConePlayers[1]);
+        var angleRight = actor.AngleTo(safeConePlayers[0]);
+        var angleLeft = actor.AngleTo(safeConePlayers[1]);
 
         al.ForbidArc(angleLeft, (angleRight + 180.Degrees()).Normalized());
         al.ForbidArc((angleLeft + 180.Degrees()).Normalized(), angleRight);
 
-        var dirToUnsafeCleave = pc.DirectionTo(Arena.Center).ToAngle() - _playerAngles[pcSlot];
+        var dirToUnsafeCleave = actor.DirectionTo(Arena.Center).ToAngle() - _playerAngles[slot];
         al.ForbidArc(dirToUnsafeCleave - 90.Degrees(), dirToUnsafeCleave + 90.Degrees());
 
         foreach (var (min, max) in al.Allowed(2.Degrees()))
