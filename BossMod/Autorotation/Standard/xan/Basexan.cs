@@ -55,27 +55,6 @@ public interface IStrategyCommon
     public abstract AOEStrategy AOE { get; }
 }
 
-public abstract class AttackxanOld<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
-    where AID : struct, Enum
-    where TraitID : Enum
-{
-    protected sealed override float GCDLength => AttackGCDLength;
-}
-
-public abstract class CastxanOld<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
-    where AID : struct, Enum
-    where TraitID : Enum
-{
-    protected sealed override float GCDLength => SpellGCDLength;
-}
-
-public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType) : Basexan<AID, TraitID, StrategyValues>(manager, player, potType)
-    where AID : struct, Enum
-    where TraitID : Enum
-{
-    protected sealed override StrategyValues FromValues(StrategyValues strategy) => strategy;
-}
-
 public abstract class Attackxan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID, TValues>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
@@ -512,8 +491,6 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
             _prevCountdown = CountdownRemaining;
         }
     }
-
-    protected override TValues FromValues(StrategyValues strategy) => ValueConverter.FromValues<TValues>(strategy);
 
     public sealed override void Execute(in TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {

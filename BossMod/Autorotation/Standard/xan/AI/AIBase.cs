@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Autorotation.xan;
 
-public abstract class AIBase(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+public abstract class AIBase<TValues>(RotationModuleManager manager, Actor player) : TypedRotationModule<TValues>(manager, player) where TValues : struct
 {
     internal bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     internal float NextChargeIn<AID>(AID aid) where AID : Enum => NextChargeIn(ActionID.MakeSpell(aid));
@@ -24,8 +24,11 @@ public abstract class AIBase(RotationModuleManager manager, Actor player) : Rota
 
 public enum HintedStrategy
 {
+    [Option("Don't use")]
     Disabled,
+    [Option("Use if the current module suggests it")]
     HintOnly,
+    [Option("Always use on applicable targets")]
     Enabled
 }
 

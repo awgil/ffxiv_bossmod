@@ -1,35 +1,33 @@
 ﻿namespace BossMod.Autorotation.xan;
 
-public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase<Caster.Strategy>(manager, player)
 {
+    public struct Strategy
+    {
+        public Track<RaiseStrategy> Raise;
+        [Track("Raise targets")]
+        public Track<RaiseUtil.Targets> RaiseTargets;
+    }
+
     public enum Track { Raise, RaiseTarget }
     public enum RaiseStrategy
     {
+        [Option("Don't automatically raise")]
         None,
+        [Option("Raise using Swiftcast only")]
         Swiftcast,
+        [Option("Allow raising without Swiftcast (not applicable for RDM)")]
         Slowcast,
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Caster AI", "Auto-caster", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.ACN, Class.SMN, Class.RDM), 100);
-
-        def.Define(Track.Raise).As<RaiseStrategy>("Raise")
-            .AddOption(RaiseStrategy.None, "Don't automatically raise")
-            .AddOption(RaiseStrategy.Swiftcast, "Raise using Swiftcast only")
-            .AddOption(RaiseStrategy.Slowcast, "Allow raising without Swiftcast (not applicable to RDM)");
-
-        def.Define(Track.RaiseTarget).As<RaiseUtil.Targets>("RaiseTargets", "Raise targets")
-            .AddOption(RaiseUtil.Targets.Party, "Party members")
-            .AddOption(RaiseUtil.Targets.Alliance, "Alliance raid members")
-            .AddOption(RaiseUtil.Targets.Everyone, "Any dead player");
-
-        return def;
+        return new RotationModuleDefinition("Caster AI", "Auto-caster", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.ACN, Class.SMN, Class.RDM), 100).WithStrategies<Strategy>();
     }
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var raise = strategy.Option(Track.Raise).As<RaiseStrategy>();
+        var raise = strategy.Raise.Value;
         if (raise == RaiseStrategy.None)
             return;
 
@@ -82,5 +80,5 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
         }
     }
 
-    private Actor? GetRaiseTarget(StrategyValues strategy) => RaiseUtil.FindRaiseTargets(World, strategy.Option(Track.RaiseTarget).As<RaiseUtil.Targets>()).FirstOrDefault();
+    private Actor? GetRaiseTarget(in Strategy strategy) => RaiseUtil.FindRaiseTargets(World, strategy.RaiseTargets.Value).FirstOrDefault();
 }

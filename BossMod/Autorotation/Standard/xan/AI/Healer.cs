@@ -3,16 +3,34 @@ using static BossMod.Autorotation.xan.TrackPartyHealth;
 
 namespace BossMod.Autorotation.xan;
 
-public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<HealerAI.Strategy>(manager, player)
 {
+    public struct Strategy
+    {
+        public Track<RaiseStrategy> Raise;
+        [Track("Raise targets")]
+        public Track<RaiseUtil.Targets> RaiseTargets;
+        public Track<EnabledByDefault> Heal;
+        [Track(InternalName = "Esuna2", Action = ClassShared.AID.Esuna)]
+        public Track<HintedStrategy> Esuna;
+
+        [Track("Stay near party", InternalName = "Stay near party")]
+        public Track<EnabledByDefault> StayNearParty;
+        [Track("Allow generic out-of-combat predictive heals on tank (Excogitation, Divine Benison, etc)")]
+        public Track<EnabledByDefault> OutOfCombat;
+    }
+
     private readonly TrackPartyHealth Health = new(manager.WorldState);
 
-    public enum Track { Raise, RaiseTarget, Heal, Esuna, StayNearParty, OutOfCombat }
     public enum RaiseStrategy
     {
+        [Option("Don't automatically raise")]
         None,
+        [Option("Raise using Swiftcast only")]
         Swiftcast,
+        [Option("Raise without requiring Swiftcast")]
         Slowcast,
+        [Option("Raise without using Swiftcast")]
         Hardcast,
     }
 
@@ -27,31 +45,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.SCH, Class.SGE, Class.AST), 100);
-
-        def.Define(Track.Raise).As<RaiseStrategy>("Raise")
-            .AddOption(RaiseStrategy.None, "Don't automatically raise")
-            .AddOption(RaiseStrategy.Swiftcast, "Raise using Swiftcast only")
-            .AddOption(RaiseStrategy.Slowcast, "Raise without requiring Swiftcast to be available")
-            .AddOption(RaiseStrategy.Hardcast, "Never use Swiftcast to raise");
-
-        def.Define(Track.RaiseTarget).As<RaiseUtil.Targets>("RaiseTargets", "Raise targets")
-            .AddOption(RaiseUtil.Targets.Party, "Party members")
-            .AddOption(RaiseUtil.Targets.Alliance, "Alliance raid members")
-            .AddOption(RaiseUtil.Targets.Everyone, "Any dead player");
-
-        def.AbilityTrack(Track.Heal, "Heal");
-
-        def.Define(Track.Esuna).As<HintedStrategy>("Esuna2", "Esuna")
-            .AddOption(HintedStrategy.Disabled, "Don't use")
-            .AddOption(HintedStrategy.HintOnly, "Cleanse targets suggested by active module")
-            .AddOption(HintedStrategy.Enabled, "Cleanse all eligible party members")
-            .AddAssociatedActions(ClassShared.AID.Esuna);
-
-        def.AbilityTrack(Track.StayNearParty, "Stay near party");
-        def.AbilityTrack(Track.OutOfCombat, "OutOfCombat", "Allow generic out-of-combat predictive heals on tank (Excogitation, Divine Benison, etc)");
-
-        return def;
+        return new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.SCH, Class.SGE, Class.AST), 100).WithStrategies<Strategy>();
     }
 
     private void HealSingleSoon(Action<Actor, float> healFun)
@@ -101,11 +95,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         }
     }
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         Health.Update(Hints);
 
-        if (strategy.Enabled(Track.StayNearParty) && Player.InCombat)
+        if (strategy.StayNearParty.IsEnabled() && Player.InCombat)
         {
             List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
             Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 15)));
@@ -113,14 +107,14 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
         AutoRaise(strategy);
 
-        var esuna = strategy.Option(Track.Esuna).As<HintedStrategy>();
+        var esuna = strategy.Esuna.Value;
 
         if (esuna.IsEnabled())
             foreach (var st in Health.PartyMemberStates)
                 if (st.EsunableStatusRemaining > GCD + 1.14f && esuna.Check(Hints.ShouldCleanse[st.Slot]))
                     UseGCD(BossMod.WHM.AID.Esuna, World.Party[st.Slot]);
 
-        if (strategy.Enabled(Track.Heal))
+        if (strategy.Heal.IsEnabled())
             switch (Player.Class)
             {
                 case Class.CNJ or Class.WHM:
@@ -161,7 +155,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
     private void UseOGCD(ActionID action, Actor? target, int extraPriority = 0)
         => Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.Medium + extraPriority);
 
-    private void AutoRaise(StrategyValues strategy)
+    private void AutoRaise(in Strategy strategy)
     {
         // set of all statuses called "Resurrection Restricted"
         // TODO maybe this is a flag in sheets somewhere
@@ -171,7 +165,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         var swiftcast = StatusDetails(Player, (uint)BossMod.WHM.SID.Swiftcast, Player.InstanceID, 15).Left;
         var thinair = StatusDetails(Player, (uint)BossMod.WHM.SID.ThinAir, Player.InstanceID, 12).Left;
         var swiftcastCD = NextChargeIn(BossMod.WHM.AID.Swiftcast);
-        var raise = strategy.Option(Track.Raise).As<RaiseStrategy>();
+        var raise = strategy.Raise.Value;
 
         void UseThinAir()
         {
@@ -214,12 +208,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         }
     }
 
-    private Actor? GetRaiseTarget(StrategyValues strategy) => RaiseUtil.FindRaiseTargets(World, strategy.Option(Track.RaiseTarget).As<RaiseUtil.Targets>()).FirstOrDefault();
+    private Actor? GetRaiseTarget(in Strategy strategy) => RaiseUtil.FindRaiseTargets(World, strategy.RaiseTargets.Value).FirstOrDefault();
 
     private bool ShouldHealInAreaSoon(WPos pos, float radius, float ratio) => Health.PredictShouldHealInArea(pos, radius, ratio);
     private bool ShouldHealInAreaNow(WPos pos, float radius, float ratio) => Health.ShouldHealInArea(pos, radius, ratio);
 
-    private void AutoWHM(StrategyValues strategy)
+    private void AutoWHM(in Strategy strategy)
     {
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
 
@@ -276,7 +270,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         (AstrologianCard.Ewer, BossMod.AST.AID.TheEwer)
     ];
 
-    private void AutoAST(StrategyValues strategy)
+    private void AutoAST(in Strategy strategy)
     {
         var gauge = World.Client.GetGauge<AstrologianGauge>();
 
@@ -324,9 +318,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
                 UseOGCD(BossMod.AST.AID.CollectiveUnconscious, Player);
     }
 
-    private void AutoSCH(StrategyValues strategy, Actor? primaryTarget)
+    private void AutoSCH(in Strategy strategy, Actor? primaryTarget)
     {
-        var useOutOfCombat = strategy.Enabled(Track.OutOfCombat);
+        var useOutOfCombat = strategy.OutOfCombat.IsEnabled();
 
         void UseSoil(Vector3? location = null)
         {
@@ -432,7 +426,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase(mana
         return new Vector3(bestCenter.X, Player.PosRot.Y, bestCenter.Z);
     }
 
-    private void AutoSGE(StrategyValues strategy, Actor? primaryTarget)
+    private void AutoSGE(in Strategy strategy, Actor? primaryTarget)
     {
         var gauge = World.Client.GetGauge<SageGauge>();
 

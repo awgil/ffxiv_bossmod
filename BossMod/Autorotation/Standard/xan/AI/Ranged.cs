@@ -1,23 +1,25 @@
 ﻿namespace BossMod.Autorotation.xan;
 
-public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public class RangedAI(RotationModuleManager manager, Actor player) : AIBase<RangedAI.Strategy>(manager, player)
 {
-    public enum Track { Interrupt, SecondWind, LimitBreak }
+    public struct Strategy
+    {
+        [Track("Head Graze", InternalName = "Head Graze", Action = ClassShared.AID.HeadGraze)]
+        public Track<EnabledByDefault> Interrupt;
+        [Track("Second Wind", InternalName = "Second Wind", Action = ClassShared.AID.SecondWind)]
+        public Track<EnabledByDefault> SecondWind;
+        [Track("Limit Break", InternalName = "Limit Break", Actions = [ClassShared.AID.Desperado, ClassShared.AID.BigShot])]
+        public Track<EnabledByDefault> LimitBreak;
+    }
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Phys Ranged AI", "Utilities for physical ranged dps - peloton, interrupt, defensive abilities", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD, Class.MCH, Class.DNC), 100);
-
-        def.AbilityTrack(Track.Interrupt, "Head Graze").AddAssociatedActions(ClassShared.AID.HeadGraze);
-        def.AbilityTrack(Track.SecondWind, "Second Wind").AddAssociatedActions(ClassShared.AID.SecondWind);
-        def.AbilityTrack(Track.LimitBreak, "Limit Break").AddAssociatedActions(ClassShared.AID.Desperado, ClassShared.AID.BigShot);
-
-        return def;
+        return new RotationModuleDefinition("Phys Ranged AI", "Utilities for physical ranged dps - peloton, interrupt, defensive abilities", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD, Class.MCH, Class.DNC), 100).WithStrategies<Strategy>();
     }
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         // interrupt
-        if (strategy.Enabled(Track.Interrupt) && NextChargeIn(ClassShared.AID.HeadGraze) == 0)
+        if (strategy.Interrupt.IsEnabled() && NextChargeIn(ClassShared.AID.HeadGraze) == 0)
         {
             var interruptibleEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 25);
             if (interruptibleEnemy != null)
@@ -25,7 +27,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
         }
 
         // second wind
-        if (strategy.Enabled(Track.SecondWind) && Player.InCombat && Player.PendingHPRatio <= 0.5)
+        if (strategy.SecondWind.IsEnabled() && Player.InCombat && Player.PendingHPRatio <= 0.5)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SecondWind), Player, ActionQueue.Priority.Medium);
 
         ExecLB(strategy, primaryTarget);
@@ -34,11 +36,11 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase(mana
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.BRD.AID.WardensPaean), tar, ActionQueue.Priority.Low);
     }
 
-    private void ExecLB(StrategyValues strategy, Actor? primaryTarget)
+    private void ExecLB(in Strategy strategy, Actor? primaryTarget)
     {
         Actor? lbTarget(float halfWidth) => FindBetterTargetBy(primaryTarget, 30, actor => Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(actor), 30, halfWidth)).Target;
 
-        if (!strategy.Enabled(Track.LimitBreak) || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1)
+        if (!strategy.LimitBreak.IsEnabled() || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1)
             return;
 
         var bars = World.Party.LimitBreakLevel;

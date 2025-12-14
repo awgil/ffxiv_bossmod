@@ -1,23 +1,23 @@
 ﻿namespace BossMod.Autorotation.xan;
 
-public class BozjaAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public class BozjaAI(RotationModuleManager manager, Actor player) : AIBase<BozjaAI.Strategy>(manager, player)
 {
-    public enum Track { Dispel }
+    public struct Strategy
+    {
+        [Track("Auto-dispel", InternalName = "Auto-dispel", Action = BozjaHolsterID.LostDispel)]
+        public Track<EnabledByDefault> Dispel;
+    }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Bozja AI", "Bozja utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 80);
-
-        def.AbilityTrack(Track.Dispel, "Auto-dispel").AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostDispel));
-
-        return def;
+        return new RotationModuleDefinition("Bozja AI", "Bozja utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 80).WithStrategies<Strategy>();
     }
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var dispel = BozjaActionID.GetNormal(BozjaHolsterID.LostDispel);
 
-        if (strategy.Enabled(Track.Dispel) && FindDutyActionSlot(dispel) >= 0 && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
+        if (strategy.Dispel.IsEnabled() && FindDutyActionSlot(dispel) >= 0 && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
             Hints.ActionsToExecute.Push(dispel, primaryTarget, ActionQueue.Priority.VeryHigh);
     }
 }

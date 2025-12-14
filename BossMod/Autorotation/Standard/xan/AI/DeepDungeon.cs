@@ -1,17 +1,19 @@
 ﻿namespace BossMod.Autorotation.xan;
 
-public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase<DeepDungeonAI.Strategy>(manager, player)
 {
+    public struct Strategy
+    {
+        public Track<EnabledByDefault> Potion;
+        [Track("Kite enemies", InternalName = "Kite enemies")]
+        public Track<EnabledByDefault> Kite;
+    }
+
     public enum Track { Potion, Kite }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Deep Dungeon AI", "Utilities for deep dungeon - potion/pomander user", "AI (xan)", "xan", RotationModuleQuality.Basic, new BitMask(~0ul), 100, CanUseWhileRoleplaying: true);
-
-        def.AbilityTrack(Track.Potion, "Potion");
-        def.AbilityTrack(Track.Kite, "Kite enemies");
-
-        return def;
+        return new RotationModuleDefinition("Deep Dungeon AI", "Utilities for deep dungeon - potion/pomander user", "AI (xan)", "xan", RotationModuleQuality.Basic, new BitMask(~0ul), 100, CanUseWhileRoleplaying: true).WithStrategies<Strategy>();
     }
 
     enum OID : uint
@@ -37,7 +39,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         Transfiguration2 = 4708,
     }
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (World.DeepDungeon.DungeonId == 0)
             return;
@@ -121,9 +123,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         0x3E66, // orthosystem α
     ];
 
-    private void SetupKiteZone(StrategyValues strategy, Actor? primaryTarget)
+    private void SetupKiteZone(in Strategy strategy, Actor? primaryTarget)
     {
-        if (!IsRanged || primaryTarget == null || !Player.InCombat || !strategy.Enabled(Track.Kite) || World.DeepDungeon.IsBossFloor)
+        if (!IsRanged || primaryTarget == null || !Player.InCombat || !strategy.Kite.IsEnabled() || World.DeepDungeon.IsBossFloor)
             return;
 
         // wew
@@ -148,7 +150,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         });
     }
 
-    private void DoTransformActions(StrategyValues strategy, Actor? primaryTarget, Transformation t)
+    private void DoTransformActions(in Strategy strategy, Actor? primaryTarget, Transformation t)
     {
         if (primaryTarget == null)
             return;
@@ -215,9 +217,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             Hints.ActionsToExecute.Push(attack, primaryTarget, ActionQueue.Priority.High, targetPos: primaryTarget.PosRot.XYZ(), castTime: castTime - 0.5f);
     }
 
-    private bool ShouldPotion(StrategyValues strategy)
+    private bool ShouldPotion(in Strategy strategy)
     {
-        if (!strategy.Enabled(Track.Potion) || World.Actors.Any(w => w.OID == (uint)OID.Unei))
+        if (!strategy.Potion.IsEnabled() || World.Actors.Any(w => w.OID == (uint)OID.Unei))
             return false;
 
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.4f : 0.6f;

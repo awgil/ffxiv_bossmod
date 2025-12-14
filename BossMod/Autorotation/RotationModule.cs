@@ -301,7 +301,5 @@ public abstract class TypedRotationModule<TValues>(RotationModuleManager manager
 {
     public abstract void Execute(in TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
 
-    protected abstract TValues FromValues(StrategyValues strategy);
-
-    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) => Execute(FromValues(strategy), ref primaryTarget, estimatedAnimLockDelay, isMoving);
+    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) => Execute(ValueConverter.FromValues<TValues>(strategy), ref primaryTarget, estimatedAnimLockDelay, isMoving);
 }
