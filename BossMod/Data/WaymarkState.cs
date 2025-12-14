@@ -27,6 +27,26 @@ public enum Sign : byte
     Count
 }
 
+public static class SignExtensions
+{
+    public static readonly uint[] SignIcons = [
+        // numbers 1-5
+        61301, 61302, 61303, 61304, 61305,
+        // bind
+        61311, 61312, 61313,
+        // ignore
+        61321, 61322,
+        // shapes
+        61331, 61332, 61333, 61334,
+        // numbers 6-8
+        61306, 61307, 61308,
+        // extra element for count
+        0
+    ];
+
+    public static uint IconId(this Sign s) => SignIcons[(int)s];
+}
+
 // waymark and sign positions in world; part of the world state structure
 public sealed class WaymarkState
 {

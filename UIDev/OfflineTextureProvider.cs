@@ -108,7 +108,16 @@ internal class OfflineTextureProvider(IRenderer render, Device device) : ITextur
     public IEnumerable<IBitmapCodecInfo> GetSupportedImageDecoderInfos() => throw new NotImplementedException();
     public bool IsDxgiFormatSupported(int dxgiFormat) => Device.CheckFormatSupport((Format)dxgiFormat).HasFlag(FormatSupport.Texture2D);
     public bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat) => throw new NotImplementedException();
-    public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture) => throw new NotImplementedException();
+    public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture)
+    {
+        texture = null;
+        if (TryGetIconPath(lookup, out var path))
+        {
+            texture = GetFromGame(path);
+            return true;
+        }
+        return false;
+    }
     public bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path)
     {
         // 1. Item
