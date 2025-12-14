@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "C#: UIDev Debug",
-      "type": "dotnet",
       "request": "launch",
-      "projectPath": "${workspaceFolder}/UIDev/UIDev.csproj"
+      "type": "dotnetwatchattach",
+      "task": "watch",
+      "program": "UIDev.exe"
     }
   ]
 }

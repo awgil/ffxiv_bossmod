@@ -9,9 +9,6 @@
       "args": [
         "build",
         "${workspaceFolder}/BossMod/BossMod.csproj",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary;ForceNoAlign",
-        "/p:Platform=x64",
         "--configuration=Release"
       ],
       "problemMatcher": "$msCompile",
@@ -21,14 +18,15 @@
       }
     },
     {
-      "label": "build-debug",
+      "label": "watch",
       "command": "dotnet",
       "type": "process",
+      "options": { "cwd": "${workspaceFolder}/UIDev/bin/Debug/net9.0-windows" },
       "args": [
-        "build",
-        "${workspaceFolder}/UIDev/UIDev.csproj",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/UIDev/UIDev.csproj"
       ],
       "problemMatcher": "$msCompile"
     }
