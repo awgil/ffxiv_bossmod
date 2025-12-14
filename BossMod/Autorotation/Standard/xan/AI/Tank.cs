@@ -255,8 +255,8 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             // set arbitrary deadline to 1 second in the future
             UseOneMit(1);
 
-        // TODO figure out how consistent this is or if we should use predictively instead
-        if (Player.PendingHPRaw <= 0)
+        // PLD/GNB don't have application delay protection so trying to use it in this case would just waste the CD
+        if (Player.PendingHPRaw <= 0 && Player.Class is Class.MRD or Class.WAR or Class.DRK)
             Hints.ActionsToExecute.Push(JobActions.Invuln.ID, Player, ActionQueue.Priority.VeryHigh);
 
         foreach (var t in Tankbusters)

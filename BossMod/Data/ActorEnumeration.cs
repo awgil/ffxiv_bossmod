@@ -178,9 +178,8 @@ public static class ActorEnumeration
     {
         var startingAngle = (starting.Position - center).ToAngle();
 
-        if (counterclockwise)
-        {
-            return range.OrderBy(r =>
+        return counterclockwise
+            ? range.OrderBy(r =>
             {
                 var (slot, actor) = r;
                 var thisAngle = (actor.Position - center).ToAngle();
@@ -188,11 +187,8 @@ public static class ActorEnumeration
                     thisAngle.Rad += MathF.PI * 2;
 
                 return thisAngle.Rad;
-            });
-        }
-        else
-        {
-            return range.OrderByDescending(r =>
+            })
+            : range.OrderByDescending(r =>
             {
                 var (slot, actor) = r;
                 var thisAngle = (actor.Position - center).ToAngle();
@@ -201,6 +197,7 @@ public static class ActorEnumeration
 
                 return thisAngle.Rad;
             });
-        }
     }
+
+    public static IEnumerable<Actor> ClockOrder(this IEnumerable<Actor> range, Actor starting, WPos center, bool counterclockwise = false) => range.Select(r => (0, r)).ClockOrder(starting, center, counterclockwise).Select(r => r.Item2);
 }

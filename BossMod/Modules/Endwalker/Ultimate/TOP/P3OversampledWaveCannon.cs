@@ -35,7 +35,7 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     {
         hints.PredictedDamage.Add(new(Raid.WithSlot().Mask(), _resolve, AIHints.PredictedDamageType.Raidwide));
 
-        if (!IsMonitor(slot))
+        if (!IsMonitor(slot) || !_config.P3MonitorForbiddenDirections)
             return;
 
         var safeCW = _bossAngle.Rad > 0;
@@ -53,21 +53,23 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         al.Forbidden.Clear();
         al.Center = actor.Position;
 
-        var safeConePlayers = Raid.WithSlot().ClockOrder(actor, Arena.Center, !targetCW).Skip(2).Take(2).Select(i => i.Item2).ToList();
+        var safeConePlayers = Raid.WithoutSlot().ClockOrder(actor, Arena.Center, !targetCW).Skip(2).Take(2).ToList();
         if (targetCW)
             safeConePlayers.Reverse();
 
         var angleRight = actor.AngleTo(safeConePlayers[0]);
         var angleLeft = actor.AngleTo(safeConePlayers[1]);
 
+        // forbid angle ranges that don't face the player toward or away from their intended targets
         al.ForbidArc(angleLeft, (angleRight + 180.Degrees()).Normalized());
         al.ForbidArc((angleLeft + 180.Degrees()).Normalized(), angleRight);
 
+        // forbid any angle that would hit the boss with the monitor; eliminates one of the two remaining facing cones
         var dirToUnsafeCleave = actor.DirectionTo(Arena.Center).ToAngle() - _playerAngles[slot];
         al.ForbidArc(dirToUnsafeCleave - 90.Degrees(), dirToUnsafeCleave + 90.Degrees());
 
         foreach (var (min, max) in al.Allowed(2.Degrees()))
-            hints.ForbiddenDirections.Add((((max + min) / 2).Normalized(), (max - min) / 2, _resolve));
+            hints.ForbiddenDirections.Add(((max + min) / 2, (max - min) / 2, _resolve));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

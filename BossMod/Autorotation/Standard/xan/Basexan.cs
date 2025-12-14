@@ -434,7 +434,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
 
     /// <summary>
     /// Get <em>effective</em> cast time for the provided action.<br/>
-    /// The default implementation returns the action's base cast time multiplied by the player's spell-speed factor, which accounts for haste buffs (like Leylines) and slow debuffs. It also accounts for Swiftcast.<br/>
+    /// The default implementation returns the action's base cast time multiplied by the player's spellspeed factor, which accounts for haste buffs (like Leylines) and slow debuffs. It also accounts for Swiftcast.<br/>
     /// Subclasses should handle job-specific cast speed adjustments, such as RDM's Dualcast or PCT's motifs.
     /// </summary>
     /// <param name="aid"></param>
