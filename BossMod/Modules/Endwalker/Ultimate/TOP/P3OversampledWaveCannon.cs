@@ -10,7 +10,10 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     private readonly List<int> _monitorOrder = [];
     private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
 
-    private static readonly AOEShapeRect _shape = new(50, 50);
+    private DateTime _resolve;
+    private readonly ArcList[] _safeAngles = Utils.GenArray(PartyState.MaxPartySize, () => new ArcList(default, 50));
+
+    private static readonly AOEShapeCone _shape = new(40, 90.Degrees());
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -28,10 +31,54 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
             movementHints.Add(actor.Position, p.pos, ArenaColor.Safe);
     }
 
+    public override void AddAIHints(int pcSlot, Actor pc, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        hints.PredictedDamage.Add(new(Raid.WithSlot().Mask(), _resolve, AIHints.PredictedDamageType.Raidwide));
+
+        if (!IsMonitor(pcSlot))
+            return;
+
+        var safeCW = _bossAngle.Rad > 0;
+
+        var targetCW = (_config.P3LastMonitorSouth, _playerOrder[pcSlot]) switch
+        {
+            (_, 1) => safeCW,
+            (_, 3) => !safeCW,
+            (true, 2) => !safeCW,
+            (false, 2) => safeCW,
+            _ => false
+        };
+
+        var al = _safeAngles[pcSlot];
+        al.Forbidden.Clear();
+        al.Center = pc.Position;
+
+        var safeConePlayers = Raid.WithSlot().ClockOrder(pc, Arena.Center, !targetCW).Skip(2).Take(2).Select(i => i.Item2).ToList();
+        if (targetCW)
+            safeConePlayers.Reverse();
+
+        var angleRight = pc.AngleTo(safeConePlayers[0]);
+        var angleLeft = pc.AngleTo(safeConePlayers[1]);
+
+        al.ForbidArc(angleLeft, (angleRight + 180.Degrees()).Normalized());
+        al.ForbidArc((angleLeft + 180.Degrees()).Normalized(), angleRight);
+
+        var dirToUnsafeCleave = pc.DirectionTo(Arena.Center).ToAngle() - _playerAngles[pcSlot];
+        al.ForbidArc(dirToUnsafeCleave - 90.Degrees(), dirToUnsafeCleave + 90.Degrees());
+
+        foreach (var (min, max) in al.Allowed(2.Degrees()))
+            hints.ForbiddenDirections.Add((((max + min) / 2).Normalized(), (max - min) / 2, _resolve));
+    }
+
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         foreach (var a in AOEs(pcSlot))
-            _shape.Draw(Arena, a.origin, a.rot, a.safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+        {
+            if (a.source)
+                _shape.Outline(Arena, a.origin, a.rot, ArenaColor.Danger);
+            else
+                _shape.Draw(Arena, a.origin, a.rot, a.safe ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -76,6 +123,7 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         {
             _boss = caster;
             _bossAngle = angle;
+            _resolve = Module.CastFinishAt(spell);
         }
     }
 
@@ -114,13 +162,31 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     private IEnumerable<(WPos origin, Angle rot, bool safe, bool source)> AOEs(int slot)
     {
         var isMonitor = IsMonitor(slot);
-        var order = (isMonitor, _playerOrder[slot]) switch
+        int order;
+        if (_config.P3LastMonitorSouth)
         {
-            (_, 1) => 2, // N1/M1 are hit by M2
-            (true, _) => 0, // M2/M3 are hit by boss
-            (_, 2 or 3) => 1, // N2/N3 are hit by M1
-            _ => 3, // N4/N5 are hit by M3
-        };
+            // NA strat, M3 is SE/SW
+            order = (isMonitor, _playerOrder[slot]) switch
+            {
+                (true, 1 or 2) => 0, // M1/M2 are hit by boss
+                (true, 3) => 2, // M3 is hit by M2
+
+                (_, 1 or 2) => 1, // N1/N2 are hit by M1
+                (_, 3 or 4) => 3, // N3/N4 are hit by M3
+                _ => 2 // N5 is hit by M2
+            };
+        }
+        else
+        {
+            // EU strat, M1 is NE/NW
+            order = (isMonitor, _playerOrder[slot]) switch
+            {
+                (_, 1) => 2, // N1/M1 are hit by M2
+                (true, _) => 0, // M2/M3 are hit by boss
+                (_, 2 or 3) => 1, // N2/N3 are hit by M1
+                _ => 3, // N4/N5 are hit by M3
+            };
+        }
         foreach (var aoe in AOEs())
             if (aoe.origin != null)
                 yield return (aoe.origin.Position, aoe.origin.Rotation + aoe.offset, aoe.order == order, isMonitor && aoe.order == _playerOrder[slot]);

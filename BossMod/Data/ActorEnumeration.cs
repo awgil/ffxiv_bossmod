@@ -173,4 +173,34 @@ public static class ActorEnumeration
             sum /= count;
         return sum.ToWPos();
     }
+
+    public static IEnumerable<(int, Actor)> ClockOrder(this IEnumerable<(int, Actor)> range, Actor starting, WPos center, bool counterclockwise = false)
+    {
+        var startingAngle = (starting.Position - center).ToAngle();
+
+        if (counterclockwise)
+        {
+            return range.OrderBy(r =>
+            {
+                var (slot, actor) = r;
+                var thisAngle = (actor.Position - center).ToAngle();
+                if (actor != starting && thisAngle.Rad < startingAngle.Rad)
+                    thisAngle.Rad += MathF.PI * 2;
+
+                return thisAngle.Rad;
+            });
+        }
+        else
+        {
+            return range.OrderByDescending(r =>
+            {
+                var (slot, actor) = r;
+                var thisAngle = (actor.Position - center).ToAngle();
+                if (actor != starting && thisAngle.Rad > startingAngle.Rad)
+                    thisAngle.Rad -= MathF.PI * 2;
+
+                return thisAngle.Rad;
+            });
+        }
+    }
 }
