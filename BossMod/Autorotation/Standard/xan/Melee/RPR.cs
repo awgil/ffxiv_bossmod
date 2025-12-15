@@ -16,6 +16,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         [Track(Action = AID.Enshroud, MinLevel = 80)]
         public Track<OffensiveStrategy> Enshroud;
 
+        [Track(Action = AID.Communio, MinLevel = 90, Targets = ActionTargets.Hostile)]
+        public Track<EnabledByDefault> Communio;
+
         [Track("Soul Slice", Actions = [AID.SoulSlice, AID.SoulScythe], MinLevel = 60)]
         public Track<SliceStrategy> Slice;
 
@@ -32,12 +35,12 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         public Track<OffensiveStrategy> HM;
 
         [Track("Perfectio", Action = AID.Perfectio, MinLevel = 100, Targets = ActionTargets.Hostile)]
-        public Track<EnabledByDefault> Perf;
+        public Track<PerfectioStrategy> Perf;
 
         [Track(Action = AID.Harpe)]
         public Track<HarpeStrategy> Harpe;
 
-        [Track(Action = AID.Soulsow, MinLevel = 82)]
+        [Track("Soulsow (during combat)", Action = AID.Soulsow, MinLevel = 82)]
         public Track<DisabledByDefault> Soulsow;
 
         [Track("Auto-Arcane Crest", InternalName = "Crest", Action = AID.ArcaneCrest, MinLevel = 40)]
@@ -87,6 +90,16 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         Ranged,
     }
 
+    public enum PerfectioStrategy
+    {
+        [Option("Use in raid buffs", Targets = ActionTargets.Hostile)]
+        Automatic,
+        [Option("Save for melee downtime", Targets = ActionTargets.Hostile)]
+        Ranged,
+        [Option("Don't use")]
+        Delay,
+    }
+
     public static RotationModuleDefinition Definition()
     {
         return new RotationModuleDefinition("xan RPR", "Reaper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.RPR), 100).WithStrategies<Strategy>();
@@ -129,6 +142,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         Soulsow = 1,
         EnhancedHarpe = 100,
         HarvestMoon = 150,
+        PerfectioRanged = 175,
         Filler = 200,
         FillerAOE = 201,
         SoulSlice = 300,
@@ -362,10 +376,17 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
     private void Perfectio(in Strategy strategy)
     {
         var opt = strategy.Perf;
-        if (PerfectioParata < GCD || !opt.IsEnabled() || SoulReaver)
+        if (PerfectioParata < GCD || opt == PerfectioStrategy.Delay || SoulReaver)
             return;
 
-        PushGCD(AID.Perfectio, ResolveTargetOverride(opt) ?? BestRangedAOETarget, GCDPriority.Communio);
+        var prio = opt.Value switch
+        {
+            PerfectioStrategy.Automatic => GCDPriority.Communio,
+            PerfectioStrategy.Ranged => CanFitGCD(PerfectioParata, 1) ? GCDPriority.PerfectioRanged : GCDPriority.Communio,
+            _ => GCDPriority.None
+        };
+
+        PushGCD(AID.Perfectio, ResolveTargetOverride(opt) ?? BestRangedAOETarget, prio);
     }
 
     private void PlentifulHarvest(in Strategy strategy)
@@ -497,7 +518,8 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         if (BlueSouls == 1)
         {
-            PushGCD(AID.Communio, BestRangedAOETarget, GCDPriority.Communio);
+            if (strategy.Communio.IsEnabled())
+                PushGCD(AID.Communio, ResolveTargetOverride(strategy.Communio) ?? BestRangedAOETarget, GCDPriority.Communio);
 
             if (Soulsow)
                 PushGCD(AID.HarvestMoon, BestRangedAOETarget, GCDPriority.EnshroudMove);
