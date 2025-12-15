@@ -118,6 +118,11 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         DDExpiring = 900,
     }
 
+    public enum OGCDPriority
+    {
+        Default = 1
+    }
+
     private bool Enshrouded => BlueSouls > 0;
 
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
@@ -327,6 +332,10 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.Enshroud == OffensiveStrategy.Force)
             return true;
 
+        // let's assume wasting perfectio is a mistake
+        if (PerfectioParata > GCD)
+            return false;
+
         // Single Enshrouds are somewhat more complicated than Doubles because of the Enshroud that could or could not precede them. General rule of thumb is to not enter Enshroud if Gluttony <13s on its cooldown.
         if (ReadyIn(AID.Gluttony) < 13)
             return false;
@@ -336,17 +345,12 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (RaidBuffsLeft > GCD + 7.3f)
             return true;
 
-        // use early for double enshroud; TODO figure out why this still matters with 5s enshroud cooldown in dawntrail
-        if (CanWeave(AID.ArcaneCircle, 2, extraFixedDelay: 1.5f))
+        // use early for double enshroud, so we have room for 2 communio + 1 perfectio
+        if (CanWeave(AID.ArcaneCircle, 2, extraFixedDelay: 1.5f) && strategy.Buffs != OffensiveStrategy.Delay)
             return true;
 
         // TODO tweak deadline, i need a simulator or something
         return ReadyIn(AID.ArcaneCircle) > 65;
-    }
-
-    enum OGCDPriority
-    {
-        Default = 1
     }
 
     private void UseSoul(in Strategy strategy, Enemy? primaryTarget)
