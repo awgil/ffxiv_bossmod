@@ -164,29 +164,25 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             var toolOk = strategy.Tools.Value == ToolStrategy.Automatic;
             var toolTarget = ResolveTargetOverride(strategy.Tools);
 
-            // frame alignment/cooldown reduction produces inconsistent results in combat, i.e. 2.5 GCD drills will occasionally not be considered ready in time
-            // TODO: figure out if this is an inherent limitation of the system or if our frame alignment implementation is bugged somehow
-            // 0.05s is overly conservative, lower GCDs will result in way bigger drifts than that
-            var gcdExtra = GCD + 0.05f;
             if (toolOk)
             {
                 if (ExcavatorLeft > GCD)
                     PushGCD(AID.Excavator, toolTarget ?? BestRangedAOETarget);
 
-                if (ReadyIn(AID.AirAnchor) < gcdExtra)
+                if (GCDReady(AID.AirAnchor))
                     PushGCD(AID.AirAnchor, toolTarget ?? primaryTarget, priority: 20);
 
-                if (ReadyIn(AID.ChainSaw) < gcdExtra)
+                if (GCDReady(AID.ChainSaw))
                     PushGCD(AID.ChainSaw, toolTarget ?? BestChainsawTarget, 10);
 
-                if (ReadyIn(AID.Bioblaster) < gcdExtra && NumAOETargets > 2)
+                if (GCDReady(AID.Bioblaster) && NumAOETargets > 2)
                     PushGCD(AID.Bioblaster, toolTarget ?? BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
 
-                if (ReadyIn(AID.Drill) < gcdExtra)
+                if (GCDReady(AID.Drill))
                     PushGCD(AID.Drill, toolTarget ?? primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
 
                 // different cdgroup fsr
-                if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) < gcdExtra)
+                if (!Unlocked(AID.AirAnchor) && GCDReady(AID.HotShot))
                     PushGCD(AID.HotShot, toolTarget ?? primaryTarget);
 
                 // TODO work out priorities

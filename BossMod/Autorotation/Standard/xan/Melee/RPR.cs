@@ -13,14 +13,45 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         [Track("Arcane Circle", MinLevel = 72, Action = AID.ArcaneCircle)]
         public Track<OffensiveStrategy> Buffs;
 
-        [Track(Action = AID.Harpe)]
-        public Track<HarpeStrategy> Harpe;
+        [Track(Action = AID.Enshroud, MinLevel = 80)]
+        public Track<OffensiveStrategy> Enshroud;
+
+        [Track("Soul Slice", Actions = [AID.SoulSlice, AID.SoulScythe], MinLevel = 60)]
+        public Track<SliceStrategy> SoulSlice;
+
+        [Track("Soul Reaver", Actions = [AID.BloodStalk, AID.GrimSwathe, AID.Gluttony], MinLevel = 50)]
+        public Track<ReaverStrategy> SoulReaver;
 
         [Track("Auto-Arcane Crest", InternalName = "Crest", Action = AID.ArcaneCrest, MinLevel = 40)]
         public Track<EnabledByDefault> AutoCrest;
 
+        [Track(Action = AID.Harpe)]
+        public Track<HarpeStrategy> Harpe;
+
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
+    public enum SliceStrategy
+    {
+        [Option("Use on cooldown, unless it would overcap gauge", Targets = ActionTargets.Hostile)]
+        Automatic,
+        [Option("Don't use")]
+        Delay,
+        [Option("Use ASAP, even if it would overcap gauge", Targets = ActionTargets.Hostile)]
+        Force
+    }
+
+    public enum ReaverStrategy
+    {
+        [Option("Use ASAP, unless shroud gauge is full or Gluttony is almost off cooldown", Targets = ActionTargets.Hostile)]
+        Automatic,
+        [Option("Use Blood Stalk/Grim Swathe at max gauge, otherwise hold", Targets = ActionTargets.Hostile, MinLevel = 76)]
+        ReserveGluttony,
+        [Option("Use Stalk/Gluttony ASAP, ignoring timers", Targets = ActionTargets.Hostile, MinLevel = 76)]
+        Force,
+        [Option("Do not use")]
+        Delay
     }
 
     public enum HarpeStrategy
@@ -82,6 +113,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         Harvest = 650,
         Reaver = 700,
         Lemure = 700,
+        EnshroudMove = 720,
         Communio = 750,
         DDExpiring = 900,
     }
@@ -213,14 +245,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (Enshrouded)
             return;
 
-        // manually check CD since queue will be delayed in certain circumstances otherwise
-        if (RedGauge <= 50 && ReadyIn(AID.SoulSlice) <= GCD)
-        {
-            if (NumConeTargets > 2)
-                PushGCD(AID.SoulScythe, BestConeTarget, GCDPriority.SoulSlice);
-
-            PushGCD(AID.SoulSlice, primaryTarget, GCDPriority.SoulSlice);
-        }
+        Slice(strategy, primaryTarget);
 
         if (NumAOETargets > 2)
         {
@@ -294,61 +319,115 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldEnshroud(in Strategy strategy)
     {
-        if (Enshrouded)
+        // hard requirements
+        if (Enshrouded || BlueGauge < 50 && IdealHost == 0 || strategy.Enshroud == OffensiveStrategy.Delay)
             return false;
 
-        if (IdealHost > 0)
+        // forced by plan
+        if (strategy.Enshroud == OffensiveStrategy.Force)
             return true;
 
-        if (BlueGauge < 50)
+        // Single Enshrouds are somewhat more complicated than Doubles because of the Enshroud that could or could not precede them. General rule of thumb is to not enter Enshroud if Gluttony <13s on its cooldown.
+        if (ReadyIn(AID.Gluttony) < 13)
             return false;
 
-        if (RaidBuffsLeft > GCD + 6)
+        // 4 reaping GCDs at 1.5s each = 6 seconds
+        // maximum communio cast time = 1.3 seconds
+        if (RaidBuffsLeft > GCD + 7.3f)
             return true;
 
-        if (CanWeave(AID.ArcaneCircle, 2, extraFixedDelay: 1.5f)) // stupid fixed recast timer
+        // use early for double enshroud; TODO figure out why this still matters with 5s enshroud cooldown in dawntrail
+        if (CanWeave(AID.ArcaneCircle, 2, extraFixedDelay: 1.5f))
             return true;
 
         // TODO tweak deadline, i need a simulator or something
         return ReadyIn(AID.ArcaneCircle) > 65;
     }
 
+    enum OGCDPriority
+    {
+        Default = 1
+    }
+
     private void UseSoul(in Strategy strategy, Enemy? primaryTarget)
     {
-        // can't
-        if (RedGauge < 50 || Enshrouded)
+        // hard requirements
+        if (RedGauge < 50 || Enshrouded || strategy.SoulReaver == ReaverStrategy.Delay)
             return;
 
-        // don't, it would delay Plentiful Harvest
-        if (ImmortalSacrifice.Stacks > 0 && CanWeave(BloodsownCircle, 0.6f, 1))
-            return;
-
-        // don't, we would immediately overwrite Soul Reaver with Perfectio
+        // assuming that regardless of strategy, overwriting perfectio is a mistake
         if (CanFitGCD(PerfectioParata))
             return;
 
-        var debuffLeft = Math.Min(TargetDDLeft, ShortestNearbyDDLeft);
+        var nextGCDHarvest = ImmortalSacrifice.Stacks > 0 && CanWeave(BloodsownCircle, 0.6f, 1);
 
-        if (CanFitGCD(debuffLeft, 2))
-            PushOGCD(AID.Gluttony, BestRangedAOETarget);
+        // before 70, blood stalk IS our dps output from red gauge, so we don't want to waste it on dying targets
+        var haveBlueGauge = Unlocked(AID.Gallows);
+        var targetOverride = ResolveTargetOverride(strategy.SoulReaver);
 
-        // can't, we need to refresh debuff first and using sod removes Soul Reaver
-        if (!CanFitGCD(debuffLeft, 1))
-            return;
+        void useBloodStalk()
+        {
+            if (NumConeTargets > 2 && targetOverride == null)
+                PushOGCD(AID.GrimSwathe, BestConeTarget);
+
+            PushOGCD(AID.BloodStalk, targetOverride ?? primaryTarget, OGCDPriority.Default, useOnDyingTarget: haveBlueGauge);
+        }
 
         // use in raidbuffs
         // use to get blue gauge, we need 50 before each 2min window
         var spendEarly = RaidBuffsLeft > 0 || BlueGauge < 50;
         var gluttonySoon = CanWeave(AID.Gluttony, 5);
 
-        if (RedGauge == 100 || spendEarly && !gluttonySoon)
-        {
-            if (NumConeTargets > 2)
-                PushOGCD(AID.GrimSwathe, BestConeTarget);
+        var debuffLeft = Math.Min(TargetDDLeft, ShortestNearbyDDLeft);
 
-            if (primaryTarget?.Priority >= 0)
-                PushOGCD(AID.BloodStalk, primaryTarget);
+        switch (strategy.SoulReaver.Value)
+        {
+            case ReaverStrategy.Automatic:
+                if (BlueGauge == 100 || nextGCDHarvest)
+                    return;
+
+                if (CanFitGCD(debuffLeft, 2))
+                    PushOGCD(AID.Gluttony, BestRangedAOETarget);
+
+                if (CanFitGCD(debuffLeft, 1) && (RedGauge == 100 || spendEarly && !gluttonySoon))
+                    useBloodStalk();
+                break;
+            case ReaverStrategy.ReserveGluttony:
+                if (BlueGauge == 100 || nextGCDHarvest)
+                    return;
+
+                if (CanFitGCD(debuffLeft, 1) && RedGauge == 100)
+                    useBloodStalk();
+                break;
+            case ReaverStrategy.Force:
+                PushOGCD(AID.Gluttony, BestRangedAOETarget);
+                useBloodStalk();
+                break;
         }
+    }
+
+    private void Slice(in Strategy strategy, Enemy? primaryTarget)
+    {
+        if (!GCDReady(AID.SoulSlice))
+            return;
+
+        var shouldUse = strategy.SoulSlice.Value switch
+        {
+            SliceStrategy.Automatic => RedGauge <= 50,
+            SliceStrategy.Force => true,
+            _ => false
+        };
+
+        if (!shouldUse)
+            return;
+
+        var sliceTarget = ResolveTargetOverride(strategy.SoulSlice);
+
+        // assuming if a target is specified, we don't want to use AOE rotation - TODO is this necessary at all?
+        if (NumAOETargets > 2 && sliceTarget == null)
+            PushGCD(AID.SoulScythe, Player, GCDPriority.SoulSlice);
+
+        PushGCD(AID.SoulSlice, sliceTarget ?? primaryTarget, GCDPriority.SoulSlice);
     }
 
     private void EnshroudGCDs(in Strategy strategy, Enemy? primaryTarget)
@@ -357,7 +436,12 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             return;
 
         if (BlueSouls == 1)
+        {
             PushGCD(AID.Communio, BestRangedAOETarget, GCDPriority.Communio);
+
+            if (Soulsow)
+                PushGCD(AID.HarvestMoon, BestRangedAOETarget, GCDPriority.EnshroudMove);
+        }
 
         var prio = GCDPriority.Lemure;
 

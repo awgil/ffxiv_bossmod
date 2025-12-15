@@ -10,13 +10,12 @@ public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<A
         [Track(Actions = [AID.ThirdEye, AID.Tengentsu])]
         public Track<ThirdEyeStrategy> ThirdEye;
     }
-    public enum Track { ThirdEye }
 
     public enum ThirdEyeStrategy
     {
         [Option("Use ~3s before predicted damage", Cooldown = 15, Effect = 4)]
         Automatic,
-        [Option("Use 4s before predicted damage (max duration, may expire)", Cooldown = 15, Effect = 4)]
+        [Option("Use 4s before predicted damage", Cooldown = 15, Effect = 4)]
         AutoMax,
         [Option("Don't use")]
         Delay
