@@ -306,9 +306,6 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (NextPositionalImminent && !NextPositionalCorrect)
             PushOGCD(AID.TrueNorth, Player, delay: GCD - 0.8f);
 
-        if (SoulReaver)
-            return;
-
         if (Oblatio > 0 && (RaidBuffsLeft > 0 || ReadyIn(AID.ArcaneCircle) > EnshroudLeft))
             PushOGCD(AID.Sacrificium, BestRangedAOETarget);
 
@@ -395,8 +392,8 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.Enshroud == OffensiveStrategy.Force)
             return true;
 
-        // let's assume wasting perfectio is a mistake
-        if (PerfectioParata > GCD)
+        // let's assume wasting perfectio or soul reaver is a mistake
+        if (PerfectioParata > GCD || SoulReaver)
             return false;
 
         // Single Enshrouds are somewhat more complicated than Doubles because of the Enshroud that could or could not precede them. General rule of thumb is to not enter Enshroud if Gluttony <13s on its cooldown.
@@ -420,10 +417,6 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
     {
         // hard requirements
         if (RedGauge < 50 || Enshrouded || strategy.RedGauge == RedGaugeStrategy.Delay)
-            return;
-
-        // assuming that regardless of strategy, overwriting perfectio is a mistake
-        if (CanFitGCD(PerfectioParata))
             return;
 
         var nextGCDHarvest = ImmortalSacrifice.Stacks > 0 && CanWeave(BloodsownCircle, 0.6f, 1);
@@ -450,7 +443,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         switch (strategy.RedGauge.Value)
         {
             case RedGaugeStrategy.Automatic:
-                if (BlueGauge == 100 || nextGCDHarvest)
+                if (BlueGauge == 100 || nextGCDHarvest || SoulReaver)
                     return;
 
                 if (CanFitGCD(debuffLeft, 2))
@@ -460,7 +453,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
                     useBloodStalk();
                 break;
             case RedGaugeStrategy.ReserveGluttony:
-                if (BlueGauge == 100 || nextGCDHarvest)
+                if (BlueGauge == 100 || nextGCDHarvest || SoulReaver)
                     return;
 
                 if (CanFitGCD(debuffLeft, 1) && RedGauge == 100)
