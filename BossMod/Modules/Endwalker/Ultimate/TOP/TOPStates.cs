@@ -60,8 +60,7 @@ class TOPStates : StateMachineBuilder
     private void Phase5(uint id)
     {
         ActorTargetable(id, _module.BossP5, true, 15.5f, "Boss appears")
-            .SetHint(StateMachine.StateHint.DowntimeEnd)
-            .ActivateOnEnter<P5HPThreshold>();
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         P5SolarRay(id + 0x10000, 3.1f, false);
         P5RunMiDelta(id + 0x20000, 8.4f);
         P5SolarRay(id + 0x30000, 9.2f, false);
@@ -285,8 +284,7 @@ class TOPStates : StateMachineBuilder
     private void P4WaveCannon(uint id, float delay)
     {
         ActorTargetable(id, _module.BossP3, true, delay, "Boss reappear")
-            .SetHint(StateMachine.StateHint.DowntimeEnd)
-            .ActivateOnEnter<P4HPThreshold>();
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x10, _module.BossP3, AID.P4WaveCannonVisualStart, 9.3f, 5, true)
             .ActivateOnEnter<P4WaveCannonProtean>()
             .ActivateOnEnter<P4WaveCannonStack>(); // ~2.5s into cast: targets for stacks 1

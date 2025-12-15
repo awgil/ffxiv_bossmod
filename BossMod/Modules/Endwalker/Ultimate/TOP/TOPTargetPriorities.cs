@@ -49,6 +49,3 @@ class P2PacketFilter(BossModule module) : Components.GenericInvincible(module)
             _playerStates[slot] = Firewall.None;
     }
 }
-
-class P4HPThreshold(BossModule module) : Components.HPThreshold(module, (uint)OID.BossP3, 0.2f);
-class P5HPThreshold(BossModule module) : Components.HPThreshold(module, (uint)OID.BossP5, 0.2f);

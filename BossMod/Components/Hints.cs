@@ -37,16 +37,3 @@ class InvincibleStatus(BossModule module, uint statusId, string hint = "Attackin
             _actors.Remove(actor);
     }
 }
-
-class HPThreshold(BossModule module, uint oid, float ratio) : BossComponent(module)
-{
-    public uint ID = oid;
-    public float Ratio = ratio;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var enemy in Module.Enemies(ID))
-            if (enemy.PendingHPRatio < Ratio)
-                hints.SetPriority(enemy, AIHints.Enemy.PriorityPointless);
-    }
-}
