@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <OutputType>WinExe</OutputType>
     <LangVersion>preview</LangVersion>
@@ -21,6 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+    <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <Reference Include="Dalamud.Bindings.ImGui">
       <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
     </Reference>
@@ -32,12 +34,6 @@
     </Reference>
     <Reference Include="Lumina.Excel">
       <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.Direct3D11">
-      <HintPath>$(DalamudLibPath)SharpDX.Direct3D11.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.DXGI">
-      <HintPath>$(DalamudLibPath)SharpDX.DXGI.dll</HintPath>
     </Reference>
     <Reference Include="Dalamud">
       <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
@@ -60,11 +56,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BossMod\BossMod.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- <PackageReference Include="ImGui.NET" Version="1.86.0" /> -->
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
 
   <Target Name="PostBuildScript" AfterTargets="Build">

@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Autorotation.MiscAI;
+
 public sealed class FateUtils(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public enum Track { Handin, Collect, Sync }

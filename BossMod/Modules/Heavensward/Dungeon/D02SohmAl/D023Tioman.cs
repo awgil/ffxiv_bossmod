@@ -1,4 +1,5 @@
 namespace BossMod.Heavensward.Dungeon.D02SohmAl.D023Tioman;
+
 public enum OID : uint
 {
     Boss = 0xE96, // R6.840, x?
