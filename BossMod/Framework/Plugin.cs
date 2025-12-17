@@ -57,7 +57,7 @@ public sealed class Plugin : IDalamudPlugin
         var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
         var gameVersion = dalamudStartInfo?.GameVersion?.ToString() ?? "unknown";
 
-        // FIXME remove on stable release
+        // FIXME
         dataManager.GameData.Options.PanicOnSheetChecksumMismatch = false;
 
 #if LOCAL_CS
@@ -411,7 +411,11 @@ public sealed class Plugin : IDalamudPlugin
         if (targetObj->ObjectKind is FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Treasure)
             return player?.DistanceToHitbox(target) <= 2.09f;
 
-        return EventFramework.Instance()->CheckInteractRange(playerObj, targetObj, 1, false);
+        // FIXME extra arg (int*) before logErrorsToUser
+        var checkFn = (delegate* unmanaged<EventFramework*, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*, byte, int*, byte, byte>)EventFramework.MemberFunctionPointers.CheckInteractRange;
+
+        var ret = 0;
+        return checkFn(EventFramework.Instance(), playerObj, targetObj, 1, &ret, 0) == 1;
     }
 
     private unsafe void HandleFateSync()

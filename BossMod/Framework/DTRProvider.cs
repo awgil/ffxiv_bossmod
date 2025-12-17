@@ -28,10 +28,9 @@ internal sealed class DTRProvider : IDisposable
         _autorotationEntry.OnClick = _ => _wantOpenPopup = true;
         _aiEntry.Tooltip = "Left Click => Toggle Enabled, Right Click => Toggle DrawUI";
 
-        // FIXME: onClick event should have the mouse flags now
-        _aiEntry.OnClick = _ =>
+        _aiEntry.OnClick = ev =>
         {
-            if (UIInputData.Instance()->CursorInputs.MouseButtonHeldThrottledFlags.HasFlag(MouseButtonFlags.RBUTTON))
+            if (ev.ClickType == MouseClickType.Right)
                 _aiConfig.DrawUI ^= true;
             else
                 _aiConfig.Enabled ^= true;
