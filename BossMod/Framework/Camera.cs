@@ -123,48 +123,6 @@ class Camera
         }
     }
 
-    public void DrawWorldUnitCylinder(SharpDX.Matrix transform, uint color, float thickness = 1)
-    {
-        int numSegments = CurveApprox.CalculateCircleSegments(transform.Row1.Length(), 360.Degrees(), 1 / 90f);
-        var prev1 = SharpDX.Vector3.TransformCoordinate(new(0, +1, 1), transform).ToSystem();
-        var prev2 = SharpDX.Vector3.TransformCoordinate(new(0, -1, 1), transform).ToSystem();
-        for (int i = 1; i <= numSegments; ++i)
-        {
-            var dir = (i * 360.0f / numSegments).Degrees().ToDirection();
-            var curr1 = SharpDX.Vector3.TransformCoordinate(new(dir.X, +1, dir.Z), transform).ToSystem();
-            var curr2 = SharpDX.Vector3.TransformCoordinate(new(dir.X, -1, dir.Z), transform).ToSystem();
-            DrawWorldLine(curr1, prev1, color, thickness);
-            DrawWorldLine(curr2, prev2, color, thickness);
-            DrawWorldLine(curr1, curr2, color, thickness);
-            prev1 = curr1;
-            prev2 = curr2;
-        }
-    }
-
-    public void DrawWorldOBB(Vector3 min, Vector3 max, SharpDX.Matrix transform, uint color, float thickness = 1)
-    {
-        var aaa = SharpDX.Vector3.TransformCoordinate(new(min.X, min.Y, min.Z), transform).ToSystem();
-        var aab = SharpDX.Vector3.TransformCoordinate(new(min.X, min.Y, max.Z), transform).ToSystem();
-        var aba = SharpDX.Vector3.TransformCoordinate(new(min.X, max.Y, min.Z), transform).ToSystem();
-        var abb = SharpDX.Vector3.TransformCoordinate(new(min.X, max.Y, max.Z), transform).ToSystem();
-        var baa = SharpDX.Vector3.TransformCoordinate(new(max.X, min.Y, min.Z), transform).ToSystem();
-        var bab = SharpDX.Vector3.TransformCoordinate(new(max.X, min.Y, max.Z), transform).ToSystem();
-        var bba = SharpDX.Vector3.TransformCoordinate(new(max.X, max.Y, min.Z), transform).ToSystem();
-        var bbb = SharpDX.Vector3.TransformCoordinate(new(max.X, max.Y, max.Z), transform).ToSystem();
-        DrawWorldLine(aaa, aab, color, thickness);
-        DrawWorldLine(aab, bab, color, thickness);
-        DrawWorldLine(bab, baa, color, thickness);
-        DrawWorldLine(baa, aaa, color, thickness);
-        DrawWorldLine(aba, abb, color, thickness);
-        DrawWorldLine(abb, bbb, color, thickness);
-        DrawWorldLine(bbb, bba, color, thickness);
-        DrawWorldLine(bba, aba, color, thickness);
-        DrawWorldLine(aaa, aba, color, thickness);
-        DrawWorldLine(aab, abb, color, thickness);
-        DrawWorldLine(baa, bba, color, thickness);
-        DrawWorldLine(bab, bbb, color, thickness);
-    }
-
     private bool ClipLineToNearPlane(ref Vector3 a, ref Vector3 b)
     {
         var an = Vector4.Dot(new(a, 1), NearPlane);

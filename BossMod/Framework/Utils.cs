@@ -414,7 +414,5 @@ public static partial class Utils
             }
     }
 
-    public static Vector3 ToSystem(this SharpDX.Vector3 v) => new(v.X, v.Y, v.Z);
     public static Vector3 ToSystem(this Lumina.Data.Parsing.Common.Vector3 v) => new(v.X, v.Y, v.Z);
-    public static SharpDX.Vector3 ToSharpDX(this Vector3 v) => new(v.X, v.Y, v.Z);
 }

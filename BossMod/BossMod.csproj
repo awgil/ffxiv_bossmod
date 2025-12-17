@@ -1,34 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Authors></Authors>
-    <Company></Company>
-    <Version>0.0.0.0</Version>
-    <Description>Boss mod.</Description>
-    <Copyright></Copyright>
-    <PackageProjectUrl></PackageProjectUrl>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <ReportAnalyzer>true</ReportAnalyzer>
-  </PropertyGroup>
-
-  <!-- run analyzers only for release builds, since they are too expensive to run every build when
-  iterating (1-2 mins) -->
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <AnalysisMode>All</AnalysisMode>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
+<Project Sdk="Dalamud.NET.Sdk/14.0.0">
   <ItemGroup>
     <Using Include="System" />
     <Using Include="System.Collections" />
@@ -40,20 +11,11 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
-  </PropertyGroup>
-
-  <PropertyGroup
-    Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">
-    <DalamudLibPath>$(DALAMUD_HOME)/</DalamudLibPath>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <LocalCS>false</LocalCS>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(LocalCS)' == 'true'">
-    <DefineConstants>LOCAL_CS</DefineConstants>
+    <Use_Dalamud_FFXIVClientStructs>false</Use_Dalamud_FFXIVClientStructs>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(LocalCS)' == 'true'">
@@ -61,61 +23,10 @@
     <ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(LocalCS)' == 'false'">
-    <Reference Include="FFXIVClientStructs">
-      <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="InteropGenerator.Runtime">
-      <HintPath>$(DalamudLibPath)InteropGenerator.Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="14.0.0" />
-    <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+    <Reference Include="Dalamud.Common" />
+    <Reference Include="TerraFX.Interop.Windows" />
     <PackageReference Include="System.Data.Sqlite" Version="2.0.2" />
-    <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <OutputItemType>Analyzer</OutputItemType>
-      <PrivateAssets>All</PrivateAssets>
-    </ProjectReference>
-    <Reference Include="Dalamud">
-      <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Dalamud.Common">
-      <HintPath>$(DalamudLibPath)Dalamud.Common.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Dalamud.Bindings.ImGui">
-      <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Dalamud.Bindings.ImPlot">
-      <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImPlot.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="ImGuiScene">
-      <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Lumina">
-      <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Lumina.Excel">
-      <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="SharpDX.Direct3D11">
-      <HintPath>$(DalamudLibPath)SharpDX.Direct3D11.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>

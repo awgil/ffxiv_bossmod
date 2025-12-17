@@ -339,14 +339,6 @@ class DebugGraphics
         ImGui.TextUnformatted($"{device->Width:f6} {device->Height:f6}");
     }
 
-    private void DrawMatrix(SharpDX.Matrix mtx)
-    {
-        ImGui.TextUnformatted($"{mtx[0]:f6} {mtx[1]:f6} {mtx[2]:f6} {mtx[3]:f6}");
-        ImGui.TextUnformatted($"{mtx[4]:f6} {mtx[5]:f6} {mtx[6]:f6} {mtx[7]:f6}");
-        ImGui.TextUnformatted($"{mtx[8]:f6} {mtx[9]:f6} {mtx[10]:f6} {mtx[11]:f6}");
-        ImGui.TextUnformatted($"{mtx[12]:f6} {mtx[13]:f6} {mtx[14]:f6} {mtx[15]:f6}");
-    }
-
     private void DrawMatrix(FFXIVClientStructs.FFXIV.Common.Math.Matrix4x4 mtx)
     {
         ImGui.TextUnformatted($"{mtx[0]:f6} {mtx[1]:f6} {mtx[2]:f6} {mtx[3]:f6}");

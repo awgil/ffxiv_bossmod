@@ -57,7 +57,7 @@ public sealed class Plugin : IDalamudPlugin
         var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
         var gameVersion = dalamudStartInfo?.GameVersion?.ToString() ?? "unknown";
 
-        // TODO remove on next stable release
+        // FIXME remove on stable release
         dataManager.GameData.Options.PanicOnSheetChecksumMismatch = false;
 
 #if LOCAL_CS
