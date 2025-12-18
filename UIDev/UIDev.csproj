@@ -1,15 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Dalamud.NET.Sdk/14.0.0">
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
     <OutputType>WinExe</OutputType>
-    <LangVersion>preview</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+    <Use_DalamudPackager>false</Use_DalamudPackager>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,24 +17,20 @@
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
-    <Reference Include="Dalamud.Bindings.ImGui">
-      <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
-    </Reference>
-    <Reference Include="Dalamud.Bindings.ImPlot">
-      <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImPlot.dll</HintPath>
-    </Reference>
-    <Reference Include="Lumina">
-      <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
-    </Reference>
-    <Reference Include="Lumina.Excel">
-      <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
-    </Reference>
-    <Reference Include="Dalamud">
-      <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
-    </Reference>
+
     <Reference Include=".\dep\ImGui.NET.dll" />
     <Reference Include=".\dep\ImGuiScene.dll" />
     <Reference Include=".\dep\SDL2-CS.dll" />
+
+    <Reference Include="Dalamud" />
+    <Reference Include="Dalamud.Bindings.ImGui" />
+    <Reference Include="FFXIVClientStructs" />
+    <Reference Include="InteropGenerator.Runtime" />
+    <Reference Include="Lumina" />
+    <Reference Include="Lumina.Excel" />
+    <Reference Include="Serilog" />
+    <Reference Include="HexaGen.Runtime" />
+    <Reference Include="Microsoft.Extensions.ObjectPool" />
   </ItemGroup>
 
   <ItemGroup>
