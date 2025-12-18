@@ -53,7 +53,7 @@ sealed class WorldStateGameSync : IDisposable
     private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
     private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
 
-    private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying);
+    private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetID, byte replaying);
     private readonly Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
 
     private unsafe delegate void ProcessPacketNpcYellDelegate(Network.ServerIPC.NpcYell* packet);
@@ -998,9 +998,9 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketEffectResultBasicHook.Original(targetID, packet, replaying);
     }
 
-    private void ProcessPacketActorControlDetour(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetID, byte replaying)
+    private void ProcessPacketActorControlDetour(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetID, byte replaying)
     {
-        _processPacketActorControlHook.Original(actorID, category, p1, p2, p3, p4, p5, p6, targetID, replaying);
+        _processPacketActorControlHook.Original(actorID, category, p1, p2, p3, p4, p5, p6, p7, p8, targetID, replaying);
         switch ((Network.ServerIPC.ActorControlCategory)category)
         {
             case Network.ServerIPC.ActorControlCategory.TargetIcon:
