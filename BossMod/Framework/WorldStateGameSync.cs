@@ -835,6 +835,7 @@ sealed class WorldStateGameSync : IDisposable
         var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
         if (dd != null)
         {
+            // FIXME: offset is wrong, PT is getting reported as ID 15
             var currentId = (DeepDungeonState.DungeonType)dd->DeepDungeonId;
             var fullUpdate = currentId != _ws.DeepDungeon.DungeonId;
 
