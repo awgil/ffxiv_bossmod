@@ -22,7 +22,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
           
       - name: Download Dalamud Latest
         run: |
@@ -44,6 +44,6 @@ jobs:
           version_number: ${{ env.tag }}
           path: "BossMod/bin/Release/BossMod/latest.zip"
           type: "latest"
-          dalamud_version: "13"
+          dalamud_version: "14"
         env:
           PUBLISHER_KEY: ${{ secrets.PUBLISHER_KEY }}
