@@ -1,4 +1,4 @@
-namespace BossMod.Dawntrail.Dungeon.D12Mistwake;
+namespace BossMod.Dawntrail.Dungeon.D12Mistwake.D121TrenoCatoblepas;
 
 public enum OID : uint
 {
@@ -25,9 +25,9 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    _Gen_Icon_x6d9_lockon_s5_t0x1 = 641, // player->self
-    _Gen_Icon_tank_lockonae_4m_5s_01t = 342, // player->self
-    _Gen_Icon_share_laser_6sec_0t = 524, // Boss->player
+    Spread = 641, // player->self
+    Tankbuster = 342, // player->self
+    ShareLaser = 524, // Boss->player
 }
 
 class Earthquake(BossModule module) : Components.RaidwideCast(module, AID.Earthquake);
@@ -86,7 +86,7 @@ class ThunderIISpread(BossModule module) : Components.SpreadFromCastTargets(modu
 }
 class ThunderIII(BossModule module) : Components.BaitAwayCast(module, AID.ThunderIII, new AOEShapeCircle(4), true, true);
 
-class RayOfLightning(BossModule module) : Components.IconLineStack(module, 2.5f, 50, (uint)IconID._Gen_Icon_share_laser_6sec_0t, AID.RayOfLightning, 6.2f);
+class RayOfLightning(BossModule module) : Components.IconLineStack(module, 2.5f, 50, (uint)IconID.ShareLaser, AID.RayOfLightning, 6.2f);
 
 class BedevilingLight(BossModule module) : Components.GenericLineOfSightAOE(module, AID.BedevilingLight, 50, false)
 {

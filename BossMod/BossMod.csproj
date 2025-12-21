@@ -10,6 +10,12 @@
     <Using Include="Lumina.Extensions" />
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AnalysisMode>All</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
   <PropertyGroup>
     <LocalCS>false</LocalCS>
   </PropertyGroup>
@@ -30,11 +36,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="DefaultRotationPresets.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <EmbeddedResource Include="Modules\**\*.json" />
     <EmbeddedResource Include="Autorotation\OptionRenames.json" />
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
   </ItemGroup>
+
+  <Target Name="CopyPresets" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release'">
+    <Copy SourceFiles="DefaultRotationPresets.json" DestinationFolder="$(OutDir)" />
+  </Target>
 </Project>

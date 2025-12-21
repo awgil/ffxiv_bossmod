@@ -96,6 +96,21 @@ public static class CurveApprox
     public static IEnumerable<WPos> Rect(WPos center, WDir dx, WDir dz) => Rect(dx, dz).Select(off => center + off);
     public static IEnumerable<WPos> Rect(WPos center, WDir dirZ, float halfWidth, float halfHeight) => Rect(center, dirZ.OrthoL() * halfWidth, dirZ * halfHeight);
 
+    public static IEnumerable<WDir> TruncatedRect(WDir dx, WDir dz, float size)
+    {
+        yield return dx - dz - new WDir(size, 0);
+        yield return dx - dz + new WDir(0, size);
+        yield return dx + dz - new WDir(0, size);
+        yield return dx + dz - new WDir(size, 0);
+        yield return -dx + dz + new WDir(size, 0);
+        yield return -dx + dz - new WDir(0, size);
+        yield return -dx - dz + new WDir(0, size);
+        yield return -dx - dz + new WDir(size, 0);
+    }
+
+    public static IEnumerable<WDir> TruncatedRect(WDir dirZ, float halfWidth, float halfHeight, float size) => TruncatedRect(dirZ.OrthoL() * halfWidth, dirZ * halfHeight, size);
+    public static IEnumerable<WDir> TruncatedRect(WDir center, WDir dx, WDir dz, float size) => TruncatedRect(dx, dz, size).Select(off => center + off);
+
     // for angles, we use standard FF convention: 0 is 'south'/down/(0, -r), and then increases clockwise
     private static WDir PolarToCartesian(float r, Angle phi) => r * phi.ToDirection();
 }

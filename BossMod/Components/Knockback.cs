@@ -151,7 +151,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
                 continue; // this could happen if attract starts from < min distance
 
             if (StopAtWall)
-                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - actor.HitboxRadius);
+                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - 0.1f);
 
             var to = from + distance * dir;
             yield return (from, to);
