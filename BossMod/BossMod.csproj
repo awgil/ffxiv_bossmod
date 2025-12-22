@@ -1,5 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Dalamud.NET.Sdk/14.0.1">
+  <PropertyGroup>
+    <Version>0.4.11.1</Version>
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="System" />
     <Using Include="System.Collections" />
@@ -41,7 +45,9 @@
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
   </ItemGroup>
 
-  <Target Name="CopyPresets" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release'">
-    <Copy SourceFiles="DefaultRotationPresets.json" DestinationFolder="$(OutDir)" />
-  </Target>
+  <ItemGroup>
+    <None Include="DefaultRotationPresets.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

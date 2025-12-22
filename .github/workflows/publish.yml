@@ -2,48 +2,94 @@ name: Build & Publish to Dynamis
 
 on:
   push:
-    tags:
-      - "v*.*.*.*"
+    branches:
+      - master
+      - testing
+  workflow_dispatch:
+    inputs:
+      testing:
+        description: 'Testing release'
+        required: true
+        type: boolean
 
 jobs:
-  Build:
+  build:
     runs-on: ubuntu-latest
     env:
-        DALAMUD_HOME: /tmp/dalamud
+      DALAMUD_HOME: /tmp/dalamud
+      TESTING: ${{ github.ref == 'refs/heads/testing' || inputs.testing }}
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Get Tag Name
-        run: echo "tag=$(echo ${{ github.ref }} | sed 's/refs\/tags\/v//')" >> $GITHUB_ENV
+      - name: Install xq
+        run: curl -sSL https://bit.ly/install-xq | sudo bash
+
+      - name: Check version
+        id: check_version
+        run: |
+          local_version=$(xq -x //PropertyGroup/Version < BossMod/BossMod.csproj)
+          echo "version=$local_version" >> $GITHUB_OUTPUT
+
+          prop=AssemblyVersion
+          release_type=latest
+          if [ -n "$TESTING" ]; then
+            prop=TestingAssemblyVersion
+            release_type=testing
+          fi
+          remote_version=$(curl https://puni.sh/api/repository/veyn | jq -r '.[] | select(.InternalName == "BossMod").'$prop)
+          if printf '%s\n%s\n' "$local_version" "$remote_version" | sort --check=quiet --version-sort; then
+            echo "build=false" >> $GITHUB_OUTPUT
+          else
+            echo "Local version $local_version is newer than published version $remote_version, proceeding"
+            echo "build=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
+        if: ${{ steps.check_version.outputs.build == 'true' }}
         with:
           dotnet-version: 10.0.x
           
       - name: Download Dalamud Latest
+        if: ${{ steps.check_version.outputs.build == 'true' }}
         run: |
           wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
           unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
 
       - name: Restore Project
+        if: ${{ steps.check_version.outputs.build == 'true' }}
         run: dotnet restore
 
       - name: Build Project
-        run: dotnet build --configuration Release BossMod/BossMod.csproj -p:AssemblyVersion=${{ env.tag }}
+        if: ${{ steps.check_version.outputs.build == 'true' }}
+        run: |
+          dotnet build -c Release BossMod/BossMod.csproj
+          unzip -l BossMod/bin/Release/BossMod/latest.zip
 
       - name: Publish Version
+        if: ${{ steps.check_version.outputs.build == 'true' }}
         uses: PunishXIV/dynamis-action@v1
         id: dynamis
         with:
           plugin_id: 30
           internal_name: "BossMod"
-          version_number: ${{ env.tag }}
+          version_number: ${{ steps.check_version.outputs.version }}
           path: "BossMod/bin/Release/BossMod/latest.zip"
-          type: "latest"
+          type: ${{ env.TESTING && 'testing' || 'latest' }}
           dalamud_version: "14"
         env:
           PUBLISHER_KEY: ${{ secrets.PUBLISHER_KEY }}
+
+      - name: Create release
+        if: ${{ steps.check_version.outputs.build == 'true' }}
+        id: create_release
+        uses: comnoco/create-release-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.TESTING && 't' || 'v' }}${{ steps.check_version.outputs.version }}
+          release_name: ${{ steps.check_version.outputs.version }}
+          prerelease: ${{ env.TESTING }}
