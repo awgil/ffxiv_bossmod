@@ -418,8 +418,9 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             return false;
 
         // Single Enshrouds are somewhat more complicated than Doubles because of the Enshroud that could or could not precede them. General rule of thumb is to not enter Enshroud if Gluttony <13s on its cooldown.
-        if (ReadyIn(AID.Gluttony) < 13)
-            return false;
+        // TODO: standard rotation intentionally delays gluttony
+        //if (ReadyIn(AID.Gluttony) < 13)
+        //    return false;
 
         // 4 reaping GCDs at 1.5s each = 6 seconds
         // maximum communio cast time = 1.3 seconds
