@@ -214,8 +214,6 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         var pos = GetNextPositional(primaryTarget?.Actor);
         UpdatePositionals(primaryTarget, ref pos);
 
-        OGCD(strategy, primaryTarget);
-
         if (CountdownRemaining > 0)
         {
             if (CountdownRemaining > GetCastTime(AID.Harpe) + 2.55f && !Soulsow)
@@ -283,26 +281,28 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         Sow(strategy);
 
         // other GCDs are all disabled during enshroud; normal GCDs break soul reaver
-        if (Enshrouded || SoulReaver)
-            return;
-
-        Slice(strategy, primaryTarget);
-
-        if (NumAOETargets > 2)
+        if (!(Enshrouded || SoulReaver))
         {
-            if (ComboLastMove == AID.SpinningScythe)
-                PushGCD(AID.NightmareScythe, Player, GCDPriority.FillerAOE);
+            Slice(strategy, primaryTarget);
 
-            PushGCD(AID.SpinningScythe, Player, GCDPriority.FillerAOE);
+            if (NumAOETargets > 2)
+            {
+                if (ComboLastMove == AID.SpinningScythe)
+                    PushGCD(AID.NightmareScythe, Player, GCDPriority.FillerAOE);
+
+                PushGCD(AID.SpinningScythe, Player, GCDPriority.FillerAOE);
+            }
+
+            if (ComboLastMove == AID.WaxingSlice)
+                PushGCD(AID.InfernalSlice, primaryTarget, GCDPriority.Filler);
+
+            if (ComboLastMove == AID.Slice)
+                PushGCD(AID.WaxingSlice, primaryTarget, GCDPriority.Filler);
+
+            PushGCD(AID.Slice, primaryTarget, GCDPriority.Filler);
         }
 
-        if (ComboLastMove == AID.WaxingSlice)
-            PushGCD(AID.InfernalSlice, primaryTarget, GCDPriority.Filler);
-
-        if (ComboLastMove == AID.Slice)
-            PushGCD(AID.WaxingSlice, primaryTarget, GCDPriority.Filler);
-
-        PushGCD(AID.Slice, primaryTarget, GCDPriority.Filler);
+        OGCD(strategy, primaryTarget);
     }
 
     private void OGCD(Strategy strategy, Enemy? primaryTarget)
@@ -441,7 +441,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (RedGauge < 50 || Enshrouded || strategy.RedGauge == RedGaugeStrategy.Delay)
             return;
 
-        var nextGCDHarvest = ImmortalSacrifice.Stacks > 0 && CanWeave(BloodsownCircle, 0.6f, 1);
+        var nextGCDImportant = NextGCD is AID.PlentifulHarvest or AID.Perfectio;
 
         // before 70, blood stalk IS our dps output from red gauge, so we don't want to waste it on dying targets
         var haveBlueGauge = Unlocked(AID.Gallows);
@@ -465,7 +465,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         switch (strategy.RedGauge.Value)
         {
             case RedGaugeStrategy.Automatic:
-                if (BlueGauge == 100 || nextGCDHarvest || SoulReaver)
+                if (BlueGauge == 100 || nextGCDImportant || SoulReaver)
                     return;
 
                 if (CanFitGCD(debuffLeft, 2))
@@ -475,7 +475,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
                     useBloodStalk();
                 break;
             case RedGaugeStrategy.ReserveGluttony:
-                if (BlueGauge == 100 || nextGCDHarvest || SoulReaver)
+                if (BlueGauge == 100 || nextGCDImportant || SoulReaver)
                     return;
 
                 if (CanFitGCD(debuffLeft, 1) && RedGauge == 100)
