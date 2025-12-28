@@ -67,6 +67,7 @@ public struct NavigationDecision
             PathfindMapCenter = hints.PathfindMapCenter,
             PathfindMapObstacles = hints.PathfindMapObstacles,
             TemporaryObstacles = [.. hints.TemporaryObstacles],
+            Portals = [.. hints.Portals],
             ForbiddenZones = [.. hints.ForbiddenZones],
             GoalZones = [.. hints.GoalZones]
         };
@@ -239,7 +240,7 @@ public struct NavigationDecision
         return float.MaxValue;
     }
 
-    private static (WPos? first, WPos? second) GetFirstWaypoints(ThetaStar pf, Map map, int cell, WPos startingPos)
+    public static (WPos? first, WPos? second) GetFirstWaypoints(ThetaStar pf, Map map, int cell, WPos startingPos)
     {
         ref var startingNode = ref pf.NodeByIndex(cell);
         if (startingNode.GScore == 0 && startingNode.PathMinG == float.MaxValue)

@@ -115,6 +115,8 @@ public sealed class AIHints
 
     // AI will treat the pixels inside these shapes as unreachable and not try to pathfind through them (unlike imminent forbidden zones)
     public List<Func<WPos, bool>> TemporaryObstacles = [];
+    // teleporters for pathfind
+    public List<(WPos from, float fromRadius, WPos to)> Portals = [];
 
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
@@ -167,6 +169,7 @@ public sealed class AIHints
         ForbiddenZones.Clear();
         GoalZones.Clear();
         TemporaryObstacles.Clear();
+        Portals.Clear();
         RecommendedPositional = default;
         ForbiddenDirections.Clear();
         ImminentSpecialMode = default;
@@ -239,6 +242,8 @@ public sealed class AIHints
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
         foreach (var o in TemporaryObstacles)
             map.BlockPixelsInside(o, -1000);
+        foreach (var (from, radius, to) in Portals)
+            map.AddPortal(from, radius, to);
         if (PathfindMapObstacles.Bitmap != null)
         {
             var offX = -PathfindMapObstacles.Rect.Left;

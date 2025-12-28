@@ -92,6 +92,7 @@ public enum SID : uint
     Acceleration = 1238,
     Dualcast = 1249,
     Embolden = 1297,
+    Manafication = 1971,
     MagickedSwordplay = 3875,
     ThornedFlourish = 3876,
     GrandImpactReady = 3877,

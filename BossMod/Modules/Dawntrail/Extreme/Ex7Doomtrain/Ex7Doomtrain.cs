@@ -1,130 +1,20 @@
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-
 namespace BossMod.Dawntrail.Extreme.Ex7Doomtrain;
-
-static class Shapes
-{
-    public static IEnumerable<WDir> Fence(float x, float z) => CurveApprox.TruncatedRect(new(x, z), new WDir(2.5f, 0), new(0, 2.5f), 0.5f);
-    public static IEnumerable<WDir> Crate(float x, float z) => CurveApprox.TruncatedRect(new(x, z), new WDir(2.9f, 0), new(0, 2.9f), 0.5f);
-}
-
-class DeadMansExpress(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DeadMansExpress, 30, kind: Kind.DirForward, stopAtWall: true);
-class DeadMansWindpipe(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DeadMansWindpipeBoss, 30, kind: Kind.DirForward, stopAtWall: true)
-{
-    public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Select(src => src with { Direction = src.Direction + 180.Degrees() });
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => pos.InRect(Arena.Center - new WDir(0, 15), new WDir(0, 10), 10);
-}
-
-class PushPullCounter(BossModule module) : Components.CastCounterMulti(module, [AID.DeadMansExpress, AID.DeadMansWindpipe]);
-
-class Plasma(BossModule module) : Components.GenericStackSpread(module)
-{
-    public int NumCasts { get; private set; }
-    string? next;
-
-    public void Reset() { NumCasts = 0; }
-
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        if (next != null)
-            hints.Add($"Next: {next}");
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.DeadMansOverdraughtSpread:
-                next = "Spread";
-                break;
-            case AID.DeadMansOverdraughtStack:
-                next = "Stack";
-                break;
-            case AID.DeadMansExpress:
-            case AID.DeadMansWindpipeBoss:
-                EnableHints = false;
-                Activate();
-                break;
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID._Ability_Plasma:
-                Spreads.Clear();
-                NumCasts++;
-                next = null;
-                break;
-            case AID._Ability_HyperexplosivePlasma:
-                Stacks.Clear();
-                NumCasts++;
-                next = null;
-                break;
-            case AID.DeadMansExpress:
-            case AID.DeadMansWindpipe:
-                EnableHints = true;
-                break;
-        }
-    }
-
-    void Activate()
-    {
-        switch (next)
-        {
-            case "Spread":
-                foreach (var player in Raid.WithoutSlot())
-                    Spreads.Add(new(player, 5));
-                break;
-            case "Stack":
-                foreach (var player in Raid.WithoutSlot().OrderByDescending(r => r.Class.IsSupport()).Take(4))
-                    Stacks.Add(new(player, 5, maxSize: 2));
-                break;
-        }
-    }
-}
-
-class DeadMansBlastpipe(BossModule module) : Components.GenericAOEs(module, AID.DeadMansBlastpipe)
-{
-    private Actor? Caster;
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (Caster != null)
-            yield return new(new AOEShapeRect(10, 10), Arena.Center - new WDir(0, 15), default);
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.DeadMansWindpipe)
-            Caster = caster;
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-        {
-            NumCasts++;
-            Caster = null;
-        }
-    }
-}
 
 class LevinSignal(BossModule module) : Components.GenericAOEs(module)
 {
-    // 7 second delay
-    private readonly List<(Actor Caster, bool Ground, DateTime Activation, float MaxLen)> _casters = [];
+    private readonly List<(Actor Caster, bool Ground, DateTime Activation, float MaxLen, float Offset)> _casters = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Where(c => c.Ground).Select(c => new AOEInstance(new AOEShapeRect(c.MaxLen, 2.5f), c.Caster.Position, default, c.Activation));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Where(c => c.Ground).Select(c => new AOEInstance(new AOEShapeRect(c.MaxLen, 2.5f), c.Caster.Position + new WDir(0, c.Offset), default, c.Activation));
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID._Gen_LevinSignal)
+        if ((OID)actor.OID == OID.LevinSignal)
         {
-            var car = Module.FindComponent<CarCounter>();
+            var ground = actor.PosRot.Y < 2;
+
+            var car = Module.FindComponent<CarGeometry>();
             var maxLen = 30;
+            var offset = 0;
 
             if (car?.Car == 2)
             {
@@ -135,13 +25,26 @@ class LevinSignal(BossModule module) : Components.GenericAOEs(module)
                     maxLen = 10;
             }
 
-            _casters.Add((actor, actor.PosRot.Y < 2, WorldState.FutureTime(7), maxLen));
+            if (car?.Car == 6 && actor.Position.X < 95)
+            {
+                if (ground)
+                {
+                    maxLen = 10;
+                }
+                else
+                {
+                    maxLen = 20;
+                    offset = 10;
+                }
+            }
+
+            _casters.Add((actor, ground, WorldState.FutureTime(7), maxLen, offset));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.PlasmaBeamGround or AID.PlasmaBeamOverhead or AID._Ability_PlasmaBeam2 or AID._Ability_PlasmaBeam3)
+        if ((AID)spell.Action.ID is AID.PlasmaBeamGround or AID.PlasmaBeamOverhead or AID.PlasmaBeamMedium or AID.PlasmaBeamLong)
         {
             _casters.RemoveAll(c => c.Caster == caster);
             NumCasts++;
@@ -149,7 +52,7 @@ class LevinSignal(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class UnlimitedExpress1(BossModule module) : Components.RaidwideCast(module, AID._Ability_UnlimitedExpress1);
+class UnlimitedExpress1(BossModule module) : Components.RaidwideCast(module, AID.UnlimitedExpress);
 
 class Electray(BossModule module) : Components.GenericAOEs(module)
 {
@@ -165,9 +68,10 @@ class Electray(BossModule module) : Components.GenericAOEs(module)
     {
         var len = (AID)spell.Action.ID switch
         {
-            AID._Ability_Electray => 25,
-            AID._Ability_Electray2 => 20,
-            AID._Ability_Electray1 => 5,
+            AID.Electray1 => 25,
+            AID.ElectrayMedium => 20,
+            AID.Electray2 => 10,
+            AID.ElectrayShort => 5,
             _ => 0
         };
         if (len > 0)
@@ -178,9 +82,10 @@ class Electray(BossModule module) : Components.GenericAOEs(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Ability_Electray:
-            case AID._Ability_Electray2:
-            case AID._Ability_Electray1:
+            case AID.Electray1:
+            case AID.Electray2:
+            case AID.ElectrayMedium:
+            case AID.ElectrayShort:
                 NumCasts++;
                 _casters.RemoveAll(c => c.Caster == caster);
                 break;
@@ -188,165 +93,200 @@ class Electray(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class CarCounter(BossModule module) : BossComponent(module)
-{
-    public int Car
-    {
-        get => field;
-        set
-        {
-            field = value;
-            switch (value)
-            {
-                case 2:
-                    Car2();
-                    break;
-                case 3:
-                    Car3();
-                    break;
-            }
-        }
-    } = 1;
-
-    void Car2()
-    {
-        var clipper = Arena.Bounds.Clipper;
-
-        var rect = CurveApprox.Rect(new WDir(10, 0), new WDir(0, 14.5f));
-
-        var poly = clipper.Difference(new(rect), new(Shapes.Fence(2.5f, 7.5f)));
-        poly = clipper.Difference(new(poly), new(Shapes.Fence(-2.5f, -2.5f)));
-
-        // crates
-        poly = clipper.Difference(new(poly), new(Shapes.Crate(7.575f, -2.425f)));
-        poly = clipper.Difference(new(poly), new(Shapes.Crate(-7.425f, 7.425f)));
-
-        Arena.Bounds = new ArenaBoundsCustom(14.5f, poly);
-        Arena.Center = new(100, 150);
-    }
-
-    void Car3()
-    {
-        Arena.Bounds = new ArenaBoundsRect(10, 14.5f);
-        Arena.Center = new(100, 200);
-    }
-}
-
-// 175.73
-// 168.09
-
 class LightningBurst : Components.BaitAwayIcon
 {
-    public LightningBurst(BossModule module) : base(module, new AOEShapeCircle(5), (uint)IconID.LightningBurst, AID._Ability_LightningBurst1, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster)
+    public LightningBurst(BossModule module) : base(module, new AOEShapeCircle(5), (uint)IconID.LightningBurst, AID.LightningBurst, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster)
     {
         EnableHints = false;
     }
 }
 
-// tankbuster happens ~9.7 seconds after Horn icon (icon has no visual, just SFX)
-// train distance determined by SID 4541 on Ghost Train actor
-class AetherialRay(BossModule module) : Components.GenericBaitAway(module, AID._Ability_AetherialRay, damageType: AIHints.PredictedDamageType.Tankbuster)
+class Shockwave(BossModule module) : Components.RaidwideInstant(module, AID.Shockwave, 5.7f)
 {
-    private Angle _nextRotation;
-    private Actor? _nextSource;
-    private DateTime _nextActivation;
-
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((SID)status.ID == SID._Gen_Distance)
-        {
-            _nextRotation = status.Extra switch
-            {
-                0x578 => 170.Degrees(),
-                0x106 => 106.Degrees(),
-                _ => default
-            };
-            if (_nextRotation == default)
-                ReportError("Unrecognized status on Ghost Train, don't know where to predict");
-        }
+        base.OnEventCast(caster, spell);
 
-        if ((SID)status.ID == SID._Gen_Stop)
-        {
-            foreach (ref var bait in CollectionsMarshal.AsSpan(CurrentBaits))
-                bait.Source = actor;
-        }
+        if ((AID)spell.Action.ID == AID.ShockwaveVisual)
+            Activation = WorldState.FutureTime(Delay);
     }
+}
 
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+class DerailmentSiege(BossModule module) : Components.GenericTowers(module)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((IconID)iconID == IconID.Horn)
-        {
-            var gh = Module.Enemies(OID._Gen_GhostTrain)[0];
-            var g = (gh.Position - Arena.Center).ToAngle() + _nextRotation;
-            var offset = g.ToDirection() * 25;
-            _nextSource = new Actor(1, 0, 819, 0, "fake actor", 0, ActorType.Enemy, Class.ACN, 1, new Vector4(Arena.Center.X + offset.X, gh.PosRot.Y, Arena.Center.Z + offset.Z, 0));
-            _nextActivation = WorldState.FutureTime(9.7f);
-        }
-
-        if ((IconID)iconID == IconID.AetherialRay && _nextSource != null)
-            CurrentBaits.Add(new(_nextSource, actor, new AOEShapeCone(50, 17.5f.Degrees()), _nextActivation));
+        if ((AID)spell.Action.ID is AID.DerailmentSiegeFinal1 or AID.DerailmentSiegeFinal2 or AID.DerailmentSiegeFinal3 or AID.DerailmentSiegeFinal4)
+            Towers.Add(new(caster.Position, 5, maxSoakers: 8, activation: Module.CastFinishAt(spell)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == WatchedAction)
+        if ((AID)spell.Action.ID is AID.DerailmentSiegeFinal1 or AID.DerailmentSiegeFinal2 or AID.DerailmentSiegeFinal3 or AID.DerailmentSiegeFinal4)
         {
             NumCasts++;
-            CurrentBaits.Clear();
+            Towers.Clear();
         }
+
+        if ((AID)spell.Action.ID == AID.DerailmentSiegeHit)
+            NumCasts++;
     }
 }
 
-class MultiToot(BossModule module) : Components.GenericStackSpread(module)
-{
-    public int NumCasts { get; private set; }
+class Derail(BossModule module) : Components.CastCounter(module, AID.Derail);
 
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+class Launchpad(BossModule module) : BossComponent(module)
+{
+    private WPos? _pad;
+    const float Radius = 2;
+
+    public override void OnMapEffect(byte index, uint state)
     {
-        switch ((IconID)iconID)
+        if (index == 0x0A && state == 0x00020001)
+            _pad = new(100, 212.5f);
+        if (index == 0x0B && state == 0x00020001)
+            _pad = new(100, 262.5f);
+        if (index == 0x0C && state == 0x00020001)
+            _pad = new(100, 312.5f);
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        if (_pad != null && pc.Position.Z < _pad.Value.Z + Radius)
+            Arena.ZoneCircle(_pad.Value, Radius, ArenaColor.SafeFromAOE);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_pad != null && actor.Position.Z < _pad.Value.Z + Radius)
+            hints.Add("Get to launchpad!", !actor.Position.InCircle(_pad.Value, Radius));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_pad != null && actor.Position.Z < _pad.Value.Z + Radius)
+            hints.AddForbiddenZone(ShapeContains.Donut(_pad.Value, Radius, 100));
+    }
+}
+
+class ThirdRail(BossModule module) : Components.StandardAOEs(module, AID.ThirdRailPuddle, 4)
+{
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var c in Casters)
         {
-            case IconID.DoubleToot:
-                foreach (var player in Raid.WithoutSlot().OrderByDescending(r => r.Class.GetRole2() == Role2.Healer).Take(2))
-                    Stacks.Add(new(player, 6, minSize: 2, maxSize: 3, WorldState.FutureTime(10)));
+            var height = c.CastInfo!.Location.Y;
+            var sameHeight = (height > 4) == (actor.PosRot.Y > 4);
+            yield return new(new AOEShapeCircle(4), c.CastInfo!.LocXZ, default, Module.CastFinishAt(c.CastInfo), Risky: sameHeight);
+        }
+    }
+}
+class ThirdRailBait(BossModule module) : BossComponent(module)
+{
+    public bool Active = true;
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (Active)
+            Arena.AddCircle(pc.Position, 4, ArenaColor.Danger);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ThirdRailPuddle)
+            Active = false;
+    }
+}
+
+class ZoomCounter(BossModule module) : Components.CastCounter(module, AID.Zoom);
+
+class Breathlight(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly CarGeometry _car = module.FindComponent<CarGeometry>()!;
+
+    private readonly List<(Level, DateTime)> _casts = [];
+
+    public bool Draw = true;
+
+    enum Level
+    {
+        Ground,
+        Air
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Draw ? _casts.Take(1).Select(c => new AOEInstance(c.Item1 == Level.Ground ? _car.GroundShape : _car.AirShape, Arena.Center, Activation: c.Item2)) : [];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.ThunderousBreathFirst:
+                _casts.Add((Level.Ground, Module.CastFinishAt(spell)));
+                _casts.Add((Level.Air, Module.CastFinishAt(spell, 2.5f)));
                 break;
-            case IconID.TripleToot:
-                foreach (var player in Raid.WithoutSlot().Where(r => r.Class.GetRole2() != Role2.Tank))
-                    Spreads.Add(new(player, 6, WorldState.FutureTime(10)));
+            case AID.HeadlightFirst:
+                _casts.Add((Level.Air, Module.CastFinishAt(spell)));
+                _casts.Add((Level.Ground, Module.CastFinishAt(spell, 2.5f)));
                 break;
         }
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (!Draw && _casts is [(var l, _), ..])
+            hints.Add(l == Level.Ground ? "Next: platform safe" : "Next: ground safe");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (_casts is [(Level.Air, var activate), ..])
+            foreach (var p in _car.Portals)
+                hints.AddForbiddenZone(ShapeContains.Circle(p, 1.5f), activate);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_Aetherochar or AID._Ability_Aetherosote)
+        if ((AID)spell.Action.ID is AID.Headlight or AID.ThunderousBreath)
         {
-            Stacks.Clear();
-            Spreads.Clear();
+            NumCasts++;
+            if (_casts.Count > 0)
+                _casts.RemoveAt(0);
         }
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1077, NameID = 14284, DevOnly = true)]
+class Plummet(BossModule module) : Components.SpreadFromCastTargets(module, AID.Plummet, 8);
+
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1077, NameID = 14284, PlanLevel = 100)]
 public class Ex7Doomtrain(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), Car1Bounds)
 {
     public static readonly ArenaBoundsCustom Car1Bounds = MakeCar1Bounds();
     static ArenaBoundsCustom MakeCar1Bounds()
     {
-        var b = CurveApprox.Rect(new WDir(10, 0), new WDir(0, 14.5f));
+        var b = CurveApprox.Rect(new WDir(10, 0), new WDir(0, CarGeometry.CarHeight));
 
         var clipper = new PolygonClipper();
         var poly = clipper.Difference(new(b), new(Shapes.Fence(-2.5f, 7.5f)));
         poly = clipper.Difference(new(poly), new(Shapes.Fence(2.5f, -2.5f)));
 
-        return new(14.5f, poly);
+        return new(CarGeometry.CarHeight, poly);
     }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         if (PrimaryActor.IsTargetable)
-            Arena.ActorInsideBounds(Arena.Center - new WDir(0, 14.5f), PrimaryActor.Rotation, ArenaColor.Enemy);
+        {
+            var height = Arena.Bounds.Radius;
+            if (PrimaryActor.Position.InRect(Arena.Center, default(Angle), height + 12, height + 12, 10))
+                Arena.ActorInsideBounds(Arena.Center - new WDir(0, height), PrimaryActor.Rotation, ArenaColor.Enemy);
+            else
+                Arena.ActorOutsideBounds(Arena.Center - new WDir(0, height), PrimaryActor.Rotation, ArenaColor.Enemy);
+        }
 
-        Arena.Actors(Enemies(OID._Gen_Aether), ArenaColor.Enemy);
-        Arena.Actors(Enemies(OID._Gen_GhostTrain), ArenaColor.Object, true);
+        Arena.Actors(Enemies(OID.AetherIntermission), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.GhostTrain), ArenaColor.Object, true);
+        foreach (var obj in Enemies(OID.ArcaneRevelation))
+            Arena.ActorInsideBounds(obj.Position, obj.Rotation, ArenaColor.Object);
     }
 }

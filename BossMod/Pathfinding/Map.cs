@@ -15,6 +15,8 @@ public class Map
     public float[] PixelMaxG = []; // == MaxValue if not dangerous (TODO: consider changing to a byte per pixel?), < 0 if impassable
     public float[] PixelPriority = [];
 
+    public Dictionary<int, List<int>> Portals = [];
+
     public WPos Center { get; private set; } // position of map center in world units
     public Angle Rotation { get; private set; } // rotation relative to world space (=> ToDirection() is equal to direction of local 'height' axis in world space)
     public WDir LocalZDivRes { get; private set; }
@@ -121,6 +123,16 @@ public class Map
                 pixel = MathF.Min(pixel, maxG);
             }
         }
+    }
+
+#pragma warning disable IDE0060 // TODO: mark all pixels in radius as portal source
+    public void AddPortal(WPos from, float radius, WPos to)
+#pragma warning restore IDE0060
+    {
+        var a = GridToIndex(WorldToGrid(from));
+        var b = GridToIndex(WorldToGrid(to));
+        Portals.TryAdd(a, []);
+        Portals[a].Add(b);
     }
 
     public IEnumerable<(int x, int y, WPos center)> EnumeratePixels()

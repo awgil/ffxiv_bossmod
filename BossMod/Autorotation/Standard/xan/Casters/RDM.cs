@@ -40,6 +40,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     public uint WhiteMana;
     public uint Stacks;
 
+    public float Manafication;
     public float Dualcast;
     public float Acceleration;
     public float VerfireReady;
@@ -95,6 +96,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         WhiteMana = gauge.WhiteMana;
         Stacks = gauge.ManaStacks;
 
+        Manafication = StatusLeft(SID.Manafication);
         Dualcast = StatusLeft(SID.Dualcast);
         Acceleration = StatusLeft(SID.Acceleration);
         VerfireReady = StatusLeft(SID.VerfireReady);
@@ -120,7 +122,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             : Unlocked(AID.Zwerchhau) ? 35
             : 20;
 
-        if (primaryTarget is { } tar && (Swordplay > 0 || LowestMana >= comboMana || InCombo))
+        if (primaryTarget is { } tar && Manafication < GCD && (Swordplay > 0 || LowestMana >= comboMana || InCombo))
             Hints.GoalZones.Add(Hints.GoalSingleTarget(tar.Actor, 3));
 
         GoalZoneSingle(25);

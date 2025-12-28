@@ -98,11 +98,15 @@ public sealed class ActionQueue
         if (def.ID.Type == ActionType.Item && ws.Client.GetItemQuantity(def.ID.ID) == 0)
             return false;
 
-        if (def.Range > 0)
+        var range = def.Range;
+        if (range > 0)
         {
+            if ((RDM.AID)def.ID.ID is RDM.AID.Riposte or RDM.AID.Zwerchhau or RDM.AID.Redoublement or RDM.AID.EnchantedRiposte or RDM.AID.EnchantedZwerchhau or RDM.AID.EnchantedRedoublement && player.FindStatus(RDM.SID.Manafication) != null)
+                range = 25;
+
             var to = entry.Target?.Position ?? new(entry.TargetPos.XZ());
             var distSq = (to - player.Position).LengthSq();
-            var effRange = def.Range + player.HitboxRadius + (entry.Target?.HitboxRadius ?? 0);
+            var effRange = range + player.HitboxRadius + (entry.Target?.HitboxRadius ?? 0);
             if (distSq > effRange * effRange)
                 return false;
         }
