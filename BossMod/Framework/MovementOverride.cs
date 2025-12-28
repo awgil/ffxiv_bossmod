@@ -115,7 +115,9 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private void RMIWalkDetour(MoveControllerSubMemberForMine* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
     {
-        _forcedControlState = null;
+        if (bAdditiveUnk == 0)
+            _forcedControlState = null;
+
         _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
 
         // handling the Spinning status, during which we can only steer toward a desired safe spot
