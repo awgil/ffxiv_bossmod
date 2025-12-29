@@ -409,6 +409,92 @@
             "Option": "Enabled"
           }
         ],
+        "BossMod.Autorotation.xan.HealerAI": [
+          {
+            "Track": "Raise",
+            "Option": "Swiftcast"
+          },
+          {
+            "Track": "RaiseTargets",
+            "Option": "Alliance"
+          },
+          {
+            "Track": "Heal",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Esuna2",
+            "Option": "Enabled"
+          }
+        ],
+        "BossMod.Autorotation.xan.MeleeAI": [
+          {
+            "Track": "Second Wind",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Bloodbath",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Stun",
+            "Option": "Enabled"
+          }
+        ],
+        "BossMod.Autorotation.xan.RangedAI": [
+          {
+            "Track": "Head Graze",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Second Wind",
+            "Option": "Enabled"
+          }
+        ],
+        "BossMod.Autorotation.xan.TankAI": [
+          {
+            "Track": "Stance",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Ranged GCD",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Low Blow",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Arms\u0027 Length",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Personal mits",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Invuln",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Protect party members",
+            "Option": "Enabled"
+          },
+          {
+            "Track": "Interject2",
+            "Option": "Enabled"
+          }
+        ],
+        "BossMod.Autorotation.MiscAI.StayWithinLeylines": [
+          {
+            "Track": "Use Retrace",
+            "Option": "Yes"
+          },
+          {
+            "Track": "Goal",
+            "Option": "Disabled"
+          }
+        ],
         "BossMod.Autorotation.MiscAI.NormalMovement": [
           {
             "Track": "Destination",
