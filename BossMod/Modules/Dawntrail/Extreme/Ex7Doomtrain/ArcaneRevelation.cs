@@ -93,8 +93,7 @@ class DesignatedConductor(BossModule module) : Components.GenericStackSpread(mod
                 Predict(7.5f);
                 break;
             case AID.HailOfThunderMedium:
-                // FIXME
-                Predict(0);
+                Predict(10.5f);
                 break;
             case AID.HyperconductivePlasma:
                 if (Stacks.Count > 0)

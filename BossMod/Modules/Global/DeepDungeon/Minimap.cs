@@ -37,8 +37,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
 
         var chests = new RoomChest[25];
         foreach (var c in State.Chests)
-            // FIXME
-            if (c.Room is > 0 and < 25)
+            if (c.Room is > 0)
                 chests[c.Room] |= (RoomChest)(1 << (c.Type - 1));
 
         var playerCell = State.Party[PlayerSlot].Room;
