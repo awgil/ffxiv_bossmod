@@ -847,7 +847,7 @@ sealed class WorldStateGameSync : IDisposable
                 _ => 0xFF
             };
 
-            var progress = new DeepDungeonState.DungeonProgress(dd->Floor, tileset, dd->WeaponLevel, dd->ArmorLevel, dd->SyncedGearLevel, dd->HoardCount, dd->ReturnProgress, dd->PassageProgress, (Utils.ReadField<byte>(dd, 0x2126) & 1) != 0);
+            var progress = new DeepDungeonState.DungeonProgress(dd->Floor, tileset, dd->WeaponLevel, dd->ArmorLevel, dd->SyncedGearLevel, dd->HoardCount, dd->ReturnProgress, dd->PassageProgress, (Utils.ReadField<byte>(dd, 0x20C6) & 1) != 0);
             if (fullUpdate || progress != _ws.DeepDungeon.Progress)
                 _ws.Execute(new DeepDungeonState.OpProgressChange(currentId, progress));
 
