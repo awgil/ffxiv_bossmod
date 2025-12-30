@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Dalamud.NET.Sdk/14.0.1">
   <PropertyGroup>
-    <Version>0.4.12.3</Version>
+    <Version>0.4.12.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,8 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Dalamud.Common" />
-    <Reference Include="TerraFX.Interop.Windows" />
+    <Reference Include="Dalamud.Common" Private="false" />
+    <Reference Include="TerraFX.Interop.Windows" Private="false" />
     <PackageReference Include="System.Data.Sqlite" Version="2.0.2" />
   </ItemGroup>
 
