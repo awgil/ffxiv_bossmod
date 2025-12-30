@@ -37,6 +37,6 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.build.outputs.version }}
-          tag_name: ${{ needs.build.outputs.testing && 't' || 'v' }}${{ needs.build.outputs.version }}
-          prerelease: ${{ needs.build.outputs.testing }}
+          tag_name: ${{ needs.build.outputs.testing == 'true' && 't' || 'v' }}${{ needs.build.outputs.version }}
+          prerelease: ${{ needs.build.outputs.testing == 'true' }}
           files: latest.zip
