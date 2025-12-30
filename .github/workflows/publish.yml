@@ -21,7 +21,7 @@ jobs:
       project_file: BossMod/BossMod.csproj
       dotnet_version: 10.0.x
       dalamud_version: 14
-      testing: ${{ github.ref == 'refs/heads/testing' || inputs.testing }}
+      testing: ${{ github.ref == 'refs/heads/testing' || inputs.testing == 'true' }}
 
   make_release:
     runs-on: ubuntu-latest
