@@ -36,18 +36,6 @@ public enum AID : uint
 
 class ThunderclapConcerto(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderclapConcerto1, AID.ThunderclapConcerto2], new AOEShapeCone(40, 150.Degrees()));
 
-class PoisonCloud(BossModule module) : BossComponent(module)
-{
-    public override void DrawArenaForeground(int pcSlot, Actor pc_)
-    {
-        foreach (var pc in Module.Enemies(OID.PoisonCloud))
-        {
-            Arena.Actor(pc.Position, pc.Rotation, ArenaColor.Object);
-            Arena.AddCircle(pc.Position, 1.2f, ArenaColor.Object);
-        }
-    }
-}
-
 class BurstPredict(BossModule module) : Components.GenericAOEs(module, AID.Burst)
 {
     private readonly List<List<(Actor Source, DateTime Activation)>> _sources = [];
@@ -175,7 +163,6 @@ class D122AmdusiasStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<ThunderclapConcerto>()
-            .ActivateOnEnter<PoisonCloud>()
             .ActivateOnEnter<BurstPredict>()
             .ActivateOnEnter<GallopingThunder>()
             .ActivateOnEnter<ThunderSpread>()

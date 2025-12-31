@@ -194,8 +194,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         InstantMove = 100,
         Standard = 500, // aka F4
         InstantWeave = 600, // if we want to use manafont/transpose ASAP (TODO: or utility actions?)
-        High = 650, // anything more important than F4 filler - paradox so we don't miss our FS proc, xeno to prevent overcap
+        High = 650, // anything more important than F4 filler (usually paradox, or F3 before paradox)
         DotRefresh = 700, // thunder refresh
+        XenoCap = 750,
         Max = 900, // flare star
     }
 
@@ -361,7 +362,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (Polyglot > 0)
         {
-            var prio = Polyglot < MaxPolyglot || CanFitGCD(NextPolyglot, 1) ? ForMove(InstantCastPriority.Polyglot) : GCDPriority.High;
+            var prio = Polyglot < MaxPolyglot || CanFitGCD(NextPolyglot, 1) ? ForMove(InstantCastPriority.Polyglot) : GCDPriority.XenoCap;
 
             if (NumAOETargets >= AOEBreakpoint)
                 PushGCD(AID.Foul, BestAOETarget, prio);

@@ -79,7 +79,7 @@ class ThunderIISpread(BossModule module) : Components.SpreadFromCastTargets(modu
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        if (_rocksComponent.TheRocks.Count is > 0 and < 5 && Spreads.FirstOrDefault(s => s.Target == actor) is { } s)
+        if (_rocksComponent.TheRocks.Count is > 0 and < 5 && Spreads.FirstOrNull(s => s.Target == actor) is { } s)
             foreach (var (rock, radius) in _rocksComponent.TheRocks)
                 hints.AddForbiddenZone(ShapeContains.Circle(rock.Position, radius + 5), s.Activation);
     }
