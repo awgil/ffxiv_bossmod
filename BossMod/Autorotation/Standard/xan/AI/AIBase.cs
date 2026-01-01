@@ -12,7 +12,7 @@ public abstract class AIBase<TValues>(RotationModuleManager manager, Actor playe
     internal bool ShouldInterrupt(AIHints.Enemy e) => e.Actor.InCombat && e.ShouldBeInterrupted && (e.Actor.CastInfo?.Interruptible ?? false);
     internal bool ShouldStun(AIHints.Enemy e) => e.Actor.InCombat && e.ShouldBeStunned;
 
-    internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PriorityTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
+    internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PotentialTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
 
     internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => d.Type is AIHints.PredictedDamageType.Raidwide or AIHints.PredictedDamageType.Shared).Select(d => d.Activation);
     internal IEnumerable<(Actor, DateTime)> Tankbusters => Hints.PredictedDamage

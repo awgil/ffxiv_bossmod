@@ -32,6 +32,15 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         [Track("Oracle: Predict", Actions = [PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall])]
         public Track<PredictStrategy> Predict;
+
+        [Track("Mystic Knight: Use blades/Magic Shell on cooldown", Actions = [PhantomID.SunderingSpellblade, PhantomID.MagicShell, PhantomID.HolySpellblade, PhantomID.BlazingSpellblade])]
+        public Track<EnabledByDefault> MysticKnight;
+
+        [Track("Gladiator: Finish", Actions = [PhantomID.Finisher, PhantomID.Defend, PhantomID.LongReach, PhantomID.BladeBlitz])]
+        public Track<EnabledByDefault> Gladiator;
+
+        [Track("Dancer: Dance", Actions = [PhantomID.Dance, PhantomID.PhantomSwordDance, PhantomID.TemptingTango, PhantomID.Jitterbug, PhantomID.MysteryWaltz, PhantomID.Quickstep])]
+        public Track<EnabledByDefault> Dancer;
     }
 
     public enum RaiseStrategy
@@ -117,10 +126,14 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         0x35ef
     ];
 
+    float DesiredRange = float.MaxValue;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (World.Client.CountdownRemaining > 0)
             return;
+
+        DesiredRange = float.MaxValue;
 
         var isMidCombo = CheckMidCombo();
 
@@ -280,6 +293,58 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
             if (canUse && haveTarget || isLastPrediction)
                 UseAction(GetID(pred), Player, predictOpt.Priority(ActionQueue.Priority.High));
         }
+
+        if (strategy.MysticKnight.IsEnabled())
+        {
+            if (primaryTarget?.IsAlly == false)
+            {
+                if (primaryTarget.FindStatus(PhantomSID.BlazingBane, DateTime.MaxValue) == null)
+                    UseAction(PhantomID.BlazingSpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+
+                UseAction(PhantomID.HolySpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+                UseAction(PhantomID.SunderingSpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+            }
+
+            // shell has permanent uptime (60s duration, 60s cooldown)
+            UseAction(PhantomID.MagicShell, Player, ActionQueue.Priority.High);
+        }
+
+        if (strategy.Gladiator.IsEnabled())
+        {
+            if (Hints.PredictedDamage.Any(p => p.Players[0] && p.Activation < World.FutureTime(4)) || EnemiesAutoingMe.Any())
+                UseAction(PhantomID.Defend, Player, ActionQueue.Priority.High);
+
+            if (primaryTarget?.IsAlly == false)
+            {
+                UseAction(PhantomID.Finisher, primaryTarget, ActionQueue.Priority.VeryHigh);
+                UseAction(PhantomID.LongReach, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (primaryTarget.Position.InCircle(Player.Position, Player.HitboxRadius + primaryTarget.HitboxRadius + 8))
+                    UseAction(PhantomID.BladeBlitz, Player, ActionQueue.Priority.VeryHigh);
+            }
+        }
+
+        if (strategy.Dancer.IsEnabled())
+        {
+            if (SelfStatusLeft(PhantomSID.Quickstep) < 5)
+                UseAction(PhantomID.Quickstep, Player, ActionQueue.Priority.High);
+
+            if (primaryTarget?.IsAlly == false)
+            {
+                UseAction(PhantomID.Dance, Player, ActionQueue.Priority.High);
+
+                if (Player.FindStatus(PhantomSID.PoisedToSwordDance) != null)
+                    UseAction(PhantomID.PhantomSwordDance, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.TemptedToTango) != null)
+                    UseAction(PhantomID.TemptingTango, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.Jitterbugged) != null)
+                    UseAction(PhantomID.Jitterbug, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.WillingToWaltz) != null)
+                    UseAction(PhantomID.MysteryWaltz, primaryTarget, ActionQueue.Priority.VeryHigh);
+            }
+        }
+
+        if (DesiredRange < float.MaxValue && primaryTarget != null)
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, DesiredRange, 1));
     }
 
     private bool EnoughHP => Player.HPMP.MaxHP * 0.9f < Player.HPMP.CurHP + Player.HPMP.Shield;
@@ -326,14 +391,18 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         (uint)PhantomSID.OccultQuick
     ];
 
+    bool IsTransformedAction(PhantomID p) => p is PhantomID.PhantomJudgment or PhantomID.Cleansing or PhantomID.Blessing or PhantomID.Starfall or PhantomID.PhantomSwordDance or PhantomID.TemptingTango or PhantomID.Jitterbug or PhantomID.MysteryWaltz;
+
     // returns true if the action is ready to be used, so we can add movement hints for e.g. maximizing aoe targets
     private bool UseAction(PhantomID pid, Actor target, float prio, float castTime = 0)
     {
-        var cd = pid is PhantomID.PhantomJudgment or PhantomID.Cleansing or PhantomID.Blessing or PhantomID.Starfall ? 0 : DutyActionCD(ActionID.MakeSpell(pid));
+        var action = ActionID.MakeSpell(pid);
+        var cd = IsTransformedAction(pid) ? 0 : DutyActionCD(action);
 
         if (cd <= GCD)
         {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pid), target, prio, castTime: castTime);
+            DesiredRange = MathF.Min(DesiredRange, ActionDefinitions.Instance[action]?.Range ?? float.MaxValue);
+            Hints.ActionsToExecute.Push(action, target, prio, castTime: castTime);
             return true;
         }
         return false;
