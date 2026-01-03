@@ -20,15 +20,15 @@ public enum AID : uint
     LozatlsFuryB = 15503, // 27AF->self, 4.0s cast, range 60 width 20 rect
 }
 
-class LozatlsFuryA(BossModule module) : Components.StandardAOEs(module, AID.LozatlsFuryA, new AOEShapeRect(60, 20));
-class LozatlsFuryB(BossModule module) : Components.StandardAOEs(module, AID.LozatlsFuryB, new AOEShapeRect(60, 20));
+class LozatlsFuryA(BossModule module) : Components.StandardAOEs(module, AID.LozatlsFuryA, new AOEShapeRect(60, 10));
+class LozatlsFuryB(BossModule module) : Components.StandardAOEs(module, AID.LozatlsFuryB, new AOEShapeRect(60, 10));
 class Stonefist(BossModule module) : Components.SingleTargetDelayableCast(module, AID.Stonefist);
 class LozatlsScorn(BossModule module) : Components.RaidwideCast(module, AID.LozatlsScorn);
 class SunToss(BossModule module) : Components.StandardAOEs(module, AID.SunToss, 5);
 
 class RonkanLight(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeRect rect = new(60, 20); //TODO: double halfwidth is strange
+    private static readonly AOEShapeRect rect = new(60, 20);
     private AOEInstance? _aoe;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
@@ -37,17 +37,18 @@ class RonkanLight(BossModule module) : Components.GenericAOEs(module)
     {
         if (state == 0x00040008)
         {
-            if (actor.Position.AlmostEqual(new(8, 328), 1))
-                _aoe = new(rect, Module.Center, 90.Degrees(), WorldState.FutureTime(8));
-            if (actor.Position.AlmostEqual(new(-7, 328), 1))
-                _aoe = new(rect, Module.Center, -90.Degrees(), WorldState.FutureTime(8));
+            var rotation = actor.Position.X > Module.Center.X ? 90.Degrees() : -90.Degrees();
+            _aoe = new(rect, Module.Center, rotation, WorldState.FutureTime(8.1f));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.RonkanLightLeft or AID.RonkanLightRight)
+        {
+            NumCasts++;
             _aoe = null;
+        }
     }
 }
 
@@ -65,5 +66,5 @@ class D031LozatlStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8231)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8231)]
 public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 315), new ArenaBoundsCircle(20));
