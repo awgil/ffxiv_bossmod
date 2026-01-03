@@ -137,7 +137,8 @@ public enum SID : uint
     GreatNebula = 3838, // applied by Nebula to self
     ReadyToRaze = 3839, // applied by Fated Circle to self
     ReadyToBreak = 3886, // applied by No mercy to self
-    ReadyToReign = 3840, // applied by Bloodfest to target
+    ReadyToReign = 3840, // applied by Bloodfest to self
+    Bloodfest = 5051, // applied by Bloodfest to self
 
     //Shared
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
