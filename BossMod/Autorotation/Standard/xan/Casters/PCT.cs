@@ -456,18 +456,30 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
                 return false;
         }
 
-        if (BestLivingMuse is AID.WingedMuse or AID.FangedMuse)
-            // prevent overcap
-            return BestPortrait == AID.None;
+        // no overcap pls
+        if (CanWeave(MaxChargesIn(AID.LivingMuse), 0.6f, 1))
+            return true;
 
-        // otherwise should always be fine to use
-        return true;
+        // dont overwrite
+        if (BestLivingMuse is AID.WingedMuse or AID.FangedMuse && BestPortrait != AID.None)
+            return false;
+
+        // use during buffs
+        if (RaidBuffsLeft > AnimLock)
+            return true;
+
+        // canvas is empty, we should prep a painting for next burst window
+        if (BestLivingMuse is AID.PomMuse or AID.ClawedMuse)
+            return true;
+
+        return false;
     }
 
     private bool ShouldCreaturePortrait(in Strategy strategy) => strategy.Portrait.Value switch
     {
         PortraitStrategy.Force => true,
-        PortraitStrategy.Automatic => StarryMuseLeft > AnimLock || ReadyIn(AID.StarryMuse) > 20,
+        // figure out math
+        PortraitStrategy.Automatic => StarryMuseLeft > AnimLock /* || ReadyIn(AID.StarryMuse) > 20 */,
         _ => false
     };
 }
