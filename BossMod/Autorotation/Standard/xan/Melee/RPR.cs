@@ -376,7 +376,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
     private void Perfectio(in Strategy strategy)
     {
         var opt = strategy.Perf;
-        if (PerfectioParata < GCD || opt == PerfectioStrategy.Delay || SoulReaver)
+        if (PerfectioParata <= GCD || opt == PerfectioStrategy.Delay || SoulReaver)
             return;
 
         var prio = opt.Value switch
@@ -391,7 +391,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private void PlentifulHarvest(in Strategy strategy)
     {
-        if (ImmortalSacrifice.Left < GCD || BloodsownCircle > GCD || !strategy.PH.IsEnabled() || SoulReaver)
+        if (ImmortalSacrifice.Left <= GCD || BloodsownCircle > GCD || !strategy.PH.IsEnabled() || SoulReaver)
             return;
 
         PushGCD(AID.PlentifulHarvest, ResolveTargetOverride(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest);
