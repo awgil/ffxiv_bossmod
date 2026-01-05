@@ -82,6 +82,6 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         var dragDir = (module.Center - module.PrimaryActor.Position).Normalized();
         var dragSpot = module.Center + dragDistance * dragDir;
         var timeToMelee = ((dragSpot - module.PrimaryActor.Position).Length() - meleeDistance) / (Speed() + 8.5f); // assume 8.5 boss speed...
-        return GCD > timeToMelee + 0.1f ? dragSpot : module.PrimaryActor.Position + meleeDistance * dragDir;
+        return GCD >= timeToMelee + 0.1f ? dragSpot : module.PrimaryActor.Position + meleeDistance * dragDir;
     }
 }

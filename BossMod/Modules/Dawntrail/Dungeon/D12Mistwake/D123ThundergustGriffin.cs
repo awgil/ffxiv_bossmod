@@ -67,7 +67,9 @@ class ElectrifyingFlight(BossModule module) : Components.Knockback(module)
                 Kind.DirRight => src.Direction.ToDirection().OrthoR(),
                 _ => default
             };
-            hints.AddForbiddenZone(p => !(p + kbDir * src.Distance).InCircle(Arena.Center, 20), src.Activation);
+            var dist = src.Distance;
+            var ctr = Arena.Center;
+            hints.AddForbiddenZone(p => !(p + kbDir * dist).InCircle(ctr, 20), src.Activation);
         }
     }
 

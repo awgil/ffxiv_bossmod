@@ -336,7 +336,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
                 {
                     // outside opener, WM needs to be late-weaved, even if it slightly delays gcd (depending on AP procs, we might need to drift the cycle slightly)
                     // late-weave threshold: with no sks, 2.5 GCD under muse becomes 2.2, we want 5 GCDs to be fast, meaning that max gcd = 10 - 4 * 2.2 = 1.2 (minus safety delta)
-                    if (CD(song) < GCD)
+                    if (CD(song) <= GCD)
                         basePrio = ActionQueue.Priority.High;
                     delay = GCD - 1.0f;
                 }
