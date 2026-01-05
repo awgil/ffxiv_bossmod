@@ -37,6 +37,12 @@
     <Reference Include="Dalamud.Common" Private="false" />
     <Reference Include="TerraFX.Interop.Windows" Private="false" />
     <PackageReference Include="System.Data.Sqlite" Version="2.0.2" />
+
+    <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+      <PrivateAssets>All</PrivateAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

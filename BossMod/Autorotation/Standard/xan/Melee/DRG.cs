@@ -160,7 +160,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             }
 
             // lol
-            if (!Unlocked(AID.SonicThrust) && PowerSurge < GCD)
+            if (!Unlocked(AID.SonicThrust) && PowerSurge <= GCD)
             {
                 if (ComboLastMove == AID.TrueThrust)
                     PushGCD(AID.Disembowel, primaryTarget);
@@ -324,7 +324,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
     private bool MoveOk(Strategy strategy) => strategy.Dive == DiveStrategy.Allow;
     private bool PosLockOk(Strategy strategy) => strategy.Dive != DiveStrategy.NoLock;
 
-    private (Positional, bool) GetPositional(Strategy strategy, Enemy? primaryTarget)
+    private (Positional, bool) GetPositional(in Strategy strategy, Enemy? primaryTarget)
     {
         // no positional
         if (NumAOETargets > 2 && Unlocked(AID.DoomSpike) || !Unlocked(AID.ChaosThrust) || primaryTarget == null)

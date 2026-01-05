@@ -183,7 +183,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool ShouldBlood(in Strategy strategy)
     {
-        if (Darkside < GCD)
+        if (Darkside <= GCD)
             return false;
 
         if (Delirium > 0)
@@ -219,7 +219,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         if (track == EdgeStrategy.Delay || !canUse)
             return;
 
-        if (Darkside < GCD)
+        if (Darkside <= GCD)
         {
             use(OGCDPriority.EdgeRefresh);
             return;

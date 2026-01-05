@@ -1,6 +1,6 @@
 ﻿using BossMod.MCH;
-using static BossMod.AIHints;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 //Contribution by Akechi
@@ -207,7 +207,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         if (!CanRA)
             return (false, OGCDPriority.None);
         var opti = Player.InCombat && CanWeaveIn && EVleft > GCD || (BScd is < 110 and > 90 && !OverheatActive && NextGCD is AID.Drill);
-        var any = Player.InCombat && CanWeaveIn && (AAcd < GCD || CScd < GCD || EVleft > GCD || NextGCD == AID.Drill);
+        var any = Player.InCombat && CanWeaveIn && (AAcd <= GCD || CScd <= GCD || EVleft > GCD || NextGCD == AID.Drill);
         var risk = CDRemaining(AID.Reassemble) < 15 && any;
         return strategy switch
         {
@@ -260,11 +260,11 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     {
         var st = InsideCombatWith(target) && CanDrill && (ActionReady(AID.Drill) || !OverheatActive);
         var aoe = InsideCombatWith(target) && CanBB && In12y(target) && ActionReady(AID.Bioblaster);
-        var prio = CDRemaining(AID.Drill) < GCD ? GCDPriority.ExtremelyHigh + 9 : CanFitSkSGCD(WFleft) && FMFleft == 0 ? GCDPriority.High + 2 : GCDPriority.High;
+        var prio = CDRemaining(AID.Drill) <= GCD ? GCDPriority.ExtremelyHigh + 9 : CanFitSkSGCD(WFleft) && FMFleft == 0 ? GCDPriority.High + 2 : GCDPriority.High;
         return strategy switch
         {
             DrillStrategy.Automatic or DrillStrategy.OnlyDrill or DrillStrategy.OnlyBioblaster => (ShouldUseAOE ? aoe : st, prio),
-            DrillStrategy.HoldOne => (CDRemaining(AID.Drill) < GCD && (ShouldUseAOE ? aoe : st), prio),
+            DrillStrategy.HoldOne => (CDRemaining(AID.Drill) <= GCD && (ShouldUseAOE ? aoe : st), prio),
             DrillStrategy.ForceDrill => (CanDrill, GCDPriority.Forced),
             DrillStrategy.ForceBioblaster => (CanBB, GCDPriority.Forced),
             DrillStrategy.Delay or _ => (false, GCDPriority.None),
