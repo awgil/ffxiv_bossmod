@@ -334,21 +334,6 @@ class HazardDance : Components.PersistentVoidzone
             _hazards.Remove(actor);
     }
 }
-
-class AddsMult(BossModule module) : Components.AddsMulti(module, [(uint)OID.Coffinmaker, (uint)OID.FatalFlail])
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var e in hints.PotentialTargets)
-            e.Priority = (OID)e.Actor.OID switch
-            {
-                OID.Boss => 2,
-                OID.FatalFlail => 1,
-                _ => 0
-            };
-    }
-}
-
 class RM09VampFataleStates : StateMachineBuilder
 {
     public RM09VampFataleStates(BossModule module) : base(module)
@@ -371,8 +356,7 @@ class RM09VampFataleStates : StateMachineBuilder
             .ActivateOnEnter<Aetherletting>()
             .ActivateOnEnter<AetherlettingCross>()
             .ActivateOnEnter<Plummet>()
-            .ActivateOnEnter<HazardDance>()
-            .ActivateOnEnter<AddsMult>();
+            .ActivateOnEnter<HazardDance>();
     }
 }
 
@@ -383,6 +367,7 @@ public class RM09VampFatale(WorldState ws, Actor primary) : BossModule(ws, prima
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         Arena.Actors(Enemies(OID.FatalFlail), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Coffinmaker), ArenaColor.Enemy);
     }
 
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -391,7 +376,8 @@ public class RM09VampFatale(WorldState ws, Actor primary) : BossModule(ws, prima
         {
             e.Priority = (OID)e.Actor.OID switch
             {
-                OID.Boss => 2,
+                OID.Boss => 3,
+                OID.Coffinmaker => 2,
                 OID.FatalFlail => 1,
                 _ => 0
             };
