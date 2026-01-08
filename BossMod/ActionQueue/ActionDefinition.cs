@@ -173,11 +173,11 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDSprint = new(ActionType.Spell, 3);
     public static readonly ActionID IDAutoAttack = new(ActionType.Spell, 7);
     public static readonly ActionID IDAutoShot = new(ActionType.Spell, 8);
-    public static readonly ActionID IDPotionStr = new(ActionType.Item, 1045995); // hq grade 3 gemdraught of strength
-    public static readonly ActionID IDPotionDex = new(ActionType.Item, 1045996); // hq grade 3 gemdraught of dexterity
-    public static readonly ActionID IDPotionVit = new(ActionType.Item, 1045997); // hq grade 3 gemdraught of vitality
-    public static readonly ActionID IDPotionInt = new(ActionType.Item, 1045998); // hq grade 3 gemdraught of intelligence
-    public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1045999); // hq grade 3 gemdraught of mind
+    public static readonly ActionID IDPotionStr = new(ActionType.Item, 1049234); // hq grade 3 gemdraught of strength
+    public static readonly ActionID IDPotionDex = new(ActionType.Item, 1049235); // hq grade 3 gemdraught of dexterity
+    public static readonly ActionID IDPotionVit = new(ActionType.Item, 1049236); // hq grade 3 gemdraught of vitality
+    public static readonly ActionID IDPotionInt = new(ActionType.Item, 1049237); // hq grade 3 gemdraught of intelligence
+    public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1049238); // hq grade 3 gemdraught of mind
 
     // content specific consumables
     public static readonly ActionID IDPotionSustaining = new(ActionType.Item, 20309);

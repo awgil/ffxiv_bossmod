@@ -96,7 +96,10 @@ public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int max
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (IDs.Contains(spell.Action))
+        {
             Casters.Add(caster);
+            Casters.SortBy(c => Module.CastFinishAt(c.CastInfo));
+        }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

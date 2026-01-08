@@ -61,6 +61,7 @@ class ElectrifyingFlight(BossModule module) : Components.Knockback(module)
     {
         foreach (var src in Sources(slot, actor))
         {
+            // TODO: this is lazy and causes "greed" settings from NormalMove to spaz out in the middle of the arena
             var kbDir = src.Kind switch
             {
                 Kind.DirLeft => src.Direction.ToDirection().OrthoL(),

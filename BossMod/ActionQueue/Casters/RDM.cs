@@ -90,6 +90,7 @@ public enum SID : uint
     VerfireReady = 1234,
     VerstoneReady = 1235,
     Acceleration = 1238,
+    EmboldenSelf = 1239,
     Dualcast = 1249,
     Embolden = 1297,
     Manafication = 1971,

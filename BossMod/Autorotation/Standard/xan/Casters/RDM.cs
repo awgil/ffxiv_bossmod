@@ -41,6 +41,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     public uint Stacks;
 
     public float Manafication;
+    public float Embolden;
     public float Dualcast;
     public float Acceleration;
     public float VerfireReady;
@@ -97,6 +98,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         Stacks = gauge.ManaStacks;
 
         Manafication = StatusLeft(SID.Manafication);
+        Embolden = StatusLeft(SID.EmboldenSelf);
         Dualcast = StatusLeft(SID.Dualcast);
         Acceleration = StatusLeft(SID.Acceleration);
         VerfireReady = StatusLeft(SID.VerfireReady);

@@ -27,7 +27,7 @@ public class CastCounterMulti(BossModule module, Enum[] aids) : BossComponent(mo
 
 public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float expireAfter = 30, uint color = 0) : CastCounterMulti(module, aids)
 {
-    private readonly List<(WPos Source, Angle Direction, float SincePull)> _casts = [];
+    protected readonly List<(WPos Source, Angle Direction, float SincePull)> _casts = [];
     public float ExpireAfter = expireAfter;
     public uint Color = color == 0 ? ArenaColor.Object : color;
 
@@ -49,7 +49,7 @@ public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float ex
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (_casts.Count > 0)
-            hints.Add($"Casts of {string.Join(", ", WatchedActions)}:\n{string.Join("\n", _casts)}");
+            hints.Add($"Casts of {string.Join(", ", WatchedActions)}:\n{string.Join("\n", _casts)}\nTotal casts: {NumCasts}");
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
