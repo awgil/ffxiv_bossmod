@@ -90,9 +90,9 @@ public enum IconID : uint
 }
 public enum TetherID : uint
 {
-    chn_m0982_2c = 372, // DeepBlue->a
-    chn_water01f = 380, // player->DeepBlue
-    chn_fire001f = 381, // player->Boss
+    Eat = 372, // DeepBlue->a
+    A = 380, // player->DeepBlue
+    Butt = 381, // player->Boss
 }
 public enum SID : uint
 {
