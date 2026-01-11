@@ -88,12 +88,6 @@ public enum IconID : uint
     WaterSnakeBait3 = 635, // player->self
     FireSnakeBait3 = 636, // player->self
 }
-public enum TetherID : uint
-{
-    chn_m0982_2c = 372, // DeepBlue->a
-    chn_water01f = 380, // player->DeepBlue
-    chn_fire001f = 381, // player->Boss
-}
 public enum SID : uint
 {
     Watersnaking = 4975, // none->player, extra=0x0
