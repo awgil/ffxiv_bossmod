@@ -12,7 +12,6 @@ public enum AID : uint
 {
     AutoAttack = 46005, // 4AE8->player, no cast, single-target
     CrownOfArcadia = 46006, // 4AE8->self, 5.0s cast, range 60 circle
-
     DrawSteel = 46008, // 4AE8->self, 2.0+4.0s cast, single-target
     DrawSteel1 = 46007, // 4AE8->self, 2.0+4.0s cast, single-target
     DrawSteel2 = 46009, // 4AE8->self, 2.0+4.0s cast, single-target
@@ -72,7 +71,6 @@ public enum AID : uint
 
     Flatliner = 46056, // 4AE8->self, 4.0+2.0s cast, single-target
     FlatlinerKnockUp = 47759, // 233C->self, 6.0s cast, range 60 circle
-
     MajesticMeteor = 46057, // 4AE8->self, 4.0s cast, single-target
     MajesticMeteor1 = 46058, // 233C->location, 4.0s cast, range 6 circle
     MajesticMeteorain = 46059, // 233C->self, 6.0s cast, range 60 width 10 rect
@@ -82,7 +80,6 @@ public enum AID : uint
     FireAndFuryCone1 = 46073, // 233C->self, 6.0s cast, range 60 90-degree cone
     FireAndFuryCone2 = 46072, // 233C->self, 6.0s cast, range 60 90-degree cone
     ExplosionKnockUp = 46061, // 233C->self, 10.0s cast, range 4 circle
-
     ArcadionAvalanche = 46069, // 4AE8->self, 8.0+9.5s cast, single-target
     ArcadionAvalancheToss = 46070, // 233C->self, 17.5s cast, range 40 width 40 rect
 
@@ -91,7 +88,6 @@ public enum AID : uint
     GreatWallOfFire = 46074, // 4AE8->self, 5.0s cast, single-target
     GreatWallOfFire1 = 46075, // 4AE8->self, no cast, range 60 width 6 rect
     GreatWallOfFire2 = 46076, // 233C->self, no cast, single-target
-
 }
 public enum IconID : uint
 {
@@ -105,7 +101,6 @@ public enum TetherID : uint
 {
     TankInterceptTether = 356, // TheTyrant2->Comet/player
 }
-
 class CrownOfArcadia(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -120,7 +115,6 @@ class CrownOfArcadia(BossModule module) : Components.GenericAOEs(module)
             }
         }
     }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.CrownOfArcadia)
@@ -162,19 +156,15 @@ class VoidStardust(BossModule module) : Components.SpreadFromIcon(module, (uint)
     }
 }
 class Cometite(BossModule module) : Components.StandardAOEs(module, AID.Cometite, 4f);
-
 class AssaultEvolved1(BossModule module) : Components.StandardAOEs(module, AID.AssaultEvolvedSword, new AOEShapeCross(40, 5f));
 class AssaultEvolved2(BossModule module) : Components.StandardAOEs(module, AID.AssaultEvolvedScythe, new AOEShapeDonut(5, 60));
 class AssaultEvolved3(BossModule module) : Components.StandardAOEs(module, AID.AssaultEvolvedAxe, 8f);
-
 class DanceOfDomination(BossModule module) : Components.RaidwideCast(module, AID.DanceOfDomination);
 class Explosion1(BossModule module) : Components.StandardAOEs(module, AID.Explosion1, new AOEShapeRect(60f, 5f));
 class Explosion2(BossModule module) : Components.StandardAOEs(module, AID.Explosion1, new AOEShapeRect(60f, 5f));
 class Explosion3(BossModule module) : Components.StandardAOEs(module, AID.Explosion1, new AOEShapeRect(60f, 3f));
-
 class RawSteelTankBuster(BossModule module) : Components.IconSharedTankbuster(module, (uint)IconID.RawSteelSharedTankbuster, AID.RawSteel1, 6f);
 class RawSteelSpreads(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.RawSteelSpread, AID.Impact, 6, 0, true);
-
 class Charybdistopia(BossModule module) : Components.RaidwideCast(module, AID.Charybdistopia);
 class Maelstrom(BossModule module) : Components.GenericAOEs(module)
 {
@@ -222,7 +212,6 @@ class PowerfulGust(BossModule module) : Components.GenericAOEs(module)
             }
         }
     }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.PowerfulGust)
@@ -243,7 +232,6 @@ class OneAndOnly(BossModule module) : Components.RaidwideCast(module, AID.OneAnd
 class CosmicKiss(BossModule module) : Components.CastTowers(module, AID.CosmicKiss, 4f);
 class MassiveMeteor(BossModule module) : Components.StackWithIcon(module, (uint)IconID.MassiveMeteorStack, AID.MassiveMeteor, 6, 0);
 class ForegoneFatality(BossModule module) : Components.TankbusterTether(module, AID.ForegoneFatality, (uint)TetherID.TankInterceptTether, 6f);
-
 class DoubleTyrannhilation(BossModule module) : Components.CastLineOfSightAOE(module, AID.DoubleTyrannhilation1, 60f, false)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Comet).Where(a => !a.Position.InCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + a.HitboxRadius + 9));
@@ -278,7 +266,6 @@ class Flatliner(BossModule module) : Components.GenericAOEs(module)
             }
         }
     }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Flatliner)
@@ -339,7 +326,6 @@ class ExplosionKnockUp(BossModule module) : Components.KnockbackFromCastTarget(m
             yield return best.Value;
     }
 }
-
 class ArcadionAvalanche(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -354,7 +340,6 @@ class ArcadionAvalanche(BossModule module) : Components.GenericAOEs(module)
             }
         }
     }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.ArcadionAvalanche)
@@ -370,7 +355,6 @@ class ArcadionAvalanche(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-
 class ArcadionAvalancheToss(BossModule module) : Components.StandardAOEs(module, AID.ArcadionAvalancheToss, new AOEShapeRect(40f, 20f));
 class HeartbreakKick(BossModule module) : Components.CastTowers(module, AID.HeartbreakKick, 4, 1, 8, damageType: AIHints.PredictedDamageType.Shared)
 {
@@ -388,7 +372,6 @@ class HeartbreakKick(BossModule module) : Components.CastTowers(module, AID.Hear
     { }
 }
 class GreatWallOfFire(BossModule module) : Components.IconSharedTankbuster(module, (uint)IconID.WallOfFireTankbuster, AID.GreatWallOfFire, new AOEShapeRect(60, 3f));
-
 class RM11TheTyrantStates : StateMachineBuilder
 {
     public RM11TheTyrantStates(BossModule module) : base(module)
