@@ -142,7 +142,7 @@ class Smashdown2(BossModule module) : Components.StandardAOEs(module, AID.Smashd
 class Smashdown3(BossModule module) : Components.StandardAOEs(module, AID.SmashdownSword, new AOEShapeCross(40, 5f));
 class VoidStardust(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.VoidStardustSpread, AID.VoidStardust, 4f, 4.7f, true)
 {
-    public int _numCasts = 0;
+    public int _numCasts;
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.VoidStardust)
