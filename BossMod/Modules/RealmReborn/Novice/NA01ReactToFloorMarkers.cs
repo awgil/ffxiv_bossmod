@@ -95,7 +95,7 @@ class Interact(BossModule module) : BossComponent(module)
     public override void OnEventDirectorUpdate(uint updateID, uint param1, uint param2, uint param3, uint param4)
     {
         base.OnEventDirectorUpdate(updateID, param1, param2, param3, param4);
-        if(updateID == 0x80000015 && param1 == 0x4 && param2 == 0x0 && param3 == 0x0 && param4 == 0x0) //NPC Asks to speak
+        if (updateID == 0x80000015 && param1 == 0x4 && param2 == 0x0 && param3 == 0x0 && param4 == 0x0) //NPC Asks to speak
         {
             _interactReady = true;
         }
