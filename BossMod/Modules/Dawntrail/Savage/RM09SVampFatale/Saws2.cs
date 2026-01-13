@@ -180,6 +180,18 @@ class ElectroPuddle(BossModule module) : Components.GenericAOEs(module)
             _puddles.Add((actor, DateTime.MaxValue));
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var aoe in ActiveAOEs(slot, actor))
+        {
+            hints.AddForbiddenZone(aoe.Shape, aoe.Origin, aoe.Rotation, aoe.Activation);
+
+            // add extra margin to prevent safe-dash function from moving player into growing puddle
+            if (aoe.Shape is AOEShapeCircle circ)
+                hints.AddForbiddenZone(new AOEShapeCircle(circ.Radius + 2), aoe.Origin, aoe.Rotation, DateTime.MaxValue);
+        }
+    }
+
     public override void OnActorEAnim(Actor actor, uint state)
     {
         var ix = _puddles.FindIndex(p => p.Actor.InstanceID == actor.InstanceID);
