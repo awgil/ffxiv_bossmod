@@ -419,7 +419,7 @@ public sealed class ReplayBuilder : IDisposable
 
     private void EventUserMarker(WorldState.OpUserMarker op)
     {
-        _res.UserMarkers.Add(_ws.CurrentTime, op.Text);
+        _res.UserMarkers.TryAdd(_ws.CurrentTime, op.Text);
     }
 
     private void EventZoneChange(WorldState.OpZoneChange op)

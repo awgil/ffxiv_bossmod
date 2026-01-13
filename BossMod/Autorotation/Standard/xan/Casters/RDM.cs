@@ -61,6 +61,11 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     private Enemy? BestConeTarget;
     private Enemy? BestLineTarget;
 
+    private bool InRangedCombo
+        => Stacks == 3
+        || ComboLastMove is AID.Verflare or AID.Verholy && Unlocked(AID.Scorch)
+        || ComboLastMove is AID.Scorch && Unlocked(AID.Resolution);
+
     private bool InCombo
         => ComboLastMove == AID.Riposte && Unlocked(AID.Zwerchhau)
         || ComboLastMove == AID.Zwerchhau && Unlocked(AID.Redoublement)
@@ -221,7 +226,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (strategy.Buffs != OffensiveStrategy.Delay)
         {
             PushOGCD(AID.Embolden, Player);
-            if (!InCombo)
+            if (!(InCombo || InRangedCombo))
                 PushOGCD(AID.Manafication, Player);
         }
 

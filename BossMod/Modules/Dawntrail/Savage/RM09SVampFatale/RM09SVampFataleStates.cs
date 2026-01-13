@@ -151,9 +151,10 @@ class RM09SVampFataleStates : StateMachineBuilder
         ComponentCondition<BloodyBondage>(id + 0x100, 11.1f, b => b.NumCasts > 0, "Towers 1")
             .ActivateOnEnter<BloodyBondage>()
             .ActivateOnEnter<CharnelCell>()
-            .ActivateOnEnter<UltrasonicSpreadTank>()
-            .ActivateOnEnter<UltrasonicSpreadOther>()
-            .ActivateOnEnter<UltrasonicAmp>()
+            .ActivateOnEnter<Ultrasonic>()
+            //.ActivateOnEnter<UltrasonicSpreadTank>()
+            //.ActivateOnEnter<UltrasonicSpreadOther>()
+            //.ActivateOnEnter<UltrasonicAmp>()
             .ActivateOnEnter<UltrasonicCounter>();
 
         ComponentCondition<UltrasonicCounter>(id + 0x101, 7.9f, c => c.NumCasts > 0, "Stack/spread");
@@ -163,9 +164,10 @@ class RM09SVampFataleStates : StateMachineBuilder
         ComponentCondition<UltrasonicCounter>(id + 0x201, 7.8f, c => c.NumCasts > 2, "Stack/spread");
         ComponentCondition<UltrasonicCounter>(id + 0x202, 7.2f, c => c.NumCasts > 3, "Stack/spread")
             .DeactivateOnExit<UltrasonicCounter>()
-            .DeactivateOnExit<UltrasonicAmp>()
-            .DeactivateOnExit<UltrasonicSpreadTank>()
-            .DeactivateOnExit<UltrasonicSpreadOther>()
+            .DeactivateOnExit<Ultrasonic>()
+            //.DeactivateOnExit<UltrasonicAmp>()
+            //.DeactivateOnExit<UltrasonicSpreadTank>()
+            //.DeactivateOnExit<UltrasonicSpreadOther>()
             .DeactivateOnExit<BloodyBondage>();
 
         ComponentCondition<BloodyBondageBig>(id + 0x300, 15.5f, b => b.NumCasts > 0, "Shared towers")

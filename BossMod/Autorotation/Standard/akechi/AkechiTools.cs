@@ -414,7 +414,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     #region Lines (AOE Rectangles)
     /// <summary>Creates a <b>Position Check</b> for <b>Line AOE (AOE Rectangle)</b> attacks with the given range.</summary>
-    private PositionCheck LineTargetCheck(float range, float halfWidth = 2) => (primary, other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), range, halfWidth);
+    private PositionCheck LineTargetCheck(float range, float halfWidth = 2) => (primary, other) => AIHints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), range, halfWidth);
 
     /// <summary>Checks if the target is within a <b>10-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is10yRectTarget => LineTargetCheck(10);
