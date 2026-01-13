@@ -110,9 +110,9 @@ public enum AID : uint
     SanguineScratchBossRepeat = 45990, // Boss->self, no cast, single-target
     SanguineScratchRepeat = 45991, // Helper->self, no cast, range 40 30-degree cone
     BreakdownDrop1 = 45992, // VampetteFatale->self, 1.0s cast, range 7 circle
-    BreakwingBeat1 = 45993, // VampetteFatale->self, 1.0s cast, range 8-15 donut
+    BreakwingBeat1 = 45993, // VampetteFatale->self, 1.0s cast, range 4-15 donut
     BreakdownDrop2 = 45994, // VampetteFatale->self, 1.0s cast, range 7 circle
-    BreakwingBeat2 = 45995, // VampetteFatale->self, 1.0s cast, range 8-15 donut
+    BreakwingBeat2 = 45995, // VampetteFatale->self, 1.0s cast, range 4-15 donut
 
     FinaleFataleEnrageCast = 45934, // Boss->self, 10.0s cast, single-target
     FinaleFataleEnrage = 45937, // Helper->self, no cast, range 60 circle

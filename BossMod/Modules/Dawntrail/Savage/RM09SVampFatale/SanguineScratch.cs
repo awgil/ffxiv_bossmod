@@ -66,7 +66,7 @@ class BatShapePredict(BossModule module) : Components.GenericAOEs(module)
 }
 
 class BreakdownDrop(BossModule module) : Components.GroupedAOEs(module, [AID.BreakdownDrop1, AID.BreakdownDrop2], new AOEShapeCircle(7));
-class BreakwingBeat(BossModule module) : Components.GroupedAOEs(module, [AID.BreakwingBeat1, AID.BreakwingBeat2], new AOEShapeDonut(8, 15));
+class BreakwingBeat(BossModule module) : Components.GroupedAOEs(module, [AID.BreakwingBeat1, AID.BreakwingBeat2], new AOEShapeDonut(4, 15));
 
 class BreakCounter(BossModule module) : Components.CastCounterMulti(module, [AID.BreakdownDrop1, AID.BreakdownDrop2, AID.BreakwingBeat1, AID.BreakwingBeat2]);
 
