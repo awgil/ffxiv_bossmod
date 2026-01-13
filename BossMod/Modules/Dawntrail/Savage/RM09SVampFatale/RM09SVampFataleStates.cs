@@ -23,7 +23,7 @@ class RM09SVampFataleStates : StateMachineBuilder
         Saws2(id + 0x30000, 7.2f);
         HellInCell(id + 0x40000, 8.5f);
 
-        Cast(id + 0x50000, AID.FinaleFataleEnrageCast, 30, 10)
+        Cast(id + 0x50000, AID.FinaleFataleEnrageCast, 8.6f, 10)
             .ActivateOnEnter<FFEnrage>();
         ComponentCondition<FFEnrage>(id + 0x50002, 1.1f, f => f.NumCasts > 0, "Enrage");
     }
@@ -74,7 +74,7 @@ class RM09SVampFataleStates : StateMachineBuilder
             .ActivateOnEnter<AetherlettingCross>()
             .ActivateOnEnter<AetherlettingSpread>();
 
-        ComponentCondition<AetherlettingCone>(id + 0x100, 18.9f, c => c.NumCasts > 0, "Cones start");
+        ComponentCondition<AetherlettingCone>(id + 0x100, 19, c => c.NumCasts > 0, "Cones start");
         ComponentCondition<AetherlettingCone>(id + 0x101, 6, c => c.NumCasts >= 8, "Cones finish")
             .DeactivateOnExit<AetherlettingCone>();
 
@@ -148,13 +148,10 @@ class RM09SVampFataleStates : StateMachineBuilder
         FinaleFatale(id + 0x10, 12.8f)
             .ActivateOnEnter<PulpingPulse>();
 
-        ComponentCondition<BloodyBondage>(id + 0x100, 11.1f, b => b.NumCasts > 0, "Towers 1")
+        ComponentCondition<BloodyBondage>(id + 0x100, 11, b => b.NumCasts > 0, "Towers 1")
             .ActivateOnEnter<BloodyBondage>()
             .ActivateOnEnter<CharnelCell>()
             .ActivateOnEnter<Ultrasonic>()
-            //.ActivateOnEnter<UltrasonicSpreadTank>()
-            //.ActivateOnEnter<UltrasonicSpreadOther>()
-            //.ActivateOnEnter<UltrasonicAmp>()
             .ActivateOnEnter<UltrasonicCounter>();
 
         ComponentCondition<UltrasonicCounter>(id + 0x101, 7.9f, c => c.NumCasts > 0, "Stack/spread");
@@ -165,9 +162,6 @@ class RM09SVampFataleStates : StateMachineBuilder
         ComponentCondition<UltrasonicCounter>(id + 0x202, 7.2f, c => c.NumCasts > 3, "Stack/spread")
             .DeactivateOnExit<UltrasonicCounter>()
             .DeactivateOnExit<Ultrasonic>()
-            //.DeactivateOnExit<UltrasonicAmp>()
-            //.DeactivateOnExit<UltrasonicSpreadTank>()
-            //.DeactivateOnExit<UltrasonicSpreadOther>()
             .DeactivateOnExit<BloodyBondage>();
 
         ComponentCondition<BloodyBondageBig>(id + 0x300, 15.5f, b => b.NumCasts > 0, "Shared towers")
@@ -186,9 +180,9 @@ class RM09SVampFataleStates : StateMachineBuilder
         ComponentCondition<SanguineScratch>(id + 0x402, 0.7f, s => s.NumCasts > 0, "Cones start")
             .ActivateOnEnter<BreakCounter>();
 
-        ComponentCondition<BreakCounter>(id + 0x410, 12.8f, c => c.NumCasts > 1, "Shapes 1");
+        ComponentCondition<BreakCounter>(id + 0x410, 12.6f, c => c.NumCasts > 1, "Shapes 1");
 
-        Cast(id + 0x420, AID.SanguineScratchCast, 2.6f, 2.3f);
+        Cast(id + 0x420, AID.SanguineScratchCast, 2.8f, 2.3f);
         ComponentCondition<SanguineScratch>(id + 0x422, 0.7f, s => s.NumCasts > 8, "Cones start");
 
         ComponentCondition<BreakCounter>(id + 0x430, 12.8f, c => c.NumCasts > 3, "Shapes 2")
@@ -203,7 +197,7 @@ class RM09SVampFataleStates : StateMachineBuilder
 
         BrutalRain(id + 0x440, 6.8f);
 
-        Bombpyre(id + 0x500, 8.3f)
+        Bombpyre(id + 0x500, 8.2f)
             .DeactivateOnExit<BatRing>()
             .DeactivateOnExit<BrutalRain>()
             .ActivateOnEnter<HalfMoon>();
