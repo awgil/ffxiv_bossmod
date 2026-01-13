@@ -13,7 +13,7 @@ abstract class FlamePuddle(BossModule module, AID[] actions, AOEShape shape, OID
 
     public int NumActors => _actual.Count;
 
-    public FlamePuddle(BossModule module, AID action, AOEShape shape, OID oid, bool originAtTarget = false, float spawnDelay = 1.2f, float activationDelay = 1.2f) : this(module, [action], shape, oid, originAtTarget, spawnDelay, activationDelay) { }
+    protected FlamePuddle(BossModule module, AID action, AOEShape shape, OID oid, bool originAtTarget = false, float spawnDelay = 1.2f, float activationDelay = 1.2f) : this(module, [action], shape, oid, originAtTarget, spawnDelay, activationDelay) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

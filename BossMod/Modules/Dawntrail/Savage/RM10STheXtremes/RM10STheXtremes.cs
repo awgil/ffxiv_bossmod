@@ -236,7 +236,7 @@ class AwesomeSplab : Components.GenericStackSpread
 
 class AlleyOopProteans(BossModule module) : Components.GenericBaitAway(module)
 {
-    private BitMask _targets = default;
+    private BitMask _targets;
     private bool _reverse;
 
     public static readonly AOEShapeCone Shape = new(60, 15.Degrees());
@@ -404,7 +404,7 @@ class XtremeSpectacularRaidwideLast(BossModule module) : Components.RaidwideInst
 class FiresnakingRaidwide(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Firesnaking);
 class XtremeFiresnakingRaidwide(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_XtremeFiresnaking);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1071, NameID = 14370, PrimaryActorOID = (uint)OID.RedHot, PlanLevel = 100)]
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1071, NameID = 14370, PrimaryActorOID = (uint)OID.RedHot, PlanLevel = 100, DevOnly = true)]
 public class RM10STheXtremes(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
 {
     public Actor? B1() => PrimaryActor;

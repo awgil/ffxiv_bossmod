@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Savage.RM10STheXtremes;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Savage.RM10STheXtremes;
 
 public enum OID : uint
 {

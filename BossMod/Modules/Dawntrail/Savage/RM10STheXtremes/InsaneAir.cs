@@ -63,9 +63,9 @@ class Air2Assignments : BossComponent
 
     public Air2Assignments(BossModule module) : base(module)
     {
-        switch (_config.IA2SwapOrder)
+        switch (_config.IA2CleanseOrder)
         {
-            case RM10STheXtremesConfig.SwapOrder.HMR:
+            case RM10STheXtremesConfig.CleanseOrder.HMR:
                 _roleOrder.Clear();
                 _roleOrder[Assignment.H1] = _roleOrder[Assignment.H2] = 0;
                 _roleOrder[Assignment.M1] = _roleOrder[Assignment.M2] = 1;
@@ -221,7 +221,7 @@ class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
             Mechanic.Spread => new(src.Origin, default, Cone, src.Activation, count: 4, damageType: AIHints.PredictedDamageType.Raidwide, isProximity: true),
             Mechanic.Stack => new(src.Origin, default, Cone, src.Activation, count: 1, stackSize: 4, damageType: AIHints.PredictedDamageType.Shared, isProximity: true),
             Mechanic.Tankbuster => new(src.Origin, default, new AOEShapeCircle(6), src.Activation, count: 1, damageType: AIHints.PredictedDamageType.Tankbuster, forbiddenTargets: Raid.WithSlot().WhereActor(a => a.Role != Role.Tank).Mask(), isProximity: true, centerAtTarget: true),
-            _ => throw new Exception($"unknown mechanic type {src.Mechanic}"),
+            _ => throw new InvalidOperationException($"unknown mechanic type {src.Mechanic}"),
         };
     }
 }
