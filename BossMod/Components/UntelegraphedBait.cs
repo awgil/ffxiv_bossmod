@@ -58,7 +58,7 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
         foreach (var bait in BaitsOn(pcSlot))
         {
             if (bait.IsStack)
-                bait.Shape.Draw(Arena, bait.Position(pc), bait.Angle(pc), ArenaColor.SafeFromAOE);
+                bait.Shape.Draw(Arena, bait.Position(pc), bait.Angle(pc), bait.ForbiddenTargets[pcSlot] ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
             else if (bait.Count > 1)
                 foreach (var b in PossibleTargets(bait).Exclude(pc))
                     bait.Shape.Draw(Arena, bait.Position(b), bait.Angle(b), ArenaColor.AOE);
@@ -192,13 +192,24 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
                 hints.AddForbiddenZone(cf2, closestStack.b.Activation);
             }
         }
+
+        foreach (var s in CurrentBaits)
+        {
+            if (s.IsSpread)
+                hints.AddPredictedDamage(s.Targets, s.Activation, s.DamageType);
+            else
+                foreach (var target in PossibleTargets(s))
+                {
+                    hints.AddPredictedDamage(Raid.WithSlot().InShape(s.Shape, s.Position(target), s.Angle(target)).Mask(), s.Activation, s.DamageType);
+                }
+        }
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
         foreach (var bait in CurrentBaits)
         {
-            if (bait.Targets[playerSlot] && bait.ForbiddenTargets[pcSlot] || bait.Targets[pcSlot] && bait.ForbiddenTargets[playerSlot])
+            if (bait.Targets[playerSlot] && bait.ForbiddenTargets[pcSlot])
                 return PlayerPriority.Danger;
             if (bait.Targets[playerSlot])
                 return PlayerPriority.Interesting;

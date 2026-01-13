@@ -329,7 +329,30 @@ class RM10STheXtremesStates : StateMachineBuilder
 
     void Air2(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_XtremeFiresnaking, delay, 5).ActivateOnEnter<Air2Baits>();
+        Cast(id, AID._Weaponskill_XtremeFiresnaking, delay, 5, "Raidwide + assign debuffs")
+            .ActivateOnEnter<XtremeFiresnakingRaidwide>()
+            .ActivateOnEnter<Air2Assignments>()
+            .ActivateOnEnter<Air2Baits>()
+            .ActivateOnEnter<AirPuddleCircle>()
+            .ActivateOnEnter<AirPuddleCone>()
+            .ActivateOnEnter<Bailout>()
+            .DeactivateOnExit<XtremeFiresnakingRaidwide>();
+
+        ComponentCondition<Air2Baits>(id + 0x10, 17.9f, r => r.NumCasts == 2, "Baits 1");
+        ComponentCondition<Bailout>(id + 0x11, 1.6f, b => b.NumCasts == 2, "Stacks 1");
+        ComponentCondition<Air2Baits>(id + 0x12, 8.6f, r => r.NumCasts == 4, "Baits 2");
+        ComponentCondition<Bailout>(id + 0x13, 1.6f, b => b.NumCasts == 4, "Stacks 2");
+        ComponentCondition<Air2Baits>(id + 0x14, 8.6f, r => r.NumCasts == 6, "Baits 3");
+        ComponentCondition<Bailout>(id + 0x15, 1.6f, b => b.NumCasts == 6, "Stacks 3");
+        ComponentCondition<Air2Baits>(id + 0x16, 8.6f, r => r.NumCasts == 8, "Baits 4");
+        ComponentCondition<Bailout>(id + 0x17, 1.6f, b => b.NumCasts == 8, "Stacks 4")
+            .DeactivateOnExit<Air2Assignments>()
+            .DeactivateOnExit<Air2Baits>()
+            .DeactivateOnExit<Bailout>();
+
+        Cast(id + 0x100, AID._Weaponskill_DiversDare, 2.9f, 5, "Raidwide")
+            .ActivateOnEnter<DiversDare1>()
+            .DeactivateOnExit<DiversDare1>();
     }
 
     void AlleyOop(uint id, float delay)

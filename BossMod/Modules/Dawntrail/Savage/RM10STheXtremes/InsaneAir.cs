@@ -1,4 +1,6 @@
-﻿namespace BossMod.Dawntrail.Savage.RM10STheXtremes;
+﻿using static BossMod.PartyRolesConfig;
+
+namespace BossMod.Dawntrail.Savage.RM10STheXtremes;
 
 enum Color
 {
@@ -48,13 +50,92 @@ static class AirHelpers
     }
 }
 
+class Air2Assignments : BossComponent
+{
+    readonly RM10STheXtremesConfig _config = Service.Config.Get<RM10STheXtremesConfig>();
+    readonly PartyRolesConfig _roles = Service.Config.Get<PartyRolesConfig>();
+    readonly Dictionary<Assignment, int> _roleOrder = [];
+    BitMask _assigned;
+
+    public record struct ColorOrder(int Order, Color Color);
+    public readonly ColorOrder[] PlayerOrder = Utils.MakeArray<ColorOrder>(8, new(-1, Color.None));
+    public bool HaveOrder { get; private set; }
+
+    public Air2Assignments(BossModule module) : base(module)
+    {
+        switch (_config.IA2SwapOrder)
+        {
+            case RM10STheXtremesConfig.SwapOrder.HMR:
+                _roleOrder.Clear();
+                _roleOrder[Assignment.H1] = _roleOrder[Assignment.H2] = 0;
+                _roleOrder[Assignment.M1] = _roleOrder[Assignment.M2] = 1;
+                _roleOrder[Assignment.R1] = _roleOrder[Assignment.R2] = 2;
+                _roleOrder[Assignment.MT] = _roleOrder[Assignment.OT] = 3;
+                _roleOrder[Assignment.Unassigned] = -1;
+                break;
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID._Gen_XtremeFiresnaking && Raid.TryFindSlot(actor.InstanceID, out var slot))
+        {
+            _assigned.Set(slot);
+            PlayerOrder[slot] = new(-1, Color.Red);
+            Assign();
+        }
+        if ((SID)status.ID == SID._Gen_XtremeWatersnaking && Raid.TryFindSlot(actor.InstanceID, out var slot2))
+        {
+            _assigned.Set(slot2);
+            PlayerOrder[slot2] = new(-1, Color.Blue);
+            Assign();
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID is SID._Gen_XtremeFiresnaking or SID._Gen_XtremeWatersnaking && Raid.TryFindSlot(actor, out var slot))
+            PlayerOrder[slot] = default;
+    }
+
+    void Assign()
+    {
+        if (_assigned.NumSetBits() < 8)
+            return;
+
+        var assignments = _roles.AssignmentsPerSlot(Raid);
+        if (assignments.Length == 0)
+        {
+            ReportError("Party role assignment is invalid, not assigning order");
+            return;
+        }
+
+        for (var slot = 0; slot < 8; slot++)
+            PlayerOrder[slot].Order = _roleOrder.TryGetValue(assignments[slot], out var i) ? i : -1;
+
+        HaveOrder = true;
+
+        if (_roleOrder.Count > 0 && PlayerOrder.Distinct().Count() < 8)
+        {
+            ReportError($"Duplicate group/order assignment, debuffs might not have been assigned correctly");
+            HaveOrder = false;
+            for (var slot = 0; slot < 8; slot++)
+                PlayerOrder[slot].Order = -1;
+        }
+    }
+}
+
 class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
 {
-    private int _numIcons;
-    public record struct Source(WPos Origin, DateTime Activation, Color Color, Mechanic Mechanic);
+    public record struct Source(WPos Origin, DateTime Activation, Color Color, Mechanic Mechanic, int Order);
     protected readonly List<Source> Sources = [];
 
+    protected readonly List<Source> ActiveSources = []; // same order as CurrentBaits
+
     public static readonly AOEShapeCone Cone = new(60, 22.5f.Degrees());
+
+    public float ActivationDelayFirst = 8.6f;
+    public float ActivationDelayRest = 8.6f;
 
     private int _blueCounter;
     private int _redCounter;
@@ -62,17 +143,26 @@ class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
     public int NumRedCasts { get; private set; }
     public int NumBlueCasts { get; private set; }
 
+    private readonly int[] _seq = new int[3];
+
     public override void OnMapEffect(byte index, uint state)
     {
         if (AirHelpers.ProcessEffect(index, state) is { } source)
         {
-            _numIcons++;
-
-            Source s = new(source.Origin, WorldState.FutureTime(8.6f), source.Color, source.Mechanic);
-            if (_numIcons <= 2)
-                CurrentBaits.Add(DetermineBait(s));
+            ref var counter = ref _seq[(int)source.Color];
+            int order;
+            if (source.Mechanic == Mechanic.Tankbuster)
+                order = 3;
             else
-                Sources.Add(s);
+                order = counter++;
+
+            var delay = CurrentBaits.Count < 2 ? ActivationDelayFirst : ActivationDelayRest;
+            Source s = new(source.Origin, WorldState.FutureTime(delay), source.Color, source.Mechanic, order);
+            if (CurrentBaits.Count < 2)
+                CurrentBaits.Add(DetermineBait(s));
+            Sources.Add(s);
+            if (ActiveSources.Count < 2)
+                ActiveSources.Add(s);
         }
     }
 
@@ -113,14 +203,14 @@ class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
         }
     }
 
-    void Advance()
+    protected virtual void Advance()
     {
         if (NumCasts % 2 == 0)
         {
             CurrentBaits.Clear();
-            CurrentBaits.AddRange(Sources.Take(2).Select(DetermineBait));
-            if (Sources.Count > 1)
-                Sources.RemoveRange(0, 2);
+            ActiveSources.Clear();
+            ActiveSources.AddRange(Sources.Skip(NumCasts).Take(2));
+            CurrentBaits.AddRange(ActiveSources.Select(DetermineBait));
         }
     }
 
@@ -139,16 +229,172 @@ class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
 class AirPuddleCone(BossModule module) : FlamePuddle(module, [AID._Weaponskill_BlastingSnap1, AID._Weaponskill_ReEntryBlast1], new AOEShapeCone(60, 22.5f.Degrees()), OID.FlameCone);
 class AirPuddleCircle(BossModule module) : FlamePuddle(module, AID._Weaponskill_VerticalBlast1, new AOEShapeCircle(6), OID.FlamePuddle6, originAtTarget: true);
 
-class Air2Baits(BossModule module) : AirBaits(module)
+class Air2Baits : AirBaits
 {
-    public BitMask Red;
-    public BitMask Blue;
+    readonly Air2Assignments _assignments;
+    BitMask _stackTargets;
+    int _numStacks;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public Air2Baits(BossModule module) : base(module)
     {
-        if ((SID)status.ID == SID._Gen_XtremeFiresnaking)
-            Red.Set(Raid.FindSlot(actor.InstanceID));
-        if ((SID)status.ID == SID._Gen_XtremeWatersnaking)
-            Blue.Set(Raid.FindSlot(actor.InstanceID));
+        _assignments = module.FindComponent<Air2Assignments>()!;
+        ActivationDelayFirst = 9.6f;
+        ActivationDelayRest = 11.6f;
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+
+        var o = _assignments.PlayerOrder[slot];
+        if (o.Color == Color.None)
+            return;
+
+        var s = $"Color: {o.Color}";
+        if (o.Order >= 0)
+        {
+            var o2 = o.Order == 3 ? "tank" : (o.Order + 1).ToString();
+            s += $", order: {o2}";
+        }
+        hints.Add(s, false);
+    }
+
+    public override void OnMapEffect(byte index, uint state)
+    {
+        base.OnMapEffect(index, state);
+
+        UpdateStacks();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (_assignments.PlayerOrder[slot].Color == Color.None)
+            return;
+
+        if (CurrentBaits.FirstOrNull(b => !b.ForbiddenTargets[slot]) is { } b)
+            // prevent dash shenanigans from ruining proximity baits
+            hints.AddForbiddenZone(ShapeContains.Donut(b.Origin, 10, 100), b.Activation);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+
+        foreach (var (slot, player) in Raid.WithSlot())
+            if (_stackTargets[slot])
+            {
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddCircle(player.Position, 15, 0xFF000000, 2);
+                Arena.AddCircle(player.Position, 15, ArenaColor.Safe);
+            }
+
+        if (!_assignments.HaveOrder)
+            return;
+
+        var p = _assignments.PlayerOrder[pcSlot];
+
+        if (p.Color == Color.None)
+            return;
+
+        // if mechanic hasn't started yet, highlight first bait position (always cw from corner)
+        if (NumCasts == 0 && CurrentBaits.Count == 0)
+        {
+            WPos baitSource = (p.Order == 0) == (p.Color == Color.Red)
+                ? new(100, 87)
+                : new(100, 113);
+
+            Arena.AddCircle(baitSource, 1, ArenaColor.Safe);
+        }
+
+        foreach (var b in CurrentBaits)
+        {
+            if (b.ForbiddenTargets[pcSlot])
+                continue;
+
+            Arena.AddCircle(b.Origin, 1, ArenaColor.Safe);
+        }
+    }
+
+    protected override Bait DetermineBait(Source src)
+    {
+        var bait = base.DetermineBait(src);
+        if (!_assignments.HaveOrder)
+            return bait;
+
+        BitMask forbiddenPlayers = new();
+        for (var i = 0; i < 8; i++)
+        {
+            var o = _assignments.PlayerOrder[i];
+            if (o.Color == Color.None)
+                continue;
+            var forbiddenTarget = o.Order == src.Order ? o.Color == src.Color : o.Color != src.Color;
+            if (forbiddenTarget)
+                forbiddenPlayers.Set(i);
+        }
+
+        bait.ForbiddenTargets |= forbiddenPlayers;
+        return bait;
+    }
+
+    void UpdateStacks()
+    {
+        _stackTargets.Reset();
+
+        foreach (var nextBait in ActiveSources)
+        {
+            var ix = Array.FindIndex(_assignments.PlayerOrder, p => p.Order == nextBait.Order && p.Color != nextBait.Color);
+            _stackTargets.Set(ix);
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if ((AID)spell.Action.ID is AID._Weaponskill_Bailout or AID._Weaponskill_Bailout1)
+            _stackTargets.Reset();
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if ((AID)spell.Action.ID is AID._Weaponskill_Bailout or AID._Weaponskill_Bailout1)
+        {
+            _numStacks++;
+            if (_numStacks % 2 == 0)
+            {
+                base.Advance();
+                UpdateStacks();
+                EnableHints = true;
+            }
+        }
+    }
+
+    protected override void Advance()
+    {
+        CurrentBaits.Clear();
+        EnableHints = false;
+    }
+}
+
+class Bailout(BossModule module) : Components.UniformStackSpread(module, 15, 0)
+{
+    public int NumCasts { get; private set; }
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_Bailout or AID._Weaponskill_Bailout1 && WorldState.Actors.Find(spell.TargetID) is { } tar)
+            AddStack(tar, Module.CastFinishAt(spell));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_Bailout or AID._Weaponskill_Bailout1)
+        {
+            Stacks.Clear();
+            NumCasts++;
+        }
     }
 }
