@@ -16,7 +16,7 @@ public sealed record class Plan(string Name, Type Encounter)
         public StrategyValue Value = Value;
     }
 
-    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks, List<StrategyValueTrack> Defaults) : IRotationModuleData
+    public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks, List<StrategyValue> Defaults) : IRotationModuleData
     {
         public readonly Module MakeClone() => this with { Tracks = [.. Tracks.Select(t => new List<Entry>([.. t]))], Defaults = [.. Defaults] };
     }
@@ -36,11 +36,11 @@ public sealed record class Plan(string Name, Type Encounter)
     public int AddModule(Type t, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder)
     {
         List<List<Entry>> tracks = [];
-        List<StrategyValueTrack> defaults = [];
-        foreach (var _ in def.Configs)
+        List<StrategyValue> defaults = [];
+        foreach (var cfg in def.Configs)
         {
             tracks.Add([]);
-            defaults.Add(new StrategyValueTrack());
+            defaults.Add(cfg.CreateEmpty());
         }
 
         var insertionIndex = Modules.Count;
@@ -215,8 +215,18 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 if (def == default)
                     continue;
 
-                var cfg = (StrategyConfigTrack)m.Definition.Configs[iDef];
-                writer.WriteString(cfg.InternalName, cfg.Options[def.Option].InternalName);
+                switch (m.Definition.Configs[iDef])
+                {
+                    case StrategyConfigTrack cfg:
+                        writer.WriteString(cfg.InternalName, cfg.Options[((StrategyValueTrack)def).Option].InternalName);
+                        break;
+                    case StrategyConfigInt cfgi:
+                        writer.WriteNumber(cfgi.InternalName, ((StrategyValueInt)def).Value);
+                        break;
+                    case StrategyConfigFloat cfgf:
+                        writer.WriteNumber(cfgf.InternalName, ((StrategyValueFloat)def).Value);
+                        break;
+                }
             }
             writer.WriteEndObject();
             writer.WriteEndObject();

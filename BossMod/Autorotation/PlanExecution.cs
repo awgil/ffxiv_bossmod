@@ -23,7 +23,7 @@ public sealed class PlanExecution
         public bool IsActive(float t, StateData s) => t >= WindowStart && t <= WindowEnd && IntersectBranchRange(s.BranchID, s.NumBranches);
     }
 
-    public readonly record struct ModuleData(Type Type, RotationModuleDefinition Definition, List<List<EntryData>> Tracks, List<StrategyValueTrack> Defaults);
+    public readonly record struct ModuleData(Type Type, RotationModuleDefinition Definition, List<List<EntryData>> Tracks, List<StrategyValue> Defaults);
 
     public readonly BossModule Module;
     public readonly Plan? Plan;
