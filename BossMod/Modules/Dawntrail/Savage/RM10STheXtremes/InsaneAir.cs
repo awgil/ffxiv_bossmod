@@ -218,9 +218,9 @@ class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
     {
         return src.Mechanic switch
         {
-            Mechanic.Spread => new(src.Origin, default, Cone, src.Activation, count: 4, damageType: AIHints.PredictedDamageType.Raidwide, isProximity: true),
-            Mechanic.Stack => new(src.Origin, default, Cone, src.Activation, count: 1, stackSize: 4, damageType: AIHints.PredictedDamageType.Shared, isProximity: true),
-            Mechanic.Tankbuster => new(src.Origin, default, new AOEShapeCircle(6), src.Activation, count: 1, damageType: AIHints.PredictedDamageType.Tankbuster, forbiddenTargets: Raid.WithSlot().WhereActor(a => a.Role != Role.Tank).Mask(), isProximity: true, centerAtTarget: true),
+            Mechanic.Spread => new(src.Origin, default, Cone, src.Activation, count: 4, type: AIHints.PredictedDamageType.Raidwide, isProximity: true),
+            Mechanic.Stack => new(src.Origin, default, Cone, src.Activation, count: 1, stackSize: 4, type: AIHints.PredictedDamageType.Shared, isProximity: true),
+            Mechanic.Tankbuster => new(src.Origin, default, new AOEShapeCircle(6), src.Activation, count: 1, type: AIHints.PredictedDamageType.Tankbuster, forbiddenTargets: Raid.WithSlot().WhereActor(a => a.Role != Role.Tank).Mask(), isProximity: true, centerAtTarget: true),
             _ => throw new InvalidOperationException($"unknown mechanic type {src.Mechanic}"),
         };
     }

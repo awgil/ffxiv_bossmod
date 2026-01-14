@@ -5,7 +5,7 @@ namespace BossMod.Components;
 class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(module, aid)
 {
     // indicate that `count` number of players matching some `targets` filter (e.g. both healers, all supports, 2 closest players, etc etc) will be hit by an aoe
-    public struct Bait(WPos origin, BitMask targets, AOEShape shape, DateTime activation = default, int count = int.MaxValue, int stackSize = 1, BitMask forbiddenTargets = default, bool isProximity = false, bool centerAtTarget = false, PredictedDamageType damageType = PredictedDamageType.None)
+    public struct Bait(WPos origin, BitMask targets, AOEShape shape, DateTime activation = default, int count = int.MaxValue, int stackSize = 1, BitMask forbiddenTargets = default, bool isProximity = false, bool centerAtTarget = false, PredictedDamageType type = PredictedDamageType.None)
     {
         public WPos Origin = origin;
         public AOEShape Shape = shape;
@@ -14,7 +14,7 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
         public int Count = count;
         public int StackSize = stackSize;
         public DateTime Activation = activation;
-        public PredictedDamageType DamageType = damageType;
+        public PredictedDamageType Type = type == PredictedDamageType.None ? (stackSize > 1 ? PredictedDamageType.Shared : PredictedDamageType.Raidwide) : type;
         public bool IsProximity = isProximity;
         public bool CenterAtTarget = centerAtTarget;
 
@@ -196,25 +196,26 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
         foreach (var s in CurrentBaits)
         {
             if (s.IsSpread)
-                hints.AddPredictedDamage(s.Targets, s.Activation, s.DamageType);
+                hints.AddPredictedDamage(s.Targets, s.Activation, s.Type);
             else
                 foreach (var target in PossibleTargets(s))
                 {
-                    hints.AddPredictedDamage(Raid.WithSlot().InShape(s.Shape, s.Position(target), s.Angle(target)).Mask(), s.Activation, s.DamageType);
+                    hints.AddPredictedDamage(Raid.WithSlot().InShape(s.Shape, s.Position(target), s.Angle(target)).Mask(), s.Activation, s.Type);
                 }
         }
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
-        foreach (var bait in CurrentBaits)
-        {
-            if (bait.Targets[playerSlot] && bait.ForbiddenTargets[pcSlot])
-                return PlayerPriority.Danger;
-            if (bait.Targets[playerSlot])
-                return PlayerPriority.Interesting;
-        }
+        // special case: if we need to spread, highlight only the other players we spread with
+        if (CurrentBaits.FirstOrNull(s => s.IsSpread && s.Targets[pcSlot]) is { } mySpread)
+            return mySpread.Targets[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
-        return PlayerPriority.Irrelevant;
+        // special case: if we are a random target for a stack that only has one instance, all other players should not be highlighted (the component assumes that the player is the bait target)
+        // for stacks that have more than one instance (i.e. baited on supports/healers) other targets will be highlighted as normal
+        if (CurrentBaits.FirstOrNull(s => s.IsStack && s.Targets[pcSlot]) is { } myStack && myStack.Count == 1 && myStack.Targets[playerSlot])
+            return PlayerPriority.Irrelevant;
+
+        return CurrentBaits.Any(s => s.Targets[playerSlot]) ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
     }
 }
