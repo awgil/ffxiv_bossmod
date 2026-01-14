@@ -27,9 +27,9 @@ class BubbleBounds(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DeepAerial(BossModule module) : Components.CastTowers(module, AID._Weaponskill_DeepAerial1, 6, 2, 2);
+class DeepAerial(BossModule module) : Components.CastTowers(module, AID.DeepAerialTower, 6, 2, 2);
 
-class WateryGrave(BossModule module) : Components.Adds(module, (uint)OID._Gen_WateryGrave, 1)
+class WateryGrave(BossModule module) : Components.Adds(module, (uint)OID.WateryGrave, 1)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -58,7 +58,7 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if (source.OID == (uint)OID._Gen_ && tether.ID is 17 or 57 && Raid.TryFindSlot(tether.Target, out var slot))
+        if (source.OID == (uint)OID.TetherHelper && Raid.TryFindSlot(tether.Target, out var slot))
             _tetheredTo[slot] = source;
     }
 
@@ -77,11 +77,11 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
     {
         switch ((IconID)iconID)
         {
-            case IconID._Gen_Icon_m0982trg_c0c:
+            case IconID.BubbleTetherBlue:
                 _next = WorldState.FutureTime(5.3f);
                 TargetBlue = actor;
                 break;
-            case IconID._Gen_Icon_m0982trg_c1c:
+            case IconID.BubbleTetherRed:
                 _next = WorldState.FutureTime(5.3f);
                 TargetRed = actor;
                 break;
@@ -90,7 +90,7 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_WateryGrave)
+        if ((SID)status.ID == SID.WateryGrave)
             _bubble.Set(Raid.FindSlot(actor.InstanceID));
     }
 
@@ -106,7 +106,7 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
 
         if (BaitSource(actor) is { } source)
         {
-            var hitBubble = Module.Enemies(OID._Gen_WateryGrave).Any(b => AIHints.TargetInAOERect(b, source.Position, source.DirectionTo(actor), 60, 4));
+            var hitBubble = Module.Enemies(OID.WateryGrave).Any(b => AIHints.TargetInAOERect(b, source.Position, source.DirectionTo(actor), 60, 4));
             if (actor == TargetRed)
                 hints.Add("Hit bubble!", !hitBubble);
             else
@@ -128,7 +128,7 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
             hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 18), _next);
 
             // hit or avoid bubble depending on color
-            if (Module.Enemies(OID._Gen_WateryGrave).FirstOrDefault() is { } bubble)
+            if (Module.Enemies(OID.WateryGrave).FirstOrDefault() is { } bubble)
             {
                 var clipCone = ShapeContains.Cone(source.Position, 100, source.AngleTo(bubble), Angle.Asin(8 / (bubble.Position - source.Position).Length()));
                 if (actor == TargetRed)
@@ -143,7 +143,7 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_XtremeWave2:
+            case AID.XtremeWaveRedRect:
                 NumCasts++;
                 if (Raid.TryFindSlot(TargetRed?.InstanceID ?? 0, out var s))
                 {
@@ -151,7 +151,7 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
                     TargetRed = null;
                 }
                 break;
-            case AID._Weaponskill_XtremeWave3:
+            case AID.XtremeWaveBlueRect:
                 NumCasts++;
                 if (Raid.TryFindSlot(TargetBlue?.InstanceID ?? 0, out var b))
                 {
@@ -165,5 +165,5 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => _bubble[pcSlot] ? PlayerPriority.Normal : player == TargetRed || player == TargetBlue ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
 }
 
-class ScathingSteam(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_ScathingSteam);
-class ImpactZone(BossModule module) : Components.CastCounter(module, AID._Weaponskill_ImpactZone);
+class ScathingSteam(BossModule module) : Components.RaidwideCast(module, AID.ScathingSteam);
+class ImpactZone(BossModule module) : Components.CastCounter(module, AID.ImpactZone2);

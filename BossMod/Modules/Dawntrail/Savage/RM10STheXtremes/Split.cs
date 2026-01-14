@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM10STheXtremes;
 
-class FlameFloaterSplit(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_FlameFloater5)
+class FlameFloaterSplit(BossModule module) : Components.GenericAOEs(module, AID.FlameFloaterSplitCast)
 {
     private DateTime _activation;
 
@@ -26,6 +26,6 @@ class FlameFloaterSplit(BossModule module) : Components.GenericAOEs(module, AID.
     }
 }
 
-class SplitPuddle(BossModule module) : FlamePuddle(module, AID._Weaponskill_FlameFloater5, new AOEShapeRect(60, 4), OID.FlameFloater);
-class FreakyPyrotation(BossModule module) : Components.StackWithIcon(module, (uint)IconID._Gen_Icon_com_share_fire01s5_0c, AID._Weaponskill_FreakyPyrotation1, 6, 5.3f, 2, 2);
-class FreakyPyrotationPuddle(BossModule module) : FlamePuddle(module, AID._Weaponskill_FreakyPyrotation1, new AOEShapeCircle(6), OID.FlamePuddle6, true);
+class SplitPuddle(BossModule module) : FlamePuddle(module, AID.FlameFloaterSplitCast, new AOEShapeRect(60, 4), OID.FlameFloater);
+class FreakyPyrotation(BossModule module) : Components.StackWithIcon(module, (uint)IconID.FreakyPyrotation, AID.FreakyPyrotationStack, 6, 5.3f, 2, 2);
+class FreakyPyrotationPuddle(BossModule module) : FlamePuddle(module, AID.FreakyPyrotationStack, new AOEShapeCircle(6), OID.FlamePuddle6, true);

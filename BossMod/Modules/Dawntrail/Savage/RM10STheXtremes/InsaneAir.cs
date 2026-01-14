@@ -78,13 +78,13 @@ class Air2Assignments : BossComponent
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_XtremeFiresnaking && Raid.TryFindSlot(actor.InstanceID, out var slot))
+        if ((SID)status.ID == SID.XtremeFiresnaking && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             _assigned.Set(slot);
             PlayerOrder[slot] = new(-1, Color.Red);
             Assign();
         }
-        if ((SID)status.ID == SID._Gen_XtremeWatersnaking && Raid.TryFindSlot(actor.InstanceID, out var slot2))
+        if ((SID)status.ID == SID.XtremeWatersnaking && Raid.TryFindSlot(actor.InstanceID, out var slot2))
         {
             _assigned.Set(slot2);
             PlayerOrder[slot2] = new(-1, Color.Blue);
@@ -94,7 +94,7 @@ class Air2Assignments : BossComponent
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID._Gen_XtremeFiresnaking or SID._Gen_XtremeWatersnaking && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID is SID.XtremeFiresnaking or SID.XtremeWatersnaking && Raid.TryFindSlot(actor, out var slot))
             PlayerOrder[slot] = default;
     }
 
@@ -170,19 +170,19 @@ class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_ReEntryBlast1:
-            case AID._Weaponskill_VerticalBlast1:
+            case AID.ReEntryBlastAOE:
+            case AID.VerticalBlastAOE:
                 NumCasts++;
                 NumRedCasts++;
                 Advance();
                 break;
-            case AID._Weaponskill_ReEntryPlunge1:
-            case AID._Weaponskill_VerticalPlunge1:
+            case AID.ReEntryPlungeAOE:
+            case AID.VerticalPlungeAOE:
                 NumCasts++;
                 NumBlueCasts++;
                 Advance();
                 break;
-            case AID._Weaponskill_PlungingSnap1:
+            case AID.PlungingSnapAOE:
                 if (++_blueCounter > 3)
                 {
                     NumCasts++;
@@ -191,7 +191,7 @@ class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
                     _blueCounter = 0;
                 }
                 break;
-            case AID._Weaponskill_BlastingSnap1:
+            case AID.BlastingSnapAOE:
                 if (++_redCounter > 3)
                 {
                     NumCasts++;
@@ -226,8 +226,8 @@ class AirBaits(BossModule module) : Components.UntelegraphedBait(module)
     }
 }
 
-class AirPuddleCone(BossModule module) : FlamePuddle(module, [AID._Weaponskill_BlastingSnap1, AID._Weaponskill_ReEntryBlast1], new AOEShapeCone(60, 22.5f.Degrees()), OID.FlameCone);
-class AirPuddleCircle(BossModule module) : FlamePuddle(module, AID._Weaponskill_VerticalBlast1, new AOEShapeCircle(6), OID.FlamePuddle6, originAtTarget: true);
+class AirPuddleCone(BossModule module) : FlamePuddle(module, [AID.BlastingSnapAOE, AID.ReEntryBlastAOE], new AOEShapeCone(60, 22.5f.Degrees()), OID.FlameCone);
+class AirPuddleCircle(BossModule module) : FlamePuddle(module, AID.VerticalBlastAOE, new AOEShapeCircle(6), OID.FlamePuddle6, originAtTarget: true);
 
 class Air2Baits : AirBaits
 {
@@ -353,7 +353,7 @@ class Air2Baits : AirBaits
     {
         base.OnCastStarted(caster, spell);
 
-        if ((AID)spell.Action.ID is AID._Weaponskill_Bailout or AID._Weaponskill_Bailout1)
+        if ((AID)spell.Action.ID is AID.Bailout2 or AID.Bailout1)
             _stackTargets.Reset();
     }
 
@@ -361,7 +361,7 @@ class Air2Baits : AirBaits
     {
         base.OnEventCast(caster, spell);
 
-        if ((AID)spell.Action.ID is AID._Weaponskill_Bailout or AID._Weaponskill_Bailout1)
+        if ((AID)spell.Action.ID is AID.Bailout2 or AID.Bailout1)
         {
             _numStacks++;
             if (_numStacks % 2 == 0)
@@ -385,13 +385,13 @@ class Bailout(BossModule module) : Components.UniformStackSpread(module, 15, 0)
     public int NumCasts { get; private set; }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Bailout or AID._Weaponskill_Bailout1 && WorldState.Actors.Find(spell.TargetID) is { } tar)
+        if ((AID)spell.Action.ID is AID.Bailout2 or AID.Bailout1 && WorldState.Actors.Find(spell.TargetID) is { } tar)
             AddStack(tar, Module.CastFinishAt(spell));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Bailout or AID._Weaponskill_Bailout1)
+        if ((AID)spell.Action.ID is AID.Bailout2 or AID.Bailout1)
         {
             Stacks.Clear();
             NumCasts++;

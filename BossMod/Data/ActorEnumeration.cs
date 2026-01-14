@@ -140,10 +140,11 @@ public static class ActorEnumeration
 
     // find closest actor to point
     public static Actor? Closest(this IEnumerable<Actor> range, WPos origin) => range.MinBy(a => (a.Position - origin).LengthSq());
-    public static (int, Actor) Closest(this IEnumerable<(int, Actor)> range, WPos origin) => range.MinBy(ia => (ia.Item2.Position - origin).LengthSq());
+    public static (int, Actor?) Closest(this IEnumerable<(int, Actor)> range, WPos origin) => range.MinBy(ia => (ia.Item2.Position - origin).LengthSq());
 
     // find farthest actor from point
     public static Actor? Farthest(this IEnumerable<Actor> range, WPos origin) => range.MaxBy(a => (a.Position - origin).LengthSq());
+    public static (int, Actor?) Farthest(this IEnumerable<(int, Actor)> range, WPos origin) => range.MaxBy(a => (a.Item2.Position - origin).LengthSq());
 
     // count num actors matching and not matching a condition
     public static (int match, int mismatch) CountByCondition(this IEnumerable<Actor> range, Func<Actor, bool> condition)

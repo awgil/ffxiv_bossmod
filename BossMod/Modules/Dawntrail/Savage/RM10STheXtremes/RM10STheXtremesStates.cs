@@ -12,25 +12,26 @@ class RM10STheXtremesStates : StateMachineBuilder
 
     void P1(uint id)
     {
-        RedP1(id, 9.3f);
+        RedP1(id, 9.2f);
         BlueP1(id + 0x10000, 1.9f);
         XtremeSpectacular(id + 0x20000, 8.2f);
-        Air1(id + 0x21000, 11.2f);
+        Air1(id + 0x21000, 11.3f);
         Snaking(id + 0x30000, 10.7f);
-        BubblePhase(id + 0x40000, 14.3f);
+        BubblePhase(id + 0x40000, 14.4f);
         SplitPhase(id + 0x50000, 10.7f);
         Air2(id + 0x60000, 10.8f);
+        PreEnrage(id + 0x70000, 10.8f);
 
-        Timeout(id + 0xFF0000, 10000, "???");
+        Cast(id + 0x80000, AID.OverTheFallsRed, 12.5f, 9, "Enrage");
     }
 
     void RedP1(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_HotImpact, delay, 5, "Tankbuster")
+        Cast(id, AID.HotImpact1, delay, 5, "Tankbuster")
             .ActivateOnEnter<HotImpact>()
             .DeactivateOnExit<HotImpact>();
 
-        CastStart(id + 0x10, AID._Weaponskill_FlameFloater, 8.4f)
+        CastStart(id + 0x10, AID.FlameFloaterCast, 8.4f)
             .ActivateOnEnter<FlameFloater>()
             .ActivateOnEnter<FlameFloaterPuddle>();
 
@@ -38,33 +39,33 @@ class RM10STheXtremesStates : StateMachineBuilder
         ComponentCondition<FlameFloater>(id + 0x21, 9.8f, f => f.NumCasts > 3, "Bait 4")
             .DeactivateOnExit<FlameFloater>();
 
-        Cast(id + 0x100, AID._Weaponskill_AlleyOopInferno, 8.1f, 4.3f)
+        Cast(id + 0x100, AID.AlleyOopInfernoCast, 8.1f, 4.3f)
             .ActivateOnEnter<AlleyOopInfernoSpread>()
             .ActivateOnEnter<AlleyOopInfernoPuddle>();
 
         ComponentCondition<AlleyOopInfernoSpread>(id + 0x110, 0.7f, p => p.NumFinishedSpreads > 0, "Spread (puddles)")
             .DeactivateOnExit<AlleyOopInfernoSpread>();
 
-        Cast(id + 0x200, AID._Weaponskill_CutbackBlaze, 4.5f, 4.3f)
+        Cast(id + 0x200, AID.CutbackBlazeCast, 4.5f, 4.3f)
             .ActivateOnEnter<CutbackBlazeBait>()
             .ActivateOnEnter<CutbackBlazePuddle>();
 
         ComponentCondition<CutbackBlazeBait>(id + 0x210, 0.9f, c => c.NumCasts > 0, "Safe cone bait")
             .DeactivateOnExit<CutbackBlazeBait>();
 
-        CastStart(id + 0x300, AID._Weaponskill_Pyrotation, 1.3f)
+        CastStart(id + 0x300, AID.PyrotationCast, 1.3f)
             .ActivateOnEnter<Pyrotation>()
             .ActivateOnEnter<PyrotationPuddle>();
 
         ComponentCondition<Pyrotation>(id + 0x301, 5.2f, p => p.NumCasts > 0, "Stack 1");
-        ComponentCondition<Pyrotation>(id + 0x302, 4.1f, p => p.NumCasts > 2, "Stack 3")
+        ComponentCondition<Pyrotation>(id + 0x302, 4, p => p.NumCasts > 2, "Stack 3")
             .DeactivateOnExit<Pyrotation>();
 
-        Cast(id + 0x400, AID._Weaponskill_DiversDare, 4.2f, 5, "Raidwide")
+        Cast(id + 0x400, AID.DiversDareRed, 4.3f, 5, "Raidwide")
             .ActivateOnEnter<DiversDare1>()
             .DeactivateOnExit<DiversDare1>();
 
-        Targetable(id + 0x500, false, 6.5f, "Red disappears")
+        Targetable(id + 0x500, false, 6.4f, "Red disappears")
             .DeactivateOnExit<FlameFloaterPuddle>()
             .DeactivateOnExit<AlleyOopInfernoPuddle>()
             .DeactivateOnExit<CutbackBlazePuddle>()
@@ -76,12 +77,12 @@ class RM10STheXtremesStates : StateMachineBuilder
         ActorTargetable(id, _module.B2, true, delay, "Blue appears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
-        ActorCast(id + 0x10, _module.B2, AID._Weaponskill_SickSwell, 3.1f, 3)
+        ActorCast(id + 0x10, _module.B2, AID.SickSwellCast, 3.3f, 3)
             .ActivateOnEnter<AwesomeSplab>()
             .ActivateOnEnter<SickestTakeOff>()
             .ActivateOnEnter<SickSwell>();
 
-        ActorCast(id + 0x20, _module.B2, AID._Weaponskill_SickestTakeOff, 5.1f, 4);
+        ActorCast(id + 0x20, _module.B2, AID.SickestTakeOffCast, 5.2f, 4);
         ActorTargetable(id + 0x22, _module.B2, false, 0, "Blue disappears")
             .SetHint(StateMachine.StateHint.DowntimeStart);
 
@@ -97,15 +98,15 @@ class RM10STheXtremesStates : StateMachineBuilder
 
         AlleyOop(id + 0x30, 2.6f);
 
-        ActorCast(id + 0x100, _module.B2, AID._Weaponskill_DeepImpact, 2.9f, 4.9f)
+        ActorCast(id + 0x100, _module.B2, AID.DeepImpactCast, 2.9f, 4.9f)
             .ActivateOnEnter<DeepImpactBait>()
             .ActivateOnEnter<DeepImpactKB>();
 
-        ComponentCondition<DeepImpactKB>(id + 0x102, 0.3f, d => d.NumCasts > 0, "Tankbuster")
+        ComponentCondition<DeepImpactBait>(id + 0x102, 0.3f, d => d.NumCasts > 0, "Tankbuster")
             .DeactivateOnExit<DeepImpactBait>()
             .DeactivateOnExit<DeepImpactKB>();
 
-        ActorCast(id + 0x110, _module.B2, AID._Weaponskill_DiversDare1, 2.1f, 5, true, "Raidwide")
+        ActorCast(id + 0x110, _module.B2, AID.DiversDareBlue, 2.1f, 5, true, "Raidwide")
             .ActivateOnEnter<DiversDare2>()
             .DeactivateOnExit<DiversDare2>();
     }
@@ -114,18 +115,18 @@ class RM10STheXtremesStates : StateMachineBuilder
     {
         Targetable(id, true, delay, "Red appears");
 
-        Cast(id + 0x10, AID._Weaponskill_XtremeSpectacular1, 5.2f, 4)
+        Cast(id + 0x10, AID.XtremeSpectacularCastRed, 5.2f, 4)
             .ActivateOnEnter<XtremeSpectacularProximity>()
             .ActivateOnEnter<XtremeSpectacularRaidwideFirst>()
             .ActivateOnEnter<XtremeSpectacularRaidwideLast>();
 
         Targetable(id + 0x20, false, 0.7f, "Bosses disappear");
 
-        ComponentCondition<XtremeSpectacularRaidwideFirst>(id + 0x30, 6.8f, x => x.NumCasts > 0, "Raidwide 1")
+        ComponentCondition<XtremeSpectacularRaidwideFirst>(id + 0x30, 6.9f, x => x.NumCasts > 0, "Raidwide 1")
             .DeactivateOnExit<XtremeSpectacularProximity>()
             .DeactivateOnExit<XtremeSpectacularRaidwideFirst>();
 
-        ComponentCondition<XtremeSpectacularRaidwideLast>(id + 0x31, 4.9f, x => x.NumCasts > 0, "Raidwide 8")
+        ComponentCondition<XtremeSpectacularRaidwideLast>(id + 0x31, 4.8f, x => x.NumCasts > 0, "Raidwide 8")
             .DeactivateOnExit<XtremeSpectacularRaidwideLast>();
 
         Targetable(id + 0x100, true, 3.9f, "Bosses reappear");
@@ -133,7 +134,7 @@ class RM10STheXtremesStates : StateMachineBuilder
 
     void Air1(uint id, float delay)
     {
-        CastStart(id, AID._Weaponskill_InsaneAir1, delay)
+        CastStart(id, AID.InsaneAir1RedFirst, delay)
             .ActivateOnEnter<AirBaits>()
             .ActivateOnEnter<AirPuddleCone>()
             .ActivateOnEnter<AirPuddleCircle>();
@@ -144,7 +145,7 @@ class RM10STheXtremesStates : StateMachineBuilder
         ComponentCondition<AirBaits>(id + 0x13, 7.4f, r => r.NumCasts == 8, "Baits 4")
             .DeactivateOnExit<AirBaits>();
 
-        Cast(id + 0x100, AID._Weaponskill_DiversDare, 4.7f, 5, "Raidwide")
+        Cast(id + 0x100, AID.DiversDareRed, 4.7f, 5, "Raidwide")
             .ActivateOnEnter<DiversDare1>()
             .DeactivateOnExit<DiversDare1>()
             .DeactivateOnExit<AirPuddleCone>()
@@ -153,7 +154,7 @@ class RM10STheXtremesStates : StateMachineBuilder
 
     void Snaking(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_Firesnaking, delay, 5, "Raidwide + assign debuffs")
+        Cast(id, AID.Firesnaking, delay, 5, "Raidwide + assign debuffs")
             .ActivateOnEnter<FiresnakingRaidwide>()
             .ActivateOnEnter<AlleyOopProteanRepeat>()
             .ActivateOnEnter<AlleyOopProteans>()
@@ -166,20 +167,20 @@ class RM10STheXtremesStates : StateMachineBuilder
             .ActivateOnEnter<DeepVarialSpreadStack>()
             .DeactivateOnExit<FiresnakingRaidwide>();
 
-        Cast(id + 0x10, AID._Weaponskill_AlleyOopInferno, 7.6f, 4.3f);
+        Cast(id + 0x10, AID.AlleyOopInfernoCast, 7.6f, 4.3f);
 
         ComponentCondition<AlleyOopInfernoSpread>(id + 0x20, 0.7f, s => s.NumFinishedSpreads > 0, "Puddles")
             .DeactivateOnExit<AlleyOopInfernoSpread>();
         ComponentCondition<AlleyOopProteans>(id + 0x21, 0.5f, s => s.NumCasts > 0, "Proteans")
             .DeactivateOnExit<AlleyOopProteans>();
-        ComponentCondition<AlleyOopProteanRepeat>(id + 0x22, 2.7f, p => p.NumCasts > 0, "Proteans repeat")
+        ComponentCondition<AlleyOopProteanRepeat>(id + 0x22, 2.6f, p => p.NumCasts > 0, "Proteans repeat")
             .DeactivateOnExit<AlleyOopProteanRepeat>();
 
-        Cast(id + 0x30, AID._Weaponskill_HotImpact1, 3.3f, 5, "Tankbuster (red)")
+        Cast(id + 0x30, AID.HotImpact2, 3.3f, 5, "Tankbuster (red)")
             .ActivateOnEnter<SnakingHotImpact>()
             .DeactivateOnExit<SnakingHotImpact>();
 
-        CastStart(id + 0x40, AID._Weaponskill_AlleyOopInferno, 6.1f)
+        CastStart(id + 0x40, AID.AlleyOopInfernoCast, 6.1f)
             .ActivateOnEnter<AlleyOopInfernoSpread>();
 
         ComponentCondition<DeepVarial>(id + 0x100, 1.7f, d => d.NumCasts > 0, "Big cone")
@@ -188,10 +189,10 @@ class RM10STheXtremesStates : StateMachineBuilder
 
         ComponentCondition<DeepVarialSpreadStack>(id + 0x110, 3.1f, s => s.NumCasts > 0, "Stack/spread (blue)")
             .DeactivateOnExit<DeepVarialSpreadStack>();
-        ComponentCondition<AlleyOopInfernoSpread>(id + 0x120, 0.1f, s => s.NumFinishedSpreads > 0, "Spread (red)")
+        ComponentCondition<AlleyOopInfernoSpread>(id + 0x120, 0.2f, s => s.NumFinishedSpreads > 0, "Spread (red)")
             .DeactivateOnExit<AlleyOopInfernoSpread>();
 
-        Cast(id + 0x200, AID._Weaponskill_HotAerial, 3.9f, 5)
+        Cast(id + 0x200, AID.HotAerialCast, 3.3f, 5)
             .ActivateOnEnter<AwesomeSplab>()
             .ActivateOnEnter<HotAerial>()
             .ActivateOnEnter<HotAerialPuddle>();
@@ -214,7 +215,7 @@ class RM10STheXtremesStates : StateMachineBuilder
             .DeactivateOnExit<SickestTakeOff>()
             .ExecOnExit<SteamBurst>(s => s.Reset());
 
-        CastStart(id + 0x250, AID._Weaponskill_CutbackBlaze, 1.2f)
+        CastStart(id + 0x250, AID.CutbackBlazeCast, 1.2f)
             .ActivateOnEnter<CutbackBlazeBait>()
             .ActivateOnEnter<CutbackBlazePuddle>()
             .ActivateOnEnter<DeepImpactBait>()
@@ -232,7 +233,7 @@ class RM10STheXtremesStates : StateMachineBuilder
             .DeactivateOnExit<DeepImpactBait>()
             .DeactivateOnExit<DeepImpactKB>();
 
-        Cast(id + 0x300, AID._Weaponskill_DiversDare, 2.2f, 5, "Raidwide")
+        Cast(id + 0x300, AID.DiversDareRed, 2.2f, 5, "Raidwide")
             .ActivateOnEnter<DiversDare1>()
             .DeactivateOnExit<DiversDare1>()
             .DeactivateOnExit<SteamBurst>()
@@ -250,22 +251,22 @@ class RM10STheXtremesStates : StateMachineBuilder
             .ActivateOnEnter<BubbleBounds>()
             .DeactivateOnExit<DeepAerial>();
 
-        ComponentCondition<WateryGrave>(id + 0x10, 3.3f, w => w.ActiveActors.Any(), "Bubble appears")
+        ComponentCondition<WateryGrave>(id + 0x10, 3.2f, w => w.ActiveActors.Any(), "Bubble appears")
             .ActivateOnEnter<BubbleTether>()
             .ActivateOnEnter<ScathingSteam>();
 
-        ComponentCondition<BubbleTether>(id + 0x100, 8.1f, b => b.NumCasts > 1, "Baits 1");
-        ComponentCondition<BubbleTether>(id + 0x101, 8.6f, b => b.NumCasts > 3, "Baits 2");
-        ComponentCondition<BubbleTether>(id + 0x102, 8.4f, b => b.NumCasts > 5, "Baits 3");
-        ComponentCondition<BubbleTether>(id + 0x103, 8.6f, b => b.NumCasts > 7, "Baits 4");
-        ComponentCondition<BubbleTether>(id + 0x104, 8.6f, b => b.NumCasts > 9, "Baits 5");
-        ComponentCondition<BubbleTether>(id + 0x105, 8.6f, b => b.NumCasts > 11, "Baits 6")
+        ComponentCondition<BubbleTether>(id + 0x100, 8.1f, b => b.NumCasts > 1, "Tethers 1");
+        ComponentCondition<BubbleTether>(id + 0x101, 8.6f, b => b.NumCasts > 3, "Tethers 2");
+        ComponentCondition<BubbleTether>(id + 0x102, 8.6f, b => b.NumCasts > 5, "Tethers 3");
+        ComponentCondition<BubbleTether>(id + 0x103, 8.6f, b => b.NumCasts > 7, "Tethers 4");
+        ComponentCondition<BubbleTether>(id + 0x104, 8.6f, b => b.NumCasts > 9, "Tethers 5");
+        ComponentCondition<BubbleTether>(id + 0x105, 8.6f, b => b.NumCasts > 11, "Tethers 6")
             .DeactivateOnExit<BubbleTether>();
 
         Targetable(id + 0x200, true, 2, "Bosses reappear");
 
         // if not killed, bubble explodes at the same time cast starts
-        Cast(id + 0x300, AID._Weaponskill_DiversDare, 3.2f, 5, "Raidwide")
+        Cast(id + 0x300, AID.DiversDareRed, 3.2f, 5, "Raidwide")
             .ActivateOnEnter<DiversDare1>()
             .DeactivateOnExit<DiversDare1>()
             .DeactivateOnExit<WateryGrave>()
@@ -274,15 +275,15 @@ class RM10STheXtremesStates : StateMachineBuilder
 
     void SplitPhase(uint id, float delay)
     {
-        CastStart(id, AID._Weaponskill_FlameFloater5, delay)
+        CastStart(id, AID.FlameFloaterSplitCast, delay)
             .ActivateOnEnter<FlameFloaterSplit>()
             .ActivateOnEnter<SplitPuddle>()
             .ActivateOnEnter<SteamBurst>();
 
-        ComponentCondition<SplitPuddle>(id + 0x10, 6, s => s.NumActors > 0, "Voidzone appears")
+        ComponentCondition<SplitPuddle>(id + 0x10, 6.3f, s => s.NumActors > 0, "Voidzone appears")
             .DeactivateOnExit<FlameFloaterSplit>();
 
-        Cast(id + 0x20, AID._Weaponskill_AlleyOopInferno, 7.6f, 4.3f)
+        Cast(id + 0x20, AID.AlleyOopInfernoCast, 3, 4.3f)
             .ActivateOnEnter<AlleyOopInfernoPuddle>()
             .ActivateOnEnter<AlleyOopInfernoSpread>()
             .ActivateOnEnter<AlleyOopProteans>()
@@ -302,9 +303,9 @@ class RM10STheXtremesStates : StateMachineBuilder
             .DeactivateOnExit<AlleyOopProteans>()
             .DeactivateOnExit<AlleyOopProteanRepeat>();
 
-        ActorTargetable(id + 0x40, _module.B2, false, 3.9f, "Blue disappears");
+        ActorTargetable(id + 0x40, _module.B2, false, 4, "Blue disappears");
 
-        ComponentCondition<FreakyPyrotation>(id + 0x50, 1.2f, p => p.NumFinishedStacks > 0, "Stacks")
+        ComponentCondition<FreakyPyrotation>(id + 0x50, 1, p => p.NumFinishedStacks > 0, "Stacks")
             .DeactivateOnExit<FreakyPyrotation>();
 
         ComponentCondition<SickestTakeOff>(id + 0x60, 8, s => s.NumCasts > 0, "Knockback + line AOE")
@@ -317,7 +318,7 @@ class RM10STheXtremesStates : StateMachineBuilder
             .DeactivateOnExit<AwesomeSplab>();
 
         // cast is 5s total, stacks go off about 0.2s after it starts
-        Cast(id + 0x100, AID._Weaponskill_DiversDare, 0, 4.8f, "Raidwide")
+        Cast(id + 0x100, AID.DiversDareRed, 0, 4.7f, "Raidwide")
             .ActivateOnEnter<DiversDare1>()
             .DeactivateOnExit<DiversDare1>()
             .DeactivateOnExit<BubbleBounds>()
@@ -329,7 +330,7 @@ class RM10STheXtremesStates : StateMachineBuilder
 
     void Air2(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_XtremeFiresnaking, delay, 5, "Raidwide + assign debuffs")
+        Cast(id, AID.XtremeFiresnaking, delay, 5, "Raidwide + assign debuffs")
             .ActivateOnEnter<XtremeFiresnakingRaidwide>()
             .ActivateOnEnter<Air2Assignments>()
             .ActivateOnEnter<Air2Baits>()
@@ -350,14 +351,52 @@ class RM10STheXtremesStates : StateMachineBuilder
             .DeactivateOnExit<Air2Baits>()
             .DeactivateOnExit<Bailout>();
 
-        Cast(id + 0x100, AID._Weaponskill_DiversDare, 2.9f, 5, "Raidwide")
+        Cast(id + 0x100, AID.DiversDareRed, 2.9f, 5, "Raidwide")
             .ActivateOnEnter<DiversDare1>()
-            .DeactivateOnExit<DiversDare1>();
+            .DeactivateOnExit<DiversDare1>()
+            .DeactivateOnExit<AirPuddleCircle>()
+            .DeactivateOnExit<AirPuddleCone>();
+    }
+
+    void PreEnrage(uint id, float delay)
+    {
+        ActorCastStartMulti(id, _module.B2, [AID.AlleyOopDoubleDipCast, AID.ReverseAlleyOopCast], delay)
+            .ActivateOnEnter<AlleyOopProteans>()
+            .ActivateOnEnter<AlleyOopProteanRepeat>();
+
+        CastStart(id + 1, AID.AlleyOopInfernoCast, 2.8f)
+            .ActivateOnEnter<AlleyOopInfernoSpread>()
+            .ActivateOnEnter<AlleyOopInfernoPuddle>();
+
+        ComponentCondition<AlleyOopProteans>(id + 2, 2.7f, p => p.NumCasts > 0, "Proteans")
+            .DeactivateOnExit<AlleyOopProteans>();
+        ComponentCondition<AlleyOopInfernoSpread>(id + 3, 2.2f, p => p.NumFinishedSpreads > 0, "Puddles")
+            .DeactivateOnExit<AlleyOopInfernoSpread>();
+        ComponentCondition<AlleyOopProteanRepeat>(id + 4, 0.4f, p => p.NumCasts > 0, "Proteans (repeat)")
+            .DeactivateOnExit<AlleyOopProteanRepeat>()
+            .ActivateOnEnter<Pyrotation>()
+            .ActivateOnEnter<PyrotationPuddle>()
+            .ActivateOnEnter<DeepImpactBait>()
+            .ActivateOnEnter<DeepImpactKB>();
+
+        ComponentCondition<Pyrotation>(id + 0x10, 8.6f, p => p.NumCasts > 0, "Stack start");
+        ComponentCondition<DeepImpactBait>(id + 0x11, 0.3f, d => d.NumCasts > 0, "Tankbuster")
+            .DeactivateOnExit<DeepImpactBait>()
+            .DeactivateOnExit<DeepImpactKB>();
+        ComponentCondition<Pyrotation>(id + 0x12, 3.8f, p => p.NumCasts == 3, "Stack finish")
+            .DeactivateOnExit<Pyrotation>();
+
+        Cast(id + 0x100, AID.DiversDareRed, 4.3f, 5, "Raidwide")
+            .ActivateOnEnter<DiversDare1>()
+            .DeactivateOnExit<AlleyOopInfernoPuddle>()
+            .DeactivateOnExit<PyrotationPuddle>();
+
+        Cast(id + 0x110, AID.DiversDareRed, 4.2f, 5, "Raidwide");
     }
 
     void AlleyOop(uint id, float delay)
     {
-        ActorCastMulti(id, _module.B2, [AID._Weaponskill_AlleyOopDoubleDip, AID._Weaponskill_ReverseAlleyOop], delay, 5)
+        ActorCastMulti(id, _module.B2, [AID.AlleyOopDoubleDipCast, AID.ReverseAlleyOopCast], delay, 5)
             .ActivateOnEnter<AlleyOopProteans>()
             .ActivateOnEnter<AlleyOopProteanRepeat>();
 
