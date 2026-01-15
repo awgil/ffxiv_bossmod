@@ -100,17 +100,29 @@ public class JsonPlanConverter : JsonConverter<Plan>
                             Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find track {jd.Name} in module {jm.Name}");
                             continue;
                         }
-                        var optionName = jd.Value.GetString() ?? "";
-                        var s = new StrategyValueTrack()
+
+                        switch (md.Definition.Configs[dTrack])
                         {
-                            Option = ((StrategyConfigTrack)md.Definition.Configs[dTrack]).Options.FindIndex(o => o.InternalName == optionName)
-                        };
-                        if (s.Option < 0)
-                        {
-                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jd.Name} in module {jm.Name}");
-                            continue;
+                            case StrategyConfigTrack sct:
+                                var optionName = jd.Value.GetString() ?? "";
+                                var s = new StrategyValueTrack()
+                                {
+                                    Option = sct.Options.FindIndex(o => o.InternalName == optionName)
+                                };
+                                if (s.Option < 0)
+                                {
+                                    Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jd.Name} in module {jm.Name}");
+                                    continue;
+                                }
+                                res.Modules[mi].Defaults[dTrack] = s;
+                                break;
+                            case StrategyConfigInt sci:
+                                res.Modules[mi].Defaults[dTrack] = new StrategyValueInt() { Value = jd.Value.GetInt64() };
+                                break;
+                            case StrategyConfigFloat scf:
+                                res.Modules[mi].Defaults[dTrack] = new StrategyValueFloat() { Value = (float)jd.Value.GetDouble() };
+                                break;
                         }
-                        res.Modules[mi].Defaults[dTrack] = s;
                     }
                     continue;
                 }
@@ -126,40 +138,38 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 foreach (var js in jt.Value.EnumerateArray())
                 {
                     Plan.Entry s;
-                    if (cfg is StrategyConfigTrack cfgTrack)
+                    switch (md.Definition.Configs[iTrack])
                     {
-                        var optionName = js.GetProperty(nameof(StrategyValueTrack.Option)).GetString() ?? "";
-                        var t = new StrategyValueTrack
-                        {
-                            Option = cfgTrack.Options.FindIndex(o => o.InternalName == optionName)
-                        };
-                        if (t.Option < 0)
-                        {
-                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jt.Name} in module {jm.Name}");
+                        case StrategyConfigTrack cfgTrack:
+                            var optionName = js.GetProperty(nameof(StrategyValueTrack.Option)).GetString() ?? "";
+                            var t = new StrategyValueTrack
+                            {
+                                Option = cfgTrack.Options.FindIndex(o => o.InternalName == optionName)
+                            };
+                            if (t.Option < 0)
+                            {
+                                Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jt.Name} in module {jm.Name}");
+                                continue;
+                            }
+                            s = new Plan.Entry(t);
+                            break;
+                        case StrategyConfigFloat cfgScalar:
+                            var f = new StrategyValueFloat
+                            {
+                                Value = js.GetProperty(nameof(StrategyValueFloat.Value)).GetSingle()
+                            };
+                            s = new Plan.Entry(f);
+                            break;
+                        case StrategyConfigInt cfgInt:
+                            var ci = new StrategyValueInt
+                            {
+                                Value = js.GetProperty(nameof(StrategyValueInt.Value)).GetInt64()
+                            };
+                            s = new Plan.Entry(ci);
+                            break;
+                        default:
+                            Service.Log($"Error while deserializing: unrecognized config type {cfg.GetType()}");
                             continue;
-                        }
-                        s = new Plan.Entry(t);
-                    }
-                    else if (cfg is StrategyConfigFloat cfgScalar)
-                    {
-                        var t = new StrategyValueFloat
-                        {
-                            Value = js.GetProperty(nameof(StrategyValueFloat.Value)).GetSingle()
-                        };
-                        s = new Plan.Entry(t);
-                    }
-                    else if (cfg is StrategyConfigInt cfgInt)
-                    {
-                        var t = new StrategyValueInt
-                        {
-                            Value = js.GetProperty(nameof(StrategyValueInt.Value)).GetInt64()
-                        };
-                        s = new Plan.Entry(t);
-                    }
-                    else
-                    {
-                        Service.Log($"Error while deserializing: unrecognized config type {cfg.GetType()}");
-                        continue;
                     }
 
                     ReadEntryFields(ref s, in js);
