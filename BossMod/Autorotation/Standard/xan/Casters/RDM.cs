@@ -93,6 +93,14 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         return base.GetCastTime(aid);
     }
 
+    enum OGCDPriority : int
+    {
+        Normal = 1,
+        Fleche = 400,
+        Manafic = 450,
+        Embolden = 500,
+    }
+
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
@@ -134,8 +142,12 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         GoalZoneSingle(25);
 
+        DoGCD(strategy, primaryTarget, comboMana);
         OGCD(strategy, primaryTarget);
+    }
 
+    void DoGCD(in Strategy strategy, Enemy? primaryTarget, int comboMana)
+    {
         if (ComboLastMove is AID.Scorch)
             PushGCD(AID.Resolution, BestLineTarget);
 
@@ -157,30 +169,31 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (ComboLastMove == AID.EnchantedMoulinet)
             PushGCD(AID.EnchantedMoulinetDeux, BestConeTarget);
 
-        if (InCombo && strategy.Combo == ComboStrategy.Complete)
-            return;
-
-        if (GrandImpact > GCD)
-            PushGCD(AID.GrandImpact, BestAOETarget);
-
         if (Acceleration > GCD)
         {
             if (NumAOETargets > 2)
                 PushGCD(AID.Scatter, BestAOETarget);
 
-            if (BlackMana > WhiteMana)
+            if (BlackMana > WhiteMana && CombatTimer > 6)
                 PushGCD(AID.Veraero, primaryTarget);
 
             PushGCD(AID.Verthunder, primaryTarget);
         }
 
-        if (Dualcast == 0 && (Swordplay > 0 || LowestMana >= comboMana))
+        if (Dualcast <= GCD && (Swordplay > GCD || LowestMana >= comboMana))
         {
-            if (NumConeTargets > 2)
+            // in this block we manually check that the player is in range of the target, to ensure that NextGCD stays accurate
+
+            if (NumConeTargets > 2 && Player.DistanceToHitbox(BestConeTarget) <= 8)
                 PushGCD(AID.EnchantedMoulinet, BestConeTarget);
 
-            PushGCD(AID.Riposte, primaryTarget);
+            // FIXME: spamming melee combo on cooldown is not optimal for burst
+            if (Player.DistanceToHitbox(primaryTarget) <= 3)
+                PushGCD(AID.Riposte, primaryTarget);
         }
+
+        if (GrandImpact > GCD && (OnCooldown(AID.Embolden) || CombatTimer > 6))
+            PushGCD(AID.GrandImpact, BestAOETarget);
 
         if (Dualcast > GCD || SwiftcastLeft > GCD)
         {
@@ -201,34 +214,32 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.VerthunderII, BestAOETarget);
         }
 
-        if (VerfireReady > GCD)
+        if (VerfireReady > GCD + 1.5f)
             PushGCD(AID.Verfire, primaryTarget);
 
-        if (VerstoneReady > GCD)
+        if (VerstoneReady > GCD + 1.5f)
             PushGCD(AID.Verstone, primaryTarget);
 
         PushGCD(AID.Jolt, primaryTarget);
     }
 
-    private void OGCD(Strategy strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
+        UseEmbolden(strategy);
+
         if (!Player.InCombat || primaryTarget == null)
             return;
 
-        PushOGCD(AID.Swiftcast, Player);
+        if (!InCombo && !InRangedCombo && OnCooldown(AID.Embolden))
+            PushOGCD(AID.Manafication, Player, OGCDPriority.Manafic);
 
-        PushOGCD(AID.Fleche, primaryTarget);
+        if (GetCastTime(NextGCD) > 0)
+            PushOGCD(AID.Swiftcast, Player);
 
-        // intentionally checking for max charges - balance says to save a charge for movement
+        PushOGCD(AID.Fleche, primaryTarget, OGCDPriority.Fleche);
+
         if (CanWeave(MaxChargesIn(AID.Acceleration), 0.6f))
             PushOGCD(AID.Acceleration, Player);
-
-        if (strategy.Buffs != OffensiveStrategy.Delay)
-        {
-            PushOGCD(AID.Embolden, Player);
-            if (!(InCombo || InRangedCombo))
-                PushOGCD(AID.Manafication, Player);
-        }
 
         PushOGCD(AID.ContreSixte, BestAOETarget);
         PushOGCD(AID.Engagement, primaryTarget);
@@ -236,16 +247,34 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (strategy.Dash.IsEnabled())
             PushOGCD(AID.CorpsACorps, ResolveTargetOverride(strategy.Dash) ?? primaryTarget);
 
-        if (ThornedFlourish > 0)
+        if (ThornedFlourish > AnimLock)
             PushOGCD(AID.ViceOfThorns, BestAOETarget);
 
-        if (Prefulgence > 0)
-            PushOGCD(AID.Prefulgence, BestAOETarget);
+        if (Prefulgence > AnimLock)
+        {
+            if (Embolden > AnimLock || !CanFitGCD(Prefulgence, 1) || NumAOETargets > 1)
+                PushOGCD(AID.Prefulgence, BestAOETarget);
+        }
 
-        if (RaidBuffsLeft > GCD && Acceleration == 0)
+        if (RaidBuffsLeft > GCD && Acceleration <= AnimLock && GrandImpact <= AnimLock)
             PushOGCD(AID.Acceleration, Player);
 
         if (MP <= Player.HPMP.MaxMP * 0.7f)
             PushOGCD(AID.LucidDreaming, Player);
+    }
+
+    void UseEmbolden(in Strategy strategy)
+    {
+        if (strategy.Buffs == OffensiveStrategy.Force)
+        {
+            PushOGCD(AID.Embolden, Player, OGCDPriority.Embolden);
+            return;
+        }
+
+        if (strategy.Buffs == OffensiveStrategy.Delay)
+            return;
+
+        if (Player.InCombat && CombatTimer > 6)
+            PushOGCD(AID.Embolden, Player, OGCDPriority.Embolden);
     }
 }
