@@ -13,6 +13,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         [Track(Actions = [AID.Embolden, AID.Manafication])]
         public Track<OffensiveStrategy> Buffs;
 
+        [Track(Targets = ActionTargets.Hostile, MinLevel = 100)]
+        public Track<OffensiveStrategy> Prefulgence;
+
         [Track("Melee combo")]
         public Track<ComboStrategy> Combo;
 
@@ -250,11 +253,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (ThornedFlourish > AnimLock)
             PushOGCD(AID.ViceOfThorns, BestAOETarget);
 
-        if (Prefulgence > AnimLock)
-        {
-            if (Embolden > AnimLock || !CanFitGCD(Prefulgence, 1) || NumAOETargets > 1)
-                PushOGCD(AID.Prefulgence, BestAOETarget);
-        }
+        UsePrefulgence(strategy);
 
         if (RaidBuffsLeft > GCD && Acceleration <= AnimLock && GrandImpact <= AnimLock)
             PushOGCD(AID.Acceleration, Player);
@@ -276,5 +275,21 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (Player.InCombat && CombatTimer > 6)
             PushOGCD(AID.Embolden, Player, OGCDPriority.Embolden);
+    }
+
+    void UsePrefulgence(in Strategy strategy)
+    {
+        if (Prefulgence <= AnimLock)
+            return;
+
+        var shouldUse = strategy.Prefulgence.Value switch
+        {
+            OffensiveStrategy.Automatic => Embolden > AnimLock || !CanFitGCD(Prefulgence, 1) || NumAOETargets > 1,
+            OffensiveStrategy.Force => true,
+            _ => false
+        };
+
+        if (shouldUse)
+            PushOGCD(AID.Prefulgence, ResolveTargetOverride(strategy.Prefulgence) ?? BestAOETarget);
     }
 }

@@ -23,4 +23,15 @@ public class RM11STheTyrantConfig : ConfigNode
 
     [PropertyDisplay("Trophy Weapons: sword bait positions")]
     public HintSword WeaponHintsSword = HintSword.Standard;
+
+    public enum HintForegoneFatality
+    {
+        [PropertyDisplay("None")]
+        None,
+        [PropertyDisplay("MT north meteor, OT south meteor")]
+        StandardNS
+    }
+
+    [PropertyDisplay("Meteorain: meteor tether assignments")]
+    public HintForegoneFatality ForegoneFatalityAssignments = HintForegoneFatality.StandardNS;
 }

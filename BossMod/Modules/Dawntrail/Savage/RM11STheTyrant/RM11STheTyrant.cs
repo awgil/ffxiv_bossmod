@@ -2,68 +2,66 @@
 
 class CrownOfArcadia(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_CrownOfArcadia);
 
-class RawSteelTrophyAxe(BossModule module) : Components.GenericStackSpread(module)
+class DanceOfDomination1(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_DanceOfDominationTrophy, AID._Weaponskill_DanceOfDomination1, 6.6f);
+class DanceOfDomination2(BossModule module) : Components.RaidwideInstant(module, AID._Weaponskill_DanceOfDomination3, 4.2f)
 {
-    public int NumCasts;
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.RawSteelTrophyAxe)
+        if ((AID)spell.Action.ID == AID._Weaponskill_DanceOfDomination1)
+            Activation = WorldState.FutureTime(Delay);
+        if ((AID)spell.Action.ID == AID._Weaponskill_DanceOfDomination3)
         {
-            // tankbuster is actually baited on 2nd enmity target, but let's not make this too complicated
-            var tanksFirst = Raid.WithoutSlot().OrderByDescending(t => t.Role == Role.Tank);
-            if (tanksFirst.First() is { } tank)
-                Stacks.Add(new(tank, 6, maxSize: 2, activation: WorldState.FutureTime(8.3f)));
-            foreach (var t in tanksFirst.Skip(2))
-                Spreads.Add(new(t, 6, WorldState.FutureTime(9.4f)));
+            NumCasts++;
+            Activation = default;
+        }
+    }
+}
+
+class HurricaneExplosion(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Explosion, new AOEShapeRect(60, 5));
+class EyeOfTheHurricane(BossModule module) : Components.StackWithCastTargets(module, AID._Spell_EyeOfTheHurricane, 6, 2, 2);
+class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Maelstrom).Where(e => e.EventState != 7));
+
+class PowerfulGust : Components.GenericBaitAway
+{
+    public DateTime Activation;
+
+    public PowerfulGust(BossModule module) : base(module)
+    {
+        Activation = WorldState.FutureTime(6.3f);
+    }
+
+    public override void Update()
+    {
+        CurrentBaits.Clear();
+        if (Activation == default)
+            return;
+
+        foreach (var t in Module.Enemies(OID.Maelstrom))
+        {
+            foreach (var player in Raid.WithoutSlot().SortedByRange(t.Position).Take(2))
+            {
+                CurrentBaits.Add(new(t, player, new AOEShapeCone(60, 45.Degrees()), Activation));
+            }
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        if ((AID)spell.Action.ID == AID._Spell_PowerfulGust)
         {
-            case AID._Weaponskill_RawSteel1:
-                NumCasts++;
-                Stacks.Clear();
-                break;
-            case AID._Weaponskill_Impact:
-                NumCasts++;
-                if (Spreads.Count > 0)
-                    Spreads.RemoveAt(0);
-                break;
+            Activation = default;
+            NumCasts++;
         }
     }
 }
 
-class RawSteelTrophyScythe(BossModule module) : Components.UntelegraphedBait(module)
+class OneAndOnly(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_OneAndOnly);
+
+[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1073, NameID = 14305, PlanLevel = 100)]
+public class RM11STheTyrant(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
 {
-    public static readonly AOEShape Tankbuster = new AOEShapeCone(60, 45.Degrees());
-    public static readonly AOEShape Stack = new AOEShapeCone(60, 22.5f.Degrees());
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        if ((AID)spell.Action.ID == AID.RawSteelTrophyScythe)
-        {
-            CurrentBaits.Add(new(Module.PrimaryActor.Position, Raid.WithSlot().WhereActor(t => t.Role == Role.Tank).Take(2).Mask(), Tankbuster, WorldState.FutureTime(9.4f), type: AIHints.PredictedDamageType.Tankbuster));
-            CurrentBaits.Add(new(Module.PrimaryActor.Position, Raid.WithSlot().WhereActor(t => t.Role != Role.Tank).Mask(), Stack, WorldState.FutureTime(9.4f), count: 1, stackSize: 4));
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID._Weaponskill_RawSteel4:
-                CurrentBaits.RemoveAll(b => b.Type == AIHints.PredictedDamageType.Tankbuster);
-                break;
-            case AID._Weaponskill_HeavyHitter:
-                CurrentBaits.RemoveAll(b => b.Type == AIHints.PredictedDamageType.Shared);
-                break;
-        }
+        Arena.ActorInsideBounds(PrimaryActor.Position, PrimaryActor.Rotation, ArenaColor.Enemy);
     }
 }
-class RawSteelTrophyCounter(BossModule module) : Components.CastCounterMulti(module, [AID._Weaponskill_Impact, AID._Weaponskill_RawSteel4]);
-
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1073, NameID = 14305)]
-public class RM11STheTyrant(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

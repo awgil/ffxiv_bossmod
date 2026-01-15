@@ -35,7 +35,7 @@ public enum AID : uint
     _Weaponskill_HeavyWeight = 46107, // Helper->players, no cast, range 6 circle
     _Weaponskill_AssaultEvolved4 = 46104, // Helper->self, 2.0s cast, range 8 circle
     _Weaponskill_AssaultEvolved5 = 46404, // Boss->location, no cast, single-target
-    _Weaponskill_SweepingVictory = 46108, // Helper->self, no cast, range 60 ?-degree cone
+    _Weaponskill_SweepingVictory = 46108, // Helper->self, no cast, range 60 30-degree cone
     _Weaponskill_AssaultEvolved6 = 46105, // Helper->self, 2.0s cast, range 5-60 donut
     _Spell_VoidStardust = 46098, // Boss->self, 4.0+1.0s cast, single-target
     _Spell_Cometite = 46099, // Helper->location, 3.0s cast, range 6 circle
@@ -48,17 +48,18 @@ public enum AID : uint
     _Weaponskill_DanceOfDomination3 = 47082, // Helper->self, no cast, range 60 circle
     _Spell_EyeOfTheHurricane = 46116, // Helper->players, 5.0s cast, range 6 circle
     _Weaponskill_Explosion = 46112, // Helper->self, 5.0s cast, range 60 width 10 rect
-    _Weaponskill_Explosion1 = 47036, // Helper->self, 5.5s cast, range 60 width 10 rect
+    _Weaponskill_Explosion1 = 47036, // Helper->self, 5.5s cast, range 60 width 10 rect, visual only? doesn't deal damage
     _Weaponskill_RawSteel2 = 46093, // Boss->self, no cast, single-target
     _Weaponskill_RawSteel3 = 46094, // Boss->self, no cast, single-target
     _Spell_Charybdistopia = 46117, // Boss->self, 5.0s cast, range 60 circle
     _Weaponskill_UltimateTrophyWeapons = 47085, // Boss->self, 3.0s cast, single-target
     _Weaponskill_AssaultApex = 47086, // Boss->self, 5.0s cast, single-target
-    _Spell_PowerfulGust = 46119, // Helper->self, no cast, range 60 ?-degree cone
+    _Spell_PowerfulGust = 46119, // Helper->self, no cast, range 60 90-degree cone
     _Ability_ImmortalReign = 46120, // Boss->self, 3.0+1.0s cast, single-target
     _Spell_Charybdis = 46118, // Helper->player, no cast, single-target
     _Weaponskill_OneAndOnly = 46122, // Helper->self, 9.0s cast, range 60 circle
     _Weaponskill_OneAndOnly1 = 46121, // Boss->self, 6.0+2.0s cast, single-target
+
     _Weaponskill_GreatWallOfFire = 46123, // Boss->self, 5.0s cast, single-target
     _Weaponskill_GreatWallOfFire1 = 46124, // Boss->self, no cast, range 60 width 6 rect
     _Weaponskill_GreatWallOfFire2 = 46125, // Helper->self, no cast, single-target
@@ -84,6 +85,7 @@ public enum AID : uint
     _Weaponskill_Flatliner1 = 47760, // Helper->self, 6.0s cast, range 60 circle
     _Spell_MajesticMeteor = 46144, // Boss->self, 5.0s cast, single-target
     _Spell_Explosion = 46148, // Helper->self, 10.0s cast, range 4 circle
+
     _Spell_UnmitigatedExplosion = 46149, // Helper->self, no cast, range 60 circle
     _Spell_MajesticMeteor1 = 46145, // Helper->location, 3.0s cast, range 6 circle
     _Weaponskill_FireBreath = 46150, // Boss->self, 8.0+1.0s cast, single-target

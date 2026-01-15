@@ -1,10 +1,35 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
+class VoidStardustBait(BossModule module) : BossComponent(module)
+{
+    public bool Enabled = true;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Spell_Cometite)
+            Enabled = false;
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (Enabled)
+        {
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(pc.Position, 6, 0xFF000000, 2);
+            Arena.AddCircle(pc.Position, 6, ArenaColor.Danger);
+        }
+    }
+}
+
+class Cometite(BossModule module) : Components.StandardAOEs(module, AID._Spell_Cometite, 6);
+class Comets(BossModule module) : Components.CastStackSpread(module, AID._Spell_CrushingComet, AID._Spell_Comet, 6, 6);
+
 abstract class WeaponsAOE(BossModule module) : Components.GenericAOEs(module)
 {
     protected readonly List<Actor> Weapons = [];
     protected DateTime Next;
     protected WPos Previous;
+    public bool Risky = true;
 
     public static readonly AOEShape Axe = new AOEShapeCircle(8);
     public static readonly AOEShape Scythe = new AOEShapeDonut(5, 60);
@@ -23,7 +48,7 @@ abstract class WeaponsAOE(BossModule module) : Components.GenericAOEs(module)
                 _ => null
             };
             if (shape != null)
-                yield return new(shape, w.Position, rotation, Next);
+                yield return new(shape, w.Position, rotation, Next, Risky: Risky);
         }
     }
 
@@ -96,7 +121,7 @@ abstract class WeaponsHints(BossModule module) : BossComponent(module)
             Weapons.Add(actor);
     }
 
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Destination[pcSlot] != default)
             Arena.AddCircle(Destination[pcSlot], 0.75f, ArenaColor.Safe);
@@ -193,7 +218,6 @@ abstract class WeaponsHints(BossModule module) : BossComponent(module)
                 break;
         }
     }
-
 }
 
 class TrophyWeaponsAOE(BossModule module) : WeaponsAOE(module)
@@ -206,6 +230,7 @@ class TrophyWeaponsAOE(BossModule module) : WeaponsAOE(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        // TODO: we can actually determine first weapon as soon as they spawn based on their rotation relative to the boss
         if ((AID)spell.Action.ID == AID._Weaponskill_AssaultEvolved)
         {
             Next = Module.CastFinishAt(spell, 2.2f);
@@ -280,6 +305,51 @@ class TrophyWeaponsHints(BossModule module) : WeaponsHints(module)
             if (Weapons.Count > 0)
                 Weapons.RemoveAt(0);
             Redraw();
+        }
+    }
+}
+
+class UltimateTrophyWeaponsAOE(BossModule module) : WeaponsAOE(module)
+{
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if ((OID)actor.OID is OID.Axe or OID.Scythe or OID.Sword && id is 0x11D1 or 0x11D2 or 0x11D3)
+        {
+            Weapons.Add(actor);
+            if (Weapons.Count == 1)
+                Next = WorldState.FutureTime(8.6f);
+        }
+    }
+}
+
+class UltimateTrophyWeaponsBait(BossModule module) : WeaponsBait(module)
+{
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if ((OID)actor.OID is OID.Axe or OID.Scythe or OID.Sword && id is 0x11D1 or 0x11D2 or 0x11D3)
+        {
+            Weapons.Add(actor);
+            if (Weapons.Count == 1)
+            {
+                Next = WorldState.FutureTime(8.6f);
+                Redraw();
+            }
+        }
+    }
+}
+
+class UltimateTrophyWeaponsHints(BossModule module) : WeaponsHints(module)
+{
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if ((OID)actor.OID is OID.Axe or OID.Scythe or OID.Sword && id is 0x11D1 or 0x11D2 or 0x11D3)
+        {
+            Weapons.Add(actor);
+            if (Weapons.Count == 1)
+            {
+                Next = WorldState.FutureTime(8.6f);
+                Redraw();
+            }
         }
     }
 }
