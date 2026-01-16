@@ -84,7 +84,12 @@ public sealed class ActionQueue
             }
             // else: even though the action is off cooldown, the condition prevents using it - skip it for now, no point waiting forever
         }
-        return best;
+
+        // double check that best candidate can be executed before we return it; it may have been promoted to best if a better action was interrupted for example
+        if (CanExecute(ref best, ActionDefinitions.Instance[best.Action], ws, player, hints, allowDismount))
+            return best;
+
+        return default;
     }
 
     private bool CanExecute(ref Entry entry, ActionDefinition? def, WorldState ws, Actor player, AIHints hints, bool allowDismount)
