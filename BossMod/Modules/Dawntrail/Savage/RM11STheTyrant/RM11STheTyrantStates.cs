@@ -213,11 +213,13 @@ class RM11STheTyrantStates : StateMachineBuilder
 
         ComponentCondition<Flatliner>(id + 0x10, 2, f => f.NumCasts > 0, "Arena split")
             .DeactivateOnExit<Flatliner>()
-            .DeactivateOnExit<FlatlinerArena>();
+            .DeactivateOnExit<FlatlinerArena>()
+            .ActivateOnEnter<MajesticMeteorain>();
 
         Cast(id + 0x100, AID._Spell_MajesticMeteor, 9.2f, 5)
             .ActivateOnEnter<ExplosionKnockback>()
             .ActivateOnEnter<ExplosionTower>()
-            .ActivateOnEnter<MeteowrathTether>();
+            .ActivateOnEnter<FireBreathMeteowrath>()
+            .ActivateOnEnter<MajesticMeteor>();
     }
 }
