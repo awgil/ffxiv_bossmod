@@ -172,6 +172,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (ComboLastMove == AID.EnchantedMoulinet)
             PushGCD(AID.EnchantedMoulinetDeux, BestConeTarget);
 
+        if (InCombo && strategy.Combo == ComboStrategy.Complete)
+            return;
+
         if (Acceleration > GCD)
         {
             if (NumAOETargets > 2)
