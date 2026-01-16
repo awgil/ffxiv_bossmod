@@ -85,7 +85,6 @@ public enum AID : uint
     _Weaponskill_Flatliner1 = 47760, // Helper->self, 6.0s cast, range 60 circle
     _Spell_MajesticMeteor = 46144, // Boss->self, 5.0s cast, single-target
     _Spell_Explosion = 46148, // Helper->self, 10.0s cast, range 4 circle
-
     _Spell_UnmitigatedExplosion = 46149, // Helper->self, no cast, range 60 circle
     _Spell_MajesticMeteor1 = 46145, // Helper->location, 3.0s cast, range 6 circle
     _Weaponskill_FireBreath = 46150, // Boss->self, 8.0+1.0s cast, single-target

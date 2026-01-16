@@ -355,7 +355,6 @@ class ShockwaveCounter(BossModule module) : Components.CastCounter(module, AID._
 class TripleTyrannhilation(BossModule module) : Components.GenericLineOfSightAOE(module, AID._Weaponskill_Shockwave, 60, false)
 {
     private readonly Comet _cometTracker = module.FindComponent<Comet>()!;
-    public DateTime Next;
     private readonly List<Actor> _comets = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -382,3 +381,5 @@ class TripleTyrannhilation(BossModule module) : Components.GenericLineOfSightAOE
         }
     }
 }
+
+class ArcadionAvalanche(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ArcadionAvalanche1, AID._Weaponskill_ArcadionAvalanche3], new AOEShapeRect(40, 20));

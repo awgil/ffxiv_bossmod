@@ -216,10 +216,47 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<FlatlinerArena>()
             .ActivateOnEnter<MajesticMeteorain>();
 
-        Cast(id + 0x100, AID._Spell_MajesticMeteor, 9.2f, 5)
+        Cast(id + 0x20, AID._Spell_MajesticMeteor, 9.2f, 5)
             .ActivateOnEnter<ExplosionKnockback>()
             .ActivateOnEnter<ExplosionTower>()
             .ActivateOnEnter<FireBreathMeteowrath>()
+            .ActivateOnEnter<FireBreathMeteowrathHints>()
+            .ActivateOnEnter<MajesticMeteor>()
+            .ActivateOnEnter<ArcadionAvalanche>();
+
+        ComponentCondition<ExplosionTower>(id + 0x100, 13.1f, t => t.NumCasts > 0, "Towers 1")
+            .DeactivateOnExit<ExplosionTower>()
+            .DeactivateOnExit<ExplosionKnockback>();
+
+        ComponentCondition<FireBreathMeteowrath>(id + 0x101, 6, m => m.PreyAssigned, "Prey assigned");
+        CastStart(id + 0x102, AID._Weaponskill_FireBreath, 0);
+        ComponentCondition<MajesticMeteor>(id + 0x103, 2, m => m.ActiveCasters.Any(), "Puddles 1");
+        ComponentCondition<MajesticMeteor>(id + 0x104, 4, m => m.BaitsDone, "Puddles 3")
+            .ExecOnExit<FireBreathMeteowrath>(f => f.EnableHints = true)
+            .ExecOnExit<MajesticMeteorain>(m => m.Risky = true)
+            .ExecOnExit<FireBreathMeteowrathHints>(f => f.Safe = true);
+        ComponentCondition<FireBreathMeteowrath>(id + 0x105, 2.8f, m => m.NumCasts > 0, "Baits + line meteors")
+            .DeactivateOnExit<FireBreathMeteowrath>()
+            .DeactivateOnExit<FireBreathMeteowrathHints>();
+
+        ComponentCondition<MajesticMeteor>(id + 0x106, 0.2f, m => !m.ActiveCasters.Any());
+
+        ComponentCondition<ExplosionTower>(id + 0x200, 17, t => t.NumCasts > 0, "Towers 2")
+            .ActivateOnEnter<ExplosionKnockback>()
+            .ActivateOnEnter<ExplosionTower>()
+            .ActivateOnEnter<FireBreathMeteowrath>()
+            .ActivateOnEnter<FireBreathMeteowrathHints>()
             .ActivateOnEnter<MajesticMeteor>();
+
+        ComponentCondition<FireBreathMeteowrath>(id + 0x201, 6, m => m.PreyAssigned, "Prey assigned");
+        CastStart(id + 0x202, AID._Weaponskill_FireBreath, 0);
+        ComponentCondition<MajesticMeteor>(id + 0x203, 2, m => m.ActiveCasters.Any(), "Puddles 1");
+        ComponentCondition<MajesticMeteor>(id + 0x204, 4, m => m.BaitsDone, "Puddles 3")
+            .ExecOnExit<FireBreathMeteowrath>(f => f.EnableHints = true)
+            .ExecOnExit<MajesticMeteorain>(m => m.Risky = true)
+            .ExecOnExit<FireBreathMeteowrathHints>(f => f.Safe = true);
+        ComponentCondition<FireBreathMeteowrath>(id + 0x205, 2.8f, m => m.NumCasts > 0, "Baits + line meteors")
+            .DeactivateOnExit<FireBreathMeteowrath>()
+            .DeactivateOnExit<FireBreathMeteowrathHints>();
     }
 }

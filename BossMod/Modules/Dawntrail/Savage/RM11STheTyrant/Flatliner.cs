@@ -1,6 +1,4 @@
-﻿
-
-namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
+﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
 class Flatliner(BossModule module) : Components.Knockback(module, AID._Weaponskill_Flatliner1, ignoreImmunes: true)
 {
@@ -72,19 +70,68 @@ class FlatlinerArena(BossModule module) : Components.GenericAOEs(module, AID._We
     }
 }
 
-class ExplosionTower(BossModule module) : Components.CastTowers(module, AID._Spell_Explosion, 4, minSoakers: 2, maxSoakers: 2);
+class ExplosionTower(BossModule module) : Components.CastTowers(module, AID._Spell_Explosion, 4, minSoakers: 2, maxSoakers: 2)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if (spell.Action == WatchedAction)
+        {
+            for (var i = 0; i < Towers.Count; i++)
+            {
+                Towers.Ref(i).ForbiddenSoakers = Raid.WithSlot().WhereActor(a => (a.Position.X > 100) != (Towers[i].Position.X > 100)).Mask();
+            }
+        }
+    }
+}
 class ExplosionKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Spell_Explosion, 23, ignoreImmunes: true, shape: new AOEShapeCircle(4))
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Where(s => actor.Position.InCircle(s.Origin, 4));
 }
 
-class FireBreathMeteowrath(BossModule module) : Components.GenericBaitAway(module)
+class FireBreathMeteowrath : Components.GenericBaitAway
 {
     private readonly List<(Actor Source, Actor Target, int Color)> _tethers = [];
     private BitMask _prey;
 
     public static readonly AOEShape BreathShape = new AOEShapeRect(80, 3);
     public static readonly AOEShape WrathShape = new AOEShapeRect(80, 5);
+
+    // estimate
+    public const float StretchDistance = 48f;
+
+    public bool PreyAssigned { get; private set; }
+
+    public FireBreathMeteowrath(BossModule module) : base(module)
+    {
+        EnableHints = false;
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+
+        foreach (var (s, t, c) in _tethers)
+            if (t == pc)
+                Arena.AddLine(s.Position, t.Position, c == 1 ? ArenaColor.Border : ArenaColor.Safe);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+
+        if (EnableHints && ActiveBaitsOn(actor).FirstOrNull(b => b.Shape == WrathShape) is { } tetherBait)
+            hints.Add("Stretch tether!", actor.Position.InCircle(tetherBait.Source.Position, StretchDistance));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (EnableHints && ActiveBaitsOn(actor).FirstOrNull(b => b.Shape == WrathShape) is { } tetherBait)
+            hints.AddForbiddenZone(ShapeContains.Circle(tetherBait.Source.Position, 48), tetherBait.Activation);
+    }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
@@ -106,7 +153,10 @@ class FireBreathMeteowrath(BossModule module) : Components.GenericBaitAway(modul
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID._Gen_Icon_lockon8_t0w)
+        {
+            PreyAssigned = true;
             _prey.Set(Raid.FindSlot(actor.InstanceID));
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -135,28 +185,20 @@ class FireBreathMeteowrath(BossModule module) : Components.GenericBaitAway(modul
                 break;
         }
     }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        base.DrawArenaForeground(pcSlot, pc);
-
-        foreach (var (s, t, c) in _tethers)
-            if (t == pc)
-                Arena.AddLine(s.Position, t.Position, c == 1 ? ArenaColor.Danger : ArenaColor.Safe);
-    }
 }
 
 class MajesticMeteorain(BossModule module) : Components.GenericAOEs(module, AID._Spell_MajesticMeteorain)
 {
     private readonly List<WPos> _sources = [];
     private DateTime _activation;
+    public bool Risky;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
         {
             foreach (var src in _sources)
-                yield return new(new AOEShapeRect(60, 5), src, default, _activation);
+                yield return new(new AOEShapeRect(60, 5), src, default, _activation, Risky: Risky);
         }
     }
 
@@ -193,6 +235,90 @@ class MajesticMeteorain(BossModule module) : Components.GenericAOEs(module, AID.
     }
 }
 
-class MajesticMeteor(BossModule module) : Components.StandardAOEs(module, AID._Spell_MajesticMeteor1, 6);
+class MajesticMeteor(BossModule module) : Components.StandardAOEs(module, AID._Spell_MajesticMeteor1, 6)
+{
+    public bool BaitsDone { get; private set; }
 
-// meteorain: mapeffect 16 (west) through 19 (east)
+    private DateTime _firstCastStart;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if (spell.Action == WatchedAction)
+        {
+            if (_firstCastStart == default)
+                _firstCastStart = WorldState.CurrentTime;
+            else if (_firstCastStart.AddSeconds(3) < WorldState.CurrentTime)
+                BaitsDone = true;
+        }
+    }
+}
+
+class FireBreathMeteowrathHints(BossModule module) : BossComponent(module)
+{
+    private readonly MajesticMeteorain _meteorLines = module.FindComponent<MajesticMeteorain>()!;
+    private readonly Actor?[] _tetheredTo = new Actor?[8];
+    private BitMask _prey;
+    public bool Safe;
+
+    private readonly List<WPos>[] _destination = Utils.GenArray<List<WPos>>(8, () => []);
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((OID)source.OID == OID.TheTyrant && Raid.TryFindSlot(tether.Target, out var slot))
+            _tetheredTo[slot] = source;
+    }
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID._Gen_Icon_lockon8_t0w)
+            _prey.Set(Raid.FindSlot(actor.InstanceID));
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_FireBreath)
+            Redraw();
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var spot in _destination[pcSlot])
+            Arena.AddCircle(spot, 0.75f, Safe ? ArenaColor.Safe : ArenaColor.Danger);
+    }
+
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        foreach (var spot in _destination[slot])
+            movementHints.Add((actor.Position, spot, Safe ? ArenaColor.Safe : ArenaColor.Danger));
+    }
+
+    void Redraw()
+    {
+        foreach (var (slot, player) in Raid.WithSlot())
+        {
+            _destination[slot].Clear();
+
+            if (_tetheredTo[slot] is { } tetherSource)
+            {
+                var safeX = tetherSource.Position.X > 100 ? 84 : 116;
+                var safeZ = tetherSource.Position.Z > 100 ? 81 : 119;
+                AddDest(slot, player, new(safeX, safeZ));
+            }
+            else if (_prey[slot])
+            {
+                var safeX = player.Position.X < 100 ? 84 : 116;
+                // TODO: tweak Z coordinates based on buddy's tether source? inner tether buddies can stand further out
+                AddDest(slot, player, new(safeX, 87.75f));
+                AddDest(slot, player, new(safeX, 112.25f));
+            }
+        }
+    }
+
+    void AddDest(int slot, Actor player, WPos dest)
+    {
+        _destination[slot].Add(new WPos(dest.X - 1, dest.Z));
+        _destination[slot].Add(new WPos(dest.X + 1, dest.Z));
+        _destination[slot].RemoveAll(d => _meteorLines.ActiveAOEs(slot, player).Any(i => i.Check(d)));
+    }
+}
