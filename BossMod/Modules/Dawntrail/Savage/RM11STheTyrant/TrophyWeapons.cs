@@ -135,7 +135,7 @@ abstract class WeaponsHints(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_AssaultEvolved)
+        if ((AID)spell.Action.ID is AID._Weaponskill_AssaultEvolved)
         {
             Next = Module.CastFinishAt(spell, 2.2f);
             Previous = caster.Position;
@@ -311,6 +311,14 @@ class TrophyWeaponsHints(BossModule module) : WeaponsHints(module)
 
 class UltimateTrophyWeaponsAOE(BossModule module) : WeaponsAOE(module)
 {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if ((AID)spell.Action.ID == AID._Weaponskill_UltimateTrophyWeapons)
+            Previous = caster.Position;
+    }
+
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID is OID.Axe or OID.Scythe or OID.Sword && id is 0x11D1 or 0x11D2 or 0x11D3)
@@ -340,6 +348,14 @@ class UltimateTrophyWeaponsBait(BossModule module) : WeaponsBait(module)
 
 class UltimateTrophyWeaponsHints(BossModule module) : WeaponsHints(module)
 {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if ((AID)spell.Action.ID == AID._Weaponskill_UltimateTrophyWeapons)
+            Previous = caster.Position;
+    }
+
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID is OID.Axe or OID.Scythe or OID.Sword && id is 0x11D1 or 0x11D2 or 0x11D3)
