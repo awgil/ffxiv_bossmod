@@ -29,6 +29,7 @@ public class PersistentVoidzone(BossModule module, float radius, Func<BossModule
 // TODO: this has problems if voidzone never actually spawns after castevent, eg because of phase changes
 public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Enum? aid, Func<BossModule, IEnumerable<Actor>> sources, float castEventToSpawn, float castEventTimeout = float.MaxValue) : GenericAOEs(module, aid, "GTFO from voidzone!")
 {
+    public float Radius = radius;
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public Func<BossModule, IEnumerable<Actor>> Sources { get; init; } = sources;
     public float CastEventToSpawn { get; init; } = castEventToSpawn;
@@ -55,7 +56,7 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Enu
                 _predictedByEvent.RemoveAll(e => (WorldState.CurrentTime - e.time).TotalSeconds > castEventTimeout);
 
             foreach (var s in Sources(Module))
-                _predictedByEvent.RemoveAll(p => p.pos.InCircle(s.Position, 6));
+                _predictedByEvent.RemoveAll(p => p.pos.InCircle(s.Position, Radius));
         }
     }
 

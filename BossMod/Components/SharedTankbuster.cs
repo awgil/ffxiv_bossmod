@@ -15,7 +15,7 @@ public class GenericSharedTankbuster(BossModule module, Enum? aid, AOEShape shap
     // circle shapes typically have origin at target
     public GenericSharedTankbuster(BossModule module, Enum? aid, float radius) : this(module, aid, new AOEShapeCircle(radius), true) { }
 
-    static readonly uint[] InvulnStatuses = [
+    public static readonly uint[] InvulnStatuses = [
         82, // Hallowed Ground
         409, // Holmgang
         810, // Living Dead
