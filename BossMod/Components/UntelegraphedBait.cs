@@ -2,6 +2,8 @@
 
 namespace BossMod.Components;
 
+// TODO: this is more or less a generalization of all the other bait/spread/stack components, created because there was no fitting component for cone-shaped stack/spreads that are commonly used in savage
+// it might be good to reimplement other components in terms of this one to reduce code duplication
 class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(module, aid)
 {
     // indicate that `count` number of players matching some `targets` filter (e.g. both healers, all supports, 2 closest players, etc etc) will be hit by an aoe
