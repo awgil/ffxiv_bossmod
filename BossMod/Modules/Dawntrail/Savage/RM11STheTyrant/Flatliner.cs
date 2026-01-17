@@ -88,6 +88,17 @@ class ExplosionTower(BossModule module) : Components.CastTowers(module, AID._Spe
 class ExplosionKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Spell_Explosion, 23, ignoreImmunes: true, shape: new AOEShapeCircle(4))
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Where(s => actor.Position.InCircle(s.Origin, 4));
+
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    {
+        if (base.DestinationUnsafe(slot, actor, pos))
+            return true;
+
+        if (Module.PrimaryActor.CastInfo is { } ci && (AID)ci.Action.ID is AID._Weaponskill_ArcadionAvalanche4 or AID._Weaponskill_ArcadionAvalanche2 or AID._Weaponskill_ArcadionAvalanche6 or AID._Weaponskill_ArcadionAvalanche)
+            return pos.InRect(ci.LocXZ, ci.Rotation, 40, 0, 40);
+
+        return false;
+    }
 }
 
 class FireBreathMeteowrath : Components.GenericBaitAway
@@ -320,5 +331,72 @@ class FireBreathMeteowrathHints(BossModule module) : BossComponent(module)
         _destination[slot].Add(new WPos(dest.X - 1, dest.Z));
         _destination[slot].Add(new WPos(dest.X + 1, dest.Z));
         _destination[slot].RemoveAll(d => _meteorLines.ActiveAOEs(slot, player).Any(i => i.Check(d)));
+    }
+}
+
+class MassiveMeteor(BossModule module) : Components.StackWithIcon(module, (uint)IconID._Gen_Icon_com_share4a1, AID._Spell_MassiveMeteor1, 6, 6.2f, minStackSize: 4)
+{
+    public int NumCasts;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == StackAction)
+        {
+            NumCasts++;
+            if (NumCasts >= Stacks.Count * 5)
+            {
+                Stacks.Clear();
+                NumFinishedStacks += 2;
+            }
+        }
+    }
+}
+
+class ArcadionAvalancheRect(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ArcadionAvalanche1, AID._Weaponskill_ArcadionAvalanche3, AID._Weaponskill_ArcadionAvalanche5, AID._Weaponskill_ArcadionAvalanche7], new AOEShapeRect(40, 20));
+
+class ArcadionAvalancheBoss(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ArcadionAvalanche4, AID._Weaponskill_ArcadionAvalanche2, AID._Weaponskill_ArcadionAvalanche6, AID._Weaponskill_ArcadionAvalanche], new AOEShapeRect(40, 20))
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if (IDs.Contains(spell.Action))
+        {
+            Arena.Bounds = new ArenaBoundsRect(10, 20);
+            if (spell.Rotation.Deg < 0)
+                Arena.Center = new(116, 100);
+            else
+                Arena.Center = new(84, 100);
+        }
+    }
+}
+
+class CrownOfArcadiaArena(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_CrownOfArcadia)
+{
+    private DateTime _resolve;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_resolve != default)
+        {
+            yield return new(new AOEShapeRect(6, 20), new(120, 100), 90.Degrees(), _resolve);
+            yield return new(new AOEShapeRect(6, 20), new(80, 100), -90.Degrees(), _resolve);
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _resolve = Module.CastFinishAt(spell);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            _resolve = default;
+            Arena.Bounds = new ArenaBoundsSquare(20);
+            Arena.Center = new(100, 100);
+        }
     }
 }

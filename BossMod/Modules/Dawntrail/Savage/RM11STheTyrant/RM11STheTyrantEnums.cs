@@ -93,10 +93,33 @@ public enum AID : uint
     _Spell_MajesticMeteorain = 46146, // Helper->self, no cast, range 60 width 10 rect
     _Spell_MassiveMeteor = 46152, // Boss->self, 5.0s cast, single-target
     _Spell_MassiveMeteor1 = 46153, // Helper->players, no cast, range 6 circle
-    _Weaponskill_ArcadionAvalanche = 46160, // Boss->self, 6.0+9.5s cast, single-target
-    _Weaponskill_ArcadionAvalanche1 = 46161, // Helper->self, 15.5s cast, range 40 width 40 rect
+
+    _Weaponskill_ArcadionAvalanche4 = 46154, // Boss->self, 6.0+9.5s cast, single-target
     _Weaponskill_ArcadionAvalanche2 = 46156, // Boss->self, 6.0+9.5s cast, single-target
+    _Weaponskill_ArcadionAvalanche6 = 46158, // Boss->self, 6.0+9.5s cast, single-target
+    _Weaponskill_ArcadionAvalanche = 46160, // Boss->self, 6.0+9.5s cast, single-target
+    _Weaponskill_ArcadionAvalanche5 = 46155, // Helper->self, 15.5s cast, range 40 width 40 rect
     _Weaponskill_ArcadionAvalanche3 = 46157, // Helper->self, 15.5s cast, range 40 width 40 rect
+    _Weaponskill_ArcadionAvalanche7 = 46159, // Helper->self, 15.5s cast, range 40 width 40 rect
+    _Weaponskill_ArcadionAvalanche1 = 46161, // Helper->self, 15.5s cast, range 40 width 40 rect
+
+    _Spell_EclipticStampede = 46162, // Boss->self, 5.0s cast, single-target
+    _Spell_MammothMeteor = 46163, // Helper->location, 6.0s cast, range 60 circle
+    _Spell_AtomicImpact = 46164, // Helper->players, no cast, range 5 circle
+    _Spell_MajesticMeteor2 = 46165, // Helper->location, 3.0s cast, range 6 circle
+    _Spell_CosmicKiss = 46166, // Helper->location, 5.0s cast, range 4 circle
+    _Spell_WeightyImpact = 46167, // Helper->location, 5.0s cast, range 4 circle
+    _Spell_UnmitigatedExplosion1 = 46168, // Helper->self, no cast, range 60 circle
+    _Spell_MajesticMeteowrath1 = 46169, // Helper->self, no cast, range 60 width 10 rect
+    _Weaponskill_TwoWayFireball = 47037, // Boss->self, 6.0+1.0s cast, single-target
+    _Weaponskill_TwoWayFireball1 = 47038, // Helper->self, no cast, range 60 width 6 rect
+    _Weaponskill_2 = 46172, // Boss->self, no cast, single-target
+    _Weaponskill_HeartbreakKick = 46173, // Boss->self, 5.0+1.0s cast, single-target
+    _Weaponskill_HeartbreakKick1 = 46174, // Helper->self, no cast, range 4 circle
+    _Weaponskill_ToughBreak = 46177, // Helper->self, no cast, range 60 circle
+    _Weaponskill_1 = 46175, // Boss->self, no cast, single-target
+    _Weaponskill_FourWayFireball = 46170, // Boss->self, 6.0+1.0s cast, single-target
+    _Weaponskill_FourWayFireball1 = 46171, // Helper->self, no cast, range 60 width 6 rect
 }
 
 public enum SID : uint
@@ -116,11 +139,12 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    _Gen_Icon_target_ae_s5f = 139, // player->self
     _Gen_Icon_com_share3t = 161, // player->self
+    _Gen_Icon_target_ae_s5f = 139, // player->self
     _Gen_Icon_lockon8_t0w = 244, // player->self
     _Gen_Icon_share_laser_5sec_0t = 525, // Boss->player
     _Gen_Icon_com_share4a1 = 305, // player->self
+    _Gen_Icon_m0017trg_a0c = 30, // player->self
 }
 
 public enum TetherID : uint

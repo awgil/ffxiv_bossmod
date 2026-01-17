@@ -16,6 +16,7 @@ class RM11STheTyrantStates : StateMachineBuilder
         UltimateTrophyWeapons(id + 0x20000, 10.3f);
         Meteorain(id + 0x30000, 7.2f);
         Flatliner(id + 0x40000, 9.2f);
+        EclipticStampede(id + 0x50000, 6.3f);
 
         SimpleState(id + 0xFF0000, 10000, "???");
     }
@@ -48,12 +49,14 @@ class RM11STheTyrantStates : StateMachineBuilder
             .ExecOnEnter<TrophyWeaponsAOE>(t => t.Risky = false)
             .ExecOnEnter<TrophyWeaponsBait>(t => t.EnableHints = false);
 
-        Cast(id + 0x210, AID._Spell_VoidStardust, 3.1f, 4, "Puddles start")
+        Cast(id + 0x210, AID._Spell_VoidStardust, 3.1f, 4)
             .ActivateOnEnter<VoidStardustBait>()
             .ActivateOnEnter<Cometite>()
             .ActivateOnEnter<Comets>();
 
-        ComponentCondition<Comets>(id + 0x212, 10.1f, c => c.NumFinishedSpreads + c.NumFinishedStacks > 0, "Stack/spread")
+        ComponentCondition<Cometite>(id + 0x212, 1.2f, c => c.ActiveCasters.Any(), "Puddles start");
+
+        ComponentCondition<Comets>(id + 0x214, 8.9f, c => c.NumFinishedSpreads + c.NumFinishedStacks > 0, "Stack/spread")
             .DeactivateOnExit<VoidStardustBait>()
             .DeactivateOnExit<Cometite>()
             .DeactivateOnExit<Comets>()
@@ -145,25 +148,14 @@ class RM11STheTyrantStates : StateMachineBuilder
     void Meteorain(uint id, float delay)
     {
         Cast(id, AID._Weaponskill_GreatWallOfFire, delay, 5)
-            .ActivateOnEnter<Firewall1>()
-            .ActivateOnEnter<Firewall2>()
+            .ActivateOnEnter<Firewall>()
             .ActivateOnEnter<FirewallExplosion>();
 
-        ComponentCondition<Firewall1>(id + 0x10, 0.3f, f => f.NumCasts > 0, "Line buster 1")
-            .DeactivateOnExit<Firewall1>();
-        ComponentCondition<Firewall2>(id + 0x11, 3.2f, f => f.NumCasts > 1, "Line buster 2")
-            .DeactivateOnExit<Firewall2>();
+        ComponentCondition<Firewall>(id + 0x10, 0.3f, f => f.NumCasts > 0, "Line buster 1");
+        ComponentCondition<Firewall>(id + 0x11, 3.2f, f => f.NumCasts > 1, "Line buster 2")
+            .DeactivateOnExit<Firewall>();
 
-        Cast(id + 0x20, AID._Spell_OrbitalOmen, 5.1f, 5)
-            .ActivateOnEnter<OrbitalOmen>()
-            .ActivateOnEnter<FireAndFury>()
-            .DeactivateOnExit<FirewallExplosion>();
-
-        ComponentCondition<OrbitalOmen>(id + 0x22, 9.1f, o => o.NumCasts == 2, "Orbital start");
-        ComponentCondition<FireAndFury>(id + 0x23, 0.6f, f => f.NumCasts > 0, "Sides safe")
-            .DeactivateOnExit<FireAndFury>();
-        ComponentCondition<OrbitalOmen>(id + 0x24, 3.9f, o => o.NumCasts == 8, "Orbital end")
-            .DeactivateOnExit<OrbitalOmen>();
+        OrbitalOmen(id + 0x20, 5.1f);
 
         Cast(id + 0x30, AID._Spell_Meteorain, 7.5f, 5)
             .ActivateOnEnter<Comet>()
@@ -221,8 +213,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .ActivateOnEnter<ExplosionTower>()
             .ActivateOnEnter<FireBreathMeteowrath>()
             .ActivateOnEnter<FireBreathMeteowrathHints>()
-            .ActivateOnEnter<MajesticMeteor>()
-            .ActivateOnEnter<ArcadionAvalanche>();
+            .ActivateOnEnter<MajesticMeteor>();
 
         ComponentCondition<ExplosionTower>(id + 0x100, 13.1f, t => t.NumCasts > 0, "Towers 1")
             .DeactivateOnExit<ExplosionTower>()
@@ -239,7 +230,8 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<FireBreathMeteowrath>()
             .DeactivateOnExit<FireBreathMeteowrathHints>();
 
-        ComponentCondition<MajesticMeteor>(id + 0x106, 0.2f, m => !m.ActiveCasters.Any());
+        ComponentCondition<MajesticMeteor>(id + 0x106, 0.2f, m => !m.ActiveCasters.Any())
+            .DeactivateOnExit<MajesticMeteor>();
 
         ComponentCondition<ExplosionTower>(id + 0x200, 17, t => t.NumCasts > 0, "Towers 2")
             .ActivateOnEnter<ExplosionKnockback>()
@@ -257,6 +249,97 @@ class RM11STheTyrantStates : StateMachineBuilder
             .ExecOnExit<FireBreathMeteowrathHints>(f => f.Safe = true);
         ComponentCondition<FireBreathMeteowrath>(id + 0x205, 2.8f, m => m.NumCasts > 0, "Baits + line meteors")
             .DeactivateOnExit<FireBreathMeteowrath>()
-            .DeactivateOnExit<FireBreathMeteowrathHints>();
+            .DeactivateOnExit<FireBreathMeteowrathHints>()
+            .DeactivateOnExit<MajesticMeteorain>();
+
+        CastStart(id + 0x300, AID._Spell_MassiveMeteor, 4.4f)
+            .ActivateOnEnter<MassiveMeteor>()
+            .ExecOnEnter<ExplosionTower>(t => t.EnableHints = false)
+            .DeactivateOnExit<MajesticMeteor>();
+        ComponentCondition<MassiveMeteor>(id + 0x301, 6.1f, m => m.NumCasts > 0, "Stacks 1");
+        ComponentCondition<MassiveMeteor>(id + 0x302, 5.9f, m => m.NumFinishedStacks > 0, "Stacks 5")
+            .DeactivateOnExit<MassiveMeteor>()
+            .ExecOnExit<ExplosionTower>(t => t.EnableHints = true);
+
+        CastMulti(id + 0x310, [AID._Weaponskill_ArcadionAvalanche4, AID._Weaponskill_ArcadionAvalanche2, AID._Weaponskill_ArcadionAvalanche6, AID._Weaponskill_ArcadionAvalanche], 1.8f, 6)
+            .ActivateOnEnter<ArcadionAvalancheRect>()
+            .ActivateOnEnter<ArcadionAvalancheBoss>()
+            .ExecOnEnter<ArcadionAvalancheRect>(a => a.Risky = false)
+            .ExecOnEnter<ArcadionAvalancheBoss>(a => a.Risky = false)
+            .DeactivateOnExit<ExplosionTower>()
+            .DeactivateOnExit<ExplosionKnockback>()
+            .ExecOnExit<ArcadionAvalancheRect>(a => a.Risky = true);
+
+        ComponentCondition<ArcadionAvalancheRect>(id + 0x312, 30, r => r.NumCasts > 0, "Platform AOE")
+            .DeactivateOnExit<ArcadionAvalancheRect>()
+            .DeactivateOnExit<ArcadionAvalancheBoss>();
+
+        Cast(id + 0x400, AID._Weaponskill_CrownOfArcadia, delay, 5, "Raidwide + restore arena")
+            .ActivateOnEnter<CrownOfArcadia>()
+            .ActivateOnEnter<CrownOfArcadiaArena>()
+            .DeactivateOnExit<CrownOfArcadia>()
+            .DeactivateOnExit<CrownOfArcadiaArena>();
+    }
+
+    void OrbitalOmen(uint id, float delay)
+    {
+        Cast(id, AID._Spell_OrbitalOmen, delay, 5)
+            .ActivateOnEnter<OrbitalOmen>()
+            .ActivateOnEnter<FireAndFury>()
+            .DeactivateOnExit<FirewallExplosion>();
+
+        ComponentCondition<OrbitalOmen>(id + 2, 9.1f, o => o.NumCasts == 2, "Orbital start");
+        ComponentCondition<FireAndFury>(id + 3, 0.6f, f => f.NumCasts > 0, "Sides safe")
+            .DeactivateOnExit<FireAndFury>();
+        ComponentCondition<OrbitalOmen>(id + 4, 3.9f, o => o.NumCasts == 8, "Orbital end")
+            .DeactivateOnExit<OrbitalOmen>();
+    }
+
+    void EclipticStampede(uint id, float delay)
+    {
+        Cast(id, AID._Weaponskill_GreatWallOfFire, delay, 5)
+            .ActivateOnEnter<Firewall>()
+            .ActivateOnEnter<FirewallExplosion>()
+            .ActivateOnEnter<CrownOfArcadia>();
+
+        ComponentCondition<Firewall>(id + 0x10, 0.3f, f => f.NumCasts > 0, "Line buster 1");
+        ComponentCondition<Firewall>(id + 0x11, 3.2f, f => f.NumCasts > 1, "Line buster 2")
+            .DeactivateOnExit<Firewall>();
+
+        OrbitalOmen(id + 0x20, 5.1f);
+
+        Cast(id + 0x30, AID._Weaponskill_CrownOfArcadia, 0, 4.2f, "Raidwide")
+            .DeactivateOnExit<CrownOfArcadia>();
+
+        Cast(id + 0x100, AID._Spell_EclipticStampede, 7.4f, 5)
+            .ActivateOnEnter<MammothMeteor>()
+            .ActivateOnEnter<StampedeMajesticMeteor>()
+            .ActivateOnEnter<AtomicImpactPuddle>()
+            .ActivateOnEnter<AtomicImpact>();
+
+        ComponentCondition<MammothMeteor>(id + 0x110, 7, m => m.NumCasts > 0, "Proximity + puddles start")
+            .ActivateOnEnter<ImpactKiss>()
+            .DeactivateOnExit<MammothMeteor>();
+
+        ComponentCondition<ImpactKiss>(id + 0x120, 16, k => k.NumCasts > 0, "Towers")
+            .ActivateOnEnter<StampedeMajesticMeteowrath>()
+            .DeactivateOnExit<StampedeMajesticMeteor>()
+            .DeactivateOnExit<ImpactKiss>()
+            .DeactivateOnExit<AtomicImpact>();
+
+        CastStartMulti(id + 0x130, [AID._Weaponskill_TwoWayFireball, AID._Weaponskill_FourWayFireball], 7)
+            .ActivateOnEnter<NWayFireball>()
+            .ExecOnEnter<NWayFireball>(n => n.EnableHints = false);
+
+        ComponentCondition<StampedeMajesticMeteowrath>(id + 0x131, 2.6f, t => t.NumCasts > 0, "Tethers")
+            .ExecOnExit<NWayFireball>(n => n.EnableHints = true)
+            .DeactivateOnExit<StampedeMajesticMeteowrath>();
+
+        ComponentCondition<NWayFireball>(id + 0x132, 4.3f, n => n.NumCasts > 0, "2/4 stack")
+            .DeactivateOnExit<NWayFireball>();
+
+        Cast(id + 0x200, AID._Weaponskill_CrownOfArcadia, 3.3f, 5, "Raidwide")
+            .ActivateOnEnter<CrownOfArcadia>()
+            .DeactivateOnExit<CrownOfArcadia>();
     }
 }

@@ -1,68 +1,5 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
-class Firewall1(BossModule module) : Components.GenericBaitAway(module)
-{
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID._Weaponskill_GreatWallOfFire)
-        {
-            if (WorldState.Actors.Find(caster.TargetID) is { } target)
-                CurrentBaits.Add(new(caster, target, new AOEShapeRect(60, 3), Module.CastFinishAt(spell, 0.3f)));
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID._Weaponskill_GreatWallOfFire1)
-        {
-            CurrentBaits.Clear();
-            NumCasts++;
-        }
-    }
-}
-class Firewall2(BossModule module) : Components.GenericBaitAway(module)
-{
-    DateTime _next;
-
-    public override void Update()
-    {
-        CurrentBaits.Clear();
-        if (_next == default)
-            return;
-
-        if (WorldState.Actors.Find(Module.PrimaryActor.TargetID) is { } tar)
-            CurrentBaits.Add(new(Module.PrimaryActor, tar, new AOEShapeRect(60, 3), _next));
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID._Weaponskill_GreatWallOfFire1)
-        {
-            NumCasts++;
-            _next = NumCasts == 1 ? WorldState.FutureTime(3.2f) : default;
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        base.AddHints(slot, actor, hints);
-
-        if (CurrentBaits.Count == 0)
-            return;
-
-        var bait = CurrentBaits[0];
-
-        if (bait.Target.FindStatus(SID._Gen_FireResistanceDownII) != null && !Components.GenericSharedTankbuster.IsInvulnerableAt(bait.Target, bait.Activation))
-        {
-            if (bait.Target == actor)
-                hints.Add("Pass aggro!");
-            else if (actor.Role == Role.Tank)
-                hints.Add("Provoke!");
-        }
-    }
-}
-class FirewallExplosion(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Explosion2, new AOEShapeRect(60, 3));
-
 class OrbitalOmen(BossModule module) : Components.StandardAOEs(module, AID._Spell_OrbitalOmen1, new AOEShapeRect(60, 5), maxCasts: 4, highlightImminent: true);
 
 class FireAndFury(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_FireAndFury1, AID._Weaponskill_FireAndFury2], new AOEShapeCone(60, 45.Degrees()), highlightImminent: true);
@@ -85,7 +22,7 @@ class FearsomeFireball1(BossModule module) : Components.GenericWildCharge(module
                 if (p.InstanceID == targetID)
                     PlayerRoles[i] = PlayerRole.TargetNotFirst;
                 else if (_meteors[i])
-                    PlayerRoles[i] = PlayerRole.Ignore;
+                    PlayerRoles[i] = PlayerRole.Avoid;
                 else
                     PlayerRoles[i] = p.Role == Role.Tank ? PlayerRole.Share : PlayerRole.ShareNotFirst;
             }
@@ -381,5 +318,3 @@ class TripleTyrannhilation(BossModule module) : Components.GenericLineOfSightAOE
         }
     }
 }
-
-class ArcadionAvalanche(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ArcadionAvalanche1, AID._Weaponskill_ArcadionAvalanche3], new AOEShapeRect(40, 20));

@@ -34,4 +34,9 @@ public class RM11STheTyrantConfig : ConfigNode
 
     [PropertyDisplay("Meteorain: meteor tether assignments")]
     public HintForegoneFatality ForegoneFatalityAssignments = HintForegoneFatality.StandardNS;
+
+    [PropertyDisplay("Ecliptic Stampede: tower fill priority, clockwise from N")]
+    [GroupDetails(["Tank 1", "Tank 2", "1", "2", "3", "4", "5", "6"])]
+    [GroupPreset("MT > OT, healers/ranged > melee", [0, 1, 2, 3, 6, 7, 4, 5])]
+    public GroupAssignmentUnique StampedeTowersAssignment = new() { Assignments = [0, 1, 2, 3, 6, 7, 4, 5] };
 }
