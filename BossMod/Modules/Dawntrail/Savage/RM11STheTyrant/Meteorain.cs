@@ -160,6 +160,8 @@ class Comet(BossModule module) : BossComponent(module)
     // TODO: this is a random guess
     public const float TriggerRadius = 3;
 
+    public bool DrawTrigger = true;
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID._Ability_CosmicKiss)
@@ -177,9 +179,12 @@ class Comet(BossModule module) : BossComponent(module)
         foreach (var enemy in Comets)
         {
             Arena.Actor(enemy, ArenaColor.Object, true);
-            if (Arena.Config.ShowOutlinesAndShadows)
-                Arena.AddCircle(enemy.Position, TriggerRadius, 0xFF000000, 2);
-            Arena.AddCircle(enemy.Position, TriggerRadius, ArenaColor.Object);
+            if (DrawTrigger)
+            {
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddCircle(enemy.Position, TriggerRadius, 0xFF000000, 2);
+                Arena.AddCircle(enemy.Position, TriggerRadius, ArenaColor.Object);
+            }
         }
     }
 }
@@ -293,13 +298,26 @@ class TripleTyrannhilation(BossModule module) : Components.GenericLineOfSightAOE
 {
     private readonly Comet _cometTracker = module.FindComponent<Comet>()!;
     private readonly List<Actor> _comets = [];
+    private DateTime _next;
+
+    public const float CometRadius = 2f; // guessing
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID._Weaponskill_TripleTyrannhilation1)
         {
             _comets.AddRange(_cometTracker.Comets.SortedByRange(caster.Position));
-            Modify(caster.Position, _comets.Select(c => (c.Position, 3f)), Module.CastFinishAt(spell, 1.1f));
+            Modify(caster.Position, _comets.Select(c => (c.Position, CometRadius)), Module.CastFinishAt(spell, 1.1f));
+        }
+    }
+
+    public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
+    {
+        if (animState2 == 1)
+        {
+            _comets.Remove(actor);
+            if (NumCasts < 3)
+                Modify(Module.PrimaryActor.Position, _comets.Select(c => (c.Position, CometRadius)), _next);
         }
     }
 
@@ -308,12 +326,8 @@ class TripleTyrannhilation(BossModule module) : Components.GenericLineOfSightAOE
         if (spell.Action == WatchedAction)
         {
             NumCasts++;
-            if (_comets.Count > 0)
-                _comets.RemoveAt(0);
-
-            if (_comets.Count > 0)
-                Modify(caster.Position, _comets.Select(c => (c.Position, 3f)), WorldState.FutureTime(1.6f));
-            else
+            _next = WorldState.FutureTime(1.6f);
+            if (NumCasts >= 3)
                 Modify(null, []);
         }
     }

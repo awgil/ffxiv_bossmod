@@ -177,7 +177,8 @@ class RM11STheTyrantStates : StateMachineBuilder
         ComponentCondition<ForegoneFatality>(id + 0x47, 7.9f, f => f.NumCasts > 2, "Tethers");
         ComponentCondition<FearsomeFireball2>(id + 0x48, 0.8f, f => f.NumCasts > 1, "Wild charge");
 
-        ComponentCondition<CosmicKiss>(id + 0x49, 1.3f, c => c.NumCasts > 4, "Meteors 3");
+        ComponentCondition<CosmicKiss>(id + 0x49, 1.3f, c => c.NumCasts > 4, "Meteors 3")
+            .ExecOnExit<Comet>(c => c.DrawTrigger = false);
         ComponentCondition<ForegoneFatality>(id + 0x4A, 7.9f, f => f.NumCasts > 4, "Tethers");
         ComponentCondition<FearsomeFireball2>(id + 0x4B, 0.8f, f => f.NumCasts > 2, "Wild charge")
             .DeactivateOnExit<CosmicKiss>()
