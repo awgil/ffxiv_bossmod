@@ -281,7 +281,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (
             // overcap incoming (TODO: maybe ignore this condition if buffs are imminent)
-            LowestMana > 90
+            LowestMana >= 89
             // start combo early for buff window
             || CanWeave(AID.Embolden, extraFixedDelay: 5.2f) && strategy.Buffs != OffensiveStrategy.Delay
             // full combo is 12.7s

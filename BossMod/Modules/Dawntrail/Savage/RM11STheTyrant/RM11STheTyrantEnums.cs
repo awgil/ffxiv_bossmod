@@ -120,6 +120,9 @@ public enum AID : uint
     _Weaponskill_1 = 46175, // Boss->self, no cast, single-target
     _Weaponskill_FourWayFireball = 46170, // Boss->self, 6.0+1.0s cast, single-target
     _Weaponskill_FourWayFireball1 = 46171, // Helper->self, no cast, range 60 width 6 rect
+
+    _Weaponskill_Heartbreaker = 46178, // Boss->self, 8.0s cast, single-target
+    _Weaponskill_Heartbreaker1 = 46179, // Boss->self, no cast, range 60 circle
 }
 
 public enum SID : uint

@@ -17,8 +17,9 @@ class RM11STheTyrantStates : StateMachineBuilder
         Meteorain(id + 0x30000, 7.2f);
         Flatliner(id + 0x40000, 9.2f);
         EclipticStampede(id + 0x50000, 6.3f);
+        Heartbreaker(id + 0x60000, 8.7f);
 
-        SimpleState(id + 0xFF0000, 10000, "???");
+        Cast(id + 0x70000, AID._Weaponskill_Heartbreaker, 5, 8, "Boss disappears (enrage)");
     }
 
     void TrophyWeapons(uint id, float delay)
@@ -261,7 +262,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<MassiveMeteor>()
             .ExecOnExit<ExplosionTower>(t => t.EnableHints = true);
 
-        CastMulti(id + 0x310, [AID._Weaponskill_ArcadionAvalanche4, AID._Weaponskill_ArcadionAvalanche2, AID._Weaponskill_ArcadionAvalanche6, AID._Weaponskill_ArcadionAvalanche], 1.8f, 6)
+        CastMulti(id + 0x310, [AID._Weaponskill_ArcadionAvalanche4, AID._Weaponskill_ArcadionAvalanche2, AID._Weaponskill_ArcadionAvalanche6, AID._Weaponskill_ArcadionAvalanche], 1.2f, 6)
             .ActivateOnEnter<ArcadionAvalancheRect>()
             .ActivateOnEnter<ArcadionAvalancheBoss>()
             .ExecOnEnter<ArcadionAvalancheRect>(a => a.Risky = false)
@@ -270,7 +271,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<ExplosionKnockback>()
             .ExecOnExit<ArcadionAvalancheRect>(a => a.Risky = true);
 
-        ComponentCondition<ArcadionAvalancheRect>(id + 0x312, 30, r => r.NumCasts > 0, "Platform AOE")
+        ComponentCondition<ArcadionAvalancheRect>(id + 0x312, 9.5f, r => r.NumCasts > 0, "Platform AOE")
             .DeactivateOnExit<ArcadionAvalancheRect>()
             .DeactivateOnExit<ArcadionAvalancheBoss>();
 
@@ -341,5 +342,29 @@ class RM11STheTyrantStates : StateMachineBuilder
         Cast(id + 0x200, AID._Weaponskill_CrownOfArcadia, 3.3f, 5, "Raidwide")
             .ActivateOnEnter<CrownOfArcadia>()
             .DeactivateOnExit<CrownOfArcadia>();
+    }
+
+    void Heartbreaker(uint id, float delay)
+    {
+        Cast(id, AID._Weaponskill_HeartbreakKick, delay, 5)
+            .ActivateOnEnter<HeartbreakKick>()
+            .ExecOnEnter<HeartbreakKick>(k => k.ExpectedHits = 5);
+        ComponentCondition<HeartbreakKick>(id + 2, 1.2f, k => k.NumCasts > 0, "Tower 1");
+        ComponentCondition<HeartbreakKick>(id + 3, 8, k => k.Towers.Count == 0, "Tower 5")
+            .DeactivateOnExit<HeartbreakKick>();
+
+        Cast(id + 0x100, AID._Weaponskill_HeartbreakKick, 5, 5)
+            .ActivateOnEnter<HeartbreakKick>()
+            .ExecOnEnter<HeartbreakKick>(k => k.ExpectedHits = 6);
+        ComponentCondition<HeartbreakKick>(id + 0x102, 1.2f, k => k.NumCasts > 0, "Tower 1");
+        ComponentCondition<HeartbreakKick>(id + 0x103, 10, k => k.Towers.Count == 0, "Tower 6")
+            .DeactivateOnExit<HeartbreakKick>();
+
+        Cast(id + 0x200, AID._Weaponskill_HeartbreakKick, 5, 5)
+            .ActivateOnEnter<HeartbreakKick>()
+            .ExecOnEnter<HeartbreakKick>(k => k.ExpectedHits = 7);
+        ComponentCondition<HeartbreakKick>(id + 0x202, 1.2f, k => k.NumCasts > 0, "Tower 1");
+        ComponentCondition<HeartbreakKick>(id + 0x203, 12, k => k.Towers.Count == 0, "Tower 7")
+            .DeactivateOnExit<HeartbreakKick>();
     }
 }

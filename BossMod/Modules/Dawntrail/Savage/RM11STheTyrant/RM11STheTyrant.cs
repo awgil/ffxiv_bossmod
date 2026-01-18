@@ -62,6 +62,7 @@ public class RM11STheTyrant(WorldState ws, Actor primary) : BossModule(ws, prima
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        Arena.ActorInsideBounds(PrimaryActor.Position, PrimaryActor.Rotation, ArenaColor.Enemy);
+        if (PrimaryActor.IsTargetable)
+            Arena.ActorInsideBounds(PrimaryActor.Position, PrimaryActor.Rotation, ArenaColor.Enemy);
     }
 }
