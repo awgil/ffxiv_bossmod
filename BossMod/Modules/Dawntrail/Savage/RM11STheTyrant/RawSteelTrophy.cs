@@ -10,7 +10,7 @@ class RawSteelTrophyAxe(BossModule module) : Components.GenericStackSpread(modul
         if ((AID)spell.Action.ID == AID.RawSteelTrophyAxe)
         {
             // tankbuster is actually baited on 2nd enmity target, but let's not make this too complicated
-            var tanksFirst = Raid.WithoutSlot().OrderByDescending(t => t.Role == Role.Tank);
+            var tanksFirst = Raid.WithoutSlot().OrderByDescending(t => t.Role == Role.Tank).ToList();
             if (tanksFirst.First() is { } tank)
                 Stacks.Add(new(tank, 6, maxSize: 2, activation: WorldState.FutureTime(8.3f)));
             foreach (var t in tanksFirst.Skip(2))
