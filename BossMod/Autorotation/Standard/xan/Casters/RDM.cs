@@ -194,7 +194,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
                 PushGCD(AID.EnchantedMoulinet, BestConeTarget);
 
             // FIXME: spamming melee combo on cooldown is not optimal for burst
-            if (Player.DistanceToHitbox(primaryTarget) <= 3)
+            if (Player.DistanceToHitbox(primaryTarget) <= 3 || Manafication > GCD)
                 PushGCD(AID.Riposte, primaryTarget);
         }
 
