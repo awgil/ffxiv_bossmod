@@ -57,7 +57,7 @@ class PowerfulGust : Components.GenericBaitAway
 
 class OneAndOnly(BossModule module) : Components.RaidwideCast(module, AID.OneAndOnlyRaidwide);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1073, NameID = 14305, PlanLevel = 100)]
+[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1073, NameID = 14305, PlanLevel = 100)]
 public class RM11STheTyrant(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
