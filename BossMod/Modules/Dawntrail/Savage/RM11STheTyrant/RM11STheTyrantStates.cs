@@ -12,30 +12,30 @@ class RM11STheTyrantStates : StateMachineBuilder
     private void SinglePhase(uint id)
     {
         TrophyWeapons(id, 5.2f);
-        DanceOfDomination(id + 0x10000, 10.7f);
+        DanceOfDomination(id + 0x10000, 10.5f);
         UltimateTrophyWeapons(id + 0x20000, 10.3f);
         Meteorain(id + 0x30000, 7.2f);
         Flatliner(id + 0x40000, 9.2f);
         EclipticStampede(id + 0x50000, 6.3f);
         Heartbreaker(id + 0x60000, 8.7f);
 
-        Cast(id + 0x70000, AID._Weaponskill_Heartbreaker, 5, 8, "Boss disappears (enrage)");
+        Cast(id + 0x70000, AID.HeartbreakerCast, 5, 8, "Boss disappears (enrage)");
     }
 
     void TrophyWeapons(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_CrownOfArcadia, delay, 5, "Raidwide")
+        Cast(id, AID.CrownOfArcadia, delay, 5, "Raidwide")
             .ActivateOnEnter<CrownOfArcadia>()
             .DeactivateOnExit<CrownOfArcadia>();
 
         RawSteelTrophy(id + 0x10, 5.2f);
 
-        Cast(id + 0x100, AID._Weaponskill_TrophyWeapons, 10.5f, 3)
+        Cast(id + 0x100, AID.TrophyWeapons, 10.5f, 3)
             .ActivateOnEnter<TrophyWeaponsAOE>()
             .ActivateOnEnter<TrophyWeaponsBait>()
             .ActivateOnEnter<TrophyWeaponsHints>(_config.WeaponHints);
 
-        Cast(id + 0x110, AID._Weaponskill_AssaultEvolved, 3.4f, 6);
+        Cast(id + 0x110, AID.AssaultEvolvedLongCast, 3.4f, 6);
         ComponentCondition<TrophyWeaponsAOE>(id + 0x112, 2.2f, t => t.NumCasts > 0, "Weapon 1");
         ComponentCondition<TrophyWeaponsAOE>(id + 0x113, 5.2f, t => t.NumCasts > 1, "Weapon 2");
         ComponentCondition<TrophyWeaponsAOE>(id + 0x114, 5.2f, t => t.NumCasts > 2, "Weapon 3")
@@ -43,14 +43,14 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<TrophyWeaponsBait>()
             .DeactivateOnExit<TrophyWeaponsHints>(_config.WeaponHints);
 
-        Cast(id + 0x200, AID._Weaponskill_TrophyWeapons, 9.2f, 3)
+        Cast(id + 0x200, AID.TrophyWeapons, 9.2f, 3)
             .ActivateOnEnter<TrophyWeaponsAOE>()
             .ActivateOnEnter<TrophyWeaponsBait>()
             .ActivateOnEnter<TrophyWeaponsHints>(_config.WeaponHints)
             .ExecOnEnter<TrophyWeaponsAOE>(t => t.Risky = false)
             .ExecOnEnter<TrophyWeaponsBait>(t => t.EnableHints = false);
 
-        Cast(id + 0x210, AID._Spell_VoidStardust, 3.1f, 4)
+        Cast(id + 0x210, AID.VoidStardust, 3.1f, 4)
             .ActivateOnEnter<VoidStardustBait>()
             .ActivateOnEnter<Cometite>()
             .ActivateOnEnter<Comets>();
@@ -79,7 +79,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<Cometite>()
             .DeactivateOnExit<Comets>();
 
-        Cast(id + 0x240, AID._Weaponskill_CrownOfArcadia, 1, 5, "Raidwide")
+        Cast(id + 0x240, AID.CrownOfArcadia, 1, 5, "Raidwide")
             .ActivateOnEnter<CrownOfArcadia>()
             .DeactivateOnExit<CrownOfArcadia>();
     }
@@ -98,7 +98,7 @@ class RM11STheTyrantStates : StateMachineBuilder
 
     void DanceOfDomination(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_DanceOfDominationTrophy, delay, 2)
+        Cast(id, AID.DanceOfDominationTrophy, delay, 2)
             .ActivateOnEnter<DanceOfDomination1>()
             .ActivateOnEnter<DanceOfDomination2>()
             .ActivateOnEnter<HurricaneExplosion>()
@@ -106,7 +106,7 @@ class RM11STheTyrantStates : StateMachineBuilder
 
         ComponentCondition<DanceOfDomination1>(id + 0x10, 6.6f, d => d.NumCasts > 0, "Raidwide 1")
             .DeactivateOnExit<DanceOfDomination1>();
-        ComponentCondition<DanceOfDomination2>(id + 0x11, 4.2f, d => d.NumCasts > 0, "Raidwide 7")
+        ComponentCondition<DanceOfDomination2>(id + 0x11, 4.1f, d => d.NumCasts > 0, "Raidwide 7")
             .DeactivateOnExit<DanceOfDomination2>();
 
         ComponentCondition<EyeOfTheHurricane>(id + 0x20, 4.9f, e => e.NumFinishedStacks > 0, "Stacks")
@@ -118,8 +118,8 @@ class RM11STheTyrantStates : StateMachineBuilder
 
     void UltimateTrophyWeapons(uint id, float delay)
     {
-        Cast(id, AID._Spell_Charybdistopia, delay, 5, "1 HP");
-        Cast(id + 0x10, AID._Weaponskill_UltimateTrophyWeapons, 2.6f, 3)
+        Cast(id, AID.Charybdistopia, delay, 5, "1 HP");
+        Cast(id + 0x10, AID.UltimateTrophyWeapons, 2.6f, 3)
             .ActivateOnEnter<Maelstrom>()
             .ActivateOnEnter<UltimateTrophyWeaponsAOE>()
             .ActivateOnEnter<UltimateTrophyWeaponsBait>()
@@ -140,7 +140,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<PowerfulGust>();
 
         CastEnd(id + 0x40, 1).ActivateOnEnter<OneAndOnly>();
-        Cast(id + 0x100, AID._Weaponskill_OneAndOnly1, 4.1f, 6);
+        Cast(id + 0x100, AID.OneAndOnlyBoss, 4.1f, 6);
         ComponentCondition<OneAndOnly>(id + 0x102, 3, o => o.NumCasts > 0, "Raidwide")
             .DeactivateOnExit<Maelstrom>()
             .DeactivateOnExit<OneAndOnly>();
@@ -148,7 +148,7 @@ class RM11STheTyrantStates : StateMachineBuilder
 
     void Meteorain(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_GreatWallOfFire, delay, 5)
+        Cast(id, AID.GreatWallOfFireCast, delay, 5)
             .ActivateOnEnter<Firewall>()
             .ActivateOnEnter<FirewallExplosion>();
 
@@ -158,12 +158,12 @@ class RM11STheTyrantStates : StateMachineBuilder
 
         OrbitalOmen(id + 0x20, 5.1f);
 
-        Cast(id + 0x30, AID._Spell_Meteorain, 7.5f, 5)
+        Cast(id + 0x30, AID.MeteorainBoss, 7.5f, 5)
             .ActivateOnEnter<Comet>()
             .ActivateOnEnter<CosmicKiss>()
             .ActivateOnEnter<FearsomeFireball1>();
 
-        Cast(id + 0x40, AID._Weaponskill_FearsomeFireball, 2.7f, 5);
+        Cast(id + 0x40, AID.FearsomeFireballBoss, 2.7f, 5);
         ComponentCondition<FearsomeFireball1>(id + 0x42, 0.4f, f => f.NumCasts > 0, "Wild charge")
             .DeactivateOnExit<FearsomeFireball1>();
         ComponentCondition<CosmicKiss>(id + 0x43, 1.2f, c => c.NumCasts > 0, "Meteors 1")
@@ -185,7 +185,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<ForegoneFatality>()
             .DeactivateOnExit<FearsomeFireball2>();
 
-        Cast(id + 0x100, AID._Weaponskill_TripleTyrannhilation1, 5.6f, 7)
+        Cast(id + 0x100, AID.TripleTyrannhilationCast, 5.6f, 7)
             .ActivateOnEnter<TripleTyrannhilation>()
             .ActivateOnEnter<ShockwaveCounter>();
 
@@ -201,7 +201,7 @@ class RM11STheTyrantStates : StateMachineBuilder
     {
         // flatliner knockback is 15 units
         // tower knockback is 23 units
-        Cast(id, AID._Weaponskill_Flatliner, delay, 4)
+        Cast(id, AID.FlatlinerBoss, delay, 4)
             .ActivateOnEnter<Flatliner>()
             .ActivateOnEnter<FlatlinerArena>();
 
@@ -210,7 +210,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<FlatlinerArena>()
             .ActivateOnEnter<MajesticMeteorain>();
 
-        Cast(id + 0x20, AID._Spell_MajesticMeteor, 9.2f, 5)
+        Cast(id + 0x20, AID.MajesticMeteorBoss, 9.2f, 5)
             .ActivateOnEnter<ExplosionKnockback>()
             .ActivateOnEnter<ExplosionTower>()
             .ActivateOnEnter<FireBreathMeteowrath>()
@@ -221,8 +221,8 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<ExplosionTower>()
             .DeactivateOnExit<ExplosionKnockback>();
 
-        ComponentCondition<FireBreathMeteowrath>(id + 0x101, 6, m => m.PreyAssigned, "Prey assigned");
-        CastStart(id + 0x102, AID._Weaponskill_FireBreath, 0);
+        ComponentCondition<FireBreathMeteowrath>(id + 0x101, 6.1f, m => m.PreyAssigned, "Prey assigned");
+        CastStart(id + 0x102, AID.FireBreathBoss, 0.1f);
         ComponentCondition<MajesticMeteor>(id + 0x103, 2, m => m.ActiveCasters.Any(), "Puddles 1");
         ComponentCondition<MajesticMeteor>(id + 0x104, 4, m => m.BaitsDone, "Puddles 3")
             .ExecOnExit<FireBreathMeteowrath>(f => f.EnableHints = true)
@@ -243,7 +243,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .ActivateOnEnter<MajesticMeteor>();
 
         ComponentCondition<FireBreathMeteowrath>(id + 0x201, 6, m => m.PreyAssigned, "Prey assigned");
-        CastStart(id + 0x202, AID._Weaponskill_FireBreath, 0);
+        CastStart(id + 0x202, AID.FireBreathBoss, 0);
         ComponentCondition<MajesticMeteor>(id + 0x203, 2, m => m.ActiveCasters.Any(), "Puddles 1");
         ComponentCondition<MajesticMeteor>(id + 0x204, 4, m => m.BaitsDone, "Puddles 3")
             .ExecOnExit<FireBreathMeteowrath>(f => f.EnableHints = true)
@@ -254,7 +254,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<FireBreathMeteowrathHints>()
             .DeactivateOnExit<MajesticMeteorain>();
 
-        CastStart(id + 0x300, AID._Spell_MassiveMeteor, 4.4f)
+        CastStart(id + 0x300, AID.MassiveMeteorBoss, 4.4f)
             .ActivateOnEnter<MassiveMeteor>()
             .ExecOnEnter<ExplosionTower>(t => t.EnableHints = false)
             .DeactivateOnExit<MajesticMeteor>();
@@ -263,7 +263,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<MassiveMeteor>()
             .ExecOnExit<ExplosionTower>(t => t.EnableHints = true);
 
-        CastMulti(id + 0x310, [AID._Weaponskill_ArcadionAvalanche4, AID._Weaponskill_ArcadionAvalanche2, AID._Weaponskill_ArcadionAvalanche6, AID._Weaponskill_ArcadionAvalanche], 1.2f, 6)
+        CastMulti(id + 0x310, [AID.ArcadionAvalancheBoss1, AID.ArcadionAvalancheBoss2, AID.ArcadionAvalancheBoss3, AID.ArcadionAvalancheBoss4], 1.2f, 6)
             .ActivateOnEnter<ArcadionAvalancheRect>()
             .ActivateOnEnter<ArcadionAvalancheBoss>()
             .ExecOnEnter<ArcadionAvalancheRect>(a => a.Risky = false)
@@ -276,7 +276,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<ArcadionAvalancheRect>()
             .DeactivateOnExit<ArcadionAvalancheBoss>();
 
-        Cast(id + 0x400, AID._Weaponskill_CrownOfArcadia, delay, 5, "Raidwide + restore arena")
+        Cast(id + 0x400, AID.CrownOfArcadia, 5.7f, 5, "Raidwide + restore arena")
             .ActivateOnEnter<CrownOfArcadia>()
             .ActivateOnEnter<CrownOfArcadiaArena>()
             .DeactivateOnExit<CrownOfArcadia>()
@@ -285,7 +285,7 @@ class RM11STheTyrantStates : StateMachineBuilder
 
     void OrbitalOmen(uint id, float delay)
     {
-        Cast(id, AID._Spell_OrbitalOmen, delay, 5)
+        Cast(id, AID.OrbitalOmenBoss, delay, 5)
             .ActivateOnEnter<OrbitalOmen>()
             .ActivateOnEnter<FireAndFury>()
             .DeactivateOnExit<FirewallExplosion>();
@@ -293,13 +293,13 @@ class RM11STheTyrantStates : StateMachineBuilder
         ComponentCondition<OrbitalOmen>(id + 2, 9.1f, o => o.NumCasts == 2, "Orbital start");
         ComponentCondition<FireAndFury>(id + 3, 0.6f, f => f.NumCasts > 0, "Sides safe")
             .DeactivateOnExit<FireAndFury>();
-        ComponentCondition<OrbitalOmen>(id + 4, 3.9f, o => o.NumCasts == 8, "Orbital end")
+        ComponentCondition<OrbitalOmen>(id + 4, 4, o => o.NumCasts == 8, "Orbital end")
             .DeactivateOnExit<OrbitalOmen>();
     }
 
     void EclipticStampede(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_GreatWallOfFire, delay, 5)
+        Cast(id, AID.GreatWallOfFireCast, delay, 5)
             .ActivateOnEnter<Firewall>()
             .ActivateOnEnter<FirewallExplosion>()
             .ActivateOnEnter<CrownOfArcadia>();
@@ -310,16 +310,16 @@ class RM11STheTyrantStates : StateMachineBuilder
 
         OrbitalOmen(id + 0x20, 5.1f);
 
-        Cast(id + 0x30, AID._Weaponskill_CrownOfArcadia, 0, 4.2f, "Raidwide")
+        Cast(id + 0x30, AID.CrownOfArcadia, 0, 4.2f, "Raidwide")
             .DeactivateOnExit<CrownOfArcadia>();
 
-        Cast(id + 0x100, AID._Spell_EclipticStampede, 7.4f, 5)
+        Cast(id + 0x100, AID.EclipticStampede, 7.4f, 5)
             .ActivateOnEnter<MammothMeteor>()
             .ActivateOnEnter<StampedeMajesticMeteor>()
             .ActivateOnEnter<AtomicImpactPuddle>()
             .ActivateOnEnter<AtomicImpact>();
 
-        ComponentCondition<MammothMeteor>(id + 0x110, 7, m => m.NumCasts > 0, "Proximity + puddles start")
+        ComponentCondition<MammothMeteor>(id + 0x110, 7.1f, m => m.NumCasts > 0, "Proximity + puddles start")
             .ActivateOnEnter<ImpactKiss>()
             .DeactivateOnExit<MammothMeteor>();
 
@@ -329,7 +329,7 @@ class RM11STheTyrantStates : StateMachineBuilder
             .DeactivateOnExit<ImpactKiss>()
             .DeactivateOnExit<AtomicImpact>();
 
-        CastStartMulti(id + 0x130, [AID._Weaponskill_TwoWayFireball, AID._Weaponskill_FourWayFireball], 7)
+        CastStartMulti(id + 0x130, [AID.TwoWayFireballBoss, AID.FourWayFireballBoss], 7)
             .ActivateOnEnter<NWayFireball>()
             .ExecOnEnter<NWayFireball>(n => n.EnableHints = false);
 
@@ -340,28 +340,28 @@ class RM11STheTyrantStates : StateMachineBuilder
         ComponentCondition<NWayFireball>(id + 0x132, 4.3f, n => n.NumCasts > 0, "2/4 stack")
             .DeactivateOnExit<NWayFireball>();
 
-        Cast(id + 0x200, AID._Weaponskill_CrownOfArcadia, 3.3f, 5, "Raidwide")
+        Cast(id + 0x200, AID.CrownOfArcadia, 3.3f, 5, "Raidwide")
             .ActivateOnEnter<CrownOfArcadia>()
             .DeactivateOnExit<CrownOfArcadia>();
     }
 
     void Heartbreaker(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_HeartbreakKick, delay, 5)
+        Cast(id, AID.HeartbreakKickBoss, delay, 5)
             .ActivateOnEnter<HeartbreakKick>()
             .ExecOnEnter<HeartbreakKick>(k => k.ExpectedHits = 5);
         ComponentCondition<HeartbreakKick>(id + 2, 1.2f, k => k.NumCasts > 0, "Tower 1");
         ComponentCondition<HeartbreakKick>(id + 3, 8, k => k.Towers.Count == 0, "Tower 5")
             .DeactivateOnExit<HeartbreakKick>();
 
-        Cast(id + 0x100, AID._Weaponskill_HeartbreakKick, 5, 5)
+        Cast(id + 0x100, AID.HeartbreakKickBoss, 5, 5)
             .ActivateOnEnter<HeartbreakKick>()
             .ExecOnEnter<HeartbreakKick>(k => k.ExpectedHits = 6);
         ComponentCondition<HeartbreakKick>(id + 0x102, 1.2f, k => k.NumCasts > 0, "Tower 1");
         ComponentCondition<HeartbreakKick>(id + 0x103, 10, k => k.Towers.Count == 0, "Tower 6")
             .DeactivateOnExit<HeartbreakKick>();
 
-        Cast(id + 0x200, AID._Weaponskill_HeartbreakKick, 5, 5)
+        Cast(id + 0x200, AID.HeartbreakKickBoss, 5, 5)
             .ActivateOnEnter<HeartbreakKick>()
             .ExecOnEnter<HeartbreakKick>(k => k.ExpectedHits = 7);
         ComponentCondition<HeartbreakKick>(id + 0x202, 1.2f, k => k.NumCasts > 0, "Tower 1");

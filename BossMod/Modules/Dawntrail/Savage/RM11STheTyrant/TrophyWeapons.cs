@@ -6,7 +6,7 @@ class VoidStardustBait(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_Cometite)
+        if ((AID)spell.Action.ID == AID.Cometite)
             Enabled = false;
     }
 
@@ -21,8 +21,8 @@ class VoidStardustBait(BossModule module) : BossComponent(module)
     }
 }
 
-class Cometite(BossModule module) : Components.StandardAOEs(module, AID._Spell_Cometite, 6);
-class Comets(BossModule module) : Components.CastStackSpread(module, AID._Spell_CrushingComet, AID._Spell_Comet, 6, 6);
+class Cometite(BossModule module) : Components.StandardAOEs(module, AID.Cometite, 6);
+class Comets(BossModule module) : Components.CastStackSpread(module, AID.CrushingCometStack, AID.CometSpread, 6, 6);
 
 abstract class WeaponsAOE(BossModule module) : Components.GenericAOEs(module)
 {
@@ -54,7 +54,7 @@ abstract class WeaponsAOE(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_AssaultEvolved2 or AID._Weaponskill_AssaultEvolved4 or AID._Weaponskill_AssaultEvolved6)
+        if ((AID)spell.Action.ID is AID.AssaultEvolvedSwordAOE or AID.AssaultEvolvedAxeAOE or AID.AssaultEvolvedScytheAOE)
         {
             NumCasts++;
             Previous = caster.Position;
@@ -74,7 +74,7 @@ abstract class WeaponsBait(BossModule module) : Components.UntelegraphedBait(mod
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_AssaultEvolved2 or AID._Weaponskill_AssaultEvolved4 or AID._Weaponskill_AssaultEvolved6)
+        if ((AID)spell.Action.ID is AID.AssaultEvolvedSwordAOE or AID.AssaultEvolvedAxeAOE or AID.AssaultEvolvedScytheAOE)
         {
             NumCasts++;
             Next = WorldState.FutureTime(5.2f);
@@ -135,7 +135,7 @@ abstract class WeaponsHints(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_AssaultEvolved)
+        if ((AID)spell.Action.ID is AID.AssaultEvolvedLongCast)
         {
             Next = Module.CastFinishAt(spell, 2.2f);
             Previous = caster.Position;
@@ -152,7 +152,7 @@ abstract class WeaponsHints(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_AssaultEvolved2 or AID._Weaponskill_AssaultEvolved4 or AID._Weaponskill_AssaultEvolved6)
+        if ((AID)spell.Action.ID is AID.AssaultEvolvedSwordAOE or AID.AssaultEvolvedAxeAOE or AID.AssaultEvolvedScytheAOE)
         {
             Previous = caster.Position;
             Next = WorldState.FutureTime(5.2f);
@@ -231,7 +231,7 @@ class TrophyWeaponsAOE(BossModule module) : WeaponsAOE(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         // TODO: we can actually determine first weapon as soon as they spawn based on their rotation relative to the boss
-        if ((AID)spell.Action.ID == AID._Weaponskill_AssaultEvolved)
+        if ((AID)spell.Action.ID == AID.AssaultEvolvedLongCast)
         {
             Next = Module.CastFinishAt(spell, 2.2f);
             Previous = caster.Position;
@@ -256,7 +256,7 @@ class TrophyWeaponsBait(BossModule module) : WeaponsBait(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_AssaultEvolved)
+        if ((AID)spell.Action.ID == AID.AssaultEvolvedLongCast)
         {
             Next = Module.CastFinishAt(spell, 2.2f);
             var weapon1 = Weapons.FirstOrDefault(w => w.Position.InCone(caster.Position, spell.Rotation, 10.Degrees()));
@@ -281,7 +281,7 @@ class TrophyWeaponsHints(BossModule module) : WeaponsHints(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_AssaultEvolved)
+        if ((AID)spell.Action.ID == AID.AssaultEvolvedLongCast)
         {
             Next = Module.CastFinishAt(spell, 2.2f);
             Previous = caster.Position;
@@ -298,7 +298,7 @@ class TrophyWeaponsHints(BossModule module) : WeaponsHints(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_AssaultEvolved2 or AID._Weaponskill_AssaultEvolved4 or AID._Weaponskill_AssaultEvolved6)
+        if ((AID)spell.Action.ID is AID.AssaultEvolvedSwordAOE or AID.AssaultEvolvedAxeAOE or AID.AssaultEvolvedScytheAOE)
         {
             Previous = caster.Position;
             Next = WorldState.FutureTime(5.2f);
@@ -315,7 +315,7 @@ class UltimateTrophyWeaponsAOE(BossModule module) : WeaponsAOE(module)
     {
         base.OnCastStarted(caster, spell);
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_UltimateTrophyWeapons)
+        if ((AID)spell.Action.ID == AID.UltimateTrophyWeapons)
             Previous = caster.Position;
     }
 
@@ -352,7 +352,7 @@ class UltimateTrophyWeaponsHints(BossModule module) : WeaponsHints(module)
     {
         base.OnCastStarted(caster, spell);
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_UltimateTrophyWeapons)
+        if ((AID)spell.Action.ID == AID.UltimateTrophyWeapons)
             Previous = caster.Position;
     }
 

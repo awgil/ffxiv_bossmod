@@ -1,24 +1,32 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
 // not sure about falloff radius. 20 is roughly 1 unit away from touching the center of the arena
-class MammothMeteor(BossModule module) : Components.StandardAOEs(module, AID._Spell_MammothMeteor, 20);
+class MammothMeteor(BossModule module) : Components.StandardAOEs(module, AID.MammothMeteor, 20);
 class AtomicImpact(BossModule module) : Components.SpreadFromIcon(module, 30, null, 5, 6)
 {
     private int _numCasts;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_AtomicImpact)
+        if ((AID)spell.Action.ID == AID.AtomicImpact)
         {
             _numCasts++;
             if (_numCasts >= 12)
                 Spreads.Clear();
         }
     }
-}
-class AtomicImpactPuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID._Spell_AtomicImpact, m => m.Enemies(0x1EBF24).Where(e => e.EventState != 7), 1);
 
-class StampedeMajesticMeteor(BossModule module) : Components.StandardAOEs(module, AID._Spell_MajesticMeteor2, 6);
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (ActiveSpreads.Any(s => s.Target.InstanceID == actor.InstanceID))
+            hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 10), DateTime.MaxValue);
+    }
+}
+class AtomicImpactPuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.AtomicImpact, m => m.Enemies(OID.AtomicImpact).Where(e => e.EventState != 7), 1);
+
+class StampedeMajesticMeteor(BossModule module) : Components.StandardAOEs(module, AID.MajesticMeteorEcliptic, 6);
 
 class ImpactKiss(BossModule module) : Components.GenericTowers(module)
 {
@@ -29,11 +37,11 @@ class ImpactKiss(BossModule module) : Components.GenericTowers(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Spell_CosmicKiss:
+            case AID.CosmicKissEcliptic:
                 Towers.Add(new(spell.LocXZ, 4, 1, 1, Raid.WithSlot().WhereActor(a => a.Role != Role.Tank).Mask() | _prey, Module.CastFinishAt(spell)));
                 Assign();
                 break;
-            case AID._Spell_WeightyImpact:
+            case AID.WeightyImpact:
                 Towers.Add(new(spell.LocXZ, 4, 2, 2, Raid.WithSlot().WhereActor(a => a.Role == Role.Tank).Mask() | _prey, Module.CastFinishAt(spell)));
                 Assign();
                 break;
@@ -42,7 +50,7 @@ class ImpactKiss(BossModule module) : Components.GenericTowers(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_m0017trg_a0c)
+        if ((IconID)iconID == IconID.AtomicImpactPrey)
             _prey.Set(Raid.FindSlot(actor.InstanceID));
     }
 
@@ -50,8 +58,8 @@ class ImpactKiss(BossModule module) : Components.GenericTowers(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Spell_CosmicKiss:
-            case AID._Spell_WeightyImpact:
+            case AID.CosmicKissEcliptic:
+            case AID.WeightyImpact:
                 Towers.RemoveAll(t => t.Position.AlmostEqual(spell.TargetXZ, 1));
                 NumCasts++;
                 break;
@@ -93,7 +101,7 @@ class ImpactKiss(BossModule module) : Components.GenericTowers(module)
     }
 }
 
-class StampedeMajesticMeteowrath(BossModule module) : Components.GenericBaitAway(module, AID._Spell_MajesticMeteowrath1)
+class StampedeMajesticMeteowrath(BossModule module) : Components.GenericBaitAway(module, AID.MajesticMeteowrathEcliptic)
 {
     private readonly Actor?[] _tetheredTo = new Actor?[8];
 
@@ -124,10 +132,10 @@ class NWayFireball(BossModule module) : Components.UntelegraphedBait(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_TwoWayFireball:
+            case AID.TwoWayFireballBoss:
                 CurrentBaits.Add(new(caster.Position, default, new AOEShapeRect(60, 3), Module.CastFinishAt(spell, 1), 2, 4, isProximity: true, type: AIHints.PredictedDamageType.Shared));
                 break;
-            case AID._Weaponskill_FourWayFireball:
+            case AID.FourWayFireballBoss:
                 CurrentBaits.Add(new(caster.Position, default, new AOEShapeRect(60, 3), Module.CastFinishAt(spell, 1), 4, 2, isProximity: true, type: AIHints.PredictedDamageType.Shared));
                 break;
         }
@@ -135,7 +143,7 @@ class NWayFireball(BossModule module) : Components.UntelegraphedBait(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_TwoWayFireball1 or AID._Weaponskill_FourWayFireball1)
+        if ((AID)spell.Action.ID is AID.TwoWayFireball or AID.FourWayFireball)
         {
             NumCasts++;
             CurrentBaits.Clear();

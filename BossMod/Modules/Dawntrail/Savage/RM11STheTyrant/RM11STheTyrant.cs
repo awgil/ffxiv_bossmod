@@ -1,15 +1,15 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
-class CrownOfArcadia(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_CrownOfArcadia);
+class CrownOfArcadia(BossModule module) : Components.RaidwideCast(module, AID.CrownOfArcadia);
 
-class DanceOfDomination1(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_DanceOfDominationTrophy, AID._Weaponskill_DanceOfDomination1, 6.6f);
-class DanceOfDomination2(BossModule module) : Components.RaidwideInstant(module, AID._Weaponskill_DanceOfDomination3, 4.2f)
+class DanceOfDomination1(BossModule module) : Components.RaidwideCastDelay(module, AID.DanceOfDominationTrophy, AID.DanceOfDominationFirst, 6.6f);
+class DanceOfDomination2(BossModule module) : Components.RaidwideInstant(module, AID.DanceOfDominationLast, 4.2f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_DanceOfDomination1)
+        if ((AID)spell.Action.ID == AID.DanceOfDominationFirst)
             Activation = WorldState.FutureTime(Delay);
-        if ((AID)spell.Action.ID == AID._Weaponskill_DanceOfDomination3)
+        if ((AID)spell.Action.ID == AID.DanceOfDominationLast)
         {
             NumCasts++;
             Activation = default;
@@ -17,8 +17,8 @@ class DanceOfDomination2(BossModule module) : Components.RaidwideInstant(module,
     }
 }
 
-class HurricaneExplosion(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Explosion, new AOEShapeRect(60, 5));
-class EyeOfTheHurricane(BossModule module) : Components.StackWithCastTargets(module, AID._Spell_EyeOfTheHurricane, 6, 2, 2);
+class HurricaneExplosion(BossModule module) : Components.StandardAOEs(module, AID.HurricaneExplosion, new AOEShapeRect(60, 5));
+class EyeOfTheHurricane(BossModule module) : Components.StackWithCastTargets(module, AID.EyeOfTheHurricane, 6, 2, 2);
 class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Maelstrom).Where(e => e.EventState != 7));
 
 class PowerfulGust : Components.GenericBaitAway
@@ -47,7 +47,7 @@ class PowerfulGust : Components.GenericBaitAway
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_PowerfulGust)
+        if ((AID)spell.Action.ID == AID.PowerfulGust)
         {
             Activation = default;
             NumCasts++;
@@ -55,7 +55,7 @@ class PowerfulGust : Components.GenericBaitAway
     }
 }
 
-class OneAndOnly(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_OneAndOnly);
+class OneAndOnly(BossModule module) : Components.RaidwideCast(module, AID.OneAndOnlyRaidwide);
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1073, NameID = 14305, PlanLevel = 100)]
 public class RM11STheTyrant(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))

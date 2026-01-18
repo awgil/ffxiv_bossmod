@@ -1,18 +1,18 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
-class Flatliner(BossModule module) : Components.Knockback(module, AID._Weaponskill_Flatliner1, ignoreImmunes: true)
+class Flatliner(BossModule module) : Components.Knockback(module, AID.Flatliner, ignoreImmunes: true)
 {
     private DateTime _activation;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Flatliner1)
+        if ((AID)spell.Action.ID == AID.Flatliner)
             _activation = Module.CastFinishAt(spell);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Flatliner1)
+        if ((AID)spell.Action.ID == AID.Flatliner)
         {
             NumCasts++;
             _activation = default;
@@ -28,7 +28,7 @@ class Flatliner(BossModule module) : Components.Knockback(module, AID._Weaponski
     }
 }
 
-class FlatlinerArena(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Flatliner1)
+class FlatlinerArena(BossModule module) : Components.GenericAOEs(module, AID.Flatliner)
 {
     private DateTime _activation;
 
@@ -70,7 +70,7 @@ class FlatlinerArena(BossModule module) : Components.GenericAOEs(module, AID._We
     }
 }
 
-class ExplosionTower(BossModule module) : Components.CastTowers(module, AID._Spell_Explosion, 4, minSoakers: 2, maxSoakers: 2)
+class ExplosionTower(BossModule module) : Components.CastTowers(module, AID.ExplosionTower, 4, minSoakers: 2, maxSoakers: 2)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -85,7 +85,7 @@ class ExplosionTower(BossModule module) : Components.CastTowers(module, AID._Spe
         }
     }
 }
-class ExplosionKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Spell_Explosion, 23, ignoreImmunes: true, shape: new AOEShapeCircle(4))
+class ExplosionKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ExplosionTower, 23, ignoreImmunes: true, shape: new AOEShapeCircle(4))
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Where(s => actor.Position.InCircle(s.Origin, 4));
 
@@ -94,7 +94,7 @@ class ExplosionKnockback(BossModule module) : Components.KnockbackFromCastTarget
         if (base.DestinationUnsafe(slot, actor, pos))
             return true;
 
-        if (Module.PrimaryActor.CastInfo is { } ci && (AID)ci.Action.ID is AID._Weaponskill_ArcadionAvalanche4 or AID._Weaponskill_ArcadionAvalanche2 or AID._Weaponskill_ArcadionAvalanche6 or AID._Weaponskill_ArcadionAvalanche)
+        if (Module.PrimaryActor.CastInfo is { } ci && (AID)ci.Action.ID is AID.ArcadionAvalancheBoss1 or AID.ArcadionAvalancheBoss2 or AID.ArcadionAvalancheBoss3 or AID.ArcadionAvalancheBoss4)
             return pos.InRect(ci.LocXZ, ci.Rotation, 40, 0, 40);
 
         return false;
@@ -148,8 +148,8 @@ class FireBreathMeteowrath : Components.GenericBaitAway
     {
         var color = (TetherID)tether.ID switch
         {
-            TetherID._Gen_Tether_chn_arrow01f => 1,
-            TetherID._Gen_Tether_chn_tergetfix2k1 => 2,
+            TetherID.Unstretched => 1,
+            TetherID.Stretched => 2,
             _ => 0
         };
         if (color > 0 && WorldState.Actors.Find(tether.Target) is { } target)
@@ -163,7 +163,7 @@ class FireBreathMeteowrath : Components.GenericBaitAway
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_lockon8_t0w)
+        if ((IconID)iconID == IconID.FireBreath)
         {
             PreyAssigned = true;
             _prey.Set(Raid.FindSlot(actor.InstanceID));
@@ -172,7 +172,7 @@ class FireBreathMeteowrath : Components.GenericBaitAway
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_FireBreath)
+        if ((AID)spell.Action.ID == AID.FireBreathBoss)
         {
             foreach (var (src, target, _) in _tethers)
                 CurrentBaits.Add(new(src, target, WrathShape, Module.CastFinishAt(spell, 0.8f)));
@@ -185,12 +185,12 @@ class FireBreathMeteowrath : Components.GenericBaitAway
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_FireBreath1:
+            case AID.FireBreathRect:
                 NumCasts++;
                 CurrentBaits.RemoveAll(b => b.Shape == BreathShape);
                 _prey.Reset();
                 break;
-            case AID._Spell_MajesticMeteowrath:
+            case AID.MajesticMeteowrathRect:
                 NumCasts++;
                 CurrentBaits.RemoveAll(b => b.Shape == WrathShape);
                 break;
@@ -198,7 +198,7 @@ class FireBreathMeteowrath : Components.GenericBaitAway
     }
 }
 
-class MajesticMeteorain(BossModule module) : Components.GenericAOEs(module, AID._Spell_MajesticMeteorain)
+class MajesticMeteorain(BossModule module) : Components.GenericAOEs(module, AID.MajesticMeteorainRect)
 {
     private readonly List<WPos> _sources = [];
     private DateTime _activation;
@@ -231,7 +231,7 @@ class MajesticMeteorain(BossModule module) : Components.GenericAOEs(module, AID.
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_FireBreath)
+        if ((AID)spell.Action.ID == AID.FireBreathBoss)
             _activation = Module.CastFinishAt(spell, 0.8f);
     }
 
@@ -246,7 +246,7 @@ class MajesticMeteorain(BossModule module) : Components.GenericAOEs(module, AID.
     }
 }
 
-class MajesticMeteor(BossModule module) : Components.StandardAOEs(module, AID._Spell_MajesticMeteor1, 6)
+class MajesticMeteor(BossModule module) : Components.StandardAOEs(module, AID.MajesticMeteorAOE, 6)
 {
     public bool BaitsDone { get; private set; }
 
@@ -282,13 +282,13 @@ class FireBreathMeteowrathHints(BossModule module) : BossComponent(module)
     }
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_lockon8_t0w)
+        if ((IconID)iconID == IconID.FireBreath)
             _prey.Set(Raid.FindSlot(actor.InstanceID));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_FireBreath)
+        if ((AID)spell.Action.ID == AID.FireBreathBoss)
             Redraw();
     }
 
@@ -334,7 +334,7 @@ class FireBreathMeteowrathHints(BossModule module) : BossComponent(module)
     }
 }
 
-class MassiveMeteor(BossModule module) : Components.StackWithIcon(module, (uint)IconID._Gen_Icon_com_share4a1, AID._Spell_MassiveMeteor1, 6, 6.2f, minStackSize: 4)
+class MassiveMeteor(BossModule module) : Components.StackWithIcon(module, (uint)IconID.MultiStack, AID.MassiveMeteorStack, 6, 6.2f, minStackSize: 4)
 {
     public int NumCasts;
 
@@ -352,9 +352,9 @@ class MassiveMeteor(BossModule module) : Components.StackWithIcon(module, (uint)
     }
 }
 
-class ArcadionAvalancheRect(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ArcadionAvalanche1, AID._Weaponskill_ArcadionAvalanche3, AID._Weaponskill_ArcadionAvalanche5, AID._Weaponskill_ArcadionAvalanche7], new AOEShapeRect(40, 20));
+class ArcadionAvalancheRect(BossModule module) : Components.GroupedAOEs(module, [AID.ArcadionAvalanchePlatform4, AID.ArcadionAvalanchePlatform2, AID.ArcadionAvalanchePlatform1, AID.ArcadionAvalanchePlatform3], new AOEShapeRect(40, 20));
 
-class ArcadionAvalancheBoss(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ArcadionAvalanche4, AID._Weaponskill_ArcadionAvalanche2, AID._Weaponskill_ArcadionAvalanche6, AID._Weaponskill_ArcadionAvalanche], new AOEShapeRect(40, 20))
+class ArcadionAvalancheBoss(BossModule module) : Components.GroupedAOEs(module, [AID.ArcadionAvalancheBoss1, AID.ArcadionAvalancheBoss2, AID.ArcadionAvalancheBoss3, AID.ArcadionAvalancheBoss4], new AOEShapeRect(40, 20))
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -371,7 +371,7 @@ class ArcadionAvalancheBoss(BossModule module) : Components.GroupedAOEs(module, 
     }
 }
 
-class CrownOfArcadiaArena(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_CrownOfArcadia)
+class CrownOfArcadiaArena(BossModule module) : Components.GenericAOEs(module, AID.CrownOfArcadia)
 {
     private DateTime _resolve;
 

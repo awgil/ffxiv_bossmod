@@ -1,19 +1,19 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
-class OrbitalOmen(BossModule module) : Components.StandardAOEs(module, AID._Spell_OrbitalOmen1, new AOEShapeRect(60, 5), maxCasts: 4, highlightImminent: true);
+class OrbitalOmen(BossModule module) : Components.StandardAOEs(module, AID.OrbitalOmenRect, new AOEShapeRect(60, 5), maxCasts: 4, highlightImminent: true);
 
-class FireAndFury(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_FireAndFury1, AID._Weaponskill_FireAndFury2], new AOEShapeCone(60, 45.Degrees()), highlightImminent: true);
+class FireAndFury(BossModule module) : Components.GroupedAOEs(module, [AID.FireAndFuryBack, AID.FireAndFuryFront], new AOEShapeCone(60, 45.Degrees()), highlightImminent: true);
 
-class FearsomeFireball1(BossModule module) : Components.GenericWildCharge(module, 3, AID._Weaponskill_FearsomeFireball1, 60)
+class FearsomeFireball1(BossModule module) : Components.GenericWildCharge(module, 3, AID.FearsomeFireballCharge, 60)
 {
     private BitMask _meteors;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_lockon8_t0w)
+        if ((IconID)iconID == IconID.FireBreath)
             _meteors.Set(Raid.FindSlot(actor.InstanceID));
 
-        if ((IconID)iconID == IconID._Gen_Icon_share_laser_5sec_0t)
+        if ((IconID)iconID == IconID.WildCharge)
         {
             Source = actor;
             Activation = WorldState.FutureTime(5.1f);
@@ -39,17 +39,17 @@ class FearsomeFireball1(BossModule module) : Components.GenericWildCharge(module
     }
 }
 
-class FearsomeFireball2(BossModule module) : Components.GenericWildCharge(module, 3, AID._Weaponskill_FearsomeFireball1, 60)
+class FearsomeFireball2(BossModule module) : Components.GenericWildCharge(module, 3, AID.FearsomeFireballCharge, 60)
 {
     private readonly Comet _cometTracker = module.FindComponent<Comet>()!;
     private BitMask _meteors;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_lockon8_t0w)
+        if ((IconID)iconID == IconID.FireBreath)
             _meteors.Set(Raid.FindSlot(actor.InstanceID));
 
-        if ((IconID)iconID == IconID._Gen_Icon_share_laser_5sec_0t)
+        if ((IconID)iconID == IconID.WildCharge)
         {
             Source = actor;
             Activation = WorldState.FutureTime(5.1f);
@@ -130,7 +130,7 @@ class FearsomeFireball2(BossModule module) : Components.GenericWildCharge(module
     }
 }
 
-class CosmicKiss(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID._Gen_Icon_lockon8_t0w, activationDelay: 8.1f, centerAtTarget: true)
+class CosmicKiss(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4), (uint)IconID.FireBreath, activationDelay: 8.1f, centerAtTarget: true)
 {
     private readonly Comet _cometTracker = module.FindComponent<Comet>()!;
 
@@ -144,7 +144,7 @@ class CosmicKiss(BossModule module) : Components.BaitAwayIcon(module, new AOESha
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_CosmicKiss)
+        if ((AID)spell.Action.ID == AID.CosmicKiss)
         {
             NumCasts++;
             CurrentBaits.Clear();
@@ -164,7 +164,7 @@ class Comet(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_CosmicKiss)
+        if ((AID)spell.Action.ID == AID.CosmicKiss)
             Comets.Add(caster);
     }
 
@@ -189,9 +189,9 @@ class Comet(BossModule module) : BossComponent(module)
     }
 }
 
-class CometExplosion(BossModule module) : Components.StandardAOEs(module, AID._Ability_Explosion, 8);
+class CometExplosion(BossModule module) : Components.StandardAOEs(module, AID.ExplosionComet, 8);
 
-class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID._Spell_ForegoneFatality)
+class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID.ForegoneFatality)
 {
     private readonly List<(Actor Source, Actor Target)> _tethered = [];
     private readonly RM11STheTyrantConfig _config = Service.Config.Get<RM11STheTyrantConfig>();
@@ -204,7 +204,7 @@ class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID._
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_teke_tank01k1 && WorldState.Actors.Find(tether.Target) is { } target)
+        if ((TetherID)tether.ID == TetherID.ForegoneFatality && WorldState.Actors.Find(tether.Target) is { } target)
         {
             _tethered.Add((source, target));
             if (_numActiveTethers < 2)
@@ -218,7 +218,7 @@ class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID._
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_teke_tank01k1 && WorldState.Actors.Find(tether.Target) is { } target)
+        if ((TetherID)tether.ID == TetherID.ForegoneFatality && WorldState.Actors.Find(tether.Target) is { } target)
             _tethered.RemoveAll(t => t.Source == source && t.Target == target);
     }
 
@@ -292,9 +292,9 @@ class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID._
     }
 }
 
-class ShockwaveCounter(BossModule module) : Components.CastCounter(module, AID._Weaponskill_Shockwave);
+class ShockwaveCounter(BossModule module) : Components.CastCounter(module, AID.Shockwave);
 
-class TripleTyrannhilation(BossModule module) : Components.GenericLineOfSightAOE(module, AID._Weaponskill_Shockwave, 60, false)
+class TripleTyrannhilation(BossModule module) : Components.GenericLineOfSightAOE(module, AID.Shockwave, 60, false)
 {
     private readonly Comet _cometTracker = module.FindComponent<Comet>()!;
     private readonly List<Actor> _comets = [];
@@ -304,7 +304,7 @@ class TripleTyrannhilation(BossModule module) : Components.GenericLineOfSightAOE
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_TripleTyrannhilation1)
+        if ((AID)spell.Action.ID == AID.TripleTyrannhilationCast)
         {
             _comets.AddRange(_cometTracker.Comets.SortedByRange(caster.Position));
             Modify(caster.Position, _comets.Select(c => (c.Position, CometRadius)), Module.CastFinishAt(spell, 1.1f));

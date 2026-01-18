@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
-class RawSteelTrophyCounter(BossModule module) : Components.CastCounterMulti(module, [AID._Weaponskill_Impact, AID._Weaponskill_RawSteel4]);
+class RawSteelTrophyCounter(BossModule module) : Components.CastCounterMulti(module, [AID.RawSteelAxeImpact, AID.RawSteelScytheBuster]);
 class RawSteelTrophyAxe(BossModule module) : Components.GenericStackSpread(module)
 {
     public int NumCasts;
@@ -22,11 +22,11 @@ class RawSteelTrophyAxe(BossModule module) : Components.GenericStackSpread(modul
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_RawSteel1:
+            case AID.RawSteelAxeBuster:
                 NumCasts++;
                 Stacks.Clear();
                 break;
-            case AID._Weaponskill_Impact:
+            case AID.RawSteelAxeImpact:
                 NumCasts++;
                 if (Spreads.Count > 0)
                     Spreads.RemoveAt(0);
@@ -53,10 +53,10 @@ class RawSteelTrophyScythe(BossModule module) : Components.UntelegraphedBait(mod
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_RawSteel4:
+            case AID.RawSteelScytheBuster:
                 CurrentBaits.RemoveAll(b => b.Type == AIHints.PredictedDamageType.Tankbuster);
                 break;
-            case AID._Weaponskill_HeavyHitter:
+            case AID.RawSteelScytheHeavyHitter:
                 CurrentBaits.RemoveAll(b => b.Type == AIHints.PredictedDamageType.Shared);
                 break;
         }

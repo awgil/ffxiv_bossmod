@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM11STheTyrant;
 
-class Firewall(BossModule module) : Components.GenericWildCharge(module, 3, AID._Weaponskill_GreatWallOfFire1, 60)
+class Firewall(BossModule module) : Components.GenericWildCharge(module, 3, AID.GreatWallOfFireRect, 60)
 {
     private readonly DateTime[] _fireVuln = new DateTime[8];
     private readonly DateTime[] _invuln = new DateTime[8];
@@ -33,7 +33,7 @@ class Firewall(BossModule module) : Components.GenericWildCharge(module, 3, AID.
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_GreatWallOfFire)
+        if ((AID)spell.Action.ID == AID.GreatWallOfFireCast)
         {
             Source = Module.PrimaryActor;
             Activation = Module.CastFinishAt(spell, 0.3f);
@@ -42,7 +42,7 @@ class Firewall(BossModule module) : Components.GenericWildCharge(module, 3, AID.
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_FireResistanceDownII && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID == SID.FireResistanceDownII && Raid.TryFindSlot(actor, out var slot))
             _fireVuln[slot] = status.ExpireAt;
         if (Components.GenericSharedTankbuster.InvulnStatuses.Contains(status.ID) && Raid.TryFindSlot(actor, out var slot2))
             _invuln[slot2] = status.ExpireAt;
@@ -64,4 +64,4 @@ class Firewall(BossModule module) : Components.GenericWildCharge(module, 3, AID.
     }
 }
 
-class FirewallExplosion(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Explosion2, new AOEShapeRect(60, 3));
+class FirewallExplosion(BossModule module) : Components.StandardAOEs(module, AID.WallExplosion, new AOEShapeRect(60, 3));
