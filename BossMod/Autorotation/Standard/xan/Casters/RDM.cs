@@ -57,16 +57,16 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     public uint WhiteMana;
     public uint Stacks;
 
-    public float Manafication;
-    public float Embolden;
-    public float Dualcast;
-    public float Acceleration;
+    public float ManaficLeft;
+    public float EmboldenLeft;
+    public float DualcastLeft;
+    public float AccelLeft;
     public float VerfireReady;
     public float VerstoneReady;
-    public int Swordplay;
+    public int SwordplayStacks;
     public float ThornedFlourish;
-    public float GrandImpact;
-    public float Prefulgence;
+    public float GrandImpactReady;
+    public float PrefulgenceReady;
 
     public uint LowestMana => Math.Min(BlackMana, WhiteMana);
 
@@ -94,10 +94,10 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
     protected override float GetCastTime(AID aid)
     {
-        if (Dualcast > GCD)
+        if (DualcastLeft > GCD)
             return 0;
 
-        if (Acceleration > GCD)
+        if (AccelLeft > GCD)
         {
             switch (aid)
             {
@@ -147,16 +147,16 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         WhiteMana = gauge.WhiteMana;
         Stacks = gauge.ManaStacks;
 
-        Manafication = StatusLeft(SID.Manafication);
-        Embolden = StatusLeft(SID.EmboldenSelf);
-        Dualcast = StatusLeft(SID.Dualcast);
-        Acceleration = StatusLeft(SID.Acceleration);
+        ManaficLeft = StatusLeft(SID.Manafication);
+        EmboldenLeft = StatusLeft(SID.EmboldenSelf, 20);
+        DualcastLeft = StatusLeft(SID.Dualcast);
+        AccelLeft = StatusLeft(SID.Acceleration);
         VerfireReady = StatusLeft(SID.VerfireReady);
         VerstoneReady = StatusLeft(SID.VerstoneReady);
-        Swordplay = StatusStacks(SID.MagickedSwordplay);
+        SwordplayStacks = StatusStacks(SID.MagickedSwordplay);
         ThornedFlourish = StatusLeft(SID.ThornedFlourish);
-        GrandImpact = StatusLeft(SID.GrandImpactReady);
-        Prefulgence = StatusLeft(SID.PrefulgenceReady);
+        GrandImpactReady = StatusLeft(SID.GrandImpactReady);
+        PrefulgenceReady = StatusLeft(SID.PrefulgenceReady);
 
         (BestAOETarget, NumAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
@@ -174,7 +174,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             : Unlocked(AID.Zwerchhau) ? 35
             : 20;
 
-        if (primaryTarget is { } tar && Manafication <= GCD && (Swordplay > 0 || LowestMana >= comboMana || InMeleeCombo))
+        if (primaryTarget is { } tar && ManaficLeft <= GCD && (SwordplayStacks > 0 || LowestMana >= comboMana || InMeleeCombo))
             Hints.GoalZones.Add(Hints.GoalSingleTarget(tar.Actor, 3));
 
         GoalZoneSingle(25);
@@ -210,16 +210,16 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (strategy.Combo != ComboStrategy.Break && InCombo)
             return;
 
-        if (GrandImpact > GCD)
+        if (GrandImpactReady > GCD)
         {
-            if (!CanFitGCD(GrandImpact, 1)) // expiring soon
+            if (!CanFitGCD(GrandImpactReady, 1)) // expiring soon
                 PushGCD(AID.GrandImpact, BestAOETarget, GCDPriority.Combo);
 
             if (PostOpener)
                 PushGCD(AID.GrandImpact, BestAOETarget, GCDPriority.GI);
         }
 
-        if (Acceleration > GCD || Dualcast > GCD || SwiftcastLeft > GCD)
+        if (AccelLeft > GCD || DualcastLeft > GCD || SwiftcastLeft > GCD)
         {
             if (NumAOETargets > 2)
                 PushGCD(AID.Scatter, BestAOETarget, GCDPriority.InstantAOE);
@@ -256,7 +256,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             if (NumConeTargets > 2 && Player.DistanceToHitbox(BestConeTarget) <= 8)
                 PushGCD(AID.EnchantedMoulinet, ResolveTargetOverride(strategy.Melee) ?? BestConeTarget, p);
 
-            if (Player.DistanceToHitbox(primaryTarget) <= 3 || Manafication > GCD)
+            if (Player.DistanceToHitbox(primaryTarget) <= 3 || ManaficLeft > GCD)
                 PushGCD(AID.Riposte, ResolveTargetOverride(strategy.Melee) ?? primaryTarget, p);
         }
 
@@ -264,7 +264,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             // disabled by strategy
             strategy.Melee == MeleeStrategy.Delay
             // insufficient resources
-            || Swordplay <= GCD && LowestMana < comboMana
+            || SwordplayStacks <= GCD && LowestMana < comboMana
             // already mid combo, using riposte again would break it
             || InCombo
         )
@@ -276,7 +276,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        if (Dualcast > GCD || SwiftcastLeft > GCD)
+        if (DualcastLeft > GCD || SwiftcastLeft > GCD)
             return;
 
         if (
@@ -285,7 +285,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             // start combo early for buff window
             || CanWeave(AID.Embolden, extraFixedDelay: 5.2f) && strategy.Buffs != OffensiveStrategy.Delay
             // full combo is 12.7s
-            || Embolden > GCD + 12.7f
+            || EmboldenLeft > GCD + 12.7f
         )
             doit(GCDPriority.MeleeStart, strategy, primaryTarget);
 
@@ -321,7 +321,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         UsePrefulgence(strategy);
 
-        if (RaidBuffsLeft > GCD && Acceleration <= AnimLock && GrandImpact <= AnimLock)
+        if (RaidBuffsLeft > GCD && AccelLeft <= AnimLock && GrandImpactReady <= AnimLock)
             PushOGCD(AID.Acceleration, Player);
 
         if (MP <= Player.HPMP.MaxMP * 0.7f)
@@ -345,12 +345,12 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
     void UsePrefulgence(in Strategy strategy)
     {
-        if (Prefulgence <= AnimLock)
+        if (PrefulgenceReady <= AnimLock)
             return;
 
         var shouldUse = strategy.Prefulgence.Value switch
         {
-            OffensiveStrategy.Automatic => Embolden > AnimLock || !CanFitGCD(Prefulgence, 1) || NumAOETargets > 1,
+            OffensiveStrategy.Automatic => EmboldenLeft > AnimLock || !CanFitGCD(PrefulgenceReady, 1) || NumAOETargets > 1,
             OffensiveStrategy.Force => true,
             _ => false
         };
