@@ -35,7 +35,7 @@ class BatTether(BossModule module) : BossComponent(module)
 
 class BatShapePredict(BossModule module) : Components.GenericAOEs(module)
 {
-    static readonly AOEShape Donut = new AOEShapeDonut(8, 15);
+    static readonly AOEShape Donut = new AOEShapeDonut(4, 15);
     static readonly AOEShape Circle = new AOEShapeCircle(7);
 
     readonly Dictionary<ulong, WDir> _startPositions = [];

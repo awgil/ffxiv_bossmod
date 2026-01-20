@@ -42,7 +42,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         [PropertyDisplay("Always complete combo (hold if target moves out of range)")]
         Preserve,
-        [PropertyDisplay("Always complete combo; use Reprise as fallback if enough mana")]
+        [PropertyDisplay("Always complete combo; use Reprise as fallback if enough mana (NOT IMPLEMENTED, this is a placeholder option)")]
         Reprise,
         [PropertyDisplay("Break combo if target is out of range")]
         Break
@@ -92,24 +92,22 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
     private bool PostOpener => Player.InCombat && (OnCooldown(AID.Embolden) || CombatTimer > 5);
 
+    private static readonly AID[] Accelerated = [
+        AID.Verthunder,
+        AID.VerthunderIII,
+        AID.Veraero,
+        AID.VeraeroIII,
+        AID.Scatter,
+        AID.Impact
+    ];
+
     protected override float GetCastTime(AID aid)
     {
         if (DualcastLeft > GCD)
             return 0;
 
-        if (AccelLeft > GCD)
-        {
-            switch (aid)
-            {
-                case AID.Verthunder:
-                case AID.VerthunderIII:
-                case AID.Veraero:
-                case AID.VeraeroIII:
-                case AID.Scatter:
-                case AID.Impact:
-                    return 0;
-            }
-        }
+        if (AccelLeft > GCD && Accelerated.Contains(aid))
+            return 0;
 
         return base.GetCastTime(aid);
     }
