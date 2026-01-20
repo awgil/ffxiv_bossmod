@@ -3,6 +3,7 @@
 class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20, 2, 2, true)
 {
     public Actor?[] TetheredAdds = new Actor?[4];
+    public WPos?[] TetheredStartPositions = new WPos?[4];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -24,7 +25,10 @@ class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Follow && Raid.TryFindSlot(tether.Target, out var slot) && slot < TetheredAdds.Length)
+        {
             TetheredAdds[slot] = source;
+            TetheredStartPositions[slot] = source.Position;
+        }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -58,19 +62,27 @@ class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20
 
 class BurningChains(BossModule module) : BossComponent(module)
 {
+    private BitMask _tethers;
     private BitMask _chains;
 
+    public bool Preparing => _tethers.Any();
     public bool Active => _chains.Any();
+    public bool Chained(int slot) => _chains[slot];
+    public bool Tethered(int slot) => _tethers[slot];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (_chains[slot])
+        if (Tethered(slot))
+            hints.Add("Stay with partner!");
+        else if (Chained(slot))
             hints.Add("Break chains!");
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_chains[pcSlot])
+        if (Tethered(pcSlot))
+            Arena.AddCircle(Module.Center, 1, ArenaColor.Safe);
+        else if (Chained(pcSlot))
         {
             var partner = Raid[_chains.WithoutBit(pcSlot).LowestSetBit()];
             if (partner != null)
@@ -78,16 +90,49 @@ class BurningChains(BossModule module) : BossComponent(module)
         }
     }
 
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (Tethered(slot))
+            movementHints.Add(actor.Position, Module.Center, ArenaColor.Safe);
+    }
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.BurningChains)
-            _chains.Set(Raid.FindSlot(actor.InstanceID));
+        {
+            var slot = Raid.FindSlot(actor.InstanceID);
+            _chains.Set(slot);
+            _tethers.Clear(slot);
+        }
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.BurningChains)
             _chains.Clear(Raid.FindSlot(actor.InstanceID));
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.FireworksSpread)
+            _tethers.Set(Raid.FindSlot(actor.InstanceID));
+    }
+
+    // Shortcuts for early chain hints in Fireworks1
+    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    {
+        // Ensure "preparing" is cleared if the status somehow doesn't happen
+        if ((OID)source.OID is OID.NSurprisingMissile or OID.SSurprisingMissile
+              && (TetherID)tether.ID == TetherID.Follow && Raid.TryFindSlot(tether.Target, out var slot))
+            _tethers.Clear(slot);
+    }
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        // Missile indicates an upcoming chain
+        if ((OID)source.OID is OID.NSurprisingMissile or OID.SSurprisingMissile
+              && (TetherID)tether.ID == TetherID.Follow && Raid.TryFindSlot(tether.Target, out var slot))
+            _tethers.Set(slot);
     }
 }
 
@@ -177,14 +222,16 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-// TODO: assign spread safespots based on initial missile position
 class Fireworks1Hints(BossModule module) : BossComponent(module)
 {
     private readonly RingARingOExplosions? _bombs = module.FindComponent<RingARingOExplosions>();
     private readonly Fireworks? _fireworks = module.FindComponent<Fireworks>();
+    private readonly BurningChains? _chains = module.FindComponent<BurningChains>();
+    private SplitType _split;
     private BitMask _pattern;
     private readonly List<WPos> _safeSpotsClaw = [];
     private readonly List<WPos> _safeSpotsMissile = [];
+    private static readonly uint[] colorProgression = [ArenaColor.Safe, ArenaColor.Danger, ArenaColor.Enemy];
 
     public override void Update()
     {
@@ -212,41 +259,49 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
         switch (_pattern.Raw)
         {
             case 0x3: // 0+1: easy pattern, N + CW
+                _split = SplitType.Lateral;
                 AddSafeSpot(_safeSpotsClaw, -45.Degrees());
                 AddSafeSpot(_safeSpotsMissile, -135.Degrees());
                 AddSafeSpot(_safeSpotsMissile, 50.Degrees());
                 break;
             case 0x11: // 0+4: easy pattern, N + CCW
+                _split = SplitType.Lateral;
                 AddSafeSpot(_safeSpotsClaw, 45.Degrees());
                 AddSafeSpot(_safeSpotsMissile, 135.Degrees());
                 AddSafeSpot(_safeSpotsMissile, -50.Degrees());
                 break;
             case 0x5: // 0+2: hard pattern, N + CW
+                _split = SplitType.Vertical;
                 AddSafeSpot(_safeSpotsClaw, -135.Degrees());
                 AddSafeSpot(_safeSpotsMissile, 125.Degrees());
                 AddSafeSpot(_safeSpotsMissile, -35.Degrees());
                 break;
             case 0x9: // 0+3: hard pattern, N + CCW
+                _split = SplitType.Vertical;
                 AddSafeSpot(_safeSpotsClaw, 135.Degrees());
                 AddSafeSpot(_safeSpotsMissile, -125.Degrees());
                 AddSafeSpot(_safeSpotsMissile, 35.Degrees());
                 break;
             case 0x6: // 1+2: easy pattern, E
+                _split = SplitType.Lateral;
                 AddSafeSpot(_safeSpotsClaw, -135.Degrees());
                 AddSafeSpot(_safeSpotsMissile, 150.Degrees());
                 AddSafeSpot(_safeSpotsMissile, -45.Degrees());
                 break;
             case 0x18: // 3+4: easy pattern, W
+                _split = SplitType.Lateral;
                 AddSafeSpot(_safeSpotsClaw, 135.Degrees());
                 AddSafeSpot(_safeSpotsMissile, -150.Degrees());
                 AddSafeSpot(_safeSpotsMissile, 45.Degrees());
                 break;
             case 0xA: // 1+3: hard pattern, NE + SW
+                _split = SplitType.Vertical;
                 AddSafeSpot(_safeSpotsClaw, 150.Degrees());
                 AddSafeSpot(_safeSpotsMissile, 30.Degrees());
                 AddSafeSpot(_safeSpotsMissile, -120.Degrees());
                 break;
             case 0x14: // 2+4: hard pattern, NW + SE
+                _split = SplitType.Vertical;
                 AddSafeSpot(_safeSpotsClaw, -150.Degrees());
                 AddSafeSpot(_safeSpotsMissile, -30.Degrees());
                 AddSafeSpot(_safeSpotsMissile, 120.Degrees());
@@ -265,22 +320,59 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
             hints.Add($"Pattern: {_pattern}");
     }
 
+    private WPos NearestCardinal(WPos pos)
+    {
+        var north = _bombs?.RelativeNorth ?? 180.Degrees();
+        if (_split is SplitType.Lateral) // Rotate relative north so later calculations can always assume n/s
+            north += 90.Degrees();
+        var destAngle = Angle.FromDirection(pos - Module.Center);
+        return GetEdgePos(destAngle.DistanceToAngle(north).Abs().Rad < 90.Degrees().Rad ? north : north + 180.Degrees());
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_fireworks?.TetheredAdds[pcSlot] is var add && add != null)
+        WPos[] spotProgression = [.. GetAssignedSafeSpots(pcSlot)];
+        foreach (var (i, spot) in spotProgression.Index())
         {
-            var safeSpots = (OID)add.OID is OID.NSurprisingClaw or OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
-            foreach (var p in safeSpots)
-                Arena.AddCircle(p, 1, ArenaColor.Safe);
+            Arena.AddCircle(spot, 1, colorProgression[i]);
         }
-        else
+        if (spotProgression.Length == 0)
         {
             foreach (var p in _safeSpotsClaw)
                 Arena.AddCircle(p, 1, ArenaColor.Enemy);
         }
     }
 
-    private void AddSafeSpot(List<WPos> list, Angle angle) => list.Add(Module.Center + 19 * angle.ToDirection());
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        WPos[] spotProgression = [.. GetAssignedSafeSpots(slot)];
+        var lastPos = actor.Position;
+        foreach (var (i, spot) in spotProgression.Index())
+        {
+            movementHints.Add(lastPos, spot, colorProgression[i]);
+            lastPos = spot;
+        }
+    }
+
+    private WPos GetEdgePos(Angle angle) => Module.Center + 19 * angle.ToDirection();
+
+    private void AddSafeSpot(List<WPos> list, Angle angle) => list.Add(GetEdgePos(angle));
+
+    private IEnumerable<WPos> GetAssignedSafeSpots(int slot)
+    {
+        if (_fireworks?.TetheredAdds[slot] is { } add && _fireworks?.TetheredStartPositions[slot] is { } start)
+        {
+            if (_chains?.Tethered(slot) is true)
+                yield return Module.Center;
+            var safeSpots = (OID)add.OID is OID.NSurprisingClaw or OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
+            var closestSafeSpot = safeSpots.MaxBy(spot => (spot - start).LengthSq()); // Furthest from add starting position
+            // If we're still chained, we head cardinal first
+            if (_chains?.Tethered(slot) is true || _chains?.Chained(slot) is true)
+                yield return NearestCardinal(closestSafeSpot);
+            // Finally, return our end position
+            yield return closestSafeSpot;
+        }
+    }
 }
 
 class Fireworks2Hints(BossModule module) : BossComponent(module)
@@ -288,6 +380,7 @@ class Fireworks2Hints(BossModule module) : BossComponent(module)
     private readonly C033SStaticeConfig _config = Service.Config.Get<C033SStaticeConfig>();
     private readonly Fireworks? _fireworks = module.FindComponent<Fireworks>();
     private readonly Dartboard? _dartboard = module.FindComponent<Dartboard>();
+    private readonly BurningChains? _chains = module.FindComponent<BurningChains>();
     private readonly FireSpread? _fireSpread = module.FindComponent<FireSpread>();
     private Angle? _relNorth;
 
@@ -304,13 +397,39 @@ class Fireworks2Hints(BossModule module) : BossComponent(module)
     {
         if (_fireworks?.Spreads.Count > 0)
         {
+            // Leave the hint yellow until the chains lock in
+            var hintColor = _chains?.Tethered(pcSlot) is true ? ArenaColor.Danger : ArenaColor.Safe;
             foreach (var dir in SafeSpots(pcSlot, pc))
-                Arena.AddCircle(Module.Center + 19 * dir.ToDirection(), 1, ArenaColor.Safe);
+                Arena.AddCircle(Module.Center + 19 * dir.ToDirection(), 1, hintColor);
         }
         else if (_relNorth != null)
         {
             // show rel north before assignments are done
             Arena.AddCircle(Module.Center + 19 * _relNorth.Value.ToDirection(), 1, ArenaColor.Enemy);
+        }
+    }
+
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (_fireworks?.Spreads.Count > 0)
+        {
+            if (_chains?.Tethered(slot) is true)
+            {
+                movementHints.Add(actor.Position, Module.Center, ArenaColor.Safe);
+                foreach (var dir in SafeSpots(slot, actor))
+                    movementHints.Add(Module.Center, Module.Center + 19 * dir.ToDirection(), ArenaColor.Danger);
+            }
+            else
+            {
+                foreach (var dir in SafeSpots(slot, actor))
+                    movementHints.Add(actor.Position, Module.Center + 19 * dir.ToDirection(), ArenaColor.Safe);
+            }
+        }
+        else if (_relNorth != null)
+        {
+            // show rel north before assignments are done
+            var pos = Module.Center + 19 * _relNorth.Value.ToDirection();
+            movementHints.Add(pos, pos, ArenaColor.Enemy);
         }
     }
 

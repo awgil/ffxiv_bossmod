@@ -106,14 +106,14 @@ class C033StaticeStates : StateMachineBuilder
             .ActivateOnEnter<RingARingOExplosions>();
         Cast(id + 0x20, _savage ? AID.SPresentBox : AID.NPresentBox, 2.1f, 3)
             .ActivateOnEnter<Fireworks>()
+            .ActivateOnEnter<BurningChains>() // Module loaded early for missile-based hints
             .ActivateOnEnter<Fireworks1Hints>();
         // +0.9s: spawn 4x staffs, 2x missiles/claws
         // +1.6s: missiles/claws tether to players
         Cast(id + 0x30, _savage ? AID.SFireworks : AID.NFireworks, 2.1f, 3)
             .ActivateOnEnter<NFaerieRing>(!_savage) // casts start ~2.2s into cast
             .ActivateOnEnter<SFaerieRing>(_savage);
-        ComponentCondition<BurningChains>(id + 0x40, 4.6f, comp => comp.Active, "Chains")
-            .ActivateOnEnter<BurningChains>();
+        ComponentCondition<BurningChains>(id + 0x40, 4.6f, comp => comp.Active, "Chains");
         ComponentCondition<Fireworks>(id + 0x50, 5.1f, comp => comp.Spreads.Count == 0, "Stack/spread")
             .DeactivateOnExit<BurningChains>();
         ComponentCondition<Fireworks>(id + 0x51, 0.1f, comp => !comp.Active)
@@ -132,11 +132,11 @@ class C033StaticeStates : StateMachineBuilder
             .ActivateOnEnter<Dartboard>()
             .ActivateOnEnter<FireSpread>() // first cast starts ~2.6s after cast-end
             .ActivateOnEnter<Fireworks>()
+            .ActivateOnEnter<BurningChains>() // Module loaded early for initial positing
             .ActivateOnEnter<Fireworks2Hints>();
         Cast(id + 0x10, _savage ? AID.SFireworks : AID.NFireworks, 5.7f, 3);
         ComponentCondition<FireSpread>(id + 0x20, 1.9f, comp => comp.NumCasts > 0);
-        ComponentCondition<BurningChains>(id + 0x30, 2.7f, comp => comp.Active, "Chains")
-            .ActivateOnEnter<BurningChains>();
+        ComponentCondition<BurningChains>(id + 0x30, 2.7f, comp => comp.Active, "Chains");
         ComponentCondition<Fireworks>(id + 0x40, 5.1f, comp => !comp.Active, "Stack/spread")
             .DeactivateOnExit<Fireworks2Hints>()
             .DeactivateOnExit<BurningChains>()

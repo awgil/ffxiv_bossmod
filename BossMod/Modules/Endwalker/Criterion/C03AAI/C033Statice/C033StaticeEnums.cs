@@ -122,7 +122,7 @@ public enum IconID : uint
     Order4 = 393, // ConeSlice
     Order5 = 394, // ConeSlice
     Order6 = 395, // ConeSlice
-    FireworksSpread = 97, // player
+    FireworksSpread = 97, // player, indicates chain partners
     FireworksEnumeration = 347, // player
     BurningChains = 220, // player
     ShockingAbandon = 218, // player
@@ -135,4 +135,11 @@ public enum TetherID : uint
     BombsLink = 54, // *Bomb->*Bomb
     Follow = 17, // *SurprisingMissile/*SurprisingClaw->player
     BurningChains = 9, // player->player
+}
+
+public enum SplitType : byte
+{
+    Undefined = 0x0,
+    Lateral = 0x1,
+    Vertical = 0x2,
 }
