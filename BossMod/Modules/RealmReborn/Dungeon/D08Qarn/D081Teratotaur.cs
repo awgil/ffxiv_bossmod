@@ -1,9 +1,11 @@
 ﻿namespace BossMod.RealmReborn.Dungeon.D08Qarn.D081Teratotaur;
+// note: this boss' radar pops up at the start because it's close to the arena
+// no mechanism to fix that yet
 
 public enum OID : uint
 {
-    Boss = 0x6D9, // x1
-    DungWespe = 0x6DA, // spawn during fight
+    Boss = 0x477A, // R2.240, x1
+    DungWespe = 0x477B, // R0.400, x0 (spawn during fight)
     Platform1 = 0x1E87E2, // x1, EventObj type; eventstate 0 if active, 7 if inactive
     Platform2 = 0x1E87E3, // x1, EventObj type; eventstate 0 if active, 7 if inactive
     Platform3 = 0x1E87E4, // x1, EventObj type; eventstate 0 if active, 7 if inactive
@@ -11,31 +13,45 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttackBoss = 870, // Boss->player, no cast
-    Triclip = 1414, // Boss->self, no cast, range 5.25 width 4 rect cleave
-    Mow = 1413, // Boss->self, 2.5s cast, range 8.25 120-degree cone aoe
-    FrightfulRoar = 933, // Boss->self, 3.0s cast, range 8.25 aoe
-    MortalRay = 934, // Boss->self, 1.5s cast, raidwide doom debuff
+    AutoAttackBoss = 870, // Boss->player, no cast, single-target
+    Triclip = 42231, // Boss->player, 5.0s cast, single-target tankbuster
+    Mow = 42232, // Boss->self, 2.5s cast, range 6+R 120-degree cone aoe
+    FrightfulRoar = 42233, // Boss->self, 3.0s cast, range 6 circle aoe
+    MortalRay = 42229, // Boss->self, 3.0s cast, raidwide doom debuff
 
-    AutoAttackWespe = 871, // DungWespe->player, no cast
+    AutoAttackWespe = 871, // DungWespe->player, no cast, single-target
     FinalSting = 919, // DungWespe->player, 3.0s cast
 }
 
 public enum SID : uint
 {
-    Doom = 210, // Boss->player, extra=0x0
+    Doom = 1970, // Boss->player, extra=0x0
 }
 
-class Triclip(BossModule module) : Components.Cleave(module, AID.Triclip, new AOEShapeRect(5.25f, 2));
-class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(8.25f, 60.Degrees()));
-class FrightfulRoar(BossModule module) : Components.StandardAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(8.25f));
+public enum IconID : uint
+{
+    Tankbuster = 218, //Player->self
+}
 
+class Triclip(BossModule module) : Components.SingleTargetCast(module, AID.Triclip, "Tankbuster");
+class Mow(BossModule module) : Components.StandardAOEs(module, AID.Mow, new AOEShapeCone(8.24f, 60.Degrees()));
+class FrightfulRoar(BossModule module) : Components.StandardAOEs(module, AID.FrightfulRoar, new AOEShapeCircle(6));
+
+// TODO:
+// A: priority stun to stop MR cast?
+// auto-stun doesn't exist yet.
+// B: second MR cast drops first pad after a sec or two; delay move?
+// no, this is on a timer between casts; it only happens to align.
+// would have to count time active & say "don't move if active/until inactive = say 2s or less."
+// C: runs off pad as soon as Doom drops; looks weird, only cuts like 200ms of downtime.
+// could delay to look more natural; maybe unnecessary-paranoiac.
 class MortalRay(BossModule module) : BossComponent(module)
 {
     private BitMask _dooms;
     private readonly Actor?[] _platforms = [null, null, null];
 
-    private static readonly AOEShapeCircle _platformShape = new(2);
+    // note: cleanse area seems slightly smaller than it looks visually.
+    private static readonly AOEShapeCircle _platformShape = new(1);
 
     private Actor? ActivePlatform => _platforms.FirstOrDefault(a => a != null && a.EventState == 0);
 
@@ -83,6 +99,8 @@ class MortalRay(BossModule module) : BossComponent(module)
     }
 }
 
+class MortalRayHint(BossModule module) : Components.CastInterruptHint(module, AID.MortalRay, canBeInterrupted: false, canBeStunned: true);
+
 class D081TeratotaurStates : StateMachineBuilder
 {
     public D081TeratotaurStates(BossModule module) : base(module)
@@ -91,11 +109,12 @@ class D081TeratotaurStates : StateMachineBuilder
             .ActivateOnEnter<Triclip>()
             .ActivateOnEnter<Mow>()
             .ActivateOnEnter<FrightfulRoar>()
-            .ActivateOnEnter<MortalRay>();
+            .ActivateOnEnter<MortalRay>()
+            .ActivateOnEnter<MortalRayHint>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1567)]
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 9, NameID = 1567)]
 public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(-70, -60), new ArenaBoundsSquare(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -109,5 +128,14 @@ public class D081Teratotaur(WorldState ws, Actor primary) : BossModule(ws, prima
                 _ => 0
             };
         }
+    }
+
+    // TODO: draw pads as AOEShapeRect while inactive?
+    // DrawArenaForeground seems preferred over DrawEnemies; bit inconsistent.
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        foreach (var e in Enemies(OID.DungWespe))
+            Arena.Actor(e, ArenaColor.Enemy);
     }
 }
