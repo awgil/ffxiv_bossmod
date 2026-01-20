@@ -400,14 +400,14 @@
       "Name": "VBM AI",
       "Modules": {
         "BossMod.Autorotation.MiscAI.AutoTarget": [
-		  {
-		  	"Track": "Retarget",
-		  	"Option": "Always"
-		  },
-		  {
-		  	"Track": "FATE",
-		  	"Option": "Enabled"
-		  }
+          {
+            "Track": "Retarget",
+            "Option": "Always"
+          },
+          {
+            "Track": "FATE",
+            "Option": "Enabled"
+          }
         ],
         "BossMod.Autorotation.xan.HealerAI": [
           {
