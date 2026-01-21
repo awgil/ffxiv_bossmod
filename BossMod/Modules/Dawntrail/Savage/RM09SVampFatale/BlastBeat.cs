@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM09SVampFatale;
 
-class VampStomp(BossModule module) : Components.StandardAOEs(module, AID.VampStompCast, 10);
+class VampStomp(BossModule module) : Components.StandardAOEs(module, AID.VampStomp, 10);
 
 class BlastBeat(BossModule module) : Components.GenericAOEs(module, AID.BlastBeatBat)
 {
