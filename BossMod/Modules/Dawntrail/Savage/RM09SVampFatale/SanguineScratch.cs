@@ -28,7 +28,7 @@ class BatTether(BossModule module) : BossComponent(module)
         if (target != null)
         {
             Arena.AddLine(pc.Position, target.Position, danger ? ArenaColor.Danger : ArenaColor.Border);
-            Arena.AddCircle(target.Position, 12, ArenaColor.Danger);
+            Arena.AddCircle(target.Position, 9, ArenaColor.Danger);
         }
     }
 }
