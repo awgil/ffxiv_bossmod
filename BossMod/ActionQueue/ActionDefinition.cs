@@ -311,10 +311,15 @@ public sealed class ActionDefinitions : IDisposable
             return true;
 
         var dist = player.DistanceToHitbox(target);
-        var dir = player.DirectionTo(target).Normalized();
+        var dir = player.AngleTo(target);
         var src = player.Position;
 
-        return IsDashDangerous(src, src + dir * MathF.Max(0, dist), hints);
+        // facing target (to dash) would make us fail gaze, directional bait, etc
+        // TODO: only forbid if dash duration is longer than time to deadline?
+        if (hints.ForbiddenDirections.Any(d => dir.AlmostEqual(d.center, d.halfWidth.Rad)))
+            return true;
+
+        return IsDashDangerous(src, src + dir.ToDirection() * MathF.Max(0, dist), hints);
     }
 
     public static bool DashToPositionCheck(WorldState _, Actor player, ActionQueue.Entry action, AIHints hints)
