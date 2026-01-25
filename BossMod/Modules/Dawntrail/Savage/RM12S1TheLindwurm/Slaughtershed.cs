@@ -1,6 +1,4 @@
-﻿
-
-namespace BossMod.Dawntrail.Savage.RM12S1TheLindwurm;
+﻿namespace BossMod.Dawntrail.Savage.RM12S1TheLindwurm;
 
 class Slaughtershed(BossModule module) : Components.RaidwideCastDelay(module, (AID)0, AID.SlaughtershedRaidwide, 2.4f)
 {

@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Savage.RM12S1TheLindwurm;
+﻿namespace BossMod.Dawntrail.Savage.RM12S1TheLindwurm;
 
 class CurtainCallSpreadHint(BossModule module) : BossComponent(module)
 {
