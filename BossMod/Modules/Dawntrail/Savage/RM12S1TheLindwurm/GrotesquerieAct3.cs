@@ -88,6 +88,7 @@ class BringDownTheHouse : Components.GenericAOEs
         {
             // default
             case (0, 0x00080004):
+            case (0, 0x10000004):
                 Arena.Bounds = new ArenaBoundsRect(20, 15);
                 break;
             // cardinal platforms
