@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM12S1TheLindwurm;
 
-class RavenousReach(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_RavenousReach2, new AOEShapeCone(35, 60.Degrees()));
+class RavenousReach(BossModule module) : Components.StandardAOEs(module, AID.RavenousReachCone, new AOEShapeCone(35, 60.Degrees()));
 class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     readonly Angle?[] _offset = new Angle?[8];
@@ -35,7 +35,7 @@ class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAway(modul
             };
         }
 
-        if ((SID)status.ID == SID._Gen_DirectedGrotesquerie)
+        if ((SID)status.ID == SID.DirectedGrotesquerie)
             _activation = status.ExpireAt;
     }
 
@@ -66,8 +66,9 @@ class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAway(modul
     }
 }
 
-class PhagocyteSpotlight(BossModule module) : Components.StandardAOEs(module, AID._Spell_PhagocyteSpotlight, 5)
+class PhagocyteSpotlightPlayer(BossModule module) : Components.StandardAOEs(module, AID.PhagocyteSpotlightPlayer, 5)
 {
+    public float FinalCastDelay = 5f;
     public bool Finished;
     DateTime _firstCast;
 
@@ -79,9 +80,44 @@ class PhagocyteSpotlight(BossModule module) : Components.StandardAOEs(module, AI
         {
             if (_firstCast == default)
                 _firstCast = WorldState.CurrentTime;
-            else if (_firstCast.AddSeconds(5) < WorldState.CurrentTime)
+            else if (_firstCast.AddSeconds(FinalCastDelay) < WorldState.CurrentTime)
                 Finished = true;
         }
+    }
+}
+
+class Act1GrotesquerieSpreadHint(BossModule module) : BossComponent(module)
+{
+    readonly string?[] Job = new string?[8];
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        switch ((SID)status.ID)
+        {
+            case SID.BurstingGrotesquerie:
+                Job[Raid.FindSlot(actor.InstanceID)] = "Spread";
+                Assign();
+                break;
+            case SID.SharedGrotesquerie:
+                Job[Raid.FindSlot(actor.InstanceID)] = "Stack";
+                Assign();
+                break;
+        }
+    }
+
+    void Assign()
+    {
+        if (Job.Count(c => c == null) == 3)
+        {
+            for (var i = 0; i < Job.Length; i++)
+                Job[i] ??= "Stack";
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (Job.BoundSafeAt(slot) is { } j)
+            hints.Add($"Next: {j}", false);
     }
 }
 
@@ -93,10 +129,10 @@ class Act1GrotesquerieStackSpread(BossModule module) : Components.UniformStackSp
     {
         switch ((SID)status.ID)
         {
-            case SID._Gen_BurstingGrotesquerie:
+            case SID.BurstingGrotesquerie:
                 AddSpread(actor, status.ExpireAt);
                 break;
-            case SID._Gen_SharedGrotesquerie:
+            case SID.SharedGrotesquerie:
                 AddStack(actor, status.ExpireAt);
                 break;
         }
@@ -106,11 +142,11 @@ class Act1GrotesquerieStackSpread(BossModule module) : Components.UniformStackSp
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Spell_DramaticLysis:
+            case AID.BurstingGrotesquerieDramaticLysis:
                 Stacks.Clear();
                 NumCasts++;
                 break;
-            case AID._Spell_FourthWallFusion:
+            case AID.SharedGrotesquerieFourthWallFusion:
                 Spreads.Clear();
                 NumCasts++;
                 break;
@@ -118,11 +154,13 @@ class Act1GrotesquerieStackSpread(BossModule module) : Components.UniformStackSp
     }
 }
 
-class BurstPre(BossModule module) : Components.GenericAOEs(module, AID._Spell_Burst)
+class BurstPre(BossModule module) : Components.GenericAOEs(module, AID.Burst)
 {
     readonly List<(Actor, DateTime)> _casters = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeCircle(12), c.Item1.Position, default, c.Item2));
+    public bool Risky = true;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeCircle(12), c.Item1.Position, Activation: c.Item2, Risky: Risky));
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
@@ -136,7 +174,7 @@ class BurstPre(BossModule module) : Components.GenericAOEs(module, AID._Spell_Bu
             _casters.Clear();
     }
 }
-class Burst(BossModule module) : Components.StandardAOEs(module, AID._Spell_Burst, 12);
+class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, 12);
 
 class BurstStackSpread(BossModule module) : Components.UniformStackSpread(module, 6, 6, 6)
 {
@@ -144,9 +182,9 @@ class BurstStackSpread(BossModule module) : Components.UniformStackSpread(module
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_com_share3t)
+        if ((IconID)iconID == IconID.Share)
             AddStack(actor, WorldState.FutureTime(5.2f));
-        if ((IconID)iconID == IconID._Gen_Icon_tank_lockonae_6m_5s_01t)
+        if ((IconID)iconID == IconID.Tankbuster)
             AddSpread(actor, WorldState.FutureTime(5.2f));
     }
 
@@ -154,11 +192,11 @@ class BurstStackSpread(BossModule module) : Components.UniformStackSpread(module
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Spell_FourthWallFusion1:
+            case AID.Act1FourthWallFusion:
                 NumCasts++;
                 Stacks.Clear();
                 break;
-            case AID._Spell_VisceralBurst:
+            case AID.VisceralBurst:
                 NumCasts++;
                 Spreads.Clear();
                 break;

@@ -99,13 +99,13 @@ class MortalSlayer(BossModule module) : Components.GenericStackSpread(module)
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_PoisonResistanceDownII && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID == SID.PoisonResistanceDownII && Raid.TryFindSlot(actor, out var slot))
             _poisoned[slot] = status.ExpireAt;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Spell_MortalSlayer or AID._Spell_MortalSlayer1)
+        if ((AID)spell.Action.ID is AID.MortalSlayerSpread or AID.MortalSlayerTank)
         {
             NumCasts++;
             if (NumCasts % 2 == 0 && Baits.Count > 0)
