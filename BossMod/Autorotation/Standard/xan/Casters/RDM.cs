@@ -297,6 +297,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (!Player.InCombat || primaryTarget == null)
             return;
 
+        if (CombatTimer < 10)
+            PushOGCD(AID.Swiftcast, Player, OGCDPriority.Pref);
+
         if (!InCombo && PostOpener)
             PushOGCD(AID.Manafication, Player, OGCDPriority.Manafic);
 
@@ -305,7 +308,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         PushOGCD(AID.Fleche, primaryTarget, OGCDPriority.Fleche);
 
-        if (CanWeave(MaxChargesIn(AID.Acceleration), 0.6f))
+        if (CanWeave(MaxChargesIn(AID.Acceleration), 0.6f, 2))
             PushOGCD(AID.Acceleration, Player);
 
         PushOGCD(AID.ContreSixte, BestAOETarget);
@@ -319,7 +322,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         UsePrefulgence(strategy);
 
-        if (RaidBuffsLeft > GCD && AccelLeft <= AnimLock && GrandImpactReady <= AnimLock)
+        if (CanFitGCD(RaidBuffsLeft, 1) && AccelLeft <= GCD && GrandImpactReady <= GCD)
             PushOGCD(AID.Acceleration, Player);
 
         if (MP <= Player.HPMP.MaxMP * 0.7f)
