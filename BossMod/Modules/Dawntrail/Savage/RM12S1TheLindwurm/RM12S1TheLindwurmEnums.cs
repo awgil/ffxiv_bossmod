@@ -6,7 +6,7 @@ public enum OID : uint
     Boss = 0x4AFB, // R13.800, x1
     RedOrb = 0x4B00, // R1.800, x0 (spawn during fight)
     GreenOrb = 0x4B01, // R1.800, x0 (spawn during fight)
-    HelperUnknown = 0x4B02, // R5.000, x1, called "Lindwurm" but does nothing (maybe heart?)
+    BossP2 = 0x4B02, // R5.000, x1, present during P1 but does nothing
     AutoAttacker = 0x4AFE, // R0.000-0.500, x2, Part type
     BloodVessel = 0x4AFF, // R0.800, x0 (spawn during fight)
     FloorSnake1 = 0x4AFD, // R1.000, x0 (spawn during fight), Helper type
