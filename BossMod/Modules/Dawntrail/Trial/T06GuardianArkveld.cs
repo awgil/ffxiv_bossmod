@@ -83,10 +83,12 @@ public enum AID : uint
     WyvernsOurobladeCast1 = 43850, // Boss->self, 6.0+1.5s cast, single-target
     WyvernsOurobladeCast2 = 45060, // Boss->self, 5.0+1.5s cast, single-target
     WyvernsOurobladeCast3 = 45062, // Boss->self, 5.0+1.5s cast, single-target
+    WyvernsOurobladeCast4 = 43848, // Boss->self, 6.0+1.5s cast, single-target
 
     WyvernsOuroblade1 = 43851, // Helper->self, 7.0s cast, range 40 180-degree cone
     WyvernsOuroblade2 = 45061, // Helper->self, 6.0s cast, range 40 180-degree cone
     WyvernsOuroblade3 = 45063, // Helper->self, 6.0s cast, range 40 180-degree cone
+    WyvernsOuroblade4 = 43849, // Helper->self, 7.0s cast, range 40 180-degree cone
 
     GuardianResonance1 = 43856, // Helper->location, 4.0s cast, range 6 circle
     GuardianResonance2 = 43853, // Helper->location, 13.0s cast, range 2 circle
@@ -364,7 +366,7 @@ class ChainbladeCharge(BossModule module) : Components.StackWithIcon(module, (ui
     }
 };
 
-class WyvernsOuroblade(BossModule module) : Components.GroupedAOEs(module, [AID.WyvernsOuroblade1, AID.WyvernsOuroblade2, AID.WyvernsOuroblade3], new AOEShapeCone(40, 90.Degrees()));
+class WyvernsOuroblade(BossModule module) : Components.GroupedAOEs(module, [AID.WyvernsOuroblade1, AID.WyvernsOuroblade2, AID.WyvernsOuroblade3, AID.WyvernsOuroblade4], new AOEShapeCone(40, 90.Degrees()));
 
 class GuardianResonancePuddle(BossModule module) : Components.StandardAOEs(module, AID.GuardianResonance1, 6);
 class GuardianResonanceTowerSmall(BossModule module) : Components.CastTowers(module, AID.GuardianResonance2, 2);
