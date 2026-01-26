@@ -132,8 +132,6 @@ public enum AID : uint
 public enum IconID : uint
 {
     Share = 100, // player->self
-    Spread = 101, // player->self
-    LineTarget = 470, // player->self
 }
 
 class Roar1(BossModule module) : Components.RaidwideCast(module, AID.Roar1);
