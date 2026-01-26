@@ -544,6 +544,18 @@ public sealed class ActorState : IEnumerable<Actor>
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PATE"u8).EmitActor(InstanceID).Emit(ActionTimelineID, "X4");
     }
 
+    public Event<Actor, List<(ulong, ushort)>> PlayActionTimelineSync = new();
+    public sealed record class OpPlayActionTimelineSync(ulong InstanceID, List<(ulong, ushort)> Actions) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.PlayActionTimelineSync.Fire(actor, Actions);
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("PATS"u8).EmitActor(InstanceID).Emit(Actions.Count);
+            foreach (var (actor, id) in Actions)
+                output.EmitActor(actor).Emit(id, "X4");
+        }
+    }
+
     public Event<Actor, ushort> EventNpcYell = new();
     public sealed record class OpEventNpcYell(ulong InstanceID, ushort Message) : Operation(InstanceID)
     {

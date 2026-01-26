@@ -334,6 +334,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("ESTA"u8)] = ParseActorEventObjectStateChange,
             [new("EANM"u8)] = ParseActorEventObjectAnimation,
             [new("PATE"u8)] = ParseActorPlayActionTimelineEvent,
+            [new("PATS"u8)] = ParseActorPlayActionTimelineSync,
             [new("NYEL"u8)] = ParseActorEventNpcYell,
             [new("OPNT"u8)] = ParseActorEventOpenTreasure,
             [new("PAR "u8)] = ParsePartyModify,
@@ -654,6 +655,15 @@ public sealed class ReplayParserLog : IDisposable
     private ActorState.OpEventObjectStateChange ParseActorEventObjectStateChange() => new(_input.ReadActorID(), _input.ReadUShort(true));
     private ActorState.OpEventObjectAnimation ParseActorEventObjectAnimation() => new(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true));
     private ActorState.OpPlayActionTimelineEvent ParseActorPlayActionTimelineEvent() => new(_input.ReadActorID(), _input.ReadUShort(true));
+    private ActorState.OpPlayActionTimelineSync ParseActorPlayActionTimelineSync()
+    {
+        var owner = _input.ReadActorID();
+        var count = _input.ReadInt();
+        List<(ulong, ushort)> actions = [];
+        for (var i = 0; i < count; i++)
+            actions.Add((_input.ReadActorID(), _input.ReadUShort(true)));
+        return new(owner, actions);
+    }
     private ActorState.OpEventNpcYell ParseActorEventNpcYell() => new(_input.ReadActorID(), _input.ReadUShort(false));
     private ActorState.OpEventOpenTreasure ParseActorEventOpenTreasure() => new(_input.ReadActorID());
     private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), new(_input.ReadULong(true), _input.ReadULong(true), _version >= 15 && _input.ReadBool(), _version < 15 ? "" : _input.ReadString()));

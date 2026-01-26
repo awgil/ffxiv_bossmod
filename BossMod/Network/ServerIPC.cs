@@ -243,6 +243,7 @@ public enum PacketID
     LandSetMap = 592,
     Fall = 593,
     PlayMotionSync = 642,
+    PlayActionTimelineSync = 645,
     CEDirector = 651,
     IslandWorkshopDemandResearch = 670,
     IslandWorkshopSupplyDemand = 673,
@@ -1234,4 +1235,11 @@ public unsafe struct DeepDungeonMap
     public byte Unk1;
     public byte Flags1;
     public fixed ushort MapData[25];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct PlayActionTimelineSync
+{
+    public fixed uint EntityIds[10];
+    public fixed ushort TimelineIds[10];
 }

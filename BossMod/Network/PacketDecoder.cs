@@ -116,6 +116,7 @@ public abstract unsafe class PacketDecoder
         PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),
         PacketID.ActorGauge when (ActorGauge*)payload is var p => new($"{p->ClassJobID} = {p->Payload:X16}"),
         PacketID.DeepDungeonMap when (DeepDungeonMap*)payload is var p => DecodeDDMap(p),
+        PacketID.PlayActionTimelineSync when (PlayActionTimelineSync*)payload is var p => DecodePATSync(p),
         _ => null
     };
 
@@ -372,6 +373,22 @@ public abstract unsafe class PacketDecoder
         return res;
     }
     private TextNode DecodeWaymark(ServerIPC.Waymark* p) => new($"{p->ID}: {p->Active != 0} at {Utils.Vec3String(new(p->PosX * 0.001f, p->PosY * 0.001f, p->PosZ * 0.001f))}, pad={p->pad2:X4}");
+
+    private TextNode DecodePATSync(PlayActionTimelineSync* p)
+    {
+        var res = new TextNode($"PlayActionTimelineSync");
+        for (var i = 0; i < 10; i++)
+        {
+            var id = p->EntityIds[i];
+            if (id == 0xE0000000)
+                break;
+
+            var evt = p->TimelineIds[i];
+
+            res.AddChild($"{DecodeActor(id)}: 0x{evt:X4}");
+        }
+        return res;
+    }
 
     private TextNode DecodeDDMap(DeepDungeonMap* p)
     {
