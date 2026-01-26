@@ -1,5 +1,4 @@
-﻿using BossMod.Network.ServerIPC;
-using Dalamud.Game.ClientState.Conditions;
+﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -91,7 +90,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void InventoryAckDelegate(uint a1, void* a2);
     private readonly Hook<InventoryAckDelegate> _inventoryAckHook;
 
-    private unsafe delegate void ProcessPacketPlayActionTimelineSync(PlayActionTimelineSync* data);
+    private unsafe delegate void ProcessPacketPlayActionTimelineSync(Network.ServerIPC.PlayActionTimelineSync* data);
     private readonly Hook<ProcessPacketPlayActionTimelineSync> _processPlayActionTimelineSyncHook;
 
     public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
@@ -192,6 +191,7 @@ sealed class WorldStateGameSync : IDisposable
 
     public void Dispose()
     {
+        _processPlayActionTimelineSyncHook.Dispose();
         _inventoryAckHook.Dispose();
         _applyKnockbackHook.Dispose();
         _processLegacyMapEffectHook.Dispose();
@@ -1136,7 +1136,7 @@ sealed class WorldStateGameSync : IDisposable
         _needInventoryUpdate = true;
     }
 
-    private unsafe void ProcessPlayActionTimelineSyncDetour(PlayActionTimelineSync* data)
+    private unsafe void ProcessPlayActionTimelineSyncDetour(Network.ServerIPC.PlayActionTimelineSync* data)
     {
         _processPlayActionTimelineSyncHook.Original(data);
         List<(ulong, ushort)> actions = [];
