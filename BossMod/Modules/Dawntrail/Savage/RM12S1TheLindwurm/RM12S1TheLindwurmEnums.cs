@@ -100,6 +100,11 @@ public enum AID : uint
     RaptorKnucklesKB = 47559, // Helper->self, 0.8s cast, range 60 circle
 
     TheFixerEnrage = 45767, // Boss->self, 5.0s cast, range 60 circle
+    RefreshingOverkillBoss = 46392, // Boss->self, 10.0s cast, single-target
+    RefreshingOverkillRaidwide = 46393, // Boss->self, no cast, range 60 circle
+    RefreshingOverkillEnrage = 46394, // Boss->self, no cast, range 60 circle
+    P2ArenaTransition = 46395, // Helper->self, 5.0s cast, range 20-30 donut
+    P2Vacuum = 48028, // Helper->self, no cast, range 60 circle
 
     UnkBoss1 = 47044, // Boss->self, no cast, single-target
     UnkBoss2 = 47045, // Boss->self, no cast, single-target

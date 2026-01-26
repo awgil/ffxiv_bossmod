@@ -4,7 +4,8 @@ class RM12S1TheLindwurmStates : StateMachineBuilder
 {
     public RM12S1TheLindwurmStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase);
+        SimplePhase(0, SinglePhase, "Boss death")
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.PrimaryActor.HPMP.CurHP == 1 && Module.PrimaryActor.CastInfo == null;
     }
 
     private void SinglePhase(uint id)
@@ -23,8 +24,22 @@ class RM12S1TheLindwurmStates : StateMachineBuilder
         Slaughtershed(id + 0x70000, 3.6f);
         Slaughtershed(id + 0x80000, 3.8f);
 
-        Targetable(id + 0x90000, false, 8.1f, "Boss disappears");
-        Cast(id + 0x90001, AID.TheFixerEnrage, 0, 5, "Enrage");
+        CastStartFork<AID>(id + 0x90000, new()
+        {
+            [AID.TheFixerEnrage] = (1, EnrageFixer),
+            [AID.RefreshingOverkillBoss] = (2, RefreshingOverkill)
+        }, 8.1f, "Enrage start");
+    }
+
+    void EnrageFixer(uint id)
+    {
+        Targetable(id, false, 0);
+        CastEnd(id + 1, 5, "Enrage");
+    }
+
+    void RefreshingOverkill(uint id)
+    {
+        CastEnd(id, 10, "Enrage");
     }
 
     void MortalSlayer(uint id, float delay)
