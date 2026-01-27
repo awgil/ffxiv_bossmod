@@ -218,7 +218,8 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        hints.Add($"Assignment: {_assignments[slot]}", false);
+        if (_assignments[slot] != default)
+            hints.Add($"Assignment: {_assignments[slot]}", false);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -269,14 +270,13 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
     {
         foreach (var (c, a) in Clones)
         {
-            uint color = a switch
-            {
-                Assignment.Fire => ArenaColor.Object,
-                Assignment.Dark => ArenaColor.Vulnerable,
-                _ => 0
-            };
-            if (color > 0)
-                Arena.ActorInsideBounds(c.Position, c.Rotation, color);
+            if (a == Assignment.None)
+                continue;
+
+            var color = _assignments[pcSlot] != default
+                ? a == _assignments[pcSlot] ? ArenaColor.Object : ArenaColor.PlayerGeneric
+                : a == Assignment.Fire ? ArenaColor.Object : ArenaColor.Vulnerable;
+            Arena.ActorInsideBounds(c.Position, c.Rotation, color);
         }
     }
 
@@ -400,7 +400,7 @@ class MightyMagicTopTierSlamSecondBait(BossModule module) : Components.UniformSt
         switch ((AID)spell.Action.ID)
         {
             case AID.CloneJump:
-                if (_rep1Bait.Clones.FirstOrNull(c => c.Actor == caster) is { } clone)
+                if (_rep1Bait.Clones.FirstOrNull(c => c.Actor == caster && c.Element != default) is { } clone)
                     Sources.Add(new(spell.TargetXZ, clone.Element == Replication1SecondBait.Assignment.Fire, WorldState.FutureTime(10)));
                 break;
             case AID._Weaponskill_TopTierSlam1:
