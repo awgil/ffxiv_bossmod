@@ -6,7 +6,6 @@ namespace BossMod.Dawntrail.Savage.RM12S2TheLindwurm;
 [ConfigDisplay(Parent = typeof(DawntrailConfig), Order = -1)]
 public class RM12S2TheLindwurmConfig : ConfigNode
 {
-    [PropertyDisplay("Hi")]
     public Replication2Tethers Rep2Assignments = Replication2Tethers.DN;
 
     public override void DrawCustom(UITree tree, WorldState ws)
@@ -31,7 +30,7 @@ public class Replication2Tethers
 
     public Role[] RolesOrdered = new Role[8];
 
-    public bool IsValid => RolesOrdered.Distinct().Count() == 8;
+    public bool IsValid() => RolesOrdered.Distinct().Count() == 8;
 
     public enum Order
     {
@@ -52,7 +51,7 @@ public class Replication2Tethers
 
     public void DrawCustom(UITree tree, WorldState ws, Event modified)
     {
-        foreach (var _ in tree.Node("Replication 2: tether assignments", contextMenu: () => DrawContextMenu(modified)))
+        foreach (var _ in tree.Node("Replication 2: clone <-> tether assignments", contextMenu: () => DrawContextMenu(modified)))
         {
             using (var table = ImRaii.Table("tab2", 10, ImGuiTableFlags.SizingFixedFit))
             {
@@ -76,12 +75,12 @@ public class Replication2Tethers
                             }
                         }
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted(r.ToString().Replace("1", " (CW)").Replace("2", " (CCW)"));
+                        ImGui.TextUnformatted(r.ToString().Replace("1", " (CW)", StringComparison.InvariantCultureIgnoreCase).Replace("2", " (CCW)", StringComparison.InvariantCultureIgnoreCase));
                     }
                 }
             }
 
-            if (IsValid)
+            if (IsValid())
             {
                 using (ImRaii.PushColor(ImGuiCol.Text, 0xFF00FF00))
                     ImGui.TextUnformatted("All good!");

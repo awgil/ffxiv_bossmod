@@ -17,11 +17,11 @@ class RM12S2TheLindwurmStates : StateMachineBuilder
 
     void Replication1(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_ArcadiaAflame, delay, 5, "Raidwide")
+        Cast(id, AID.ArcadiaAflame, delay, 5, "Raidwide")
             .ActivateOnEnter<ArcadiaAflame>()
             .DeactivateOnExit<ArcadiaAflame>();
 
-        Cast(id + 0x100, AID._Weaponskill_Replication, 9.3f, 3)
+        Cast(id + 0x100, AID.Replication, 9.3f, 3)
             .ActivateOnEnter<Replication1FirstBait>()
             .ActivateOnEnter<Replication1SecondBait>()
             .ActivateOnEnter<WingedScourge>()
@@ -68,6 +68,6 @@ class RM12S2TheLindwurmStates : StateMachineBuilder
 
     void Replication2(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_Staging, delay, 3);
+        Cast(id, AID.Staging, delay, 3);
     }
 }

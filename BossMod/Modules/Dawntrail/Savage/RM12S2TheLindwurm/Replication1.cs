@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM12S2TheLindwurm;
 
-class SnakingKick(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_SnakingKick, new AOEShapeCone(40, 90.Degrees()));
+class SnakingKick(BossModule module) : Components.StandardAOEs(module, AID.SnakingKick, new AOEShapeCone(40, 90.Degrees()));
 
 class Replication1FirstBait(BossModule module) : BossComponent(module)
 {
@@ -18,7 +18,7 @@ class Replication1FirstBait(BossModule module) : BossComponent(module)
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if ((OID)actor.OID == OID._Gen_Luzzelwurm && id == 0x11D5)
+        if ((OID)actor.OID == OID.Luzzelwurm && id == 0x11D5)
             Clones.Add(new(actor, WorldState.FutureTime(8.2f)));
     }
 
@@ -43,7 +43,7 @@ class Replication1FirstBait(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_TopTierSlam or AID._Weaponskill_MightyMagic)
+        if ((AID)spell.Action.ID is AID.TopTierSlamCast or AID.MightyMagicCast)
             Clones.Clear();
     }
 
@@ -84,7 +84,7 @@ class Replication1FirstBait(BossModule module) : BossComponent(module)
     }
 }
 
-class WingedScourge(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_WingedScourge1, new AOEShapeCone(50, 15.Degrees()));
+class WingedScourge(BossModule module) : Components.StandardAOEs(module, AID.WingedScourge, new AOEShapeCone(50, 15.Degrees()));
 
 class MightyMagicTopTierSlamFirstBait(BossModule module) : Components.UniformStackSpread(module, 5, 5, maxStackSize: 2, alwaysShowSpreads: true)
 {
@@ -116,10 +116,10 @@ class MightyMagicTopTierSlamFirstBait(BossModule module) : Components.UniformSta
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_TopTierSlam:
+            case AID.TopTierSlamCast:
                 Casters.Add(new(caster, true, Module.CastFinishAt(spell, 1)));
                 break;
-            case AID._Weaponskill_MightyMagic:
+            case AID.MightyMagicCast:
                 Casters.Add(new(caster, false, Module.CastFinishAt(spell, 1)));
                 break;
         }
@@ -129,11 +129,11 @@ class MightyMagicTopTierSlamFirstBait(BossModule module) : Components.UniformSta
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_TopTierSlam1:
+            case AID.TopTierSlamStack:
                 Casters.RemoveAll(c => c.Stack);
                 NumFire++;
                 break;
-            case AID._Weaponskill_MightyMagic1:
+            case AID.MightyMagicSpread:
                 Casters.RemoveAll(c => !c.Stack);
                 NumDark++;
                 break;
@@ -226,14 +226,14 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_TopTierSlam:
+            case AID.TopTierSlamCast:
                 Clones.Add(new(caster, Assignment.Fire));
                 break;
-            case AID._Weaponskill_MightyMagic:
+            case AID.MightyMagicCast:
                 Clones.Add(new(caster, Assignment.Dark));
                 break;
-            case AID._Weaponskill_WingedScourge:
-            case AID._Weaponskill_WingedScourge2:
+            case AID.WingedScourgeCastVertical:
+            case AID.WingedScourgeCastHorizontal:
                 Clones.Add(new(caster, Assignment.None));
                 break;
         }
@@ -241,12 +241,12 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_TopTierSlam1)
+        if ((AID)spell.Action.ID == AID.TopTierSlamStack)
         {
             _numFire++;
             Assign();
         }
-        if ((AID)spell.Action.ID == AID._Weaponskill_MightyMagic1)
+        if ((AID)spell.Action.ID == AID.MightyMagicSpread)
         {
             _numDark++;
             Assign();
@@ -311,10 +311,10 @@ class WingedScourgeSecond(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_WingedScourge or AID._Weaponskill_WingedScourge2 && !Recorded)
+        if ((AID)spell.Action.ID is AID.WingedScourgeCastVertical or AID.WingedScourgeCastHorizontal && !Recorded)
         {
             Clones.Add(caster);
-            Orientation = (AID)spell.Action.ID == AID._Weaponskill_WingedScourge ? default : 90.Degrees();
+            Orientation = (AID)spell.Action.ID == AID.WingedScourgeCastVertical ? default : 90.Degrees();
         }
     }
 
@@ -333,7 +333,7 @@ class WingedScourgeSecond(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.CloneJump && Clones.Contains(caster))
+        if ((AID)spell.Action.ID == AID.Dash && Clones.Contains(caster))
         {
             Draw = true;
             Sources.Add((spell.TargetXZ, WorldState.FutureTime(7.2f)));
@@ -399,15 +399,15 @@ class MightyMagicTopTierSlamSecondBait(BossModule module) : Components.UniformSt
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID.CloneJump:
+            case AID.Dash:
                 if (_rep1Bait.Clones.FirstOrNull(c => c.Actor == caster && c.Element != default) is { } clone)
-                    Sources.Add(new(spell.TargetXZ, clone.Element == Replication1SecondBait.Assignment.Fire, WorldState.FutureTime(10)));
+                    Sources.Add(new(spell.TargetXZ, clone.Element == Replication1SecondBait.Assignment.Fire, WorldState.FutureTime(10))); // FIXME: time is wrong
                 break;
-            case AID._Weaponskill_TopTierSlam1:
+            case AID.TopTierSlamStack:
                 NumFire++;
                 Sources.RemoveAll(s => s.Stack);
                 break;
-            case AID._Weaponskill_MightyMagic1:
+            case AID.MightyMagicSpread:
                 NumDark++;
                 Sources.RemoveAll(s => !s.Stack);
                 break;
@@ -431,9 +431,9 @@ class DoubleSobatRepeat(BossModule module) : Components.StandardAOEs(module, AID
 
 class EsotericFinisher : Components.GenericBaitAway
 {
-    public EsotericFinisher(BossModule module) : base(module, AID._Weaponskill_EsotericFinisher, centerAtTarget: true)
+    public EsotericFinisher(BossModule module) : base(module, AID.EsotericFinisher, centerAtTarget: true)
     {
-        CurrentBaits.AddRange(Raid.WithoutSlot().OrderByDescending(r => r.Role == Role.Tank).Take(2).Select(r => new Bait(module.PrimaryActor, r, new AOEShapeCircle(10), WorldState.FutureTime(10))));
+        CurrentBaits.AddRange(Raid.WithoutSlot().OrderByDescending(r => r.Role == Role.Tank).Take(2).Select(r => new Bait(module.PrimaryActor, r, new AOEShapeCircle(10), WorldState.FutureTime(10)))); // FIXME time is wrong
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
