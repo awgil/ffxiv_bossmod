@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM09SVampFatale;
 
-[ConfigDisplay(Parent = typeof(DawntrailConfig))]
+[ConfigDisplay(Parent = typeof(DawntrailConfig), Order = -4)]
 public class RM09SVampFataleConfig : ConfigNode
 {
     [PropertyDisplay("Hell in a Cell: Tower assignments (clockwise starting from true north)")]

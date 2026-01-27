@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM10STheXtremes;
 
-[ConfigDisplay(Parent = typeof(DawntrailConfig))]
+[ConfigDisplay(Parent = typeof(DawntrailConfig), Order = -3)]
 public class RM10STheXtremesConfig : ConfigNode
 {
     public enum CleanseOrder

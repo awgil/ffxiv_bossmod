@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM06SSugarRiot;
 
-[ConfigDisplay(Parent = typeof(DawntrailConfig))]
+[ConfigDisplay(Parent = typeof(DawntrailConfig), Order = -7)]
 class RM06SSugarRiotConfig : ConfigNode
 {
     [PropertyDisplay("Enable priority hints for adds phase (only used by VBM autorotation)")]
