@@ -118,6 +118,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             PartyState.OpLimitBreakChange => false,
             ClientState.OpActionRequest => false,
             ClientState.OpForcedMovementDirectionChange => false,
+            ClientState.OpActiveCompanionChange => false,
             //ClientState.OpActionReject => false,
             ClientState.OpProcTimersChange => false,
             ClientState.OpAnimationLockChange => false,
@@ -175,7 +176,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ClientState.OpClassJobLevelsChange op => $"Player levels: {string.Join(", ", op.Values)}",
             ClientState.OpActiveFateChange op => $"FATE: {op.Value.ID} '{Service.LuminaRow<Lumina.Excel.Sheets.Fate>(op.Value.ID)?.Name}' {op.Value.Progress}%",
             ClientState.OpActivePetChange op => $"Player pet: {ActorString(op.Value.InstanceID, op.Timestamp)}",
-            ClientState.OpInventoryChange op => $"Item quantity: {op.ItemId % 500000} '{Service.LuminaRow<Lumina.Excel.Sheets.Item>(op.ItemId % 500000)?.Name}' (hq={op.ItemId > 1000000}) x{op.Quantity}",
+            ClientState.OpInventoryChange op => ItemString(op),
             PartyState.OpModify op => $"Party slot {op.Slot}: {op.Member.InstanceId:X8} {op.Member.Name}",
             WorldState.OpMapEffect op => $"MapEffect: {op.Index:X2} {op.State:X8}",
             WorldState.OpLegacyMapEffect op => $"MapEffect (legacy): seq={op.Sequence} param={op.Param} data={string.Join(" ", op.Data.Select(d => d.ToString("X2")))}",
@@ -319,5 +320,13 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
                 yield return "lose";
         }
         return string.Join("; ", FindStatuses(instanceID, index, timestamp).Select(s => $"{string.Join("/", Classify(s))} {Utils.StatusString(s.ID)} ({ModuleInfo?.StatusIDType?.GetEnumName(s.ID)}) ({s.StartingExtra:X}), {s.InitialDuration:f2}s / {s.Time}, from {ActorString(s.Source, timestamp)}"));
+    }
+
+    private string ItemString(ClientState.OpInventoryChange op)
+    {
+        if (op.ItemId > 2000000)
+            return $"Item quantity: {op.ItemId} '{Service.LuminaRow<Lumina.Excel.Sheets.EventItem>(op.ItemId)?.Name}' x{op.Quantity}";
+
+        return $"Item quantity: {op.ItemId % 500000} '{Service.LuminaRow<Lumina.Excel.Sheets.Item>(op.ItemId % 500000)?.Name}' (hq={op.ItemId > 1000000}) x{op.Quantity}";
     }
 }

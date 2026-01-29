@@ -83,6 +83,9 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void* ProcessPacketFateInfoDelegate(ulong fateId, long startTimestamp, ulong durationSecs);
     private readonly Hook<ProcessPacketFateInfoDelegate> _processPacketFateInfoHook;
 
+    private unsafe delegate void ProcessPacketFateTradeDelegate(void* a1, ulong a2);
+    private readonly Hook<ProcessPacketFateTradeDelegate> _processPacketFateTradeHook;
+
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
     private unsafe delegate void ApplyKnockbackDelegate(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6);
@@ -166,6 +169,10 @@ sealed class WorldStateGameSync : IDisposable
         _processPacketFateInfoHook = Service.Hook.HookFromSignature<ProcessPacketFateInfoDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4F 10 48 8D 57 12 41 B8", ProcessPacketFateInfoDetour);
         _processPacketFateInfoHook.Enable();
         Service.Log($"[WSG] ProcessPacketFateInfo address = 0x{_processPacketFateInfoHook.Address:X}");
+
+        _processPacketFateTradeHook = Service.Hook.HookFromSignature<ProcessPacketFateTradeDelegate>("48 89 5C 24 ?? 57 48 83 EC 20 48 8B DA 0F B7 F9", ProcessPacketFateTradeDetour);
+        _processPacketFateTradeHook.Enable();
+        Service.Log($"[WSG] ProcessPacketFateTrade address = 0x{_processPacketFateTradeHook.Address:X}");
 
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
@@ -826,14 +833,22 @@ sealed class WorldStateGameSync : IDisposable
 
             // update all key items (smaller set)
             var ic = im->GetInventoryContainer(InventoryType.KeyItems);
+            var heldKeyItems = _ws.Client.Inventory.Keys.Where(i => i > 2000000).ToHashSet();
             if (ic->IsLoaded)
             {
                 for (var i = 0; i < ic->Size; i++)
                 {
                     var keyItem = ic->GetInventorySlot(i);
                     if (keyItem != null)
-                        updateQuantity(keyItem->GetItemId(), keyItem->GetQuantity());
+                    {
+                        var iid = keyItem->GetItemId();
+                        heldKeyItems.Remove(iid);
+                        updateQuantity(iid, keyItem->GetQuantity());
+                    }
                 }
+                // delete items that disappeared from the inventory (e.g. after fate handin)
+                foreach (var remaining in heldKeyItems)
+                    updateQuantity(remaining, 0);
             }
             _needInventoryUpdate = false;
         }
@@ -1084,6 +1099,12 @@ sealed class WorldStateGameSync : IDisposable
         var res = _processPacketFateInfoHook.Original(fateId, startTimestamp, durationSecs);
         _globalOps.Add(new ClientState.OpFateInfo((uint)fateId, DateTimeOffset.FromUnixTimeSeconds(startTimestamp).UtcDateTime));
         return res;
+    }
+
+    private unsafe void ProcessPacketFateTradeDetour(void* a1, ulong a2)
+    {
+        _processPacketFateTradeHook.Original(a1, a2);
+        _needInventoryUpdate = true;
     }
 
     private unsafe void ProcessMapEffect1Detour(ContentDirector* director, byte* packet)

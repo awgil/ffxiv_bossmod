@@ -197,6 +197,7 @@ public enum PacketID
     EorzeaTimeOffset = 439,
     EquipDisplayFlags = 452,
     NpcYell = 453,
+    FateTrade = 455,
     FateInfo = 458,
     CompletedAchievements = 463,
     LandSetInitialize = 472,
