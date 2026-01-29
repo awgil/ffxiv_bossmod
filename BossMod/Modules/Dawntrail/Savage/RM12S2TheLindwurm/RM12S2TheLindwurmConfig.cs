@@ -10,7 +10,7 @@ public class RM12S2TheLindwurmConfig : ConfigNode
 
     public override void DrawCustom(UITree tree, WorldState ws)
     {
-        Rep2Assignments.DrawCustom(tree, ws, Modified);
+        Rep2Assignments.DrawCustom(tree, Modified);
     }
 }
 
@@ -29,30 +29,37 @@ public class Replication2Tethers
     }
 
     public Role[] RolesOrdered = new Role[8];
+    public Order RelativeNorth = Order.N;
 
     public bool IsValid() => RolesOrdered.Distinct().Count() == 8;
 
     public enum Order
     {
+        [PropertyDisplay("North")]
         N,
+        [PropertyDisplay("Northeast")]
         NE,
+        [PropertyDisplay("East")]
         E,
+        [PropertyDisplay("Southeast")]
         SE,
+        [PropertyDisplay("South")]
         S,
+        [PropertyDisplay("Southwest")]
         SW,
+        [PropertyDisplay("West")]
         W,
+        [PropertyDisplay("Northwest")]
         NW
     }
 
-    public static readonly Replication2Tethers DN = new()
-    {
-        RolesOrdered = [Role.Boss, Role.Cone1, Role.Stack1, Role.Defam1, Role.None, Role.Defam2, Role.Stack2, Role.Cone2]
-    };
-
-    public void DrawCustom(UITree tree, WorldState ws, Event modified)
+    public void DrawCustom(UITree tree, Event modified)
     {
         foreach (var _ in tree.Node("Replication 2: clone <-> tether assignments", contextMenu: () => DrawContextMenu(modified)))
         {
+            if (UICombo.Enum("Relative north (for tether priority)", ref RelativeNorth))
+                modified.Fire();
+
             using (var table = ImRaii.Table("tab2", 10, ImGuiTableFlags.SizingFixedFit))
             {
                 if (table)
@@ -95,10 +102,29 @@ public class Replication2Tethers
 
     void DrawContextMenu(Event modified)
     {
-        if (ImGui.MenuItem("DN Rep2"))
+        if (ImGui.MenuItem("DN: true North; stack paired with stack"))
         {
             Array.Copy(DN.RolesOrdered, RolesOrdered, 8);
+            RelativeNorth = DN.RelativeNorth;
+            modified.Fire();
+        }
+        if (ImGui.MenuItem("Banana Codex: West-relative; stack paired with defam"))
+        {
+            Array.Copy(BC.RolesOrdered, RolesOrdered, 8);
+            RelativeNorth = BC.RelativeNorth;
             modified.Fire();
         }
     }
+
+    public static readonly Replication2Tethers DN = new()
+    {
+        RolesOrdered = [Role.Boss, Role.Cone1, Role.Stack1, Role.Defam1, Role.None, Role.Defam2, Role.Stack2, Role.Cone2],
+        RelativeNorth = Order.N
+    };
+
+    public static readonly Replication2Tethers BC = new()
+    {
+        RolesOrdered = [Role.Boss, Role.Stack1, Role.Cone1, Role.Defam1, Role.None, Role.Defam2, Role.Cone2, Role.Stack2],
+        RelativeNorth = Order.W
+    };
 }
