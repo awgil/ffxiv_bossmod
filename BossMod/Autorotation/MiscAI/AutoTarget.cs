@@ -111,8 +111,13 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
         var turnin = Utils.GetFateItem(World.Client.ActiveFate.ID);
         if (turnin > 0)
-            // keep targeting mobs until we have enough turnin items (unless we are holding 10, in which case FateUtils is probably trying to perform turnin, let's not interrupt it)
-            targetFateMobs |= World.Client.ActiveFate.HandInCount < FateUtils.TurnInGoldReq && World.Client.GetInventoryItemQuantity(turnin) < FateUtils.TurnInGoldReq;
+        {
+            if (strategy.Option(Track.CollectFATE).As<Flag>() == Flag.Enabled)
+                targetFateMobs = false;
+            else
+                // keep targeting mobs until we have enough turnin items (unless we are holding 10, in which case FateUtils is probably trying to perform turnin, let's not interrupt it)
+                targetFateMobs |= World.Client.ActiveFate.HandInCount < FateUtils.TurnInGoldReq && World.Client.GetInventoryItemQuantity(turnin) < FateUtils.TurnInGoldReq;
+        }
 
         // first deal with pulling new enemies
         foreach (var target in Hints.PotentialTargets)
