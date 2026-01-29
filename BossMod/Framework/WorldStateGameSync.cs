@@ -810,7 +810,7 @@ sealed class WorldStateGameSync : IDisposable
         {
             if (itemId == 0)
                 return;
-            if (count != _ws.Client.GetItemQuantity(itemId))
+            if (count != _ws.Client.GetInventoryItemQuantity(itemId))
                 _ws.Execute(new ClientState.OpInventoryChange(itemId, count));
         }
 

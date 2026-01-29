@@ -100,7 +100,7 @@ public sealed class ActionQueue
         if (!allowDismount && AutoDismountTweak.IsMountPreventingAction(ws, def.ID))
             return false;
 
-        if (def.ID.Type == ActionType.Item && ws.Client.GetItemQuantity(def.ID.ID) == 0)
+        if (def.ID.Type == ActionType.Item && ws.Client.GetInventoryItemQuantity(def.ID.ID) == 0)
             return false;
 
         var range = def.Range;

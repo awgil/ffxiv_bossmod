@@ -73,7 +73,7 @@ public sealed class ClientState
 
     public readonly Dictionary<uint, uint> Inventory; // tracks supported regular items and all key items
 
-    public uint GetItemQuantity(uint itemId) => Inventory.TryGetValue(itemId, out var q) ? q : 0;
+    public uint GetInventoryItemQuantity(uint itemId) => Inventory.TryGetValue(itemId, out var q) ? q : 0;
 
     public ClientState()
     {
