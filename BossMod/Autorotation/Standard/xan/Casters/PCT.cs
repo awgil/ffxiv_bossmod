@@ -464,6 +464,10 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         if (BestLivingMuse is AID.WingedMuse or AID.FangedMuse && BestPortrait != AID.None)
             return false;
 
+        // no buff window to play around
+        if (!Unlocked(AID.StarryMuse))
+            return true;
+
         // use during buffs
         if (RaidBuffsLeft > AnimLock)
             return true;
@@ -479,7 +483,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
     {
         PortraitStrategy.Force => true,
         // figure out math
-        PortraitStrategy.Automatic => StarryMuseLeft > AnimLock /* || ReadyIn(AID.StarryMuse) > 20 */,
+        PortraitStrategy.Automatic => StarryMuseLeft > AnimLock || !Unlocked(AID.StarryMuse) /* || ReadyIn(AID.StarryMuse) > 20 */,
         _ => false
     };
 }
