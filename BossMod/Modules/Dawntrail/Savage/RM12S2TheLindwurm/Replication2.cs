@@ -10,8 +10,13 @@ class Replication2Assignments(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        //if (Assignments[slot] is var (_, spot, spotA, role))
-        //    hints.Add($"Position: {UICombo.EnumString(spot)} ({UICombo.EnumString(spotA)}), role: {role} wanted", false);
+        if (Assignments[slot] is var (_, spot, spotA, role))
+        {
+            var abs = "";
+            if (spot != spotA)
+                abs = $" (repeat: {spotA.HumanReadable}";
+            hints.Add($"Order: {spot.HumanReadable}{abs}, tether: {UICombo.EnumString(role)}", false);
+        }
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -80,6 +85,8 @@ class Replication2CloneTethers(BossModule module) : BossComponent(module)
                 tether(a, t, ArenaColor.Safe, t == pc ? 1 : 2);
             else
                 tether(a, t, ArenaColor.Danger, t == pc ? 2 : 1);
+
+            Arena.ActorInsideBounds(a.Position, a.Rotation, ArenaColor.Object);
         }
     }
 
@@ -421,15 +428,15 @@ class Replication2ReenactmentAOEs(BossModule module) : Components.GenericAOEs(mo
             foreach (var (actor, mechShape, _, order) in Module.FindComponent<Replication2ReenactmentOrder>()!.Replay)
             {
                 var initialCast = mechStart.AddSeconds(4 * order);
-                (AOEShape?, float) shape = mechShape switch
+                var (shape, delay) = mechShape switch
                 {
-                    Replication2ReenactmentOrder.Shape.Boss => (new AOEShapeCircle(5), 0),
+                    Replication2ReenactmentOrder.Shape.Boss => (new AOEShapeCircle(5), 0f),
                     Replication2ReenactmentOrder.Shape.Defam => (new AOEShapeCircle(20), DefamDelay),
                     Replication2ReenactmentOrder.Shape.Cone => (new AOEShapeCone(50, 25.Degrees()), ConeDelay),
-                    _ => (null, 0)
+                    _ => (default(AOEShape), 0f)
                 };
-                if (shape.Item1 != null)
-                    _predicted.Add((new(shape.Item1, actor.Position, actor.Rotation, initialCast.AddSeconds(shape.Item2)), initialCast.AddSeconds(shape.Item2)));
+                if (shape != null)
+                    _predicted.Add((new(shape, actor.Position, actor.Rotation, initialCast.AddSeconds(delay)), initialCast.AddSeconds(delay)));
                 else
                     _predicted.Add((null, initialCast));
             }

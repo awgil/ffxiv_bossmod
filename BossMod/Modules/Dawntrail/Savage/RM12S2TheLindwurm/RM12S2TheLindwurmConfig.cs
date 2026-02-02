@@ -36,13 +36,21 @@ public enum Clockspot
 
 public enum Replication2Role
 {
+    [PropertyDisplay("Boss")]
     Boss,
+    [PropertyDisplay("None")]
     None,
+    [PropertyDisplay("Cone (CW)")]
     Cone1,
+    [PropertyDisplay("Cone (CCW)")]
     Cone2,
+    [PropertyDisplay("Stack (CW)")]
     Stack1,
+    [PropertyDisplay("Stack (CCW)")]
     Stack2,
+    [PropertyDisplay("Defam (CW)")]
     Defam1,
+    [PropertyDisplay("Defam (CCW)")]
     Defam2,
 }
 
@@ -85,7 +93,7 @@ public class Replication2Tethers
                             }
                         }
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted(r.ToString().Replace("1", " (CW)", StringComparison.InvariantCultureIgnoreCase).Replace("2", " (CCW)", StringComparison.InvariantCultureIgnoreCase));
+                        ImGui.TextUnformatted(UICombo.EnumString(r));
                     }
                 }
             }
@@ -162,6 +170,8 @@ public static class WurmExtensions
             Clockspot.N or Clockspot.NE or Clockspot.E or Clockspot.SE => 0,
             _ => 1
         };
+
+        public string HumanReadable => (c.Group == 0 ? "N" : "S") + (c.SpawnOrder + 1).ToString();
     }
 
     extension(Replication2Role r)

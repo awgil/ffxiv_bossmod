@@ -68,11 +68,11 @@ class RM12S2TheLindwurmStates : StateMachineBuilder
     {
         Cast(id, AID.Staging, delay, 3)
             .ActivateOnEnter<Replication2Assignments>();
-        ComponentCondition<Replication2Assignments>(id + 3, 7.9f, r => r.Assigned);
+        ComponentCondition<Replication2Assignments>(id + 3, 7.9f, r => r.Assigned, "Player clones appear");
         Cast(id + 0x10, AID.Replication, 3.2f, 3)
             .ActivateOnEnter<Replication2CloneTethers>();
 
-        ComponentCondition<Replication2CloneTethers>(id + 0x100, 16.5f, t => t.Locked);
+        ComponentCondition<Replication2CloneTethers>(id + 0x100, 16.5f, t => t.Locked, "Clone tethers");
         CastStart(id + 0x101, AID.FirefallSplashCast, 0)
             .ActivateOnEnter<Replication2FirefallSplash>()
             .ActivateOnEnter<Replication2ScaldingWaves>()
