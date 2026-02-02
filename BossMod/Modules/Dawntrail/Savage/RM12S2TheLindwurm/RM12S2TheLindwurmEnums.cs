@@ -10,11 +10,11 @@ public enum OID : uint
     Understudy = 0x4B0A, // R1.000, x0 (spawn during fight), transforms into copy of player
     LindschratSplit = 0x4B29, // R7.500, x0 (spawn during fight), plays clone split animation
 
-    _Gen_ManaSphere = 0x4B05, // R0.600, x0 (spawn during fight)
-    _Gen_ManaSphere1 = 0x4B06, // R0.600, x0 (spawn during fight)
-    _Gen_ManaSphere2 = 0x4B07, // R0.600, x0 (spawn during fight)
-    _Gen_ManaSphere3 = 0x4B08, // R0.600, x0 (spawn during fight)
-    _Gen_ManaSphere4 = 0x4B09, // R0.600, x0 (spawn during fight)
+    ManaSphereBlackHole = 0x4B05, // R0.600, x0 (spawn during fight)
+    ManaSphereBlueSphere = 0x4B06, // R0.600, x0 (spawn during fight)
+    ManaSphereGreenDonut = 0x4B07, // R0.600, x0 (spawn during fight)
+    ManaSpherePurpleBowtie = 0x4B08, // R0.600, x0 (spawn during fight)
+    ManaSphereOrangeBowtie = 0x4B09, // R0.600, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -41,45 +41,68 @@ public enum AID : uint
     EsotericFinisher = 46374, // Helper->players, no cast, range 10 circle
 
     Staging = 46305, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_ = 46306, // Helper->self, no cast, single-target
+    UnderstudyTransform = 46306, // Helper->self, no cast, single-target, just guessing what this does
     FirefallSplashCast = 46307, // Boss->self, 5.7s cast, single-target
     FirefallSplash = 46308, // Boss->location, no cast, range 5 circle
-    _Spell_ScaldingWaves = 46309, // Helper->self, no cast, range 50 10-degree cone
-    _Weaponskill_ManaBurst = 46310, // Boss/Lindschrat->self, no cast, single-target
-    _Weaponskill_ManaBurst1 = 46311, // Helper->location, no cast, range 20 circle
-    _Weaponskill_HeavySlam = 46312, // Lindschrat->location, no cast, range 5 circle
-    _Weaponskill_Grotesquerie = 46313, // Lindschrat->self, no cast, single-target
-    _Weaponskill_Grotesquerie1 = 46314, // Helper->player, no cast, single-target
-    _Weaponskill_HemorrhagicProjection = 46315, // Helper->self, no cast, range 50 50-degree cone
-    _Weaponskill_UnmitigatedImpact = 46320, // Helper->self, no cast, range 60 circle
+    ScaldingWaves = 46309, // Helper->self, no cast, range 50 10-degree cone
+    ManaBurstVisual = 46310, // Boss/Lindschrat->self, no cast, single-target
+    ManaBurstAOE = 46311, // Helper->location, no cast, range 20 circle
+    HeavySlam = 46312, // Lindschrat->location, no cast, range 5 circle
+    UnmitigatedImpact = 46320, // Helper->self, no cast, range 60 circle, Heavy Slam "tower" failure
+    GrotesquerieVisual = 46313, // Lindschrat->self, no cast, single-target
+    GrotesquerieHelper = 46314, // Helper->player, no cast, single-target
+    HemorrhagicProjection = 46315, // Helper->self, no cast, range 50 50-degree cone
 
-    _Weaponskill_Reenactment = 46316, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_FirefallSplash = 46317, // Lindschrat->Understudy, no cast, range 5 circle
-    _Weaponskill_ManaBurst2 = 46318, // Lindschrat->self, no cast, single-target
-    _Weaponskill_NetherwrathNear = 46382, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_ManaBurst3 = 48099, // Helper->Understudy, no cast, range 20 circle
-    _Weaponskill_TimelessSpite = 46384, // Helper->players, no cast, range 6 circle
-    _Spell_ScaldingWaves1 = 47329, // Helper->self, no cast, range 50 ?-degree cone
-    _Weaponskill_Grotesquerie2 = 46321, // Lindschrat->self, no cast, single-target
-    _Weaponskill_HemorrhagicProjection1 = 47394, // Helper->self, no cast, range 50 ?-degree cone
-    _Weaponskill_HeavySlam1 = 46319, // Lindschrat->Understudy, no cast, single-target
-    _Weaponskill_HeavySlam2 = 48733, // Helper->self, no cast, range 5 circle
-    _Weaponskill_MutatingCells = 46341, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_NetherwrathFar = 46383, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_5 = 46342, // Helper->player, no cast, single-target
-    _Weaponskill_BloodMana = 46331, // Boss->self, 3.0s cast, single-target
-    _Spell_ = 48304, // _Gen_ManaSphere->self, no cast, single-target
-    _Spell_1 = 46333, // _Gen_ManaSphere4/_Gen_ManaSphere2/_Gen_ManaSphere1/_Gen_ManaSphere3->location, no cast, single-target
-    _Spell_UnmitigatedExplosion = 46344, // Helper->player, no cast, single-target
-    _Spell_DramaticLysis = 46343, // Helper->player, no cast, single-target
-    _Spell_2 = 46335, // _Gen_ManaSphere4/_Gen_ManaSphere2/_Gen_ManaSphere1/_Gen_ManaSphere3->_Gen_ManaSphere, no cast, single-target
-    _Spell_BloodyBurst = 46334, // Helper->players, no cast, range 5 circle
-    _Weaponskill_BloodWakening = 46336, // Boss->self, 3.0s cast, single-target
-    _Spell_3 = 46332, // _Gen_ManaSphere->self, no cast, single-target
-    _Spell_LindwurmsAeroIII = 46338, // Helper->self, no cast, range ?-60 donut
-    _Spell_LindwurmsWaterIII = 46337, // Helper->self, no cast, range 8 circle
-    _Spell_SidewaysFireII = 46340, // Helper->self, no cast, range 40 ?-degree cone
-    _Spell_StraightforwardThunderII = 46339, // Helper->self, no cast, range 40 ?-degree cone
+    Reenactment = 46316, // Boss->self, 3.0s cast, single-target
+    FirefallSplashReplay = 46317, // Lindschrat->Understudy, no cast, range 5 circle
+    ManaBurstReplayVisual = 46318, // Lindschrat->self, no cast, single-target
+    ManaBurstReplay = 48099, // Helper->Understudy, no cast, range 20 circle
+    NetherwrathNear = 46382, // Boss->self, 5.0s cast, single-target
+    NetherwrathFar = 46383, // Boss->self, 5.0s cast, single-target
+    TimelessSpite = 46384, // Helper->players, no cast, range 6 circle
+    ScaldingWavesReplay = 47329, // Helper->self, no cast, range 50 10-degree cone
+    GrotesquerieReplayVisual = 46321, // Lindschrat->self, no cast, single-target
+    HemorrhagicProjectionReplay = 47394, // Helper->self, no cast, range 50 50-degree cone
+    HeavySlamReplayVisual = 46319, // Lindschrat->Understudy, no cast, single-target
+    HeavySlamReplay = 48733, // Helper->self, no cast, range 5 circle
+
+    MutatingCells = 46341, // Boss->self, 3.0s cast, single-target
+    MutatingCellsVisual = 46342, // Helper->player, no cast, single-target
+    BloodMana = 46331, // Boss->self, 3.0s cast, single-target
+    BlackHoleUnk = 48304, // _Gen_ManaSphere->self, no cast, single-target, not sure, some animation
+    ManaSphereSpawn = 46333, // _Gen_ManaSphere4/_Gen_ManaSphere2/_Gen_ManaSphere1/_Gen_ManaSphere3->location, no cast, single-target
+    BloodyBurst = 46334, // Helper->players, no cast, range 5 circle
+    BlackHoleAbsorb = 46335, // _Gen_ManaSphere4/_Gen_ManaSphere2/_Gen_ManaSphere1/_Gen_ManaSphere3->_Gen_ManaSphere, no cast, single-target
+    MutatingUnmitigatedExplosion = 46344, // Helper->player, no cast, single-target
+    MutatingDramaticLysis = 46343, // Helper->player, no cast, single-target
+    BloodWakening = 46336, // Boss->self, 3.0s cast, single-target
+    BlackHoleActivate = 46332, // _Gen_ManaSphere->self, no cast, single-target, triggers after Blood Wakening and immediately before stored aoes
+    LindwurmsWaterIII = 46337, // Helper->self, no cast, range 8 circle
+    LindwurmsAeroIII = 46338, // Helper->self, no cast, range 5-60 donut
+    StraightforwardThunderII = 46339, // Helper->self, no cast, range 40 120-degree cone
+    SidewaysFireII = 46340, // Helper->self, no cast, range 40 120-degree cone
+    NetherworldNear = 46379, // Boss->self, 5.0s cast, single-target
+    NetherworldFar = 46380, // Boss->self, 5.0s cast, single-target
+    WailingWave = 46381, // Helper->players, no cast, range 6 circle
+
+    _Weaponskill_IdyllicDream = 46345, // Boss->self, 5.0s cast, range 60 circle
+    _Weaponskill_TwistedVision = 48098, // Boss->self, 4.0s cast, single-target
+    _Weaponskill_PowerGusher = 46354, // Helper->self, 5.0s cast, range 60 90-degree cone
+    _Weaponskill_PowerGusher1 = 46352, // Lindschrat->self, 5.0s cast, single-target
+    _Weaponskill_SnakingKick = 46353, // Lindschrat->self, 5.0s cast, range 10 circle
+    _Weaponskill_PowerGusher2 = 46351, // Lindschrat->self, 5.0s cast, single-target
+    _Weaponskill_PowerGusher3 = 46356, // Lindschrat->self, no cast, single-target
+    _Weaponskill_SnakingKick1 = 46357, // Lindschrat->self, no cast, single-target
+    _Weaponskill_PowerGusher4 = 46355, // Lindschrat->self, no cast, single-target
+    _Weaponskill_SnakingKick2 = 48789, // Helper->self, no cast, range 10 circle
+    _Weaponskill_PowerGusher5 = 46358, // Helper->self, no cast, range 60 ?-degree cone
+    _Weaponskill_LindwurmsMeteor = 46322, // Boss->self, 5.0s cast, range 60 circle
+    _Weaponskill_Downfall = 46323, // Boss->self, 3.0s cast, single-target
+    _Weaponskill_ArcadianArcanum = 46377, // Boss->self, 3.0s cast, single-target
+    _Weaponskill_ArcadianArcanum1 = 47577, // Helper->players, no cast, range 6 circle
+    _Weaponskill_HeavySlam = 46361, // Lindschrat->location, no cast, range 5 circle
+    _Weaponskill_ManaBurst = 46359, // Lindschrat->self, no cast, single-target
+    _Weaponskill_ManaBurst1 = 46360, // Helper->players, no cast, range 20 circle
 }
 
 public enum SID : uint
@@ -88,6 +111,14 @@ public enum SID : uint
     _Gen_DarkResistanceDownII = 3323, // Helper->player, extra=0x0
     _Gen_MagicVulnerabilityUp = 2941, // Boss/Helper/Lindschrat->player, extra=0x0
     _Gen_SustainedDamage = 4149, // Helper->player, extra=0x2/0x1
+    _Gen_Weakness = 43, // none->player, extra=0x0
+    _Gen_ = 2056, // none->Understudy, extra=0x442
+    _Gen_MutationA = 4769, // none->player, extra=0x0
+    _Gen_MutatingCells = 4770, // none->player, extra=0x0
+    _Gen_MutationB = 4771, // none->player, extra=0x0
+    _Gen_DirectionalDisregard = 3808, // none->Boss, extra=0x0
+    _Gen_1 = 4435, // none->Boss, extra=0x9
+    _Gen_LightResistanceDownII = 4164, // Helper->player, extra=0x0
 }
 
 public enum IconID : uint

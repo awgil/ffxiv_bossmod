@@ -140,6 +140,7 @@ public class Replication2Tethers
     };
 }
 
+#pragma warning disable CA1708 // false positive
 public static class WurmExtensions
 {
     extension(Clockspot c)

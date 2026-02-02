@@ -5,17 +5,26 @@ class Replication2Assignments(BossModule module) : BossComponent(module)
     readonly RM12S2TheLindwurmConfig _config = Service.Config.Get<RM12S2TheLindwurmConfig>();
     public readonly Assignment?[] Assignments = new Assignment?[8];
     public bool Assigned { get; private set; }
+    public bool TethersAssigned;
+
+    int NumReplayCasts;
 
     public record class Assignment(Actor Actor, Clockspot SpotRelative, Clockspot SpotAbsolute, Replication2Role Role);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
+        if (NumReplayCasts >= 8)
+            return;
+
         if (Assignments[slot] is var (_, spot, spotA, role))
         {
             var abs = "";
             if (spot != spotA)
                 abs = $" (repeat: {spotA.HumanReadable}";
-            hints.Add($"Order: {spot.HumanReadable}{abs}, tether: {UICombo.EnumString(role)}", false);
+            if (TethersAssigned)
+                hints.Add($"Order: {spot.HumanReadable}{abs}", false);
+            else
+                hints.Add($"Order: {spot.HumanReadable}{abs}, tether: {UICombo.EnumString(role)}", false);
         }
     }
 
@@ -35,6 +44,19 @@ class Replication2Assignments(BossModule module) : BossComponent(module)
             Assignments[slot] = new(source, clockAdj, clockReal, _config.Rep2Assignments[clockAdj]);
             if (Assignments.All(a => a != null))
                 Assigned = true;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.FirefallSplashReplay:
+            case AID.ManaBurstReplayVisual:
+            case AID.GrotesquerieReplayVisual:
+            case AID.HeavySlamReplayVisual:
+                NumReplayCasts++;
+                break;
         }
     }
 }
@@ -211,7 +233,9 @@ class Replication2ScaldingWaves : Components.UntelegraphedBait
     WPos? _sourcePos;
     readonly DateTime _activation;
 
-    public Replication2ScaldingWaves(BossModule module) : base(module, AID._Spell_ScaldingWaves)
+    public BitMask Targets;
+
+    public Replication2ScaldingWaves(BossModule module) : base(module, AID.ScaldingWaves)
     {
         var tethers = module.FindComponent<Replication2CloneTethers>()!;
         _activation = WorldState.FutureTime(6.2f);
@@ -241,6 +265,15 @@ class Replication2ScaldingWaves : Components.UntelegraphedBait
             _source = null;
             _sourcePos = null;
             NumCasts++;
+
+            var (slot, closest) = Raid.WithSlot().ExcludedFromMask(Targets).MinBy(a =>
+            {
+                var (i, p) = a;
+                var angle = (p.Position - caster.Position).ToAngle();
+                return MathF.Abs(angle.Rad - spell.Rotation.Rad);
+            });
+            if (closest != null)
+                Targets.Set(slot);
         }
     }
 
@@ -277,7 +310,7 @@ class Replication2ManaBurst : Components.UniformStackSpread
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_ManaBurst1:
+            case AID.ManaBurstAOE:
                 var closest = Spreads.MinBy(s => (s.Target.Position - spell.TargetXZ).LengthSq());
                 if (closest.Target != null)
                     Spreads.Remove(closest);
@@ -305,7 +338,7 @@ class Replication2HeavySlam : Components.UniformStackSpread
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_HeavySlam)
+        if ((AID)spell.Action.ID == AID.HeavySlam)
         {
             var closest = Stacks.MinBy(s => (s.Target.Position - spell.TargetXZ).LengthSq());
             if (closest.Target != null)
@@ -346,7 +379,7 @@ class Replication2HemorrhagicProjection : Components.GenericBaitAway
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_HemorrhagicProjection)
+        if ((AID)spell.Action.ID == AID.HemorrhagicProjection)
         {
             NumCasts++;
             _targets.Reset();
@@ -374,7 +407,7 @@ class Replication2ReenactmentOrder(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Reenactment)
+        if ((AID)spell.Action.ID == AID.Reenactment)
         {
             var tt = Module.FindComponent<Replication2CloneTethers>()!;
             var aa = Module.FindComponent<Replication2Assignments>()!;
@@ -394,7 +427,7 @@ class Replication2ReenactmentOrder(BossModule module) : BossComponent(module)
                     Replication2Role.Defam1 or Replication2Role.Defam2 or Replication2Role.None => Shape.Defam,
                     Replication2Role.Cone1 or Replication2Role.Cone2 => Shape.Cone,
                     Replication2Role.Stack1 or Replication2Role.Stack2 => Shape.Stack,
-                    _ => throw new Exception("invalid")
+                    _ => throw new InvalidOperationException("invalid")
                 };
                 Replay.Add((assignment.Actor, shape, assignment.SpotAbsolute.Group, assignment.SpotAbsolute.SpawnOrder));
             }
@@ -421,7 +454,7 @@ class Replication2ReenactmentAOEs(BossModule module) : Components.GenericAOEs(mo
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Reenactment)
+        if ((AID)spell.Action.ID == AID.Reenactment)
         {
             var mechStart = Module.CastFinishAt(spell, 8.2f);
 
@@ -448,26 +481,26 @@ class Replication2ReenactmentAOEs(BossModule module) : Components.GenericAOEs(mo
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_FirefallSplash:
-            case AID._Weaponskill_ManaBurst3:
-            case AID._Weaponskill_HemorrhagicProjection1:
+            case AID.FirefallSplashReplay:
+            case AID.ManaBurstReplay:
+            case AID.HemorrhagicProjectionReplay:
                 _predicted.RemoveAt(0);
                 NumCasts++;
                 break;
-            case AID._Weaponskill_HeavySlam2:
+            case AID.HeavySlamReplay:
                 _predicted.RemoveAt(0);
                 break;
         }
     }
 }
 
-class Replication2ReenactmentTowers(BossModule module) : Components.GenericTowers(module, AID._Weaponskill_HeavySlam2)
+class Replication2ReenactmentTowers(BossModule module) : Components.GenericTowers(module, AID.HeavySlamReplay)
 {
     readonly List<(WPos?, DateTime)> _predicted = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Reenactment)
+        if ((AID)spell.Action.ID == AID.Reenactment)
         {
             var mechStart = Module.CastFinishAt(spell, 8.2f);
 
@@ -484,16 +517,70 @@ class Replication2ReenactmentTowers(BossModule module) : Components.GenericTower
         }
     }
 
+    // TODO: do this in a less highly regarded way
     public override void Update()
     {
         Towers.Clear();
 
-        var i = 0;
-        foreach (var (a, b) in _predicted.Take(4))
-        {
+        foreach (var ((a, b), i) in _predicted.Take(4).Zip(Enumerable.Range(0, 100)))
             if (a.HasValue)
                 Towers.Add(new(a.Value, 5, 1, 4, new(i >= 2 ? 0xFFu : 0u), b));
-            i++;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.FirefallSplashReplay:
+            case AID.ManaBurstReplay:
+            case AID.HemorrhagicProjectionReplay:
+                _predicted.RemoveAt(0);
+                break;
+            case AID.HeavySlamReplay:
+                _predicted.RemoveAt(0);
+                NumCasts++;
+                break;
+        }
+    }
+}
+
+class Replication2ReenactmentScaldingWaves(BossModule module) : Components.GenericBaitAway(module)
+{
+    readonly List<(Actor?, DateTime)> _predicted = [];
+
+    BitMask _targets;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.Reenactment)
+        {
+            _targets = Module.FindComponent<Replication2ScaldingWaves>()!.Targets;
+            var mechStart = Module.CastFinishAt(spell, 8.2f);
+
+            foreach (var (u, s, g, o) in Module.FindComponent<Replication2ReenactmentOrder>()!.Replay)
+            {
+                var initialCast = mechStart.AddSeconds(4 * o);
+
+                if (s == Replication2ReenactmentOrder.Shape.Boss)
+                    _predicted.Add((u, initialCast.AddSeconds(Replication2ReenactmentAOEs.ConeDelay)));
+                else
+                    _predicted.Add((null, initialCast));
+            }
+            _predicted.SortBy(p => p.Item2);
+        }
+    }
+
+    public override void Update()
+    {
+        CurrentBaits.Clear();
+
+        foreach (var (a, b) in _predicted.Take(2))
+        {
+            if (a != null)
+            {
+                foreach (var (_, player) in Raid.WithSlot().IncludedInMask(_targets))
+                    CurrentBaits.Add(new(a, player, new AOEShapeCone(50, 5.Degrees()), b));
+            }
         }
     }
 
@@ -501,15 +588,64 @@ class Replication2ReenactmentTowers(BossModule module) : Components.GenericTower
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_FirefallSplash:
-            case AID._Weaponskill_ManaBurst3:
-            case AID._Weaponskill_HemorrhagicProjection1:
-                _predicted.RemoveAt(0);
+            case AID.ManaBurstReplay:
+            case AID.HemorrhagicProjectionReplay:
+            case AID.HeavySlamReplay:
+                if (_predicted.Count > 0)
+                    _predicted.RemoveAt(0);
                 break;
-            case AID._Weaponskill_HeavySlam2:
-                _predicted.RemoveAt(0);
+            case AID.ScaldingWavesReplay:
+                _predicted.Clear();
                 NumCasts++;
                 break;
+        }
+    }
+}
+
+class Replication2TimelessSpite(BossModule module) : Components.UniformStackSpread(module, 6, 0, maxStackSize: 2)
+{
+    BitMask Forbidden;
+    DateTime Activation;
+    bool Far;
+    public int NumCasts;
+
+    public override void Update()
+    {
+        Stacks.Clear();
+
+        if (Activation == default)
+            return;
+
+        var targets = Raid.WithoutSlot().SortedByRange(Module.PrimaryActor.Position);
+        if (Far)
+            targets = targets.Reverse();
+        foreach (var t in targets.Take(2))
+            AddStack(t, Activation, Forbidden);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.NetherwrathNear:
+                Activation = Module.CastFinishAt(spell, 1.2f);
+                Far = false;
+                Forbidden = Module.FindComponent<Replication2ScaldingWaves>()!.Targets;
+                break;
+            case AID.NetherwrathFar:
+                Activation = Module.CastFinishAt(spell, 1.2f);
+                Far = true;
+                Forbidden = Module.FindComponent<Replication2ScaldingWaves>()!.Targets;
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.TimelessSpite)
+        {
+            NumCasts++;
+            Activation = default;
         }
     }
 }
