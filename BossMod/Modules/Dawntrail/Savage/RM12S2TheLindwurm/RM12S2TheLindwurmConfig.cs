@@ -14,44 +14,47 @@ public class RM12S2TheLindwurmConfig : ConfigNode
     }
 }
 
+public enum Clockspot
+{
+    [PropertyDisplay("North")]
+    N,
+    [PropertyDisplay("Northeast")]
+    NE,
+    [PropertyDisplay("East")]
+    E,
+    [PropertyDisplay("Southeast")]
+    SE,
+    [PropertyDisplay("South")]
+    S,
+    [PropertyDisplay("Southwest")]
+    SW,
+    [PropertyDisplay("West")]
+    W,
+    [PropertyDisplay("Northwest")]
+    NW
+}
+
+public enum Replication2Role
+{
+    Boss,
+    None,
+    Cone1,
+    Cone2,
+    Stack1,
+    Stack2,
+    Defam1,
+    Defam2,
+}
+
 public class Replication2Tethers
 {
-    public enum Role
-    {
-        Boss,
-        None,
-        Cone1,
-        Cone2,
-        Stack1,
-        Stack2,
-        Defam1,
-        Defam2,
-    }
+    public Replication2Role[] RolesOrdered = new Replication2Role[8];
+    public Clockspot RelativeNorth = Clockspot.N;
 
-    public Role[] RolesOrdered = new Role[8];
-    public Order RelativeNorth = Order.N;
+    public Replication2Role this[int index] => IsValid() ? RolesOrdered[index] : Replication2Role.None;
+    public Replication2Role this[Clockspot index] => IsValid() ? RolesOrdered[(int)index] : Replication2Role.None;
 
     public bool IsValid() => RolesOrdered.Distinct().Count() == 8;
-
-    public enum Order
-    {
-        [PropertyDisplay("North")]
-        N,
-        [PropertyDisplay("Northeast")]
-        NE,
-        [PropertyDisplay("East")]
-        E,
-        [PropertyDisplay("Southeast")]
-        SE,
-        [PropertyDisplay("South")]
-        S,
-        [PropertyDisplay("Southwest")]
-        SW,
-        [PropertyDisplay("West")]
-        W,
-        [PropertyDisplay("Northwest")]
-        NW
-    }
 
     public void DrawCustom(UITree tree, Event modified)
     {
@@ -64,12 +67,12 @@ public class Replication2Tethers
             {
                 if (table)
                 {
-                    foreach (var r in typeof(Order).GetEnumValues())
+                    foreach (var r in typeof(Clockspot).GetEnumValues())
                         ImGui.TableSetupColumn(r.ToString(), ImGuiTableColumnFlags.None, 25);
                     ImGui.TableSetupColumn("Role");
                     ImGui.TableHeadersRow();
 
-                    foreach (var r in typeof(Role).GetEnumValues().Cast<Role>())
+                    foreach (var r in typeof(Replication2Role).GetEnumValues().Cast<Replication2Role>())
                     {
                         ImGui.TableNextRow();
                         for (var i = 0; i < RolesOrdered.Length; i++)
@@ -118,13 +121,53 @@ public class Replication2Tethers
 
     public static readonly Replication2Tethers DN = new()
     {
-        RolesOrdered = [Role.Boss, Role.Cone1, Role.Stack1, Role.Defam1, Role.None, Role.Defam2, Role.Stack2, Role.Cone2],
-        RelativeNorth = Order.N
+        RolesOrdered = [Replication2Role.Boss, Replication2Role.Cone1, Replication2Role.Stack1, Replication2Role.Defam1, Replication2Role.None, Replication2Role.Defam2, Replication2Role.Stack2, Replication2Role.Cone2],
+        RelativeNorth = Clockspot.N
     };
 
     public static readonly Replication2Tethers BC = new()
     {
-        RolesOrdered = [Role.Boss, Role.Stack1, Role.Cone1, Role.Defam1, Role.None, Role.Defam2, Role.Cone2, Role.Stack2],
-        RelativeNorth = Order.W
+        RolesOrdered = [Replication2Role.Boss, Replication2Role.Stack1, Replication2Role.Cone1, Replication2Role.Defam1, Replication2Role.None, Replication2Role.Defam2, Replication2Role.Cone2, Replication2Role.Stack2],
+        RelativeNorth = Clockspot.W
     };
+}
+
+public static class WurmExtensions
+{
+    extension(Clockspot c)
+    {
+        public Angle Angle => AngleExtensions.Degrees(c switch
+        {
+            Clockspot.N => 180,
+            Clockspot.NE => 135,
+            Clockspot.E => 90,
+            Clockspot.SE => 45,
+            Clockspot.SW => -45,
+            Clockspot.W => -90,
+            Clockspot.NW => -135,
+            _ => 0
+        });
+
+        public int SpawnOrder => c switch
+        {
+            Clockspot.N or Clockspot.S => 0,
+            Clockspot.NE or Clockspot.SW => 1,
+            Clockspot.E or Clockspot.W => 2,
+            Clockspot.SE or Clockspot.NW => 3,
+            _ => -1
+        };
+
+        public int Group => c switch
+        {
+            Clockspot.N or Clockspot.NE or Clockspot.E or Clockspot.SE => 0,
+            _ => 1
+        };
+    }
+
+    extension(Replication2Role r)
+    {
+        public bool IsDefam => r is Replication2Role.Defam1 or Replication2Role.Defam2;
+        public bool IsStack => r is Replication2Role.Stack1 or Replication2Role.Stack2;
+        public bool IsCone => r is Replication2Role.Cone1 or Replication2Role.Cone2;
+    }
 }

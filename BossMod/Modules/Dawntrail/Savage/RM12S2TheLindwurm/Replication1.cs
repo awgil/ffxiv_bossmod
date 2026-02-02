@@ -2,88 +2,6 @@
 
 class SnakingKick(BossModule module) : Components.StandardAOEs(module, AID.SnakingKick, new AOEShapeCone(40, 90.Degrees()));
 
-class Replication1FirstBait(BossModule module) : BossComponent(module)
-{
-    record struct Clone(Actor Actor, DateTime Activation, BitMask Targets = default)
-    {
-        public BitMask Targets = Targets;
-    }
-    readonly List<Clone> Clones = [];
-
-    public override void Update()
-    {
-        for (var i = 0; i < Clones.Count; i++)
-            Clones.Ref(i).Targets = Raid.WithSlot().SortedByRange(Clones[i].Actor.Position).Take(2).Mask();
-    }
-
-    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
-    {
-        if ((OID)actor.OID == OID.Luzzelwurm && id == 0x11D5)
-            Clones.Add(new(actor, WorldState.FutureTime(8.2f)));
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        foreach (var (c, _, t) in Clones)
-        {
-            if (t[pcSlot])
-            {
-                Arena.ActorInsideBounds(c.Position, c.Rotation, ArenaColor.Enemy);
-                foreach (var (_, target) in Raid.WithSlot().IncludedInMask(t))
-                {
-                    if (Arena.Config.ShowOutlinesAndShadows)
-                        Arena.AddCircle(target.Position, 5, 0xFF000000, 2);
-                    Arena.AddCircle(target.Position, 5, ArenaColor.Danger);
-                }
-            }
-            else
-                Arena.ActorInsideBounds(c.Position, c.Rotation, ArenaColor.Object);
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.TopTierSlamCast or AID.MightyMagicCast)
-            Clones.Clear();
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (Clones.Count == 0)
-            return;
-
-        var baiting = 0;
-        var overlap = false;
-        var stack = false;
-        foreach (var (c, _, t) in Clones)
-        {
-            if (t[slot])
-            {
-                baiting++;
-                overlap |= Raid.WithSlot().IncludedInMask(t).InRadiusExcluding(actor, 5).Any();
-                stack |= Raid.WithSlot().ExcludedFromMask(t).InRadius(actor.Position, 5).Any();
-            }
-        }
-
-        if (baiting == 0)
-            hints.Add("Bait a clone!");
-        else if (baiting > 1)
-            hints.Add("Too many baits on you!");
-
-        if (overlap)
-            hints.Add("GTFO from other bait!");
-
-        if (!stack)
-            hints.Add("Stack with buddy!");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var (_, a, t) in Clones)
-            hints.AddPredictedDamage(t, a, AIHints.PredictedDamageType.Shared);
-    }
-}
-
 class WingedScourge(BossModule module) : Components.StandardAOEs(module, AID.WingedScourge, new AOEShapeCone(50, 15.Degrees()));
 
 class MightyMagicTopTierSlamFirstBait(BossModule module) : Components.UniformStackSpread(module, 5, 5, maxStackSize: 2, alwaysShowSpreads: true)
@@ -274,9 +192,10 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
                 continue;
 
             var color = _assignments[pcSlot] != default
-                ? a == _assignments[pcSlot] ? ArenaColor.Object : ArenaColor.PlayerGeneric
+                ? a == _assignments[pcSlot] ? ArenaColor.Object : default
                 : a == Assignment.Fire ? ArenaColor.Object : ArenaColor.Vulnerable;
-            Arena.ActorInsideBounds(c.Position, c.Rotation, color);
+            if (color != default)
+                Arena.ActorInsideBounds(c.Position, c.Rotation, color);
         }
     }
 
