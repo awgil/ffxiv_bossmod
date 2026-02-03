@@ -275,7 +275,13 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
                 // swap back to ice in downtime if we can't fit in another FS
                 if (Fire > 0)
                 {
-                    var canFS = AstralSoul == 6 || AstralSoul >= 3 && MP >= 800;
+                    var canFS = AstralSoul == 6 || MP switch
+                    {
+                        < 800 => false,
+                        < 2400 => AstralSoul >= 3, // at >= 800, guaranteed enough MP to cast flare (though we probably want to use F4 as usual)
+                        _ => Unlocked(AID.FlareStar), // TODO: this cutoff depends on heart stacks, but it probably doesn't matter in practice
+                    };
+
                     if (!canFS && Player.HPMP.CurMP < Player.HPMP.MaxMP)
                         PushOGCD(AID.Transpose, Player);
                 }
@@ -477,8 +483,9 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         T2(strategy, GCDPriority.InstantMove);
 
+        // start of fight/pull: use blizzard to gain hearts so we can 2x/4x flare
         if (Fire == 0)
-            PushGCD(AID.Fire2, BestAOETarget, GCDPriority.Standard);
+            PushGCD(AID.Blizzard2, BestAOETarget, GCDPriority.Standard);
 
         if (AstralSoul == 6)
             PushGCD(AID.FlareStar, BestAOETarget, GCDPriority.Max);
@@ -689,8 +696,16 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (Player.FindStatus(SID.LeyLines) != null)
             return;
 
-        if (!Player.InCombat && CountdownRemaining == null)
-            return;
+        if (!Player.InCombat)
+        {
+            // don't leylines out of combat, that would be stupid
+            if (CountdownRemaining == null)
+                return;
+
+            // hack: a regular preset with "always use leylines" should not cast them at the start of a 20s cooldown; only allow prepull if a cdplan is active
+            if (Manager.Planner?.Plan == null)
+                return;
+        }
 
         var opt = strategy.Leylines;
         var prio = opt.Value switch
