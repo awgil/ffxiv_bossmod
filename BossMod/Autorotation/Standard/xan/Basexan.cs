@@ -424,7 +424,10 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     /// <returns></returns>
     protected virtual float GetCastTime(AID aid)
     {
-        var def = ActionDefinitions.Instance.Spell(aid)!;
+        var def = ActionDefinitions.Instance.Spell(aid);
+        if (def == null)
+            return 0;
+
         var hasteMod = GCDLength / 2.5f;
 
         if (SwiftcastLeft > GCD && def.Category is ActionCategory.Spell)
