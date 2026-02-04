@@ -1,4 +1,4 @@
-namespace BossMod.RealmReborn.Novice.NA01ReactToFloorMarkers;
+namespace BossMod.RealmReborn.Novice.NA01ReactToAttackMarkers;
 
 public enum OID : uint
 {
@@ -227,9 +227,9 @@ class FrigidRing(BossModule module) : Components.GenericAOEs(module)
 class Fireflood(BossModule module) : Components.StandardAOEs(module, AID.Fireflood, 15f);
 class BlazingRing(BossModule module) : Components.StandardAOEs(module, AID.BlazingRing, new AOEShapeDonut(8, 25));
 
-class NA01ReactToFloorMarkersStates : StateMachineBuilder
+class NA01ReactToAttackMarkersStates : StateMachineBuilder
 {
-    public NA01ReactToFloorMarkersStates(BossModule module) : base(module)
+    public NA01ReactToAttackMarkersStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<StartingPositions>()
@@ -246,8 +246,8 @@ class NA01ReactToFloorMarkersStates : StateMachineBuilder
             .ActivateOnEnter<BlazingRing>();
     }
 }
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1013, NameID = 13616)]
-public class NA01ReactToFloorMarkers(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(19.5f))
+[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1012, NameID = 13616)]
+public class NA01ReactToAttackMarkers(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(19.5f))
 {
     protected override bool CheckPull() => !PrimaryActor.IsDeadOrDestroyed;
 }
