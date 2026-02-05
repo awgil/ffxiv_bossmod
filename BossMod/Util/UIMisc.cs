@@ -70,31 +70,21 @@ public static class UIMisc
         ImGui.TextUnformatted(text);
     }
 
-    // works around issues with fonts in uidev
-    public static unsafe bool IconButton(FontAwesomeIcon icon, string fallback, string text)
+    public static bool IconButton(FontAwesomeIcon icon, string text)
     {
-        if (Service.PluginInterface == null)
-            return ImGui.Button(fallback + text);
-        using var scope = ImRaii.PushFont(UiBuilder.IconFont);
+        using var scope = ImRaii.PushFont(Service.IconFont);
         return ImGui.Button(icon.ToIconString() + text);
     }
 
-    public static unsafe void IconText(FontAwesomeIcon icon, string fallback)
+    public static void IconText(FontAwesomeIcon icon)
     {
-        if (Service.PluginInterface == null)
-        {
-            ImGui.TextUnformatted(fallback);
-        }
-        else
-        {
-            using var scope = ImRaii.PushFont(UiBuilder.IconFont);
-            ImGui.TextUnformatted(icon.ToIconString());
-        }
+        using var scope = ImRaii.PushFont(Service.IconFont);
+        ImGui.TextUnformatted(icon.ToIconString());
     }
 
     public static void HelpMarker(Func<string> helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle)
     {
-        IconText(icon, "(?)");
+        IconText(icon);
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
         {
             using var tooltip = ImRaii.Tooltip();

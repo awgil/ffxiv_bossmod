@@ -241,7 +241,7 @@ public sealed class ConfigUI : IDisposable
         else
         {
             using var invisible = ImRaii.PushColor(ImGuiCol.Text, 0x00000000);
-            UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle, "(?)");
+            UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle);
         }
         ImGui.SameLine();
     }

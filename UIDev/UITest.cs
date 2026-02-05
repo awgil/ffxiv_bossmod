@@ -1,5 +1,6 @@
 ﻿using BossMod;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
@@ -134,10 +135,17 @@ class UITest
         var rangeHandle = GCHandle.Alloc(new ushort[] { 0xE020, 0xE0DB, 0 }, GCHandleType.Pinned);
         ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, (ushort*)rangeHandle.AddrOfPinnedObject());
 
+        var fontPathFA = "C:\\Users\\me\\AppData\\Roaming\\XIVLauncher\\dalamudAssets\\dev\\UIRes\\FontAwesomeFreeSolid.otf";
+        var faMin = (ushort)Enum.GetValues<FontAwesomeIcon>().Where(x => x > 0).Min();
+        var faMax = (ushort)Enum.GetValues<FontAwesomeIcon>().Where(x => x > 0).Max();
+        var hnd = GCHandle.Alloc(new ushort[] { faMin, faMax, 0 }, GCHandleType.Pinned);
+        Service.IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathFA, 17, null, (ushort*)hnd.AddrOfPinnedObject());
+
         ImGui.GetIO().Fonts.Build();
 
         fontConfig.Destroy();
         rangeHandle.Free();
+        hnd.Free();
 
         ImGui.GetStyle().GrabRounding = 3f;
         ImGui.GetStyle().FrameRounding = 4f;

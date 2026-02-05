@@ -103,9 +103,9 @@ class ManaSphere(BossModule module) : BossComponent(module)
     {
         Letter? l = (SID)status.ID switch
         {
-            SID._Gen_MutationA => Letter.A,
-            SID._Gen_MutationB => Letter.B,
-            SID._Gen_MutatingCells => Letter.None,
+            SID.MutationA => Letter.A,
+            SID.MutationB => Letter.B,
+            SID.MutatingCells => Letter.None,
             _ => null
         };
         if (l.HasValue && Raid.TryFindSlot(actor, out var slot))
@@ -259,7 +259,7 @@ class Netherworld(BossModule module) : Components.UniformStackSpread(module, 6, 
         };
         if (far.HasValue)
         {
-            Forbidden = Raid.WithSlot().WhereActor(a => a.FindStatus(SID._Gen_MutationA) != null).Mask();
+            Forbidden = Raid.WithSlot().WhereActor(a => a.FindStatus(SID.MutationA) != null).Mask();
             Activation = Module.CastFinishAt(spell, 1.3f);
             Far = far.Value;
         }

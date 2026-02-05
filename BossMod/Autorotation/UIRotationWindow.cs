@@ -104,7 +104,7 @@ public sealed class UIRotationWindow : UIWindow
         {
             ImGui.SameLine();
             using (ImRaii.PushColor(ImGuiCol.Text, 0xff00ff00))
-                UIMisc.IconText(FontAwesomeIcon.BoltLightning, "(4)");
+                UIMisc.IconText(FontAwesomeIcon.BoltLightning);
             if (ImGui.IsItemHovered())
             {
                 using var tooltip = ImRaii.Tooltip();

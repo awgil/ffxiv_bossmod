@@ -134,6 +134,8 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
     int _numFire;
     int _numDark;
 
+    bool HighlightClone;
+
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_assignments[slot] != default)
@@ -142,6 +144,9 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        if (_numFire >= 1 && _numDark >= 2)
+            return;
+
         switch ((AID)spell.Action.ID)
         {
             case AID.TopTierSlamCast:
@@ -169,6 +174,8 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
             _numDark++;
             Assign();
         }
+        if ((AID)spell.Action.ID == AID.Dash)
+            HighlightClone = true;
     }
 
     public override void OnActorPlayActionTimelineSync(Actor actor, List<(ulong InstanceID, ushort ID)> events)
@@ -195,7 +202,11 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
                 ? a == _assignments[pcSlot] ? ArenaColor.Object : default
                 : a == Assignment.Fire ? ArenaColor.Object : ArenaColor.Vulnerable;
             if (color != default)
+            {
                 Arena.ActorInsideBounds(c.Position, c.Rotation, color);
+                if (HighlightClone)
+                    Arena.AddCircle(c.Position, 1.25f, ArenaColor.Danger);
+            }
         }
     }
 
@@ -205,7 +216,7 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
             return;
 
         foreach (var (i, player) in Raid.WithSlot())
-            _assignments[i] = player.FindStatus(SID._Gen_DarkResistanceDownII, DateTime.MinValue) == null ? Assignment.Dark : Assignment.Fire;
+            _assignments[i] = player.FindStatus(SID.DarkResistanceDownII, DateTime.MinValue) == null ? Assignment.Dark : Assignment.Fire;
     }
 }
 
@@ -305,10 +316,10 @@ class MightyMagicTopTierSlamSecondBait(BossModule module) : Components.UniformSt
     {
         switch ((SID)status.ID)
         {
-            case SID._Gen_FireResistanceDownII:
+            case SID.FireResistanceDownII:
                 _fireVuln.Set(Raid.FindSlot(actor.InstanceID));
                 break;
-            case SID._Gen_DarkResistanceDownII:
+            case SID.DarkResistanceDownII:
                 _darkVuln.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
@@ -334,7 +345,7 @@ class MightyMagicTopTierSlamSecondBait(BossModule module) : Components.UniformSt
     }
 }
 
-class DoubleSobatBuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(40, 90.Degrees()), (uint)IconID._Gen_Icon_sharelaser2tank5sec_c0k1)
+class DoubleSobatBuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(40, 90.Degrees()), (uint)IconID.DoubleSobat)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
