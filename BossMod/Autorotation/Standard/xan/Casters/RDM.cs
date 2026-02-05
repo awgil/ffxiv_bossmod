@@ -222,7 +222,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             if (NumAOETargets > 2)
                 PushGCD(AID.Scatter, BestAOETarget, GCDPriority.InstantAOE);
 
-            if (BlackMana > WhiteMana && CombatTimer > 6)
+            if (BlackMana > WhiteMana && (CombatTimer > 6 || BlackMana > 18))
                 PushGCD(AID.Veraero, primaryTarget, GCDPriority.Instant);
 
             PushGCD(AID.Verthunder, primaryTarget, GCDPriority.Instant);

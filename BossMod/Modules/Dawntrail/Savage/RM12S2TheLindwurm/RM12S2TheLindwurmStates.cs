@@ -265,7 +265,9 @@ class RM12S2TheLindwurmStates : StateMachineBuilder
             .ExecOnEnter<IdyllicDreamHeavySlamPlayer>(p => p.Predict(0));
 
         // clones replay stack/spread
-        Cast(id + 0x320, AID.Reenactment, 1.9f, 3);
+        Cast(id + 0x320, AID.Reenactment, 1.9f, 3)
+            .ExecOnEnter<IdyllicDreamManaBurstPlayer>(p => p.Risky = true)
+            .ExecOnEnter<IdyllicDreamHeavySlamPlayer>(p => p.EnableHints = true);
         ComponentCondition<IdyllicDreamPlayerCastCounter>(id + 0x322, 3.6f, c => c.NumCasts == 4, "Reenactment 1");
 
         // platform transform, jumpy clones
