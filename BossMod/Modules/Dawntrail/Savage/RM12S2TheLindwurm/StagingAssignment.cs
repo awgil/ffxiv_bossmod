@@ -162,7 +162,10 @@ abstract class StagingAssignment<TRole>(BossModule module, int playerGroupSize, 
         foreach (var hint in GetHelpHints(slot, actor))
             hints.Add(hint, false);
 
-        if (WurmClones.Any(w => RoleEq(p.WantedRole, w.AssignedRole) && w.Target != actor))
+        if (WurmsAssigned)
+            return;
+
+        if (WurmClones.Any(w => RoleEq(p.WantedRole, w.AssignedRole) && w.Target != null && w.Target != actor))
             hints.Add("Grab correct tether!");
 
         if (WurmClones.Any(w => w.Target == actor && !RoleEq(p.WantedRole, w.AssignedRole)))

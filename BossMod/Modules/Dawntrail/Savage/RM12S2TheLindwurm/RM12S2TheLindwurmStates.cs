@@ -233,6 +233,7 @@ class RM12S2TheLindwurmStates : StateMachineBuilder
         ComponentCondition<IdyllicDreamArena>(id + 0x232, 1.3f, a => a.State == 1, "Platforms appear");
         ComponentCondition<IdyllicDreamElementalMeteor>(id + 0x233, 3.1f, m => m.NumCasts > 0, "Towers")
             .ExecOnEnter<IdyllicDreamLindwurmsDarkII>(d => d.EnableHints = true)
+            .ExecOnEnter<IdyllicDreamElementalMeteor>(d => d.EnableHints = true)
             .DeactivateOnExit<IdyllicDreamElementalMeteor>();
 
         ComponentCondition<LindwurmsStoneIII>(id + 0x234, 5.7f, s => s.NumCasts > 0, "Delayed puddles")
