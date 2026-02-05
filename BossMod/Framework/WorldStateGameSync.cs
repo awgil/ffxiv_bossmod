@@ -181,13 +181,6 @@ sealed class WorldStateGameSync : IDisposable
         _processLegacyMapEffectHook.Enable();
         Service.Log($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
 
-        _applyKnockbackHook = Service.Hook.HookFromSignature<ApplyKnockbackDelegate>("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? FF C6", ApplyKnockbackDetour);
-        //if (Service.IsDev)
-        //{
-        //    _applyKnockbackHook.Enable();
-        //    Service.Log($"[WSG] ApplyKnockback address = {_applyKnockbackHook.Address:X}");
-        //}
-
         _inventoryAckHook = Service.Hook.HookFromSignature<InventoryAckDelegate>("48 89 5C 24 ?? 57 48 83 EC 30 48 8B 05 ?? ?? ?? ?? 48 8B D9 41 0F B6 50 ??", InventoryAckDetour);
         _inventoryAckHook.Enable();
         Service.Log($"[WSG] InventoryAck address = {_inventoryAckHook.Address:X}");
@@ -1135,13 +1128,6 @@ sealed class WorldStateGameSync : IDisposable
             var index = data[i + offIndex];
             _globalOps.Add(new WorldState.OpMapEffect(index, low | ((uint)high << 16)));
         }
-    }
-
-    private unsafe void ApplyKnockbackDetour(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6)
-    {
-        _applyKnockbackHook.Original(thisPtr, a2, a3, a4, a5, a6);
-        if (Service.IsDev)
-            _globalOps.Add(new WorldState.OpUserMarker($"Knockback applied to player with a2={a2:f3}, a3={a3:f3}, a4={a4:f3}, a5={a5:X2}, a6={a6:X8}"));
     }
 
     private unsafe byte ProcessLegacyMapEffectDetour(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length)
