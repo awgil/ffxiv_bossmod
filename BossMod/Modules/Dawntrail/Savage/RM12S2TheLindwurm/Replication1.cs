@@ -2,88 +2,6 @@
 
 class SnakingKick(BossModule module) : Components.StandardAOEs(module, AID.SnakingKick, new AOEShapeCone(40, 90.Degrees()));
 
-class Replication1FirstBait(BossModule module) : BossComponent(module)
-{
-    record struct Clone(Actor Actor, DateTime Activation, BitMask Targets = default)
-    {
-        public BitMask Targets = Targets;
-    }
-    readonly List<Clone> Clones = [];
-
-    public override void Update()
-    {
-        for (var i = 0; i < Clones.Count; i++)
-            Clones.Ref(i).Targets = Raid.WithSlot().SortedByRange(Clones[i].Actor.Position).Take(2).Mask();
-    }
-
-    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
-    {
-        if ((OID)actor.OID == OID.Luzzelwurm && id == 0x11D5)
-            Clones.Add(new(actor, WorldState.FutureTime(8.2f)));
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        foreach (var (c, _, t) in Clones)
-        {
-            if (t[pcSlot])
-            {
-                Arena.ActorInsideBounds(c.Position, c.Rotation, ArenaColor.Enemy);
-                foreach (var (_, target) in Raid.WithSlot().IncludedInMask(t))
-                {
-                    if (Arena.Config.ShowOutlinesAndShadows)
-                        Arena.AddCircle(target.Position, 5, 0xFF000000, 2);
-                    Arena.AddCircle(target.Position, 5, ArenaColor.Danger);
-                }
-            }
-            else
-                Arena.ActorInsideBounds(c.Position, c.Rotation, ArenaColor.Object);
-        }
-    }
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID is AID.TopTierSlamCast or AID.MightyMagicCast)
-            Clones.Clear();
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (Clones.Count == 0)
-            return;
-
-        var baiting = 0;
-        var overlap = false;
-        var stack = false;
-        foreach (var (c, _, t) in Clones)
-        {
-            if (t[slot])
-            {
-                baiting++;
-                overlap |= Raid.WithSlot().IncludedInMask(t).InRadiusExcluding(actor, 5).Any();
-                stack |= Raid.WithSlot().ExcludedFromMask(t).InRadius(actor.Position, 5).Any();
-            }
-        }
-
-        if (baiting == 0)
-            hints.Add("Bait a clone!");
-        else if (baiting > 1)
-            hints.Add("Too many baits on you!");
-
-        if (overlap)
-            hints.Add("GTFO from other bait!");
-
-        if (!stack)
-            hints.Add("Stack with buddy!");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var (_, a, t) in Clones)
-            hints.AddPredictedDamage(t, a, AIHints.PredictedDamageType.Shared);
-    }
-}
-
 class WingedScourge(BossModule module) : Components.StandardAOEs(module, AID.WingedScourge, new AOEShapeCone(50, 15.Degrees()));
 
 class MightyMagicTopTierSlamFirstBait(BossModule module) : Components.UniformStackSpread(module, 5, 5, maxStackSize: 2, alwaysShowSpreads: true)
@@ -216,6 +134,8 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
     int _numFire;
     int _numDark;
 
+    bool HighlightClone;
+
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_assignments[slot] != default)
@@ -224,6 +144,9 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        if (_numFire >= 1 && _numDark >= 2)
+            return;
+
         switch ((AID)spell.Action.ID)
         {
             case AID.TopTierSlamCast:
@@ -251,6 +174,8 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
             _numDark++;
             Assign();
         }
+        if ((AID)spell.Action.ID == AID.Dash)
+            HighlightClone = true;
     }
 
     public override void OnActorPlayActionTimelineSync(Actor actor, List<(ulong InstanceID, ushort ID)> events)
@@ -274,9 +199,14 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
                 continue;
 
             var color = _assignments[pcSlot] != default
-                ? a == _assignments[pcSlot] ? ArenaColor.Object : ArenaColor.PlayerGeneric
+                ? a == _assignments[pcSlot] ? ArenaColor.Object : default
                 : a == Assignment.Fire ? ArenaColor.Object : ArenaColor.Vulnerable;
-            Arena.ActorInsideBounds(c.Position, c.Rotation, color);
+            if (color != default)
+            {
+                Arena.ActorInsideBounds(c.Position, c.Rotation, color);
+                if (HighlightClone)
+                    Arena.AddCircle(c.Position, 1.25f, ArenaColor.Danger);
+            }
         }
     }
 
@@ -286,7 +216,7 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
             return;
 
         foreach (var (i, player) in Raid.WithSlot())
-            _assignments[i] = player.FindStatus(SID._Gen_DarkResistanceDownII, DateTime.MinValue) == null ? Assignment.Dark : Assignment.Fire;
+            _assignments[i] = player.FindStatus(SID.DarkResistanceDownII, DateTime.MinValue) == null ? Assignment.Dark : Assignment.Fire;
     }
 }
 
@@ -386,10 +316,10 @@ class MightyMagicTopTierSlamSecondBait(BossModule module) : Components.UniformSt
     {
         switch ((SID)status.ID)
         {
-            case SID._Gen_FireResistanceDownII:
+            case SID.FireResistanceDownII:
                 _fireVuln.Set(Raid.FindSlot(actor.InstanceID));
                 break;
-            case SID._Gen_DarkResistanceDownII:
+            case SID.DarkResistanceDownII:
                 _darkVuln.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
@@ -415,7 +345,7 @@ class MightyMagicTopTierSlamSecondBait(BossModule module) : Components.UniformSt
     }
 }
 
-class DoubleSobatBuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(40, 90.Degrees()), (uint)IconID._Gen_Icon_sharelaser2tank5sec_c0k1)
+class DoubleSobatBuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(40, 90.Degrees()), (uint)IconID.DoubleSobat)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

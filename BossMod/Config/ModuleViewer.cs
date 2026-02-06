@@ -351,11 +351,11 @@ public sealed class ModuleViewer : IDisposable
                             }
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
-                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}_cfg"))
+                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, $"###{mod.Info.ModuleType.FullName}_cfg"))
                                     _ = new BossModuleConfigWindow(mod.Info, ws);
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.PlanLevel == 0))
-                                if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, "plan", $"###{mod.Info.ModuleType.FullName}_plans"))
+                                if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, $"###{mod.Info.ModuleType.FullName}_plans"))
                                     ImGui.OpenPopup($"{mod.Info.ModuleType.FullName}_popup");
                             ImGui.SameLine();
                             UIMisc.HelpMarker(() => ModuleHelpText(mod));

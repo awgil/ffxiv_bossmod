@@ -668,7 +668,7 @@ public abstract class QuestBattle : ZoneModule
                 {
                     if (vec.SpecifiedInPath)
                     {
-                        UIMisc.IconText(FontAwesomeIcon.Star, "*");
+                        UIMisc.IconText(FontAwesomeIcon.Star);
                         ImGui.SameLine();
                     }
                     ImGui.TextUnformatted(Utils.Vec3String(vec.Position));
