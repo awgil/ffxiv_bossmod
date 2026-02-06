@@ -88,9 +88,6 @@ sealed class WorldStateGameSync : IDisposable
 
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
-    private unsafe delegate void ApplyKnockbackDelegate(Character* thisPtr, float a2, float a3, float a4, byte a5, int a6);
-    private readonly Hook<ApplyKnockbackDelegate> _applyKnockbackHook;
-
     private unsafe delegate void InventoryAckDelegate(InventoryManager* mgr, uint a1, void* a2);
     private readonly Hook<InventoryAckDelegate> _inventoryAckHook;
 
@@ -194,7 +191,6 @@ sealed class WorldStateGameSync : IDisposable
     {
         _processPlayActionTimelineSyncHook.Dispose();
         _inventoryAckHook.Dispose();
-        _applyKnockbackHook.Dispose();
         _processLegacyMapEffectHook.Dispose();
         _processMapEffect1Hook.Dispose();
         _processMapEffect2Hook.Dispose();
