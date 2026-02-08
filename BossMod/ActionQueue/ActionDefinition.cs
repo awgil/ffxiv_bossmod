@@ -298,7 +298,7 @@ public sealed class ActionDefinitions : IDisposable
     public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
     public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
 
-    public static bool DashToTargetCheck(WorldState _, Actor player, ActionQueue.Entry action, AIHints hints)
+    public static bool DashToTargetCheck(WorldState ws, Actor player, ActionQueue.Entry action, AIHints hints)
     {
         var cfg = Service.Config.Get<ActionTweaksConfig>();
         var target = action.Target;
@@ -317,6 +317,11 @@ public sealed class ActionDefinitions : IDisposable
         // facing target (to dash) would make us fail gaze, directional bait, etc
         // TODO: only forbid if dash duration is longer than time to deadline?
         if (hints.ForbiddenDirections.Any(d => dir.AlmostEqual(d.center, d.halfWidth.Rad)))
+            return true;
+
+        // TODO: check against action's animation lock duration instead of constant 0.8?
+        var (mode, deadline) = hints.ImminentSpecialMode;
+        if (mode is AIHints.SpecialMode.Pyretic or AIHints.SpecialMode.PyreticMove && deadline <= ws.FutureTime(0.8f))
             return true;
 
         return IsDashDangerous(src, src + dir.ToDirection() * MathF.Max(0, dist), hints);
