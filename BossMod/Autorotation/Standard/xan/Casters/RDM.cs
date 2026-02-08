@@ -101,6 +101,11 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         AID.Impact
     ];
 
+    public float MeleeComboLength => 1.5f + 1.5f + 2.2f // sword gcds are fixed duration
+        + (Unlocked(AID.Verholy) ? GCDLength : 0)
+        + (Unlocked(AID.Scorch) ? GCDLength : 0)
+        + (Unlocked(AID.Resolution) ? GCDLength : 0);
+
     protected override float GetCastTime(AID aid)
     {
         if (DualcastLeft > GCD)
@@ -130,6 +135,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     public enum OGCDPriority : int
     {
         None = 0,
+        C6 = 375,
+        AccelCap = 390,
         Fleche = 400,
         Manafic = 450,
         Pref = 475,
@@ -282,8 +289,8 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             LowestMana >= 89
             // start combo early for buff window
             || CanWeave(AID.Embolden, extraFixedDelay: 5.2f) && strategy.Buffs != OffensiveStrategy.Delay
-            // full combo is 12.7s
-            || EmboldenLeft > GCD + 12.7f
+            // full melee combo length, minus full duration of resolution (GCD), minus full duration of scorch (GCD) since resolution is not generally expected to be covered by buffs
+            || EmboldenLeft > GCD + (MeleeComboLength - GCDLength * 2)
         )
             doit(GCDPriority.MeleeStart, strategy, primaryTarget);
 
@@ -303,15 +310,16 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (!InCombo && PostOpener)
             PushOGCD(AID.Manafication, Player, OGCDPriority.Manafic);
 
-        if (GetCastTime(NextGCD) > 0)
-            PushOGCD(AID.Swiftcast, Player);
+        SwiftAlign(strategy);
 
-        PushOGCD(AID.Fleche, primaryTarget, OGCDPriority.Fleche);
+        var flechr = ReadyIn(AID.Fleche);
+        var cr = ReadyIn(AID.ContreSixte);
+        PushOGCD(AID.Fleche, primaryTarget, CombatTimer < 10 ? OGCDPriority.Fleche : (OGCDPriority.C6 + (flechr < cr ? 1 : 0)));
+        PushOGCD(AID.ContreSixte, BestAOETarget, OGCDPriority.C6 + (cr < flechr ? 1 : 0));
 
         if (CanWeave(MaxChargesIn(AID.Acceleration), 0.6f, 2))
-            PushOGCD(AID.Acceleration, Player);
+            PushOGCD(AID.Acceleration, Player, OGCDPriority.AccelCap);
 
-        PushOGCD(AID.ContreSixte, BestAOETarget);
         PushOGCD(AID.Engagement, primaryTarget);
 
         if (strategy.Dash.IsEnabled())
@@ -322,7 +330,9 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         UsePrefulgence(strategy);
 
-        if (CanFitGCD(RaidBuffsLeft, 1) && AccelLeft <= GCD && GrandImpactReady <= GCD)
+        // if we can't fit another melee combo in current buffs, use acceleration for an extra slow cast + grand impact
+        if (AccelLeft <= GCD && GrandImpactReady <= GCD &&
+            CanFitGCD(EmboldenLeft, 1) && !InCombo && NextGCD is not (AID.Riposte or AID.Moulinet))
             PushOGCD(AID.Acceleration, Player);
 
         if (MP <= Player.HPMP.MaxMP * 0.7f)
@@ -358,5 +368,14 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (shouldUse)
             PushOGCD(AID.Prefulgence, ResolveTargetOverride(strategy.Prefulgence) ?? BestAOETarget, OGCDPriority.Pref);
+    }
+
+    void SwiftAlign(in Strategy strategy)
+    {
+        if (!CanWeave(AID.Fleche) && CanWeave(AID.Fleche, 1) && GetCastTime(NextGCD) > 0)
+            PushOGCD(AID.Swiftcast, Player);
+
+        if (!CanWeave(AID.ContreSixte) && CanWeave(AID.ContreSixte, 1) && GetCastTime(NextGCD) > 0)
+            PushOGCD(AID.Swiftcast, Player);
     }
 }
