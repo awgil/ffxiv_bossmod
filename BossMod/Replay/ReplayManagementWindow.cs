@@ -1,6 +1,8 @@
-﻿using BossMod.Autorotation;
-using Dalamud.Interface.Utility.Raii;
+﻿using Autofac.Features.AttributeFilters;
+using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using Lumina.Excel.Sheets;
 using System.Diagnostics;
 using System.IO;
@@ -42,6 +44,8 @@ public class ReplayManagementWindow : UIWindow
 
         RespectCloseHotkey = false;
     }
+
+    public ReplayManagementWindow([KeyFilter("Global")] WorldState ws, BossModuleManager bmm, RotationDatabase rotationDB, IDalamudPluginInterface pluginInterface) : this(ws, bmm, rotationDB, new DirectoryInfo(pluginInterface.ConfigDirectory.FullName + "/replays")) { }
 
     protected override void Dispose(bool disposing)
     {

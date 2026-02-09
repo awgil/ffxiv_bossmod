@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Autofac.Features.AttributeFilters;
 using BossMod.Autorotation;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
@@ -10,8 +11,6 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
-using System.Reflection;
 
 namespace BossMod;
 
@@ -50,8 +49,13 @@ public class Plugin : HostedPlugin
     private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow _wndDebug;
 
-    public unsafe Plugin(IDalamudPluginInterface dalamud, IPluginLog pluginLog, ICommandManager cmd) : base(dalamud, pluginLog, cmd)
+    public unsafe Plugin(IDalamudPluginInterface dalamud, IPluginLog pluginLog, ICommandManager cmd, IDataManager data) : base(dalamud, pluginLog, cmd, data)
     {
+        // FIXME
+        Service.LuminaGameData = data.GameData;
+        Service.Config = new(dalamud);
+        Service.Config.StartAsync(default).GetAwaiter().GetResult();
+
         CreateHost();
         Start();
 
@@ -157,6 +161,25 @@ public class Plugin : HostedPlugin
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
+        containerBuilder.RegisterSingletonSelfAndInterfaces<WindowService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ConfigRoot>();
+
+        //containerBuilder.RegisterType<UIRotationWindow>().AsSelf().As<Window>();
+        containerBuilder.RegisterType<ReplayManagementWindow>().AsSelf().As<Window>().WithAttributeFiltering();
+
+        containerBuilder.RegisterSingletonSelf<BossModuleManager>().WithAttributeFiltering();
+        containerBuilder.RegisterSingletonSelf<RotationModuleManager>();
+        containerBuilder.RegisterSingletonSelf<RotationDatabase>();
+
+        containerBuilder.Register(s => new WorldState(0, "pending")).Keyed<WorldState>("Global").SingleInstance();
+
+        //containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+        //    .Where(t => t.Name.EndsWith("Window"))
+        //    .As<Window>()
+        //    .AsSelf()
+        //    .AsImplementedInterfaces();
+
+        /*
         containerBuilder.RegisterSingletonSelfAndInterfaces<ConfigRoot>();
         containerBuilder.Register(s =>
         {
@@ -187,7 +210,7 @@ public class Plugin : HostedPlugin
             .Where(t => t.Name.EndsWith("Manager"))
             .AsSelf();
 
-        containerBuilder.Register(s => new WorldState(0, "foo")).AsSelf().SingleInstance();
+        containerBuilder.Register(s => new WorldState(0, "foo", s.Resolve<ActionDefinitions>())).AsSelf().SingleInstance();
 
         containerBuilder.RegisterBuildCallback(scope =>
         {
@@ -197,6 +220,7 @@ public class Plugin : HostedPlugin
             pi.UiBuilder.OpenConfigUi += () => configUI.Open();
             pi.UiBuilder.OpenMainUi += () => configUI.Open();
         });
+        */
     }
 
     public override void ConfigureServices(IServiceCollection serviceCollection)

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Dalamud.Plugin;
+using System.IO;
 
 namespace BossMod.Autorotation;
 
@@ -14,4 +15,6 @@ public sealed class RotationDatabase
         Presets = new(cfg, rootPath.FullName + "/presets", defaultPresets);
         Plans = new(rootPath.FullName + "/plans");
     }
+
+    public RotationDatabase(ConfigRoot cfg, IDalamudPluginInterface pluginInterface) : this(cfg, new DirectoryInfo(pluginInterface.ConfigDirectory.FullName + "/autorot"), new FileInfo(pluginInterface.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json")) { }
 }

@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Autofac.Features.AttributeFilters;
+
+namespace BossMod;
 
 // class that creates and manages instances of proper boss modules in response to world state changes
 public sealed class BossModuleManager : IDisposable
@@ -30,7 +32,7 @@ public sealed class BossModuleManager : IDisposable
         }
     }
 
-    public BossModuleManager(WorldState ws)
+    public BossModuleManager([KeyFilter("Global")] WorldState ws)
     {
         WorldState = ws;
         RaidCooldowns = new(ws);

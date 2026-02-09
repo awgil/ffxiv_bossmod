@@ -57,6 +57,7 @@
 		<Reference Include="Lumina.Excel" Private="true" />
 		<Reference Include="Dalamud.Bindings.ImGui" Private="true" />
 		<Reference Include="FFXIVClientStructs" Private="true" />
+		<Reference Include="InteropGenerator.Runtime" Private="true" />
 
 		<Content Include="Fonts\FontAwesomeFreeSolid.otf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

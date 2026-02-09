@@ -154,7 +154,7 @@ public sealed class ActionDefinitions : IDisposable
 {
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet;
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
     private readonly List<IDisposable> _classDefinitions;
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
@@ -202,10 +202,10 @@ public sealed class ActionDefinitions : IDisposable
 
     public Func<uint, bool>? UnlockCheck;
 
-    internal ActionDefinitions(Lumina.GameData lumina)
-    {
-        _cjcSheet = lumina.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
+    public static readonly ActionDefinitions Instance = new();
 
+    internal ActionDefinitions()
+    {
         _classDefinitions = [
             new ClassShared.Definitions(this),
             new PLD.Definitions(this),

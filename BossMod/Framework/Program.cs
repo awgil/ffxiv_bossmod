@@ -14,7 +14,7 @@ var pl = loader.AddPlugin(typeof(MockPlugin));
 loader.StartPlugin(pl);
 ui.Run();
 
-internal class MockPlugin(IDalamudPluginInterface dalamud, IPluginLog pluginLog, ICommandManager cmd) : Plugin(dalamud, pluginLog, cmd)
+internal class MockPlugin(IDalamudPluginInterface dalamud, IPluginLog pluginLog, ICommandManager cmd, IDataManager data) : Plugin(dalamud, pluginLog, cmd, data)
 {
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
