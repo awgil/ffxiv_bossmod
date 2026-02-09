@@ -87,74 +87,17 @@ class SugarBlizzard(BossModule module) : Components.StandardAOEs(module, AID.Sug
 class BakeOffAI(BossModule module) : RotationModule<AutoBakeOff>(module);
 public class AutoBakeOff(WorldState ws) : UnmanagedRotation(ws, 5)
 {
-    private const float BakeOffRange = 5;
-    private static readonly Angle BakeOffHalfAngle = 30.Degrees();
-
     protected override void Exec(Actor? primaryTarget)
     {
+        if (primaryTarget == null)
+            return;
         if (Player.FindStatus(SID.Transporting) != null)
             return;
         if (!Player.InCombat)
             return;
-
-        var totalCount = Hints.PriorityTargets.Count();
-        if (totalCount == 0)
-            return;
-
-        if (primaryTarget == null)
-        {
-            var best = Hints.PriorityTargets.MinBy(e => (e.Actor.Position - Player.Position).LengthSq());
-            if (best != null)
-            {
-                Hints.ForcedTarget = best.Actor;
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(best.Actor, BakeOffRange));
-            }
-            return;
-        }
-
-        var rangeToTarget = Player.DistanceToHitbox(primaryTarget);
-        if (rangeToTarget > BakeOffRange + primaryTarget.HitboxRadius + 0.5f)
-            return;
-
-        var playerPos = Player.Position;
-        var currentDir = Player.Rotation.ToDirection();
-        var inCone = Hints.NumPriorityTargetsInAOECone(playerPos, BakeOffRange, currentDir, BakeOffHalfAngle);
-
-        if (inCone == totalCount)
-        {
-            UseAction(Roleplay.AID.BakeOff, primaryTarget);
-            return;
-        }
-
-        Hints.GoalZones.Add(Hints.GoalAOECone(primaryTarget, BakeOffRange, BakeOffHalfAngle));
-        var bestFacing = BestFacingForAllTargets();
-        UseAction(Roleplay.AID.BakeOff, primaryTarget, 0, default, bestFacing);
-    }
-
-    private Angle? BestFacingForAllTargets()
-    {
-        var playerPos = Player.Position;
-        var inRange = Hints.PriorityTargets
-            .Where(e => (e.Actor.Position - playerPos).Length() <= BakeOffRange + e.Actor.HitboxRadius)
-            .Select(e => (e.Actor.Position - playerPos).ToAngle().Normalized())
-            .OrderBy(a => a.Rad)
-            .ToList();
-        if (inRange.Count == 0)
-            return null;
-        if (inRange.Count == 1)
-            return inRange[0];
-
-        var first = inRange[0];
-        var last = inRange[^1];
-        var spanForward = last.Rad - first.Rad;
-        var spanWrap = 2 * MathF.PI - spanForward;
-        var coneSpan = 2 * BakeOffHalfAngle.Rad;
-
-        if (spanForward <= coneSpan)
-            return first + (last - first) * 0.5f;
-        if (spanWrap <= coneSpan)
-            return (last + (spanWrap * 0.5f).Radians()).Normalized();
-        return first + (last - first) * 0.5f;
+        // iterate Hints.PriorityTargets and compare against Hints.NumPriorityTargetsInAOECone. Only execute when they're the same.
+        // If they're not the same, set a goal zone for an area that will hit all of them, then call useaction with the correct facing angle
+        UseAction(Roleplay.AID.BakeOff, primaryTarget);
     }
 }
 
