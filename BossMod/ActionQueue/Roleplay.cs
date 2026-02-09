@@ -223,7 +223,10 @@ public enum AID : uint
     TuraliJudgment = 37126,
     TrialsOfTural = 37127,
     TuraliFervor = 37128,
-    DawnlitConviction = 37129
+    DawnlitConviction = 37129,
+
+    // The Patisserie
+    BakeOff = 44039, // instant cast, range 5 60-degree cone, 3 charges
 }
 
 public enum TraitID : uint { }
@@ -477,6 +480,8 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.TrialsOfTural);
         d.RegisterSpell(AID.TuraliFervor);
         d.RegisterSpell(AID.DawnlitConviction, castAnimLock: 3.86f);
+
+        d.RegisterSpell(AID.BakeOff);
     }
 
     public void Dispose() { }
