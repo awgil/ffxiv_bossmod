@@ -6,7 +6,7 @@ namespace BossMod.Autorotation;
 // note: presets in the database are immutable (otherwise eg. manager won't see the changes in active preset)
 public sealed class PresetDatabase
 {
-    private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
+    private readonly AutorotationConfig _cfg;
 
     public readonly List<Preset> DefaultPresets; // default presets, distributed as part of the plugin
     public readonly List<Preset> UserPresets; // user-defined presets, stored in user's preset db
@@ -16,8 +16,9 @@ public sealed class PresetDatabase
 
     public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset }).Concat(UserPresets);
 
-    public PresetDatabase(string rootPath, FileInfo defaultPresets)
+    public PresetDatabase(ConfigRoot config, string rootPath, FileInfo defaultPresets)
     {
+        _cfg = config.Get<AutorotationConfig>();
         _dbPath = new(rootPath + ".db.json");
         DefaultPresets = LoadPresetsFromFile(defaultPresets);
         UserPresets = LoadPresetsFromFile(_dbPath);

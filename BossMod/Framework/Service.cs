@@ -52,7 +52,7 @@ public sealed class Service
 
     public static bool IsUIDev => PluginInterface == null;
 
-    public static readonly ConfigRoot Config = new();
+    public static readonly ConfigRoot Config = null!;
 
     //public static SharpDX.Direct3D11.Device? Device = null;
 }

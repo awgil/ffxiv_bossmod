@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace BossMod;
 
-public sealed class ConfigUI : IDisposable
+public sealed class ConfigUI
 {
     private class UINode(ConfigNode node)
     {
@@ -78,6 +78,12 @@ public sealed class ConfigUI : IDisposable
     public void Dispose()
     {
         _mv.Dispose();
+    }
+
+    public void Open(string tabName = "")
+    {
+        ShowTab(tabName);
+        _ = new UISimpleWindow("Boss Mod Settings", Draw, true, new(300, 300));
     }
 
     public void ShowTab(string name) => _tabs.Select(name);

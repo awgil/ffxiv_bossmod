@@ -1,9 +1,13 @@
-﻿using System.IO;
+﻿using Dalamud.Plugin;
+using Microsoft.Extensions.Hosting;
+using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod;
 
-public class ConfigRoot
+public class ConfigRoot : IHostedService
 {
     public Event Modified = new();
     public Version AssemblyVersion = new(); // we use this to show newly added config options
@@ -11,8 +15,12 @@ public class ConfigRoot
 
     public IEnumerable<ConfigNode> Nodes => _nodes.Values;
 
-    public void Initialize()
+    readonly IDalamudPluginInterface _pluginInterface;
+    EventSubscription? _saveSubscription;
+
+    public ConfigRoot(IDalamudPluginInterface pluginInterface)
     {
+        _pluginInterface = pluginInterface;
         foreach (var t in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
         {
             if (Activator.CreateInstance(t) is not ConfigNode inst)
@@ -23,6 +31,17 @@ public class ConfigRoot
             inst.Modified.Subscribe(Modified.Fire);
             _nodes[t] = inst;
         }
+    }
+
+    public async Task StartAsync(CancellationToken token)
+    {
+        LoadFromFile(_pluginInterface.ConfigFile);
+        _saveSubscription = Modified.Subscribe(() => Task.Run(() => SaveToFile(_pluginInterface.ConfigFile)));
+    }
+
+    public async Task StopAsync(CancellationToken token)
+    {
+        _saveSubscription?.Dispose();
     }
 
     public T Get<T>() where T : ConfigNode => (T)_nodes[typeof(T)];

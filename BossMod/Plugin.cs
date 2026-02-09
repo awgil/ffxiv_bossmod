@@ -1,18 +1,21 @@
-﻿using BossMod.Autorotation;
-using Dalamud.Common;
+﻿using Autofac;
+using BossMod.Autorotation;
+using BossMod.Services;
+using DalaMock.Host.Hosting;
+using DalaMock.Shared.Extensions;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Interface;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class Plugin : IDalamudPlugin
+public class Plugin : HostedPlugin
 {
     public string Name => "Boss Mod";
 
@@ -47,8 +50,12 @@ public sealed class Plugin : IDalamudPlugin
     private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow _wndDebug;
 
-    public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
+    public unsafe Plugin(IDalamudPluginInterface dalamud, IPluginLog pluginLog, ICommandManager cmd) : base(dalamud, pluginLog, cmd)
     {
+        CreateHost();
+        Start();
+
+        /*
         if (!dalamud.ConfigDirectory.Exists)
             dalamud.ConfigDirectory.Create();
         var dalamudRoot = dalamud.GetType().Assembly.
@@ -117,6 +124,7 @@ public sealed class Plugin : IDalamudPlugin
         RegisterSlashCommands();
 
         _ = new ConfigChangelogWindow();
+        */
     }
 
     public void Dispose()
@@ -146,165 +154,53 @@ public sealed class Plugin : IDalamudPlugin
         ActionDefinitions.Instance.Dispose();
     }
 
-    private void RegisterSlashCommands()
+    public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
+    public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
-        _slashCmd.SetSimpleHandler("show boss mod settings UI", () => OpenConfigUI());
-        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => _wndReplay.SetVisible(!_wndReplay.IsOpen));
-        RegisterAutorotationSlashCommands(_slashCmd.AddSubcommand("ar"));
-        RegisterAISlashCommands(_slashCmd.AddSubcommand("ai"));
-        _slashCmd.AddSubcommand("cfg").SetComplexHandler("<config-type> <field> [<value>]", "query or modify configuration setting", args =>
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ConfigRoot>();
+        containerBuilder.Register(s =>
         {
-            var output = Service.Config.ConsoleCommand(args);
-            foreach (var msg in output)
-                Service.ChatGui.Print(msg);
-            return true;
-        });
-        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", _wndDebug.OpenAndBringToFront);
-        _slashCmd.AddSubcommand("gc").SetSimpleHandler("execute C# garbage collector", () =>
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        });
+            var plugin = s.Resolve<IDalamudPluginInterface>();
+            var replayDir = new DirectoryInfo(plugin.ConfigDirectory.FullName + "/replays");
+            return new ConfigUI(s.Resolve<ConfigRoot>(), s.Resolve<WorldState>(), replayDir, null);
+        }).AsSelf().SingleInstance();
 
-        _slashCmd.Register();
-        _slashCmd.RegisterAlias("/vbmai", "ai"); // TODO: deprecated
-    }
+        containerBuilder.RegisterSingletonSelfAndInterfaces<SlashCommandService>();
 
-    private void RegisterAutorotationSlashCommands(SlashCommandHandler cmd)
-    {
-        void SetOrToggle(Preset preset, bool toggle, bool exclusive)
-        {
-            if (toggle)
-            {
-                var verb = _rotation.Presets.Contains(preset) ? "disables" : "enables";
-                Service.Log($"Console: toggle {verb} preset '{preset.Name}'");
-                _rotation.Toggle(preset, exclusive);
-            }
-            else
-            {
-                Service.Log($"Console: set activates preset '{preset.Name}'");
-                _rotation.Activate(preset, exclusive);
-            }
-        }
+        containerBuilder.RegisterType<RotationDatabase>().AsSelf().SingleInstance()
+            .WithParameter(
+                (pi, ctx) => pi.Name == "rootPath",
+                (pi, ctx) => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory.FullName + "/autorot"
+            )
+            .WithParameter(
+                (pi, ctx) => pi.Name == "defaultPresets",
+                (pi, ctx) => ctx.Resolve<IDalamudPluginInterface>().AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"
+            );
+        containerBuilder.RegisterSingletonSelf<AIHints>();
 
-        void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle, bool exclusive)
-        {
-            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
-            if (preset != null)
-                SetOrToggle(preset, toggle, exclusive);
-            else
-                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
-        }
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(t => t.Name.EndsWith("Window"))
+            .As<Window>()
+            .AsSelf()
+            .AsImplementedInterfaces();
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(t => t.Name.EndsWith("Manager"))
+            .AsSelf();
 
-        void ClearByName(ReadOnlySpan<char> presetName)
-        {
-            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
-            if (preset != null)
-            {
-                Service.Log($"Console: unset deactivates preset '{preset.Name}'");
-                _rotation.Deactivate(preset);
-            }
-            else
-                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
-        }
+        containerBuilder.Register(s => new WorldState(0, "foo")).AsSelf().SingleInstance();
 
-        cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
-        cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
+        containerBuilder.RegisterBuildCallback(scope =>
         {
-            Service.Log($"Console: clearing autorotation preset(s) '{_rotation.PresetNames}'");
-            _rotation.Clear();
-        });
-        cmd.AddSubcommand("disable").SetSimpleHandler("force disable autorotation; no actions will be executed automatically even if plan is active", () =>
-        {
-            Service.Log($"Console: force-disabling from presets '{_rotation.PresetNames}'");
-            _rotation.SetForceDisabled();
-        });
-        cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset, and deactivate others", preset =>
-        {
-            SetOrToggleByName(preset, false, true);
-            return true;
-        });
-        var toggle = cmd.AddSubcommand("toggle");
-        toggle.SetSimpleHandler("force disable autorotation if not already; otherwise clear overrides", () => SetOrToggle(RotationModuleManager.ForceDisable, true, true));
-        toggle.SetComplexHandler("<preset>", "start executing specified preset unless it's already active; clear otherwise", preset =>
-        {
-            SetOrToggleByName(preset, true, true);
-            return true;
-        });
+            var pi = scope.Resolve<IDalamudPluginInterface>();
+            var configUI = scope.Resolve<ConfigUI>();
 
-        cmd.AddSubcommand("activate").SetComplexHandler("<preset>", "add specified preset to active list", preset =>
-        {
-            SetOrToggleByName(preset, false, false);
-            return true;
-        });
-        cmd.AddSubcommand("deactivate").SetComplexHandler("<preset>", "remove specified preset from active list", preset =>
-        {
-            ClearByName(preset);
-            return true;
-        });
-        cmd.AddSubcommand("togglemulti").SetComplexHandler("<preset>", "if specified preset is in active list, disable it, otherwise enable it", preset =>
-        {
-            SetOrToggleByName(preset, true, false);
-            return true;
+            pi.UiBuilder.OpenConfigUi += () => configUI.Open();
+            pi.UiBuilder.OpenMainUi += () => configUI.Open();
         });
     }
 
-    private void RegisterAISlashCommands(SlashCommandHandler cmd)
+    public override void ConfigureServices(IServiceCollection serviceCollection)
     {
-        cmd.SetSimpleHandler("toggle AI ui", () => _wndAI.SetVisible(!_wndAI.IsOpen));
-        cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () => _ai.Enabled = true);
-        cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () => _ai.Enabled = false);
-        cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () => _ai.Enabled ^= true);
-        cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable AI mode and follow party member with specified name or at specified slot", masterString =>
-        {
-            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : _ws.Party.FindSlot(masterString);
-            if (_ws.Party[masterSlot] != null)
-            {
-                _ai.SwitchToFollow(masterSlot);
-                _ai.Enabled = true;
-            }
-            else
-            {
-                Service.ChatGui.PrintError($"[AI] [Follow] Error: can't find {masterString} in our party");
-            }
-            return true;
-        });
-
-        // TODO: this should really be removed, it's a weird synonym for /vbm cfg AIConfig ...
-        cmd.SetComplexHandler("", "", args =>
-        {
-            Span<Range> ranges = stackalloc Range[2];
-            var numRanges = args.Split(ranges, ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (numRanges == 1)
-            {
-                // toggle
-                var value = Service.Config.ConsoleCommand($"AIConfig {args}");
-                return bool.TryParse(value[0], out var boolValue) && Service.Config.ConsoleCommand($"AIConfig {args} {!boolValue}").Count == 0;
-            }
-            else if (numRanges == 2)
-            {
-                // set
-                var value = args[ranges[1]];
-                if (value.Equals("on", StringComparison.InvariantCultureIgnoreCase))
-                    value = "true";
-                else if (value.Equals("off", StringComparison.InvariantCultureIgnoreCase))
-                    value = "false";
-                return Service.Config.ConsoleCommand($"AIConfig {args[ranges[0]]} {value}").Count == 0;
-            }
-            return false;
-        });
-    }
-
-    private void VbmaiHandler(string _, string __)
-    {
-        Service.ChatGui.PrintError("/vbmai: Legacy AI mode is deprecated. Please use /vbm cfg AIConfig (args...) instead. This command will be removed in a future update.");
-    }
-
-    private void OpenConfigUI(string showTab = "")
-    {
-        _configUI.ShowTab(showTab);
-        _ = new UISimpleWindow("Boss Mod Settings", _configUI.Draw, true, new(300, 300));
     }
 
     private void DrawUI()
