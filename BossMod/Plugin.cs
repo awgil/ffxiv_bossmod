@@ -159,19 +159,20 @@ public class Plugin : HostedPlugin
     }
 
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
-    public override void ConfigureContainer(ContainerBuilder containerBuilder)
+    public override void ConfigureContainer(ContainerBuilder builder)
     {
-        containerBuilder.RegisterSingletonSelfAndInterfaces<WindowService>();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<ConfigRoot>();
+        builder.RegisterSingletonSelfAndInterfaces<WindowService>();
+        builder.RegisterSingletonSelfAndInterfaces<InitWindowService>();
+        builder.RegisterSingletonSelfAndInterfaces<ConfigRoot>();
 
-        //containerBuilder.RegisterType<UIRotationWindow>().AsSelf().As<Window>();
-        containerBuilder.RegisterType<ReplayManagementWindow>().AsSelf().As<Window>().WithAttributeFiltering();
+        builder.RegisterSingletonSelf<ConfigUI>().As<Window>().WithAttributeFiltering();
+        builder.RegisterSingletonSelf<ReplayManagementWindow>().As<Window>().WithAttributeFiltering();
 
-        containerBuilder.RegisterSingletonSelf<BossModuleManager>().WithAttributeFiltering();
-        containerBuilder.RegisterSingletonSelf<RotationModuleManager>();
-        containerBuilder.RegisterSingletonSelf<RotationDatabase>();
+        builder.RegisterSingletonSelf<BossModuleManager>().WithAttributeFiltering();
+        builder.RegisterSingletonSelf<RotationModuleManager>();
+        builder.RegisterSingletonSelf<RotationDatabase>();
 
-        containerBuilder.Register(s => new WorldState(0, "pending")).Keyed<WorldState>("Global").SingleInstance();
+        builder.Register(s => new WorldState(0, "pending")).Keyed<WorldState>("Global").SingleInstance();
 
         //containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
         //    .Where(t => t.Name.EndsWith("Window"))

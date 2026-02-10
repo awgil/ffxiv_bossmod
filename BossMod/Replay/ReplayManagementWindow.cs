@@ -45,7 +45,12 @@ public class ReplayManagementWindow : UIWindow
         RespectCloseHotkey = false;
     }
 
-    public ReplayManagementWindow([KeyFilter("Global")] WorldState ws, BossModuleManager bmm, RotationDatabase rotationDB, IDalamudPluginInterface pluginInterface) : this(ws, bmm, rotationDB, new DirectoryInfo(pluginInterface.ConfigDirectory.FullName + "/replays")) { }
+    public ReplayManagementWindow(
+        [KeyFilter("Global")] WorldState ws,
+        BossModuleManager bmm,
+        RotationDatabase rotationDB,
+        IDalamudPluginInterface pluginInterface
+    ) : this(ws, bmm, rotationDB, new DirectoryInfo(pluginInterface.ConfigDirectory.FullName + "/replays")) { }
 
     protected override void Dispose(bool disposing)
     {

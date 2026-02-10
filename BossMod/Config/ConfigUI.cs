@@ -1,12 +1,14 @@
-﻿using BossMod.Autorotation;
+﻿using Autofac.Features.AttributeFilters;
+using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using System.IO;
 using System.Reflection;
 
 namespace BossMod;
 
-public sealed class ConfigUI
+public sealed class ConfigUI : UIWindow
 {
     private class UINode(ConfigNode node)
     {
@@ -31,7 +33,7 @@ public sealed class ConfigUI
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir = null, RotationDatabase? rotationDB = null) : base("Boss Mod Settings", true, new(300, 300))
     {
         _root = config;
         _ws = ws;
@@ -66,6 +68,13 @@ public sealed class ConfigUI
         ResolvePaths(_roots, []);
     }
 
+    public ConfigUI(
+        ConfigRoot config,
+        [KeyFilter("Global")] WorldState ws,
+        IDalamudPluginInterface pluginInterface,
+        RotationDatabase db
+    ) : this(config, ws, new DirectoryInfo(pluginInterface.ConfigDirectory.FullName + "/replays"), db) { }
+
     private void ResolvePaths(List<UINode> nodes, IEnumerable<string> parent)
     {
         foreach (var n in nodes)
@@ -75,7 +84,7 @@ public sealed class ConfigUI
         }
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
         _mv.Dispose();
     }
@@ -83,12 +92,12 @@ public sealed class ConfigUI
     public void Open(string tabName = "")
     {
         ShowTab(tabName);
-        _ = new UISimpleWindow("Boss Mod Settings", Draw, true, new(300, 300));
+        IsOpen = true;
     }
 
     public void ShowTab(string name) => _tabs.Select(name);
 
-    public void Draw()
+    public override void Draw()
     {
         _tabs.Draw();
     }

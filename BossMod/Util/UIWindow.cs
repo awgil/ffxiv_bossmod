@@ -22,29 +22,8 @@ public abstract class UIWindow : Window, IDisposable
         DisposeOnClose = detached;
         Size = initialSize;
         SizeCondition = ImGuiCond.FirstUseEver;
-        AllowClickthrough = AllowPinning = !Service.IsUIDev;
         if (titleBarButtons != null)
-        {
             TitleBarButtons = titleBarButtons;
-        }
-        var existingWindow = Service.WindowSystem!.Windows.FirstOrDefault(w => w.WindowName == WindowName);
-        if (existingWindow == null)
-        {
-            // standard case - just register window in window system
-            Service.WindowSystem.AddWindow(this);
-            IsOpen = detached;
-        }
-        else if (detached)
-        {
-            // this is not an error - just ensure existing window is focused (note that IsOpen is left as false)
-            existingWindow.IsOpen = true;
-            existingWindow.BringToFront();
-        }
-        else
-        {
-            // this is an error
-            throw new InvalidOperationException($"Failed to register window {name} due to name conflict");
-        }
     }
 
     public void Dispose()

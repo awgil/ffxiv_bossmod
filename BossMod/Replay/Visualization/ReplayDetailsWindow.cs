@@ -52,7 +52,7 @@ class ReplayDetailsWindow : UIWindow
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
         _player.AdvanceTo(_curTime, _mgr.Update);
-        _config = new(Service.Config, _player.WorldState, null, null);
+        _config = new(Service.Config, _player.WorldState);
         _events = new(data, MoveTo, rotationDB.Plans, this);
         _analysis = new([data]);
     }
