@@ -333,9 +333,9 @@ public sealed class ModuleViewer : IDisposable
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    UIMisc.Image(Service.Texture?.GetFromGameIcon(_expansions[i].icon), _iconSize);
+                    UIMisc.Image(_textureProvider.GetFromGameIcon(_expansions[i].icon), _iconSize);
                     ImGui.SameLine();
-                    UIMisc.Image(Service.Texture?.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), _iconSize);
+                    UIMisc.Image(_textureProvider.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), _iconSize);
                     ImGui.TableNextColumn();
 
                     foreach (var ng in tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
