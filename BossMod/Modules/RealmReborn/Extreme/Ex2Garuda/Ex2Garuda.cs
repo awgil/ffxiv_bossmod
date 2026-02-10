@@ -21,7 +21,7 @@ public class Ex2Garuda : BossModule
     public IReadOnlyList<Actor> Chirada;
     public IReadOnlyList<Actor> Suparna;
 
-    public Ex2Garuda(WorldState ws, Actor primary) : base(ws, primary, new(0, 0), new ArenaBoundsCircle(22))
+    public Ex2Garuda(ModuleInitializer init) : base(init, new(0, 0), new ArenaBoundsCircle(22))
     {
         Monoliths = Enemies(OID.Monolith);
         RazorPlumes = Enemies(OID.RazorPlume);

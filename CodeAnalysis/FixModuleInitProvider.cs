@@ -70,9 +70,23 @@ public class FixModuleInitProvider : CodeFixProvider
         return document.WithSyntaxRoot(newRoot);
     }
 
-    private static async Task<Document> FixConstructor(Document document, ConstructorDeclarationSyntax syntax, CancellationToken cancellationToken)
+    private static async Task<Document> FixConstructor(Document document, ConstructorDeclarationSyntax decl, CancellationToken cancellationToken)
     {
+        var id = SyntaxFactory.Identifier("init");
+        var oldParams = decl.ParameterList!.Parameters.ToList();
+        oldParams.RemoveRange(0, 2);
+        oldParams.Insert(0, SyntaxFactory.Parameter(id).WithType(SyntaxFactory.ParseTypeName("ModuleInitializer")));
+
+        var oldBaseParams = decl.Initializer!.ArgumentList.Arguments.ToList();
+        oldBaseParams.RemoveRange(0, 2);
+        oldBaseParams.Insert(0, SyntaxFactory.Argument(SyntaxFactory.IdentifierName("init")));
+
+        var newDecl = decl
+            .WithParameterList(decl.ParameterList.WithParameters([.. oldParams]))
+            .WithInitializer(decl.Initializer.WithArgumentList(SyntaxFactory.ArgumentList([.. oldBaseParams])));
+
         var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
-        return document.WithSyntaxRoot(oldRoot!);
+        var newRoot = oldRoot!.ReplaceNode(decl, newDecl);
+        return document.WithSyntaxRoot(newRoot);
     }
 }

@@ -151,7 +151,7 @@ class D180DendainsonneStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 216, NameID = 5461, PlanLevel = 60)]
 public class D180Dendainsonne : BossModule
 {
-    public D180Dendainsonne(WorldState ws, Actor primary) : base(ws, primary, new(-300, -300), new ArenaBoundsCircle(25))
+    public D180Dendainsonne(ModuleInitializer init) : base(init, new(-300, -300), new ArenaBoundsCircle(25))
     {
         ActivateComponent<Hints>();
     }

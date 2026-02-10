@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
@@ -15,6 +16,7 @@ public abstract class BossModule : IDisposable
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
+    private readonly ITextureProvider _tex;
 
     internal unsafe void SetPrimaryActor(Actor actor)
     {
@@ -95,6 +97,7 @@ public abstract class BossModule : IDisposable
 
     protected BossModule(WorldState ws, Actor primary, WPos center, ArenaBounds bounds)
     {
+        _tex = null!;
         Obstacles = new(ws);
         WorldState = ws;
         PrimaryActor = primary;
@@ -129,6 +132,11 @@ public abstract class BossModule : IDisposable
 
         foreach (var v in WorldState.Actors)
             OnActorCreated(v);
+    }
+
+    protected BossModule(ModuleInitializer init, WPos center, ArenaBounds bounds) : this(init.World, init.Primary, center, bounds)
+    {
+        _tex = init.TextureProvider;
     }
 
     public void Dispose()
@@ -358,7 +366,7 @@ public abstract class BossModule : IDisposable
                 continue;
 
             var iconId = i.IconId();
-            if (Service.Texture.TryGetFromGameIcon(iconId, out var tex))
+            if (_tex.TryGetFromGameIcon(iconId, out var tex))
             {
                 var wrap = tex.GetWrapOrEmpty();
                 var pos = Arena.WorldPositionToScreenPosition(actor.Position);
