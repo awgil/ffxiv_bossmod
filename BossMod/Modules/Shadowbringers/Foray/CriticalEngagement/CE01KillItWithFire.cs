@@ -124,4 +124,4 @@ class PeerifoolStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 1)] // bnpcname=9391
-public class Peerifool(ModuleInitializer init) : BossModule(init, new(-90, 700), new ArenaBoundsCircle(25));
+public class Peerifool(ModuleArgs init) : BossModule(init, new(-90, 700), new ArenaBoundsCircle(25));

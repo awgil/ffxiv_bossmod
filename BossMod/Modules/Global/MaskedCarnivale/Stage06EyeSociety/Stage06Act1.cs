@@ -110,7 +110,7 @@ class Stage06Act1States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 616, NameID = 8090, SortOrder = 1)]
 public class Stage06Act1 : BossModule
 {
-    public Stage06Act1(ModuleInitializer init) : base(init, new(100, 100), new ArenaBoundsCircle(25))
+    public Stage06Act1(ModuleArgs init) : base(init, new(100, 100), new ArenaBoundsCircle(25))
     {
         ActivateComponent<Hints>();
         ActivateComponent<LayoutBigQuad>();

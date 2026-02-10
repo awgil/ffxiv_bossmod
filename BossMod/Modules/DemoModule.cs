@@ -31,7 +31,7 @@ public class DemoModule : BossModule
         }
     }
 
-    public DemoModule(ModuleInitializer init) : base(init, new(100, 100), new ArenaBoundsSquare(20))
+    public DemoModule(ModuleArgs init) : base(init, new(100, 100), new ArenaBoundsSquare(20))
     {
         ActivateComponent<DemoComponent>();
     }

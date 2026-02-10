@@ -180,4 +180,4 @@ class MudmanStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 746, NameID = 9735)]
-public class Mudman(ModuleInitializer init) : BossModule(init, new(-180, -140), new ArenaBoundsCircle(19.5f));
+public class Mudman(ModuleArgs init) : BossModule(init, new(-180, -140), new ArenaBoundsCircle(19.5f));

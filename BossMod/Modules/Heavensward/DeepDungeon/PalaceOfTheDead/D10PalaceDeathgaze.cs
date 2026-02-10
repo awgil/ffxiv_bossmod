@@ -34,4 +34,4 @@ class D10PalaceDeathgazeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 174, NameID = 4986)]
-public class D10PalaceDeathgaze(ModuleInitializer init) : BossModule(init, new(-300, -220), new ArenaBoundsCircle(24));
+public class D10PalaceDeathgaze(ModuleArgs init) : BossModule(init, new(-300, -220), new ArenaBoundsCircle(24));

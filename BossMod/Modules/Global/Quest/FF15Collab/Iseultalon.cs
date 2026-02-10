@@ -144,7 +144,7 @@ class IseultalonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68695, NameID = 7895)]
-public class Iseultalon(ModuleInitializer init) : BossModule(init, new(-289, -30), new ArenaBoundsCircle(25))
+public class Iseultalon(ModuleArgs init) : BossModule(init, new(-289, -30), new ArenaBoundsCircle(25))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

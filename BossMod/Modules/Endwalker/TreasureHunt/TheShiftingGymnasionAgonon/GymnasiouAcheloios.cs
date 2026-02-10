@@ -139,7 +139,7 @@ class AcheloiosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12019)]
-public class Acheloios(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
+public class Acheloios(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

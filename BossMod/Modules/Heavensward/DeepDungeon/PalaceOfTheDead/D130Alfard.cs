@@ -69,4 +69,4 @@ class D130AlfardStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 211, NameID = 5397)]
-public class D130Alfard(ModuleInitializer init) : BossModule(init, new(-300, -237), new ArenaBoundsCircle(24));
+public class D130Alfard(ModuleArgs init) : BossModule(init, new(-300, -237), new ArenaBoundsCircle(24));

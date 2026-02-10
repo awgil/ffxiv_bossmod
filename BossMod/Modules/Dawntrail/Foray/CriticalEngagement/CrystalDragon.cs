@@ -77,7 +77,7 @@ class CrystalDragonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13696)]
-public class CrystalDragon(ModuleInitializer init) : BossModule(init, new(-414, 75), new ArenaBoundsCircle(24.5f))
+public class CrystalDragon(ModuleArgs init) : BossModule(init, new(-414, 75), new ArenaBoundsCircle(24.5f))
 {
     public override bool DrawAllPlayers => true;
 }

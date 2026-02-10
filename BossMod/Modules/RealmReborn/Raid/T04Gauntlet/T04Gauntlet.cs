@@ -77,7 +77,7 @@ public class T04Gauntlet : BossModule
     public IReadOnlyList<Actor> Rooks;
     public IReadOnlyList<Actor> Dreadnaughts;
 
-    public T04Gauntlet(ModuleInitializer init) : base(init, new(0, 0), new ArenaBoundsCircle(25))
+    public T04Gauntlet(ModuleArgs init) : base(init, new(0, 0), new ArenaBoundsCircle(25))
     {
         P1Bugs = Enemies(OID.ClockworkBugP1);
         Bugs = Enemies(OID.ClockworkBug);

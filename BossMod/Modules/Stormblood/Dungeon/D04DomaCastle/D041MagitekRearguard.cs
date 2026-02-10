@@ -97,4 +97,4 @@ class D041MagitekRearguardStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 241, NameID = 6200)]
-public class D041MagitekRearguard(ModuleInitializer init) : BossModule(init, new(124.5f, 17.4f), new ArenaBoundsRect(16, 16, Angle.FromDirection(new WPos(110.157f, -6.058f) - new WPos(148.156f, 3.132f))));
+public class D041MagitekRearguard(ModuleArgs init) : BossModule(init, new(124.5f, 17.4f), new ArenaBoundsRect(16, 16, Angle.FromDirection(new WPos(110.157f, -6.058f) - new WPos(148.156f, 3.132f))));

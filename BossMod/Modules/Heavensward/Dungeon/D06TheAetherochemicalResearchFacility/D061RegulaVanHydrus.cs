@@ -55,4 +55,4 @@ class D061RegulaVanHydrusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Herc, LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3818)]
-public class D061RegulaVanHydrus(ModuleInitializer init) : BossModule(init, new(-111, -295), new ArenaBoundsCircle(21)); // edge of arena is -273
+public class D061RegulaVanHydrus(ModuleArgs init) : BossModule(init, new(-111, -295), new ArenaBoundsCircle(21)); // edge of arena is -273

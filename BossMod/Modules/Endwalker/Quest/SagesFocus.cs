@@ -58,7 +58,7 @@ class AncelRockfistStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69604, NameID = 10732)]
-public class AncelRockfist(ModuleInitializer init) : BossModule(init, new(0, -82.17f), new ArenaBoundsCircle(18.5f))
+public class AncelRockfist(ModuleArgs init) : BossModule(init, new(0, -82.17f), new ArenaBoundsCircle(18.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }

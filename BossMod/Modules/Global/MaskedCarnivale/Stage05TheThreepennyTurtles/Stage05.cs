@@ -25,7 +25,7 @@ class Stage05States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 615, NameID = 8089)]
 public class Stage05 : BossModule
 {
-    public Stage05(ModuleInitializer init) : base(init, new(100, 100), new ArenaBoundsCircle(16))
+    public Stage05(ModuleArgs init) : base(init, new(100, 100), new ArenaBoundsCircle(16))
     {
         ActivateComponent<Hints>();
     }

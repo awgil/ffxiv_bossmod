@@ -133,7 +133,7 @@ class OvooStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68051, PrimaryActorOID = (uint)OID.Ovoo)]
-public class Ovoo(ModuleInitializer init) : BossModule(init, new(354, 296.5f), new ArenaBoundsCircle(20))
+public class Ovoo(ModuleArgs init) : BossModule(init, new(354, 296.5f), new ArenaBoundsCircle(20))
 {
     protected override bool CheckPull() => Raid.Player()?.Position.InCircle(PrimaryActor.Position, 15) ?? false;
 

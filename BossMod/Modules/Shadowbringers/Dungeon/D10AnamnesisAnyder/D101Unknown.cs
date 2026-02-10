@@ -100,7 +100,7 @@ class UnknownStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 714, NameID = 9261)]
-public class Unknown(ModuleInitializer init) : BossModule(init, new(-40, 290), new ArenaBoundsCircle(19.5f))
+public class Unknown(ModuleArgs init) : BossModule(init, new(-40, 290), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

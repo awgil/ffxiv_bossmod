@@ -147,4 +147,4 @@ class ProvenanceWatcherStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1423, Contributors = "xan", SortOrder = 10)]
-public class ProvenanceWatcher(ModuleInitializer init) : BossModule(init, new(564.0466f, -568.6868f), new ArenaBoundsCircle(51.5f, MapResolution: 1));
+public class ProvenanceWatcher(ModuleArgs init) : BossModule(init, new(564.0466f, -568.6868f), new ArenaBoundsCircle(51.5f, MapResolution: 1));

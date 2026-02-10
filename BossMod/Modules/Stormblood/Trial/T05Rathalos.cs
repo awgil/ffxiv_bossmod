@@ -208,5 +208,5 @@ class T05RathalosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 474, NameID = 7221)]
-public class T05Rathalos(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));
+public class T05Rathalos(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));
 

@@ -102,4 +102,4 @@ class D70TaquaruStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 205, NameID = 5321)]
-public class D70Taquaru(ModuleInitializer init) : BossModule(init, new(-300, -220), new ArenaBoundsCircle(25));
+public class D70Taquaru(ModuleArgs init) : BossModule(init, new(-300, -220), new ArenaBoundsCircle(25));

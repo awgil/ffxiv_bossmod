@@ -58,7 +58,7 @@ class DjinnStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 745, NameID = 9788)]
-public class Djinn(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(19))
+public class Djinn(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(19))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

@@ -83,4 +83,4 @@ class OrcusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69614, NameID = 10581)]
-public class Orcus(ModuleInitializer init) : BossModule(init, new(-69.7f, -388.5f), new ArenaBoundsCircle(20));
+public class Orcus(ModuleArgs init) : BossModule(init, new(-69.7f, -388.5f), new ArenaBoundsCircle(20));

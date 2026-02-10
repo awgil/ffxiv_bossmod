@@ -72,7 +72,7 @@ class UnholyDarkness(BossModule module) : Components.RaidwideCast(module, AID.Un
 class UnholyDarknessEnrage(BossModule module) : Components.RaidwideCast(module, AID.UnholyDarknessEnrage);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1063, NameID = 14037, PlanLevel = 100)]
-public class Q01TheFinalVerse(ModuleInitializer init) : BossModule(init, new(-600, -300), new ArenaBoundsRect(20, 15))
+public class Q01TheFinalVerse(ModuleArgs init) : BossModule(init, new(-600, -300), new ArenaBoundsRect(20, 15))
 {
     private Actor? _eater;
 

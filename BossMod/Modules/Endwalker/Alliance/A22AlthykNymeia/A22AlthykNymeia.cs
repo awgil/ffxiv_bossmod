@@ -4,7 +4,7 @@ class MythrilGreataxe(BossModule module) : Components.StandardAOEs(module, AID.M
 class Hydroptosis(BossModule module) : Components.SpreadFromCastTargets(module, AID.HydroptosisAOE, 6);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Althyk, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12244)]
-public class A22AlthykNymeia(ModuleInitializer init) : BossModule(init, new(50, -750), new ArenaBoundsSquare(25))
+public class A22AlthykNymeia(ModuleArgs init) : BossModule(init, new(50, -750), new ArenaBoundsSquare(25))
 {
     private Actor? _nymeia;
 

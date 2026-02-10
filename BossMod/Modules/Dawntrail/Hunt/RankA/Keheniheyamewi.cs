@@ -79,4 +79,4 @@ class KeheniheyamewiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13401)]
-public class Keheniheyamewi(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Keheniheyamewi(ModuleArgs init) : SimpleBossModule(init);

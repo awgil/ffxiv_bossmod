@@ -171,4 +171,4 @@ class A24HeavyArtilleryUnitStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 736, NameID = 9650)]
-public class A24HeavyArtilleryUnit(ModuleInitializer init) : BossModule(init, new(200, -100), new ArenaBoundsCustom(29.5f, new(CurveApprox.Donut(5.7f, 30, 0.02f))));
+public class A24HeavyArtilleryUnit(ModuleArgs init) : BossModule(init, new(200, -100), new ArenaBoundsCustom(29.5f, new(CurveApprox.Donut(5.7f, 30, 0.02f))));

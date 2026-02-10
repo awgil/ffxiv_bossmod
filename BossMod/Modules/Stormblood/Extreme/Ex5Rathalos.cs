@@ -215,5 +215,5 @@ class Ex5RathalosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 475, NameID = 7221)]
-public class Ex5Rathalos(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(24.5f));
+public class Ex5Rathalos(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(24.5f));
 

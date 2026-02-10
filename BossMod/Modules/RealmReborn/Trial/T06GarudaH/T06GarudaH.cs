@@ -88,7 +88,7 @@ public class T06GarudaH : BossModule
     private readonly IReadOnlyList<Actor> _monoliths;
     public IEnumerable<Actor> ActiveMonoliths => _monoliths;
 
-    public T06GarudaH(ModuleInitializer init) : base(init, new(0, 0), new ArenaBoundsCircle(22))
+    public T06GarudaH(ModuleArgs init) : base(init, new(0, 0), new ArenaBoundsCircle(22))
     {
         _monoliths = Enemies(OID.Monolith);
     }

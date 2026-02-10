@@ -160,7 +160,7 @@ class A25Compound2PStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 736, NameID = 9646)]
-public class A25Compound2P(ModuleInitializer init) : BossModule(init, new(200, -700), new ArenaBoundsSquare(30))
+public class A25Compound2P(ModuleArgs init) : BossModule(init, new(200, -700), new ArenaBoundsSquare(30))
 {
     public Actor? BossP2 => Enemies(OID.BossP2).FirstOrDefault();
 

@@ -74,4 +74,4 @@ class D041LyssaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10396)]
-public class D041Lyssa(ModuleInitializer init) : BossModule(init, new(-144, 49), new ArenaBoundsCircle(19.5f));
+public class D041Lyssa(ModuleArgs init) : BossModule(init, new(-144, 49), new ArenaBoundsCircle(19.5f));

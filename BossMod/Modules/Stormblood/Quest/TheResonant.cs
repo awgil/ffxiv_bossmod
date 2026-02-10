@@ -83,4 +83,4 @@ public class FordolaRemLupisStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68086, NameID = 6104)]
-public class FordolaRemLupis(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(19.5f));
+public class FordolaRemLupis(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(19.5f));

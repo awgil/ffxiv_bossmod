@@ -221,4 +221,4 @@ class D50OgbunabaliStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1036, NameID = 14263)]
-public class D50Ogbunabali(ModuleInitializer init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(15));
+public class D50Ogbunabali(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(15));

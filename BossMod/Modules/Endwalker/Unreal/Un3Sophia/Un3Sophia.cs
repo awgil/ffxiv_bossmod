@@ -15,4 +15,4 @@ class QuasarProximity1(BossModule module) : Components.StandardAOEs(module, AID.
 class QuasarProximity2(BossModule module) : Components.StandardAOEs(module, AID.QuasarProximity2, 15); // TODO: reconsider distance
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 926, NameID = 5199, PlanLevel = 90)]
-public class Un3Sophia(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsRect(20, 15));
+public class Un3Sophia(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsRect(20, 15));

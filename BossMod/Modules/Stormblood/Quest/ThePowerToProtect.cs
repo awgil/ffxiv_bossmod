@@ -65,7 +65,7 @@ class IoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67966, NameID = 5667)]
-public class Io(ModuleInitializer init) : BossModule(init, ArenaCenter, B)
+public class Io(ModuleArgs init) : BossModule(init, ArenaCenter, B)
 {
     public static readonly WPos ArenaCenter = new(76.28f, -659.47f);
     public static readonly WPos[] Corners = [new(101.93f, -666.63f), new(94.49f, -639.63f), new(50.64f, -652.38f), new(57.58f, -679.32f)];

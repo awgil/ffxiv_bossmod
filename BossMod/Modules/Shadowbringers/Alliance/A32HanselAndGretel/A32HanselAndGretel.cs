@@ -222,7 +222,7 @@ class A32HanselAndGretelStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9989, PrimaryActorOID = (uint)OID.Gretel)]
-public class A32HanselAndGretel(ModuleInitializer init) : BossModule(init, new(-800, -951), new ArenaBoundsCircle(24.5f))
+public class A32HanselAndGretel(ModuleArgs init) : BossModule(init, new(-800, -951), new ArenaBoundsCircle(24.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

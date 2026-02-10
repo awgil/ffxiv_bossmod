@@ -57,7 +57,7 @@ class C010NDryadStates(BossModule module) : C010DryadStates(module, false);
 class C010SDryadStates(BossModule module) : C010DryadStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11513, SortOrder = 4)]
-public class C010NDryad(WorldState ws, Actor primary) : SimpleBossModule(ws, primary)
+public class C010NDryad(ModuleArgs init) : SimpleBossModule(init)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
@@ -67,7 +67,7 @@ public class C010NDryad(WorldState ws, Actor primary) : SimpleBossModule(ws, pri
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11513, SortOrder = 4)]
-public class C010SDryad(WorldState ws, Actor primary) : SimpleBossModule(ws, primary)
+public class C010SDryad(ModuleArgs init) : SimpleBossModule(init)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

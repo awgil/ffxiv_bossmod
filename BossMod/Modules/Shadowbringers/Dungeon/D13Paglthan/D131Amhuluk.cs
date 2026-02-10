@@ -182,4 +182,4 @@ class AmhulukStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 777, NameID = 10075)]
-public class Amhuluk(ModuleInitializer init) : BossModule(init, new(-520, 145), new ArenaBoundsCircle(20));
+public class Amhuluk(ModuleArgs init) : BossModule(init, new(-520, 145), new ArenaBoundsCircle(20));

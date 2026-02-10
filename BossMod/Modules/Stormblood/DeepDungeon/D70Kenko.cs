@@ -80,4 +80,4 @@ class KenkoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 546, NameID = 7489)]
-public class Kenko(ModuleInitializer init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(24));
+public class Kenko(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(24));

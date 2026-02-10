@@ -15,7 +15,7 @@ class A10LionsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Lion, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11294, SortOrder = 4)]
-public class A10Lions(ModuleInitializer init) : BossModule(init, new(-677.25f, -606.25f), new ArenaBoundsCircle(20))
+public class A10Lions(ModuleArgs init) : BossModule(init, new(-677.25f, -606.25f), new ArenaBoundsCircle(20))
 {
     private Actor? _lioness;
 

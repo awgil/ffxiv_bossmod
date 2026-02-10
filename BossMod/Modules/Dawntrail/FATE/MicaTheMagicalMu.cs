@@ -260,4 +260,4 @@ class MicaTheMagicalMuStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1922, NameID = 13049)]
-public class MicaTheMagicalMu(ModuleInitializer init) : BossModule(init, new(791, 593), new ArenaBoundsRect(21, 20));
+public class MicaTheMagicalMu(ModuleArgs init) : BossModule(init, new(791, 593), new ArenaBoundsRect(21, 20));

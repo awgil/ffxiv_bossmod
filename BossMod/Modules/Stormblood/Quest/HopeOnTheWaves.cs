@@ -69,7 +69,7 @@ class ImperialCenturionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68560, NameID = 4148)]
-public class ImperialCenturion(ModuleInitializer init) : BossModule(init, new(473.25f, 751.75f), BoundsP2)
+public class ImperialCenturion(ModuleArgs init) : BossModule(init, new(473.25f, 751.75f), BoundsP2)
 {
     public static readonly ArenaBoundsCustom BoundsP2 = new(30, new(CurveApprox.Ellipse(34, 21, 0.05f).Select(p => p.Rotate(140.Degrees()))));
 

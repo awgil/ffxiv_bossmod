@@ -103,7 +103,7 @@ class T01CaduceusStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1466, SortOrder = 2, PlanLevel = 50)]
 public class T01Caduceus : BossModule
 {
-    public T01Caduceus(ModuleInitializer init) : base(init, new(-26, -407), new ArenaBoundsRect(35, 43))
+    public T01Caduceus(ModuleArgs init) : base(init, new(-26, -407), new ArenaBoundsRect(35, 43))
     {
         ActivateComponent<Platforms>();
     }

@@ -101,4 +101,4 @@ class D051HerpekarisStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 825, NameID = 12741)]
-public class D051Herpekaris(ModuleInitializer init) : BossModule(init, new(-88, -180), new ArenaBoundsSquare(18));
+public class D051Herpekaris(ModuleArgs init) : BossModule(init, new(-88, -180), new ArenaBoundsSquare(18));

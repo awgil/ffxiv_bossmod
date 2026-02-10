@@ -75,7 +75,7 @@ class A13ThanatosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 710)]
-public class A13Thanatos(ModuleInitializer init) : BossModule(init, new(440.4f, 280), ThanatosBounds)
+public class A13Thanatos(ModuleArgs init) : BossModule(init, new(440.4f, 280), ThanatosBounds)
 {
     public static readonly ArenaBoundsCustom ThanatosBounds = MakeBounds();
 

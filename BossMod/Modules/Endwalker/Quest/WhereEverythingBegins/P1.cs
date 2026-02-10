@@ -29,7 +29,7 @@ class ScarmiglioneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70130, NameID = 11407)]
-public class Scarmiglione(ModuleInitializer init) : BossModule(init, new(0, -148), new ArenaBoundsCircle(19.5f))
+public class Scarmiglione(ModuleArgs init) : BossModule(init, new(0, -148), new ArenaBoundsCircle(19.5f))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);

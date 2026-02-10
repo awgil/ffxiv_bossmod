@@ -130,7 +130,7 @@ class SixHandedFistfight(BossModule module) : Components.GenericAOEs(module, AID
 class SixHandedRaidwide(BossModule module) : Components.RaidwideCastDelay(module, AID.SixHandedFistfightAOE, AID.SixHandedRaidwide, 0.5f);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13738, PrimaryActorOID = (uint)OID.Triton, PlanLevel = 100)]
-public class FT02DeadStars(ModuleInitializer init) : BossModule(init, new(-800, 360), new ArenaBoundsCircle(35))
+public class FT02DeadStars(ModuleArgs init) : BossModule(init, new(-800, 360), new ArenaBoundsCircle(35))
 {
     private Actor? _nereid;
     private Actor? _phobos;

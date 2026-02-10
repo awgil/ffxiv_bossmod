@@ -200,7 +200,7 @@ public class Hrodvitnir : BossModule
 {
     private readonly IReadOnlyList<Actor> _adds;
 
-    public Hrodvitnir(ModuleInitializer init) : base(init, new(-830, 190), new ArenaBoundsSquare(24))
+    public Hrodvitnir(ModuleArgs init) : base(init, new(-830, 190), new ArenaBoundsSquare(24))
     {
         _adds = Enemies(OID.Imaginifer);
     }

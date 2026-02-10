@@ -62,7 +62,7 @@ class C020NKotenguStates(BossModule module) : C020KotenguStates(module, false);
 class C020SKotenguStates(BossModule module) : C020KotenguStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NKotengu, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12410, SortOrder = 6)]
-public class C020NKotengu(WorldState ws, Actor primary) : C020Trash2(ws, primary);
+public class C020NKotengu(ModuleArgs init) : C020Trash2(init);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SKotengu, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12410, SortOrder = 6)]
-public class C020SKotengu(WorldState ws, Actor primary) : C020Trash2(ws, primary);
+public class C020SKotengu(ModuleArgs init) : C020Trash2(init);

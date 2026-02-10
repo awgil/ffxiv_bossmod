@@ -242,7 +242,7 @@ class D055ForgivenObscenityStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8262)]
-public class D055ForgivenObscenity(ModuleInitializer init) : BossModule(init, new(-240, 237), new ArenaBoundsRect(15, 20))
+public class D055ForgivenObscenity(ModuleArgs init) : BossModule(init, new(-240, 237), new ArenaBoundsRect(15, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

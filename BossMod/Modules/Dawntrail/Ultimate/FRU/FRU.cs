@@ -8,7 +8,7 @@ class P4HallowedWingsR(BossModule module) : Components.StandardAOEs(module, AID.
 class P5ParadiseLost(BossModule module) : Components.CastCounter(module, AID.ParadiseLostP5AOE);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1006, NameID = 9707, PlanLevel = 100)]
-public class FRU(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
+public class FRU(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     public static readonly ArenaBoundsSquare PathfindHugBorderBounds = new(20); // this is a hack to allow precise positioning near border by some mechanics, TODO reconsider
 

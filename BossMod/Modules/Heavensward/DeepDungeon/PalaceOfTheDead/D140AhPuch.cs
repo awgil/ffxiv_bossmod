@@ -54,4 +54,4 @@ class D140AhPuchStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 212, NameID = 5410)]
-public class D140AhPuch(ModuleInitializer init) : BossModule(init, new(-300, -237), new ArenaBoundsCircle(24));
+public class D140AhPuch(ModuleArgs init) : BossModule(init, new(-300, -237), new ArenaBoundsCircle(24));

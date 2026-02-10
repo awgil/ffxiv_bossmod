@@ -84,4 +84,4 @@ class YilanStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10625)]
-public class Yilan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Yilan(ModuleArgs init) : SimpleBossModule(init);

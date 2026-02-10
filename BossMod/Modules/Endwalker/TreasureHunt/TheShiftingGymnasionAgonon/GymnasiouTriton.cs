@@ -39,7 +39,7 @@ class TritonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12006)]
-public class Triton(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
+public class Triton(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

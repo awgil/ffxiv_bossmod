@@ -70,7 +70,7 @@ class C020NFukoStates(BossModule module) : C020FukoStates(module, false);
 class C020SFukoStates(BossModule module) : C020FukoStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NFuko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12399, SortOrder = 2)]
-public class C020NFuko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
+public class C020NFuko(ModuleArgs init) : C020Trash1(init)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
@@ -81,7 +81,7 @@ public class C020NFuko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SFuko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12399, SortOrder = 2)]
-public class C020SFuko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
+public class C020SFuko(ModuleArgs init) : C020Trash1(init)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

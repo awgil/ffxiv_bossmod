@@ -104,7 +104,7 @@ class TotemStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 586, NameID = 7586)]
-public class Totem(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
+public class Totem(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

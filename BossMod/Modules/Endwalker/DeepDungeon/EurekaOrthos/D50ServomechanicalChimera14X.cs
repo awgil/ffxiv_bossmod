@@ -150,4 +150,4 @@ class ServomechanicalChimera14XStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 901, NameID = 12265)]
-public class ServomechanicalChimera14X(ModuleInitializer init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(19.5f));
+public class ServomechanicalChimera14X(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(19.5f));

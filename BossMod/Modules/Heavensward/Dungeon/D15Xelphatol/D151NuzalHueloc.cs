@@ -82,7 +82,7 @@ class NuzalHuelocStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 182, NameID = 5265, Contributors = "xan")]
-public class NuzalHueloc(ModuleInitializer init) : BossModule(init, new(-74.5f, -70.25f), new ArenaBoundsCircle(20))
+public class NuzalHueloc(ModuleArgs init) : BossModule(init, new(-74.5f, -70.25f), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

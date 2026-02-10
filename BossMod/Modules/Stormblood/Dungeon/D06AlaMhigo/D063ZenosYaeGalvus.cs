@@ -141,4 +141,4 @@ class ZenosYaeGalvusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 247, NameID = 6039)]
-public class ZenosYaeGalvus(ModuleInitializer init) : BossModule(init, new(250, -353), new ArenaBoundsCircle(20));
+public class ZenosYaeGalvus(ModuleArgs init) : BossModule(init, new(250, -353), new ArenaBoundsCircle(20));

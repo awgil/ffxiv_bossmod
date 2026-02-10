@@ -222,5 +222,5 @@ class D113ImmortalRemainsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "erdelf, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 13974)]
-public class D113ImmortalRemains(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(20));
+public class D113ImmortalRemains(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(20));
 

@@ -45,4 +45,4 @@ class D051ForgivenCrueltyStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8260)]
-public class D051ForgivenCruelty(ModuleInitializer init) : BossModule(init, new(188, -170), new ArenaBoundsCircle(20));
+public class D051ForgivenCruelty(ModuleArgs init) : BossModule(init, new(188, -170), new ArenaBoundsCircle(20));

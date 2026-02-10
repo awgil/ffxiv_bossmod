@@ -5,4 +5,4 @@ class BloodyWraith(BossModule module) : Components.Adds(module, (uint)OID.Bloody
 class MistyWraith(BossModule module) : Components.Adds(module, (uint)OID.MistyWraith);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9755, PlanLevel = 80)]
-public class DRS5(ModuleInitializer init) : BossModule(init, new(202, -370), new ArenaBoundsSquare(24));
+public class DRS5(ModuleArgs init) : BossModule(init, new(202, -370), new ArenaBoundsSquare(24));

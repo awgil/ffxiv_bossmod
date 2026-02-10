@@ -14,4 +14,4 @@ class CrateringChill(BossModule module) : Components.StandardAOEs(module, AID.Cr
 class MoonsetRays(BossModule module) : Components.StackWithCastTargets(module, AID.MoonsetRaysAOE, 6, 4);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12063)]
-public class A24Menphina(ModuleInitializer init) : BossModule(init, new(800, 750), new ArenaBoundsCircle(30));
+public class A24Menphina(ModuleArgs init) : BossModule(init, new(800, 750), new ArenaBoundsCircle(30));

@@ -94,5 +94,5 @@ class A35XunZiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9921)]
-public class A35XunZi(ModuleInitializer init) : BossModule(init, new(800, 800), new ArenaBoundsSquare(24.5f));
+public class A35XunZi(ModuleArgs init) : BossModule(init, new(800, 800), new ArenaBoundsSquare(24.5f));
 

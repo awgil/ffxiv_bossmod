@@ -58,4 +58,4 @@ class TerminusEst(BossModule module) : Components.GenericAOEs(module, AID.Termin
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67203, NameID = 3818)]
-public class RegulaVanHydrus(ModuleInitializer init) : BossModule(init, new(252.75f, 553), new ArenaBoundsCircle(19.5f));
+public class RegulaVanHydrus(ModuleArgs init) : BossModule(init, new(252.75f, 553), new ArenaBoundsCircle(19.5f));

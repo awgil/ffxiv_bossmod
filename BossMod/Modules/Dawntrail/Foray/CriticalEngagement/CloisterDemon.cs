@@ -119,7 +119,7 @@ class CloisterDemonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13666)]
-public class CloisterDemon(ModuleInitializer init) : BossModule(init, new(-340, 800), new ArenaBoundsCircle(29.5f))
+public class CloisterDemon(ModuleArgs init) : BossModule(init, new(-340, 800), new ArenaBoundsCircle(29.5f))
 {
     public override bool DrawAllPlayers => true;
 }

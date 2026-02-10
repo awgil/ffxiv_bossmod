@@ -79,4 +79,4 @@ class RingBounds(BossModule module) : BossComponent(module)
 class PulpingPulse(BossModule module) : Components.StandardAOEs(module, AID.PulpingPulse, 5);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1069, NameID = 14300, PlanLevel = 100)]
-public class RM09SVampFatale(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
+public class RM09SVampFatale(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

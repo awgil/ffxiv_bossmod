@@ -79,7 +79,7 @@ class ZenosYaeGalvusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68034, NameID = 5954)]
-public class ZenosYaeGalvus(ModuleInitializer init) : BossModule(init, new(-247, 546.5f), CustomBounds)
+public class ZenosYaeGalvus(ModuleArgs init) : BossModule(init, new(-247, 546.5f), CustomBounds)
 {
     private static readonly List<WDir> vertices = [
         new(-226.91f, 523.65f), new(-254.46f, 524.46f), new(-254.66f, 541.06f), new(-269.99f, 544.12f), new(-269.58f, 565.97f), new(-254.58f, 565.89f), new(-249.05f, 554.06f), new(-229.18f, 562.35f)

@@ -5,4 +5,4 @@
 public class ElegantEvisceration(BossModule module) : Components.CastCounter(module, AID.ElegantEviscerationSecond);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 801, NameID = 10744, SortOrder = 1, PlanLevel = 90)]
-public class P4S1(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
+public class P4S1(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

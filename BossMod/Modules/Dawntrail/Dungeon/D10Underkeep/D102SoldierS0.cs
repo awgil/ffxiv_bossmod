@@ -128,4 +128,4 @@ class D102SoldierS0States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1027, NameID = 13757)]
-public class D102SoldierS0(ModuleInitializer init) : BossModule(init, new(0, -182f), new ArenaBoundsSquare(15.5f));
+public class D102SoldierS0(ModuleArgs init) : BossModule(init, new(0, -182f), new ArenaBoundsSquare(15.5f));

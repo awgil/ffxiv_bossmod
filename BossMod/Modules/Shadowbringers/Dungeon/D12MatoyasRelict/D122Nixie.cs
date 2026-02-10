@@ -223,7 +223,7 @@ class NixieStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 746, NameID = 9738)]
-public class Nixie(ModuleInitializer init) : BossModule(init, GroundCenter, DefaultBounds)
+public class Nixie(ModuleArgs init) : BossModule(init, GroundCenter, DefaultBounds)
 {
     private static ArenaBoundsCustom MakeCloud()
     {

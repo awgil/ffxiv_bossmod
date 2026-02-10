@@ -8,4 +8,4 @@ class AbsoluteTerror(BossModule module) : Components.StandardAOEs(module, AID.Ab
 class WingedTerror(BossModule module) : Components.StandardAOEs(module, AID.WingedTerrorAOE, new AOEShapeRect(70, 12.5f));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13662)]
-public class A12Fafnir(ModuleInitializer init) : BossModule(init, new(-500, 600), new ArenaBoundsCircle(30));
+public class A12Fafnir(ModuleArgs init) : BossModule(init, new(-500, 600), new ArenaBoundsCircle(30));

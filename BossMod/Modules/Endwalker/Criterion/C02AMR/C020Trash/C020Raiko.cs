@@ -74,7 +74,7 @@ class C020NRaikoStates(BossModule module) : C020RaikoStates(module, false);
 class C020SRaikoStates(BossModule module) : C020RaikoStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12422, SortOrder = 1)]
-public class C020NRaiko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
+public class C020NRaiko(ModuleArgs init) : C020Trash1(init)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
@@ -85,7 +85,7 @@ public class C020NRaiko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12422, SortOrder = 1)]
-public class C020SRaiko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
+public class C020SRaiko(ModuleArgs init) : C020Trash1(init)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

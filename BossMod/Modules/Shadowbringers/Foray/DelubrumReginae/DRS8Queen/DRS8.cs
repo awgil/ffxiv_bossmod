@@ -20,4 +20,4 @@ class OptimalPlayCone(BossModule module) : Components.StandardAOEs(module, AID.O
 class PawnOff(BossModule module) : Components.StandardAOEs(module, AID.PawnOffReal, new AOEShapeCircle(20));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9863, PlanLevel = 80)]
-public class DRS8(ModuleInitializer init) : BossModule(init, new(-272, -415), new ArenaBoundsCircle(25)); // note: initially arena is square, but it quickly changes to circle
+public class DRS8(ModuleArgs init) : BossModule(init, new(-272, -415), new ArenaBoundsCircle(25)); // note: initially arena is square, but it quickly changes to circle

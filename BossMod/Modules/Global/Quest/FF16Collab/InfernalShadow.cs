@@ -213,7 +213,7 @@ class SearingStomp(BossModule module) : BossComponent(module)
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70334, NameID = 12564)] // also: CFC 959
-public class InfernalShadow(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20))
+public class InfernalShadow(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

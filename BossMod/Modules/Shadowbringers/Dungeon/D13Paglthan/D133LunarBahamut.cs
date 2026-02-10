@@ -120,4 +120,4 @@ class LunarBahamutStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 777, NameID = 10077)]
-public class LunarBahamut(ModuleInitializer init) : BossModule(init, new(796.5f, -97.5f), new ArenaBoundsCircle(20));
+public class LunarBahamut(ModuleArgs init) : BossModule(init, new(796.5f, -97.5f), new ArenaBoundsCircle(20));

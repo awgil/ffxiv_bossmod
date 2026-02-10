@@ -39,4 +39,4 @@ class D021RaskovnikStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3791)]
-public class D021Raskovnik(ModuleInitializer init) : BossModule(init, new(-127, 168), new ArenaBoundsCircle(23f));
+public class D021Raskovnik(ModuleArgs init) : BossModule(init, new(-127, 168), new ArenaBoundsCircle(23f));

@@ -17,7 +17,7 @@ class P7Shockwave(BossModule module) : Components.CastCounter(module, AID.Shockw
 class P7AlternativeEnd(BossModule module) : Components.CastCounter(module, AID.AlternativeEnd);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP2, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788, PlanLevel = 90)]
-public class DSW2(ModuleInitializer init) : BossModule(init, new(100, 100), BoundsCircle)
+public class DSW2(ModuleArgs init) : BossModule(init, new(100, 100), BoundsCircle)
 {
     public static readonly ArenaBoundsCircle BoundsCircle = new(21); // p2, intermission
     public static readonly ArenaBoundsSquare BoundsSquare = new(21); // p3, p4

@@ -534,4 +534,4 @@ class T06GuardianArkveldStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1043, NameID = 14237)]
-public class T06GuardianArkveld(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));
+public class T06GuardianArkveld(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

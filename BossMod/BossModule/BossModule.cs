@@ -134,7 +134,7 @@ public abstract class BossModule : IDisposable
             OnActorCreated(v);
     }
 
-    protected BossModule(ModuleInitializer init, WPos center, ArenaBounds bounds) : this(init.World, init.Primary, center, bounds)
+    protected BossModule(ModuleArgs init, WPos center, ArenaBounds bounds) : this(init.World, init.Primary, center, bounds)
     {
         _tex = init.TextureProvider;
     }

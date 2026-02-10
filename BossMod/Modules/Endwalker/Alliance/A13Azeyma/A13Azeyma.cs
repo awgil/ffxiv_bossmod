@@ -7,4 +7,4 @@ class Sunbeam(BossModule module) : Components.StandardAOEs(module, AID.Sunbeam, 
 class SublimeSunset(BossModule module) : Components.StandardAOEs(module, AID.SublimeSunsetAOE, 40); // TODO: check falloff
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11277, SortOrder = 5)]
-public class A13Azeyma(ModuleInitializer init) : BossModule(init, new(-750, -750), new ArenaBoundsCircle(30));
+public class A13Azeyma(ModuleArgs init) : BossModule(init, new(-750, -750), new ArenaBoundsCircle(30));

@@ -119,4 +119,4 @@ class YehehetoauapyoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13400)]
-public class Yehehetoauapyo(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Yehehetoauapyo(ModuleArgs init) : SimpleBossModule(init);

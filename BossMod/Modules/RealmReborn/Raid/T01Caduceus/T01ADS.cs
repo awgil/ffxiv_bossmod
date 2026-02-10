@@ -48,7 +48,7 @@ class T01ADSStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1459, SortOrder = 1)]
-public class T01ADS(ModuleInitializer init) : BossModule(init, new(-3, 27), new ArenaBoundsRect(7, 28))
+public class T01ADS(ModuleArgs init) : BossModule(init, new(-3, 27), new ArenaBoundsRect(7, 28))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

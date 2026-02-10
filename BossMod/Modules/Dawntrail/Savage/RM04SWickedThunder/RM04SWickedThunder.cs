@@ -11,7 +11,7 @@ class WickedSpecialCenter(BossModule module) : Components.StandardAOEs(module, A
 class WickedSpecialSides(BossModule module) : Components.StandardAOEs(module, AID.WickedSpecialSidesAOE, new AOEShapeRect(40, 7.5f));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 992, NameID = 13057, PlanLevel = 100)]
-public class RM04SWickedThunder(ModuleInitializer init) : BossModule(init, P1Center, P1DefaultBounds)
+public class RM04SWickedThunder(ModuleArgs init) : BossModule(init, P1Center, P1DefaultBounds)
 {
     public static readonly WPos P1Center = new(100, 100);
     public static readonly WPos P2Center = new(100, 165);

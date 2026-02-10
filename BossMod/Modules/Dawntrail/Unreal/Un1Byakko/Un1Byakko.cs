@@ -10,7 +10,7 @@ class DistantClap(BossModule module) : Components.StandardAOEs(module, AID.Dista
 class SweepTheLegBoss(BossModule module) : Components.StandardAOEs(module, AID.SweepTheLegBoss, new AOEShapeCone(28.3f, 135.Degrees()));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 1007, NameID = 7092, PlanLevel = 100)]
-public class Un1Byakko(ModuleInitializer init) : BossModule(init, new(0, 0), NormalBounds)
+public class Un1Byakko(ModuleArgs init) : BossModule(init, new(0, 0), NormalBounds)
 {
     public static readonly ArenaBoundsCircle NormalBounds = new(20);
     public static readonly ArenaBoundsCircle IntermissionBounds = new(15);

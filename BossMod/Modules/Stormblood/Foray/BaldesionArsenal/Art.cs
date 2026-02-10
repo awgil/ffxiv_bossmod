@@ -95,4 +95,4 @@ class ArtStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7968)]
-public class Art(WorldState ws, Actor primary) : BAModule(ws, primary, new(-129, 748), new ArenaBoundsCircle(30));
+public class Art(ModuleArgs init) : BAModule(init, new(-129, 748), new ArenaBoundsCircle(30));

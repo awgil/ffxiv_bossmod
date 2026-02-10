@@ -227,4 +227,4 @@ class D033MaulskullStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 829, NameID = 12728)]
-public class D033Maulskull(ModuleInitializer init) : BossModule(init, new(100, -430), new ArenaBoundsSquare(20));
+public class D033Maulskull(ModuleArgs init) : BossModule(init, new(100, -430), new ArenaBoundsSquare(20));

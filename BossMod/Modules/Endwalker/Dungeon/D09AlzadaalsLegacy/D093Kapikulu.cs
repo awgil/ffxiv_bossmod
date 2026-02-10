@@ -150,4 +150,4 @@ class D093KapikuluStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 844, NameID = 11238)]
-public class D093Kapikulu(ModuleInitializer init) : BossModule(init, new(110, -68), new ArenaBoundsRect(19.5f, 24.5f));
+public class D093Kapikulu(ModuleArgs init) : BossModule(init, new(110, -68), new ArenaBoundsRect(19.5f, 24.5f));

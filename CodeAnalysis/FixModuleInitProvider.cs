@@ -52,7 +52,7 @@ public class FixModuleInitProvider : CodeFixProvider
         var id = SyntaxFactory.Identifier("init");
         var oldParams = decl.ParameterList!.Parameters.ToList();
         oldParams.RemoveRange(0, 2);
-        oldParams.Insert(0, SyntaxFactory.Parameter(id).WithType(SyntaxFactory.ParseTypeName("ModuleInitializer")));
+        oldParams.Insert(0, SyntaxFactory.Parameter(id).WithType(SyntaxFactory.ParseTypeName("ModuleArgs")));
 
         if (decl.BaseList!.Types.Single() is not PrimaryConstructorBaseTypeSyntax oldBase)
             throw new InvalidOperationException("Internal error in code fix: FixPrimaryConstructor called on a declaration without a primary constructor");
@@ -75,7 +75,7 @@ public class FixModuleInitProvider : CodeFixProvider
         var id = SyntaxFactory.Identifier("init");
         var oldParams = decl.ParameterList!.Parameters.ToList();
         oldParams.RemoveRange(0, 2);
-        oldParams.Insert(0, SyntaxFactory.Parameter(id).WithType(SyntaxFactory.ParseTypeName("ModuleInitializer")));
+        oldParams.Insert(0, SyntaxFactory.Parameter(id).WithType(SyntaxFactory.ParseTypeName("ModuleArgs")));
 
         var oldBaseParams = decl.Initializer!.ArgumentList.Arguments.ToList();
         oldBaseParams.RemoveRange(0, 2);

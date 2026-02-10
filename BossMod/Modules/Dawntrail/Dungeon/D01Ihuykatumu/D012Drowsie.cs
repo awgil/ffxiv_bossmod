@@ -70,4 +70,4 @@ class D012DrowsieStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12716)]
-public class D012Drowsie(ModuleInitializer init) : BossModule(init, new(80, 53), new ArenaBoundsCircle(20));
+public class D012Drowsie(ModuleArgs init) : BossModule(init, new(80, 53), new ArenaBoundsCircle(20));

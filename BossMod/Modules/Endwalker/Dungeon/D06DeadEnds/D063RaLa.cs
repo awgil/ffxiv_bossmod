@@ -45,4 +45,4 @@ class RaLaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 792, NameID = 10316)]
-public class RaLa(ModuleInitializer init) : BossModule(init, new(-380, -135), new ArenaBoundsCircle(20));
+public class RaLa(ModuleArgs init) : BossModule(init, new(-380, -135), new ArenaBoundsCircle(20));

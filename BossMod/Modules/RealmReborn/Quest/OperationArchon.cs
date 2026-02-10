@@ -54,4 +54,4 @@ class RhitahtynSasArvinaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70057, NameID = 2160)]
-public class RhitahtynSasArvina(ModuleInitializer init) : BossModule(init, new(-689, -815), new ArenaBoundsCircle(14.5f));
+public class RhitahtynSasArvina(ModuleArgs init) : BossModule(init, new(-689, -815), new ArenaBoundsCircle(14.5f));

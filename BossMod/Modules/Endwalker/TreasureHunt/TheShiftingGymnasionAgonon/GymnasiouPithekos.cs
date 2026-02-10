@@ -94,7 +94,7 @@ class PithekosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 909, NameID = 12001)]
-public class Pithekos(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
+public class Pithekos(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

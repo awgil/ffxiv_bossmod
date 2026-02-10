@@ -65,7 +65,7 @@ class Stage24Act2States : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 634, NameID = 8128, SortOrder = 2)]
 public class Stage24Act2 : BossModule
 {
-    public Stage24Act2(ModuleInitializer init) : base(init, new(100, 100), new ArenaBoundsCircle(25))
+    public Stage24Act2(ModuleArgs init) : base(init, new(100, 100), new ArenaBoundsCircle(25))
     {
         ActivateComponent<Hints>();
     }

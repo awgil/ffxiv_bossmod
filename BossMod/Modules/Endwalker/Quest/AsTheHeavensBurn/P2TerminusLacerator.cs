@@ -73,7 +73,7 @@ class TerminusLaceratorStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 804, NameID = 10933)]
-public class TerminusLacerator(ModuleInitializer init) : BossModule(init, new(-260.28f, 80.75f), new ArenaBoundsCircle(19.5f))
+public class TerminusLacerator(ModuleArgs init) : BossModule(init, new(-260.28f, 80.75f), new ArenaBoundsCircle(19.5f))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
 }

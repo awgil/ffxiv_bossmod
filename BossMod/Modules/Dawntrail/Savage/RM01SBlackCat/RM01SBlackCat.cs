@@ -8,4 +8,4 @@ class DoubleSwipeShade(BossModule module) : Components.StackWithCastTargets(modu
 class Nailchipper(BossModule module) : Components.SpreadFromCastTargets(module, AID.NailchipperAOE, 5);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 986, NameID = 12686, PlanLevel = 100)]
-public class RM01SBlackCat(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
+public class RM01SBlackCat(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

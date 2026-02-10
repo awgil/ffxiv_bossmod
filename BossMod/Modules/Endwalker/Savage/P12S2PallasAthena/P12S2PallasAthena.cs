@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Savage.P12S2PallasAthena;
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 943, NameID = 12382, SortOrder = 2, PlanLevel = 90)]
-public class P12S2PallasAthena(ModuleInitializer init) : BossModule(init, new(100, 95), DefaultBounds)
+public class P12S2PallasAthena(ModuleArgs init) : BossModule(init, new(100, 95), DefaultBounds)
 {
     public static readonly ArenaBoundsRect DefaultBounds = new(20, 15);
     public static readonly ArenaBoundsCircle SmallBounds = new(7);

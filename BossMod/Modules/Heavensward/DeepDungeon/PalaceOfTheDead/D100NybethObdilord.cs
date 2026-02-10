@@ -55,7 +55,7 @@ class D100NybethObdilordStates : StateMachineBuilder
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 208, NameID = 5356)]
 public class D100NybethObdilord : BossModule
 {
-    public D100NybethObdilord(ModuleInitializer init) : base(init, new(300, 300), new ArenaBoundsCircle(24))
+    public D100NybethObdilord(ModuleArgs init) : base(init, new(300, 300), new ArenaBoundsCircle(24))
     {
         ActivateComponent<EncounterHints>();
     }

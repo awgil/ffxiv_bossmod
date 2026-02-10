@@ -194,4 +194,4 @@ class D022KahderyorStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12703)]
-public class D022Kahderyor(ModuleInitializer init) : BossModule(init, new(-53, -57), new ArenaBoundsCircle(20));
+public class D022Kahderyor(ModuleArgs init) : BossModule(init, new(-53, -57), new ArenaBoundsCircle(20));

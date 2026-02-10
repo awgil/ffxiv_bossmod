@@ -188,7 +188,7 @@ class A34RedGirlStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9950)]
-public class A34RedGirl(ModuleInitializer init) : BossModule(init, new(845, -851), new ArenaBoundsSquare(24.5f))
+public class A34RedGirl(ModuleArgs init) : BossModule(init, new(845, -851), new ArenaBoundsSquare(24.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

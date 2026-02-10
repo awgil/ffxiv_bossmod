@@ -89,4 +89,4 @@ class SallyTheSweeperStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13435)]
-public class SallyTheSweeper(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class SallyTheSweeper(ModuleArgs init) : SimpleBossModule(init);

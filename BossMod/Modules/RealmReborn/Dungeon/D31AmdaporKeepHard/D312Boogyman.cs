@@ -98,4 +98,4 @@ class D312BoogymanStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 29, NameID = 3274)]
-public class D312Boogyman(ModuleInitializer init) : BossModule(init, new(200, -150), new ArenaBoundsSquare(20));
+public class D312Boogyman(ModuleArgs init) : BossModule(init, new(200, -150), new ArenaBoundsSquare(20));

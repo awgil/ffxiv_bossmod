@@ -259,7 +259,7 @@ class Breathlight(BossModule module) : Components.GenericAOEs(module)
 class Plummet(BossModule module) : Components.SpreadFromCastTargets(module, AID.Plummet, 8);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1077, NameID = 14284, PlanLevel = 100)]
-public class Ex7Doomtrain(ModuleInitializer init) : BossModule(init, new(100, 100), Car1Bounds)
+public class Ex7Doomtrain(ModuleArgs init) : BossModule(init, new(100, 100), Car1Bounds)
 {
     public static readonly ArenaBoundsCustom Car1Bounds = MakeCar1Bounds();
     static ArenaBoundsCustom MakeCar1Bounds()

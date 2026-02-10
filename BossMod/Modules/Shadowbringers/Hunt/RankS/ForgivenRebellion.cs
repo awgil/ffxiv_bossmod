@@ -205,4 +205,4 @@ class ForgivenRebellionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8915)]
-public class ForgivenRebellion(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class ForgivenRebellion(ModuleArgs init) : SimpleBossModule(init);

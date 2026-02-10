@@ -89,7 +89,7 @@ class SummoningNodeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68165, NameID = 6695)]
-public class SummoningNode(ModuleInitializer init) : BossModule(init, new(-111, -295), ArenaBounds)
+public class SummoningNode(ModuleArgs init) : BossModule(init, new(-111, -295), ArenaBounds)
 {
     private static readonly List<WDir> vertices = [
         new(-4.5f, 22.66f),

@@ -196,4 +196,4 @@ class D053EverlivingBibliotaphStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 31, NameID = 3930)]
-public class D053EverlivingBibliotaph(ModuleInitializer init) : BossModule(init, new(377.4f, -59.7f), new ArenaBoundsCircle(25));
+public class D053EverlivingBibliotaph(ModuleArgs init) : BossModule(init, new(377.4f, -59.7f), new ArenaBoundsCircle(25));

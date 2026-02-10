@@ -293,4 +293,4 @@ class ChiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
-public class Chi(ModuleInitializer init) : BossModule(init, new(650, 0), new ArenaBoundsSquare(30));
+public class Chi(ModuleArgs init) : BossModule(init, new(650, 0), new ArenaBoundsSquare(30));

@@ -173,4 +173,4 @@ class O3NHalicarnassusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 254, NameID = 5633)]
-public class O3NHalicarnassus(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(20));
+public class O3NHalicarnassus(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(20));

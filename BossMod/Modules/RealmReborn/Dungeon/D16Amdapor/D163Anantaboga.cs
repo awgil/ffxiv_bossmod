@@ -104,7 +104,7 @@ class D163AnantabogaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 14, NameID = 1696)]
-public class D163Anantaboga(ModuleInitializer init) : BossModule(init, new(10, 0), new ArenaBoundsSquare(25))
+public class D163Anantaboga(ModuleArgs init) : BossModule(init, new(10, 0), new ArenaBoundsSquare(25))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

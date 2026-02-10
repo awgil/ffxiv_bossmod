@@ -202,4 +202,4 @@ class KerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 10615)]
-public class Ker(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Ker(ModuleArgs init) : SimpleBossModule(init);

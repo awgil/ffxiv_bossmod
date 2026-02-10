@@ -10,4 +10,4 @@ class PureCrystal(BossModule module) : Components.CastCounter(module, AID.PureCr
 class Exodus(BossModule module) : Components.CastCounter(module, AID.Exodus);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 791, NameID = 10453, PlanLevel = 90)]
-public class Ex2Hydaelyn(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));
+public class Ex2Hydaelyn(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

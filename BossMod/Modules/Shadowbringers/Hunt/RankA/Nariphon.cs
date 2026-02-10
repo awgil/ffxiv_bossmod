@@ -99,4 +99,4 @@ class NariphonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8907)]
-public class Nariphon(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
+public class Nariphon(ModuleArgs init) : SimpleBossModule(init) { }

@@ -126,4 +126,4 @@ class D052RhitahtynStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 786, NameID = 10292)]
-public class D052Rhitahtyn(ModuleInitializer init) : BossModule(init, new(11, 144), new ArenaBoundsSquare(20));
+public class D052Rhitahtyn(ModuleArgs init) : BossModule(init, new(11, 144), new ArenaBoundsSquare(20));

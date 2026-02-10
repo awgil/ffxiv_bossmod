@@ -90,4 +90,4 @@ class D30TiamatsCloneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 899, NameID = 12242)]
-public class D30TiamatsClone(ModuleInitializer init) : BossModule(init, new(-300, -300), new ArenaBoundsSquare(19.5f));
+public class D30TiamatsClone(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsSquare(19.5f));

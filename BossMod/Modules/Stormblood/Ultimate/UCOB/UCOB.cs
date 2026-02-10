@@ -7,7 +7,7 @@ class P3FlareBreath(BossModule module) : Components.Cleave(module, AID.FlareBrea
 class P5MornAfah(BossModule module) : Components.StackWithCastTargets(module, AID.MornAfah, 4, 8); // TODO: verify radius
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Twintania, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 280, PlanLevel = 70)]
-public class UCOB(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(21))
+public class UCOB(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(21))
 {
     private Actor? _nael;
     private Actor? _bahamutPrime;

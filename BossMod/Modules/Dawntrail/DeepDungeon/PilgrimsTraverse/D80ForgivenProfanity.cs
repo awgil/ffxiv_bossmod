@@ -122,5 +122,5 @@ class D80ForgivenProfanityStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1039, NameID = 13968)]
-public class D80ForgivenProfanity(ModuleInitializer init) : BossModule(init, new(-600, -300), new ArenaBoundsCircle(19.5f));
+public class D80ForgivenProfanity(ModuleArgs init) : BossModule(init, new(-600, -300), new ArenaBoundsCircle(19.5f));
 

@@ -102,7 +102,7 @@ class OwainStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7970)]
-public class Owain(WorldState ws, Actor primary) : BAModule(ws, primary, new(129, 748), new ArenaBoundsCircle(30))
+public class Owain(ModuleArgs init) : BAModule(init, new(129, 748), new ArenaBoundsCircle(30))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

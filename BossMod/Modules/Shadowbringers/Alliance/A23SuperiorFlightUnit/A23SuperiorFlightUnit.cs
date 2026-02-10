@@ -175,7 +175,7 @@ class A23SuperiorFlightUnitStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 736, NameID = 9364, PrimaryActorOID = (uint)OID.Alpha)]
-public class A23SuperiorFlightUnit(ModuleInitializer init) : BossModule(init, new(-230, -172), MakeBounds())
+public class A23SuperiorFlightUnit(ModuleArgs init) : BossModule(init, new(-230, -172), MakeBounds())
 {
     public Actor? Alpha => PrimaryActor;
     public Actor? Beta => Enemies(OID.Beta).FirstOrDefault();

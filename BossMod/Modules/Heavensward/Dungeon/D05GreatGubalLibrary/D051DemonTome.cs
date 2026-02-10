@@ -70,4 +70,4 @@ class D051DemonTomeStates : StateMachineBuilder
     }
 }
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 31, NameID = 3923)]
-public class D051DemonTome(ModuleInitializer init) : BossModule(init, new(0.5f, 0), new ArenaBoundsRect(19.5f, 10f));
+public class D051DemonTome(ModuleArgs init) : BossModule(init, new(0.5f, 0), new ArenaBoundsRect(19.5f, 10f));

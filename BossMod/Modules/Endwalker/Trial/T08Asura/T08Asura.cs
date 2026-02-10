@@ -44,4 +44,4 @@ class T08AsuraStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 944, NameID = 12351)]
-public class T08Asura(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(19));
+public class T08Asura(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(19));

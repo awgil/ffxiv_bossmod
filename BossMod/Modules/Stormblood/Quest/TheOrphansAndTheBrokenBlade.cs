@@ -51,7 +51,7 @@ class OmpagneDeepblackStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68453, NameID = 6300)]
-public class OmpagneDeepblack(ModuleInitializer init) : BossModule(init, new(-166.8f, 290), new ArenaBoundsCircle(20))
+public class OmpagneDeepblack(ModuleArgs init) : BossModule(init, new(-166.8f, 290), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }

@@ -75,7 +75,7 @@ class T03GarudaNStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 58, NameID = 1644)]
-public class T03GarudaN(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(21))
+public class T03GarudaN(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(21))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

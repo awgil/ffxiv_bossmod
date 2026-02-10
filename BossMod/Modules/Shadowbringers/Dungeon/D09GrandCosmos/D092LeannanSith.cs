@@ -166,4 +166,4 @@ class LeannanSithStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 692, NameID = 9044)]
-public class LeannanSith(ModuleInitializer init) : BossModule(init, new(0, -60), new ArenaBoundsSquare(19.5f));
+public class LeannanSith(ModuleArgs init) : BossModule(init, new(0, -60), new ArenaBoundsSquare(19.5f));

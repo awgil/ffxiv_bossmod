@@ -28,7 +28,7 @@ class FizzlingDusterPuff(BossModule module, AID aid) : Components.StandardAOEs(m
 class NFizzlingDusterPuff(BossModule module) : FizzlingDusterPuff(module, AID.NFizzlingDusterPuff);
 class SFizzlingDusterPuff(BossModule module) : FizzlingDusterPuff(module, AID.SFizzlingDusterPuff);
 
-public abstract class C011Silkie(ModuleInitializer init) : BossModule(init, new(-335, -155), new ArenaBoundsSquare(20))
+public abstract class C011Silkie(ModuleArgs init) : BossModule(init, new(-335, -155), new ArenaBoundsSquare(20))
 {
     public static readonly AOEShapeCross ShapeBlue = new(60, 5);
     public static readonly AOEShapeDonut ShapeGreen = new(5, 60);
@@ -36,7 +36,7 @@ public abstract class C011Silkie(ModuleInitializer init) : BossModule(init, new(
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11369, SortOrder = 5, PlanLevel = 90)]
-public class C011NSilkie(WorldState ws, Actor primary) : C011Silkie(ws, primary);
+public class C011NSilkie(ModuleArgs init) : C011Silkie(init);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11369, SortOrder = 5, PlanLevel = 90)]
-public class C011SSilkie(WorldState ws, Actor primary) : C011Silkie(ws, primary);
+public class C011SSilkie(ModuleArgs init) : C011Silkie(init);

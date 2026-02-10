@@ -37,7 +37,7 @@ public class UWU : BossModule
     public Actor? Lahabrea() => _lahabrea.FirstOrDefault();
     public Actor? Ultima() => _ultima.FirstOrDefault();
 
-    public UWU(ModuleInitializer init) : base(init, new(100, 100), new ArenaBoundsCircle(20))
+    public UWU(ModuleArgs init) : base(init, new(100, 100), new ArenaBoundsCircle(20))
     {
         Ifrits = Enemies(OID.Ifrit);
         _titan = Enemies(OID.Titan);

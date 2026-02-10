@@ -102,4 +102,4 @@ class BullApollyonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 993, NameID = 13247)]
-public class BullApollyon(ModuleInitializer init) : BossModule(init, new(0, -372), new ArenaBoundsCircle(20));
+public class BullApollyon(ModuleArgs init) : BossModule(init, new(0, -372), new ArenaBoundsCircle(20));

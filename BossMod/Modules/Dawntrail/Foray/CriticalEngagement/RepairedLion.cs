@@ -200,7 +200,7 @@ class RepairedLionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13649)]
-public class RepairedLion(ModuleInitializer init) : BossModule(init, new(870, 180), new ArenaBoundsCircle(25))
+public class RepairedLion(ModuleArgs init) : BossModule(init, new(870, 180), new ArenaBoundsCircle(25))
 {
     public override bool DrawAllPlayers => true;
 }

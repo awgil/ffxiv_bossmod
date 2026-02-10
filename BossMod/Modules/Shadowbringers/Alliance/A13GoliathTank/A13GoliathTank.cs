@@ -159,7 +159,7 @@ class A13GoliathTankStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9138)]
-public class A13GoliathTank(ModuleInitializer init) : BossModule(init, new(-780, 555), new ArenaBoundsCircle(30))
+public class A13GoliathTank(ModuleArgs init) : BossModule(init, new(-780, 555), new ArenaBoundsCircle(30))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

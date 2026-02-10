@@ -62,4 +62,4 @@ class D152GiantBavaroisStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1549)]
-public class D152GiantBavarois(ModuleInitializer init) : BossModule(init, new(43, -232), new ArenaBoundsSquare(20));
+public class D152GiantBavarois(ModuleArgs init) : BossModule(init, new(43, -232), new ArenaBoundsSquare(20));

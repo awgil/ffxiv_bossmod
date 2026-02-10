@@ -122,4 +122,4 @@ class D190TheGodfatherStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 217, NameID = 5471)]
-public class D190TheGodfather(ModuleInitializer init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(25));
+public class D190TheGodfather(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(25));

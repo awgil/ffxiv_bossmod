@@ -76,4 +76,4 @@ class DikaiosyneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68784, NameID = 8922)]
-public class Dikaiosyne(ModuleInitializer init) : BossModule(init, new(-798.6f, -40.49f), new ArenaBoundsCircle(20));
+public class Dikaiosyne(ModuleArgs init) : BossModule(init, new(-798.6f, -40.49f), new ArenaBoundsCircle(20));

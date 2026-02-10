@@ -5,4 +5,4 @@ class UltimaBlade(BossModule module) : Components.CastCounter(module, AID.Ultima
 class Parthenos(BossModule module) : Components.StandardAOEs(module, AID.Parthenos, new AOEShapeRect(120, 8));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 943, NameID = 12377, SortOrder = 1, PlanLevel = 90)]
-public class P12S1Athena(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
+public class P12S1Athena(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

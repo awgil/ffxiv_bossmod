@@ -122,7 +122,7 @@ class D151MarkIIIBMagitekColossusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 611, NameID = 7855)]
-public class D151MarkIIIBMagitekColossus(ModuleInitializer init) : BossModule(init, new(-180.591f, 68.498f), new ArenaBoundsCircle(20))
+public class D151MarkIIIBMagitekColossus(ModuleArgs init) : BossModule(init, new(-180.591f, 68.498f), new ArenaBoundsCircle(20))
 {
     public static readonly WPos ArenaCenter = new(-180.591f, 68.498f);
 }

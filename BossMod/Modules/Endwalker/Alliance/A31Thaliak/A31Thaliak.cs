@@ -10,7 +10,7 @@ class HieroglyphikaLeftBank(BossModule module) : Components.StandardAOEs(module,
 class HieroglyphikaRightBank(BossModule module) : Components.StandardAOEs(module, AID.HieroglyphikaRightBank, new AOEShapeCone(60, 90.Degrees()));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11298, SortOrder = 2)]
-public class A31Thaliak(ModuleInitializer init) : BossModule(init, new(-945, 945), NormalBounds)
+public class A31Thaliak(ModuleArgs init) : BossModule(init, new(-945, 945), NormalBounds)
 {
     public static readonly ArenaBoundsSquare NormalBounds = new(24);
     public static readonly ArenaBoundsCustom TriBounds = BuildTriBounds();

@@ -80,5 +80,5 @@ class V011GeryonTheSteerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 868, NameID = 11442)]
-public class V011GeryonTheSteer(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(19.5f));
+public class V011GeryonTheSteer(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(19.5f));
 

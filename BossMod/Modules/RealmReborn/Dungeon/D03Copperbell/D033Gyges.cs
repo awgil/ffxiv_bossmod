@@ -36,4 +36,4 @@ class D033GygesStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 3, NameID = 101)]
-public class D033Gyges(ModuleInitializer init) : BossModule(init, new(-100.42f, 6.67f), new ArenaBoundsCircle(20));
+public class D033Gyges(ModuleArgs init) : BossModule(init, new(-100.42f, 6.67f), new ArenaBoundsCircle(20));

@@ -160,7 +160,7 @@ class ForgivenTreacheryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1034, NameID = 13863)]
-public class ForgivenTreachery(ModuleInitializer init) : BossModule(init, new(-300, -300), MakeBounds())
+public class ForgivenTreachery(ModuleArgs init) : BossModule(init, new(-300, -300), MakeBounds())
 {
     private static ArenaBoundsCustom MakeBounds()
     {

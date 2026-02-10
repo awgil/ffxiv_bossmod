@@ -30,4 +30,4 @@ public enum AID : uint
     SAncientQuagaEnrage = 35914, // SIslekeeper->self, 10.0s cast, range 100 circle enrage
 }
 
-public abstract class C030Trash2(ModuleInitializer init) : BossModule(init, new(200, 128), new ArenaBoundsSquare(30));
+public abstract class C030Trash2(ModuleArgs init) : BossModule(init, new(200, 128), new ArenaBoundsSquare(30));

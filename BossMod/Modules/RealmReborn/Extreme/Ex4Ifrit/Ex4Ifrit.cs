@@ -16,7 +16,7 @@ public class Ex4Ifrit : BossModule
     public IReadOnlyList<Actor> SmallNails;
     public IReadOnlyList<Actor> LargeNails;
 
-    public Ex4Ifrit(ModuleInitializer init) : base(init, new(0, 0), new ArenaBoundsCircle(20))
+    public Ex4Ifrit(ModuleArgs init) : base(init, new(0, 0), new ArenaBoundsCircle(20))
     {
         SmallNails = Enemies(OID.InfernalNailSmall);
         LargeNails = Enemies(OID.InfernalNailLarge);

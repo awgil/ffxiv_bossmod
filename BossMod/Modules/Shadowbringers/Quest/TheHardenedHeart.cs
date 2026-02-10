@@ -122,7 +122,7 @@ class TadricTheVaingloriousStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68783, NameID = 8339)]
-public class TadricTheVainglorious(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20))
+public class TadricTheVainglorious(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 

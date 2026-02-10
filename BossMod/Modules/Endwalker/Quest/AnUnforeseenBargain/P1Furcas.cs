@@ -59,7 +59,7 @@ class FurcasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70209, NameID = 12066)]
-public class Furcas(ModuleInitializer init) : BossModule(init, new(97.85f, 286), new ArenaBoundsCircle(19.5f))
+public class Furcas(ModuleArgs init) : BossModule(init, new(97.85f, 286), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }

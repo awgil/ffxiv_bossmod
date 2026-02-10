@@ -12,7 +12,7 @@ class Godsbane(BossModule module) : Components.CastCounter(module, AID.GodsbaneA
 class DeepDiveHardWater(BossModule module) : Components.StackWithCastTargets(module, AID.DeepDiveHardWater, 6);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11299, SortOrder = 3)]
-public class A32Llymlaen(ModuleInitializer init) : BossModule(init, DefaultCenter, DefaultBounds)
+public class A32Llymlaen(ModuleArgs init) : BossModule(init, DefaultCenter, DefaultBounds)
 {
     public const float CorridorHalfLength = 40;
     public static readonly WPos DefaultCenter = new(0, -900);

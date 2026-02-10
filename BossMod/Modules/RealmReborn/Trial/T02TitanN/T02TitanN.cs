@@ -64,7 +64,7 @@ public class T02TitanN : BossModule
     private readonly IReadOnlyList<Actor> _heart;
     public IEnumerable<Actor> ActiveHeart => _heart.Where(h => h.IsTargetable && !h.IsDead);
 
-    public T02TitanN(ModuleInitializer init) : base(init, new(-0, 0), new ArenaBoundsCircle(20))
+    public T02TitanN(ModuleArgs init) : base(init, new(-0, 0), new ArenaBoundsCircle(20))
     {
         _heart = Enemies(OID.TitansHeart);
     }

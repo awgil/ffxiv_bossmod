@@ -71,4 +71,4 @@ class D102KoshcheiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1678)]
-public class D102Koshchei(ModuleInitializer init) : BossModule(init, new(40, -80), new ArenaBoundsSquare(10));
+public class D102Koshchei(ModuleArgs init) : BossModule(init, new(40, -80), new ArenaBoundsSquare(10));
