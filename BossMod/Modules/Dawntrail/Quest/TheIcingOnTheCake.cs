@@ -34,6 +34,8 @@ public enum OID : uint
     CactuarCakeTopper = 0x1EBE5E,
     HeartCakeTopper = 0x1EBE5F,
     ChocoboCakeTopper = 0x1EBE60, // 0x6A
+
+    Exit = 0x1EB2CB,
 }
 
 public enum AID : uint
@@ -45,6 +47,8 @@ public enum SID : uint
 {
     Transporting = 404 // none->player, extra=0x15
 }
+
+class SugarBlizzard(BossModule module) : Components.StandardAOEs(module, AID.SugarBlizzard, new AOEShapeCone(15, 45.Degrees()));
 
 class DecorateCake(BossModule module) : BossComponent(module)
 {
@@ -68,9 +72,12 @@ class DecorateCake(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        foreach (var e in hints.PotentialTargets)
+            hints.SetPriority(e.Actor, AIHints.Enemy.PriorityForbidden);
+
         if (actor.FindStatus(SID.Transporting) == null)
             hints.InteractWithTarget = Ingredients.MinBy(actor.DistanceToHitbox);
-        else
+        else if (CakeStand is { })
             hints.InteractWithTarget = CakeStand;
     }
 
@@ -81,7 +88,14 @@ class DecorateCake(BossModule module) : BossComponent(module)
     };
 }
 
-class SugarBlizzard(BossModule module) : Components.StandardAOEs(module, AID.SugarBlizzard, new AOEShapeCone(15, 45.Degrees()));
+class LeaveOnExitAppear(BossModule module) : BossComponent(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (WorldState.Actors.Any(a => a.OID == (uint)OID.Exit && a.IsTargetable))
+            hints.ShouldLeaveDuty = true;
+    }
+}
 
 // someone can finish/fix this if they want. I really do not care enough for a seasonal quest
 class BakeOffAI(BossModule module) : RotationModule<AutoBakeOff>(module);
@@ -107,7 +121,8 @@ class TheIcingOnTheCakeStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<DecorateCake>()
-            .ActivateOnEnter<SugarBlizzard>();
+            .ActivateOnEnter<SugarBlizzard>()
+            .ActivateOnEnter<LeaveOnExitAppear>();
     }
 }
 

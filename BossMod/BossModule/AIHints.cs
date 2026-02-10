@@ -1,4 +1,4 @@
-﻿namespace BossMod;
+namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
 public sealed class AIHints
@@ -153,6 +153,7 @@ public sealed class AIHints
     public bool WantJump;
     public bool WantDismount;
     public FateSync WantFateSync;
+    public bool ShouldLeaveDuty;
 
     // clear all stored data
     public void Clear()
@@ -183,6 +184,7 @@ public sealed class AIHints
         WantJump = false;
         WantDismount = false;
         WantFateSync = FateSync.None;
+        ShouldLeaveDuty = false;
     }
 
     public void PrioritizeTargetsByOID(uint oid, int priority = 0)
