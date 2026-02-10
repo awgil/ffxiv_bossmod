@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+﻿using Autofac.Features.AttributeFilters;
+using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
@@ -41,13 +42,6 @@ public sealed class ReplayManager : IDisposable
             Cancel.Dispose();
             Disposed = true;
         }
-
-        public void Show(RotationDatabase rotationDB)
-        {
-            Window ??= new(Replay.Result, rotationDB, InitialTime);
-            Window.IsOpen = true;
-            Window.BringToFront();
-        }
     }
 
     private sealed record class AnalysisEntry(string Identifier, List<ReplayEntry> Replays) : IDisposable
@@ -79,11 +73,17 @@ public sealed class ReplayManager : IDisposable
     private string _path = "";
     private string _fileDialogStartPath;
     private FileDialog? _fileDialog;
+    readonly ConfigUI.Factory _cfgFactory;
 
-    public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
+    public ReplayManager(
+        RotationDatabase rotationDB,
+        ConfigUI.Factory cfgFactory,
+        [KeyFilter("replayDir")] DirectoryInfo logDir
+    )
     {
         _rotationDB = rotationDB;
-        _fileDialogStartPath = fileDialogStartPath;
+        _cfgFactory = cfgFactory;
+        _fileDialogStartPath = logDir.FullName;
         RestoreHistory();
     }
 
@@ -107,7 +107,7 @@ public sealed class ReplayManager : IDisposable
         {
             if (e.AutoShowWindow && e.Window == null && e.Replay.IsCompletedSuccessfully && e.Replay.Result.Ops.Count > 0)
             {
-                e.Show(_rotationDB);
+                Show(e);
             }
         }
         // auto-show analysis windows that are now ready, auto dispose entries that had their windows closed
@@ -122,6 +122,13 @@ public sealed class ReplayManager : IDisposable
                 e.Dispose();
             }
         }
+    }
+
+    void Show(ReplayEntry e)
+    {
+        //e.Window ??= new(e.Replay.Result, _rotationDB, _cfgFactory, e.InitialTime);
+        //e.Window.IsOpen = true;
+        //e.Window.BringToFront();
     }
 
     public void Draw()
@@ -172,7 +179,7 @@ public sealed class ReplayManager : IDisposable
                 {
                     if (ImGui.MenuItem("Show"))
                     {
-                        e.Show(_rotationDB);
+                        Show(e);
                         SaveHistory();
                     }
                     if (ImGui.MenuItem("Convert to verbose"))

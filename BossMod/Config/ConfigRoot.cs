@@ -36,7 +36,10 @@ public class ConfigRoot : IHostedService
     public async Task StartAsync(CancellationToken token)
     {
         LoadFromFile(_pluginInterface.ConfigFile);
-        _saveSubscription = Modified.Subscribe(() => Task.Run(() => SaveToFile(_pluginInterface.ConfigFile)));
+        _saveSubscription = Modified.Subscribe(() => Task.Run(() =>
+        {
+            SaveToFile(_pluginInterface.ConfigFile);
+        }));
     }
 
     public async Task StopAsync(CancellationToken token)

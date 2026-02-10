@@ -32,7 +32,7 @@ public sealed class BossModuleManager : IDisposable
         }
     }
 
-    public BossModuleManager([KeyFilter("Global")] WorldState ws)
+    public BossModuleManager([KeyFilter("global")] WorldState ws)
     {
         WorldState = ws;
         RaidCooldowns = new(ws);

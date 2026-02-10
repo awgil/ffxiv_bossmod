@@ -1,8 +1,7 @@
 ﻿using Autofac.Features.AttributeFilters;
-using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Lumina.Excel.Sheets;
 using System.Diagnostics;
 using System.IO;
@@ -16,6 +15,7 @@ public class ReplayManagementWindow : UIWindow
     private readonly ReplayManagementConfig _config;
     private readonly ReplayManager _manager;
     private readonly EventSubscriptions _subscriptions;
+    readonly ICondition _condition;
     private ReplayRecorder? _recorder;
     private string _message = "";
     private bool _recordingManual; // recording was started manually, and so should not be stopped automatically
@@ -25,12 +25,19 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, RotationDatabase rotationDB, DirectoryInfo logDir) : base(_windowID, false, new(300, 200))
+    public ReplayManagementWindow(
+        [KeyFilter("global")] WorldState ws,
+        [KeyFilter("replayDir")] DirectoryInfo logDir,
+        BossModuleManager bmm,
+        ReplayManager rmm,
+        ICondition condition
+    ) : base(_windowID, false, new(300, 200))
     {
         _ws = ws;
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
-        _manager = new(rotationDB, logDir.FullName);
+        _condition = condition;
+        _manager = rmm;
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI),
@@ -44,13 +51,6 @@ public class ReplayManagementWindow : UIWindow
 
         RespectCloseHotkey = false;
     }
-
-    public ReplayManagementWindow(
-        [KeyFilter("Global")] WorldState ws,
-        BossModuleManager bmm,
-        RotationDatabase rotationDB,
-        IDalamudPluginInterface pluginInterface
-    ) : this(ws, bmm, rotationDB, new DirectoryInfo(pluginInterface.ConfigDirectory.FullName + "/replays")) { }
 
     protected override void Dispose(bool disposing)
     {
@@ -124,7 +124,7 @@ public class ReplayManagementWindow : UIWindow
 
     private void UpdateTitle() => WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
 
-    public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]);
+    public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !_condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]);
 
     private bool OnZoneChange(uint cfcId)
     {

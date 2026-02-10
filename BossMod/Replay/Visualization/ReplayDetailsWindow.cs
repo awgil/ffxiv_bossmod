@@ -40,7 +40,7 @@ class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1100, 1500) : new(1500, 1000))
+    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, ConfigUI.Factory cfgFactory, DateTime? initialTime) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1100, 1500) : new(1500, 1000))
     {
         _player = new(data);
         _rotationDB = rotationDB;
@@ -52,7 +52,7 @@ class ReplayDetailsWindow : UIWindow
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
         _player.AdvanceTo(_curTime, _mgr.Update);
-        _config = new(Service.Config, _player.WorldState);
+        _config = cfgFactory.Invoke(Service.Config, _player.WorldState);
         _events = new(data, MoveTo, rotationDB.Plans, this);
         _analysis = new([data]);
     }

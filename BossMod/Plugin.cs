@@ -5,12 +5,14 @@ using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 
 namespace BossMod;
 
@@ -49,9 +51,18 @@ public class Plugin : HostedPlugin
     private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow _wndDebug;
 
-    public unsafe Plugin(IDalamudPluginInterface dalamud, IPluginLog pluginLog, ICommandManager cmd, IDataManager data) : base(dalamud, pluginLog, cmd, data)
+    public unsafe Plugin(
+        IDalamudPluginInterface dalamud,
+        IPluginLog pluginLog,
+        ICommandManager cmd,
+        IDataManager data,
+        ITextureProvider tex,
+        IUiBuilder uiBuilder,
+        ICondition condition
+    ) : base(dalamud, pluginLog, cmd, data, tex, uiBuilder, condition)
     {
         // FIXME
+        Service.IconFont = uiBuilder.FontIcon;
         Service.LuminaGameData = data.GameData;
         Service.Config = new(dalamud);
         Service.Config.StartAsync(default).GetAwaiter().GetResult();
@@ -167,12 +178,16 @@ public class Plugin : HostedPlugin
 
         builder.RegisterSingletonSelf<ConfigUI>().As<Window>().WithAttributeFiltering();
         builder.RegisterSingletonSelf<ReplayManagementWindow>().As<Window>().WithAttributeFiltering();
+        builder.RegisterType<ReplayManager>().AsSelf().WithAttributeFiltering();
 
         builder.RegisterSingletonSelf<BossModuleManager>().WithAttributeFiltering();
+
         builder.RegisterSingletonSelf<RotationModuleManager>();
         builder.RegisterSingletonSelf<RotationDatabase>();
 
-        builder.Register(s => new WorldState(0, "pending")).Keyed<WorldState>("Global").SingleInstance();
+        builder.Register(s => new WorldState(0, "pending")).Keyed<WorldState>("global").SingleInstance();
+
+        builder.Register(s => new DirectoryInfo(s.Resolve<IDalamudPluginInterface>().ConfigDirectory.FullName + "/replays")).Keyed<DirectoryInfo>("replayDir");
 
         //containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
         //    .Where(t => t.Name.EndsWith("Window"))

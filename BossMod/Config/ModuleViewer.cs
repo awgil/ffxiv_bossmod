@@ -3,6 +3,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
@@ -20,6 +21,7 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly PlanDatabase? _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
+    readonly ITextureProvider _textureProvider;
 
     private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
 
@@ -35,10 +37,11 @@ public sealed class ModuleViewer : IDisposable
 
     private string _searchText = "";
 
-    public ModuleViewer(PlanDatabase? planDB, WorldState ws)
+    public ModuleViewer(PlanDatabase? planDB, WorldState ws, ITextureProvider tex)
     {
         _planDB = planDB;
         _ws = ws;
+        _textureProvider = tex;
 
         uint defaultIcon = 61762;
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
@@ -259,7 +262,7 @@ public sealed class ModuleViewer : IDisposable
         Vector4 tintCol = filtered ? new(0.5f, 0.5f, 0.5f, 0.85f) : new(1);
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        if (Service.Texture.GetFromGameIcon(iconId).TryGetWrap(out var tex, out var ex))
+        if (_textureProvider.GetFromGameIcon(iconId).TryGetWrap(out var tex, out var ex))
         {
             ImGui.Image(tex.Handle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
             if (ex != null)

@@ -4,6 +4,7 @@ using DalaMock.Core.DI;
 using DalaMock.Core.Mocks;
 using DalaMock.Core.Windows;
 using DalaMock.Shared.Interfaces;
+using Dalamud.Interface;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 
@@ -14,7 +15,15 @@ var pl = loader.AddPlugin(typeof(MockPlugin));
 loader.StartPlugin(pl);
 ui.Run();
 
-internal class MockPlugin(IDalamudPluginInterface dalamud, IPluginLog pluginLog, ICommandManager cmd, IDataManager data) : Plugin(dalamud, pluginLog, cmd, data)
+internal class MockPlugin(
+    IDalamudPluginInterface dalamud,
+    IPluginLog pluginLog,
+    ICommandManager cmd,
+    IDataManager data,
+    ITextureProvider tex,
+    IUiBuilder uiBuilder,
+    ICondition condition
+) : Plugin(dalamud, pluginLog, cmd, data, tex, uiBuilder, condition)
 {
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {

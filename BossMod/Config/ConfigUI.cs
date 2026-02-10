@@ -2,7 +2,7 @@
 using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 
@@ -33,12 +33,14 @@ public sealed class ConfigUI : UIWindow
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir = null, RotationDatabase? rotationDB = null) : base("Boss Mod Settings", true, new(300, 300))
+    public delegate ConfigUI Factory(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir = null, RotationDatabase? rotationDB = null);
+
+    public ConfigUI(ConfigRoot config, WorldState ws, ITextureProvider tex, DirectoryInfo? replayDir = null, RotationDatabase? rotationDB = null) : base("Boss Mod Settings", true, new(300, 300))
     {
         _root = config;
         _ws = ws;
         _about = new(replayDir);
-        _mv = new(rotationDB?.Plans, ws);
+        _mv = new(rotationDB?.Plans, ws, tex);
         _presets = rotationDB != null ? new(rotationDB) : null;
 
         _tabs.Add("About", _about.Draw);
@@ -70,10 +72,11 @@ public sealed class ConfigUI : UIWindow
 
     public ConfigUI(
         ConfigRoot config,
-        [KeyFilter("Global")] WorldState ws,
-        IDalamudPluginInterface pluginInterface,
+        [KeyFilter("global")] WorldState worldGlobal,
+        [KeyFilter("replayDir")] DirectoryInfo logDir,
+        ITextureProvider tex,
         RotationDatabase db
-    ) : this(config, ws, new DirectoryInfo(pluginInterface.ConfigDirectory.FullName + "/replays"), db) { }
+    ) : this(config, worldGlobal, tex, logDir, db) { }
 
     private void ResolvePaths(List<UINode> nodes, IEnumerable<string> parent)
     {
