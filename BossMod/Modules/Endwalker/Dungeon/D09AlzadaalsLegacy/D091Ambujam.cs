@@ -96,4 +96,4 @@ class D091AmbujamStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 844, NameID = 11241)]
-public class D091Ambujam(WorldState ws, Actor primary) : BossModule(ws, primary, new(124, -90), new ArenaBoundsCircle(19.5f));
+public class D091Ambujam(ModuleInitializer init) : BossModule(init, new(124, -90), new ArenaBoundsCircle(19.5f));

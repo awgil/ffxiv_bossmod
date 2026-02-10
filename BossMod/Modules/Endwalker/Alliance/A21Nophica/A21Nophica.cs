@@ -9,4 +9,4 @@ class Furrow(BossModule module) : Components.StackWithCastTargets(module, AID.Fu
 class HeavensEarth(BossModule module) : Components.BaitAwayCast(module, AID.HeavensEarthAOE, new AOEShapeCircle(5), true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12065)]
-public class A21Nophica(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -238), new ArenaBoundsCircle(30));
+public class A21Nophica(ModuleInitializer init) : BossModule(init, new(0, -238), new ArenaBoundsCircle(30));

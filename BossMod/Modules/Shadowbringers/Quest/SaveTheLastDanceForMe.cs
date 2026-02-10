@@ -71,7 +71,7 @@ class AethericShadowStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68790, NameID = 8493)]
-public class AethericShadow(WorldState ws, Actor primary) : BossModule(ws, primary, new(73.6f, -743.6f), new ArenaBoundsCircle(20))
+public class AethericShadow(ModuleInitializer init) : BossModule(init, new(73.6f, -743.6f), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

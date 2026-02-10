@@ -122,7 +122,7 @@ class DotoliCilocStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 182, NameID = 5269, Contributors = "xan")]
-public class DotoliCiloc(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultCenter, new ArenaBoundsCircle(25))
+public class DotoliCiloc(ModuleInitializer init) : BossModule(init, DefaultCenter, new ArenaBoundsCircle(25))
 {
     // position of boss casting On High (knockback from arena center)
     public static readonly WPos DefaultCenter = new(245.289f, 13.626f);

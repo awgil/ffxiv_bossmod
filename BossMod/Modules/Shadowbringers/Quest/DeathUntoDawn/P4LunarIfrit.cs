@@ -41,4 +41,4 @@ class LunarIfritStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69602, NameID = 10041)]
-public class LunarIfrit(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));
+public class LunarIfrit(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));

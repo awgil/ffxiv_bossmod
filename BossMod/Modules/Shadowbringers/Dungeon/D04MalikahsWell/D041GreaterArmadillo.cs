@@ -66,7 +66,7 @@ class D041GreaterArmadilloStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 656, NameID = 8252)]
-public class D041GreaterArmadillo(WorldState ws, Actor primary) : BossModule(ws, primary, new(278, 204), new ArenaBoundsCircle(19.5f))
+public class D041GreaterArmadillo(ModuleInitializer init) : BossModule(init, new(278, 204), new ArenaBoundsCircle(19.5f))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

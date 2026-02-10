@@ -61,4 +61,4 @@ class D011LugatStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 238, NameID = 6071)]
-public class D011Lugat(WorldState ws, Actor primary) : BossModule(ws, primary, new WPos(-1.465f, -217.254f), new ArenaBoundsCircle(20));
+public class D011Lugat(ModuleInitializer init) : BossModule(init, new WPos(-1.465f, -217.254f), new ArenaBoundsCircle(20));

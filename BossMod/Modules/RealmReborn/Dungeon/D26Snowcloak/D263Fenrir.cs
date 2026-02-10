@@ -53,4 +53,4 @@ class D263FenrirStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 27, NameID = 3044)]
-public class D263Fenrir(WorldState ws, Actor primary) : BossModule(ws, primary, new(0.99f, 64.98f), new ArenaBoundsCircle(25));
+public class D263Fenrir(ModuleInitializer init) : BossModule(init, new(0.99f, 64.98f), new ArenaBoundsCircle(25));

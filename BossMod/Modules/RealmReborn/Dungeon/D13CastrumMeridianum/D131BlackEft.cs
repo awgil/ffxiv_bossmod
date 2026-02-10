@@ -40,4 +40,4 @@ class D131BlackEftStates : StateMachineBuilder
 // second wave = 2x colossus
 // third wave = 2x colossus + 2x signifier + 2x laquearius
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 15, NameID = 557)]
-public class D131BlackEft(WorldState ws, Actor primary) : BossModule(ws, primary, new(10, -40), new ArenaBoundsSquare(20));
+public class D131BlackEft(ModuleInitializer init) : BossModule(init, new(10, -40), new ArenaBoundsSquare(20));

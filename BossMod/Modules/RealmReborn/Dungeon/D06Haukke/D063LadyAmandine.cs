@@ -42,7 +42,7 @@ class D063LadyAmandineStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 6, NameID = 422)]
-public class D063LadyAmandine(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 4), new ArenaBoundsSquare(20))
+public class D063LadyAmandine(ModuleInitializer init) : BossModule(init, new(0, 4), new ArenaBoundsSquare(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

@@ -160,7 +160,7 @@ class A12AtomosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 1872)]
-public class A12Atomos(WorldState ws, Actor primary) : BossModule(ws, primary, new(232.5f, 280), CustomBounds)
+public class A12Atomos(ModuleInitializer init) : BossModule(init, new(232.5f, 280), CustomBounds)
 {
     public static int GetPlatform(Actor a)
     {

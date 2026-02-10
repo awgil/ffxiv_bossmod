@@ -121,4 +121,4 @@ class D052ByblosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 31, NameID = 3925)]
-public class D052Byblos(WorldState ws, Actor primary) : BossModule(ws, primary, new(177.8f, 27.1f), new ArenaBoundsCircle(23));
+public class D052Byblos(ModuleInitializer init) : BossModule(init, new(177.8f, 27.1f), new ArenaBoundsCircle(23));

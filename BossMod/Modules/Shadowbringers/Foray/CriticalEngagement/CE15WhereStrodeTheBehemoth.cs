@@ -72,5 +72,5 @@ class ChlevnikStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 15)] // bnpcname=9427
-public class Chlevnik(WorldState ws, Actor primary) : BossModule(ws, primary, new(231, 95), new ArenaBoundsCircle(25));
+public class Chlevnik(ModuleInitializer init) : BossModule(init, new(231, 95), new ArenaBoundsCircle(25));
 

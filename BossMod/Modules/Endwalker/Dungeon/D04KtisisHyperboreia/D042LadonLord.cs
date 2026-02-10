@@ -107,4 +107,4 @@ class D042LadonLordStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10398)]
-public class D042LadonLord(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 48), new ArenaBoundsSquare(19.5f));
+public class D042LadonLord(ModuleInitializer init) : BossModule(init, new(0, 48), new ArenaBoundsSquare(19.5f));

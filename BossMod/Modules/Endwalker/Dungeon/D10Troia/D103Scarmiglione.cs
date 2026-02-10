@@ -101,7 +101,7 @@ class ScarmiglioneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372)]
-public class Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(25))
+public class Scarmiglione(ModuleInitializer init) : BossModule(init, new(-35, -298), new ArenaBoundsCircle(25))
 {
     protected override void DrawArenaBackground(int pcSlot, Actor pc) => Arena.ZoneDonut(Arena.Center, 21, 25, ArenaColor.AOE);
 }

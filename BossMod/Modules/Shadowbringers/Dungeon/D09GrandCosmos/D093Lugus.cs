@@ -290,4 +290,4 @@ class LugusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 692, NameID = 9046)]
-public class Lugus(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -340), new ArenaBoundsSquare(24.5f));
+public class Lugus(ModuleInitializer init) : BossModule(init, new(0, -340), new ArenaBoundsSquare(24.5f));

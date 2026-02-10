@@ -88,4 +88,4 @@ class GuildivainOfTheTaintedEdgeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69608, NameID = 10733, PrimaryActorOID = (uint)OID.BossP2)]
-public class GuildivainOfTheTaintedEdge(WorldState ws, Actor primary) : BossModule(ws, primary, new(224.8f, -855.8f), new ArenaBoundsCircle(20));
+public class GuildivainOfTheTaintedEdge(ModuleInitializer init) : BossModule(init, new(224.8f, -855.8f), new ArenaBoundsCircle(20));

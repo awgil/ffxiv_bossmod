@@ -54,7 +54,7 @@ class CastrumGateStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9441, DevOnly = true)]
-public class CastrumGate(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, -177.3f), new ArenaBoundsRect(30, 26.7f))
+public class CastrumGate(ModuleInitializer init) : BossModule(init, new(80, -177.3f), new ArenaBoundsRect(30, 26.7f))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat && WorldState.Party.Player() is { } player && Bounds.Contains(player.Position - Arena.Center);
 

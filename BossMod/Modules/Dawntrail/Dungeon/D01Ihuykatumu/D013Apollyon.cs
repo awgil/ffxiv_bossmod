@@ -120,4 +120,4 @@ class D013ApollyonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12711)]
-public class D013Apollyon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-107, 265), new ArenaBoundsCircle(20));
+public class D013Apollyon(ModuleInitializer init) : BossModule(init, new(-107, 265), new ArenaBoundsCircle(20));

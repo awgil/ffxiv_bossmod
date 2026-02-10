@@ -31,4 +31,4 @@ class FlameGeneralAldynnStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67775, NameID = 4739)]
-public class FlameGeneralAldynn(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35.75f, -205.5f), new ArenaBoundsCircle(15));
+public class FlameGeneralAldynn(ModuleInitializer init) : BossModule(init, new(-35.75f, -205.5f), new ArenaBoundsCircle(15));

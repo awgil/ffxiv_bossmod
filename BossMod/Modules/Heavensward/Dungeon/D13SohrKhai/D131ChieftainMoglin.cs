@@ -149,7 +149,7 @@ class ChieftainMoglinStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171, NameID = 4943, Contributors = "xan")]
-public class ChieftainMoglin(WorldState ws, Actor primary) : BossModule(ws, primary, new(-400, -158), new ArenaBoundsCircle(20))
+public class ChieftainMoglin(ModuleInitializer init) : BossModule(init, new(-400, -158), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

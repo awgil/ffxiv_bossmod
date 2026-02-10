@@ -97,4 +97,4 @@ class D60TheBlackRiderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 204, NameID = 5309)]
-public class D60TheBlackRider(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -220), new ArenaBoundsCircle(25));
+public class D60TheBlackRider(ModuleInitializer init) : BossModule(init, new(-300, -220), new ArenaBoundsCircle(25));

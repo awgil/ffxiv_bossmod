@@ -96,4 +96,4 @@ class D60ServomechanicalMinotaurStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 902, NameID = 12267)]
-public class D60ServomechanicalMinotaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(20));
+public class D60ServomechanicalMinotaur(ModuleInitializer init) : BossModule(init, new(-600, -300), new ArenaBoundsCircle(20));

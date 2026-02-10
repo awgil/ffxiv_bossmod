@@ -189,7 +189,7 @@ class GuloolJaJasGloryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70444, NameID = 12734)]
-public class GuloolJaJasGlory(WorldState ws, Actor primary) : BossModule(ws, primary, new(353.47f, 596.4f), new ArenaBoundsRect(20, 20, 12.5f.Degrees()))
+public class GuloolJaJasGlory(ModuleInitializer init) : BossModule(init, new(353.47f, 596.4f), new ArenaBoundsRect(20, 20, 12.5f.Degrees()))
 {
     protected override void DrawArenaForeground(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => x.Type == ActorType.Enemy && x.IsAlly), ArenaColor.PlayerGeneric);
 }

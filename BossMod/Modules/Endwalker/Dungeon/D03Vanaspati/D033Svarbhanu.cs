@@ -218,4 +218,4 @@ class D033SvarbhanuStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 789, NameID = 10719)]
-public class D033Svarbhanu(WorldState ws, Actor primary) : BossModule(ws, primary, new(300, -157), new ArenaBoundsSquare(20));
+public class D033Svarbhanu(ModuleInitializer init) : BossModule(init, new(300, -157), new ArenaBoundsSquare(20));

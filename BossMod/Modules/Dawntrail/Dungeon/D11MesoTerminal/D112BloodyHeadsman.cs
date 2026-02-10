@@ -260,7 +260,7 @@ class D112BloodyHeadsmanStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 14047)]
-public class D112BloodyHeadsman(WorldState ws, Actor primary) : BossModule(ws, primary, new(60, -258), new ArenaBoundsRect(29.5f, 20))
+public class D112BloodyHeadsman(ModuleInitializer init) : BossModule(init, new(60, -258), new ArenaBoundsRect(29.5f, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

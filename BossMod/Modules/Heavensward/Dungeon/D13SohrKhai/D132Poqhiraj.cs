@@ -112,4 +112,4 @@ class PoqhirajStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171, NameID = 4952, Contributors = "xan")]
-public class Poqhiraj(WorldState ws, Actor primary) : BossModule(ws, primary, new(400, 104.15f), new ArenaBoundsRect(4.5f, 20));
+public class Poqhiraj(ModuleInitializer init) : BossModule(init, new(400, 104.15f), new ArenaBoundsRect(4.5f, 20));

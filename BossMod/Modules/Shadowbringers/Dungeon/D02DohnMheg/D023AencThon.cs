@@ -128,4 +128,4 @@ internal class AencThonLordOfTheLengthsomeGaitStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8146)]
-public class AencThonLordOfTheLengthsomeGait(WorldState ws, Actor primary) : BossModule(ws, primary, new(-128.5f, -244), new ArenaBoundsCircle(19.5f));
+public class AencThonLordOfTheLengthsomeGait(ModuleInitializer init) : BossModule(init, new(-128.5f, -244), new ArenaBoundsCircle(19.5f));

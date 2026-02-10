@@ -129,7 +129,7 @@ class A16PhlegethonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 732)]
-public class A16Phlegethon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-110, 181.6f), PhlegBounds)
+public class A16Phlegethon(ModuleInitializer init) : BossModule(init, new(-110, 181.6f), PhlegBounds)
 {
     private static readonly ArenaBoundsCustom PhlegBounds = MakeBounds();
 

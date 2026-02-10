@@ -73,5 +73,5 @@ class D101GargantStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1027, NameID = 13753)]
-public class D101Gargant(WorldState ws, Actor primary) : BossModule(ws, primary, new(-248, 122), new ArenaBoundsCircle(14.5f));
+public class D101Gargant(ModuleInitializer init) : BossModule(init, new(-248, 122), new ArenaBoundsCircle(14.5f));
 

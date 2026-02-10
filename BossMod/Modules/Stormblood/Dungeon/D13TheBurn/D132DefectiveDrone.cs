@@ -183,4 +183,4 @@ class D132DefectiveDroneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 585, NameID = 7669)]
-public class D132DefectiveDrone(WorldState ws, Actor primary) : BossModule(ws, primary, new(0f, -70f), new ArenaBoundsRect(14.6f, 9.5f));
+public class D132DefectiveDrone(ModuleInitializer init) : BossModule(init, new(0f, -70f), new ArenaBoundsRect(14.6f, 9.5f));

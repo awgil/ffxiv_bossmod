@@ -154,4 +154,4 @@ class D031FeatherRayStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 829, NameID = 12755)]
-public class D031FeatherRay(WorldState ws, Actor primary) : BossModule(ws, primary, new(-105, -160), new ArenaBoundsSquare(15));
+public class D031FeatherRay(ModuleInitializer init) : BossModule(init, new(-105, -160), new ArenaBoundsSquare(15));

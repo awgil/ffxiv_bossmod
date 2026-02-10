@@ -128,7 +128,7 @@ class GildedHeadstoneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13702)]
-public class GildedHeadstone(WorldState ws, Actor primary) : BossModule(ws, primary, new(373.2f, 486), new ArenaBoundsCircle(40))
+public class GildedHeadstone(ModuleInitializer init) : BossModule(init, new(373.2f, 486), new ArenaBoundsCircle(40))
 {
     public override bool CheckReset() => !PrimaryActor.InCombat;
 }

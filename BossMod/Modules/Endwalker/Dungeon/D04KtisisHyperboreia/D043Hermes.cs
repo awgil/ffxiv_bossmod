@@ -130,4 +130,4 @@ class D043HermesStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10399)]
-public class D043Hermes(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -50), new ArenaBoundsCircle(20));
+public class D043Hermes(ModuleInitializer init) : BossModule(init, new(0, -50), new ArenaBoundsCircle(20));

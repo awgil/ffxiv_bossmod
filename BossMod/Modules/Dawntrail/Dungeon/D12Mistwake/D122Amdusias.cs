@@ -174,5 +174,5 @@ class D122AmdusiasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1064, NameID = 14271)]
-public class D122Amdusias(WorldState ws, Actor primary) : BossModule(ws, primary, new(281, -285), new ArenaBoundsCircle(19.5f));
+public class D122Amdusias(ModuleInitializer init) : BossModule(init, new(281, -285), new ArenaBoundsCircle(19.5f));
 

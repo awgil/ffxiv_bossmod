@@ -11,7 +11,7 @@ class HalfCircuitDonut(BossModule module) : Components.StandardAOEs(module, AID.
 class HalfCircuitCircle(BossModule module) : Components.StandardAOEs(module, AID.HalfCircuitAOECircle, new AOEShapeCircle(10));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 996, NameID = 12882, PlanLevel = 100)]
-public class Ex2ZoraalJa(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), NormalBounds)
+public class Ex2ZoraalJa(ModuleInitializer init) : BossModule(init, new(100, 100), NormalBounds)
 {
     public static readonly WPos NormalCenter = new(100, 100);
     public static readonly ArenaBoundsRect NormalBounds = new(20, 20, 45.Degrees());

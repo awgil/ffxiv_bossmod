@@ -40,4 +40,4 @@ class MolechStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1414, Contributors = "xan", SortOrder = 3)]
-public class Molech(WorldState ws, Actor primary) : BossModule(ws, primary, new(-676.8632f, -441.8009f), new ArenaBoundsCircle(80, MapResolution: 1));
+public class Molech(ModuleInitializer init) : BossModule(init, new(-676.8632f, -441.8009f), new ArenaBoundsCircle(80, MapResolution: 1));

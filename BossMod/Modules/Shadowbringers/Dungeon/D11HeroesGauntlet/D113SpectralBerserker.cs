@@ -277,4 +277,4 @@ class D113SpectralBerserkerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 737, NameID = 9511)]
-public class D113SpectralBerserker(WorldState ws, Actor primary) : BossModule(ws, primary, new(750, 482), new ArenaBoundsSquare(22));
+public class D113SpectralBerserker(ModuleInitializer init) : BossModule(init, new(750, 482), new ArenaBoundsSquare(22));

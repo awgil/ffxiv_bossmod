@@ -28,7 +28,7 @@ class FizzlingDusterPuff(BossModule module, AID aid) : Components.StandardAOEs(m
 class NFizzlingDusterPuff(BossModule module) : FizzlingDusterPuff(module, AID.NFizzlingDusterPuff);
 class SFizzlingDusterPuff(BossModule module) : FizzlingDusterPuff(module, AID.SFizzlingDusterPuff);
 
-public abstract class C011Silkie(WorldState ws, Actor primary) : BossModule(ws, primary, new(-335, -155), new ArenaBoundsSquare(20))
+public abstract class C011Silkie(ModuleInitializer init) : BossModule(init, new(-335, -155), new ArenaBoundsSquare(20))
 {
     public static readonly AOEShapeCross ShapeBlue = new(60, 5);
     public static readonly AOEShapeDonut ShapeGreen = new(5, 60);

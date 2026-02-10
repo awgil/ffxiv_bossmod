@@ -154,4 +154,4 @@ class D133DuranteStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
-class D133Durante(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -422), new ArenaBoundsCircle(23));
+class D133Durante(ModuleInitializer init) : BossModule(init, new(0, -422), new ArenaBoundsCircle(23));

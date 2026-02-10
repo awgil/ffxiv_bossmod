@@ -135,7 +135,7 @@ class DO12TheGovernorStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 238, NameID = 6072)]
-public class DO12TheGovernor(WorldState ws, Actor primary) : BossModule(ws, primary, new WPos(-8, 79), new ArenaBoundsCircle(20))
+public class DO12TheGovernor(ModuleInitializer init) : BossModule(init, new WPos(-8, 79), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

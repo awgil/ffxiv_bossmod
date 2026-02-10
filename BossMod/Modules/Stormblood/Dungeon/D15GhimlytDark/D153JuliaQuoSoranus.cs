@@ -199,7 +199,7 @@ class D153JuliaQuoSoranusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 611, NameID = 7857)]
-public class D153JuliaQuoSoranus(WorldState ws, Actor primary) : BossModule(ws, primary, new(371, -265.03f), new ArenaBoundsCircle(19.5f))
+public class D153JuliaQuoSoranus(ModuleInitializer init) : BossModule(init, new(371, -265.03f), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

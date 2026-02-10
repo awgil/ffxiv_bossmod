@@ -571,7 +571,7 @@ class NoviceTacticalStates : StateMachineBuilder
     }
 }
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala, erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1012, NameID = 13616)]
-public class NoviceTactical(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20f))
+public class NoviceTactical(ModuleInitializer init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20f))
 {
     protected override bool CheckPull() => !PrimaryActor.IsDeadOrDestroyed;
 }

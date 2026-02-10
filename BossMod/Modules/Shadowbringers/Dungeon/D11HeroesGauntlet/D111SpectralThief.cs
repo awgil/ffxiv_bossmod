@@ -95,4 +95,4 @@ class D111SpectralThiefStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 737, NameID = 9505)]
-public class D111SpectralThief(WorldState ws, Actor primary) : BossModule(ws, primary, new(-680f, 449.97f), new ArenaBoundsSquare(20));
+public class D111SpectralThief(ModuleInitializer init) : BossModule(init, new(-680f, 449.97f), new ArenaBoundsSquare(20));

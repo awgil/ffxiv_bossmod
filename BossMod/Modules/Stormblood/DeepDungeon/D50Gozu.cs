@@ -37,4 +37,4 @@ class D50GozuStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 544, NameID = 7485)]
-public class D50Gozu(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(24.5f));
+public class D50Gozu(ModuleInitializer init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(24.5f));

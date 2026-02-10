@@ -133,7 +133,7 @@ class A36FalseIdolStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9948)]
-public class A36FalseIdol(WorldState ws, Actor primary) : BossModule(ws, primary, new(-700, -700), new ArenaBoundsSquare(24.5f))
+public class A36FalseIdol(ModuleInitializer init) : BossModule(init, new(-700, -700), new ArenaBoundsSquare(24.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

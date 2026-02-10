@@ -11,4 +11,4 @@ class ElementalImpact2(BossModule module) : Components.StandardAOEs(module, AID.
 class GleamingArrow(BossModule module) : Components.StandardAOEs(module, AID.GleamingArrow, new AOEShapeRect(60, 5));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9853, PlanLevel = 80)]
-public class DRS6(WorldState ws, Actor primary) : BossModule(ws, primary, new(-272, -82), new ArenaBoundsSquare(25));
+public class DRS6(ModuleInitializer init) : BossModule(init, new(-272, -82), new ArenaBoundsSquare(25));

@@ -239,5 +239,5 @@ class D60AncestralMaliktenderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1037, NameID = 14097)]
-public class D60AncestralMaliktender(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsSquare(20));
+public class D60AncestralMaliktender(ModuleInitializer init) : BossModule(init, new(-600, -300), new ArenaBoundsSquare(20));
 

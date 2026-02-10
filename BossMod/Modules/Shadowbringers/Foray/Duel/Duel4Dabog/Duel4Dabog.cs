@@ -6,4 +6,4 @@ class LeftArmSlash(BossModule module) : Components.StandardAOEs(module, AID.Left
 class LeftArmWave(BossModule module) : Components.StandardAOEs(module, AID.LeftArmWaveAOE, 24);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaDuel, GroupID = 778, NameID = 19)] // bnpcname=9958
-public class Duel4Dabog(WorldState ws, Actor primary) : BossModule(ws, primary, new(250, 710), new ArenaBoundsCircle(20));
+public class Duel4Dabog(ModuleInitializer init) : BossModule(init, new(250, 710), new ArenaBoundsCircle(20));

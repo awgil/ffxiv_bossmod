@@ -200,7 +200,7 @@ class D021BarnabasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 785, NameID = 10279)]
-public class D021Barnabas(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, 71), StartingBounds)
+public class D021Barnabas(ModuleInitializer init) : BossModule(init, new(-300, 71), StartingBounds)
 {
     public static readonly ArenaBoundsCircle StartingBounds = new(19.5f);
     public static readonly ArenaBoundsCircle SmallerBounds = new(15);

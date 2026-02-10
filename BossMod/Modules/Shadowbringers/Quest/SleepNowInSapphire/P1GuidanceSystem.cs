@@ -28,7 +28,7 @@ class GuidanceSystemStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69431, NameID = 9461)]
-public class GuidanceSystem(WorldState ws, Actor primary) : BossModule(ws, primary, new(-15, 610), new ArenaBoundsSquare(60, 1))
+public class GuidanceSystem(ModuleInitializer init) : BossModule(init, new(-15, 610), new ArenaBoundsSquare(60, 1))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

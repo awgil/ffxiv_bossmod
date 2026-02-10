@@ -119,5 +119,5 @@ class D123ThundergustGriffinStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1064, NameID = 14288)]
-public class D123ThundergustGriffin(WorldState ws, Actor primary) : BossModule(ws, primary, new(281, -620), new ArenaBoundsCircle(20));
+public class D123ThundergustGriffin(ModuleInitializer init) : BossModule(init, new(281, -620), new ArenaBoundsCircle(20));
 

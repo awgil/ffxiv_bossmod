@@ -93,7 +93,7 @@ class MythicIdolStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13726)]
-public class MythicIdol(WorldState ws, Actor primary) : BossModule(ws, primary, new(-800, 245), new ArenaBoundsCircle(24.5f))
+public class MythicIdol(ModuleInitializer init) : BossModule(init, new(-800, 245), new ArenaBoundsCircle(24.5f))
 {
     public override bool DrawAllPlayers => true;
 }

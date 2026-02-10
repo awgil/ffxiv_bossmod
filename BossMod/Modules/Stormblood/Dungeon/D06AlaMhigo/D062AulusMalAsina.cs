@@ -81,4 +81,4 @@ class D062AulusMalAsinaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 247, NameID = 6038)]
-public class D062AulusMalAsina(WorldState ws, Actor primary) : BossModule(ws, primary, new(250, -70), new ArenaBoundsCircle(20));
+public class D062AulusMalAsina(ModuleInitializer init) : BossModule(init, new(250, -70), new ArenaBoundsCircle(20));

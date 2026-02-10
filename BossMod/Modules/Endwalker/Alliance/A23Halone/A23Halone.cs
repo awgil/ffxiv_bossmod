@@ -11,4 +11,4 @@ class IceRondel(BossModule module) : Components.StackWithCastTargets(module, AID
 class Niphas(BossModule module) : Components.StandardAOEs(module, AID.Niphas, new AOEShapeCircle(9));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12064)]
-public class A23Halone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-700, 600), new ArenaBoundsCircle(30));
+public class A23Halone(ModuleInitializer init) : BossModule(init, new(-700, 600), new ArenaBoundsCircle(30));

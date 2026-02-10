@@ -7,4 +7,4 @@ class BigCrunchPuddle(BossModule module) : Components.StandardAOEs(module, AID.B
 class BigCrunchSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.BigCrunchSpread, 5);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 965, NameID = 12586, PlanLevel = 90)]
-public class Ex7Zeromus(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));
+public class Ex7Zeromus(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

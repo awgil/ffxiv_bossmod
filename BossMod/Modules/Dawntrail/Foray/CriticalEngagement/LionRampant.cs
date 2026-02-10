@@ -159,7 +159,7 @@ class LionRampantStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13809)]
-public class LionRampant(WorldState ws, Actor primary) : BossModule(ws, primary, new(636, -54), new ArenaBoundsCircle(26))
+public class LionRampant(ModuleInitializer init) : BossModule(init, new(636, -54), new ArenaBoundsCircle(26))
 {
     public override bool DrawAllPlayers => true;
 }

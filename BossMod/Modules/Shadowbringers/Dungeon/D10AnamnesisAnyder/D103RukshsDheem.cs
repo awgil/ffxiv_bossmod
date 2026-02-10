@@ -307,7 +307,7 @@ class RukshsDheemStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 714, NameID = 9264)]
-public class RukshsDheem(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -450), DefaultBounds)
+public class RukshsDheem(ModuleInitializer init) : BossModule(init, new(0, -450), DefaultBounds)
 {
     private static ArenaBoundsCustom MakeSplitBounds()
     {

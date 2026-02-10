@@ -43,4 +43,4 @@ class HakuroWhitefangStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68088, NameID = 5975)]
-public class HakuroWhitefang(WorldState ws, Actor primary) : BossModule(ws, primary, new(504, -133), new ArenaBoundsCircle(20));
+public class HakuroWhitefang(ModuleInitializer init) : BossModule(init, new(504, -133), new ArenaBoundsCircle(20));

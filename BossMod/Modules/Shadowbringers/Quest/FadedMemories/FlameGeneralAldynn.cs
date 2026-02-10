@@ -11,7 +11,7 @@ class FlameGeneralAldynnStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69311, NameID = 4739, PrimaryActorOID = (uint)OID.FlameGeneralAldynn)]
-public class FlameGeneralAldynn(WorldState ws, Actor primary) : BossModule(ws, primary, new(-143, 357), new ArenaBoundsCircle(20))
+public class FlameGeneralAldynn(ModuleInitializer init) : BossModule(init, new(-143, 357), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }

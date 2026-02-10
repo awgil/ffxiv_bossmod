@@ -127,7 +127,7 @@ class MagitekVanguardIPrototypeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67989, NameID = 5650)]
-public class MagitekVanguardIPrototype(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, CustomBounds)
+public class MagitekVanguardIPrototype(ModuleInitializer init) : BossModule(init, ArenaCenter, CustomBounds)
 {
     private static readonly List<WDir> vertices = [
         new(-487.40f, -230.79f), new(-487.56f, -188.08f), new(-478.75f, -181.25f), new(-439.37f, -183.46f), new(-457.85f, -211.90f), new(-461.13f, -228.75f)

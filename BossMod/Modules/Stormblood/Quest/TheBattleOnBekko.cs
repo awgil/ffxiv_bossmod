@@ -72,4 +72,4 @@ class UgetsuSlayerOfAThousandSoulsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68106, NameID = 6096)]
-public class UgetsuSlayerOfAThousandSouls(WorldState ws, Actor primary) : BossModule(ws, primary, new(808.8f, 69.5f), new ArenaBoundsSquare(14));
+public class UgetsuSlayerOfAThousandSouls(ModuleInitializer init) : BossModule(init, new(808.8f, 69.5f), new ArenaBoundsSquare(14));

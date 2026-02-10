@@ -58,7 +58,7 @@ class D111AllSeeingEyeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)]
-public class D111AllSeeingEye(WorldState ws, Actor primary) : BossModule(ws, primary, new(40, 70), new ArenaBoundsSquare(30))
+public class D111AllSeeingEye(ModuleInitializer init) : BossModule(init, new(40, 70), new ArenaBoundsSquare(30))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

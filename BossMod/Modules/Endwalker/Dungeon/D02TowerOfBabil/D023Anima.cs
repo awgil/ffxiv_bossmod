@@ -186,7 +186,7 @@ class D023AnimaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 785, NameID = 10285)]
-public class D023Anima(WorldState ws, Actor primary) : BossModule(ws, primary, UpperArenaCenter, new ArenaBoundsSquare(19.5f))
+public class D023Anima(ModuleInitializer init) : BossModule(init, UpperArenaCenter, new ArenaBoundsSquare(19.5f))
 {
     public static readonly WPos UpperArenaCenter = new(0, -180);
     public static readonly WPos LowerArenaCenter = new(0, -400);

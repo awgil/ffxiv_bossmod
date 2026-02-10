@@ -85,7 +85,7 @@ class D041SerAdelphelBrightbladeStates : StateMachineBuilder
     }
 }
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 34, NameID = 3849)]
-public class D041SerAdelphelBrightblade(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -100), new ArenaBoundsCircle(19.5f))
+public class D041SerAdelphelBrightblade(ModuleInitializer init) : BossModule(init, new(0, -100), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

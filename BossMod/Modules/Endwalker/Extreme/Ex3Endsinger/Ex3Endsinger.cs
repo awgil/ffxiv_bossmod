@@ -14,4 +14,4 @@ class Hubris(BossModule module) : Components.CastCounter(module, AID.HubrisAOE);
 class Eironeia(BossModule module) : Components.CastCounter(module, AID.EironeiaAOE);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 846, NameID = 10448, PlanLevel = 90)]
-public class Ex3Endsinger(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
+public class Ex3Endsinger(ModuleInitializer init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

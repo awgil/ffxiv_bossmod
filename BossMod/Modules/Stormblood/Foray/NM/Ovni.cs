@@ -86,4 +86,4 @@ class OvniStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1424, Contributors = "xan", SortOrder = 11)]
-public class Ovni(WorldState ws, Actor primary) : BossModule(ws, primary, new(266.1068f, -97.09414f), new ArenaBoundsCircle(80, MapResolution: 1));
+public class Ovni(ModuleInitializer init) : BossModule(init, new(266.1068f, -97.09414f), new ArenaBoundsCircle(80, MapResolution: 1));

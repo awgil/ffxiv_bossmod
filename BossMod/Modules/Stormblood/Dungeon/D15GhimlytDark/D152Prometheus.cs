@@ -88,4 +88,4 @@ class D152PrometheusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 611, NameID = 7856)]
-public class D152Prometheus(WorldState ws, Actor primary) : BossModule(ws, primary, new(133.9f, -35.02f), new ArenaBoundsCircle(21));
+public class D152Prometheus(ModuleInitializer init) : BossModule(init, new(133.9f, -35.02f), new ArenaBoundsCircle(21));
