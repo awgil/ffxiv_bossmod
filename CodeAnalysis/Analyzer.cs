@@ -243,7 +243,7 @@ public class Analyzer : DiagnosticAnalyzer
 
         foreach (var plist in paramLists)
             if (isV1Initializer(plist))
-                context.ReportDiagnostic(Diagnostic.Create(RuleUseModuleInitializer, plist.Parent!.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(RuleUseModuleInitializer, plist.GetLocation()));
     }
 }
 

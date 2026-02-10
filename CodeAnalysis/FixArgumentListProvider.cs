@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace CodeAnalysis;
 
 [ExportCodeFixProvider(LanguageNames.CSharp)]
-public class VBMProvider : CodeFixProvider
+public class FixArgumentListProvider : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [Analyzer.RuleInternalNamesForOptions.Id];
 
