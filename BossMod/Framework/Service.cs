@@ -18,7 +18,7 @@ public sealed class Service
     [PluginService] public static ISigScanner SigScanner { get; private set; }
     [PluginService] public static ICondition Condition { get; private set; }
     [PluginService] public static IFramework Framework { get; private set; }
-    //[PluginService] public static ITextureProvider Texture { get; private set; }
+    [PluginService] public static ITextureProvider Texture { get; private set; }
     [PluginService] public static ICommandManager CommandManager { get; private set; }
     [PluginService] public static IDtrBar DtrBar { get; private set; }
     [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; }

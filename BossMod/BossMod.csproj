@@ -20,6 +20,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
+	<PropertyGroup>
+		<AnalysisMode>All</AnalysisMode>
+	</PropertyGroup>
+
   <PropertyGroup>
     <LocalCS>false</LocalCS>
   </PropertyGroup>
