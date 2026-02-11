@@ -99,7 +99,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                 PrimaryActor:
                 {
                     InCombat: true,
-                    HPRatio: 0.95f,
+                    HPRatio: <= 0.95f,
                     InstanceID: var i
                 }
             }
