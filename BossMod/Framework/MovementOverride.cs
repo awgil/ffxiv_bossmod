@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -27,11 +28,11 @@ public unsafe struct MoveControllerSubMemberForMine
     [FieldOffset(0x94)] public byte Spinning;
 }
 
-public sealed unsafe class MovementOverride : IDisposable
+public sealed unsafe class MovementOverride : IMovementOverride
 {
-    public Vector3? DesiredDirection;
-    public Angle MisdirectionThreshold;
-    public Angle? DesiredSpinDirection;
+    public Vector3? DesiredDirection { get; set; }
+    public Angle MisdirectionThreshold { get; set; }
+    public Angle? DesiredSpinDirection { get; set; }
 
     public WDir UserMove { get; private set; } // unfiltered movement direction, as read from input
     public WDir ActualMove { get; private set; } // actual movement direction, as of last input read

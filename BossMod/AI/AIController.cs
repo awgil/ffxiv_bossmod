@@ -1,19 +1,20 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using BossMod.Interfaces;
+using Dalamud.Game.ClientState.Conditions;
 
 namespace BossMod.AI;
 
 // utility for simulating user actions based on AI decisions:
 // - navigation
 // - using actions safely (without spamming, not in cutscenes, etc)
-sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride movement)
+sealed class AIController(WorldState ws, IAmex amex, IMovementOverride movement)
 {
     public WPos? NaviTargetPos;
     public float? NaviTargetVertical;
     public bool AllowInterruptingCastByMovement;
     public bool ForceCancelCast;
 
-    private readonly ActionManagerEx _amex = amex;
-    private readonly MovementOverride _movement = movement;
+    private readonly IAmex _amex = amex;
+    private readonly IMovementOverride _movement = movement;
 
     public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
     public Angle CameraFacing => (Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees();

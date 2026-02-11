@@ -1,55 +1,91 @@
+using Autofac;
 using BossMod.Autorotation;
-using Dalamud.Common;
+using BossMod.Interfaces;
+using DalaMock.Host.Factories;
+using DalaMock.Host.Hosting;
+using DalaMock.Shared.Extensions;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.Game.Event;
-using FFXIVClientStructs.FFXIV.Client.Game.Fate;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class Plugin : IDalamudPlugin
+public class Plugin : HostedPlugin
 {
     public string Name => "Boss Mod";
 
-    private readonly RotationDatabase _rotationDB;
-    private readonly WorldState _ws;
-    private readonly AIHints _hints;
-    private readonly BossModuleManager _bossmod;
-    private readonly ZoneModuleManager _zonemod;
-    private readonly AIHintsBuilder _hintsBuilder;
-    private readonly MovementOverride _movementOverride;
-    private readonly ActionManagerEx _amex;
-    private readonly WorldStateGameSync _wsSync;
-    private readonly RotationModuleManager _rotation;
-    private readonly AI.AIManager _ai;
-    private readonly IPCProvider _ipc;
-    private readonly DTRProvider _dtr;
-    private readonly SlashCommandProvider _slashCmd;
-    private readonly MultiboxManager _mbox;
+    private RotationDatabase _rotationDB;
+    private WorldState _ws;
+    private AIHints _hints;
+    private BossModuleManager _bossmod;
+    private ZoneModuleManager _zonemod;
+    private AIHintsBuilder _hintsBuilder;
+    private IMovementOverride _movementOverride;
+    private IAmex _amex;
+    private IWorldStateSync _wsSync;
+    private RotationModuleManager _rotation;
+    private AI.AIManager _ai;
+    private IPCProvider _ipc;
+    private DTRProvider _dtr;
+    private SlashCommandProvider _slashCmd;
+    private MultiboxManager _mbox;
     private TimeSpan _prevUpdateTime;
     private DateTime _throttleJump;
     private DateTime _throttleInteract;
     private DateTime _throttleFateSync;
     private DateTime _throttleLeaveDuty;
+    private IHintExecutor _hintExecutor;
     private readonly PackLoader _packs;
 
     // windows
-    private readonly ConfigUI _configUI; // TODO: should be a proper window!
-    private readonly BossModuleMainWindow _wndBossmod;
-    private readonly BossModuleHintsWindow _wndBossmodHints;
-    private readonly ZoneModuleWindow _wndZone;
-    private readonly ReplayManagementWindow _wndReplay;
-    private readonly UIRotationWindow _wndRotation;
-    private readonly AI.AIWindow _wndAI;
-    private readonly MainDebugWindow _wndDebug;
+    private ConfigUI _configUI; // TODO: should be a proper window!
+    private BossModuleMainWindow _wndBossmod;
+    private BossModuleHintsWindow _wndBossmodHints;
+    private ZoneModuleWindow _wndZone;
+    private ReplayManagementWindow _wndReplay;
+    private UIRotationWindow _wndRotation;
+    private AI.AIWindow _wndAI;
+    private MainDebugWindow _wndDebug;
 
-    public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
+    public unsafe Plugin(
+        IDalamudPluginInterface dalamud,
+        IPluginLog log,
+        ICommandManager commandManager,
+        IDataManager dataManager,
+        IDtrBar dtrBar,
+        ICondition condition,
+        IGameGui gameGui,
+        ITextureProvider tex
+    ) : base(dalamud, log, commandManager, dataManager, dtrBar, condition, gameGui, tex)
     {
+        Service.Texture = tex;
+        Service.PluginInterface = dalamud;
+        Service.DtrBar = dtrBar;
+        Service.Condition = condition;
+        Service.GameGui = gameGui;
+        Service.LuminaGameData = dataManager.GameData;
+        Service.Config.Initialize();
+        Service.Config.LoadFromFile(dalamud.ConfigFile);
+        Service.Config.Modified.Subscribe(() => Task.Run(() =>
+        {
+            Service.Log($"Config was modified");
+        }));
+
+        Service.LogHandlerDebug = (s) =>
+        {
+            log.Debug(s);
+        };
+        Service.LogHandlerVerbose = (s) => log.Verbose(s);
+
+        CreateHost();
+        Start();
+    }
+
+    /*
         if (!dalamud.ConfigDirectory.Exists)
             dalamud.ConfigDirectory.Create();
         var dalamudRoot = dalamud.GetType().Assembly.
@@ -119,6 +155,7 @@ public sealed class Plugin : IDalamudPlugin
 
         _ = new ConfigChangelogWindow();
     }
+    */
 
     public void Dispose()
     {
@@ -145,6 +182,69 @@ public sealed class Plugin : IDalamudPlugin
         _zonemod.Dispose();
         _bossmod.Dispose();
         ActionDefinitions.Instance.Dispose();
+    }
+
+    public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
+    public override void ConfigureContainer(ContainerBuilder containerBuilder)
+    {
+        ConfigureExtra(containerBuilder);
+        containerBuilder.RegisterType<MovementOverride>().AsSelf().SingleInstance();
+
+        containerBuilder.RegisterBuildCallback(scope =>
+        {
+            var ws = scope.Resolve<WindowSystemFactory>();
+            Service.WindowSystem = ws.Create("vbm");
+
+            var dalamud = scope.Resolve<IDalamudPluginInterface>();
+            _rotationDB = new(new(dalamud.GetPluginConfigDirectory() + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
+
+            _ws = new(0, "unknown");
+            _hints = new();
+            _bossmod = new(_ws);
+            _zonemod = new(_ws);
+            _hintsBuilder = new(_ws, _bossmod, _zonemod);
+            _movementOverride = scope.Resolve<IMovementOverride>();
+
+            var af = scope.Resolve<IAmex.Factory>();
+            _amex = af.Invoke(_ws, _hints);
+
+            var wsf = scope.Resolve<IWorldStateSync.Factory>();
+            _wsSync = wsf.Invoke(_ws);
+            _rotation = new(_rotationDB, _bossmod, _hints);
+            _ai = new(_rotation, _amex, _movementOverride);
+            _ipc = new(_rotation, _amex, _movementOverride, _ai);
+            _dtr = new(_rotation, _ai);
+
+            var hef = scope.Resolve<IHintExecutor.Factory>();
+            _hintExecutor = hef.Invoke(_ws, _hints);
+
+            var replayDir = new DirectoryInfo(dalamud.GetPluginConfigDirectory() + "/replays");
+            _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
+
+            _wndBossmod = new(_bossmod, _zonemod);
+            _wndBossmodHints = new(_bossmod, _zonemod);
+            _wndZone = new(_zonemod);
+            _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
+            _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
+            _wndAI = new(_ai);
+            // TODO: init _wndDebug
+
+            var ui = scope.Resolve<IUiBuilder>();
+            Service.IconFont = ui.FontIcon;
+            ui.DisableAutomaticUiHide = true;
+            ui.Draw += DrawUI;
+            ui.OpenMainUi += () => OpenConfigUI();
+            ui.OpenConfigUi += () => OpenConfigUI();
+        });
+    }
+    public override void ConfigureServices(IServiceCollection serviceCollection) { }
+
+    public virtual void ConfigureExtra(ContainerBuilder containerBuilder)
+    {
+        containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
     }
 
     private void RegisterSlashCommands()
@@ -330,7 +430,7 @@ public sealed class Plugin : IDalamudPlugin
             Service.WindowSystem?.Draw();
         }
 
-        ExecuteHints();
+        _hintExecutor.Execute();
 
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
@@ -343,116 +443,6 @@ public sealed class Plugin : IDalamudPlugin
         return link == 0
             || Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse.RowId == 31 // deep dungeons check is hardcoded in game
             || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
-    }
-
-    private unsafe void ExecuteHints()
-    {
-        _movementOverride.DesiredDirection = _hints.ForcedMovement;
-        _movementOverride.MisdirectionThreshold = _hints.MisdirectionThreshold;
-        _movementOverride.DesiredSpinDirection = _hints.SpinDirection;
-
-        var targetSystem = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
-        SetTarget(_hints.ForcedTarget, &targetSystem->Target);
-        SetTarget(_hints.ForcedFocusTarget, &targetSystem->FocusTarget);
-
-        foreach (var s in _hints.StatusesToCancel)
-        {
-            var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != 0 ? (uint)s.sourceId : 0xE0000000);
-            Service.Log($"[ExecHints] Canceling status {s.statusId} from {s.sourceId:X} -> {res}");
-        }
-        if (_hints.WantJump && _ws.CurrentTime > _throttleJump)
-        {
-            //Service.Log($"[ExecHints] Jumping...");
-            FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
-            _throttleJump = _ws.FutureTime(0.1f);
-        }
-
-        if (_hints.ShouldLeaveDuty && _ws.CurrentTime >= _throttleLeaveDuty)
-        {
-            EventFramework.LeaveCurrentContent(false);
-            _throttleLeaveDuty = _ws.FutureTime(1.0f);
-        }
-
-        if (CheckInteractRange(_ws.Party.Player(), _hints.InteractWithTarget))
-        {
-            // many eventobj interactions "immediately" start some cast animation (delayed by server roundtrip), and if we keep trying to move toward the target after sending the interact request, it will be canceled and force us to start over
-            _movementOverride.DesiredDirection = default;
-
-            if (_amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract)
-            {
-                FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(_hints.InteractWithTarget), false);
-                _throttleInteract = _ws.FutureTime(0.1f);
-            }
-        }
-
-        HandleFateSync();
-    }
-
-    private unsafe void SetTarget(Actor? target, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject** targetPtr)
-    {
-        if (target == null || !target.IsTargetable)
-            return;
-
-        var obj = GetActorObject(target);
-
-        // 50 in-game units is the maximum distance before nameplates stop rendering (making the mob effectively untargetable)
-        // targeting a mob that isn't visible is bad UX
-        if (_ws.Party.Player() is { } player)
-        {
-            var distSq = (player.PosRot.XYZ() - target.PosRot.XYZ()).LengthSquared();
-            if (distSq < 2500)
-                *targetPtr = obj;
-        }
-    }
-
-    private unsafe bool CheckInteractRange(Actor? player, Actor? target)
-    {
-        var playerObj = GetActorObject(player);
-        var targetObj = GetActorObject(target);
-        if (playerObj == null || targetObj == null)
-            return false;
-
-        // treasure chests have no client-side interact range check at all; just assume they use the standard "small" range, seems to be accurate from testing
-        if (targetObj->ObjectKind is FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Treasure)
-            return player?.DistanceToHitbox(target) <= 2.09f;
-
-        return EventFramework.Instance()->CheckInteractRange(playerObj, targetObj, 1, false);
-    }
-
-    private unsafe void HandleFateSync()
-    {
-        var fm = FateManager.Instance();
-        var fate = fm->CurrentFate;
-        if (fate == null)
-            return;
-
-        var shouldDoSomething = _hints.WantFateSync switch
-        {
-            AIHints.FateSync.Enable => !fm->IsSyncedToFate(fate),
-            AIHints.FateSync.Disable => fm->IsSyncedToFate(fate),
-            _ => false
-        };
-
-        if (shouldDoSomething && _ws.CurrentTime >= _throttleFateSync)
-        {
-            fm->LevelSync();
-            _throttleFateSync = _ws.FutureTime(0.5f);
-        }
-    }
-
-    private unsafe FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* GetActorObject(Actor? actor)
-    {
-        if (actor == null)
-            return null;
-
-        var obj = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[actor.SpawnIndex].Value;
-        if (obj == null)
-            return null;
-
-        if (obj->EntityId != actor.InstanceID)
-            Service.Log($"[ExecHints] Unexpected actor: expected {actor.InstanceID:X} at #{actor.SpawnIndex}, but found {obj->EntityId:X}");
-
-        return obj;
     }
 
     private void OnConditionChanged(ConditionFlag flag, bool value)

@@ -33,7 +33,13 @@
     <ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+    <PackageReference Include="DalaMock.Core" Version="4.0.5" />
+    <PackageReference Include="DalaMock.Host" Version="4.0.5" />
     <Reference Include="Dalamud.Common" Private="false" />
     <Reference Include="TerraFX.Interop.Windows" Private="false" />
     <PackageReference Include="System.Data.Sqlite" Version="2.0.2" />
@@ -45,7 +51,21 @@
     </ProjectReference>
   </ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
+		<Reference Include="Dalamud" Private="true" />
+		<Reference Include="Dalamud.Common" Private="true" />
+		<Reference Include="Lumina" Private="true" />
+		<Reference Include="Lumina.Excel" Private="true" />
+		<Reference Include="Dalamud.Bindings.ImGui" Private="true" />
+		<Reference Include="FFXIVClientStructs" Private="true" />
+		<Reference Include="InteropGenerator.Runtime" Private="true" />
+
+		<Content Include="Fonts\FontAwesomeFreeSolid.otf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
     <EmbeddedResource Include="Modules\**\*.json" />
     <EmbeddedResource Include="Autorotation\OptionRenames.json" />
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />

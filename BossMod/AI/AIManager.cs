@@ -1,9 +1,10 @@
 using BossMod.Autorotation;
+using BossMod.Interfaces;
 //using FFXIVClientStructs.FFXIV.Client.Game.Group;
 
 namespace BossMod.AI;
 
-sealed class AIManager(RotationModuleManager autorot, ActionManagerEx amex, MovementOverride movement) : IDisposable
+sealed class AIManager(RotationModuleManager autorot, IAmex amex, IMovementOverride movement) : IDisposable
 {
     private readonly AIController _controller = new(autorot.WorldState, amex, movement);
 

@@ -1,5 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Windowing;
+﻿using DalaMock.Shared.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -12,16 +12,16 @@ public sealed class Service
 #pragma warning disable CS8618
     [PluginService] public static IPluginLog Logger { get; private set; }
     [PluginService] public static IChatGui ChatGui { get; private set; }
-    [PluginService] public static IGameGui GameGui { get; private set; }
-    [PluginService] public static IGameConfig GameConfig { get; private set; }
-    [PluginService] public static IGameInteropProvider Hook { get; private set; }
-    [PluginService] public static ISigScanner SigScanner { get; private set; }
-    [PluginService] public static ICondition Condition { get; private set; }
+    public static IGameGui GameGui;
+    public static IGameConfig GameConfig;
+    public static IGameInteropProvider Hook;
+    public static ISigScanner SigScanner;
+    public static ICondition Condition;
     [PluginService] public static IFramework Framework { get; private set; }
-    [PluginService] public static ITextureProvider Texture { get; private set; }
+    public static ITextureProvider Texture;
     [PluginService] public static ICommandManager CommandManager { get; private set; }
-    [PluginService] public static IDtrBar DtrBar { get; private set; }
-    [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; }
+    public static IDtrBar DtrBar;
+    public static IDalamudPluginInterface PluginInterface;
     // TODO: get rid of stuff below in favour of CS
     [PluginService] public static IClientState ClientState { get; private set; }
     [PluginService] public static IObjectTable ObjectTable { get; private set; }
@@ -44,9 +44,8 @@ public sealed class Service
     public static T? LuminaRow<T>(uint row) where T : struct, Lumina.Excel.IExcelRow<T> => LuminaSheet<T>()?.GetRowOrDefault(row);
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
-    public static WindowSystem? WindowSystem;
+    public static IWindowSystem? WindowSystem;
 
-    // TODO: remove this and use UiBuilder.IconFont once we switch to dalamock
     public static ImFontPtr IconFont;
 #pragma warning restore CA2211
 

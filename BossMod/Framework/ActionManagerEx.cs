@@ -1,4 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game;
+﻿using BossMod.Interfaces;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
@@ -29,7 +30,7 @@ namespace BossMod;
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
 // 7. auto cancel cast utility
 // TODO: should not be public!
-public sealed unsafe class ActionManagerEx : IDisposable
+public sealed unsafe class ActionManagerEx : IAmex
 {
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
     public ActionID CastAction => new((ActionType)_inst->CastActionType, _inst->CastActionId);
@@ -41,16 +42,16 @@ public sealed unsafe class ActionManagerEx : IDisposable
     public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
     public float AnimationLockDelayEstimate => _animLockTweak.DelayEstimate;
 
-    public Event<ClientActionRequest> ActionRequestExecuted = new();
-    public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
+    public Event<ClientActionRequest> ActionRequestExecuted { get; } = new();
+    public Event<ulong, ActorCastEvent> ActionEffectReceived { get; } = new();
 
-    public ActionTweaksConfig Config = Service.Config.Get<ActionTweaksConfig>();
+    public ActionTweaksConfig Config => Service.Config.Get<ActionTweaksConfig>();
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
     private readonly WorldState _ws;
     private readonly AIHints _hints;
-    private readonly MovementOverride _movement;
+    private readonly IMovementOverride _movement;
     private readonly ManualActionQueueTweak _manualQueue;
     private readonly AnimationLockTweak _animLockTweak = new();
     private readonly CooldownDelayTweak _cooldownTweak = new();
@@ -75,7 +76,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     private readonly unsafe delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
+    public ActionManagerEx(WorldState ws, AIHints hints, IMovementOverride movement)
     {
         _ws = ws;
         _hints = hints;

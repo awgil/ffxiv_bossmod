@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using BossMod.Interfaces;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -19,13 +20,13 @@ using System.Text;
 namespace BossMod;
 
 // utility that updates a world state to correspond to game state
-sealed class WorldStateGameSync : IDisposable
+sealed class WorldStateGameSync : IWorldStateSync
 {
     private const int ObjectTableSize = 819; // should match CS; note that different ranges are used for different purposes - consider splitting?..
     private const uint InvalidEntityId = 0xE0000000;
 
     private readonly WorldState _ws;
-    private readonly ActionManagerEx _amex;
+    private readonly IAmex _amex;
     private readonly DateTime _startTime;
     private readonly long _startQPC;
 
@@ -94,7 +95,7 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe delegate void ProcessPacketPlayActionTimelineSync(Network.ServerIPC.PlayActionTimelineSync* data);
     private readonly Hook<ProcessPacketPlayActionTimelineSync> _processPlayActionTimelineSyncHook;
 
-    public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
+    public unsafe WorldStateGameSync(WorldState ws, IAmex amex)
     {
         _ws = ws;
         _amex = amex;
