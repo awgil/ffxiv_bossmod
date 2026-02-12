@@ -34,10 +34,6 @@ public class Plugin : HostedPlugin
     private SlashCommandProvider _slashCmd;
     private MultiboxManager _mbox;
     private TimeSpan _prevUpdateTime;
-    private DateTime _throttleJump;
-    private DateTime _throttleInteract;
-    private DateTime _throttleFateSync;
-    private DateTime _throttleLeaveDuty;
     private IHintExecutor _hintExecutor;
     private readonly PackLoader _packs;
 
@@ -49,7 +45,7 @@ public class Plugin : HostedPlugin
     private ReplayManagementWindow _wndReplay;
     private UIRotationWindow _wndRotation;
     private AI.AIWindow _wndAI;
-    private MainDebugWindow _wndDebug;
+    private MainDebugWindow? _wndDebug;
 
     public unsafe Plugin(
         IDalamudPluginInterface dalamud,
@@ -59,27 +55,27 @@ public class Plugin : HostedPlugin
         IDtrBar dtrBar,
         ICondition condition,
         IGameGui gameGui,
+        IChatGui chatGui,
         ITextureProvider tex
-    ) : base(dalamud, log, commandManager, dataManager, dtrBar, condition, gameGui, tex)
+    ) : base(dalamud, log, commandManager, dataManager, dtrBar, condition, gameGui, chatGui, tex)
     {
         Service.Texture = tex;
         Service.PluginInterface = dalamud;
         Service.DtrBar = dtrBar;
         Service.Condition = condition;
         Service.GameGui = gameGui;
+        Service.ChatGui = chatGui;
         Service.LuminaGameData = dataManager.GameData;
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
-        Service.Config.Modified.Subscribe(() => Task.Run(() =>
-        {
-            Service.Log($"Config was modified");
-        }));
 
-        Service.LogHandlerDebug = (s) =>
-        {
-            log.Debug(s);
-        };
+        Service.LogHandlerDebug = (s) => log.Debug(s);
         Service.LogHandlerVerbose = (s) => log.Verbose(s);
+        Service.Condition.ConditionChange += OnConditionChanged;
+        MultiboxUnlock.Exec();
+
+        ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
+        _packs = new();
 
         CreateHost();
         Start();
@@ -157,10 +153,11 @@ public class Plugin : HostedPlugin
     }
     */
 
-    public void Dispose()
+    public override void Dispose()
     {
+        base.Dispose();
         Service.Condition.ConditionChange -= OnConditionChanged;
-        _wndDebug.Dispose();
+        _wndDebug?.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
@@ -182,6 +179,7 @@ public class Plugin : HostedPlugin
         _zonemod.Dispose();
         _bossmod.Dispose();
         ActionDefinitions.Instance.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
@@ -198,7 +196,8 @@ public class Plugin : HostedPlugin
             var dalamud = scope.Resolve<IDalamudPluginInterface>();
             _rotationDB = new(new(dalamud.GetPluginConfigDirectory() + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
-            _ws = new(0, "unknown");
+            var wsf = scope.Resolve<IWorldStateFactory>();
+            _ws = wsf.Create();
             _hints = new();
             _bossmod = new(_ws);
             _zonemod = new(_ws);
@@ -208,12 +207,14 @@ public class Plugin : HostedPlugin
             var af = scope.Resolve<IAmex.Factory>();
             _amex = af.Invoke(_ws, _hints);
 
-            var wsf = scope.Resolve<IWorldStateSync.Factory>();
-            _wsSync = wsf.Invoke(_ws);
+            var wssf = scope.Resolve<IWorldStateSync.Factory>();
+            _wsSync = wssf.Invoke(_ws);
             _rotation = new(_rotationDB, _bossmod, _hints);
             _ai = new(_rotation, _amex, _movementOverride);
             _ipc = new(_rotation, _amex, _movementOverride, _ai);
             _dtr = new(_rotation, _ai);
+            _slashCmd = new(scope.Resolve<ICommandManager>(), "/vbm");
+            _mbox = new(_rotation, _ws);
 
             var hef = scope.Resolve<IHintExecutor.Factory>();
             _hintExecutor = hef.Invoke(_ws, _hints);
@@ -224,10 +225,15 @@ public class Plugin : HostedPlugin
             _wndBossmod = new(_bossmod, _zonemod);
             _wndBossmodHints = new(_bossmod, _zonemod);
             _wndZone = new(_zonemod);
-            _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir) { IsOpen = dalamud.IsDev };
+            _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
             _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
             _wndAI = new(_ai);
-            //_wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = dalamud.IsDev };
+
+            if (dalamud.IsDev)
+            {
+                _wndReplay.IsOpen = true;
+                Service.Config.Get<ReplayManagementConfig>().ShowUI = true;
+            }
 
             var ui = scope.Resolve<IUiBuilder>();
             Service.IconFont = ui.FontIcon;
@@ -235,6 +241,8 @@ public class Plugin : HostedPlugin
             ui.Draw += DrawUI;
             ui.OpenMainUi += () => OpenConfigUI();
             ui.OpenConfigUi += () => OpenConfigUI();
+
+            _ = new ConfigChangelogWindow();
         });
     }
     public override void ConfigureServices(IServiceCollection serviceCollection) { }
@@ -244,7 +252,19 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateFactory>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
+
+        containerBuilder.RegisterBuildCallback(scope =>
+        {
+            Camera.Instance = new();
+
+            var dalamud = scope.Resolve<IDalamudPluginInterface>();
+            Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
+            _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = dalamud.IsDev };
+
+            RegisterSlashCommands();
+        });
     }
 
     private void RegisterSlashCommands()
@@ -260,7 +280,7 @@ public class Plugin : HostedPlugin
                 Service.ChatGui.Print(msg);
             return true;
         });
-        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", _wndDebug.OpenAndBringToFront);
+        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", () => _wndDebug?.OpenAndBringToFront());
         _slashCmd.AddSubcommand("gc").SetSimpleHandler("execute C# garbage collector", () =>
         {
             GC.Collect();

@@ -24,6 +24,7 @@ internal class MockPlugin(
     IDtrBar dtrBar,
     ICondition condition,
     IGameGui gameGui,
+    IChatGui chatGui,
     ITextureProvider tex
 ) : Plugin(
     dalamud,
@@ -33,6 +34,7 @@ internal class MockPlugin(
     dtrBar,
     condition,
     gameGui,
+    chatGui,
     tex
 )
 {
@@ -49,7 +51,16 @@ internal class MockPlugin(
         containerBuilder.RegisterSingletonSelfAndInterfaces<MockMovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MockActionManagerEx>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateSync>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateFactory>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
+
+        containerBuilder.RegisterBuildCallback(scope =>
+        {
+            Service.Config.Modified.Subscribe(() =>
+            {
+                Service.Log("Config was modified.");
+            });
+        });
 
         /*
         containerBuilder.RegisterBuildCallback(scope =>
