@@ -59,6 +59,8 @@ public sealed class AIHintsBuilder : IDisposable
         4175
     ];
 
+    public delegate AIHintsBuilder Factory(WorldState ws, ZoneModuleManager zmm);
+
     public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm)
     {
         _ws = ws;

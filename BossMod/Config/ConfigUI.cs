@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Config;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
@@ -31,11 +32,11 @@ public sealed class ConfigUI : IDisposable
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, ReplaysRoot? replayDir, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
-        _about = new(replayDir);
+        _about = new(replayDir == null ? null : new(replayDir.Path));
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB) : null;
 
@@ -78,6 +79,12 @@ public sealed class ConfigUI : IDisposable
     public void Dispose()
     {
         _mv.Dispose();
+    }
+
+    public void Open(string tabName = "")
+    {
+        ShowTab(tabName);
+        _ = new UISimpleWindow("Boss Mod Settings", Draw, true, new(300, 300));
     }
 
     public void ShowTab(string name) => _tabs.Select(name);

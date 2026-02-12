@@ -1,6 +1,7 @@
 ﻿using BossMod.Autorotation;
-using Dalamud.Interface.Utility.Raii;
+using BossMod.Config;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using Lumina.Excel.Sheets;
 using System.Diagnostics;
 using System.IO;
@@ -23,9 +24,10 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, RotationDatabase rotationDB, DirectoryInfo logDir) : base(_windowID, false, new(300, 200))
+    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, RotationDatabase rotationDB, ReplaysRoot root) : base(_windowID, false, new(300, 200))
     {
         _ws = ws;
+        var logDir = new DirectoryInfo(root.Path);
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
         _manager = new(rotationDB, logDir.FullName);

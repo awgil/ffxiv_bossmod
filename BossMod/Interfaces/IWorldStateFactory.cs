@@ -2,5 +2,5 @@
 
 internal interface IWorldStateFactory
 {
-    public WorldState Create();
+    public RealWorld Create();
 }

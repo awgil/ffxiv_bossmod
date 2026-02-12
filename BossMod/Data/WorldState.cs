@@ -3,7 +3,7 @@
 // this class represents parts of a world state that are interesting to boss modules
 // it does not know anything about dalamud, so it can be used for UI test - there is a separate utility that updates it based on game state every frame
 // world state is supposed to be modified using "operations" - this provides opportunity to listen and react to state changes
-public sealed class WorldState
+public class WorldState
 {
     // state access
     public ulong QPF;
@@ -22,7 +22,7 @@ public sealed class WorldState
     public DateTime CurrentTime => Frame.Timestamp;
     public DateTime FutureTime(float deltaSeconds) => Frame.Timestamp.AddSeconds(deltaSeconds);
 
-    public WorldState(ulong qpf, string gameVersion)
+    protected WorldState(ulong qpf, string gameVersion)
     {
         QPF = qpf;
         GameVersion = gameVersion;
@@ -169,4 +169,11 @@ public sealed class WorldState
                 output.Emit(arg);
         }
     }
+}
+
+public sealed class RealWorld(ulong qpf, string gameVersion) : WorldState(qpf, gameVersion);
+public sealed class FakeWorld() : WorldState(TimeSpan.TicksPerSecond, "fake");
+public sealed class ReplayWorld(ulong qpf, string gameVersion) : WorldState(qpf, gameVersion)
+{
+    public ReplayWorld() : this(0, "pending") { }
 }

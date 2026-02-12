@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod;
+using BossMod.Mock;
 using BossMod.Mocks;
 using DalaMock.Core.DI;
 using DalaMock.Core.Mocks;
@@ -30,7 +31,6 @@ static class Program
         IDtrBar dtrBar,
         ICondition condition,
         IGameGui gameGui,
-        IGameConfig gameConfig,
         IChatGui chatGui,
         IKeyState keyState,
         ITextureProvider tex,
@@ -45,7 +45,7 @@ static class Program
         dtrBar,
         condition,
         gameGui,
-        gameConfig,
+        new MockGameConfig(),
         chatGui,
         keyState,
         tex,

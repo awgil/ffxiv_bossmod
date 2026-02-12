@@ -7,6 +7,8 @@ public class BossModuleHintsWindow : UIWindow
     private readonly BossModuleManager _mgr;
     private readonly ZoneModuleManager _zmm;
 
+    public delegate BossModuleHintsWindow Factory(ZoneModuleManager zmm);
+
     public BossModuleHintsWindow(BossModuleManager mgr, ZoneModuleManager zmm) : base("Boss module hints", false, new(400, 100))
     {
         _mgr = mgr;
