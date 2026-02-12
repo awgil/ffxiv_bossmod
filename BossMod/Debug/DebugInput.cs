@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -88,7 +89,7 @@ internal sealed unsafe class DebugInput : IDisposable
     private readonly UITree _tree = new();
     private readonly WorldState _ws;
     private readonly AIHints _hints;
-    private readonly MovementOverride _move;
+    private readonly IMovementOverride _move;
     //private readonly AI.AIController _navi;
     private Vector4 _prevPosRot;
     private float _prevSpeed;
@@ -107,7 +108,7 @@ internal sealed unsafe class DebugInput : IDisposable
     //private float _pmcCameraSpeedH;
     //private float _pmcCameraSpeedV;
 
-    public DebugInput(RotationModuleManager autorot, MovementOverride move)
+    public DebugInput(RotationModuleManager autorot, IMovementOverride move)
     {
         _convertVirtualKey = Service.KeyState.GetType().GetMethod("ConvertVirtualKey", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<ConvertVirtualKeyDelegate>(Service.KeyState);
         _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);

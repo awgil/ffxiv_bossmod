@@ -14,11 +14,17 @@ public sealed class MockActionManagerEx : IAmex
     public Event<ClientActionRequest> ActionRequestExecuted => new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived => new();
 
+    public ActionID CastSpell => default;
+    public ActionID CastAction => default;
+    public ActionID QueuedAction => default;
+
     public void Dispose() { }
     public void FinishActionGather() { }
+    public void QueueManualActions() { }
 
+    public unsafe uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null) => 0;
     public void GetCooldowns(Span<Cooldown> cooldowns) => cooldowns.Clear();
     public ClientState.DutyAction[] GetDutyActions() => Utils.MakeArray<ClientState.DutyAction>(5, default);
-
-    public void QueueManualActions() { }
+    public Vector3? GetWorldPosUnderCursor() => null;
+    public void FaceDirection(Angle direction) => throw new NotImplementedException();
 }

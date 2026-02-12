@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
@@ -11,13 +12,13 @@ sealed unsafe class DebugAction : IDisposable
     private int _customAction;
     private readonly UITree _tree = new();
     private readonly WorldState _ws;
-    private readonly ActionManagerEx _amex;
+    private readonly IAmex _amex;
 
     private bool _autoAttack;
     //private delegate byte SetAutoAttackDelegate(byte* self, byte value, byte sendPacket, byte isInstant);
     //private readonly HookAddress<SetAutoAttackDelegate> _hook;
 
-    public DebugAction(WorldState ws, ActionManagerEx amex)
+    public DebugAction(WorldState ws, IAmex amex)
     {
         _ws = ws;
         _amex = amex;

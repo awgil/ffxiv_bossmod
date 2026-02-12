@@ -9,6 +9,9 @@ internal class MockMovementOverride : IMovementOverride
     public Angle? DesiredSpinDirection { get; set; }
     public bool MovementBlocked { get; set; }
 
+    public WDir UserMove => default;
+    public WDir ActualMove => default;
+
     public void Dispose() { }
 
     public bool IsForceUnblocked() => false;

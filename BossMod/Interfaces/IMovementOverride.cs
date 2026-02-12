@@ -11,4 +11,7 @@ public interface IMovementOverride : IDisposable
     public Angle MisdirectionThreshold { get; set; }
     public Angle? DesiredSpinDirection { get; set; }
     public bool MovementBlocked { get; set; }
+
+    public WDir UserMove { get; }
+    public WDir ActualMove { get; }
 }

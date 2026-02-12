@@ -224,10 +224,10 @@ public class Plugin : HostedPlugin
             _wndBossmod = new(_bossmod, _zonemod);
             _wndBossmodHints = new(_bossmod, _zonemod);
             _wndZone = new(_zonemod);
-            _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
+            _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir) { IsOpen = dalamud.IsDev };
             _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
             _wndAI = new(_ai);
-            // TODO: init _wndDebug
+            //_wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = dalamud.IsDev };
 
             var ui = scope.Resolve<IUiBuilder>();
             Service.IconFont = ui.FontIcon;
