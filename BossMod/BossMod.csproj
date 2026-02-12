@@ -33,11 +33,17 @@
     <ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
   </ItemGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-		<OutputType>Exe</OutputType>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
 
-	<ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <AssemblyAttribute Include="DalamudLibPath">
+      <_Parameter1>$(DalamudLibPath)</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DalaMock.Core" Version="4.0.6" />
     <PackageReference Include="DalaMock.Host" Version="4.0.6" />
     <Reference Include="Dalamud.Common" Private="false" />
@@ -51,21 +57,7 @@
     </ProjectReference>
   </ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
-		<Reference Include="Dalamud" Private="true" />
-		<Reference Include="Dalamud.Common" Private="true" />
-		<Reference Include="Lumina" Private="true" />
-		<Reference Include="Lumina.Excel" Private="true" />
-		<Reference Include="Dalamud.Bindings.ImGui" Private="true" />
-		<Reference Include="FFXIVClientStructs" Private="true" />
-		<Reference Include="InteropGenerator.Runtime" Private="true" />
-
-		<Content Include="Fonts\FontAwesomeFreeSolid.otf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-	</ItemGroup>
-
-	<ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Modules\**\*.json" />
     <EmbeddedResource Include="Autorotation\OptionRenames.json" />
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />

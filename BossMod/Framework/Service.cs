@@ -23,11 +23,11 @@ public sealed class Service
     public static IDtrBar DtrBar;
     public static IDalamudPluginInterface PluginInterface;
     // TODO: get rid of stuff below in favour of CS
-    [PluginService] public static IClientState ClientState { get; private set; }
-    [PluginService] public static IObjectTable ObjectTable { get; private set; }
+    public static IClientState ClientState;
+    public static IObjectTable ObjectTable;
     [PluginService] public static IPlayerState PlayerState { get; private set; }
     [PluginService] public static ITargetManager TargetManager { get; private set; }
-    [PluginService] public static IKeyState KeyState { get; private set; }
+    public static IKeyState KeyState;
     [PluginService] public static INotificationManager Notifications { get; private set; }
 #pragma warning restore CS8618
 

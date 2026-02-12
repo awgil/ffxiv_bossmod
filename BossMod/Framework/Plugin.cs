@@ -46,25 +46,38 @@ public class Plugin : HostedPlugin
     private UIRotationWindow _wndRotation;
     private AI.AIWindow _wndAI;
     private MainDebugWindow? _wndDebug;
+    private IUiBuilder _uiBuilder;
 
     public unsafe Plugin(
         IDalamudPluginInterface dalamud,
         IPluginLog log,
+        IClientState clientState,
+        IObjectTable objects,
         ICommandManager commandManager,
         IDataManager dataManager,
         IDtrBar dtrBar,
         ICondition condition,
         IGameGui gameGui,
+        IGameConfig gameConfig,
         IChatGui chatGui,
-        ITextureProvider tex
-    ) : base(dalamud, log, commandManager, dataManager, dtrBar, condition, gameGui, chatGui, tex)
+        IKeyState keyState,
+        ITextureProvider tex,
+        IGameInteropProvider hook,
+        ISigScanner scanner
+    ) : base(dalamud, log, clientState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner)
     {
         Service.Texture = tex;
         Service.PluginInterface = dalamud;
         Service.DtrBar = dtrBar;
+        Service.ObjectTable = objects;
+        Service.ClientState = clientState;
         Service.Condition = condition;
         Service.GameGui = gameGui;
+        Service.GameConfig = gameConfig;
         Service.ChatGui = chatGui;
+        Service.KeyState = keyState;
+        Service.SigScanner = scanner;
+        Service.Hook = hook;
         Service.LuminaGameData = dataManager.GameData;
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
@@ -77,85 +90,15 @@ public class Plugin : HostedPlugin
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
         _packs = new();
 
+        HostedEvents.PluginStopping += Teardown;
+
         CreateHost();
         Start();
     }
 
-    /*
-        if (!dalamud.ConfigDirectory.Exists)
-            dalamud.ConfigDirectory.Create();
-        var dalamudRoot = dalamud.GetType().Assembly.
-                GetType("Dalamud.Service`1", true)!.MakeGenericType(dalamud.GetType().Assembly.GetType("Dalamud.Dalamud", true)!).
-                GetMethod("Get")!.Invoke(null, BindingFlags.Default, null, [], null);
-        var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
-        var gameVersion = dalamudStartInfo?.GameVersion?.ToString() ?? "unknown";
-
-#if LOCAL_CS
-        InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, gameVersion, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
-        FFXIVClientStructs.Interop.Generated.Addresses.Register();
-        InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
-#endif
-
-        dalamud.Create<Service>();
-        Service.IsDev = dalamud.IsDev;
-        Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
-        Service.LogHandlerVerbose = (string msg) => Service.Logger.Verbose(msg);
-        Service.LuminaGameData = dataManager.GameData;
-        Service.WindowSystem = new("vbm");
-        //Service.Device = pluginInterface.UiBuilder.Device;
-        Service.Condition.ConditionChange += OnConditionChanged;
-        Service.IconFont = UiBuilder.IconFont;
-        MultiboxUnlock.Exec();
-        Camera.Instance = new();
-
-        Service.Config.Initialize();
-        Service.Config.LoadFromFile(dalamud.ConfigFile);
-        Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
-
-        ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
-
-        _packs = new();
-
-        var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
-        _rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
-        _ws = new(qpf, gameVersion);
-        _hints = new();
-        _bossmod = new(_ws);
-        _zonemod = new(_ws);
-        _hintsBuilder = new(_ws, _bossmod, _zonemod);
-        _movementOverride = new(dalamud);
-        _amex = new(_ws, _hints, _movementOverride);
-        _wsSync = new(_ws, _amex);
-        _rotation = new(_rotationDB, _bossmod, _hints);
-        _ai = new(_rotation, _amex, _movementOverride);
-        _ipc = new(_rotation, _amex, _movementOverride, _ai);
-        _dtr = new(_rotation, _ai);
-        _slashCmd = new(commandManager, "/vbm");
-        _mbox = new(_rotation, _ws);
-
-        var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
-        _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
-        _wndBossmod = new(_bossmod, _zonemod);
-        _wndBossmodHints = new(_bossmod, _zonemod);
-        _wndZone = new(_zonemod);
-        _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
-        _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
-        _wndAI = new(_ai);
-        _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = Service.IsDev };
-
-        dalamud.UiBuilder.DisableAutomaticUiHide = true;
-        dalamud.UiBuilder.Draw += DrawUI;
-        dalamud.UiBuilder.OpenMainUi += () => OpenConfigUI();
-        dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
-        RegisterSlashCommands();
-
-        _ = new ConfigChangelogWindow();
-    }
-    */
-
-    public override void Dispose()
+    public void Teardown()
     {
-        base.Dispose();
+        _uiBuilder.Draw -= DrawUI;
         Service.Condition.ConditionChange -= OnConditionChanged;
         _wndDebug?.Dispose();
         _wndAI.Dispose();
@@ -179,7 +122,6 @@ public class Plugin : HostedPlugin
         _zonemod.Dispose();
         _bossmod.Dispose();
         ActionDefinitions.Instance.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
@@ -229,23 +171,34 @@ public class Plugin : HostedPlugin
             _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
             _wndAI = new(_ai);
 
-            if (dalamud.IsDev)
-            {
-                _wndReplay.IsOpen = true;
-                Service.Config.Get<ReplayManagementConfig>().ShowUI = true;
-            }
-
-            var ui = scope.Resolve<IUiBuilder>();
-            Service.IconFont = ui.FontIcon;
-            ui.DisableAutomaticUiHide = true;
-            ui.Draw += DrawUI;
-            ui.OpenMainUi += () => OpenConfigUI();
-            ui.OpenConfigUi += () => OpenConfigUI();
+            _uiBuilder = scope.Resolve<IUiBuilder>();
+            Service.IconFont = _uiBuilder.FontIcon;
+            _uiBuilder.DisableAutomaticUiHide = true;
+            _uiBuilder.Draw += DrawUI;
+            _uiBuilder.OpenMainUi += () => OpenConfigUI();
+            _uiBuilder.OpenConfigUi += () => OpenConfigUI();
 
             _ = new ConfigChangelogWindow();
+
+            OnContainerBuild(scope);
         });
     }
     public override void ConfigureServices(IServiceCollection serviceCollection) { }
+
+    public virtual void OnContainerBuild(ILifetimeScope scope)
+    {
+        var dalamud = scope.Resolve<IDalamudPluginInterface>();
+
+        Camera.Instance = new();
+
+        // save config on modify
+        Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
+
+        // debug window, heavily uses CS so only suitable for actual plugin
+        _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = dalamud.IsDev };
+
+        RegisterSlashCommands();
+    }
 
     public virtual void ConfigureExtra(ContainerBuilder containerBuilder)
     {
@@ -254,17 +207,6 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateFactory>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
-
-        containerBuilder.RegisterBuildCallback(scope =>
-        {
-            Camera.Instance = new();
-
-            var dalamud = scope.Resolve<IDalamudPluginInterface>();
-            Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
-            _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = dalamud.IsDev };
-
-            RegisterSlashCommands();
-        });
     }
 
     private void RegisterSlashCommands()

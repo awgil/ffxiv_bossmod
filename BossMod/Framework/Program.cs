@@ -8,74 +8,111 @@ using DalaMock.Shared.Extensions;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using System.IO;
+using System.Reflection;
 
-var cnt = new MockContainer();
-var ui = cnt.GetMockUi();
-var loader = cnt.GetPluginLoader();
-var pl = loader.AddPlugin(typeof(MockPlugin));
-loader.StartPlugin(pl);
-ui.Run();
-
-internal class MockPlugin(
-    IDalamudPluginInterface dalamud,
-    IPluginLog log,
-    ICommandManager commandManager,
-    IDataManager dataManager,
-    IDtrBar dtrBar,
-    ICondition condition,
-    IGameGui gameGui,
-    IChatGui chatGui,
-    ITextureProvider tex
-) : Plugin(
-    dalamud,
-    log,
-    commandManager,
-    dataManager,
-    dtrBar,
-    condition,
-    gameGui,
-    chatGui,
-    tex
-)
+[AttributeUsage(AttributeTargets.Assembly, Inherited = false, AllowMultiple = false)]
+sealed class DalamudLibPathAttribute(string path) : Attribute
 {
-    public override void ConfigureContainer(ContainerBuilder containerBuilder)
-    {
-        base.ConfigureContainer(containerBuilder);
-        containerBuilder.RegisterType<MockWindowSystem>().As<IWindowSystem>();
-        containerBuilder.RegisterType<MockFileDialogManager>().As<IFileDialogManager>();
-        containerBuilder.RegisterType<MockFont>().As<IFont>().SingleInstance();
-    }
+    public string Path { get; } = path;
+}
 
-    public override void ConfigureExtra(ContainerBuilder containerBuilder)
+static class Program
+{
+    // must be nested or private to prevent dalamud's LocalPlugin scanner from finding it
+    private class MockPlugin(
+        IDalamudPluginInterface dalamud,
+        IPluginLog log,
+        IClientState clientState,
+        IObjectTable objects,
+        ICommandManager commandManager,
+        IDataManager dataManager,
+        IDtrBar dtrBar,
+        ICondition condition,
+        IGameGui gameGui,
+        IGameConfig gameConfig,
+        IChatGui chatGui,
+        IKeyState keyState,
+        ITextureProvider tex,
+        IGameInteropProvider hook
+    ) : Plugin(
+        dalamud,
+        log,
+        clientState,
+        objects,
+        commandManager,
+        dataManager,
+        dtrBar,
+        condition,
+        gameGui,
+        gameConfig,
+        chatGui,
+        keyState,
+        tex,
+        hook,
+        new MockSigScanner()
+    )
     {
-        containerBuilder.RegisterSingletonSelfAndInterfaces<MockMovementOverride>();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<MockActionManagerEx>();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateSync>();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateFactory>();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
+        public override void ConfigureContainer(ContainerBuilder containerBuilder)
+        {
+            base.ConfigureContainer(containerBuilder);
+            containerBuilder.RegisterType<MockWindowSystem>().As<IWindowSystem>();
+            containerBuilder.RegisterType<MockFileDialogManager>().As<IFileDialogManager>();
+            containerBuilder.RegisterType<MockFont>().As<IFont>().SingleInstance();
+        }
 
-        containerBuilder.RegisterBuildCallback(scope =>
+        public override void OnContainerBuild(ILifetimeScope scope)
         {
             Service.Config.Modified.Subscribe(() =>
             {
                 Service.Log("Config was modified.");
             });
-        });
+        }
 
-        /*
-        containerBuilder.RegisterBuildCallback(scope =>
+        public override void ConfigureExtra(ContainerBuilder containerBuilder)
         {
-            var ip = scope.Resolve<IDalamudPluginInterface>();
-            var xlDir = new DirectoryInfo(ip.ConfigFile.DirectoryName!).Parent!;
-            var assetDir = Path.Join(xlDir.FullName, "dalamudAssets/dev/UIRes");
-
-            var noto = Path.Join(assetDir, "NotoSansCJKjp-Medium.otf");
-            unsafe
-            {
-                ImGui.GetIO().Fonts.AddFontFromFileTTF(noto, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
-                ImGui.GetIO().Fonts.Build();
-            }
-        });
-        */
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockMovementOverride>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockActionManagerEx>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateSync>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateFactory>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
+        }
     }
+
+    static readonly string[] SupportedLibs = [
+        "Dalamud",
+        "FFXIVClientStructs",
+        "Lumina",
+        "Serilog.Sinks.Console"
+    ];
+
+    static void Initialize()
+    {
+        var dalapath = Assembly.GetEntryAssembly()!.GetCustomAttribute<DalamudLibPathAttribute>()!.Path;
+
+        AppDomain.CurrentDomain.AssemblyResolve += delegate (object? sender, ResolveEventArgs args)
+        {
+            var libName = args.Name.Split(',').FirstOrDefault();
+            return libName != null && SupportedLibs.Contains(libName) ? Assembly.LoadFrom(Path.Join(dalapath, $"{libName}.dll")) : null;
+        };
+    }
+
+    static void RealMain()
+    {
+        var cnt = new MockContainer();
+        var ui = cnt.GetMockUi();
+        var loader = cnt.GetPluginLoader();
+        var pl = loader.AddPlugin(typeof(MockPlugin));
+        loader.StartPlugin(pl);
+        ui.Run();
+    }
+
+    // OutputType=Exe only in Debug configuration
+#pragma warning disable IDE0210 // Convert to top-level statements
+    static void Main()
+    {
+        Initialize();
+        RealMain();
+    }
+#pragma warning restore IDE0210 // Convert to top-level statements
 }
