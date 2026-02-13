@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Dawntrail.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 998)]
-public class TheProtectorAndTheDestroyer(WorldState ws) : QuestBattle(ws)
+public class TheProtectorAndTheDestroyer(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override unsafe List<QuestObjective> DefineObjectives(WorldState ws)
     {

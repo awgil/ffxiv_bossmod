@@ -13,7 +13,7 @@ public sealed class ZoneModuleInfoAttribute(BossModuleInfo.Maturity maturity, ui
 
 public static class ZoneModuleRegistry
 {
-    public record class Info(Type ModuleType, ZoneModuleInfoAttribute Desc, Func<WorldState, ZoneModule> Factory);
+    public record class Info(Type ModuleType, ZoneModuleInfoAttribute Desc, Func<ZoneModuleArgs, ZoneModule> Factory);
 
     private static readonly Dictionary<uint, Info> _modulesByCFC = [];
 
@@ -32,12 +32,12 @@ public static class ZoneModuleRegistry
                 Service.Log($"[ZoneModuleRegistry] Two zone modules have same CFCID: {t.FullName} and {existingModule.ModuleType.FullName}");
                 continue;
             }
-            _modulesByCFC[attr.CFCID] = new Info(t, attr, New<ZoneModule>.ConstructorDerived<WorldState>(t));
+            _modulesByCFC[attr.CFCID] = new Info(t, attr, New<ZoneModule>.ConstructorDerived<ZoneModuleArgs>(t));
         }
     }
 
-    public static ZoneModule? CreateModule(WorldState ws, uint cfcId, BossModuleInfo.Maturity minMaturity)
+    public static ZoneModule? CreateModule(ZoneModuleArgs args, uint cfcId, BossModuleInfo.Maturity minMaturity)
     {
-        return cfcId != 0 && _modulesByCFC.TryGetValue(cfcId, out var info) && info.Desc.Maturity >= minMaturity ? info.Factory(ws) : null;
+        return cfcId != 0 && _modulesByCFC.TryGetValue(cfcId, out var info) && info.Desc.Maturity >= minMaturity ? info.Factory(args) : null;
     }
 }

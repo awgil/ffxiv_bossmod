@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 339)]
-internal class LordOfTheInferno(WorldState ws) : QuestBattle(ws)
+internal class LordOfTheInferno(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

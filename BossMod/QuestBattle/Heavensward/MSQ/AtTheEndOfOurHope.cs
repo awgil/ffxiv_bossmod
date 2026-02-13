@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 416)]
-public sealed class AtTheEndOfOurHope(WorldState ws) : QuestBattle(ws)
+public sealed class AtTheEndOfOurHope(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws).WithConnections(

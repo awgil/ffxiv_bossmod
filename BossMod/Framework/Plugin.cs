@@ -7,7 +7,6 @@ using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -20,34 +19,7 @@ public class Plugin : HostedPlugin
 {
     public string Name => "Boss Mod";
 
-    private WorldState _ws;
-    private AIHints _hints;
-    private BossModuleManager _bossmod;
-    private ZoneModuleManager _zonemod;
-    private AIHintsBuilder _hintsBuilder;
-    private IMovementOverride _movementOverride;
-    private IAmex _amex;
-    private IWorldStateSync _wsSync;
-    private RotationModuleManager _rotation;
-    private AI.AIManager _ai;
-    private IPCProvider _ipc;
-    private DTRProvider _dtr;
-    private SlashCommandProvider _slashCmd;
-    private MultiboxManager _mbox;
-    private TimeSpan _prevUpdateTime;
-    private IHintExecutor _hintExecutor;
     private readonly PackLoader _packs;
-
-    // windows
-    private ConfigUI _configUI; // TODO: should be a proper window!
-    private BossModuleMainWindow _wndBossmod;
-    private BossModuleHintsWindow _wndBossmodHints;
-    private ZoneModuleWindow _wndZone;
-    private ReplayManagementWindow _wndReplay;
-    private UIRotationWindow _wndRotation;
-    private AI.AIWindow _wndAI;
-    private MainDebugWindow? _wndDebug;
-    private IUiBuilder _uiBuilder;
 
     public unsafe Plugin(
         IDalamudPluginInterface dalamud,
@@ -67,7 +39,7 @@ public class Plugin : HostedPlugin
         ISigScanner scanner
     ) : base(dalamud, log, clientState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner)
     {
-        Service.Texture = tex;
+        //Service.Texture = tex;
         Service.PluginInterface = dalamud;
         Service.DtrBar = dtrBar;
         Service.ObjectTable = objects;
@@ -117,6 +89,7 @@ public class Plugin : HostedPlugin
 
         // one instance is registered for global scope (i.e. real world), and additionally one is registered per replay
         containerBuilder.RegisterType<ModuleArgs>();
+        containerBuilder.RegisterType<ZoneModuleArgs>();
         containerBuilder.Register(s => s.Resolve<IWorldStateFactory>().Create()).AsSelf().As<WorldState>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();

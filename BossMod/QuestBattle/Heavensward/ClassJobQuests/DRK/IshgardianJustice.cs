@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.DRK;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 436)]
-internal class IshgardianJustice(WorldState ws) : QuestBattle(ws)
+internal class IshgardianJustice(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws).CompleteOnCreated(0x1223),

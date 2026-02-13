@@ -1,6 +1,7 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using Lumina.Excel.Sheets;
 
 namespace BossMod.Global.DeepDungeon;
@@ -61,7 +62,7 @@ public class AutoDDConfig : ConfigNode
     public BitMask AutoMagicite;
     public BitMask AutoDemiclone;
 
-    public override void DrawCustom(UITree tree, WorldState ws)
+    public override void DrawCustom(UITree tree, WorldState ws, ITextureProvider tex)
     {
         foreach (var _ in tree.Node("Automatic pomander usage"))
         {
@@ -72,7 +73,7 @@ public class AutoDDConfig : ConfigNode
                 using (ImRaii.PushId($"pom{i}"))
                 {
                     var row = Service.LuminaRow<DeepDungeonItem>((uint)i)!.Value;
-                    var wrap = Service.Texture.GetFromGameIcon(row.Icon).GetWrapOrEmpty();
+                    var wrap = tex.GetFromGameIcon(row.Icon).GetWrapOrEmpty();
                     var scale = new Vector2(32 * ImGuiHelpers.GlobalScale);
                     ImGui.Image(wrap.Handle, scale, new Vector2(0), tintCol: new Vector4(1) with { W = AutoPoms[i] ? 1 : 0.4f });
                     if (ImGui.IsItemClicked())

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 665)]
-public class ADiggingWeWillGo(WorldState ws) : QuestBattle(ws)
+public class ADiggingWeWillGo(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         QuestObjective.Combat(ws, new Vector3(-300.51f, 385.53f, -433.57f)),

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.AST;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 414)]
-internal class TheHandsOfFate(WorldState ws) : QuestBattle(ws)
+internal class TheHandsOfFate(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

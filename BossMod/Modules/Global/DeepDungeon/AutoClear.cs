@@ -92,9 +92,10 @@ public abstract partial class AutoClear : ZoneModule
 
     protected DeepDungeonState Palace => World.DeepDungeon;
 
-    protected AutoClear(WorldState ws, int LevelCap) : base(ws)
+    protected AutoClear(ZoneModuleArgs args, int LevelCap) : base(args)
     {
         this.LevelCap = LevelCap;
+        var ws = args.World;
         _obstacles = new(ws);
 
         _subscriptions = new(

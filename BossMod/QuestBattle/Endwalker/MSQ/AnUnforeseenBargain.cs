@@ -42,9 +42,9 @@ class ZeroAI(WorldState ws) : UnmanagedRotation(ws, 3)
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 910)]
-internal class AnUnforeseenBargain(WorldState ws) : QuestBattle(ws)
+internal class AnUnforeseenBargain(ZoneModuleArgs args) : QuestBattle(args)
 {
-    private readonly ZeroAI _zero = new(ws);
+    private readonly ZeroAI _zero = new(args.World);
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

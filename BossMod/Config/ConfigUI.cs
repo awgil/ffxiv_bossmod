@@ -2,6 +2,7 @@
 using BossMod.Config;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 
@@ -29,15 +30,17 @@ public sealed class ConfigUI : IDisposable
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
     private readonly UIPresetDatabaseEditor? _presets;
+    private readonly ITextureProvider _tex;
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, ReplaysRoot? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, ReplaysRoot? replayDir, RotationDatabase? rotationDB, ITextureProvider tex)
     {
         _root = config;
         _ws = ws;
         _about = new(replayDir == null ? null : new(replayDir.Path));
-        _mv = new(rotationDB?.Plans, ws);
+        _tex = tex;
+        _mv = new(rotationDB?.Plans, ws, tex);
         _presets = rotationDB != null ? new(rotationDB) : null;
 
         _tabs.Add("About", _about.Draw);
@@ -151,7 +154,7 @@ public sealed class ConfigUI : IDisposable
                 yield return [node.Name, .. path];
     }
 
-    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, Func<PropertyDisplayAttribute, bool>? filter = null)
+    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, ITextureProvider tex, Func<PropertyDisplayAttribute, bool>? filter = null)
     {
         // draw standard properties
         foreach (var field in node.GetType().GetFields())
@@ -191,7 +194,7 @@ public sealed class ConfigUI : IDisposable
         }
 
         // draw custom stuff
-        node.DrawCustom(tree, ws);
+        node.DrawCustom(tree, ws, tex);
     }
 
     private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config", StringComparison.Ordinal) ? t.Name[..^"Config".Length] : t.Name;
@@ -207,7 +210,7 @@ public sealed class ConfigUI : IDisposable
     {
         foreach (var n in _tree.Nodes(nodes.Where(n => MatchesFilter(n.Path)), n => new(n.Name)))
         {
-            DrawNode(n.Node, _root, _tree, _ws, props => MatchesFilter([.. n.Path, props.Label]));
+            DrawNode(n.Node, _root, _tree, _ws, _tex, props => MatchesFilter([.. n.Path, props.Label]));
             DrawNodes(n.Children);
         }
     }

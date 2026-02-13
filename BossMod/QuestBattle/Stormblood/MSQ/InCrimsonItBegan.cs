@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 464)]
-public sealed class InCrimsonItBegan(WorldState ws) : QuestBattle(ws)
+public sealed class InCrimsonItBegan(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

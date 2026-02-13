@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 664)]
-public class AFeastOfLies(WorldState ws) : QuestBattle(ws)
+public class AFeastOfLies(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

@@ -44,9 +44,9 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
 
     protected abstract Duel FarmTarget { get; set; }
 
-    protected DuelFarm(WorldState ws, string zone) : base(ws)
+    protected DuelFarm(ZoneModuleArgs args, string zone) : base(args)
     {
-        _subscriptions = new(ws.Client.FateInfo.Subscribe(OnFateSpawn));
+        _subscriptions = new(args.World.Client.FateInfo.Subscribe(OnFateSpawn));
         Zone = zone;
     }
 
@@ -144,7 +144,7 @@ public enum BozjaDuel : uint
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 735)]
-public class Bozja(WorldState ws) : DuelFarm<BozjaDuel>(ws, "Bozja")
+public class Bozja(ZoneModuleArgs args) : DuelFarm<BozjaDuel>(args, "Bozja")
 {
     private readonly BozjaFarmConfig _config = Service.Config.Get<BozjaFarmConfig>();
 
@@ -177,7 +177,7 @@ public enum ZadnorDuel : uint
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 778)]
-public class Zadnor(WorldState ws) : DuelFarm<ZadnorDuel>(ws, "Zadnor")
+public class Zadnor(ZoneModuleArgs args) : DuelFarm<ZadnorDuel>(args, "Zadnor")
 {
     private readonly ZadnorFarmConfig _config = Service.Config.Get<ZadnorFarmConfig>();
 

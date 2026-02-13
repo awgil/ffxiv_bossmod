@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 332)]
-public class LurkersInTheGrotto(WorldState ws) : QuestBattle(ws)
+public class LurkersInTheGrotto(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {

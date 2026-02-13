@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
@@ -9,11 +10,13 @@ public class BossModuleConfigWindow : UIWindow
     private readonly WorldState _ws;
     private readonly UITree _tree = new();
     private readonly UITabs _tabs = new();
+    private readonly ITextureProvider _tex;
 
-    public BossModuleConfigWindow(BossModuleRegistry.Info info, WorldState ws) : base($"{info.ModuleType.Name} config", true, new(1200, 800))
+    public BossModuleConfigWindow(BossModuleRegistry.Info info, WorldState ws, ITextureProvider tex) : base($"{info.ModuleType.Name} config", true, new(1200, 800))
     {
         _node = info.ConfigType != null ? Service.Config.Get<ConfigNode>(info.ConfigType) : null;
         _ws = ws;
+        _tex = tex;
         _tabs.Add("Encounter-specific config", DrawEncounterTab);
         _tabs.Add("Party roles assignment", DrawPartyRolesAssignmentsTab);
     }
@@ -23,7 +26,7 @@ public class BossModuleConfigWindow : UIWindow
     private void DrawEncounterTab()
     {
         if (_node != null)
-            ConfigUI.DrawNode(_node, Service.Config, _tree, _ws);
+            ConfigUI.DrawNode(_node, Service.Config, _tree, _ws, _tex);
         else
             ImGui.TextUnformatted("This module does not expose any configuration");
     }
@@ -31,6 +34,6 @@ public class BossModuleConfigWindow : UIWindow
     private void DrawPartyRolesAssignmentsTab()
     {
         if (_ws.Party.Player() != null)
-            ConfigUI.DrawNode(_prc, Service.Config, _tree, _ws);
+            ConfigUI.DrawNode(_prc, Service.Config, _tree, _ws, _tex);
     }
 }

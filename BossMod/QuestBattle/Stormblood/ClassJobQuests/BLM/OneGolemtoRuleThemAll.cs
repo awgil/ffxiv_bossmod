@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.BLM;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 445)]
-internal class OneGolemToRuleThemAll(WorldState ws) : QuestBattle(ws)
+internal class OneGolemToRuleThemAll(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

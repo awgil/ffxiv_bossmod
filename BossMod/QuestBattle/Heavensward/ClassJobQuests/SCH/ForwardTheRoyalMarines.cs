@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.SCH;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 394)]
-internal class ForwardTheRoyalMarines(WorldState ws) : QuestBattle(ws)
+internal class ForwardTheRoyalMarines(ZoneModuleArgs args) : QuestBattle(args)
 {
     private QuestObjective Trace(Vector3 dest, uint oid) => new QuestObjective(World).WithConnection(dest).WithInteract(oid).CompleteOnState7(oid);
 

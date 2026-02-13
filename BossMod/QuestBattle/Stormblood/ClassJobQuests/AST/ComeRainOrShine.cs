@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.AST;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 442)]
-internal class ComeRainOrShrine(WorldState ws) : QuestBattle(ws)
+internal class ComeRainOrShrine(ZoneModuleArgs args) : QuestBattle(args)
 {
     private void HealBond(QuestObjective obj)
     {

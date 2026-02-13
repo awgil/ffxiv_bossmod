@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 237)]
-public class ItsProbablyATrap(WorldState ws) : QuestBattle(ws)
+public class ItsProbablyATrap(ZoneModuleArgs args) : QuestBattle(args)
 {
     enum SID : uint
     {

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.MCH;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 426)]
-internal class RiseOfTheMachinists(WorldState ws) : QuestBattle(ws)
+internal class RiseOfTheMachinists(ZoneModuleArgs args) : QuestBattle(args)
 {
     private static readonly Vector3 Center = new(-650.33f, 97.38f, -452.71f);
 

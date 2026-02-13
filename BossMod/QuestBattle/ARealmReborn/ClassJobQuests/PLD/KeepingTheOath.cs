@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.PLD;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 362)]
-internal class KeepingTheOath(WorldState ws) : QuestBattle(ws)
+internal class KeepingTheOath(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws).CompleteOnKilled(0x617),

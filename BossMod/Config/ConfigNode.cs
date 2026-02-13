@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Dalamud.Plugin.Services;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace BossMod;
@@ -57,6 +58,7 @@ public abstract class ConfigNode
     public Event Modified = new();
 
     // draw custom contents; override this for complex config nodes
+    public virtual void DrawCustom(UITree tree, WorldState ws, ITextureProvider tex) => DrawCustom(tree, ws);
     public virtual void DrawCustom(UITree tree, WorldState ws) { }
 
     // deserialize fields from json; default implementation should work fine for most cases

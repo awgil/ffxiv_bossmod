@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.NIN;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 391)]
-internal class TheCrowKnows(WorldState ws) : QuestBattle(ws)
+internal class TheCrowKnows(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.AST;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 443)]
-internal class Foxfire(WorldState ws) : QuestBattle(ws)
+internal class Foxfire(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

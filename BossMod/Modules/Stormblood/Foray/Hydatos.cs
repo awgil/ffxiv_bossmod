@@ -34,7 +34,7 @@ public enum NotoriousMonster : uint
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 639)]
-public class Hydatos(WorldState ws) : EurekaZone<NotoriousMonster>(ws, "Hydatos")
+public class Hydatos(ZoneModuleArgs args) : EurekaZone<NotoriousMonster>(args, "Hydatos")
 {
     private readonly HydatosConfig _config = Service.Config.Get<HydatosConfig>();
 

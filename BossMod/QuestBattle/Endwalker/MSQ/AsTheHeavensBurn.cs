@@ -111,10 +111,10 @@ class AlisaieAI(WorldState ws) : UnmanagedRotation(ws, 25)
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 804)]
-internal class AsTheHeavensBurn(WorldState ws) : QuestBattle(ws)
+internal class AsTheHeavensBurn(ZoneModuleArgs args) : QuestBattle(args)
 {
-    private readonly AlphinaudAI _alphi = new(ws);
-    private readonly AlisaieAI _alisaie = new(ws);
+    private readonly AlphinaudAI _alphi = new(args.World);
+    private readonly AlisaieAI _alisaie = new(args.World);
 
     public static WPos P2Center = new(-260.28f, 80.75f);
 

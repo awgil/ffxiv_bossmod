@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.DRK;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 431)]
-internal class HeroicReprise(WorldState ws) : QuestBattle(ws)
+internal class HeroicReprise(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

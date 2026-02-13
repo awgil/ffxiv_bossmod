@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.MNK;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 321)]
-internal class StarcrossedRivals(WorldState ws) : QuestBattle(ws)
+internal class StarcrossedRivals(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

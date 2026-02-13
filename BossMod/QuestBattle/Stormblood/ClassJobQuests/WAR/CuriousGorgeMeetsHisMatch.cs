@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.WAR;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 260)]
-internal class CuriousGorgeMeetsHisMatch(WorldState ws) : QuestBattle(ws)
+internal class CuriousGorgeMeetsHisMatch(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws).Hints((player, hints) => {

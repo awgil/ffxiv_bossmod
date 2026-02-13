@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.BLM;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 444)]
-internal class ShadesOfShatotto(WorldState ws) : QuestBattle(ws)
+internal class ShadesOfShatotto(ZoneModuleArgs args) : QuestBattle(args)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

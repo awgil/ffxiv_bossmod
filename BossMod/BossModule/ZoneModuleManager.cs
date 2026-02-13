@@ -5,13 +5,15 @@ public sealed class ZoneModuleManager : IDisposable
     public readonly WorldState WorldState;
     public readonly ZoneModuleConfig Config = Service.Config.Get<ZoneModuleConfig>();
     private readonly EventSubscriptions _subsciptions;
+    private readonly ZoneModuleArgs.Factory _zfac;
 
     public ZoneModule? ActiveModule;
     public Event<ZoneModule> ModuleLoaded = new();
     public Event<ZoneModule> ModuleUnloaded = new();
 
-    public ZoneModuleManager(WorldState ws)
+    public ZoneModuleManager(WorldState ws, ZoneModuleArgs.Factory zfac)
     {
+        _zfac = zfac;
         WorldState = ws;
         _subsciptions = new
         (
@@ -36,7 +38,8 @@ public sealed class ZoneModuleManager : IDisposable
             ActiveModule = null;
         }
 
-        var m = ZoneModuleRegistry.CreateModule(WorldState, cfcid, Config.MinMaturity);
+        var args = _zfac.Invoke(WorldState);
+        var m = ZoneModuleRegistry.CreateModule(args, cfcid, Config.MinMaturity);
         if (m != null)
         {
             Service.Log($"[ZMM] Loading module '{m.GetType()}' for zone {cfcid}");

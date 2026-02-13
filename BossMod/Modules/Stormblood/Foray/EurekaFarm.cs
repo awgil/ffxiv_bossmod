@@ -44,9 +44,9 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
 
     protected abstract NM FarmTarget { get; set; }
 
-    protected EurekaZone(WorldState ws, string zone) : base(ws)
+    protected EurekaZone(ZoneModuleArgs args, string zone) : base(args)
     {
-        _subscriptions = new(ws.Client.FateInfo.Subscribe(OnFateSpawn));
+        _subscriptions = new(args.World.Client.FateInfo.Subscribe(OnFateSpawn));
         Zone = zone;
     }
 

@@ -46,7 +46,7 @@ static class ConfigExtensions
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1018)]
-class FTAllianceSelector(WorldState ws) : ZoneModule(ws)
+class FTAllianceSelector(ZoneModuleArgs args) : ZoneModule(args)
 {
     private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
 

@@ -1,10 +1,11 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
 
-public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int CurrentDestination, int PlayerSlot)
+public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int CurrentDestination, int PlayerSlot, ITextureProvider Tex)
 {
     enum IconID : uint
     {
@@ -44,14 +45,14 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
 
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0f, 0f));
 
-        var roomsTex = Service.Texture.GetFromGame("ui/uld/DeepDungeonNaviMap_Rooms_hr1.tex").GetWrapOrEmpty();
-        var mapTex = Service.Texture.GetFromGame("ui/uld/DeepDungeonNaviMap_hr1.tex").GetWrapOrEmpty();
-        var passageTex = Service.Texture.GetFromGameIcon(new((uint)(State.PassageActive ? IconID.PassageOpen : IconID.PassageClosed))).GetWrapOrEmpty();
-        var returnTex = Service.Texture.GetFromGameIcon(new((uint)(State.ReturnActive ? IconID.ReturnOpen : IconID.ReturnClosed))).GetWrapOrEmpty();
-        var votiveTex = Service.Texture.GetFromGameIcon(new((uint)IconID.Votive)).GetWrapOrEmpty();
-        var bronzeTex = Service.Texture.GetFromGameIcon(new((uint)IconID.ChestBronze)).GetWrapOrEmpty();
-        var silverTex = Service.Texture.GetFromGameIcon(new((uint)IconID.ChestSilver)).GetWrapOrEmpty();
-        var goldTex = Service.Texture.GetFromGameIcon(new((uint)IconID.ChestGold)).GetWrapOrEmpty();
+        var roomsTex = Tex.GetFromGame("ui/uld/DeepDungeonNaviMap_Rooms_hr1.tex").GetWrapOrEmpty();
+        var mapTex = Tex.GetFromGame("ui/uld/DeepDungeonNaviMap_hr1.tex").GetWrapOrEmpty();
+        var passageTex = Tex.GetFromGameIcon(new((uint)(State.PassageActive ? IconID.PassageOpen : IconID.PassageClosed))).GetWrapOrEmpty();
+        var returnTex = Tex.GetFromGameIcon(new((uint)(State.ReturnActive ? IconID.ReturnOpen : IconID.ReturnClosed))).GetWrapOrEmpty();
+        var votiveTex = Tex.GetFromGameIcon(new((uint)IconID.Votive)).GetWrapOrEmpty();
+        var bronzeTex = Tex.GetFromGameIcon(new((uint)IconID.ChestBronze)).GetWrapOrEmpty();
+        var silverTex = Tex.GetFromGameIcon(new((uint)IconID.ChestSilver)).GetWrapOrEmpty();
+        var goldTex = Tex.GetFromGameIcon(new((uint)IconID.ChestGold)).GetWrapOrEmpty();
 
         for (var i = 0; i < 25; i++)
         {

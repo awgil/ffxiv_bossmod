@@ -9,6 +9,11 @@ public record class ModuleArgs(WorldState World, Actor Primary, ConfigRoot Confi
     public delegate ModuleArgs Factory(WorldState World, Actor Primary);
 }
 
+public record class ZoneModuleArgs(WorldState World, ConfigRoot Config, ITextureProvider TextureProvider, IPluginLog Logger)
+{
+    public delegate ZoneModuleArgs Factory(WorldState World);
+}
+
 // base for boss modules - provides all the common features, so that look is standardized
 // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
 public abstract class BossModule : IDisposable
@@ -21,6 +26,9 @@ public abstract class BossModule : IDisposable
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
+    private readonly ModuleArgs _args;
+
+    protected ITextureProvider Tex => _args.TextureProvider;
 
     internal unsafe void SetPrimaryActor(Actor actor)
     {
@@ -101,6 +109,7 @@ public abstract class BossModule : IDisposable
 
     protected BossModule(ModuleArgs args, WPos center, ArenaBounds bounds)
     {
+        _args = args;
         Obstacles = new(args.World);
         WorldState = args.World;
         PrimaryActor = args.Primary;
@@ -364,7 +373,7 @@ public abstract class BossModule : IDisposable
                 continue;
 
             var iconId = i.IconId();
-            if (Service.Texture.TryGetFromGameIcon(iconId, out var tex))
+            if (Tex.TryGetFromGameIcon(iconId, out var tex))
             {
                 var wrap = tex.GetWrapOrEmpty();
                 var pos = Arena.WorldPositionToScreenPosition(actor.Position);

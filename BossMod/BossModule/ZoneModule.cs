@@ -1,11 +1,13 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
-public abstract class ZoneModule(WorldState ws) : IDisposable
+public abstract class ZoneModule(ZoneModuleArgs args) : IDisposable
 {
-    public readonly WorldState World = ws;
+    public WorldState World => args.World;
+    protected ITextureProvider Tex => args.TextureProvider;
 
     public void Dispose()
     {

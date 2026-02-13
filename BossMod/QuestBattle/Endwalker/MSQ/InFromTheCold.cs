@@ -42,9 +42,9 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 793)]
-internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
+internal class InFromTheCold(ZoneModuleArgs args) : QuestBattle(args)
 {
-    private readonly ImperialAI _ai = new(ws);
+    private readonly ImperialAI _ai = new(args.World);
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

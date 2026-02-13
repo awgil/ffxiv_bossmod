@@ -3,6 +3,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
@@ -20,6 +21,7 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly PlanDatabase? _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
+    private readonly ITextureProvider _tex;
 
     private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
 
@@ -35,10 +37,11 @@ public sealed class ModuleViewer : IDisposable
 
     private string _searchText = "";
 
-    public ModuleViewer(PlanDatabase? planDB, WorldState ws)
+    public ModuleViewer(PlanDatabase? planDB, WorldState ws, ITextureProvider tex)
     {
         _planDB = planDB;
         _ws = ws;
+        _tex = tex;
 
         uint defaultIcon = 61762;
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
@@ -259,7 +262,7 @@ public sealed class ModuleViewer : IDisposable
         Vector4 tintCol = filtered ? new(0.5f, 0.5f, 0.5f, 0.85f) : new(1);
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        if (Service.Texture.GetFromGameIcon(iconId).TryGetWrap(out var tex, out var ex))
+        if (_tex.GetFromGameIcon(iconId).TryGetWrap(out var tex, out var ex))
         {
             ImGui.Image(tex.Handle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
             if (ex != null)
@@ -330,9 +333,9 @@ public sealed class ModuleViewer : IDisposable
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    UIMisc.Image(Service.Texture?.GetFromGameIcon(_expansions[i].icon), _iconSize);
+                    UIMisc.Image(_tex.GetFromGameIcon(_expansions[i].icon), _iconSize);
                     ImGui.SameLine();
-                    UIMisc.Image(Service.Texture?.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), _iconSize);
+                    UIMisc.Image(_tex.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), _iconSize);
                     ImGui.TableNextColumn();
 
                     foreach (var ng in tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
@@ -352,7 +355,7 @@ public sealed class ModuleViewer : IDisposable
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
                                 if (UIMisc.IconButton(FontAwesomeIcon.Cog, $"###{mod.Info.ModuleType.FullName}_cfg"))
-                                    _ = new BossModuleConfigWindow(mod.Info, ws);
+                                    _ = new BossModuleConfigWindow(mod.Info, ws, _tex);
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.PlanLevel == 0))
                                 if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, $"###{mod.Info.ModuleType.FullName}_plans"))

@@ -47,7 +47,7 @@ public enum SID : uint
     BlazeSpikes = 4579,
 }
 
-public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
+public abstract class PTFloorModule(ZoneModuleArgs args) : AutoClear(args, 100)
 {
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
@@ -189,22 +189,22 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1032)]
-public class PT10(WorldState ws) : PTFloorModule(ws);
+public class PT10(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1033)]
-public class PT20(WorldState ws) : PTFloorModule(ws);
+public class PT20(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1034)]
-public class PT30(WorldState ws) : PTFloorModule(ws);
+public class PT30(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1035)]
-public class PT40(WorldState ws) : PTFloorModule(ws);
+public class PT40(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1036)]
-public class PT50(WorldState ws) : PTFloorModule(ws);
+public class PT50(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1037)]
-public class PT60(WorldState ws) : PTFloorModule(ws);
+public class PT60(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1038)]
-public class PT70(WorldState ws) : PTFloorModule(ws);
+public class PT70(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1039)]
-public class PT80(WorldState ws) : PTFloorModule(ws);
+public class PT80(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1040)]
-public class PT90(WorldState ws) : PTFloorModule(ws);
+public class PT90(ZoneModuleArgs ws) : PTFloorModule(ws);
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1041)]
-public class PT100(WorldState ws) : PTFloorModule(ws);
+public class PT100(ZoneModuleArgs ws) : PTFloorModule(ws);

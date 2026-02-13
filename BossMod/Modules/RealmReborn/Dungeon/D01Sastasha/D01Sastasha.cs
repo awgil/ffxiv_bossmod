@@ -12,7 +12,7 @@ public enum OID : uint
 }
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Verified, 4)]
-public class D01Sastasha(WorldState ws) : ZoneModule(ws)
+public class D01Sastasha(ZoneModuleArgs args) : ZoneModule(args)
 {
     public enum Switch { Unknown, Blue, Red, Green, Resolved }
 

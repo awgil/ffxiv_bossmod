@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.NIN;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 452)]
-internal class AGameOfLifeAndDeath(WorldState ws) : QuestBattle(ws)
+internal class AGameOfLifeAndDeath(ZoneModuleArgs args) : QuestBattle(args)
 {
     private QuestObjective Hide() => new QuestObjective(World)
         .With(obj =>

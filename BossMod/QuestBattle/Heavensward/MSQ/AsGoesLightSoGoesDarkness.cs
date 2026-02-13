@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.MSQ;
 
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 441)]
-public sealed class AsGoesLightSoGoesDarkness(WorldState ws) : QuestBattle(ws)
+public sealed class AsGoesLightSoGoesDarkness(ZoneModuleArgs args) : QuestBattle(args)
 {
     enum OID : uint
     {

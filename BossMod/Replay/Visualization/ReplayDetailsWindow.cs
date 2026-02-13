@@ -533,9 +533,9 @@ public class ReplayDetailsWindow : UIWindow
             _subscope.Dispose();
             _subscope = _scope.BeginLifetimeScope(b => b.Register(s => _player.WorldState).SingleInstance());
             _mgr = _subscope.Resolve<BossModuleManager>();
-            _zmm = new(_player.WorldState);
-            _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
-            _rmm = new(_rotationDB, _mgr, _hints);
+            _zmm = _subscope.Resolve<ZoneModuleManager>();
+            _hintsBuilder = _subscope.Resolve<AIHintsBuilder>();
+            _rmm = _subscope.Resolve<RotationModuleManager>();
         }
         _player.AdvanceTo(t, _mgr.Update);
         _curTime = t;
