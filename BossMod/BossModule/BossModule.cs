@@ -1,7 +1,13 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 
 namespace BossMod;
+
+public record class ModuleArgs(WorldState World, Actor Primary, ConfigRoot Config, ITextureProvider TextureProvider, IPluginLog Logger)
+{
+    public delegate ModuleArgs Factory(WorldState World, Actor Primary);
+}
 
 // base for boss modules - provides all the common features, so that look is standardized
 // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
@@ -93,13 +99,13 @@ public abstract class BossModule : IDisposable
 
     public void ClearComponents(Predicate<BossComponent> condition) => _components.RemoveAll(condition);
 
-    protected BossModule(WorldState ws, Actor primary, WPos center, ArenaBounds bounds)
+    protected BossModule(ModuleArgs args, WPos center, ArenaBounds bounds)
     {
-        Obstacles = new(ws);
-        WorldState = ws;
-        PrimaryActor = primary;
+        Obstacles = new(args.World);
+        WorldState = args.World;
+        PrimaryActor = args.Primary;
         Arena = new(WindowConfig, center, bounds);
-        Info = BossModuleRegistry.FindByOID(primary.OID);
+        Info = BossModuleRegistry.FindByOID(args.Primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
         _subscriptions = new

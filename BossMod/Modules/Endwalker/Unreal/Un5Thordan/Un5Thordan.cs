@@ -16,4 +16,4 @@ class PureOfSoul(BossModule module) : Components.CastCounter(module, AID.PureOfS
 class AbsoluteConviction(BossModule module) : Components.CastCounter(module, AID.AbsoluteConviction);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 963, NameID = 3632, PlanLevel = 90)]
-public class Un5Thordan(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(21));
+public class Un5Thordan(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(21));

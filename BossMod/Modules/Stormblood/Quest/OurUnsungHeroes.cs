@@ -47,7 +47,7 @@ class FallenKuribuStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 265, NameID = 6345)]
-public class FallenKuribu(WorldState ws, Actor primary) : BossModule(ws, primary, new(232.3f, 407.7f), new ArenaBoundsCircle(20))
+public class FallenKuribu(ModuleArgs init) : BossModule(init, new(232.3f, 407.7f), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

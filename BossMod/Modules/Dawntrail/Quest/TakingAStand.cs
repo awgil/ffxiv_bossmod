@@ -193,7 +193,7 @@ class BakoolJaJaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70438, NameID = 12677)]
-public class BakoolJaJa(WorldState ws, Actor primary) : BossModule(ws, primary, new(500, -175), new ArenaBoundsCircle(25))
+public class BakoolJaJa(ModuleArgs init) : BossModule(init, new(500, -175), new ArenaBoundsCircle(25))
 {
     protected override bool CheckPull() => true;
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) => hints.PrioritizeTargetsByOID(OID.Boss);

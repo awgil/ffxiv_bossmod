@@ -90,7 +90,7 @@ class ImmaculateWarriorStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68814, NameID = 8782)]
-public class ImmaculateWarrior(WorldState ws, Actor primary) : BossModule(ws, primary, new(-247, 688.5f), new ArenaBoundsCircle(19.5f))
+public class ImmaculateWarrior(ModuleArgs init) : BossModule(init, new(-247, 688.5f), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 

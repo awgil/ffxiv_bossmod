@@ -194,4 +194,4 @@ class D80ProtoKaliyaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 904, NameID = 12247)]
-public class D80ProtoKaliya(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(20));
+public class D80ProtoKaliya(ModuleArgs init) : BossModule(init, new(-600, -300), new ArenaBoundsCircle(20));

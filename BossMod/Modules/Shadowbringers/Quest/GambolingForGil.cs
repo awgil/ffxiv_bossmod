@@ -81,7 +81,7 @@ class RanaaMihgoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68786, NameID = 8489)]
-public class RanaaMihgo(WorldState ws, Actor primary) : BossModule(ws, primary, new(520.47f, 124.99f), WeirdBounds)
+public class RanaaMihgo(ModuleArgs init) : BossModule(init, new(520.47f, 124.99f), WeirdBounds)
 {
     public static readonly ArenaBoundsCustom WeirdBounds = new(17.5f, new(CurveApprox.Ellipse(17.5f, 16f, 0.01f)));
 }

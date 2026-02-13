@@ -30,4 +30,4 @@ class D10MojabuneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 540, NameID = 7480)] // cfcid is 540 -> 549 (personal note for self)
-public class D10Mojabune(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(23.7f));
+public class D10Mojabune(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(23.7f));

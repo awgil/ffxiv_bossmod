@@ -237,7 +237,7 @@ class RM10TheXtremesStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1070, NameID = 14470)]
-public class RM10TheXtremes(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsRect(20, 20))
+public class RM10TheXtremes(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

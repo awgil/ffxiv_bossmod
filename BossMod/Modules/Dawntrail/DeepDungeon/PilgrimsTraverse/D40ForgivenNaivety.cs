@@ -67,5 +67,5 @@ class ForgivenNaivetyStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1035, NameID = 13977)]
-public class ForgivenNaivety(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsCircle(16.5f));
+public class ForgivenNaivety(ModuleArgs init) : BossModule(init, new(-600, -300), new ArenaBoundsCircle(16.5f));
 

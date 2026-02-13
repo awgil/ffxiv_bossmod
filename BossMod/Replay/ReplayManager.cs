@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+﻿using Autofac;
+using BossMod.ReplayVisualization;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
@@ -10,25 +11,35 @@ namespace BossMod;
 
 public sealed class ReplayManager : IDisposable
 {
-    private sealed class ReplayEntry : IDisposable
+    public sealed class ReplayEntry : IDisposable
     {
         public string Path;
         public float Progress;
         public CancellationTokenSource Cancel = new();
         public Task<Replay> Replay;
-        public ReplayVisualization.ReplayDetailsWindow? Window;
+        public ReplayDetailsWindow? Window;
         public bool AutoShowWindow;
         public bool Selected;
         public bool Disposed;
         public bool Disposing;
         public DateTime? InitialTime;
+        private readonly ReplayDetailsWindow.Factory _detailFac;
 
-        public ReplayEntry(string path, bool autoShow, DateTime? initialTime = null)
+        public delegate ReplayEntry Factory(string path, bool autoShow, DateTime? initialTime = null);
+
+        public ReplayEntry(
+            string path,
+            bool autoShow,
+            ReplayBuilder.Factory builderFac,
+            ReplayDetailsWindow.Factory detailFac,
+            DateTime? initialTime
+        )
         {
+            _detailFac = detailFac;
             Path = path;
             AutoShowWindow = autoShow;
             InitialTime = initialTime;
-            Replay = Task.Run(() => ReplayParserLog.Parse(path, ref Progress, Cancel.Token));
+            Replay = Task.Run(() => ReplayParserLog.Parse(path, ref Progress, builderFac, Cancel.Token));
         }
 
         public void Dispose()
@@ -42,9 +53,9 @@ public sealed class ReplayManager : IDisposable
             Disposed = true;
         }
 
-        public void Show(RotationDatabase rotationDB)
+        public void Show()
         {
-            Window ??= new(Replay.Result, rotationDB, InitialTime);
+            Window ??= _detailFac.Invoke(Replay.Result, InitialTime);
             Window.IsOpen = true;
             Window.BringToFront();
         }
@@ -71,7 +82,6 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
-    private readonly RotationDatabase _rotationDB;
     private readonly ReplayManagementConfig _config = Service.Config.Get<ReplayManagementConfig>();
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
@@ -79,11 +89,20 @@ public sealed class ReplayManager : IDisposable
     private string _path = "";
     private string _fileDialogStartPath;
     private FileDialog? _fileDialog;
+    private readonly ILifetimeScope _ctx;
+    private readonly ReplayEntry.Factory _entryFac;
 
-    public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
+    public delegate ReplayManager Factory(string fileDialogStartPath);
+
+    public ReplayManager(
+        ReplayEntry.Factory entryFac,
+        ILifetimeScope ctx,
+        string fileDialogStartPath
+    )
     {
-        _rotationDB = rotationDB;
         _fileDialogStartPath = fileDialogStartPath;
+        _entryFac = entryFac;
+        _ctx = ctx;
         RestoreHistory();
     }
 
@@ -107,7 +126,7 @@ public sealed class ReplayManager : IDisposable
         {
             if (e.AutoShowWindow && e.Window == null && e.Replay.IsCompletedSuccessfully && e.Replay.Result.Ops.Count > 0)
             {
-                e.Show(_rotationDB);
+                e.Show();
             }
         }
         // auto-show analysis windows that are now ready, auto dispose entries that had their windows closed
@@ -172,7 +191,7 @@ public sealed class ReplayManager : IDisposable
                 {
                     if (ImGui.MenuItem("Show"))
                     {
-                        e.Show(_rotationDB);
+                        e.Show();
                         SaveHistory();
                     }
                     if (ImGui.MenuItem("Convert to verbose"))
@@ -255,7 +274,7 @@ public sealed class ReplayManager : IDisposable
             if (ImGui.Button("Open"))
             {
                 CleanPath();
-                _replayEntries.Add(new(_path, true));
+                _replayEntries.Add(_ctx.BeginLifetimeScope().Resolve<ReplayEntry.Factory>().Invoke(_path, true));
                 SaveHistory();
             }
         }
@@ -305,7 +324,7 @@ public sealed class ReplayManager : IDisposable
                 var r = _replayEntries.Find(e => e.Path == fi.FullName);
                 if (r == null)
                 {
-                    r = new ReplayEntry(fi.FullName, false);
+                    r = _entryFac.Invoke(fi.FullName, false);
                     _replayEntries.Add(r);
                 }
                 res.Add(r);
@@ -343,7 +362,7 @@ public sealed class ReplayManager : IDisposable
         if (!RememberReplays)
             return;
         foreach (var memory in _config.ReplayHistory)
-            _replayEntries.Add(new(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
+            _replayEntries.Add(_entryFac.Invoke(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
     }
 
     private bool RememberReplays => Service.SigScanner == null && _config.RememberReplays;

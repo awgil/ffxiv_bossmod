@@ -86,4 +86,4 @@ class D031RangdaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3452)]
-public class D031Rangda(WorldState ws, Actor primary) : BossModule(ws, primary, new(334.9f, -203), new ArenaBoundsCircle(26));
+public class D031Rangda(ModuleArgs init) : BossModule(init, new(334.9f, -203), new ArenaBoundsCircle(26));

@@ -37,7 +37,7 @@ class C020NOnmitsugashiraStates(BossModule module) : C020OnmitsugashiraStates(mo
 class C020SOnmitsugashiraStates(BossModule module) : C020OnmitsugashiraStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NOnmitsugashira, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12424, SortOrder = 5)]
-public class C020NOnmitsugashira(WorldState ws, Actor primary) : C020Trash2(ws, primary);
+public class C020NOnmitsugashira(ModuleArgs args) : C020Trash2(args);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SOnmitsugashira, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12424, SortOrder = 5)]
-public class C020SOnmitsugashira(WorldState ws, Actor primary) : C020Trash2(ws, primary);
+public class C020SOnmitsugashira(ModuleArgs args) : C020Trash2(args);

@@ -232,7 +232,7 @@ class AbsoluteVirtueStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7976)]
-public class AbsoluteVirtue(WorldState ws, Actor primary) : BAModule(ws, primary, new(-175, 314), new ArenaBoundsCircle(30))
+public class AbsoluteVirtue(ModuleArgs args) : BAModule(args, new(-175, 314), new ArenaBoundsCircle(30))
 {
     // people like to early pull AV to be funny, so check if we have at least a BA low man run worth of people in the arena
     protected override bool CheckPull() => PrimaryActor.InCombat && WorldState.Actors.Where(p => p.Type == ActorType.Player).Count(a => Bounds.Contains(a.Position - Center)) > 6;

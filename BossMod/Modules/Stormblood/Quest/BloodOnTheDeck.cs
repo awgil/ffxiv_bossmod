@@ -36,7 +36,7 @@ class GurumiBorlumiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68098, NameID = 6289)]
-public class GurumiBorlumi(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 15.8f), new ArenaBoundsRect(8, 7.5f))
+public class GurumiBorlumi(ModuleArgs init) : BossModule(init, new(0, 15.8f), new ArenaBoundsRect(8, 7.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }

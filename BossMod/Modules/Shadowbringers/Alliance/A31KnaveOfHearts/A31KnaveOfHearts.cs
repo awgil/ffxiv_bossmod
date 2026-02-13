@@ -173,5 +173,5 @@ class A31KnaveOfHeartsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9955)]
-public class A31KnaveOfHearts(WorldState ws, Actor primary) : BossModule(ws, primary, new(-800, -724.40625f), new ArenaBoundsSquare(30));
+public class A31KnaveOfHearts(ModuleArgs init) : BossModule(init, new(-800, -724.40625f), new ArenaBoundsSquare(30));
 

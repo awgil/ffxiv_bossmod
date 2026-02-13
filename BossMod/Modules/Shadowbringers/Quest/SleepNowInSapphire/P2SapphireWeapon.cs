@@ -73,7 +73,7 @@ class TheSapphireWeaponStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69431, NameID = 9458)]
-public class TheSapphireWeapon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-15, 610), new ArenaBoundsSquare(60, 1))
+public class TheSapphireWeapon(ModuleArgs init) : BossModule(init, new(-15, 610), new ArenaBoundsSquare(60, 1))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 

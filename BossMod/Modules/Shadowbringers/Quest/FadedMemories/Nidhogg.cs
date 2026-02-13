@@ -12,4 +12,4 @@ class NidhoggStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69311, NameID = 3458, PrimaryActorOID = (uint)OID.Nidhogg)]
-public class Nidhogg(WorldState ws, Actor primary) : BossModule(ws, primary, new(-242, 436.5f), new ArenaBoundsCircle(20));
+public class Nidhogg(ModuleArgs init) : BossModule(init, new(-242, 436.5f), new ArenaBoundsCircle(20));

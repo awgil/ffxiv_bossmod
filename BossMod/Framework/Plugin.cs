@@ -2,6 +2,7 @@ using Autofac;
 using BossMod.Autorotation;
 using BossMod.Config;
 using BossMod.Interfaces;
+using BossMod.ReplayVisualization;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
@@ -87,7 +88,6 @@ public class Plugin : HostedPlugin
         Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
 
-        ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
         _packs = new();
 
         CreateHost();
@@ -100,10 +100,10 @@ public class Plugin : HostedPlugin
         ConfigureExtra(containerBuilder);
 
         containerBuilder.RegisterType<MovementOverride>().AsSelf().SingleInstance();
-        containerBuilder.RegisterType<ConfigUI>();
-        containerBuilder.RegisterType<AIHints>();
-        containerBuilder.RegisterType<AIHintsBuilder>();
-        containerBuilder.RegisterType<AI.AIManager>();
+        containerBuilder.RegisterType<ConfigUI>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<AI.AIManager>().SingleInstance();
 
         containerBuilder.RegisterType<ReplayManagementWindow>().AsSelf().As<Window>();
         containerBuilder.RegisterType<BossModuleMainWindow>().AsSelf().As<Window>();
@@ -111,17 +111,17 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterType<UIRotationWindow>().AsSelf().As<Window>();
         containerBuilder.RegisterType<AI.AIWindow>().AsSelf().As<Window>();
 
+        containerBuilder.RegisterType<ModuleArgs>();
         containerBuilder.RegisterType<BossModuleManager>();
         containerBuilder.RegisterType<RotationModuleManager>();
         containerBuilder.RegisterType<ZoneModuleManager>();
 
-        containerBuilder.RegisterType<DTRProvider>();
+        containerBuilder.RegisterType<DTRProvider>().SingleInstance();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
 
-        // global worldstate
-        containerBuilder.Register(s => s.Resolve<IWorldStateFactory>().Create()).AsSelf().As<WorldState>();
+        containerBuilder.Register(s => s.Resolve<IWorldStateFactory>().Create()).AsSelf().As<WorldState>().InstancePerLifetimeScope();
 
         // global config (ConfigRoot)
         containerBuilder.Register(s => Service.Config).AsSelf().SingleInstance();
@@ -130,19 +130,23 @@ public class Plugin : HostedPlugin
             var dalamud = s.Resolve<IDalamudPluginInterface>();
             var root = dalamud.GetPluginConfigDirectory() + "/replays";
             return new ReplaysRoot(root);
-        });
+        }).SingleInstance();
         containerBuilder.Register(s =>
         {
             var dalamud = s.Resolve<IDalamudPluginInterface>();
             var root = dalamud.GetPluginConfigDirectory() + "/autorot";
             return new PresetsDatabaseRoot(root);
-        });
+        }).SingleInstance();
         containerBuilder.Register(s =>
         {
             var dalamud = s.Resolve<IDalamudPluginInterface>();
             var root = dalamud.AssemblyLocation.DirectoryName + "/DefaultRotationPresets.json";
             return new DefaultPresetsFile(root);
-        });
+        }).SingleInstance();
+        containerBuilder.RegisterType<ReplayBuilder>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ReplayDetailsWindow>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ReplayManager>().SingleInstance();
+        containerBuilder.RegisterType<ReplayManager.ReplayEntry>();
 
         containerBuilder.RegisterSingletonSelf<RotationDatabase>();
 
@@ -155,6 +159,8 @@ public class Plugin : HostedPlugin
         var dalamud = scope.Resolve<IDalamudPluginInterface>();
 
         Camera.Instance = new();
+
+        ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
 
         // save config on modify
         Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));

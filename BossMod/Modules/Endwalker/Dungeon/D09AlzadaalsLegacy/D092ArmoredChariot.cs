@@ -210,4 +210,4 @@ class D092ArmoredChariotStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 844, NameID = 11239)]
-public class D092ArmoredChariot(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -182), new ArenaBoundsSquare(19.5f));
+public class D092ArmoredChariot(ModuleArgs init) : BossModule(init, new(0, -182), new ArenaBoundsSquare(19.5f));

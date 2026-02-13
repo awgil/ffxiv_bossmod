@@ -36,4 +36,4 @@ class D40BhimaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 543, NameID = 7483)]
-public class D40Bhima(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(25));
+public class D40Bhima(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(25));

@@ -51,4 +51,4 @@ class CatsEyeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13436)]
-public class CatsEye(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class CatsEye(ModuleArgs args) : SimpleBossModule(args);

@@ -56,7 +56,7 @@ class TozolHuatotlStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 182, NameID = 5272, Contributors = "xan")]
-public class TozolHuatotl(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultCenter, new ArenaBoundsCircle(20))
+public class TozolHuatotl(ModuleArgs init) : BossModule(init, DefaultCenter, new ArenaBoundsCircle(20))
 {
     // position of Garuda casting Eye of the Storm
     public static readonly WPos DefaultCenter = new(317.948f, -416.172f);

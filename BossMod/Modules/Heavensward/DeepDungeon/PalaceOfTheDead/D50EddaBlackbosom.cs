@@ -52,4 +52,4 @@ class D50EddaBlackbosomStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 178, NameID = 5038)]
-public class D50EddaBlackbosom(WorldState ws, Actor primary) : BossModule(ws, primary, new(300, 374), new ArenaBoundsCircle(24));
+public class D50EddaBlackbosom(ModuleArgs init) : BossModule(init, new(300, 374), new ArenaBoundsCircle(24));

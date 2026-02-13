@@ -75,7 +75,7 @@ class D150ScholaMarkIIColossusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 611, NameID = 7888)]
-public class D150ScholaMarkIIColossus(WorldState ws, Actor primary) : BossModule(ws, primary, new(367.21f, -138.99f), new ArenaBoundsCircle(20))
+public class D150ScholaMarkIIColossus(ModuleArgs init) : BossModule(init, new(367.21f, -138.99f), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

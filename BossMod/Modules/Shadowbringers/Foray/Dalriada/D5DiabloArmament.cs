@@ -292,7 +292,7 @@ class TheDiabloArmamentStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 778, NameID = 10007)]
-public class TheDiabloArmament(WorldState ws, Actor primary) : BossModule(ws, primary, new(-720, -760), new ArenaBoundsCircle(29.5f))
+public class TheDiabloArmament(ModuleArgs init) : BossModule(init, new(-720, -760), new ArenaBoundsCircle(29.5f))
 {
     public override bool DrawAllPlayers => true;
 }

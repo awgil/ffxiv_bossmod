@@ -52,4 +52,4 @@ class GiantColibriStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70288, NameID = 12499)]
-public class GiantColibri(WorldState ws, Actor primary) : BossModule(ws, primary, new(425, -440), new ArenaBoundsCircle(15));
+public class GiantColibri(ModuleArgs init) : BossModule(init, new(425, -440), new ArenaBoundsCircle(15));

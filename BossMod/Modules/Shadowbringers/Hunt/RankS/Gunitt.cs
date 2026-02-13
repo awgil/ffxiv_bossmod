@@ -91,4 +91,4 @@ class GunittStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8895)]
-public class Gunitt(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Gunitt(ModuleArgs args): SimpleBossModule(args);

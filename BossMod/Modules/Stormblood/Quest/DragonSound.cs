@@ -69,4 +69,4 @@ class FaunehmStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68450, NameID = 6347)]
-public class Faunehm(WorldState ws, Actor primary) : BossModule(ws, primary, new(4, 248.5f), new ArenaBoundsCircle(25));
+public class Faunehm(ModuleArgs init) : BossModule(init, new(4, 248.5f), new ArenaBoundsCircle(25));

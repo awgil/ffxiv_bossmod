@@ -166,7 +166,7 @@ public class Blackburn : BossModule
 {
     public IReadOnlyList<Actor> Escorts;
 
-    public Blackburn(WorldState ws, Actor primary) : base(ws, primary, new(-240, -230), new ArenaBoundsSquare(24))
+    public Blackburn(ModuleArgs init) : base(init, new(-240, -230), new ArenaBoundsSquare(24))
     {
         Escorts = Enemies(OID.Escort2);
     }

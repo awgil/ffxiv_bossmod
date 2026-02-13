@@ -44,7 +44,7 @@ class SerGrinnauxTheBullStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67133, NameID = 3850)]
-public class SerGrinnauxTheBull(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 2), FunnyBounds)
+public class SerGrinnauxTheBull(ModuleArgs init) : BossModule(init, new(0, 2), FunnyBounds)
 {
     public static ArenaBoundsCustom NewBounds()
     {

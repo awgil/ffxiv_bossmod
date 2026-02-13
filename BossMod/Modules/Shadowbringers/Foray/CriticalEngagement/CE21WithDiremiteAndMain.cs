@@ -168,7 +168,7 @@ public class Hedetet : BossModule
     private readonly IReadOnlyList<Actor> _dimCrystals;
     private readonly IReadOnlyList<Actor> _corruptedCrystals;
 
-    public Hedetet(WorldState ws, Actor primary) : base(ws, primary, new(-220, 530), new ArenaBoundsCircle(30))
+    public Hedetet(ModuleArgs init) : base(init, new(-220, 530), new ArenaBoundsCircle(30))
     {
         _dimCrystals = Enemies(OID.DimCrystal);
         _corruptedCrystals = Enemies(OID.CorruptedCrystal);

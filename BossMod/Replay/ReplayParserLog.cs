@@ -220,7 +220,7 @@ public sealed class ReplayParserLog : IDisposable
         public override ulong ReadActorID() => _input.ReadUInt64();
     }
 
-    public static Replay Parse(string path, ref float progress, CancellationToken cancel)
+    public static Replay Parse(string path, ref float progress, ReplayBuilder.Factory builderFac, CancellationToken cancel)
     {
         try
         {
@@ -248,7 +248,7 @@ public sealed class ReplayParserLog : IDisposable
 
             var streamInvLength = 1.0f / rawStream.Length;
             int curOp = 0;
-            using ReplayBuilder builder = new(path);
+            using ReplayBuilder builder = builderFac.Invoke(path);
             using ReplayParserLog parser = new(input, builder);
             while (parser.ParseLine())
             {

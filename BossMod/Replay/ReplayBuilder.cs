@@ -24,11 +24,13 @@ public sealed class ReplayBuilder : IDisposable
     private readonly Dictionary<ulong, Replay.Tether> _tethers = [];
     private readonly List<Replay.ClientAction> _pendingClientActions = [];
 
-    public ReplayBuilder(string path)
+    public delegate ReplayBuilder Factory(string path);
+
+    public ReplayBuilder(string path, WorldState world, BossModuleManager manager)
     {
         _res = new() { Path = path };
-        _ws = new ReplayWorld();
-        _mgr = new(_ws);
+        _ws = world;
+        _mgr = manager;
         _subscribers = new
         (
             _ws.Actors.Added.Subscribe(ActorAdded),

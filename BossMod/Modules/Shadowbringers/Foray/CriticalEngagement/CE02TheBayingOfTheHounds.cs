@@ -122,4 +122,4 @@ class CanisDirusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 2)] // bnpcname=9394
-public class CanisDirus(WorldState ws, Actor primary) : BossModule(ws, primary, new(154, 785), new ArenaBoundsCircle(25));
+public class CanisDirus(ModuleArgs init) : BossModule(init, new(154, 785), new ArenaBoundsCircle(25));

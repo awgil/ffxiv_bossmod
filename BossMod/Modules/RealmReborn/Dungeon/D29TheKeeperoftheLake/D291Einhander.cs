@@ -59,4 +59,4 @@ class D291EinhanderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3369)]
-public class D291Einhander(WorldState ws, Actor primary) : BossModule(ws, primary, new(18.85f, -17), new ArenaBoundsCircle(20f));
+public class D291Einhander(ModuleArgs init) : BossModule(init, new(18.85f, -17), new ArenaBoundsCircle(20f));

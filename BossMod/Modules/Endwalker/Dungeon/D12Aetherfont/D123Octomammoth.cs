@@ -54,7 +54,7 @@ class D123OctomammothStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12334)]
-class D123Octomammoth(WorldState ws, Actor primary) : BossModule(ws, primary, new(-370, -355.5f), OctoBounds)
+class D123Octomammoth(ModuleArgs init) : BossModule(init, new(-370, -355.5f), OctoBounds)
 {
     public static readonly ArenaBoundsCustom OctoBounds = MakeBounds();
 

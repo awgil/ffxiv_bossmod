@@ -1,11 +1,12 @@
-﻿using BossMod.Autorotation;
+﻿using Autofac;
+using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 
 namespace BossMod.ReplayVisualization;
 
-class ReplayDetailsWindow : UIWindow
+public class ReplayDetailsWindow : UIWindow
 {
     private readonly ReplayPlayer _player;
     private readonly RotationDatabase _rotationDB;
@@ -28,6 +29,8 @@ class ReplayDetailsWindow : UIWindow
     private bool _showDebug;
     private readonly EventList _events;
     private readonly ReplayAnalysis.AnalysisManager _analysis;
+    private readonly ILifetimeScope _scope;
+    private ILifetimeScope _subscope;
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
@@ -40,11 +43,20 @@ class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1100, 1500) : new(1500, 1000))
+    public delegate ReplayDetailsWindow Factory(Replay data, DateTime? initialTime);
+
+    public ReplayDetailsWindow(
+        Replay data,
+        DateTime? initialTime,
+        RotationDatabase rotationDB,
+        ILifetimeScope scope
+    ) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1100, 1500) : new(1500, 1000))
     {
         _player = new(data);
+        _scope = scope;
+        _subscope = _scope.BeginLifetimeScope(b => b.Register(s => _player.WorldState).SingleInstance());
         _rotationDB = rotationDB;
-        _mgr = new(_player.WorldState);
+        _mgr = _subscope.Resolve<BossModuleManager>();
         _zmm = new(_player.WorldState);
         _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
         _rmm = new(rotationDB, _mgr, _hints);
@@ -521,7 +533,9 @@ class ReplayDetailsWindow : UIWindow
             _zmm.Dispose();
             _mgr.Dispose();
             _player.Reset();
-            _mgr = new(_player.WorldState);
+            _subscope.Dispose();
+            _subscope = _scope.BeginLifetimeScope(b => b.Register(s => _player.WorldState).SingleInstance());
+            _mgr = _subscope.Resolve<BossModuleManager>();
             _zmm = new(_player.WorldState);
             _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
             _rmm = new(_rotationDB, _mgr, _hints);

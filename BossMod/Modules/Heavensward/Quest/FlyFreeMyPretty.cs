@@ -94,7 +94,7 @@ class GrynewahtStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67894, NameID = 5576)]
-public class Grynewaht(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), HexBounds)
+public class Grynewaht(ModuleArgs init) : BossModule(init, new(0, 0), HexBounds)
 {
     public static readonly ArenaBoundsCustom HexBounds = BuildHexBounds();
 

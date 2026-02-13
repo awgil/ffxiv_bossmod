@@ -39,4 +39,4 @@ class D60SuikazuraStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 545, NameID = 7487)]
-public class D60Suikazura(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(25f));
+public class D60Suikazura(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(25f));

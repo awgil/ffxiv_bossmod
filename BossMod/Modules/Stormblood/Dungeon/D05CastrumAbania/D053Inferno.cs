@@ -76,4 +76,4 @@ class D053InfernoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 6268)]
-public class D053Inferno(WorldState ws, Actor primary) : BossModule(ws, primary, new(282.5f, -27.4f), new ArenaBoundsCircle(19));
+public class D053Inferno(ModuleArgs init) : BossModule(init, new(282.5f, -27.4f), new ArenaBoundsCircle(19));

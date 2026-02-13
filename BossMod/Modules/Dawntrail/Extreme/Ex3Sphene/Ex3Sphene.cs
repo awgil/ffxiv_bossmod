@@ -5,7 +5,7 @@ class DyingMemory(BossModule module) : Components.CastCounter(module, AID.DyingM
 class DyingMemoryLast(BossModule module) : Components.CastCounter(module, AID.DyingMemoryLast);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1017, NameID = 13029, PlanLevel = 100)]
-public class Ex3Sphene(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), NormalBounds)
+public class Ex3Sphene(ModuleArgs init) : BossModule(init, new(100, 100), NormalBounds)
 {
     public static readonly ArenaBoundsSquare NormalBounds = new(20);
     public static readonly ArenaBoundsCustom WindBounds = BuildWindBounds();

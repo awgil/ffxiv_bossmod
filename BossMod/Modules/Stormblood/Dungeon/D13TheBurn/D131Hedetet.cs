@@ -243,4 +243,4 @@ class D131HedetetStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 585, NameID = 7667)]
-public class D131Hedetet(WorldState ws, Actor primary) : BossModule(ws, primary, new(174f, 178f), new ArenaBoundsCircle(20));
+public class D131Hedetet(ModuleArgs init) : BossModule(init, new(174f, 178f), new ArenaBoundsCircle(20));

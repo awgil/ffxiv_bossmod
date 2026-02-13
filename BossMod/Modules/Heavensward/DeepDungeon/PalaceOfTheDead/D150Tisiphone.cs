@@ -89,7 +89,7 @@ class D150TisiphoneStates : StateMachineBuilder
 //public class D150Tisiphone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -237.17f), new ArenaBoundsCircle(24));
 public class D150Tisiphone : BossModule
 {
-    public D150Tisiphone(WorldState ws, Actor primary) : base(ws, primary, new(-300, -237.17f), new ArenaBoundsCircle(24))
+    public D150Tisiphone(ModuleArgs init) : base(init, new(-300, -237.17f), new ArenaBoundsCircle(24))
     {
         ActivateComponent<EncounterHints>();
     }

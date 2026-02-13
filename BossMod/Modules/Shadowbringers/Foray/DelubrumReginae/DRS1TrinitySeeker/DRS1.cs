@@ -21,7 +21,7 @@ class DeadIron : Components.BaitAwayTethers
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9834, PlanLevel = 80)]
-public class DRS1(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 278), new ArenaBoundsCircle(25))
+public class DRS1(ModuleArgs init) : BossModule(init, new(0, 278), new ArenaBoundsCircle(25))
 {
     public const float BarricadeRadius = 20;
 

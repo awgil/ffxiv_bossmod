@@ -216,7 +216,7 @@ class A21AegisUnitStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 736, NameID = 9642)]
-public class A21AegisUnit(WorldState ws, Actor primary) : BossModule(ws, primary, new(-230, 192), MakeBounds())
+public class A21AegisUnit(ModuleArgs init) : BossModule(init, new(-230, 192), MakeBounds())
 {
     private static ArenaBoundsCustom MakeBounds()
     {

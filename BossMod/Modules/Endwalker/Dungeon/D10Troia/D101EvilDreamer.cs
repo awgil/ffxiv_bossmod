@@ -53,7 +53,7 @@ class EvilDreamerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11382)]
-public class EvilDreamer(WorldState ws, Actor primary) : BossModule(ws, primary, new(168, 90), new ArenaBoundsCircle(20))
+public class EvilDreamer(ModuleArgs init) : BossModule(init, new(168, 90), new ArenaBoundsCircle(20))
 {
     public Actor? ReallyBigEvilDreamer => Enemies(0x3988).FirstOrDefault();
 

@@ -38,4 +38,4 @@ class DaphneStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1417, Contributors = "xan", SortOrder = 5)]
-public class Daphne(WorldState ws, Actor primary) : BossModule(ws, primary, new(207.8475f, -736.8179f), new ArenaBoundsCircle(80, MapResolution: 1));
+public class Daphne(ModuleArgs init) : BossModule(init, new(207.8475f, -736.8179f), new ArenaBoundsCircle(80, MapResolution: 1));

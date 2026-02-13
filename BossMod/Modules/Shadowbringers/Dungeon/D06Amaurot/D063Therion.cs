@@ -284,4 +284,4 @@ class D063TherionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8210)]
-public class D063Therion(WorldState ws, Actor primary) : BossModule(ws, primary, Border.OriginalCenter, Border.BuildBounds(new()).Bounds);
+public class D063Therion(ModuleArgs init) : BossModule(init, Border.OriginalCenter, Border.BuildBounds(new()).Bounds);

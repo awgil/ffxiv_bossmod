@@ -98,4 +98,4 @@ class D160TodesritterStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 214, NameID = 5438)]
-public class D160Todesritter(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(25));
+public class D160Todesritter(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(25));

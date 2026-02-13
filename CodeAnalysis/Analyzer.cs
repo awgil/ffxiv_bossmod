@@ -28,6 +28,7 @@ public class Analyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor RuleNoRefTypesInHintFuncs = Register("Reference type captured in closure", "This point test function captures a reference of type {0}, which might be modified before the function is called", DiagnosticSeverity.Error);
     public static readonly DiagnosticDescriptor RuleInternalNamesForOptions = Register("Bad arguments to AddOption", "Second argument ({1}) should match variant name ({0})", DiagnosticSeverity.Error);
     public static readonly DiagnosticDescriptor RuleNoCompareLessThanGCD = Register("Misbehaving comparison", "Testing if a value is strictly less than the GCD timer may result in false positives when the GCD is at zero. Use \"> GCD\" or \"<= GCD\".");
+    public static readonly DiagnosticDescriptor RuleUseModuleInitializer = Register("Obsolete constructor", "Use ModuleInitializer constructor instead of passing arguments separately", DiagnosticSeverity.Error);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -41,6 +42,7 @@ public class Analyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeNoRefsInHints, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeGCDCompares, SyntaxKind.Block);
         //context.RegisterSyntaxNodeAction(AnalyzeOptionInternalNames, SyntaxKind.Block);
+        context.RegisterSyntaxNodeAction(AnalyzeModuleConstructor, SyntaxKind.ClassDeclaration);
     }
 
     private static void AnalyzeNoMutableStatics(SymbolAnalysisContext context)
@@ -213,6 +215,35 @@ public class Analyzer : DiagnosticAnalyzer
                     context.ReportDiagnostic(Diagnostic.Create(RuleNoRealDatetimeInComponents, node.GetLocation()));
             }
         }
+    }
+
+    private static void AnalyzeModuleConstructor(SyntaxNodeAnalysisContext context)
+    {
+        var bm = context.Compilation.GetTypeByMetadataName("BossMod.BossModule");
+        var ws = context.Compilation.GetTypeByMetadataName("BossMod.WorldState");
+
+        bool isV1Initializer(ParameterListSyntax syn) => syn.Parameters.Count > 0 && SymbolEqualityComparer.Default.Equals(context.SemanticModel.GetSymbolInfo(syn.Parameters[0].Type!).Symbol, ws);
+
+        if (context.Node is not ClassDeclarationSyntax decl)
+            return;
+
+        // no parent
+        if (decl.BaseList is not { } baseList)
+            return;
+
+        // doesn't inherit from BossModule
+        if (!baseList.Types.Any(t => SymbolEqualityComparer.Default.Equals(context.SemanticModel.GetSymbolInfo(t.Type).Symbol, bm)))
+            return;
+
+        List<ParameterListSyntax> paramLists = [];
+        if (decl.ParameterList != null)
+            paramLists.Add(decl.ParameterList);
+
+        paramLists.AddRange(decl.ChildNodes().OfType<ConstructorDeclarationSyntax>().Select(ctor => ctor.ParameterList));
+
+        foreach (var plist in paramLists)
+            if (isV1Initializer(plist))
+                context.ReportDiagnostic(Diagnostic.Create(RuleUseModuleInitializer, plist.GetLocation()));
     }
 }
 

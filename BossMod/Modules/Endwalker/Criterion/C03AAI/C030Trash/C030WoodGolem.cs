@@ -55,7 +55,7 @@ class C030NWoodGolemStates(BossModule module) : C030WoodGolemStates(module, fals
 class C030SWoodGolemStates(BossModule module) : C030WoodGolemStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NWoodGolem, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12560, SortOrder = 6)]
-public class C030NWoodGolem(WorldState ws, Actor primary) : C030Trash2(ws, primary);
+public class C030NWoodGolem(ModuleArgs args) : C030Trash2(args);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SWoodGolem, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12560, SortOrder = 6)]
-public class C030SWoodGolem(WorldState ws, Actor primary) : C030Trash2(ws, primary);
+public class C030SWoodGolem(ModuleArgs args) : C030Trash2(args);

@@ -97,4 +97,4 @@ class D041VanguardCommanderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831, NameID = 12750)]
-public class D041VanguardCommander(WorldState ws, Actor primary) : BossModule(ws, primary, new(-100, 207), new ArenaBoundsSquare(17));
+public class D041VanguardCommander(ModuleArgs init) : BossModule(init, new(-100, 207), new ArenaBoundsSquare(17));

@@ -14,10 +14,10 @@ class Hydrobomb(BossModule module, AID aid) : Components.StandardAOEs(module, ai
 class NHydrobomb(BossModule module) : Hydrobomb(module, AID.NHydrobombAOE);
 class SHydrobomb(BossModule module) : Hydrobomb(module, AID.SHydrobombAOE);
 
-public abstract class C031Ketuduke(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsSquare(20));
+public abstract class C031Ketuduke(ModuleArgs init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(20));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12605, SortOrder = 5, PlanLevel = 90)]
-public class C031NKetuduke(WorldState ws, Actor primary) : C031Ketuduke(ws, primary);
+public class C031NKetuduke(ModuleArgs args) : C031Ketuduke(args);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12605, SortOrder = 5, PlanLevel = 90)]
-public class C031SKetuduke(WorldState ws, Actor primary) : C031Ketuduke(ws, primary);
+public class C031SKetuduke(ModuleArgs args) : C031Ketuduke(args);

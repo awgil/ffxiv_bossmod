@@ -41,7 +41,7 @@ class A33FlightUnitsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9918)]
-public class A33FlightUnits(WorldState ws, Actor primary) : BossModule(ws, primary, new(755, -749.4f), new ArenaBoundsCircle(24.5f))
+public class A33FlightUnits(ModuleArgs init) : BossModule(init, new(755, -749.4f), new ArenaBoundsCircle(24.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

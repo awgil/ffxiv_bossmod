@@ -71,7 +71,7 @@ class Lariat(BossModule module) : Components.GroupedAOEs(module, [AID.LashingLar
 class Slaminator(BossModule module) : Components.CastTowers(module, AID.Slaminator, 8, maxSoakers: 8);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1024, NameID = 13756, PlanLevel = 100)]
-public class RM07SBruteAbombinator(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
+public class RM07SBruteAbombinator(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

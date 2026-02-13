@@ -9,4 +9,4 @@ class PoisonStingVoidzone(BossModule module) : Components.PersistentVoidzone(mod
 class BeeSting(BossModule module) : Components.StackWithCastTargets(module, AID.BeeStingAOE, 6, 4);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 988, NameID = 12685, PlanLevel = 100)]
-public class RM02SHoneyBLovely(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
+public class RM02SHoneyBLovely(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

@@ -51,7 +51,7 @@ class C030NRayStates(BossModule module) : C030RayStates(module, false);
 class C030SRayStates(BossModule module) : C030RayStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NRay, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12541, SortOrder = 3)]
-public class C030NRay(WorldState ws, Actor primary) : C030Trash1(ws, primary)
+public class C030NRay(ModuleArgs args) : C030Trash1(args)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
@@ -61,7 +61,7 @@ public class C030NRay(WorldState ws, Actor primary) : C030Trash1(ws, primary)
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SRay, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12541, SortOrder = 3)]
-public class C030SRay(WorldState ws, Actor primary) : C030Trash1(ws, primary)
+public class C030SRay(ModuleArgs args) : C030Trash1(args)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

@@ -89,4 +89,4 @@ class MoussePrincessStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10630)]
-public class MoussePrincess(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class MoussePrincess(ModuleArgs args): SimpleBossModule(args);

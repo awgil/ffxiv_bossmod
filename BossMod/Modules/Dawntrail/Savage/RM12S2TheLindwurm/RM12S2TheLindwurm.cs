@@ -7,4 +7,4 @@ class ArcadianHell5x(BossModule module) : Components.RaidwideCast(module, AID.Ar
 class ArcadianHell9x(BossModule module) : Components.RaidwideCast(module, AID.ArcadianHell8x);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1075, NameID = 14379, PlanLevel = 100)]
-public class RM12S2TheLindwurm(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
+public class RM12S2TheLindwurm(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

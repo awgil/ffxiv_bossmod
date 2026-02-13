@@ -91,7 +91,7 @@ class CalcabrinaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4813, Contributors = "xan")]
-public class Calcabrina(WorldState ws, Actor primary) : BossModule(ws, primary, new(232, -182), new ArenaBoundsCircle(20))
+public class Calcabrina(ModuleArgs init) : BossModule(init, new(232, -182), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 

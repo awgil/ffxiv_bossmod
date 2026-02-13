@@ -105,4 +105,4 @@ class D061FirstBeastStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8201)]
-public class D061FirstBeast(WorldState ws, Actor primary) : BossModule(ws, primary, new(-80, 82), new ArenaBoundsSquare(19.5f));
+public class D061FirstBeast(ModuleArgs init) : BossModule(init, new(-80, 82), new ArenaBoundsSquare(19.5f));

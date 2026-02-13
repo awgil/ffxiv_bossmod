@@ -138,4 +138,4 @@ class D293MidgardsormrStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Xan, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3374)]
-public class D293Midgardsormr(WorldState ws, Actor primary) : BossModule(ws, primary, new(-41, -78), new ArenaBoundsCircle(19.5f));
+public class D293Midgardsormr(ModuleArgs init) : BossModule(init, new(-41, -78), new ArenaBoundsCircle(19.5f));

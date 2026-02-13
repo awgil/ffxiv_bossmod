@@ -130,4 +130,4 @@ class D053AmonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 786, NameID = 10293)]
-public class D053Amon(WorldState ws, Actor primary) : BossModule(ws, primary, new(11, -490), new ArenaBoundsCircle(20));
+public class D053Amon(ModuleArgs init) : BossModule(init, new(11, -490), new ArenaBoundsCircle(20));

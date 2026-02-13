@@ -126,4 +126,4 @@ class D90TheGodmotherStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 207, NameID = 5345)]
-public class D90TheGodmother(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -235), new ArenaBoundsCircle(25));
+public class D90TheGodmother(ModuleArgs init) : BossModule(init, new(-300, -235), new ArenaBoundsCircle(25));

@@ -10,10 +10,10 @@ class FaerieRing(BossModule module, AID aid) : Components.StandardAOEs(module, a
 class NFaerieRing(BossModule module) : FaerieRing(module, AID.NFaerieRing);
 class SFaerieRing(BossModule module) : FaerieRing(module, AID.SFaerieRing);
 
-public abstract class C033Statice(WorldState ws, Actor primary) : BossModule(ws, primary, new(-200, 0), new ArenaBoundsCircle(20));
+public abstract class C033Statice(ModuleArgs init) : BossModule(init, new(-200, 0), new ArenaBoundsCircle(20));
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12506, SortOrder = 9, PlanLevel = 90)]
-public class C033NStatice(WorldState ws, Actor primary) : C033Statice(ws, primary);
+public class C033NStatice(ModuleArgs args) : C033Statice(args);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12506, SortOrder = 9, PlanLevel = 90)]
-public class C033SStatice(WorldState ws, Actor primary) : C033Statice(ws, primary);
+public class C033SStatice(ModuleArgs args) : C033Statice(args);

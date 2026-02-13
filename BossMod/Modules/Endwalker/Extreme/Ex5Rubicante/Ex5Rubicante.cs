@@ -5,4 +5,4 @@ class BlazingRapture(BossModule module) : Components.CastCounter(module, AID.Bla
 class InfernoSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.InfernoSpreadAOE, 5);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 924, NameID = 12057, PlanLevel = 90)]
-public class Ex5Rubicante(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
+public class Ex5Rubicante(ModuleArgs init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

@@ -126,4 +126,4 @@ class D062AmalgamStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 827, NameID = 12864)]
-public class D062Amalgam(WorldState ws, Actor primary) : BossModule(ws, primary, new(-533, -373), new ArenaBoundsSquare(20));
+public class D062Amalgam(ModuleArgs init) : BossModule(init, new(-533, -373), new ArenaBoundsSquare(20));

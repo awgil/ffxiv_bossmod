@@ -155,4 +155,4 @@ class D173TheGriffinStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5564)]
-public class D173TheGriffin(WorldState ws, Actor primary) : BossModule(ws, primary, new(352f, 391.98f), new ArenaBoundsCircle(19));
+public class D173TheGriffin(ModuleArgs init) : BossModule(init, new(352f, 391.98f), new ArenaBoundsCircle(19));

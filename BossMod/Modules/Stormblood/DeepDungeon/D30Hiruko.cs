@@ -50,4 +50,4 @@ class D30HirukoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 542, NameID = 7482)]
-public class D30Hiruko(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(25f));
+public class D30Hiruko(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(25f));

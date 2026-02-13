@@ -189,4 +189,4 @@ class D90AdministratorStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 905, NameID = 12102)]
-public class D90Administrator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsSquare(20));
+public class D90Administrator(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsSquare(20));

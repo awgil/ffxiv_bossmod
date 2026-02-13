@@ -31,4 +31,4 @@ class D20BecchoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 541, NameID = 7481)]
-public class D20Beccho(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(23.7f));
+public class D20Beccho(ModuleArgs init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(23.7f));

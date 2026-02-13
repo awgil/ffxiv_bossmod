@@ -148,4 +148,4 @@ class FourthMakeBeliasStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 26)] // bnpcname=9930
-public class FourthMakeBelias(WorldState ws, Actor primary) : BossModule(ws, primary, new(-550, 0), new ArenaBoundsSquare(30));
+public class FourthMakeBelias(ModuleArgs init) : BossModule(init, new(-550, 0), new ArenaBoundsSquare(30));

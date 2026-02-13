@@ -33,7 +33,7 @@ class RM06SSugarRiotConfig : ConfigNode
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1022, NameID = 13822, PlanLevel = 100, Contributors = "xan")]
-public class RM06SSugarRiot(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(20))
+public class RM06SSugarRiot(ModuleArgs init) : BossModule(init, ArenaCenter, new ArenaBoundsSquare(20))
 {
     public static readonly WPos ArenaCenter = new(100, 100);
 

@@ -13,7 +13,7 @@ class LoomingChaos(BossModule module) : Components.CastCounter(module, AID.Loomi
 // TODO: phase 2 teleport zones?
 // TODO: grim embrace / curse of darkness prevent turning
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1010, NameID = 13624, PlanLevel = 100)]
-public class Ch01CloudOfDarkness(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultCenter, InitialBounds)
+public class Ch01CloudOfDarkness(ModuleArgs init) : BossModule(init, DefaultCenter, InitialBounds)
 {
     public static readonly WPos DefaultCenter = new(100, 100);
     public static readonly ArenaBoundsCircle InitialBounds = new(40);

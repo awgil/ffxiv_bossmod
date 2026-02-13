@@ -1,12 +1,18 @@
-﻿namespace BossMod;
+﻿using Dalamud.Plugin.Services;
+
+namespace BossMod;
 
 // class that creates and manages instances of proper boss modules in response to world state changes
 public sealed class BossModuleManager : IDisposable
 {
     public readonly WorldState WorldState;
     public readonly RaidCooldowns RaidCooldowns;
-    public readonly BossModuleConfig Config = Service.Config.Get<BossModuleConfig>();
-    private readonly EventSubscriptions _subsciptions;
+    public BossModuleConfig Config => _config.Get<BossModuleConfig>();
+    private readonly EventSubscriptions _subscriptions;
+    private readonly ConfigRoot _config;
+    private readonly ITextureProvider _tex;
+    private readonly IPluginLog _logger;
+    private readonly ModuleArgs.Factory _mfac;
 
     public List<BossModule> LoadedModules { get; } = [];
     public Event<BossModule> ModuleLoaded = new();
@@ -24,17 +30,21 @@ public sealed class BossModuleManager : IDisposable
         get => _activeModule;
         set
         {
-            Service.Log($"[BMM] Active module override: from {_activeModule?.GetType().FullName ?? "<n/a>"} (manual-override={_activeModuleOverridden}) to {value?.GetType().FullName ?? "<n/a>"}");
+            _logger.Debug($"[BMM] Active module override: from {_activeModule?.GetType().FullName ?? "<n/a>"} (manual-override={_activeModuleOverridden}) to {value?.GetType().FullName ?? "<n/a>"}");
             _activeModule = value;
             _activeModuleOverridden = true;
         }
     }
 
-    public BossModuleManager(WorldState ws)
+    public BossModuleManager(WorldState ws, ConfigRoot config, ITextureProvider tex, IPluginLog logger, ModuleArgs.Factory mfac)
     {
         WorldState = ws;
+        _config = config;
+        _tex = tex;
+        _logger = logger;
+        _mfac = mfac;
         RaidCooldowns = new(ws);
-        _subsciptions = new
+        _subscriptions = new
         (
             WorldState.Actors.Added.Subscribe(ActorAdded),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate),
@@ -52,7 +62,7 @@ public sealed class BossModuleManager : IDisposable
             m.Dispose();
         LoadedModules.Clear();
 
-        _subsciptions.Dispose();
+        _subscriptions.Dispose();
         RaidCooldowns.Dispose();
     }
 
@@ -76,7 +86,7 @@ public sealed class BossModuleManager : IDisposable
             }
             catch (Exception ex)
             {
-                Service.Log($"Boss module {m.GetType()} crashed: {ex}");
+                _logger.Warning($"Boss module {m.GetType()} crashed: {ex}");
                 wasActive = true; // force unload if exception happened before activation
                 isActive = false;
             }
@@ -95,7 +105,7 @@ public sealed class BossModuleManager : IDisposable
             // if module is active and wants to be reset, oblige
             if (isActive && m.CheckReset())
             {
-                Service.Log($"[BMM] Resetting module '{m.GetType()}'");
+                _logger.Debug($"[BMM] Resetting module '{m.GetType()}'");
                 ModuleDeactivated.Fire(m);
                 var actor = m.PrimaryActor;
                 UnloadModule(i--);
@@ -114,7 +124,7 @@ public sealed class BossModuleManager : IDisposable
 
             if (!wasActive && isActive)
             {
-                Service.Log($"[BMM] Boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}' activated");
+                _logger.Debug($"[BMM] Boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}' activated");
                 anyModuleActivated |= true;
             }
         }
@@ -122,7 +132,7 @@ public sealed class BossModuleManager : IDisposable
         var curPriority = ModuleDisplayPriority(_activeModule);
         if (bestPriority > curPriority && (anyModuleActivated || !_activeModuleOverridden))
         {
-            Service.Log($"[BMM] Active module change: from {_activeModule?.GetType().FullName ?? "<n/a>"} (prio {curPriority}, manual-override={_activeModuleOverridden}) to {bestModule?.GetType().FullName ?? "<n/a>"} (prio {bestPriority})");
+            _logger.Debug($"[BMM] Active module change: from {_activeModule?.GetType().FullName ?? "<n/a>"} (prio {curPriority}, manual-override={_activeModuleOverridden}) to {bestModule?.GetType().FullName ?? "<n/a>"} (prio {bestPriority})");
             _activeModule = bestModule;
             _activeModuleOverridden = false;
         }
@@ -140,14 +150,14 @@ public sealed class BossModuleManager : IDisposable
         }
 
         LoadedModules.Add(m);
-        Service.Log($"[BMM] Boss module '{m.GetType()}' loaded for actor {m.PrimaryActor}");
+        _logger.Info($"[BMM] Boss module '{m.GetType()}' loaded for actor {m.PrimaryActor}");
         ModuleLoaded.Fire(m);
     }
 
     private void UnloadModule(int index)
     {
         var m = LoadedModules[index];
-        Service.Log($"[BMM] Boss module '{m.GetType()}' unloaded for actor {m.PrimaryActor}");
+        _logger.Info($"[BMM] Boss module '{m.GetType()}' unloaded for actor {m.PrimaryActor}");
         ModuleUnloaded.Fire(m);
         if (_activeModule == m)
         {
@@ -171,11 +181,16 @@ public sealed class BossModuleManager : IDisposable
         return 1;
     }
 
-    private DemoModule CreateDemoModule() => new(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new()));
+    private DemoModule CreateDemoModule()
+    {
+        var args = new ModuleArgs(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), _config, _tex, _logger);
+        return new(args);
+    }
 
     private void ActorAdded(Actor actor)
     {
-        var m = BossModuleRegistry.CreateModuleForActor(WorldState, actor, Config.MinMaturity);
+        var args = _mfac.Invoke(WorldState, actor);
+        var m = BossModuleRegistry.CreateModuleForActor(args, Config.MinMaturity);
         if (m != null)
         {
             LoadModule(m);
@@ -188,7 +203,7 @@ public sealed class BossModuleManager : IDisposable
     {
         if (diru.UpdateID == 0x4000_0005)
         {
-            Service.Log($"[BMM] Raid wiped, unloading all modules");
+            _logger.Info($"[BMM] Raid wiped, unloading all modules");
             _wipeInProgress = true;
 
             for (var i = LoadedModules.Count - 1; i >= 0; i--)

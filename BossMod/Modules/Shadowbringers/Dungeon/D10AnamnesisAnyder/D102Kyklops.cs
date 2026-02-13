@@ -90,4 +90,4 @@ class KyklopsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 714, NameID = 9263)]
-public class Kyklops(WorldState ws, Actor primary) : BossModule(ws, primary, new(20, -80), new ArenaBoundsSquare(14.5f));
+public class Kyklops(ModuleArgs init) : BossModule(init, new(20, -80), new ArenaBoundsSquare(14.5f));

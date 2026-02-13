@@ -46,7 +46,7 @@ class C010NBelladonnaStates(BossModule module) : C010BelladonnaStates(module, fa
 class C010SBelladonnaStates(BossModule module) : C010BelladonnaStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11514, SortOrder = 1)]
-public class C010NBelladonna(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class C010NBelladonna(ModuleArgs args): SimpleBossModule(args);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11514, SortOrder = 1)]
-public class C010SBelladonna(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class C010SBelladonna(ModuleArgs args): SimpleBossModule(args);

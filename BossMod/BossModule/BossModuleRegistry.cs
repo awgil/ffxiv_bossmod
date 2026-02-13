@@ -15,7 +15,7 @@ public static class BossModuleRegistry
         public Type? TetherIDType;
         public Type? IconIDType;
         public uint PrimaryActorOID;
-        public Func<WorldState, Actor, BossModule> ModuleFactory;
+        public Func<ModuleArgs, BossModule> ModuleFactory;
 
         public BossModuleInfo.Maturity Maturity;
         public string Contributors = "";
@@ -164,7 +164,7 @@ public static class BossModuleRegistry
         {
             ModuleType = moduleType;
             StatesType = statesType;
-            ModuleFactory = New<BossModule>.ConstructorDerived<WorldState, Actor>(moduleType);
+            ModuleFactory = New<BossModule>.ConstructorDerived<ModuleArgs>(moduleType);
         }
     }
 
@@ -191,11 +191,11 @@ public static class BossModuleRegistry
     public static Info? FindByOID(uint oid) => _modulesByOID.GetValueOrDefault(oid);
     public static Info? FindByType(Type type) => _modulesByType.GetValueOrDefault(type);
 
-    public static BossModule? CreateModule(Info? info, WorldState ws, Actor primary) => info?.ModuleFactory(ws, primary);
+    public static BossModule? CreateModule(Info? info, ModuleArgs args) => info?.ModuleFactory(args);
 
-    public static BossModule? CreateModuleForActor(WorldState ws, Actor primary, BossModuleInfo.Maturity minMaturity)
+    public static BossModule? CreateModuleForActor(ModuleArgs args, BossModuleInfo.Maturity minMaturity)
     {
-        var info = primary.Type is ActorType.Enemy or ActorType.EventObj ? FindByOID(primary.OID) : null;
+        var info = args.Primary.Type is ActorType.Enemy or ActorType.EventObj ? FindByOID(args.Primary.OID) : null;
         if (info is { } inf)
         {
             if (_config.DisabledModules.Contains(inf.ModuleType.ToString()))
@@ -203,16 +203,16 @@ public static class BossModuleRegistry
             if (_config.DisabledCategories.Contains(inf.Category))
                 return null;
         }
-        return info?.Maturity >= minMaturity ? CreateModule(info, ws, primary) : null;
+        return info?.Maturity >= minMaturity ? CreateModule(info, args) : null;
     }
 
     // TODO: this is a hack...
     public static BossModule? CreateModuleForConfigPlanning(Type module)
     {
         var info = FindByType(module);
-        return info != null ? CreateModule(info, new FakeWorld(), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new())) : null;
+        return info != null ? CreateModule(info, new(new FakeWorld(), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null!, null!, null!)) : null;
     }
 
     // TODO: this is a hack...
-    public static BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new FakeWorld(), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()));
+    public static BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(new FakeWorld(), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null!, null!, null!));
 }

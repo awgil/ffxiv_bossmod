@@ -112,7 +112,7 @@ class FourthMakeCuchulainnStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 778, NameID = 10004)]
-public class FourthMakeCuchulainn(WorldState ws, Actor primary) : BossModule(ws, primary, new(650, -187.4f), new ArenaBoundsCircle(25.5f))
+public class FourthMakeCuchulainn(ModuleArgs init) : BossModule(init, new(650, -187.4f), new ArenaBoundsCircle(25.5f))
 {
     public override bool DrawAllPlayers => true;
 }

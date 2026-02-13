@@ -66,7 +66,7 @@ class C030NKiwakinStates(BossModule module) : C030KiwakinStates(module, false);
 class C030SKiwakinStates(BossModule module) : C030KiwakinStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NKiwakin, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12632, SortOrder = 1)]
-public class C030NKiwakin(WorldState ws, Actor primary) : C030Trash1(ws, primary);
+public class C030NKiwakin(ModuleArgs args) : C030Trash1(args);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SKiwakin, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12632, SortOrder = 1)]
-public class C030SKiwakin(WorldState ws, Actor primary) : C030Trash1(ws, primary);
+public class C030SKiwakin(ModuleArgs args) : C030Trash1(args);

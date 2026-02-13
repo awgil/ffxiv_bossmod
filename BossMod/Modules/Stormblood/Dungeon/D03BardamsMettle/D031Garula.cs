@@ -56,4 +56,4 @@ class D031GarulaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 240, NameID = 6173)]
-public class D031Garula(WorldState ws, Actor primary) : BossModule(ws, primary, new(3.96f, 251.17f), new ArenaBoundsCircle(19.5f));
+public class D031Garula(ModuleArgs init) : BossModule(init, new(3.96f, 251.17f), new ArenaBoundsCircle(19.5f));

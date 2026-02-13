@@ -28,7 +28,7 @@ public class DRS4 : BossModule
     public IReadOnlyList<Actor> AuraSpheres;
     public IReadOnlyList<Actor> SpiritualSpheres;
 
-    public DRS4(WorldState ws, Actor primary) : base(ws, primary, new(244, -162), new ArenaBoundsCircle(25))
+    public DRS4(ModuleArgs init) : base(init, new(244, -162), new ArenaBoundsCircle(25))
     {
         _warrior = Enemies(OID.Warrior);
         _soldier = Enemies(OID.Soldier);

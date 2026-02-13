@@ -50,4 +50,4 @@ class D262YetiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 27, NameID = 3040)]
-public class D262Yeti(WorldState ws, Actor primary) : BossModule(ws, primary, new(-98.1f, -115.6f), new ArenaBoundsCircle(19));
+public class D262Yeti(ModuleArgs init) : BossModule(init, new(-98.1f, -115.6f), new ArenaBoundsCircle(19));
