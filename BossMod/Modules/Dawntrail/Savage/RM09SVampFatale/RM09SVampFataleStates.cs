@@ -271,10 +271,10 @@ class RM09SVampFataleStates : StateMachineBuilder
             .ActivateOnEnter<BatRing>()
             .ActivateOnEnter<BlastBeat>();
 
-        ComponentCondition<VampStomp>(id + 2, 4.1f, v => v.NumCasts > 0, "Center AOE")
+        ComponentCondition<VampStomp>(id + 2, 4.9f, v => v.NumCasts > 0, "Center AOE")
             .DeactivateOnExit<VampStomp>();
 
-        ComponentCondition<BlastBeat>(id + 0x10, 5.1f, b => b.NumCasts > 1, "Bats 1")
+        ComponentCondition<BlastBeat>(id + 0x10, 4.2f, b => b.NumCasts > 1, "Bats 1")
             .ActivateOnEnter<CurseOfTheBombpyre>();
         ComponentCondition<BlastBeat>(id + 0x11, 3.5f, b => b.NumCasts > 4, "Bats 2");
         return ComponentCondition<BlastBeat>(id + 0x12, 3.5f, b => b.NumCasts > 9, "Bats 3")
