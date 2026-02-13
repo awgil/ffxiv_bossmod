@@ -8,26 +8,11 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace BossMod;
 
-sealed unsafe class DebugAction : IDisposable
+sealed unsafe class DebugAction(WorldState ws, IAmex amex, IGameGui gui, IPlayerState playerState, IObjectTable objectTable) : IDisposable
 {
     private int _customAction;
     private readonly UITree _tree = new();
-    private readonly WorldState _ws;
-    private readonly IAmex _amex;
-    private readonly IGameGui _gameGui;
-
     private bool _autoAttack;
-    //private delegate byte SetAutoAttackDelegate(byte* self, byte value, byte sendPacket, byte isInstant);
-    //private readonly HookAddress<SetAutoAttackDelegate> _hook;
-
-    public DebugAction(WorldState ws, IAmex amex, IGameGui gui)
-    {
-        _ws = ws;
-        _amex = amex;
-        _gameGui = gui;
-        //_hook = new(Service.SigScanner.Module.BaseAddress + 0xAD3740, SetAutoAttackDetour);
-        Service.Log("---");
-    }
 
     public void Dispose()
     {
@@ -39,10 +24,10 @@ sealed unsafe class DebugAction : IDisposable
         var pc = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         var pcCast = pc != null ? ((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)pc)->GetCastInfo() : null;
         var amr = FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-        var aidCastAction = _amex.CastAction;
-        var aidCastSpell = _amex.CastSpell;
+        var aidCastAction = amex.CastAction;
+        var aidCastSpell = amex.CastSpell;
         var aidCombo = new ActionID(ActionType.Spell, amr->Combo.Action);
-        var aidQueued = _amex.QueuedAction;
+        var aidQueued = amex.QueuedAction;
         var aidGTAction = new ActionID((ActionType)amr->AreaTargetingActionType, amr->AreaTargetingActionId);
         var aidGTSpell = new ActionID(ActionType.Spell, amr->AreaTargetingSpellId);
         ImGui.TextUnformatted($"ActionManager singleton address: 0x{(ulong)amr:X}");
@@ -50,7 +35,7 @@ sealed unsafe class DebugAction : IDisposable
         ImGui.TextUnformatted($"Cast: {aidCastAction} / {aidCastSpell}, progress={amr->CastTimeElapsed:f3}/{amr->CastTimeTotal:f3}, target={amr->CastTargetId:X}/{Utils.Vec3String(amr->CastTargetPosition)}");
         if (pcCast != null)
             ImGui.TextUnformatted($"Cast (obj): {pcCast->IsCasting} {new ActionID((ActionType)pcCast->ActionType, pcCast->ActionId)}, progress={pcCast->CurrentCastTime:f3}/{pcCast->BaseCastTime:f3}/{pcCast->TotalCastTime:f3}");
-        ImGui.TextUnformatted($"Combo: {aidCombo}, {_amex.ComboTimeLeft:f3}");
+        ImGui.TextUnformatted($"Combo: {aidCombo}, {amex.ComboTimeLeft:f3}");
         ImGui.TextUnformatted($"Queue: {(amr->ActionQueued ? "active" : "inactive")}, {aidQueued} @ {(ulong)amr->QueuedTargetId:X} [{amr->QueueType}], combo={amr->QueuedComboRouteId}");
         ImGui.TextUnformatted($"GT: {aidGTAction} / {aidGTSpell}, arg={Utils.ReadField<uint>(amr, 0x94)}, targ={amr->AreaTargetingExecuteAtObject:X}/{amr->AreaTargetingExecuteAtCursor}, a0={Utils.ReadField<byte>(amr, 0xA0):X2}, bc={Utils.ReadField<byte>(amr, 0xBC):X}");
         ImGui.TextUnformatted($"Ballista: {amr->BallistaActive} {amr->BallistaRowId} @ {amr->BallistaOrigin} a={amr->BallistaRefAngle.Radians()} r={amr->BallistaRadius} t={amr->BallistaEntityId:X8}");
@@ -69,7 +54,7 @@ sealed unsafe class DebugAction : IDisposable
 
         if (ImGui.Button("Rotate 30 CCW"))
         {
-            _amex.FaceDirection((_ws.Party.Player()?.Rotation ?? 0.Degrees()) + 30.Degrees());
+            amex.FaceDirection((ws.Party.Player()?.Rotation ?? 0.Degrees()) + 30.Degrees());
         }
     }
 
@@ -98,10 +83,10 @@ sealed unsafe class DebugAction : IDisposable
             }
         }
 
-        var hover = _gameGui.HoveredAction;
+        var hover = gui.HoveredAction;
         if (hover.ActionID != 0)
         {
-            var mnemonic = Service.PlayerState.ClassJob.ValueNullable?.Abbreviation.ToString();
+            var mnemonic = playerState.ClassJob.ValueNullable?.Abbreviation.ToString();
             var rotationType = mnemonic != null ? Type.GetType($"BossMod.{mnemonic}Rotation")?.GetNestedType("AID") : null;
             ImGui.TextUnformatted($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) ({mnemonic}: {rotationType?.GetEnumName(hover.ActionID)})");
 
@@ -158,11 +143,11 @@ sealed unsafe class DebugAction : IDisposable
                     ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionId}, elapsed={group->Elapsed:f3}, total={group->Total:f3}, cooldown={group->Total - group->Elapsed:f3}");
             }
         }
-        else if (_gameGui.HoveredItem != 0)
+        else if (gui.HoveredItem != 0)
         {
-            uint itemID = (uint)_gameGui.HoveredItem % 1000000;
-            bool isHQ = _gameGui.HoveredItem / 1000000 > 0;
-            ImGui.TextUnformatted($"Hover item: {_gameGui.HoveredItem}");
+            uint itemID = (uint)gui.HoveredItem % 1000000;
+            bool isHQ = gui.HoveredItem / 1000000 > 0;
+            ImGui.TextUnformatted($"Hover item: {gui.HoveredItem}");
             ImGui.TextUnformatted($"Name: {Service.LuminaRow<Lumina.Excel.Sheets.Item>(itemID)?.Name}{(isHQ ? " (HQ)" : "")}");
             ImGui.TextUnformatted($"Count: {FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(itemID, isHQ, false, false)}");
             ImGui.TextUnformatted($"Status: {mgr->GetActionStatus(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID)}");
@@ -217,7 +202,7 @@ sealed unsafe class DebugAction : IDisposable
     private void DrawStatus(string prompt, ActionID action, bool checkRecast, bool checkCasting)
     {
         uint extra;
-        var status = _amex.GetActionStatus(action, Service.ObjectTable.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
+        var status = amex.GetActionStatus(action, objectTable.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
         ImGui.TextUnformatted($"{prompt}: {status} [{extra}] '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
     }
 

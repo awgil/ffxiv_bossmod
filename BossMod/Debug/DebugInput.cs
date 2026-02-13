@@ -2,6 +2,7 @@
 using BossMod.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -90,6 +91,7 @@ internal sealed unsafe class DebugInput : IDisposable
     private readonly WorldState _ws;
     private readonly AIHints _hints;
     private readonly IMovementOverride _move;
+    private readonly IKeyState _keyState;
     //private readonly AI.AIController _navi;
     private Vector4 _prevPosRot;
     private float _prevSpeed;
@@ -108,13 +110,14 @@ internal sealed unsafe class DebugInput : IDisposable
     //private float _pmcCameraSpeedH;
     //private float _pmcCameraSpeedV;
 
-    public DebugInput(RotationModuleManager autorot, IMovementOverride move)
+    public DebugInput(RotationModuleManager autorot, IMovementOverride move, IKeyState keyState)
     {
-        _convertVirtualKey = Service.KeyState.GetType().GetMethod("ConvertVirtualKey", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<ConvertVirtualKeyDelegate>(Service.KeyState);
-        _getKeyRef = Service.KeyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(Service.KeyState);
+        _convertVirtualKey = keyState.GetType().GetMethod("ConvertVirtualKey", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<ConvertVirtualKeyDelegate>(keyState);
+        _getKeyRef = keyState.GetType().GetMethod("GetRefValue", BindingFlags.NonPublic | BindingFlags.Instance)!.CreateDelegate<GetRefValueDelegate>(keyState);
         _ws = autorot.Bossmods.WorldState;
         _hints = autorot.Hints;
         _move = move;
+        _keyState = keyState;
         //_amex = autorot.ActionManager;
         //_navi = new(_amex);
 
@@ -197,7 +200,7 @@ internal sealed unsafe class DebugInput : IDisposable
             foreach (var n2 in _tree.Node($"Keybinds ({idata->KeybindCount} total)"))
             {
                 var mapping = new VirtualKey[256];
-                foreach (var vk in Service.KeyState.GetValidVirtualKeys())
+                foreach (var vk in _keyState.GetValidVirtualKeys())
                     mapping[_convertVirtualKey((int)vk)] = vk;
 
                 string bindString(byte v) => v switch
@@ -217,7 +220,7 @@ internal sealed unsafe class DebugInput : IDisposable
 
         foreach (var n in _tree.Node("Virtual keys"))
         {
-            _tree.LeafNodes(Service.KeyState.GetValidVirtualKeys(), vk => $"{vk} ({(int)vk}): internal code={_convertVirtualKey((int)vk)}, state={_getKeyRef((int)vk)}");
+            _tree.LeafNodes(_keyState.GetValidVirtualKeys(), vk => $"{vk} ({(int)vk}): internal code={_convertVirtualKey((int)vk)}, state={_getKeyRef((int)vk)}");
         }
 
         //foreach (var n in _tree.Node("PMC"))

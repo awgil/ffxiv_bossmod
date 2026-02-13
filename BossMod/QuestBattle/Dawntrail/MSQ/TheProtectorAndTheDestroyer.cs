@@ -29,8 +29,7 @@ public class TheProtectorAndTheDestroyer(ZoneModuleArgs args) : QuestBattle(args
 
                 obj.AddAIHints += (player, hints) => {
                     if (!player.InCombat)
-                        // TODO make this work in uidev - layoutid is the only piece of information we get about these actors and they change per run
-                        hints.InteractWithTarget = Service.ObjectTable != null ? World.Actors.FirstOrDefault(x => sadCitizens.Contains(Utils.GameObjectInternal(Service.ObjectTable[x.SpawnIndex])->LayoutId) && x.IsTargetable) : null;
+                        hints.InteractWithTarget = World.Actors.FirstOrDefault(x => sadCitizens.Contains(x.LayoutID) && x.IsTargetable);
                 };
             }),
 

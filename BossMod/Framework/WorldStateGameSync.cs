@@ -2,6 +2,7 @@
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -42,7 +43,7 @@ sealed class WorldStateGameSync : IWorldStateSync
 
     private readonly Network.OpcodeMap _opcodeMap = new();
     private readonly Network.PacketInterceptor _interceptor = new();
-    private readonly Network.PacketDecoderGame _decoder = new();
+    private readonly Network.PacketDecoderGame _decoder;
 
     private readonly ConfigListener<ReplayManagementConfig> _netConfig;
     private readonly EventSubscriptions _subscriptions;
@@ -95,10 +96,11 @@ sealed class WorldStateGameSync : IWorldStateSync
     private unsafe delegate void ProcessPacketPlayActionTimelineSync(Network.ServerIPC.PlayActionTimelineSync* data);
     private readonly Hook<ProcessPacketPlayActionTimelineSync> _processPlayActionTimelineSyncHook;
 
-    public unsafe WorldStateGameSync(WorldState ws, IAmex amex)
+    public unsafe WorldStateGameSync(WorldState ws, IAmex amex, IObjectTable objects)
     {
         _ws = ws;
         _amex = amex;
+        _decoder = new(objects);
         _startTime = DateTime.Now;
         _startQPC = Framework.Instance()->PerformanceCounterValue;
         _interceptor.ServerIPCReceived += ServerIPCReceived;

@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Vfx;
 using FFXIVClientStructs.Interop;
@@ -12,33 +13,26 @@ public unsafe struct VfxInitData
 {
 }
 
-public sealed unsafe class DebugVfx : IDisposable
+public sealed unsafe class DebugVfx(ITargetManager targetManager, IObjectTable objects) : IDisposable
 {
     private delegate VfxInitData* VfxInitDataCtorDelegate(VfxInitData* self);
-    private readonly VfxInitDataCtorDelegate VfxInitDataCtor;
-    private delegate void ClearVfxDataDelegate(VfxData* self);
-    private delegate void SetIconDelegate(VfxContainer* self, uint iconId, ulong targetId);
-
-    // to untether, an inlined version of this function is called with 0s in the last two arguments
-    private delegate void SetTetherDelegate(VfxContainer* self, byte tetherIndex, ushort unk1, ulong targetId, byte tetherProgress);
+    private readonly VfxInitDataCtorDelegate VfxInitDataCtor = Marshal.GetDelegateForFunctionPointer<VfxInitDataCtorDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8D 57 06 48 8D 4C 24 ??"));
 
     // StartOmen: a3=2, a4=0, a13=-1
     private delegate VfxData* CreateVfxDelegate(byte* path, VfxInitData* init, byte a3, byte a4, float originX, float originY, float originZ, float sizeX, float sizeY, float sizeZ, float angle, float duration, int a13);
-    private readonly CreateVfxDelegate CreateVfx;
-    private readonly ClearVfxDataDelegate ClearVfx;
-    private readonly SetIconDelegate SetIcon;
-    private readonly SetTetherDelegate SetTether;
+    private readonly CreateVfxDelegate CreateVfx = Marshal.GetDelegateForFunctionPointer<CreateVfxDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 8D 95"));
+
+    private delegate void ClearVfxDataDelegate(VfxData* self);
+    private readonly ClearVfxDataDelegate ClearVfx = Marshal.GetDelegateForFunctionPointer<ClearVfxDataDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 4D 89 A4 DE ?? ?? ?? ??"));
+
+    private delegate void SetIconDelegate(VfxContainer* self, uint iconId, ulong targetId);
+    private readonly SetIconDelegate SetIcon = Marshal.GetDelegateForFunctionPointer<SetIconDelegate>(Service.SigScanner.ScanText("85 D2 0F 84 ?? ?? ?? ?? 48 89 6C 24 ?? 57 48 83 EC 30"));
+
+    // to untether, an inlined version of this function is called with 0s in the last two arguments
+    private delegate void SetTetherDelegate(VfxContainer* self, byte tetherIndex, ushort unk1, ulong targetId, byte tetherProgress);
+    private readonly SetTetherDelegate SetTether = Marshal.GetDelegateForFunctionPointer<SetTetherDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 54 24 ?? 45 33 C0"));
 
     private readonly List<Pointer<VfxData>> _spawnedVfx = [];
-
-    public DebugVfx()
-    {
-        VfxInitDataCtor = Marshal.GetDelegateForFunctionPointer<VfxInitDataCtorDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8D 57 06 48 8D 4C 24 ??"));
-        CreateVfx = Marshal.GetDelegateForFunctionPointer<CreateVfxDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 8D 95"));
-        ClearVfx = Marshal.GetDelegateForFunctionPointer<ClearVfxDataDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 4D 89 A4 DE ?? ?? ?? ??"));
-        SetIcon = Marshal.GetDelegateForFunctionPointer<SetIconDelegate>(Service.SigScanner.ScanText("85 D2 0F 84 ?? ?? ?? ?? 48 89 6C 24 ?? 57 48 83 EC 30"));
-        SetTether = Marshal.GetDelegateForFunctionPointer<SetTetherDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 54 24 ?? 45 33 C0"));
-    }
 
     public void Dispose()
     {
@@ -49,7 +43,7 @@ public sealed unsafe class DebugVfx : IDisposable
 
     public void Draw()
     {
-        var player = Utils.CharacterInternal(Service.ObjectTable.LocalPlayer);
+        var player = Utils.CharacterInternal(objects.LocalPlayer);
         if (player == null)
             return;
 
@@ -65,7 +59,7 @@ public sealed unsafe class DebugVfx : IDisposable
         ImGui.InputText("Tether ID", ref _tether, 20);
         if (ImGui.Button("Add tether (self + targeted object)"))
         {
-            var target = Service.TargetManager.Target;
+            var target = targetManager.Target;
             if (ushort.TryParse(_tether, out var tetherId) && target != null)
             {
                 SetTether.Invoke(&player->Vfx, 0, tetherId, target.GameObjectId, 1);
@@ -98,7 +92,7 @@ public sealed unsafe class DebugVfx : IDisposable
 
     private void CreateTestVfx()
     {
-        var pos = Service.ObjectTable.LocalPlayer?.Position ?? new();
+        var pos = objects.LocalPlayer?.Position ?? new();
         var path = "vfx/omen/eff/gl_circle_5007_x1.avfx";
         var pathBytes = System.Text.Encoding.UTF8.GetBytes(path);
 

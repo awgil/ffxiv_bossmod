@@ -34,14 +34,14 @@ public sealed class ConfigUI : IDisposable
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, ReplaysRoot? replayDir, RotationDatabase? rotationDB, ITextureProvider tex)
+    public ConfigUI(ConfigRoot config, WorldState ws, ReplaysRoot? replayDir, RotationDatabase? rotationDB, ITextureProvider tex, INotificationManager notifications)
     {
         _root = config;
         _ws = ws;
         _about = new(replayDir == null ? null : new(replayDir.Path));
         _tex = tex;
         _mv = new(rotationDB?.Plans, ws, tex);
-        _presets = rotationDB != null ? new(rotationDB) : null;
+        _presets = rotationDB != null ? new(rotationDB, notifications) : null;
 
         _tabs.Add("About", _about.Draw);
         _tabs.Add("Settings", DrawSettings);

@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -10,7 +11,7 @@ using System.Text;
 
 namespace BossMod;
 
-public class DebugObjects
+public class DebugObjects(ITargetManager targetManager, IObjectTable objects)
 {
     private readonly UITree _tree = new();
     private bool _showCrap;
@@ -22,9 +23,9 @@ public class DebugObjects
 
         Span<nint> handlers = stackalloc nint[32];
         IGameObject? selected = null;
-        for (int i = 0; i < Service.ObjectTable.Length; ++i)
+        for (int i = 0; i < objects.Length; ++i)
         {
-            var obj = Service.ObjectTable[i];
+            var obj = objects[i];
             if (obj == null)
                 continue;
             if (!_showCrap && obj.ObjectKind is Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.MountType)
@@ -43,7 +44,7 @@ public class DebugObjects
                 _tree.LeafNode($"Unique ID: {uniqueID:X}");
                 _tree.LeafNode($"Gimmick ID: {Utils.ReadField<uint>(internalObj, 0x7C):X}");
                 _tree.LeafNode($"Radius: {obj.HitboxRadius:f3}");
-                _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
+                _tree.LeafNode($"Owner: {Utils.ObjectString(objects, obj.OwnerId)}");
                 _tree.LeafNode($"BNpcBase/Name: {obj.BaseId:X}/{Utils.GameObjectInternal(obj)->GetNameId()}");
                 _tree.LeafNode($"Targetable: {obj.IsTargetable}");
                 _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
@@ -74,7 +75,7 @@ public class DebugObjects
                             var s = battleChara.StatusList[j];
                             if (s == null || s.StatusId == 0)
                                 continue;
-                            _tree.LeafNode($"#{j}: {Utils.StatusString(s.StatusId)} ({s.Param:X}) from {Utils.ObjectString(s.SourceId)}, {s.RemainingTime:f3}s left");
+                            _tree.LeafNode($"#{j}: {Utils.StatusString(s.StatusId)} ({s.Param:X}) from {Utils.ObjectString(objects, s.SourceId)}, {s.RemainingTime:f3}s left");
                         }
                     }
                     var fi = ((Character*)battleChara.Address)->GetForayInfo();
@@ -93,7 +94,7 @@ public class DebugObjects
         if (selected != null)
         {
             var h = new Vector3(0, Utils.GameObjectInternal(selected)->Height, 0);
-            Camera.Instance?.DrawWorldLine(Service.ObjectTable.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
+            Camera.Instance?.DrawWorldLine(objects.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
             Camera.Instance?.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
             Camera.Instance?.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
             Camera.Instance?.DrawWorldCircle(selected.Position - h, selected.HitboxRadius, 0xff00ff00);
@@ -129,10 +130,10 @@ public class DebugObjects
         ImGui.EndTable();
     }
 
-    public static unsafe void DumpObjectTable()
+    public unsafe void DumpObjectTable()
     {
         var res = new StringBuilder("--- object table dump ---");
-        foreach (var obj in Service.ObjectTable)
+        foreach (var obj in objects)
         {
             var internalObj = Utils.GameObjectInternal(obj);
             res.Append($"\nobj {Utils.ObjectString(obj)}, kind={Utils.ObjectKindString(obj)}, pos={Utils.Vec3String(obj.Position)}, rot={obj.Rotation.Radians()}, renderFlags={internalObj->RenderFlags}, vfxScale={internalObj->VfxScale}, targetable={internalObj->GetIsTargetable()}, drawPtr=0x{(IntPtr)internalObj->DrawObject:X}");
@@ -146,7 +147,7 @@ public class DebugObjects
                 res.Append($", vfxObj=0x{Utils.ReadField<ulong>(internalObj, 0x1840):X}/0x{Utils.ReadField<ulong>(internalObj, 0x1848):X}");
                 if (chara.IsCasting)
                 {
-                    var target = Service.ObjectTable.SearchById(chara.CastTargetObjectId);
+                    var target = objects.SearchById(chara.CastTargetObjectId);
                     var targetString = target != null ? Utils.ObjectString(target) : "unknown";
                     res.Append($", castAction={new ActionID((ActionType)chara.CastActionType, chara.CastActionId)}, castTarget={targetString}, castLoc={Utils.Vec3String(Utils.BattleCharaInternal(chara)->GetCastInfo()->TargetLocation)}, castTime={Utils.CastTimeString(chara.CurrentCastTime, chara.TotalCastTime)}");
                 }
@@ -182,7 +183,7 @@ public class DebugObjects
     {
         if (ImGui.MenuItem("Target"))
         {
-            Service.TargetManager.Target = obj;
+            targetManager.Target = obj;
         }
 
         if (ImGui.MenuItem("Interact"))

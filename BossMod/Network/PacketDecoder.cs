@@ -1,5 +1,6 @@
 ﻿using BossMod.Network.ServerIPC;
 using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -417,8 +418,8 @@ public abstract unsafe class PacketDecoder
     }
 }
 
-public sealed class PacketDecoderGame : PacketDecoder
+public sealed class PacketDecoderGame(IObjectTable objectTable) : PacketDecoder
 {
-    protected override string DecodeActor(ulong instanceID) => Utils.ObjectString(instanceID);
+    protected override string DecodeActor(ulong instanceID) => Utils.ObjectString(objectTable, instanceID);
     protected override NetworkState.IDScrambleFields GetScramble() => IDScramble.Get();
 }

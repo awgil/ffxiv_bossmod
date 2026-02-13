@@ -1,12 +1,13 @@
 using BossMod.Autorotation;
 using BossMod.Interfaces;
+using Dalamud.Plugin.Services;
 //using FFXIVClientStructs.FFXIV.Client.Game.Group;
 
 namespace BossMod.AI;
 
-sealed class AIManager(RotationModuleManager autorot, IAmex amex, IMovementOverride movement) : IDisposable
+sealed class AIManager(RotationModuleManager autorot, IAmex amex, IMovementOverride movement, ITargetManager targetManager, IObjectTable objectTable) : IDisposable
 {
-    private readonly AIController _controller = new(autorot.WorldState, amex, movement);
+    private readonly AIController _controller = new(autorot.WorldState, amex, movement, targetManager, objectTable);
 
     public readonly AIConfig Config = Service.Config.Get<AIConfig>();
     public AIBehaviour? Behaviour { get; private set; }
@@ -79,6 +80,6 @@ sealed class AIManager(RotationModuleManager autorot, IAmex amex, IMovementOverr
     {
         SwitchToIdle();
         Config.FollowSlot = (AIConfig.Slot)masterSlot;
-        Behaviour = new AIBehaviour(_controller, autorot);
+        Behaviour = new AIBehaviour(_controller, autorot, targetManager);
     }
 }

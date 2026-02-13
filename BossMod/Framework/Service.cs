@@ -14,16 +14,7 @@ public sealed class Service
     public static IGameInteropProvider Hook;
     public static ISigScanner SigScanner;
     public static ICondition Condition;
-    [PluginService] public static IFramework Framework { get; private set; }
-    [PluginService] public static ICommandManager CommandManager { get; private set; }
     public static IDalamudPluginInterface PluginInterface;
-    // TODO: get rid of stuff below in favour of CS
-    public static IClientState ClientState;
-    public static IObjectTable ObjectTable;
-    [PluginService] public static IPlayerState PlayerState { get; private set; }
-    [PluginService] public static ITargetManager TargetManager { get; private set; }
-    public static IKeyState KeyState;
-    [PluginService] public static INotificationManager Notifications { get; private set; }
 #pragma warning restore CS8618
 
 #pragma warning disable CA2211

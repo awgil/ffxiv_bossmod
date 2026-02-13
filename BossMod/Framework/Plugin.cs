@@ -36,14 +36,13 @@ public class Plugin : HostedPlugin
         IKeyState keyState,
         ITextureProvider tex,
         IGameInteropProvider hook,
-        ISigScanner scanner
-    ) : base(dalamud, log, clientState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner)
+        ISigScanner scanner,
+        ITargetManager targetManager,
+        INotificationManager notifications
+    ) : base(dalamud, log, clientState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner, targetManager, notifications)
     {
         Service.PluginInterface = dalamud;
-        Service.ObjectTable = objects;
-        Service.ClientState = clientState;
         Service.Condition = condition;
-        Service.KeyState = keyState;
         Service.SigScanner = scanner;
         Service.Hook = hook;
         Service.LuminaGameData = dataManager.GameData;

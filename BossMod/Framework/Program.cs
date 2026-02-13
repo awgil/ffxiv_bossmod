@@ -34,7 +34,8 @@ static class Program
         IChatGui chatGui,
         IKeyState keyState,
         ITextureProvider tex,
-        IGameInteropProvider hook
+        IGameInteropProvider hook,
+        ITargetManager targetManager
     ) : Plugin(
         dalamud,
         log,
@@ -50,7 +51,9 @@ static class Program
         keyState,
         tex,
         hook,
-        new MockSigScanner()
+        new MockSigScanner(),
+        targetManager,
+        new MockNotificationManager()
     )
     {
         public override void ConfigureContainer(ContainerBuilder containerBuilder)

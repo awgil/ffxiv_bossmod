@@ -1,13 +1,14 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Pathfinding;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Plugin.Services;
 
 namespace BossMod.AI;
 
 public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);
 
 // constantly follow master
-sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDisposable
+sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, ITargetManager targetManager) : IDisposable
 {
     public WorldState WorldState => autorot.Bossmods.WorldState;
     public float ForceMovementIn { get; private set; } = float.MaxValue; // TODO: reconsider
@@ -150,7 +151,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot) : IDi
 
     private void FocusMaster(Actor master)
     {
-        bool masterChanged = Service.TargetManager.FocusTarget?.EntityId != master.InstanceID;
+        bool masterChanged = targetManager.FocusTarget?.EntityId != master.InstanceID;
         if (masterChanged)
         {
             ctrl.SetFocusTarget(master);

@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -7,7 +8,7 @@ using System.Text.Json.Nodes;
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
+public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotificationManager notifications)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
 
@@ -263,7 +264,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
 
                 rotationDB.Plans.ModifyPlan(null, plan);
 
-                Service.Notifications.AddNotification(new()
+                notifications.AddNotification(new()
                 {
                     Content = $"Imported plan '{plan.Name}' for L{plan.Level} {plan.Class}"
                 });
@@ -284,7 +285,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
         catch (Exception ex)
         {
             Service.Logger.Warning(ex, $"Failed to parse preset");
-            Service.Notifications.AddNotification(new()
+            notifications.AddNotification(new()
             {
                 Title = "Error while importing preset",
                 Content = ex.Message,

@@ -13,21 +13,34 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleManager zmm, IAmex amex, IMovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud, IGameGui gameGui) : UIWindow("Boss mod debug UI", false, new(300, 200))
+class MainDebugWindow(
+    WorldState ws,
+    RotationModuleManager autorot,
+    ZoneModuleManager zmm,
+    IAmex amex,
+    IMovementOverride move,
+    AIHintsBuilder hintBuilder,
+    IDalamudPluginInterface dalamud,
+    IGameGui gameGui,
+    IPlayerState playerState,
+    ITargetManager targetManager,
+    IKeyState keyState,
+    IObjectTable objects
+) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
-    private readonly DebugObjects _debugObjects = new();
+    private readonly DebugObjects _debugObjects = new(targetManager, objects);
     private readonly DebugParty _debugParty = new();
     private readonly DebugMapEffect _debugMapEffect = new(ws);
-    private readonly DebugGraphics _debugGraphics = new();
-    private readonly DebugAction _debugAction = new(ws, amex, gameGui);
-    private readonly DebugHate _debugHate = new(ws);
-    private readonly DebugInput _debugInput = new(autorot, move);
+    private readonly DebugGraphics _debugGraphics = new(objects);
+    private readonly DebugAction _debugAction = new(ws, amex, gameGui, playerState, objects);
+    private readonly DebugHate _debugHate = new(ws, objects);
+    private readonly DebugInput _debugInput = new(autorot, move, keyState);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
     private readonly DebugAddon _debugAddon = new(gameGui);
     private readonly DebugTiming _debugTiming = new();
     private readonly DebugQuests _debugQuests = new();
-    private readonly DebugVfx _debugVfx = new();
+    private readonly DebugVfx _debugVfx = new(targetManager, objects);
 
     protected override void Dispose(bool disposing)
     {
@@ -42,7 +55,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     public override unsafe void Draw()
     {
         var playerCID = UIState.Instance()->PlayerState.ContentId;
-        var player = Service.ObjectTable.LocalPlayer;
+        var player = objects.LocalPlayer;
         ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
         // ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
         ImGui.TextUnformatted($"Player mode: {(player is null ? "No player found" : Utils.CharacterInternal(player)->Mode.ToString())}");
@@ -55,8 +68,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
         if (ImGui.Button("Perform full dump"))
         {
-            DebugObjects.DumpObjectTable();
-            DebugGraphics.DumpScene();
+            _debugObjects.DumpObjectTable();
+            _debugGraphics.DumpScene();
         }
 
         if (ImGui.CollapsingHeader("Obstacles"))
@@ -221,7 +234,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
         foreach (var elem in ws.Actors)
         {
-            var obj = (elem.InstanceID >> 32) == 0 ? Service.ObjectTable.SearchById((uint)elem.InstanceID) : null;
+            var obj = (elem.InstanceID >> 32) == 0 ? objects.SearchById((uint)elem.InstanceID) : null;
             if (ImGui.TreeNode(Utils.ObjectString(obj!)))
             {
                 if (obj is IBattleChara chara)
@@ -255,9 +268,9 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted(Utils.ObjectString(elem.InstanceID));
+            ImGui.TextUnformatted(Utils.ObjectString(objects, elem.InstanceID));
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted(Utils.ObjectString(elem.CastInfo.TargetID));
+            ImGui.TextUnformatted(Utils.ObjectString(objects, elem.CastInfo.TargetID));
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(elem.CastInfo.Action.ToString());
             ImGui.TableNextColumn();
@@ -274,7 +287,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     private void DrawInventory()
     {
-        var player = Service.ObjectTable.LocalPlayer;
+        var player = objects.LocalPlayer;
         if (player == null)
             return;
 
@@ -300,7 +313,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
 
     private unsafe void DrawEffects()
     {
-        var player = Service.ObjectTable.LocalPlayer;
+        var player = objects.LocalPlayer;
         if (player == null)
             return;
 
@@ -378,9 +391,9 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var cursorPos = amex.GetWorldPosUnderCursor();
         ImGui.TextUnformatted($"World pos under cursor: {(cursorPos == null ? "n/a" : Utils.Vec3String(cursorPos.Value))}");
 
-        var player = Service.ObjectTable.LocalPlayer;
+        var player = objects.LocalPlayer;
         var selfPos = player?.Position ?? new();
-        var targPos = Service.ObjectTable.LocalPlayer?.TargetObject?.Position ?? new();
+        var targPos = objects.LocalPlayer?.TargetObject?.Position ?? new();
         var angle = player?.Rotation.Radians() ?? default; //Angle.FromDirection(new((targPos - selfPos).XZ()));
         var ts = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
         DrawTarget("Target", ts->Target, selfPos, angle);
@@ -389,13 +402,13 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         DrawTarget("Mouseover", ts->MouseOverTarget, selfPos, angle);
         DrawTarget("Focus", ts->FocusTarget, selfPos, angle);
         var mouseover = FFXIVClientStructs.FFXIV.Client.UI.Misc.PronounModule.Instance()->UiMouseOverTarget;
-        ImGui.TextUnformatted($"UI Mouseover: {Utils.ObjectString(mouseover != null ? mouseover->EntityId : 0)}");
+        ImGui.TextUnformatted($"UI Mouseover: {Utils.ObjectString(objects, mouseover != null ? mouseover->EntityId : 0)}");
 
         if (ImGui.Button("Target closest enemy"))
         {
-            var closest = Service.ObjectTable.Where(o => o.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc && o.SubKind == 5).MinBy(o => (o.Position - selfPos).LengthSquared());
+            var closest = objects.Where(o => o.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.BattleNpc && o.SubKind == 5).MinBy(o => (o.Position - selfPos).LengthSquared());
             if (closest != null)
-                Service.TargetManager.Target = closest;
+                targetManager.Target = closest;
         }
     }
 
@@ -408,7 +421,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var dist = selfToObj.Length();
         var angle = Angle.FromDirection(new(selfToObj.XZ())) - refAngle;
         var visHalf = Angle.Asin(obj->HitboxRadius / dist);
-        ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(obj->EntityId)} {obj->BaseId}:{obj->GetNameId()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
+        ImGui.TextUnformatted($"{kind}: #{obj->ObjectIndex} {Utils.ObjectString(objects, obj->EntityId)} {obj->BaseId}:{obj->GetNameId()}, hb={obj->HitboxRadius} ({visHalf}), dist={dist}, angle={angle} ({Math.Max(0, angle.Abs().Rad - visHalf.Rad).Radians()})");
     }
 
     private static readonly string[] FieldMarkers = ["A", "B", "C", "D", "1", "2", "3", "4"];
@@ -483,7 +496,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     {
         var agent = AgentCountDownSettingDialog.Instance();
         ImGui.TextUnformatted($"Active: {agent->Active} (showing cd={agent->ShowingCountdown})");
-        ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(agent->InitiatorId)}");
+        ImGui.TextUnformatted($"Initiator: {Utils.ObjectString(objects, agent->InitiatorId)}");
         ImGui.TextUnformatted($"Time left: {agent->TimeRemaining:f3}");
     }
 

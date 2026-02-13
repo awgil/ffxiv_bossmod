@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin.Services;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -11,9 +12,9 @@ public static partial class Utils
 {
     public static string ObjectString(IGameObject obj) => $"{obj.BaseId:X} '{obj.Name}' <{obj.EntityId:X}>";
 
-    public static string ObjectString(ulong id)
+    public static string ObjectString(IObjectTable gameObjects, ulong id)
     {
-        var obj = (id >> 32) == 0 ? Service.ObjectTable.SearchById((uint)id) : null;
+        var obj = (id >> 32) == 0 ? gameObjects.SearchById((uint)id) : null;
         return obj != null ? ObjectString(obj) : $"(not found) <{id:X}>";
     }
 

@@ -1,11 +1,12 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using System.Text;
 
 namespace BossMod;
 
-class DebugGraphics
+class DebugGraphics(IObjectTable objectTable)
 {
     private class WatchedRenderObject
     {
@@ -118,7 +119,7 @@ class DebugGraphics
         foreach (var v in _watchedRenderObjects)
         {
             var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
-            Camera.Instance?.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
+            Camera.Instance?.DrawWorldLine(objectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
         }
     }
 
@@ -349,7 +350,7 @@ class DebugGraphics
 
     public void DrawOverlay()
     {
-        if (Camera.Instance == null || Service.ObjectTable.LocalPlayer == null)
+        if (Camera.Instance == null || objectTable.LocalPlayer == null)
             return;
 
         ImGui.Checkbox("Circle", ref _overlayCircle);
@@ -362,7 +363,7 @@ class DebugGraphics
 
         int mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
         int mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
-        float y = Service.ObjectTable.LocalPlayer.Position.Y;
+        float y = objectTable.LocalPlayer.Position.Y;
         if (_overlayCircle)
         {
             var center = new Vector3(_overlayCenter.X, y, _overlayCenter.Y);
@@ -391,9 +392,9 @@ class DebugGraphics
         }
     }
 
-    public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()
+    public unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()
     {
-        var player = Utils.GameObjectInternal(Service.ObjectTable.LocalPlayer);
+        var player = Utils.GameObjectInternal(objectTable.LocalPlayer);
         if (player == null || player->DrawObject == null)
             return null;
 
@@ -403,7 +404,7 @@ class DebugGraphics
         return obj;
     }
 
-    public static unsafe void DumpScene()
+    public unsafe void DumpScene()
     {
         var res = new StringBuilder("--- graphics scene dump ---");
         var root = FindSceneRoot();

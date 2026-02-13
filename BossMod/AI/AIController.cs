@@ -1,12 +1,13 @@
 ﻿using BossMod.Interfaces;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Plugin.Services;
 
 namespace BossMod.AI;
 
 // utility for simulating user actions based on AI decisions:
 // - navigation
 // - using actions safely (without spamming, not in cutscenes, etc)
-sealed class AIController(WorldState ws, IAmex amex, IMovementOverride movement)
+sealed class AIController(WorldState ws, IAmex amex, IMovementOverride movement, ITargetManager targetManager, IObjectTable objectTable)
 {
     public WPos? NaviTargetPos;
     public float? NaviTargetVertical;
@@ -30,8 +31,8 @@ sealed class AIController(WorldState ws, IAmex amex, IMovementOverride movement)
 
     public void SetFocusTarget(Actor? actor)
     {
-        if (Service.TargetManager.FocusTarget?.EntityId != actor?.InstanceID)
-            Service.TargetManager.FocusTarget = actor != null ? Service.ObjectTable.SearchById((uint)actor.InstanceID) : null;
+        if (targetManager.FocusTarget?.EntityId != actor?.InstanceID)
+            targetManager.FocusTarget = actor != null ? objectTable.SearchById((uint)actor.InstanceID) : null;
     }
 
     public void Update(Actor? player, AIHints hints, DateTime now)
