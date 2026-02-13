@@ -11,16 +11,11 @@ public sealed class Service
 {
 #pragma warning disable CS8618
     [PluginService] public static IPluginLog Logger { get; private set; }
-    public static IChatGui ChatGui;
-    public static IGameGui GameGui;
-    public static IGameConfig GameConfig;
     public static IGameInteropProvider Hook;
     public static ISigScanner SigScanner;
     public static ICondition Condition;
     [PluginService] public static IFramework Framework { get; private set; }
-    //public static ITextureProvider Texture;
     [PluginService] public static ICommandManager CommandManager { get; private set; }
-    public static IDtrBar DtrBar;
     public static IDalamudPluginInterface PluginInterface;
     // TODO: get rid of stuff below in favour of CS
     public static IClientState ClientState;

@@ -1,6 +1,7 @@
 ﻿using BossMod.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -13,15 +14,17 @@ sealed unsafe class DebugAction : IDisposable
     private readonly UITree _tree = new();
     private readonly WorldState _ws;
     private readonly IAmex _amex;
+    private readonly IGameGui _gameGui;
 
     private bool _autoAttack;
     //private delegate byte SetAutoAttackDelegate(byte* self, byte value, byte sendPacket, byte isInstant);
     //private readonly HookAddress<SetAutoAttackDelegate> _hook;
 
-    public DebugAction(WorldState ws, IAmex amex)
+    public DebugAction(WorldState ws, IAmex amex, IGameGui gui)
     {
         _ws = ws;
         _amex = amex;
+        _gameGui = gui;
         //_hook = new(Service.SigScanner.Module.BaseAddress + 0xAD3740, SetAutoAttackDetour);
         Service.Log("---");
     }
@@ -95,7 +98,7 @@ sealed unsafe class DebugAction : IDisposable
             }
         }
 
-        var hover = Service.GameGui.HoveredAction;
+        var hover = _gameGui.HoveredAction;
         if (hover.ActionID != 0)
         {
             var mnemonic = Service.PlayerState.ClassJob.ValueNullable?.Abbreviation.ToString();
@@ -155,11 +158,11 @@ sealed unsafe class DebugAction : IDisposable
                     ImGui.TextUnformatted($"Recast group details: active={group->IsActive}, action={group->ActionId}, elapsed={group->Elapsed:f3}, total={group->Total:f3}, cooldown={group->Total - group->Elapsed:f3}");
             }
         }
-        else if (Service.GameGui.HoveredItem != 0)
+        else if (_gameGui.HoveredItem != 0)
         {
-            uint itemID = (uint)Service.GameGui.HoveredItem % 1000000;
-            bool isHQ = Service.GameGui.HoveredItem / 1000000 > 0;
-            ImGui.TextUnformatted($"Hover item: {Service.GameGui.HoveredItem}");
+            uint itemID = (uint)_gameGui.HoveredItem % 1000000;
+            bool isHQ = _gameGui.HoveredItem / 1000000 > 0;
+            ImGui.TextUnformatted($"Hover item: {_gameGui.HoveredItem}");
             ImGui.TextUnformatted($"Name: {Service.LuminaRow<Lumina.Excel.Sheets.Item>(itemID)?.Name}{(isHQ ? " (HQ)" : "")}");
             ImGui.TextUnformatted($"Count: {FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(itemID, isHQ, false, false)}");
             ImGui.TextUnformatted($"Status: {mgr->GetActionStatus(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Item, itemID)}");

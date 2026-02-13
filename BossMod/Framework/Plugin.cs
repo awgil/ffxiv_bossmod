@@ -39,15 +39,10 @@ public class Plugin : HostedPlugin
         ISigScanner scanner
     ) : base(dalamud, log, clientState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner)
     {
-        //Service.Texture = tex;
         Service.PluginInterface = dalamud;
-        Service.DtrBar = dtrBar;
         Service.ObjectTable = objects;
         Service.ClientState = clientState;
         Service.Condition = condition;
-        Service.GameGui = gameGui;
-        Service.GameConfig = gameConfig;
-        Service.ChatGui = chatGui;
         Service.KeyState = keyState;
         Service.SigScanner = scanner;
         Service.Hook = hook;
@@ -75,7 +70,7 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterSingletonSelf<MovementOverride>();
         containerBuilder.RegisterSingletonSelf<AI.AIManager>();
-        containerBuilder.RegisterSingletonSelf<DTRProvider>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<DTRProvider>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<FrameworkUpdateService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
@@ -124,6 +119,7 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterType<ReplayManager.ReplayEntry>();
 
         containerBuilder.RegisterSingletonSelf<RotationDatabase>();
+        containerBuilder.RegisterSingletonSelf<SlashCommandProvider>();
 
         containerBuilder.RegisterBuildCallback(OnContainerBuild);
     }

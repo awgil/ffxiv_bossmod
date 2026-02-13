@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Dalamud.Plugin.Services;
+
+namespace BossMod;
 
 // Effective animation lock reduction tweak (a-la xivalex/noclippy).
 // The game handles instants and casted actions differently:
@@ -13,7 +15,7 @@
 //   this tweak does nothing for casts, since they already work correctly
 // The tweak also allows predicting the delay based on history (using exponential average).
 // TODO: consider adding 'clamped delay' mode that doesn't reduce it straight to zero (a-la xivalex)?
-public sealed class AnimationLockTweak
+public sealed class AnimationLockTweak(IChatGui chatGui)
 {
     private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
     private float _lastReqInitialAnimLock;
@@ -62,9 +64,9 @@ public sealed class AnimationLockTweak
             return; // nothing changed the packet value, and it's original value is reasonable
 
         Service.Log($"[ALT] Unexpected animation lock {packetOriginalAnimLock:f6} -> {packetModifiedAnimLock:f6} -> {gameCurrAnimLock:f6}, disabling anim lock tweak feature");
-        Service.ChatGui.PrintError("[BossMod] Unexpected animation lock! Disabling animation lock reduction feature.");
-        Service.ChatGui.PrintError("[BossMod] This can be caused by another plugin affecting the animation lock.");
-        Service.ChatGui.PrintError("[BossMod] If you are sure you are not using any of them, please report this as a bug.");
+        chatGui.PrintError("[BossMod] Unexpected animation lock! Disabling animation lock reduction feature.");
+        chatGui.PrintError("[BossMod] This can be caused by another plugin affecting the animation lock.");
+        chatGui.PrintError("[BossMod] If you are sure you are not using any of them, please report this as a bug.");
         _config.RemoveAnimationLockDelay = false; // disable the tweak (but don't save the config, in case this condition is temporary)
     }
 }

@@ -64,9 +64,11 @@ public class SlashCommandHandler
     }
 }
 
-public sealed class SlashCommandProvider(ICommandManager commandManager, string rootCommand) : SlashCommandHandler, IDisposable
+public sealed class SlashCommandProvider(ICommandManager commandManager, IChatGui chat, string rootCommand) : SlashCommandHandler, IDisposable
 {
     private readonly List<string> _aliases = [];
+
+    public delegate SlashCommandProvider Factory(string rootCommand);
 
     public void Dispose()
     {
@@ -92,9 +94,9 @@ public sealed class SlashCommandProvider(ICommandManager commandManager, string 
         Service.Log($"OnCommand: {cmd} {args}");
         if (!Execute(args))
         {
-            Service.ChatGui.PrintError($"Unrecognized slash command: {cmd} {args}");
+            chat.PrintError($"Unrecognized slash command: {cmd} {args}");
             foreach (var h in BuildHelp(false))
-                Service.ChatGui.Print($"* {h}");
+                chat.Print($"* {h}");
         }
     }
 

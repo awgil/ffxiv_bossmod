@@ -1,4 +1,5 @@
 ﻿using BossMod.Interfaces;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -53,7 +54,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly AIHints _hints;
     private readonly IMovementOverride _movement;
     private readonly ManualActionQueueTweak _manualQueue;
-    private readonly AnimationLockTweak _animLockTweak = new();
+    private readonly AnimationLockTweak _animLockTweak;
     private readonly CooldownDelayTweak _cooldownTweak = new();
     private readonly CancelCastTweak _cancelCastTweak;
     private readonly AutoDismountTweak _dismountTweak;
@@ -76,7 +77,7 @@ public sealed unsafe class ActionManagerEx : IAmex
 
     private readonly unsafe delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, IMovementOverride movement)
+    public ActionManagerEx(WorldState ws, AIHints hints, IMovementOverride movement, IChatGui chat)
     {
         _ws = ws;
         _hints = hints;
@@ -87,6 +88,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         _smartRotationTweak = new(ws, hints);
         _oocActionsTweak = new(ws);
         _autoAutosTweak = new(ws, hints);
+        _animLockTweak = new(chat);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);

@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -93,7 +93,6 @@ public class ConfigChangelogWindow : UIWindow
         {
             // nothing interesting to show...
             IsOpen = false;
-            Dispose();
         }
     }
 

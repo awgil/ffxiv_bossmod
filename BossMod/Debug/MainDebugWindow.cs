@@ -5,6 +5,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -12,18 +13,18 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleManager zmm, IAmex amex, IMovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : UIWindow("Boss mod debug UI", false, new(300, 200))
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleManager zmm, IAmex amex, IMovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud, IGameGui gameGui) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();
     private readonly DebugMapEffect _debugMapEffect = new(ws);
     private readonly DebugGraphics _debugGraphics = new();
-    private readonly DebugAction _debugAction = new(ws, amex);
+    private readonly DebugAction _debugAction = new(ws, amex, gameGui);
     private readonly DebugHate _debugHate = new(ws);
     private readonly DebugInput _debugInput = new(autorot, move);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
-    private readonly DebugAddon _debugAddon = new();
+    private readonly DebugAddon _debugAddon = new(gameGui);
     private readonly DebugTiming _debugTiming = new();
     private readonly DebugQuests _debugQuests = new();
     private readonly DebugVfx _debugVfx = new();

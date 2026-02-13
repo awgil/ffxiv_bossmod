@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace BossMod.Services;
 
 internal class CommandService(
-    ICommandManager commands,
     ConfigUI configUI,
     Lazy<UIRotationWindow> wndRotation,
     Lazy<AI.AIWindow> wndAI,
@@ -16,12 +15,13 @@ internal class CommandService(
     RotationModuleManager rotation,
     AI.AIManager ai,
     WorldState worldState,
-    IChatGui chatGui,
+    SlashCommandProvider.Factory scf,
+    IChatGui chat,
     ConfigRoot config,
     IPluginLog logger
 ) : IHostedService
 {
-    private readonly SlashCommandProvider _slashCmd = new(commands, "/vbm");
+    private readonly SlashCommandProvider _slashCmd = scf.Invoke("/vbm");
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -42,7 +42,7 @@ internal class CommandService(
         {
             var output = config.ConsoleCommand(args);
             foreach (var msg in output)
-                chatGui.Print(msg);
+                chat.Print(msg);
             return true;
         });
         _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", () => wndDebug.FirstOrDefault()?.OpenAndBringToFront());
@@ -80,7 +80,7 @@ internal class CommandService(
             if (preset != null)
                 SetOrToggle(preset, toggle, exclusive);
             else
-                chatGui.PrintError($"Failed to find preset '{presetName}'");
+                chat.PrintError($"Failed to find preset '{presetName}'");
         }
 
         void ClearByName(ReadOnlySpan<char> presetName)
@@ -92,7 +92,7 @@ internal class CommandService(
                 rotation.Deactivate(preset);
             }
             else
-                chatGui.PrintError($"Failed to find preset '{presetName}'");
+                chat.PrintError($"Failed to find preset '{presetName}'");
         }
 
         cmd.SetSimpleHandler("toggle autorotation ui", () => wndRotation.Value.SetVisible(!wndRotation.Value.IsOpen));
@@ -152,7 +152,7 @@ internal class CommandService(
             }
             else
             {
-                chatGui.PrintError($"[AI] [Follow] Error: can't find {masterString} in our party");
+                chat.PrintError($"[AI] [Follow] Error: can't find {masterString} in our party");
             }
             return true;
         });

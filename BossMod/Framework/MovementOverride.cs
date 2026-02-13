@@ -2,6 +2,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
@@ -38,6 +39,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
     public WDir ActualMove { get; private set; } // actual movement direction, as of last input read
 
     private readonly IDalamudPluginInterface _dalamud;
+    private readonly IGameConfig _gameConfig;
     private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
     private bool? _forcedControlState;
     private bool _legacyMode;
@@ -77,9 +79,10 @@ public sealed unsafe class MovementOverride : IMovementOverride
     private delegate byte MoveControlIsInputActiveDelegate(void* self, byte inputSourceFlags);
     private readonly HookAddress<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
 
-    public MovementOverride(IDalamudPluginInterface dalamud)
+    public MovementOverride(IDalamudPluginInterface dalamud, IGameConfig gameConfig)
     {
         _dalamud = dalamud;
+        _gameConfig = gameConfig;
 
         var rmiWalkIsInputEnabled1Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
         var rmiWalkIsInputEnabled2Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
@@ -92,14 +95,14 @@ public sealed unsafe class MovementOverride : IMovementOverride
         _rmiFlyHook = new("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
         _mcIsInputActiveHook = new("E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
 
-        Service.GameConfig.UiControlChanged += OnConfigChanged;
+        _gameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
     }
 
     public void Dispose()
     {
         _dalamud.RelinquishData("vnav.PathIsRunning");
-        Service.GameConfig.UiControlChanged -= OnConfigChanged;
+        _gameConfig.UiControlChanged -= OnConfigChanged;
         MovementBlocked = false;
         _mcIsInputActiveHook.Dispose();
         _rmiWalkHook.Dispose();
@@ -242,7 +245,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
     private void OnConfigChanged(object? sender, ConfigChangeEvent evt) => UpdateLegacyMode();
     private void UpdateLegacyMode()
     {
-        _legacyMode = Service.GameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
+        _legacyMode = _gameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
         Service.Log($"Legacy mode is now {(_legacyMode ? "enabled" : "disabled")}");
     }
 }

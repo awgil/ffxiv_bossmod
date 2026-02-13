@@ -1,41 +1,37 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Plugin.Services;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod;
 
-internal sealed class MultiboxManager : IDisposable
+internal sealed class MultiboxManager(RotationModuleManager rotations, WorldState ws, IChatGui chat) : IHostedService
 {
-    private readonly RotationModuleManager _rotations;
-    private readonly WorldState _ws;
-
-    public MultiboxManager(RotationModuleManager mgr, WorldState ws)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _rotations = mgr;
-        _ws = ws;
-        Service.ChatGui.ChatMessage += OnChatMessage;
+        chat.ChatMessage += OnChatMessage;
     }
-
-    public void Dispose()
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        Service.ChatGui.ChatMessage -= OnChatMessage;
+        chat.ChatMessage -= OnChatMessage;
     }
 
     private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        if (Service.IsDev && type == XivChatType.Echo && message.TextValue == "test")
+        if (type == XivChatType.Echo && message.TextValue == "test")
         {
-            var leaderId = _ws.Party.Members[0].ContentId;
+            var leaderId = ws.Party.Members[0].ContentId;
 
-            foreach (var p in _rotations.Presets)
+            foreach (var p in rotations.Presets)
             {
-#if DEBUG
                 var md = p.Modules.FirstOrDefault(m => m.Type == typeof(Autorotation.MiscAI.Multibox));
                 if (md != null)
                     md.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueInt() { Value = (long)leaderId }));
                 else
                     Service.Log($"no matching module in {p.Name}");
-#endif
             }
         }
     }

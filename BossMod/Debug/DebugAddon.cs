@@ -1,10 +1,11 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace BossMod;
 
-public sealed unsafe class DebugAddon : IDisposable
+public sealed unsafe class DebugAddon(IGameGui gameGui) : IDisposable
 {
     delegate nint AddonReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, ulong* inputData);
     delegate void* AgentReceiveEventDelegate(AgentInterface* self, void* eventData, AtkValue* values, int valueCount, ulong eventKind);
@@ -14,10 +15,6 @@ public sealed unsafe class DebugAddon : IDisposable
     private readonly Dictionary<string, nint> _addonRcvs = [];
     private readonly Dictionary<uint, nint> _agentRcvs = [];
     private string _newHook = "";
-
-    public DebugAddon()
-    {
-    }
 
     public void Dispose()
     {
@@ -46,7 +43,7 @@ public sealed unsafe class DebugAddon : IDisposable
         }
 
         ImGui.InputText("Addon name / agent id", ref _newHook, 256);
-        if (_newHook.Length > 0 && !_addonRcvs.ContainsKey(_newHook) && (AtkUnitBase*)(Service.GameGui.GetAddonByName(_newHook).Address) is var addon && addon != null)
+        if (_newHook.Length > 0 && !_addonRcvs.ContainsKey(_newHook) && (AtkUnitBase*)(gameGui.GetAddonByName(_newHook).Address) is var addon && addon != null)
         {
             ImGui.SameLine();
             if (ImGui.Button("Hook addon!"))
