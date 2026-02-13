@@ -6,7 +6,6 @@ using BossMod.ReplayVisualization;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -41,8 +40,6 @@ public class Plugin : HostedPlugin
         INotificationManager notifications
     ) : base(dalamud, log, clientState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner, targetManager, notifications)
     {
-        Service.PluginInterface = dalamud;
-        Service.Condition = condition;
         Service.SigScanner = scanner;
         Service.Hook = hook;
         Service.LuminaGameData = dataManager.GameData;
@@ -51,7 +48,6 @@ public class Plugin : HostedPlugin
 
         Service.LogHandlerDebug = (s) => log.Debug(s);
         Service.LogHandlerVerbose = (s) => log.Verbose(s);
-        Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
 
         _packs = new();
@@ -153,10 +149,5 @@ public class Plugin : HostedPlugin
         return link == 0
             || Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse.RowId == 31 // deep dungeons check is hardcoded in game
             || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
-    }
-
-    private void OnConditionChanged(ConditionFlag flag, bool value)
-    {
-        Service.Log($"Condition change: {flag}={value}");
     }
 }

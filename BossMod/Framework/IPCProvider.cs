@@ -1,6 +1,7 @@
 ﻿using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Interfaces;
+using Dalamud.Plugin;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -10,9 +11,11 @@ namespace BossMod;
 sealed class IPCProvider : IDisposable
 {
     private Action? _disposeActions;
+    private readonly IDalamudPluginInterface _dalamud;
 
-    public IPCProvider(RotationModuleManager autorotation, IAmex amex, IMovementOverride movement, AIManager ai)
+    public IPCProvider(RotationModuleManager autorotation, IAmex amex, IMovementOverride movement, AIManager ai, IDalamudPluginInterface dalamud)
     {
+        _dalamud = dalamud;
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
 
@@ -210,42 +213,42 @@ sealed class IPCProvider : IDisposable
 
     private void Register<TRet>(string name, Func<TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<TRet>("BossMod." + name);
+        var p = _dalamud.GetIpcProvider<TRet>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions += p.UnregisterFunc;
     }
 
     private void Register<T1, TRet>(string name, Func<T1, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, TRet>("BossMod." + name);
+        var p = _dalamud.GetIpcProvider<T1, TRet>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions += p.UnregisterFunc;
     }
 
     private void Register<T1, T2, TRet>(string name, Func<T1, T2, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, T2, TRet>("BossMod." + name);
+        var p = _dalamud.GetIpcProvider<T1, T2, TRet>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions += p.UnregisterFunc;
     }
 
     private void Register<T1, T2, T3, TRet>(string name, Func<T1, T2, T3, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, T2, T3, TRet>("BossMod." + name);
+        var p = _dalamud.GetIpcProvider<T1, T2, T3, TRet>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions += p.UnregisterFunc;
     }
 
     private void Register<T1, T2, T3, T4, TRet>(string name, Func<T1, T2, T3, T4, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, T2, T3, T4, TRet>("BossMod." + name);
+        var p = _dalamud.GetIpcProvider<T1, T2, T3, T4, TRet>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions += p.UnregisterFunc;
     }
 
     private void Register<T1, T2, T3, T4, T5, TRet>(string name, Func<T1, T2, T3, T4, T5, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, T2, T3, T4, T5, TRet>("BossMod." + name);
+        var p = _dalamud.GetIpcProvider<T1, T2, T3, T4, T5, TRet>("BossMod." + name);
         p.RegisterFunc(func);
         _disposeActions += p.UnregisterFunc;
     }

@@ -1,7 +1,6 @@
 ﻿using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.IoC;
-using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.Collections.Concurrent;
 
@@ -13,8 +12,6 @@ public sealed class Service
     [PluginService] public static IPluginLog Logger { get; private set; }
     public static IGameInteropProvider Hook;
     public static ISigScanner SigScanner;
-    public static ICondition Condition;
-    public static IDalamudPluginInterface PluginInterface;
 #pragma warning restore CS8618
 
 #pragma warning disable CA2211
@@ -34,8 +31,6 @@ public sealed class Service
 
     public static ImFontPtr IconFont;
 #pragma warning restore CA2211
-
-    public static bool IsUIDev => PluginInterface == null;
 
     public static readonly ConfigRoot Config = new();
 

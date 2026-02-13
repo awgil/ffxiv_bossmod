@@ -15,6 +15,7 @@ namespace BossMod.Services;
 internal class FrameworkUpdateService(
     IAmex amex,
     IMovementOverride movement,
+    IPluginLog logger,
     DTRProvider dtr,
     IWorldStateSync wsSync,
     BossModuleManager bmm,
@@ -43,17 +44,25 @@ internal class FrameworkUpdateService(
 
         uiBuilder.OpenMainUi += OpenUi;
         uiBuilder.OpenConfigUi += OpenUi;
-
         uiBuilder.Draw += Update;
+
+        conditions.ConditionChange += OnConditionChanged;
     }
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        conditions.ConditionChange -= OnConditionChanged;
+
         uiBuilder.OpenMainUi -= OpenUi;
         uiBuilder.OpenConfigUi -= OpenUi;
         uiBuilder.Draw -= Update;
     }
 
     void OpenUi() => configUI.Open();
+
+    void OnConditionChanged(ConditionFlag flag, bool value)
+    {
+        logger.Debug($"Condition change: {flag}={value}");
+    }
 
     void Update()
     {

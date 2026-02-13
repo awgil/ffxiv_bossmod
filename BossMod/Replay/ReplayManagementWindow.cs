@@ -1,6 +1,8 @@
 ﻿using BossMod.Config;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using Lumina.Excel.Sheets;
 using System.Diagnostics;
 using System.IO;
@@ -14,6 +16,7 @@ public class ReplayManagementWindow : UIWindow
     private readonly ReplayManagementConfig _config;
     private readonly ReplayManager _manager;
     private readonly EventSubscriptions _subscriptions;
+    private readonly ICondition _conditions;
     private ReplayRecorder? _recorder;
     private string _message = "";
     private bool _recordingManual; // recording was started manually, and so should not be stopped automatically
@@ -23,8 +26,9 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, ReplaysRoot root, ReplayManager.Factory managerFac) : base(_windowID, false, new(300, 200))
+    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, ReplaysRoot root, ReplayManager.Factory managerFac, ICondition conditions) : base(_windowID, false, new(300, 200))
     {
+        _conditions = conditions;
         _ws = ws;
         var logDir = new DirectoryInfo(root.Path);
         _logDir = logDir;
@@ -116,7 +120,7 @@ public class ReplayManagementWindow : UIWindow
 
     private void UpdateTitle() => WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
 
-    public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]);
+    public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !_conditions[ConditionFlag.DutyRecorderPlayback]);
 
     private bool OnZoneChange(uint cfcId)
     {

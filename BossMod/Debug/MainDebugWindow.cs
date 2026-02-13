@@ -25,7 +25,8 @@ class MainDebugWindow(
     IPlayerState playerState,
     ITargetManager targetManager,
     IKeyState keyState,
-    IObjectTable objects
+    IObjectTable objects,
+    ICondition conditions
 ) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
@@ -458,7 +459,7 @@ class MainDebugWindow(
     {
         if (ImGui.Button("Clear trial"))
         {
-            Utils.WriteField((void*)Service.Condition.Address, (int)Dalamud.Game.ClientState.Conditions.ConditionFlag.OnFreeTrial, false);
+            Utils.WriteField((void*)conditions.Address, (int)Dalamud.Game.ClientState.Conditions.ConditionFlag.OnFreeTrial, false);
         }
 
         var uiState = UIState.Instance();

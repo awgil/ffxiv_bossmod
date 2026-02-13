@@ -7,7 +7,7 @@ namespace BossMod.AI;
 // utility for simulating user actions based on AI decisions:
 // - navigation
 // - using actions safely (without spamming, not in cutscenes, etc)
-sealed class AIController(WorldState ws, IAmex amex, IMovementOverride movement, ITargetManager targetManager, IObjectTable objectTable)
+sealed class AIController(WorldState ws, IAmex amex, IMovementOverride movement, ITargetManager targetManager, IObjectTable objectTable, ICondition conditions)
 {
     public WPos? NaviTargetPos;
     public float? NaviTargetVertical;
@@ -17,7 +17,7 @@ sealed class AIController(WorldState ws, IAmex amex, IMovementOverride movement,
     private readonly IAmex _amex = amex;
     private readonly IMovementOverride _movement = movement;
 
-    public bool IsVerticalAllowed => Service.Condition[ConditionFlag.InFlight];
+    public bool IsVerticalAllowed => conditions[ConditionFlag.InFlight];
     public Angle CameraFacing => (Camera.Instance?.CameraAzimuth ?? 0).Radians() + 180.Degrees();
     public Angle CameraAltitude => (Camera.Instance?.CameraAltitude ?? 0).Radians();
 

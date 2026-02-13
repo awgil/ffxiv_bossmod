@@ -50,7 +50,7 @@ public class ReplayDetailsWindow : UIWindow
         DateTime? initialTime,
         RotationDatabase rotationDB,
         ILifetimeScope scope
-    ) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1100, 1500) : new(1500, 1000))
+    ) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
         _player = new(data);
         _scope = scope;

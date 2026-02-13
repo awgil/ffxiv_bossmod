@@ -4,6 +4,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Ipc;
+using Dalamud.Plugin.Services;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -250,6 +251,7 @@ public abstract class QuestBattle : ZoneModule
     private delegate void AbandonDuty(bool a1);
     private readonly AbandonDuty? _abandonDuty;
     private readonly List<WPos> _debugWaymarks = [];
+    private readonly ICondition _conditions;
 
     // low-resolution bounds centered on player character, with radius roughly equal to object load range
     // this allows AI to pathfind to any priority target regardless of distance, as long as it's loaded - this makes it easier to complete quest objectives which require combat
@@ -262,6 +264,7 @@ public abstract class QuestBattle : ZoneModule
     protected QuestBattle(ZoneModuleArgs args) : base(args)
     {
         var ws = args.World;
+        _conditions = args.Condition;
 #pragma warning disable CA2214 // TODO: this is kinda working rn, but still not good...
         Objectives = DefineObjectives(ws);
 #pragma warning restore CA2214
@@ -289,26 +292,16 @@ public abstract class QuestBattle : ZoneModule
         );
 
         // TODO: get rid of stuff below, this is bad...
-        if (Service.Condition != null)
-            Service.Condition.ConditionChange += OnConditionChange;
+        args.Condition.ConditionChange += OnConditionChange;
 
         //_subscriptions = new(
         //    ObjectiveChanged.Subscribe(OnObjectiveChanged),
         //    ObjectiveCleared.Subscribe(OnObjectiveCleared)
         //);
 
-        if (Service.PluginInterface == null)
-        {
-            //Log($"UIDev detected, skipping initialization");
-            _pathfind = new PathfindNoop();
-            _meshIsReady = new PathReadyNoop();
-        }
-        else
-        {
-            _pathfind = Service.PluginInterface.GetIpcSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?>("vnavmesh.Nav.Pathfind");
-            _meshIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
-            _abandonDuty = Marshal.GetDelegateForFunctionPointer<AbandonDuty>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 B2 01 EB 39"));
-        }
+        _pathfind = args.Dalamud.GetIpcSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?>("vnavmesh.Nav.Pathfind");
+        _meshIsReady = args.Dalamud.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
+        _abandonDuty = Marshal.GetDelegateForFunctionPointer<AbandonDuty>(args.Scanner.ScanText("E8 ?? ?? ?? ?? 41 B2 01 EB 39"));
     }
 
     protected override void Dispose(bool disposing)
@@ -316,8 +309,7 @@ public abstract class QuestBattle : ZoneModule
         _subscriptions.Dispose();
 
         // TODO: get rid of stuff below, this is bad...
-        if (Service.Condition != null)
-            Service.Condition.ConditionChange -= OnConditionChange;
+        _conditions.ConditionChange -= OnConditionChange;
 
         base.Dispose(disposing);
     }
@@ -486,13 +478,6 @@ public abstract class QuestBattle : ZoneModule
 
         if (connections.Count == 0)
             return;
-
-        if (Service.PluginInterface == null)
-        {
-            Service.Log($"[QBD] UIDev detected, returning player's current position for waypoint");
-            CurrentWaypoints = [new(start, true)];
-            return;
-        }
 
         PathfindTask = Task.Run(() => TryPathfind([new Waypoint(start), .. connections]));
     }

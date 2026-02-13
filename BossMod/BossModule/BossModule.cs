@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 
 namespace BossMod;
@@ -9,7 +10,17 @@ public record class ModuleArgs(WorldState World, Actor Primary, ConfigRoot Confi
     public delegate ModuleArgs Factory(WorldState World, Actor Primary);
 }
 
-public record class ZoneModuleArgs(WorldState World, ConfigRoot Config, ITextureProvider TextureProvider, IPluginLog Logger)
+public record class ZoneModuleArgs(
+
+    WorldState World,
+    ConfigRoot Config,
+    ITextureProvider TextureProvider,
+    IPluginLog Logger,
+    // TODO: remove, these are for quest battle integration
+    IDalamudPluginInterface Dalamud,
+    ISigScanner Scanner,
+    ICondition Condition
+)
 {
     public delegate ZoneModuleArgs Factory(WorldState World);
 }

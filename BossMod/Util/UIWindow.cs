@@ -22,7 +22,6 @@ public abstract class UIWindow : Window, IDisposable
         DisposeOnClose = detached;
         Size = initialSize;
         SizeCondition = ImGuiCond.FirstUseEver;
-        AllowClickthrough = AllowPinning = !Service.IsUIDev;
         if (titleBarButtons != null)
         {
             TitleBarButtons = titleBarButtons;

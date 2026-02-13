@@ -28,6 +28,8 @@ sealed class WorldStateGameSync : IWorldStateSync
 
     private readonly WorldState _ws;
     private readonly IAmex _amex;
+    private readonly IClientState _clientState;
+    private readonly ICondition _conditions;
     private readonly DateTime _startTime;
     private readonly long _startQPC;
 
@@ -96,10 +98,12 @@ sealed class WorldStateGameSync : IWorldStateSync
     private unsafe delegate void ProcessPacketPlayActionTimelineSync(Network.ServerIPC.PlayActionTimelineSync* data);
     private readonly Hook<ProcessPacketPlayActionTimelineSync> _processPlayActionTimelineSyncHook;
 
-    public unsafe WorldStateGameSync(WorldState ws, IAmex amex, IObjectTable objects)
+    public unsafe WorldStateGameSync(WorldState ws, IAmex amex, IObjectTable objects, IClientState clientState, ICondition conditions)
     {
         _ws = ws;
         _amex = amex;
+        _clientState = clientState;
+        _conditions = conditions;
         _decoder = new(objects);
         _startTime = DateTime.Now;
         _startQPC = Framework.Instance()->PerformanceCounterValue;
@@ -231,9 +235,9 @@ sealed class WorldStateGameSync : IWorldStateSync
             GaugeData(),
             Camera.Instance?.CameraAzimuth.Radians() ?? default
         ));
-        if (_ws.CurrentZone != Service.ClientState.TerritoryType || _ws.CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
+        if (_ws.CurrentZone != _clientState.TerritoryType || _ws.CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
         {
-            _ws.Execute(new WorldState.OpZoneChange(Service.ClientState.TerritoryType, GameMain.Instance()->CurrentContentFinderConditionId));
+            _ws.Execute(new WorldState.OpZoneChange(_clientState.TerritoryType, GameMain.Instance()->CurrentContentFinderConditionId));
         }
         var proxy = fwk->NetworkModuleProxy->ReceiverCallback;
         var scramble = Network.IDScramble.Get();
@@ -494,7 +498,7 @@ sealed class WorldStateGameSync : IWorldStateSync
 
     private unsafe void UpdateParty()
     {
-        var replay = Service.Condition[ConditionFlag.DutyRecorderPlayback];
+        var replay = _conditions[ConditionFlag.DutyRecorderPlayback];
         var group = GroupManager.Instance()->GetGroup(replay);
 
         // update party members
@@ -532,7 +536,7 @@ sealed class WorldStateGameSync : IWorldStateSync
             var ui = UIState.Instance();
             if (ui->PlayerState.IsLoaded)
             {
-                var inCutscene = Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
+                var inCutscene = _conditions.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.Occupied33, ConditionFlag.BetweenAreas, ConditionFlag.OccupiedInQuestEvent);
                 player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, inCutscene, ui->PlayerState.CharacterNameString);
                 if (pc != null && (pc->ContentId != player.ContentId || pc->EntityId != player.InstanceId))
                     Service.Log($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') but different from playerstate ({player})");
