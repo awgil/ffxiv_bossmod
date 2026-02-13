@@ -2,29 +2,8 @@ namespace BossMod.Autorotation;
 
 public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track
-    {
-        PresenceOfMind = SharedTrack.Count,
-        Regen,
-        CureII,
-        CureIII,
-        Medica,
-        AfflatusSolace,
-        AfflatusRapture,
-        Benediction,
-        Asylum,
-        Assize,
-        ThinAir,
-        Tetragrammaton,
-        DivineBenison,
-        PlenaryIndulgence,
-        Temperance,
-        Aquaveil,
-        LiturgyOfTheBell,
-        DivineCaress,
-        AetherialShift
-    }
-
+    public enum Track {PresenceOfMind = SharedTrack.Count, Regen, Cure, Medica, AfflatusSolace, AfflatusRapture, Benediction, Asylum, ThinAir, Tetragrammaton, DivineBenison, PlenaryIndulgence, Temperance, Aquaveil, LiturgyOfTheBell, DivineCaress, AetherialShift}
+    public enum CureOption { None, Cure, CureII, CureIII }
     public enum MedicaOption { None, MedicaII, MedicaIII }
     public enum LiturgyOption { None, Use, End }
 
@@ -32,13 +11,18 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Utility: WHM", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Codex", RotationModuleQuality.Ok, BitMask.Build((int)Class.WHM), 100);
+        var res = new RotationModuleDefinition("Utility: WHM", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "TrueP", RotationModuleQuality.WIP, BitMask.Build((int)Class.WHM), 100);
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.PresenceOfMind, "PresenceOfMind", "PoM", 220, WHM.AID.PresenceOfMind, 15);
         DefineSimpleConfig(res, Track.Regen, "Regen", "", 110, WHM.AID.Regen, 18);
-        DefineSimpleConfig(res, Track.CureII, "CureII", "", 100, WHM.AID.CureII);
-        DefineSimpleConfig(res, Track.CureIII, "CureIII", "", 100, WHM.AID.CureIII);
+
+        res.Define(Track.Cure).As<CureOption>("Cure", "", 100)
+            .AddOption(CureOption.None, "Do not use automatically")
+            .AddOption(CureOption.Cure, "Use Cure", 2.5f, 0, ActionTargets.Self | ActionTargets.Party | ActionTargets.Alliance | ActionTargets.Friendly, 2)
+            .AddOption(CureOption.CureII, "Use Cure II", 2.5f, 0, ActionTargets.Self | ActionTargets.Party | ActionTargets.Alliance | ActionTargets.Friendly, 30)
+            .AddOption(CureOption.CureIII, "Use Cure III", 2.5f, 0, ActionTargets.Self | ActionTargets.Party, 40)
+            .AddAssociatedActions(WHM.AID.Cure, WHM.AID.CureII, WHM.AID.CureIII);
 
         res.Define(Track.Medica).As<MedicaOption>("Medica", "", 130)
             .AddOption(MedicaOption.None, "Do not use automatically")
@@ -55,7 +39,6 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
             .AddOption(SimpleOption.Use, "Use Asylum", 90, 24, ActionTargets.Area, 52)
             .AddAssociatedActions(WHM.AID.Asylum);
 
-        DefineSimpleConfig(res, Track.Assize, "Assize", "", 210, WHM.AID.Assize);
         DefineSimpleConfig(res, Track.ThinAir, "ThinAir", "", 200, WHM.AID.ThinAir, 10);
         DefineSimpleConfig(res, Track.Tetragrammaton, "Tetragrammaton", "Tetra", 150, WHM.AID.Tetragrammaton);
         DefineSimpleConfig(res, Track.DivineBenison, "DivineBenison", "Benison", 140, WHM.AID.DivineBenison, 15);
@@ -82,12 +65,9 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
         var defaultHealTarget = primaryTarget ?? Player;
 
         ExecuteSimple(strategy.Option(Track.PresenceOfMind), WHM.AID.PresenceOfMind, Player);
-        ExecuteSimple(strategy.Option(Track.CureII), WHM.AID.CureII, defaultHealTarget, 2);
-        ExecuteSimple(strategy.Option(Track.CureIII), WHM.AID.CureIII, defaultHealTarget, 2);
         ExecuteSimple(strategy.Option(Track.AfflatusSolace), WHM.AID.AfflatusSolace, defaultHealTarget);
         ExecuteSimple(strategy.Option(Track.AfflatusRapture), WHM.AID.AfflatusRapture, Player);
         ExecuteSimple(strategy.Option(Track.Benediction), WHM.AID.Benediction, defaultHealTarget);
-        ExecuteSimple(strategy.Option(Track.Assize), WHM.AID.Assize, Player);
         ExecuteSimple(strategy.Option(Track.ThinAir), WHM.AID.ThinAir, Player);
         ExecuteSimple(strategy.Option(Track.Tetragrammaton), WHM.AID.Tetragrammaton, defaultHealTarget);
         ExecuteSimple(strategy.Option(Track.DivineBenison), WHM.AID.DivineBenison, defaultHealTarget);
@@ -95,6 +75,18 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Temperance), WHM.AID.Temperance, Player);
         ExecuteSimple(strategy.Option(Track.Aquaveil), WHM.AID.Aquaveil, defaultHealTarget);
         ExecuteSimple(strategy.Option(Track.AetherialShift), WHM.AID.AetherialShift, Player);
+
+        var cure = strategy.Option(Track.Cure);
+        var cureAction = cure.As<CureOption>() switch
+        {
+            CureOption.Cure => WHM.AID.Cure,
+            CureOption.CureII => WHM.AID.CureII,
+            CureOption.CureIII => WHM.AID.CureIII,
+            _ => default
+        };
+        if (cureAction != default)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cureAction), ResolveTargetOverride(cure.Value) ?? defaultHealTarget, cure.Priority(), cure.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(cureAction)!.CastTime);
+
 
         var regen = strategy.Option(Track.Regen);
         if (regen.As<SimpleOption>() == SimpleOption.Use)
