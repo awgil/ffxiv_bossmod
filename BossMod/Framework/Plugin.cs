@@ -99,29 +99,31 @@ public class Plugin : HostedPlugin
     {
         ConfigureExtra(containerBuilder);
 
-        containerBuilder.RegisterType<MovementOverride>().AsSelf().SingleInstance();
-        containerBuilder.RegisterType<ConfigUI>().InstancePerLifetimeScope();
-        containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
-        containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
-        containerBuilder.RegisterType<AI.AIManager>().SingleInstance();
+        void RegisterWindow<T>() where T : Window => containerBuilder.RegisterType<T>().AsSelf().As<Window>();
 
-        containerBuilder.RegisterType<ReplayManagementWindow>().AsSelf().As<Window>();
-        containerBuilder.RegisterType<BossModuleMainWindow>().AsSelf().As<Window>();
-        containerBuilder.RegisterType<BossModuleHintsWindow>().AsSelf().As<Window>();
-        containerBuilder.RegisterType<UIRotationWindow>().AsSelf().As<Window>();
-        containerBuilder.RegisterType<AI.AIWindow>().AsSelf().As<Window>();
+        containerBuilder.RegisterSingletonSelf<MovementOverride>();
+        containerBuilder.RegisterSingletonSelf<AI.AIManager>();
+        containerBuilder.RegisterSingletonSelf<DTRProvider>();
 
-        containerBuilder.RegisterType<ModuleArgs>();
-        containerBuilder.RegisterType<BossModuleManager>();
-        containerBuilder.RegisterType<RotationModuleManager>();
-        containerBuilder.RegisterType<ZoneModuleManager>();
-
-        containerBuilder.RegisterType<DTRProvider>().SingleInstance();
-
-        containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<FrameworkUpdateService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
 
+        RegisterWindow<ReplayManagementWindow>();
+        RegisterWindow<BossModuleMainWindow>();
+        RegisterWindow<BossModuleHintsWindow>();
+        RegisterWindow<UIRotationWindow>();
+        RegisterWindow<AI.AIWindow>();
+        RegisterWindow<ConfigChangelogWindow>();
+
+        // one instance is registered for global scope (i.e. real world), and additionally one is registered per replay
+        containerBuilder.RegisterType<ModuleArgs>();
         containerBuilder.Register(s => s.Resolve<IWorldStateFactory>().Create()).AsSelf().As<WorldState>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<BossModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<RotationModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ZoneModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ConfigUI>().AsSelf().InstancePerLifetimeScope();
 
         // global config (ConfigRoot)
         containerBuilder.Register(s => Service.Config).AsSelf().SingleInstance();
@@ -145,7 +147,7 @@ public class Plugin : HostedPlugin
         }).SingleInstance();
         containerBuilder.RegisterType<ReplayBuilder>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<ReplayDetailsWindow>().InstancePerLifetimeScope();
-        containerBuilder.RegisterType<ReplayManager>().SingleInstance();
+        containerBuilder.RegisterSingletonSelf<ReplayManager>();
         containerBuilder.RegisterType<ReplayManager.ReplayEntry>();
 
         containerBuilder.RegisterSingletonSelf<RotationDatabase>();

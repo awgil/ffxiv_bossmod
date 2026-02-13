@@ -1,5 +1,4 @@
-﻿using Autofac;
-using BossMod.Autorotation;
+﻿using BossMod.Autorotation;
 using BossMod.Interfaces;
 using DalaMock.Host.Factories;
 using DalaMock.Shared.Interfaces;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-internal class TickService(
+internal class FrameworkUpdateService(
     IAmex amex,
     IMovementOverride movement,
     DTRProvider dtr,
@@ -24,33 +23,37 @@ internal class TickService(
     AIHints hints,
     RotationModuleManager autorot,
     AI.AIManager aiManager,
-    WindowSystemFactory windowSystem,
+    WindowSystemFactory windowSystemFactory,
     IHintExecutor hintExecutor,
     IUiBuilder uiBuilder,
     ICondition conditions,
     IGameGui gameGui,
     ConfigUI configUI,
-    IComponentContext ctx
+    Lazy<IEnumerable<Window>> windows
 ) : IHostedService
 {
     private TimeSpan _prevUpdateTime;
-    private readonly IWindowSystem windows = windowSystem.Create("vbm");
+    private readonly IWindowSystem windowSystem = windowSystemFactory.Create("vbm");
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        Service.WindowSystem = windows;
-        foreach (var p in ctx.Resolve<IEnumerable<Window>>())
-            Service.Log($"Initializing window {p.GetType().Name}");
+        Service.WindowSystem = windowSystem;
+        // TODO: UIWindow constructor expects Service.WindowSystem to be set
+        _ = windows.Value;
 
-        uiBuilder.OpenMainUi += () => configUI.Open();
-        uiBuilder.OpenConfigUi += () => configUI.Open();
+        uiBuilder.OpenMainUi += OpenUi;
+        uiBuilder.OpenConfigUi += OpenUi;
 
         uiBuilder.Draw += Update;
     }
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        uiBuilder.OpenMainUi -= OpenUi;
+        uiBuilder.OpenConfigUi -= OpenUi;
         uiBuilder.Draw -= Update;
     }
+
+    void OpenUi() => configUI.Open();
 
     void Update()
     {
@@ -70,7 +73,7 @@ internal class TickService(
 
         var uiHidden = gameGui.GameUiHidden || conditions.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
-            windows.Draw();
+            windowSystem.Draw();
 
         hintExecutor.Execute();
 

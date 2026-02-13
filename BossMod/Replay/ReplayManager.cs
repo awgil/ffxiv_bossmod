@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod.ReplayVisualization;
+using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
@@ -45,7 +46,6 @@ public sealed class ReplayManager : IDisposable
         public void Dispose()
         {
             Disposing = true;
-            Window?.Dispose();
             Cancel.Cancel();
             Replay.Wait();
             Replay.Dispose();
@@ -89,19 +89,19 @@ public sealed class ReplayManager : IDisposable
     private string _path = "";
     private string _fileDialogStartPath;
     private FileDialog? _fileDialog;
+    private readonly IFileDialogManager _dialogManager;
     private readonly ILifetimeScope _ctx;
-    private readonly ReplayEntry.Factory _entryFac;
+    private readonly List<ILifetimeScope> _childScopes = [];
 
     public delegate ReplayManager Factory(string fileDialogStartPath);
 
     public ReplayManager(
-        ReplayEntry.Factory entryFac,
+        IFileDialogManager dialogManager,
         ILifetimeScope ctx,
-        string fileDialogStartPath
-    )
+        string fileDialogStartPath)
     {
         _fileDialogStartPath = fileDialogStartPath;
-        _entryFac = entryFac;
+        _dialogManager = dialogManager;
         _ctx = ctx;
         RestoreHistory();
     }
@@ -111,8 +111,10 @@ public sealed class ReplayManager : IDisposable
         SaveHistory();
         foreach (var e in _analysisEntries)
             e.Dispose();
-        foreach (var e in _replayEntries)
-            e.Dispose();
+        foreach (var cs in _childScopes)
+            cs.Dispose();
+        //foreach (var e in _replayEntries)
+        //    e.Dispose();
     }
 
     public void Update()
@@ -259,14 +261,23 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
+    private ReplayEntry CreateEntry(string path, bool autoOpen, DateTime? initialTime = null)
+    {
+        _childScopes.Add(_ctx.BeginLifetimeScope());
+        return _childScopes[^1].Resolve<ReplayEntry.Factory>().Invoke(path, autoOpen, initialTime);
+    }
+
     private void DrawNewEntry()
     {
         ImGui.InputText("###path", ref _path, 500);
         ImGui.SameLine();
         if (ImGui.Button("..."))
         {
-            _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", _fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
-            _fileDialog.Show();
+            _dialogManager.OpenFileDialog("Select file or directory", "log", (isOk, files) =>
+            {
+                if (isOk)
+                    _path = files[0];
+            }, 1, _fileDialogStartPath);
         }
         ImGui.SameLine();
         using (ImRaii.Disabled(_path.Length == 0 || _replayEntries.Any(e => e.Path == _path)))
@@ -274,7 +285,7 @@ public sealed class ReplayManager : IDisposable
             if (ImGui.Button("Open"))
             {
                 CleanPath();
-                _replayEntries.Add(_ctx.BeginLifetimeScope().Resolve<ReplayEntry.Factory>().Invoke(_path, true));
+                _replayEntries.Add(CreateEntry(_path, true));
                 SaveHistory();
             }
         }
@@ -324,7 +335,7 @@ public sealed class ReplayManager : IDisposable
                 var r = _replayEntries.Find(e => e.Path == fi.FullName);
                 if (r == null)
                 {
-                    r = _entryFac.Invoke(fi.FullName, false);
+                    r = CreateEntry(fi.FullName, false);
                     _replayEntries.Add(r);
                 }
                 res.Add(r);
@@ -362,7 +373,7 @@ public sealed class ReplayManager : IDisposable
         if (!RememberReplays)
             return;
         foreach (var memory in _config.ReplayHistory)
-            _replayEntries.Add(_entryFac.Invoke(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
+            _replayEntries.Add(CreateEntry(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
     }
 
     private bool RememberReplays => Service.SigScanner == null && _config.RememberReplays;

@@ -10,7 +10,7 @@ public class ReplayDetailsWindow : UIWindow
 {
     private readonly ReplayPlayer _player;
     private readonly RotationDatabase _rotationDB;
-    private readonly AIHints _hints = new();
+    private readonly AIHints _hints;
     private BossModuleManager _mgr;
     private ZoneModuleManager _zmm;
     private AIHintsBuilder _hintsBuilder;
@@ -57,26 +57,23 @@ public class ReplayDetailsWindow : UIWindow
         _subscope = _scope.BeginLifetimeScope(b => b.Register(s => _player.WorldState).SingleInstance());
         _rotationDB = rotationDB;
         _mgr = _subscope.Resolve<BossModuleManager>();
-        _zmm = new(_player.WorldState);
-        _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
-        _rmm = new(rotationDB, _mgr, _hints);
+        _zmm = _subscope.Resolve<ZoneModuleManager>();
+        _hintsBuilder = _subscope.Resolve<AIHintsBuilder>();
+        _hints = _subscope.Resolve<AIHints>();
+        _rmm = _subscope.Resolve<RotationModuleManager>();
         _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
         _player.AdvanceTo(_curTime, _mgr.Update);
-        _config = new(Service.Config, _player.WorldState, null, null);
+        _config = _subscope.Resolve<ConfigUI>();
         _events = new(data, MoveTo, rotationDB.Plans, this);
         _analysis = new([data]);
     }
 
     protected override void Dispose(bool disposing)
     {
+        _subscope.Dispose();
         _analysis.Dispose();
-        _config.Dispose();
-        _rmm.Dispose();
-        _hintsBuilder.Dispose();
-        _zmm.Dispose();
-        _mgr.Dispose();
         base.Dispose(disposing);
     }
 
@@ -388,11 +385,11 @@ public class ReplayDetailsWindow : UIWindow
         ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
         ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
         ImGui.TableSetupColumn("HP", ImGuiTableColumnFlags.WidthFixed, 200);
-        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.None, 100);
-        ImGui.TableSetupColumn("Target", ImGuiTableColumnFlags.None, 100);
-        ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.None, 100);
-        ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
-        ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
+        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Target", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.WidthFixed, 250);
         ImGui.TableHeadersRow();
         foreach ((int slot, var player) in _player.WorldState.Party.WithSlot(true))
         {

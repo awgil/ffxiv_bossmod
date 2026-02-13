@@ -20,7 +20,7 @@ sealed class DalamudLibPathAttribute(string path) : Attribute
 
 static class Program
 {
-    // must be nested or private to prevent dalamud's LocalPlugin scanner from finding it
+    // don't move this, we don't want dalamud's LocalPlugin scanner to find it
     private class MockPlugin(
         IDalamudPluginInterface dalamud,
         IPluginLog log,
@@ -67,6 +67,9 @@ static class Program
             {
                 Service.Log("Config was modified.");
             });
+
+            // replay manager should display by default in dev mode since it's the only useful thing in the plugin
+            Service.Config.Get<ReplayManagementConfig>().ShowUI = true;
         }
 
         public override void ConfigureExtra(ContainerBuilder containerBuilder)
@@ -83,7 +86,8 @@ static class Program
         "Dalamud",
         "FFXIVClientStructs",
         "Lumina",
-        "Serilog.Sinks.Console"
+        "Serilog.Sinks.Console",
+        "TerraFX.Interop.Windows"
     ];
 
     static void Initialize()
