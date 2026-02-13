@@ -2,7 +2,7 @@ namespace BossMod.Autorotation;
 
 public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player) : RoleHealerUtility(manager, player)
 {
-    public enum Track {PresenceOfMind = SharedTrack.Count, Regen, Cure, Medica, AfflatusSolace, AfflatusRapture, Benediction, Asylum, ThinAir, Tetragrammaton, DivineBenison, PlenaryIndulgence, Temperance, Aquaveil, LiturgyOfTheBell, DivineCaress, AetherialShift}
+    public enum Track { PresenceOfMind = SharedTrack.Count, Regen, Cure, Medica, AfflatusSolace, AfflatusRapture, Benediction, Asylum, ThinAir, Tetragrammaton, DivineBenison, PlenaryIndulgence, Temperance, Aquaveil, LiturgyOfTheBell, DivineCaress, AetherialShift }
     public enum CureOption { None, Cure, CureII, CureIII }
     public enum MedicaOption { None, MedicaII, MedicaIII }
     public enum LiturgyOption { None, Use, End }
@@ -86,7 +86,6 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
         };
         if (cureAction != default)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(cureAction), ResolveTargetOverride(cure.Value) ?? defaultHealTarget, cure.Priority(), cure.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(cureAction)!.CastTime);
-
 
         var regen = strategy.Option(Track.Regen);
         if (regen.As<SimpleOption>() == SimpleOption.Use)
