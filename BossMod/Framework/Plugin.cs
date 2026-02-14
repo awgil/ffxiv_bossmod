@@ -5,6 +5,7 @@ using BossMod.Interfaces;
 using BossMod.ReplayVisualization;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
+using DalaMock.Shared.Classes;
 using DalaMock.Shared.Extensions;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -24,6 +25,7 @@ public class Plugin : HostedPlugin
         IDalamudPluginInterface dalamud,
         IPluginLog log,
         IClientState clientState,
+        IPlayerState playerState,
         IObjectTable objects,
         ICommandManager commandManager,
         IDataManager dataManager,
@@ -38,7 +40,7 @@ public class Plugin : HostedPlugin
         ISigScanner scanner,
         ITargetManager targetManager,
         INotificationManager notifications
-    ) : base(dalamud, log, clientState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner, targetManager, notifications)
+    ) : base(dalamud, log, clientState, playerState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner, targetManager, notifications)
     {
         Service.SigScanner = scanner;
         Service.Hook = hook;
@@ -139,6 +141,10 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateFactory>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
+
+        containerBuilder.RegisterSingletonSelf<Dalamud.Interface.ImGuiFileDialog.FileDialogManager>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<DalamudFileDialogManager>();
+
         containerBuilder.RegisterType<MainDebugWindow>().AsSelf().As<Window>();
     }
 

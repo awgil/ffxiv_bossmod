@@ -11,7 +11,7 @@ internal class CommandService(
     Lazy<UIRotationWindow> wndRotation,
     Lazy<AI.AIWindow> wndAI,
     Lazy<ReplayManagementWindow> wndReplay,
-    IEnumerable<MainDebugWindow> wndDebug,
+    Lazy<IEnumerable<MainDebugWindow>> wndDebug,
     RotationModuleManager rotation,
     AI.AIManager ai,
     WorldState worldState,
@@ -45,7 +45,7 @@ internal class CommandService(
                 chat.Print(msg);
             return true;
         });
-        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", () => wndDebug.FirstOrDefault()?.OpenAndBringToFront());
+        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", () => wndDebug.Value.FirstOrDefault()?.OpenAndBringToFront());
         _slashCmd.AddSubcommand("gc").SetSimpleHandler("execute C# garbage collector", () =>
         {
             GC.Collect();
