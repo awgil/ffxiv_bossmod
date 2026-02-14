@@ -49,7 +49,7 @@ public class StandardAOEs(BossModule module, Enum aid, AOEShape shape, int maxCa
     public AOEShape Shape { get; init; } = shape;
     public int MaxCasts = maxCasts; // used for staggered aoes, when showing all active would be pointless
     public uint Color; // can be customized if needed
-    public uint ColorImminent = ArenaColor.Danger;
+    public uint ColorImminent = module.ArenaColor.Danger;
     public bool Risky = true; // can be customized if needed
     public readonly List<Actor> Casters = [];
 

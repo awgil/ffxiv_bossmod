@@ -75,16 +75,18 @@ public class ConfigChangelogWindow : UIWindow
     private readonly Version PreviousVersion;
     private readonly List<VersionedField> Fields = [];
     private readonly List<ChangelogNotice> Notices = [];
+    private readonly ConfigRoot _root;
 
     private int StuffCount => Fields.Count + Notices.Count;
 
-    public ConfigChangelogWindow() : base("VBM Changelog", true, new(400, 300))
+    public ConfigChangelogWindow(ConfigRoot root) : base("VBM Changelog", true, new(400, 300))
     {
+        _root = root;
         PreviousVersion = GetPreviousPluginVersion();
-        Service.Config.AssemblyVersion = GetCurrentPluginVersion();
-        if (Service.Config.AssemblyVersion != PreviousVersion)
+        _root.AssemblyVersion = GetCurrentPluginVersion();
+        if (_root.AssemblyVersion != PreviousVersion)
         {
-            Service.Config.Modified.Fire();
+            _root.Modified.Fire();
             Fields = [.. GetAllFields().Where(f => f.AddedVersion > PreviousVersion)];
             Notices = [.. GetNotices().Where(f => f.Since > PreviousVersion)];
         }
@@ -156,9 +158,9 @@ public class ConfigChangelogWindow : UIWindow
             IsOpen = false;
     }
 
-    private static IEnumerable<VersionedField> GetAllFields()
+    private IEnumerable<VersionedField> GetAllFields()
     {
-        foreach (var n in Service.Config.Nodes)
+        foreach (var n in _root.Nodes)
         {
             var sinceNode = n.GetType().GetCustomAttribute<ConfigDisplayAttribute>()?.Since;
 

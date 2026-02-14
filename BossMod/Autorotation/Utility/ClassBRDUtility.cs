@@ -7,12 +7,12 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(BRD.AID.SagittariusArrow);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: BRD", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "veyn", RotationModuleQuality.Excellent, BitMask.Build((int)Class.BRD), 100);
-        DefineShared(res, IDLimitBreak3);
+        DefineShared(defs, res, IDLimitBreak3);
 
-        DefineSimpleConfig(res, Track.WardensPaean, "WardensPaean", "Dispel", -10, BRD.AID.WardensPaean, 30);
+        DefineSimpleConfig(defs, res, Track.WardensPaean, "WardensPaean", "Dispel", -10, BRD.AID.WardensPaean, 30);
 
         res.Define(Track.Troubadour).As<TroubOption>("Troubadour", "Troub", 500)
             .AddOption(TroubOption.None, "Do not use automatically")
@@ -22,7 +22,7 @@ public sealed class ClassBRDUtility(RotationModuleManager manager, Actor player)
             .AddOption(TroubOption.Use88IfNotActive, "Use Troubadour (90s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(BRD.AID.Troubadour);
 
-        DefineSimpleConfig(res, Track.NaturesMinne, "NaturesMinne", "Minne", 400, BRD.AID.NaturesMinne, 15);
+        DefineSimpleConfig(defs, res, Track.NaturesMinne, "NaturesMinne", "Minne", 400, BRD.AID.NaturesMinne, 15);
 
         return res;
     }

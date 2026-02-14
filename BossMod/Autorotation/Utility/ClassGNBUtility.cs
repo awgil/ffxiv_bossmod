@@ -11,13 +11,13 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(GNB.AID.RoyalGuard);
     public static readonly ActionID IDStanceRemove = ActionID.MakeSpell(GNB.AID.ReleaseRoyalGuard);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: GNB", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GNB), 100); //How we plan our use of Utility skills
-        DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove); //Stance & LB
+        DefineShared(defs, res, IDLimitBreak3, IDStanceApply, IDStanceRemove); //Stance & LB
 
-        DefineSimpleConfig(res, Track.Camouflage, "Camouflage", "Camo", 500, GNB.AID.Camouflage, 20); //90s CD, 20s duration
-        DefineSimpleConfig(res, Track.Nebula, "Nebula", "Nebula", 550, GNB.AID.Nebula, 15); //120s CD, 15s duration
+        DefineSimpleConfig(defs, res, Track.Camouflage, "Camouflage", "Camo", 500, GNB.AID.Camouflage, 20); //90s CD, 20s duration
+        DefineSimpleConfig(defs, res, Track.Nebula, "Nebula", "Nebula", 550, GNB.AID.Nebula, 15); //120s CD, 15s duration
 
         res.Define(Track.Aurora).As<AuroraStrategy>("Aurora", "", 150) //60s (120s total), 18s duration, 2 charges
             .AddOption(AuroraStrategy.None, "Do not use automatically")
@@ -25,8 +25,8 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
             .AddOption(AuroraStrategy.ForceHold1, "Use Aurora; Holds 1 charge for manual usage", 60, 18, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(GNB.AID.Aurora);
 
-        DefineSimpleConfig(res, Track.Superbolide, "Superbolide", "Bolide", 600, GNB.AID.Superbolide, 10); //360s CD, 10s duration
-        DefineSimpleConfig(res, Track.HeartOfLight, "HeartOfLight", "HoL", 245, GNB.AID.HeartOfLight, 15); //90s CD, 15s duration
+        DefineSimpleConfig(defs, res, Track.Superbolide, "Superbolide", "Bolide", 600, GNB.AID.Superbolide, 10); //360s CD, 10s duration
+        DefineSimpleConfig(defs, res, Track.HeartOfLight, "HeartOfLight", "HoL", 245, GNB.AID.HeartOfLight, 15); //90s CD, 15s duration
 
         res.Define(Track.HeartOfCorundum).As<HoCOption>("HeartOfCorundum", "HoC", 350) //25s CD, 4s duration is what we really care about
             .AddOption(HoCOption.None, "Do not use automatically")

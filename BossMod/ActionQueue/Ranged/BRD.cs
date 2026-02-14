@@ -1,4 +1,6 @@
-﻿namespace BossMod.BRD;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.BRD;
 
 public enum AID : uint
 {
@@ -110,9 +112,9 @@ public enum SID : uint
     Peloton = ClassShared.SID.Peloton, // applied by Peloton to self/party
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.SagittariusArrow, true, castAnimLock: 3.70f); // animLock=3.700s?
         d.RegisterSpell(AID.HeavyShot, true);

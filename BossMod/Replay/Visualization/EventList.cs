@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace BossMod.ReplayVisualization;
 
-class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, ReplayDetailsWindow timelineSync)
+class EventList(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, ReplayDetailsWindow timelineSync)
 {
     record struct Lists(OpList? Ops, IPCList? IPCs);
 
@@ -30,9 +30,9 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
             DrawContents(null, null);
             DrawUserMarkers();
         }
-        foreach (var e in _tree.Nodes(r.Encounters, e => new($"{BossModuleRegistry.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}, countdown on pull={e.CountdownOnPull:f3}")))
+        foreach (var e in _tree.Nodes(r.Encounters, e => new($"{bmr.FindByOID(e.OID)?.ModuleType.Name}: {e.InstanceID:X}, zone={e.Zone}, start={e.Time.Start:O}, duration={e.Time}, countdown on pull={e.CountdownOnPull:f3}")))
         {
-            var moduleInfo = BossModuleRegistry.FindByOID(e.OID);
+            var moduleInfo = bmr.FindByOID(e.OID);
             ref var lists = ref CollectionsMarshal.GetValueRefOrAddDefault(_listsFiltered, e, out _);
             foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_listsFiltered[e].Ops)))
             {
@@ -264,7 +264,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
 
     private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
     {
-        _ = new ReplayTimelineWindow(r, enc, showPlayers, planDB, timelineSync);
+        _ = new ReplayTimelineWindow(bmr, registry, ser, r, enc, showPlayers, planDB, timelineSync);
     }
 
     private void DrawTimelines(Replay.Encounter enc)

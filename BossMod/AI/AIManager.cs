@@ -5,11 +5,11 @@ using Dalamud.Plugin.Services;
 
 namespace BossMod.AI;
 
-sealed class AIManager(RotationModuleManager autorot, IAmex amex, IMovementOverride movement, ITargetManager targetManager, IObjectTable objectTable, ICondition condition) : IDisposable
+sealed class AIManager(RotationModuleManager autorot, IAmex amex, IMovementOverride movement, ITargetManager targetManager, IObjectTable objectTable, ICondition condition, AIConfig config) : IDisposable
 {
     private readonly AIController _controller = new(autorot.WorldState, amex, movement, targetManager, objectTable, condition);
 
-    public readonly AIConfig Config = Service.Config.Get<AIConfig>();
+    public readonly AIConfig Config = config;
     public AIBehaviour? Behaviour { get; private set; }
     public string AIStatus { get; private set; } = "";
     public string NaviStatus { get; private set; } = "";

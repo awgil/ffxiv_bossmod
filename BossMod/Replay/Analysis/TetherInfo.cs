@@ -59,9 +59,9 @@ class TetherInfo : CommonEnumInfo
     private readonly Type? _tidType;
     private readonly Dictionary<uint, TetherData> _data = [];
 
-    public TetherInfo(List<Replay> replays, uint oid)
+    public TetherInfo(List<Replay> replays, uint oid, BossModuleRegistry bmr)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
+        var moduleInfo = bmr.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _tidType = moduleInfo?.TetherIDType;
         foreach (var replay in replays)

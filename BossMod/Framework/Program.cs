@@ -20,7 +20,7 @@ sealed class DalamudLibPathAttribute(string path) : Attribute
 
 static class Program
 {
-    // don't move this, we don't want dalamud's LocalPlugin scanner to find it
+    // don't make this externally visible since dalamud's LocalPlugin scan function will find it
     private class MockPlugin(
         IDalamudPluginInterface dalamud,
         IPluginLog log,
@@ -68,13 +68,10 @@ static class Program
 
         public override void OnContainerBuild(ILifetimeScope scope)
         {
-            Service.Config.Modified.Subscribe(() =>
-            {
-                Service.Log("Config was modified.");
-            });
+            var configGlobal = scope.Resolve<ConfigRoot>();
+            configGlobal.Modified.Subscribe(() => Service.Log("Config was modified."));
 
-            // replay manager should display by default in dev mode since it's the only useful thing in the plugin
-            Service.Config.Get<ReplayManagementConfig>().ShowUI = true;
+            configGlobal.Get<ReplayManagementConfig>().ShowUI = true;
         }
 
         public override void ConfigureExtra(ContainerBuilder containerBuilder)

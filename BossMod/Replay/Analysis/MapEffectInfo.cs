@@ -4,9 +4,9 @@ class MapEffectInfo
 {
     private readonly Dictionary<byte, Dictionary<uint, List<(Replay r, Replay.Encounter enc, DateTime ts)>>> _data = [];
 
-    public MapEffectInfo(List<Replay> replays, uint oid)
+    public MapEffectInfo(List<Replay> replays, uint oid, BossModuleRegistry bmr)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
+        var moduleInfo = bmr.FindByOID(oid);
         foreach (var replay in replays)
         {
             foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))

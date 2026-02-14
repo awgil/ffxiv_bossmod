@@ -2,13 +2,12 @@
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using System.IO;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotificationManager notifications)
+public sealed class UIPresetDatabaseEditor(RotationModuleRegistry rRegistry, RotationDatabase rotationDB, INotificationManager notifications, Serializer ser, AutorotationConfig config)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
 
@@ -18,8 +17,6 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotific
     private bool _pendingSelectPresetDefault;
     private Type? _selectedModuleType; // we want module selection to be persistent when changing presets
     private UIPresetEditor? _selectedPreset;
-
-    private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
 
     private bool HaveUnsavedModifications => _selectedPreset?.Modified ?? false;
 
@@ -101,7 +98,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotific
         {
             if (combo)
             {
-                if (!_cfg.HideDefaultPreset)
+                if (!config.HideDefaultPreset)
                     DrawPresetListElements(true);
                 DrawPresetListElements(false);
             }
@@ -164,7 +161,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotific
 
     private bool DrawSaveCurrentPresetButton() => UIMisc.Button("Save", 0, (!HaveUnsavedModifications, "Current preset is not modified"), (_selectedPreset?.NameConflict ?? false, "Current preset name is empty or duplicates name of other existing preset"));
 
-    private void RevertCurrentPreset() => _selectedPreset = new(PresetDB, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
+    private void RevertCurrentPreset() => _selectedPreset = new(rRegistry, PresetDB, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
 
     private void SaveCurrentPreset()
     {
@@ -202,7 +199,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotific
     {
         _selectedPresetIndex = -1;
         _selectedPresetDefault = false;
-        _selectedPreset = new(PresetDB, referenceIndex, referenceDefault, _selectedModuleType);
+        _selectedPreset = new(rRegistry, PresetDB, referenceIndex, referenceDefault, _selectedModuleType);
         _selectedPreset.DetachFromSource();
         _selectedPreset.MakeNameUnique();
     }
@@ -234,7 +231,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotific
     {
         if (_selectedPreset != null)
         {
-            ImGui.SetClipboardText(JsonSerializer.Serialize(_selectedPreset.Preset, Serialization.BuildSerializationOptions()));
+            ImGui.SetClipboardText(ser.ToJSON(_selectedPreset.Preset));
         }
         else
         {
@@ -259,7 +256,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotific
                 foreach (var conv in PlanPresetConverter.PlanSchema.Converters)
                     json = conv(json, 0, finfo);
 
-                var plan = JsonSerializer.Deserialize<Plan>(json, Serialization.BuildSerializationOptions())!;
+                var plan = ser.FromJSON<Plan>(json)!;
                 plan.Guid = Guid.NewGuid().ToString();
 
                 rotationDB.Plans.ModifyPlan(null, plan);
@@ -277,10 +274,10 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, INotific
             foreach (var conv in PlanPresetConverter.PresetSchema.Converters)
                 json = conv(json, 0, finfo);
 
-            var preset = JsonSerializer.Deserialize<Preset>(json.AsArray()[0], Serialization.BuildSerializationOptions())!;
+            var preset = ser.FromJSON<Preset>(json.AsArray()[0]!)!;
             _selectedPresetIndex = -1;
             _selectedPresetDefault = false;
-            _selectedPreset = new(PresetDB, preset, _selectedModuleType);
+            _selectedPreset = new(rRegistry, PresetDB, preset, _selectedModuleType);
         }
         catch (Exception ex)
         {

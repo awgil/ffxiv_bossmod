@@ -3,6 +3,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.IoC;
 using Dalamud.Plugin.Services;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace BossMod;
 
@@ -32,7 +33,29 @@ public sealed class Service
     public static ImFontPtr IconFont;
 #pragma warning restore CA2211
 
-    public static readonly ConfigRoot Config = new();
+    public static readonly LazyExternal<ConfigRoot> ConfigLazy = new();
+    public static ConfigRoot Config => ConfigLazy.ValueOrException;
 
     //public static SharpDX.Direct3D11.Device? Device = null;
+}
+
+public class LazyExternal<T>
+{
+    private readonly TaskCompletionSource<T> _source = new();
+
+    public T Value => _source.Task.Result;
+    public T ValueOrException => _source.Task.IsCompleted ? Value : throw new InvalidOperationException($"Accessed {GetType().Name}.Value before initialization");
+    public async Task<T> GetValue()
+    {
+        await _source.Task;
+        return Value;
+    }
+
+    public void SetValue(T value)
+    {
+        if (_source.Task.IsCompleted)
+            throw new InvalidOperationException($"Set called on {GetType().Name} after being initialized");
+
+        _source.SetResult(value);
+    }
 }

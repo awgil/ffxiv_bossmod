@@ -17,7 +17,7 @@ public sealed class GNB(RotationModuleManager manager, Actor player) : Attackxan
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan GNB", "Gunbreaker", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.GNB), 100).WithStrategies<Strategy>();
     }

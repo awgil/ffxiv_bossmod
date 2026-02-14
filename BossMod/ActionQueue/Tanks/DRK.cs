@@ -1,4 +1,6 @@
-﻿namespace BossMod.DRK;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.DRK;
 
 public enum AID : uint
 {
@@ -91,9 +93,9 @@ public enum SID : uint
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.DarkForce, instantAnimLock: 3.86f); // animLock=3.860s?
         d.RegisterSpell(AID.HardSlash);

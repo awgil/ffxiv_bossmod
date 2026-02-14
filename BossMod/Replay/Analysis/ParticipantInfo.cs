@@ -21,9 +21,9 @@ class ParticipantInfo : CommonEnumInfo
 
     private readonly Dictionary<uint, ParticipantData> _data = [];
 
-    public ParticipantInfo(List<Replay> replays, uint oid)
+    public ParticipantInfo(List<Replay> replays, uint oid, BossModuleRegistry bmr)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
+        var moduleInfo = bmr.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         foreach (var replay in replays)
         {

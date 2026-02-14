@@ -117,7 +117,7 @@ class VoidCall(BossModule module) : BossComponent(module)
     {
         if (arena.Config.ShowOutlinesAndShadows)
             arena.AddCircle(pos, radius, 0xFF000000, 3);
-        arena.AddCircle(pos, radius, safe ? ArenaColor.Safe : ArenaColor.Danger, 2);
+        arena.AddCircle(pos, radius, safe ? arena.ArenaColor.Safe : arena.ArenaColor.Danger, 2);
     }
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

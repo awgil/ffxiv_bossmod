@@ -18,7 +18,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     public enum BloodletterStrategy { Automatic, Delay, Force, KeepOneCharge, KeepTwoCharges }
     public enum GCDDelayStrategy { NoPrepull, EarlyPrepull, Delay }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Veyn BRD", "Standard rotation module", "Standard rotation (veyn)", "veyn", RotationModuleQuality.Basic, BitMask.Build((int)Class.BRD, (int)Class.ARC), 100);
 

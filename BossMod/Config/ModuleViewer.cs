@@ -22,8 +22,11 @@ public sealed class ModuleViewer : IDisposable
     private readonly PlanDatabase? _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
     private readonly ITextureProvider _tex;
+    private readonly BossModuleRegistry _bmr;
+    private readonly RotationModuleRegistry _registry;
+    private readonly Serializer _ser;
 
-    private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
+    private readonly BossModuleConfig _bmConfig;
 
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
@@ -37,11 +40,15 @@ public sealed class ModuleViewer : IDisposable
 
     private string _searchText = "";
 
-    public ModuleViewer(PlanDatabase? planDB, WorldState ws, ITextureProvider tex)
+    public ModuleViewer(PlanDatabase? planDB, WorldState ws, ITextureProvider tex, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, BossModuleConfig bmConfig)
     {
+        _bmConfig = bmConfig;
         _planDB = planDB;
         _ws = ws;
+        _registry = autorot;
         _tex = tex;
+        _bmr = bmr;
+        _ser = ser;
 
         uint defaultIcon = 61762;
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
@@ -90,7 +97,7 @@ public sealed class ModuleViewer : IDisposable
             for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
                 _groups[i, j] = [];
 
-        foreach (var info in BossModuleRegistry.RegisteredModules.Values)
+        foreach (var info in bmr.RegisteredModules.Values)
         {
             var groups = _groups[(int)info.Expansion, (int)info.Category];
             var (groupInfo, moduleInfo) = Classify(info);
@@ -463,7 +470,7 @@ public sealed class ModuleViewer : IDisposable
             {
                 if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
                 {
-                    UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
+                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _planDB, plan);
                 }
             }
         }
@@ -476,7 +483,7 @@ public sealed class ModuleViewer : IDisposable
                 var plans = mplans.GetOrAdd(player.Class);
                 var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = info.PlanLevel };
                 _planDB.ModifyPlan(null, plan);
-                UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
+                UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _planDB, plan);
             }
         }
     }

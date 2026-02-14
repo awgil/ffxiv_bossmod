@@ -46,10 +46,10 @@ class IntersectionTest : TestWindow
 
         _arena.Begin(default);
         if (_shapeIsRect)
-            _arena.AddRect(default, _shapeDirDeg.Degrees().ToDirection(), _shapeExtentPrimary, _shapeExtentPrimary, _shapeExtentSecondary, ArenaColor.Safe);
+            _arena.AddRect(default, _shapeDirDeg.Degrees().ToDirection(), _shapeExtentPrimary, _shapeExtentPrimary, _shapeExtentSecondary, StandardColors.Safe);
         else
-            _arena.AddDonutCone(default, _coneInner, _shapeExtentPrimary, _shapeDirDeg.Degrees(), _shapeExtentSecondary.Degrees(), ArenaColor.Safe);
-        _arena.AddCircle(circleCenter.ToWPos(), _circleRadius, ArenaColor.Danger);
+            _arena.AddDonutCone(default, _coneInner, _shapeExtentPrimary, _shapeDirDeg.Degrees(), _shapeExtentSecondary.Degrees(), StandardColors.Safe);
+        _arena.AddCircle(circleCenter.ToWPos(), _circleRadius, StandardColors.Danger);
         _arena.End();
     }
 }

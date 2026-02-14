@@ -1,4 +1,5 @@
 ﻿using BossMod.Data;
+using BossMod.Interfaces;
 
 namespace BossMod.ClassShared;
 
@@ -175,11 +176,11 @@ public enum SID : uint
     DiabrosisEquippedPvP = 4497,
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    private readonly SharedActionsConfig _config = Service.Config.Get<SharedActionsConfig>();
+    private readonly SharedActionsConfig _config = null!; // Service.Config.Get<SharedActionsConfig>();
 
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         #region PvE
         d.RegisterSpell(AID.Sprint);

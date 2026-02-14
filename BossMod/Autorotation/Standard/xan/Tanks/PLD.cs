@@ -71,7 +71,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         BreakCombo
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan PLD", "Paladin", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA), 100).WithStrategies<Strategy>();
     }

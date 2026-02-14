@@ -20,7 +20,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan DNC", "Dancer", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.DNC), 100).WithStrategies<Strategy>();
     }

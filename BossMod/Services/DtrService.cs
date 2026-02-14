@@ -12,12 +12,11 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-internal sealed class DTRProvider(RotationModuleManager autorot, AIManager aiManager, IDtrBar dtrBar) : IHostedService
+internal sealed class DtrService(RotationModuleManager autorot, AIManager aiManager, AIConfig aiConfig, IDtrBar dtrBar) : IHostedService
 {
     private readonly IDtrBarEntry _autorotationEntry = dtrBar.Get("vbm-autorotation");
     private readonly IDtrBarEntry _aiEntry = dtrBar.Get("vbm-ai");
     private readonly IDtrBarEntry _statsEntry = dtrBar.Get("vbm-stats");
-    private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
     private bool _wantOpenPopup;
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -28,10 +27,10 @@ internal sealed class DTRProvider(RotationModuleManager autorot, AIManager aiMan
         _aiEntry.OnClick = ev =>
         {
             if (ev.ClickType == MouseClickType.Right)
-                _aiConfig.DrawUI ^= true;
+                aiConfig.DrawUI ^= true;
             else
-                _aiConfig.Enabled ^= true;
-            _aiConfig.Modified.Fire();
+                aiConfig.Enabled ^= true;
+            aiConfig.Modified.Fire();
         };
     }
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -55,7 +54,7 @@ internal sealed class DTRProvider(RotationModuleManager autorot, AIManager aiMan
         Payload prefix = autorot.Config.ShowDTR == AutorotationConfig.DtrStatus.TextOnly ? new TextPayload("vbm: ") : new IconPayload(icon);
         _autorotationEntry.Text = new SeString(prefix, new TextPayload(name));
 
-        _aiEntry.Shown = _aiConfig.ShowDTR;
+        _aiEntry.Shown = aiConfig.ShowDTR;
         _aiEntry.Text = "AI: " + (aiManager.Behaviour == null ? "Off" : "On");
 
         _statsEntry.Shown = autorot.Config.ShowStatsDTR;

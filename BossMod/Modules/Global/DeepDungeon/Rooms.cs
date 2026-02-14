@@ -203,9 +203,9 @@ abstract partial class AutoClear : ZoneModule
                     continue;
 
                 if (hovered == i)
-                    ImGui.GetWindowDrawList().AddRectFilled(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), ArenaColor.Object);
+                    ImGui.GetWindowDrawList().AddRectFilled(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), Colors.Object);
                 else
-                    ImGui.GetWindowDrawList().AddRect(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), ArenaColor.Border);
+                    ImGui.GetWindowDrawList().AddRect(worldToWindow(r.Pos + r.Size), worldToWindow(r.Pos - r.Size), Colors.Border);
 
                 var label = i.ToString();
 
@@ -223,7 +223,7 @@ abstract partial class AutoClear : ZoneModule
             }
 
             if (player is { } p)
-                ImGui.GetWindowDrawList().AddCircleFilled(worldToWindow(p.Position), 5 * ImGuiHelpers.GlobalScale, ArenaColor.Safe);
+                ImGui.GetWindowDrawList().AddCircleFilled(worldToWindow(p.Position), 5 * ImGuiHelpers.GlobalScale, Colors.Safe);
         }
 
         ImGui.GetWindowDrawList().AddCircle(worldToWindow(default), 10, 0xFFFF0000);

@@ -17,7 +17,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan BRD", "Bard", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD), 100).WithStrategies<Strategy>();
     }

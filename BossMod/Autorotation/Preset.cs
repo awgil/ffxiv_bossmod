@@ -87,7 +87,7 @@ public sealed record class Preset(string Name)
 }
 
 // we want to serialize track/option indices as internal names, to simplify making changes
-public class JsonPresetConverter : JsonConverter<Preset>
+public class JsonPresetConverter(Lazy<RotationModuleRegistry> registry) : JsonConverter<Preset>
 {
     public override Preset? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -96,7 +96,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
         foreach (var jm in jdoc.RootElement.GetProperty(nameof(Preset.Modules)).EnumerateObject())
         {
             var mt = Type.GetType(jm.Name);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (mt == null || !registry.Value.Modules.TryGetValue(mt, out var md))
             {
                 Service.Log($"Error while deserializing preset {res.Name}: failed to find module {jm.Name}");
                 continue;

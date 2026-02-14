@@ -15,7 +15,7 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
     public enum CycloneStrategy { Five, Ten, Fifteen, Twenty, Allow, Forbid }
     public enum CommonStrategy { Allow, Forbid }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Akechi SMN (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.SMN), 100, 30);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)

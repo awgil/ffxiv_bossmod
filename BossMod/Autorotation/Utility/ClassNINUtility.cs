@@ -7,12 +7,12 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(NIN.AID.Chimatsuri);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: NIN", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.NIN), 100);
-        DefineShared(res, IDLimitBreak3);
+        DefineShared(defs, res, IDLimitBreak3);
 
-        DefineSimpleConfig(res, Track.ShadeShift, "Shade", "", 400, NIN.AID.ShadeShift, 20);
+        DefineSimpleConfig(defs, res, Track.ShadeShift, "Shade", "", 400, NIN.AID.ShadeShift, 20);
 
         res.Define(Track.Shukuchi).As<DashStrategy>("Shukuchi", "Dash", 20)
             .AddOption(DashStrategy.None, "No use.")

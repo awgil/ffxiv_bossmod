@@ -14,13 +14,15 @@ public static class Serialization
         public override void WriteAsPropertyName(Utf8JsonWriter writer, Type value, JsonSerializerOptions options) => writer.WritePropertyName(value.FullName!);
     }
 
-    public static JsonSerializerOptions BuildSerializationOptions() => new()
+    /*
+    public static JsonSerializerOptions BuildSerializationOptions(RotationModuleRegistry registry) => new()
     {
         IncludeFields = true,
         WriteIndented = true,
         NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
-        Converters = { new JsonStringEnumConverter(), new JsonTypeConverter() }
+        Converters = { new JsonStringEnumConverter(), new JsonTypeConverter(), new JsonPlanConverter(registry) }
     };
+    */
 
     public static JsonDocument ReadJson(string path)
     {

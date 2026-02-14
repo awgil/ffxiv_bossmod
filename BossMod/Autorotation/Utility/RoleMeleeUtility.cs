@@ -6,18 +6,18 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
     public enum SharedTrack { Sprint, LB, SecondWind, LegSweep, Bloodbath, Feint, ArmsLength, Count }
     public enum FeintOption { None, Use, UseEx }
 
-    protected static void DefineShared(RotationModuleDefinition def, ActionID lb3)
+    protected static void DefineShared(ActionDefinitions defs, RotationModuleDefinition def, ActionID lb3)
     {
-        DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 100, ClassShared.AID.Sprint, 10);
+        DefineSimpleConfig(defs, def, SharedTrack.Sprint, "Sprint", "", 100, ClassShared.AID.Sprint, 10);
 
         DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Hostile)
             .AddAssociatedActions(ClassShared.AID.Braver, ClassShared.AID.Bladedance)
             .AddAssociatedAction(lb3);
 
         // note: true north is a special case, even though it's a role action, it has custom handling by rotational modules
-        DefineSimpleConfig(def, SharedTrack.SecondWind, "SecondWind", "S.Wind", 20, ClassShared.AID.SecondWind);
-        DefineSimpleConfig(def, SharedTrack.LegSweep, "LegSweep", "Stun", -150, ClassShared.AID.LegSweep, 3);
-        DefineSimpleConfig(def, SharedTrack.Bloodbath, "Bloodbath", "", -50, ClassShared.AID.Bloodbath, 20);
+        DefineSimpleConfig(defs, def, SharedTrack.SecondWind, "SecondWind", "S.Wind", 20, ClassShared.AID.SecondWind);
+        DefineSimpleConfig(defs, def, SharedTrack.LegSweep, "LegSweep", "Stun", -150, ClassShared.AID.LegSweep, 3);
+        DefineSimpleConfig(defs, def, SharedTrack.Bloodbath, "Bloodbath", "", -50, ClassShared.AID.Bloodbath, 20);
 
         // TODO: combine standard/ex options
         // TODO: add 'if-not-active' strategy with configurable min-time-left
@@ -27,7 +27,7 @@ public abstract class RoleMeleeUtility(RotationModuleManager manager, Actor play
             .AddOption(FeintOption.UseEx, "Use Feint (15s)", 90, 15, ActionTargets.Hostile, 98)
             .AddAssociatedActions(ClassShared.AID.Feint);
 
-        DefineSimpleConfig(def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
+        DefineSimpleConfig(defs, def, SharedTrack.ArmsLength, "ArmsLength", "ArmsL", 300, ClassShared.AID.ArmsLength, 6); // note: secondary effect 15s
     }
 
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)

@@ -1,4 +1,6 @@
-﻿namespace BossMod.PCT;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.PCT;
 
 public enum AID : uint
 {
@@ -108,10 +110,9 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions(PCTConfig _config) : IDefinitions
 {
-    private readonly PCTConfig _config = Service.Config.Get<PCTConfig>();
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.ChromaticFantasy);
         d.RegisterSpell(AID.FireInRed);

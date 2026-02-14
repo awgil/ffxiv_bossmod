@@ -13,10 +13,10 @@ sealed class IPCProvider : IDisposable
     private Action? _disposeActions;
     private readonly IDalamudPluginInterface _dalamud;
 
-    public IPCProvider(RotationModuleManager autorotation, IAmex amex, IMovementOverride movement, AIManager ai, IDalamudPluginInterface dalamud)
+    public IPCProvider(RotationModuleManager autorotation, IAmex amex, IMovementOverride movement, AIManager ai, IDalamudPluginInterface dalamud, RotationModuleRegistry registry, JsonSerializerOptions jsonOpts, BossModuleRegistry bmr)
     {
         _dalamud = dalamud;
-        Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
+        Register("HasModuleByDataId", (uint dataId) => bmr.FindByOID(dataId) != null);
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
 
         DateTime lastModified = DateTime.Now;
@@ -28,7 +28,7 @@ sealed class IPCProvider : IDisposable
         Register("Presets.Get", (string name) =>
         {
             var preset = autorotation.Database.Presets.FindPresetByName(name);
-            return preset != null ? JsonSerializer.Serialize(preset, Serialization.BuildSerializationOptions()) : null;
+            return preset != null ? JsonSerializer.Serialize(preset, jsonOpts) : null;
         });
         Register("Presets.Create", (string presetSerialized, bool overwrite) =>
         {
@@ -45,7 +45,7 @@ sealed class IPCProvider : IDisposable
             foreach (var conv in PlanPresetConverter.PresetSchema.Converters)
                 node = conv(node, version, finfo);
 
-            var p = node.AsArray()[0].Deserialize<Preset>(Serialization.BuildSerializationOptions());
+            var p = node.AsArray()[0].Deserialize<Preset>(jsonOpts);
             if (p == null)
                 return false;
             var index = autorotation.Database.Presets.UserPresets.FindIndex(x => x.Name == p.Name);
@@ -130,7 +130,7 @@ sealed class IPCProvider : IDisposable
         bool addTransientStrategy(string presetName, string moduleTypeName, string trackName, string value, StrategyTarget target = StrategyTarget.Automatic, int targetParam = 0)
         {
             var mt = Type.GetType(moduleTypeName);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (mt == null || !registry.Modules.TryGetValue(mt, out var md))
                 return false;
             var iTrack = md.Definition.Configs.FindIndex(td => td.InternalName == trackName);
             if (iTrack < 0)
@@ -173,7 +173,7 @@ sealed class IPCProvider : IDisposable
         Register("Presets.ClearTransientStrategy", (string presetName, string moduleTypeName, string trackName) =>
         {
             var mt = Type.GetType(moduleTypeName);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (mt == null || !registry.Modules.TryGetValue(mt, out var md))
                 return false;
             var iTrack = md.Definition.Configs.FindIndex(td => td.InternalName == trackName);
             if (iTrack < 0)
@@ -190,7 +190,7 @@ sealed class IPCProvider : IDisposable
         Register("Presets.ClearTransientModuleStrategies", (string presetName, string moduleTypeName) =>
         {
             var mt = Type.GetType(moduleTypeName);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (mt == null || !registry.Modules.TryGetValue(mt, out var md))
                 return false;
             var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == mt);
             if (ms == null)

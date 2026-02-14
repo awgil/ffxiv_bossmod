@@ -40,7 +40,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         Delay
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan WHM", "White Mage", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.WHM, Class.CNJ), 100)
             .WithStrategies<Strategy>();

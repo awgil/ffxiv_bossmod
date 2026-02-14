@@ -38,7 +38,7 @@ abstract partial class AutoClear : ZoneModule
         if (ImGui.Button("Reload obstacles"))
         {
             _obstacles.Dispose();
-            _obstacles = new(World);
+            _obstacles = new(World, ConfigGlobal.Get<DeveloperConfig>());
         }
 
         if (player == null)

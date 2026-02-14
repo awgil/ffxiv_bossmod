@@ -460,7 +460,7 @@ class P3UltimateRelativityShadoweye(BossModule module) : BossComponent(module)
 
             bool danger = HitByEye(pos, pc.Rotation, eye);
             var eyeCenter = Arena.WorldPositionToScreenPosition(eye);
-            Components.GenericGaze.DrawEye(eyeCenter, danger);
+            Components.GenericGaze.DrawEye(ArenaColor, eyeCenter, danger);
 
             var (min, max) = (-45, 45);
             Arena.PathArcTo(pos, 1, (pc.Rotation + min.Degrees()).Rad, (pc.Rotation + max.Degrees()).Rad);

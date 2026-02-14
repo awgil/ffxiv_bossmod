@@ -26,14 +26,15 @@ class MainDebugWindow(
     ITargetManager targetManager,
     IKeyState keyState,
     IObjectTable objects,
-    ICondition conditions
+    ICondition conditions,
+    ColorConfig colorConfig
 ) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new(targetManager, objects);
     private readonly DebugParty _debugParty = new();
     private readonly DebugMapEffect _debugMapEffect = new(ws);
-    private readonly DebugGraphics _debugGraphics = new(objects);
+    private readonly DebugGraphics _debugGraphics = new(objects, colorConfig);
     private readonly DebugAction _debugAction = new(ws, amex, gameGui, playerState, objects);
     private readonly DebugHate _debugHate = new(ws, objects);
     private readonly DebugInput _debugInput = new(autorot, move, keyState);

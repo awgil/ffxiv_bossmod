@@ -4,7 +4,7 @@ public sealed class Multibox(RotationModuleManager manager, Actor player) : Rota
 {
     public enum Track { Leader }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var def = new RotationModuleDefinition("Multibox functionality for linked clients", "", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000, Order: RotationModuleOrder.HighLevel);
 

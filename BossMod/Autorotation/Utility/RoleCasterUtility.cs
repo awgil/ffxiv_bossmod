@@ -6,9 +6,9 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
     public enum AddleOption { None, Use, UseEx }
     public enum SwiftcastOption { None, Use, UseEx }
 
-    protected static void DefineShared(RotationModuleDefinition def, ActionID lb3)
+    protected static void DefineShared(ActionDefinitions defs, RotationModuleDefinition def, ActionID lb3)
     {
-        DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 10, ClassShared.AID.Sprint, 10);
+        DefineSimpleConfig(defs, def, SharedTrack.Sprint, "Sprint", "", 10, ClassShared.AID.Sprint, 10);
 
         DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 8)
             .AddAssociatedActions(ClassShared.AID.Skyshard, ClassShared.AID.Starstorm)
@@ -22,8 +22,8 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
             .AddOption(AddleOption.UseEx, "Use Addle (15s)", 90, 15, ActionTargets.Hostile, 98)
             .AddAssociatedActions(ClassShared.AID.Addle);
 
-        DefineSimpleConfig(def, SharedTrack.Sleep, "Sleep", "", -10, ClassShared.AID.Sleep);
-        DefineSimpleConfig(def, SharedTrack.LucidDreaming, "LucidDreaming", "Lucid D.", 30, ClassShared.AID.LucidDreaming, 21);
+        DefineSimpleConfig(defs, def, SharedTrack.Sleep, "Sleep", "", -10, ClassShared.AID.Sleep);
+        DefineSimpleConfig(defs, def, SharedTrack.LucidDreaming, "LucidDreaming", "Lucid D.", 30, ClassShared.AID.LucidDreaming, 21);
 
         // TODO: combine standard/ex options
         def.Define(SharedTrack.Swiftcast).As<SwiftcastOption>("Swiftcast", "Swiftcast", 20)
@@ -32,7 +32,7 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
             .AddOption(SwiftcastOption.UseEx, "Use Swiftcast (15s)", 40, 10, ActionTargets.Self, 94)
             .AddAssociatedActions(ClassShared.AID.Swiftcast);
 
-        DefineSimpleConfig(def, SharedTrack.Surecast, "Surecast", "", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
+        DefineSimpleConfig(defs, def, SharedTrack.Surecast, "Surecast", "", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
     }
 
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)

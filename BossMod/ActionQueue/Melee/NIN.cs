@@ -1,4 +1,6 @@
-﻿namespace BossMod.NIN;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.NIN;
 
 public enum AID : uint
 {
@@ -125,9 +127,9 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.Chimatsuri, castAnimLock: 3.70f); // animLock=3.700s?
         d.RegisterSpell(AID.SpinningEdge);

@@ -10,7 +10,6 @@ public sealed class BossModuleManager : IDisposable
     public BossModuleConfig Config => _config.Get<BossModuleConfig>();
     private readonly EventSubscriptions _subscriptions;
     private readonly ConfigRoot _config;
-    private readonly ITextureProvider _tex;
     private readonly IPluginLog _logger;
     private readonly ModuleArgs.Factory _mfac;
 
@@ -36,11 +35,10 @@ public sealed class BossModuleManager : IDisposable
         }
     }
 
-    public BossModuleManager(WorldState ws, ConfigRoot config, ITextureProvider tex, IPluginLog logger, ModuleArgs.Factory mfac)
+    public BossModuleManager(WorldState ws, ConfigRoot config, IPluginLog logger, ModuleArgs.Factory mfac)
     {
         WorldState = ws;
         _config = config;
-        _tex = tex;
         _logger = logger;
         _mfac = mfac;
         RaidCooldowns = new(ws);
@@ -183,14 +181,14 @@ public sealed class BossModuleManager : IDisposable
 
     private DemoModule CreateDemoModule()
     {
-        var args = new ModuleArgs(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), _config, _tex, _logger);
+        var args = _mfac.Invoke(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new()));
         return new(args);
     }
 
     private void ActorAdded(Actor actor)
     {
         var args = _mfac.Invoke(WorldState, actor);
-        var m = BossModuleRegistry.CreateModuleForActor(args, Config.MinMaturity);
+        var m = args.Registry.CreateModuleForActor(args, Config.MinMaturity);
         if (m != null)
         {
             LoadModule(m);

@@ -1,4 +1,6 @@
-﻿namespace BossMod.WAR;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.WAR;
 
 public enum AID : uint
 {
@@ -122,11 +124,9 @@ public enum SID : uint
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions(WARConfig _config) : IDefinitions
 {
-    private readonly WARConfig _config = Service.Config.Get<WARConfig>();
-
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.LandWaker, instantAnimLock: 3.86f);
         d.RegisterSpell(AID.HeavySwing);

@@ -18,9 +18,9 @@ class StatusInfo : CommonEnumInfo
     private readonly Type? _sidType;
     private readonly Dictionary<uint, StatusData> _data = [];
 
-    public StatusInfo(List<Replay> replays, uint oid)
+    public StatusInfo(List<Replay> replays, uint oid, BossModuleRegistry bmr)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
+        var moduleInfo = bmr.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _sidType = moduleInfo?.StatusIDType;
         foreach (var replay in replays)

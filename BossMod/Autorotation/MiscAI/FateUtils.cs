@@ -5,7 +5,7 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
     public enum Track { Handin, Collect, Sync, Chocobo }
     public enum Flag { Enabled, Disabled }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("FATE helper", "Utilities for completing FATEs", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000, 1);
 

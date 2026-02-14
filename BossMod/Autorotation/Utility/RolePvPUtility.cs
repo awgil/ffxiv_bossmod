@@ -10,7 +10,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     public enum GuardStrategy { Auto, Two, Three, Four, Seventy, Fifty, Thirty, Forbid }
     public enum DefensiveStrategy { Allow, Forbid }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: PvP", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build(
                 Class.PLD, Class.WAR, Class.DRK, Class.GNB,

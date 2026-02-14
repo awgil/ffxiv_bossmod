@@ -29,7 +29,7 @@ public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase<Eure
         WisdomOfThePlatebearer = 1633
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("Eureka AI", "Eureka utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 70).WithStrategies<Strategy>();
     }

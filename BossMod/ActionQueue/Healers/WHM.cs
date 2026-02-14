@@ -1,4 +1,6 @@
-﻿namespace BossMod.WHM;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.WHM;
 
 public enum AID : uint
 {
@@ -163,10 +165,9 @@ public enum SID : uint
     #endregion
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions(WHMConfig _config) : IDefinitions
 {
-    private readonly WHMConfig _config = Service.Config.Get<WHMConfig>();
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.PulseOfLife, castAnimLock: 8.10f); // animLock=8.100s?
         d.RegisterSpell(AID.Stone);

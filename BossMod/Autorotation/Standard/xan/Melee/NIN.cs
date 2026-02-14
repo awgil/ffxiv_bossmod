@@ -28,7 +28,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan NIN", "Ninja", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ROG, Class.NIN), 100).WithStrategies<Strategy>();
     }

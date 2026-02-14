@@ -12,10 +12,10 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SGE.AID.TechneMakre);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: SGE", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Ok, BitMask.Build((int)Class.SGE), 100); //How we're planning our skills listed below
-        DefineShared(res, IDLimitBreak3); //Shared Healer actions
+        DefineShared(defs, res, IDLimitBreak3); //Shared Healer actions
 
         res.Define(Track.Kardia).As<KardiaOption>("Kardia", "", 200) //Kardia & Soteria
             .AddOption(KardiaOption.None, "Do not use automatically")
@@ -29,7 +29,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             .AddOption(PhysisOption.UseEx, "Use Physis II", 60, 15, ActionTargets.Self, 60)
             .AddAssociatedActions(SGE.AID.Physis, SGE.AID.PhysisII);
 
-        DefineSimpleConfig(res, Track.Eukrasia, "Eukrasia", "", 110, SGE.AID.Eukrasia); //Eukrasia (spell only)
+        DefineSimpleConfig(defs, res, Track.Eukrasia, "Eukrasia", "", 110, SGE.AID.Eukrasia); //Eukrasia (spell only)
 
         res.Define(Track.Diagnosis).As<DiagnosisOption>("Diagnosis", "Diag", 200) //Diagnosis & EukrasianDiagnosis
             .AddOption(DiagnosisOption.None, "Do not use automatically")
@@ -44,9 +44,9 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             .AddOption(PrognosisOption.UseEPEx, "Use Eukrasian Prognosis II", 0, 30, ActionTargets.Self, 96)
             .AddAssociatedActions(SGE.AID.Prognosis, SGE.AID.EukrasianPrognosis, SGE.AID.EukrasianPrognosisII);
 
-        DefineSimpleConfig(res, Track.Druochole, "Druochole", "Druo", 150, SGE.AID.Druochole); //Druochole
-        DefineSimpleConfig(res, Track.Kerachole, "Kerachole", "Kera", 180, SGE.AID.Kerachole, 15); //Kerachole
-        DefineSimpleConfig(res, Track.Ixochole, "Ixochole", "Ixo", 190, SGE.AID.Ixochole); //Ixochole
+        DefineSimpleConfig(defs, res, Track.Druochole, "Druochole", "Druo", 150, SGE.AID.Druochole); //Druochole
+        DefineSimpleConfig(defs, res, Track.Kerachole, "Kerachole", "Kera", 180, SGE.AID.Kerachole, 15); //Kerachole
+        DefineSimpleConfig(defs, res, Track.Ixochole, "Ixochole", "Ixo", 190, SGE.AID.Ixochole); //Ixochole
 
         res.Define(Track.Zoe).As<ZoeOption>("Zoe", "", 200) //Zoe
             .AddOption(ZoeOption.None, "Do not use automatically")
@@ -54,15 +54,15 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
             .AddOption(ZoeOption.UseEx, "Use Enhanced Zoe", 90, 30, ActionTargets.Self, 88)
             .AddAssociatedActions(SGE.AID.Zoe);
 
-        DefineSimpleConfig(res, Track.Pepsis, "Pepsis", "", 170, SGE.AID.Pepsis); //Pepsis
-        DefineSimpleConfig(res, Track.Taurochole, "Taurochole", "Tauro", 200, SGE.AID.Taurochole, 15); //Taurchole
-        DefineSimpleConfig(res, Track.Haima, "Haima", "", 100, SGE.AID.Haima, 15); //Haima
-        DefineSimpleConfig(res, Track.Rhizomata, "Rhizomata", "Rhizo", 230, SGE.AID.Rhizomata); //Rhizomata
-        DefineSimpleConfig(res, Track.Holos, "Holos", "", 240, SGE.AID.Holos, 20); //Holos
-        DefineSimpleConfig(res, Track.Panhaima, "Panhaima", "", 250, SGE.AID.Panhaima, 15); //Panhaima
-        DefineSimpleConfig(res, Track.Krasis, "Krasis", "", 210, SGE.AID.Krasis, 10); //Krasis
-        DefineSimpleConfig(res, Track.Pneuma, "Pneuma", "", 220, SGE.AID.Pneuma); //Pneuma
-        DefineSimpleConfig(res, Track.Philosophia, "Philosophia", "Philo", 260, SGE.AID.Philosophia, 20); //Philosophia
+        DefineSimpleConfig(defs, res, Track.Pepsis, "Pepsis", "", 170, SGE.AID.Pepsis); //Pepsis
+        DefineSimpleConfig(defs, res, Track.Taurochole, "Taurochole", "Tauro", 200, SGE.AID.Taurochole, 15); //Taurchole
+        DefineSimpleConfig(defs, res, Track.Haima, "Haima", "", 100, SGE.AID.Haima, 15); //Haima
+        DefineSimpleConfig(defs, res, Track.Rhizomata, "Rhizomata", "Rhizo", 230, SGE.AID.Rhizomata); //Rhizomata
+        DefineSimpleConfig(defs, res, Track.Holos, "Holos", "", 240, SGE.AID.Holos, 20); //Holos
+        DefineSimpleConfig(defs, res, Track.Panhaima, "Panhaima", "", 250, SGE.AID.Panhaima, 15); //Panhaima
+        DefineSimpleConfig(defs, res, Track.Krasis, "Krasis", "", 210, SGE.AID.Krasis, 10); //Krasis
+        DefineSimpleConfig(defs, res, Track.Pneuma, "Pneuma", "", 220, SGE.AID.Pneuma); //Pneuma
+        DefineSimpleConfig(defs, res, Track.Philosophia, "Philosophia", "Philo", 260, SGE.AID.Philosophia, 20); //Philosophia
 
         res.Define(Track.Icarus).As<DashStrategy>("Icarus", "", 20)
             .AddOption(DashStrategy.None, "No use")

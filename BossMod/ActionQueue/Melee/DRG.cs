@@ -1,4 +1,6 @@
-﻿namespace BossMod.DRG;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.DRG;
 
 public enum AID : uint
 {
@@ -98,11 +100,9 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions(DRGConfig _config) : IDefinitions
 {
-    private readonly DRGConfig _config = Service.Config.Get<DRGConfig>();
-
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f); // animLock=3.700s?
         d.RegisterSpell(AID.TrueThrust);

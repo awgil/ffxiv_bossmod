@@ -2,7 +2,7 @@
 
 namespace BossMod;
 
-public static class BossModuleRegistry
+public class BossModuleRegistry
 {
     public class Info
     {
@@ -168,11 +168,14 @@ public static class BossModuleRegistry
         }
     }
 
-    private static readonly Dictionary<uint, Info> _modulesByOID = []; // [primary-actor-oid] = module info
-    private static readonly Dictionary<Type, Info> _modulesByType = []; // [module-type] = module info
+    private readonly Dictionary<uint, Info> _modulesByOID = []; // [primary-actor-oid] = module info
+    private readonly Dictionary<Type, Info> _modulesByType = []; // [module-type] = module info
 
-    static BossModuleRegistry()
+    private readonly BossModuleConfig _config;
+
+    public BossModuleRegistry(BossModuleConfig config)
     {
+        _config = config;
         foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
         {
             var info = Info.Build(t);
@@ -184,16 +187,14 @@ public static class BossModuleRegistry
         }
     }
 
-    private static readonly BossModuleConfig _config = Service.Config.Get<BossModuleConfig>();
+    public IReadOnlyDictionary<uint, Info> RegisteredModules => _modulesByOID;
 
-    public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modulesByOID;
+    public Info? FindByOID(uint oid) => _modulesByOID.GetValueOrDefault(oid);
+    public Info? FindByType(Type type) => _modulesByType.GetValueOrDefault(type);
 
-    public static Info? FindByOID(uint oid) => _modulesByOID.GetValueOrDefault(oid);
-    public static Info? FindByType(Type type) => _modulesByType.GetValueOrDefault(type);
+    public BossModule? CreateModule(Info? info, ModuleArgs args) => info?.ModuleFactory(args);
 
-    public static BossModule? CreateModule(Info? info, ModuleArgs args) => info?.ModuleFactory(args);
-
-    public static BossModule? CreateModuleForActor(ModuleArgs args, BossModuleInfo.Maturity minMaturity)
+    public BossModule? CreateModuleForActor(ModuleArgs args, BossModuleInfo.Maturity minMaturity)
     {
         var info = args.Primary.Type is ActorType.Enemy or ActorType.EventObj ? FindByOID(args.Primary.OID) : null;
         if (info is { } inf)
@@ -207,12 +208,12 @@ public static class BossModuleRegistry
     }
 
     // TODO: this is a hack...
-    public static BossModule? CreateModuleForConfigPlanning(Type module)
+    public BossModule? CreateModuleForConfigPlanning(Type module)
     {
         var info = FindByType(module);
-        return info != null ? CreateModule(info, new(new FakeWorld(), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null!, null!, null!)) : null;
+        return info != null ? CreateModule(info, new(new FakeWorld(), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null!, null!, null!, this)) : null;
     }
 
     // TODO: this is a hack...
-    public static BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(new FakeWorld(), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null!, null!, null!));
+    public BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(new FakeWorld(), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null!, null!, null!, this));
 }

@@ -59,7 +59,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         Delay
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan MCH", "Machinist", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100).WithStrategies<Strategy>();
     }

@@ -15,7 +15,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
     public enum SeraphStrategy { Twenty, Fifteen, Ten, Five, Forbid }
     public enum CommonStrategy { Allow, Forbid }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Akechi WHM (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.WHM), 100, 30);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)

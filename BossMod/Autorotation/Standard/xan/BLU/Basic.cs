@@ -16,7 +16,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var def = new RotationModuleDefinition("xan BLU", "Blue Mage", "Standard rotation (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.BLU), 80);
 

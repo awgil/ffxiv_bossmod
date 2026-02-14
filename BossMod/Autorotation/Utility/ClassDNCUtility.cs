@@ -7,12 +7,12 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(DNC.AID.CrimsonLotus);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: DNC", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "xan", RotationModuleQuality.Excellent, BitMask.Build((int)Class.DNC), 100);
-        DefineShared(res, IDLimitBreak3);
+        DefineShared(defs, res, IDLimitBreak3);
 
-        DefineSimpleConfig(res, Track.CuringWaltz, "CuringWaltz", "C.Waltz", 400, DNC.AID.CuringWaltz);
+        DefineSimpleConfig(defs, res, Track.CuringWaltz, "CuringWaltz", "C.Waltz", 400, DNC.AID.CuringWaltz);
 
         res.Define(Track.ShieldSamba).As<SambaOption>("Shield Samba", "S.Samba", 500)
             .AddOption(SambaOption.None, "Do not use automatically")
@@ -22,7 +22,7 @@ public sealed class ClassDNCUtility(RotationModuleManager manager, Actor player)
             .AddOption(SambaOption.Use88IfNotActive, "Use Shield Samba  (90s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(DNC.AID.ShieldSamba);
 
-        DefineSimpleConfig(res, Track.Improvisation, "Improvisation", "Improv", 300, DNC.AID.Improvisation, 15);
+        DefineSimpleConfig(defs, res, Track.Improvisation, "Improvisation", "Improv", 300, DNC.AID.Improvisation, 15);
 
         return res;
     }

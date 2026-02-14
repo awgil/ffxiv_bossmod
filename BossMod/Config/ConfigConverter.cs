@@ -6,9 +6,9 @@ namespace BossMod;
 
 public static class ConfigConverter
 {
-    public static readonly VersionedJSONSchema Schema = BuildSchema();
+    //public static readonly VersionedJSONSchema Schema = BuildSchema();
 
-    private static VersionedJSONSchema BuildSchema()
+    public static VersionedJSONSchema BuildSchema(Lazy<BossModuleRegistry> bmr)
     {
         var res = new VersionedJSONSchema();
         res.Converters.Add((j, _, _) => j); // v1: moved BossModuleConfig children to special encounter config node; use type names as keys - do nothing, next converter takes care of it
@@ -31,7 +31,7 @@ public static class ConfigConverter
                 foreach (var (k, planData) in plans)
                 {
                     var oid = uint.Parse(k);
-                    var info = BossModuleRegistry.FindByOID(oid);
+                    var info = bmr.Value.FindByOID(oid);
                     var config = info?.PlanLevel > 0 ? info.ConfigType : null;
                     if (config?.FullName == null)
                         continue;
@@ -118,7 +118,7 @@ public static class ConfigConverter
         {
             j.AsObject().TryRenameNode("BossMod.ActionManagerConfig", "BossMod.ActionTweaksConfig");
             j.AsObject().TryRenameNode("BossMod.AutorotationConfig", "BossMod.Autorotation.AutorotationConfig");
-            ConvertV9Plans(j.AsObject(), f.Directory!);
+            ConvertV9Plans(j.AsObject(), f.Directory!, bmr);
             return j;
         });
         return res;
@@ -140,7 +140,7 @@ public static class ConfigConverter
         json.Remove("__children__");
     }
 
-    private static void ConvertV9Plans(JsonObject payload, DirectoryInfo dir)
+    private static void ConvertV9Plans(JsonObject payload, DirectoryInfo dir, Lazy<BossModuleRegistry> bmr)
     {
         var dbRoot = new DirectoryInfo(dir.FullName + "/BossMod/autorot/plans");
         if (!dbRoot.Exists)
@@ -182,7 +182,7 @@ public static class ConfigConverter
                     jplan.WriteString("Name", plan!["Name"]!.GetValue<string>());
                     jplan.WriteString("Encounter", t);
                     jplan.WriteString("Class", cls);
-                    jplan.WriteNumber("Level", type != null ? BossModuleRegistry.FindByType(type)?.PlanLevel ?? 0 : 0);
+                    jplan.WriteNumber("Level", type != null ? bmr.Value.FindByType(type)?.PlanLevel ?? 0 : 0);
                     jplan.WriteStartArray("PhaseDurations");
                     foreach (var d in plan["Timings"]!["PhaseDurations"]!.AsArray())
                         jplan.WriteNumberValue(d!.GetValue<float>());

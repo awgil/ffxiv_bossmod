@@ -8,10 +8,10 @@ public class ColumnEnemyCasts : ColumnGenericHistory, IToggleableColumn
         set => Width = value ? DefaultWidth : 0;
     }
 
-    public ColumnEnemyCasts(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy)
+    public ColumnEnemyCasts(BossModuleRegistry bmr, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy)
         : base(timeline, tree, phaseBranches)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(enc.OID);
+        var moduleInfo = bmr.FindByOID(enc.OID);
         foreach (var c in enemy.Casts)
         {
             var name = $"{c.ID} ({moduleInfo?.ActionIDType?.GetEnumName(c.ID.ID)}) {ReplayUtils.ParticipantString(enemy, c.Time.Start)} -> {ReplayUtils.ParticipantString(c.Target, c.Time.Start)}";

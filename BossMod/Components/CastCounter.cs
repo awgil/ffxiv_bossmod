@@ -29,7 +29,7 @@ public class DebugCasts(BossModule module, Enum[] aids, AOEShape shape, float ex
 {
     protected readonly List<(WPos Source, Angle Direction, float SincePull)> _casts = [];
     public float ExpireAfter = expireAfter;
-    public uint Color = color == 0 ? ArenaColor.Object : color;
+    public uint Color = color == 0 ? module.ArenaColor.Object : color;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

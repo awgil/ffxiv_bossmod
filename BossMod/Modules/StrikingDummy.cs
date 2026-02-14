@@ -28,7 +28,7 @@ public sealed class StrikingDummyRotation(RotationModuleManager manager, Actor p
     public enum Track { Test }
     public enum Strategy { None, Some }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Custom dummy rotation", "Example encounter-specific rotation", "Encounter-specific modules", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Actions, typeof(StrikingDummy));
         res.Define(Track.Test).As<Strategy>("Test")

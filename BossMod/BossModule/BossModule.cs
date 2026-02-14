@@ -5,7 +5,7 @@ using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
-public record class ModuleArgs(WorldState World, Actor Primary, ConfigRoot Config, ITextureProvider TextureProvider, IPluginLog Logger)
+public record class ModuleArgs(WorldState World, Actor Primary, ConfigRoot Config, ITextureProvider TextureProvider, IPluginLog Logger, BossModuleRegistry Registry)
 {
     public delegate ModuleArgs Factory(WorldState World, Actor Primary);
 }
@@ -31,13 +31,15 @@ public abstract class BossModule : IDisposable
 {
     public readonly WorldState WorldState;
     public Actor PrimaryActor { get; private set; }
-    public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
-    public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
+    public readonly BossModuleConfig WindowConfig;
+    public readonly ColorConfig ColorConfig;
     public readonly MiniArena Arena;
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly ModuleArgs _args;
+    public readonly StandardColors ArenaColor;
+    public ConfigRoot Config => _args.Config;
 
     protected ITextureProvider Tex => _args.TextureProvider;
 
@@ -121,11 +123,14 @@ public abstract class BossModule : IDisposable
     protected BossModule(ModuleArgs args, WPos center, ArenaBounds bounds)
     {
         _args = args;
-        Obstacles = new(args.World);
+        Obstacles = new(args.World, args.Config.Get<DeveloperConfig>());
         WorldState = args.World;
         PrimaryActor = args.Primary;
-        Arena = new(WindowConfig, center, bounds);
-        Info = BossModuleRegistry.FindByOID(args.Primary.OID);
+        WindowConfig = args.Config.Get<BossModuleConfig>();
+        ColorConfig = args.Config.Get<ColorConfig>();
+        ArenaColor = new(ColorConfig);
+        Arena = new(WindowConfig, ColorConfig, center, bounds);
+        Info = args.Registry.FindByOID(args.Primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
         _subscriptions = new

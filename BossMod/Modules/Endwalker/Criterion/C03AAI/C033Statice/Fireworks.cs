@@ -231,7 +231,7 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
     private BitMask _pattern;
     private readonly List<WPos> _safeSpotsClaw = [];
     private readonly List<WPos> _safeSpotsMissile = [];
-    private static readonly uint[] colorProgression = [ArenaColor.Safe, ArenaColor.Danger, ArenaColor.Enemy];
+    private readonly uint[] colorProgression = [module.ArenaColor.Safe, module.ArenaColor.Danger, module.ArenaColor.Enemy];
 
     public override void Update()
     {

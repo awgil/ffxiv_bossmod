@@ -5,17 +5,17 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
     public enum SharedTrack { Sprint, LB, Repose, Esuna, LucidDreaming, Swiftcast, Surecast, Rescue, Count }
     public enum SwiftcastOption { None, Use, UseEx }
 
-    protected static void DefineShared(RotationModuleDefinition def, ActionID lb3)
+    protected static void DefineShared(ActionDefinitions defs, RotationModuleDefinition def, ActionID lb3)
     {
-        DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 10, ClassShared.AID.Sprint, 10);
+        DefineSimpleConfig(defs, def, SharedTrack.Sprint, "Sprint", "", 10, ClassShared.AID.Sprint, 10);
 
         DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 8)
             .AddAssociatedActions(ClassShared.AID.HealingWind, ClassShared.AID.BreathOfTheEarth)
             .AddAssociatedAction(lb3);
 
-        DefineSimpleConfig(def, SharedTrack.Repose, "Repose", "", -100, ClassShared.AID.Repose, 30);
-        DefineSimpleConfig(def, SharedTrack.Esuna, "Esuna", "", 40, ClassShared.AID.Esuna);
-        DefineSimpleConfig(def, SharedTrack.LucidDreaming, "LucidDreaming", "Lucid", 30, ClassShared.AID.LucidDreaming, 21);
+        DefineSimpleConfig(defs, def, SharedTrack.Repose, "Repose", "", -100, ClassShared.AID.Repose, 30);
+        DefineSimpleConfig(defs, def, SharedTrack.Esuna, "Esuna", "", 40, ClassShared.AID.Esuna);
+        DefineSimpleConfig(defs, def, SharedTrack.LucidDreaming, "LucidDreaming", "Lucid", 30, ClassShared.AID.LucidDreaming, 21);
 
         // TODO: combine standard/ex options
         def.Define(SharedTrack.Swiftcast).As<SwiftcastOption>("Swiftcast", "Swift", 20)
@@ -24,8 +24,8 @@ public abstract class RoleHealerUtility(RotationModuleManager manager, Actor pla
             .AddOption(SwiftcastOption.UseEx, "Use Swiftcast (15s)", 40, 10, ActionTargets.Self, 94)
             .AddAssociatedActions(ClassShared.AID.Swiftcast);
 
-        DefineSimpleConfig(def, SharedTrack.Surecast, "Surecast", "", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
-        DefineSimpleConfig(def, SharedTrack.Rescue, "Rescue", "", 50, ClassShared.AID.Rescue);
+        DefineSimpleConfig(defs, def, SharedTrack.Surecast, "Surecast", "", 10, ClassShared.AID.Surecast, 6); // note: secondary effect 15s
+        DefineSimpleConfig(defs, def, SharedTrack.Rescue, "Rescue", "", 50, ClassShared.AID.Rescue);
     }
 
     protected void ExecuteShared(StrategyValues strategy, ActionID lb3, Actor? primaryTarget)

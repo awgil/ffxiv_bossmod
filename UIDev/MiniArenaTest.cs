@@ -34,8 +34,8 @@ class MiniArenaTest : TestWindow
 
         _arena.Begin(_azimuth.Degrees());
         if (_coneEnabled)
-            _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), ArenaColor.Safe);
-        _arena.Border(ArenaColor.Border);
+            _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), StandardColors.Safe);
+        _arena.Border(StandardColors.Border);
         if (_lineEnabled)
             _arena.AddLine(new(_lineEnds.X, _lineEnds.Y), new(_lineEnds.Z, _lineEnds.W), 0xffff0000);
         if (_kbContourEnabled)

@@ -13,12 +13,12 @@ public class ColumnEnemyDetails : Timeline.ColumnGroup
 
     public bool AnyVisible => _casts.Visible || _statuses.Visible || _hp.Visible;
 
-    public ColumnEnemyDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy)
+    public ColumnEnemyDetails(BossModuleRegistry bmr, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy)
         : base(timeline)
     {
         //Name = ReplayUtils.ParticipantString(enemy);
         _enemy = enemy;
-        _casts = Add(new ColumnEnemyCasts(timeline, tree, phaseBranches, replay, enc, enemy));
+        _casts = Add(new ColumnEnemyCasts(bmr, timeline, tree, phaseBranches, replay, enc, enemy));
         _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, enemy));
         _hp = Add(new ColumnActorHP(timeline, tree, phaseBranches, replay, enc, enemy));
         _separator = Add(new ColumnSeparator(timeline));

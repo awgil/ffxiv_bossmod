@@ -8,14 +8,15 @@ public sealed class ObstacleMapManager : IDisposable
     public readonly WorldState World;
     public readonly ObstacleMapDatabase Database = new();
     public string RootPath { get; private set; } = ""; // empty or ends with slash
-    private readonly DeveloperConfig _config = Service.Config.Get<DeveloperConfig>();
+    private readonly DeveloperConfig _config;
     private readonly EventSubscriptions _subscriptions;
     private readonly List<(ObstacleMapDatabase.Entry entry, Bitmap data)> _entries = [];
 
     public bool LoadFromSource => _config.MapLoadFromSource;
 
-    public ObstacleMapManager(WorldState ws)
+    public ObstacleMapManager(WorldState ws, DeveloperConfig cfg)
     {
+        _config = cfg;
         World = ws;
         _subscriptions = new(
             _config.Modified.Subscribe(ReloadDatabase),

@@ -1,4 +1,6 @@
-﻿namespace BossMod.BLM;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.BLM;
 
 public enum AID : uint
 {
@@ -104,9 +106,9 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.Meteor, castAnimLock: 8.10f); // animLock=8.100s?
         d.RegisterSpell(AID.Blizzard1);

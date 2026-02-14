@@ -88,7 +88,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         Disabled
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("Phantom Job AI", "Basic phantom job action automation", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 100).WithStrategies<Strategy>();
     }

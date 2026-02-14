@@ -16,7 +16,7 @@ public sealed class AST(RotationModuleManager manager, Actor player) : Castxan<A
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan AST", "Astrologian", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.AST), 100).WithStrategies<Strategy>();
     }

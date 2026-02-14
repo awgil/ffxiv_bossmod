@@ -72,7 +72,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         KashaBana
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan SAM", "Samurai", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SAM), 100).WithStrategies<Strategy>();
     }

@@ -3,7 +3,6 @@ using BossMod.ReplayVisualization;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using System.Text.Json;
 
 namespace BossMod;
 
@@ -19,14 +18,19 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
     private readonly DateTime _encStart;
     private readonly List<List<ColumnPlannerTrackStrategy>> _colsStrategy = [];
     private readonly ColumnPlannerTrackTarget _colTarget;
-
+    private readonly BossModuleRegistry _bmr;
+    private readonly RotationModuleRegistry _registry;
+    private readonly Serializer _ser;
     private readonly float _trackWidth = 50 * ImGuiHelpers.GlobalScale;
 
     public Class PlanClass => Plan.Class;
 
-    public CooldownPlannerColumns(Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
+    public CooldownPlannerColumns(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
         : base(timeline)
     {
+        _bmr = bmr;
+        _registry = registry;
+        _ser = ser;
         Plan = plan;
         _tree = tree;
         _phaseBranches = phaseBranches;
@@ -34,7 +38,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         _playerActions = playerActions;
         _encStart = encStart;
 
-        _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, BossModuleRegistry.FindByType(plan.Encounter)));
+        _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, bmr.FindByType(plan.Encounter)));
         _colTarget.Width = _trackWidth;
         _colTarget.NotifyModified = OnModifiedTargets;
 
@@ -94,7 +98,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                     }
                 }
                 ImGui.Separator();
-                foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => (m.Value.Definition.RelatedBossModule == null || m.Value.Definition.RelatedBossModule == Plan.Encounter) && m.Value.Definition.Classes[(int)Plan.Class] && !Plan.Modules.Any(x => x.Type == m.Key)))
+                foreach (var (mt, m) in _registry.Modules.Where(m => (m.Value.Definition.RelatedBossModule == null || m.Value.Definition.RelatedBossModule == Plan.Encounter) && m.Value.Definition.Classes[(int)Plan.Class] && !Plan.Modules.Any(x => x.Type == m.Key)))
                 {
                     var added = false;
                     if (ImGui.Checkbox(m.Definition.DisplayName, ref added))
@@ -172,13 +176,13 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         return selectedPhase;
     }
 
-    public void ExportToClipboard() => ImGui.SetClipboardText(JsonSerializer.Serialize(Plan, Serialization.BuildSerializationOptions()));
+    public void ExportToClipboard() => ImGui.SetClipboardText(_ser.ToJSON(Plan));
 
     public void ImportFromClipboard()
     {
         try
         {
-            var plan = JsonSerializer.Deserialize<Plan>(ImGui.GetClipboardText(), Serialization.BuildSerializationOptions())!;
+            var plan = _ser.FromJSON<Plan>(ImGui.GetClipboardText())!;
             if (plan.Class != Plan.Class || plan.Encounter != Plan.Encounter)
             {
                 Service.Log($"Failed to import: plan belongs to {plan.Class} {plan.Encounter} instead of {Plan.Class} {Plan.Encounter}");
@@ -262,7 +266,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
     private void AddStrategyColumns(int index)
     {
-        var moduleInfo = BossModuleRegistry.FindByType(Plan.Encounter);
+        var moduleInfo = _bmr.FindByType(Plan.Encounter);
         var insertionPoint = FindInsertionPoint(index);
         List<ColumnPlannerTrackStrategy> cols = [];
         _colsStrategy.Insert(index, cols);

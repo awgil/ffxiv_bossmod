@@ -1,4 +1,6 @@
-﻿namespace BossMod.Roleplay;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.Roleplay;
 
 public enum AID : uint
 {
@@ -276,9 +278,9 @@ public enum SID : uint
     GlovesOff = 3458,
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.Pummel);
         d.RegisterSpell(AID.VoidFireII);

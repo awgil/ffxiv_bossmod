@@ -1,4 +1,6 @@
-﻿namespace BossMod.SMN;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.SMN;
 
 public enum AID : uint
 {
@@ -203,9 +205,9 @@ public enum SID : uint
     #endregion
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.Teraflare, castAnimLock: 8.10f); // animLock=8.100s?
         d.RegisterSpell(AID.Ruin1);

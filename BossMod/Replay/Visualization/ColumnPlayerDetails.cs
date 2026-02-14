@@ -1,6 +1,6 @@
 ﻿using BossMod.Autorotation;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.ReplayVisualization;
 
@@ -22,16 +22,21 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
     private readonly ColumnActorHP _hp;
     private readonly ColumnPlayerGauge? _gauge;
     private readonly ColumnSeparator _resourceSep;
-
+    private readonly BossModuleRegistry _bmr;
+    private readonly RotationModuleRegistry _registry;
+    private readonly Serializer _ser;
     private int _selectedPlan = -1;
     private CooldownPlannerColumns? _planner;
     private readonly List<Replay.Action> _plannerActions = [];
 
     public bool PlanModified => _planner?.Modified ?? false;
 
-    public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
+    public ColumnPlayerDetails(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
         : base(timeline)
     {
+        _bmr = bmr;
+        _registry = registry;
+        _ser = ser;
         _tree = tree;
         _phaseBraches = phaseBranches;
         _replay = replay;
@@ -39,7 +44,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _player = player;
         _playerClass = playerClass;
         _planDatabase = planDB;
-        _moduleInfo = BossModuleRegistry.FindByOID(enc.OID);
+        _moduleInfo = bmr.FindByOID(enc.OID);
 
         _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
         _actions.Name = player.NameHistory.FirstOrDefault().Value.name;
@@ -189,7 +194,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _selectedPlan = newSelection;
         if (_selectedPlan >= 0)
         {
-            _planner = AddBefore(new CooldownPlannerColumns(list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
+            _planner = AddBefore(new CooldownPlannerColumns(_bmr, _registry, _ser, list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
         }
     }
 

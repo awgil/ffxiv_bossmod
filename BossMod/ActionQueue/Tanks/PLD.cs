@@ -1,4 +1,6 @@
-﻿namespace BossMod.PLD;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.PLD;
 
 public enum AID : uint
 {
@@ -98,10 +100,9 @@ public enum SID : uint
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions(PLDConfig _config) : IDefinitions
 {
-    private readonly PLDConfig _config = Service.Config.Get<PLDConfig>();
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.LastBastion, instantAnimLock: 3.86f);
         d.RegisterSpell(AID.FastBlade);

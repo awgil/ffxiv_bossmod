@@ -279,8 +279,8 @@ class Ex6GuardianArkveldStates : StateMachineBuilder
             .ActivateOnEnter<WyvernsVengeanceLine>()
             .ActivateOnEnter<SmallCrystal>()
             .ActivateOnEnter<BigCrystal>()
-            .ExecOnEnter<SmallCrystal>(c => c.Color = ArenaColor.Danger)
-            .ExecOnEnter<BigCrystal>(c => c.Color = ArenaColor.Danger);
+            .ExecOnEnter<SmallCrystal>(c => c.Color = c.ArenaColor.Danger)
+            .ExecOnEnter<BigCrystal>(c => c.Color = c.ArenaColor.Danger);
         Roar(id + 1, delay);
 
         ComponentCondition<WyvernsVengeanceLine>(id + 0x10, 5, l => l.NumCasts > 0, "Exaflares start");

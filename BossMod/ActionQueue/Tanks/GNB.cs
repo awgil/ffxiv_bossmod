@@ -1,4 +1,6 @@
-﻿namespace BossMod.GNB;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.GNB;
 
 public enum AID : uint
 {
@@ -175,11 +177,9 @@ public enum SID : uint
     #endregion
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions(GNBConfig _config) : IDefinitions
 {
-    private readonly GNBConfig _config = Service.Config.Get<GNBConfig>();
-
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);
         d.RegisterSpell(AID.KeenEdge);

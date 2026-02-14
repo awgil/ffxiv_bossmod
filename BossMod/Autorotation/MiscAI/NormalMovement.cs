@@ -15,7 +15,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
     public const float GreedTolerance = 0.15f;
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Automatic movement", "Automatically move character based on pathfinding or explicit coordinates.", "AI", "veyn", RotationModuleQuality.Good, new(~0ul), 1000, 1, RotationModuleOrder.Movement, CanUseWhileRoleplaying: true);
         res.Define(Track.Destination).As<DestinationStrategy>("Destination", "Destination", 30)

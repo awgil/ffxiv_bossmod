@@ -182,7 +182,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
 }
 
 // base class for rotation modules
-// each rotation module should contain a `public static RotationModuleDefinition Definition()` function
+// each rotation module should contain a `public static RotationModuleDefinition Definition(ActionDefinitions defs)` function
 public abstract class RotationModule(RotationModuleManager manager, Actor player)
 {
     public readonly RotationModuleManager Manager = manager;

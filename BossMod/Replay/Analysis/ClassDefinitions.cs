@@ -406,7 +406,7 @@ class ClassDefinitions
         sb.AppendLine();
         sb.Append(stub ? "// *** paste SID enum here ***\n" : GenerateClassSID(cd));
         sb.AppendLine();
-        sb.AppendLine("public sealed class Definitions : IDisposable");
+        sb.AppendLine("public sealed class Definitions : IDefinitions");
         sb.AppendLine("{");
         sb.Append(stub ? "    // *** paste constructor here ***\n" : GenerateClassRegistration(cd));
         sb.AppendLine();

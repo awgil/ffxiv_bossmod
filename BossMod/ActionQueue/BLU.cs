@@ -1,4 +1,6 @@
-﻿namespace BossMod.BLU;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.BLU;
 
 public enum AID : uint
 {
@@ -182,9 +184,9 @@ public enum SID : uint
     AethericMimicryHealer = 2126,
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.Whistle);
         d.RegisterSpell(AID.TheRoseOfDestruction);

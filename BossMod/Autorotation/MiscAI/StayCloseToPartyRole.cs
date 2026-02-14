@@ -15,7 +15,7 @@ public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor pl
         OnHitbox
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         RotationModuleDefinition def = new("Misc AI: Stay within range of party role", "Module for use by AutoDuty preset.", "AI", "erdelf", RotationModuleQuality.Basic, new(~0ul), 1000);
 

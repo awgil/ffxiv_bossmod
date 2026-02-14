@@ -28,7 +28,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
         Ranged
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan VPR", "Viper", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.VPR), 100).WithStrategies<Strategy>();
     }

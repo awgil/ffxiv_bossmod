@@ -17,7 +17,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     public enum CastingOption { Allow, Forbid }
     public enum CommonOption { Forbid, Allow, AllowNoMoving }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Akechi BLM", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.THM, Class.BLM), 100);
         res.DefineAOE().AddAssociatedActions(

@@ -28,7 +28,7 @@ public class GenericTowers(BossModule module, Enum? aid = default, AIHints.Predi
     {
         if (arena.Config.ShowOutlinesAndShadows)
             arena.AddCircle(pos, radius, 0xFF000000, 3);
-        arena.AddCircle(pos, radius, safe ? ArenaColor.Safe : ArenaColor.Danger, 2);
+        arena.AddCircle(pos, radius, safe ? arena.ArenaColor.Safe : arena.ArenaColor.Danger, 2);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

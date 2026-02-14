@@ -26,13 +26,13 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, ReplaysRoot root, ReplayManager.Factory managerFac, ICondition conditions) : base(_windowID, false, new(300, 200))
+    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, ReplaysRoot root, ReplayManager.Factory managerFac, ICondition conditions, ReplayManagementConfig config) : base(_windowID, false, new(300, 200))
     {
         _conditions = conditions;
         _ws = ws;
         var logDir = new DirectoryInfo(root.Path);
         _logDir = logDir;
-        _config = Service.Config.Get<ReplayManagementConfig>();
+        _config = config;
         _manager = managerFac.Invoke(logDir.FullName);
         _subscriptions = new
         (

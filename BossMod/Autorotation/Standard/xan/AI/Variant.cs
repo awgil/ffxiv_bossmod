@@ -28,7 +28,7 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase<Var
         Disabled,
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("Variant AI", "Variant dungeon utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 90).WithStrategies<Strategy>();
     }

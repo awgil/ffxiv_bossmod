@@ -15,6 +15,7 @@ public sealed class UIPresetEditor
 
     private readonly AutorotationConfig _autorotConfig = Service.Config.Get<AutorotationConfig>();
     private readonly PresetDatabase _db;
+    private readonly RotationModuleRegistry _registry;
     private int _sourcePresetIndex;
     private bool _sourcePresetDefault;
     public readonly Preset Preset; // note: this is an edited copy, and as such it never has transient settings
@@ -37,8 +38,9 @@ public sealed class UIPresetEditor
 
     public Type? SelectedModuleType => Preset.Modules.BoundSafeAt(_selectedModuleIndex)?.Type;
 
-    public UIPresetEditor(PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
+    public UIPresetEditor(RotationModuleRegistry registry, PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
     {
+        _registry = registry;
         _db = db;
         _sourcePresetIndex = index;
         _sourcePresetDefault = isDefaultPreset;
@@ -57,8 +59,9 @@ public sealed class UIPresetEditor
         SelectModule(FindModuleByType(initiallySelectedModuleType));
     }
 
-    public UIPresetEditor(PresetDatabase db, Preset preset, Type? initiallySelectedModuleType)
+    public UIPresetEditor(RotationModuleRegistry registry, PresetDatabase db, Preset preset, Type? initiallySelectedModuleType)
     {
+        _registry = registry;
         _db = db;
         _sourcePresetIndex = -1;
         Preset = preset;
@@ -331,7 +334,7 @@ public sealed class UIPresetEditor
             ImGui.TextUnformatted("Not part of the standard rotation. Use the Healer AI module instead.");
             if (ImGui.Button("Add Healer AI"))
             {
-                var rot = RotationModuleRegistry.Modules[THealerAI];
+                var rot = _registry.Modules[THealerAI];
                 var index = Preset.AddModule(THealerAI, rot.Definition, rot.Builder);
                 Modified = true;
                 SelectModule(index);
@@ -380,7 +383,7 @@ public sealed class UIPresetEditor
     private ModuleCategory BuildAvailableModules()
     {
         ModuleCategory res = new();
-        foreach (var m in RotationModuleRegistry.Modules)
+        foreach (var m in _registry.Modules)
         {
             if (m.Value.Definition.DevMode && !Service.IsDev)
                 continue; // skip dev-mode-only module in "production"

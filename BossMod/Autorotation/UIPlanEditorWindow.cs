@@ -11,7 +11,7 @@ public class UIPlanEditorWindow : UIWindow
     private readonly CooldownPlannerColumns _planner;
     private int _selectedPhase;
 
-    public UIPlanEditorWindow(PlanDatabase db, Plan plan, StateMachine sm) : base($"Cooldown planner: {plan.Guid}", true, new(1200, 900))
+    public UIPlanEditorWindow(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, PlanDatabase db, Plan plan, StateMachine sm) : base($"Cooldown planner: {plan.Guid}", true, new(1200, 900))
     {
         _db = db;
         _original = plan;
@@ -19,7 +19,7 @@ public class UIPlanEditorWindow : UIWindow
         var tree = new StateMachineTree(sm);
         var phaseBranches = Enumerable.Repeat(0, tree.Phases.Count).ToList();
         _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, tree, phaseBranches));
-        _planner = _timeline.Columns.Add(new CooldownPlannerColumns(plan.MakeClone(), _timeline, tree, phaseBranches, true, [], default));
+        _planner = _timeline.Columns.Add(new CooldownPlannerColumns(bmr, registry, ser, plan.MakeClone(), _timeline, tree, phaseBranches, true, [], default));
 
         _timeline.MinTime = -30;
         _timeline.MaxTime = tree.TotalMaxTime;

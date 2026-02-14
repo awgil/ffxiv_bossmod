@@ -6,6 +6,7 @@
 public class BossComponent(BossModule module)
 {
     public readonly BossModule Module = module;
+    public StandardColors ArenaColor => Module.ArenaColor;
 
     // list of actor-specific hints (string + whether this is a "risk" type of hint)
     public class TextHints : List<(string, bool)>

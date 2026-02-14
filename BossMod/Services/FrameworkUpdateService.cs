@@ -16,7 +16,7 @@ internal class FrameworkUpdateService(
     IAmex amex,
     IMovementOverride movement,
     IPluginLog logger,
-    DTRProvider dtr,
+    DtrService dtr,
     IWorldStateSync wsSync,
     BossModuleManager bmm,
     ZoneModuleManager zmm,

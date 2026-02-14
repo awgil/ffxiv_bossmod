@@ -6,11 +6,10 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
     public enum SimpleOption { None, Use }
     public enum LBOption { None, LB3, LB2, LB1, LB2Only, LB1Only, LB12 }
 
-    protected static void DefineSimpleConfig<Index, AID>(RotationModuleDefinition def, Index expectedIndex, string internalName, string displayName, int uiPriority, AID aid, float effect = 0, float defaultPriority = 3000)
+    protected static void DefineSimpleConfig<Index, AID>(ActionDefinitions adefs, RotationModuleDefinition def, Index expectedIndex, string internalName, string displayName, int uiPriority, AID aid, float effect = 0, float defaultPriority = 3000)
         where Index : Enum
         where AID : Enum
     {
-        var adefs = ActionDefinitions.Instance;
         var action = ActionID.MakeSpell(aid);
         var adata = adefs[action]!;
         def.Define(expectedIndex).As<SimpleOption>(internalName, displayName, uiPriority)

@@ -9,7 +9,7 @@ sealed class Ex3TitanAIRotation(RotationModuleManager manager, Actor player) : A
     public enum Track { Movement }
     public enum MovementStrategy { None, Pathfind, Explicit }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 1000, 1, RotationModuleOrder.Movement, typeof(Ex3Titan));
         res.Define(Track.Movement).As<MovementStrategy>("Movement", "Movement")

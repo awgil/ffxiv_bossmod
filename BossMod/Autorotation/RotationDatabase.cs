@@ -8,13 +8,13 @@ public sealed class RotationDatabase
     public readonly PresetDatabase Presets;
     public readonly PlanDatabase Plans;
 
-    public RotationDatabase(PresetsDatabaseRoot root, DefaultPresetsFile file)
+    public RotationDatabase(PresetsDatabaseRoot root, DefaultPresetsFile file, AutorotationConfig config, Serializer ser, BossModuleRegistry bmr)
     {
         var rootPath = new DirectoryInfo(root.Path);
         var defaults = new FileInfo(file.Path);
         if (!rootPath.Exists)
             rootPath.Create();
-        Presets = new(rootPath.FullName + "/presets", defaults);
-        Plans = new(rootPath.FullName + "/plans");
+        Presets = new(rootPath.FullName + "/presets", defaults, config, ser);
+        Plans = new(rootPath.FullName + "/plans", ser, bmr);
     }
 }

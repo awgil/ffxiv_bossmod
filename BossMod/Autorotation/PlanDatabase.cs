@@ -18,9 +18,11 @@ public sealed class PlanDatabase
 
     private readonly FileInfo _manifestPath;
     private readonly DirectoryInfo _planStore;
+    private readonly Serializer _ser;
 
-    public PlanDatabase(string rootPath)
+    public PlanDatabase(string rootPath, Serializer ser, BossModuleRegistry bmr)
     {
+        _ser = ser;
         _manifestPath = new(rootPath + ".manifest.json");
         _planStore = new(rootPath);
         if (!_planStore.Exists)
@@ -28,14 +30,13 @@ public sealed class PlanDatabase
 
         // first load all actually available plans
         Dictionary<string, Plan> foundPlans = [];
-        var serOptions = Serialization.BuildSerializationOptions();
         foreach (var f in _planStore.EnumerateFiles("*.json"))
         {
             try
             {
                 var data = PlanPresetConverter.PlanSchema.Load(f);
                 using var json = data.document;
-                var plan = data.payload.Deserialize<Plan>(serOptions);
+                var plan = data.payload.Deserialize<Plan>(_ser.Options);
                 if (plan != null)
                 {
                     plan.Guid = f.Name[..^5];
@@ -59,7 +60,7 @@ public sealed class PlanDatabase
                 foreach (var enc in payload.EnumerateObject())
                 {
                     var encType = Type.GetType(enc.Name);
-                    var encInfo = encType != null ? BossModuleRegistry.FindByType(encType) : null;
+                    var encInfo = encType != null ? bmr.FindByType(encType) : null;
                     if (encInfo == null)
                     {
                         Service.Log($"Error while deserializing plan database: failed to find encounter {enc.Name}");
@@ -203,7 +204,7 @@ public sealed class PlanDatabase
         var filename = $"{_planStore.FullName}/{plan.Guid}.json";
         try
         {
-            PlanPresetConverter.PlanSchema.Save(new(filename), jwriter => JsonSerializer.Serialize(jwriter, plan, Serialization.BuildSerializationOptions()));
+            PlanPresetConverter.PlanSchema.Save(new(filename), jwriter => JsonSerializer.Serialize(jwriter, plan, _ser.Options));
             Service.Log($"Plan saved successfully to '{filename}'");
         }
         catch (Exception ex)

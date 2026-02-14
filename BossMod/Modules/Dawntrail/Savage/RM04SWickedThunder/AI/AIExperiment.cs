@@ -10,7 +10,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
     public enum WNWitchHuntStrategy { None, BaitFirstAny, BaitFirstNear }
     public enum IonClusterPlatformStrategy { None, MaxUptime }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(RM04SWickedThunder), DevMode: true);
         res.Define(Track.ElectrifyingWitchHunt).As<ElectrifyingWitchHuntStrategy>("ElectrifyingWitchHunt", "EWH")

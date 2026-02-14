@@ -7,7 +7,7 @@ sealed class AutoPotionModule(RotationModuleManager manager, Actor player) : Rot
     public enum Track { Potion }
     public enum PotionStrategy { None, Use }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Auto-Potion", "Automatically use Pilgrim's Potions", "Encounter AI", "xan", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Actions, typeof(Q01TheFinalVerse));
 

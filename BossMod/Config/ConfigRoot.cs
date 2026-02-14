@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace BossMod;
 
-public class ConfigRoot
+public class ConfigRoot(Serializer ser, Lazy<BossModuleRegistry> bmr)
 {
     public Event Modified = new();
     public Version AssemblyVersion = new(); // we use this to show newly added config options
@@ -34,9 +34,8 @@ public class ConfigRoot
     {
         try
         {
-            var data = ConfigConverter.Schema.Load(file);
+            var data = ConfigConverter.BuildSchema(bmr).Load(file);
             using var json = data.document;
-            var ser = Serialization.BuildSerializationOptions();
 
             foreach (var jconfig in data.payload.EnumerateObject())
             {
@@ -44,7 +43,7 @@ public class ConfigRoot
                 var node = type != null ? _nodes.GetValueOrDefault(type) : null;
                 try
                 {
-                    node?.Deserialize(jconfig.Value, ser);
+                    node?.Deserialize(jconfig.Value, ser.Options);
                 }
                 catch (AggregateException exc)
                 {
@@ -63,14 +62,13 @@ public class ConfigRoot
     {
         try
         {
-            ConfigConverter.Schema.Save(file, jwriter =>
+            ConfigConverter.BuildSchema(bmr).Save(file, jwriter =>
             {
                 jwriter.WriteStartObject();
-                var ser = Serialization.BuildSerializationOptions();
                 foreach (var (t, n) in _nodes)
                 {
                     jwriter.WritePropertyName(t.FullName!);
-                    n.Serialize(jwriter, ser);
+                    n.Serialize(jwriter, ser.Options);
                 }
                 jwriter.WriteEndObject();
                 jwriter.WriteString(nameof(AssemblyVersion), AssemblyVersion.ToString());

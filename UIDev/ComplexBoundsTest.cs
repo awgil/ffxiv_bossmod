@@ -28,10 +28,10 @@ class ComplexBoundsTest : TestWindow
         _arena.Begin(_azimuth.Degrees());
         if (_fillBG)
             _arena.Zone(_arena.Bounds.ShapeTriangulation, 0xff402010);
-        _arena.Border(ArenaColor.Border);
+        _arena.Border(StandardColors.Border);
 
         var t1 = DateTime.Now;
-        _arena.ZoneCircle(_arena.Center + _aoeOffset * _aoeRotDeg.Degrees().ToDirection(), _aoeRadius, ArenaColor.AOE);
+        _arena.ZoneCircle(_arena.Center + _aoeOffset * _aoeRotDeg.Degrees().ToDirection(), _aoeRadius, StandardColors.AOE);
         var dt = DateTime.Now - t1;
 
         _arena.End();

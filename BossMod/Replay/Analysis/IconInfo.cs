@@ -16,9 +16,9 @@ class IconInfo : CommonEnumInfo
     private readonly Type? _iidType;
     private readonly Dictionary<uint, IconData> _data = [];
 
-    public IconInfo(List<Replay> replays, uint oid)
+    public IconInfo(List<Replay> replays, uint oid, BossModuleRegistry bmr)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
+        var moduleInfo = bmr.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _iidType = moduleInfo?.IconIDType;
         foreach (var replay in replays)

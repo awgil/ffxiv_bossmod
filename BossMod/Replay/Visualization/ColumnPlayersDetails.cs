@@ -11,12 +11,18 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
     private readonly Replay.Encounter _encounter;
     private readonly PlanDatabase _planDB;
     private readonly ColumnPlayerDetails?[] _columns;
+    private readonly BossModuleRegistry _bmr;
+    private readonly RotationModuleRegistry _registry;
+    private readonly Serializer _ser;
 
     public bool AnyPlanModified => _columns.Any(c => c?.PlanModified ?? false);
 
-    public ColumnPlayersDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB)
+    public ColumnPlayersDetails(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB)
         : base(timeline)
     {
+        _bmr = bmr;
+        _registry = registry;
+        _ser = ser;
         _tree = tree;
         _phaseBranches = phaseBranches;
         _replay = replay;
@@ -26,7 +32,7 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
         foreach (var i in showPlayers.SetBits())
         {
             var (p, c, _) = enc.PartyMembers[i];
-            _columns[i] = Add(new ColumnPlayerDetails(Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, planDB));
+            _columns[i] = Add(new ColumnPlayerDetails(bmr, registry, ser, Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, planDB));
         }
     }
 
@@ -41,7 +47,7 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
                 if (col != null)
                     col.DrawConfig(tree);
                 else if (ImGui.Button("Show details..."))
-                    _columns[i] = Add(new ColumnPlayerDetails(Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, _planDB));
+                    _columns[i] = Add(new ColumnPlayerDetails(_bmr, _registry, _ser, Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, _planDB));
             }
         }
     }

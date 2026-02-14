@@ -1,4 +1,6 @@
-﻿namespace BossMod.SCH;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.SCH;
 
 public enum AID : uint
 {
@@ -109,11 +111,9 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions(SCHConfig _config) : IDefinitions
 {
-    private readonly SCHConfig _config = Service.Config.Get<SCHConfig>();
-
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.AngelFeathers, castAnimLock: 8.10f); // animLock=8.100s?
         d.RegisterSpell(AID.Ruin1);

@@ -48,7 +48,7 @@ public abstract class GenericGaze(BossModule module, Enum? aid = default, bool i
         {
             bool danger = HitByEye(pc, eye) != Inverted;
             var eyeCenter = IndicatorScreenPos(eye.Position);
-            DrawEye(eyeCenter, danger);
+            DrawEye(ArenaColor, eyeCenter, danger);
 
             if (pc.Position.InCircle(eye.Position, eye.Range))
             {
@@ -59,13 +59,13 @@ public abstract class GenericGaze(BossModule module, Enum? aid = default, bool i
         }
     }
 
-    public static void DrawEye(Vector2 eyeCenter, bool danger)
+    public static void DrawEye(StandardColors colors, Vector2 eyeCenter, bool danger)
     {
         var dl = ImGui.GetWindowDrawList();
         dl.PathArcTo(eyeCenter - new Vector2(0, _eyeOffsetV), _eyeOuterR, MathF.PI / 2 + _eyeHalfAngle, MathF.PI / 2 - _eyeHalfAngle);
         dl.PathArcTo(eyeCenter + new Vector2(0, _eyeOffsetV), _eyeOuterR, -MathF.PI / 2 + _eyeHalfAngle, -MathF.PI / 2 - _eyeHalfAngle);
-        dl.PathFillConvex(danger ? ArenaColor.Enemy : ArenaColor.PC);
-        dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
+        dl.PathFillConvex(danger ? colors.Enemy : colors.PC);
+        dl.AddCircleFilled(eyeCenter, _eyeInnerR, colors.Border);
     }
 
     private bool HitByEye(Actor actor, Eye eye) => (actor.Rotation + eye.Forward).ToDirection().Dot((eye.Position - actor.Position).Normalized()) >= 0.707107f; // 45-degree

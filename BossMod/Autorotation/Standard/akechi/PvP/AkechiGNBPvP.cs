@@ -16,7 +16,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     public enum ZoneStrategy { Buff, HalfHPP, BuffOrHalfHPP, BuffAndHalfHPP, ASAP, Forbid }
     public enum CommonStrategy { Buff, ASAP, Forbid }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Akechi GNB (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.GNB), 100, 30);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)

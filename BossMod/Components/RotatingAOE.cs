@@ -16,8 +16,8 @@ public class GenericRotatingAOE(BossModule module) : GenericAOEs(module)
     );
 
     public List<Sequence> Sequences = [];
-    public uint ImminentColor = ArenaColor.Danger;
-    public uint FutureColor = ArenaColor.AOE;
+    public uint ImminentColor = module.ArenaColor.Danger;
+    public uint FutureColor = module.ArenaColor.AOE;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

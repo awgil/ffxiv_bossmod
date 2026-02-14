@@ -48,10 +48,10 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     {
         if (from != to)
         {
-            arena.ActorProjected(from, to, rot, ArenaColor.Danger);
+            arena.ActorProjected(from, to, rot, arena.ArenaColor.Danger);
             if (arena.Config.ShowOutlinesAndShadows)
                 arena.AddLine(from, to, 0xFF000000, 2);
-            arena.AddLine(from, to, ArenaColor.Danger);
+            arena.AddLine(from, to, arena.ArenaColor.Danger);
         }
     }
     public static void DrawKnockback(Actor actor, WPos adjPos, MiniArena arena) => DrawKnockback(actor.Position, adjPos, actor.Rotation, arena);

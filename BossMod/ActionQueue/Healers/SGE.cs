@@ -1,4 +1,6 @@
-﻿namespace BossMod.SGE;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.SGE;
 
 public enum AID : uint
 {
@@ -117,9 +119,9 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.TechneMakre, castAnimLock: 8.10f); // animLock=8.100s?
         d.RegisterSpell(AID.Dosis);

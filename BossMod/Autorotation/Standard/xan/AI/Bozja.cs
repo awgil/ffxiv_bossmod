@@ -8,7 +8,7 @@ public class BozjaAI(RotationModuleManager manager, Actor player) : AIBase<Bozja
         public Track<EnabledByDefault> Dispel;
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("Bozja AI", "Bozja utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 80).WithStrategies<Strategy>();
     }

@@ -12,7 +12,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
     public enum Pheromones2Strategy { None, Nearest }
     public enum DefamationsTowersStrategy { None, NNW }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(RM02SHoneyBLovely), DevMode: true);
         res.Define(Track.DragBoss).As<DragBossStrategy>("DragBoss", "Drag")

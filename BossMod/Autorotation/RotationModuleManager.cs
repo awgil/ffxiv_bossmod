@@ -14,13 +14,13 @@ public sealed class RotationModuleManager : IDisposable
 
     public readonly List<Preset> Presets = [];
 
-    public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
+    public readonly AutorotationConfig Config;
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
     public int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
     public PlanExecution? Planner { get; private set; }
-    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
+    private readonly PartyRolesConfig _prc;
     private readonly EventSubscriptions _subscriptions;
     private List<(int index, ActiveModule module)>? _activeModules;
     private IEnumerable<ActiveModule> ActiveModulesFlat => _activeModules?.Select(m => m.module) ?? [];
@@ -67,8 +67,10 @@ public sealed class RotationModuleManager : IDisposable
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
-    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, int playerSlot = PartyState.PlayerSlot)
+    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AutorotationConfig config, PartyRolesConfig prc, AIHints hints, int playerSlot = PartyState.PlayerSlot)
     {
+        Config = config;
+        _prc = prc;
         Database = db;
         Bossmods = bmm;
         PlayerSlot = playerSlot;

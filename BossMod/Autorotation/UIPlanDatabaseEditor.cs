@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
@@ -27,15 +27,15 @@ public sealed class UIPlanDatabaseEditor
         return selected;
     }
 
-    public static void StartPlanEditor(PlanDatabase db, Plan plan, StateMachine sm)
+    public static void StartPlanEditor(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, PlanDatabase db, Plan plan, StateMachine sm)
     {
-        _ = new UIPlanEditorWindow(db, plan, sm);
+        _ = new UIPlanEditorWindow(bmr, registry, ser, db, plan, sm);
     }
 
-    public static void StartPlanEditor(PlanDatabase db, Plan plan)
+    public static void StartPlanEditor(BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, PlanDatabase db, Plan plan)
     {
-        var m = BossModuleRegistry.CreateModuleForConfigPlanning(plan.Encounter);
+        var m = bmr.CreateModuleForConfigPlanning(plan.Encounter);
         if (m != null)
-            StartPlanEditor(db, plan, m.StateMachine);
+            StartPlanEditor(bmr, autorot, ser, db, plan, m.StateMachine);
     }
 }

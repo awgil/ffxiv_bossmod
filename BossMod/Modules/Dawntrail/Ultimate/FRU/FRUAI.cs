@@ -10,7 +10,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
     public enum Track { Movement }
     public enum MovementStrategy { None, Pathfind, PathfindMeleeGreed, Explicit, ExplicitMelee, Prepull, DragToCenter }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("AI Experiment", "Experimental encounter-specific rotation", "Encounter AI", "veyn", RotationModuleQuality.WIP, new(~1ul), 100, 1, RotationModuleOrder.Movement, typeof(FRU));
         res.Define(Track.Movement).As<MovementStrategy>("Movement", "Movement")

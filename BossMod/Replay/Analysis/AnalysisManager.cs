@@ -65,16 +65,16 @@ sealed class AnalysisManager : IDisposable
         private readonly Lazy<TEASpecific>? _teaSpecific;
         private readonly Lazy<TOPSpecific>? _topSpecific;
 
-        public PerEncounter(List<Replay> replays, uint oid)
+        public PerEncounter(List<Replay> replays, uint oid, BossModuleRegistry bmr)
         {
             _transitionTimings = new(() => new(replays, oid));
-            _participantInfo = new(() => new(replays, oid));
-            _abilityInfo = new(() => new(replays, oid));
-            _statusInfo = new(() => new(replays, oid));
-            _iconInfo = new(() => new(replays, oid));
-            _tetherInfo = new(() => new(replays, oid));
-            _mapEffectInfo = new(() => new(replays, oid));
-            _directorInfo = new(() => new(replays, oid));
+            _participantInfo = new(() => new(replays, oid, bmr));
+            _abilityInfo = new(() => new(replays, oid, bmr));
+            _statusInfo = new(() => new(replays, oid, bmr));
+            _iconInfo = new(() => new(replays, oid, bmr));
+            _tetherInfo = new(() => new(replays, oid, bmr));
+            _mapEffectInfo = new(() => new(replays, oid, bmr));
+            _directorInfo = new(() => new(replays, oid, bmr));
             _arenaBounds = new(() => new(replays, oid));
             if (oid == (uint)Shadowbringers.Ultimate.TEA.OID.BossP1)
                 _teaSpecific = new(() => new(replays, oid));
@@ -122,13 +122,15 @@ sealed class AnalysisManager : IDisposable
     }
 
     private readonly List<Replay> _replays;
+    private readonly BossModuleRegistry _bmr;
     private readonly Global _global;
     private readonly Dictionary<uint, PerEncounter> _perEncounter = []; // key = encounter OID
     private readonly UITree _tree = new();
 
-    public AnalysisManager(List<Replay> replays)
+    public AnalysisManager(List<Replay> replays, BossModuleRegistry bmr)
     {
         _replays = replays;
+        _bmr = bmr;
         _global = new(_replays);
         InitEncounters();
     }
@@ -144,7 +146,7 @@ sealed class AnalysisManager : IDisposable
         {
             _global.Draw(_tree);
         }
-        foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({BossModuleRegistry.FindByOID(kv.Key)?.ModuleType.Name})")))
+        foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({_bmr.FindByOID(kv.Key)?.ModuleType.Name})")))
         {
             n.Value.Draw(_tree);
         }
@@ -155,6 +157,6 @@ sealed class AnalysisManager : IDisposable
         foreach (var replay in _replays)
             foreach (var e in replay.Encounters)
                 if (!_perEncounter.ContainsKey(e.OID))
-                    _perEncounter[e.OID] = new(_replays, e.OID);
+                    _perEncounter[e.OID] = new(_replays, e.OID, _bmr);
     }
 }

@@ -7,10 +7,10 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(MCH.AID.SatelliteBeam);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: MCH", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Aimsucks", RotationModuleQuality.Excellent, BitMask.Build((int)Class.MCH), 100);
-        DefineShared(res, IDLimitBreak3);
+        DefineShared(defs, res, IDLimitBreak3);
 
         res.Define(Track.Tactician).As<TactOption>("Tactician", "Tact", 400)
             .AddOption(TactOption.None, "Do not use automatically")
@@ -20,7 +20,7 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
             .AddOption(TactOption.Use88IfNotActive, "Use Tactician (90s CD), unless equivalent ranged buff is already active", 90, 15, ActionTargets.Self, 88)
             .AddAssociatedActions(MCH.AID.Tactician);
 
-        DefineSimpleConfig(res, Track.Dismantle, "Dismantle", "Dism", 500, MCH.AID.Dismantle, 10);
+        DefineSimpleConfig(defs, res, Track.Dismantle, "Dismantle", "Dism", 500, MCH.AID.Dismantle, 10);
 
         return res;
     }

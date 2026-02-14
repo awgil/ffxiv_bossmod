@@ -12,12 +12,12 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(DRK.AID.Grit);
     public static readonly ActionID IDStanceRemove = ActionID.MakeSpell(DRK.AID.ReleaseGrit);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: DRK", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.DRK), 100);
-        DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
+        DefineShared(defs, res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
-        DefineSimpleConfig(res, Track.DarkMind, "DarkMind", "DMind", 450, DRK.AID.DarkMind, 10);
+        DefineSimpleConfig(defs, res, Track.DarkMind, "DarkMind", "DMind", 450, DRK.AID.DarkMind, 10);
 
         res.Define(Track.ShadowWall).As<WallOption>("ShadowWall", "Wall", 550)
             .AddOption(WallOption.None, "Do not use automatically")
@@ -25,7 +25,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
             .AddOption(WallOption.ShadowedVigil, "Use Shadowed Vigil", 120, 15, ActionTargets.Self, 92)
             .AddAssociatedActions(DRK.AID.ShadowWall, DRK.AID.ShadowedVigil);
 
-        DefineSimpleConfig(res, Track.LivingDead, "LivingDead", "LD", 400, DRK.AID.LivingDead, 10);
+        DefineSimpleConfig(defs, res, Track.LivingDead, "LivingDead", "LD", 400, DRK.AID.LivingDead, 10);
 
         res.Define(Track.TheBlackestNight).As<TBNStrategy>("TheBlackestNight", "TBN", 550)
             .AddOption(TBNStrategy.None, "Do not use automatically")
@@ -37,7 +37,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
             .AddOption(OblationStrategy.Force, "Use Oblation", 60, 10, ActionTargets.Self | ActionTargets.Party, 82)
             .AddAssociatedActions(DRK.AID.Oblation);
 
-        DefineSimpleConfig(res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15);
+        DefineSimpleConfig(defs, res, Track.DarkMissionary, "DarkMissionary", "Mission", 220, DRK.AID.DarkMissionary, 15);
 
         res.Define(Track.Shadowstride).As<DashStrategy>("Shadowstride", "Dash", 20)
             .AddOption(DashStrategy.None, "No use")

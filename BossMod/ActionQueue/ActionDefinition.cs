@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using BossMod.Interfaces;
+
+namespace BossMod;
 
 // allowed categories of targets for an action
 [Flags]
@@ -150,13 +152,12 @@ public sealed record class ActionDefinition(ActionID ID)
 
 // database of all supported player-initiated actions
 // note that it is associated to a specific worldstate, so that it can be used for things like action conditions
-public sealed class ActionDefinitions : IDisposable
+public sealed class ActionDefinitions
 {
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>()!;
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
-    private readonly List<IDisposable> _classDefinitions;
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
 
     public IEnumerable<ActionDefinition> Definitions => _definitions.Values;
@@ -200,39 +201,18 @@ public sealed class ActionDefinitions : IDisposable
     public static readonly ActionID IDGeneralDuty1 = new(ActionType.General, 26);
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
-    public static readonly ActionDefinitions Instance = new();
+    public static readonly LazyExternal<ActionDefinitions> InstanceLazy = new();
+    public static ActionDefinitions Instance => InstanceLazy.ValueOrException;
+
+    public static void CreateInstance(IEnumerable<IDefinitions> defs)
+    {
+        InstanceLazy.SetValue(new(defs));
+    }
 
     public Func<uint, bool>? UnlockCheck;
 
-    private ActionDefinitions()
+    private ActionDefinitions(IEnumerable<IDefinitions> classDefinitions)
     {
-        _classDefinitions = [
-            new ClassShared.Definitions(this),
-            new PLD.Definitions(this),
-            new WAR.Definitions(this),
-            new DRK.Definitions(this),
-            new GNB.Definitions(this),
-            new WHM.Definitions(this),
-            new SCH.Definitions(this),
-            new AST.Definitions(this),
-            new SGE.Definitions(this),
-            new MNK.Definitions(this),
-            new DRG.Definitions(this),
-            new NIN.Definitions(this),
-            new SAM.Definitions(this),
-            new RPR.Definitions(this),
-            new BRD.Definitions(this),
-            new MCH.Definitions(this),
-            new DNC.Definitions(this),
-            new BLM.Definitions(this),
-            new SMN.Definitions(this),
-            new RDM.Definitions(this),
-            new BLU.Definitions(this),
-            new PCT.Definitions(this),
-            new VPR.Definitions(this),
-            new Roleplay.Definitions(this),
-        ];
-
         // items (TODO: more generic approach is needed...)
         RegisterItem(IDPotionStr);
         RegisterItem(IDPotionDex);
@@ -279,12 +259,9 @@ public sealed class ActionDefinitions : IDisposable
             }
             Register(def.ID, def);
         }
-    }
 
-    public void Dispose()
-    {
-        foreach (var c in _classDefinitions)
-            c.Dispose();
+        foreach (var def in classDefinitions)
+            def.Initialize(this);
     }
 
     // smart targeting utility: return target (if friendly) or null (otherwise)

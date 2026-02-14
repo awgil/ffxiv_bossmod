@@ -4,9 +4,9 @@ class DirectorInfo
 {
     private readonly Dictionary<uint, List<(Replay r, Replay.Encounter enc, uint[] prms, DateTime ts)>> _data = [];
 
-    public DirectorInfo(List<Replay> replays, uint oid)
+    public DirectorInfo(List<Replay> replays, uint oid, BossModuleRegistry bmr)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
+        var moduleInfo = bmr.FindByOID(oid);
         foreach (var replay in replays)
             foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
                 foreach (var diru in replay.EncounterDirectorUpdates(enc))

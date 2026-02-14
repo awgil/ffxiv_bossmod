@@ -1,4 +1,6 @@
-﻿namespace BossMod.MNK;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.MNK;
 
 public enum AID : uint
 {
@@ -117,9 +119,9 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.FinalHeaven, castAnimLock: 3.70f);
         d.RegisterSpell(AID.Bootshine);

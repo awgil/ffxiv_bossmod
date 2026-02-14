@@ -96,7 +96,7 @@ public abstract partial class AutoClear : ZoneModule
     {
         this.LevelCap = LevelCap;
         var ws = args.World;
-        _obstacles = new(ws);
+        _obstacles = new(ws, args.Config.Get<DeveloperConfig>());
 
         _subscriptions = new(
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),

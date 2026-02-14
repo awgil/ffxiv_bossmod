@@ -1,4 +1,6 @@
-﻿namespace BossMod.RPR;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.RPR;
 
 public enum AID : uint
 {
@@ -108,11 +110,9 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : IDisposable
+sealed class Definitions(RPRConfig _config) : IDefinitions
 {
-    private readonly RPRConfig _config = Service.Config.Get<RPRConfig>();
-
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.TheEnd, castAnimLock: 3.70f); // animLock=3.700s?
         d.RegisterSpell(AID.Slice);

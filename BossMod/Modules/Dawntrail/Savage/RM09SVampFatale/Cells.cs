@@ -2,7 +2,7 @@
 
 class BloodyBondage(BossModule module) : Components.CastTowers(module, AID.BloodyBondageSolo, 4)
 {
-    private readonly RM09SVampFataleConfig _config = Service.Config.Get<RM09SVampFataleConfig>();
+    private readonly RM09SVampFataleConfig _config = module.Config.Get<RM09SVampFataleConfig>();
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

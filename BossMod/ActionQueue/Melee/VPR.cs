@@ -1,4 +1,6 @@
-﻿namespace BossMod.VPR;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.VPR;
 
 public enum AID : uint
 {
@@ -112,9 +114,9 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.WorldSwallower);
         d.RegisterSpell(AID.SteelFangs);

@@ -7,6 +7,8 @@ namespace BossMod;
 public abstract class ZoneModule(ZoneModuleArgs args) : IDisposable
 {
     public WorldState World => args.World;
+    public readonly ConfigRoot ConfigGlobal = args.Config;
+    public readonly StandardColors Colors = new(args.Config.Get<ColorConfig>());
     protected ITextureProvider Tex => args.TextureProvider;
 
     public void Dispose()

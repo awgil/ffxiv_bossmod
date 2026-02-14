@@ -11,11 +11,11 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
     public static readonly ActionID IDStanceApply = ActionID.MakeSpell(PLD.AID.IronWill); //StanceOn
     public static readonly ActionID IDStanceRemove = ActionID.MakeSpell(PLD.AID.ReleaseIronWill); //StanceOff
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Utility: PLD", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "veyn, Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.PLD), 100);
 
-        DefineShared(res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
+        DefineShared(defs, res, IDLimitBreak3, IDStanceApply, IDStanceRemove);
 
         res.Define(Track.Sheltron).As<ShelOption>("Sheltron", "Shel", 350) //Sheltron definitions
             .AddOption(ShelOption.None, "Do not use automatically")
@@ -30,9 +30,9 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
             .AddOption(SentOption.Guardian, "Use Guardian", 120, 15, ActionTargets.Self, 92) //120s CD, 15s duration
             .AddAssociatedActions(PLD.AID.Sentinel, PLD.AID.Guardian);
 
-        DefineSimpleConfig(res, Track.Cover, "Cover", "", 320, PLD.AID.Cover, 12); //120s CD, 12s duration, -50 OathGauge cost
-        DefineSimpleConfig(res, Track.Bulwark, "Bulwark", "Bul", 450, PLD.AID.Bulwark, 10); //90s CD, 15s duration
-        DefineSimpleConfig(res, Track.DivineVeil, "DivineVeil", "Veil", 220, PLD.AID.DivineVeil, 30); //90s CD, 30s duration
+        DefineSimpleConfig(defs, res, Track.Cover, "Cover", "", 320, PLD.AID.Cover, 12); //120s CD, 12s duration, -50 OathGauge cost
+        DefineSimpleConfig(defs, res, Track.Bulwark, "Bulwark", "Bul", 450, PLD.AID.Bulwark, 10); //90s CD, 15s duration
+        DefineSimpleConfig(defs, res, Track.DivineVeil, "DivineVeil", "Veil", 220, PLD.AID.DivineVeil, 30); //90s CD, 30s duration
 
         res.Define(Track.PassageOfArms).As<ArmsDirection>("PassageOfArms", "PoA", 400) //PassageOfArms definition for CD plans
             .AddOption(ArmsDirection.None, "Do not use automatically")
@@ -42,9 +42,9 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
             .AddOption(ArmsDirection.CameraBackward, "Faces the Backward direction relative to the Camera", 120, 18, ActionTargets.Self, 70)
             .AddAssociatedActions(PLD.AID.PassageOfArms);
 
-        DefineSimpleConfig(res, Track.HallowedGround, "HallowedGround", "Inv", 400, PLD.AID.HallowedGround, 10); //420s CD, 10s duration
+        DefineSimpleConfig(defs, res, Track.HallowedGround, "HallowedGround", "Inv", 400, PLD.AID.HallowedGround, 10); //420s CD, 10s duration
 
-        DefineSimpleConfig(res, Track.ShieldBash, "ShieldBash", "ShieldBash", 340, PLD.AID.ShieldBash, 6);
+        DefineSimpleConfig(defs, res, Track.ShieldBash, "ShieldBash", "ShieldBash", 340, PLD.AID.ShieldBash, 6);
 
         return res;
     }

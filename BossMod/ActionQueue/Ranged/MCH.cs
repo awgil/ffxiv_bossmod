@@ -1,4 +1,6 @@
-﻿namespace BossMod.MCH;
+﻿using BossMod.Interfaces;
+
+namespace BossMod.MCH;
 
 public enum AID : uint
 {
@@ -158,9 +160,9 @@ public enum SID : uint
     #endregion
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : IDefinitions
 {
-    public Definitions(ActionDefinitions d)
+    public void Initialize(ActionDefinitions d)
     {
         d.RegisterSpell(AID.SatelliteBeam, true, castAnimLock: 3.70f); // animLock=3.700s?
         d.RegisterSpell(AID.SplitShot, true);

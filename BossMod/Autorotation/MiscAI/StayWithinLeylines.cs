@@ -23,7 +23,7 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
         Yes = 1,
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         RotationModuleDefinition def = new("Misc AI: Stay within leylines when active", "Black Mage utility module.", "AI", "Taurenkey", RotationModuleQuality.Basic, BitMask.Build(Class.BLM), 1000);
 

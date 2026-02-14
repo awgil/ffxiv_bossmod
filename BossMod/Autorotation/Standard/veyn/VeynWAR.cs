@@ -15,7 +15,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
     public enum OnslaughtStrategy { Automatic, Forbid, NoReserve, Force, ForceReserve, ReserveTwo, GapClose }
     public enum BozjaStrategy { None, WithIR, BloodRage }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Veyn WAR", "Standard rotation module", "Standard rotation (veyn)", "veyn", RotationModuleQuality.Good, BitMask.Build((int)Class.WAR, (int)Class.MRD), 100);
 

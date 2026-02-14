@@ -82,7 +82,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         Force
     }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         return new RotationModuleDefinition("xan PCT", "Pictomancer", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PCT), 100).WithStrategies<Strategy>();
     }

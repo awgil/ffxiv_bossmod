@@ -10,6 +10,9 @@ public class ReplayDetailsWindow : UIWindow
 {
     private readonly ReplayPlayer _player;
     private readonly RotationDatabase _rotationDB;
+    private readonly BossModuleRegistry _bmr;
+    private readonly RotationModuleRegistry _registry;
+    private readonly Serializer _ser;
     private readonly AIHints _hints;
     private BossModuleManager _mgr;
     private ZoneModuleManager _zmm;
@@ -49,13 +52,19 @@ public class ReplayDetailsWindow : UIWindow
         Replay data,
         DateTime? initialTime,
         RotationDatabase rotationDB,
+        BossModuleRegistry bmr,
+        RotationModuleRegistry registry,
+        Serializer ser,
         ILifetimeScope scope
     ) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
+        _registry = registry;
+        _ser = ser;
         _player = new(data);
         _scope = scope;
         _subscope = _scope.BeginLifetimeScope(b => b.Register(s => _player.WorldState).SingleInstance());
         _rotationDB = rotationDB;
+        _bmr = bmr;
         _mgr = _subscope.Resolve<BossModuleManager>();
         _zmm = _subscope.Resolve<ZoneModuleManager>();
         _hintsBuilder = _subscope.Resolve<AIHintsBuilder>();
@@ -66,8 +75,8 @@ public class ReplayDetailsWindow : UIWindow
         _curTime = initialTime ?? _first;
         _player.AdvanceTo(_curTime, _mgr.Update);
         _config = _subscope.Resolve<ConfigUI>();
-        _events = new(data, MoveTo, rotationDB.Plans, this);
-        _analysis = new([data]);
+        _events = new(bmr, registry, ser, data, MoveTo, rotationDB.Plans, this);
+        _analysis = new([data], bmr);
     }
 
     protected override void Dispose(bool disposing)
@@ -172,7 +181,7 @@ public class ReplayDetailsWindow : UIWindow
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_player.Replay, enc, new(1), _rotationDB.Plans, this);
+                        _ = new ReplayTimelineWindow(_bmr, _registry, _ser, _player.Replay, enc, new(1), _rotationDB.Plans, this);
                     }
                 }
             }
@@ -451,7 +460,7 @@ public class ReplayDetailsWindow : UIWindow
 
     private void DrawEnemyTable(uint oid, List<Actor> actors)
     {
-        var moduleInfo = _mgr.ActiveModule != null ? BossModuleRegistry.FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
+        var moduleInfo = _mgr.ActiveModule != null ? _bmr.FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
         var oidName = moduleInfo?.ObjectIDType?.GetEnumName(oid);
         if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
             return;
