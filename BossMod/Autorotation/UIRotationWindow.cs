@@ -12,13 +12,15 @@ public sealed class UIRotationWindow : UIWindow
     private readonly BossModuleRegistry _bmr;
     private readonly RotationModuleRegistry _registry;
     private readonly Serializer _ser;
+    private readonly ColorConfig _colors;
     private readonly AutorotationConfig _config;
     private readonly EventSubscriptions _subscriptions;
 
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, ConfigUI configUI, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, AutorotationConfig cfg) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, ConfigUI configUI, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ColorConfig colors, AutorotationConfig cfg) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _registry = registry;
         _ser = ser;
+        _colors = colors;
         _mgr = mgr;
         _amex = amex;
         _bmr = bmr;
@@ -91,7 +93,7 @@ public sealed class UIRotationWindow : UIWindow
                         plans.SelectedIndex = plans.Plans.Count;
                         _mgr.Database.Plans.ModifyPlan(null, plan);
                     }
-                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
+                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _colors, _mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
                 }
 
                 if (newSel >= 0 && _mgr.Presets.Count > 0)

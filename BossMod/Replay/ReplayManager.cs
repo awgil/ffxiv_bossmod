@@ -61,7 +61,7 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
-    private sealed record class AnalysisEntry(string Identifier, List<ReplayEntry> Replays, BossModuleRegistry Registry) : IDisposable
+    private sealed record class AnalysisEntry(string Identifier, IEnumerable<ReplayEntry> Replays, BossModuleRegistry Registry) : IDisposable
     {
         public ReplayAnalysis.AnalysisManager? Analysis;
         public UISimpleWindow? Window;
@@ -83,7 +83,7 @@ public sealed class ReplayManager : IDisposable
     }
 
     private readonly ReplayManagementConfig _config;
-    private readonly List<ReplayEntry> _replayEntries = [];
+    private readonly List<(ILifetimeScope scope, ReplayEntry entry)> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
     private int _nextAnalysisId;
     private string _path = "";
@@ -92,7 +92,6 @@ public sealed class ReplayManager : IDisposable
     private readonly IFileDialogManager _dialogManager;
     private readonly BossModuleRegistry _bmr;
     private readonly ILifetimeScope _ctx;
-    private readonly List<ILifetimeScope> _childScopes = [];
 
     public delegate ReplayManager Factory(string fileDialogStartPath);
 
@@ -116,20 +115,18 @@ public sealed class ReplayManager : IDisposable
         SaveHistory();
         foreach (var e in _analysisEntries)
             e.Dispose();
-        foreach (var cs in _childScopes)
+        foreach (var (cs, _) in _replayEntries)
             cs.Dispose();
-        //foreach (var e in _replayEntries)
-        //    e.Dispose();
     }
 
     public void Update()
     {
         // remove disposed entries
-        _replayEntries.RemoveAll(e => e.Disposed);
+        _replayEntries.RemoveAll(e => e.entry.Disposed);
         _analysisEntries.RemoveAll(e => e.Disposed);
 
         // auto-show replay windows that are now ready
-        foreach (var e in _replayEntries)
+        foreach (var (_, e) in _replayEntries)
         {
             if (e.AutoShowWindow && e.Window == null && e.Replay.IsCompletedSuccessfully && e.Replay.Result.Ops.Count > 0)
             {
@@ -176,7 +173,7 @@ public sealed class ReplayManager : IDisposable
         ImGui.TableSetupColumn("op", ImGuiTableColumnFlags.WidthFixed, 100);
         ImGui.TableSetupColumn("unload", ImGuiTableColumnFlags.WidthFixed, 50);
 
-        foreach (var e in _replayEntries)
+        foreach (var (cs, e) in _replayEntries)
         {
             using var idScope = ImRaii.PushId(e.Path);
 
@@ -215,7 +212,7 @@ public sealed class ReplayManager : IDisposable
             ImGui.TableNextColumn();
             if (ImGui.Button(e.Replay.IsCompleted ? "Unload" : "Cancel", new(50, 0)))
             {
-                e.Dispose();
+                cs.Dispose();
                 foreach (var a in _analysisEntries.Where(a => !a.Disposed && a.Replays.Contains(e)))
                     a.Dispose();
                 SaveHistory();
@@ -231,25 +228,26 @@ public sealed class ReplayManager : IDisposable
         if (_replayEntries.Count == 0)
             return;
 
-        var numSelected = _replayEntries.Count(e => e.Selected);
+        var numSelected = _replayEntries.Count(e => e.entry.Selected);
         bool shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
         if (ImGui.Button(shouldSelectAll ? "Select all" : "Unselect all", new(80, 0)))
         {
             foreach (var e in _replayEntries)
-                e.Selected = shouldSelectAll;
+                e.entry.Selected = shouldSelectAll;
         }
         using (ImRaii.Disabled(numSelected == 0))
         {
             ImGui.SameLine();
             if (ImGui.Button("Analyze selected"))
             {
-                _analysisEntries.Add(new((++_nextAnalysisId).ToString(), [.. _replayEntries.Where(e => e.Selected)], _bmr));
+                _analysisEntries.Add(new((++_nextAnalysisId).ToString(), [.. _replayEntries.Select(e => e.entry).Where(e => e.Selected)], _bmr));
             }
             ImGui.SameLine();
             if (ImGui.Button("Unload selected"))
             {
-                foreach (var e in _replayEntries.Where(e => e.Selected))
-                    e.Dispose();
+                foreach (var (cs, e) in _replayEntries)
+                    if (e.Selected)
+                        cs.Dispose();
                 foreach (var e in _analysisEntries.Where(e => e.Replays.Any(r => r.Selected)))
                     e.Dispose();
                 SaveHistory();
@@ -258,18 +256,19 @@ public sealed class ReplayManager : IDisposable
         ImGui.SameLine();
         if (ImGui.Button("Unload all"))
         {
-            foreach (var e in _replayEntries)
-                e.Dispose();
+            foreach (var (cs, _) in _replayEntries)
+                cs.Dispose();
             foreach (var e in _analysisEntries)
                 e.Dispose();
             SaveHistory();
         }
     }
 
-    private ReplayEntry CreateEntry(string path, bool autoOpen, DateTime? initialTime = null)
+    private (ILifetimeScope scope, ReplayEntry entry) CreateEntry(string path, bool autoOpen, DateTime? initialTime = null)
     {
-        _childScopes.Add(_ctx.BeginLifetimeScope());
-        return _childScopes[^1].Resolve<ReplayEntry.Factory>().Invoke(path, autoOpen, initialTime);
+        var scope = _ctx.BeginLifetimeScope();
+        var entry = scope.Resolve<ReplayEntry.Factory>().Invoke(path, autoOpen, initialTime);
+        return (scope, entry);
     }
 
     private void DrawNewEntry()
@@ -285,7 +284,7 @@ public sealed class ReplayManager : IDisposable
             }, 1, _fileDialogStartPath);
         }
         ImGui.SameLine();
-        using (ImRaii.Disabled(_path.Length == 0 || _replayEntries.Any(e => e.Path == _path)))
+        using (ImRaii.Disabled(_path.Length == 0 || _replayEntries.Any(e => e.entry.Path == _path)))
         {
             if (ImGui.Button("Open"))
             {
@@ -302,7 +301,7 @@ public sealed class ReplayManager : IDisposable
                 CleanPath();
                 var replays = LoadAll(_path);
                 if (replays.Count > 0)
-                    _analysisEntries.Add(new(_path, replays, _bmr));
+                    _analysisEntries.Add(new(_path, replays.Select(e => e.entry), _bmr));
             }
         }
         ImGui.SameLine();
@@ -323,11 +322,11 @@ public sealed class ReplayManager : IDisposable
             _path = _path[1..^1];
     }
 
-    private List<ReplayEntry> LoadAll(string path)
+    private List<(ILifetimeScope scope, ReplayEntry entry)> LoadAll(string path)
     {
         try
         {
-            var res = new List<ReplayEntry>();
+            var res = new List<(ILifetimeScope, ReplayEntry)>();
             var di = new DirectoryInfo(path);
             var pattern = "*.log";
             if (!di.Exists && (di.Parent?.Exists ?? false))
@@ -337,13 +336,13 @@ public sealed class ReplayManager : IDisposable
             }
             foreach (var fi in di.EnumerateFiles(pattern, new EnumerationOptions { RecurseSubdirectories = true }))
             {
-                var r = _replayEntries.Find(e => e.Path == fi.FullName);
-                if (r == null)
+                var ix = _replayEntries.FindIndex(e => e.entry.Path == fi.FullName);
+                if (ix < 0)
                 {
-                    r = CreateEntry(fi.FullName, false);
-                    _replayEntries.Add(r);
+                    ix = _replayEntries.Count;
+                    _replayEntries.Add(CreateEntry(fi.FullName, false));
                 }
-                res.Add(r);
+                res.Add(_replayEntries[ix]);
             }
             return res;
         }
@@ -369,7 +368,7 @@ public sealed class ReplayManager : IDisposable
     {
         if (!RememberReplays)
             return;
-        _config.ReplayHistory = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? false, r.Window?.CurrentTime ?? default))];
+        _config.ReplayHistory = [.. _replayEntries.Select(e => e.entry).Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? false, r.Window?.CurrentTime ?? default))];
         _config.Modified.Fire();
     }
 
@@ -381,5 +380,5 @@ public sealed class ReplayManager : IDisposable
             _replayEntries.Add(CreateEntry(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
     }
 
-    private bool RememberReplays => Service.SigScanner == null && _config.RememberReplays;
+    private bool RememberReplays => _config.RememberReplays;
 }

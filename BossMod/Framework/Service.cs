@@ -44,7 +44,7 @@ public class LazyExternal<T>
     private readonly TaskCompletionSource<T> _source = new();
 
     public T Value => _source.Task.Result;
-    public T ValueOrException => _source.Task.IsCompleted ? Value : throw new InvalidOperationException($"Accessed {GetType().Name}.Value before initialization");
+    public T ValueOrException => _source.Task.IsCompleted ? Value : throw new InvalidOperationException($"Accessed LazyExternal<{typeof(T).Name}> before initialization");
     public async Task<T> GetValue()
     {
         await _source.Task;
@@ -53,8 +53,8 @@ public class LazyExternal<T>
 
     public void SetValue(T value)
     {
-        if (_source.Task.IsCompleted)
-            throw new InvalidOperationException($"Set called on {GetType().Name} after being initialized");
+        //if (_source.Task.IsCompleted)
+        //    throw new InvalidOperationException($"Set called on LazyExternal<{typeof(T).Name}> after being initialized");
 
         _source.SetResult(value);
     }

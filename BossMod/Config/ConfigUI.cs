@@ -34,13 +34,13 @@ public sealed class ConfigUI : IDisposable
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, ReplaysRoot replayDir, RotationDatabase rotationDB, ITextureProvider tex, INotificationManager notifications, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, BossModuleConfig bmc, AutorotationConfig arc)
+    public ConfigUI(ConfigRoot config, WorldState ws, ReplaysRoot replayDir, RotationDatabase rotationDB, ITextureProvider tex, INotificationManager notifications, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, BossModuleConfig bmc, AutorotationConfig arc, ColorConfig colors)
     {
         _root = config;
         _ws = ws;
         _about = new(new(replayDir.Path));
         _tex = tex;
-        _mv = new(rotationDB.Plans, ws, tex, bmr, autorot, ser, bmc);
+        _mv = new(rotationDB.Plans, ws, tex, bmr, autorot, ser, bmc, colors);
         _presets = new(autorot, rotationDB, notifications, ser, arc);
 
         _tabs.Add("About", _about.Draw);

@@ -10,7 +10,7 @@ class ReplayTimelineWindow : UIWindow
     private readonly ReplayDetailsWindow _timelineSync;
     private readonly StateMachineTree _stateTree;
     private readonly List<int> _phaseBranches;
-    private readonly Timeline _timeline = new();
+    private readonly Timeline _timeline;
     private readonly ColumnEnemiesCastEvents _colCastEvents;
     private readonly ColumnStateMachineBranch _colStates;
     private readonly ColumnEnemiesDetails _colEnemies;
@@ -18,14 +18,17 @@ class ReplayTimelineWindow : UIWindow
     private readonly UITree _configTree = new();
     private readonly BossModuleRegistry _bmr;
 
-    public ReplayTimelineWindow(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
+    public ReplayTimelineWindow(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync, ColorConfig colors) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
     {
         _bmr = bmr;
         _encounter = enc;
         _timelineSync = timelineSync;
         (_stateTree, _phaseBranches) = BuildStateData(enc);
-        _timeline.MinTime = -30;
-        _timeline.MaxTime = _stateTree.TotalMaxTime;
+        _timeline = new(colors)
+        {
+            MinTime = -30,
+            MaxTime = _stateTree.TotalMaxTime
+        };
 
         _colCastEvents = _timeline.Columns.Add(new ColumnEnemiesCastEvents(bmr, _timeline, _stateTree, _phaseBranches, replay, enc));
         _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));

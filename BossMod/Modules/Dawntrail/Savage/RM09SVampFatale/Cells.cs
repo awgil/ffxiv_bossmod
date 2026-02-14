@@ -15,7 +15,7 @@ class BloodyBondage(BossModule module) : Components.CastTowers(module, AID.Blood
         {
             var set = NumCasts == 0 ? 0 : 1;
             var assignments = new int[8];
-            foreach (var (slot, group) in _config.HellCellAssignments.Resolve(Raid))
+            foreach (var (slot, group) in _config.HellCellAssignments.Resolve(Raid, Module.Roles))
                 assignments[group] = slot;
 
             var sorted = Towers.OrderByDescending(t => (t.Position - Arena.Center).ToAngle().Deg).ToList();

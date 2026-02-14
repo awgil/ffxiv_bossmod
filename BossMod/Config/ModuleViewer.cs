@@ -27,7 +27,7 @@ public sealed class ModuleViewer : IDisposable
     private readonly Serializer _ser;
 
     private readonly BossModuleConfig _bmConfig;
-
+    private readonly ColorConfig _colors;
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
 
@@ -40,9 +40,10 @@ public sealed class ModuleViewer : IDisposable
 
     private string _searchText = "";
 
-    public ModuleViewer(PlanDatabase? planDB, WorldState ws, ITextureProvider tex, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, BossModuleConfig bmConfig)
+    public ModuleViewer(PlanDatabase? planDB, WorldState ws, ITextureProvider tex, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, BossModuleConfig bmConfig, ColorConfig colors)
     {
         _bmConfig = bmConfig;
+        this._colors = colors;
         _planDB = planDB;
         _ws = ws;
         _registry = autorot;
@@ -470,7 +471,7 @@ public sealed class ModuleViewer : IDisposable
             {
                 if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
                 {
-                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _planDB, plan);
+                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, this._colors, _planDB, plan);
                 }
             }
         }
@@ -483,7 +484,7 @@ public sealed class ModuleViewer : IDisposable
                 var plans = mplans.GetOrAdd(player.Class);
                 var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = info.PlanLevel };
                 _planDB.ModifyPlan(null, plan);
-                UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _planDB, plan);
+                UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, this._colors, _planDB, plan);
             }
         }
     }

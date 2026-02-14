@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 
 namespace BossMod;
 
@@ -90,7 +90,7 @@ public class Timeline
         }
     }
 
-    public readonly ColorConfig Colors = Service.Config.Get<ColorConfig>();
+    public readonly ColorConfig Colors;
     public float MinTime;
     public float MaxTime;
     public float? CurrentTime;
@@ -113,8 +113,9 @@ public class Timeline
     public float Height { get; private set; }
     public Vector2 ScreenClientTL => _screenClientTL;
 
-    public Timeline()
+    public Timeline(ColorConfig colors)
     {
+        Colors = colors;
         Columns = new(this);
     }
 

@@ -27,7 +27,8 @@ public class ReplayDetailsWindow : UIWindow
     private bool _azimuthOverride = true;
     private int _povSlot = PartyState.PlayerSlot;
     private readonly ConfigUI _config;
-    private readonly PartyRolesConfig _roles = Service.Config.Get<PartyRolesConfig>();
+    private readonly PartyRolesConfig _roles;
+    private readonly ColorConfig _colors;
     private bool _showConfig;
     private bool _showDebug;
     private readonly EventList _events;
@@ -54,10 +55,14 @@ public class ReplayDetailsWindow : UIWindow
         RotationDatabase rotationDB,
         BossModuleRegistry bmr,
         RotationModuleRegistry registry,
+        PartyRolesConfig prc,
+        ColorConfig colors,
         Serializer ser,
         ILifetimeScope scope
     ) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
+        _roles = prc;
+        _colors = colors;
         _registry = registry;
         _ser = ser;
         _player = new(data);
@@ -75,7 +80,7 @@ public class ReplayDetailsWindow : UIWindow
         _curTime = initialTime ?? _first;
         _player.AdvanceTo(_curTime, _mgr.Update);
         _config = _subscope.Resolve<ConfigUI>();
-        _events = new(bmr, registry, ser, data, MoveTo, rotationDB.Plans, this);
+        _events = new(bmr, registry, ser, colors, data, MoveTo, rotationDB.Plans, this);
         _analysis = new([data], bmr);
     }
 
@@ -153,7 +158,7 @@ public class ReplayDetailsWindow : UIWindow
 
             if (_mgr.ActiveModule != null && ImGui.Button("Timeline"))
             {
-                _ = new StateMachineWindow(_mgr.ActiveModule);
+                _ = new StateMachineWindow(_mgr.ActiveModule, _colors);
             }
 
             if (_mgr.ActiveModule?.Info?.PlanLevel > 0)
@@ -181,7 +186,7 @@ public class ReplayDetailsWindow : UIWindow
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_bmr, _registry, _ser, _player.Replay, enc, new(1), _rotationDB.Plans, this);
+                        _ = new ReplayTimelineWindow(_bmr, _registry, _ser, _player.Replay, enc, new(1), _rotationDB.Plans, this, _colors);
                     }
                 }
             }

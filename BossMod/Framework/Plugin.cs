@@ -120,6 +120,7 @@ public class Plugin : HostedPlugin
         {
             var cf = new ConfigRoot(s.Resolve<Serializer>(), s.Resolve<Lazy<BossModuleRegistry>>());
             cf.Initialize();
+            cf.LoadFromFile(s.Resolve<IDalamudPluginInterface>().ConfigFile);
             return cf;
         }).AsSelf().SingleInstance();
         foreach (var configType in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
@@ -152,14 +153,17 @@ public class Plugin : HostedPlugin
             return new DefaultPresetsFile(root);
         }).SingleInstance();
 
-        containerBuilder.RegisterBuildCallback(OnContainerBuild);
+        containerBuilder.RegisterBuildCallback(scope =>
+        {
+            //Service.ConfigLazy.SetValue(scope.Resolve<ConfigRoot>());
+
+            OnContainerBuild(scope);
+        });
     }
     public override void ConfigureServices(IServiceCollection serviceCollection) { }
 
     public virtual void OnContainerBuild(ILifetimeScope scope)
     {
-        Service.ConfigLazy.SetValue(scope.Resolve<ConfigRoot>());
-
         var dalamud = scope.Resolve<IDalamudPluginInterface>();
 
         Camera.Instance = new();

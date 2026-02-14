@@ -37,11 +37,12 @@ public abstract class BossModule : IDisposable
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
-    private readonly ModuleArgs _args;
     public readonly StandardColors ArenaColor;
+    public readonly PartyRolesConfig Roles;
     public ConfigRoot Config => _args.Config;
-
     protected ITextureProvider Tex => _args.TextureProvider;
+
+    private readonly ModuleArgs _args;
 
     internal unsafe void SetPrimaryActor(Actor actor)
     {
@@ -128,6 +129,7 @@ public abstract class BossModule : IDisposable
         PrimaryActor = args.Primary;
         WindowConfig = args.Config.Get<BossModuleConfig>();
         ColorConfig = args.Config.Get<ColorConfig>();
+        Roles = args.Config.Get<PartyRolesConfig>();
         ArenaColor = new(ColorConfig);
         Arena = new(WindowConfig, ColorConfig, center, bounds);
         Info = args.Registry.FindByOID(args.Primary.OID);
