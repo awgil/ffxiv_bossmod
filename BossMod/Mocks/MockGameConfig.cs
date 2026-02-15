@@ -1,10 +1,13 @@
-﻿using Dalamud.Game.Config;
+﻿using DalaMock.Core.Mocks;
+using Dalamud.Game.Config;
 using Dalamud.Plugin.Services;
 
 namespace BossMod.Mock;
 
-internal class MockGameConfig : IGameConfig
+internal class MockGameConfig : IGameConfig, IMockService
 {
+    public string ServiceName => "MockGameConfig";
+
     public GameConfigSection System => throw new NotImplementedException();
 
     public GameConfigSection UiConfig => throw new NotImplementedException();

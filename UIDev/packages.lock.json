@@ -53,10 +53,55 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.1"
         }
       },
+      "DalaMock.Core": {
+        "type": "Transitive",
+        "resolved": "4.1.0",
+        "contentHash": "gjzJYDuHUGwaQ1tJwuCYH0uXlJS1NUrD5LP2WDm9i6cLXjuAB7DPo9rUdG31DIWq+j+I9TSvePcSyfrHO40LZQ==",
+        "dependencies": {
+          "Autofac": "9.0.0",
+          "DalaMock.Shared": "4.0.6",
+          "Microsoft.DotNet.PlatformAbstractions": "3.1.6",
+          "Microsoft.Extensions.Configuration": "10.0.1",
+          "Microsoft.Extensions.DependencyModel": "10.0.1",
+          "Microsoft.Extensions.Hosting": "10.0.1",
+          "Microsoft.Extensions.Hosting.Abstractions": "10.0.1",
+          "Microsoft.Extensions.ObjectPool": "10.0.1",
+          "NativeFileDialogSharp": "0.5.0",
+          "Newtonsoft.Json": "13.0.4",
+          "Serilog": "4.3.0",
+          "Serilog.Extensions.Logging": "10.0.0",
+          "StbiSharp": "1.2.1",
+          "Veldrid": "4.9.0",
+          "Veldrid.SDL2": "4.9.0",
+          "Veldrid.StartupUtilities": "4.9.0"
+        }
+      },
+      "DalaMock.Host": {
+        "type": "Transitive",
+        "resolved": "4.0.6",
+        "contentHash": "CFwrWEzW8+u/XvgRAfGjxZxu9YUwsAmkbLXw4vAau9iSUUzyG5+ChLtHAEDHxIfMzqWQXkL3K2IGRvjNjl+5sg==",
+        "dependencies": {
+          "Autofac.Extensions.DependencyInjection": "10.0.0",
+          "DalaMock.Shared": "4.0.6",
+          "Microsoft.Extensions.Hosting": "10.0.1",
+          "Microsoft.Extensions.Hosting.Abstractions": "10.0.1",
+          "Microsoft.Extensions.ObjectPool": "10.0.1"
+        }
+      },
+      "DalaMock.Shared": {
+        "type": "Transitive",
+        "resolved": "4.0.6",
+        "contentHash": "ZFtjEQHhzhLHTcPntx/K7IxrzqobPBmR3zu1rYrP4BjgYpJytiBkBbcnGgpqBlqYizfRZbmMZNED7ObGcfK+JQ==",
+        "dependencies": {
+          "Autofac": "9.0.0",
+          "Microsoft.Extensions.Hosting": "10.0.1",
+          "Microsoft.Extensions.Hosting.Abstractions": "10.0.1"
+        }
+      },
       "DalamudPackager": {
         "type": "Transitive",
-        "resolved": "14.0.1",
-        "contentHash": "y0WWyUE6dhpGdolK3iKgwys05/nZaVf4ZPtIjpLhJBZvHxkkiE23zYRo7K7uqAgoK/QvK5cqF6l3VG5AbgC6KA=="
+        "resolved": "14.0.2",
+        "contentHash": "dQJeq+8eyHzra4Cg5eZ/3LAeS3/UpvvLriYJGSncMK9LqJ7Q4B6jwcOsxo3PfxVd15xj+IzVFxkPqIBmPQu8/w=="
       },
       "Microsoft.DotNet.PlatformAbstractions": {
         "type": "Transitive",
@@ -538,49 +583,10 @@
       "bossmod": {
         "type": "Project",
         "dependencies": {
-          "DalaMock.Core": "[4.0.6, )",
+          "DalaMock.Core": "[4.1.0, )",
           "DalaMock.Host": "[4.0.6, )",
-          "DalamudPackager": "[14.0.1, )",
+          "DalamudPackager": "[14.0.2, )",
           "System.Data.Sqlite": "[2.0.2, )"
-        }
-      },
-      "dalamock.core": {
-        "type": "Project",
-        "dependencies": {
-          "Autofac": "[9.0.0, )",
-          "DalaMock.Shared": "[4.0.6, )",
-          "Microsoft.DotNet.PlatformAbstractions": "[3.1.6, )",
-          "Microsoft.Extensions.Configuration": "[10.0.1, )",
-          "Microsoft.Extensions.DependencyModel": "[10.0.1, )",
-          "Microsoft.Extensions.Hosting": "[10.0.1, )",
-          "Microsoft.Extensions.Hosting.Abstractions": "[10.0.1, )",
-          "Microsoft.Extensions.ObjectPool": "[10.0.1, )",
-          "NativeFileDialogSharp": "[0.5.0, )",
-          "Newtonsoft.Json": "[13.0.4, )",
-          "Serilog": "[4.3.0, )",
-          "Serilog.Extensions.Logging": "[10.0.0, )",
-          "StbiSharp": "[1.2.1, )",
-          "Veldrid": "[4.9.0, )",
-          "Veldrid.SDL2": "[4.9.0, )",
-          "Veldrid.StartupUtilities": "[4.9.0, )"
-        }
-      },
-      "dalamock.host": {
-        "type": "Project",
-        "dependencies": {
-          "Autofac.Extensions.DependencyInjection": "[10.0.0, )",
-          "DalaMock.Shared": "[4.0.6, )",
-          "Microsoft.Extensions.Hosting": "[10.0.1, )",
-          "Microsoft.Extensions.Hosting.Abstractions": "[10.0.1, )",
-          "Microsoft.Extensions.ObjectPool": "[10.0.1, )"
-        }
-      },
-      "dalamock.shared": {
-        "type": "Project",
-        "dependencies": {
-          "Autofac": "[9.0.0, )",
-          "Microsoft.Extensions.Hosting": "[10.0.1, )",
-          "Microsoft.Extensions.Hosting.Abstractions": "[10.0.1, )"
         }
       }
     }

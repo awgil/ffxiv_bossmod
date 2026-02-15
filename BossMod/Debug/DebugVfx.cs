@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Services;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -13,24 +14,24 @@ public unsafe struct VfxInitData
 {
 }
 
-public sealed unsafe class DebugVfx(ITargetManager targetManager, IObjectTable objects) : IDisposable
+public sealed unsafe class DebugVfx(ITargetManager targetManager, IObjectTable objects, GameInteropExtended hooking) : IDisposable
 {
     private delegate VfxInitData* VfxInitDataCtorDelegate(VfxInitData* self);
-    private readonly VfxInitDataCtorDelegate VfxInitDataCtor = Marshal.GetDelegateForFunctionPointer<VfxInitDataCtorDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 8D 57 06 48 8D 4C 24 ??"));
+    private readonly VfxInitDataCtorDelegate VfxInitDataCtor = hooking.GetDelegateFromSignature<VfxInitDataCtorDelegate>("E8 ?? ?? ?? ?? 8D 57 06 48 8D 4C 24 ??");
 
     // StartOmen: a3=2, a4=0, a13=-1
     private delegate VfxData* CreateVfxDelegate(byte* path, VfxInitData* init, byte a3, byte a4, float originX, float originY, float originZ, float sizeX, float sizeY, float sizeZ, float angle, float duration, int a13);
-    private readonly CreateVfxDelegate CreateVfx = Marshal.GetDelegateForFunctionPointer<CreateVfxDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 8D 95"));
+    private readonly CreateVfxDelegate CreateVfx = hooking.GetDelegateFromSignature<CreateVfxDelegate>("E8 ?? ?? ?? ?? 48 8B D8 48 8D 95");
 
     private delegate void ClearVfxDataDelegate(VfxData* self);
-    private readonly ClearVfxDataDelegate ClearVfx = Marshal.GetDelegateForFunctionPointer<ClearVfxDataDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 4D 89 A4 DE ?? ?? ?? ??"));
+    private readonly ClearVfxDataDelegate ClearVfx = hooking.GetDelegateFromSignature<ClearVfxDataDelegate>("E8 ?? ?? ?? ?? 4D 89 A4 DE ?? ?? ?? ??");
 
     private delegate void SetIconDelegate(VfxContainer* self, uint iconId, ulong targetId);
-    private readonly SetIconDelegate SetIcon = Marshal.GetDelegateForFunctionPointer<SetIconDelegate>(Service.SigScanner.ScanText("85 D2 0F 84 ?? ?? ?? ?? 48 89 6C 24 ?? 57 48 83 EC 30"));
+    private readonly SetIconDelegate SetIcon = hooking.GetDelegateFromSignature<SetIconDelegate>("85 D2 0F 84 ?? ?? ?? ?? 48 89 6C 24 ?? 57 48 83 EC 30");
 
     // to untether, an inlined version of this function is called with 0s in the last two arguments
     private delegate void SetTetherDelegate(VfxContainer* self, byte tetherIndex, ushort unk1, ulong targetId, byte tetherProgress);
-    private readonly SetTetherDelegate SetTether = Marshal.GetDelegateForFunctionPointer<SetTetherDelegate>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 54 24 ?? 45 33 C0"));
+    private readonly SetTetherDelegate SetTether = hooking.GetDelegateFromSignature<SetTetherDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 54 24 ?? 45 33 C0");
 
     private readonly List<Pointer<VfxData>> _spawnedVfx = [];
 

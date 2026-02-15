@@ -32,32 +32,16 @@ static class Program
         IDtrBar dtrBar,
         ICondition condition,
         IGameGui gameGui,
+        IGameConfig gameConfig,
         IChatGui chatGui,
         IKeyState keyState,
         ITextureProvider tex,
         IGameInteropProvider hook,
-        ITargetManager targetManager
-    ) : Plugin(
-        dalamud,
-        log,
-        clientState,
-        playerState,
-        objects,
-        commandManager,
-        dataManager,
-        dtrBar,
-        condition,
-        gameGui,
-        new MockGameConfig(),
-        chatGui,
-        keyState,
-        tex,
-        hook,
-        new MockSigScanner(),
-        targetManager,
-        new MockNotificationManager(),
-        new MockUnlockState()
-    )
+        ISigScanner scanner,
+        ITargetManager targetManager,
+        INotificationManager notifications,
+        IUnlockState unlockState
+    ) : Plugin(dalamud, log, clientState, playerState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner, targetManager, notifications, unlockState)
     {
         public override void ConfigureContainer(ContainerBuilder containerBuilder)
         {
@@ -113,7 +97,13 @@ static class Program
 
     static void RealMain()
     {
-        var cnt = new MockContainer();
+        var cnt = new MockContainer(serviceReplacements: new()
+        {
+            { typeof(ISigScanner), typeof(MockSigScanner) },
+            { typeof(IGameConfig), typeof(MockGameConfig) },
+            { typeof(INotificationManager), typeof(MockNotificationManager) },
+            { typeof(IUnlockState), typeof(MockUnlockState) }
+        });
         var ui = cnt.GetMockUi();
         var loader = cnt.GetPluginLoader();
         var pl = loader.AddPlugin(typeof(MockPlugin));

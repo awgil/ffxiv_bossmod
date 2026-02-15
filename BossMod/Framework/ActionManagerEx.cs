@@ -1,4 +1,6 @@
 ﻿using BossMod.Interfaces;
+using BossMod.Services;
+using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -10,7 +12,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
-using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
 namespace BossMod;
@@ -62,22 +63,23 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly OutOfCombatActionsTweak _oocActionsTweak;
     private readonly AutoAutosTweak _autoAutosTweak;
 
-    private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
-    private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
-    private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
-    private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
-    private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
-    private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UseStone> _useStoneHook;
-    private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
-    private readonly HookAddress<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
+    private readonly Hook<ActionManager.Delegates.Update> _updateHook;
+    private readonly Hook<ActionManager.Delegates.UseAction> _useActionHook;
+    private readonly Hook<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
+    private readonly Hook<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
+    private readonly Hook<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
+    private readonly Hook<InstanceContentDeepDungeon.Delegates.UseStone> _useStoneHook;
+    private readonly Hook<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
+    private readonly Hook<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
 
     private delegate void ExecuteCommandGTDelegate(uint commandId, Vector3* position, uint param1, uint param2, uint param3, uint param4);
     private readonly ExecuteCommandGTDelegate _executeCommandGT;
     private DateTime _nextAllowedExecuteCommand;
 
-    private readonly unsafe delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
+    private delegate TargetSystem* AutoSelectTargetDelegate(TargetSystem* targetSystem, uint nearestTargetType);
+    private readonly AutoSelectTargetDelegate _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, ActionDefinitions defs, IMovementOverride movement, IChatGui chat)
+    public ActionManagerEx(WorldState ws, AIHints hints, ActionDefinitions defs, IMovementOverride movement, IChatGui chat, GameInteropExtended hooking)
     {
         _ws = ws;
         _hints = hints;
@@ -91,22 +93,17 @@ public sealed unsafe class ActionManagerEx : IAmex
         _animLockTweak = new(chat);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
-        _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
-        _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
-        _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
-        _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
-        _usePomanderHook = new(InstanceContentDeepDungeon.Addresses.UsePomander, UsePomanderDetour);
-        _useStoneHook = new(InstanceContentDeepDungeon.Addresses.UseStone, UseStoneDetour);
-        _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
-        _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
+        _updateHook = hooking.HookFromAddress<ActionManager.Delegates.Update>(ActionManager.Addresses.Update, UpdateDetour);
+        _useActionHook = hooking.HookFromAddress<ActionManager.Delegates.UseAction>(ActionManager.Addresses.UseAction, UseActionDetour);
+        _useActionLocationHook = hooking.HookFromAddress<ActionManager.Delegates.UseActionLocation>(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
+        _useBozjaFromHolsterDirectorHook = hooking.HookFromAddress<PublicContentBozja.Delegates.UseFromHolster>(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
+        _usePomanderHook = hooking.HookFromAddress<InstanceContentDeepDungeon.Delegates.UsePomander>(InstanceContentDeepDungeon.Addresses.UsePomander, UsePomanderDetour);
+        _useStoneHook = hooking.HookFromAddress<InstanceContentDeepDungeon.Delegates.UseStone>(InstanceContentDeepDungeon.Addresses.UseStone, UseStoneDetour);
+        _processPacketActionEffectHook = hooking.HookFromAddress<ActionEffectHandler.Delegates.Receive>(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
+        _setAutoAttackStateHook = hooking.HookFromAddress<AutoAttackState.Delegates.SetImpl>(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
-        var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 3D 8B 93 ?? ?? ?? ??");
-        Service.Log($"ExecuteCommandGT address: 0x{executeCommandGTAddress:X}");
-        _executeCommandGT = Marshal.GetDelegateForFunctionPointer<ExecuteCommandGTDelegate>(executeCommandGTAddress);
-
-        var selectTargetAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 3B C5");
-        Service.Log($"SelectTarget address: 0x{selectTargetAddress:X}");
-        _autoSelectTarget = (delegate* unmanaged<TargetSystem*, TargetSystem*>)selectTargetAddress;
+        _executeCommandGT = hooking.GetDelegateFromSignature<ExecuteCommandGTDelegate>("E8 ?? ?? ?? ?? EB 3D 8B 93 ?? ?? ?? ??");
+        _autoSelectTarget = hooking.GetDelegateFromSignature<AutoSelectTargetDelegate>("E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 3B C5");
     }
 
     public void Dispose()
@@ -520,7 +517,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         {
             if (Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoNearestTarget)->Value.UInt == 1)
             {
-                _autoSelectTarget(targetSystem);
+                _autoSelectTarget(targetSystem, Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoNearestTargetType)->Value.UInt);
                 if (targetSystem->Target != null)
                     return targetSystem->Target->GetGameObjectId();
             }

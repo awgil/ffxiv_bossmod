@@ -101,7 +101,7 @@ abstract partial class AutoClear : ZoneModule
 
         var rectWidth = 10f;
 
-        if (Service.IsDev)
+        if (IsDev)
         {
             var a = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
             var b = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();

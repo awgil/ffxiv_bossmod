@@ -32,7 +32,7 @@ abstract partial class AutoClear : ZoneModule
             _config.Modified.Fire();
         }
 
-        if (!Service.IsDev)
+        if (!IsDev)
             return;
 
         if (ImGui.Button("Reload obstacles"))

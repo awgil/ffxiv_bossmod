@@ -4,9 +4,9 @@
     "net10.0-windows7.0": {
       "DalaMock.Core": {
         "type": "Direct",
-        "requested": "[4.0.6, )",
-        "resolved": "4.0.6",
-        "contentHash": "dxm/wMIli3UmXH9+nrU02WR1T/KRk3rd8Z+g3MNUZTsjiNywL6ET2hPd96gewlKacOykWLOZzV97CXyTNtMzUg==",
+        "requested": "[4.1.0, )",
+        "resolved": "4.1.0",
+        "contentHash": "gjzJYDuHUGwaQ1tJwuCYH0uXlJS1NUrD5LP2WDm9i6cLXjuAB7DPo9rUdG31DIWq+j+I9TSvePcSyfrHO40LZQ==",
         "dependencies": {
           "Autofac": "9.0.0",
           "DalaMock.Shared": "4.0.6",
@@ -41,9 +41,9 @@
       },
       "DalamudPackager": {
         "type": "Direct",
-        "requested": "[14.0.1, )",
-        "resolved": "14.0.1",
-        "contentHash": "y0WWyUE6dhpGdolK3iKgwys05/nZaVf4ZPtIjpLhJBZvHxkkiE23zYRo7K7uqAgoK/QvK5cqF6l3VG5AbgC6KA=="
+        "requested": "[14.0.2, )",
+        "resolved": "14.0.2",
+        "contentHash": "dQJeq+8eyHzra4Cg5eZ/3LAeS3/UpvvLriYJGSncMK9LqJ7Q4B6jwcOsxo3PfxVd15xj+IzVFxkPqIBmPQu8/w=="
       },
       "DotNet.ReproducibleBuilds": {
         "type": "Direct",

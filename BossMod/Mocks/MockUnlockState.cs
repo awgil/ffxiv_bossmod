@@ -1,11 +1,14 @@
-﻿using Dalamud.Plugin.Services;
+﻿using DalaMock.Core.Mocks;
+using Dalamud.Plugin.Services;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 namespace BossMod.Mocks;
 
-internal class MockUnlockState : IUnlockState
+internal class MockUnlockState : IUnlockState, IMockService
 {
+    public string ServiceName => "MockUnlockState";
+
     public event IUnlockState.UnlockDelegate? Unlock;
 
     public bool IsActionUnlocked(Lumina.Excel.Sheets.Action row) => true;

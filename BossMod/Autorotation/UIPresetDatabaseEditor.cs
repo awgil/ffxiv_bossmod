@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
 using System.Text.Json.Nodes;
@@ -7,9 +8,11 @@ using System.Text.Json.Nodes;
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationModuleRegistry rRegistry, RotationDatabase rotationDB, INotificationManager notifications, Serializer ser, AutorotationConfig config)
+public sealed class UIPresetDatabaseEditor(RotationModuleRegistry rRegistry, RotationDatabase rotationDB, INotificationManager notifications, IDalamudPluginInterface dalamud, Serializer ser, AutorotationConfig config)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
+
+    readonly bool IsDev = dalamud.IsDev;
 
     private int _selectedPresetIndex = -1;
     private bool _selectedPresetDefault;
@@ -161,7 +164,7 @@ public sealed class UIPresetDatabaseEditor(RotationModuleRegistry rRegistry, Rot
 
     private bool DrawSaveCurrentPresetButton() => UIMisc.Button("Save", 0, (!HaveUnsavedModifications, "Current preset is not modified"), (_selectedPreset?.NameConflict ?? false, "Current preset name is empty or duplicates name of other existing preset"));
 
-    private void RevertCurrentPreset() => _selectedPreset = new(rRegistry, PresetDB, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
+    private void RevertCurrentPreset() => _selectedPreset = new(rRegistry, IsDev, PresetDB, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
 
     private void SaveCurrentPreset()
     {
@@ -199,7 +202,7 @@ public sealed class UIPresetDatabaseEditor(RotationModuleRegistry rRegistry, Rot
     {
         _selectedPresetIndex = -1;
         _selectedPresetDefault = false;
-        _selectedPreset = new(rRegistry, PresetDB, referenceIndex, referenceDefault, _selectedModuleType);
+        _selectedPreset = new(rRegistry, IsDev, PresetDB, referenceIndex, referenceDefault, _selectedModuleType);
         _selectedPreset.DetachFromSource();
         _selectedPreset.MakeNameUnique();
     }

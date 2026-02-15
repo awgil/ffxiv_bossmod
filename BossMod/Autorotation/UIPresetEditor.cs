@@ -26,6 +26,7 @@ public sealed class UIPresetEditor
     private readonly ModuleCategory _availableModules;
     private bool _showHiddenTracks;
     private bool _currentModuleHasHealerAI;
+    readonly bool IsDev;
 
     private static readonly Type THealerAI = typeof(xan.HealerAI);
     private static readonly Type[] _misleadingHealerRotations = [
@@ -38,12 +39,13 @@ public sealed class UIPresetEditor
 
     public Type? SelectedModuleType => Preset.Modules.BoundSafeAt(_selectedModuleIndex)?.Type;
 
-    public UIPresetEditor(RotationModuleRegistry registry, PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
+    public UIPresetEditor(RotationModuleRegistry registry, bool devMode, PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
     {
         _registry = registry;
         _db = db;
         _sourcePresetIndex = index;
         _sourcePresetDefault = isDefaultPreset;
+        IsDev = devMode;
         if (index >= 0)
         {
             Preset = (isDefaultPreset ? db.DefaultPresets : db.UserPresets)[index].MakeClone(false);
@@ -385,7 +387,7 @@ public sealed class UIPresetEditor
         ModuleCategory res = new();
         foreach (var m in _registry.Modules)
         {
-            if (m.Value.Definition.DevMode && !Service.IsDev)
+            if (m.Value.Definition.DevMode && !IsDev)
                 continue; // skip dev-mode-only module in "production"
             if (m.Value.Definition.RelatedBossModule != null)
                 continue; // don't care about boss-specific modules for presets

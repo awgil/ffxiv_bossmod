@@ -1,17 +1,19 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Services;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace BossMod;
 
-public sealed unsafe class DebugAddon(IGameGui gameGui) : IDisposable
+public sealed unsafe class DebugAddon(IGameGui gameGui, GameInteropExtended hooking) : IDisposable
 {
     delegate nint AddonReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, ulong* inputData);
     delegate void* AgentReceiveEventDelegate(AgentInterface* self, void* eventData, AtkValue* values, int valueCount, ulong eventKind);
 
-    private readonly Dictionary<nint, HookAddress<AddonReceiveEventDelegate>> _rcvAddonHooks = [];
-    private readonly Dictionary<nint, HookAddress<AgentReceiveEventDelegate>> _rcvAgentHooks = [];
+    private readonly Dictionary<nint, Hook<AddonReceiveEventDelegate>> _rcvAddonHooks = [];
+    private readonly Dictionary<nint, Hook<AgentReceiveEventDelegate>> _rcvAgentHooks = [];
     private readonly Dictionary<string, nint> _addonRcvs = [];
     private readonly Dictionary<uint, nint> _agentRcvs = [];
     private string _newHook = "";
@@ -30,16 +32,26 @@ public sealed unsafe class DebugAddon(IGameGui gameGui) : IDisposable
         foreach (var (k, v) in _addonRcvs)
         {
             var hook = _rcvAddonHooks[v];
-            if (ImGui.Button($"{(hook.Enabled ? "Disable" : "Enable")} {k} ({v:X})"))
-                hook.Enabled ^= true;
+            if (ImGui.Button($"{(hook.IsEnabled ? "Disable" : "Enable")} {k} ({v:X})"))
+            {
+                if (hook.IsEnabled)
+                    hook.Disable();
+                else
+                    hook.Enable();
+            }
         }
 
         ImGui.TextUnformatted("Agents:");
         foreach (var (k, v) in _agentRcvs)
         {
             var hook = _rcvAgentHooks[v];
-            if (ImGui.Button($"{(hook.Enabled ? "Disable" : "Enable")} {k} ({v:X})"))
-                hook.Enabled ^= true;
+            if (ImGui.Button($"{(hook.IsEnabled ? "Disable" : "Enable")} {k} ({v:X})"))
+            {
+                if (hook.IsEnabled)
+                    hook.Disable();
+                else
+                    hook.Enable();
+            }
         }
 
         ImGui.InputText("Addon name / agent id", ref _newHook, 256);
@@ -53,8 +65,8 @@ public sealed unsafe class DebugAddon(IGameGui gameGui) : IDisposable
                 if (!_rcvAddonHooks.ContainsKey(address))
                 {
                     var name = _newHook;
-                    HookAddress<AddonReceiveEventDelegate> hook = null!;
-                    _rcvAddonHooks[address] = hook = new(address, (self, eventType, eventParam, eventData, inputData) =>
+                    Hook<AddonReceiveEventDelegate> hook = null!;
+                    _rcvAddonHooks[address] = hook = hooking.HookFromAddress<AddonReceiveEventDelegate>(address, (self, eventType, eventParam, eventData, inputData) =>
                     {
                         Service.Log($"RCV: listener={name} {(nint)self:X}, type={eventType}, param={eventParam}, input={inputData[0]:X16} {inputData[1]:X16} {inputData[2]:X16}");
                         return hook.Original(self, eventType, eventParam, eventData, inputData);
@@ -71,8 +83,8 @@ public sealed unsafe class DebugAddon(IGameGui gameGui) : IDisposable
                 _agentRcvs[agentId] = address;
                 if (!_rcvAgentHooks.ContainsKey(address))
                 {
-                    HookAddress<AgentReceiveEventDelegate> hook = null!;
-                    _rcvAgentHooks[address] = hook = new(address, (self, eventData, values, valueCount, eventKind) =>
+                    Hook<AgentReceiveEventDelegate> hook = null!;
+                    _rcvAgentHooks[address] = hook = hooking.HookFromAddress<AgentReceiveEventDelegate>(address, (self, eventData, values, valueCount, eventKind) =>
                     {
                         Service.Log($"RCV: listener={agentId} {(nint)self:X}, kind={eventKind}, values={AtkValuesString(values, valueCount)}");
                         return hook.Original(self, eventData, values, valueCount, eventKind);

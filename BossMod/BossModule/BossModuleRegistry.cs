@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Dalamud.Plugin;
+using System.Reflection;
 
 namespace BossMod;
 
@@ -27,7 +28,7 @@ public class BossModuleRegistry
         public int SortOrder;
         public int PlanLevel;
 
-        public static Info? Build(Type module)
+        public static Info? Build(Type module, bool isDev)
         {
             var infoAttr = module.GetCustomAttribute<ModuleInfoAttribute>();
             var statesType = infoAttr?.StatesType ?? module.Module.GetType($"{module.FullName}States");
@@ -39,7 +40,7 @@ public class BossModuleRegistry
             var iidType = infoAttr?.IconIDType ?? module.Module.GetType($"{module.Namespace}.IconID");
 
             // skip really-WIP modules without logging to user since they have no use for this information
-            if (infoAttr?.DevOnly == true && !Service.IsDev)
+            if (infoAttr?.DevOnly == true && !isDev)
                 return null;
 
             if (statesType == null || !statesType.IsSubclassOf(typeof(StateMachineBuilder)) || statesType.GetConstructor([module]) == null)
@@ -174,13 +175,16 @@ public class BossModuleRegistry
     private readonly ConfigRoot _root;
     private readonly BossModuleConfig _config;
 
-    public BossModuleRegistry(ConfigRoot config)
+    public readonly bool IsDev;
+
+    public BossModuleRegistry(ConfigRoot config, IDalamudPluginInterface dalamud)
     {
         _root = config;
         _config = _root.Get<BossModuleConfig>();
+        IsDev = dalamud.IsDev;
         foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
         {
-            var info = Info.Build(t);
+            var info = Info.Build(t, IsDev);
             if (info == null)
                 continue;
             _modulesByType[t] = info;

@@ -1,15 +1,15 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Services;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using System.Globalization;
-using System.Runtime.InteropServices;
 
 namespace BossMod;
 
 sealed unsafe class DebugMapEffect : IDisposable
 {
-    private readonly WorldStateGameSync.ProcessMapEffectDelegate ProcessMapEffect = Marshal.GetDelegateForFunctionPointer<WorldStateGameSync.ProcessMapEffectDelegate>(Service.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8"));
+    private readonly WorldStateGameSync.ProcessMapEffectDelegate ProcessMapEffect;
 
     private readonly List<string> _history = [];
     private string _current = "";
@@ -17,12 +17,14 @@ sealed unsafe class DebugMapEffect : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public DebugMapEffect(WorldState ws)
+    public DebugMapEffect(WorldState ws, GameInteropExtended hooking)
     {
         _subscriptions = new(
             ws.MapEffect.Subscribe(OnMapEffect),
             ws.LegacyMapEffect.Subscribe(OnLegacyMapEffect)
         );
+
+        ProcessMapEffect = hooking.GetDelegateFromSignature<WorldStateGameSync.ProcessMapEffectDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8");
     }
 
     public void Dispose() => _subscriptions.Dispose();

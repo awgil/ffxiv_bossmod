@@ -1,6 +1,7 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Autorotation.xan;
 using BossMod.Interfaces;
+using BossMod.Services;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
@@ -21,6 +22,7 @@ class MainDebugWindow(
     IMovementOverride move,
     AIHintsBuilder hintBuilder,
     IDalamudPluginInterface dalamud,
+    GameInteropExtended hooking,
     IGameGui gameGui,
     IPlayerState playerState,
     ITargetManager targetManager,
@@ -33,16 +35,16 @@ class MainDebugWindow(
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new(targetManager, objects);
     private readonly DebugParty _debugParty = new();
-    private readonly DebugMapEffect _debugMapEffect = new(ws);
+    private readonly DebugMapEffect _debugMapEffect = new(ws, hooking);
     private readonly DebugGraphics _debugGraphics = new(objects, colorConfig);
     private readonly DebugAction _debugAction = new(ws, amex, gameGui, playerState, objects);
     private readonly DebugHate _debugHate = new(ws, objects);
     private readonly DebugInput _debugInput = new(autorot, move, keyState);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
-    private readonly DebugAddon _debugAddon = new(gameGui);
+    private readonly DebugAddon _debugAddon = new(gameGui, hooking);
     private readonly DebugTiming _debugTiming = new();
     private readonly DebugQuests _debugQuests = new();
-    private readonly DebugVfx _debugVfx = new(targetManager, objects);
+    private readonly DebugVfx _debugVfx = new(targetManager, objects, hooking);
 
     protected override void Dispose(bool disposing)
     {
@@ -215,7 +217,7 @@ class MainDebugWindow(
         if (player == null)
             return;
 
-        ImGui.TextUnformatted($"Forced movement direction: {MovementOverride.ForcedMovementDirection->Radians()}");
+        ImGui.TextUnformatted($"Forced movement direction: {move.ForcedMovementDirection->Radians()}");
         ImGui.SameLine();
         if (ImGui.Button("Add misdirection"))
             player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, (GameObjectId)0xE0000000, true);

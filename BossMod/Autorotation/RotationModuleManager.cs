@@ -1,4 +1,5 @@
-﻿using Dalamud.Plugin.Services;
+﻿using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 
 namespace BossMod.Autorotation;
 
@@ -23,6 +24,7 @@ public sealed class RotationModuleManager : IDisposable
     public readonly AIHints Hints;
     public readonly ActionDefinitions Actions;
     public readonly IUnlockState UnlockState;
+    private readonly bool IsDev;
     public PlanExecution? Planner { get; private set; }
     private readonly PartyRolesConfig _prc;
     private readonly EventSubscriptions _subscriptions;
@@ -71,8 +73,9 @@ public sealed class RotationModuleManager : IDisposable
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
-    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AutorotationConfig config, PartyRolesConfig prc, ActionDefinitions defs, IUnlockState unlockState, AIHints hints)
+    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AutorotationConfig config, PartyRolesConfig prc, ActionDefinitions defs, IUnlockState unlockState, AIHints hints, IDalamudPluginInterface dalamud)
     {
+        IsDev = dalamud.IsDev;
         Config = config;
         _prc = prc;
         Actions = defs;
@@ -348,7 +351,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private void OnActionRequested(ClientState.OpActionRequest op)
     {
-        if (Service.IsDev)
+        if (IsDev)
             Service.Log($"[RMM] Exec #{op.Request.SourceSequence} {op.Request.Action} @ {op.Request.TargetID:X} [{string.Join(" --- ", ActiveModulesFlat.Select(m => m.Module.DescribeState()))}]");
     }
 
@@ -357,7 +360,7 @@ public sealed class RotationModuleManager : IDisposable
         if (cast.SourceSequence != 0 && WorldState.Party.Members[PlayerSlot].InstanceId == actor.InstanceID)
         {
             LastCast = (WorldState.CurrentTime, cast);
-            if (Service.IsDev)
+            if (IsDev)
                 Service.Log($"[RMM] Cast #{cast.SourceSequence} {cast.Action} @ {cast.MainTargetID:X} [{string.Join(" --- ", ActiveModulesFlat.Select(m => m.Module.DescribeState()))}]");
         }
 

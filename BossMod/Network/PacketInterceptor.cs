@@ -1,4 +1,7 @@
-﻿using System.Runtime.InteropServices;
+﻿using BossMod.Services;
+using Dalamud.Hooking;
+using Dalamud.Plugin.Services;
+using System.Runtime.InteropServices;
 
 namespace BossMod.Network;
 
@@ -34,47 +37,51 @@ internal sealed class PacketInterceptor : IDisposable
     public event ClientIPCSentDelegate? ClientIPCSent;
 
     private unsafe delegate bool FetchReceivedPacketDelegate(void* self, ReceivedPacket* outData);
-    private readonly HookAddress<FetchReceivedPacketDelegate>? _fetchHook;
+    private readonly Hook<FetchReceivedPacketDelegate>? _fetchHook;
 
     private unsafe delegate byte SendPacketDelegate(void* self, SentIPCHeader* packet, int* a3, byte a4);
-    private readonly HookAddress<SendPacketDelegate>? _sendHook;
+    private readonly Hook<SendPacketDelegate>? _sendHook;
 
     public bool ActiveRecv
     {
-        get => _fetchHook?.Enabled ?? false;
+        get => _fetchHook?.IsEnabled ?? false;
         set
         {
             if (_fetchHook == null)
                 Service.Log($"[NPI] Recv hook not found!");
+            else if (value)
+                _fetchHook.Enable();
             else
-                _fetchHook.Enabled = value;
+                _fetchHook.Disable();
         }
     }
 
     public bool ActiveSend
     {
-        get => _sendHook?.Enabled ?? false;
+        get => _sendHook?.IsEnabled ?? false;
         set
         {
             if (_sendHook == null)
                 Service.Log($"[NPI] Send hook not found!");
+            else if (value)
+                _sendHook.Enable();
             else
-                _sendHook.Enabled = value;
+                _sendHook.Disable();
         }
     }
 
-    public unsafe PacketInterceptor()
+    public unsafe PacketInterceptor(GameInteropExtended hooking, ISigScanner scanner)
     {
         // alternative signatures - seem to be changing from build to build:
         // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35
         // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24
-        var foundFetchAddress = Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 4C 24 ?? FF 15", out var fetchAddress)
-            || Service.SigScanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24", out fetchAddress);
+        var foundFetchAddress = scanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 4C 24 ?? FF 15", out var fetchAddress)
+            || scanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24", out fetchAddress);
         Service.Log($"[NPI] FetchReceivedPacket address = 0x{fetchAddress:X}");
         if (foundFetchAddress)
-            _fetchHook = new(fetchAddress, FetchReceivedPacketDetour, false);
+            _fetchHook = hooking.HookFromAddress<FetchReceivedPacketDelegate>(fetchAddress, FetchReceivedPacketDetour, false);
 
-        _sendHook = new("48 89 5C 24 ?? 48 89 74 24 ?? 4C 89 64 24 ?? 55 41 56 41 57 48 8B EC 48 83 EC 70", SendPacketDetour, false);
+        _sendHook = hooking.HookFromSignature<SendPacketDelegate>("48 89 5C 24 ?? 48 89 74 24 ?? 4C 89 64 24 ?? 55 41 56 41 57 48 8B EC 48 83 EC 70", SendPacketDetour, false);
 
         // potentially useful sigs from dalamud:
         // server ipc handler: 40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 8B F2 --- void(void* self, uint targetId, void* dataPtr)

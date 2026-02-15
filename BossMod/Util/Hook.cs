@@ -1,9 +1,7 @@
-﻿using Dalamud.Hooking;
-using InteropGenerator.Runtime;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // very simple wrappers for hooks, that provide some quality of life (no need to repeat delegate types multiple times, etc)
+/*
 public sealed class HookAddress<T> : IDisposable where T : Delegate
 {
     private readonly Hook<T> _hook;
@@ -34,3 +32,4 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
 
     public void Dispose() => _hook.Dispose();
 }
+*/

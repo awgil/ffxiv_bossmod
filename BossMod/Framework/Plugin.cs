@@ -11,6 +11,8 @@ using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Lumina;
+using Lumina.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -43,8 +45,8 @@ public class Plugin : HostedPlugin
         IUnlockState unlockState
     ) : base(dalamud, log, clientState, playerState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner, targetManager, notifications, unlockState)
     {
-        Service.SigScanner = scanner;
-        Service.Hook = hook;
+        //Service.SigScanner = scanner;
+        //Service.Hook = hook;
         Service.LuminaGameData = dataManager.GameData;
         //Service.Config.Initialize();
         //Service.Config.LoadFromFile(dalamud.ConfigFile);
@@ -70,6 +72,7 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<FrameworkUpdateService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<DtrService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<GameInteropExtended>();
 
         containerBuilder.RegisterSingletonSelf<PackLoader>();
         containerBuilder.RegisterSingletonSelf<SlashCommandProvider>();
@@ -128,6 +131,15 @@ public class Plugin : HostedPlugin
                 return method.Invoke(root, [])!;
             }).As(configType).SingleInstance();
         }
+
+        containerBuilder.RegisterGeneric((context, parameters) =>
+        {
+            var gameData = context.Resolve<GameData>();
+            var method = typeof(GameData).GetMethod(nameof(GameData.GetExcelSheet))
+                ?.MakeGenericMethod(parameters);
+            var sheet = method!.Invoke(gameData, [Lumina.Data.Language.English, null])!;
+            return sheet;
+        }).As(typeof(ExcelSheet<>));
 
         // derived paths
         containerBuilder.Register(s =>

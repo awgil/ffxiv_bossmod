@@ -1,6 +1,8 @@
 ﻿using BossMod.Interfaces;
+using BossMod.Services;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
+using Dalamud.Hooking;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -40,7 +42,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
 
     private readonly IDalamudPluginInterface _dalamud;
     private readonly IGameConfig _gameConfig;
-    private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
+    private readonly ActionTweaksConfig _tweaksConfig;
     private bool? _forcedControlState;
     private bool _legacyMode;
     private bool[]? _navmeshPathIsRunning;
@@ -63,37 +65,35 @@ public sealed unsafe class MovementOverride : IMovementOverride
         set;
     }
 
-    public static readonly float* ForcedMovementDirection = (float*)Service.SigScanner.GetStaticAddressFromSig("F3 0F 11 0D ?? ?? ?? ?? 48 85 DB");
+    public float* ForcedMovementDirection { get; init; }
 
     private delegate bool RMIWalkIsInputEnabled(void* self);
     private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
     private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
 
     private delegate void RMIWalkDelegate(MoveControllerSubMemberForMine* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
-    private readonly HookAddress<RMIWalkDelegate> _rmiWalkHook;
+    private readonly Hook<RMIWalkDelegate> _rmiWalkHook;
 
     private delegate void RMIFlyDelegate(void* self, PlayerMoveControllerFlyInput* result);
-    private readonly HookAddress<RMIFlyDelegate> _rmiFlyHook;
+    private readonly Hook<RMIFlyDelegate> _rmiFlyHook;
 
     // input source flags: 1 = kb/mouse, 2 = gamepad
     private delegate byte MoveControlIsInputActiveDelegate(void* self, byte inputSourceFlags);
-    private readonly HookAddress<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
+    private readonly Hook<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
 
-    public MovementOverride(IDalamudPluginInterface dalamud, IGameConfig gameConfig)
+    public MovementOverride(IDalamudPluginInterface dalamud, IGameConfig gameConfig, GameInteropExtended hooking, ISigScanner scanner, ActionTweaksConfig tweaksConfig)
     {
         _dalamud = dalamud;
         _gameConfig = gameConfig;
+        _tweaksConfig = tweaksConfig;
 
-        var rmiWalkIsInputEnabled1Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
-        var rmiWalkIsInputEnabled2Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
-        Service.Log($"RMIWalkIsInputEnabled1 address: 0x{rmiWalkIsInputEnabled1Addr:X}");
-        Service.Log($"RMIWalkIsInputEnabled2 address: 0x{rmiWalkIsInputEnabled2Addr:X}");
-        _rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled1Addr);
-        _rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled2Addr);
+        _rmiWalkIsInputEnabled1 = hooking.GetDelegateFromSignature<RMIWalkIsInputEnabled>("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
+        _rmiWalkIsInputEnabled2 = hooking.GetDelegateFromSignature<RMIWalkIsInputEnabled>("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
+        _rmiWalkHook = hooking.HookFromSignature<RMIWalkDelegate>("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
+        _rmiFlyHook = hooking.HookFromSignature<RMIFlyDelegate>("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
+        _mcIsInputActiveHook = hooking.HookFromSignature<MoveControlIsInputActiveDelegate>("E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
 
-        _rmiWalkHook = new("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
-        _rmiFlyHook = new("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
-        _mcIsInputActiveHook = new("E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
+        ForcedMovementDirection = (float*)scanner.GetStaticAddressFromSig("F3 0F 11 0D ?? ?? ?? ?? 48 85 DB");
 
         _gameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();

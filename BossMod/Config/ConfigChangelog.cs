@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -76,12 +77,14 @@ public class ConfigChangelogWindow : UIWindow
     private readonly List<VersionedField> Fields = [];
     private readonly List<ChangelogNotice> Notices = [];
     private readonly ConfigRoot _root;
+    readonly bool IsDev;
 
     private int StuffCount => Fields.Count + Notices.Count;
 
-    public ConfigChangelogWindow(ConfigRoot root) : base("VBM Changelog", true, new(400, 300))
+    public ConfigChangelogWindow(ConfigRoot root, IDalamudPluginInterface dalamud) : base("VBM Changelog", true, new(400, 300))
     {
         _root = root;
+        IsDev = dalamud.IsDev;
         PreviousVersion = GetPreviousPluginVersion();
         _root.AssemblyVersion = GetCurrentPluginVersion();
         if (_root.AssemblyVersion != PreviousVersion)
@@ -188,15 +191,15 @@ public class ConfigChangelogWindow : UIWindow
         }
     }
 
-    private static Version GetCurrentPluginVersion()
+    private Version GetCurrentPluginVersion()
     {
-        return Service.IsDev ? new(999, 0, 0, 0) : Assembly.GetExecutingAssembly().GetName().Version!;
+        return IsDev ? new(999, 0, 0, 0) : Assembly.GetExecutingAssembly().GetName().Version!;
     }
 
     [SuppressMessage("Design", "CA1024:Use properties where appropriate", Justification = "fuck it")]
-    private static Version GetPreviousPluginVersion()
+    private Version GetPreviousPluginVersion()
     {
         // change to a smaller value to test changelog
-        return Service.IsDev ? new(999, 0, 0, 0) : Service.Config.AssemblyVersion;
+        return IsDev ? new(999, 0, 0, 0) : _root.AssemblyVersion;
     }
 }

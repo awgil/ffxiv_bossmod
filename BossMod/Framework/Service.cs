@@ -11,8 +11,6 @@ public sealed class Service
 {
 #pragma warning disable CS8618
     [PluginService] public static IPluginLog Logger { get; private set; }
-    public static IGameInteropProvider Hook;
-    public static ISigScanner SigScanner;
 #pragma warning restore CS8618
 
 #pragma warning disable CA2211
@@ -20,8 +18,6 @@ public sealed class Service
     public static Action<string>? LogHandlerVerbose;
     public static void Log(string msg) => LogHandlerDebug?.Invoke(msg);
     public static void LogVerbose(string msg) => LogHandlerVerbose?.Invoke(msg);
-
-    public static bool IsDev = true;
 
     public static Lumina.GameData? LuminaGameData;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English);

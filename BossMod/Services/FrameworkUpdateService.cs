@@ -5,6 +5,7 @@ using DalaMock.Shared.Interfaces;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
@@ -30,6 +31,7 @@ internal class FrameworkUpdateService(
     ICondition conditions,
     IGameGui gameGui,
     ConfigUI configUI,
+    IDalamudPluginInterface dalamud,
     Lazy<IEnumerable<Window>> windows
 ) : IHostedService
 {

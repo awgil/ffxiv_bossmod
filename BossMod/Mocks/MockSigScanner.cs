@@ -1,11 +1,14 @@
-﻿using Dalamud.Plugin.Services;
+﻿using DalaMock.Core.Mocks;
+using Dalamud.Plugin.Services;
 using System.Diagnostics;
 using System.Threading;
 
 namespace BossMod.Mocks;
 
-internal class MockSigScanner : ISigScanner
+internal class MockSigScanner : ISigScanner, IMockService
 {
+    public string ServiceName => "MockSigScanner";
+
     public bool IsCopy => throw new NotImplementedException();
 
     public bool Is32BitProcess => throw new NotImplementedException();

@@ -243,7 +243,7 @@ class CoordinateMarch(BossModule module) : Components.GenericAOEs(module, AID.En
             var ix = _crosses.FindIndex(c => c.Source.AlmostEqual(caster.Position, 1));
             if (ix >= 0)
             {
-                if (Service.IsDev)
+                if (Module.DevMode)
                 {
                     var cross = _crosses[ix];
                     Service.Log($"predicted activation {cross.Activation}, actual activation {WorldState.CurrentTime}, difference {(cross.Activation - WorldState.CurrentTime).TotalSeconds:f3}");

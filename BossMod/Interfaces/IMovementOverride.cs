@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Interfaces;
 
-public interface IMovementOverride : IDisposable
+public unsafe interface IMovementOverride : IDisposable
 {
     public bool IsMoving();
     public bool IsMoveRequested();
@@ -12,6 +12,7 @@ public interface IMovementOverride : IDisposable
     public Angle? DesiredSpinDirection { get; set; }
     public bool MovementBlocked { get; set; }
 
+    public float* ForcedMovementDirection { get; }
     public WDir UserMove { get; }
     public WDir ActualMove { get; }
 }

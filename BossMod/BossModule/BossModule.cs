@@ -42,6 +42,7 @@ public abstract class BossModule : IDisposable
     public readonly PartyRolesConfig Roles;
     public ConfigRoot Config => _args.Config;
     protected ITextureProvider Tex => _args.TextureProvider;
+    public bool DevMode => _args.Registry.IsDev;
 
     private readonly ModuleArgs _args;
 
