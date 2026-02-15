@@ -23,6 +23,7 @@ public sealed class ModuleViewer
     private readonly PlanDatabase _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
     private readonly ITextureProvider _tex;
+    private readonly IPluginLog logger;
     private readonly BossModuleRegistry _bmr;
     private readonly RotationModuleRegistry _registry;
     private readonly Serializer _ser;
@@ -51,6 +52,7 @@ public sealed class ModuleViewer
         PlanDatabase planDB,
         WorldState ws,
         ITextureProvider tex,
+        IPluginLog logger,
         BossModuleRegistry bmr,
         RotationModuleRegistry autorot,
         Serializer ser,
@@ -61,7 +63,10 @@ public sealed class ModuleViewer
         ExcelSheet<Quest> questSheet,
         ExcelSheet<Fate> fateSheet,
         ExcelSheet<DynamicEvent> dynamicEventSheet,
-        ExcelSheet<GoldSaucerTextData> goldSaucerTextSheet
+        ExcelSheet<GoldSaucerTextData> goldSaucerTextSheet,
+        ExcelSheet<ExVersion> exVersion,
+        ExcelSheet<ContentType> contentType,
+        ExcelSheet<CharaCardPlayStyle> playStyle
     )
     {
         _bmConfig = bmConfig;
@@ -76,6 +81,7 @@ public sealed class ModuleViewer
         _ws = ws;
         _registry = autorot;
         _tex = tex;
+        this.logger = logger;
         _bmr = bmr;
         _ser = ser;
 
@@ -83,7 +89,6 @@ public sealed class ModuleViewer
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
         _categories = [.. Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon))];
 
-        var exVersion = Service.LuminaSheet<ExVersion>()!;
         Customize(BossModuleInfo.Expansion.RealmReborn, 61875, exVersion.GetRow(0).Name);
         Customize(BossModuleInfo.Expansion.Heavensward, 61876, exVersion.GetRow(1).Name);
         Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion.GetRow(2).Name);
@@ -91,7 +96,6 @@ public sealed class ModuleViewer
         Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion.GetRow(4).Name);
         Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion.GetRow(5).Name);
 
-        var contentType = Service.LuminaSheet<ContentType>()!;
         Customize(BossModuleInfo.Category.Dungeon, contentType.GetRow(2));
         Customize(BossModuleInfo.Category.Trial, contentType.GetRow(4));
         Customize(BossModuleInfo.Category.Raid, contentType.GetRow(5));
@@ -107,7 +111,6 @@ public sealed class ModuleViewer
         Customize(BossModuleInfo.Category.Variant, contentType.GetRow(30), "Variant Dungeons");
         Customize(BossModuleInfo.Category.Criterion, contentType.GetRow(30), "Criterion Dungeons");
 
-        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>()!;
         Customize(BossModuleInfo.Category.Foray, playStyle.GetRow(6));
         Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle.GetRow(8));
         Customize(BossModuleInfo.Category.Hunt, playStyle.GetRow(10));
@@ -298,7 +301,7 @@ public sealed class ModuleViewer
         {
             ImGui.Image(tex.Handle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
             if (ex != null)
-                Service.Logger.Warning(ex, $"unable to load icon {iconId}");
+                logger.Warning(ex, $"unable to load icon {iconId}");
         }
 
         ImGui.TableNextColumn();

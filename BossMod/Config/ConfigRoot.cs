@@ -1,9 +1,14 @@
-﻿using System.IO;
+﻿using Dalamud.Plugin.Services;
+using System.IO;
 using System.Reflection;
 
 namespace BossMod;
 
-public class ConfigRoot(Serializer ser, Lazy<BossModuleRegistry> bmr)
+public class ConfigRoot(
+    Serializer ser,
+    Lazy<BossModuleRegistry> bmr,
+    IPluginLog logger
+)
 {
     public Event Modified = new();
     public Version AssemblyVersion = new(); // we use this to show newly added config options
@@ -47,7 +52,7 @@ public class ConfigRoot(Serializer ser, Lazy<BossModuleRegistry> bmr)
                 }
                 catch (AggregateException exc)
                 {
-                    Service.Logger.Warning(exc, "An error occurred while deserializing the plugin config. As a result, some settings may have unexpected values.");
+                    logger.Warning(exc, "An error occurred while deserializing the plugin config. As a result, some settings may have unexpected values.");
                 }
             }
             AssemblyVersion = json.RootElement.TryGetProperty(nameof(AssemblyVersion), out var jver) ? new(jver.GetString() ?? "") : new();

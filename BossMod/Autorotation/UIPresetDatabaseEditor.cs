@@ -8,7 +8,15 @@ using System.Text.Json.Nodes;
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationModuleRegistry rRegistry, RotationDatabase rotationDB, INotificationManager notifications, IDalamudPluginInterface dalamud, Serializer ser, AutorotationConfig config)
+public sealed class UIPresetDatabaseEditor(
+    RotationModuleRegistry rRegistry,
+    RotationDatabase rotationDB,
+    INotificationManager notifications,
+    IDalamudPluginInterface dalamud,
+    IPluginLog logger,
+    Serializer ser,
+    AutorotationConfig config
+)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
 
@@ -284,7 +292,7 @@ public sealed class UIPresetDatabaseEditor(RotationModuleRegistry rRegistry, Rot
         }
         catch (Exception ex)
         {
-            Service.Logger.Warning(ex, $"Failed to parse preset");
+            logger.Warning(ex, $"Failed to parse preset");
             notifications.AddNotification(new()
             {
                 Title = "Error while importing preset",

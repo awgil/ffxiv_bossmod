@@ -1,7 +1,5 @@
 ﻿using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
-using Dalamud.IoC;
-using Dalamud.Plugin.Services;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
@@ -9,10 +7,6 @@ namespace BossMod;
 
 public sealed class Service
 {
-#pragma warning disable CS8618
-    [PluginService] public static IPluginLog Logger { get; private set; }
-#pragma warning restore CS8618
-
 #pragma warning disable CA2211
     public static Action<string>? LogHandlerDebug;
     public static Action<string>? LogHandlerVerbose;
