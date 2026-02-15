@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Lumina.Excel.Sheets;
 using System.Reflection;
 
 namespace BossMod.Stormblood.Foray;
@@ -10,7 +11,7 @@ public sealed class NMAttribute(uint nameID, uint prepNameID, uint fateID = 0) :
     public uint PrepNameID => prepNameID;
     public uint FateID => fateID;
 
-    public string Label => $"{ModuleViewer.BNpcName(nameID)} ({ModuleViewer.BNpcName(prepNameID)})";
+    public string Label => $"{ModuleViewer.BNpcName(Service.LuminaSheet<BNpcName>()!, nameID)} ({ModuleViewer.BNpcName(Service.LuminaSheet<BNpcName>()!, prepNameID)})";
 }
 
 [ConfigDisplay(Name = "Eureka", Parent = typeof(StormbloodConfig))]
