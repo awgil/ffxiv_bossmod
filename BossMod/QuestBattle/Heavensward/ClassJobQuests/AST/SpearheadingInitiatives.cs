@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 413)]
 internal class SpearheadingInitiatives(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithConnection(new Vector3(297.23f, 308.81f, -425.09f))
             .CompleteOnKilled(0x11FA),

@@ -12,7 +12,7 @@ internal class TheBeastWithin(ZoneModuleArgs args) : QuestBattle(args)
                 obj.Completed = true;
         };
     }
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithConnection(new Vector3(130.52f, -18.07f, 374.95f))
             .With(obj => CompleteOnSpawn(obj, 2)),

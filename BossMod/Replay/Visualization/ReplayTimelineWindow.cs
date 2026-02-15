@@ -18,7 +18,7 @@ class ReplayTimelineWindow : UIWindow
     private readonly UITree _configTree = new();
     private readonly BossModuleRegistry _bmr;
 
-    public ReplayTimelineWindow(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync, ColorConfig colors) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
+    public ReplayTimelineWindow(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync, ColorConfig colors) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
     {
         _bmr = bmr;
         _encounter = enc;
@@ -34,7 +34,7 @@ class ReplayTimelineWindow : UIWindow
         _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));
         _timeline.Columns.Add(new ColumnSeparator(_timeline));
         _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(bmr, _timeline, _stateTree, _phaseBranches, replay, enc));
-        _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(bmr, registry, ser, _timeline, _stateTree, _phaseBranches, replay, enc, showPlayers, planDB));
+        _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(defs, bmr, registry, ser, _timeline, _stateTree, _phaseBranches, replay, enc, showPlayers, planDB));
     }
 
     public override void PreOpenCheck() => RespectCloseHotkey = !_colPlayers.AnyPlanModified;

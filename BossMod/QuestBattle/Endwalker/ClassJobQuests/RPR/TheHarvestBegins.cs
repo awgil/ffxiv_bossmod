@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 814)]
 internal class TheHarvestBegins(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithInteract(0x3836)
             .With(obj => {

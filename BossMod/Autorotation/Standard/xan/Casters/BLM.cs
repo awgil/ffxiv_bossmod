@@ -131,7 +131,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         if (aid == AID.Despair && Unlocked(TraitID.EnhancedAstralFire))
             return 0;
 
-        var aspect = ActionDefinitions.Instance.Spell(aid)!.Aspect;
+        var aspect = Actions.Spell(aid)!.Aspect;
 
         if (aid == AID.Fire3 && Firestarter
             || aid == AID.Foul && Unlocked(TraitID.EnhancedFoul)

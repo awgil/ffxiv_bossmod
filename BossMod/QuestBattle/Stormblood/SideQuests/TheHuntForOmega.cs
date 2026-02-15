@@ -5,7 +5,7 @@ namespace BossMod.QuestBattle.Stormblood.SideQuests;
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 275)]
 internal class TheHuntForOmega(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override unsafe List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override unsafe List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithConnection(new Waypoint(new Vector3(0.11f, -272.00f, 432.31f), false))
             .With(obj => {

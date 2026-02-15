@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 343)]
 internal class InTheEyesOfGodsAndMen(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws).WithInteract(0x1E8D67)
     ];
 

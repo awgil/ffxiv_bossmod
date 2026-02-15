@@ -56,7 +56,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
         return res;
     }
 
-    public bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
+    public bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[Actions.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
     public bool EnemiesTargetingSelf(int numEnemies) => World.Actors.Count(o => o.IsTargetable && !o.IsDead && !o.IsAlly && o.TargetID == Player.InstanceID) >= numEnemies;
     public float PlayerHPP => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
     public float DebuffsLeft(Actor? target) => Utils.MaxAll(

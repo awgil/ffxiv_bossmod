@@ -67,8 +67,11 @@ class ClassDefinitions
     private readonly SortedDictionary<int, List<ActionData>> _byCDGroup = [];
     private readonly BitMask[] _classPerCategory = new BitMask[(int)ClassCategory.Limited + 1];
 
-    public ClassDefinitions(List<Replay> replays)
+    private readonly ActionDefinitions _actions;
+
+    public ClassDefinitions(List<Replay> replays, ActionDefinitions defs)
     {
+        _actions = defs;
         var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
         var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>()!;
         var cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
@@ -100,7 +103,7 @@ class ClassDefinitions
         var nullOwner = _classData[Class.None] = new(Class.None, Class.None);
 
         // add any actions from definitions that weren't found yet
-        foreach (var def in ActionDefinitions.Instance.Definitions)
+        foreach (var def in defs.Definitions)
             if (RegisterAction(def.ID, def.ID.Type == ActionType.Spell ? actionSheet?.GetRow(def.ID.ID) : null, nullOwner, out var data))
                 data.PotentiallyRemoved = true;
 
@@ -253,7 +256,7 @@ class ClassDefinitions
         if (!_actionData.TryGetValue(action, out var data))
         {
             newlyCreated = true;
-            data = _actionData[action] = new(action, ActionDefinitions.Instance[action], row);
+            data = _actionData[action] = new(action, _actions[action], row);
         }
         actionData = data;
         if (!data.OwningClasses[(int)owner.ID])
@@ -296,7 +299,7 @@ class ClassDefinitions
             tree.LeafNode($"Row: {na.Row}, raw range: {na.Row?.Range}, class: {na.Row?.ClassJob.ValueNullable?.Abbreviation}, category: {na.Row?.ClassJobCategory.ValueNullable?.Name}");
             tree.LeafNode($"Unlock: {UnlockString(na.Row?.ClassJobLevel ?? 0, na.Row?.UnlockLink.RowId ?? 0)}");
             tree.LeafNode($"Warnings: {(na.PotentiallyRemoved ? "PR " : "")}{(na.ReplayOnly ? "RO " : "")}", na.PotentiallyRemoved || na.ReplayOnly ? 0xff0000ff : 0xffffffff);
-            tree.LeafNode($"Targets: [{ActionDefinitions.Instance.ActionAllowedTargets(na.ID)}]");
+            tree.LeafNode($"Targets: [{_actions.ActionAllowedTargets(na.ID)}]");
             tree.LeafNode($"Can be put on action bar: {na.CanBePutOnActionBar}");
             tree.LeafNode($"Is role action: {na.IsRoleAction}");
             tree.LeafNode($"Expected anim lock: {na.ExpectedInstantAnimLock} / {na.ExpectedCastAnimLock}", na.SeenDifferentInstantAnimLocks || na.SeenDifferentCastAnimLocks ? 0xff0000ff : 0xffffffff);
@@ -336,7 +339,7 @@ class ClassDefinitions
 
         if (ImGui.MenuItem("Generate AID enum"))
         {
-            var writer = new AIDWriter(ns);
+            var writer = new AIDWriter(ns, _actions);
             writer.Add("None", 0);
             writer.Add("Sprint", ActionDefinitions.IDSprint.ID);
             for (var c = ClassCategory.Tank; c <= ClassCategory.Limited; ++c)
@@ -422,7 +425,7 @@ class ClassDefinitions
 
     private string GenerateClassAID(ClassData cd)
     {
-        var writer = new AIDWriter(cd.ID.ToString());
+        var writer = new AIDWriter(cd.ID.ToString(), _actions);
         writer.Add("None", 0);
         writer.Add("Sprint", "ClassShared.AID.Sprint");
         writer.Group("", cd.Actions.Where(a => a.OwningClasses.NumSetBits() == 1), false);
@@ -470,7 +473,7 @@ class ClassDefinitions
         }
     }
 
-    private record class AIDWriter(string Namespace) : EnumWriter("AID")
+    private record class AIDWriter(string Namespace, ActionDefinitions Actions) : EnumWriter("AID")
     {
         public void Add(ActionData a, bool allowClasses, bool shared = false)
         {
@@ -495,7 +498,7 @@ class ClassDefinitions
         }
 
         public string Comment(ActionData action, bool allowClasses)
-            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.ActionRange(action.ID, action.IsPhysRanged)}, {(action.Row != null ? DescribeShape(action.Row.Value) : "????")}, targets={ActionDefinitions.Instance.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/", StringComparison.InvariantCulture)}{AnimLockString(action)}";
+            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {Actions.ActionRange(action.ID, action.IsPhysRanged)}, {(action.Row != null ? DescribeShape(action.Row.Value) : "????")}, targets={Actions.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/", StringComparison.InvariantCulture)}{AnimLockString(action)}";
 
         private string LevelString(ActionData action, bool allowClasses)
         {
@@ -506,7 +509,7 @@ class ClassDefinitions
 
         private string CastTimeString(ActionData action)
         {
-            var castTime = ActionDefinitions.Instance.ActionBaseCastTime(action.ID);
+            var castTime = Actions.ActionBaseCastTime(action.ID);
             return castTime != 0 ? $"{castTime:f1}s cast" : "instant";
         }
 
@@ -514,13 +517,13 @@ class ClassDefinitions
         {
             < 0 => "",
             ActionDefinitions.GCDGroup => ", GCD",
-            _ => $", {ActionDefinitions.Instance.ActionBaseCooldown(action.ID):f1}s CD (group {action.MainCDGroup}{(action.ExtraCDGroup >= 0 ? $"/{action.ExtraCDGroup}" : "")})"
+            _ => $", {Actions.ActionBaseCooldown(action.ID):f1}s CD (group {action.MainCDGroup}{(action.ExtraCDGroup >= 0 ? $"/{action.ExtraCDGroup}" : "")})"
         };
 
         private string ChargesString(ActionData action)
         {
             // assume if definition is present, we know what we're doing...
-            var min = ActionDefinitions.Instance.ActionBaseMaxCharges(action.ID);
+            var min = Actions.ActionBaseMaxCharges(action.ID);
             var max = action.Definition?.MaxChargesAtCap() ?? 0;
             return min == 1 && max <= 1 ? "" // simple
                 : min == max ? $" ({min} charges)"

@@ -108,8 +108,8 @@ abstract class WeaponsBait(BossModule module) : Components.UntelegraphedBait(mod
 abstract class WeaponsHints(BossModule module) : BossComponent(module)
 {
     protected readonly List<Actor> Weapons = [];
-    protected readonly RM11STheTyrantConfig Config = Service.Config.Get<RM11STheTyrantConfig>();
-    protected readonly PartyRolesConfig Roles = Service.Config.Get<PartyRolesConfig>();
+    protected readonly RM11STheTyrantConfig Config = module.Config.Get<RM11STheTyrantConfig>();
+    protected readonly PartyRolesConfig Roles = module.Config.Get<PartyRolesConfig>();
     protected DateTime Next;
     protected WPos Previous;
 

@@ -2,7 +2,7 @@
 
 namespace BossMod.Stormblood.Quest.ARequiemForHeroes;
 
-class AutoHien(WorldState ws) : UnmanagedRotation(ws, 3)
+class AutoHien(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {

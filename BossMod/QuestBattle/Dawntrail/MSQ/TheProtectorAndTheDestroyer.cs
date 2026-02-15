@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 998)]
 public class TheProtectorAndTheDestroyer(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override unsafe List<QuestObjective> DefineObjectives(WorldState ws)
+    public override unsafe List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs)
     {
         return [
         new QuestObjective(ws)

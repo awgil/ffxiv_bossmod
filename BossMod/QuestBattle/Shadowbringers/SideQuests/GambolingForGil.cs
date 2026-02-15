@@ -5,7 +5,7 @@ namespace BossMod.QuestBattle.Shadowbringers.SideQuests;
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 670)]
 internal class GambolingForGil(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .Hints((player, hints) => {
                 var g = ws.Client.GetGauge<DancerGauge>();

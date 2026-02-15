@@ -34,7 +34,7 @@ public abstract class RoleRangedUtility(RotationModuleManager manager, Actor pla
         if (lbLevel > 0)
         {
             var lbAction = lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Desperado : ClassShared.AID.BigShot);
-            Hints.ActionsToExecute.Push(lbAction, ResolveTargetOverride(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: ActionDefinitions.Instance[lbAction]!.CastTime);
+            Hints.ActionsToExecute.Push(lbAction, ResolveTargetOverride(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: Actions[lbAction]!.CastTime);
         }
     }
 }

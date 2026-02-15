@@ -11,7 +11,7 @@ internal class AGameOfLifeAndDeath(ZoneModuleArgs args) : QuestBattle(args)
             obj.AddAIHints += (player, hints) => hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.NIN.AID.Hide), player, ActionQueue.Priority.Medium);
         });
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         Hide(),
 
         new QuestObjective(ws)

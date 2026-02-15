@@ -55,7 +55,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         var aurora = strategy.Option(Track.Aurora);
         var auroraTarget = ResolveTargetOverride(aurora.Value) ?? primaryTarget ?? Player; //Smart-Targeting
         var auroraStrat = aurora.As<AuroraStrategy>();
-        var auroraCD = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRK.AID.Oblation)!.MainCooldownGroup].Remaining;
+        var auroraCD = World.Client.Cooldowns[Actions.Spell(DRK.AID.Oblation)!.MainCooldownGroup].Remaining;
         var hasAurora = StatusDetails(auroraTarget, GNB.SID.Aurora, Player.InstanceID).Left > 0.1f; //Checks if status is present
         if (auroraStrat != AuroraStrategy.None && !hasAurora)
         {
@@ -77,7 +77,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         var dashStrategy = strategy.Option(Track.Trajectory).As<DashStrategy>();
         var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var distance = Player.DistanceToHitbox(dashTarget);
-        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(GNB.AID.Trajectory)!.MainCooldownGroup].Remaining;
+        var cd = World.Client.Cooldowns[Actions.Spell(GNB.AID.Trajectory)!.MainCooldownGroup].Remaining;
         var shouldDash = dashStrategy switch
         {
             DashStrategy.None => false,

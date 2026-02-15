@@ -99,7 +99,7 @@ class LeaveOnExitAppear(BossModule module) : BossComponent(module)
 
 // someone can finish/fix this if they want. I really do not care enough for a seasonal quest
 class BakeOffAI(BossModule module) : RotationModule<AutoBakeOff>(module);
-public class AutoBakeOff(WorldState ws) : UnmanagedRotation(ws, 5)
+public class AutoBakeOff(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 5)
 {
     protected override void Exec(Actor? primaryTarget)
     {

@@ -136,7 +136,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         => UseGCD(ActionID.MakeSpell(action), target, extraPriority);
     private void UseGCD(ActionID action, Actor? target, int extraPriority = 0)
     {
-        var def = ActionDefinitions.Instance[action];
+        var def = Actions[action];
         if (def == null)
             return;
 

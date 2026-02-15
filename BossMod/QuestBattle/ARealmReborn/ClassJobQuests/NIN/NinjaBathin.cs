@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 390)]
 internal class NinjaBathin(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws).WithConnection(new Vector3(213.18f, -36.40f, 313.56f))
     ];
 }

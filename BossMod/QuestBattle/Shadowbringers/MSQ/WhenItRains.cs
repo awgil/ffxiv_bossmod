@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 663)]
 public class WhenItRains(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithConnection(new Vector3(226.01f, 10.03f, 105.23f))
             .WithConnection(new Vector3(149.92f, 7.67f, 97.04f))

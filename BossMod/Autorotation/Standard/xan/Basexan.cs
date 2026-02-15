@@ -97,15 +97,15 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     protected float AttackGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float SpellGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
 
-    protected float ReadyIn(AID action) => Unlocked(action) ? ActionDefinitions.Instance.Spell(action)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
-    protected float MaxChargesIn(AID action) => Unlocked(action) ? ActionDefinitions.Instance.Spell(action)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
+    protected float ReadyIn(AID action) => Unlocked(action) ? Actions.Spell(action)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
+    protected float MaxChargesIn(AID action) => Unlocked(action) ? Actions.Spell(action)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
 
     protected float DutyActionReadyIn<ID>(ID aid) where ID : Enum => DutyActionReadyIn(ActionID.MakeSpell(aid));
 
     protected float DutyActionReadyIn(ActionID aid)
     {
         if (World.Client.DutyActions.Any(d => d.Action == aid))
-            return ActionDefinitions.Instance[aid]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
+            return Actions[aid]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
         return float.MaxValue;
     }
 
@@ -124,11 +124,10 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
 
     public bool CanWeave(AID aid, int extraGCDs = 0, float extraFixedDelay = 0)
     {
-        // TODO is this actually helpful?
         if (!Unlocked(aid))
             return false;
 
-        var def = ActionDefinitions.Instance[ActionID.MakeSpell(aid)]!;
+        var def = Actions[ActionID.MakeSpell(aid)]!;
 
         // amnesia check
         if (def.Category == ActionCategory.Ability && Player.FindStatus(1092) != null)
@@ -209,7 +208,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         if (!CanUse(aid))
             return false;
 
-        var def = ActionDefinitions.Instance.Spell(aid);
+        var def = Actions.Spell(aid);
         if (def == null || !def.IsUnlocked(World, Player))
             return false;
 
@@ -424,7 +423,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     /// <returns></returns>
     protected virtual float GetCastTime(AID aid)
     {
-        var def = ActionDefinitions.Instance.Spell(aid);
+        var def = Actions.Spell(aid);
         if (def == null)
             return 0;
 

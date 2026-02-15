@@ -71,16 +71,9 @@ public sealed class ClientState
     public uint[] ContentKeyValueData = new uint[6]; // used for content-specific persistent player attributes, like bozja resistance rank
     public HateInfo CurrentTargetHate = new(0, new Hate[32]);
 
-    public readonly Dictionary<uint, uint> Inventory; // tracks supported regular items and all key items
+    public readonly Dictionary<uint, uint> Inventory = []; // tracks supported regular items and all key items
 
     public uint GetInventoryItemQuantity(uint itemId) => Inventory.TryGetValue(itemId, out var q) ? q : 0;
-
-    public ClientState()
-    {
-        Inventory = [];
-        foreach (var it in ActionDefinitions.Instance.SupportedItems)
-            Inventory[it] = 0;
-    }
 
     // if an action has SecondaryCostType between 1 and 4, it's considered usable as long as the corresponding timer in this array is >0; the timer is set to 5 when certain ActionEffects are received and ticks down each frame
     // 1: unknown - referenced in ActionManager code but not present in sheets, included for completeness

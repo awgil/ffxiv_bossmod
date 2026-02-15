@@ -2,7 +2,7 @@
 
 class IdyllicDreamStaging(BossModule module) : StagingAssignment<Replication3Role>(module, playerGroupSize: 4, cloneGroupSize: 2, hasBossTether: false)
 {
-    readonly RM12S2TheLindwurmConfig _config = Service.Config.Get<RM12S2TheLindwurmConfig>();
+    readonly RM12S2TheLindwurmConfig _config = module.Config.Get<RM12S2TheLindwurmConfig>();
 
     public bool WurmsFinished;
 

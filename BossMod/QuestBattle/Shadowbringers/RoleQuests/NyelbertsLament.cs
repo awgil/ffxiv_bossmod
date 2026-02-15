@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.RoleQuests;
 
-public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 20)
+public class AutoNyelbert(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 20)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -39,9 +39,9 @@ public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 20)
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 686)]
 public class NyelbertsLament(ZoneModuleArgs args) : QuestBattle(args)
 {
-    private readonly AutoNyelbert _ai = new(args.World);
+    private readonly AutoNyelbert _ai = new(args.World, args.Actions);
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithConnection(new Vector3(-440.00f, -121.67f, -676.00f))
     ];

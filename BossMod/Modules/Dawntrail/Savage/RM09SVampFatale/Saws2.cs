@@ -169,7 +169,7 @@ class ElectroPuddle(BossModule module) : Components.GenericAOEs(module)
         foreach (var (p, spawn) in _puddles)
         {
             var elapsed = spawn > WorldState.CurrentTime ? 0 : (WorldState.CurrentTime - spawn).TotalSeconds;
-            var radius = 3 + (float)elapsed / 2;
+            var radius = MathF.Min(10, 3 + (float)elapsed / 2);
             yield return new(new AOEShapeCircle(radius), p.Position);
         }
     }

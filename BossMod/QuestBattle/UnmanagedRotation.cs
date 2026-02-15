@@ -1,10 +1,11 @@
 ﻿namespace BossMod.QuestBattle;
 
-public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
+public abstract class UnmanagedRotation(WorldState ws, ActionDefinitions defs, float effectiveRange)
 {
     protected AIHints Hints = null!;
     protected Actor Player = null!;
-    protected WorldState World => ws;
+    protected readonly WorldState World = ws;
+    protected readonly ActionDefinitions Actions = defs;
     protected uint MP;
 
     protected Roleplay.AID ComboAction => (Roleplay.AID)World.Client.ComboState.Action;
@@ -28,7 +29,7 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
     protected void UseAction(Roleplay.AID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default, Angle? facingAngle = null) => UseAction(ActionID.MakeSpell(action), target, additionalPriority, targetPos, facingAngle);
     protected void UseAction(ActionID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
-        var def = ActionDefinitions.Instance[action];
+        var def = Actions[action];
         if (def == null)
             return;
         Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + additionalPriority, castTime: def.CastTime - 0.5f, targetPos: targetPos, facingAngle: facingAngle);

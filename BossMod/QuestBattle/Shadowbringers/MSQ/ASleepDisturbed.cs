@@ -14,7 +14,7 @@ public class ASleepDisturbed(ZoneModuleArgs args) : QuestBattle(args)
         .. Enumerable.Range(0x1EAF8C, 6),
     ];
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .Hints((player, hints) => {
                 hints.InteractWithTarget = World.Actors.Where(a => InteractTargets.Contains((int)a.OID) && a.IsTargetable).OrderBy(a => a.OID).FirstOrDefault();

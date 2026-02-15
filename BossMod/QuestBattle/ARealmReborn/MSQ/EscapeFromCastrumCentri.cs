@@ -12,7 +12,7 @@ internal class EscapeFromCastrumCentri(ZoneModuleArgs args) : QuestBattle(args)
             .Hints((player, hints) => hints.PrioritizeTargetsByOID(oid, 1))
             .CompleteOnKilled(oid);
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .Hints((player, hints) => hints.PrioritizeAll())
             .With(obj => {

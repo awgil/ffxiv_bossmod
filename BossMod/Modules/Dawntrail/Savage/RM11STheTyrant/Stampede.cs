@@ -30,7 +30,7 @@ class StampedeMajesticMeteor(BossModule module) : Components.StandardAOEs(module
 
 class ImpactKiss(BossModule module) : Components.GenericTowers(module)
 {
-    private readonly RM11STheTyrantConfig _config = Service.Config.Get<RM11STheTyrantConfig>();
+    private readonly RM11STheTyrantConfig _config = module.Config.Get<RM11STheTyrantConfig>();
     private BitMask _prey;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -71,7 +71,7 @@ class ImpactKiss(BossModule module) : Components.GenericTowers(module)
         if (Towers.Count < 4)
             return;
 
-        var order = _config.StampedeTowersAssignment.Resolve(Raid).OrderBy(o => o.group).ToList();
+        var order = _config.StampedeTowersAssignment.Resolve(Raid, Module.Roles).OrderBy(o => o.group).ToList();
         if (order.Count == 0)
             return; // invalid assignments
 

@@ -31,7 +31,7 @@ public sealed class ClassBLMUtility(RotationModuleManager manager, Actor player)
         var dashStrategy = strategy.Option(Track.AetherialManipulation).As<DashStrategy>();
         var dashTarget = ResolveTargetOverride(dash.Value); //Smart-Targeting: Target needs to be set in autorotation or CDPlanner to prevent unexpected behavior
         var distance = Player.DistanceToHitbox(dashTarget);
-        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(BLM.AID.AetherialManipulation)!.MainCooldownGroup].Remaining;
+        var cd = World.Client.Cooldowns[Actions.Spell(BLM.AID.AetherialManipulation)!.MainCooldownGroup].Remaining;
         var shouldDash = dashStrategy switch
         {
             DashStrategy.None => false,

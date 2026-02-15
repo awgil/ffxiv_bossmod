@@ -5,7 +5,7 @@ internal class RiseOfTheMachinists(ZoneModuleArgs args) : QuestBattle(args)
 {
     private static readonly Vector3 Center = new(-650.33f, 97.38f, -452.71f);
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .With(obj => {
                 Actor? tedal = null;

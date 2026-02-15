@@ -242,7 +242,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime, Vector3 targetPos = default, Angle? facingAngle = null)
     {
-        var ability = ActionDefinitions.Instance.Spell(aid);
+        var ability = Actions.Spell(aid);
 
         if ((uint)(object)aid == 0)
             return false;
@@ -331,11 +331,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     /// <summary>Retrieves the total <b>cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float CDRemaining(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    protected float CDRemaining(AID aid) => World.Client.Cooldowns[Actions.Spell(aid)!.MainCooldownGroup].Remaining;
 
     /// <summary>Returns the <b>charge cooldown</b> time left on the specified <b>action</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
-    protected float ReadyIn(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
+    protected float ReadyIn(AID aid) => Actions.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
     /// <summary>Checks if <b>specified action</b> is ready to be used based on if it's <b>Unlocked</b> and its <b>total cooldown timer</b>. </summary>
     /// <param name="aid"> The user's specified <b>Action ID</b> being checked.</param>
@@ -414,7 +414,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
 
     #region Lines (AOE Rectangles)
     /// <summary>Creates a <b>Position Check</b> for <b>Line AOE (AOE Rectangle)</b> attacks with the given range.</summary>
-    private PositionCheck LineTargetCheck(float range, float halfWidth = 2) => (primary, other) => AIHints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), range, halfWidth);
+    private PositionCheck LineTargetCheck(float range, float halfWidth = 2) => (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), range, halfWidth);
 
     /// <summary>Checks if the target is within a <b>10-yalm AOE Rect</b> range.</summary>
     protected PositionCheck Is10yRectTarget => LineTargetCheck(10);
@@ -919,11 +919,11 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         ComboTimer = (float)(object)World.Client.ComboState.Remaining;
         CountdownRemaining = World.Client.CountdownRemaining;
         HasTrueNorth = StatusRemaining(Player, ClassShared.SID.TrueNorth, 15) > 0.1f;
-        CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
+        CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[Actions.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
         HasSwiftcast = StatusRemaining(Player, ClassShared.SID.Swiftcast, 10) > 0.1f;
-        CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
+        CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[Actions.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
         HasPeloton = HasEffect(ClassShared.SID.Peloton);
-        CanPeloton = !Player.InCombat && !HasPeloton && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
+        CanPeloton = !Player.InCombat && !HasPeloton && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Peloton)) && World.Client.Cooldowns[Actions.Spell(ClassShared.AID.Peloton)!.MainCooldownGroup].Remaining < 0.6f;
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
         if (Manager.Planner?.EstimateTimeToNextDowntime() is (var downtimeNow, var stateLeft))
         {

@@ -2,7 +2,7 @@
 
 class Replication2Staging(BossModule module) : StagingAssignment<Replication2Role>(module, playerGroupSize: 2, cloneGroupSize: 6, hasBossTether: true)
 {
-    readonly RM12S2TheLindwurmConfig _config = Service.Config.Get<RM12S2TheLindwurmConfig>();
+    readonly RM12S2TheLindwurmConfig _config = module.Config.Get<RM12S2TheLindwurmConfig>();
 
     protected override Replication2Role? DeterminePlayerRole(PlayerClone c)
     {

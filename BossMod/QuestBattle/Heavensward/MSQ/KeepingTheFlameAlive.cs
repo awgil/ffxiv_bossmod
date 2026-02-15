@@ -12,7 +12,7 @@ public class KeepingTheFlameAlive(ZoneModuleArgs args) : QuestBattle(args)
 
     private static readonly uint[] CrystalBraves = [0xF70, 0xF71, 0xF72];
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .Named("Trigger cutscene")
             .WithConnections(

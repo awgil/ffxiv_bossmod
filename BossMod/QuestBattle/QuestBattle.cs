@@ -266,7 +266,7 @@ public abstract class QuestBattle : ZoneModule
         var ws = args.World;
         _conditions = args.Condition;
 #pragma warning disable CA2214 // TODO: this is kinda working rn, but still not good...
-        Objectives = DefineObjectives(ws);
+        Objectives = DefineObjectives(ws, args.Actions);
 #pragma warning restore CA2214
 
         _subscriptions = new(
@@ -454,7 +454,7 @@ public abstract class QuestBattle : ZoneModule
         }
     }
 
-    public virtual List<QuestObjective> DefineObjectives(WorldState ws) => [];
+    public virtual List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [];
     public virtual void AddQuestAIHints(Actor player, AIHints hints) { }
 
     private Task<List<Vector3>>? Pathfind(Vector3 source, Vector3 target) => _pathfind.InvokeFunc(source, target, false);

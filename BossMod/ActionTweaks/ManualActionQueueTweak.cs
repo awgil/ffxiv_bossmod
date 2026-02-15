@@ -11,7 +11,7 @@
 // - our queue distinguishes GCD and oGCD actions; since oGCDs can be delayed, effective 'expiration' time for oGCDs is much larger than native 0.5s
 // - trying to queue an oGCD action while it is already queued (double tapping) activates 'emergency mode': all preceeding queued actions are removed and this action is returned even if it would delay GCD
 // - entries from the manual queue are added to the autoqueue every frame with appropriate priorities, and usual logic selects best action to execute
-public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
+public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, ActionDefinitions defs)
 {
     private readonly record struct Entry(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionDefinition Definition, DateTime ExpireAt, float CastTime)
     {
@@ -79,7 +79,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (player == null)
             return false; // player is unknown, skip
 
-        var def = ActionDefinitions.Instance[action];
+        var def = defs[action];
         if (def == null)
             return false; // unknown action, let native queue handle it instead
 

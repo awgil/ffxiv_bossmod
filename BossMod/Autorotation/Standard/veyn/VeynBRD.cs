@@ -188,7 +188,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
 
     private bool Unlocked(BRD.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     private bool Unlocked(BRD.TraitID tid) => TraitUnlocked((uint)tid);
-    private float CD(BRD.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    private float CD(BRD.AID aid) => World.Client.Cooldowns[Actions.Spell(aid)!.MainCooldownGroup].Remaining;
     private bool CanFitGCD(float deadline, int extraGCDs = 0) => GCD + GCDLength * extraGCDs < deadline; // note: if deadline is 0 (meaning status not active etc), we can't fit a single gcd even if available immediately (GCD==0), so we use <
 
     // upgrade paths
@@ -233,7 +233,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         FullBuffsIn = cdRS;
 
         BloodletterCDTotal = Player.Class == Class.BRD && Unlocked(BRD.TraitID.EnhancedBloodletter) ? 45 : 30;
-        ref readonly var bloodletterCD = ref World.Client.Cooldowns[ActionDefinitions.Instance.Spell(BRD.AID.Bloodletter)!.MainCooldownGroup];
+        ref readonly var bloodletterCD = ref World.Client.Cooldowns[Actions.Spell(BRD.AID.Bloodletter)!.MainCooldownGroup];
         BloodletterCDElapsed = bloodletterCD.Total == 0 ? BloodletterCDTotal : Math.Min(bloodletterCD.Elapsed, BloodletterCDTotal);
 
         var strategyDOTsOption = strategy.Option(Track.DOTs);

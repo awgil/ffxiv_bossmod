@@ -12,12 +12,12 @@ sealed class AnalysisManager : IDisposable
         public T Get() => _impl ??= _init();
     }
 
-    private sealed class Global(List<Replay> replays)
+    private sealed class Global(List<Replay> replays, ActionDefinitions defs)
     {
         private readonly Lazy<UnknownActionEffects> _unkEffects = new(() => new(replays));
         private readonly Lazy<ParticipantInfo> _participantInfo = new(() => new(replays));
         private readonly Lazy<AbilityInfo> _abilityInfo = new(() => new(replays));
-        private readonly Lazy<ClassDefinitions> _classDefinitions = new(() => new(replays));
+        private readonly Lazy<ClassDefinitions> _classDefinitions = new(() => new(replays, defs));
         private readonly Lazy<ClientActions> _clientActions = new(() => new(replays));
         private readonly Lazy<EffectResultMispredict> _effectResultMissing = new(() => new(replays, true));
         private readonly Lazy<EffectResultMispredict> _effectResultUnexpected = new(() => new(replays, false));
@@ -127,11 +127,11 @@ sealed class AnalysisManager : IDisposable
     private readonly Dictionary<uint, PerEncounter> _perEncounter = []; // key = encounter OID
     private readonly UITree _tree = new();
 
-    public AnalysisManager(List<Replay> replays, BossModuleRegistry bmr)
+    public AnalysisManager(List<Replay> replays, BossModuleRegistry bmr, ActionDefinitions defs)
     {
         _replays = replays;
         _bmr = bmr;
-        _global = new(_replays);
+        _global = new(_replays, defs);
         InitEncounters();
     }
 

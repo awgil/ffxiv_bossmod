@@ -10,7 +10,7 @@ public class ItsProbablyATrap(ZoneModuleArgs args) : QuestBattle(args)
 
     private bool SmokeBomb;
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .With(obj => obj.Update += () => obj.CompleteIf(World.Client.DutyActions[0].Action.ID == 7816)),
 

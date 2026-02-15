@@ -30,7 +30,7 @@ public sealed class ClassPCTUtility(RotationModuleManager manager, Actor player)
         var temperaStrat = tempera.As<TemperaCoatOption>();
         if (temperaStrat != TemperaCoatOption.None)
         {
-            var canCoat = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaCoat)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(PCT.AID.TemperaCoat)!.MainCooldownGroup].Remaining < 0.6f;
+            var canCoat = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaCoat)) && World.Client.Cooldowns[Actions.Spell(PCT.AID.TemperaCoat)!.MainCooldownGroup].Remaining < 0.6f;
             var hasCoat = StatusDetails(Player, PCT.SID.TemperaCoat, Player.InstanceID).Left > 0.1f;
             var canGrassa = ActionUnlocked(ActionID.MakeSpell(PCT.AID.TemperaGrassa)) && hasCoat;
             var hasGrassa = StatusDetails(Player, PCT.SID.TemperaGrassa, Player.InstanceID).Left > 0.1f;

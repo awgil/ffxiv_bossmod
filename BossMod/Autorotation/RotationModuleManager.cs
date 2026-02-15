@@ -1,4 +1,6 @@
-﻿namespace BossMod.Autorotation;
+﻿using Dalamud.Plugin.Services;
+
+namespace BossMod.Autorotation;
 
 public interface IRotationModuleData
 {
@@ -19,6 +21,8 @@ public sealed class RotationModuleManager : IDisposable
     public readonly BossModuleManager Bossmods;
     public int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
+    public readonly ActionDefinitions Actions;
+    public readonly IUnlockState UnlockState;
     public PlanExecution? Planner { get; private set; }
     private readonly PartyRolesConfig _prc;
     private readonly EventSubscriptions _subscriptions;
@@ -67,13 +71,15 @@ public sealed class RotationModuleManager : IDisposable
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
-    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AutorotationConfig config, PartyRolesConfig prc, AIHints hints, int playerSlot = PartyState.PlayerSlot)
+    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AutorotationConfig config, PartyRolesConfig prc, ActionDefinitions defs, IUnlockState unlockState, AIHints hints)
     {
         Config = config;
         _prc = prc;
+        Actions = defs;
         Database = db;
         Bossmods = bmm;
-        PlayerSlot = playerSlot;
+        PlayerSlot = PartyState.PlayerSlot;
+        UnlockState = unlockState;
         Hints = hints;
         _subscriptions = new
         (

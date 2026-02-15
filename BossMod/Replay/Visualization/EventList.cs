@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace BossMod.ReplayVisualization;
 
-class EventList(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ColorConfig colors, Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, ReplayDetailsWindow timelineSync)
+class EventList(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ColorConfig colors, Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, ReplayDetailsWindow timelineSync)
 {
     record struct Lists(OpList? Ops, IPCList? IPCs);
 
@@ -264,7 +264,7 @@ class EventList(BossModuleRegistry bmr, RotationModuleRegistry registry, Seriali
 
     private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
     {
-        _ = new ReplayTimelineWindow(bmr, registry, ser, r, enc, showPlayers, planDB, timelineSync, colors);
+        _ = new ReplayTimelineWindow(defs, bmr, registry, ser, r, enc, showPlayers, planDB, timelineSync, colors);
     }
 
     private void DrawTimelines(Replay.Encounter enc)

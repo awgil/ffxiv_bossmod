@@ -1,4 +1,5 @@
 ﻿using BossMod.Interfaces;
+using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
@@ -61,9 +62,9 @@ public enum ActionAspect : byte
 // some of the data is available in sheets, however unfortunately quite a bit is hardcoded in game functions; it often uses current player data
 // however, we need this information outside game (ie in uidev) and for different players of different classes/levels (ie for replay analysis)
 // because of that, we need to reimplement a lot of the logic here - this has to be synchronized to the code whenever game changes
-public sealed record class ActionDefinition(ActionID ID)
+public sealed record class ActionDefinition(ActionID ID, IUnlockState UnlockState)
 {
-    public delegate bool ConditionDelegate(WorldState ws, Actor player, ActionQueue.Entry action, AIHints hints);
+    public delegate bool ConditionDelegate(WorldState ws, Actor player, ActionQueue.Entry action, AIHints hints, ActionTweaksConfig config);
     public delegate Actor? SmartTargetDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
     public delegate Angle? TransformAngleDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
 
@@ -147,7 +148,7 @@ public sealed record class ActionDefinition(ActionID ID)
         return AllowedClasses[(int)player.Class] && checkLevel >= MinLevel && LinkUnlocked(UnlockLink);
     }
 
-    private static bool LinkUnlocked(uint link) => link == 0 || (ActionDefinitions.Instance.UnlockCheck?.Invoke(link) ?? true);
+    private bool LinkUnlocked(uint link) => link == 0 || UnlockState.IsUnlockLinkUnlocked(link);
 }
 
 // database of all supported player-initiated actions
@@ -160,6 +161,7 @@ public sealed class ActionDefinitions
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
 
+    private readonly IUnlockState _unlockState;
     public IEnumerable<ActionDefinition> Definitions => _definitions.Values;
     public ActionDefinition? this[ActionID action] => _definitions.GetValueOrDefault(action);
     public ActionDefinition? Spell<AID>(AID aid) where AID : Enum => _definitions.GetValueOrDefault(ActionID.MakeSpell(aid));
@@ -201,18 +203,13 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDGeneralDuty1 = new(ActionType.General, 26);
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
-    public static readonly LazyExternal<ActionDefinitions> InstanceLazy = new();
-    public static ActionDefinitions Instance => InstanceLazy.ValueOrException;
-
-    public static void CreateInstance(IEnumerable<IDefinitions> defs)
+    public ActionDefinitions(IEnumerable<IDefinitions> classDefinitions, IUnlockState unlockState)
     {
-        InstanceLazy.SetValue(new(defs));
-    }
+        _unlockState = unlockState;
 
-    public Func<uint, bool>? UnlockCheck;
+        foreach (var def in classDefinitions)
+            def.Initialize(this);
 
-    private ActionDefinitions(IEnumerable<IDefinitions> classDefinitions)
-    {
         // items (TODO: more generic approach is needed...)
         RegisterItem(IDPotionStr);
         RegisterItem(IDPotionDex);
@@ -247,7 +244,7 @@ public sealed class ActionDefinitions
         for (var i = 1u; i <= 6u; i++)
         {
             var petAction = new ActionID(ActionType.PetAction, i);
-            var def = new ActionDefinition(petAction)
+            var def = new ActionDefinition(petAction, unlockState)
             {
                 CastAnimLock = 0,
                 InstantAnimLock = 0,
@@ -259,9 +256,6 @@ public sealed class ActionDefinitions
             }
             Register(def.ID, def);
         }
-
-        foreach (var def in classDefinitions)
-            def.Initialize(this);
     }
 
     // smart targeting utility: return target (if friendly) or null (otherwise)
@@ -275,9 +269,8 @@ public sealed class ActionDefinitions
     public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
     public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
 
-    public static bool DashToTargetCheck(WorldState ws, Actor player, ActionQueue.Entry action, AIHints hints)
+    public static bool DashToTargetCheck(WorldState ws, Actor player, ActionQueue.Entry action, AIHints hints, ActionTweaksConfig cfg)
     {
-        var cfg = Service.Config.Get<ActionTweaksConfig>();
         var target = action.Target;
         if (target == null || !cfg.DashSafety)
             return false;
@@ -304,9 +297,8 @@ public sealed class ActionDefinitions
         return IsDashDangerous(src, src + dir.ToDirection() * MathF.Max(0, dist), hints);
     }
 
-    public static bool DashToPositionCheck(WorldState _, Actor player, ActionQueue.Entry action, AIHints hints)
+    public static bool DashToPositionCheck(WorldState _, Actor player, ActionQueue.Entry action, AIHints hints, ActionTweaksConfig cfg)
     {
-        var cfg = Service.Config.Get<ActionTweaksConfig>();
         if (action.TargetPos == default || !cfg.DashSafety || !cfg.DashSafetyExtra)
             return false;
 
@@ -317,9 +309,8 @@ public sealed class ActionDefinitions
     }
 
     public static ActionDefinition.ConditionDelegate DashFixedDistanceCheck(float range, bool backwards = false)
-        => (ws, player, act, hints) =>
+        => (ws, player, act, hints, cfg) =>
         {
-            var cfg = Service.Config.Get<ActionTweaksConfig>();
             if (!cfg.DashSafety || !cfg.DashSafetyExtra)
                 return false;
 
@@ -334,9 +325,8 @@ public sealed class ActionDefinitions
         };
 
     public static ActionDefinition.ConditionDelegate BackdashCheck(float range)
-         => (ws, player, act, hints) =>
+         => (ws, player, act, hints, cfg) =>
         {
-            var cfg = Service.Config.Get<ActionTweaksConfig>();
             if (act.Target == null || !cfg.DashSafety || !cfg.DashSafetyExtra)
                 return false;
 
@@ -476,7 +466,7 @@ public sealed class ActionDefinitions
     public void RegisterSpell(ActionID aid, bool isPhysRanged = false, float instantAnimLock = 0.6f, float castAnimLock = 0.1f)
     {
         var data = ActionData(aid.ID);
-        var def = new ActionDefinition(aid)
+        var def = new ActionDefinition(aid, _unlockState)
         {
             AllowedClasses = SpellAllowedClasses(data),
             MinLevel = SpellMinLevel(data),
@@ -515,7 +505,7 @@ public sealed class ActionDefinitions
         var castTime = item.CastTimeSeconds /*?? 2*/;
         var aidNQ = new ActionID(ActionType.Item, baseId);
         var castAnimLock = castTime > 0 ? animLock : 0.1f;
-        _definitions[aidNQ] = new(aidNQ)
+        _definitions[aidNQ] = new(aidNQ, _unlockState)
         {
             AllowedTargets = targets,
             Range = range,
@@ -526,7 +516,7 @@ public sealed class ActionDefinitions
             CastAnimLock = castAnimLock
         };
         var aidHQ = new ActionID(ActionType.Item, baseId + 1000000);
-        _definitions[aidHQ] = new(aidHQ)
+        _definitions[aidHQ] = new(aidHQ, _unlockState)
         {
             AllowedTargets = targets,
             Range = range,
@@ -549,9 +539,9 @@ public sealed class ActionDefinitions
         if (!isItem)
         {
             var aid1 = ActionID.MakeBozjaHolster(id, 0);
-            _definitions[aid1] = new(aid1) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
+            _definitions[aid1] = new(aid1, _unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
             var aid2 = ActionID.MakeBozjaHolster(id, 1);
-            _definitions[aid2] = new(aid2) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
+            _definitions[aid2] = new(aid2, _unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
         }
 
         if (id == BozjaHolsterID.LostSeraphStrike)
@@ -560,7 +550,7 @@ public sealed class ActionDefinitions
 
     private void RegisterDeepDungeon(ActionID id)
     {
-        _definitions[id] = new(id) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
+        _definitions[id] = new(id, _unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
     }
 
     // hardcoded mechanic implementations

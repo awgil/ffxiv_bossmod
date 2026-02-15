@@ -77,15 +77,15 @@ public sealed unsafe class ActionManagerEx : IAmex
 
     private readonly unsafe delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, IMovementOverride movement, IChatGui chat)
+    public ActionManagerEx(WorldState ws, AIHints hints, ActionDefinitions defs, IMovementOverride movement, IChatGui chat)
     {
         _ws = ws;
         _hints = hints;
         _movement = movement;
-        _manualQueue = new(ws, hints);
+        _manualQueue = new(ws, hints, defs);
         _cancelCastTweak = new(ws, hints);
         _dismountTweak = new(ws);
-        _smartRotationTweak = new(ws, hints);
+        _smartRotationTweak = new(ws, hints, defs);
         _oocActionsTweak = new(ws);
         _autoAutosTweak = new(ws, hints);
         _animLockTweak = new(chat);

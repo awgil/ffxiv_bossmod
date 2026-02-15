@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Endwalker.MSQ;
 
-class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
+class AutoThancred(ZoneModuleArgs args) : UnmanagedRotation(args.World, args.Actions, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -31,7 +31,7 @@ class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 812)]
 internal class AFrostyReception(ZoneModuleArgs args) : QuestBattle(args)
 {
-    private readonly AutoThancred _ai = new(args.World);
+    private readonly AutoThancred _ai = new(args);
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {
@@ -80,7 +80,7 @@ internal class AFrostyReception(ZoneModuleArgs args) : QuestBattle(args)
             obj.OnStatusGain += (act, stat) => obj.CompleteIf(act.OID == 0x362A && stat.ID == 2824);
         });
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .Named("Commence")
             .WithInteract(0x384C)
@@ -135,7 +135,7 @@ internal class AFrostyReception(ZoneModuleArgs args) : QuestBattle(args)
                     if (World.Party.Player()?.InCombat ?? false)
                         return;
 
-                    var cd = ActionDefinitions.Instance[ActionID.MakeSpell(Roleplay.AID.SwiftDeception)];
+                    var cd = defs[ActionID.MakeSpell(Roleplay.AID.SwiftDeception)];
                     obj.CompleteIf(cd?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) < 0.5f);
                 };
             }),

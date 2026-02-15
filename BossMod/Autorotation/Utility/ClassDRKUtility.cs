@@ -65,7 +65,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         var oblation = strategy.Option(Track.Oblation);
         var oblationTarget = ResolveTargetOverride(oblation.Value) ?? primaryTarget ?? Player; //smart-target -> target (if current target is party member) -> self
         if (ActionUnlocked(ActionID.MakeSpell(DRK.AID.Oblation)) &&
-            World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRK.AID.Oblation)!.MainCooldownGroup].Remaining <= 60.5f &&
+            World.Client.Cooldowns[Actions.Spell(DRK.AID.Oblation)!.MainCooldownGroup].Remaining <= 60.5f &&
             oblationTarget?.FindStatus(DRK.SID.Oblation) == null && oblation.As<OblationStrategy>() == OblationStrategy.Force)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Oblation), oblationTarget, oblation.Priority(), oblation.Value.ExpireIn);
 
@@ -85,7 +85,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         var dashStrategy = strategy.Option(Track.Shadowstride).As<DashStrategy>();
         var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
         var distance = Player.DistanceToHitbox(dashTarget);
-        var dashCD = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRK.AID.Shadowstride)!.MainCooldownGroup].Remaining;
+        var dashCD = World.Client.Cooldowns[Actions.Spell(DRK.AID.Shadowstride)!.MainCooldownGroup].Remaining;
         if (dashStrategy switch
         {
             DashStrategy.GapClose => distance is > 3f and <= 20f && dashCD <= 30.5f,

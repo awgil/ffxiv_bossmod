@@ -164,7 +164,7 @@ sealed class Definitions(RPRConfig _config) : IDefinitions
         d.RegisterChargeIncreaseTrait(AID.SoulSlice, TraitID.TemperedSoul);
         d.RegisterChargeIncreaseTrait(AID.SoulScythe, TraitID.TemperedSoul);
 
-        d.Spell(AID.Harpe)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyHarpe && !player.InCombat && ws.Client.CountdownRemaining > 1.7f;
+        d.Spell(AID.Harpe)!.ForbidExecute = (ws, player, _, _, _) => _config.ForbidEarlyHarpe && !player.InCombat && ws.Client.CountdownRemaining > 1.7f;
 
         d.Spell(AID.HellsEgress)!.TransformAngle =
             d.Spell(AID.HellsIngress)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera

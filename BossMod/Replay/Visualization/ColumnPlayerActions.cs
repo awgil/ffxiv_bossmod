@@ -19,11 +19,13 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
     private readonly ColumnGenericHistory _animLocks;
     private readonly CooldownGroup[] _cdGroups = new CooldownGroup[ClientState.NumCooldownGroups];
     private readonly ColumnSeparator _sep;
+    private readonly ActionDefinitions _defs;
     private readonly Dictionary<ActionID, (int group, float cd)> _cooldownReductions = [];
 
-    public ColumnPlayerActions(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass)
+    public ColumnPlayerActions(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, ActionDefinitions defs)
         : base(timeline)
     {
+        _defs = defs;
         _autoAttacks = Add<ColumnGenericHistory>(new(timeline, tree, phaseBranches, "Auto attacks"));
         _animLocks = Add<ColumnGenericHistory>(new(timeline, tree, phaseBranches, "Abilities with animation locks"));
         _sep = Add(new ColumnSeparator(timeline));
@@ -49,7 +51,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
                 AddUnfinishedCast(player.Casts[iCast++], enc.Time.Start);
             }
 
-            var actionDef = ActionDefinitions.Instance[a.ID];
+            var actionDef = _defs[a.ID];
             DateTime effectStart;
             if (iCast < player.Casts.Count && player.Casts[iCast].Time.Start < a.Timestamp && player.Casts[iCast].ID == a.ID)
             {
@@ -178,7 +180,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
                 GetCooldownColumn(ActionID.MakeSpell(WAR.AID.Upheaval));
                 GetCooldownColumn(ActionID.MakeSpell(WAR.AID.Onslaught));
                 // infuriate cooldown reductions
-                var infCDG = ActionDefinitions.Instance.Spell(WAR.AID.Infuriate)!.MainCooldownGroup;
+                var infCDG = _defs.Spell(WAR.AID.Infuriate)!.MainCooldownGroup;
                 _cooldownReductions[ActionID.MakeSpell(WAR.AID.InnerBeast)] = (infCDG, 5);
                 _cooldownReductions[ActionID.MakeSpell(WAR.AID.FellCleave)] = (infCDG, 5);
                 _cooldownReductions[ActionID.MakeSpell(WAR.AID.InnerChaos)] = (infCDG, 5);
@@ -194,7 +196,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         var name = $"[unfinished] {cast.ID} -> {ReplayUtils.ParticipantString(cast.Target, cast.Time.Start)}";
         _animLocks.AddHistoryEntryRange(encStart, cast.Time, name, 0x800000ff).AddCastTooltip(cast);
 
-        var castActionDef = ActionDefinitions.Instance[cast.ID];
+        var castActionDef = _defs[cast.ID];
         if (castActionDef?.MainCooldownGroup >= 0)
         {
             AdvanceCooldown(castActionDef.MainCooldownGroup, encStart, cast.Time.Start, true);
@@ -218,7 +220,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
 
     private ColumnGenericHistory GetCooldownColumn(int cooldownGroup, ActionID defaultAction)
         => _cdGroups[cooldownGroup].Column ??= AddBefore<ColumnGenericHistory>(new(Timeline, _autoAttacks.Tree, _autoAttacks.PhaseBranches, defaultAction.ToString()), _sep);
-    private ColumnGenericHistory GetCooldownColumn(ActionID action) => GetCooldownColumn(ActionDefinitions.Instance[action]!.MainCooldownGroup, action);
+    private ColumnGenericHistory GetCooldownColumn(ActionID action) => GetCooldownColumn(_defs[action]!.MainCooldownGroup, action);
 
     private void AddCooldownRange(ref CooldownGroup data, DateTime encStart, DateTime rangeEnd)
     {

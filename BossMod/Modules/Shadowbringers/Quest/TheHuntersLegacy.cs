@@ -31,7 +31,7 @@ class StreakLightning1(BossModule module) : Components.StandardAOEs(module, AID.
 class AlternatingCurrent(BossModule module) : Components.StandardAOEs(module, AID.AlternatingCurrent1, new AOEShapeRect(60, 2.5f));
 class RumblingThunder(BossModule module) : Components.StackWithCastTargets(module, AID.RumblingThunderStack, 5, 1);
 
-class RendaRae(WorldState ws) : UnmanagedRotation(ws, 20)
+class RendaRae(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 20)
 {
     protected override void Exec(Actor? primaryTarget)
     {

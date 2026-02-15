@@ -6,7 +6,7 @@ internal class TheGameIsAfoot(ZoneModuleArgs args) : QuestBattle(args)
     private QuestObjective AutoSkip() => new QuestObjective(World)
         .With(obj => obj.Update += () => obj.CompleteIf(World.Party.Player()?.Position.Z < -400));
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         AutoSkip()
             .WithConnection(new Vector3(257.86f, 4.99f, -1.79f))
             .WithInteract(0x4049)

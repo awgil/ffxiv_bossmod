@@ -12,7 +12,7 @@ public sealed class TheKeyToVictory(ZoneModuleArgs args) : QuestBattle(args)
         Colossus = 0x1E7F
     }
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws)
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs)
     {
         return [
             new QuestObjective(ws)

@@ -5,7 +5,7 @@ namespace BossMod.QuestBattle.Endwalker.ClassJobQuests.SGE;
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 813)]
 internal class SagesFocus(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithConnection(new Vector3(7.71f, 0.00f, 108.57f))
             .With(obj => {

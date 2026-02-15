@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 395)]
 public sealed class ASeriesOfUnfortunateEvents(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
            .Named("Free Emmanellain")
            .WithConnection(new Vector3(657.58f, -65.54f, -123.75f))

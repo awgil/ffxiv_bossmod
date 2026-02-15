@@ -5,7 +5,7 @@ internal class ForwardTheRoyalMarines(ZoneModuleArgs args) : QuestBattle(args)
 {
     private QuestObjective Trace(Vector3 dest, uint oid) => new QuestObjective(World).WithConnection(dest).WithInteract(oid).CompleteOnState7(oid);
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         Trace(new Vector3(409.02f, 3.61f, 74.67f), 0x1E9B56),
         Trace(new Vector3(466.37f, 3.61f, 81.82f), 0x1E9B54),
         Trace(new Vector3(465.51f, 3.61f, 107.16f), 0x1E9B55),

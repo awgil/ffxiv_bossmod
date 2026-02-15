@@ -171,11 +171,13 @@ public class BossModuleRegistry
     private readonly Dictionary<uint, Info> _modulesByOID = []; // [primary-actor-oid] = module info
     private readonly Dictionary<Type, Info> _modulesByType = []; // [module-type] = module info
 
+    private readonly ConfigRoot _root;
     private readonly BossModuleConfig _config;
 
-    public BossModuleRegistry(BossModuleConfig config)
+    public BossModuleRegistry(ConfigRoot config)
     {
-        _config = config;
+        _root = config;
+        _config = _root.Get<BossModuleConfig>();
         foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
         {
             var info = Info.Build(t);
@@ -211,9 +213,9 @@ public class BossModuleRegistry
     public BossModule? CreateModuleForConfigPlanning(Type module)
     {
         var info = FindByType(module);
-        return info != null ? CreateModule(info, new(new FakeWorld(), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null!, null!, null!, this)) : null;
+        return info != null ? CreateModule(info, new(new FakeWorld(), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), _root, null!, null!, this)) : null;
     }
 
     // TODO: this is a hack...
-    public BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(new FakeWorld(), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null!, null!, null!, this));
+    public BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(new FakeWorld(), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), _root, null!, null!, this));
 }

@@ -2,10 +2,11 @@
 
 class RM11STheTyrantStates : StateMachineBuilder
 {
-    private readonly RM11STheTyrantConfig _config = Service.Config.Get<RM11STheTyrantConfig>();
+    private readonly RM11STheTyrantConfig _config;
 
     public RM11STheTyrantStates(BossModule module) : base(module)
     {
+        _config = module.Config.Get<RM11STheTyrantConfig>();
         DeathPhase(0, SinglePhase);
     }
 

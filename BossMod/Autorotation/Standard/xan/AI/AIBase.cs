@@ -4,7 +4,7 @@ public abstract class AIBase<TValues>(RotationModuleManager manager, Actor playe
 {
     internal bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     internal float NextChargeIn<AID>(AID aid) where AID : Enum => NextChargeIn(ActionID.MakeSpell(aid));
-    internal float NextChargeIn(ActionID action) => ActionDefinitions.Instance[action]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
+    internal float NextChargeIn(ActionID action) => Actions[action]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
 
     internal static ActionID Spell<AID>(AID aid) where AID : Enum => ActionID.MakeSpell(aid);
 

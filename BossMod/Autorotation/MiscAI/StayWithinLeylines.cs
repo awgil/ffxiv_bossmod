@@ -56,8 +56,8 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
 
         var retrace = ActionID.MakeSpell(BLM.AID.Retrace);
         var btl = ActionID.MakeSpell(BLM.AID.BetweenTheLines);
-        var retraceCd = ActionDefinitions.Instance.Spell(BLM.AID.Retrace)?.MainCooldownGroup;
-        var btlCd = ActionDefinitions.Instance.Spell(BLM.AID.BetweenTheLines)?.MainCooldownGroup;
+        var retraceCd = Actions.Spell(BLM.AID.Retrace)?.MainCooldownGroup;
+        var btlCd = Actions.Spell(BLM.AID.BetweenTheLines)?.MainCooldownGroup;
         var retraceStrat = strategy.Option(Tracks.UseRetrace).As<RetraceDefinition>();
         var btlStrat = strategy.Option(Tracks.UseBetweenTheLines).As<BetweenTheLinesDefinition>();
 

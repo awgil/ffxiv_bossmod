@@ -29,7 +29,7 @@ public sealed class ClassDRGUtility(RotationModuleManager manager, Actor player)
         var dashStrategy = strategy.Option(Track.WingedGlide).As<DashStrategy>();
         var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
         var distance = Player.DistanceToHitbox(dashTarget);
-        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRG.AID.WingedGlide)!.MainCooldownGroup].Remaining;
+        var cd = World.Client.Cooldowns[Actions.Spell(DRG.AID.WingedGlide)!.MainCooldownGroup].Remaining;
         var shouldDash = dashStrategy switch
         {
             DashStrategy.None => false,

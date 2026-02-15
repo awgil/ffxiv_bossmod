@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Endwalker.MSQ;
 
-class ZeroAI(WorldState ws) : UnmanagedRotation(ws, 3)
+class ZeroAI(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -44,7 +44,7 @@ class ZeroAI(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 910)]
 internal class AnUnforeseenBargain(ZoneModuleArgs args) : QuestBattle(args)
 {
-    private readonly ZeroAI _zero = new(args.World);
+    private readonly ZeroAI _zero = new(args.World, args.Actions);
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

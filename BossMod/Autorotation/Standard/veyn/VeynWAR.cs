@@ -189,7 +189,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
 
     private bool Unlocked(WAR.AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     private bool Unlocked(WAR.TraitID tid) => TraitUnlocked((uint)tid);
-    private float CD(WAR.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    private float CD(WAR.AID aid) => World.Client.Cooldowns[Actions.Spell(aid)!.MainCooldownGroup].Remaining;
     private bool CanFitGCD(float deadline, int extraGCDs = 0) => GCD + GCDLength * extraGCDs < deadline; // note: if deadline is 0 (meaning status not active etc), we can't fit a single gcd even if available immediately (GCD==0), so we use <
     private WAR.AID PrevCombo => (WAR.AID)World.Client.ComboState.Action;
     private bool InMeleeRange(Actor? target) => Player.DistanceToHitbox(target) <= 3;

@@ -38,7 +38,7 @@ class HackingWalls(BossModule module) : Components.AddsMulti(module, [OID.WhiteW
 class HackingPylons(BossModule module) : Components.AddsMulti(module, [OID.BlackPylon, OID.WhitePylon]);
 class RedSphere(BossModule module) : Components.Adds(module, (uint)OID.RedSphere);
 
-class HackRotation(WorldState ws) : QuestBattle.UnmanagedRotation(ws, 10)
+class HackRotation(WorldState ws, ActionDefinitions defs) : QuestBattle.UnmanagedRotation(ws, defs, 10)
 {
     private readonly A34RedGirlConfig _config = Service.Config.Get<A34RedGirlConfig>();
 

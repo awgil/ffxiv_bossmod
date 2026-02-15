@@ -330,6 +330,16 @@ class LindwurmsPortent : Components.GenericBaitAway
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // hack: if mechanic resolution is soon, add a forbidden zone covering the whole arena to prevent autorot dashing away from correct bait position
+        // the poor saps who don't use that feature will just have to disable dashes in their cdplan
+        if (_sources.Count > 0 && _sources[0].Expire < WorldState.FutureTime(3))
+            hints.AddForbiddenZone(_ => true, DateTime.MaxValue);
+    }
+
     public override void Update()
     {
         CurrentBaits.Clear();

@@ -311,7 +311,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase<TankAI
     private (bool Ready, bool Active, bool Usable) GetMitStatus(ActionID action, float actionDuration, float deadline, Func<RotationModule, bool>? resourceCheck = null)
     {
         var currentCD = NextChargeIn(action);
-        var maxCD = ActionDefinitions.Instance[action]!.Cooldown;
+        var maxCD = Actions[action]!.Cooldown;
         var effectRemaining = MathF.Max(0, actionDuration + currentCD - maxCD);
         var ready = currentCD < deadline;
         if (resourceCheck != null)

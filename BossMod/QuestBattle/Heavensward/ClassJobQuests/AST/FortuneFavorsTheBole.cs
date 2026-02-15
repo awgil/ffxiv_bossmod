@@ -6,7 +6,7 @@ internal class FortuneFavorsTheBole(ZoneModuleArgs args) : QuestBattle(args)
     private QuestObjective Card(WorldState ws, Vector3 pos, uint oid)
         => new QuestObjective(ws).WithConnection(pos).WithInteract(oid).CompleteOnState7(oid);
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         Card(ws, new(141.36f, 18.58f, 73.59f), 0x1E9BC7),
         Card(ws, new(98.61f, 22.82f, 172.71f), 0x1E9BC8),
         Card(ws, new(51.44f, 24.93f, 135.83f), 0x1E9BC9),

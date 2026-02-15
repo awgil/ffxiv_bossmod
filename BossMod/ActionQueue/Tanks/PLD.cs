@@ -100,7 +100,7 @@ public enum SID : uint
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
-sealed class Definitions(PLDConfig _config) : IDefinitions
+sealed class Definitions(PLDConfig config) : IDefinitions
 {
     public void Initialize(ActionDefinitions d)
     {
@@ -152,7 +152,7 @@ sealed class Definitions(PLDConfig _config) : IDefinitions
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.PassageOfArms)!.TransformAngle = (ws, player, _, _) => _config.Wings switch
+        d.Spell(AID.PassageOfArms)!.TransformAngle = (ws, player, _, _) => config.Wings switch
         {
             PLDConfig.WingsBehavior.CharacterForward => player.Rotation + 180.Degrees(),
             PLDConfig.WingsBehavior.CameraBackward => ws.Client.CameraAzimuth + 180.Degrees(),
@@ -161,8 +161,8 @@ sealed class Definitions(PLDConfig _config) : IDefinitions
         };
 
         d.Spell(AID.Intervention)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
-        d.Spell(AID.HolySpirit)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyHolySpirit && !player.InCombat && ws.Client.CountdownRemaining > 1.75f;
-        d.Spell(AID.ShieldLob)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyShieldLob && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
+        d.Spell(AID.HolySpirit)!.ForbidExecute = (ws, player, _, _, _) => config.ForbidEarlyHolySpirit && !player.InCombat && ws.Client.CountdownRemaining > 1.75f;
+        d.Spell(AID.ShieldLob)!.ForbidExecute = (ws, player, _, _, _) => config.ForbidEarlyShieldLob && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
         //d.Spell(AID.LastBastion)!.EffectDuration = 8;
         //d.Spell(AID.FightOrFlight)!.EffectDuration = 20;
         //d.Spell(AID.Sheltron)!.EffectDuration = 4; // TODO: duration increases to 6...

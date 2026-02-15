@@ -157,6 +157,6 @@ public sealed class Definitions : IDefinitions
         d.Spell(AID.AetherialManipulation)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
         d.Spell(AID.BetweenTheLines)!.ForbidExecute = ActionDefinitions.DashToPositionCheck;
 
-        d.Spell(AID.Triplecast)!.ForbidExecute = (_, player, _, _) => player.FindStatus(SID.Triplecast) != null;
+        d.Spell(AID.Triplecast)!.ForbidExecute = (_, player, _, _, _) => player.FindStatus(SID.Triplecast) != null;
     }
 }

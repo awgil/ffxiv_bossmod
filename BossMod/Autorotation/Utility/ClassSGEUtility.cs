@@ -88,7 +88,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Krasis), SGE.AID.Krasis, Player);
         ExecuteSimple(strategy.Option(Track.Philosophia), SGE.AID.Philosophia, Player);
 
-        if (World.Client.Cooldowns[ActionDefinitions.Instance.Spell(SGE.AID.Pneuma)!.MainCooldownGroup].Remaining < 0.6f)
+        if (World.Client.Cooldowns[Actions.Spell(SGE.AID.Pneuma)!.MainCooldownGroup].Remaining < 0.6f)
         {
             ExecuteSimple(strategy.Option(Track.Pneuma), SGE.AID.Pneuma, primaryTarget);
         }
@@ -114,7 +114,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         {
             if (edStrat == DiagnosisOption.Use)
             {
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Diagnosis), primaryTarget, ed.Priority(), ed.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(SGE.AID.Diagnosis)!.CastTime);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Diagnosis), primaryTarget, ed.Priority(), ed.Value.ExpireIn, castTime: Actions.Spell(SGE.AID.Diagnosis)!.CastTime);
             }
             if (edStrat == DiagnosisOption.UseED)
             {
@@ -133,7 +133,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         {
             if (epStrat == PrognosisOption.Use)
             {
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Prognosis), Player, ep.Priority(), ep.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(SGE.AID.Prognosis)!.CastTime);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Prognosis), Player, ep.Priority(), ep.Value.ExpireIn, castTime: Actions.Spell(SGE.AID.Prognosis)!.CastTime);
             }
             if (epStrat is PrognosisOption.UseEP or PrognosisOption.UseEPEx)
             {

@@ -9,6 +9,7 @@ namespace BossMod.ReplayVisualization;
 public class ReplayDetailsWindow : UIWindow
 {
     private readonly ReplayPlayer _player;
+    private readonly ActionDefinitions _defs;
     private readonly RotationDatabase _rotationDB;
     private readonly BossModuleRegistry _bmr;
     private readonly RotationModuleRegistry _registry;
@@ -52,36 +53,45 @@ public class ReplayDetailsWindow : UIWindow
     public ReplayDetailsWindow(
         Replay data,
         DateTime? initialTime,
+        ActionDefinitions defs,
         RotationDatabase rotationDB,
         BossModuleRegistry bmr,
         RotationModuleRegistry registry,
+        ActionTweaksConfig tweaks,
         PartyRolesConfig prc,
         ColorConfig colors,
         Serializer ser,
         ILifetimeScope scope
     ) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
+        _defs = defs;
         _roles = prc;
         _colors = colors;
         _registry = registry;
         _ser = ser;
         _player = new(data);
         _scope = scope;
-        _subscope = _scope.BeginLifetimeScope(b => b.Register(s => _player.WorldState).SingleInstance());
+        _hints = new(tweaks, defs);
+        _subscope = _scope.BeginLifetimeScope(b =>
+        {
+            // player worldstate is used for all operations in the replay
+            b.Register(s => _player.WorldState).SingleInstance();
+            // reuse saved AIHints instead of recreating one on rewind
+            b.Register(s => _hints).SingleInstance();
+        });
         _rotationDB = rotationDB;
         _bmr = bmr;
         _mgr = _subscope.Resolve<BossModuleManager>();
         _zmm = _subscope.Resolve<ZoneModuleManager>();
         _hintsBuilder = _subscope.Resolve<AIHintsBuilder>();
-        _hints = _subscope.Resolve<AIHints>();
         _rmm = _subscope.Resolve<RotationModuleManager>();
         _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
         _player.AdvanceTo(_curTime, _mgr.Update);
         _config = _subscope.Resolve<ConfigUI>();
-        _events = new(bmr, registry, ser, colors, data, MoveTo, rotationDB.Plans, this);
-        _analysis = new([data], bmr);
+        _events = new(defs, bmr, registry, ser, colors, data, MoveTo, rotationDB.Plans, this);
+        _analysis = new([data], bmr, defs);
     }
 
     protected override void Dispose(bool disposing)
@@ -186,7 +196,7 @@ public class ReplayDetailsWindow : UIWindow
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_bmr, _registry, _ser, _player.Replay, enc, new(1), _rotationDB.Plans, this, _colors);
+                        _ = new ReplayTimelineWindow(_defs, _bmr, _registry, _ser, _player.Replay, enc, new(1), _rotationDB.Plans, this, _colors);
                     }
                 }
             }
@@ -539,13 +549,13 @@ public class ReplayDetailsWindow : UIWindow
     {
         if (t < _player.WorldState.CurrentTime)
         {
-            _rmm.Dispose();
-            _hintsBuilder.Dispose();
-            _zmm.Dispose();
-            _mgr.Dispose();
-            _player.Reset();
             _subscope.Dispose();
-            _subscope = _scope.BeginLifetimeScope(b => b.Register(s => _player.WorldState).SingleInstance());
+            _player.Reset();
+            _subscope = _scope.BeginLifetimeScope(b =>
+            {
+                b.Register(s => _player.WorldState).SingleInstance();
+                b.Register(s => _hints).SingleInstance();
+            });
             _mgr = _subscope.Resolve<BossModuleManager>();
             _zmm = _subscope.Resolve<ZoneModuleManager>();
             _hintsBuilder = _subscope.Resolve<AIHintsBuilder>();

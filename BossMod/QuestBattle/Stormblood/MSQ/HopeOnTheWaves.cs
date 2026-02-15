@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 472)]
 public class HopeOnTheWaves(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .With(obj => {
                 obj.OnEventObjectStateChanged += (actor, state) => obj.CompleteIf(actor.OID == 0x1EA1A1 && state == 0x0008);

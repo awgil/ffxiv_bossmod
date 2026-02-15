@@ -190,6 +190,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public BossModuleManager Bossmods => Manager.Bossmods;
     public WorldState World => Manager.Bossmods.WorldState;
     public AIHints Hints => Manager.Hints;
+    public ActionDefinitions Actions => Manager.Actions;
 
     // the main entry point of the module - given a set of strategy values, fill the queue with a set of actions to execute
     public abstract void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
@@ -197,7 +198,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public virtual string DescribeState() => "";
 
     // utility to check action/trait unlocks
-    public bool ActionUnlocked(ActionID action) => ActionDefinitions.Instance[action]?.IsUnlocked(World, Player) ?? false;
+    public bool ActionUnlocked(ActionID action) => Actions[action]?.IsUnlocked(World, Player) ?? false;
 
     public bool ActionUnlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
 
@@ -215,7 +216,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         var trait = Service.LuminaRow<Lumina.Excel.Sheets.Trait>(id);
         var unlock = trait?.Quest.RowId ?? 0;
         var level = trait?.Level ?? 0;
-        return Player.Level >= level && (ActionDefinitions.Instance.UnlockCheck?.Invoke(unlock) ?? true);
+        return Player.Level >= level && Manager.UnlockState.IsUnlockLinkUnlocked(unlock);
     }
 
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
@@ -257,7 +258,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public int FindDutyActionSlot<AID>(AID aid) where AID : Enum => FindDutyActionSlot(ActionID.MakeSpell(aid));
 
     public float DutyActionCD(int slot) => slot is >= 0 and < 7
-        ? (ActionDefinitions.Instance[World.Client.DutyActions[slot].Action]?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) ?? float.MaxValue)
+        ? (Actions[World.Client.DutyActions[slot].Action]?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) ?? float.MaxValue)
         : float.MaxValue;
     public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
 

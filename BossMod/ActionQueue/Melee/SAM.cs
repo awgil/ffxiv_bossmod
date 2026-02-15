@@ -168,6 +168,6 @@ public sealed class Definitions : IDefinitions
         d.Spell(AID.HissatsuYaten)!.ForbidExecute = ActionDefinitions.BackdashCheck(10);
 
         // dont want accidental double meikyo
-        d.Spell(AID.MeikyoShisui)!.ForbidExecute = (_, player, _, _) => player.FindStatus(SID.MeikyoShisui) != null;
+        d.Spell(AID.MeikyoShisui)!.ForbidExecute = (_, player, _, _, _) => player.FindStatus(SID.MeikyoShisui) != null;
     }
 }

@@ -401,7 +401,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         if (cd <= GCD)
         {
-            DesiredRange = MathF.Min(DesiredRange, ActionDefinitions.Instance[action]?.Range ?? float.MaxValue);
+            DesiredRange = MathF.Min(DesiredRange, Actions[action]?.Range ?? float.MaxValue);
             Hints.ActionsToExecute.Push(action, target, prio, castTime: castTime);
             return true;
         }

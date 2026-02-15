@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 681)]
 public class LegendsOfTheNotSoHiddenTemple(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws)
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs)
     {
         // executioners patrolling the perimeter of a square CCW - once one enters this lane, they won't have LoS on us and the other will be far behind
         static bool inRoom1SafeLane(WPos pos) => pos.InRect(new(15, 15), new WDir(0, -1), 12, 12, 2);

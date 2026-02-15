@@ -250,7 +250,7 @@ sealed class Definitions(GNBConfig _config) : IDefinitions
     {
         d.RegisterChargeIncreaseTrait(AID.Aurora, TraitID.EnhancedAurora);
 
-        d.Spell(AID.LightningShot)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
+        d.Spell(AID.LightningShot)!.ForbidExecute = (ws, player, _, _, _) => _config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
 
         d.Spell(AID.Trajectory)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
 

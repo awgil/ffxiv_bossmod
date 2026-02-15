@@ -194,8 +194,7 @@ class CometExplosion(BossModule module) : Components.StandardAOEs(module, AID.Ex
 class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID.ForegoneFatality)
 {
     private readonly List<(Actor Source, Actor Target)> _tethered = [];
-    private readonly RM11STheTyrantConfig _config = Service.Config.Get<RM11STheTyrantConfig>();
-    private readonly PartyRolesConfig _roles = Service.Config.Get<PartyRolesConfig>();
+    private readonly RM11STheTyrantConfig _config = module.Config.Get<RM11STheTyrantConfig>();
     private readonly Comet _cometTracker = module.FindComponent<Comet>()!;
 
     // empty except for tanks
@@ -283,7 +282,7 @@ class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID.F
 
         foreach (var (i, player) in Raid.WithSlot())
         {
-            var assignment = _roles[Raid.Members[i].ContentId];
+            var assignment = Module.Roles[Raid.Members[i].ContentId];
             if (assignment == PartyRolesConfig.Assignment.MT)
                 _assignedTether[i] = cometsOrdered[0].Source;
             else if (assignment == PartyRolesConfig.Assignment.OT)

@@ -61,7 +61,7 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
-    private sealed record class AnalysisEntry(string Identifier, IEnumerable<ReplayEntry> Replays, BossModuleRegistry Registry) : IDisposable
+    private sealed record class AnalysisEntry(string Identifier, IEnumerable<ReplayEntry> Replays, BossModuleRegistry Registry, ActionDefinitions Actions) : IDisposable
     {
         public ReplayAnalysis.AnalysisManager? Analysis;
         public UISimpleWindow? Window;
@@ -76,7 +76,7 @@ public sealed class ReplayManager : IDisposable
 
         public void Show()
         {
-            Analysis ??= new([.. Replays.Where(r => r.Replay.IsCompletedSuccessfully && r.Replay.Result.Ops.Count > 0).Select(r => r.Replay.Result)], Registry);
+            Analysis ??= new([.. Replays.Where(r => r.Replay.IsCompletedSuccessfully && r.Replay.Result.Ops.Count > 0).Select(r => r.Replay.Result)], Registry, Actions);
             Window ??= new($"Multiple logs: {Identifier}", Analysis.Draw, false, new(1200, 800));
             Window.IsOpen = true;
         }
@@ -90,6 +90,7 @@ public sealed class ReplayManager : IDisposable
     private string _fileDialogStartPath;
     private FileDialog? _fileDialog;
     private readonly IFileDialogManager _dialogManager;
+    private readonly ActionDefinitions _actions;
     private readonly BossModuleRegistry _bmr;
     private readonly ILifetimeScope _ctx;
 
@@ -98,12 +99,15 @@ public sealed class ReplayManager : IDisposable
     public ReplayManager(
         IFileDialogManager dialogManager,
         ReplayManagementConfig config,
+        ActionDefinitions actions,
         BossModuleRegistry bmr,
         ILifetimeScope ctx,
-        string fileDialogStartPath)
+        string fileDialogStartPath
+    )
     {
         _fileDialogStartPath = fileDialogStartPath;
         _dialogManager = dialogManager;
+        _actions = actions;
         _bmr = bmr;
         _config = config;
         _ctx = ctx;
@@ -240,7 +244,7 @@ public sealed class ReplayManager : IDisposable
             ImGui.SameLine();
             if (ImGui.Button("Analyze selected"))
             {
-                _analysisEntries.Add(new((++_nextAnalysisId).ToString(), [.. _replayEntries.Select(e => e.entry).Where(e => e.Selected)], _bmr));
+                _analysisEntries.Add(new((++_nextAnalysisId).ToString(), [.. _replayEntries.Select(e => e.entry).Where(e => e.Selected)], _bmr, _actions));
             }
             ImGui.SameLine();
             if (ImGui.Button("Unload selected"))
@@ -301,7 +305,7 @@ public sealed class ReplayManager : IDisposable
                 CleanPath();
                 var replays = LoadAll(_path);
                 if (replays.Count > 0)
-                    _analysisEntries.Add(new(_path, replays.Select(e => e.entry), _bmr));
+                    _analysisEntries.Add(new(_path, replays.Select(e => e.entry), _bmr, _actions));
             }
         }
         ImGui.SameLine();

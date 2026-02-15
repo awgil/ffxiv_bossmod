@@ -32,7 +32,7 @@ public sealed class ClassNINUtility(RotationModuleManager manager, Actor player)
         var dash = strategy.Option(Track.Shukuchi);
         var dashStrategy = strategy.Option(Track.Shukuchi).As<DashStrategy>();
         var distance = Player.DistanceToPoint(ResolveTargetLocation(dash.Value));
-        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(NIN.AID.Shukuchi)!.MainCooldownGroup].Remaining;
+        var cd = World.Client.Cooldowns[Actions.Spell(NIN.AID.Shukuchi)!.MainCooldownGroup].Remaining;
         var shouldDash = dashStrategy switch
         {
             DashStrategy.None => false,

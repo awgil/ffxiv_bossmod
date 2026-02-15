@@ -21,7 +21,7 @@ public sealed class AsGoesLightSoGoesDarkness(ZoneModuleArgs args) : QuestBattle
         Bonds = 0x1E9EE0,
     }
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws)
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs)
     {
         QuestObjective Refugee(OID oid)
         {

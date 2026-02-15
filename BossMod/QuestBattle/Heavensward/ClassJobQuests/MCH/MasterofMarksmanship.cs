@@ -3,7 +3,7 @@
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 423)]
 internal class MasterOfMarksmanship(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithConnection(new Vector3(-333.91f, 50.23f, -292.74f))
             .Hints((player, hints) => hints.PrioritizeTargetsByOID(0x10BF, 5))

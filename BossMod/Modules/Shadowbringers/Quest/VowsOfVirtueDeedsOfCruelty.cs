@@ -74,7 +74,7 @@ class MagitekRayBits(BossModule module) : Components.StandardAOEs(module, AID.Ma
 class AtomicRay(BossModule module) : Components.StandardAOEs(module, AID.AtomicRay, new AOEShapeCircle(10));
 class SelfDetonate(BossModule module) : Components.CastHint(module, AID.SelfDetonate, "Enrage if bits are not killed before cast");
 
-class EstinienAI(WorldState ws) : UnmanagedRotation(ws, 3)
+class EstinienAI(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {

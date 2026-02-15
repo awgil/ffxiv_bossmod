@@ -31,7 +31,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
 
     public bool PlanModified => _planner?.Modified ?? false;
 
-    public ColumnPlayerDetails(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
+    public ColumnPlayerDetails(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
         : base(timeline)
     {
         _bmr = bmr;
@@ -46,7 +46,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _planDatabase = planDB;
         _moduleInfo = bmr.FindByOID(enc.OID);
 
-        _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
+        _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass, defs));
         _actions.Name = player.NameHistory.FirstOrDefault().Value.name;
 
         _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, player));

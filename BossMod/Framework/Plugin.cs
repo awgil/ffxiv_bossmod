@@ -7,6 +7,7 @@ using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Classes;
 using DalaMock.Shared.Extensions;
+using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -19,8 +20,6 @@ namespace BossMod;
 public class Plugin : HostedPlugin
 {
     public string Name => "Boss Mod";
-
-    private readonly PackLoader _packs;
 
     public unsafe Plugin(
         IDalamudPluginInterface dalamud,
@@ -40,8 +39,9 @@ public class Plugin : HostedPlugin
         IGameInteropProvider hook,
         ISigScanner scanner,
         ITargetManager targetManager,
-        INotificationManager notifications
-    ) : base(dalamud, log, clientState, playerState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner, targetManager, notifications)
+        INotificationManager notifications,
+        IUnlockState unlockState
+    ) : base(dalamud, log, clientState, playerState, objects, commandManager, dataManager, dtrBar, condition, gameGui, gameConfig, chatGui, keyState, tex, hook, scanner, targetManager, notifications, unlockState)
     {
         Service.SigScanner = scanner;
         Service.Hook = hook;
@@ -71,6 +71,7 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<DtrService>();
 
+        containerBuilder.RegisterSingletonSelf<PackLoader>();
         containerBuilder.RegisterSingletonSelf<SlashCommandProvider>();
         containerBuilder.RegisterSingletonSelf<MovementOverride>();
         containerBuilder.RegisterSingletonSelf<AI.AIManager>();
@@ -80,13 +81,8 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelf<RotationModuleRegistry>();
         containerBuilder.RegisterSingletonSelf<BossModuleRegistry>();
 
-        // action definitions
-        containerBuilder.Register(s =>
-        {
-            var defs = s.Resolve<IEnumerable<IDefinitions>>();
-            ActionDefinitions.CreateInstance(defs);
-            return ActionDefinitions.Instance;
-        }).SingleInstance();
+        containerBuilder.RegisterSingletonSelf<ActionDefinitions>();
+        // class definitions
         containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(t => typeof(IDefinitions).IsAssignableFrom(t))
             .AsSelf()
@@ -157,6 +153,8 @@ public class Plugin : HostedPlugin
         {
             //Service.ConfigLazy.SetValue(scope.Resolve<ConfigRoot>());
 
+            Service.IconFont = scope.Resolve<IUiBuilder>().FontIcon;
+
             OnContainerBuild(scope);
         });
     }
@@ -167,8 +165,6 @@ public class Plugin : HostedPlugin
         var dalamud = scope.Resolve<IDalamudPluginInterface>();
 
         Camera.Instance = new();
-
-        ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
 
         // save config on modify
         Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
@@ -186,14 +182,5 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<DalamudFileDialogManager>();
 
         containerBuilder.RegisterType<MainDebugWindow>().AsSelf().As<Window>();
-    }
-
-    private unsafe bool QuestUnlocked(uint link)
-    {
-        // see ActionManager.IsActionUnlocked
-        var gameMain = FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance();
-        return link == 0
-            || Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse.RowId == 31 // deep dungeons check is hardcoded in game
-            || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
     }
 }

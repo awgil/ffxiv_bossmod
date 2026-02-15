@@ -8,7 +8,7 @@ public class FadedMemories(ZoneModuleArgs args) : QuestBattle(args)
         Invincibility = 671
     }
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         QuestObjective.Combat(ws, new Vector3(-96.48f, -281.11f, 226.96f)).Named("Scions"),
 
         new QuestObjective(ws)

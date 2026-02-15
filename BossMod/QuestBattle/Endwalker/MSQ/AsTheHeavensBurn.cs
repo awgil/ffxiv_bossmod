@@ -5,7 +5,7 @@ namespace BossMod.QuestBattle.Endwalker.MSQ;
 
 // single target shield is status 2844
 
-class AlphinaudAI(WorldState ws) : UnmanagedRotation(ws, 25)
+class AlphinaudAI(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 25)
 {
     private readonly TrackPartyHealth PartyHealth = new(ws);
 
@@ -47,7 +47,7 @@ class AlphinaudAI(WorldState ws) : UnmanagedRotation(ws, 25)
     }
 }
 
-class AlisaieAI(WorldState ws) : UnmanagedRotation(ws, 25)
+class AlisaieAI(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 25)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -113,12 +113,12 @@ class AlisaieAI(WorldState ws) : UnmanagedRotation(ws, 25)
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 804)]
 internal class AsTheHeavensBurn(ZoneModuleArgs args) : QuestBattle(args)
 {
-    private readonly AlphinaudAI _alphi = new(args.World);
-    private readonly AlisaieAI _alisaie = new(args.World);
+    private readonly AlphinaudAI _alphi = new(args.World, args.Actions);
+    private readonly AlisaieAI _alisaie = new(args.World, args.Actions);
 
     public static WPos P2Center = new(-260.28f, 80.75f);
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .Hints(_alphi.Execute)
             .With(obj => obj.Update += () => obj.CompleteIf(ws.Party.Player()?.Position.InCircle(P2Center, 30) ?? false)),

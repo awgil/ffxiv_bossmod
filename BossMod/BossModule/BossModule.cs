@@ -14,6 +14,7 @@ public record class ZoneModuleArgs(
 
     WorldState World,
     ConfigRoot Config,
+    ActionDefinitions Actions,
     ITextureProvider TextureProvider,
     IPluginLog Logger,
     // TODO: remove, these are for quest battle integration

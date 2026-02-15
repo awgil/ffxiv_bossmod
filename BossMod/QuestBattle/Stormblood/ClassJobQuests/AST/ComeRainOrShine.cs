@@ -13,7 +13,7 @@ internal class ComeRainOrShrine(ZoneModuleArgs args) : QuestBattle(args)
         obj.OnStatusGain += (act, stat) => obj.CompleteIf(act.OID == 0x1ADA && stat.ID == 835);
     }
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithInteract(0x1EA30F)
             .With(HealBond),

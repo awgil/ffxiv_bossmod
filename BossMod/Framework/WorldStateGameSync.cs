@@ -30,6 +30,7 @@ sealed class WorldStateGameSync : IWorldStateSync
     private readonly IAmex _amex;
     private readonly IClientState _clientState;
     private readonly ICondition _conditions;
+    private readonly ActionDefinitions _defs;
     private readonly DateTime _startTime;
     private readonly long _startQPC;
 
@@ -98,12 +99,13 @@ sealed class WorldStateGameSync : IWorldStateSync
     private unsafe delegate void ProcessPacketPlayActionTimelineSync(Network.ServerIPC.PlayActionTimelineSync* data);
     private readonly Hook<ProcessPacketPlayActionTimelineSync> _processPlayActionTimelineSyncHook;
 
-    public unsafe WorldStateGameSync(WorldState ws, IAmex amex, IObjectTable objects, IClientState clientState, ICondition conditions)
+    public unsafe WorldStateGameSync(WorldState ws, IAmex amex, IObjectTable objects, IClientState clientState, ICondition conditions, ActionDefinitions defs)
     {
         _ws = ws;
         _amex = amex;
         _clientState = clientState;
         _conditions = conditions;
+        this._defs = defs;
         _decoder = new(objects);
         _startTime = DateTime.Now;
         _startQPC = Framework.Instance()->PerformanceCounterValue;
@@ -822,7 +824,7 @@ sealed class WorldStateGameSync : IWorldStateSync
         {
             var im = InventoryManager.Instance();
             // update tracked items
-            foreach (var id in ActionDefinitions.Instance.SupportedItems)
+            foreach (var id in this._defs.SupportedItems)
             {
                 var count = im->GetInventoryItemCount(id % 500000, id > 1000000, checkEquipped: false, checkArmory: false);
                 updateQuantity(id, (uint)count);

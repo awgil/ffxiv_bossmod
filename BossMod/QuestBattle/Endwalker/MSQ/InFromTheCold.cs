@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Endwalker.MSQ;
 
-class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
+class ImperialAI(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -44,7 +44,7 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 793)]
 internal class InFromTheCold(ZoneModuleArgs args) : QuestBattle(args)
 {
-    private readonly ImperialAI _ai = new(args.World);
+    private readonly ImperialAI _ai = new(args.World, args.Actions);
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {
@@ -55,7 +55,7 @@ internal class InFromTheCold(ZoneModuleArgs args) : QuestBattle(args)
         _ai.Execute(player, hints);
     }
 
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .Named("Combat")
             .Hints((player, hints) => hints.ForcedMovement = new(0, 0, 1))

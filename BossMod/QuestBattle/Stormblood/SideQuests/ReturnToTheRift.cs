@@ -5,7 +5,7 @@ namespace BossMod.QuestBattle.Stormblood.SideQuests;
 [ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 471)]
 internal class ReturnToTheRift(ZoneModuleArgs args) : QuestBattle(args)
 {
-    public override List<QuestObjective> DefineObjectives(WorldState ws) => [
+    public override List<QuestObjective> DefineObjectives(WorldState ws, ActionDefinitions defs) => [
         new QuestObjective(ws)
             .WithConnection(new Vector3(12.68f, -175.50f, 365.46f))
             .Hints((player, hints) => {

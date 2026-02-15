@@ -20,7 +20,7 @@ public enum AID : uint
     RightZantetsuken = 24032, // LunarOdin->self, 4.0s cast, range 70 width 39 rect
 }
 
-class UriangerAI(WorldState ws) : UnmanagedRotation(ws, 25)
+class UriangerAI(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 25)
 {
     public const ushort StatusParam = 158;
 

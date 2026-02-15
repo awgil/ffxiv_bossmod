@@ -134,7 +134,7 @@ class RoarBounds(BossModule module) : Components.GenericAOEs(module, AID.Roar)
     }
 }
 
-class AutoWuk(WorldState ws) : UnmanagedRotation(ws, 3)
+class AutoWuk(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {

@@ -52,8 +52,6 @@ static class AirHelpers
 
 class Air2Assignments : BossComponent
 {
-    readonly RM10STheXtremesConfig _config = Service.Config.Get<RM10STheXtremesConfig>();
-    readonly PartyRolesConfig _roles = Service.Config.Get<PartyRolesConfig>();
     readonly Dictionary<Assignment, int> _roleOrder = [];
     BitMask _assigned;
 
@@ -63,7 +61,7 @@ class Air2Assignments : BossComponent
 
     public Air2Assignments(BossModule module) : base(module)
     {
-        switch (_config.IA2CleanseOrder)
+        switch (module.Config.Get<RM10STheXtremesConfig>().IA2CleanseOrder)
         {
             case RM10STheXtremesConfig.CleanseOrder.HMR:
                 _roleOrder.Clear();
@@ -103,7 +101,7 @@ class Air2Assignments : BossComponent
         if (_assigned.NumSetBits() < 8)
             return;
 
-        var assignments = _roles.AssignmentsPerSlot(Raid);
+        var assignments = Module.Roles.AssignmentsPerSlot(Raid);
         if (assignments.Length == 0)
         {
             ReportError("Party role assignment is invalid, not assigning order");

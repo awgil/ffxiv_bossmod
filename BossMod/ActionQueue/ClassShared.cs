@@ -292,8 +292,8 @@ public sealed class Definitions : IDefinitions
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Interject)!.ForbidExecute = (_, _, act, _) => !(act.Target?.CastInfo?.Interruptible ?? false); // don't use interject if target is not casting interruptible spell
-        d.Spell(AID.Reprisal)!.ForbidExecute = (_, player, _, hints) => !hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(player.Position, 5 + e.Actor.HitboxRadius)); // don't use reprisal if no one would be hit; TODO: consider checking only target?..
+        d.Spell(AID.Interject)!.ForbidExecute = (_, _, act, _, _) => !(act.Target?.CastInfo?.Interruptible ?? false); // don't use interject if target is not casting interruptible spell
+        d.Spell(AID.Reprisal)!.ForbidExecute = (_, player, _, hints, _) => !hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(player.Position, 5 + e.Actor.HitboxRadius)); // don't use reprisal if no one would be hit; TODO: consider checking only target?..
         d.Spell(AID.Shirk)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 
         //d.Spell(AID.Repose)!.EffectDuration = 30;
@@ -303,8 +303,8 @@ public sealed class Definitions : IDefinitions
         //d.Spell(AID.Feint)!.EffectDuration = 10;
         //d.Spell(AID.TrueNorth)!.EffectDuration = 10;
 
-        d.Spell(AID.Peloton)!.ForbidExecute = (_, player, _, _) => player.InCombat;
-        d.Spell(AID.HeadGraze)!.ForbidExecute = (_, _, act, _) => !(act.Target?.CastInfo?.Interruptible ?? false);
+        d.Spell(AID.Peloton)!.ForbidExecute = (_, player, _, _, _) => player.InCombat;
+        d.Spell(AID.HeadGraze)!.ForbidExecute = (_, _, act, _, _) => !(act.Target?.CastInfo?.Interruptible ?? false);
 
         //d.Spell(AID.Addle)!.EffectDuration = 10;
         //d.Spell(AID.Sleep)!.EffectDuration = 30;
@@ -314,9 +314,8 @@ public sealed class Definitions : IDefinitions
         //d.Spell(AID.Surecast)!.EffectDuration = 6;
 
         // regular dash check doesn't work since this one is awkwardly fixed distance
-        d.Spell(PhantomID.PhantomKick)!.ForbidExecute = (_, player, action, hints) =>
+        d.Spell(PhantomID.PhantomKick)!.ForbidExecute = (_, player, action, hints, cfg) =>
         {
-            var cfg = Service.Config.Get<ActionTweaksConfig>();
             var target = action.Target;
             if (target == null || !cfg.DashSafety)
                 return false;

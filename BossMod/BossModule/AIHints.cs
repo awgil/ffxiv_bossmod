@@ -1,7 +1,7 @@
 namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
-public sealed class AIHints
+public sealed class AIHints(ActionTweaksConfig tweaksConfig, ActionDefinitions defs)
 {
     public class Enemy(Actor actor, int priority, bool shouldBeTanked)
     {
@@ -144,7 +144,7 @@ public sealed class AIHints
     public bool ForceCancelCast;
 
     // actions that we want to be executed, gathered from various sources (manual input, autorotation, planner, ai, modules, etc.)
-    public ActionQueue ActionsToExecute = new();
+    public ActionQueue ActionsToExecute = new(tweaksConfig, defs);
 
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
@@ -154,6 +154,17 @@ public sealed class AIHints
     public bool WantDismount;
     public FateSync WantFateSync;
     public bool ShouldLeaveDuty;
+
+    public AIHints MakeCopyForPathfinding() => new(tweaksConfig, defs)
+    {
+        PathfindMapBounds = PathfindMapBounds,
+        PathfindMapCenter = PathfindMapCenter,
+        PathfindMapObstacles = PathfindMapObstacles,
+        TemporaryObstacles = [.. TemporaryObstacles],
+        Portals = [.. Portals],
+        ForbiddenZones = [.. ForbiddenZones],
+        GoalZones = [.. GoalZones]
+    };
 
     // clear all stored data
     public void Clear()
