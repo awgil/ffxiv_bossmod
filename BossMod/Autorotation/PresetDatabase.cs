@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using BossMod.Config;
+using System.IO;
 using System.Text.Json;
 
 namespace BossMod.Autorotation;
@@ -17,12 +18,13 @@ public sealed class PresetDatabase
 
     public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset }).Concat(UserPresets);
 
-    public PresetDatabase(string rootPath, FileInfo defaultPresets, AutorotationConfig config, Serializer ser)
+    public PresetDatabase(AutorotationDatabaseRoot dbRoot, DefaultPresetsFile file, AutorotationConfig config, Serializer ser)
     {
+        var rootPath = Path.Join(dbRoot.Path, "presets");
         _ser = ser;
         _cfg = config;
         _dbPath = new(rootPath + ".db.json");
-        DefaultPresets = LoadPresetsFromFile(defaultPresets);
+        DefaultPresets = LoadPresetsFromFile(new(file.Path));
         UserPresets = LoadPresetsFromFile(_dbPath);
     }
 

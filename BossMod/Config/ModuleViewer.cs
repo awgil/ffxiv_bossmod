@@ -5,6 +5,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 using System.Data;
@@ -13,13 +14,13 @@ using System.Text;
 
 namespace BossMod;
 
-public sealed class ModuleViewer : IDisposable
+public sealed class ModuleViewer
 {
     private record struct ModuleInfo(BossModuleRegistry.Info Info, string Name, int SortOrder);
     private record struct ModuleGroupInfo(string Name, uint Id, uint SortOrder, uint Icon = 0);
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
-    private readonly PlanDatabase? _planDB;
+    private readonly PlanDatabase _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
     private readonly ITextureProvider _tex;
     private readonly BossModuleRegistry _bmr;
@@ -28,6 +29,12 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly BossModuleConfig _bmConfig;
     private readonly ColorConfig _colors;
+    private readonly ExcelSheet<BNpcName> bnpcNameSheet;
+    private readonly ExcelSheet<ContentFinderCondition> cfcSheet;
+    private readonly ExcelSheet<Quest> questSheet;
+    private readonly ExcelSheet<Fate> fateSheet;
+    private readonly ExcelSheet<DynamicEvent> dynamicEventSheet;
+    private readonly ExcelSheet<GoldSaucerTextData> goldSaucerTextSheet;
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
 
@@ -40,10 +47,31 @@ public sealed class ModuleViewer : IDisposable
 
     private string _searchText = "";
 
-    public ModuleViewer(PlanDatabase? planDB, WorldState ws, ITextureProvider tex, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, BossModuleConfig bmConfig, ColorConfig colors)
+    public ModuleViewer(
+        PlanDatabase planDB,
+        WorldState ws,
+        ITextureProvider tex,
+        BossModuleRegistry bmr,
+        RotationModuleRegistry autorot,
+        Serializer ser,
+        BossModuleConfig bmConfig,
+        ColorConfig colors,
+        ExcelSheet<BNpcName> bnpcNameSheet,
+        ExcelSheet<ContentFinderCondition> cfcSheet,
+        ExcelSheet<Quest> questSheet,
+        ExcelSheet<Fate> fateSheet,
+        ExcelSheet<DynamicEvent> dynamicEventSheet,
+        ExcelSheet<GoldSaucerTextData> goldSaucerTextSheet
+    )
     {
         _bmConfig = bmConfig;
-        this._colors = colors;
+        _colors = colors;
+        this.bnpcNameSheet = bnpcNameSheet;
+        this.cfcSheet = cfcSheet;
+        this.questSheet = questSheet;
+        this.fateSheet = fateSheet;
+        this.dynamicEventSheet = dynamicEventSheet;
+        this.goldSaucerTextSheet = goldSaucerTextSheet;
         _planDB = planDB;
         _ws = ws;
         _registry = autorot;
@@ -130,10 +158,6 @@ public sealed class ModuleViewer : IDisposable
                         Service.Log($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
             }
         }
-    }
-
-    public void Dispose()
-    {
     }
 
     public void Draw(UITree tree, WorldState ws)
@@ -400,7 +424,8 @@ public sealed class ModuleViewer : IDisposable
 
     //private static IDalamudTextureWrap? GetIcon(uint iconId) => iconId != 0 ? Service.Texture?.GetIcon(iconId, Dalamud.Plugin.Services.ITextureProvider.IconFlags.HiRes) : null;
     public static string FixCase(ReadOnlySeString str) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(str.ToString());
-    public static string BNpcName(uint id) => FixCase(Service.LuminaRow<BNpcName>(id)!.Value.Singular);
+    public static string BNpcName(ExcelSheet<BNpcName> names, uint id) => names.TryGetRow(id, out var name) ? FixCase(name.Singular) : "";
+    public string BNpcName(uint id) => BNpcName(bnpcNameSheet, id);
 
     private (ModuleGroupInfo, ModuleInfo) Classify(BossModuleRegistry.Info module)
     {
@@ -409,42 +434,42 @@ public sealed class ModuleViewer : IDisposable
         {
             case BossModuleInfo.GroupType.CFC:
                 groupId |= module.GroupID;
-                var cfcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
+                var cfcRow = cfcSheet.GetRow(module.GroupID);
                 var cfcSort = cfcRow.SortKey;
                 return (new(FixCase(cfcRow.Name), groupId, cfcSort != 0 ? cfcSort : groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.MaskedCarnivale:
                 groupId |= module.GroupID;
-                var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
+                var mcRow = cfcSheet.GetRow(module.GroupID);
                 var mcSort = uint.Parse(mcRow.ShortCode.ToString().AsSpan(3), CultureInfo.InvariantCulture); // 'aozNNN'
                 var mcName = $"Stage {mcSort}: {FixCase(mcRow.Name)}";
                 return (new(mcName, groupId, mcSort), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.RemovedUnreal:
                 return (new("Removed Content", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.Quest:
-                var questRow = Service.LuminaRow<Quest>(module.GroupID)!.Value;
+                var questRow = questSheet.GetRow(module.GroupID);
                 groupId |= questRow.JournalGenre.RowId;
                 var questCategoryName = questRow.JournalGenre.ValueNullable?.Name.ToString() ?? "";
                 return (new(questCategoryName, groupId, groupId), new(module, $"{questRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Fate:
-                var fateRow = Service.LuminaRow<Fate>(module.GroupID)!.Value;
+                var fateRow = fateSheet.GetRow(module.GroupID);
                 return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module, $"{fateRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Hunt:
                 groupId |= module.GroupID;
                 return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaCE:
                 groupId |= module.GroupID;
-                var ceName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} CE";
-                return (new(ceName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
+                var ceName = $"{FixCase(cfcSheet.GetRow(module.GroupID).Name)} CE";
+                return (new(ceName, groupId, groupId), new(module, dynamicEventSheet.GetRow(module.NameID).Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaDuel:
                 groupId |= module.GroupID;
-                var duelName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} Duel";
-                return (new(duelName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
+                var duelName = $"{FixCase(cfcSheet.GetRow(module.GroupID).Name)} Duel";
+                return (new(duelName, groupId, groupId), new(module, dynamicEventSheet.GetRow(module.NameID).Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.EurekaNM:
                 groupId |= module.GroupID;
-                var nmName = FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name);
-                return (new(nmName, groupId, groupId), new(module, Service.LuminaRow<Fate>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
+                var nmName = FixCase(cfcSheet.GetRow(module.GroupID).Name);
+                return (new(nmName, groupId, groupId), new(module, fateSheet.GetRow(module.NameID).Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.GoldSaucer:
-                return (new("Gold saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new("Gold saucer", groupId, groupId), new(module, $"{goldSaucerTextSheet.GetRow(module.GroupID).Text}: {BNpcName(module.NameID)}", module.SortOrder));
             default:
                 return (new("Ungrouped", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
         }
@@ -471,7 +496,7 @@ public sealed class ModuleViewer : IDisposable
             {
                 if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
                 {
-                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, this._colors, _planDB, plan);
+                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _colors, _planDB, plan);
                 }
             }
         }
@@ -484,7 +509,7 @@ public sealed class ModuleViewer : IDisposable
                 var plans = mplans.GetOrAdd(player.Class);
                 var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = info.PlanLevel };
                 _planDB.ModifyPlan(null, plan);
-                UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, this._colors, _planDB, plan);
+                UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _colors, _planDB, plan);
             }
         }
     }

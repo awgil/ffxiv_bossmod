@@ -12,6 +12,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
+using Lumina.Excel;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
 namespace BossMod;
@@ -79,17 +80,17 @@ public sealed unsafe class ActionManagerEx : IAmex
     private delegate TargetSystem* AutoSelectTargetDelegate(TargetSystem* targetSystem, uint nearestTargetType);
     private readonly AutoSelectTargetDelegate _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, ActionDefinitions defs, IMovementOverride movement, IChatGui chat, GameInteropExtended hooking)
+    public ActionManagerEx(WorldState ws, AIHints hints, ActionDefinitions defs, IMovementOverride movement, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Mount> mountsSheet, IChatGui chat, GameInteropExtended hooking)
     {
         _ws = ws;
         _hints = hints;
         _movement = movement;
         _manualQueue = new(ws, hints, defs);
-        _cancelCastTweak = new(ws, hints);
-        _dismountTweak = new(ws);
-        _smartRotationTweak = new(ws, hints, defs);
+        _cancelCastTweak = new(ws, hints, actionsSheet);
+        _dismountTweak = new(ws, actionsSheet, mountsSheet);
+        _smartRotationTweak = new(ws, hints, defs, actionsSheet);
         _oocActionsTweak = new(ws);
-        _autoAutosTweak = new(ws, hints);
+        _autoAutosTweak = new(ws, hints, actionsSheet);
         _animLockTweak = new(chat);
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");

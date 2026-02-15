@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Lumina.Excel;
+
+namespace BossMod;
 
 // custom action queue
 // the idea is to allow multiple providers (manual input, autorotation, boss modules, etc.) to gather prioritized list of actions
@@ -6,7 +8,7 @@
 // - select highest priority action
 // - if it is still on cooldown, look for the next-best action that can fit without delaying previously selected action
 // - repeat the process until no more actions can be found
-public sealed class ActionQueue(ActionTweaksConfig tweaksConfig, ActionDefinitions defs)
+public sealed class ActionQueue(ActionTweaksConfig tweaksConfig, ActionDefinitions defs, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet)
 {
     public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire, float Delay, float CastTime, Vector3 TargetPos, Angle? FacingAngle, bool Manual);
 
@@ -97,7 +99,7 @@ public sealed class ActionQueue(ActionTweaksConfig tweaksConfig, ActionDefinitio
         if (entry.Priority >= Priority.ManualEmergency || def == null)
             return true; // don't make any assumptions
 
-        if (!allowDismount && AutoDismountTweak.IsMountPreventingAction(ws, def.ID))
+        if (!allowDismount && AutoDismountTweak.IsMountPreventingAction(ws, actionsSheet, def.ID))
             return false;
 
         if (def.ID.Type == ActionType.Item && ws.Client.GetInventoryItemQuantity(def.ID.ID) == 0)

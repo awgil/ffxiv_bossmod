@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Lumina.Excel;
+
+namespace BossMod;
 
 [ConfigDisplay(Name = "Smart character orientation", Parent = typeof(ActionTweaksConfig), Since = "0.0.0.229", Order = -20)]
 public class SmartRotationConfig : ConfigNode
@@ -18,7 +20,7 @@ public class SmartRotationConfig : ConfigNode
 // - when gaze is expected and attack is initiated, if it's possible to rotate so that target is in frontal cone and avoid gaze, do so
 // - when gaze is expected (with some configurable leeway) and would hit player with current facing, rotate away
 // - when gaze is imminent (with some configurable short leeway) and it's not possible to hit target without being hit by a gaze, block casts and attacks
-public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefinitions defs)
+public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefinitions defs, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet)
 {
     private readonly SmartRotationConfig _config = Service.Config.Get<SmartRotationConfig>();
     private readonly DisjointSegmentList _forbidden = new();
@@ -29,13 +31,14 @@ public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefin
     // return 'ideal orientation' for a spell, or null if spell is not oriented (self-targeted or does not require facing)
     public Angle? GetSpellOrientation(uint spellId, WPos playerPos, bool targetIsSelf, WPos? targetPos, WPos targetLoc)
     {
-        var data = Service.LuminaRow<Lumina.Excel.Sheets.Action>(spellId);
-        if (data == null || !data.Value.NeedToFaceTarget || data.Value.Range == 0) // does not require facing
+        if (!actionsSheet.TryGetRow(spellId, out var data))
             return null;
-        if (data.Value.TargetArea)
+        if (!data.NeedToFaceTarget || data.Range == 0) // does not require facing
+            return null;
+        if (data.TargetArea)
             return Angle.FromDirection(targetLoc - playerPos);
         // see ActionManager.ResolveTarget
-        targetIsSelf |= defs.SpellAllowedTargets(data.Value) == ActionTargets.Self;
+        targetIsSelf |= defs.SpellAllowedTargets(data) == ActionTargets.Self;
         return targetIsSelf || targetPos == null ? null : Angle.FromDirection(targetPos.Value - playerPos); // self-targeted don't have ideal orientation
     }
 

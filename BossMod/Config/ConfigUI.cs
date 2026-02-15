@@ -2,14 +2,13 @@
 using BossMod.Config;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 
 namespace BossMod;
 
-public sealed class ConfigUI : IDisposable
+public sealed class ConfigUI
 {
     private class UINode(ConfigNode node)
     {
@@ -35,14 +34,21 @@ public sealed class ConfigUI : IDisposable
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, ReplaysRoot replayDir, RotationDatabase rotationDB, ITextureProvider tex, INotificationManager notifications, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, BossModuleConfig bmc, AutorotationConfig arc, ColorConfig colors, IDalamudPluginInterface dalamud)
+    public ConfigUI(
+        ConfigRoot config,
+        WorldState ws,
+        ReplaysRoot replayDir,
+        ITextureProvider tex,
+        ModuleViewer mv,
+        UIPresetDatabaseEditor presetEditor
+    )
     {
         _root = config;
         _ws = ws;
         _about = new(new(replayDir.Path));
         _tex = tex;
-        _mv = new(rotationDB.Plans, ws, tex, bmr, autorot, ser, bmc, colors);
-        _presets = new(autorot, rotationDB, notifications, dalamud, ser, arc);
+        _mv = mv;
+        _presets = presetEditor;
 
         _tabs.Add("About", _about.Draw);
         _tabs.Add("Settings", DrawSettings);
@@ -78,11 +84,6 @@ public sealed class ConfigUI : IDisposable
             n.Path = [.. parent, n.Name];
             ResolvePaths(n.Children, n.Path);
         }
-    }
-
-    public void Dispose()
-    {
-        _mv.Dispose();
     }
 
     public void Open(string tabName = "")

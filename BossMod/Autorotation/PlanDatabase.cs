@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using BossMod.Config;
+using System.IO;
 using System.Text.Json;
 
 namespace BossMod.Autorotation;
@@ -20,8 +21,9 @@ public sealed class PlanDatabase
     private readonly DirectoryInfo _planStore;
     private readonly Serializer _ser;
 
-    public PlanDatabase(string rootPath, Serializer ser, BossModuleRegistry bmr)
+    public PlanDatabase(AutorotationDatabaseRoot dbRoot, Serializer ser, BossModuleRegistry bmr)
     {
+        var rootPath = Path.Join(dbRoot.Path, "plans");
         _ser = ser;
         _manifestPath = new(rootPath + ".manifest.json");
         _planStore = new(rootPath);

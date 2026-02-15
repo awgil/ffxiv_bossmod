@@ -1,7 +1,9 @@
+using Lumina.Excel;
+
 namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
-public sealed class AIHints(ActionTweaksConfig tweaksConfig, ActionDefinitions defs)
+public sealed class AIHints(ActionTweaksConfig tweaksConfig, ActionDefinitions defs, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet)
 {
     public class Enemy(Actor actor, int priority, bool shouldBeTanked)
     {
@@ -144,7 +146,7 @@ public sealed class AIHints(ActionTweaksConfig tweaksConfig, ActionDefinitions d
     public bool ForceCancelCast;
 
     // actions that we want to be executed, gathered from various sources (manual input, autorotation, planner, ai, modules, etc.)
-    public ActionQueue ActionsToExecute = new(tweaksConfig, defs);
+    public ActionQueue ActionsToExecute = new(tweaksConfig, defs, actionsSheet);
 
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
@@ -155,7 +157,7 @@ public sealed class AIHints(ActionTweaksConfig tweaksConfig, ActionDefinitions d
     public FateSync WantFateSync;
     public bool ShouldLeaveDuty;
 
-    public AIHints MakeCopyForPathfinding() => new(tweaksConfig, defs)
+    public AIHints MakeCopyForPathfinding() => new(tweaksConfig, defs, actionsSheet)
     {
         PathfindMapBounds = PathfindMapBounds,
         PathfindMapCenter = PathfindMapCenter,

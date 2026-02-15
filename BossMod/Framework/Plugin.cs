@@ -83,8 +83,15 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelf<ReplayManager>();
         containerBuilder.RegisterSingletonSelf<RotationModuleRegistry>();
         containerBuilder.RegisterSingletonSelf<BossModuleRegistry>();
+        containerBuilder.RegisterSingletonSelf<PlanDatabase>();
+        containerBuilder.RegisterSingletonSelf<PresetDatabase>();
+        containerBuilder.RegisterSingletonSelf<ModuleViewer>();
+        containerBuilder.RegisterSingletonSelf<UIPresetDatabaseEditor>();
 
-        containerBuilder.RegisterSingletonSelf<ActionDefinitions>();
+        //containerBuilder.RegisterSingletonSelf<ActionEffectParser>();
+        //containerBuilder.RegisterSingletonSelf<ReplayUtils>();
+
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ActionDefinitions>();
         // class definitions
         containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(t => typeof(IDefinitions).IsAssignableFrom(t))
@@ -134,7 +141,7 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterGeneric((context, parameters) =>
         {
-            var gameData = context.Resolve<GameData>();
+            var gameData = context.Resolve<IDataManager>().GameData;
             var method = typeof(GameData).GetMethod(nameof(GameData.GetExcelSheet))
                 ?.MakeGenericMethod(parameters);
             var sheet = method!.Invoke(gameData, [Lumina.Data.Language.English, null])!;
@@ -152,7 +159,7 @@ public class Plugin : HostedPlugin
         {
             var dalamud = s.Resolve<IDalamudPluginInterface>();
             var root = dalamud.GetPluginConfigDirectory() + "/autorot";
-            return new PresetsDatabaseRoot(root);
+            return new AutorotationDatabaseRoot(root);
         }).SingleInstance();
         containerBuilder.Register(s =>
         {

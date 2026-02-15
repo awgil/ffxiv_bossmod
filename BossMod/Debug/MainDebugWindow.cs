@@ -11,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using Lumina.Excel;
 
 namespace BossMod;
 
@@ -29,7 +30,8 @@ class MainDebugWindow(
     IKeyState keyState,
     IObjectTable objects,
     ICondition conditions,
-    ColorConfig colorConfig
+    ColorConfig colorConfig,
+    ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet
 ) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
@@ -308,7 +310,7 @@ class MainDebugWindow(
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(i.ToString());
             ImGui.TableNextColumn();
-            var namebase = Service.LuminaRow<Lumina.Excel.Sheets.Item>(k % 500000)?.Name.ToString() ?? "<unknown>";
+            var namebase = itemsSheet.GetRowOrDefault(k % 500000)?.Name.ToString() ?? "<unknown>";
             var namefull = k > 500000 ? $"{namebase} (HQ)" : namebase;
             ImGui.TextUnformatted(namefull);
         }

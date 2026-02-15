@@ -7,7 +7,7 @@ public class RotationModuleRegistry(ActionDefinitions defs)
 {
     public readonly record struct Entry(RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder);
 
-    public readonly Dictionary<Type, Entry> Modules = BuildModules(defs);
+    public Dictionary<Type, Entry> Modules { get; private set; } = BuildModules(defs);
 
     private static Dictionary<Type, Entry> BuildModules(ActionDefinitions defs)
     {

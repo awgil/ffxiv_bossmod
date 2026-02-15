@@ -1,20 +1,7 @@
-﻿using BossMod.Config;
-using System.IO;
+﻿namespace BossMod.Autorotation;
 
-namespace BossMod.Autorotation;
-
-public sealed class RotationDatabase
+public sealed class RotationDatabase(PresetDatabase presets, PlanDatabase plans)
 {
-    public readonly PresetDatabase Presets;
-    public readonly PlanDatabase Plans;
-
-    public RotationDatabase(PresetsDatabaseRoot root, DefaultPresetsFile file, AutorotationConfig config, Serializer ser, BossModuleRegistry bmr)
-    {
-        var rootPath = new DirectoryInfo(root.Path);
-        var defaults = new FileInfo(file.Path);
-        if (!rootPath.Exists)
-            rootPath.Create();
-        Presets = new(rootPath.FullName + "/presets", defaults, config, ser);
-        Plans = new(rootPath.FullName + "/plans", ser, bmr);
-    }
+    public readonly PresetDatabase Presets = presets;
+    public readonly PlanDatabase Plans = plans;
 }

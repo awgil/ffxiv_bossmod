@@ -1,5 +1,6 @@
 ﻿using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Lumina.Excel;
 
 namespace BossMod.Autorotation;
 
@@ -24,6 +25,7 @@ public sealed class RotationModuleManager : IDisposable
     public readonly AIHints Hints;
     public readonly ActionDefinitions Actions;
     public readonly IUnlockState UnlockState;
+    public readonly ExcelSheet<Lumina.Excel.Sheets.Trait> TraitsSheet;
     private readonly bool IsDev;
     public PlanExecution? Planner { get; private set; }
     private readonly PartyRolesConfig _prc;
@@ -73,7 +75,7 @@ public sealed class RotationModuleManager : IDisposable
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
-    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AutorotationConfig config, PartyRolesConfig prc, ActionDefinitions defs, IUnlockState unlockState, AIHints hints, IDalamudPluginInterface dalamud)
+    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AutorotationConfig config, PartyRolesConfig prc, ActionDefinitions defs, IUnlockState unlockState, AIHints hints, IDalamudPluginInterface dalamud, ExcelSheet<Lumina.Excel.Sheets.Trait> traitsSheet)
     {
         IsDev = dalamud.IsDev;
         Config = config;
@@ -82,6 +84,7 @@ public sealed class RotationModuleManager : IDisposable
         Database = db;
         Bossmods = bmm;
         PlayerSlot = PartyState.PlayerSlot;
+        TraitsSheet = traitsSheet;
         UnlockState = unlockState;
         Hints = hints;
         _subscriptions = new

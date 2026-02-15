@@ -1,5 +1,8 @@
 ﻿using BossMod.Interfaces;
 using Dalamud.Plugin.Services;
+using Lumina.Excel;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod;
 
@@ -155,13 +158,8 @@ public sealed record class ActionDefinition(ActionID ID, IUnlockState UnlockStat
 // note that it is associated to a specific worldstate, so that it can be used for things like action conditions
 public sealed class ActionDefinitions
 {
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
 
-    private readonly IUnlockState _unlockState;
     public IEnumerable<ActionDefinition> Definitions => _definitions.Values;
     public ActionDefinition? this[ActionID action] => _definitions.GetValueOrDefault(action);
     public ActionDefinition? Spell<AID>(AID aid) where AID : Enum => _definitions.GetValueOrDefault(ActionID.MakeSpell(aid));
@@ -203,9 +201,26 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDGeneralDuty1 = new(ActionType.General, 26);
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
-    public ActionDefinitions(IEnumerable<IDefinitions> classDefinitions, IUnlockState unlockState)
+    private readonly IUnlockState unlockState;
+    private readonly ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet;
+    private readonly ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet;
+    private readonly ExcelSheet<Lumina.Excel.Sheets.Trait> traitSheet;
+    private readonly ExcelSheet<Lumina.Excel.Sheets.EventItem> eventItemsSheet;
+
+    public ActionDefinitions(
+        IEnumerable<IDefinitions> classDefinitions,
+        IUnlockState unlockState,
+        ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet,
+        ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet,
+        ExcelSheet<Lumina.Excel.Sheets.Trait> traitSheet,
+        ExcelSheet<Lumina.Excel.Sheets.EventItem> eventItemsSheet
+    )
     {
-        _unlockState = unlockState;
+        this.unlockState = unlockState;
+        this.actionsSheet = actionsSheet;
+        this.itemsSheet = itemsSheet;
+        this.traitSheet = traitSheet;
+        this.eventItemsSheet = eventItemsSheet;
 
         foreach (var def in classDefinitions)
             def.Initialize(this);
@@ -257,6 +272,8 @@ public sealed class ActionDefinitions
             Register(def.ID, def);
         }
     }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     // smart targeting utility: return target (if friendly) or null (otherwise)
     public static Actor? SmartTargetFriendly(Actor? primaryTarget) => (primaryTarget?.IsAlly ?? false) ? primaryTarget : null;
@@ -360,10 +377,12 @@ public sealed class ActionDefinitions
     public BitMask SpellAllowedClasses(Lumina.Excel.Sheets.Action data)
     {
         BitMask res = default;
-        var cjc = _cjcSheet?.GetRowOrDefault(data.ClassJobCategory.RowId);
-        if (cjc != null)
-            for (int i = 1; i < _cjcSheet!.Columns.Count; ++i)
-                res[i - 1] = cjc.Value.ReadBoolColumn(i);
+        if (data.ClassJobCategory.ValueNullable is { } cjc)
+        {
+            var raw = new RawRow(cjc.ExcelPage, cjc.RowOffset, cjc.RowId);
+            for (var i = 1; i < cjc.ExcelPage.Sheet.Columns.Count; ++i)
+                res[i - 1] = raw.ReadBoolColumn(i);
+        }
         return res;
     }
     public BitMask SpellAllowedClasses(uint spellId) => SpellAllowedClasses(ActionData(spellId));
@@ -422,7 +441,7 @@ public sealed class ActionDefinitions
     public float ActionBaseCastTime(ActionID aid) => aid.Type switch
     {
         ActionType.Item => ItemData(aid.ID).CastTimeSeconds/* ?? 2*/,
-        ActionType.KeyItem => Service.LuminaRow<Lumina.Excel.Sheets.EventItem>(aid.ID)?.CastTime ?? 0,
+        ActionType.KeyItem => eventItemsSheet.TryGetRow(aid.ID, out var et) ? et.CastTime : 0,
         ActionType.Spell or ActionType.Mount or ActionType.Ornament => SpellBaseCastTime(aid.SpellId()),
         _ => 0
     };
@@ -458,15 +477,15 @@ public sealed class ActionDefinitions
     public int SpellBaseMaxCharges(uint spellId) => SpellBaseMaxCharges(ActionData(spellId));
     public int ActionBaseMaxCharges(ActionID aid) => SpellBaseMaxCharges(aid.SpellId());
 
-    private Lumina.Excel.Sheets.Action ActionData(uint id) => _actionsSheet.GetRow(id);
-    private Lumina.Excel.Sheets.Item ItemData(uint id) => _itemsSheet.GetRow(id % 500000);
-    private Lumina.Excel.Sheets.Trait TraitData(uint id) => _traitSheet.GetRow(id);
+    private Lumina.Excel.Sheets.Action ActionData(uint id) => actionsSheet.GetRow(id);
+    private Lumina.Excel.Sheets.Item ItemData(uint id) => itemsSheet.GetRow(id % 500000);
+    private Lumina.Excel.Sheets.Trait TraitData(uint id) => traitSheet.GetRow(id);
 
     // registration for different kinds of actions
     public void RegisterSpell(ActionID aid, bool isPhysRanged = false, float instantAnimLock = 0.6f, float castAnimLock = 0.1f)
     {
         var data = ActionData(aid.ID);
-        var def = new ActionDefinition(aid, _unlockState)
+        var def = new ActionDefinition(aid, unlockState)
         {
             AllowedClasses = SpellAllowedClasses(data),
             MinLevel = SpellMinLevel(data),
@@ -505,7 +524,7 @@ public sealed class ActionDefinitions
         var castTime = item.CastTimeSeconds /*?? 2*/;
         var aidNQ = new ActionID(ActionType.Item, baseId);
         var castAnimLock = castTime > 0 ? animLock : 0.1f;
-        _definitions[aidNQ] = new(aidNQ, _unlockState)
+        _definitions[aidNQ] = new(aidNQ, unlockState)
         {
             AllowedTargets = targets,
             Range = range,
@@ -516,7 +535,7 @@ public sealed class ActionDefinitions
             CastAnimLock = castAnimLock
         };
         var aidHQ = new ActionID(ActionType.Item, baseId + 1000000);
-        _definitions[aidHQ] = new(aidHQ, _unlockState)
+        _definitions[aidHQ] = new(aidHQ, unlockState)
         {
             AllowedTargets = targets,
             Range = range,
@@ -539,9 +558,9 @@ public sealed class ActionDefinitions
         if (!isItem)
         {
             var aid1 = ActionID.MakeBozjaHolster(id, 0);
-            _definitions[aid1] = new(aid1, _unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
+            _definitions[aid1] = new(aid1, unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
             var aid2 = ActionID.MakeBozjaHolster(id, 1);
-            _definitions[aid2] = new(aid2, _unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
+            _definitions[aid2] = new(aid2, unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
         }
 
         if (id == BozjaHolsterID.LostSeraphStrike)
@@ -550,7 +569,7 @@ public sealed class ActionDefinitions
 
     private void RegisterDeepDungeon(ActionID id)
     {
-        _definitions[id] = new(id, _unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
+        _definitions[id] = new(id, unlockState) { AllowedTargets = ActionTargets.Self, InstantAnimLock = 2.1f };
     }
 
     // hardcoded mechanic implementations

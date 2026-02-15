@@ -2,6 +2,7 @@
 using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Lumina.Excel;
 using System.IO;
 
 namespace BossMod.ReplayVisualization;
@@ -61,6 +62,7 @@ public class ReplayDetailsWindow : UIWindow
         PartyRolesConfig prc,
         ColorConfig colors,
         Serializer ser,
+        ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet,
         ILifetimeScope scope
     ) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
@@ -71,7 +73,7 @@ public class ReplayDetailsWindow : UIWindow
         _ser = ser;
         _player = new(data);
         _scope = scope;
-        _hints = new(tweaks, defs);
+        _hints = new(tweaks, defs, actionsSheet);
         _subscope = _scope.BeginLifetimeScope(b =>
         {
             // player worldstate is used for all operations in the replay

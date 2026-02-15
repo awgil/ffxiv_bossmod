@@ -1,15 +1,16 @@
-﻿namespace BossMod;
+﻿using Lumina.Excel;
+
+namespace BossMod;
 
 // Tweak to automatically dismount when trying to use an action and failing due to being mounted.
-public sealed class AutoDismountTweak(WorldState ws)
+public sealed class AutoDismountTweak(WorldState ws, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Mount> mountsSheet)
 {
     private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
 
     public bool AutoDismountEnabled => _config.AutoDismount;
 
-    public bool IsMountPreventingAction(ActionID action) => IsMountPreventingAction(ws, action);
-
-    public static bool IsMountPreventingAction(WorldState ws, ActionID action)
+    public bool IsMountPreventingAction(ActionID action) => IsMountPreventingAction(ws, actionsSheet, action);
+    public static bool IsMountPreventingAction(WorldState ws, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ActionID action)
     {
         var player = ws.Party.Player();
         if (player == null || player.MountId == 0)
@@ -17,7 +18,7 @@ public sealed class AutoDismountTweak(WorldState ws)
 
         var canUseWhileMounted = action.Type switch
         {
-            ActionType.Spell => Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID) is var data && data != null && (data.Value.CanUseWhileMounted || data.Value.SecondaryCostType == 25),
+            ActionType.Spell => actionsSheet.TryGetRow(action.ID, out var data) && (data.CanUseWhileMounted || data.SecondaryCostType == 25),
             ActionType.General => action.ID == 20, // dig
             _ => false
         };
@@ -27,7 +28,7 @@ public sealed class AutoDismountTweak(WorldState ws)
     public bool AllowDismount()
     {
         var player = ws.Party.Player();
-        var mountData = player != null && player.MountId != 0 ? Service.LuminaRow<Lumina.Excel.Sheets.Mount>(player.MountId) : null;
+        var mountData = player != null && player.MountId != 0 ? mountsSheet.GetRowOrDefault(player.MountId) : null;
         return mountData != null && mountData.Value.Order >= 0;
     }
 }

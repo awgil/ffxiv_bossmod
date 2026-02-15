@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Lumina.Excel;
+
+namespace BossMod;
 
 // utility that recalculates ai hints based on different data sources (eg active bossmodule, etc)
 // when there is no active bossmodule (eg in outdoor or on trash), we try to guess things based on world state (eg actor casts)
@@ -10,7 +12,7 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly SmartRotationConfig _gazeConfig;
     private readonly AIHintsConfig _hintConfig;
     private readonly PartyRolesConfig _roles;
-
+    private readonly ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;
     private readonly BossModuleManager _bmm;
@@ -60,11 +62,12 @@ public sealed class AIHintsBuilder : IDisposable
         4175
     ];
 
-    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm, SmartRotationConfig gazeConfig, AIHintsConfig hintConfig, DeveloperConfig cfg, PartyRolesConfig roles)
+    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm, SmartRotationConfig gazeConfig, AIHintsConfig hintConfig, DeveloperConfig cfg, PartyRolesConfig roles, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet)
     {
         _gazeConfig = gazeConfig;
         _hintConfig = hintConfig;
         _roles = roles;
+        this.actionsSheet = actionsSheet;
         _ws = ws;
         _bmm = bmm;
         _zmm = zmm;
@@ -252,7 +255,7 @@ public sealed class AIHintsBuilder : IDisposable
         if (!IsValidEnemy(actor))
             return;
 
-        if (Service.LuminaRow<Lumina.Excel.Sheets.Action>(actor.CastInfo!.Action.ID) is not { } data)
+        if (!actionsSheet.TryGetRow(actor.CastInfo!.Action.ID, out var data))
             return;
 
         if (_hintConfig.OmenSetting == AIHintsConfig.OmenBehavior.OmenOnly && data.Omen.RowId == 0)
