@@ -166,8 +166,8 @@ public class Plugin : HostedPlugin
 
         Camera.Instance = new();
 
-        // save config on modify
-        Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
+        var cfg = scope.Resolve<ConfigRoot>();
+        cfg.Modified.Subscribe(() => Task.Run(() => cfg.SaveToFile(dalamud.ConfigFile)));
     }
 
     public virtual void ConfigureExtra(ContainerBuilder containerBuilder)
