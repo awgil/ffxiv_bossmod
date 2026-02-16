@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Lumina.Excel;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BossMod;
@@ -142,9 +143,13 @@ public unsafe struct ActionEffects : IEnumerable<ActionEffect>
     public override readonly string ToString() => string.Join(", ", this.Select(e => e.Type));
 }
 
-public static class ActionEffectParser
+public class ActionEffectParser(
+    ExcelSheet<Lumina.Excel.Sheets.Knockback> knockbacks,
+    ExcelSheet<Lumina.Excel.Sheets.Attract> attracts,
+    ExcelSheet<Lumina.Excel.Sheets.Mount> mounts
+)
 {
-    public static string DescribeFields(ActionEffect eff)
+    public string DescribeFields(ActionEffect eff)
     {
         // note: for all effects, bit 7 of param4 means "applied to source instead of target"
         // note: for all effects, bit 5 of param4 means "originate from target instead of source"
@@ -217,12 +222,12 @@ public static class ActionEffectParser
                 res.Append($"aid={eff.Value}");
                 break;
             case ActionEffectType.Knockback:
-                var kbData = Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(eff.Value);
+                var kbData = knockbacks.GetRowOrDefault(eff.Value);
                 res.Append($"row={eff.Value}, dist={kbData?.Distance}+{eff.Param0}, dir={(KnockbackDirection?)kbData?.Direction}{(kbData?.Direction == (byte)KnockbackDirection.Arg ? $" ({kbData?.DirectionArg}deg)" : "")}, speed={kbData?.Speed}");
                 break;
             case ActionEffectType.Attract1:
             case ActionEffectType.Attract2:
-                var attrData = Service.LuminaRow<Lumina.Excel.Sheets.Attract>(eff.Value);
+                var attrData = attracts.GetRowOrDefault(eff.Value);
                 res.Append($"row={eff.Value}, dist<={attrData?.MaxDistance} up to {attrData?.MinRemainingDistance} between {(attrData?.UseDistanceBetweenHitboxes == true ? "hitboxes" : "centers")}, dir={attrData?.Direction}, speed={attrData?.Speed}");
                 break;
             case ActionEffectType.AttractCustom1:
@@ -231,7 +236,7 @@ public static class ActionEffectParser
                 res.Append($"dist={eff.Value} (min={eff.Param1}), speed={eff.Param0}");
                 break;
             case ActionEffectType.Mount:
-                res.Append($"{eff.Value} '{Service.LuminaRow<Lumina.Excel.Sheets.Mount>(eff.Value)?.Singular}'");
+                res.Append($"{eff.Value} '{mounts.GetRowOrDefault(eff.Value)?.Singular}'");
                 break;
             case ActionEffectType.FullResistStatus:
                 res.Append(Utils.StatusString(eff.Value));

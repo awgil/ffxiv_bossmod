@@ -11,8 +11,9 @@ class UnknownActionEffects
     }
 
     private readonly SortedDictionary<string, Dictionary<ActionID, List<Entry>>> _unknownActionEffects = [];
+    private readonly ActionEffectParser aep;
 
-    public UnknownActionEffects(List<Replay> replays)
+    public UnknownActionEffects(List<Replay> replays, ActionEffectParser aep)
     {
         foreach (var replay in replays)
         {
@@ -32,6 +33,8 @@ class UnknownActionEffects
                 }
             }
         }
+
+        this.aep = aep;
     }
 
     public void Draw(UITree tree)
@@ -40,11 +43,11 @@ class UnknownActionEffects
         {
             foreach (var (action, entries) in tree.Nodes(actions, kv => new($"{kv.Key} ({kv.Value.Count} entries)")))
             {
-                foreach (var entry in tree.Nodes(entries, entry => new($"{ReplayUtils.ActionEffectString(entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantString(entry.Action.Source, entry.Action.Timestamp)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget, entry.Action.Timestamp)} @ {ReplayUtils.ParticipantString(entry.Target.Target, entry.Action.Timestamp)}")))
+                foreach (var entry in tree.Nodes(entries, entry => new($"{ReplayUtils.ActionEffectString(aep, entry.Effect)}: {entry.Replay.Path} {entry.Action.Timestamp:O} {ReplayUtils.ParticipantString(entry.Action.Source, entry.Action.Timestamp)} -> {ReplayUtils.ParticipantString(entry.Action.MainTarget, entry.Action.Timestamp)} @ {ReplayUtils.ParticipantString(entry.Target.Target, entry.Action.Timestamp)}")))
                 {
                     foreach (var target in tree.Nodes(entry.Action.Targets, target => new(ReplayUtils.ActionTargetString(target, entry.Action.Timestamp))))
                     {
-                        tree.LeafNodes(target.Effects, ReplayUtils.ActionEffectString);
+                        tree.LeafNodes(target.Effects, e => ReplayUtils.ActionEffectString(aep, e));
                     }
                 }
             }

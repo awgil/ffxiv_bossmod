@@ -9,13 +9,13 @@ public class ColumnActorStatuses : Timeline.ColumnGroup
     private readonly Replay _replay;
     private readonly Replay.Encounter _enc;
     private readonly Replay.Participant _target;
-
+    private readonly ActionEffectParser aep;
     private readonly ColumnSeparator _sep;
     private readonly List<(uint sid, Replay.Participant? source, ColumnGenericHistory? col)> _columns = [];
 
     public bool Visible => _sep.Width > 0;
 
-    public ColumnActorStatuses(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant actor)
+    public ColumnActorStatuses(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant actor, ActionEffectParser aep)
         : base(timeline)
     {
         //Name = "Statuses";
@@ -24,6 +24,7 @@ public class ColumnActorStatuses : Timeline.ColumnGroup
         _replay = replay;
         _enc = enc;
         _target = actor;
+        this.aep = aep;
         _sep = Add(new ColumnSeparator(timeline, width: 0));
         foreach (var s in replay.EncounterStatuses(enc).Where(s => s.Target == actor && !_columns.Any(c => c.sid == s.ID && c.source == s.Source)))
             _columns.Add((s.ID, s.Source, null));
@@ -75,7 +76,7 @@ public class ColumnActorStatuses : Timeline.ColumnGroup
                         if (src == source && tgt == _target)
                         {
                             var actionName = $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
-                            res.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a);
+                            res.AddHistoryEntryDot(_enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a, aep);
                         }
                     }
                 }

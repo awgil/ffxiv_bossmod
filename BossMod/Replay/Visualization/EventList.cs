@@ -1,11 +1,12 @@
-﻿using BossMod.Autorotation;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 using System.Runtime.InteropServices;
 
 namespace BossMod.ReplayVisualization;
 
-class EventList(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ColorConfig colors, Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, ReplayDetailsWindow timelineSync)
+class EventList(BossModuleRegistry bmr, Replay r, Action<DateTime> scrollTo, ActionEffectParser aep, ReplayTimelineWindow.Factory timelineFactory)
 {
+    public delegate EventList Factory(Action<DateTime> scrollTo);
+
     record struct Lists(OpList? Ops, IPCList? IPCs);
 
     private readonly UITree _tree = new();
@@ -18,7 +19,7 @@ class EventList(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRe
         {
             foreach (var no in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_listsRaw.Ops)))
             {
-                _listsRaw.Ops ??= new(r, null, null, r.Ops, scrollTo);
+                _listsRaw.Ops ??= new(r, null, null, r.Ops, scrollTo, aep);
                 _listsRaw.Ops.Draw(_tree, r.Ops[0].Timestamp);
             }
             foreach (var no in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(_listsRaw.IPCs, null)))
@@ -36,7 +37,7 @@ class EventList(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRe
             ref var lists = ref CollectionsMarshal.GetValueRefOrAddDefault(_listsFiltered, e, out _);
             foreach (var n in _tree.Node("Raw ops", contextMenu: () => OpListContextMenu(_listsFiltered[e].Ops)))
             {
-                lists.Ops ??= new(r, e, moduleInfo, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo);
+                lists.Ops ??= new(r, e, moduleInfo, r.Ops.SkipWhile(o => o.Timestamp < e.Time.Start).TakeWhile(o => o.Timestamp <= e.Time.End), scrollTo, aep);
                 lists.Ops.Draw(_tree, e.Time.Start);
             }
             foreach (var n in _tree.Node("Server IPCs", contextMenu: () => IPCListContextMenu(_listsFiltered[e].IPCs, moduleInfo)))
@@ -219,7 +220,7 @@ class EventList(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRe
         {
             foreach (var t in _tree.Nodes(a.Targets, t => new(ReplayUtils.ActionTargetString(t, a.Timestamp))))
             {
-                _tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                _tree.LeafNodes(t.Effects, e => ReplayUtils.ActionEffectString(aep, e));
             }
         }
     }
@@ -264,7 +265,7 @@ class EventList(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRe
 
     private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
     {
-        _ = new ReplayTimelineWindow(defs, bmr, registry, ser, r, enc, showPlayers, planDB, timelineSync, colors);
+        _ = timelineFactory.Invoke(r, enc, showPlayers);
     }
 
     private void DrawTimelines(Replay.Encounter enc)

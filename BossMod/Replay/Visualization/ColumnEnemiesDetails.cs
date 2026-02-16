@@ -15,10 +15,13 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
     private readonly List<int> _phaseBranches;
     private readonly Replay _replay;
     private readonly Replay.Encounter _encounter;
+    private readonly ActionEffectParser aep;
     private readonly List<PerOID> _data = [];
     private readonly BossModuleRegistry _bmr;
 
-    public ColumnEnemiesDetails(BossModuleRegistry bmr, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
+    public delegate ColumnEnemiesDetails Factory(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay.Encounter enc);
+
+    public ColumnEnemiesDetails(BossModuleRegistry bmr, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, ActionEffectParser aep)
         : base(timeline)
     {
         _bmr = bmr;
@@ -26,6 +29,7 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
         _phaseBranches = phaseBranches;
         _replay = replay;
         _encounter = enc;
+        this.aep = aep;
         foreach (var (oid, participants) in enc.ParticipantsByOID)
         {
             var data = new PerOID() { OID = oid };
@@ -47,7 +51,7 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
                 if (c != null)
                     c.DrawConfig(tree);
                 else if (ImGui.Button($"Show details for {ReplayUtils.ParticipantString(p, p.WorldExistence.FirstOrDefault().Start)}"))
-                    n.Columns[i] = (p, Add(new ColumnEnemyDetails(_bmr, Timeline, _tree, _phaseBranches, _replay, _encounter, p)));
+                    n.Columns[i] = (p, Add(new ColumnEnemyDetails(_bmr, Timeline, _tree, _phaseBranches, _replay, _encounter, p, aep)));
             }
         }
     }

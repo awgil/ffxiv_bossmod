@@ -9,17 +9,21 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
     private readonly Replay.Encounter _encounter;
+    private readonly ActionEffectParser aep;
     private readonly BossModuleRegistry.Info? _moduleInfo;
     private readonly List<Replay.Action> _actions;
     private readonly Dictionary<ActionID, List<(Replay.Participant source, BitMask cols)>> _filters = []; // [action][sourceid]
 
-    public ColumnEnemiesCastEvents(BossModuleRegistry bmr, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
+    public delegate ColumnEnemiesCastEvents Factory(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay.Encounter enc);
+
+    public ColumnEnemiesCastEvents(BossModuleRegistry bmr, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, ActionEffectParser aep)
         : base(timeline)
     {
         //Name = "Enemy cast events";
         _tree = tree;
         _phaseBranches = phaseBranches;
         _encounter = enc;
+        this.aep = aep;
         _moduleInfo = bmr.FindByOID(enc.OID);
         _actions = [.. replay.EncounterActions(enc).Where(a => a.Source.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo))];
         foreach (var a in _actions)
@@ -88,7 +92,7 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
             foreach (var c in cols.SetBits())
             {
                 var col = (ColumnGenericHistory)Columns[c];
-                col.AddHistoryEntryDot(_encounter.Time.Start, a.Timestamp, name, color).AddActionTooltip(a);
+                col.AddHistoryEntryDot(_encounter.Time.Start, a.Timestamp, name, color).AddActionTooltip(a, aep);
             }
         }
     }

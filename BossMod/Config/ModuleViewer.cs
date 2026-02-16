@@ -30,6 +30,7 @@ public sealed class ModuleViewer
 
     private readonly BossModuleConfig _bmConfig;
     private readonly ColorConfig _colors;
+    private readonly ActionEffectParser aep;
     private readonly ExcelSheet<BNpcName> bnpcNameSheet;
     private readonly ExcelSheet<ContentFinderCondition> cfcSheet;
     private readonly ExcelSheet<Quest> questSheet;
@@ -58,6 +59,7 @@ public sealed class ModuleViewer
         Serializer ser,
         BossModuleConfig bmConfig,
         ColorConfig colors,
+        ActionEffectParser aep,
         ExcelSheet<BNpcName> bnpcNameSheet,
         ExcelSheet<ContentFinderCondition> cfcSheet,
         ExcelSheet<Quest> questSheet,
@@ -71,6 +73,7 @@ public sealed class ModuleViewer
     {
         _bmConfig = bmConfig;
         _colors = colors;
+        this.aep = aep;
         this.bnpcNameSheet = bnpcNameSheet;
         this.cfcSheet = cfcSheet;
         this.questSheet = questSheet;
@@ -499,7 +502,7 @@ public sealed class ModuleViewer
             {
                 if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
                 {
-                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _colors, _planDB, plan);
+                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, aep, _colors, _planDB, plan);
                 }
             }
         }
@@ -512,7 +515,7 @@ public sealed class ModuleViewer
                 var plans = mplans.GetOrAdd(player.Class);
                 var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = info.PlanLevel };
                 _planDB.ModifyPlan(null, plan);
-                UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, _colors, _planDB, plan);
+                UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, aep, _colors, _planDB, plan);
             }
         }
     }

@@ -8,7 +8,7 @@ public class ColumnEnemyCasts : ColumnGenericHistory, IToggleableColumn
         set => Width = value ? DefaultWidth : 0;
     }
 
-    public ColumnEnemyCasts(BossModuleRegistry bmr, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy)
+    public ColumnEnemyCasts(BossModuleRegistry bmr, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant enemy, ActionEffectParser aep)
         : base(timeline, tree, phaseBranches)
     {
         var moduleInfo = bmr.FindByOID(enc.OID);
@@ -21,7 +21,7 @@ public class ColumnEnemyCasts : ColumnGenericHistory, IToggleableColumn
         {
             var name = $"{a.ID} ({moduleInfo?.ActionIDType?.GetEnumName(a.ID.ID)}) {ReplayUtils.ParticipantString(a.Source, a.Timestamp)} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
             var color = ColumnUtils.ActionHasDamageToPlayerEffects(a) ? 0xffffffff : 0x80808080;
-            this.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, name, color).AddActionTooltip(a);
+            this.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, name, color).AddActionTooltip(a, aep);
         }
     }
 }

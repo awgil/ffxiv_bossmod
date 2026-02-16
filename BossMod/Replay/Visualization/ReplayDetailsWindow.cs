@@ -15,6 +15,7 @@ public class ReplayDetailsWindow : UIWindow
     private readonly BossModuleRegistry _bmr;
     private readonly RotationModuleRegistry _registry;
     private readonly Serializer _ser;
+    private readonly ActionEffectParser aep;
     private readonly AIHints _hints;
     private BossModuleManager _mgr;
     private ZoneModuleManager _zmm;
@@ -63,6 +64,7 @@ public class ReplayDetailsWindow : UIWindow
         ColorConfig colors,
         Serializer ser,
         ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet,
+        ActionEffectParser aep,
         ILifetimeScope scope
     ) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
@@ -71,15 +73,20 @@ public class ReplayDetailsWindow : UIWindow
         _colors = colors;
         _registry = registry;
         _ser = ser;
+        this.aep = aep;
         _player = new(data);
         _scope = scope;
         _hints = new(tweaks, defs, actionsSheet);
         _subscope = _scope.BeginLifetimeScope(b =>
         {
             // player worldstate is used for all operations in the replay
-            b.Register(s => _player.WorldState).SingleInstance();
+            b.Register(_ => _player.WorldState).SingleInstance();
             // reuse saved AIHints instead of recreating one on rewind
-            b.Register(s => _hints).SingleInstance();
+            b.Register(_ => _hints).SingleInstance();
+            // replays
+            b.Register(_ => data).SingleInstance();
+            // timeline sync object
+            b.Register(_ => this).SingleInstance();
         });
         _rotationDB = rotationDB;
         _bmr = bmr;
@@ -92,14 +99,13 @@ public class ReplayDetailsWindow : UIWindow
         _curTime = initialTime ?? _first;
         _player.AdvanceTo(_curTime, _mgr.Update);
         _config = _subscope.Resolve<ConfigUI>();
-        _events = new(defs, bmr, registry, ser, colors, data, MoveTo, rotationDB.Plans, this);
-        _analysis = new([data], bmr, defs);
+        _events = _subscope.Resolve<EventList.Factory>().Invoke(MoveTo);
+        _analysis = _subscope.Resolve<ReplayAnalysis.AnalysisManager>();
     }
 
     protected override void Dispose(bool disposing)
     {
         _subscope.Dispose();
-        _analysis.Dispose();
         base.Dispose(disposing);
     }
 
@@ -198,7 +204,7 @@ public class ReplayDetailsWindow : UIWindow
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_defs, _bmr, _registry, _ser, _player.Replay, enc, new(1), _rotationDB.Plans, this, _colors);
+                        _ = _subscope.Resolve<ReplayTimelineWindow.Factory>().Invoke(_player.Replay, enc, new(1));
                     }
                 }
             }

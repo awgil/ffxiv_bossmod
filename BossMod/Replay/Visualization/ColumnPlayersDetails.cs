@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 
 namespace BossMod.ReplayVisualization;
 
@@ -7,34 +6,26 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
 {
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
-    private readonly Replay _replay;
     private readonly Replay.Encounter _encounter;
-    private readonly PlanDatabase _planDB;
+    private readonly ColumnPlayerDetails.Factory playerFac;
     private readonly ColumnPlayerDetails?[] _columns;
-    private readonly ActionDefinitions _defs;
-    private readonly BossModuleRegistry _bmr;
-    private readonly RotationModuleRegistry _registry;
-    private readonly Serializer _ser;
 
     public bool AnyPlanModified => _columns.Any(c => c?.PlanModified ?? false);
 
-    public ColumnPlayersDetails(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB)
+    public delegate ColumnPlayersDetails Factory(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay.Encounter enc, BitMask showPlayers);
+
+    public ColumnPlayersDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay.Encounter enc, BitMask showPlayers, ColumnPlayerDetails.Factory playerFac)
         : base(timeline)
     {
-        _defs = defs;
-        _bmr = bmr;
-        _registry = registry;
-        _ser = ser;
         _tree = tree;
         _phaseBranches = phaseBranches;
-        _replay = replay;
         _encounter = enc;
-        _planDB = planDB;
+        this.playerFac = playerFac;
         _columns = new ColumnPlayerDetails[enc.PartyMembers.Count];
         foreach (var i in showPlayers.SetBits())
         {
             var (p, c, _) = enc.PartyMembers[i];
-            _columns[i] = Add(new ColumnPlayerDetails(_defs, bmr, registry, ser, Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, planDB));
+            _columns[i] = Add(playerFac.Invoke(Timeline, _tree, _phaseBranches, _encounter, p, c));
         }
     }
 
@@ -49,7 +40,7 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
                 if (col != null)
                     col.DrawConfig(tree);
                 else if (ImGui.Button("Show details..."))
-                    _columns[i] = Add(new ColumnPlayerDetails(_defs, _bmr, _registry, _ser, Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, _planDB));
+                    _columns[i] = Add(playerFac.Invoke(Timeline, _tree, _phaseBranches, _encounter, p, c));
             }
         }
     }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BossMod.ReplayVisualization;
 
-class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? moduleInfo, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo)
+class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? moduleInfo, IEnumerable<WorldState.Operation> ops, Action<DateTime> scrollTo, ActionEffectParser aep)
 {
     public readonly Replay.Encounter? Encounter = enc;
     public readonly BossModuleRegistry.Info? ModuleInfo = moduleInfo;
@@ -204,14 +204,14 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
         {
             foreach (var t in tree.Nodes(action.Targets, t => new(ReplayUtils.ActionTargetString(t, op.Timestamp))))
             {
-                tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                tree.LeafNodes(t.Effects, e => ReplayUtils.ActionEffectString(aep, e));
             }
         }
         else
         {
             foreach (var t in tree.Nodes(op.Value.Targets, t => new(ActorString(t.ID, op.Timestamp))))
             {
-                tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                tree.LeafNodes(t.Effects, e => ReplayUtils.ActionEffectString(aep, e));
             }
         }
     }

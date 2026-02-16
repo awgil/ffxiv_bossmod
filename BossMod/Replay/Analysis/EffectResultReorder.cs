@@ -3,8 +3,9 @@
 class EffectResultReorder
 {
     private readonly List<(Replay r, Replay.Participant p, Replay.Action prev, Replay.Action next, bool prevHeal, bool nextHeal)> _reordered = [];
+    private readonly ActionEffectParser aep;
 
-    public EffectResultReorder(List<Replay> replays)
+    public EffectResultReorder(List<Replay> replays, ActionEffectParser aep)
     {
         foreach (var r in replays)
         {
@@ -57,6 +58,8 @@ class EffectResultReorder
                 }
             }
         }
+
+        this.aep = aep;
     }
 
     public void Draw(UITree tree)
@@ -67,14 +70,14 @@ class EffectResultReorder
             {
                 foreach (var t in tree.Nodes(e.prev.Targets, t => new(ReplayUtils.ActionTargetString(t, e.prev.Timestamp))))
                 {
-                    tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                    tree.LeafNodes(t.Effects, e => ReplayUtils.ActionEffectString(aep, e));
                 }
             }
             foreach (var n in tree.Node($"Next: {e.next.Timestamp:O} {e.next.ID} {ReplayUtils.ParticipantString(e.next.Source, e.next.Timestamp)} -> {ReplayUtils.ParticipantString(e.next.MainTarget, e.next.Timestamp)}"))
             {
                 foreach (var t in tree.Nodes(e.next.Targets, t => new(ReplayUtils.ActionTargetString(t, e.next.Timestamp))))
                 {
-                    tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                    tree.LeafNodes(t.Effects, e => ReplayUtils.ActionEffectString(aep, e));
                 }
             }
         }

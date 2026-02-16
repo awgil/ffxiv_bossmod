@@ -36,18 +36,18 @@ public static class ColumnUtils
         return AddHistoryEntryRange(column, encStart, range.Start, range.Duration, name, color, widthRel);
     }
 
-    public static void AddActionTooltip(List<string> tooltip, Replay.Action action)
+    public static void AddActionTooltip(List<string> tooltip, Replay.Action action, ActionEffectParser aep)
     {
         foreach (var t in action.Targets)
         {
             tooltip.Add($"- {ReplayUtils.ActionTargetString(t, action.Timestamp)}");
             foreach (var e in t.Effects)
             {
-                tooltip.Add($"-- {ReplayUtils.ActionEffectString(e)}");
+                tooltip.Add($"-- {ReplayUtils.ActionEffectString(aep, e)}");
             }
         }
     }
-    public static void AddActionTooltip(this ColumnGenericHistory.Entry entry, Replay.Action action) => entry.TooltipExtra = (res, _) => AddActionTooltip(res, action);
+    public static void AddActionTooltip(this ColumnGenericHistory.Entry entry, Replay.Action action, ActionEffectParser aep) => entry.TooltipExtra = (res, _) => AddActionTooltip(res, action, aep);
 
     public static void AddCastTooltip(List<string> tooltip, Replay.Cast cast)
     {

@@ -25,18 +25,22 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
     private readonly BossModuleRegistry _bmr;
     private readonly RotationModuleRegistry _registry;
     private readonly Serializer _ser;
+    private readonly ActionEffectParser aep;
     private int _selectedPlan = -1;
     private CooldownPlannerColumns? _planner;
     private readonly List<Replay.Action> _plannerActions = [];
 
     public bool PlanModified => _planner?.Modified ?? false;
 
-    public ColumnPlayerDetails(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
+    public delegate ColumnPlayerDetails Factory(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay.Encounter enc, Replay.Participant player, Class playerClass);
+
+    public ColumnPlayerDetails(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
         : base(timeline)
     {
         _bmr = bmr;
         _registry = registry;
         _ser = ser;
+        this.aep = aep;
         _tree = tree;
         _phaseBraches = phaseBranches;
         _replay = replay;
@@ -46,12 +50,12 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _planDatabase = planDB;
         _moduleInfo = bmr.FindByOID(enc.OID);
 
-        _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass, defs));
+        _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass, defs, aep));
         _actions.Name = player.NameHistory.FirstOrDefault().Value.name;
 
-        _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, player));
+        _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, player, aep));
 
-        _hp = Add(new ColumnActorHP(timeline, tree, phaseBranches, replay, enc, player));
+        _hp = Add(new ColumnActorHP(timeline, tree, phaseBranches, replay, enc, player, aep));
         _gauge = ColumnPlayerGauge.Create(timeline, tree, phaseBranches, replay, enc, player, playerClass);
         if (_gauge != null)
             Add(_gauge);
@@ -194,7 +198,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _selectedPlan = newSelection;
         if (_selectedPlan >= 0)
         {
-            _planner = AddBefore(new CooldownPlannerColumns(_bmr, _registry, _ser, list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
+            _planner = AddBefore(new CooldownPlannerColumns(_bmr, _registry, _ser, aep, list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
         }
     }
 

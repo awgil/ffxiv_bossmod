@@ -21,16 +21,18 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
     private readonly BossModuleRegistry _bmr;
     private readonly RotationModuleRegistry _registry;
     private readonly Serializer _ser;
+    private readonly ActionEffectParser aep;
     private readonly float _trackWidth = 50 * ImGuiHelpers.GlobalScale;
 
     public Class PlanClass => Plan.Class;
 
-    public CooldownPlannerColumns(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
+    public CooldownPlannerColumns(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
         : base(timeline)
     {
         _bmr = bmr;
         _registry = registry;
         _ser = ser;
+        this.aep = aep;
         Plan = plan;
         _tree = tree;
         _phaseBranches = phaseBranches;
@@ -297,7 +299,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             {
                 if (config.AssociatedActions.Contains(a.ID))
                 {
-                    col.AddHistoryEntryDot(_encStart, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a);
+                    col.AddHistoryEntryDot(_encStart, a.Timestamp, $"{a.ID} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}", 0xffffffff).AddActionTooltip(a, aep);
                 }
             }
             cols.Add(col);

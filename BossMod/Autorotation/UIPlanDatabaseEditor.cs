@@ -27,15 +27,15 @@ public sealed class UIPlanDatabaseEditor
         return selected;
     }
 
-    public static void StartPlanEditor(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm)
+    public static void StartPlanEditor(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm)
     {
-        _ = new UIPlanEditorWindow(bmr, registry, ser, colors, db, plan, sm);
+        _ = new UIPlanEditorWindow(bmr, registry, ser, aep, colors, db, plan, sm);
     }
 
-    public static void StartPlanEditor(BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, ColorConfig colors, PlanDatabase db, Plan plan)
+    public static void StartPlanEditor(BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan)
     {
         var m = bmr.CreateModuleForConfigPlanning(plan.Encounter);
         if (m != null)
-            StartPlanEditor(bmr, autorot, ser, colors, db, plan, m.StateMachine);
+            StartPlanEditor(bmr, autorot, ser, aep, colors, db, plan, m.StateMachine);
     }
 }

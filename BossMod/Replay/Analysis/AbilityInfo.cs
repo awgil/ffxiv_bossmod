@@ -211,8 +211,9 @@ class AbilityInfo : CommonEnumInfo
         private readonly List<Point> _transcendentIgnores = [];
         private readonly List<Point> _transcendentMisses = [];
         private readonly List<Point> _otherMisses = [];
+        private readonly ActionEffectParser aep;
 
-        public KnockbackAnalysis(List<Instance> infos)
+        public KnockbackAnalysis(List<Instance> infos, ActionEffectParser aep)
         {
             foreach (var i in infos)
             {
@@ -262,6 +263,8 @@ class AbilityInfo : CommonEnumInfo
                     }
                 }
             }
+
+            this.aep = aep;
         }
 
         public void Draw(UITree tree)
@@ -293,7 +296,7 @@ class AbilityInfo : CommonEnumInfo
             {
                 foreach (var an in tree.Nodes(points, p => new($"{p.Inst.TimestampString()}: {ReplayUtils.ParticipantPosRotString(p.Inst.Action.Source, p.Inst.Action.Timestamp)} -> {ReplayUtils.ParticipantString(p.Target.Target, p.Inst.Action.Timestamp)}")))
                 {
-                    tree.LeafNodes(an.Target.Effects, ReplayUtils.ActionEffectString);
+                    tree.LeafNodes(an.Target.Effects, e => ReplayUtils.ActionEffectString(aep, e));
                 }
             }
         }
@@ -359,9 +362,11 @@ class AbilityInfo : CommonEnumInfo
 
     private readonly Type? _aidType;
     private readonly Dictionary<ActionID, ActionData> _data = [];
+    private readonly ActionEffectParser aep;
 
-    public AbilityInfo(List<Replay> replays, uint oid, BossModuleRegistry bmr)
+    public AbilityInfo(List<Replay> replays, uint oid, BossModuleRegistry bmr, ActionEffectParser aep)
     {
+        this.aep = aep;
         var moduleInfo = bmr.FindByOID(oid);
         _oidType = moduleInfo?.ObjectIDType;
         _aidType = moduleInfo?.ActionIDType;
@@ -379,7 +384,7 @@ class AbilityInfo : CommonEnumInfo
         }
     }
 
-    public AbilityInfo(List<Replay> replays)
+    public AbilityInfo(List<Replay> replays, ActionEffectParser aep)
     {
         foreach (var replay in replays)
         {
@@ -389,6 +394,8 @@ class AbilityInfo : CommonEnumInfo
                 foreach (var c in p.Casts)
                     AddCastData(replay, p, c);
         }
+
+        this.aep = aep;
     }
 
     public void Draw(UITree tree)
@@ -426,7 +433,7 @@ class AbilityInfo : CommonEnumInfo
                 {
                     foreach (var tn in tree.Nodes(an.Action.Targets, t => new(ReplayUtils.ActionTargetString(t, an.Action.Timestamp))))
                     {
-                        tree.LeafNodes(tn.Effects, ReplayUtils.ActionEffectString);
+                        tree.LeafNodes(tn.Effects, e => ReplayUtils.ActionEffectString(aep, e));
                     }
                 }
             }
@@ -486,7 +493,7 @@ class AbilityInfo : CommonEnumInfo
             }
             foreach (var an in tree.Node("Knockback analysis"))
             {
-                data.KnockbackAnalysis ??= new(data.Instances);
+                data.KnockbackAnalysis ??= new(data.Instances, aep);
                 data.KnockbackAnalysis.Draw(tree);
             }
             foreach (var an in tree.Node("Caster link analysis"))

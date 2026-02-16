@@ -68,10 +68,12 @@ class ClassDefinitions
     private readonly BitMask[] _classPerCategory = new BitMask[(int)ClassCategory.Limited + 1];
 
     private readonly ActionDefinitions _actions;
+    private readonly ActionEffectParser aep;
 
-    public ClassDefinitions(List<Replay> replays, ActionDefinitions defs)
+    public ClassDefinitions(List<Replay> replays, ActionDefinitions defs, ActionEffectParser aep)
     {
         _actions = defs;
+        this.aep = aep;
         var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
         var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>()!;
         var cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
@@ -328,7 +330,7 @@ class ClassDefinitions
         {
             foreach (var t in tree.Nodes(n.Action.Targets, t => new(ReplayUtils.ActionTargetString(t, n.Action.Timestamp))))
             {
-                tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                tree.LeafNodes(t.Effects, e => ReplayUtils.ActionEffectString(aep, e));
             }
         }
     }

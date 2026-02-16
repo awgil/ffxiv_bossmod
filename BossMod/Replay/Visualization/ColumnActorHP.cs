@@ -12,7 +12,7 @@ public class ColumnActorHP : Timeline.ColumnGroup, IToggleableColumn
         set => _hpBase.Width = _hpExtended.Width = _shield.Width = value ? ColumnGenericHistory.DefaultWidth : 0;
     }
 
-    public ColumnActorHP(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant actor)
+    public ColumnActorHP(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant actor, ActionEffectParser aep)
         : base(timeline)
     {
         Name = "HP";
@@ -54,7 +54,7 @@ public class ColumnActorHP : Timeline.ColumnGroup, IToggleableColumn
             {
                 var name = $"-{damage} +{heal}: {a.ID} {ReplayUtils.ParticipantString(a.Source, a.Timestamp)} -> {ReplayUtils.ParticipantString(a.MainTarget, a.Timestamp)} #{a.GlobalSequence}";
                 var color = damage == 0 ? 0xff00ff00 : heal == 0 ? 0xff00ffff : 0xffff00ff;
-                _hpBase.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, name, color).AddActionTooltip(a);
+                _hpBase.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, name, color).AddActionTooltip(a, aep);
             }
         }
     }

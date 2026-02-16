@@ -22,7 +22,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
     private readonly ActionDefinitions _defs;
     private readonly Dictionary<ActionID, (int group, float cd)> _cooldownReductions = [];
 
-    public ColumnPlayerActions(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, ActionDefinitions defs)
+    public ColumnPlayerActions(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, ActionDefinitions defs, ActionEffectParser aep)
         : base(timeline)
     {
         _defs = defs;
@@ -41,7 +41,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             if (a.ID == ActionDefinitions.IDAutoAttack || a.ID == ActionDefinitions.IDAutoShot)
             {
                 AddAnimationLock(_autoAttacks, a, enc.Time.Start, a.Timestamp, actionName);
-                _autoAttacks.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, 0xffc0c0c0).AddActionTooltip(a);
+                _autoAttacks.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, 0xffc0c0c0).AddActionTooltip(a, aep);
                 continue;
             }
 
@@ -77,7 +77,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
             }
 
             AddAnimationLock(_animLocks, a, enc.Time.Start, effectStart, actionName);
-            _animLocks.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, actionDef != null ? (ActionConfirmed(a) ? 0xffffffff : 0xff00ffff) : 0xff0000ff).AddActionTooltip(a);
+            _animLocks.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, actionDef != null ? (ActionConfirmed(a) ? 0xffffffff : 0xff00ffff) : 0xff0000ff).AddActionTooltip(a, aep);
 
             if (actionDef?.MainCooldownGroup >= 0)
             {
@@ -105,7 +105,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
                     e.TooltipExtra = (res, _) => res.AddRange(effectTooltip);
                     AdvanceCooldown(actionDef.MainCooldownGroup, enc.Time.Start, effectStart.AddSeconds(effectDuration), false);
                 }
-                col.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a);
+                col.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, actionName, 0xffffffff).AddActionTooltip(a, aep);
             }
 
             // cooldown reduction
@@ -131,7 +131,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
                         }
                     }
                 }
-                data.Column?.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, $"CD reduced by {actualReduction:f1}/{cdr.cd:f1}s: {actionName}", actualReduction < cdr.cd ? 0xff00ffff : 0xffffff00).AddActionTooltip(a);
+                data.Column?.AddHistoryEntryDot(enc.Time.Start, a.Timestamp, $"CD reduced by {actualReduction:f1}/{cdr.cd:f1}s: {actionName}", actualReduction < cdr.cd ? 0xff00ffff : 0xffffff00).AddActionTooltip(a, aep);
             }
         }
 

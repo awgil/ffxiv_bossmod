@@ -61,24 +61,35 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
-    private sealed record class AnalysisEntry(string Identifier, IEnumerable<ReplayEntry> Replays, BossModuleRegistry Registry, ActionDefinitions Actions) : IDisposable
+    public sealed record class AnalysisEntry(string Identifier, IEnumerable<ReplayEntry> Replays, BossModuleRegistry Registry, ActionDefinitions Actions, ILifetimeScope ParentScope) : IDisposable
     {
-        public ReplayAnalysis.AnalysisManager? Analysis;
+        public delegate AnalysisEntry Factory(string Identifier, IEnumerable<ReplayEntry> Replays);
+
+        private readonly List<Replay> R = [.. Replays.Where(r => r.Replay.IsCompletedSuccessfully && r.Replay.Result.Ops.Count > 0).Select(r => r.Replay.Result)];
+
+        public ILifetimeScope? Scope;
         public UISimpleWindow? Window;
         public bool Disposed;
 
         public void Dispose()
         {
             Window?.Dispose();
-            Analysis?.Dispose();
+            Scope?.Dispose();
             Disposed = true;
         }
 
         public void Show()
         {
-            Analysis ??= new([.. Replays.Where(r => r.Replay.IsCompletedSuccessfully && r.Replay.Result.Ops.Count > 0).Select(r => r.Replay.Result)], Registry, Actions);
-            Window ??= new($"Multiple logs: {Identifier}", Analysis.Draw, false, new(1200, 800));
-            Window.IsOpen = true;
+            if (Scope == null)
+            {
+                Scope = ParentScope.BeginLifetimeScope(builder =>
+                {
+                    builder.Register(_ => R).As<IEnumerable<Replay>>();
+                });
+                var analysis = Scope.Resolve<ReplayAnalysis.AnalysisManager>();
+                Window = new($"Multiple logs: {Identifier}", analysis.Draw, false, new(1200, 800));
+            }
+            Window?.IsOpen = true;
         }
     }
 
@@ -90,8 +101,7 @@ public sealed class ReplayManager : IDisposable
     private string _fileDialogStartPath;
     private FileDialog? _fileDialog;
     private readonly IFileDialogManager _dialogManager;
-    private readonly ActionDefinitions _actions;
-    private readonly BossModuleRegistry _bmr;
+    private readonly AnalysisEntry.Factory _analysisFac;
     private readonly ILifetimeScope _ctx;
 
     public delegate ReplayManager Factory(string fileDialogStartPath);
@@ -99,18 +109,16 @@ public sealed class ReplayManager : IDisposable
     public ReplayManager(
         IFileDialogManager dialogManager,
         ReplayManagementConfig config,
-        ActionDefinitions actions,
-        BossModuleRegistry bmr,
+        AnalysisEntry.Factory afac,
         ILifetimeScope ctx,
         string fileDialogStartPath
     )
     {
         _fileDialogStartPath = fileDialogStartPath;
         _dialogManager = dialogManager;
-        _actions = actions;
-        _bmr = bmr;
         _config = config;
         _ctx = ctx;
+        _analysisFac = afac;
         RestoreHistory();
     }
 
@@ -140,7 +148,7 @@ public sealed class ReplayManager : IDisposable
         // auto-show analysis windows that are now ready, auto dispose entries that had their windows closed
         foreach (var e in _analysisEntries)
         {
-            if (e.Analysis == null && e.Replays.All(r => r.Replay.IsCompleted))
+            if (e.Scope == null && e.Replays.All(r => r.Replay.IsCompleted))
             {
                 e.Show();
             }
@@ -244,7 +252,7 @@ public sealed class ReplayManager : IDisposable
             ImGui.SameLine();
             if (ImGui.Button("Analyze selected"))
             {
-                _analysisEntries.Add(new((++_nextAnalysisId).ToString(), [.. _replayEntries.Select(e => e.entry).Where(e => e.Selected)], _bmr, _actions));
+                _analysisEntries.Add(_analysisFac.Invoke((++_nextAnalysisId).ToString(), _replayEntries.Select(e => e.entry).Where(e => e.Selected)));
             }
             ImGui.SameLine();
             if (ImGui.Button("Unload selected"))
@@ -305,7 +313,7 @@ public sealed class ReplayManager : IDisposable
                 CleanPath();
                 var replays = LoadAll(_path);
                 if (replays.Count > 0)
-                    _analysisEntries.Add(new(_path, replays.Select(e => e.entry), _bmr, _actions));
+                    _analysisEntries.Add(_analysisFac.Invoke(_path, replays.Select(e => e.entry)));
             }
         }
         ImGui.SameLine();

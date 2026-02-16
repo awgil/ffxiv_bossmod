@@ -10,8 +10,11 @@
 class EffectResultMispredict
 {
     private readonly List<(Replay r, Replay.Action a)> _unexpected = [];
+    private readonly ActionEffectParser aep;
 
-    public EffectResultMispredict(List<Replay> replays, bool showMissing)
+    public delegate EffectResultMispredict Factory(bool showMissing);
+
+    public EffectResultMispredict(List<Replay> replays, bool showMissing, ActionEffectParser aep)
     {
         foreach (var r in replays)
         {
@@ -48,6 +51,8 @@ class EffectResultMispredict
                     _unexpected.Add((r, a));
             }
         }
+
+        this.aep = aep;
     }
 
     public void Draw(UITree tree)
@@ -56,7 +61,7 @@ class EffectResultMispredict
         {
             foreach (var t in tree.Nodes(e.a.Targets, t => new(ReplayUtils.ActionTargetString(t, e.a.Timestamp))))
             {
-                tree.LeafNodes(t.Effects, ReplayUtils.ActionEffectString);
+                tree.LeafNodes(t.Effects, e => ReplayUtils.ActionEffectString(aep, e));
             }
         }
     }

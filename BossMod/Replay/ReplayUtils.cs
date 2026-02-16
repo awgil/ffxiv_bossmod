@@ -15,14 +15,14 @@ public static class ReplayUtils
         return p != null ? $"{ParticipantString(p, t)} {Utils.PosRotString(p.PosRotAt(t))}" : "<none>";
     }
 
-    public static string ActionEffectString(ActionEffect eff)
+    public static string ActionEffectString(ActionEffectParser aep, ActionEffect eff)
     {
         var s = $"{eff.Type}: {eff.Param0:X2} {eff.Param1:X2} {eff.Param2:X2} {eff.Param3:X2} {eff.Param4:X2} {eff.Value:X4}";
         if (eff.FromTarget)
             s = "(from target) " + s;
         if (eff.AtSource)
             s = "(at source) " + s;
-        var desc = ActionEffectParser.DescribeFields(eff);
+        var desc = aep.DescribeFields(eff);
         if (desc.Length > 0)
             s += $": {desc}";
         return s;

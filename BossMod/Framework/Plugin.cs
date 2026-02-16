@@ -87,8 +87,8 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelf<PresetDatabase>();
         containerBuilder.RegisterSingletonSelf<ModuleViewer>();
         containerBuilder.RegisterSingletonSelf<UIPresetDatabaseEditor>();
+        containerBuilder.RegisterSingletonSelf<ActionEffectParser>();
 
-        //containerBuilder.RegisterSingletonSelf<ActionEffectParser>();
         //containerBuilder.RegisterSingletonSelf<ReplayUtils>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionDefinitions>();
@@ -119,12 +119,30 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterType<ConfigUI>().AsSelf().InstancePerLifetimeScope();
         containerBuilder.RegisterType<ReplayBuilder>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<ReplayDetailsWindow>().InstancePerLifetimeScope();
-        containerBuilder.RegisterType<ReplayManager.ReplayEntry>();
+
+        containerBuilder.RegisterType<ReplayManager.ReplayEntry>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayManager.AnalysisEntry>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.AnalysisManager>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.AnalysisManager.Global>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.AnalysisManager.PerEncounter>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.UnknownActionEffects>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.ParticipantInfo>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.AbilityInfo>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.ClassDefinitions>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.ClientActions>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.EffectResultMispredict>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayAnalysis.EffectResultReorder>().InstancePerDependency();
+        containerBuilder.RegisterType<EventList>().InstancePerDependency();
+        containerBuilder.RegisterType<ReplayTimelineWindow>().InstancePerDependency();
+        containerBuilder.RegisterType<ColumnEnemiesCastEvents>().InstancePerDependency();
+        containerBuilder.RegisterType<ColumnEnemiesDetails>().InstancePerDependency();
+        containerBuilder.RegisterType<ColumnPlayersDetails>().InstancePerDependency();
+        containerBuilder.RegisterType<ColumnPlayerDetails>().InstancePerDependency();
 
         // global config (ConfigRoot)
         containerBuilder.Register(s =>
         {
-            var cf = new ConfigRoot(s.Resolve<Serializer>(), s.Resolve<Lazy<BossModuleRegistry>>());
+            var cf = new ConfigRoot(s.Resolve<Serializer>(), s.Resolve<Lazy<BossModuleRegistry>>(), s.Resolve<IPluginLog>());
             cf.Initialize();
             cf.LoadFromFile(s.Resolve<IDalamudPluginInterface>().ConfigFile);
             return cf;
