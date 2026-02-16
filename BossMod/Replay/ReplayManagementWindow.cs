@@ -1,4 +1,5 @@
 ﻿using BossMod.Config;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Utility.Raii;
@@ -26,7 +27,7 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, ReplaysRoot root, ReplayManager.Factory managerFac, ICondition conditions, ReplayManagementConfig config) : base(_windowID, false, new(300, 200))
+    public ReplayManagementWindow(MediatorService mediator, WorldState ws, BossModuleManager bmm, ReplaysRoot root, ReplayManager.Factory managerFac, ICondition conditions, ReplayManagementConfig config) : base(mediator, _windowID, false, new(300, 200))
     {
         _conditions = conditions;
         _ws = ws;

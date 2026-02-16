@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -31,6 +32,7 @@ public sealed class ModuleViewer
     private readonly BossModuleConfig _bmConfig;
     private readonly ColorConfig _colors;
     private readonly ActionEffectParser aep;
+    private readonly MediatorService mediator;
     private readonly ExcelSheet<BNpcName> bnpcNameSheet;
     private readonly ExcelSheet<ContentFinderCondition> cfcSheet;
     private readonly ExcelSheet<Quest> questSheet;
@@ -60,6 +62,7 @@ public sealed class ModuleViewer
         BossModuleConfig bmConfig,
         ColorConfig colors,
         ActionEffectParser aep,
+        MediatorService mediator,
         ExcelSheet<BNpcName> bnpcNameSheet,
         ExcelSheet<ContentFinderCondition> cfcSheet,
         ExcelSheet<Quest> questSheet,
@@ -74,6 +77,7 @@ public sealed class ModuleViewer
         _bmConfig = bmConfig;
         _colors = colors;
         this.aep = aep;
+        this.mediator = mediator;
         this.bnpcNameSheet = bnpcNameSheet;
         this.cfcSheet = cfcSheet;
         this.questSheet = questSheet;
@@ -393,7 +397,7 @@ public sealed class ModuleViewer
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
                                 if (UIMisc.IconButton(FontAwesomeIcon.Cog, $"###{mod.Info.ModuleType.FullName}_cfg"))
-                                    _ = new BossModuleConfigWindow(mod.Info, ws, _tex);
+                                    _ = new BossModuleConfigWindow(mediator, mod.Info, ws, _tex);
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.PlanLevel == 0))
                                 if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, $"###{mod.Info.ModuleType.FullName}_plans"))
@@ -502,7 +506,7 @@ public sealed class ModuleViewer
             {
                 if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
                 {
-                    UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, aep, _colors, _planDB, plan);
+                    UIPlanDatabaseEditor.StartPlanEditor(mediator, _bmr, _registry, _ser, aep, _colors, _planDB, plan);
                 }
             }
         }
@@ -515,7 +519,7 @@ public sealed class ModuleViewer
                 var plans = mplans.GetOrAdd(player.Class);
                 var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = info.PlanLevel };
                 _planDB.ModifyPlan(null, plan);
-                UIPlanDatabaseEditor.StartPlanEditor(_bmr, _registry, _ser, aep, _colors, _planDB, plan);
+                UIPlanDatabaseEditor.StartPlanEditor(mediator, _bmr, _registry, _ser, aep, _colors, _planDB, plan);
             }
         }
     }

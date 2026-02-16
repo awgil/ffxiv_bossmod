@@ -1,4 +1,6 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Services;
+using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 
 namespace BossMod;
@@ -17,8 +19,11 @@ public abstract class UIWindow : Window, IDisposable
 {
     public bool DisposeOnClose; // defaults to true for detached windows, false for normal windows
 
-    protected UIWindow(string name, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, flags)
+    protected readonly MediatorService MediatorService;
+
+    protected UIWindow(MediatorService mediator, string name, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, flags)
     {
+        MediatorService = mediator;
         DisposeOnClose = detached;
         Size = initialSize;
         SizeCondition = ImGuiCond.FirstUseEver;
@@ -26,11 +31,13 @@ public abstract class UIWindow : Window, IDisposable
         {
             TitleBarButtons = titleBarButtons;
         }
-        var existingWindow = Service.WindowSystem!.Windows.FirstOrDefault(w => w.WindowName == WindowName);
+        mediator.Publish(new CreateWindowMessage(this, detached));
+        /*
+        var existingWindow = wsys.Windows.FirstOrDefault(w => w.WindowName == WindowName);
         if (existingWindow == null)
         {
             // standard case - just register window in window system
-            Service.WindowSystem.AddWindow(this);
+            wsys.AddWindow(this);
             IsOpen = detached;
         }
         else if (detached)
@@ -44,6 +51,7 @@ public abstract class UIWindow : Window, IDisposable
             // this is an error
             throw new InvalidOperationException($"Failed to register window {name} due to name conflict");
         }
+        */
     }
 
     public void Dispose()
@@ -65,14 +73,12 @@ public abstract class UIWindow : Window, IDisposable
     }
 
     // note: it won't be called for a detached window that was never registered...
-    protected virtual void Dispose(bool disposing) => Service.WindowSystem?.RemoveWindow(this);
+    protected virtual void Dispose(bool disposing) => MediatorService.Publish(new DestroyWindowMessage(WindowName));
 }
 
 // utility: window that uses custom delegate to perform drawing - allows avoiding creating derived classes in simple cases
-public class UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<Window.TitleBarButton>? titleBarButtons = null)
-    : UIWindow(name, detached, initialSize, flags, titleBarButtons)
+public class UISimpleWindow(MediatorService mediator, string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<Window.TitleBarButton>? titleBarButtons = null)
+    : UIWindow(mediator, name, detached, initialSize, flags, titleBarButtons)
 {
-    private readonly Action _draw = draw;
-
-    public override void Draw() => _draw();
+    public override void Draw() => draw();
 }

@@ -1,12 +1,13 @@
 ﻿using BossMod.Pathfinding;
+using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
-using Dalamud.Bindings.ImGui;
 using System.IO;
 
 namespace BossMod;
 
-sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalamud)
+sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalamud, MediatorService mediator)
 {
     class Editor(DebugObstacles owner, Bitmap bm, ObstacleMapDatabase.Entry e) : UIBitmapEditor(bm)
     {
@@ -243,6 +244,6 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     {
         using var stream = File.OpenRead(Obstacles.RootPath + entry.Filename);
         var editor = new Editor(this, new(stream), entry);
-        _ = new UISimpleWindow($"Obstacle map {entry.Filename}", editor.Draw, true, new(1000, 1000));
+        _ = new UISimpleWindow(mediator, $"Obstacle map {entry.Filename}", editor.Draw, true, new(1000, 1000));
     }
 }

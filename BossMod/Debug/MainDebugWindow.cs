@@ -2,9 +2,11 @@
 using BossMod.Autorotation.xan;
 using BossMod.Interfaces;
 using BossMod.Services;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -31,10 +33,12 @@ class MainDebugWindow(
     IObjectTable objects,
     ICondition conditions,
     ColorConfig colorConfig,
-    ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet
-) : UIWindow("Boss mod debug UI", false, new(300, 200))
+    ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet,
+    MediatorService mediator,
+    WindowSystem windows
+) : UIWindow(mediator, "Boss mod debug UI", false, new(300, 200))
 {
-    private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
+    private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud, mediator);
     private readonly DebugObjects _debugObjects = new(targetManager, objects);
     private readonly DebugParty _debugParty = new();
     private readonly DebugMapEffect _debugMapEffect = new(ws, hooking);
@@ -508,8 +512,8 @@ class MainDebugWindow(
 
     private void DrawWindowSystem()
     {
-        ImGui.TextUnformatted($"Any focus: {Service.WindowSystem!.HasAnyFocus}");
-        foreach (var w in Service.WindowSystem.Windows)
+        ImGui.TextUnformatted($"Any focus: {windows.HasAnyFocus}");
+        foreach (var w in windows.Windows)
         {
             ImGui.TextUnformatted($"{w.WindowName}: focus={w.IsFocused}");
         }

@@ -1,9 +1,10 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using System.Runtime.InteropServices;
 
 namespace BossMod.ReplayVisualization;
 
-class EventList(BossModuleRegistry bmr, Replay r, Action<DateTime> scrollTo, ActionEffectParser aep, ReplayTimelineWindow.Factory timelineFactory)
+class EventList(BossModuleRegistry bmr, Replay r, Action<DateTime> scrollTo, ActionEffectParser aep, ReplayTimelineWindow.Factory timelineFactory, MediatorService mediator)
 {
     public delegate EventList Factory(Action<DateTime> scrollTo);
 
@@ -300,7 +301,7 @@ class EventList(BossModuleRegistry bmr, Replay r, Action<DateTime> scrollTo, Act
         if (ImGui.MenuItem("Pop out"))
         {
             var windowName = $"Raw ops: {r.Path}, {(list.Encounter != null ? $"{list.ModuleInfo?.ModuleType.Name}: {list.Encounter.InstanceID:X} @ {list.Encounter.Time.Start} + {list.Encounter.Time}" : "full")}";
-            _ = new UISimpleWindow(windowName, () => list.Draw(new(), list.Encounter?.Time.Start ?? r.Ops[0].Timestamp), true, new(1000, 1000));
+            _ = new UISimpleWindow(mediator, windowName, () => list.Draw(new(), list.Encounter?.Time.Start ?? r.Ops[0].Timestamp), true, new(1000, 1000));
         }
     }
 
@@ -316,7 +317,7 @@ class EventList(BossModuleRegistry bmr, Replay r, Action<DateTime> scrollTo, Act
         if (ImGui.MenuItem("Pop out"))
         {
             var windowName = $"Server IPCs: {r.Path}, {(list.Encounter != null ? $"{moduleInfo?.ModuleType.Name}: {list.Encounter.InstanceID:X} @ {list.Encounter.Time.Start} + {list.Encounter.Time}" : "full")}";
-            _ = new UISimpleWindow(windowName, () => list.Draw(new(), list.Encounter?.Time.Start ?? r.Ops[0].Timestamp), true, new(1000, 1000));
+            _ = new UISimpleWindow(mediator, windowName, () => list.Draw(new(), list.Encounter?.Time.Start ?? r.Ops[0].Timestamp), true, new(1000, 1000));
         }
     }
 }

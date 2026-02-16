@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod.ReplayVisualization;
+using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiFileDialog;
@@ -61,7 +62,7 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
-    public sealed record class AnalysisEntry(string Identifier, IEnumerable<ReplayEntry> Replays, BossModuleRegistry Registry, ActionDefinitions Actions, ILifetimeScope ParentScope) : IDisposable
+    public sealed record class AnalysisEntry(string Identifier, IEnumerable<ReplayEntry> Replays, BossModuleRegistry Registry, ActionDefinitions Actions, ILifetimeScope ParentScope, MediatorService Mediator) : IDisposable
     {
         public delegate AnalysisEntry Factory(string Identifier, IEnumerable<ReplayEntry> Replays);
 
@@ -87,7 +88,7 @@ public sealed class ReplayManager : IDisposable
                     builder.Register(_ => R).As<IEnumerable<Replay>>();
                 });
                 var analysis = Scope.Resolve<ReplayAnalysis.AnalysisManager>();
-                Window = new($"Multiple logs: {Identifier}", analysis.Draw, false, new(1200, 800));
+                Window = new(Mediator, $"Multiple logs: {Identifier}", analysis.Draw, false, new(1200, 800));
             }
             Window?.IsOpen = true;
         }

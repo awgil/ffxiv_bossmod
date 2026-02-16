@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod;
 
@@ -9,7 +10,7 @@ public class BossModuleHintsWindow : UIWindow
 
     public delegate BossModuleHintsWindow Factory(ZoneModuleManager zmm);
 
-    public BossModuleHintsWindow(BossModuleManager mgr, ZoneModuleManager zmm) : base("Boss module hints", false, new(400, 100))
+    public BossModuleHintsWindow(MediatorService mediator, BossModuleManager mgr, ZoneModuleManager zmm) : base(mediator, "Boss module hints", false, new(400, 100))
     {
         _mgr = mgr;
         _zmm = zmm;

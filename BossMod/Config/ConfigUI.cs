@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Config;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
@@ -27,6 +28,7 @@ public sealed class ConfigUI
     private readonly UITabs _tabs = new();
     private readonly AboutTab _about;
     private readonly ModuleViewer _mv;
+    private readonly MediatorService mediator;
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
     private readonly UIPresetDatabaseEditor? _presets;
@@ -35,6 +37,7 @@ public sealed class ConfigUI
     private readonly List<List<string>> _filterNodes = [];
 
     public ConfigUI(
+        MediatorService mediator,
         ConfigRoot config,
         WorldState ws,
         ReplaysRoot replayDir,
@@ -43,6 +46,7 @@ public sealed class ConfigUI
         UIPresetDatabaseEditor presetEditor
     )
     {
+        this.mediator = mediator;
         _root = config;
         _ws = ws;
         _about = new(new(replayDir.Path));
@@ -89,7 +93,7 @@ public sealed class ConfigUI
     public void Open(string tabName = "")
     {
         ShowTab(tabName);
-        _ = new UISimpleWindow("Boss Mod Settings", Draw, true, new(300, 300));
+        _ = new UISimpleWindow(this.mediator, "Boss Mod Settings", Draw, true, new(300, 300));
     }
 
     public void ShowTab(string name) => _tabs.Select(name);

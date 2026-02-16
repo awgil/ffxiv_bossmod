@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Lumina.Excel;
@@ -65,8 +66,9 @@ public class ReplayDetailsWindow : UIWindow
         Serializer ser,
         ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet,
         ActionEffectParser aep,
+        MediatorService mediator,
         ILifetimeScope scope
-    ) : base($"Replay: {data.Path}", false, new(1500, 1000))
+    ) : base(mediator, $"Replay: {data.Path}", false, new(1500, 1000))
     {
         _defs = defs;
         _roles = prc;
@@ -176,7 +178,7 @@ public class ReplayDetailsWindow : UIWindow
 
             if (_mgr.ActiveModule != null && ImGui.Button("Timeline"))
             {
-                _ = new StateMachineWindow(_mgr.ActiveModule, _colors);
+                _ = new StateMachineWindow(MediatorService, _mgr.ActiveModule, _colors);
             }
 
             if (_mgr.ActiveModule?.Info?.PlanLevel > 0)

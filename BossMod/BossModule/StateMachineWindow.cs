@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod;
 
@@ -7,7 +8,7 @@ public class StateMachineWindow : UIWindow
     private readonly Timeline _timeline;
     private readonly ColumnStateMachineTree _col;
 
-    public StateMachineWindow(BossModule module, ColorConfig colors) : base($"{module.GetType().Name} timeline", true, new(600, 600))
+    public StateMachineWindow(MediatorService mediator, BossModule module, ColorConfig colors) : base(mediator, $"{module.GetType().Name} timeline", true, new(600, 600))
     {
         _timeline = new(colors);
         _col = _timeline.Columns.Add(new ColumnStateMachineTree(_timeline, new(module.StateMachine), module.StateMachine));

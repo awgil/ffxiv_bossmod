@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
@@ -27,15 +28,15 @@ public sealed class UIPlanDatabaseEditor
         return selected;
     }
 
-    public static void StartPlanEditor(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm)
+    public static void StartPlanEditor(MediatorService mediator, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm)
     {
-        _ = new UIPlanEditorWindow(bmr, registry, ser, aep, colors, db, plan, sm);
+        _ = new UIPlanEditorWindow(mediator, bmr, registry, ser, aep, colors, db, plan, sm);
     }
 
-    public static void StartPlanEditor(BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan)
+    public static void StartPlanEditor(MediatorService mediator, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan)
     {
         var m = bmr.CreateModuleForConfigPlanning(plan.Encounter);
         if (m != null)
-            StartPlanEditor(bmr, autorot, ser, aep, colors, db, plan, m.StateMachine);
+            StartPlanEditor(mediator, bmr, autorot, ser, aep, colors, db, plan, m.StateMachine);
     }
 }

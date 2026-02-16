@@ -9,9 +9,15 @@ internal class MockUnlockState : IUnlockState, IMockService
 {
     public string ServiceName => "MockUnlockState";
 
+    public bool IsAchievementListLoaded => throw new NotImplementedException();
+
+    public bool IsTitleListLoaded => throw new NotImplementedException();
+
     public event IUnlockState.UnlockDelegate? Unlock;
 
+    public bool IsAchievementComplete(Achievement row) => throw new NotImplementedException();
     public bool IsActionUnlocked(Lumina.Excel.Sheets.Action row) => true;
+    public bool IsAdventureComplete(Adventure row) => throw new NotImplementedException();
     public bool IsAetherCurrentCompFlgSetUnlocked(AetherCurrentCompFlgSet row) => true;
     public bool IsAetherCurrentUnlocked(AetherCurrent row) => true;
     public bool IsAozActionUnlocked(AozAction row) => true;
@@ -52,6 +58,7 @@ internal class MockUnlockState : IUnlockState, IMockService
     public bool IsRowRefUnlocked(RowRef rowRef) => true;
     public bool IsRowRefUnlocked<T>(RowRef<T> rowRef) where T : struct, IExcelRow<T> => true;
     public bool IsSecretRecipeBookUnlocked(SecretRecipeBook row) => true;
+    public bool IsTitleUnlocked(Title row) => throw new NotImplementedException();
     public bool IsTraitUnlocked(Trait row) => true;
     public bool IsTripleTriadCardUnlocked(TripleTriadCard row) => true;
     public bool IsUnlockLinkUnlocked(uint unlockLink) => true;

@@ -8,10 +8,10 @@ namespace BossMod.Services;
 
 internal class CommandService(
     ConfigUI configUI,
-    Lazy<UIRotationWindow> wndRotation,
-    Lazy<AI.AIWindow> wndAI,
-    Lazy<ReplayManagementWindow> wndReplay,
-    Lazy<IEnumerable<MainDebugWindow>> wndDebug,
+    UIRotationWindow wndRotation,
+    AI.AIWindow wndAI,
+    ReplayManagementWindow wndReplay,
+    IEnumerable<MainDebugWindow> wndDebug,
     RotationModuleManager rotation,
     AI.AIManager ai,
     WorldState worldState,
@@ -35,7 +35,7 @@ internal class CommandService(
     private void RegisterSlashCommands()
     {
         _slashCmd.SetSimpleHandler("show boss mod settings UI", () => configUI.Open());
-        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => wndReplay.Value.SetVisible(!wndReplay.Value.IsOpen));
+        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => wndReplay.SetVisible(!wndReplay.IsOpen));
         RegisterAutorotationSlashCommands(_slashCmd.AddSubcommand("ar"));
         RegisterAISlashCommands(_slashCmd.AddSubcommand("ai"));
         _slashCmd.AddSubcommand("cfg").SetComplexHandler("<config-type> <field> [<value>]", "query or modify configuration setting", args =>
@@ -45,7 +45,7 @@ internal class CommandService(
                 chat.Print(msg);
             return true;
         });
-        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", () => wndDebug.Value.FirstOrDefault()?.OpenAndBringToFront());
+        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", () => wndDebug.FirstOrDefault()?.OpenAndBringToFront());
         _slashCmd.AddSubcommand("gc").SetSimpleHandler("execute C# garbage collector", () =>
         {
             GC.Collect();
@@ -95,7 +95,7 @@ internal class CommandService(
                 chat.PrintError($"Failed to find preset '{presetName}'");
         }
 
-        cmd.SetSimpleHandler("toggle autorotation ui", () => wndRotation.Value.SetVisible(!wndRotation.Value.IsOpen));
+        cmd.SetSimpleHandler("toggle autorotation ui", () => wndRotation.SetVisible(!wndRotation.IsOpen));
         cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
         {
             logger.Debug($"Console: clearing autorotation preset(s) '{rotation.PresetNames}'");
@@ -138,7 +138,7 @@ internal class CommandService(
 
     private void RegisterAISlashCommands(SlashCommandHandler cmd)
     {
-        cmd.SetSimpleHandler("toggle AI ui", () => wndAI.Value.SetVisible(!wndAI.Value.IsOpen));
+        cmd.SetSimpleHandler("toggle AI ui", () => wndAI.SetVisible(!wndAI.IsOpen));
         cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () => ai.Enabled = true);
         cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () => ai.Enabled = false);
         cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () => ai.Enabled ^= true);

@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.ReplayVisualization;
@@ -19,7 +20,7 @@ class ReplayTimelineWindow : UIWindow
 
     public delegate ReplayTimelineWindow Factory(Replay replay, Replay.Encounter enc, BitMask showPlayers);
 
-    public ReplayTimelineWindow(BossModuleRegistry bmr, Replay replay, Replay.Encounter enc, BitMask showPlayers, ReplayDetailsWindow timelineSync, ColorConfig colors, ColumnEnemiesCastEvents.Factory cefac, ColumnEnemiesDetails.Factory cdfac, ColumnPlayersDetails.Factory cpfac) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
+    public ReplayTimelineWindow(MediatorService mediator, BossModuleRegistry bmr, Replay replay, Replay.Encounter enc, BitMask showPlayers, ReplayDetailsWindow timelineSync, ColorConfig colors, ColumnEnemiesCastEvents.Factory cefac, ColumnEnemiesDetails.Factory cdfac, ColumnPlayersDetails.Factory cpfac) : base(mediator, $"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
     {
         _bmr = bmr;
         _encounter = enc;

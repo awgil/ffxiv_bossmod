@@ -23,7 +23,7 @@ public class Plugin : HostedPlugin
 {
     public string Name => "Boss Mod";
 
-    public unsafe Plugin(
+    public Plugin(
         IDalamudPluginInterface dalamud,
         IPluginLog log,
         IClientState clientState,

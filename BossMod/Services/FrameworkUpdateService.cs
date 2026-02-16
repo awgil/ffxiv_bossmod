@@ -1,18 +1,21 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Interfaces;
 using DalaMock.Host.Factories;
+using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
-using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
 internal class FrameworkUpdateService(
+    MediatorService mediator,
+    ILogger<DisposableMediatorSubscriberBase> mLogger,
     IAmex amex,
     IMovementOverride movement,
     IPluginLog logger,
@@ -29,18 +32,16 @@ internal class FrameworkUpdateService(
     IUiBuilder uiBuilder,
     ICondition conditions,
     IGameGui gameGui,
-    ConfigUI configUI,
-    Lazy<IEnumerable<Window>> windows
-) : IHostedService
+    ConfigUI configUI
+) : DisposableMediatorSubscriberBase(mLogger, mediator), IHostedService
 {
     private TimeSpan _prevUpdateTime;
     private readonly IWindowSystem windowSystem = windowSystemFactory.Create("vbm");
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        Service.WindowSystem = windowSystem;
-        // TODO: UIWindow constructor expects Service.WindowSystem to be set
-        _ = windows.Value;
+        MediatorService.Subscribe<CreateWindowMessage>(this, CreateWindow);
+        MediatorService.Subscribe<DestroyWindowMessage>(this, DestroyWindow);
 
         uiBuilder.OpenMainUi += OpenUi;
         uiBuilder.OpenConfigUi += OpenUi;
@@ -55,6 +56,36 @@ internal class FrameworkUpdateService(
         uiBuilder.OpenMainUi -= OpenUi;
         uiBuilder.OpenConfigUi -= OpenUi;
         uiBuilder.Draw -= Update;
+    }
+
+    void CreateWindow(CreateWindowMessage msg)
+    {
+        var wnd = msg.Window;
+        var detached = msg.Detached;
+        var existing = windowSystem.Windows.FirstOrDefault(w => w.WindowName == wnd.WindowName);
+        if (existing == null)
+        {
+            windowSystem.AddWindow(wnd);
+            wnd.IsOpen = detached;
+        }
+        else if (detached)
+        {
+            existing.IsOpen = true;
+            existing.BringToFront();
+        }
+        else
+        {
+            throw new InvalidOperationException($"Failed to register window {wnd.WindowName} due to name conflict");
+        }
+    }
+
+    void DestroyWindow(DestroyWindowMessage msg)
+    {
+        var wnd = windowSystem.Windows.FirstOrDefault(w => w.WindowName == msg.WindowName);
+        if (wnd != null)
+            windowSystem.RemoveWindow(wnd);
+        else
+            throw new InvalidOperationException($"No window named {msg.WindowName} found in WindowSystem.");
     }
 
     void OpenUi() => configUI.Open();
