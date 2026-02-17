@@ -115,12 +115,10 @@ abstract partial class AutoClear : ZoneModule
 
         // TODO: reverse more layout stuff so we can use a less stupid solution
         // tileset 0 is almost always SW and tileset 1 is NE but palace swaps them for certain floors
-        var layerRow = Service.LuminaSheet<Lumina.Excel.Sheets.DeepDungeonLayer>()?.FirstOrNull(l => l.DeepDungeon.RowId == (uint)Palace.DungeonId && l.FloorSet == (byte)(Palace.Floor / 10));
+        var layerRow = _gameData.GetExcelSheet<Lumina.Excel.Sheets.DeepDungeonLayer>().FirstOrNull(l => l.DeepDungeon.RowId == (uint)Palace.DungeonId && l.FloorSet == (byte)(Palace.Floor / 10));
         if (layerRow?.RoomA.RowId > layerRow?.RoomB.RowId)
             _floorRects.Reverse();
     }
-
-    //private static bool IsRoomRange(Eve)
 
     private static WDir ToCardinal(WDir x)
     {

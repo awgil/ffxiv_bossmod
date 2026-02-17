@@ -17,6 +17,7 @@ public record class ZoneModuleArgs(
     ActionDefinitions Actions,
     ITextureProvider TextureProvider,
     IPluginLog Logger,
+    IDataManager DataManager,
     // TODO: remove, these are for quest battle integration
     IDalamudPluginInterface Dalamud,
     ISigScanner Scanner,

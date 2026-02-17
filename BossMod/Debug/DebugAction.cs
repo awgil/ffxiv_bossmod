@@ -5,10 +5,11 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using Lumina.Excel;
 
 namespace BossMod;
 
-sealed unsafe class DebugAction(WorldState ws, IAmex amex, IGameGui gui, IPlayerState playerState, IObjectTable objectTable) : IDisposable
+sealed unsafe class DebugAction(WorldState ws, IAmex amex, IGameGui gui, IPlayerState playerState, IObjectTable objectTable, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet) : IDisposable
 {
     private int _customAction;
     private readonly UITree _tree = new();
@@ -210,7 +211,7 @@ sealed unsafe class DebugAction(WorldState ws, IAmex amex, IGameGui gui, IPlayer
     {
         foreach (var nr in _tree.Node(tag))
         {
-            foreach (var a in Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!.Where(filter))
+            foreach (var a in actionsSheet.Where(filter))
             {
                 _tree.LeafNode($"#{a.RowId} {a.Name}");
             }

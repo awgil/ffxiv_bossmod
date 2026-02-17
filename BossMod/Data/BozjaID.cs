@@ -1,4 +1,5 @@
-﻿using Lumina.Excel.Sheets;
+﻿using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
 namespace BossMod;
 
@@ -110,19 +111,18 @@ public enum BozjaHolsterID : uint
 }
 
 // holster -> action id mapping
-public static class BozjaActionID
+public class BozjaActionID
 {
-    public static readonly ActionID SlotFromHolsterAction = new(ActionType.Spell, 21023);
+    public readonly ActionID SlotFromHolsterAction = new(ActionType.Spell, 21023);
 
-    private static readonly ActionID[] _normalActions = new ActionID[(int)BozjaHolsterID.Count];
-    private static readonly ActionID[] _holsterActions = new ActionID[(int)BozjaHolsterID.Count];
+    private readonly ActionID[] _normalActions = new ActionID[(int)BozjaHolsterID.Count];
+    private readonly ActionID[] _holsterActions = new ActionID[(int)BozjaHolsterID.Count];
 
-    public static ActionID GetNormal(BozjaHolsterID id) => _normalActions[(int)id];
-    public static ActionID GetHolster(BozjaHolsterID id) => _holsterActions[(int)id];
+    public ActionID GetNormal(BozjaHolsterID id) => _normalActions[(int)id];
+    public ActionID GetHolster(BozjaHolsterID id) => _holsterActions[(int)id];
 
-    static BozjaActionID()
+    public BozjaActionID(ExcelSheet<MYCTemporaryItem> sheet)
     {
-        var sheet = Service.LuminaSheet<MYCTemporaryItem>()!;
         for (var i = 0; i < _normalActions.Length; i++)
         {
             var row = sheet.GetRow((uint)i);

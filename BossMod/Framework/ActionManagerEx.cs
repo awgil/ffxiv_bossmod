@@ -56,6 +56,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly ManualActionQueueTweak _manualQueue;
     private readonly AnimationLockTweak _animLockTweak;
     private readonly CooldownDelayTweak _cooldownTweak;
+    private readonly BozjaActionID bozjaActions;
     private readonly CancelCastTweak _cancelCastTweak;
     private readonly AutoDismountTweak _dismountTweak;
     private readonly SmartRotationTweak _smartRotationTweak;
@@ -78,9 +79,10 @@ public sealed unsafe class ActionManagerEx : IAmex
     private delegate TargetSystem* AutoSelectTargetDelegate(TargetSystem* targetSystem, uint nearestTargetType);
     private readonly AutoSelectTargetDelegate _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, IMovementOverride movement, GameInteropExtended hooking, ManualActionQueueTweak mtweak, CancelCastTweak ctweak, AutoDismountTweak dtweak, SmartRotationTweak smtweak, OutOfCombatActionsTweak ootweak, AutoAutosTweak aatweak, AnimationLockTweak altweak, CooldownDelayTweak cdtweak, ActionTweaksConfig tweaksConfig)
+    public ActionManagerEx(WorldState ws, AIHints hints, IMovementOverride movement, GameInteropExtended hooking, ManualActionQueueTweak mtweak, CancelCastTweak ctweak, AutoDismountTweak dtweak, SmartRotationTweak smtweak, OutOfCombatActionsTweak ootweak, AutoAutosTweak aatweak, AnimationLockTweak altweak, CooldownDelayTweak cdtweak, ActionTweaksConfig tweaksConfig, BozjaActionID bozjaActions)
     {
         Config = tweaksConfig;
+        this.bozjaActions = bozjaActions;
         _ws = ws;
         _hints = hints;
         _movement = movement;
@@ -246,7 +248,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     public uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
     {
         if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
-            action = BozjaActionID.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
+            action = bozjaActions.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
 
         // the spell that corresponds with pomanders/magicite can't directly be used by players, so actionstatus will always be 579
         if (action.Type is ActionType.Pomander or ActionType.Magicite)

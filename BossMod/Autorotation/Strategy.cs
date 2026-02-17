@@ -74,7 +74,7 @@ public sealed class TrackAttribute() : Attribute
     public object[] Actions
     {
         set => ActionIDs = [.. value.Select(v => v switch {
-            BozjaHolsterID id => BozjaActionID.GetNormal(id),
+            int id => new(ActionType.Spell, (uint)id),
             var x => ActionID.MakeSpell((Enum)x)
         })];
         get => [.. ActionIDs];

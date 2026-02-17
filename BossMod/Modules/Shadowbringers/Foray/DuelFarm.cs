@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using System.Reflection;
 
@@ -11,7 +12,7 @@ public sealed class DuelAttribute(uint nameID, uint prepNameID, uint fateID = 0)
     public uint PrepNameID => prepNameID;
     public uint FateID => fateID;
 
-    public string Label => $"{ModuleViewer.BNpcName(Service.LuminaSheet<BNpcName>()!, nameID)} ({ModuleViewer.BNpcName(Service.LuminaSheet<BNpcName>()!, prepNameID)})";
+    public string Label(ExcelSheet<BNpcName> namesSheet) => $"{ModuleViewer.BNpcName(namesSheet, nameID)} ({ModuleViewer.BNpcName(namesSheet, prepNameID)})";
 }
 
 [ConfigDisplay(Name = "Bozja duel farming", Parent = typeof(ShadowbringersConfig))]
@@ -38,6 +39,7 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
     public readonly string Zone;
 
     private readonly EventSubscriptions _subscriptions;
+    private readonly ExcelSheet<BNpcName> _namesSheet;
 
     private static DuelAttribute? GetAttr(Enum nm) => nm.GetType().GetField(nm.ToString())?.GetCustomAttribute<DuelAttribute>();
     private static uint GetFateID(Enum nm) => GetAttr(nm)?.FateID ?? 0;
@@ -47,6 +49,7 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
 
     protected DuelFarm(ZoneModuleArgs args, string zone) : base(args)
     {
+        _namesSheet = args.DataManager.GetExcelSheet<BNpcName>();
         _globalConfig = args.Config.Get<DuelFarmConfig>();
         _subscriptions = new(args.World.Client.FateInfo.Subscribe(OnFateSpawn));
         Zone = zone;
@@ -112,7 +115,7 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
         modified |= ImGui.Checkbox("Enable", ref _globalConfig.Enabled);
 
         var tar = FarmTarget;
-        if (UICombo.Enum("Prep", ref tar, t => GetAttr(t)?.Label ?? t.ToString()))
+        if (UICombo.Enum("Prep", ref tar, t => GetAttr(t)?.Label(_namesSheet) ?? t.ToString()))
             FarmTarget = tar;
 
         ImGui.Spacing();

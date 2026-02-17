@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using System.Reflection;
 
@@ -11,7 +12,7 @@ public sealed class NMAttribute(uint nameID, uint prepNameID, uint fateID = 0) :
     public uint PrepNameID => prepNameID;
     public uint FateID => fateID;
 
-    public string Label => $"{ModuleViewer.BNpcName(Service.LuminaSheet<BNpcName>()!, nameID)} ({ModuleViewer.BNpcName(Service.LuminaSheet<BNpcName>()!, prepNameID)})";
+    public string Label(ExcelSheet<BNpcName> namesSheet) => $"{ModuleViewer.BNpcName(namesSheet, nameID)} ({ModuleViewer.BNpcName(namesSheet, prepNameID)})";
 }
 
 [ConfigDisplay(Name = "Eureka", Parent = typeof(StormbloodConfig))]
@@ -38,6 +39,7 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
     public readonly string Zone;
 
     private readonly EventSubscriptions _subscriptions;
+    private readonly ExcelSheet<BNpcName> _namesSheet;
 
     private static NMAttribute? GetAttr(Enum nm) => nm.GetType().GetField(nm.ToString())?.GetCustomAttribute<NMAttribute>();
     private static uint GetFateID(Enum nm) => GetAttr(nm)?.FateID ?? 0;
@@ -47,6 +49,7 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
 
     protected EurekaZone(ZoneModuleArgs args, string zone) : base(args)
     {
+        _namesSheet = args.DataManager.GetExcelSheet<BNpcName>();
         _globalConfig = args.Config.Get<EurekaConfig>();
         _subscriptions = new(args.World.Client.FateInfo.Subscribe(OnFateSpawn));
         Zone = zone;
@@ -129,7 +132,7 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
         modified |= ImGui.Checkbox("Enable", ref _globalConfig.Enabled);
 
         var tar = FarmTarget;
-        if (UICombo.Enum("Prep", ref tar, t => GetAttr(t)?.Label ?? t.ToString()))
+        if (UICombo.Enum("Prep", ref tar, t => GetAttr(t)?.Label(_namesSheet) ?? t.ToString()))
             FarmTarget = tar;
 
         ImGui.Spacing();

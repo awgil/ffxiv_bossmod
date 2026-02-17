@@ -164,6 +164,9 @@ public sealed class ActionDefinitions
     public ActionDefinition? this[ActionID action] => _definitions.GetValueOrDefault(action);
     public ActionDefinition? Spell<AID>(AID aid) where AID : Enum => _definitions.GetValueOrDefault(ActionID.MakeSpell(aid));
 
+    public BozjaActionID BozjaActions { get; }
+    public FoodID Food { get; }
+
     public readonly HashSet<uint> SupportedItems = [];
 
     public const int GCDGroup = 57;
@@ -213,9 +216,13 @@ public sealed class ActionDefinitions
         ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet,
         ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet,
         ExcelSheet<Lumina.Excel.Sheets.Trait> traitSheet,
-        ExcelSheet<Lumina.Excel.Sheets.EventItem> eventItemsSheet
+        ExcelSheet<Lumina.Excel.Sheets.EventItem> eventItemsSheet,
+        BozjaActionID bozjaActions,
+        FoodID foods
     )
     {
+        BozjaActions = bozjaActions;
+        Food = foods;
         this.unlockState = unlockState;
         this.actionsSheet = actionsSheet;
         this.itemsSheet = itemsSheet;
@@ -552,8 +559,8 @@ public sealed class ActionDefinitions
 
     private void RegisterBozja(BozjaHolsterID id)
     {
-        var normalAction = BozjaActionID.GetNormal(id);
-        var isItem = normalAction == BozjaActionID.GetHolster(id);
+        var normalAction = BozjaActions.GetNormal(id);
+        var isItem = normalAction == BozjaActions.GetHolster(id);
         RegisterSpell(normalAction, instantAnimLock: isItem ? 1.1f : 0.6f);
         if (!isItem)
         {

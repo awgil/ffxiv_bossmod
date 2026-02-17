@@ -1,5 +1,6 @@
 ﻿using BossMod.Data;
 using Dalamud.Bindings.ImGui;
+using Lumina.Excel;
 using System.Text;
 
 namespace BossMod.ReplayAnalysis;
@@ -70,14 +71,24 @@ class ClassDefinitions
     private readonly ActionDefinitions _actions;
     private readonly ActionEffectParser aep;
 
-    public ClassDefinitions(List<Replay> replays, ActionDefinitions defs, ActionEffectParser aep)
+    public ClassDefinitions(
+        List<Replay> replays,
+        ActionDefinitions defs,
+        ActionEffectParser aep,
+        ExcelSheet<Lumina.Excel.Sheets.Action> actionSheet,
+        ExcelSheet<Lumina.Excel.Sheets.ClassJob> classSheet,
+        ExcelSheet<Lumina.Excel.Sheets.Trait> traitSheet,
+        BozjaActionID bozjaActions
+    )
     {
         _actions = defs;
         this.aep = aep;
-        var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
-        var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>()!;
-        var cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
-        var traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
+
+        static bool ReadBoolColumn<T>(RowRef<T> rowRef, int offset) where T : struct, IExcelRow<T>
+        {
+            var raw = new RawRow(rowRef.Value.ExcelPage, rowRef.Value.RowOffset, rowRef.Value.RowId);
+            return raw.ReadBoolColumn(offset);
+        }
 
         // we don't care about base classes and DoH/DoL here...
         for (var i = (uint)Class.PLD; i < classSheet.Count; ++i)
@@ -91,14 +102,14 @@ class ClassDefinitions
             var baseClass = curClass == Class.SCH ? Class.SCH : (Class)row.ClassJobParent.RowId; // both SCH and SMN are based on ACN, but SMN is closer
             var classData = _classData[curClass] = new(curClass, baseClass);
 
-            bool actionIsInteresting(Lumina.Excel.Sheets.Action a) => !a.IsPvP && ((int)a.ClassJob.RowId != -1 || a.IsRoleAction) && a.ClassJobLevel > 0 && cjcSheet.GetRow(a.ClassJobCategory.RowId).ReadBoolColumn((int)i + 1);
+            bool actionIsInteresting(Lumina.Excel.Sheets.Action a) => !a.IsPvP && ((int)a.ClassJob.RowId != -1 || a.IsRoleAction) && a.ClassJobLevel > 0 && ReadBoolColumn(a.ClassJobCategory, (int)i + 1);
             foreach (var a in actionSheet.Where(actionIsInteresting))
                 RegisterAction(new ActionID(ActionType.Spell, a.RowId), a, classData, out _);
             RegisterLimitBreak(row.LimitBreak1.RowId, classData, 1);
             RegisterLimitBreak(row.LimitBreak2.RowId, classData, 2);
             RegisterLimitBreak(row.LimitBreak3.RowId, classData, 3);
 
-            bool traitIsInteresting(Lumina.Excel.Sheets.Trait t) => cjcSheet.GetRow(t.ClassJobCategory.RowId).ReadBoolColumn((int)i + 1);
+            bool traitIsInteresting(Lumina.Excel.Sheets.Trait t) => ReadBoolColumn(t.ClassJobCategory, (int)i + 1);
             classData.Traits.AddRange(traitSheet.Where(traitIsInteresting));
             classData.Traits.SortBy(e => e.Level);
         }
@@ -145,7 +156,7 @@ class ClassDefinitions
 
         // mark bozja holster actions
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
-            _actionData[BozjaActionID.GetNormal(i)].IsBozjaHolster = true;
+            _actionData[bozjaActions.GetNormal(i)].IsBozjaHolster = true;
 
         foreach (var id in typeof(PhantomID).GetEnumValues())
             if ((uint)id > 0)

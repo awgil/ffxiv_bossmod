@@ -98,9 +98,9 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
             .AddOption(BozjaStrategy.None, "Do not use any lost actions automatically")
             .AddOption(BozjaStrategy.WithIR, "Use generic buff lost actions together (right before) inner release")
             .AddOption(BozjaStrategy.BloodRage, "Optimize rotation around lost blood rage usage (delay IR, use onslaught to proc blood rage)")
-            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower))
-            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice))
-            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostBloodRage));
+            .AddAssociatedAction(defs.BozjaActions.GetNormal(BozjaHolsterID.LostFontOfPower))
+            .AddAssociatedAction(defs.BozjaActions.GetNormal(BozjaHolsterID.BannerHonoredSacrifice))
+            .AddAssociatedAction(defs.BozjaActions.GetNormal(BozjaHolsterID.LostBloodRage));
 
         return res;
     }
@@ -345,11 +345,11 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
 
         // bozja actions
         if (ShouldUseLostBloodRage())
-            Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostBloodRage), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBloodRage);
+            Hints.ActionsToExecute.Push(Actions.BozjaActions.GetNormal(BozjaHolsterID.LostBloodRage), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBloodRage);
         if (ShouldUseLostBuff(LostFontCD, 120))
-            Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostFont);
+            Hints.ActionsToExecute.Push(Actions.BozjaActions.GetNormal(BozjaHolsterID.LostFontOfPower), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostFont);
         if (ShouldUseLostBuff(LostBannerCD, 90))
-            Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBanner);
+            Hints.ActionsToExecute.Push(Actions.BozjaActions.GetNormal(BozjaHolsterID.BannerHonoredSacrifice), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBanner);
 
         // ai hints for positioning
         var goalST = primaryTarget != null ? Hints.GoalSingleTarget(primaryTarget, 3) : null;
@@ -437,8 +437,8 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
             return; // don't expect any of the buffs ...
 
         // assume if both FoP & BoTH are slotted, we gonna stack them, otherwise whatever is available can be pressed when ready
-        LostFontCD = DutyActionCD(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower));
-        LostBannerCD = DutyActionCD(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice));
+        LostFontCD = DutyActionCD(Actions.BozjaActions.GetNormal(BozjaHolsterID.LostFontOfPower));
+        LostBannerCD = DutyActionCD(Actions.BozjaActions.GetNormal(BozjaHolsterID.BannerHonoredSacrifice));
         LostBuffsIn = LostFontCD < float.MaxValue && LostBannerCD < float.MaxValue ? Math.Max(LostFontCD, LostBannerCD) : Math.Min(LostFontCD, LostBannerCD);
 
         // we also wanna stack buffs with IR - this happens naturally for FoP, but BoTH will need to be delayed
@@ -448,7 +448,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
         // finally, if we're doing blood rage, we are delaying burst further
         if (strategy == BozjaStrategy.BloodRage)
         {
-            LostBloodRageIn = DutyActionCD(BozjaActionID.GetNormal(BozjaHolsterID.LostBloodRage));
+            LostBloodRageIn = DutyActionCD(Actions.BozjaActions.GetNormal(BozjaHolsterID.LostBloodRage));
             var bloodRageWindowStart = LostBloodRageStacks switch
             {
                 0 => LostBloodRageIn < float.MaxValue ? Math.Max(LostBloodRageIn, OnslaughtCapIn) + 30 : float.MaxValue, // we need around 30s to stack blood rage (2 reserved onslaughts + 1 to recharge)

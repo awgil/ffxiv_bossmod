@@ -88,6 +88,8 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelf<ModuleViewer>();
         containerBuilder.RegisterSingletonSelf<UIPresetDatabaseEditor>();
         containerBuilder.RegisterSingletonSelf<ActionEffectParser>();
+        containerBuilder.RegisterSingletonSelf<BozjaActionID>();
+        containerBuilder.RegisterSingletonSelf<FoodID>();
 
         //containerBuilder.RegisterSingletonSelf<ReplayUtils>();
 

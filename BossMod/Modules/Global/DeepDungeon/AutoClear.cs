@@ -1,4 +1,5 @@
 ﻿using BossMod.Pathfinding;
+using Dalamud.Plugin.Services;
 using System.Data.SQLite;
 using System.IO;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
@@ -90,10 +91,13 @@ public abstract partial class AutoClear : ZoneModule
 
     private ObstacleMapManager _obstacles;
 
+    private readonly IDataManager _gameData;
+
     protected DeepDungeonState Palace => World.DeepDungeon;
 
     protected AutoClear(ZoneModuleArgs args, int LevelCap) : base(args)
     {
+        _gameData = args.DataManager;
         _config = ConfigGlobal.Get<AutoDDConfig>();
         this.LevelCap = LevelCap;
         var ws = args.World;

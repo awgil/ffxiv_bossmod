@@ -1,9 +1,10 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.Interop;
-using Dalamud.Bindings.ImGui;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 namespace BossMod;
@@ -36,9 +37,9 @@ unsafe class DebugQuests
     private readonly UITree _tree = new();
     private readonly Dictionary<uint, NpcData> _dailyQuests = [];
 
-    public DebugQuests()
+    public DebugQuests(ExcelSheet<Quest> questsSheet)
     {
-        foreach (var q in Service.LuminaSheet<Quest>()!)
+        foreach (var q in questsSheet)
         {
             if (q.RepeatIntervalType == 1 && q.QuestRepeatFlag.RowId == 0)
             {

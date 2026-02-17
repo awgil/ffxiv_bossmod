@@ -43,7 +43,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
             var gcdLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
             var fopLeft = Player.FindStatus(2346) is ActorStatus st ? StatusDuration(st.ExpireAt) : 0;
             if (GCD + gcdLength < fopLeft)
-                Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostAssassination), primaryTarget, ActionQueue.Priority.Low);
+                Hints.ActionsToExecute.Push(Actions.BozjaActions.GetNormal(BozjaHolsterID.LostAssassination), primaryTarget, ActionQueue.Priority.Low);
         }
 
         if (Player.Class == Class.RPR && Hints.PotentialTargets.Any(t => t.Actor.TargetID == Player.InstanceID && t.Actor.CastInfo == null && t.Actor.DistanceToHitbox(Player) < 6))

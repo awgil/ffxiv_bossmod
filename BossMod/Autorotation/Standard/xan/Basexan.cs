@@ -533,7 +533,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         if (_cdLockout > World.CurrentTime)
             return;
 
-        if (Player.FindStatus(49) is ActorStatus st && Food.GetPotionType(st.Extra) == PotionType)
+        if (Player.FindStatus(49) is ActorStatus st && Actions.Food.GetPotionType(st.Extra) == PotionType)
             PotionLeft = StatusDuration(st.ExpireAt);
         else
             PotionLeft = 0;

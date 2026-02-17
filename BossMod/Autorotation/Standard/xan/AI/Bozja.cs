@@ -4,7 +4,8 @@ public class BozjaAI(RotationModuleManager manager, Actor player) : AIBase<Bozja
 {
     public struct Strategy
     {
-        [Track("Auto-dispel", InternalName = "Auto-dispel", Action = BozjaHolsterID.LostDispel)]
+        // TODO: support BozjaHolsterID in strategy track
+        [Track("Auto-dispel", InternalName = "Auto-dispel", Action = 20704 /* BozjaHolsterID.LostDispel */)]
         public Track<EnabledByDefault> Dispel;
     }
 
@@ -15,7 +16,7 @@ public class BozjaAI(RotationModuleManager manager, Actor player) : AIBase<Bozja
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var dispel = BozjaActionID.GetNormal(BozjaHolsterID.LostDispel);
+        var dispel = Actions.BozjaActions.GetNormal(BozjaHolsterID.LostDispel);
 
         if (strategy.Dispel.IsEnabled() && FindDutyActionSlot(dispel) >= 0 && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
             Hints.ActionsToExecute.Push(dispel, primaryTarget, ActionQueue.Priority.VeryHigh);

@@ -33,6 +33,8 @@ class MainDebugWindow(
     ICondition conditions,
     ColorConfig colorConfig,
     ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet,
+    ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet,
+    ExcelSheet<Lumina.Excel.Sheets.Quest> questsSheet,
     //WindowSystem windows,
     MediatorService mediator
 ) : UIWindow("Boss mod debug UI", false, new(300, 200))
@@ -42,13 +44,13 @@ class MainDebugWindow(
     private readonly DebugParty _debugParty = new();
     private readonly DebugMapEffect _debugMapEffect = new(ws, hooking);
     private readonly DebugGraphics _debugGraphics = new(objects, colorConfig);
-    private readonly DebugAction _debugAction = new(ws, amex, gameGui, playerState, objects);
+    private readonly DebugAction _debugAction = new(ws, amex, gameGui, playerState, objects, actionsSheet);
     private readonly DebugHate _debugHate = new(ws, objects);
     private readonly DebugInput _debugInput = new(autorot, move, keyState);
     private readonly DebugAutorotation _debugAutorot = new(autorot);
     private readonly DebugAddon _debugAddon = new(gameGui, hooking);
     private readonly DebugTiming _debugTiming = new();
-    private readonly DebugQuests _debugQuests = new();
+    private readonly DebugQuests _debugQuests = new(questsSheet);
     private readonly DebugVfx _debugVfx = new(targetManager, objects, hooking);
 
     protected override void Dispose(bool disposing)
