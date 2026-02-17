@@ -6,7 +6,6 @@ using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -34,7 +33,7 @@ class MainDebugWindow(
     ICondition conditions,
     ColorConfig colorConfig,
     ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet,
-    WindowSystem windows,
+    //WindowSystem windows,
     MediatorService mediator
 ) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
@@ -512,11 +511,14 @@ class MainDebugWindow(
 
     private void DrawWindowSystem()
     {
+        // TODO: WindowSystem is not provided by DI
+        /*
         ImGui.TextUnformatted($"Any focus: {windows.HasAnyFocus}");
         foreach (var w in windows.Windows)
         {
             ImGui.TextUnformatted($"{w.WindowName}: focus={w.IsFocused}");
         }
+        */
     }
 
     private unsafe void DrawLimitBreak()

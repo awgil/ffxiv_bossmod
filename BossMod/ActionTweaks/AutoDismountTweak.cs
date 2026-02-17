@@ -3,10 +3,8 @@
 namespace BossMod;
 
 // Tweak to automatically dismount when trying to use an action and failing due to being mounted.
-public sealed class AutoDismountTweak(WorldState ws, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Mount> mountsSheet)
+public sealed class AutoDismountTweak(WorldState ws, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Mount> mountsSheet, ActionTweaksConfig _config)
 {
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
-
     public bool AutoDismountEnabled => _config.AutoDismount;
 
     public bool IsMountPreventingAction(ActionID action) => IsMountPreventingAction(ws, actionsSheet, action);

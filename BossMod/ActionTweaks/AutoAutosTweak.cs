@@ -3,13 +3,8 @@
 namespace BossMod;
 
 // This tweak controls auto attacks to prevent early pulls and to enable them asap when pulling, changing targets or starting casts.
-public sealed class AutoAutosTweak(
-    WorldState ws,
-    AIHints hints,
-    ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet
-)
+public sealed class AutoAutosTweak(WorldState ws, AIHints hints, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ActionTweaksConfig _config)
 {
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
     private bool _lastActionDisabledAutos;
 
     public const float PrePullThreshold = 0.5f; // effect result delay for autos

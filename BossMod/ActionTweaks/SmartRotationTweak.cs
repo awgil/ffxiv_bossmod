@@ -20,9 +20,8 @@ public class SmartRotationConfig : ConfigNode
 // - when gaze is expected and attack is initiated, if it's possible to rotate so that target is in frontal cone and avoid gaze, do so
 // - when gaze is expected (with some configurable leeway) and would hit player with current facing, rotate away
 // - when gaze is imminent (with some configurable short leeway) and it's not possible to hit target without being hit by a gaze, block casts and attacks
-public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefinitions defs, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet)
+public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefinitions defs, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, SmartRotationConfig _config)
 {
-    private readonly SmartRotationConfig _config = Service.Config.Get<SmartRotationConfig>();
     private readonly DisjointSegmentList _forbidden = new();
     private readonly Angle _minWindow = 5.Degrees();
 

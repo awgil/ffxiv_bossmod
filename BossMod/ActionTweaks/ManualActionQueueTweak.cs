@@ -11,14 +11,13 @@
 // - our queue distinguishes GCD and oGCD actions; since oGCDs can be delayed, effective 'expiration' time for oGCDs is much larger than native 0.5s
 // - trying to queue an oGCD action while it is already queued (double tapping) activates 'emergency mode': all preceeding queued actions are removed and this action is returned even if it would delay GCD
 // - entries from the manual queue are added to the autoqueue every frame with appropriate priorities, and usual logic selects best action to execute
-public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, ActionDefinitions defs)
+public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, ActionDefinitions defs, ActionTweaksConfig _config)
 {
     private readonly record struct Entry(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionDefinition Definition, DateTime ExpireAt, float CastTime)
     {
         public readonly bool Expired(DateTime now) => ExpireAt < now || (Target?.IsDestroyed ?? false);
     }
 
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
     private readonly List<Entry> _queue = [];
     private bool _emergencyMode;
 

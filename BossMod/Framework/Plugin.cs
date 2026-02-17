@@ -107,6 +107,12 @@ public class Plugin : HostedPlugin
         RegisterWindow<AI.AIWindow>();
         RegisterWindow<ConfigChangelogWindow>();
 
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(t => !t.IsAbstract && t.Name.EndsWith("Tweak", StringComparison.InvariantCultureIgnoreCase))
+            .AsSelf()
+            .AsImplementedInterfaces()
+            .SingleInstance();
+
         // these are instantiated per-worldstate, including one "global" instance corresponding with the "real" world
         containerBuilder.RegisterType<ModuleArgs>();
         containerBuilder.RegisterType<ZoneModuleArgs>();
@@ -219,6 +225,6 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelf<Dalamud.Interface.ImGuiFileDialog.FileDialogManager>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<DalamudFileDialogManager>();
 
-        containerBuilder.RegisterType<MainDebugWindow>().AsSelf().As<Window>();
+        containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<Window>();
     }
 }

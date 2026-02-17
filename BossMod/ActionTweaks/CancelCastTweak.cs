@@ -4,9 +4,8 @@ namespace BossMod;
 
 // Utility for automatically cancelling casts in some conditions (when target dies, when ai wants it, etc).
 // Since the game API is sending a packet, this implements some rate limiting.
-public sealed class CancelCastTweak(WorldState ws, AIHints hints, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet)
+public sealed class CancelCastTweak(WorldState ws, AIHints hints, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ActionTweaksConfig _config)
 {
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
     private readonly WorldState _ws = ws;
     private DateTime _nextCancelAllowed;
 

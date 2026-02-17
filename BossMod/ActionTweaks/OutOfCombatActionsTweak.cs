@@ -1,7 +1,7 @@
 ﻿namespace BossMod;
 
 [ConfigDisplay(Name = "Automatic out-of-combat utility actions", Parent = typeof(ActionTweaksConfig), Since = "0.0.0.245", Order = -10, Tags = ["peloton"])]
-class OutOfCombatActionsConfig : ConfigNode
+public class OutOfCombatActionsConfig : ConfigNode
 {
     [PropertyDisplay("Enable the feature")]
     public bool Enabled = false;
@@ -14,13 +14,14 @@ class OutOfCombatActionsConfig : ConfigNode
 // Tweak to automatically use out-of-combat convenience actions (peloton, pet summoning, etc).
 public sealed class OutOfCombatActionsTweak : IDisposable
 {
-    private readonly OutOfCombatActionsConfig _config = Service.Config.Get<OutOfCombatActionsConfig>();
+    private readonly OutOfCombatActionsConfig _config;
     private readonly WorldState _ws;
     private readonly EventSubscriptions _subscriptions;
     private DateTime _nextAutoPeloton;
 
-    public OutOfCombatActionsTweak(WorldState ws)
+    public OutOfCombatActionsTweak(WorldState ws, OutOfCombatActionsConfig cfg)
     {
+        _config = cfg;
         _ws = ws;
         _subscriptions = new
         (

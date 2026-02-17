@@ -34,6 +34,7 @@ internal class FrameworkUpdateService(
     ICondition conditions,
     IGameGui gameGui,
     ConfigUI configUI,
+    IFileDialogManager dialogManager,
     IEnumerable<Window> defaultWindows
 ) : DisposableMediatorSubscriberBase(mLogger, mediator), IHostedService
 {
@@ -125,6 +126,7 @@ internal class FrameworkUpdateService(
                     windowSystem.RemoveWindow(uiw);
             }
             windowSystem.Draw();
+            dialogManager.Draw();
         }
 
         hintExecutor.Execute();

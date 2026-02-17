@@ -290,6 +290,7 @@ public sealed class ReplayManager : IDisposable
         ImGui.SameLine();
         if (ImGui.Button("..."))
         {
+            Service.Log($"Trying to open a file dialog at {_fileDialogStartPath}");
             _dialogManager.OpenFileDialog("Select file or directory", "log", (isOk, files) =>
             {
                 if (isOk)

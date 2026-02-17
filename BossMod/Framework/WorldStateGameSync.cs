@@ -102,7 +102,7 @@ sealed class WorldStateGameSync : IWorldStateSync
     private unsafe delegate void ProcessPacketPlayActionTimelineSync(Network.ServerIPC.PlayActionTimelineSync* data);
     private readonly Hook<ProcessPacketPlayActionTimelineSync> _processPlayActionTimelineSyncHook;
 
-    public unsafe WorldStateGameSync(WorldState ws, IAmex amex, IObjectTable objects, IClientState clientState, ICondition conditions, GameInteropExtended hooking, ISigScanner scanner, ActionDefinitions defs, IMovementOverride movement)
+    public unsafe WorldStateGameSync(WorldState ws, IAmex amex, IObjectTable objects, IClientState clientState, ICondition conditions, GameInteropExtended hooking, ISigScanner scanner, ActionDefinitions defs, IMovementOverride movement, ConfigRoot cfgRoot)
     {
         _ws = ws;
         _amex = amex;
@@ -118,7 +118,7 @@ sealed class WorldStateGameSync : IWorldStateSync
         _interceptor.ServerIPCReceived += ServerIPCReceived;
         _interceptor.ClientIPCSent += ClientIPCSent;
 
-        _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config =>
+        _netConfig = cfgRoot.GetAndSubscribe<ReplayManagementConfig>(config =>
         {
             _interceptor.ActiveRecv = config.RecordServerPackets || config.DumpServerPackets;
             _interceptor.ActiveSend = config.DumpClientPackets;

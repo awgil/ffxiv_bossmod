@@ -1,7 +1,6 @@
 ﻿using BossMod.Interfaces;
 using BossMod.Services;
 using Dalamud.Hooking;
-using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -12,7 +11,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
-using Lumina.Excel;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
 namespace BossMod;
@@ -48,7 +46,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     public Event<ClientActionRequest> ActionRequestExecuted { get; } = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived { get; } = new();
 
-    public ActionTweaksConfig Config => Service.Config.Get<ActionTweaksConfig>();
+    public ActionTweaksConfig Config { get; }
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
@@ -57,7 +55,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly IMovementOverride _movement;
     private readonly ManualActionQueueTweak _manualQueue;
     private readonly AnimationLockTweak _animLockTweak;
-    private readonly CooldownDelayTweak _cooldownTweak = new();
+    private readonly CooldownDelayTweak _cooldownTweak;
     private readonly CancelCastTweak _cancelCastTweak;
     private readonly AutoDismountTweak _dismountTweak;
     private readonly SmartRotationTweak _smartRotationTweak;
@@ -80,18 +78,20 @@ public sealed unsafe class ActionManagerEx : IAmex
     private delegate TargetSystem* AutoSelectTargetDelegate(TargetSystem* targetSystem, uint nearestTargetType);
     private readonly AutoSelectTargetDelegate _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, ActionDefinitions defs, IMovementOverride movement, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Mount> mountsSheet, IChatGui chat, GameInteropExtended hooking)
+    public ActionManagerEx(WorldState ws, AIHints hints, IMovementOverride movement, GameInteropExtended hooking, ManualActionQueueTweak mtweak, CancelCastTweak ctweak, AutoDismountTweak dtweak, SmartRotationTweak smtweak, OutOfCombatActionsTweak ootweak, AutoAutosTweak aatweak, AnimationLockTweak altweak, CooldownDelayTweak cdtweak, ActionTweaksConfig tweaksConfig)
     {
+        Config = tweaksConfig;
         _ws = ws;
         _hints = hints;
         _movement = movement;
-        _manualQueue = new(ws, hints, defs);
-        _cancelCastTweak = new(ws, hints, actionsSheet);
-        _dismountTweak = new(ws, actionsSheet, mountsSheet);
-        _smartRotationTweak = new(ws, hints, defs, actionsSheet);
-        _oocActionsTweak = new(ws);
-        _autoAutosTweak = new(ws, hints, actionsSheet);
-        _animLockTweak = new(chat);
+        _manualQueue = mtweak;
+        _cancelCastTweak = ctweak;
+        _dismountTweak = dtweak;
+        _smartRotationTweak = smtweak;
+        _oocActionsTweak = ootweak;
+        _autoAutosTweak = aatweak;
+        _animLockTweak = altweak;
+        _cooldownTweak = cdtweak;
 
         Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = hooking.HookFromAddress<ActionManager.Delegates.Update>(ActionManager.Addresses.Update, UpdateDetour);
