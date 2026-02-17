@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod.ReplayVisualization;
+using BossMod.Services;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
@@ -26,18 +27,21 @@ public sealed class ReplayManager : IDisposable
         public bool Disposing;
         public DateTime? InitialTime;
         private readonly ReplayDetailsWindow.Factory _detailFac;
+        private readonly MediatorService mediator;
 
         public delegate ReplayEntry Factory(string path, bool autoShow, DateTime? initialTime = null);
 
         public ReplayEntry(
-            string path,
-            bool autoShow,
             ReplayBuilder.Factory builderFac,
             ReplayDetailsWindow.Factory detailFac,
+            MediatorService mediator,
+            string path,
+            bool autoShow,
             DateTime? initialTime
         )
         {
             _detailFac = detailFac;
+            this.mediator = mediator;
             Path = path;
             AutoShowWindow = autoShow;
             InitialTime = initialTime;
@@ -56,7 +60,11 @@ public sealed class ReplayManager : IDisposable
 
         public void Show()
         {
-            Window ??= _detailFac.Invoke(Replay.Result, InitialTime);
+            if (Window == null)
+            {
+                Window = _detailFac.Invoke(Replay.Result, InitialTime);
+                mediator.Publish(new CreateWindowMessage(Window));
+            }
             Window.IsOpen = true;
             Window.BringToFront();
         }
@@ -120,7 +128,7 @@ public sealed class ReplayManager : IDisposable
         _config = config;
         _ctx = ctx;
         _analysisFac = afac;
-        RestoreHistory();
+        Task.Run(RestoreHistory);
     }
 
     public void Dispose()

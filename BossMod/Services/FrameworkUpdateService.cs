@@ -72,7 +72,7 @@ internal class FrameworkUpdateService(
         if (existing == null)
         {
             windowSystem.AddWindow(wnd);
-            wnd.IsOpen = detached;
+            wnd.IsOpen |= detached;
         }
         else if (detached)
         {
