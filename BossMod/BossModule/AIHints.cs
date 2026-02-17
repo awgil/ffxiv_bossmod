@@ -264,8 +264,8 @@ public sealed class AIHints(ActionTweaksConfig tweaksConfig, ActionDefinitions d
             var offX = -PathfindMapObstacles.Rect.Left;
             var offY = -PathfindMapObstacles.Rect.Top;
             var r = PathfindMapObstacles.Rect.Clamped(PathfindMapObstacles.Bitmap.FullRect).Clamped(new(0, 0, map.Width, map.Height), offX, offY);
-            for (int y = r.Top; y < r.Bottom; ++y)
-                for (int x = r.Left; x < r.Right; ++x)
+            for (var y = r.Top; y < r.Bottom; ++y)
+                for (var x = r.Left; x < r.Right; ++x)
                     if (PathfindMapObstacles.Bitmap[x, y])
                         map.PixelMaxG[(y + offY) * map.Width + x + offX] = -900;
         }

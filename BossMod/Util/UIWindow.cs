@@ -47,14 +47,14 @@ public abstract class UIWindow : Window, IDisposable
 // utility: window that uses custom delegate to perform drawing - allows avoiding creating derived classes in simple cases
 public class UISimpleWindow : UIWindow
 {
-    private readonly Action draw;
+    private readonly Action drawAction;
 
     private UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, detached, initialSize, flags, titleBarButtons)
     {
-        this.draw = draw;
+        drawAction = draw;
     }
 
-    public override void Draw() => draw();
+    public override void Draw() => drawAction();
 
     public static UISimpleWindow Create(MediatorService mediator, string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null)
     {

@@ -31,11 +31,10 @@ public struct NavigationDecision
     public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
 
     // reduce time between now and activation by this value in seconds; increase for more conservativeness
-    public static readonly float ActivationTimeCushion =
 #if DEBUG
-        ActorCastInfo.NPCFinishDelay + 0.2f;
+    public static readonly float ActivationTimeCushion = ActorCastInfo.NPCFinishDelay + 0.2f;
 #else
-        1;
+    public const float ActivationTimeCushion = 1;
 #endif
 
     public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
@@ -70,7 +69,7 @@ public struct NavigationDecision
 
     public static void AvoidForbiddenZone(Map map, float forbiddenZoneCushion)
     {
-        int d = (int)(forbiddenZoneCushion / map.Resolution);
+        var d = (int)(forbiddenZoneCushion / map.Resolution);
         map.MaxPriority = -1;
         foreach (var (x, y, _) in map.EnumeratePixels())
         {
@@ -97,7 +96,7 @@ public struct NavigationDecision
         var zonesFixed = new (Func<WPos, bool> containsFn, float g)[zones.Count];
         DateTime clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
         float clusterG = 0;
-        for (int i = 0; i < zonesFixed.Length; ++i)
+        for (var i = 0; i < zonesFixed.Length; ++i)
         {
             var activation = zones[i].activation.Clamp(globalStart, globalEnd);
             if (activation > clusterEnd)
@@ -123,12 +122,12 @@ public struct NavigationDecision
         var dx = dy.OrthoL();
         var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
-        int iCell = 0;
-        for (int y = 0; y < map.Height; ++y)
+        var iCell = 0;
+        for (var y = 0; y < map.Height; ++y)
         {
             var cx = cy;
             var leftG = CalculateMaxG(zonesFixed, cx);
-            for (int x = 0; x < map.Width; ++x)
+            for (var x = 0; x < map.Width; ++x)
             {
                 cx += dx;
                 var rightG = CalculateMaxG(zonesFixed, cx);
@@ -139,13 +138,13 @@ public struct NavigationDecision
         }
         var bleftG = CalculateMaxG(zonesFixed, cy);
         iCell -= map.Width;
-        for (int x = 0; x < map.Width; ++x, ++iCell)
+        for (var x = 0; x < map.Width; ++x, ++iCell)
         {
             cy += dx;
             var brightG = CalculateMaxG(zonesFixed, cy);
             var bottomG = Math.Min(bleftG, brightG);
             var jCell = iCell;
-            for (int y = map.Height; y > 0; --y, jCell -= map.Width)
+            for (var y = map.Height; y > 0; --y, jCell -= map.Width)
             {
                 var topG = scratch[jCell];
                 var cellG = map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
@@ -184,12 +183,12 @@ public struct NavigationDecision
         var dx = dy.OrthoL();
         var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
-        int iCell = 0;
-        for (int y = 0; y < map.Height; ++y)
+        var iCell = 0;
+        for (var y = 0; y < map.Height; ++y)
         {
             var cx = cy;
             var leftP = goals.Sum(g => g(cx));
-            for (int x = 0; x < map.Width; ++x)
+            for (var x = 0; x < map.Width; ++x)
             {
                 cx += dx;
                 var rightP = goals.Sum(g => g(cx));
@@ -200,13 +199,13 @@ public struct NavigationDecision
         }
         var bleftP = goals.Sum(g => g(cy));
         iCell -= map.Width;
-        for (int x = 0; x < map.Width; ++x, ++iCell)
+        for (var x = 0; x < map.Width; ++x, ++iCell)
         {
             cy += dx;
             var brightP = goals.Sum(g => g(cy));
             var bottomP = Math.Min(bleftP, brightP);
             var jCell = iCell;
-            for (int y = map.Height; y > 0; --y, jCell -= map.Width)
+            for (var y = map.Height; y > 0; --y, jCell -= map.Width)
             {
                 var topP = map.PixelPriority[jCell];
                 if (map.PixelMaxG[jCell] == float.MaxValue)

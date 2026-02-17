@@ -38,10 +38,10 @@ public class Exaflare(BossModule module, AOEShape shape, Enum? aid = default) : 
     {
         foreach (var l in Lines)
         {
-            int num = Math.Min(l.ExplosionsLeft, limit == -1 ? l.MaxShownExplosions : limit);
+            var num = Math.Min(l.ExplosionsLeft, limit == -1 ? l.MaxShownExplosions : limit);
             var pos = l.Next;
             var time = l.NextExplosion > WorldState.CurrentTime ? l.NextExplosion : WorldState.CurrentTime;
-            for (int i = 1; i < num; ++i)
+            for (var i = 1; i < num; ++i)
             {
                 pos += l.Advance;
                 time = time.AddSeconds(l.TimeToMove);

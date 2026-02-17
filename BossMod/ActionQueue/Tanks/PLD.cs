@@ -102,50 +102,50 @@ public enum SID : uint
 
 sealed class Definitions(PLDConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.LastBastion, instantAnimLock: 3.86f);
-        d.RegisterSpell(AID.FastBlade);
-        d.RegisterSpell(AID.FightOrFlight);
-        d.RegisterSpell(AID.RiotBlade);
-        d.RegisterSpell(AID.TotalEclipse);
-        d.RegisterSpell(AID.ReleaseIronWill);
-        d.RegisterSpell(AID.IronWill);
-        d.RegisterSpell(AID.ShieldBash);
-        d.RegisterSpell(AID.ShieldLob);
-        d.RegisterSpell(AID.RageOfHalone);
-        d.RegisterSpell(AID.SpiritsWithin);
-        d.RegisterSpell(AID.Sheltron);
-        d.RegisterSpell(AID.Sentinel);
-        d.RegisterSpell(AID.Prominence);
-        d.RegisterSpell(AID.Cover);
-        d.RegisterSpell(AID.CircleOfScorn);
-        d.RegisterSpell(AID.HallowedGround);
-        d.RegisterSpell(AID.Bulwark);
-        d.RegisterSpell(AID.GoringBlade);
-        d.RegisterSpell(AID.DivineVeil);
-        d.RegisterSpell(AID.Clemency);
-        d.RegisterSpell(AID.RoyalAuthority);
-        d.RegisterSpell(AID.Intervention);
-        d.RegisterSpell(AID.HolySpirit);
-        d.RegisterSpell(AID.Requiescat);
-        d.RegisterSpell(AID.PassageOfArms);
-        d.RegisterSpell(AID.HolyCircle);
-        d.RegisterSpell(AID.Intervene);
-        d.RegisterSpell(AID.Atonement);
-        d.RegisterSpell(AID.Supplication);
-        d.RegisterSpell(AID.Sepulchre);
-        d.RegisterSpell(AID.Confiteor);
-        d.RegisterSpell(AID.HolySheltron);
-        d.RegisterSpell(AID.Expiacion);
-        d.RegisterSpell(AID.BladeOfFaith);
-        d.RegisterSpell(AID.BladeOfTruth);
-        d.RegisterSpell(AID.BladeOfValor);
-        d.RegisterSpell(AID.Imperator);
-        d.RegisterSpell(AID.Guardian);
-        d.RegisterSpell(AID.BladeOfHonor);
+        defs.RegisterSpell(AID.LastBastion, instantAnimLock: 3.86f);
+        defs.RegisterSpell(AID.FastBlade);
+        defs.RegisterSpell(AID.FightOrFlight);
+        defs.RegisterSpell(AID.RiotBlade);
+        defs.RegisterSpell(AID.TotalEclipse);
+        defs.RegisterSpell(AID.ReleaseIronWill);
+        defs.RegisterSpell(AID.IronWill);
+        defs.RegisterSpell(AID.ShieldBash);
+        defs.RegisterSpell(AID.ShieldLob);
+        defs.RegisterSpell(AID.RageOfHalone);
+        defs.RegisterSpell(AID.SpiritsWithin);
+        defs.RegisterSpell(AID.Sheltron);
+        defs.RegisterSpell(AID.Sentinel);
+        defs.RegisterSpell(AID.Prominence);
+        defs.RegisterSpell(AID.Cover);
+        defs.RegisterSpell(AID.CircleOfScorn);
+        defs.RegisterSpell(AID.HallowedGround);
+        defs.RegisterSpell(AID.Bulwark);
+        defs.RegisterSpell(AID.GoringBlade);
+        defs.RegisterSpell(AID.DivineVeil);
+        defs.RegisterSpell(AID.Clemency);
+        defs.RegisterSpell(AID.RoyalAuthority);
+        defs.RegisterSpell(AID.Intervention);
+        defs.RegisterSpell(AID.HolySpirit);
+        defs.RegisterSpell(AID.Requiescat);
+        defs.RegisterSpell(AID.PassageOfArms);
+        defs.RegisterSpell(AID.HolyCircle);
+        defs.RegisterSpell(AID.Intervene);
+        defs.RegisterSpell(AID.Atonement);
+        defs.RegisterSpell(AID.Supplication);
+        defs.RegisterSpell(AID.Sepulchre);
+        defs.RegisterSpell(AID.Confiteor);
+        defs.RegisterSpell(AID.HolySheltron);
+        defs.RegisterSpell(AID.Expiacion);
+        defs.RegisterSpell(AID.BladeOfFaith);
+        defs.RegisterSpell(AID.BladeOfTruth);
+        defs.RegisterSpell(AID.BladeOfValor);
+        defs.RegisterSpell(AID.Imperator);
+        defs.RegisterSpell(AID.Guardian);
+        defs.RegisterSpell(AID.BladeOfHonor);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

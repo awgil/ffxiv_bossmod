@@ -15,7 +15,7 @@ class FlamespireClaw(BossModule module) : Components.GenericBaitAway(module, AID
         if (order != 0 && NumCasts < 8)
         {
             hints.Add($"Order: {order}", false);
-            bool shouldBeTethered = order switch
+            var shouldBeTethered = order switch
             {
                 1 => NumCasts is 1 or 2,
                 2 => NumCasts is 2 or 3,

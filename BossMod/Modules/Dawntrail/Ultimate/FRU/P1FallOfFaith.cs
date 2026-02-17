@@ -129,7 +129,7 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
         if (conga.Count != 4)
             return; // no assignments
         conga.SortBy(c => c.prio);
-        for (int i = 0; i < conga.Count; ++i)
+        for (var i = 0; i < conga.Count; ++i)
             _playerOrder[conga[i].slot] = i + 5;
         _minHelpMove = WorldState.FutureTime(1);
     }

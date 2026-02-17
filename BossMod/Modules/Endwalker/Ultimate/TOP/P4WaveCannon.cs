@@ -96,7 +96,7 @@ class P4WaveCannonStack : BossComponent
     private void InitWestStack()
     {
         int e4 = -1, w4 = -1, maxTarget = -1;
-        for (int i = 0; i < _playerGroups.Length; ++i)
+        for (var i = 0; i < _playerGroups.Length; ++i)
         {
             var g = _playerGroups[i];
             if ((g & 1) == 0)

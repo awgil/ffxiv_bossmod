@@ -187,4 +187,4 @@ class SansheyaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13399)]
-public class Sansheya(ModuleArgs args): SimpleBossModule(args);
+public class Sansheya(ModuleArgs args) : SimpleBossModule(args);

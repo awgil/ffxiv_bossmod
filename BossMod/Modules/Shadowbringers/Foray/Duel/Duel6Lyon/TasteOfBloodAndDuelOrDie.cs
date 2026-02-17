@@ -39,7 +39,7 @@ class TasteOfBloodAndDuelOrDie(BossModule module) : Components.GenericAOEs(modul
     {
         foreach (var caster in Casters)
         {
-            bool isDueler = Duelers.Contains(caster);
+            var isDueler = Duelers.Contains(caster);
             Arena.Actor(caster, isDueler ? ArenaColor.Danger : ArenaColor.Enemy, true);
         }
     }

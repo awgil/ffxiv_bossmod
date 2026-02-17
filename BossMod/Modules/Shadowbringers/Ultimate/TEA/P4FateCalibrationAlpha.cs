@@ -143,7 +143,7 @@ class P4FateCalibrationAlphaSacrament(BossModule module) : Components.GenericAOE
 
         var dirToSafe = (safeClone.Position - Module.Center).Normalized();
         _safespots = new WPos[PartyState.MaxPartySize];
-        for (int i = 0; i < _safespots.Length; ++i)
+        for (var i = 0; i < _safespots.Length; ++i)
         {
             _safespots[i] = Module.Center + debuffs.Debuffs[i] switch
             {

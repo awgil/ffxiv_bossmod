@@ -485,7 +485,7 @@ class ClassDefinitions
 
         public void Group(string group, IEnumerable<ActionData> actions, bool allowClasses, bool shared = false)
         {
-            bool writtenHeader = false;
+            var writtenHeader = false;
             foreach (var a in actions)
             {
                 if (!writtenHeader)
@@ -589,7 +589,7 @@ class ClassDefinitions
 
         public void Group(string group, IEnumerable<ActionData> actions)
         {
-            bool writtenHeader = false;
+            var writtenHeader = false;
             foreach (var a in actions)
             {
                 if (!writtenHeader)
@@ -651,7 +651,7 @@ class ClassDefinitions
 
     private static string AnimLockString(ActionData action)
     {
-        string resInst = "";
+        var resInst = "";
         if (action.SeenInstant)
         {
             if (action.InstantByAnimLock.Count > 1 || action.InstantByAnimLock.First().Key != 600)

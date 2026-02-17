@@ -125,7 +125,7 @@ public class BossModuleMainWindow : UIWindow
         if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
             return;
 
-        foreach ((var start, var end, uint color) in arrows)
+        foreach ((var start, var end, var color) in arrows)
         {
             Vector3 start3 = start.ToVec3(y);
             Vector3 end3 = end.ToVec3(y);

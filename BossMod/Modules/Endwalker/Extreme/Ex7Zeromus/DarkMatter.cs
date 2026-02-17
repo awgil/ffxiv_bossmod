@@ -10,7 +10,7 @@ class DarkMatter(BossModule module) : Components.GenericBaitAway(module, centerA
 
     public override void Update()
     {
-        for (int i = CurrentBaits.Count - 1; i >= 0; i--)
+        for (var i = CurrentBaits.Count - 1; i >= 0; i--)
         {
             if (CurrentBaits[i].Target.IsDestroyed || CurrentBaits[i].Target.IsDead)
             {

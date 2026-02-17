@@ -100,46 +100,46 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-sealed class Definitions(DRGConfig _config) : IDefinitions
+sealed class Definitions(DRGConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f); // animLock=3.700s?
-        d.RegisterSpell(AID.TrueThrust);
-        d.RegisterSpell(AID.VorpalThrust);
-        d.RegisterSpell(AID.LifeSurge);
-        d.RegisterSpell(AID.PiercingTalon);
-        d.RegisterSpell(AID.Disembowel);
-        d.RegisterSpell(AID.FullThrust);
-        d.RegisterSpell(AID.LanceCharge);
-        d.RegisterSpell(AID.Jump, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.ElusiveJump, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.DoomSpike);
-        d.RegisterSpell(AID.WingedGlide); // animLock=???
-        d.RegisterSpell(AID.ChaosThrust);
-        d.RegisterSpell(AID.DragonfireDive, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.BattleLitany);
-        d.RegisterSpell(AID.FangAndClaw);
-        d.RegisterSpell(AID.WheelingThrust);
-        d.RegisterSpell(AID.Geirskogul);
-        d.RegisterSpell(AID.SonicThrust);
-        d.RegisterSpell(AID.Drakesbane); // animLock=???
-        d.RegisterSpell(AID.MirageDive);
-        d.RegisterSpell(AID.Nastrond);
-        d.RegisterSpell(AID.CoerthanTorment);
-        d.RegisterSpell(AID.HighJump, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.RaidenThrust);
-        d.RegisterSpell(AID.Stardiver, instantAnimLock: 1.50f); // animLock=1.500s?
-        d.RegisterSpell(AID.DraconianFury);
-        d.RegisterSpell(AID.ChaoticSpring);
-        d.RegisterSpell(AID.HeavensThrust);
-        d.RegisterSpell(AID.WyrmwindThrust);
-        d.RegisterSpell(AID.RiseOfTheDragon); // animLock=???
-        d.RegisterSpell(AID.LanceBarrage); // animLock=???
-        d.RegisterSpell(AID.SpiralBlow); // animLock=???
-        d.RegisterSpell(AID.Starcross); // animLock=???
+        defs.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f); // animLock=3.700s?
+        defs.RegisterSpell(AID.TrueThrust);
+        defs.RegisterSpell(AID.VorpalThrust);
+        defs.RegisterSpell(AID.LifeSurge);
+        defs.RegisterSpell(AID.PiercingTalon);
+        defs.RegisterSpell(AID.Disembowel);
+        defs.RegisterSpell(AID.FullThrust);
+        defs.RegisterSpell(AID.LanceCharge);
+        defs.RegisterSpell(AID.Jump, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.ElusiveJump, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.DoomSpike);
+        defs.RegisterSpell(AID.WingedGlide); // animLock=???
+        defs.RegisterSpell(AID.ChaosThrust);
+        defs.RegisterSpell(AID.DragonfireDive, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.BattleLitany);
+        defs.RegisterSpell(AID.FangAndClaw);
+        defs.RegisterSpell(AID.WheelingThrust);
+        defs.RegisterSpell(AID.Geirskogul);
+        defs.RegisterSpell(AID.SonicThrust);
+        defs.RegisterSpell(AID.Drakesbane); // animLock=???
+        defs.RegisterSpell(AID.MirageDive);
+        defs.RegisterSpell(AID.Nastrond);
+        defs.RegisterSpell(AID.CoerthanTorment);
+        defs.RegisterSpell(AID.HighJump, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.RaidenThrust);
+        defs.RegisterSpell(AID.Stardiver, instantAnimLock: 1.50f); // animLock=1.500s?
+        defs.RegisterSpell(AID.DraconianFury);
+        defs.RegisterSpell(AID.ChaoticSpring);
+        defs.RegisterSpell(AID.HeavensThrust);
+        defs.RegisterSpell(AID.WyrmwindThrust);
+        defs.RegisterSpell(AID.RiseOfTheDragon); // animLock=???
+        defs.RegisterSpell(AID.LanceBarrage); // animLock=???
+        defs.RegisterSpell(AID.SpiralBlow); // animLock=???
+        defs.RegisterSpell(AID.Starcross); // animLock=???
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -151,7 +151,7 @@ sealed class Definitions(DRGConfig _config) : IDefinitions
         d.RegisterChargeIncreaseTrait(AID.WingedGlide, TraitID.EnhancedWingedGlide);
 
         // elusive jump aiming
-        d.Spell(AID.ElusiveJump)!.TransformAngle = (ws, player, _, _) => _config.ElusiveJump switch
+        d.Spell(AID.ElusiveJump)!.TransformAngle = (ws, player, _, _) => config.ElusiveJump switch
         {
             DRGConfig.ElusiveJumpBehavior.CharacterForward => player.Rotation + 180.Degrees(),
             DRGConfig.ElusiveJumpBehavior.CameraBackward => ws.Client.CameraAzimuth + 180.Degrees(),

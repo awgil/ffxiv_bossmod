@@ -59,7 +59,7 @@ class Sweep(BossModule module) : Components.Exaflare(module, 6)
     {
         if (Lines.Count > 0 && (AID)spell.Action.ID == AID.SweepRest)
         {
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);

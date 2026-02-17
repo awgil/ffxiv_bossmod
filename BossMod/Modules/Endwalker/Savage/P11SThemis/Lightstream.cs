@@ -28,7 +28,7 @@ class Lightstream(BossModule module) : Components.GenericAOEs(module)
         };
         if (rotation != default)
         {
-            for (int i = 0; i < 7; ++i)
+            for (var i = 0; i < 7; ++i)
                 _aoes.Add(new(_shape, actor.Position, actor.Rotation + i * rotation, WorldState.FutureTime(8 + i * 1.1f)));
             _aoes.SortBy(aoe => aoe.Activation);
         }

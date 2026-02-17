@@ -44,8 +44,8 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
     {
         if (_arrowsInited.Raw != 0x1B)
             yield break;
-        int temp = Temperature(actor);
-        int cell = Array.IndexOf(_slotTempAdjustments, -temp);
+        var temp = Temperature(actor);
+        var cell = Array.IndexOf(_slotTempAdjustments, -temp);
         if (cell < 0)
             yield break;
 
@@ -85,7 +85,7 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
     public bool ActorUnsafeAt(Actor actor, WPos pos)
     {
         var offset = pos - Module.Center;
-        bool posInFlames = _pattern switch
+        var posInFlames = _pattern switch
         {
             Pattern.EWNormal or Pattern.EWInverted => offset.X > -15,
             Pattern.WENormal or Pattern.WEInverted => offset.X < +15,
@@ -96,7 +96,7 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
 
         if (_arrowsInited.Raw != 0x1B)
             return false; // no arrows yet, any position is safe
-        int row = RowIndex(pos);
+        var row = RowIndex(pos);
         return _slotTempAdjustments[row] != -Temperature(actor);
     }
 
@@ -119,8 +119,8 @@ class ShimmeringShot(BossModule module, float spawnToActivation) : TemperatureAO
 
         if (arrow.Position.X < Module.Center.X != _pattern is Pattern.WENormal or Pattern.WEInverted)
             ReportError("Unexpected arrow X coord");
-        int srcRow = RowIndex(arrow.Position);
-        int destRow = _remap[(int)_pattern, srcRow];
+        var srcRow = RowIndex(arrow.Position);
+        var destRow = _remap[(int)_pattern, srcRow];
         _slotTempAdjustments[destRow] = temp;
         _arrowsInited.Set(temp + 2);
         _activation = WorldState.FutureTime(_spawnToActivation);

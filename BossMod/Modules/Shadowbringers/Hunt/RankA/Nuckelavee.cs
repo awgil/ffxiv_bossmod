@@ -48,4 +48,4 @@ class NuckelaveeStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8906)]
-public class Nuckelavee(ModuleArgs args): SimpleBossModule(args) { }
+public class Nuckelavee(ModuleArgs args) : SimpleBossModule(args) { }

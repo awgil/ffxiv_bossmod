@@ -176,116 +176,114 @@ public enum SID : uint
     DiabrosisEquippedPvP = 4497,
 }
 
-public sealed class Definitions : IDefinitions
+public sealed class Definitions(SharedActionsConfig config) : IDefinitions
 {
-    private readonly SharedActionsConfig _config = null!; // Service.Config.Get<SharedActionsConfig>();
-
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
         #region PvE
-        d.RegisterSpell(AID.Sprint);
+        defs.RegisterSpell(AID.Sprint);
 
         // Tank
-        d.RegisterSpell(AID.ShieldWall, instantAnimLock: 1.93f);
-        d.RegisterSpell(AID.Stronghold, instantAnimLock: 3.86f);
-        d.RegisterSpell(AID.Rampart);
-        d.RegisterSpell(AID.LowBlow);
-        d.RegisterSpell(AID.Provoke);
-        d.RegisterSpell(AID.Interject);
-        d.RegisterSpell(AID.Reprisal);
-        d.RegisterSpell(AID.Shirk);
+        defs.RegisterSpell(AID.ShieldWall, instantAnimLock: 1.93f);
+        defs.RegisterSpell(AID.Stronghold, instantAnimLock: 3.86f);
+        defs.RegisterSpell(AID.Rampart);
+        defs.RegisterSpell(AID.LowBlow);
+        defs.RegisterSpell(AID.Provoke);
+        defs.RegisterSpell(AID.Interject);
+        defs.RegisterSpell(AID.Reprisal);
+        defs.RegisterSpell(AID.Shirk);
 
         // Healer
-        d.RegisterSpell(AID.HealingWind, castAnimLock: 2.10f);
-        d.RegisterSpell(AID.BreathOfTheEarth, castAnimLock: 5.13f);
-        d.RegisterSpell(AID.Repose); // animLock=???
-        d.RegisterSpell(AID.Esuna);
-        d.RegisterSpell(AID.Rescue);
+        defs.RegisterSpell(AID.HealingWind, castAnimLock: 2.10f);
+        defs.RegisterSpell(AID.BreathOfTheEarth, castAnimLock: 5.13f);
+        defs.RegisterSpell(AID.Repose); // animLock=???
+        defs.RegisterSpell(AID.Esuna);
+        defs.RegisterSpell(AID.Rescue);
 
         // Melee
-        d.RegisterSpell(AID.Braver, castAnimLock: 3.86f);
-        d.RegisterSpell(AID.Bladedance, castAnimLock: 3.86f);
-        d.RegisterSpell(AID.LegSweep);
-        d.RegisterSpell(AID.Bloodbath);
-        d.RegisterSpell(AID.Feint);
-        d.RegisterSpell(AID.TrueNorth);
+        defs.RegisterSpell(AID.Braver, castAnimLock: 3.86f);
+        defs.RegisterSpell(AID.Bladedance, castAnimLock: 3.86f);
+        defs.RegisterSpell(AID.LegSweep);
+        defs.RegisterSpell(AID.Bloodbath);
+        defs.RegisterSpell(AID.Feint);
+        defs.RegisterSpell(AID.TrueNorth);
 
         // PhysRanged
-        d.RegisterSpell(AID.BigShot, true, castAnimLock: 3.10f);
-        d.RegisterSpell(AID.Desperado, true, castAnimLock: 3.10f);
-        d.RegisterSpell(AID.LegGraze, true);
-        d.RegisterSpell(AID.FootGraze, true);
-        d.RegisterSpell(AID.Peloton, true);
-        d.RegisterSpell(AID.HeadGraze, true);
+        defs.RegisterSpell(AID.BigShot, true, castAnimLock: 3.10f);
+        defs.RegisterSpell(AID.Desperado, true, castAnimLock: 3.10f);
+        defs.RegisterSpell(AID.LegGraze, true);
+        defs.RegisterSpell(AID.FootGraze, true);
+        defs.RegisterSpell(AID.Peloton, true);
+        defs.RegisterSpell(AID.HeadGraze, true);
 
         // Caster
-        d.RegisterSpell(AID.Skyshard, castAnimLock: 3.10f);
-        d.RegisterSpell(AID.Starstorm, castAnimLock: 5.10f);
-        d.RegisterSpell(AID.Addle);
-        d.RegisterSpell(AID.Sleep); // animLock=???
+        defs.RegisterSpell(AID.Skyshard, castAnimLock: 3.10f);
+        defs.RegisterSpell(AID.Starstorm, castAnimLock: 5.10f);
+        defs.RegisterSpell(AID.Addle);
+        defs.RegisterSpell(AID.Sleep); // animLock=???
 
         // Multi-role actions
-        d.RegisterSpell(AID.SecondWind);
-        d.RegisterSpell(AID.LucidDreaming);
-        d.RegisterSpell(AID.Swiftcast);
-        d.RegisterSpell(AID.ArmsLength);
-        d.RegisterSpell(AID.Surecast);
+        defs.RegisterSpell(AID.SecondWind);
+        defs.RegisterSpell(AID.LucidDreaming);
+        defs.RegisterSpell(AID.Swiftcast);
+        defs.RegisterSpell(AID.ArmsLength);
+        defs.RegisterSpell(AID.Surecast);
 
         // Misc
-        d.RegisterSpell(AID.Resurrection);
+        defs.RegisterSpell(AID.Resurrection);
 
         // duty actions
-        d.RegisterSpell(AID.SmokeScreen);
-        d.RegisterSpell(AID.AethericSiphon);
-        d.RegisterSpell(AID.Shatterstone);
-        d.RegisterSpell(AID.Deflect);
-        d.RegisterSpell(AID.DeflectVeryEasy);
-        d.RegisterSpell(AID.MegaPotion);
+        defs.RegisterSpell(AID.SmokeScreen);
+        defs.RegisterSpell(AID.AethericSiphon);
+        defs.RegisterSpell(AID.Shatterstone);
+        defs.RegisterSpell(AID.Deflect);
+        defs.RegisterSpell(AID.DeflectVeryEasy);
+        defs.RegisterSpell(AID.MegaPotion);
 
         // variant actions
-        d.RegisterSpell(AID.VariantCure1);
-        d.RegisterSpell(AID.VariantUltimatum);
-        d.RegisterSpell(AID.VariantRaise);
-        d.RegisterSpell(AID.VariantSpiritDart1);
-        d.RegisterSpell(AID.VariantRampart1);
-        d.RegisterSpell(AID.VariantRaiseII);
-        d.RegisterSpell(AID.VariantCure2);
-        d.RegisterSpell(AID.VariantSpiritDart2);
-        d.RegisterSpell(AID.VariantRampart2);
+        defs.RegisterSpell(AID.VariantCure1);
+        defs.RegisterSpell(AID.VariantUltimatum);
+        defs.RegisterSpell(AID.VariantRaise);
+        defs.RegisterSpell(AID.VariantSpiritDart1);
+        defs.RegisterSpell(AID.VariantRampart1);
+        defs.RegisterSpell(AID.VariantRaiseII);
+        defs.RegisterSpell(AID.VariantCure2);
+        defs.RegisterSpell(AID.VariantSpiritDart2);
+        defs.RegisterSpell(AID.VariantRampart2);
         #endregion
 
         #region PvP
-        d.RegisterSpell(AID.ElixirPvP);
-        d.RegisterSpell(AID.RecuperatePvP);
-        d.RegisterSpell(AID.PurifyPvP);
-        d.RegisterSpell(AID.GuardPvP);
-        d.RegisterSpell(AID.SprintPvP);
+        defs.RegisterSpell(AID.ElixirPvP);
+        defs.RegisterSpell(AID.RecuperatePvP);
+        defs.RegisterSpell(AID.PurifyPvP);
+        defs.RegisterSpell(AID.GuardPvP);
+        defs.RegisterSpell(AID.SprintPvP);
 
         // role actions
-        d.RegisterSpell(AID.DiabrosisPvP);
-        d.RegisterSpell(AID.StoneskinIIPvP);
-        d.RegisterSpell(AID.HaelanPvP);
-        d.RegisterSpell(AID.RustPvP);
-        d.RegisterSpell(AID.PhantomDartPvP);
-        d.RegisterSpell(AID.CometPvP);
-        d.RegisterSpell(AID.EagleEyeShotPvP);
-        d.RegisterSpell(AID.BraveryPvP);
-        d.RegisterSpell(AID.DervishPvP);
-        d.RegisterSpell(AID.SmitePvP);
-        d.RegisterSpell(AID.SwiftPvP);
-        d.RegisterSpell(AID.BloodbathPvP);
-        d.RegisterSpell(AID.FullSwingPvP);
-        d.RegisterSpell(AID.RampartPvP);
-        d.RegisterSpell(AID.RampagePvP);
+        defs.RegisterSpell(AID.DiabrosisPvP);
+        defs.RegisterSpell(AID.StoneskinIIPvP);
+        defs.RegisterSpell(AID.HaelanPvP);
+        defs.RegisterSpell(AID.RustPvP);
+        defs.RegisterSpell(AID.PhantomDartPvP);
+        defs.RegisterSpell(AID.CometPvP);
+        defs.RegisterSpell(AID.EagleEyeShotPvP);
+        defs.RegisterSpell(AID.BraveryPvP);
+        defs.RegisterSpell(AID.DervishPvP);
+        defs.RegisterSpell(AID.SmitePvP);
+        defs.RegisterSpell(AID.SwiftPvP);
+        defs.RegisterSpell(AID.BloodbathPvP);
+        defs.RegisterSpell(AID.FullSwingPvP);
+        defs.RegisterSpell(AID.RampartPvP);
+        defs.RegisterSpell(AID.RampagePvP);
         #endregion
 
         #region Phantom actions
         foreach (var action in typeof(PhantomID).GetEnumValues())
             if ((uint)action > 0)
-                d.RegisterSpell((PhantomID)action);
+                defs.RegisterSpell((PhantomID)action);
         #endregion
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -328,6 +326,6 @@ public sealed class Definitions : IDefinitions
         };
 
         d.Spell(PhantomID.OccultFeatherfoot)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
-        d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
+        d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _, _) => config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
     }
 }

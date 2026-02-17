@@ -142,7 +142,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         var primaryPos = primaryTarget.Position;
         var total = maxRange + Player.HitboxRadius + primaryTarget.HitboxRadius;
         var totalKite = maxKite + Player.HitboxRadius + primaryTarget.HitboxRadius;
-        float goalFactor = 0.05f;
+        var goalFactor = 0.05f;
         Hints.GoalZones.Add(pos =>
         {
             var dist = (pos - primaryPos).Length();

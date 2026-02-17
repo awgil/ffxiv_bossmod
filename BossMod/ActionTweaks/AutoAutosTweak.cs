@@ -3,13 +3,13 @@
 namespace BossMod;
 
 // This tweak controls auto attacks to prevent early pulls and to enable them asap when pulling, changing targets or starting casts.
-public sealed class AutoAutosTweak(WorldState ws, AIHints hints, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ActionTweaksConfig _config)
+public sealed class AutoAutosTweak(WorldState ws, AIHints hints, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ActionTweaksConfig config)
 {
     private bool _lastActionDisabledAutos;
 
     public const float PrePullThreshold = 0.5f; // effect result delay for autos
 
-    public bool Enabled => _config.AutoAutos;
+    public bool Enabled => config.AutoAutos;
 
     public bool ShouldPreventAutoActivation(uint spellId)
     {
@@ -31,7 +31,7 @@ public sealed class AutoAutosTweak(WorldState ws, AIHints hints, ExcelSheet<Lumi
         if (target == null || target.IsAlly)
             return currentState;
 
-        if (_config.PyreticThreshold > 0 && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < ws.FutureTime(_config.PyreticThreshold))
+        if (config.PyreticThreshold > 0 && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < ws.FutureTime(config.PyreticThreshold))
             return false; // pyretic => disable autos
 
         var enemy = hints.FindEnemy(target);

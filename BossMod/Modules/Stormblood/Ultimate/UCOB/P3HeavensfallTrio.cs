@@ -56,8 +56,8 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
         var dirSymmetry = dirToNael + offsetSymmetry;
         foreach (var p in Service.Config.Get<UCOBConfig>().P3QuickmarchTrioAssignments.Resolve(Raid))
         {
-            bool left = p.group < 4;
-            int order = p.group & 3;
+            var left = p.group < 4;
+            var order = p.group & 3;
             var offset = offsets[order];
             var dir = dirSymmetry + (left ? offset : -offset);
             _safeSpots[p.slot] = Module.Center + 20 * dir.ToDirection();

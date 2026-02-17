@@ -102,7 +102,7 @@ public sealed class RaidCooldowns : IDisposable
 
     private bool UpdateDamageCooldown(ulong casterID, ActionID action)
     {
-        int slot = _ws.Party.FindSlot(casterID);
+        var slot = _ws.Party.FindSlot(casterID);
         if (slot is < 0 or >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
             return false;
 
@@ -122,7 +122,7 @@ public sealed class RaidCooldowns : IDisposable
 
     private bool UpdateInterruptCooldown(ulong casterID, ActionID action, float cooldown)
     {
-        int slot = _ws.Party.FindSlot(casterID);
+        var slot = _ws.Party.FindSlot(casterID);
         if (slot is < 0 or >= PartyState.MaxPartySize) // ignore cooldowns from other alliance parties
             return false;
         _interruptCooldowns[slot] = _ws.CurrentTime.AddSeconds(cooldown);

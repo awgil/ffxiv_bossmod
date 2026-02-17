@@ -91,7 +91,7 @@ class NecroticFluid(BossModule module) : Components.Exaflare(module, new AOEShap
         if (target == default)
             return;
 
-        int index = Lines.FindIndex(item => item.Next.AlmostEqual(target, 1));
+        var index = Lines.FindIndex(item => item.Next.AlmostEqual(target, 1));
         if (index == -1)
         {
             ReportError($"No entry for {target}");

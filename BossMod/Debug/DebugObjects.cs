@@ -23,7 +23,7 @@ public class DebugObjects(ITargetManager targetManager, IObjectTable objects)
 
         Span<nint> handlers = stackalloc nint[32];
         IGameObject? selected = null;
-        for (int i = 0; i < objects.Length; ++i)
+        for (var i = 0; i < objects.Length; ++i)
         {
             var obj = objects[i];
             if (obj == null)
@@ -55,7 +55,7 @@ public class DebugObjects(ITargetManager targetManager, IObjectTable objects)
                     if (internalObj->EventHandler != null)
                         _tree.LeafNode($"EH: {internalObj->EventHandler->Info.EventId.Id:X}");
                     var numHandlers = internalObj->GetEventHandlersImpl((FFXIVClientStructs.FFXIV.Client.Game.Event.EventHandler**)handlers.GetPointer(0));
-                    for (int iH = 0; iH < numHandlers; iH++)
+                    for (var iH = 0; iH < numHandlers; iH++)
                         _tree.LeafNode($"[{iH}]: {((FFXIVClientStructs.FFXIV.Client.Game.Event.EventHandler*)handlers[iH])->Info.EventId.Id:X}");
                 }
                 if (character != null)
@@ -70,7 +70,7 @@ public class DebugObjects(ITargetManager targetManager, IObjectTable objects)
                     _tree.LeafNode($"Cast: {Utils.CastTimeString(battleChara.CurrentCastTime, battleChara.TotalCastTime)} {new ActionID((ActionType)battleChara.CastActionType, battleChara.CastActionId)}");
                     foreach (var nn in _tree.Node("Statuses"))
                     {
-                        for (int j = 0; j < battleChara.StatusList.Length; ++j)
+                        for (var j = 0; j < battleChara.StatusList.Length; ++j)
                         {
                             var s = battleChara.StatusList[j];
                             if (s == null || s.StatusId == 0)
@@ -98,8 +98,8 @@ public class DebugObjects(ITargetManager targetManager, IObjectTable objects)
             Camera.Instance?.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
             Camera.Instance?.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
             Camera.Instance?.DrawWorldCircle(selected.Position - h, selected.HitboxRadius, 0xff00ff00);
-            int numSegments = CurveApprox.CalculateCircleSegments(selected.HitboxRadius, 360.Degrees(), 1);
-            for (int i = 0; i < numSegments; ++i)
+            var numSegments = CurveApprox.CalculateCircleSegments(selected.HitboxRadius, 360.Degrees(), 1);
+            for (var i = 0; i < numSegments; ++i)
             {
                 var p = selected.Position + selected.HitboxRadius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
                 Camera.Instance?.DrawWorldLine(p - h, p + h, 0xff00ff00);
@@ -115,7 +115,7 @@ public class DebugObjects(ITargetManager targetManager, IObjectTable objects)
         ImGui.TableSetupColumn("GameObj");
         ImGui.TableSetupColumn("NamePlateKind");
         ImGui.TableHeadersRow();
-        for (int i = 0; i < 426; ++i)
+        for (var i = 0; i < 426; ++i)
         {
             var o = module->ObjectInfos[i].GameObject;
             ImGui.TableNextRow();
@@ -160,7 +160,7 @@ public class DebugObjects(ITargetManager targetManager, IObjectTable objects)
         }
         res.Append("\n--- cid/acid (C) ---");
         var gom = GameObjectManager.Instance();
-        for (int i = 0; i < 100; ++i)
+        for (var i = 0; i < 100; ++i)
         {
             var obj = gom->Objects.IndexSorted[i * 2].Value;
             if (obj != null && obj->IsCharacter())
@@ -171,7 +171,7 @@ public class DebugObjects(ITargetManager targetManager, IObjectTable objects)
         }
         res.Append("\n--- cid/acid (P) ---");
         var gp = GroupManager.Instance()->GetGroup();
-        for (int i = 0; i < gp->MemberCount; ++i)
+        for (var i = 0; i < gp->MemberCount; ++i)
         {
             ref var member = ref gp->PartyMembers[i];
             res.Append($"\n{i}: {member.AccountId:X}.{member.ContentId:X} = {member.NameString} / {(member.NameOverride != null ? member.NameOverride->ToString() : "<null>")}");

@@ -280,8 +280,8 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
 
     private static WPos CalculateCirclePosition(int count, WPos origin, WPos caster)
     {
-        float x = MathF.Cos(count * RadianConversion) * (caster.X - origin.X) - MathF.Sin(count * RadianConversion) * (caster.Z - origin.Z);
-        float z = MathF.Sin(count * RadianConversion) * (caster.X - origin.X) + MathF.Cos(count * RadianConversion) * (caster.Z - origin.Z);
+        var x = MathF.Cos(count * RadianConversion) * (caster.X - origin.X) - MathF.Sin(count * RadianConversion) * (caster.Z - origin.Z);
+        var z = MathF.Sin(count * RadianConversion) * (caster.X - origin.X) + MathF.Cos(count * RadianConversion) * (caster.Z - origin.Z);
         return new WPos(origin.X + x, origin.Z + z);
     }
 
@@ -327,14 +327,14 @@ class FierceBeating(BossModule module) : Components.Exaflare(module, 4)
         {
             if ((AID)spell.Action.ID is AID.FierceBeating4 or AID.FierceBeating6)
             {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+                var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
                 AdvanceLine(Lines[index], caster.Position);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);
             }
             if ((AID)spell.Action.ID == AID.FierceBeating5)
             {
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
+                var index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
                 AdvanceLine(Lines[index], spell.TargetXZ);
                 if (Lines[index].ExplosionsLeft == 0)
                     Lines.RemoveAt(index);

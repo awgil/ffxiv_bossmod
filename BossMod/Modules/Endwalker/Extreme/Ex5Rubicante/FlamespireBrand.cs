@@ -58,7 +58,7 @@ class Flamerake(BossModule module) : Components.GenericAOEs(module)
         else
         {
             float offset = NumCasts == 1 ? 6 : 14;
-            for (int i = 0; i < 4; ++i)
+            for (var i = 0; i < 4; ++i)
             {
                 var dir = i * 90.Degrees() + _offset;
                 yield return new(_rest, Module.Center + offset * dir.ToDirection(), dir, _activation);

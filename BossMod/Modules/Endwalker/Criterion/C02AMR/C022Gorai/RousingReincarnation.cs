@@ -68,7 +68,7 @@ class MalformedPrayer1(BossModule module) : Components.GenericTowers(module)
     private void UpdateTowers()
     {
         Towers.Clear();
-        int towerOrder = NumCasts / 2;
+        var towerOrder = NumCasts / 2;
         var orangeSoaker = Array.IndexOf(OrangeSoakOrder, towerOrder);
         var blueSoaker = Array.IndexOf(OrangeSoakOrder, (towerOrder + 2) & 3);
         foreach (var index in _towerOrder.Skip(NumCasts).Take(2))

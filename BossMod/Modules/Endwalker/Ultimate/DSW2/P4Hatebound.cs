@@ -95,10 +95,10 @@ class P4MirageDive(BossModule module) : Components.CastCounter(module, AID.Mirag
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        bool pcCanSwap = !_forbidden[pcSlot] && !_baiters[pcSlot];
+        var pcCanSwap = !_forbidden[pcSlot] && !_baiters[pcSlot];
         foreach (var (slot, player) in Raid.WithSlot(true).IncludedInMask(_baiters))
         {
-            bool canSwap = pcCanSwap && _forbidden[slot];
+            var canSwap = pcCanSwap && _forbidden[slot];
             Arena.AddCircle(player.Position, _radius, canSwap ? ArenaColor.Safe : ArenaColor.Danger);
         }
     }
@@ -122,7 +122,7 @@ class P4MirageDive(BossModule module) : Components.CastCounter(module, AID.Mirag
         {
             _targets.Add(Raid.FindSlot(spell.MainTargetID));
             _forbidden.Reset();
-            foreach (int i in _targets.TakeLast(4))
+            foreach (var i in _targets.TakeLast(4))
                 _forbidden.Set(i);
         }
     }

@@ -72,7 +72,7 @@ public sealed class Replay
 
         private T? HistoryEntryAt<T>(SortedList<DateTime, T> history, DateTime t)
         {
-            int next = history.UpperBound(t);
+            var next = history.UpperBound(t);
             return next == 0 ? default : history.Values[next - 1];
         }
     }

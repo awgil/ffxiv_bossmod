@@ -12,7 +12,7 @@ class SpatialTactics(BossModule module) : Components.GenericAOEs(module)
     {
         if (_array == null)
             yield break;
-        bool wantMore = _remainingStacks[slot] > (NumCasts == 0 ? 1 : 0);
+        var wantMore = _remainingStacks[slot] > (NumCasts == 0 ? 1 : 0);
         foreach (var f in NextFonts().Take(2))
             foreach (var p in _array.SafeZoneCenters.Where(p => _shape.Check(p, f.actor)))
                 yield return new(ArcaneArrayPlot.Shape, p, default, f.activation, wantMore ? ArenaColor.SafeFromAOE : ArenaColor.AOE, !wantMore);

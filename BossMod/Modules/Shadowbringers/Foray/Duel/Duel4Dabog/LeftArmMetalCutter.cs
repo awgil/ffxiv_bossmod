@@ -23,7 +23,7 @@ class LeftArmMetalCutterAOE(BossModule module) : Components.GenericAOEs(module)
             case AID.LeftArmMetalCutterAOE1:
                 if (CurState == State.FirstAOEs)
                 {
-                    for (int i = 0; i < _aoes.Count; i++)
+                    for (var i = 0; i < _aoes.Count; i++)
                     {
                         var aoe = _aoes[i];
                         aoe.Rotation += 180.Degrees();

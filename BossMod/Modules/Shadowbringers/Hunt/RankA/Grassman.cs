@@ -85,4 +85,4 @@ class GrassmanStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8892)]
-public class Grassman(ModuleArgs args): SimpleBossModule(args) { }
+public class Grassman(ModuleArgs args) : SimpleBossModule(args) { }

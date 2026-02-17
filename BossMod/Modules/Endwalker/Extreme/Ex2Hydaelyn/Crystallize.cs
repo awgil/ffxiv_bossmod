@@ -27,7 +27,7 @@ class Crystallize : BossComponent
         switch (CurElement)
         {
             case Element.Water:
-                int healersInRange = Raid.WithoutSlot().Where(a => a.Role == Role.Healer).InRadius(actor.Position, _waterRadius).Count();
+                var healersInRange = Raid.WithoutSlot().Where(a => a.Role == Role.Healer).InRadius(actor.Position, _waterRadius).Count();
                 if (healersInRange > 1)
                     hints.Add("Hit by two aoes!");
                 else if (healersInRange == 0)
@@ -46,7 +46,7 @@ class Crystallize : BossComponent
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        string hint = CurElement switch
+        var hint = CurElement switch
         {
             Element.Water => "Stack in fours",
             Element.Earth => "Stack all",

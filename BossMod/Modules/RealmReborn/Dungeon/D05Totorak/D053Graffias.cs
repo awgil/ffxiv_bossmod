@@ -44,7 +44,7 @@ public class D053Graffias(ModuleArgs init) : BossModule(init, new(215, -145), ne
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        bool haveTail = Enemies(OID.GraffiasTail).Count > 0;
+        var haveTail = Enemies(OID.GraffiasTail).Count > 0;
         foreach (var e in hints.PotentialTargets)
         {
             e.Priority = (OID)e.Actor.OID switch

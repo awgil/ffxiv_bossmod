@@ -53,7 +53,7 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         var ps = PlayerStates[pcSlot];
-        bool soakTowers = ps.Order == NextTowersOrder();
+        var soakTowers = ps.Order == NextTowersOrder();
         var towerToSoak = soakTowers ? SelectTowerForGroup(ps.Group) : null;
         foreach (var t in _towers.Skip(NumTowersDone).Take(2))
         {
@@ -68,13 +68,13 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
                 Arena.AddCircle(futureTowerToSoak.Position, _towerRadius, ArenaColor.Safe);
         }
 
-        bool grabThisTether = ps.Order == NextTethersOrder();
-        bool grabNextTether = ps.Order == NextTethersOrder(1);
+        var grabThisTether = ps.Order == NextTethersOrder();
+        var grabNextTether = ps.Order == NextTethersOrder(1);
         foreach (var (s, t) in Raid.WithSlot().IncludedInMask(_tethers))
         {
             var ts = PlayerStates[s];
-            bool correctSoaker = ts.Order == NextTethersOrder();
-            bool tetherToGrab = ts.Group == ps.Group && (grabNextTether ? correctSoaker : grabThisTether && NumTethersDone > 0 && ts.Order == NextTethersOrder(-1));
+            var correctSoaker = ts.Order == NextTethersOrder();
+            var tetherToGrab = ts.Group == ps.Group && (grabNextTether ? correctSoaker : grabThisTether && NumTethersDone > 0 && ts.Order == NextTethersOrder(-1));
             Arena.AddCircle(t.Position, _tetherRadius, t == pc ? ArenaColor.Safe : ArenaColor.Danger);
             Arena.AddLine(t.Position, Module.PrimaryActor.Position, correctSoaker ? ArenaColor.Safe : ArenaColor.Danger, tetherToGrab ? 2 : 1);
         }

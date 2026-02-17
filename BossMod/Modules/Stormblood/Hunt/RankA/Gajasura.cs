@@ -29,4 +29,4 @@ class GajasuraStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5998)]
-public class Gajasura(ModuleArgs args): SimpleBossModule(args);
+public class Gajasura(ModuleArgs args) : SimpleBossModule(args);

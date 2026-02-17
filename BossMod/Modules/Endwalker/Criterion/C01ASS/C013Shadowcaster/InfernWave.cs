@@ -42,7 +42,7 @@ class InfernWave(BossModule module, bool savage, bool showHints, int maxActive) 
             return;
 
         bool clipping = false, clipped = false;
-        int numBaits = 0;
+        var numBaits = 0;
         foreach (var b in ActiveBeacons())
         {
             foreach (var t in b.Targets)

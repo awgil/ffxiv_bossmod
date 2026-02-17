@@ -162,61 +162,61 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.SatelliteBeam, true, castAnimLock: 3.70f); // animLock=3.700s?
-        d.RegisterSpell(AID.SplitShot, true);
-        d.RegisterSpell(AID.SlugShot, true);
-        d.RegisterSpell(AID.HotShot, true);
-        d.RegisterSpell(AID.Reassemble, true);
-        d.RegisterSpell(AID.GaussRound, true);
-        d.RegisterSpell(AID.SpreadShot, true);
-        d.RegisterSpell(AID.CleanShot, true);
-        d.RegisterSpell(AID.Hypercharge, true);
-        d.RegisterSpell(AID.HeatBlast, true);
-        d.RegisterSpell(AID.RookAutoturret, true);
-        d.RegisterSpell(AID.RookOverdrive, true);
-        d.RegisterSpell(AID.Detonator, true);
-        d.RegisterSpell(AID.Wildfire, true);
-        d.RegisterSpell(AID.Ricochet, true);
-        d.RegisterSpell(AID.AutoCrossbow, true);
-        d.RegisterSpell(AID.HeatedSplitShot, true);
-        d.RegisterSpell(AID.Tactician, true);
-        d.RegisterSpell(AID.Drill, true);
-        d.RegisterSpell(AID.HeatedSlugShot, true);
-        d.RegisterSpell(AID.Dismantle, true);
-        d.RegisterSpell(AID.HeatedCleanShot, true);
-        d.RegisterSpell(AID.BarrelStabilizer, true);
-        d.RegisterSpell(AID.BlazingShot, true);
-        d.RegisterSpell(AID.Flamethrower, true);
-        d.RegisterSpell(AID.Bioblaster, true);
-        d.RegisterSpell(AID.AirAnchor, true);
-        d.RegisterSpell(AID.AutomatonQueen, true);
-        d.RegisterSpell(AID.QueenOverdrive, true);
-        d.RegisterSpell(AID.Scattergun, true);
-        d.RegisterSpell(AID.ChainSaw, true);
-        d.RegisterSpell(AID.DoubleCheck, true); // animLock=???
-        d.RegisterSpell(AID.Checkmate, true); // animLock=???
-        d.RegisterSpell(AID.Excavator, true); // animLock=???
-        d.RegisterSpell(AID.FullMetalField, true); // animLock=???
+        defs.RegisterSpell(AID.SatelliteBeam, true, castAnimLock: 3.70f); // animLock=3.700s?
+        defs.RegisterSpell(AID.SplitShot, true);
+        defs.RegisterSpell(AID.SlugShot, true);
+        defs.RegisterSpell(AID.HotShot, true);
+        defs.RegisterSpell(AID.Reassemble, true);
+        defs.RegisterSpell(AID.GaussRound, true);
+        defs.RegisterSpell(AID.SpreadShot, true);
+        defs.RegisterSpell(AID.CleanShot, true);
+        defs.RegisterSpell(AID.Hypercharge, true);
+        defs.RegisterSpell(AID.HeatBlast, true);
+        defs.RegisterSpell(AID.RookAutoturret, true);
+        defs.RegisterSpell(AID.RookOverdrive, true);
+        defs.RegisterSpell(AID.Detonator, true);
+        defs.RegisterSpell(AID.Wildfire, true);
+        defs.RegisterSpell(AID.Ricochet, true);
+        defs.RegisterSpell(AID.AutoCrossbow, true);
+        defs.RegisterSpell(AID.HeatedSplitShot, true);
+        defs.RegisterSpell(AID.Tactician, true);
+        defs.RegisterSpell(AID.Drill, true);
+        defs.RegisterSpell(AID.HeatedSlugShot, true);
+        defs.RegisterSpell(AID.Dismantle, true);
+        defs.RegisterSpell(AID.HeatedCleanShot, true);
+        defs.RegisterSpell(AID.BarrelStabilizer, true);
+        defs.RegisterSpell(AID.BlazingShot, true);
+        defs.RegisterSpell(AID.Flamethrower, true);
+        defs.RegisterSpell(AID.Bioblaster, true);
+        defs.RegisterSpell(AID.AirAnchor, true);
+        defs.RegisterSpell(AID.AutomatonQueen, true);
+        defs.RegisterSpell(AID.QueenOverdrive, true);
+        defs.RegisterSpell(AID.Scattergun, true);
+        defs.RegisterSpell(AID.ChainSaw, true);
+        defs.RegisterSpell(AID.DoubleCheck, true); // animLock=???
+        defs.RegisterSpell(AID.Checkmate, true); // animLock=???
+        defs.RegisterSpell(AID.Excavator, true); // animLock=???
+        defs.RegisterSpell(AID.FullMetalField, true); // animLock=???
 
         // PvP
-        d.RegisterSpell(AID.BlastChargePvP, true);
-        d.RegisterSpell(AID.ScattergunPvP, true);
-        d.RegisterSpell(AID.DrillPvP, true);
-        d.RegisterSpell(AID.BioblasterPvP, true);
-        d.RegisterSpell(AID.AirAnchorPvP, true);
-        d.RegisterSpell(AID.ChainSawPvP, true);
-        d.RegisterSpell(AID.WildfirePvP, true);
-        d.RegisterSpell(AID.BishopAutoturretPvP, true);
-        d.RegisterSpell(AID.AetherMortarPvP, true);
-        d.RegisterSpell(AID.AnalysisPvP, true);
-        d.RegisterSpell(AID.MarksmansSpitePvP, true);
-        d.RegisterSpell(AID.BlazingShotPvP, true);
-        d.RegisterSpell(AID.FullMetalFieldPvP, true);
-        d.RegisterSpell(AID.DetonatorPvP, true);
+        defs.RegisterSpell(AID.BlastChargePvP, true);
+        defs.RegisterSpell(AID.ScattergunPvP, true);
+        defs.RegisterSpell(AID.DrillPvP, true);
+        defs.RegisterSpell(AID.BioblasterPvP, true);
+        defs.RegisterSpell(AID.AirAnchorPvP, true);
+        defs.RegisterSpell(AID.ChainSawPvP, true);
+        defs.RegisterSpell(AID.WildfirePvP, true);
+        defs.RegisterSpell(AID.BishopAutoturretPvP, true);
+        defs.RegisterSpell(AID.AetherMortarPvP, true);
+        defs.RegisterSpell(AID.AnalysisPvP, true);
+        defs.RegisterSpell(AID.MarksmansSpitePvP, true);
+        defs.RegisterSpell(AID.BlazingShotPvP, true);
+        defs.RegisterSpell(AID.FullMetalFieldPvP, true);
+        defs.RegisterSpell(AID.DetonatorPvP, true);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

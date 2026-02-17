@@ -110,57 +110,57 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-sealed class Definitions(PCTConfig _config) : IDefinitions
+sealed class Definitions(PCTConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.ChromaticFantasy);
-        d.RegisterSpell(AID.FireInRed);
-        d.RegisterSpell(AID.AeroInGreen);
-        d.RegisterSpell(AID.TemperaCoat);
-        d.RegisterSpell(AID.WaterInBlue);
-        d.RegisterSpell(AID.Smudge, instantAnimLock: 0.80f); // animLock=0.800
-        d.RegisterSpell(AID.FireIIInRed);
-        d.RegisterSpell(AID.WingedMuse);
-        d.RegisterSpell(AID.LivingMuse);
-        d.RegisterSpell(AID.CreatureMotif);
-        d.RegisterSpell(AID.WingMotif);
-        d.RegisterSpell(AID.MogOfTheAges);
-        d.RegisterSpell(AID.PomMotif);
-        d.RegisterSpell(AID.PomMuse);
-        d.RegisterSpell(AID.AeroIIInGreen);
-        d.RegisterSpell(AID.WaterIIInBlue);
-        d.RegisterSpell(AID.WeaponMotif);
-        d.RegisterSpell(AID.HammerStamp);
-        d.RegisterSpell(AID.SteelMuse);
-        d.RegisterSpell(AID.StrikingMuse);
-        d.RegisterSpell(AID.HammerMotif);
-        d.RegisterSpell(AID.ThunderIIInMagenta);
-        d.RegisterSpell(AID.StoneInYellow);
-        d.RegisterSpell(AID.BlizzardIIInCyan);
-        d.RegisterSpell(AID.ThunderInMagenta);
-        d.RegisterSpell(AID.BlizzardInCyan);
-        d.RegisterSpell(AID.StoneIIInYellow);
-        d.RegisterSpell(AID.SubtractivePalette);
-        d.RegisterSpell(AID.StarrySkyMotif);
-        d.RegisterSpell(AID.StarryMuse);
-        d.RegisterSpell(AID.LandscapeMotif);
-        d.RegisterSpell(AID.ScenicMuse);
-        d.RegisterSpell(AID.HolyInWhite);
-        d.RegisterSpell(AID.HammerBrush);
-        d.RegisterSpell(AID.PolishingHammer);
-        d.RegisterSpell(AID.TemperaGrassa);
-        d.RegisterSpell(AID.CometInBlack);
-        d.RegisterSpell(AID.RainbowDrip);
-        d.RegisterSpell(AID.RetributionOfTheMadeen);
-        d.RegisterSpell(AID.FangedMuse);
-        d.RegisterSpell(AID.ClawedMuse);
-        d.RegisterSpell(AID.MawMotif);
-        d.RegisterSpell(AID.ClawMotif);
-        d.RegisterSpell(AID.StarPrism);
-        d.RegisterSpell(AID.StarPrism2); // AOE heal effect
+        defs.RegisterSpell(AID.ChromaticFantasy);
+        defs.RegisterSpell(AID.FireInRed);
+        defs.RegisterSpell(AID.AeroInGreen);
+        defs.RegisterSpell(AID.TemperaCoat);
+        defs.RegisterSpell(AID.WaterInBlue);
+        defs.RegisterSpell(AID.Smudge, instantAnimLock: 0.80f); // animLock=0.800
+        defs.RegisterSpell(AID.FireIIInRed);
+        defs.RegisterSpell(AID.WingedMuse);
+        defs.RegisterSpell(AID.LivingMuse);
+        defs.RegisterSpell(AID.CreatureMotif);
+        defs.RegisterSpell(AID.WingMotif);
+        defs.RegisterSpell(AID.MogOfTheAges);
+        defs.RegisterSpell(AID.PomMotif);
+        defs.RegisterSpell(AID.PomMuse);
+        defs.RegisterSpell(AID.AeroIIInGreen);
+        defs.RegisterSpell(AID.WaterIIInBlue);
+        defs.RegisterSpell(AID.WeaponMotif);
+        defs.RegisterSpell(AID.HammerStamp);
+        defs.RegisterSpell(AID.SteelMuse);
+        defs.RegisterSpell(AID.StrikingMuse);
+        defs.RegisterSpell(AID.HammerMotif);
+        defs.RegisterSpell(AID.ThunderIIInMagenta);
+        defs.RegisterSpell(AID.StoneInYellow);
+        defs.RegisterSpell(AID.BlizzardIIInCyan);
+        defs.RegisterSpell(AID.ThunderInMagenta);
+        defs.RegisterSpell(AID.BlizzardInCyan);
+        defs.RegisterSpell(AID.StoneIIInYellow);
+        defs.RegisterSpell(AID.SubtractivePalette);
+        defs.RegisterSpell(AID.StarrySkyMotif);
+        defs.RegisterSpell(AID.StarryMuse);
+        defs.RegisterSpell(AID.LandscapeMotif);
+        defs.RegisterSpell(AID.ScenicMuse);
+        defs.RegisterSpell(AID.HolyInWhite);
+        defs.RegisterSpell(AID.HammerBrush);
+        defs.RegisterSpell(AID.PolishingHammer);
+        defs.RegisterSpell(AID.TemperaGrassa);
+        defs.RegisterSpell(AID.CometInBlack);
+        defs.RegisterSpell(AID.RainbowDrip);
+        defs.RegisterSpell(AID.RetributionOfTheMadeen);
+        defs.RegisterSpell(AID.FangedMuse);
+        defs.RegisterSpell(AID.ClawedMuse);
+        defs.RegisterSpell(AID.MawMotif);
+        defs.RegisterSpell(AID.ClawMotif);
+        defs.RegisterSpell(AID.StarPrism);
+        defs.RegisterSpell(AID.StarPrism2); // AOE heal effect
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -171,7 +171,7 @@ sealed class Definitions(PCTConfig _config) : IDefinitions
         foreach (var creature in new AID[] { AID.LivingMuse, AID.PomMuse, AID.WingedMuse, AID.ClawedMuse, AID.FangedMuse })
             d.RegisterChargeIncreaseTrait(creature, TraitID.EnhancedPictomancyIV);
 
-        d.Spell(AID.Smudge)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+        d.Spell(AID.Smudge)!.TransformAngle = (ws, _, _, _) => config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
         d.Spell(AID.Smudge)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);

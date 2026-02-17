@@ -40,7 +40,7 @@ class ClientActions
                         break;
 
                     case ClientState.OpActionReject o:
-                        int rejIndex = o.Value.SourceSequence != 0
+                        var rejIndex = o.Value.SourceSequence != 0
                             ? pendingRequests.FindIndex(a => a.Request.SourceSequence == o.Value.SourceSequence)
                             : pendingRequests.FindIndex(a => a.Request.Action == o.Value.Action);
                         if (rejIndex < 0)
@@ -114,7 +114,7 @@ class ClientActions
                             }
                             else if (pendingCast != null)
                             {
-                                int index = pendingRequests.FindIndex(r => r.Request.Action == pendingCast.Action);
+                                var index = pendingRequests.FindIndex(r => r.Request.Action == pendingCast.Action);
                                 if (index < 0)
                                 {
                                     _warnings.Add((r, op.Timestamp, $"Player cast {StrCast(pendingCast)} ended without request ({pendingRequests.Count} pending)"));

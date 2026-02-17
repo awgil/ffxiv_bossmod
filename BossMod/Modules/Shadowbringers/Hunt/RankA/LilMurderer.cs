@@ -55,4 +55,4 @@ class LilMurdererStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8911)]
-public class LilMurderer(ModuleArgs args): SimpleBossModule(args) { }
+public class LilMurderer(ModuleArgs args) : SimpleBossModule(args) { }

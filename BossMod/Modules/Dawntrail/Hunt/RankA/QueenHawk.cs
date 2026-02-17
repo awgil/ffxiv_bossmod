@@ -74,4 +74,4 @@ class QueenHawkStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13361)]
-public class QueenHawk(ModuleArgs args): SimpleBossModule(args);
+public class QueenHawk(ModuleArgs args) : SimpleBossModule(args);

@@ -260,7 +260,7 @@ class IaiGiriResolve(BossModule module) : Components.GenericAOEs(module)
             }
 
             // update all aoe positions, first rotation/activation
-            bool first = true;
+            var first = true;
             foreach (ref var aoe in inst.AOEs.AsSpan())
             {
                 aoe.Origin = caster.Position;

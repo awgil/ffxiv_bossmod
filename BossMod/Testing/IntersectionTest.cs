@@ -5,7 +5,7 @@ namespace BossMod.Testing;
 class IntersectionTest(StandardColors colors) : TestWindow("Intersection test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
 {
     private float _circleOffset = 5.5f;
-    private float _circleDir = 0;
+    private float _circleDir;
     private float _circleRadius = 0.5f;
     private float _shapeExtentPrimary = 5; // z/r
     private float _shapeExtentSecondary = 30; // x/phi (deg)

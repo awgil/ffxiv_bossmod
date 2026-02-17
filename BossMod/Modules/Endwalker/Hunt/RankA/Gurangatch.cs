@@ -71,4 +71,4 @@ class GurangatchStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10631)]
-public class Gurangatch(ModuleArgs args): SimpleBossModule(args);
+public class Gurangatch(ModuleArgs args) : SimpleBossModule(args);

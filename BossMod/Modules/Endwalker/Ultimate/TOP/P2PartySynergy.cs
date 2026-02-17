@@ -293,11 +293,11 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
                     // need adjust
                     var s1Order = _synergy.GetNorthSouthOrder(s1);
                     var s2Order = _synergy.GetNorthSouthOrder(s2);
-                    int adjustOrder = _config.P2PartySynergyStackSwapSouth
+                    var adjustOrder = _config.P2PartySynergyStackSwapSouth
                         ? s1Order > s2Order ? s1.Order : s2.Order // south = higher order will swap
                         : s1Order > s2Order ? s2.Order : s1.Order; // north = lower
 
-                    for (int s = 0; s < _synergy.PlayerStates.Length; ++s)
+                    for (var s = 0; s < _synergy.PlayerStates.Length; ++s)
                     {
                         if (_synergy.PlayerStates[s].Order == adjustOrder)
                         {

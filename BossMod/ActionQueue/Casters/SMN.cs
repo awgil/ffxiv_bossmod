@@ -207,102 +207,102 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.Teraflare, castAnimLock: 8.10f); // animLock=8.100s?
-        d.RegisterSpell(AID.Ruin1);
-        d.RegisterSpell(AID.SummonCarbuncle);
-        d.RegisterSpell(AID.RadiantAegis);
-        d.RegisterSpell(AID.Physick);
-        d.RegisterSpell(AID.Aethercharge);
-        d.RegisterSpell(AID.SummonRuby);
-        d.RegisterSpell(AID.RubyRuin1);
-        d.RegisterSpell(AID.Gemshine);
-        d.RegisterSpell(AID.EnergyDrain);
-        d.RegisterSpell(AID.Fester);
-        d.RegisterSpell(AID.SummonTopaz);
-        d.RegisterSpell(AID.TopazRuin1);
-        d.RegisterSpell(AID.EmeraldRuin1);
-        d.RegisterSpell(AID.SummonEmerald);
-        d.RegisterSpell(AID.Outburst);
-        d.RegisterSpell(AID.RubyOutburst);
-        d.RegisterSpell(AID.EmeraldOutburst);
-        d.RegisterSpell(AID.PreciousBrilliance);
-        d.RegisterSpell(AID.TopazOutburst);
-        d.RegisterSpell(AID.TopazRuin2);
-        d.RegisterSpell(AID.EmeraldRuin2);
-        d.RegisterSpell(AID.Ruin2);
-        d.RegisterSpell(AID.SummonIfrit1);
-        d.RegisterSpell(AID.RubyRuin2);
-        d.RegisterSpell(AID.SummonTitan1);
-        d.RegisterSpell(AID.Painflare);
-        d.RegisterSpell(AID.SummonGaruda1);
-        d.RegisterSpell(AID.EnergySiphon);
-        d.RegisterSpell(AID.RubyRuin3);
-        d.RegisterSpell(AID.Ruin3);
-        d.RegisterSpell(AID.TopazRuin3);
-        d.RegisterSpell(AID.EmeraldRuin3);
-        d.RegisterSpell(AID.DreadwyrmTrance);
-        d.RegisterSpell(AID.AstralImpulse);
-        d.RegisterSpell(AID.AstralFlare);
-        d.RegisterSpell(AID.Deathflare);
-        d.RegisterSpell(AID.AstralFlow);
-        d.RegisterSpell(AID.Ruin4);
-        d.RegisterSpell(AID.SearingLight);
-        d.RegisterSpell(AID.SummonBahamut);
-        d.RegisterSpell(AID.EnkindleBahamut);
-        d.RegisterSpell(AID.TopazRite);
-        d.RegisterSpell(AID.EmeraldRite);
-        d.RegisterSpell(AID.RubyRite);
-        d.RegisterSpell(AID.TriDisaster);
-        d.RegisterSpell(AID.RubyDisaster);
-        d.RegisterSpell(AID.TopazDisaster);
-        d.RegisterSpell(AID.EmeraldDisaster);
-        d.RegisterSpell(AID.Rekindle);
-        d.RegisterSpell(AID.SummonPhoenix);
-        d.RegisterSpell(AID.EnkindlePhoenix);
-        d.RegisterSpell(AID.BrandOfPurgatory);
-        d.RegisterSpell(AID.FountainOfFire);
-        d.RegisterSpell(AID.RubyCatastrophe);
-        d.RegisterSpell(AID.TopazCatastrophe);
-        d.RegisterSpell(AID.EmeraldCatastrophe);
-        d.RegisterSpell(AID.Slipstream);
-        d.RegisterSpell(AID.MountainBuster);
-        d.RegisterSpell(AID.CrimsonCyclone, instantAnimLock: 0.75f); // animLock=0.750
-        d.RegisterSpell(AID.CrimsonStrike);
-        d.RegisterSpell(AID.SummonIfrit2);
-        d.RegisterSpell(AID.SummonTitan2);
-        d.RegisterSpell(AID.SummonGaruda2);
-        d.RegisterSpell(AID.Necrotize);
-        d.RegisterSpell(AID.SearingFlash); // animLock=???
-        d.RegisterSpell(AID.UmbralImpulse); // animLock=???
-        d.RegisterSpell(AID.UmbralFlare); // animLock=???
-        d.RegisterSpell(AID.Sunflare); // animLock=???
-        d.RegisterSpell(AID.LuxSolaris); // animLock=???
-        d.RegisterSpell(AID.EnkindleSolarBahamut); // animLock=???
-        d.RegisterSpell(AID.SummonSolarBahamut); // animLock=???
+        defs.RegisterSpell(AID.Teraflare, castAnimLock: 8.10f); // animLock=8.100s?
+        defs.RegisterSpell(AID.Ruin1);
+        defs.RegisterSpell(AID.SummonCarbuncle);
+        defs.RegisterSpell(AID.RadiantAegis);
+        defs.RegisterSpell(AID.Physick);
+        defs.RegisterSpell(AID.Aethercharge);
+        defs.RegisterSpell(AID.SummonRuby);
+        defs.RegisterSpell(AID.RubyRuin1);
+        defs.RegisterSpell(AID.Gemshine);
+        defs.RegisterSpell(AID.EnergyDrain);
+        defs.RegisterSpell(AID.Fester);
+        defs.RegisterSpell(AID.SummonTopaz);
+        defs.RegisterSpell(AID.TopazRuin1);
+        defs.RegisterSpell(AID.EmeraldRuin1);
+        defs.RegisterSpell(AID.SummonEmerald);
+        defs.RegisterSpell(AID.Outburst);
+        defs.RegisterSpell(AID.RubyOutburst);
+        defs.RegisterSpell(AID.EmeraldOutburst);
+        defs.RegisterSpell(AID.PreciousBrilliance);
+        defs.RegisterSpell(AID.TopazOutburst);
+        defs.RegisterSpell(AID.TopazRuin2);
+        defs.RegisterSpell(AID.EmeraldRuin2);
+        defs.RegisterSpell(AID.Ruin2);
+        defs.RegisterSpell(AID.SummonIfrit1);
+        defs.RegisterSpell(AID.RubyRuin2);
+        defs.RegisterSpell(AID.SummonTitan1);
+        defs.RegisterSpell(AID.Painflare);
+        defs.RegisterSpell(AID.SummonGaruda1);
+        defs.RegisterSpell(AID.EnergySiphon);
+        defs.RegisterSpell(AID.RubyRuin3);
+        defs.RegisterSpell(AID.Ruin3);
+        defs.RegisterSpell(AID.TopazRuin3);
+        defs.RegisterSpell(AID.EmeraldRuin3);
+        defs.RegisterSpell(AID.DreadwyrmTrance);
+        defs.RegisterSpell(AID.AstralImpulse);
+        defs.RegisterSpell(AID.AstralFlare);
+        defs.RegisterSpell(AID.Deathflare);
+        defs.RegisterSpell(AID.AstralFlow);
+        defs.RegisterSpell(AID.Ruin4);
+        defs.RegisterSpell(AID.SearingLight);
+        defs.RegisterSpell(AID.SummonBahamut);
+        defs.RegisterSpell(AID.EnkindleBahamut);
+        defs.RegisterSpell(AID.TopazRite);
+        defs.RegisterSpell(AID.EmeraldRite);
+        defs.RegisterSpell(AID.RubyRite);
+        defs.RegisterSpell(AID.TriDisaster);
+        defs.RegisterSpell(AID.RubyDisaster);
+        defs.RegisterSpell(AID.TopazDisaster);
+        defs.RegisterSpell(AID.EmeraldDisaster);
+        defs.RegisterSpell(AID.Rekindle);
+        defs.RegisterSpell(AID.SummonPhoenix);
+        defs.RegisterSpell(AID.EnkindlePhoenix);
+        defs.RegisterSpell(AID.BrandOfPurgatory);
+        defs.RegisterSpell(AID.FountainOfFire);
+        defs.RegisterSpell(AID.RubyCatastrophe);
+        defs.RegisterSpell(AID.TopazCatastrophe);
+        defs.RegisterSpell(AID.EmeraldCatastrophe);
+        defs.RegisterSpell(AID.Slipstream);
+        defs.RegisterSpell(AID.MountainBuster);
+        defs.RegisterSpell(AID.CrimsonCyclone, instantAnimLock: 0.75f); // animLock=0.750
+        defs.RegisterSpell(AID.CrimsonStrike);
+        defs.RegisterSpell(AID.SummonIfrit2);
+        defs.RegisterSpell(AID.SummonTitan2);
+        defs.RegisterSpell(AID.SummonGaruda2);
+        defs.RegisterSpell(AID.Necrotize);
+        defs.RegisterSpell(AID.SearingFlash); // animLock=???
+        defs.RegisterSpell(AID.UmbralImpulse); // animLock=???
+        defs.RegisterSpell(AID.UmbralFlare); // animLock=???
+        defs.RegisterSpell(AID.Sunflare); // animLock=???
+        defs.RegisterSpell(AID.LuxSolaris); // animLock=???
+        defs.RegisterSpell(AID.EnkindleSolarBahamut); // animLock=???
+        defs.RegisterSpell(AID.SummonSolarBahamut); // animLock=???
 
         // PvP
-        d.RegisterSpell(AID.Ruin3PvP);
-        d.RegisterSpell(AID.MountainBusterPvP);
-        d.RegisterSpell(AID.SlipstreamPvP);
-        d.RegisterSpell(AID.CrimsonCyclonePvP);
-        d.RegisterSpell(AID.NecrotizePvP);
-        d.RegisterSpell(AID.RadiantAegisPvP);
-        d.RegisterSpell(AID.Ruin4PvP);
-        d.RegisterSpell(AID.AstralImpulsePvP);
-        d.RegisterSpell(AID.FountainOfFirePvP);
-        d.RegisterSpell(AID.CrimsonStrikePvP);
-        d.RegisterSpell(AID.DeathflarePvP);
-        d.RegisterSpell(AID.BrandOfPurgatoryPvP);
-        d.RegisterSpell(AID.WyrmwavePvP);
-        d.RegisterSpell(AID.ScarletFlamePvP);
-        d.RegisterSpell(AID.MegaflarePvP);
-        d.RegisterSpell(AID.EverlastingFlightPvP);
-        d.RegisterSpell(AID.SummonBahamutPvP);
-        d.RegisterSpell(AID.SummonPhoenixPvP);
+        defs.RegisterSpell(AID.Ruin3PvP);
+        defs.RegisterSpell(AID.MountainBusterPvP);
+        defs.RegisterSpell(AID.SlipstreamPvP);
+        defs.RegisterSpell(AID.CrimsonCyclonePvP);
+        defs.RegisterSpell(AID.NecrotizePvP);
+        defs.RegisterSpell(AID.RadiantAegisPvP);
+        defs.RegisterSpell(AID.Ruin4PvP);
+        defs.RegisterSpell(AID.AstralImpulsePvP);
+        defs.RegisterSpell(AID.FountainOfFirePvP);
+        defs.RegisterSpell(AID.CrimsonStrikePvP);
+        defs.RegisterSpell(AID.DeathflarePvP);
+        defs.RegisterSpell(AID.BrandOfPurgatoryPvP);
+        defs.RegisterSpell(AID.WyrmwavePvP);
+        defs.RegisterSpell(AID.ScarletFlamePvP);
+        defs.RegisterSpell(AID.MegaflarePvP);
+        defs.RegisterSpell(AID.EverlastingFlightPvP);
+        defs.RegisterSpell(AID.SummonBahamutPvP);
+        defs.RegisterSpell(AID.SummonPhoenixPvP);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

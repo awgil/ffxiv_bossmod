@@ -100,7 +100,7 @@ public class ThetaStar
             return false;
 
         ++NumSteps;
-        int nextNodeIndex = PopMinOpen();
+        var nextNodeIndex = PopMinOpen();
         var (nextNodeX, nextNodeY) = _map.IndexToGrid(nextNodeIndex);
         ref var nextNode = ref _nodes[nextNodeIndex];
 
@@ -155,10 +155,10 @@ public class ThetaStar
             ref var destNode = ref _nodes[destIndex];
             var (x2, y2) = _map.IndexToGrid(destIndex);
             var (x1, y1) = _map.IndexToGrid(parentIndex);
-            int dx = x2 - x1;
-            int dy = y2 - y1;
-            int sx = dx > 0 ? 1 : -1;
-            int sy = dy > 0 ? 1 : -1;
+            var dx = x2 - x1;
+            var dy = y2 - y1;
+            var sx = dx > 0 ? 1 : -1;
+            var sy = dy > 0 ? 1 : -1;
             var hsx = 0.5f * sx;
             var hsy = 0.5f * sy;
             var indexDeltaX = sx;
@@ -257,13 +257,13 @@ public class ThetaStar
     {
         var curNodeIndex = _map.GridToIndex(x1, y1);
         ref var startNode = ref _nodes[curNodeIndex];
-        float minLeeway = startNode.PathLeeway;
+        var minLeeway = startNode.PathLeeway;
         minG = startNode.PathMinG;
 
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-        int sx = dx > 0 ? 1 : -1;
-        int sy = dy > 0 ? 1 : -1;
+        var dx = x2 - x1;
+        var dy = y2 - y1;
+        var sx = dx > 0 ? 1 : -1;
+        var sy = dy > 0 ? 1 : -1;
         var hsx = 0.5f * sx;
         var hsy = 0.5f * sy;
         var indexDeltaX = sx;
@@ -355,7 +355,7 @@ public class ThetaStar
         //    return; // don't try to enter danger from safety
 
         // check LoS from grandparent
-        int grandParentIndex = _nodes[parentIndex].ParentIndex;
+        var grandParentIndex = _nodes[parentIndex].ParentIndex;
         if (_nodes[grandParentIndex].PathMinG >= _nodes[parentIndex].PathMinG)
         {
             var (grandParentX, grandParentY) = _map.IndexToGrid(grandParentIndex);
@@ -394,10 +394,10 @@ public class ThetaStar
 
     private void PrefillH()
     {
-        int iCell = 0;
-        for (int y = 0; y < _map.Height; ++y)
+        var iCell = 0;
+        for (var y = 0; y < _map.Height; ++y)
         {
-            for (int x = 0; x < _map.Width; ++x, ++iCell)
+            for (var x = 0; x < _map.Width; ++x, ++iCell)
             {
                 if (_map.PixelPriority[iCell] < _map.MaxPriority)
                 {
@@ -464,7 +464,7 @@ public class ThetaStar
     // remove first (minimal) node from open heap and mark as closed
     private int PopMinOpen()
     {
-        int nodeIndex = _openList[0];
+        var nodeIndex = _openList[0];
         _openList[0] = _openList[^1];
         _nodes[nodeIndex].OpenHeapIndex = -1;
         _openList.RemoveAt(_openList.Count - 1);
@@ -479,12 +479,12 @@ public class ThetaStar
     private void PercolateUp(int heapIndex)
     {
         var openSpan = _openList.AsSpan();
-        int nodeIndex = openSpan[heapIndex];
+        var nodeIndex = openSpan[heapIndex];
         ref var node = ref _nodes[nodeIndex];
         while (heapIndex > 0)
         {
-            int parentHeapIndex = (heapIndex - 1) >> 1;
-            ref int parentNodeIndex = ref openSpan[parentHeapIndex];
+            var parentHeapIndex = (heapIndex - 1) >> 1;
+            ref var parentNodeIndex = ref openSpan[parentHeapIndex];
             ref var parent = ref _nodes[parentNodeIndex];
             if (CompareNodeScores(ref node, ref parent) >= 0)
                 break; // parent is 'less' (same/better), stop
@@ -500,23 +500,23 @@ public class ThetaStar
     private void PercolateDown(int heapIndex)
     {
         var openSpan = _openList.AsSpan();
-        int nodeIndex = openSpan[heapIndex];
+        var nodeIndex = openSpan[heapIndex];
         ref var node = ref _nodes[nodeIndex];
 
-        int maxSize = openSpan.Length;
+        var maxSize = openSpan.Length;
         while (true)
         {
             // find 'better' child
-            int childHeapIndex = (heapIndex << 1) + 1;
+            var childHeapIndex = (heapIndex << 1) + 1;
             if (childHeapIndex >= maxSize)
                 break; // node is already a leaf
 
-            int childNodeIndex = openSpan[childHeapIndex];
+            var childNodeIndex = openSpan[childHeapIndex];
             ref var child = ref _nodes[childNodeIndex];
-            int altChildHeapIndex = childHeapIndex + 1;
+            var altChildHeapIndex = childHeapIndex + 1;
             if (altChildHeapIndex < maxSize)
             {
-                int altChildNodeIndex = openSpan[altChildHeapIndex];
+                var altChildNodeIndex = openSpan[altChildHeapIndex];
                 ref var altChild = ref _nodes[altChildNodeIndex];
                 if (CompareNodeScores(ref altChild, ref child) < 0)
                 {

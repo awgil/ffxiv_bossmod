@@ -25,7 +25,7 @@ class RapidBoltsAOE(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.RapidBoltsAOE)
         {
             ++NumCasts;
-            int index = _puddles.FindIndex(p => p.pos.InCircle(spell.TargetXZ, 1));
+            var index = _puddles.FindIndex(p => p.pos.InCircle(spell.TargetXZ, 1));
             if (index < 0)
                 _puddles.Add((spell.TargetXZ, 1));
             else if (_puddles[index].numCasts < 11)

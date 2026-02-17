@@ -111,54 +111,54 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-sealed class Definitions(SCHConfig _config) : IDefinitions
+sealed class Definitions(SCHConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.AngelFeathers, castAnimLock: 8.10f); // animLock=8.100s?
-        d.RegisterSpell(AID.Ruin1);
-        d.RegisterSpell(AID.Bio1);
-        d.RegisterSpell(AID.Physick);
-        d.RegisterSpell(AID.SummonEos);
-        d.RegisterSpell(AID.WhisperingDawn);
-        d.RegisterSpell(AID.Bio2);
-        d.RegisterSpell(AID.Adloquium);
-        d.RegisterSpell(AID.Succor);
-        d.RegisterSpell(AID.Ruin2);
-        d.RegisterSpell(AID.FeyIllumination);
-        d.RegisterSpell(AID.Aetherflow);
-        d.RegisterSpell(AID.EnergyDrain);
-        d.RegisterSpell(AID.Lustrate);
-        d.RegisterSpell(AID.ArtOfWar1);
-        d.RegisterSpell(AID.SacredSoil);
-        d.RegisterSpell(AID.Indomitability);
-        d.RegisterSpell(AID.Broil1);
-        d.RegisterSpell(AID.DeploymentTactics);
-        d.RegisterSpell(AID.EmergencyTactics);
-        d.RegisterSpell(AID.Dissipation);
-        d.RegisterSpell(AID.Excogitation);
-        d.RegisterSpell(AID.Broil2);
-        d.RegisterSpell(AID.ChainStratagem);
-        d.RegisterSpell(AID.DissolveUnion);
-        d.RegisterSpell(AID.Aetherpact);
-        d.RegisterSpell(AID.Biolysis);
-        d.RegisterSpell(AID.Broil3);
-        d.RegisterSpell(AID.Recitation);
-        d.RegisterSpell(AID.FeyBlessing);
-        d.RegisterSpell(AID.SummonSeraph);
-        d.RegisterSpell(AID.Consolation);
-        d.RegisterSpell(AID.ArtOfWar2);
-        d.RegisterSpell(AID.Broil4);
-        d.RegisterSpell(AID.Protraction);
-        d.RegisterSpell(AID.Expedient);
-        d.RegisterSpell(AID.BanefulImpaction); // animLock=???
-        d.RegisterSpell(AID.Concitation); // animLock=???
-        d.RegisterSpell(AID.Seraphism); // animLock=???
-        d.RegisterSpell(AID.Manifestation); // animLock=???
-        d.RegisterSpell(AID.Accession); // animLock=???
-        d.RegisterSpell(AID.EmergencyTactics1); // animLock=???
+        defs.RegisterSpell(AID.AngelFeathers, castAnimLock: 8.10f); // animLock=8.100s?
+        defs.RegisterSpell(AID.Ruin1);
+        defs.RegisterSpell(AID.Bio1);
+        defs.RegisterSpell(AID.Physick);
+        defs.RegisterSpell(AID.SummonEos);
+        defs.RegisterSpell(AID.WhisperingDawn);
+        defs.RegisterSpell(AID.Bio2);
+        defs.RegisterSpell(AID.Adloquium);
+        defs.RegisterSpell(AID.Succor);
+        defs.RegisterSpell(AID.Ruin2);
+        defs.RegisterSpell(AID.FeyIllumination);
+        defs.RegisterSpell(AID.Aetherflow);
+        defs.RegisterSpell(AID.EnergyDrain);
+        defs.RegisterSpell(AID.Lustrate);
+        defs.RegisterSpell(AID.ArtOfWar1);
+        defs.RegisterSpell(AID.SacredSoil);
+        defs.RegisterSpell(AID.Indomitability);
+        defs.RegisterSpell(AID.Broil1);
+        defs.RegisterSpell(AID.DeploymentTactics);
+        defs.RegisterSpell(AID.EmergencyTactics);
+        defs.RegisterSpell(AID.Dissipation);
+        defs.RegisterSpell(AID.Excogitation);
+        defs.RegisterSpell(AID.Broil2);
+        defs.RegisterSpell(AID.ChainStratagem);
+        defs.RegisterSpell(AID.DissolveUnion);
+        defs.RegisterSpell(AID.Aetherpact);
+        defs.RegisterSpell(AID.Biolysis);
+        defs.RegisterSpell(AID.Broil3);
+        defs.RegisterSpell(AID.Recitation);
+        defs.RegisterSpell(AID.FeyBlessing);
+        defs.RegisterSpell(AID.SummonSeraph);
+        defs.RegisterSpell(AID.Consolation);
+        defs.RegisterSpell(AID.ArtOfWar2);
+        defs.RegisterSpell(AID.Broil4);
+        defs.RegisterSpell(AID.Protraction);
+        defs.RegisterSpell(AID.Expedient);
+        defs.RegisterSpell(AID.BanefulImpaction); // animLock=???
+        defs.RegisterSpell(AID.Concitation); // animLock=???
+        defs.RegisterSpell(AID.Seraphism); // animLock=???
+        defs.RegisterSpell(AID.Manifestation); // animLock=???
+        defs.RegisterSpell(AID.Accession); // animLock=???
+        defs.RegisterSpell(AID.EmergencyTactics1); // animLock=???
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -168,6 +168,6 @@ sealed class Definitions(SCHConfig _config) : IDefinitions
         d.Spell(AID.Broil1)!.ForbidExecute =
         d.Spell(AID.Broil2)!.ForbidExecute =
         d.Spell(AID.Broil3)!.ForbidExecute =
-        d.Spell(AID.Broil4)!.ForbidExecute = (ws, player, _, _, _) => _config.ForbidEarlyBroil && !player.InCombat && ws.Client.CountdownRemaining > 1.5f;
+        d.Spell(AID.Broil4)!.ForbidExecute = (ws, player, _, _, _) => config.ForbidEarlyBroil && !player.InCombat && ws.Client.CountdownRemaining > 1.5f;
     }
 }

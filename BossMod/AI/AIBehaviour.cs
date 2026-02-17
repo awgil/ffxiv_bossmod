@@ -36,11 +36,11 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, ITarg
             FocusMaster(master);
 
         _afkMode = master != player && !master.InCombat && (WorldState.CurrentTime - _masterLastMoved).TotalSeconds > 10;
-        bool gazeImminent = autorot.Hints.ForbiddenDirections.Count > 0 && autorot.Hints.ForbiddenDirections[0].activation <= WorldState.FutureTime(0.5f);
-        bool pyreticImminent = autorot.Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && autorot.Hints.ImminentSpecialMode.activation <= WorldState.FutureTime(1);
-        bool misdirectionMode = autorot.Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Misdirection && autorot.Hints.ImminentSpecialMode.activation <= WorldState.CurrentTime;
-        bool forbidTargeting = _config.ForbidActions || _afkMode || gazeImminent || pyreticImminent;
-        bool hadNavi = _naviDecision.Destination != null;
+        var gazeImminent = autorot.Hints.ForbiddenDirections.Count > 0 && autorot.Hints.ForbiddenDirections[0].activation <= WorldState.FutureTime(0.5f);
+        var pyreticImminent = autorot.Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && autorot.Hints.ImminentSpecialMode.activation <= WorldState.FutureTime(1);
+        var misdirectionMode = autorot.Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Misdirection && autorot.Hints.ImminentSpecialMode.activation <= WorldState.CurrentTime;
+        var forbidTargeting = _config.ForbidActions || _afkMode || gazeImminent || pyreticImminent;
+        var hadNavi = _naviDecision.Destination != null;
 
         Targeting target = new();
         if (!forbidTargeting)
@@ -61,8 +61,8 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, ITarg
             _naviDecision.LeewaySeconds = Math.Max(0, _naviDecision.LeewaySeconds - 0.1f);
         }
 
-        bool masterIsMoving = TrackMasterMovement(master);
-        bool moveWithMaster = masterIsMoving && _followMaster && master != player;
+        var masterIsMoving = TrackMasterMovement(master);
+        var moveWithMaster = masterIsMoving && _followMaster && master != player;
         ForceMovementIn = moveWithMaster || gazeImminent || pyreticImminent ? 0 : _naviDecision.LeewaySeconds;
 
         if (_config.MoveDelay > 0 && !hadNavi && _naviDecision.Destination != null)
@@ -151,7 +151,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, ITarg
 
     private void FocusMaster(Actor master)
     {
-        bool masterChanged = targetManager.FocusTarget?.EntityId != master.InstanceID;
+        var masterChanged = targetManager.FocusTarget?.EntityId != master.InstanceID;
         if (masterChanged)
         {
             ctrl.SetFocusTarget(master);
@@ -164,7 +164,7 @@ sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, ITarg
     {
         // keep track of master movement
         // idea is that if master is moving forward (e.g. running in outdoor or pulling trashpacks in dungeon), we want to closely follow and not stop to cast
-        bool masterIsMoving = true;
+        var masterIsMoving = true;
         if (master.Position != _masterPrevPos)
         {
             _masterLastMoved = WorldState.CurrentTime;

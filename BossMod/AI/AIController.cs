@@ -45,9 +45,9 @@ sealed class AIController(WorldState ws, IAmex amex, IMovementOverride movement,
         Vector3? desiredPosition = null;
 
         // TODO this checks whether movement keys are pressed, we need a better solution
-        bool moveRequested = _movement.IsMoveRequested();
-        bool castInProgress = player.CastInfo != null && !player.CastInfo.EventHappened;
-        bool forbidMovement = moveRequested || !AllowInterruptingCastByMovement && _amex.MoveMightInterruptCast;
+        var moveRequested = _movement.IsMoveRequested();
+        var castInProgress = player.CastInfo != null && !player.CastInfo.EventHappened;
+        var forbidMovement = moveRequested || !AllowInterruptingCastByMovement && _amex.MoveMightInterruptCast;
         if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.01f)
         {
             desiredPosition = NaviTargetPos.Value.ToVec3(NaviTargetVertical != null && IsVerticalAllowed ? NaviTargetVertical.Value : player.PosRot.Y);

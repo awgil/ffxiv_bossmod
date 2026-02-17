@@ -61,9 +61,9 @@ class AccursedEdge : Components.GenericBaitAway
         // draw safespots (TODO: consider assigning specific side)
         if (_curMechanic != Mechanic.None && _clearout != null)
         {
-            bool shouldBait = !ForbiddenPlayers[pcSlot];
-            bool baitClose = _curMechanic == Mechanic.Near;
-            bool stayClose = baitClose == shouldBait;
+            var shouldBait = !ForbiddenPlayers[pcSlot];
+            var baitClose = _curMechanic == Mechanic.Near;
+            var stayClose = baitClose == shouldBait;
             var baitDistance = stayClose ? 12 : 19;
             foreach (var dir in _safespotDirections)
             {

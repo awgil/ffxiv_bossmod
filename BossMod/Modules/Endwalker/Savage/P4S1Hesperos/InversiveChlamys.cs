@@ -36,7 +36,7 @@ class InversiveChlamys(BossModule module) : BossComponent(module)
         if (_tetherForbidden.None())
             return;
 
-        foreach ((int i, var player) in Raid.WithSlot().Tethered(TetherID.Chlamys))
+        foreach ((var i, var player) in Raid.WithSlot().Tethered(TetherID.Chlamys))
         {
             _tetherTargets.Set(i);
             _tetherInAOE |= Raid.WithSlot().InRadiusExcluding(player, _aoeRange).Mask();
@@ -105,10 +105,10 @@ class InversiveChlamys(BossModule module) : BossComponent(module)
             return;
 
         var failingPlayers = _tetherForbidden & _tetherTargets;
-        foreach ((int i, var player) in Raid.WithSlot())
+        foreach ((var i, var player) in Raid.WithSlot())
         {
-            bool failing = failingPlayers[i];
-            bool inAOE = _tetherInAOE[i];
+            var failing = failingPlayers[i];
+            var inAOE = _tetherInAOE[i];
             Arena.Actor(player, failing ? ArenaColor.Danger : (inAOE ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
 
             if (player.Tether.ID == (uint)TetherID.Chlamys)

@@ -40,4 +40,4 @@ class StarcrierStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 12692)]
-public class Starcrier(ModuleArgs args): SimpleBossModule(args);
+public class Starcrier(ModuleArgs args) : SimpleBossModule(args);

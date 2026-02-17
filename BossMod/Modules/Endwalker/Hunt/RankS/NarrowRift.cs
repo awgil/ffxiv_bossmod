@@ -124,4 +124,4 @@ class NarrowRiftStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10622)]
-public class NarrowRift(ModuleArgs args): SimpleBossModule(args);
+public class NarrowRift(ModuleArgs args) : SimpleBossModule(args);

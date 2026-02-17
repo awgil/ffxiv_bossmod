@@ -119,4 +119,4 @@ class SugrivaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10626)]
-public class Sugriva(ModuleArgs args): SimpleBossModule(args);
+public class Sugriva(ModuleArgs args) : SimpleBossModule(args);

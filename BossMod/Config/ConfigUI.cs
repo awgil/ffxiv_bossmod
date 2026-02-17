@@ -389,7 +389,7 @@ public sealed class ConfigUI
     private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, Color[] v)
     {
         var modified = false;
-        for (int i = 0; i < v.Length; ++i)
+        for (var i = 0; i < v.Length; ++i)
         {
             DrawHelp(tooltip);
             var col = v[i].ToFloat4();
@@ -425,11 +425,11 @@ public sealed class ConfigUI
             ImGui.TableHeadersRow();
 
             var assignments = root.Get<PartyRolesConfig>().SlotsPerAssignment(ws.Party);
-            for (int i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
+            for (var i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
             {
                 var r = (PartyRolesConfig.Assignment)i;
                 ImGui.TableNextRow();
-                for (int c = 0; c < group.Names.Length; ++c)
+                for (var c = 0; c < group.Names.Length; ++c)
                 {
                     ImGui.TableNextColumn();
                     if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
@@ -445,7 +445,7 @@ public sealed class ConfigUI
                     modified = true;
                 }
 
-                string name = r.ToString();
+                var name = r.ToString();
                 if (assignments.Length > 0)
                     name += $" ({ws.Party[assignments[i]]?.Name})";
                 ImGui.TableNextColumn();
@@ -461,7 +461,7 @@ public sealed class ConfigUI
         {
             if (ImGui.MenuItem(preset.Name))
             {
-                for (int i = 0; i < preset.Preset.Length; ++i)
+                for (var i = 0; i < preset.Preset.Length; ++i)
                     v.Assignments[i] = preset.Preset[i];
                 node.Modified.Fire();
             }

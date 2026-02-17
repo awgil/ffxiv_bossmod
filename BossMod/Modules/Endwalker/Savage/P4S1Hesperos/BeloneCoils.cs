@@ -25,7 +25,7 @@ class BeloneCoils(BossModule module) : BossComponent(module)
         if (ActiveSoakers == Soaker.Unknown)
             return;
 
-        bool isSoaking = _activeTowers.InRadius(actor.Position, _towerRadius).Any();
+        var isSoaking = _activeTowers.InRadius(actor.Position, _towerRadius).Any();
         if (IsValidSoaker(actor))
         {
             hints.Add("Soak the tower", !isSoaking);
@@ -41,7 +41,7 @@ class BeloneCoils(BossModule module) : BossComponent(module)
         if (ActiveSoakers == Soaker.Unknown)
             return;
 
-        bool validSoaker = IsValidSoaker(pc);
+        var validSoaker = IsValidSoaker(pc);
         foreach (var tower in _activeTowers)
         {
             Arena.AddCircle(tower.Position, _towerRadius, validSoaker ? ArenaColor.Safe : ArenaColor.Danger);

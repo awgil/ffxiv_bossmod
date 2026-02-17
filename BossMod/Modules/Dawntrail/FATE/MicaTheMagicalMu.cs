@@ -92,7 +92,7 @@ class Draw(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_safeZones.Count > 0)
-            for (int i = 0; i < _cards.Length; ++i)
+            for (var i = 0; i < _cards.Length; ++i)
                 if (i != _safeZones[0])
                     foreach (var a in _cards[i])
                         yield return new(_shape, a.Position, default, _activation);

@@ -20,13 +20,13 @@ class PomMeteor(BossModule module) : BossComponent(module)
 
         if (_cometsLeft > 0)
         {
-            foreach (int i in _activeTowers.SetBits())
+            foreach (var i in _activeTowers.SetBits())
                 hints.AddForbiddenZone(ShapeContains.Circle(Module.Center + _towerOffsets[i], _cometAvoidRadius));
         }
         else
         {
             // assume H1/H2/R1/R2 soak towers
-            int soakedTower = assignment switch
+            var soakedTower = assignment switch
             {
                 PartyRolesConfig.Assignment.H1 => 0,
                 PartyRolesConfig.Assignment.H2 => 1,
@@ -42,7 +42,7 @@ class PomMeteor(BossModule module) : BossComponent(module)
             }
             else
             {
-                foreach (int i in _activeTowers.SetBits())
+                foreach (var i in _activeTowers.SetBits())
                     hints.AddForbiddenZone(ShapeContains.Circle(Module.Center + _towerOffsets[i], _towerRadius), _towerActivation);
             }
         }
@@ -50,7 +50,7 @@ class PomMeteor(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (int i in _activeTowers.SetBits())
+        foreach (var i in _activeTowers.SetBits())
             Arena.AddCircle(Module.Center + _towerOffsets[i], _towerRadius, _soakedTowers[i] ? ArenaColor.Safe : ArenaColor.Danger);
     }
 

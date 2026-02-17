@@ -12,7 +12,7 @@ class FulminousField(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (Active)
-            for (int i = 0; i < 8; ++i)
+            for (var i = 0; i < 8; ++i)
                 yield return new(_shape, Module.Center, _dir + i * 45.Degrees(), _activation);
     }
 

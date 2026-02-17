@@ -123,4 +123,4 @@ class RaintrillerStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13442)]
-public class Raintriller(ModuleArgs args): SimpleBossModule(args);
+public class Raintriller(ModuleArgs args) : SimpleBossModule(args);

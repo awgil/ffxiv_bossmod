@@ -165,60 +165,60 @@ public enum SID : uint
     #endregion
 }
 
-sealed class Definitions(WHMConfig _config) : IDefinitions
+sealed class Definitions(WHMConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.PulseOfLife, castAnimLock: 8.10f); // animLock=8.100s?
-        d.RegisterSpell(AID.Stone);
-        d.RegisterSpell(AID.Cure);
-        d.RegisterSpell(AID.Aero);
-        d.RegisterSpell(AID.Medica);
-        d.RegisterSpell(AID.Raise);
-        d.RegisterSpell(AID.StoneII);
-        d.RegisterSpell(AID.PresenceOfMind);
-        d.RegisterSpell(AID.CureII);
-        d.RegisterSpell(AID.Regen);
-        d.RegisterSpell(AID.AetherialShift); // animLock=???
-        d.RegisterSpell(AID.CureIII);
-        d.RegisterSpell(AID.Holy);
-        d.RegisterSpell(AID.AeroII);
-        d.RegisterSpell(AID.MedicaII);
-        d.RegisterSpell(AID.Benediction);
-        d.RegisterSpell(AID.AfflatusSolace);
-        d.RegisterSpell(AID.Asylum);
-        d.RegisterSpell(AID.StoneIII);
-        d.RegisterSpell(AID.Assize);
-        d.RegisterSpell(AID.ThinAir);
-        d.RegisterSpell(AID.Tetragrammaton);
-        d.RegisterSpell(AID.StoneIV);
-        d.RegisterSpell(AID.DivineBenison);
-        d.RegisterSpell(AID.PlenaryIndulgence);
-        d.RegisterSpell(AID.Dia);
-        d.RegisterSpell(AID.GlareI);
-        d.RegisterSpell(AID.AfflatusMisery);
-        d.RegisterSpell(AID.AfflatusRapture);
-        d.RegisterSpell(AID.Temperance);
-        d.RegisterSpell(AID.GlareIII);
-        d.RegisterSpell(AID.HolyIII);
-        d.RegisterSpell(AID.Aquaveil);
-        d.RegisterSpell(AID.LiturgyOfTheBell);
-        d.RegisterSpell(AID.LiturgyOfTheBellEnd);
-        d.RegisterSpell(AID.GlareIV);
-        d.RegisterSpell(AID.MedicaIII); // animLock=???
-        d.RegisterSpell(AID.DivineCaress);
+        defs.RegisterSpell(AID.PulseOfLife, castAnimLock: 8.10f); // animLock=8.100s?
+        defs.RegisterSpell(AID.Stone);
+        defs.RegisterSpell(AID.Cure);
+        defs.RegisterSpell(AID.Aero);
+        defs.RegisterSpell(AID.Medica);
+        defs.RegisterSpell(AID.Raise);
+        defs.RegisterSpell(AID.StoneII);
+        defs.RegisterSpell(AID.PresenceOfMind);
+        defs.RegisterSpell(AID.CureII);
+        defs.RegisterSpell(AID.Regen);
+        defs.RegisterSpell(AID.AetherialShift); // animLock=???
+        defs.RegisterSpell(AID.CureIII);
+        defs.RegisterSpell(AID.Holy);
+        defs.RegisterSpell(AID.AeroII);
+        defs.RegisterSpell(AID.MedicaII);
+        defs.RegisterSpell(AID.Benediction);
+        defs.RegisterSpell(AID.AfflatusSolace);
+        defs.RegisterSpell(AID.Asylum);
+        defs.RegisterSpell(AID.StoneIII);
+        defs.RegisterSpell(AID.Assize);
+        defs.RegisterSpell(AID.ThinAir);
+        defs.RegisterSpell(AID.Tetragrammaton);
+        defs.RegisterSpell(AID.StoneIV);
+        defs.RegisterSpell(AID.DivineBenison);
+        defs.RegisterSpell(AID.PlenaryIndulgence);
+        defs.RegisterSpell(AID.Dia);
+        defs.RegisterSpell(AID.GlareI);
+        defs.RegisterSpell(AID.AfflatusMisery);
+        defs.RegisterSpell(AID.AfflatusRapture);
+        defs.RegisterSpell(AID.Temperance);
+        defs.RegisterSpell(AID.GlareIII);
+        defs.RegisterSpell(AID.HolyIII);
+        defs.RegisterSpell(AID.Aquaveil);
+        defs.RegisterSpell(AID.LiturgyOfTheBell);
+        defs.RegisterSpell(AID.LiturgyOfTheBellEnd);
+        defs.RegisterSpell(AID.GlareIV);
+        defs.RegisterSpell(AID.MedicaIII); // animLock=???
+        defs.RegisterSpell(AID.DivineCaress);
 
-        d.RegisterSpell(AID.GlareIIIPvP);
-        d.RegisterSpell(AID.CureIIPvP);
-        d.RegisterSpell(AID.AfflatusMiseryPvP);
-        d.RegisterSpell(AID.AquaveilPvP);
-        d.RegisterSpell(AID.MiracleOfNaturePvP);
-        d.RegisterSpell(AID.SeraphStrikePvP);
-        d.RegisterSpell(AID.GlareIVPvP);
-        d.RegisterSpell(AID.CureIIIPvP);
-        d.RegisterSpell(AID.AfflatusPurgationPvP);
+        defs.RegisterSpell(AID.GlareIIIPvP);
+        defs.RegisterSpell(AID.CureIIPvP);
+        defs.RegisterSpell(AID.AfflatusMiseryPvP);
+        defs.RegisterSpell(AID.AquaveilPvP);
+        defs.RegisterSpell(AID.MiracleOfNaturePvP);
+        defs.RegisterSpell(AID.SeraphStrikePvP);
+        defs.RegisterSpell(AID.GlareIVPvP);
+        defs.RegisterSpell(AID.CureIIIPvP);
+        defs.RegisterSpell(AID.AfflatusPurgationPvP);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -228,7 +228,7 @@ sealed class Definitions(WHMConfig _config) : IDefinitions
         d.RegisterChargeIncreaseTrait(AID.DivineBenison, TraitID.EnhancedDivineBenison);
         d.RegisterChargeIncreaseTrait(AID.Tetragrammaton, TraitID.EnhancedTetragrammaton);
 
-        d.Spell(AID.AetherialShift)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+        d.Spell(AID.AetherialShift)!.TransformAngle = (ws, _, _, _) => config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
         d.Spell(AID.AetherialShift)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);

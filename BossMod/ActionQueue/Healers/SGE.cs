@@ -121,53 +121,53 @@ public enum SID : uint
 
 sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.TechneMakre, castAnimLock: 8.10f); // animLock=8.100s?
-        d.RegisterSpell(AID.Dosis);
-        d.RegisterSpell(AID.Diagnosis);
-        d.RegisterSpell(AID.KardiaEnd);
-        d.RegisterSpell(AID.Kardia);
-        d.RegisterSpell(AID.Prognosis);
-        d.RegisterSpell(AID.Egeiro);
-        d.RegisterSpell(AID.Physis); // animLock=???
-        d.RegisterSpell(AID.Phlegma);
-        d.RegisterSpell(AID.Eukrasia);
-        d.RegisterSpell(AID.EukrasianDiagnosis);
-        d.RegisterSpell(AID.EukrasianPrognosis);
-        d.RegisterSpell(AID.EukrasianDosis);
-        d.RegisterSpell(AID.Soteria);
-        d.RegisterSpell(AID.Icarus, instantAnimLock: 0.70f); // animLock=0.700s?
-        d.RegisterSpell(AID.Druochole);
-        d.RegisterSpell(AID.Dyskrasia);
-        d.RegisterSpell(AID.Kerachole);
-        d.RegisterSpell(AID.Ixochole);
-        d.RegisterSpell(AID.Zoe);
-        d.RegisterSpell(AID.Pepsis);
-        d.RegisterSpell(AID.PhysisII);
-        d.RegisterSpell(AID.Taurochole);
-        d.RegisterSpell(AID.Toxikon);
-        d.RegisterSpell(AID.Haima);
-        d.RegisterSpell(AID.DosisII); // animLock=???
-        d.RegisterSpell(AID.PhlegmaII); // animLock=???
-        d.RegisterSpell(AID.EukrasianDosisII); // animLock=???
-        d.RegisterSpell(AID.Rhizomata);
-        d.RegisterSpell(AID.Holos);
-        d.RegisterSpell(AID.Panhaima);
-        d.RegisterSpell(AID.EukrasianDyskrasia); // animLock=???
-        d.RegisterSpell(AID.PhlegmaIII);
-        d.RegisterSpell(AID.DyskrasiaII);
-        d.RegisterSpell(AID.EukrasianDosisIII);
-        d.RegisterSpell(AID.DosisIII);
-        d.RegisterSpell(AID.ToxikonII);
-        d.RegisterSpell(AID.Krasis);
-        d.RegisterSpell(AID.Pneuma);
-        d.RegisterSpell(AID.Psyche); // animLock=???
-        d.RegisterSpell(AID.EukrasianPrognosisII); // animLock=???
-        d.RegisterSpell(AID.Philosophia); // animLock=???
-        d.RegisterSpell(AID.Eudaimonia); // animLock=???
+        defs.RegisterSpell(AID.TechneMakre, castAnimLock: 8.10f); // animLock=8.100s?
+        defs.RegisterSpell(AID.Dosis);
+        defs.RegisterSpell(AID.Diagnosis);
+        defs.RegisterSpell(AID.KardiaEnd);
+        defs.RegisterSpell(AID.Kardia);
+        defs.RegisterSpell(AID.Prognosis);
+        defs.RegisterSpell(AID.Egeiro);
+        defs.RegisterSpell(AID.Physis); // animLock=???
+        defs.RegisterSpell(AID.Phlegma);
+        defs.RegisterSpell(AID.Eukrasia);
+        defs.RegisterSpell(AID.EukrasianDiagnosis);
+        defs.RegisterSpell(AID.EukrasianPrognosis);
+        defs.RegisterSpell(AID.EukrasianDosis);
+        defs.RegisterSpell(AID.Soteria);
+        defs.RegisterSpell(AID.Icarus, instantAnimLock: 0.70f); // animLock=0.700s?
+        defs.RegisterSpell(AID.Druochole);
+        defs.RegisterSpell(AID.Dyskrasia);
+        defs.RegisterSpell(AID.Kerachole);
+        defs.RegisterSpell(AID.Ixochole);
+        defs.RegisterSpell(AID.Zoe);
+        defs.RegisterSpell(AID.Pepsis);
+        defs.RegisterSpell(AID.PhysisII);
+        defs.RegisterSpell(AID.Taurochole);
+        defs.RegisterSpell(AID.Toxikon);
+        defs.RegisterSpell(AID.Haima);
+        defs.RegisterSpell(AID.DosisII); // animLock=???
+        defs.RegisterSpell(AID.PhlegmaII); // animLock=???
+        defs.RegisterSpell(AID.EukrasianDosisII); // animLock=???
+        defs.RegisterSpell(AID.Rhizomata);
+        defs.RegisterSpell(AID.Holos);
+        defs.RegisterSpell(AID.Panhaima);
+        defs.RegisterSpell(AID.EukrasianDyskrasia); // animLock=???
+        defs.RegisterSpell(AID.PhlegmaIII);
+        defs.RegisterSpell(AID.DyskrasiaII);
+        defs.RegisterSpell(AID.EukrasianDosisIII);
+        defs.RegisterSpell(AID.DosisIII);
+        defs.RegisterSpell(AID.ToxikonII);
+        defs.RegisterSpell(AID.Krasis);
+        defs.RegisterSpell(AID.Pneuma);
+        defs.RegisterSpell(AID.Psyche); // animLock=???
+        defs.RegisterSpell(AID.EukrasianPrognosisII); // animLock=???
+        defs.RegisterSpell(AID.Philosophia); // animLock=???
+        defs.RegisterSpell(AID.Eudaimonia); // animLock=???
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

@@ -108,45 +108,45 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.Meteor, castAnimLock: 8.10f); // animLock=8.100s?
-        d.RegisterSpell(AID.Blizzard1);
-        d.RegisterSpell(AID.Fire1);
-        d.RegisterSpell(AID.Transpose);
-        d.RegisterSpell(AID.Thunder1);
-        d.RegisterSpell(AID.Blizzard2);
-        d.RegisterSpell(AID.Scathe);
-        d.RegisterSpell(AID.Fire2);
-        d.RegisterSpell(AID.Thunder2);
-        d.RegisterSpell(AID.Manaward);
-        d.RegisterSpell(AID.Manafont);
-        d.RegisterSpell(AID.UmbralSoul);
-        d.RegisterSpell(AID.Fire3);
-        d.RegisterSpell(AID.Blizzard3);
-        d.RegisterSpell(AID.Freeze);
-        d.RegisterSpell(AID.Thunder3);
-        d.RegisterSpell(AID.Flare);
-        d.RegisterSpell(AID.AetherialManipulation, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.LeyLines);
-        d.RegisterSpell(AID.Blizzard4);
-        d.RegisterSpell(AID.Fire4);
-        d.RegisterSpell(AID.BetweenTheLines, instantAnimLock: 0.80f); // animLock=0.800
-        d.RegisterSpell(AID.Thunder4);
-        d.RegisterSpell(AID.Triplecast);
-        d.RegisterSpell(AID.Foul);
-        d.RegisterSpell(AID.Despair);
-        d.RegisterSpell(AID.Xenoglossy);
-        d.RegisterSpell(AID.HighBlizzard2);
-        d.RegisterSpell(AID.HighFire2);
-        d.RegisterSpell(AID.Amplifier);
-        d.RegisterSpell(AID.Paradox);
-        d.RegisterSpell(AID.HighThunder); // animLock=???
-        d.RegisterSpell(AID.HighThunder2); // animLock=???
-        d.RegisterSpell(AID.Retrace); // animLock=???
-        d.RegisterSpell(AID.FlareStar); // animLock=???
+        defs.RegisterSpell(AID.Meteor, castAnimLock: 8.10f); // animLock=8.100s?
+        defs.RegisterSpell(AID.Blizzard1);
+        defs.RegisterSpell(AID.Fire1);
+        defs.RegisterSpell(AID.Transpose);
+        defs.RegisterSpell(AID.Thunder1);
+        defs.RegisterSpell(AID.Blizzard2);
+        defs.RegisterSpell(AID.Scathe);
+        defs.RegisterSpell(AID.Fire2);
+        defs.RegisterSpell(AID.Thunder2);
+        defs.RegisterSpell(AID.Manaward);
+        defs.RegisterSpell(AID.Manafont);
+        defs.RegisterSpell(AID.UmbralSoul);
+        defs.RegisterSpell(AID.Fire3);
+        defs.RegisterSpell(AID.Blizzard3);
+        defs.RegisterSpell(AID.Freeze);
+        defs.RegisterSpell(AID.Thunder3);
+        defs.RegisterSpell(AID.Flare);
+        defs.RegisterSpell(AID.AetherialManipulation, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.LeyLines);
+        defs.RegisterSpell(AID.Blizzard4);
+        defs.RegisterSpell(AID.Fire4);
+        defs.RegisterSpell(AID.BetweenTheLines, instantAnimLock: 0.80f); // animLock=0.800
+        defs.RegisterSpell(AID.Thunder4);
+        defs.RegisterSpell(AID.Triplecast);
+        defs.RegisterSpell(AID.Foul);
+        defs.RegisterSpell(AID.Despair);
+        defs.RegisterSpell(AID.Xenoglossy);
+        defs.RegisterSpell(AID.HighBlizzard2);
+        defs.RegisterSpell(AID.HighFire2);
+        defs.RegisterSpell(AID.Amplifier);
+        defs.RegisterSpell(AID.Paradox);
+        defs.RegisterSpell(AID.HighThunder); // animLock=???
+        defs.RegisterSpell(AID.HighThunder2); // animLock=???
+        defs.RegisterSpell(AID.Retrace); // animLock=???
+        defs.RegisterSpell(AID.FlareStar); // animLock=???
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

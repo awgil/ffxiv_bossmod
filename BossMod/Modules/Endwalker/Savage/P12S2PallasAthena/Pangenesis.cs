@@ -38,8 +38,8 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
                     _states[slotColor].ColorExpire = status.ExpireAt;
 
                     // update forbidden towers
-                    bool isLeft = actor.Position.X < Module.Center.X;
-                    for (int i = 0; i < Towers.Count; ++i)
+                    var isLeft = actor.Position.X < Module.Center.X;
+                    for (var i = 0; i < Towers.Count; ++i)
                     {
                         ref var tower = ref Towers.Ref(i);
                         if ((tower.Position.X < Module.Center.X) == isLeft)  // don't care about towers on other side, keep forbidden
@@ -56,15 +56,15 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
     {
         if ((AID)spell.Action.ID is AID.UmbralAdvent or AID.AstralAdvent)
         {
-            bool isLight = (AID)spell.Action.ID == AID.UmbralAdvent;
-            bool isLeft = caster.Position.X < Module.Center.X;
-            bool isPrimary = caster.Position.Z > 90; // first tower at 91, second/third same color is 94, opposite is 88
+            var isLight = (AID)spell.Action.ID == AID.UmbralAdvent;
+            var isLeft = caster.Position.X < Module.Center.X;
+            var isPrimary = caster.Position.Z > 90; // first tower at 91, second/third same color is 94, opposite is 88
             var towerColor = isLight ? Color.Light : Color.Dark;
 
             if (_firstLeftTower == Color.None)
             {
                 _firstLeftTower = isLeft == isLight ? Color.Light : Color.Dark;
-                for (int i = 0; i < _states.Length; ++i)
+                for (var i = 0; i < _states.Length; ++i)
                 {
                     _states[i].AssignedSide = _states[i].Color switch
                     {
@@ -77,10 +77,10 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
 
             var cfg = Service.Config.Get<P12S2PallasAthenaConfig>();
             BitMask forbiddenMask = default;
-            for (int i = 0; i < _states.Length; ++i)
+            for (var i = 0; i < _states.Length; ++i)
             {
                 var state = _states[i];
-                bool forbidden = isLeft ? state.AssignedSide > 0 : state.AssignedSide < 0; // forbid towers on wrong side
+                var forbidden = isLeft ? state.AssignedSide > 0 : state.AssignedSide < 0; // forbid towers on wrong side
                 forbidden |= state.Color == towerColor; // forbid towers of same color
                 forbidden |= NumCasts switch
                 {

@@ -24,12 +24,12 @@ class P3WormholeRepentance(BossModule module) : BossComponent(module)
 
         var dirToAlex = (alex.Position - Module.Center).Normalized();
         var dirToSide = SelectSide(order, dirToAlex);
-        bool shouldSoak = ShouldSoakWormhole(order);
+        var shouldSoak = ShouldSoakWormhole(order);
 
         if (_chakramsDone)
         {
             // show hints for soaking or avoiding wormhole
-            bool soakingWormhole = _wormholes.Any(w => actor.Position.InCircle(w, _radiuses[NumSoaks]));
+            var soakingWormhole = _wormholes.Any(w => actor.Position.InCircle(w, _radiuses[NumSoaks]));
             if (soakingWormhole != shouldSoak)
                 hints.Add(shouldSoak ? "Soak the wormhole!" : "GTFO from wormhole!");
         }
@@ -116,7 +116,7 @@ class P3WormholeRepentance(BossModule module) : BossComponent(module)
         if (order > ordersDone && order <= ordersDone + 4) // next jump at player, so go to assigned spot
         {
             // assume LPDU assignments: 1/2/5/6 go opposite alex, rest go towards
-            bool towardsAlex = order is 3 or 4 or 7 or 8;
+            var towardsAlex = order is 3 or 4 or 7 or 8;
             // distance = 19, divided by sqrt(2)
             return 13.435f * (towardsAlex ? dirToSide + dirToAlex : dirToSide - dirToAlex);
         }

@@ -55,4 +55,4 @@ class MaliktenderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8901)]
-public class Maliktender(ModuleArgs args): SimpleBossModule(args) { }
+public class Maliktender(ModuleArgs args) : SimpleBossModule(args) { }

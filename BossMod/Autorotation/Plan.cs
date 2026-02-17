@@ -201,7 +201,7 @@ public class JsonPlanConverter(Lazy<RotationModuleRegistry> autorot, Lazy<BossMo
         foreach (var m in value.Modules)
         {
             writer.WriteStartObject(m.Type.FullName!);
-            for (int iTrack = 0; iTrack < m.Tracks.Count; ++iTrack)
+            for (var iTrack = 0; iTrack < m.Tracks.Count; ++iTrack)
             {
                 var track = m.Tracks[iTrack];
                 if (track.Count == 0)
@@ -219,7 +219,7 @@ public class JsonPlanConverter(Lazy<RotationModuleRegistry> autorot, Lazy<BossMo
                 writer.WriteEndArray();
             }
             writer.WriteStartObject("_defaults");
-            for (int iDef = 0; iDef < m.Defaults.Count; ++iDef)
+            for (var iDef = 0; iDef < m.Defaults.Count; ++iDef)
             {
                 var def = m.Defaults[iDef];
                 if (def == default)

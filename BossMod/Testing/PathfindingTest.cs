@@ -41,7 +41,7 @@ class PathfindingTest : TestWindow
     {
         _visu.Draw();
 
-        bool rebuild = false;
+        var rebuild = false;
         if (ImGui.CollapsingHeader("Map setup"))
         {
             rebuild |= ImGui.DragFloat("Resolution", ref _mapResolution, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic);

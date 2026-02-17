@@ -82,7 +82,7 @@ class P6CosmoArrow(BossModule module) : Components.GenericAOEs(module)
 
         ++NumCasts;
 
-        int numLines = 0;
+        var numLines = 0;
         foreach (ref var l in _lines.AsSpan())
         {
             if (!l.Next.AlmostEqual(caster.Position, 1) || !l.Direction.AlmostEqual(caster.Rotation, 0.1f) || (l.NextExplosion - WorldState.CurrentTime).TotalSeconds > 1)

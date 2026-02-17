@@ -15,15 +15,15 @@ namespace BossMod;
 //   this tweak does nothing for casts, since they already work correctly
 // The tweak also allows predicting the delay based on history (using exponential average).
 // TODO: consider adding 'clamped delay' mode that doesn't reduce it straight to zero (a-la xivalex)?
-public sealed class AnimationLockTweak(IChatGui chatGui, ActionTweaksConfig _config)
+public sealed class AnimationLockTweak(IChatGui chatGui, ActionTweaksConfig config)
 {
     private float _lastReqInitialAnimLock;
     private int _lastReqSequence = -1;
 
-    public float DelayMax => _config.AnimationLockDelayMax * .001f;
+    public float DelayMax => config.AnimationLockDelayMax * .001f;
     public float DelaySmoothing = 0.8f; // TODO tweak
     public float DelayAverage { get; private set; } = 0.1f; // smoothed delay between client request and server response
-    public float DelayEstimate => _config.RemoveAnimationLockDelay ? DelayMax : MathF.Min(DelayAverage * 1.5f, 0.1f); // this is a conservative estimate
+    public float DelayEstimate => config.RemoveAnimationLockDelay ? DelayMax : MathF.Min(DelayAverage * 1.5f, 0.1f); // this is a conservative estimate
 
     // record initial animation lock after action request
     public void RecordRequest(uint expectedSequence, float initialAnimLock)
@@ -47,7 +47,7 @@ public sealed class AnimationLockTweak(IChatGui chatGui, ActionTweaksConfig _con
             SanityCheck(packetPrevAnimLock, packetCurrAnimLock, gameCurrAnimLock);
             DelayAverage = delay * (1 - DelaySmoothing) + DelayAverage * DelaySmoothing; // update the average
             // the result will be subtracted from current anim lock (and thus from adjusted lock delay)
-            reduction = _config.RemoveAnimationLockDelay ? Math.Clamp(delay - DelayMax, 0, gameCurrAnimLock) : 0;
+            reduction = config.RemoveAnimationLockDelay ? Math.Clamp(delay - DelayMax, 0, gameCurrAnimLock) : 0;
         }
         _lastReqInitialAnimLock = 0;
         _lastReqSequence = -1;
@@ -57,7 +57,7 @@ public sealed class AnimationLockTweak(IChatGui chatGui, ActionTweaksConfig _con
     // perform sanity check to detect conflicting plugins: disable the tweak if condition is false
     private void SanityCheck(float packetOriginalAnimLock, float packetModifiedAnimLock, float gameCurrAnimLock)
     {
-        if (!_config.RemoveAnimationLockDelay)
+        if (!config.RemoveAnimationLockDelay)
             return; // nothing to do, tweak is already disabled
         if (packetOriginalAnimLock == packetModifiedAnimLock && packetOriginalAnimLock == gameCurrAnimLock && packetOriginalAnimLock % 0.01 is <= 0.0005f or >= 0.0095f)
             return; // nothing changed the packet value, and it's original value is reasonable
@@ -66,6 +66,6 @@ public sealed class AnimationLockTweak(IChatGui chatGui, ActionTweaksConfig _con
         chatGui.PrintError("[BossMod] Unexpected animation lock! Disabling animation lock reduction feature.");
         chatGui.PrintError("[BossMod] This can be caused by another plugin affecting the animation lock.");
         chatGui.PrintError("[BossMod] If you are sure you are not using any of them, please report this as a bug.");
-        _config.RemoveAnimationLockDelay = false; // disable the tweak (but don't save the config, in case this condition is temporary)
+        config.RemoveAnimationLockDelay = false; // disable the tweak (but don't save the config, in case this condition is temporary)
     }
 }

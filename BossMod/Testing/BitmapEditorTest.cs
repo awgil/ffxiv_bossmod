@@ -61,8 +61,8 @@ class BitmapEditorTest : TestWindow
     public BitmapEditorTest(IDalamudPluginInterface dalamud) : base("Bitmap editor test", new(1500, 1500), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         var init = new Bitmap(16, 16, new(0), Color.FromComponents(255, 127, 0));
-        for (int y = 0; y < init.Height; ++y)
-            for (int x = 0; x < init.Width; ++x)
+        for (var y = 0; y < init.Height; ++y)
+            for (var x = 0; x < init.Width; ++x)
                 init[x, y] = (x >> 1) == 1 || (y >> 1) == 1;
         _editor = new(init, Path.Join(dalamud.GetPluginConfigDirectory(), "bitmaps"));
     }

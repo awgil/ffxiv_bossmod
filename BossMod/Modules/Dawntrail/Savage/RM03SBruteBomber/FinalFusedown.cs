@@ -40,7 +40,7 @@ class FinalFusedownExplosion(BossModule module) : Components.GenericStackSpread(
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
-        (List<Spread>? list, float delay) = (SID)status.ID switch
+        (List<Spread>? list, var delay) = (SID)status.ID switch
         {
             SID.FinalFusedownFutureExplosionShort => (_spreads1, 12.2f),
             SID.FinalFusedownFutureExplosionLong => (_spreads2, 17.2f),

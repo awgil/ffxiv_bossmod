@@ -124,7 +124,7 @@ public unsafe struct ActionEffects : IEnumerable<ActionEffect>
 
     public IEnumerator<ActionEffect> GetEnumerator()
     {
-        for (int i = 0; i < 8; ++i)
+        for (var i = 0; i < 8; ++i)
         {
             var eff = Build(i);
             if (eff.Type != ActionEffectType.Nothing)

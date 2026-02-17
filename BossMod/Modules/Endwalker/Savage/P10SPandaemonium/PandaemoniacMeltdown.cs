@@ -11,7 +11,7 @@ class PandaemoniacMeltdown(BossModule module) : Components.CastCounter(module, A
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        bool isSpread = _spreadTargets.Contains(actor);
+        var isSpread = _spreadTargets.Contains(actor);
         if (_spreadTargets.Any(t => t != actor && _shapeSpread.Check(actor.Position, Module.PrimaryActor.Position, Angle.FromDirection(t.Position - Module.PrimaryActor.Position))))
             hints.Add("GTFO from other spreads!");
         if (isSpread && Raid.WithoutSlot().Exclude(actor).InShape(_shapeSpread, Module.PrimaryActor.Position, Angle.FromDirection(actor.Position - Module.PrimaryActor.Position)).Any())
@@ -24,7 +24,7 @@ class PandaemoniacMeltdown(BossModule module) : Components.CastCounter(module, A
         }
         else if (_stackTarget != null)
         {
-            bool inStack = _shapeStack.Check(actor.Position, Module.PrimaryActor.Position, Angle.FromDirection(_stackTarget.Position - Module.PrimaryActor.Position));
+            var inStack = _shapeStack.Check(actor.Position, Module.PrimaryActor.Position, Angle.FromDirection(_stackTarget.Position - Module.PrimaryActor.Position));
             if (isSpread == inStack)
                 hints.Add(isSpread ? "GTFO from stack!" : "Stack in line!");
         }
@@ -37,7 +37,7 @@ class PandaemoniacMeltdown(BossModule module) : Components.CastCounter(module, A
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        bool isSpread = _spreadTargets.Contains(pc);
+        var isSpread = _spreadTargets.Contains(pc);
         if (_stackTarget != null && _stackTarget != pc)
             _shapeStack.Draw(Arena, Module.PrimaryActor.Position, Angle.FromDirection(_stackTarget.Position - Module.PrimaryActor.Position), isSpread ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
         foreach (var t in _spreadTargets.Exclude(pc))

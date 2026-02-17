@@ -124,7 +124,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
             yield break;
 
         var from = actor.Position;
-        int count = 0;
+        var count = 0;
         foreach (var s in Sources(slot, actor))
         {
             if (IsImmune(slot, s.Activation))

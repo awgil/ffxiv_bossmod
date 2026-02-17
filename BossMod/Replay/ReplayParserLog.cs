@@ -104,7 +104,7 @@ public sealed class ReplayParserLog : IDisposable
         {
             var str = ReadString();
             var res = new byte[str.Length >> 1];
-            for (int i = 0; i < res.Length; ++i)
+            for (var i = 0; i < res.Length; ++i)
                 res[i] = byte.Parse(str.AsSpan()[(2 * i)..(2 * i + 2)], NumberStyles.HexNumber);
             return res;
         }
@@ -119,13 +119,13 @@ public sealed class ReplayParserLog : IDisposable
         public override ActorStatus ReadStatus()
         {
             var sid = ReadString();
-            int sep = sid.IndexOf(' ', StringComparison.Ordinal);
+            var sep = sid.IndexOf(' ', StringComparison.Ordinal);
             return new(uint.Parse(sep >= 0 ? sid.AsSpan(0, sep) : sid.AsSpan()), ushort.Parse(ReadString(), NumberStyles.HexNumber), Timestamp.AddSeconds(ReadFloat()), ReadActorID());
         }
         public override ActionEffects ReadActionEffects()
         {
             var effects = new ActionEffects();
-            for (int i = 0; i < ActionEffects.MaxCount; ++i)
+            for (var i = 0; i < ActionEffects.MaxCount; ++i)
                 effects[i] = ReadULong(true);
             return effects;
         }
@@ -135,7 +135,7 @@ public sealed class ReplayParserLog : IDisposable
             {
                 var parts = ReadString().Split('!');
                 var effects = new ActionEffects();
-                for (int j = 1; j < parts.Length; ++j)
+                for (var j = 1; j < parts.Length; ++j)
                     effects[j - 1] = ulong.Parse(parts[j], NumberStyles.HexNumber);
                 list.Add(new(ParseActorID(parts[0]), effects));
             }
@@ -204,7 +204,7 @@ public sealed class ReplayParserLog : IDisposable
         public override ActionEffects ReadActionEffects()
         {
             var effects = new ActionEffects();
-            for (int i = 0; i < ActionEffects.MaxCount; ++i)
+            for (var i = 0; i < ActionEffects.MaxCount; ++i)
                 effects[i] = ReadULong(true);
             return effects;
         }
@@ -212,7 +212,7 @@ public sealed class ReplayParserLog : IDisposable
         {
             var count = _input.ReadInt32();
             list.Capacity = count;
-            for (int i = 0; i < count; ++i)
+            for (var i = 0; i < count; ++i)
                 list.Add(new(_input.ReadUInt64(), ReadActionEffects()));
         }
         public override (float, float) ReadFloatPair() => (_input.ReadSingle(), _input.ReadSingle());
@@ -247,7 +247,7 @@ public sealed class ReplayParserLog : IDisposable
             }
 
             var streamInvLength = 1.0f / rawStream.Length;
-            int curOp = 0;
+            var curOp = 0;
             using ReplayBuilder builder = builderFac.Invoke(path);
             using ReplayParserLog parser = new(input, builder);
             while (parser.ParseLine())
@@ -708,7 +708,7 @@ public sealed class ReplayParserLog : IDisposable
         var reset = _input.ReadBool();
         List<(int, Cooldown)> cooldowns = [];
         cooldowns.Capacity = _input.ReadByte(false);
-        for (int i = 0; i < cooldowns.Capacity; ++i)
+        for (var i = 0; i < cooldowns.Capacity; ++i)
             cooldowns.Add((_input.ReadByte(false), new(_input.ReadFloat(), _input.ReadFloat())));
         if (_version < 19)
             foreach (ref var cd in cooldowns.AsSpan())
@@ -737,7 +737,7 @@ public sealed class ReplayParserLog : IDisposable
     {
         List<(BozjaHolsterID, byte)> contents = [];
         contents.Capacity = _input.ReadByte(false);
-        for (int i = 0; i < contents.Capacity; ++i)
+        for (var i = 0; i < contents.Capacity; ++i)
             contents.Add(((BozjaHolsterID)_input.ReadByte(false), _input.ReadByte(false)));
         return new(contents);
     }
@@ -746,7 +746,7 @@ public sealed class ReplayParserLog : IDisposable
     {
         var contents = new uint[ClientState.NumBlueMageSpells];
         var count = _input.ReadByte(false);
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
             contents[i] = _input.ReadUInt(false);
         return new(contents);
     }
@@ -754,7 +754,7 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpClassJobLevelsChange ParseClientClassJobLevels()
     {
         var contents = new short[_input.ReadByte(false)];
-        for (int i = 0; i < contents.Length; i++)
+        for (var i = 0; i < contents.Length; i++)
             contents[i] = _input.ReadShort();
         return new(contents);
     }

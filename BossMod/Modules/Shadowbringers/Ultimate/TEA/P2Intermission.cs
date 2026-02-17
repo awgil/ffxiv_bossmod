@@ -39,7 +39,7 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
             {
                 var offset = spell.TargetXZ - Module.Center;
                 // a bit of a hack: most strats (lpdu etc) select a half between W and NE inclusive to the 'first' group; ensure 'starting' direction is one of these
-                bool invert = Math.Abs(offset.Z) < 2 ? offset.X > 0 : offset.Z > 0;
+                var invert = Math.Abs(offset.Z) < 2 ? offset.X > 0 : offset.Z > 0;
                 if (invert)
                     offset = -offset;
                 _blasterStartingDirection = Angle.FromDirection(offset);
@@ -115,7 +115,7 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
         if (strategy == TEAConfig.P2Intermission.None)
             return null;
 
-        bool invert = strategy == TEAConfig.P2Intermission.FirstForOddPairs && (Module.FindComponent<LimitCut>()?.PlayerOrder[slot] is 3 or 4 or 7 or 8);
+        var invert = strategy == TEAConfig.P2Intermission.FirstForOddPairs && (Module.FindComponent<LimitCut>()?.PlayerOrder[slot] is 3 or 4 or 7 or 8);
         var offset = _blasterOffset * _blasterStartingDirection.ToDirection();
         return Module.Center + (invert ? -offset : offset);
     }

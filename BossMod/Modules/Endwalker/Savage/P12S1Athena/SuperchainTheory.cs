@@ -25,7 +25,7 @@ abstract class SuperchainTheory(BossModule module) : BossComponent(module)
 
     public override void Update()
     {
-        for (int i = 0; i < _pendingTethers.Count; ++i)
+        for (var i = 0; i < _pendingTethers.Count; ++i)
         {
             var source = _pendingTethers[i];
             var shape = (TetherID)source.Tether.ID switch
@@ -69,7 +69,7 @@ abstract class SuperchainTheory(BossModule module) : BossComponent(module)
                     hints.Add("Spread!", Raid.WithoutSlot().Exclude(actor).InShape(_shapeSpread, c.Origin.Position, Angle.FromDirection(actor.Position - c.Origin.Position)).Any());
                     break;
                 case Shape.Pairs:
-                    bool actorIsSupport = actor.Class.IsSupport();
+                    var actorIsSupport = actor.Class.IsSupport();
                     int sameRole = 0, diffRole = 0;
                     foreach (var p in Raid.WithoutSlot().Exclude(actor).InShape(_shapePair, c.Origin.Position, Angle.FromDirection(actor.Position - c.Origin.Position)))
                         if (p.Class.IsSupport() == actorIsSupport)
@@ -101,7 +101,7 @@ abstract class SuperchainTheory(BossModule module) : BossComponent(module)
                         _shapeSpread.Draw(Arena, c.Origin.Position, Angle.FromDirection(p.Position - c.Origin.Position));
                     break;
                 case Shape.Pairs:
-                    bool pcIsSupport = pc.Class.IsSupport();
+                    var pcIsSupport = pc.Class.IsSupport();
                     foreach (var p in Raid.WithoutSlot().Where(p => p != pc && p.Class.IsSupport() == pcIsSupport))
                         _shapePair.Draw(Arena, c.Origin.Position, Angle.FromDirection(p.Position - c.Origin.Position));
                     break;

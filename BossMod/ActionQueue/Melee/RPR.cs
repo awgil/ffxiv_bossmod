@@ -110,51 +110,51 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-sealed class Definitions(RPRConfig _config) : IDefinitions
+sealed class Definitions(RPRConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.TheEnd, castAnimLock: 3.70f); // animLock=3.700s?
-        d.RegisterSpell(AID.Slice);
-        d.RegisterSpell(AID.WaxingSlice);
-        d.RegisterSpell(AID.ShadowofDeath);
-        d.RegisterSpell(AID.Harpe);
-        d.RegisterSpell(AID.HellsEgress, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.HellsIngress, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.SpinningScythe);
-        d.RegisterSpell(AID.InfernalSlice);
-        d.RegisterSpell(AID.WhorlofDeath);
-        d.RegisterSpell(AID.ArcaneCrest);
-        d.RegisterSpell(AID.NightmareScythe);
-        d.RegisterSpell(AID.BloodStalk);
-        d.RegisterSpell(AID.GrimSwathe);
-        d.RegisterSpell(AID.SoulSlice);
-        d.RegisterSpell(AID.SoulScythe);
-        d.RegisterSpell(AID.UnveiledGibbet);
-        d.RegisterSpell(AID.Guillotine);
-        d.RegisterSpell(AID.Gibbet);
-        d.RegisterSpell(AID.Gallows);
-        d.RegisterSpell(AID.UnveiledGallows);
-        d.RegisterSpell(AID.ArcaneCircle);
-        d.RegisterSpell(AID.Regress, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.Gluttony);
-        d.RegisterSpell(AID.GrimReaping);
-        d.RegisterSpell(AID.CrossReaping);
-        d.RegisterSpell(AID.VoidReaping);
-        d.RegisterSpell(AID.Enshroud);
-        d.RegisterSpell(AID.Soulsow);
-        d.RegisterSpell(AID.HarvestMoon);
-        d.RegisterSpell(AID.LemuresSlice);
-        d.RegisterSpell(AID.LemuresScythe);
-        d.RegisterSpell(AID.PlentifulHarvest);
-        d.RegisterSpell(AID.Communio);
-        d.RegisterSpell(AID.Sacrificium); // animLock=???
-        d.RegisterSpell(AID.ExecutionersGibbet); // animLock=???
-        d.RegisterSpell(AID.ExecutionersGallows); // animLock=???
-        d.RegisterSpell(AID.ExecutionersGuillotine); // animLock=???
-        d.RegisterSpell(AID.Perfectio); // animLock=???
+        defs.RegisterSpell(AID.TheEnd, castAnimLock: 3.70f); // animLock=3.700s?
+        defs.RegisterSpell(AID.Slice);
+        defs.RegisterSpell(AID.WaxingSlice);
+        defs.RegisterSpell(AID.ShadowofDeath);
+        defs.RegisterSpell(AID.Harpe);
+        defs.RegisterSpell(AID.HellsEgress, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.HellsIngress, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.SpinningScythe);
+        defs.RegisterSpell(AID.InfernalSlice);
+        defs.RegisterSpell(AID.WhorlofDeath);
+        defs.RegisterSpell(AID.ArcaneCrest);
+        defs.RegisterSpell(AID.NightmareScythe);
+        defs.RegisterSpell(AID.BloodStalk);
+        defs.RegisterSpell(AID.GrimSwathe);
+        defs.RegisterSpell(AID.SoulSlice);
+        defs.RegisterSpell(AID.SoulScythe);
+        defs.RegisterSpell(AID.UnveiledGibbet);
+        defs.RegisterSpell(AID.Guillotine);
+        defs.RegisterSpell(AID.Gibbet);
+        defs.RegisterSpell(AID.Gallows);
+        defs.RegisterSpell(AID.UnveiledGallows);
+        defs.RegisterSpell(AID.ArcaneCircle);
+        defs.RegisterSpell(AID.Regress, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.Gluttony);
+        defs.RegisterSpell(AID.GrimReaping);
+        defs.RegisterSpell(AID.CrossReaping);
+        defs.RegisterSpell(AID.VoidReaping);
+        defs.RegisterSpell(AID.Enshroud);
+        defs.RegisterSpell(AID.Soulsow);
+        defs.RegisterSpell(AID.HarvestMoon);
+        defs.RegisterSpell(AID.LemuresSlice);
+        defs.RegisterSpell(AID.LemuresScythe);
+        defs.RegisterSpell(AID.PlentifulHarvest);
+        defs.RegisterSpell(AID.Communio);
+        defs.RegisterSpell(AID.Sacrificium); // animLock=???
+        defs.RegisterSpell(AID.ExecutionersGibbet); // animLock=???
+        defs.RegisterSpell(AID.ExecutionersGallows); // animLock=???
+        defs.RegisterSpell(AID.ExecutionersGuillotine); // animLock=???
+        defs.RegisterSpell(AID.Perfectio); // animLock=???
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -164,10 +164,10 @@ sealed class Definitions(RPRConfig _config) : IDefinitions
         d.RegisterChargeIncreaseTrait(AID.SoulSlice, TraitID.TemperedSoul);
         d.RegisterChargeIncreaseTrait(AID.SoulScythe, TraitID.TemperedSoul);
 
-        d.Spell(AID.Harpe)!.ForbidExecute = (ws, player, _, _, _) => _config.ForbidEarlyHarpe && !player.InCombat && ws.Client.CountdownRemaining > 1.7f;
+        d.Spell(AID.Harpe)!.ForbidExecute = (ws, player, _, _, _) => config.ForbidEarlyHarpe && !player.InCombat && ws.Client.CountdownRemaining > 1.7f;
 
         d.Spell(AID.HellsEgress)!.TransformAngle =
-            d.Spell(AID.HellsIngress)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+            d.Spell(AID.HellsIngress)!.TransformAngle = (ws, _, _, _) => config.AlignDashToCamera
                 ? ws.Client.CameraAzimuth + 180.Degrees()
                 : null;
 

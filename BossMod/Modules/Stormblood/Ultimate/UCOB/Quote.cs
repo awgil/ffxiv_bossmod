@@ -86,7 +86,7 @@ class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(mod
 
     public override void Update()
     {
-        bool stackImminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.ThermionicBeam;
+        var stackImminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.ThermionicBeam;
         if (stackImminent && Stacks.Count == 0 && Raid.Player() is var target && target != null) // note: target is random
             AddStack(target, _quote!.NextActivation);
         else if (!stackImminent && Stacks.Count > 0)
@@ -101,7 +101,7 @@ class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 
 
     public override void Update()
     {
-        bool spreadImminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.RavenDive;
+        var spreadImminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.RavenDive;
         if (spreadImminent && Spreads.Count == 0)
             AddSpreads(Raid.WithoutSlot(true), _quote!.NextActivation);
         else if (!spreadImminent && Spreads.Count > 0)
@@ -116,7 +116,7 @@ class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(modul
 
     public override void Update()
     {
-        bool spreadImminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.MeteorStream;
+        var spreadImminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.MeteorStream;
         if (spreadImminent && Spreads.Count == 0)
             AddSpreads(Raid.WithoutSlot(true), _quote!.NextActivation);
         else if (!spreadImminent && Spreads.Count > 0)
@@ -133,7 +133,7 @@ class QuoteDalamudDive(BossModule module) : Components.GenericBaitAway(module, A
 
     public override void Update()
     {
-        bool imminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.DalamudDive;
+        var imminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.DalamudDive;
         if (imminent && CurrentBaits.Count == 0 && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is var source && WorldState.Actors.Find(source?.TargetID ?? 0) is var target && target != null)
             CurrentBaits.Add(new(target, target, _shape));
         else if (!imminent && CurrentBaits.Count > 0)

@@ -20,12 +20,12 @@ public class SmartRotationConfig : ConfigNode
 // - when gaze is expected and attack is initiated, if it's possible to rotate so that target is in frontal cone and avoid gaze, do so
 // - when gaze is expected (with some configurable leeway) and would hit player with current facing, rotate away
 // - when gaze is imminent (with some configurable short leeway) and it's not possible to hit target without being hit by a gaze, block casts and attacks
-public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefinitions defs, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, SmartRotationConfig _config)
+public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefinitions defs, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, SmartRotationConfig config)
 {
     private readonly DisjointSegmentList _forbidden = new();
     private readonly Angle _minWindow = 5.Degrees();
 
-    public bool Enabled => _config.Enabled;
+    public bool Enabled => config.Enabled;
 
     // return 'ideal orientation' for a spell, or null if spell is not oriented (self-targeted or does not require facing)
     public Angle? GetSpellOrientation(uint spellId, WPos playerPos, bool targetIsSelf, WPos? targetPos, WPos targetLoc)
@@ -43,16 +43,16 @@ public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefin
 
     public Angle? GetSafeRotation(Angle currentDirection, Angle? preferredDirection, Angle preferredHalfWidth)
     {
-        if (!_config.Enabled)
+        if (!config.Enabled)
             return null;
 
         var midpoint = preferredDirection ?? default; // center angles in forbidden list around this midpoint, to simplify preferred check later
         var currentOffset = (currentDirection - midpoint).Normalized();
 
         _forbidden.Clear();
-        if (_config.AvoidGazes)
+        if (config.AvoidGazes)
         {
-            var deadline = ws.FutureTime(_config.MinTimeToAvoid);
+            var deadline = ws.FutureTime(config.MinTimeToAvoid);
             foreach (var d in hints.ForbiddenDirections.Where(d => d.activation <= deadline))
             {
                 var center = (d.center - midpoint).Normalized();
@@ -109,7 +109,7 @@ public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefin
 
             // find widest safe range in a cone around preferred direction
             var best = initBest(coneMin, Math.Max(_forbidden[intersection.first].Min, coneMin));
-            for (int i = 1; i < intersection.count; ++i)
+            for (var i = 1; i < intersection.count; ++i)
                 updateBest(ref best, _forbidden[intersection.first + i - 1].Max, _forbidden[intersection.first + i].Min);
             updateBest(ref best, Math.Min(_forbidden[intersection.first + intersection.count - 1].Max, coneMax), coneMax);
 
@@ -120,7 +120,7 @@ public sealed class SmartRotationTweak(WorldState ws, AIHints hints, ActionDefin
         // find widest safe range in the whole circle
         {
             var best = initBest(_forbidden[^1].Max, _forbidden[0].Min + 2 * MathF.PI);
-            for (int i = 1; i < _forbidden.Count; ++i)
+            for (var i = 1; i < _forbidden.Count; ++i)
                 updateBest(ref best, _forbidden[i - 1].Max, _forbidden[i].Min);
             return midpoint + best.mid.Radians();
         }

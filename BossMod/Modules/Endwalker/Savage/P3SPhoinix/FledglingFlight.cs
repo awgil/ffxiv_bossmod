@@ -17,7 +17,7 @@ class FledglingFlight(BossModule module) : BossComponent(module)
         if (_sources.Count == 0)
             return;
 
-        foreach ((int i, var player) in Raid.WithSlot())
+        foreach ((var i, var player) in Raid.WithSlot())
         {
             _playerDeathTollStacks[i] = player.FindStatus((uint)SID.DeathsToll)?.Extra ?? 0; // TODO: use status events here...
             _playerAOECount[i] = _sources.Count(srcRot => player.Position.InCone(srcRot.Item1.Position, srcRot.Item2, _coneHalfAngle));
@@ -51,7 +51,7 @@ class FledglingFlight(BossModule module) : BossComponent(module)
             return;
 
         // draw all players
-        foreach ((int i, var player) in Raid.WithSlot())
+        foreach ((var i, var player) in Raid.WithSlot())
             Arena.Actor(player, _playerAOECount[i] != _playerDeathTollStacks[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
 
         var eyePos = GetEyePlacementPosition(pcSlot, pc);

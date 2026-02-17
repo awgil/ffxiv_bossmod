@@ -15,9 +15,9 @@ public class PartyRolesConfig : ConfigNode
     // return either array of assigned roles per party slot (if each role is assigned exactly once) or empty array (if assignments are invalid)
     public Assignment[] AssignmentsPerSlot(PartyState party)
     {
-        int[] counts = new int[(int)Assignment.Unassigned];
+        var counts = new int[(int)Assignment.Unassigned];
         Assignment[] res = Utils.MakeArray(PartyState.MaxPartySize, Assignment.Unassigned);
-        for (int i = 0; i < PartyState.MaxPartySize; ++i)
+        for (var i = 0; i < PartyState.MaxPartySize; ++i)
         {
             var r = this[party.Members[i].ContentId];
             if (r == Assignment.Unassigned)
@@ -32,8 +32,8 @@ public class PartyRolesConfig : ConfigNode
     // return either array of party slots per assigned role (if each role is assigned exactly once) or empty array (if assignments are invalid)
     public int[] SlotsPerAssignment(PartyState party)
     {
-        int[] res = Utils.MakeArray((int)Assignment.Unassigned, PartyState.MaxPartySize);
-        for (int i = 0; i < PartyState.MaxPartySize; ++i)
+        var res = Utils.MakeArray((int)Assignment.Unassigned, PartyState.MaxPartySize);
+        for (var i = 0; i < PartyState.MaxPartySize; ++i)
         {
             var r = this[party.Members[i].ContentId];
             if (r == Assignment.Unassigned)
@@ -49,7 +49,7 @@ public class PartyRolesConfig : ConfigNode
     public Role[] EffectiveRolePerSlot(PartyState party)
     {
         var res = new Role[PartyState.MaxPartySize];
-        for (int i = 0; i < PartyState.MaxPartySize; ++i)
+        for (var i = 0; i < PartyState.MaxPartySize; ++i)
         {
             res[i] = this[party.Members[i].ContentId] switch
             {
@@ -75,7 +75,7 @@ public class PartyRolesConfig : ConfigNode
                 ImGui.TableHeadersRow();
 
                 List<(ulong cid, string name, char role, Assignment assignment)> party = [];
-                for (int i = 0; i < PartyState.MaxPartySize; ++i)
+                for (var i = 0; i < PartyState.MaxPartySize; ++i)
                 {
                     ref var m = ref ws.Party.Members[i];
                     if (m.IsValid())

@@ -17,7 +17,7 @@ class AstralEclipse(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
+        var nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
         if (PatternSpots(nextPattern).Any(p => _aoe.Check(actor.Position, p)))
             hints.Add("GTFO from explosion!");
     }
@@ -30,7 +30,7 @@ class AstralEclipse(BossModule module) : BossComponent(module)
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        int nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
+        var nextPattern = _patterns.SkipWhile(p => p == 0).FirstOrDefault();
         foreach (var p in PatternSpots(nextPattern))
             _aoe.Draw(Arena, p);
     }
@@ -60,8 +60,8 @@ class AstralEclipse(BossModule module) : BossComponent(module)
     private int BuildMask(int seq, Vector2 patternCoords)
     {
         Vector3 w = _basisX[seq] * patternCoords.X + _basisY[seq] * patternCoords.Y;
-        int xPos = w.X > 0 ? 2 : (w.X < 0 ? 0 : 1);
-        int zPos = w.Z > 0 ? 2 : (w.Z < 0 ? 0 : 1);
+        var xPos = w.X > 0 ? 2 : (w.X < 0 ? 0 : 1);
+        var zPos = w.Z > 0 ? 2 : (w.Z < 0 ? 0 : 1);
         return 1 << (zPos * 4 + xPos);
     }
 
@@ -73,8 +73,8 @@ class AstralEclipse(BossModule module) : BossComponent(module)
     private IEnumerable<WPos> PatternSpots(int pattern)
     {
         if (pattern != 0)
-            for (int z = -1; z <= 1; ++z)
-                for (int x = -1; x <= 1; ++x)
+            for (var z = -1; z <= 1; ++z)
+                for (var x = -1; x <= 1; ++x)
                     if ((pattern & (1 << ((z + 1) * 4 + (x + 1)))) != 0)
                         yield return Module.Center + _centerOffset * new WDir(x, z);
     }

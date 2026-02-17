@@ -197,7 +197,7 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     private IEnumerable<(Actor? origin, Angle offset, int order)> AOEs()
     {
         yield return (_boss, _bossAngle, 0);
-        for (int i = 0; i < _monitorOrder.Count; ++i)
+        for (var i = 0; i < _monitorOrder.Count; ++i)
         {
             var slot = _monitorOrder[i];
             yield return (Raid[slot], _playerAngles[slot], i + 1);

@@ -15,7 +15,7 @@ class BalefulBlade(BossModule module) : BossComponent(module)
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         AOEShape shape = _phantomEdge ? _shapeFront : _shapeBehind;
-        for (int i = 0; i < 4; ++i)
+        for (var i = 0; i < 4; ++i)
         {
             var center = (45 + i * 90).Degrees();
             shape.Draw(Arena, Module.Center, center, ArenaColor.SafeFromAOE);

@@ -76,12 +76,12 @@ class Camera
 
     public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color, float thickness = 1)
     {
-        int numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, 1 / 90f);
+        var numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, 1 / 90f);
         var delta = halfWidth / numSegments;
 
         var prev = center + radius * (direction - delta * numSegments).ToDirection().ToVec3();
         DrawWorldLine(center, prev, color, thickness);
-        for (int i = -numSegments + 1; i <= numSegments; ++i)
+        for (var i = -numSegments + 1; i <= numSegments; ++i)
         {
             var curr = center + radius * (direction + delta * i).ToDirection().ToVec3();
             DrawWorldLine(prev, curr, color, thickness);
@@ -92,9 +92,9 @@ class Camera
 
     public void DrawWorldCircle(Vector3 center, float radius, uint color, float thickness = 1)
     {
-        int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1 / 90f);
+        var numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1 / 90f);
         var prev = center + new Vector3(0, 0, radius);
-        for (int i = 1; i <= numSegments; ++i)
+        for (var i = 1; i <= numSegments; ++i)
         {
             var curr = center + radius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
             DrawWorldLine(curr, prev, color, thickness);
@@ -104,11 +104,11 @@ class Camera
 
     public void DrawWorldSphere(Vector3 center, float radius, uint color, float thickness = 1)
     {
-        int numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1 / 90f);
+        var numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1 / 90f);
         var prev1 = center + new Vector3(0, 0, radius);
         var prev2 = center + new Vector3(0, radius, 0);
         var prev3 = center + new Vector3(radius, 0, 0);
-        for (int i = 1; i <= numSegments; ++i)
+        for (var i = 1; i <= numSegments; ++i)
         {
             var dir = (i * 360.0f / numSegments).Degrees().ToDirection();
             var curr1 = center + radius * new Vector3(dir.X, 0, dir.Z);

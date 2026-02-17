@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace BossMod;
 
-internal unsafe class MockMovementOverride : IMovementOverride
+sealed unsafe class MockMovementOverride : IMovementOverride
 {
     public MockMovementOverride()
     {

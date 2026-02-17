@@ -82,7 +82,7 @@ class SettingTheScene(BossModule module) : BossComponent(module)
         // 20 => NW water
         if (state == 0x00020001 && index >= 5 && index <= 20)
         {
-            int i = index - 5;
+            var i = index - 5;
             _assignments[i >> 2] = (Corner)(1 + (i & 3));
         }
     }

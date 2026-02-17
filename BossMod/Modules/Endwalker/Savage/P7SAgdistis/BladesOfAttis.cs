@@ -30,7 +30,7 @@ class BladesOfAttis(BossModule module) : Components.Exaflare(module, 7)
     {
         if ((AID)spell.Action.ID is AID.BladesOfAttisFirst or AID.BladesOfAttisRest)
         {
-            int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
+            var index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");

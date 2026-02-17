@@ -58,7 +58,7 @@ static class Program
             var configGlobal = scope.Resolve<ConfigRoot>();
             var logger = scope.Resolve<IPluginLog>();
             var dalamud = scope.Resolve<IDalamudPluginInterface>();
-            var isMockConfig = dalamud.ConfigFile.FullName.Contains("DalaMock");
+            var isMockConfig = dalamud.ConfigFile.FullName.Contains("DalaMock", StringComparison.Ordinal);
             configGlobal.Modified.Subscribe(() =>
             {
                 logger.Info("Config was modified.");

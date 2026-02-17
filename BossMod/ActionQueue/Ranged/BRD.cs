@@ -114,45 +114,45 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.SagittariusArrow, true, castAnimLock: 3.70f); // animLock=3.700s?
-        d.RegisterSpell(AID.HeavyShot, true);
-        d.RegisterSpell(AID.StraightShot, true);
-        d.RegisterSpell(AID.RagingStrikes, true);
-        d.RegisterSpell(AID.VenomousBite, true);
-        d.RegisterSpell(AID.Bloodletter, true);
-        d.RegisterSpell(AID.RepellingShot, true, instantAnimLock: 0.80f);
-        d.RegisterSpell(AID.QuickNock, true);
-        d.RegisterSpell(AID.WideVolley, true);
-        d.RegisterSpell(AID.MagesBallad, true);
-        d.RegisterSpell(AID.Windbite, true);
-        d.RegisterSpell(AID.WardensPaean, true);
-        d.RegisterSpell(AID.Barrage, true);
-        d.RegisterSpell(AID.ArmysPaeon, true);
-        d.RegisterSpell(AID.RainOfDeath, true);
-        d.RegisterSpell(AID.BattleVoice, true);
-        d.RegisterSpell(AID.WanderersMinuet, true);
-        d.RegisterSpell(AID.PitchPerfect, true);
-        d.RegisterSpell(AID.EmpyrealArrow, true);
-        d.RegisterSpell(AID.IronJaws, true);
-        d.RegisterSpell(AID.Sidewinder, true);
-        d.RegisterSpell(AID.Troubadour, true);
-        d.RegisterSpell(AID.Stormbite, true);
-        d.RegisterSpell(AID.CausticBite, true);
-        d.RegisterSpell(AID.NaturesMinne, true);
-        d.RegisterSpell(AID.RefulgentArrow, true);
-        d.RegisterSpell(AID.Shadowbite, true);
-        d.RegisterSpell(AID.BurstShot, true);
-        d.RegisterSpell(AID.ApexArrow, true);
-        d.RegisterSpell(AID.Ladonsbite, true);
-        d.RegisterSpell(AID.BlastArrow, true);
-        d.RegisterSpell(AID.RadiantFinale, true);
-        d.RegisterSpell(AID.HeartbreakShot, true);
-        d.RegisterSpell(AID.ResonantArrow, true);
-        d.RegisterSpell(AID.RadiantEncore, true);
+        defs.RegisterSpell(AID.SagittariusArrow, true, castAnimLock: 3.70f); // animLock=3.700s?
+        defs.RegisterSpell(AID.HeavyShot, true);
+        defs.RegisterSpell(AID.StraightShot, true);
+        defs.RegisterSpell(AID.RagingStrikes, true);
+        defs.RegisterSpell(AID.VenomousBite, true);
+        defs.RegisterSpell(AID.Bloodletter, true);
+        defs.RegisterSpell(AID.RepellingShot, true, instantAnimLock: 0.80f);
+        defs.RegisterSpell(AID.QuickNock, true);
+        defs.RegisterSpell(AID.WideVolley, true);
+        defs.RegisterSpell(AID.MagesBallad, true);
+        defs.RegisterSpell(AID.Windbite, true);
+        defs.RegisterSpell(AID.WardensPaean, true);
+        defs.RegisterSpell(AID.Barrage, true);
+        defs.RegisterSpell(AID.ArmysPaeon, true);
+        defs.RegisterSpell(AID.RainOfDeath, true);
+        defs.RegisterSpell(AID.BattleVoice, true);
+        defs.RegisterSpell(AID.WanderersMinuet, true);
+        defs.RegisterSpell(AID.PitchPerfect, true);
+        defs.RegisterSpell(AID.EmpyrealArrow, true);
+        defs.RegisterSpell(AID.IronJaws, true);
+        defs.RegisterSpell(AID.Sidewinder, true);
+        defs.RegisterSpell(AID.Troubadour, true);
+        defs.RegisterSpell(AID.Stormbite, true);
+        defs.RegisterSpell(AID.CausticBite, true);
+        defs.RegisterSpell(AID.NaturesMinne, true);
+        defs.RegisterSpell(AID.RefulgentArrow, true);
+        defs.RegisterSpell(AID.Shadowbite, true);
+        defs.RegisterSpell(AID.BurstShot, true);
+        defs.RegisterSpell(AID.ApexArrow, true);
+        defs.RegisterSpell(AID.Ladonsbite, true);
+        defs.RegisterSpell(AID.BlastArrow, true);
+        defs.RegisterSpell(AID.RadiantFinale, true);
+        defs.RegisterSpell(AID.HeartbreakShot, true);
+        defs.RegisterSpell(AID.ResonantArrow, true);
+        defs.RegisterSpell(AID.RadiantEncore, true);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

@@ -36,7 +36,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
         if (!_nodesUpToDate)
         {
             _nodes.Clear();
-            int i = 0;
+            var i = 0;
             foreach (var op in ops)
             {
                 if (FilterOp(op))

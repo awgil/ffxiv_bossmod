@@ -6,7 +6,7 @@ class P2LightRampant(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        for (int i = 0; i < _tetherTargets.Length; ++i)
+        for (var i = 0; i < _tetherTargets.Length; ++i)
         {
             var source = Raid[i];
             var target = _tetherTargets[i];
@@ -106,7 +106,7 @@ class P2BrightHunger1(BossModule module) : Components.GenericTowers(module, AID.
         }
 
         Towers.Clear();
-        for (int i = 0; i < 6; ++i)
+        for (var i = 0; i < 6; ++i)
         {
             var dir = (240 - i * 60).Degrees();
             var forbidden = conga.Count == 6 ? BitMask.Build(conga[i].slot) ^ new BitMask(0xFF) : _forbidden;

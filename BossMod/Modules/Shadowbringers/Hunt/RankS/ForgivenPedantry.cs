@@ -147,4 +147,4 @@ class ForgivenPedantryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8910)]
-public class ForgivenPedantry(ModuleArgs args): SimpleBossModule(args);
+public class ForgivenPedantry(ModuleArgs args) : SimpleBossModule(args);

@@ -299,7 +299,7 @@ class ExplosionKnockUp(BossModule module) : Components.KnockbackFromCastTarget(m
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         Source? best = null;
-        float bestDistSq = float.MaxValue;
+        var bestDistSq = float.MaxValue;
 
         foreach (var c in Casters)
         {

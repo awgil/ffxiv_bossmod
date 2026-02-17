@@ -57,10 +57,10 @@ public record struct BitMask(ulong Raw)
 
     public readonly IEnumerable<int> SetBits()
     {
-        ulong v = Raw;
+        var v = Raw;
         while (v != 0)
         {
-            int index = BitOperations.TrailingZeroCount(v);
+            var index = BitOperations.TrailingZeroCount(v);
             yield return index;
             v &= ~(1ul << index);
         }

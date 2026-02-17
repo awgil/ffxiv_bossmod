@@ -38,7 +38,7 @@ class AetherExplosion(BossModule module) : BossComponent(module)
         }
 
         var start = _explodingCells == Cell.Blue ? 0.Degrees() : 45.Degrees();
-        for (int i = 0; i < 4; ++i)
+        for (var i = 0; i < 4; ++i)
         {
             Arena.ZoneCone(Module.Center, 0, P1S.InnerCircleRadius, start + 22.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
             Arena.ZoneCone(Module.Center, P1S.InnerCircleRadius, Module.Bounds.Radius, start + 67.5f.Degrees(), 22.5f.Degrees(), ArenaColor.AOE);
@@ -97,9 +97,9 @@ class AetherExplosion(BossModule module) : BossComponent(module)
     private static Cell CellFromOffset(WDir offsetFromCenter)
     {
         var phi = Angle.FromDirection(offsetFromCenter) + 180.Degrees();
-        int coneIndex = (int)(4 * phi.Rad / MathF.PI); // phi / (pi/4); range [0, 8]
-        bool oddCone = (coneIndex & 1) != 0;
-        bool outerCone = offsetFromCenter.LengthSq() > P1S.InnerCircleRadius * P1S.InnerCircleRadius;
+        var coneIndex = (int)(4 * phi.Rad / MathF.PI); // phi / (pi/4); range [0, 8]
+        var oddCone = (coneIndex & 1) != 0;
+        var outerCone = offsetFromCenter.LengthSq() > P1S.InnerCircleRadius * P1S.InnerCircleRadius;
         return (oddCone == outerCone) ? Cell.Blue : Cell.Red; // outer odd = inner even = blue
     }
 }

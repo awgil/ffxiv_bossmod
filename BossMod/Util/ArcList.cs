@@ -157,7 +157,7 @@ public class ArcList(WPos center, float radius)
         if (Forbidden.Segments[0].Min > -MathF.PI)
             yield return (last.Max.Radians() - 360.Degrees(), Forbidden.Segments[0].Min.Radians());
 
-        for (int i = 1; i < Forbidden.Segments.Count; i++)
+        for (var i = 1; i < Forbidden.Segments.Count; i++)
             yield return (Forbidden.Segments[i - 1].Max.Radians(), Forbidden.Segments[i].Min.Radians());
 
         if (last.Max < MathF.PI)

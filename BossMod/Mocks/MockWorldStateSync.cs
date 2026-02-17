@@ -2,7 +2,7 @@
 
 namespace BossMod.Mocks;
 
-internal class MockWorldStateSync : IWorldStateSync
+sealed class MockWorldStateSync : IWorldStateSync
 {
     public void Dispose() { }
     public void Update(TimeSpan prevFramePerf) { }

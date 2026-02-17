@@ -57,7 +57,7 @@ class AlisaieAI(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, d
         if (World.Party.LimitBreakCur == 10000)
             UseAction(RID.VermilionPledge, primaryTarget, 100);
 
-        bool melee = false;
+        var melee = false;
 
         switch (ComboAction)
         {

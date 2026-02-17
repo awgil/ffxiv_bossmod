@@ -112,19 +112,19 @@ class Eruption2(BossModule module) : Components.GenericAOEs(module)
         if (NumCasts < 10)
         {
             if (NumCasts < 6 ? _casters.Count > 2 : _casters.Count > 3)
-                for (int i = 0; NumCasts < 6 ? i < 3 : i < 4; ++i)
+                for (var i = 0; NumCasts < 6 ? i < 3 : i < 4; ++i)
                     yield return new(circle, _casters[i].position, default, _casters[i].activation, ArenaColor.Danger);
             if (NumCasts < 3 ? _casters.Count > 5 : _casters.Count > 6)
-                for (int i = 3; NumCasts < 3 ? i < 6 : i < 7; ++i)
+                for (var i = 3; NumCasts < 3 ? i < 6 : i < 7; ++i)
                     yield return new(circle, _casters[i].position, default, _casters[i].activation);
         }
         if (NumCasts >= 10)
         {
             if (_casters.Count > 3)
-                for (int i = 0; _casters.Count > 6 ? i < 4 : i < 6; ++i)
+                for (var i = 0; _casters.Count > 6 ? i < 4 : i < 6; ++i)
                     yield return new(circle, _casters[i].position, default, _casters[i].activation, ArenaColor.Danger);
             if (_casters.Count > 7)
-                for (int i = 4; _casters.Count > 10 ? i < 8 : i < 10; ++i)
+                for (var i = 4; _casters.Count > 10 ? i < 8 : i < 10; ++i)
                     yield return new(circle, _casters[i].position, default, _casters[i].activation);
         }
     }

@@ -85,7 +85,7 @@ public class BossModuleRegistry
                 iidType = null;
             }
 
-            uint primaryOID = infoAttr?.PrimaryActorOID ?? 0;
+            var primaryOID = infoAttr?.PrimaryActorOID ?? 0;
             if (primaryOID == 0 && oidType != null)
             {
                 if (Enum.TryParse(oidType, "Boss", out var oid))

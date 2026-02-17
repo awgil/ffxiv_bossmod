@@ -490,7 +490,7 @@ class MainDebugWindow(
         ImGui.TableSetupColumn("Index");
         ImGui.TableSetupColumn("Value");
         ImGui.TableHeadersRow();
-        for (int i = 0; i < 74; ++i)
+        for (var i = 0; i < 74; ++i)
         {
             ImGui.TableNextRow();
             ImGui.TableNextColumn();

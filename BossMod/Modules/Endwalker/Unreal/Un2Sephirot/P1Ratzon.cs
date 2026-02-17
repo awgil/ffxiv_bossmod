@@ -14,8 +14,8 @@ class P1Ratzon(BossModule module) : BossComponent(module)
         if ((_greenTargets | _purpleTargets).None())
             return;
 
-        bool clippedByGreen = Raid.WithSlot().Exclude(slot).IncludedInMask(_greenTargets).InRadius(actor.Position, _greenRadius).Any();
-        bool clippedByPurple = Raid.WithSlot().Exclude(slot).IncludedInMask(_purpleTargets).InRadius(actor.Position, _purpleRadius).Any();
+        var clippedByGreen = Raid.WithSlot().Exclude(slot).IncludedInMask(_greenTargets).InRadius(actor.Position, _greenRadius).Any();
+        var clippedByPurple = Raid.WithSlot().Exclude(slot).IncludedInMask(_purpleTargets).InRadius(actor.Position, _purpleRadius).Any();
         hints.Add($"Spread! (debuff: {(_greenTargets[slot] ? "green" : _purpleTargets[slot] ? "purple" : "none")})", clippedByGreen || clippedByPurple);
     }
 

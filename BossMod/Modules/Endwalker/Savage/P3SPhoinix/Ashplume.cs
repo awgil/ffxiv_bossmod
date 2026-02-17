@@ -30,9 +30,9 @@ class Ashplume : BossComponent
         if (CurState == State.Stack)
         {
             // note: it seems to always target 1 tank & 1 healer, so correct stacks are always tanks+dd and healers+dd
-            int numStacked = 0;
-            bool haveTanks = actor.Role == Role.Tank;
-            bool haveHealers = actor.Role == Role.Healer;
+            var numStacked = 0;
+            var haveTanks = actor.Role == Role.Tank;
+            var haveHealers = actor.Role == Role.Healer;
             foreach (var pair in Raid.WithoutSlot().InRadiusExcluding(actor, _stackRadius))
             {
                 ++numStacked;
@@ -71,7 +71,7 @@ class Ashplume : BossComponent
             return;
 
         // draw all raid members, to simplify positioning
-        float aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
+        var aoeRadius = CurState == State.Stack ? _stackRadius : _spreadRadius;
         foreach (var player in Raid.WithoutSlot().Exclude(pc))
         {
             Arena.Actor(player, player.Position.InCircle(pc.Position, aoeRadius) ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);

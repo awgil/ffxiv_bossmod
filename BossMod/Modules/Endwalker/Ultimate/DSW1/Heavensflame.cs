@@ -32,7 +32,7 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
         if (Raid.WithSlot().Exclude(actor).WhereSlot(s => _playerAdjustedPositions[s].InCircle(actorAdjPos, _aoeRadius)).Any())
             hints.Add("Spread!");
 
-        int partner = FindTetheredPartner(slot);
+        var partner = FindTetheredPartner(slot);
         if (partner >= 0 && _playerAdjustedPositions[partner].InCircle(actorAdjPos, _tetherBreakDistance))
             hints.Add("Aim to break tether!");
     }
@@ -57,7 +57,7 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
             //Arena.AddLine(Module.Center, adjPos, ArenaColor.Safe);
         }
 
-        int partner = FindTetheredPartner(pcSlot);
+        var partner = FindTetheredPartner(pcSlot);
         if (partner >= 0)
             Arena.AddLine(pc.Position, Raid[partner]!.Position, ArenaColor.Safe);
 
@@ -75,7 +75,7 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        int icon = (IconID)iconID switch
+        var icon = (IconID)iconID switch
         {
             IconID.HeavensflameCircle => 1,
             IconID.HeavensflameTriangle => 2,
@@ -96,7 +96,7 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
             return -1;
         if (_playerIcons[slot] == 0)
             return -1;
-        for (int i = 0; i < _playerIcons.Length; ++i)
+        for (var i = 0; i < _playerIcons.Length; ++i)
             if (i != slot && _playerIcons[i] == _playerIcons[slot])
                 return i;
         return -1;

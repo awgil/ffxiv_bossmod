@@ -76,4 +76,4 @@ class BaalStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8897)]
-public class Baal(ModuleArgs args): SimpleBossModule(args) { }
+public class Baal(ModuleArgs args) : SimpleBossModule(args) { }

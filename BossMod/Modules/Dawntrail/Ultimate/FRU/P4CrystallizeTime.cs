@@ -12,7 +12,7 @@ class P4CrystallizeTime(BossModule module) : BossComponent(module)
 
     public Actor? FindPlayerByAssignment(Mechanic mechanic, int side)
     {
-        for (int i = 0; i < PlayerMechanics.Length; ++i)
+        for (var i = 0; i < PlayerMechanics.Length; ++i)
             if (PlayerMechanics[i] == mechanic && ClawSides[i] == side)
                 return Raid[i];
         return null;
@@ -237,7 +237,7 @@ class P4CrystallizeTimeDarkWater(BossModule module) : Components.UniformStackSpr
             BitMask forbidden = default;
             if (Module.FindComponent<P4CrystallizeTime>() is var ct && ct != null)
             {
-                for (int i = 0; i < ct.PlayerMechanics.Length; ++i)
+                for (var i = 0; i < ct.PlayerMechanics.Length; ++i)
                 {
                     // should not be shared by eruption and all claws except air on slow side
                     forbidden[i] = ct.PlayerMechanics[i] switch
@@ -305,7 +305,7 @@ class P4CrystallizeTimeUnholyDarkness(BossModule module) : Components.UniformSta
             BitMask forbidden = default;
             if (Module.FindComponent<P4CrystallizeTime>() is var ct && ct != null)
             {
-                for (int i = 0; i < ct.PlayerMechanics.Length; ++i)
+                for (var i = 0; i < ct.PlayerMechanics.Length; ++i)
                 {
                     // should not be shared by all claws except blizzard on slow side
                     forbidden[i] = ct.PlayerMechanics[i] switch
@@ -352,7 +352,7 @@ class P4CrystallizeTimeTidalLight : Components.Exaflare
         if ((AID)spell.Action.ID is AID.TidalLightAOEFirst or AID.TidalLightAOERest)
         {
             ++NumCasts;
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");

@@ -154,4 +154,4 @@ class IxtabStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8890)]
-public class Ixtab(ModuleArgs args): SimpleBossModule(args);
+public class Ixtab(ModuleArgs args) : SimpleBossModule(args);

@@ -95,7 +95,7 @@ class ForkedFissures(BossModule module) : Components.GenericAOEs(module)
                 _patternStart.AddRange(patternIndex01Start);
                 _patternEnd.AddRange(patternIndex01End);
             }
-            for (int i = _patternStart.Count - 1; i >= 0; i--)
+            for (var i = _patternStart.Count - 1; i >= 0; i--)
             {
                 _aoes.Add(new(new AOEShapeRect((_patternEnd[i] - _patternStart[i]).Length(), 2), _patternStart[i], Angle.FromDirection(_patternEnd[i] - _patternStart[i]), WorldState.FutureTime(6)));
                 _patternStart.RemoveAt(i);

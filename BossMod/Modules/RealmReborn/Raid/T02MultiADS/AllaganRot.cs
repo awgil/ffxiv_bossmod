@@ -74,7 +74,7 @@ class AllaganRot(BossModule module) : BossComponent(module)
 
         foreach (var next in _rotPriority)
         {
-            int nextSlot = assignments[(int)next];
+            var nextSlot = assignments[(int)next];
             if (nextSlot != _rotHolderSlot && _immunityExpiration[nextSlot] < deadline && !(Raid[nextSlot]?.IsDead ?? true))
                 return next == assignment;
         }

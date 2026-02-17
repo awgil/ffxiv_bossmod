@@ -243,7 +243,7 @@ class Coffinfiller(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.CoffinfillerLong || (AID)spell.Action.ID is AID.CoffinfillerMed || (AID)spell.Action.ID is AID.CoffinfillerShort)
         {
-            int idx = _aoes.FindIndex(x => x.CasterID == caster.InstanceID);
+            var idx = _aoes.FindIndex(x => x.CasterID == caster.InstanceID);
             if (idx >= 0)
                 _aoes.RemoveAt(idx);
         }

@@ -71,4 +71,4 @@ class TheMudmanStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8654)]
-public class TheMudman(ModuleArgs args): SimpleBossModule(args) { }
+public class TheMudman(ModuleArgs args) : SimpleBossModule(args) { }

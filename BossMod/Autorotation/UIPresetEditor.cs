@@ -142,7 +142,7 @@ public sealed class UIPresetEditor
         {
             if (list)
             {
-                for (int i = 0; i < Preset.Modules.Count; ++i)
+                for (var i = 0; i < Preset.Modules.Count; ++i)
                 {
                     var m = Preset.Modules[i];
                     if (i != 0 && Preset.Modules[i - 1].Definition.Order != m.Definition.Order)

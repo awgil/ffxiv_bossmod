@@ -70,7 +70,7 @@ class DeathSentence(BossModule module) : Components.CastCounter(module, AID.Deat
                 case PartyRolesConfig.Assignment.OT:
                     if (!boss.ShouldBeTanked) // cooldowns should be used by previous tank, who will eat death's sentence
                     {
-                        bool useFirstCooldowns = (NumCasts & 2) == 0;
+                        var useFirstCooldowns = (NumCasts & 2) == 0;
                         switch (actor.Class)
                         {
                             case Class.WAR:

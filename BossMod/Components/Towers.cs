@@ -70,7 +70,7 @@ public class GenericTowers(BossModule module, Enum? aid = default, AIHints.Predi
         // if there are no towers to soak, add hints to avoid forbidden ones
         // note that if we're currently inside a tower that has min number of soakers, we can't leave it
         List<Func<WPos, bool>> zones = [];
-        bool haveTowersToSoak = false;
+        var haveTowersToSoak = false;
         foreach (var t in Towers.Where(t => t.Activation <= deadline))
         {
             soakingPlayers |= Raid.WithSlot().InRadius(t.Position, t.Radius).Mask();

@@ -553,7 +553,7 @@ public sealed class ActionDefinitions
     private void RegisterBozja(BozjaHolsterID id)
     {
         var normalAction = BozjaActionID.GetNormal(id);
-        bool isItem = normalAction == BozjaActionID.GetHolster(id);
+        var isItem = normalAction == BozjaActionID.GetHolster(id);
         RegisterSpell(normalAction, instantAnimLock: isItem ? 1.1f : 0.6f);
         if (!isItem)
         {

@@ -124,7 +124,7 @@ public static partial class Utils
     // lumina extensions
     public static int FindIndex<T>(this Lumina.Excel.Collection<T> collection, Func<T, bool> predicate) where T : struct
     {
-        for (int i = 0; i < collection.Count; ++i)
+        for (var i = 0; i < collection.Count; ++i)
             if (predicate(collection[i]))
                 return i;
         return -1;
@@ -211,8 +211,8 @@ public static partial class Utils
         int first = 0, size = list.Count;
         while (size > 0)
         {
-            int step = size / 2;
-            int mid = first + step;
+            var step = size / 2;
+            var mid = first + step;
             if (list.Keys[mid].CompareTo(test) < 0)
             {
                 first = mid + 1;
@@ -232,8 +232,8 @@ public static partial class Utils
         int first = 0, size = list.Count;
         while (size > 0)
         {
-            int step = size / 2;
-            int mid = first + step;
+            var step = size / 2;
+            var mid = first + step;
             if (list.Keys[mid].CompareTo(test) <= 0)
             {
                 first = mid + 1;
@@ -301,8 +301,8 @@ public static partial class Utils
     {
         list.Sort();
         var span = list.AsSpan();
-        int last = 0;
-        for (int i = 1; i < list.Count; ++i)
+        var last = 0;
+        for (var i = 1; i < list.Count; ++i)
         {
             if (!span[i].Equals(span[last]))
             {

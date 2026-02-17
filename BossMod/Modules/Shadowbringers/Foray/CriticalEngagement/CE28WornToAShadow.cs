@@ -141,7 +141,7 @@ class Foreshadowing(BossModule module) : Components.GenericAOEs(module)
     {
         _bossAOE = shape;
         _addActivation = new();
-        for (int i = 0; i < _addAOEs.Count; ++i)
+        for (var i = 0; i < _addAOEs.Count; ++i)
             if (_addAOEs[i].shape == null)
                 _addAOEs[i] = (_addAOEs[i].caster, shape);
     }

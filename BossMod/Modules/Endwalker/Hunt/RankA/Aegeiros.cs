@@ -62,4 +62,4 @@ class AegeirosStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10628)]
-public class Aegeiros(ModuleArgs args): SimpleBossModule(args);
+public class Aegeiros(ModuleArgs args) : SimpleBossModule(args);

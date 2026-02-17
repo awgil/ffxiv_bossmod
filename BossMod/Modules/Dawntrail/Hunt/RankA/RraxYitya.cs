@@ -94,4 +94,4 @@ class RraxYityaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 12753)]
-public class RraxYitya(ModuleArgs args): SimpleBossModule(args);
+public class RraxYitya(ModuleArgs args) : SimpleBossModule(args);

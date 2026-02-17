@@ -26,4 +26,4 @@ class CrystalIncarnationStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13407)]
-public class CrystalIncarnation(ModuleArgs args): SimpleBossModule(args);
+public class CrystalIncarnation(ModuleArgs args) : SimpleBossModule(args);

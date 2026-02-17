@@ -90,4 +90,4 @@ class SugaarStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8902)]
-public class Sugaar(ModuleArgs args): SimpleBossModule(args) { }
+public class Sugaar(ModuleArgs args) : SimpleBossModule(args) { }

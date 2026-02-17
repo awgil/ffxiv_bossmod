@@ -142,59 +142,59 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.AstralStasis, castAnimLock: 8.10f); // animLock=8.100s?
-        d.RegisterSpell(AID.Malefic);
-        d.RegisterSpell(AID.Benefic);
-        d.RegisterSpell(AID.Combust);
-        d.RegisterSpell(AID.Lightspeed);
-        d.RegisterSpell(AID.Helios);
-        d.RegisterSpell(AID.Ascend);
-        d.RegisterSpell(AID.EssentialDignity);
-        d.RegisterSpell(AID.BeneficII);
-        d.RegisterSpell(AID.TheBole);
-        d.RegisterSpell(AID.TheSpear);
-        d.RegisterSpell(AID.TheArrow);
-        d.RegisterSpell(AID.TheBalance);
-        d.RegisterSpell(AID.PlayIII);
-        d.RegisterSpell(AID.AstralDraw);
-        d.RegisterSpell(AID.UmbralDraw);
-        d.RegisterSpell(AID.TheSpire);
-        d.RegisterSpell(AID.TheEwer);
-        d.RegisterSpell(AID.PlayII);
-        d.RegisterSpell(AID.PlayI);
-        d.RegisterSpell(AID.AspectedBenefic);
-        d.RegisterSpell(AID.AspectedHelios);
-        d.RegisterSpell(AID.Gravity);
-        d.RegisterSpell(AID.CombustII);
-        d.RegisterSpell(AID.Synastry);
-        d.RegisterSpell(AID.Divination);
-        d.RegisterSpell(AID.MaleficII);
-        d.RegisterSpell(AID.CollectiveUnconscious);
-        d.RegisterSpell(AID.CelestialOpposition);
-        d.RegisterSpell(AID.EarthlyStar);
-        d.RegisterSpell(AID.StellarDetonation);
-        d.RegisterSpell(AID.MaleficIII);
-        d.RegisterSpell(AID.LordOfCrowns);
-        d.RegisterSpell(AID.MinorArcana);
-        d.RegisterSpell(AID.LadyOfCrowns);
-        d.RegisterSpell(AID.MaleficIV);
-        d.RegisterSpell(AID.CombustIII);
-        d.RegisterSpell(AID.CelestialIntersection);
-        d.RegisterSpell(AID.HoroscopeEnd);
-        d.RegisterSpell(AID.Horoscope);
-        d.RegisterSpell(AID.NeutralSect);
-        d.RegisterSpell(AID.GravityII);
-        d.RegisterSpell(AID.FallMalefic);
-        d.RegisterSpell(AID.Exaltation);
-        d.RegisterSpell(AID.Macrocosmos);
-        d.RegisterSpell(AID.MicrocosmosEnd);
-        d.RegisterSpell(AID.Oracle);
-        d.RegisterSpell(AID.HeliosConjunction);
-        d.RegisterSpell(AID.SunSign);
+        defs.RegisterSpell(AID.AstralStasis, castAnimLock: 8.10f); // animLock=8.100s?
+        defs.RegisterSpell(AID.Malefic);
+        defs.RegisterSpell(AID.Benefic);
+        defs.RegisterSpell(AID.Combust);
+        defs.RegisterSpell(AID.Lightspeed);
+        defs.RegisterSpell(AID.Helios);
+        defs.RegisterSpell(AID.Ascend);
+        defs.RegisterSpell(AID.EssentialDignity);
+        defs.RegisterSpell(AID.BeneficII);
+        defs.RegisterSpell(AID.TheBole);
+        defs.RegisterSpell(AID.TheSpear);
+        defs.RegisterSpell(AID.TheArrow);
+        defs.RegisterSpell(AID.TheBalance);
+        defs.RegisterSpell(AID.PlayIII);
+        defs.RegisterSpell(AID.AstralDraw);
+        defs.RegisterSpell(AID.UmbralDraw);
+        defs.RegisterSpell(AID.TheSpire);
+        defs.RegisterSpell(AID.TheEwer);
+        defs.RegisterSpell(AID.PlayII);
+        defs.RegisterSpell(AID.PlayI);
+        defs.RegisterSpell(AID.AspectedBenefic);
+        defs.RegisterSpell(AID.AspectedHelios);
+        defs.RegisterSpell(AID.Gravity);
+        defs.RegisterSpell(AID.CombustII);
+        defs.RegisterSpell(AID.Synastry);
+        defs.RegisterSpell(AID.Divination);
+        defs.RegisterSpell(AID.MaleficII);
+        defs.RegisterSpell(AID.CollectiveUnconscious);
+        defs.RegisterSpell(AID.CelestialOpposition);
+        defs.RegisterSpell(AID.EarthlyStar);
+        defs.RegisterSpell(AID.StellarDetonation);
+        defs.RegisterSpell(AID.MaleficIII);
+        defs.RegisterSpell(AID.LordOfCrowns);
+        defs.RegisterSpell(AID.MinorArcana);
+        defs.RegisterSpell(AID.LadyOfCrowns);
+        defs.RegisterSpell(AID.MaleficIV);
+        defs.RegisterSpell(AID.CombustIII);
+        defs.RegisterSpell(AID.CelestialIntersection);
+        defs.RegisterSpell(AID.HoroscopeEnd);
+        defs.RegisterSpell(AID.Horoscope);
+        defs.RegisterSpell(AID.NeutralSect);
+        defs.RegisterSpell(AID.GravityII);
+        defs.RegisterSpell(AID.FallMalefic);
+        defs.RegisterSpell(AID.Exaltation);
+        defs.RegisterSpell(AID.Macrocosmos);
+        defs.RegisterSpell(AID.MicrocosmosEnd);
+        defs.RegisterSpell(AID.Oracle);
+        defs.RegisterSpell(AID.HeliosConjunction);
+        defs.RegisterSpell(AID.SunSign);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

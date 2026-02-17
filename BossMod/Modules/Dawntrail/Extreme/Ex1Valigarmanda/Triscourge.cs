@@ -8,7 +8,7 @@ class FireScourgeOfFire(BossModule module) : Components.UniformStackSpread(modul
     public int RemainingCasts()
     {
         var max = 0;
-        for (int i = 0; i < Stacks.Count; ++i)
+        for (var i = 0; i < Stacks.Count; ++i)
         {
             if (Stacks[i].Target.IsDead)
                 continue;

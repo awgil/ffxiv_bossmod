@@ -93,7 +93,7 @@ class EventList(BossModuleRegistry bmr, Replay r, Action<DateTime> scrollTo, Act
             }
         }
 
-        bool haveActions = actions.Any();
+        var haveActions = actions.Any();
         bool actionIsCrap(Replay.Action a) => a.Source.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo || a.Source.AllyAt(a.Timestamp) || Service.LuminaRow<Lumina.Excel.Sheets.Action>(a.ID.ID)?.ActionCategory.RowId == 1;
         foreach (var n in _tree.Node("Interesting actions", !haveActions))
         {
@@ -104,7 +104,7 @@ class EventList(BossModuleRegistry bmr, Replay r, Action<DateTime> scrollTo, Act
             DrawActions(actions.Where(actionIsCrap), tp, aidType);
         }
 
-        bool haveStatuses = statuses.Any();
+        var haveStatuses = statuses.Any();
         bool statusIsCrap(Replay.Status s) => s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo || s.Target.Type is ActorType.Pet or ActorType.Chocobo;
         foreach (var n in _tree.Node("Interesting statuses", !haveStatuses))
         {
@@ -274,7 +274,7 @@ class EventList(BossModuleRegistry bmr, Replay r, Action<DateTime> scrollTo, Act
         if (ImGui.Button("Show timeline"))
             OpenTimeline(enc, new());
         ImGui.SameLine();
-        for (int i = 0; i < enc.PartyMembers.Count; i++)
+        for (var i = 0; i < enc.PartyMembers.Count; i++)
         {
             var (p, c, l) = enc.PartyMembers[i];
             if (ImGui.Button($"{c}{l} {p.NameHistory.FirstOrDefault().Value.name}"))

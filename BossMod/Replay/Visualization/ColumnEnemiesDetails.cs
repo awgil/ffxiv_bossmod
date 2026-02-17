@@ -45,7 +45,7 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
         var moduleInfo = _bmr.FindByOID(_encounter.OID);
         foreach (var n in tree.Nodes(_data, d => new($"{d.OID:X} ({moduleInfo?.ObjectIDType?.GetEnumName(d.OID)})")))
         {
-            for (int i = 0; i < n.Columns.Count; i++)
+            for (var i = 0; i < n.Columns.Count; i++)
             {
                 var (p, c) = n.Columns[i];
                 if (c != null)

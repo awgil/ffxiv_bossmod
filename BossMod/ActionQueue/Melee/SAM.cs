@@ -107,50 +107,50 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.DoomOfTheLiving, castAnimLock: 3.70f); // animLock=3.700s?
-        d.RegisterSpell(AID.Hakaze);
-        d.RegisterSpell(AID.Jinpu);
-        d.RegisterSpell(AID.ThirdEye);
-        d.RegisterSpell(AID.Enpi);
-        d.RegisterSpell(AID.Shifu);
-        d.RegisterSpell(AID.Fuga);
-        d.RegisterSpell(AID.Iaijutsu);
-        d.RegisterSpell(AID.Gekko);
-        d.RegisterSpell(AID.Higanbana, instantAnimLock: 0.10f); // animLock=0.100s?
-        d.RegisterSpell(AID.Mangetsu);
-        d.RegisterSpell(AID.Kasha);
-        d.RegisterSpell(AID.TenkaGoken);
-        d.RegisterSpell(AID.Oka);
-        d.RegisterSpell(AID.MidareSetsugekka); // animLock=???
-        d.RegisterSpell(AID.MeikyoShisui);
-        d.RegisterSpell(AID.Yukikaze);
-        d.RegisterSpell(AID.HissatsuShinten);
-        d.RegisterSpell(AID.HissatsuGyoten);
-        d.RegisterSpell(AID.HissatsuYaten, instantAnimLock: 0.80f); // animLock=0.800
-        d.RegisterSpell(AID.Meditate);
-        d.RegisterSpell(AID.HissatsuKyuten);
-        d.RegisterSpell(AID.Hagakure);
-        d.RegisterSpell(AID.Ikishoten);
-        d.RegisterSpell(AID.HissatsuGuren);
-        d.RegisterSpell(AID.HissatsuSenei);
-        d.RegisterSpell(AID.TsubameGaeshi);
-        d.RegisterSpell(AID.KaeshiSetsugekka);
-        d.RegisterSpell(AID.KaeshiGoken);
-        d.RegisterSpell(AID.Shoha);
-        d.RegisterSpell(AID.Tengentsu);
-        d.RegisterSpell(AID.Fuko);
-        d.RegisterSpell(AID.OgiNamikiri);
-        d.RegisterSpell(AID.KaeshiNamikiri);
-        d.RegisterSpell(AID.Gyofu); // animLock=???
-        d.RegisterSpell(AID.Zanshin); // animLock=???
-        d.RegisterSpell(AID.TendoGoken); // animLock=???
-        d.RegisterSpell(AID.TendoSetsugekka); // animLock=???
-        d.RegisterSpell(AID.TendoKaeshiGoken); // animLock=???
-        d.RegisterSpell(AID.TendoKaeshiSetsugekka); // animLock=???
+        defs.RegisterSpell(AID.DoomOfTheLiving, castAnimLock: 3.70f); // animLock=3.700s?
+        defs.RegisterSpell(AID.Hakaze);
+        defs.RegisterSpell(AID.Jinpu);
+        defs.RegisterSpell(AID.ThirdEye);
+        defs.RegisterSpell(AID.Enpi);
+        defs.RegisterSpell(AID.Shifu);
+        defs.RegisterSpell(AID.Fuga);
+        defs.RegisterSpell(AID.Iaijutsu);
+        defs.RegisterSpell(AID.Gekko);
+        defs.RegisterSpell(AID.Higanbana, instantAnimLock: 0.10f); // animLock=0.100s?
+        defs.RegisterSpell(AID.Mangetsu);
+        defs.RegisterSpell(AID.Kasha);
+        defs.RegisterSpell(AID.TenkaGoken);
+        defs.RegisterSpell(AID.Oka);
+        defs.RegisterSpell(AID.MidareSetsugekka); // animLock=???
+        defs.RegisterSpell(AID.MeikyoShisui);
+        defs.RegisterSpell(AID.Yukikaze);
+        defs.RegisterSpell(AID.HissatsuShinten);
+        defs.RegisterSpell(AID.HissatsuGyoten);
+        defs.RegisterSpell(AID.HissatsuYaten, instantAnimLock: 0.80f); // animLock=0.800
+        defs.RegisterSpell(AID.Meditate);
+        defs.RegisterSpell(AID.HissatsuKyuten);
+        defs.RegisterSpell(AID.Hagakure);
+        defs.RegisterSpell(AID.Ikishoten);
+        defs.RegisterSpell(AID.HissatsuGuren);
+        defs.RegisterSpell(AID.HissatsuSenei);
+        defs.RegisterSpell(AID.TsubameGaeshi);
+        defs.RegisterSpell(AID.KaeshiSetsugekka);
+        defs.RegisterSpell(AID.KaeshiGoken);
+        defs.RegisterSpell(AID.Shoha);
+        defs.RegisterSpell(AID.Tengentsu);
+        defs.RegisterSpell(AID.Fuko);
+        defs.RegisterSpell(AID.OgiNamikiri);
+        defs.RegisterSpell(AID.KaeshiNamikiri);
+        defs.RegisterSpell(AID.Gyofu); // animLock=???
+        defs.RegisterSpell(AID.Zanshin); // animLock=???
+        defs.RegisterSpell(AID.TendoGoken); // animLock=???
+        defs.RegisterSpell(AID.TendoSetsugekka); // animLock=???
+        defs.RegisterSpell(AID.TendoKaeshiGoken); // animLock=???
+        defs.RegisterSpell(AID.TendoKaeshiSetsugekka); // animLock=???
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

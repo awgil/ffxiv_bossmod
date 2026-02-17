@@ -129,66 +129,66 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.Chimatsuri, castAnimLock: 3.70f); // animLock=3.700s?
-        d.RegisterSpell(AID.SpinningEdge);
-        d.RegisterSpell(AID.ShadeShift);
-        d.RegisterSpell(AID.GustSlash);
-        d.RegisterSpell(AID.Hide);
-        d.RegisterSpell(AID.ThrowingDagger);
-        d.RegisterSpell(AID.Mug);
-        d.RegisterSpell(AID.TrickAttack);
-        d.RegisterSpell(AID.AeolianEdge);
-        d.RegisterSpell(AID.FumaShuriken);
-        d.RegisterSpell(AID.Ninjutsu);
-        d.RegisterSpell(AID.FumaJin);
-        d.RegisterSpell(AID.FumaChi);
-        d.RegisterSpell(AID.FumaTen);
-        d.RegisterSpell(AID.Ten1, instantAnimLock: 0.35f); // animLock=0.350
-        d.RegisterSpell(AID.RabbitMedium);
-        d.RegisterSpell(AID.Ten2, instantAnimLock: 0.35f); // animLock=0.350
-        d.RegisterSpell(AID.TCJRaiton);
-        d.RegisterSpell(AID.Chi2, instantAnimLock: 0.35f); // animLock=0.350
-        d.RegisterSpell(AID.Raiton);
-        d.RegisterSpell(AID.TCJKaton);
-        d.RegisterSpell(AID.Chi1, instantAnimLock: 0.35f); // animLock=0.350
-        d.RegisterSpell(AID.Katon);
-        d.RegisterSpell(AID.DeathBlossom);
-        d.RegisterSpell(AID.Assassinate);
-        d.RegisterSpell(AID.Shukuchi, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.Jin1, instantAnimLock: 0.35f); // animLock=0.350
-        d.RegisterSpell(AID.TCJSuiton);
-        d.RegisterSpell(AID.TCJDoton);
-        d.RegisterSpell(AID.TCJHuton);
-        d.RegisterSpell(AID.TCJHyoton);
-        d.RegisterSpell(AID.Hyoton);
-        d.RegisterSpell(AID.Huton);
-        d.RegisterSpell(AID.Suiton);
-        d.RegisterSpell(AID.Jin2, instantAnimLock: 0.35f); // animLock=0.350
-        d.RegisterSpell(AID.Doton);
-        d.RegisterSpell(AID.Kassatsu);
-        d.RegisterSpell(AID.HakkeMujinsatsu);
-        d.RegisterSpell(AID.ArmorCrush);
-        d.RegisterSpell(AID.DreamWithinADream);
-        d.RegisterSpell(AID.HellfrogMedium);
-        d.RegisterSpell(AID.Dokumori);
-        d.RegisterSpell(AID.Bhavacakra);
-        d.RegisterSpell(AID.TenChiJin);
-        d.RegisterSpell(AID.Meisui);
-        d.RegisterSpell(AID.HyoshoRanryu);
-        d.RegisterSpell(AID.GokaMekkyaku);
-        d.RegisterSpell(AID.Bunshin);
-        d.RegisterSpell(AID.PhantomKamaitachi);
-        d.RegisterSpell(AID.HollowNozuchi);
-        d.RegisterSpell(AID.FleetingRaiju);
-        d.RegisterSpell(AID.ForkedRaiju);
-        d.RegisterSpell(AID.KunaisBane);
-        d.RegisterSpell(AID.DeathfrogMedium);
-        d.RegisterSpell(AID.ZeshoMeppo);
-        d.RegisterSpell(AID.TenriJindo);
+        defs.RegisterSpell(AID.Chimatsuri, castAnimLock: 3.70f); // animLock=3.700s?
+        defs.RegisterSpell(AID.SpinningEdge);
+        defs.RegisterSpell(AID.ShadeShift);
+        defs.RegisterSpell(AID.GustSlash);
+        defs.RegisterSpell(AID.Hide);
+        defs.RegisterSpell(AID.ThrowingDagger);
+        defs.RegisterSpell(AID.Mug);
+        defs.RegisterSpell(AID.TrickAttack);
+        defs.RegisterSpell(AID.AeolianEdge);
+        defs.RegisterSpell(AID.FumaShuriken);
+        defs.RegisterSpell(AID.Ninjutsu);
+        defs.RegisterSpell(AID.FumaJin);
+        defs.RegisterSpell(AID.FumaChi);
+        defs.RegisterSpell(AID.FumaTen);
+        defs.RegisterSpell(AID.Ten1, instantAnimLock: 0.35f); // animLock=0.350
+        defs.RegisterSpell(AID.RabbitMedium);
+        defs.RegisterSpell(AID.Ten2, instantAnimLock: 0.35f); // animLock=0.350
+        defs.RegisterSpell(AID.TCJRaiton);
+        defs.RegisterSpell(AID.Chi2, instantAnimLock: 0.35f); // animLock=0.350
+        defs.RegisterSpell(AID.Raiton);
+        defs.RegisterSpell(AID.TCJKaton);
+        defs.RegisterSpell(AID.Chi1, instantAnimLock: 0.35f); // animLock=0.350
+        defs.RegisterSpell(AID.Katon);
+        defs.RegisterSpell(AID.DeathBlossom);
+        defs.RegisterSpell(AID.Assassinate);
+        defs.RegisterSpell(AID.Shukuchi, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.Jin1, instantAnimLock: 0.35f); // animLock=0.350
+        defs.RegisterSpell(AID.TCJSuiton);
+        defs.RegisterSpell(AID.TCJDoton);
+        defs.RegisterSpell(AID.TCJHuton);
+        defs.RegisterSpell(AID.TCJHyoton);
+        defs.RegisterSpell(AID.Hyoton);
+        defs.RegisterSpell(AID.Huton);
+        defs.RegisterSpell(AID.Suiton);
+        defs.RegisterSpell(AID.Jin2, instantAnimLock: 0.35f); // animLock=0.350
+        defs.RegisterSpell(AID.Doton);
+        defs.RegisterSpell(AID.Kassatsu);
+        defs.RegisterSpell(AID.HakkeMujinsatsu);
+        defs.RegisterSpell(AID.ArmorCrush);
+        defs.RegisterSpell(AID.DreamWithinADream);
+        defs.RegisterSpell(AID.HellfrogMedium);
+        defs.RegisterSpell(AID.Dokumori);
+        defs.RegisterSpell(AID.Bhavacakra);
+        defs.RegisterSpell(AID.TenChiJin);
+        defs.RegisterSpell(AID.Meisui);
+        defs.RegisterSpell(AID.HyoshoRanryu);
+        defs.RegisterSpell(AID.GokaMekkyaku);
+        defs.RegisterSpell(AID.Bunshin);
+        defs.RegisterSpell(AID.PhantomKamaitachi);
+        defs.RegisterSpell(AID.HollowNozuchi);
+        defs.RegisterSpell(AID.FleetingRaiju);
+        defs.RegisterSpell(AID.ForkedRaiju);
+        defs.RegisterSpell(AID.KunaisBane);
+        defs.RegisterSpell(AID.DeathfrogMedium);
+        defs.RegisterSpell(AID.ZeshoMeppo);
+        defs.RegisterSpell(AID.TenriJindo);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

@@ -122,58 +122,58 @@ public enum SID : uint
     Peloton = ClassShared.SID.Peloton, // applied by Peloton to self/party
 }
 
-sealed class Definitions(DNCConfig _config) : IDefinitions
+sealed class Definitions(DNCConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.CrimsonLotus, true, castAnimLock: 3.70f); // animLock=???, castAnimLock=3.700
-        d.RegisterSpell(AID.Cascade, true);
-        d.RegisterSpell(AID.Fountain, true);
-        d.RegisterSpell(AID.SingleStandardFinish, true);
-        d.RegisterSpell(AID.DoubleStandardFinish, true);
-        d.RegisterSpell(AID.StandardFinish, true);
-        d.RegisterSpell(AID.Pirouette, true);
-        d.RegisterSpell(AID.Jete, true);
-        d.RegisterSpell(AID.Entrechat, true);
-        d.RegisterSpell(AID.Emboite, true);
-        d.RegisterSpell(AID.Windmill, true);
-        d.RegisterSpell(AID.StandardStep, true);
-        d.RegisterSpell(AID.ReverseCascade, true);
-        d.RegisterSpell(AID.Bladeshower, true);
-        d.RegisterSpell(AID.FanDance, true);
-        d.RegisterSpell(AID.RisingWindmill, true);
-        d.RegisterSpell(AID.Fountainfall, true);
-        d.RegisterSpell(AID.Bloodshower, true);
-        d.RegisterSpell(AID.EnAvant, true);
-        d.RegisterSpell(AID.FanDanceII, true);
-        d.RegisterSpell(AID.CuringWaltz, true);
-        d.RegisterSpell(AID.ShieldSamba, true);
-        d.RegisterSpell(AID.ClosedPosition, true);
-        d.RegisterSpell(AID.Ending, true);
-        d.RegisterSpell(AID.Devilment, true);
-        d.RegisterSpell(AID.FanDanceIII, true);
-        d.RegisterSpell(AID.TechnicalStep, true);
-        d.RegisterSpell(AID.TechnicalFinish, true);
-        d.RegisterSpell(AID.SingleTechnicalFinish, true);
-        d.RegisterSpell(AID.DoubleTechnicalFinish, true);
-        d.RegisterSpell(AID.TripleTechnicalFinish, true);
-        d.RegisterSpell(AID.QuadrupleTechnicalFinish, true);
-        d.RegisterSpell(AID.SingleTechnicalFinish2, true); // animLock=???
-        d.RegisterSpell(AID.DoubleTechnicalFinish2, true); // animLock=???
-        d.RegisterSpell(AID.TripleTechnicalFinish2, true); // animLock=???
-        d.RegisterSpell(AID.QuadrupleTechnicalFinish2, true); // animLock=???
-        d.RegisterSpell(AID.Flourish, true);
-        d.RegisterSpell(AID.SaberDance, true);
-        d.RegisterSpell(AID.Improvisation, true);
-        d.RegisterSpell(AID.ImprovisedFinish, true);
-        d.RegisterSpell(AID.Tillana, true);
-        d.RegisterSpell(AID.FanDanceIV, true);
-        d.RegisterSpell(AID.StarfallDance, true);
-        d.RegisterSpell(AID.LastDance, true);
-        d.RegisterSpell(AID.FinishingMove, true);
-        d.RegisterSpell(AID.DanceOfTheDawn, true);
+        defs.RegisterSpell(AID.CrimsonLotus, true, castAnimLock: 3.70f); // animLock=???, castAnimLock=3.700
+        defs.RegisterSpell(AID.Cascade, true);
+        defs.RegisterSpell(AID.Fountain, true);
+        defs.RegisterSpell(AID.SingleStandardFinish, true);
+        defs.RegisterSpell(AID.DoubleStandardFinish, true);
+        defs.RegisterSpell(AID.StandardFinish, true);
+        defs.RegisterSpell(AID.Pirouette, true);
+        defs.RegisterSpell(AID.Jete, true);
+        defs.RegisterSpell(AID.Entrechat, true);
+        defs.RegisterSpell(AID.Emboite, true);
+        defs.RegisterSpell(AID.Windmill, true);
+        defs.RegisterSpell(AID.StandardStep, true);
+        defs.RegisterSpell(AID.ReverseCascade, true);
+        defs.RegisterSpell(AID.Bladeshower, true);
+        defs.RegisterSpell(AID.FanDance, true);
+        defs.RegisterSpell(AID.RisingWindmill, true);
+        defs.RegisterSpell(AID.Fountainfall, true);
+        defs.RegisterSpell(AID.Bloodshower, true);
+        defs.RegisterSpell(AID.EnAvant, true);
+        defs.RegisterSpell(AID.FanDanceII, true);
+        defs.RegisterSpell(AID.CuringWaltz, true);
+        defs.RegisterSpell(AID.ShieldSamba, true);
+        defs.RegisterSpell(AID.ClosedPosition, true);
+        defs.RegisterSpell(AID.Ending, true);
+        defs.RegisterSpell(AID.Devilment, true);
+        defs.RegisterSpell(AID.FanDanceIII, true);
+        defs.RegisterSpell(AID.TechnicalStep, true);
+        defs.RegisterSpell(AID.TechnicalFinish, true);
+        defs.RegisterSpell(AID.SingleTechnicalFinish, true);
+        defs.RegisterSpell(AID.DoubleTechnicalFinish, true);
+        defs.RegisterSpell(AID.TripleTechnicalFinish, true);
+        defs.RegisterSpell(AID.QuadrupleTechnicalFinish, true);
+        defs.RegisterSpell(AID.SingleTechnicalFinish2, true); // animLock=???
+        defs.RegisterSpell(AID.DoubleTechnicalFinish2, true); // animLock=???
+        defs.RegisterSpell(AID.TripleTechnicalFinish2, true); // animLock=???
+        defs.RegisterSpell(AID.QuadrupleTechnicalFinish2, true); // animLock=???
+        defs.RegisterSpell(AID.Flourish, true);
+        defs.RegisterSpell(AID.SaberDance, true);
+        defs.RegisterSpell(AID.Improvisation, true);
+        defs.RegisterSpell(AID.ImprovisedFinish, true);
+        defs.RegisterSpell(AID.Tillana, true);
+        defs.RegisterSpell(AID.FanDanceIV, true);
+        defs.RegisterSpell(AID.StarfallDance, true);
+        defs.RegisterSpell(AID.LastDance, true);
+        defs.RegisterSpell(AID.FinishingMove, true);
+        defs.RegisterSpell(AID.DanceOfTheDawn, true);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -184,7 +184,7 @@ sealed class Definitions(DNCConfig _config) : IDefinitions
         d.RegisterChargeIncreaseTrait(AID.EnAvant, TraitID.EnhancedEnAvantII);
         d.RegisterChargeIncreaseTrait(AID.EnAvant, TraitID.EnhancedEnAvant);
 
-        d.Spell(AID.EnAvant)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+        d.Spell(AID.EnAvant)!.TransformAngle = (ws, _, _, _) => config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
 

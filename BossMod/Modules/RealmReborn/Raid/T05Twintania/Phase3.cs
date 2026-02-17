@@ -48,7 +48,7 @@ class P3Adds(BossModule module) : BossComponent(module)
     {
         var nextHygieia = ActiveHygieia.MinBy(a => a.InstanceID); // select next add to kill by lowest hp
         var asclepiusVuln = Asclepius.FirstOrDefault()?.FindStatus(SID.Disseminate);
-        bool killHygieia = asclepiusVuln == null || (asclepiusVuln.Value.ExpireAt - WorldState.CurrentTime).TotalSeconds < 10;
+        var killHygieia = asclepiusVuln == null || (asclepiusVuln.Value.ExpireAt - WorldState.CurrentTime).TotalSeconds < 10;
         foreach (var e in hints.PotentialTargets)
         {
             switch ((OID)e.Actor.OID)
@@ -60,7 +60,7 @@ class P3Adds(BossModule module) : BossComponent(module)
                         : predictedHP < 0.3f * e.Actor.HPMP.MaxHP ? -1
                         : 1;
                     e.ShouldBeTanked = assignment == PartyRolesConfig.Assignment.OT;
-                    bool gtfo = predictedHP <= (e.ShouldBeTanked ? 1 : 0.1f * e.Actor.HPMP.MaxHP);
+                    var gtfo = predictedHP <= (e.ShouldBeTanked ? 1 : 0.1f * e.Actor.HPMP.MaxHP);
                     if (gtfo)
                         hints.AddForbiddenZone(ShapeContains.Circle(e.Actor.Position, 9));
                     break;
@@ -102,8 +102,8 @@ class P3AethericProfusion(BossModule module) : Components.CastCounter(module, AI
         var closerNeurolink = neurolinks.Closest(Module.PrimaryActor.Position);
         foreach (var neurolink in neurolinks)
         {
-            bool isClosest = neurolink == closerNeurolink;
-            bool stayAtClosest = assignment != PartyRolesConfig.Assignment.MT;
+            var isClosest = neurolink == closerNeurolink;
+            var stayAtClosest = assignment != PartyRolesConfig.Assignment.MT;
             if (isClosest == stayAtClosest)
                 hints.AddForbiddenZone(ShapeContains.InvertedCircle(neurolink.Position, T05Twintania.NeurolinkRadius), _activation);
         }

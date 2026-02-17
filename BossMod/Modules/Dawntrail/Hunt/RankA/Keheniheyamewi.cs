@@ -79,4 +79,4 @@ class KeheniheyamewiStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13401)]
-public class Keheniheyamewi(ModuleArgs args): SimpleBossModule(args);
+public class Keheniheyamewi(ModuleArgs args) : SimpleBossModule(args);

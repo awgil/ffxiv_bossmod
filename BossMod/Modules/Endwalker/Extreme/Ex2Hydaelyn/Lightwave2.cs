@@ -27,7 +27,7 @@ class Lightwave2(BossModule module) : LightwaveCommon(module)
         if ((Module.PrimaryActor.CastInfo?.IsSpell(AID.HerosGlory) ?? false) && _gloryAOE.Check(actor.Position, Module.PrimaryActor))
             hints.Add("GTFO from glory aoe!");
 
-        (bool inWave, bool inSafeCone) = NumCasts < 4
+        (var inWave, var inSafeCone) = NumCasts < 4
             ? (WaveAOE.Check(actor.Position, Wave1Pos(), 0.Degrees()) || WaveAOE.Check(actor.Position, Wave2Pos(), 0.Degrees()), InSafeCone(NextSideCrystal(), _crystalCenter, actor.Position))
             : (WaveAOE.Check(actor.Position, Wave3Pos(), 0.Degrees()), _safeCrystal == default || InSafeCone(_crystalCenter, _safeCrystal, actor.Position));
 
@@ -69,10 +69,10 @@ class Lightwave2(BossModule module) : LightwaveCommon(module)
 
     private WPos NextSideCrystal()
     {
-        bool w1Next = (NumCasts & 1) == 0;
-        bool w1Left = Wave1Pos().X < 100;
-        float nextX = w1Next == w1Left ? _crystalTL.X : _crystalBR.X;
-        float nextZ = (NumCasts & 2) == 0 ? _crystalTL.Z : _crystalBR.Z;
+        var w1Next = (NumCasts & 1) == 0;
+        var w1Left = Wave1Pos().X < 100;
+        var nextX = w1Next == w1Left ? _crystalTL.X : _crystalBR.X;
+        var nextZ = (NumCasts & 2) == 0 ? _crystalTL.Z : _crystalBR.Z;
         return new(nextX, nextZ);
     }
 }

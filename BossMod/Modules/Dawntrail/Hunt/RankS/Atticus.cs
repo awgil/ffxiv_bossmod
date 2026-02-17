@@ -151,4 +151,4 @@ class AtticusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13156)]
-public class Atticus(ModuleArgs args): SimpleBossModule(args);
+public class Atticus(ModuleArgs args) : SimpleBossModule(args);

@@ -116,56 +116,56 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.WorldSwallower);
-        d.RegisterSpell(AID.SteelFangs);
-        d.RegisterSpell(AID.HuntersSting);
-        d.RegisterSpell(AID.ReavingFangs);
-        d.RegisterSpell(AID.WrithingSnap);
-        d.RegisterSpell(AID.SwiftskinsSting);
-        d.RegisterSpell(AID.SteelMaw);
-        d.RegisterSpell(AID.FlankstingStrike);
-        d.RegisterSpell(AID.FlanksbaneFang);
-        d.RegisterSpell(AID.HindstingStrike);
-        d.RegisterSpell(AID.HindsbaneFang);
-        d.RegisterSpell(AID.ReavingMaw);
-        d.RegisterSpell(AID.Slither);
-        d.RegisterSpell(AID.HuntersBite);
-        d.RegisterSpell(AID.SwiftskinsBite);
-        d.RegisterSpell(AID.JaggedMaw);
-        d.RegisterSpell(AID.BloodiedMaw);
-        d.RegisterSpell(AID.DeathRattle);
-        d.RegisterSpell(AID.SerpentsTail);
-        d.RegisterSpell(AID.LastLash);
-        d.RegisterSpell(AID.Vicewinder);
-        d.RegisterSpell(AID.HuntersCoil);
-        d.RegisterSpell(AID.SwiftskinsCoil);
-        d.RegisterSpell(AID.Vicepit);
-        d.RegisterSpell(AID.SwiftskinsDen);
-        d.RegisterSpell(AID.HuntersDen);
-        d.RegisterSpell(AID.TwinfangBite);
-        d.RegisterSpell(AID.TwinbloodBite);
-        d.RegisterSpell(AID.Twinblood);
-        d.RegisterSpell(AID.Twinfang);
-        d.RegisterSpell(AID.TwinfangThresh);
-        d.RegisterSpell(AID.TwinbloodThresh);
-        d.RegisterSpell(AID.UncoiledFury);
-        d.RegisterSpell(AID.SerpentsIre);
-        d.RegisterSpell(AID.ThirdGeneration);
-        d.RegisterSpell(AID.FourthGeneration);
-        d.RegisterSpell(AID.SecondGeneration);
-        d.RegisterSpell(AID.FirstGeneration);
-        d.RegisterSpell(AID.Reawaken);
-        d.RegisterSpell(AID.UncoiledTwinfang);
-        d.RegisterSpell(AID.UncoiledTwinblood);
-        d.RegisterSpell(AID.Ouroboros);
-        d.RegisterSpell(AID.FourthLegacy);
-        d.RegisterSpell(AID.SecondLegacy);
-        d.RegisterSpell(AID.FirstLegacy);
-        d.RegisterSpell(AID.ThirdLegacy);
+        defs.RegisterSpell(AID.WorldSwallower);
+        defs.RegisterSpell(AID.SteelFangs);
+        defs.RegisterSpell(AID.HuntersSting);
+        defs.RegisterSpell(AID.ReavingFangs);
+        defs.RegisterSpell(AID.WrithingSnap);
+        defs.RegisterSpell(AID.SwiftskinsSting);
+        defs.RegisterSpell(AID.SteelMaw);
+        defs.RegisterSpell(AID.FlankstingStrike);
+        defs.RegisterSpell(AID.FlanksbaneFang);
+        defs.RegisterSpell(AID.HindstingStrike);
+        defs.RegisterSpell(AID.HindsbaneFang);
+        defs.RegisterSpell(AID.ReavingMaw);
+        defs.RegisterSpell(AID.Slither);
+        defs.RegisterSpell(AID.HuntersBite);
+        defs.RegisterSpell(AID.SwiftskinsBite);
+        defs.RegisterSpell(AID.JaggedMaw);
+        defs.RegisterSpell(AID.BloodiedMaw);
+        defs.RegisterSpell(AID.DeathRattle);
+        defs.RegisterSpell(AID.SerpentsTail);
+        defs.RegisterSpell(AID.LastLash);
+        defs.RegisterSpell(AID.Vicewinder);
+        defs.RegisterSpell(AID.HuntersCoil);
+        defs.RegisterSpell(AID.SwiftskinsCoil);
+        defs.RegisterSpell(AID.Vicepit);
+        defs.RegisterSpell(AID.SwiftskinsDen);
+        defs.RegisterSpell(AID.HuntersDen);
+        defs.RegisterSpell(AID.TwinfangBite);
+        defs.RegisterSpell(AID.TwinbloodBite);
+        defs.RegisterSpell(AID.Twinblood);
+        defs.RegisterSpell(AID.Twinfang);
+        defs.RegisterSpell(AID.TwinfangThresh);
+        defs.RegisterSpell(AID.TwinbloodThresh);
+        defs.RegisterSpell(AID.UncoiledFury);
+        defs.RegisterSpell(AID.SerpentsIre);
+        defs.RegisterSpell(AID.ThirdGeneration);
+        defs.RegisterSpell(AID.FourthGeneration);
+        defs.RegisterSpell(AID.SecondGeneration);
+        defs.RegisterSpell(AID.FirstGeneration);
+        defs.RegisterSpell(AID.Reawaken);
+        defs.RegisterSpell(AID.UncoiledTwinfang);
+        defs.RegisterSpell(AID.UncoiledTwinblood);
+        defs.RegisterSpell(AID.Ouroboros);
+        defs.RegisterSpell(AID.FourthLegacy);
+        defs.RegisterSpell(AID.SecondLegacy);
+        defs.RegisterSpell(AID.FirstLegacy);
+        defs.RegisterSpell(AID.ThirdLegacy);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

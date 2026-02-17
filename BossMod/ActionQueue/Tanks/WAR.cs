@@ -124,46 +124,46 @@ public enum SID : uint
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
-sealed class Definitions(WARConfig _config) : IDefinitions
+sealed class Definitions(WARConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.LandWaker, instantAnimLock: 3.86f);
-        d.RegisterSpell(AID.HeavySwing);
-        d.RegisterSpell(AID.Maim);
-        d.RegisterSpell(AID.Berserk);
-        d.RegisterSpell(AID.Overpower);
-        d.RegisterSpell(AID.Defiance);
-        d.RegisterSpell(AID.ReleaseDefiance);
-        d.RegisterSpell(AID.Tomahawk);
-        d.RegisterSpell(AID.StormPath);
-        d.RegisterSpell(AID.ThrillOfBattle);
-        d.RegisterSpell(AID.InnerBeast);
-        d.RegisterSpell(AID.Vengeance);
-        d.RegisterSpell(AID.MythrilTempest);
-        d.RegisterSpell(AID.Holmgang);
-        d.RegisterSpell(AID.SteelCyclone);
-        d.RegisterSpell(AID.StormEye);
-        d.RegisterSpell(AID.Infuriate);
-        d.RegisterSpell(AID.FellCleave);
-        d.RegisterSpell(AID.RawIntuition);
-        d.RegisterSpell(AID.Equilibrium);
-        d.RegisterSpell(AID.Decimate);
-        d.RegisterSpell(AID.Onslaught);
-        d.RegisterSpell(AID.Upheaval);
-        d.RegisterSpell(AID.ShakeItOff);
-        d.RegisterSpell(AID.InnerRelease);
-        d.RegisterSpell(AID.ChaoticCyclone);
-        d.RegisterSpell(AID.NascentFlash);
-        d.RegisterSpell(AID.InnerChaos);
-        d.RegisterSpell(AID.Bloodwhetting);
-        d.RegisterSpell(AID.Orogeny);
-        d.RegisterSpell(AID.PrimalRend, instantAnimLock: 1.15f);
-        d.RegisterSpell(AID.Damnation);
-        d.RegisterSpell(AID.PrimalWrath);
-        d.RegisterSpell(AID.PrimalRuination);
+        defs.RegisterSpell(AID.LandWaker, instantAnimLock: 3.86f);
+        defs.RegisterSpell(AID.HeavySwing);
+        defs.RegisterSpell(AID.Maim);
+        defs.RegisterSpell(AID.Berserk);
+        defs.RegisterSpell(AID.Overpower);
+        defs.RegisterSpell(AID.Defiance);
+        defs.RegisterSpell(AID.ReleaseDefiance);
+        defs.RegisterSpell(AID.Tomahawk);
+        defs.RegisterSpell(AID.StormPath);
+        defs.RegisterSpell(AID.ThrillOfBattle);
+        defs.RegisterSpell(AID.InnerBeast);
+        defs.RegisterSpell(AID.Vengeance);
+        defs.RegisterSpell(AID.MythrilTempest);
+        defs.RegisterSpell(AID.Holmgang);
+        defs.RegisterSpell(AID.SteelCyclone);
+        defs.RegisterSpell(AID.StormEye);
+        defs.RegisterSpell(AID.Infuriate);
+        defs.RegisterSpell(AID.FellCleave);
+        defs.RegisterSpell(AID.RawIntuition);
+        defs.RegisterSpell(AID.Equilibrium);
+        defs.RegisterSpell(AID.Decimate);
+        defs.RegisterSpell(AID.Onslaught);
+        defs.RegisterSpell(AID.Upheaval);
+        defs.RegisterSpell(AID.ShakeItOff);
+        defs.RegisterSpell(AID.InnerRelease);
+        defs.RegisterSpell(AID.ChaoticCyclone);
+        defs.RegisterSpell(AID.NascentFlash);
+        defs.RegisterSpell(AID.InnerChaos);
+        defs.RegisterSpell(AID.Bloodwhetting);
+        defs.RegisterSpell(AID.Orogeny);
+        defs.RegisterSpell(AID.PrimalRend, instantAnimLock: 1.15f);
+        defs.RegisterSpell(AID.Damnation);
+        defs.RegisterSpell(AID.PrimalWrath);
+        defs.RegisterSpell(AID.PrimalRuination);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -173,8 +173,8 @@ sealed class Definitions(WARConfig _config) : IDefinitions
         // hardcoded mechanics
         d.RegisterChargeIncreaseTrait(AID.Onslaught, TraitID.EnhancedOnslaught);
 
-        d.Spell(AID.Tomahawk)!.ForbidExecute = (ws, player, _, _, _) => _config.ForbidEarlyTomahawk && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
-        d.Spell(AID.Holmgang)!.SmartTarget = (_, player, target, _) => _config.HolmgangSelf ? player : target;
+        d.Spell(AID.Tomahawk)!.ForbidExecute = (ws, player, _, _, _) => config.ForbidEarlyTomahawk && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
+        d.Spell(AID.Holmgang)!.SmartTarget = (_, player, target, _) => config.HolmgangSelf ? player : target;
         d.Spell(AID.Equilibrium)!.ForbidExecute = (_, player, _, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use equilibrium at full hp
         d.Spell(AID.NascentFlash)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 

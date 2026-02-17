@@ -71,13 +71,7 @@ public abstract class BossModule : IDisposable
     }
     public IReadOnlyList<Actor> Enemies<OID>(OID oid) where OID : Enum => Enemies((uint)(object)oid);
 
-    public virtual Actor? GetDefaultTarget(int slot)
-    {
-        if (!PrimaryActor.IsDeadOrDestroyed && PrimaryActor.IsTargetable)
-            return PrimaryActor;
-
-        return null;
-    }
+    public virtual Actor? GetDefaultTarget(int slot) => PrimaryActor is { IsDeadOrDestroyed: false, IsTargetable: true } ? PrimaryActor : null;
 
     // component management: at most one component of any given type can be active at any time
     private readonly List<BossComponent> _components = [];
@@ -97,7 +91,7 @@ public abstract class BossModule : IDisposable
         // execute callbacks for existing state
         foreach (var actor in WorldState.Actors)
         {
-            bool nonPlayer = actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo;
+            var nonPlayer = actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo;
             if (nonPlayer)
             {
                 comp.OnActorCreated(actor);
@@ -108,7 +102,7 @@ public abstract class BossModule : IDisposable
                 comp.OnTargetable(actor);
             if (actor.Tether.ID != 0)
                 comp.OnTethered(actor, actor.Tether);
-            for (int i = 0; i < actor.Statuses.Length; ++i)
+            for (var i = 0; i < actor.Statuses.Length; ++i)
                 if (actor.Statuses[i].ID != 0)
                     comp.OnStatusGain(actor, actor.Statuses[i]);
         }
@@ -116,7 +110,7 @@ public abstract class BossModule : IDisposable
 
     public void DeactivateComponent<T>() where T : BossComponent
     {
-        int count = _components.RemoveAll(x => x is T);
+        var count = _components.RemoveAll(x => x is T);
         if (count == 0)
             ReportError(null, $"State {StateMachine.ActiveState?.ID:X}: Could not find a component of type {typeof(T)} to deactivate");
     }
@@ -352,7 +346,7 @@ public abstract class BossModule : IDisposable
 
     private void DrawPlayerHints(BossComponent.TextHints hints)
     {
-        foreach ((var hint, bool risk) in hints)
+        foreach ((var hint, var risk) in hints)
         {
             using var color = ImRaii.PushColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
             ImGui.TextUnformatted(hint);
@@ -409,7 +403,7 @@ public abstract class BossModule : IDisposable
         {
             var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
 
-            bool isFocus = WorldState.Client.FocusTargetId == player.InstanceID;
+            var isFocus = WorldState.Client.FocusTargetId == player.InstanceID;
             if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers && !(isFocus && WindowConfig.ShowFocusTargetPlayer))
                 continue;
 
@@ -560,7 +554,7 @@ public abstract class BossModule : IDisposable
 
     private void OnActorEAnim(Actor actor, ushort p1, ushort p2)
     {
-        uint state = ((uint)p1 << 16) | p2;
+        var state = ((uint)p1 << 16) | p2;
         foreach (var comp in _components)
             comp.OnActorEAnim(actor, state);
     }

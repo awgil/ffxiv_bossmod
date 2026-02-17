@@ -77,9 +77,9 @@ class Dartboard(BossModule module) : BossComponent(module)
 
     private void DrawSegmentsOfColor(Color color, uint zoneColor)
     {
-        int index = (int)color - 1;
+        var index = (int)color - 1;
         var dirOut = (15 + index * 30).Degrees();
-        for (int i = 0; i < 4; ++i)
+        for (var i = 0; i < 4; ++i)
         {
             Arena.ZoneCone(Module.Center, 0, 12, dirOut + 30.Degrees(), 15.Degrees(), zoneColor);
             Arena.ZoneCone(Module.Center, 12, Module.Bounds.Radius, dirOut, 15.Degrees(), zoneColor);

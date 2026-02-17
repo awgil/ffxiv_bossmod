@@ -271,7 +271,7 @@ public sealed class RotationModuleManager : IDisposable
         if (player != null)
         {
             var isRPMode = player.Statuses.Any(IsTransformStatus);
-            for (int i = 0; i < modules.Count; ++i)
+            for (var i = 0; i < modules.Count; ++i)
             {
                 var def = modules[i].Definition;
                 if (!def.Classes[(int)player.Class] || player.Level < def.MinLevel || player.Level > def.MaxLevel)

@@ -4,7 +4,7 @@ namespace BossMod;
 
 // Utility for automatically cancelling casts in some conditions (when target dies, when ai wants it, etc).
 // Since the game API is sending a packet, this implements some rate limiting.
-public sealed class CancelCastTweak(WorldState ws, AIHints hints, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ActionTweaksConfig _config)
+public sealed class CancelCastTweak(WorldState ws, AIHints hints, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ActionTweaksConfig config)
 {
     private readonly WorldState _ws = ws;
     private DateTime _nextCancelAllowed;
@@ -23,7 +23,7 @@ public sealed class CancelCastTweak(WorldState ws, AIHints hints, ExcelSheet<Lum
 
     private bool WantCancel()
     {
-        if (_config.PyreticThreshold > 0 && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < _ws.FutureTime(_config.PyreticThreshold))
+        if (config.PyreticThreshold > 0 && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < _ws.FutureTime(config.PyreticThreshold))
             return true;
 
         var cast = _ws.Party.Player()?.CastInfo;
@@ -37,7 +37,7 @@ public sealed class CancelCastTweak(WorldState ws, AIHints hints, ExcelSheet<Lum
         if (hints.FindEnemy(target)?.Priority == AIHints.Enemy.PriorityForbidden)
             return true;
 
-        if (!_config.CancelCastOnDeadTarget)
+        if (!config.CancelCastOnDeadTarget)
             return false;
 
         var isRaise = actionsSheet.GetRowOrDefault(cast.Action.SpellId())?.DeadTargetBehaviour == 1;

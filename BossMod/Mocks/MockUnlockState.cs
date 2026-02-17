@@ -13,7 +13,10 @@ internal class MockUnlockState : IUnlockState, IMockService
 
     public bool IsTitleListLoaded => throw new NotImplementedException();
 
+    // false positive, this event is required by the interface
+#pragma warning disable CS0067
     public event IUnlockState.UnlockDelegate? Unlock;
+#pragma warning restore
 
     public bool IsAchievementComplete(Achievement row) => throw new NotImplementedException();
     public bool IsActionUnlocked(Lumina.Excel.Sheets.Action row) => true;

@@ -206,11 +206,11 @@ class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)
 
     private void AssignTether(Actor source, int slot, bool light)
     {
-        bool stayLeft = source.Position.X > Module.Center.X;
-        bool stayTop = source.Position.Z > Module.Center.Z;
+        var stayLeft = source.Position.X > Module.Center.X;
+        var stayTop = source.Position.Z > Module.Center.Z;
         SetState(slot, stayLeft ? (stayTop ? PlayerState.TetherTL : PlayerState.TetherBL) : (stayTop ? PlayerState.TetherTR : PlayerState.TetherBR));
 
-        bool lightStayLeft = stayLeft == light;
+        var lightStayLeft = stayLeft == light;
         _leftTowerMatchTether = lightStayLeft == _towersLight;
     }
 
@@ -289,7 +289,7 @@ class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)
         {
             yield return new((left ? -1 : 1) * (horiz ? 10 : 8), offZ);
         }
-        bool baitFlames = _leftTowerMatchTether == left;
+        var baitFlames = _leftTowerMatchTether == left;
         if (_nextMechanic <= Mechanic.WhiteFlameBait && baitFlames)
         {
             yield return new((left ? -1 : 1) * (horiz ? 10 : 1), offZ);

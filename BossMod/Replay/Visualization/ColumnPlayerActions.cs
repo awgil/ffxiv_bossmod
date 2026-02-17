@@ -32,7 +32,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         GetCooldownColumn(ActionDefinitions.GCDGroup, new()).Name = "GCD"; // make sure GCD column always exists and is before any others
         SetupClass(playerClass);
 
-        int iCast = 0;
+        var iCast = 0;
         var minTime = enc.Time.Start.AddSeconds(timeline.MinTime);
         foreach (var a in replay.Actions.SkipWhile(a => a.Timestamp < minTime).TakeWhile(a => a.Timestamp <= enc.Time.End).Where(a => a.Source == player))
         {
@@ -142,7 +142,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
         }
 
         // add unfinished cooldowns
-        for (int i = 0; i < _cdGroups.Length; ++i)
+        for (var i = 0; i < _cdGroups.Length; ++i)
             if (_cdGroups[i].ChargesOnCooldown > 0)
                 AdvanceCooldown(i, enc.Time.Start, DateTime.MaxValue, true);
     }
@@ -159,7 +159,7 @@ public class ColumnPlayerActions : Timeline.ColumnGroup
 
         foreach (var col in Columns)
         {
-            bool visible = col.Width > 0;
+            var visible = col.Width > 0;
             if (ImGui.Checkbox(col.Name, ref visible))
             {
                 col.Width = visible ? ColumnGenericHistory.DefaultWidth : 0;

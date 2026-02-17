@@ -45,8 +45,8 @@ public abstract record class ArenaBounds(float Radius, float MapResolution)
         if (innerRadius >= outerRadius || innerRadius < 0 || halfAngle.Rad <= 0)
             return [];
 
-        bool fullCircle = halfAngle.Rad >= MathF.PI;
-        bool donut = innerRadius > 0;
+        var fullCircle = halfAngle.Rad >= MathF.PI;
+        var donut = innerRadius > 0;
         var points = (donut, fullCircle) switch
         {
             (false, false) => CurveApprox.CircleSector(outerRadius, centerDirection - halfAngle, centerDirection + halfAngle, MaxApproxError),
@@ -118,14 +118,14 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
     private Pathfinding.Map BuildMap()
     {
         var map = new Pathfinding.Map(MapResolution, default, Radius, Radius);
-        int iCell = 0;
+        var iCell = 0;
         var threshold = Radius * Radius / (MapResolution * MapResolution); // square of bounds radius, in grid coordinates
         var dy = -map.Height / 2 + 0.5f;
-        for (int y = 0; y < map.Height; ++y, ++dy)
+        for (var y = 0; y < map.Height; ++y, ++dy)
         {
             var cy = Math.Abs(dy) + 0.5f; // farthest corner
             var dx = -map.Width / 2 + 0.5f;
-            for (int x = 0; x < map.Width; ++x, ++dx)
+            for (var x = 0; x < map.Width; ++x, ++dx)
             {
                 var cx = Math.Abs(dx) + 0.5f;
                 if (cx * cx + cy * cy > threshold)
@@ -202,13 +202,13 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
         // since polygon is potentially concave, we need to rasterize conservatively: if any of the pixel corners is outside bounds, block the pixel
         var map = new Pathfinding.Map(MapResolution, default, Radius, Radius);
         // first pass: block [x,y] if any of two top corners is outside
-        int iCell = 0;
+        var iCell = 0;
         var cy = new WDir(-map.Width / 2 * MapResolution, -map.Height / 2 * MapResolution);
-        for (int y = 0; y < map.Height; ++y)
+        for (var y = 0; y < map.Height; ++y)
         {
             var cx = cy;
             var leftOutside = !Poly.Contains(cx);
-            for (int x = 0; x < map.Width; ++x)
+            for (var x = 0; x < map.Width; ++x)
             {
                 cx.X += MapResolution;
                 var rightOutside = !Poly.Contains(cx);
@@ -222,13 +222,13 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
         // second pass: check bottom corners
         var bleftOutside = !Poly.Contains(cy);
         iCell -= map.Width;
-        for (int x = 0; x < map.Width; ++x, ++iCell)
+        for (var x = 0; x < map.Width; ++x, ++iCell)
         {
             cy.X += MapResolution;
             var brightOutside = !Poly.Contains(cy);
             var bottomOutside = bleftOutside || brightOutside;
             var jCell = iCell;
-            for (int y = map.Height; y > 0; --y, jCell -= map.Width)
+            for (var y = map.Height; y > 0; --y, jCell -= map.Width)
             {
                 var topOutside = map.PixelMaxG[jCell] <= 0;
                 if (bottomOutside)

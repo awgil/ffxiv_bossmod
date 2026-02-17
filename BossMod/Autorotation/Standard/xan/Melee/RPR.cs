@@ -578,7 +578,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private float? MinIfEnoughElements(IEnumerable<float> collection, int minElements)
     {
-        float min = float.MaxValue;
+        var min = float.MaxValue;
         var elements = 0;
         foreach (var flt in collection)
         {

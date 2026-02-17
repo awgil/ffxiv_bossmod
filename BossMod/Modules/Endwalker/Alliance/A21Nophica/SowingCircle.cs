@@ -15,7 +15,7 @@ class SowingCircle(BossModule module) : Components.Exaflare(module, 5)
         if ((AID)spell.Action.ID is AID.SowingCircleFirst or AID.SowingCircleRest)
         {
             ++NumCasts;
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(spell.TargetXZ, 1));
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");

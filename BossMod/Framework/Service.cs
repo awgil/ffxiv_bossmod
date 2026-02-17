@@ -30,12 +30,12 @@ public class LazyExternal<T>
 {
     private readonly TaskCompletionSource<T> _source = new();
 
-    public T Value => _source.Task.Result;
-    public T ValueOrException => _source.Task.IsCompleted ? Value : throw new InvalidOperationException($"Accessed LazyExternal<{typeof(T).Name}> before initialization");
+    public T RawValue => _source.Task.Result;
+    public T ValueOrException => _source.Task.IsCompleted ? RawValue : throw new InvalidOperationException($"Accessed LazyExternal<{typeof(T).Name}> before initialization");
     public async Task<T> GetValue()
     {
-        await _source.Task;
-        return Value;
+        await _source.Task.ConfigureAwait(true);
+        return RawValue;
     }
 
     public void SetValue(T value)

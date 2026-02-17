@@ -59,15 +59,15 @@ public class TrackPartyHealth(WorldState World)
 
     private PartyHealthState CalculatePartyHealthState(Func<Actor, bool> filter)
     {
-        int count = 0;
+        var count = 0;
         float meanPred = 0;
         float meanPred2 = 0;
-        float minPred = float.MaxValue;
-        int minSlotPred = -1;
+        var minPred = float.MaxValue;
+        var minSlotPred = -1;
         float meanCur = 0;
         float meanCur2 = 0;
-        float minCur = float.MaxValue;
-        int minSlotCur = -1;
+        var minCur = float.MaxValue;
+        var minSlotCur = -1;
 
         foreach (var slot in _trackedActors.SetBits())
         {

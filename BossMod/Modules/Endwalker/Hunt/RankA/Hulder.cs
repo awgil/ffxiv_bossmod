@@ -35,4 +35,4 @@ class HulderStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10624)]
-public class Hulder(ModuleArgs args): SimpleBossModule(args);
+public class Hulder(ModuleArgs args) : SimpleBossModule(args);

@@ -58,7 +58,7 @@ public sealed class UIPresetDatabaseEditor(
         }
 
         ImGui.OpenPopup("Unsaved modifications"); // TODO: why do i have to do it every frame???
-        bool modalOpen = true;
+        var modalOpen = true;
         using var modal = ImRaii.PopupModal("Unsaved modifications", ref modalOpen, ImGuiWindowFlags.AlwaysAutoResize);
         if (!modal)
             return;
@@ -144,7 +144,7 @@ public sealed class UIPresetDatabaseEditor(
     private void DrawPresetListElements(bool defaultPresets)
     {
         var presets = defaultPresets ? PresetDB.DefaultPresets : PresetDB.UserPresets;
-        for (int i = 0; i < presets.Count; ++i)
+        for (var i = 0; i < presets.Count; ++i)
         {
             var preset = presets[i];
             if (ImGui.Selectable(preset.Name, _selectedPresetDefault == defaultPresets && _selectedPresetIndex == i))

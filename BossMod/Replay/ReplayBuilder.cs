@@ -452,7 +452,7 @@ public sealed class ReplayBuilder : IDisposable
 
     private void ClientActionRejected(ClientState.OpActionReject op)
     {
-        int index = op.Value.SourceSequence != 0
+        var index = op.Value.SourceSequence != 0
             ? _pendingClientActions.FindIndex(a => a.SourceSequence == op.Value.SourceSequence)
             : _pendingClientActions.FindIndex(a => a.ID == op.Value.Action);
         if (index >= 0)

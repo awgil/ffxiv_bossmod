@@ -121,52 +121,52 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.FinalHeaven, castAnimLock: 3.70f);
-        d.RegisterSpell(AID.Bootshine);
-        d.RegisterSpell(AID.TrueStrike);
-        d.RegisterSpell(AID.SnapPunch);
-        d.RegisterSpell(AID.SteelPeak);
-        d.RegisterSpell(AID.TwinSnakes);
-        d.RegisterSpell(AID.ArmOfTheDestroyer);
-        d.RegisterSpell(AID.Demolish);
-        d.RegisterSpell(AID.Rockbreaker);
-        d.RegisterSpell(AID.Thunderclap);
-        d.RegisterSpell(AID.HowlingFist);
-        d.RegisterSpell(AID.Mantra);
-        d.RegisterSpell(AID.FourPointFury);
-        d.RegisterSpell(AID.DragonKick);
-        d.RegisterSpell(AID.PerfectBalance);
-        d.RegisterSpell(AID.FormShift);
-        d.RegisterSpell(AID.ForbiddenChakra);
-        d.RegisterSpell(AID.ElixirField);
-        d.RegisterSpell(AID.MasterfulBlitz); // animLock=???
-        d.RegisterSpell(AID.CelestialRevolution);
-        d.RegisterSpell(AID.FlintStrike); // animLock=???
-        d.RegisterSpell(AID.TornadoKick); // animLock=???
-        d.RegisterSpell(AID.RiddleOfEarth);
-        d.RegisterSpell(AID.RiddleOfFire);
-        d.RegisterSpell(AID.Brotherhood);
-        d.RegisterSpell(AID.RiddleOfWind);
-        d.RegisterSpell(AID.Enlightenment);
-        d.RegisterSpell(AID.SixSidedStar);
-        d.RegisterSpell(AID.ShadowOfTheDestroyer);
-        d.RegisterSpell(AID.RisingPhoenix);
-        d.RegisterSpell(AID.PhantomRush);
-        d.RegisterSpell(AID.LeapingOpo);
-        d.RegisterSpell(AID.RisingRaptor);
-        d.RegisterSpell(AID.PouncingCoeurl);
-        d.RegisterSpell(AID.ElixirBurst);
-        d.RegisterSpell(AID.WindsReply);
-        d.RegisterSpell(AID.FiresReply);
-        d.RegisterSpell(AID.EarthsReply);
-        d.RegisterSpell(AID.EnlightenedMeditation);
-        d.RegisterSpell(AID.ForbiddenMeditation);
-        d.RegisterSpell(AID.InspiritedMeditation);
-        d.RegisterSpell(AID.SteeledMeditation);
+        defs.RegisterSpell(AID.FinalHeaven, castAnimLock: 3.70f);
+        defs.RegisterSpell(AID.Bootshine);
+        defs.RegisterSpell(AID.TrueStrike);
+        defs.RegisterSpell(AID.SnapPunch);
+        defs.RegisterSpell(AID.SteelPeak);
+        defs.RegisterSpell(AID.TwinSnakes);
+        defs.RegisterSpell(AID.ArmOfTheDestroyer);
+        defs.RegisterSpell(AID.Demolish);
+        defs.RegisterSpell(AID.Rockbreaker);
+        defs.RegisterSpell(AID.Thunderclap);
+        defs.RegisterSpell(AID.HowlingFist);
+        defs.RegisterSpell(AID.Mantra);
+        defs.RegisterSpell(AID.FourPointFury);
+        defs.RegisterSpell(AID.DragonKick);
+        defs.RegisterSpell(AID.PerfectBalance);
+        defs.RegisterSpell(AID.FormShift);
+        defs.RegisterSpell(AID.ForbiddenChakra);
+        defs.RegisterSpell(AID.ElixirField);
+        defs.RegisterSpell(AID.MasterfulBlitz); // animLock=???
+        defs.RegisterSpell(AID.CelestialRevolution);
+        defs.RegisterSpell(AID.FlintStrike); // animLock=???
+        defs.RegisterSpell(AID.TornadoKick); // animLock=???
+        defs.RegisterSpell(AID.RiddleOfEarth);
+        defs.RegisterSpell(AID.RiddleOfFire);
+        defs.RegisterSpell(AID.Brotherhood);
+        defs.RegisterSpell(AID.RiddleOfWind);
+        defs.RegisterSpell(AID.Enlightenment);
+        defs.RegisterSpell(AID.SixSidedStar);
+        defs.RegisterSpell(AID.ShadowOfTheDestroyer);
+        defs.RegisterSpell(AID.RisingPhoenix);
+        defs.RegisterSpell(AID.PhantomRush);
+        defs.RegisterSpell(AID.LeapingOpo);
+        defs.RegisterSpell(AID.RisingRaptor);
+        defs.RegisterSpell(AID.PouncingCoeurl);
+        defs.RegisterSpell(AID.ElixirBurst);
+        defs.RegisterSpell(AID.WindsReply);
+        defs.RegisterSpell(AID.FiresReply);
+        defs.RegisterSpell(AID.EarthsReply);
+        defs.RegisterSpell(AID.EnlightenedMeditation);
+        defs.RegisterSpell(AID.ForbiddenMeditation);
+        defs.RegisterSpell(AID.InspiritedMeditation);
+        defs.RegisterSpell(AID.SteeledMeditation);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

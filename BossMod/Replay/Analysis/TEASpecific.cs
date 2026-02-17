@@ -72,8 +72,8 @@ class TEASpecific
                 {
                     var handPos = new WPos(hand.PosRotAt(action.Timestamp).XZ());
                     var bossPos = new WPos(boss.PosRotAt(action.Timestamp).XZ());
-                    int damageSum = 0;
-                    int damageCount = 0;
+                    var damageSum = 0;
+                    var damageCount = 0;
                     foreach (var t in action.Targets)
                     {
                         var damage = ReplayUtils.ActionDamage(t);

@@ -207,7 +207,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
 
         // calculate positions
         var northDir = Angle.FromDirection(_relNorth);
-        for (int i = 0; i < States.Length; ++i)
+        for (var i = 0; i < States.Length; ++i)
         {
             var player = Raid[i];
             if (player == null)
@@ -308,7 +308,7 @@ class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.G
         CurrentBaits.Clear();
         if (_rel != null)
         {
-            for (int i = NumCasts; i < _rel.LaserRotations.Count; ++i)
+            for (var i = NumCasts; i < _rel.LaserRotations.Count; ++i)
             {
                 var closest = Raid.WithoutSlot().Closest(_rel.LaserRotations[i].origin.Position);
                 if (closest != null)
@@ -348,7 +348,7 @@ class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Components.G
                 // draw extra rotation hints for correctly baited hourglass
                 // note: we don't want to draw 'short' edges of the rectangle (farther one is far outside arena bounds anyway, and closer one messes visualization up too much
                 var rot = _rel.LaserRotationAt(bait.Source.Position);
-                for (int i = 0; i < 10; ++i)
+                for (var i = 0; i < 10; ++i)
                 {
                     var dir = (bait.Rotation + i * rot).ToDirection();
                     var side = _shape.HalfWidth * dir.OrthoR();
@@ -393,7 +393,7 @@ class P3UltimateRelativitySinboundMeltdownAOE(BossModule module) : Components.Ge
         {
             case AID.UltimateRelativitySinboundMeltdownAOEFirst:
                 var rot = _rel?.LaserRotationAt(caster.Position) ?? default;
-                for (int i = 1; i < 10; ++i)
+                for (var i = 1; i < 10; ++i)
                     _aoes.Add(new(_shape, caster.Position, spell.Rotation + i * rot, WorldState.FutureTime(i + 1)));
                 break;
             case AID.UltimateRelativitySinboundMeltdownAOERest:
@@ -458,7 +458,7 @@ class P3UltimateRelativityShadoweye(BossModule module) : BossComponent(module)
             if (eye == pos)
                 continue;
 
-            bool danger = HitByEye(pos, pc.Rotation, eye);
+            var danger = HitByEye(pos, pc.Rotation, eye);
             var eyeCenter = Arena.WorldPositionToScreenPosition(eye);
             Components.GenericGaze.DrawEye(ArenaColor, eyeCenter, danger);
 

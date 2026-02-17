@@ -20,7 +20,7 @@ class FloodFillTest : TestWindow
     {
         _visu.Draw();
 
-        bool rebuild = false;
+        var rebuild = false;
         ImGui.TextUnformatted($"Time to pathfind: {_timeToBuild:f3}s");
         if (ImGui.CollapsingHeader("Map setup"))
         {
@@ -118,8 +118,8 @@ class FloodFillTest : TestWindow
 
     private void BlockTrapezium(Map m, float dx1, float z1, float dx2, float z2, float tStart, float tDuration, float tRepeat)
     {
-        float coeff = (dx2 - dx1) / (z2 - z1);
-        float cons = dx1 - z1 * coeff;
+        var coeff = (dx2 - dx1) / (z2 - z1);
+        var cons = dx1 - z1 * coeff;
         m.BlockPixelsInside(new(-dx2, z2), new(dx2, z1), v => Math.Abs(v.X) < cons + coeff * v.Y, tStart, tDuration, tRepeat, 0);
     }
 
@@ -138,7 +138,7 @@ class FloodFillTest : TestWindow
     private void BlockRotating(Map m, float repeat, float y, float z, params float[] x)
     {
         float t = 0;
-        float seqRepeat = repeat * x.Length;
+        var seqRepeat = repeat * x.Length;
         foreach (var vx in x)
         {
             BlockCircle(m, vx, z, 5, t, 0.1f, seqRepeat, _aoeLeeway);
@@ -149,7 +149,7 @@ class FloodFillTest : TestWindow
     private void BlockSingleExaflareSequence(Map m, float y, float z, params float[] x)
     {
         float t = 0;
-        float seqRepeat = 1.4f * x.Length + 0.5f;
+        var seqRepeat = 1.4f * x.Length + 0.5f;
         foreach (var vx in x)
         {
             BlockCircle(m, vx, z, 6, t, 0.1f, seqRepeat, _aoeLeeway);
@@ -161,7 +161,7 @@ class FloodFillTest : TestWindow
     {
         float[] x = [-12, -4, 4, 12];
         float t = 0;
-        float seqRepeat = 1.4f * 8;
+        var seqRepeat = 1.4f * 8;
         foreach (var vx in x)
         {
             BlockCircle(m, vx, z1, 6, t, 0.1f, seqRepeat, _aoeLeeway);
@@ -178,7 +178,7 @@ class FloodFillTest : TestWindow
     {
         (float y, float z, float d)[] l = [(25.59f, 190.4f, 0.5f), (23.37f, 196.4f, 0.5f), (21.15f, 202.4f, 0.5f), (18.94f, 208.4f, 0.5f), (16.73f, 214.4f, 1.1f)];
         float t = 0;
-        float seqRepeat = 3.1f * 2;
+        var seqRepeat = 3.1f * 2;
         foreach (var e in l)
         {
             BlockRect(m, x1 - 3, x1 + 3, e.z - 3, e.z + 3, t, 0.1f, seqRepeat, _aoeLeeway);
@@ -195,7 +195,7 @@ class FloodFillTest : TestWindow
     {
         (float y, float z, float d)[] l = [(25.59f, 190.4f, 0.5f), (23.37f, 196.4f, 0.5f), (21.15f, 202.4f, 0.5f), (18.94f, 208.4f, 0.5f), (16.73f, 214.4f, 4.2f)];
         float t = 0;
-        float seqRepeat = 3.1f * 2;
+        var seqRepeat = 3.1f * 2;
         foreach (var e in l)
         {
             BlockRect(m, -3, +3, e.z - 3, e.z + 3, t, 0.1f, seqRepeat, _aoeLeeway);

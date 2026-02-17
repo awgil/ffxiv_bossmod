@@ -56,4 +56,4 @@ class AngadaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5999)]
-public class Angada(ModuleArgs args): SimpleBossModule(args);
+public class Angada(ModuleArgs args) : SimpleBossModule(args);

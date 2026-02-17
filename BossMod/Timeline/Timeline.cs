@@ -149,7 +149,7 @@ public class Timeline
         if (_tooltip.Count > 0)
         {
             ImGui.BeginTooltip();
-            bool first = true;
+            var first = true;
             foreach (var strings in _tooltip)
             {
                 if (!first)
@@ -213,9 +213,9 @@ public class Timeline
         var maxT = Math.Min(MaxTime, MinVisibleTime + Height / PixelsPerSecond);
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.AddLine(_screenClientTL, CanvasCoordsToScreenCoords(0, maxT), 0xffffffff);
-        for (float t = MathF.Ceiling(MinVisibleTime / _tickFrequency) * _tickFrequency; t <= maxT; t += _tickFrequency)
+        for (var t = MathF.Ceiling(MinVisibleTime / _tickFrequency) * _tickFrequency; t <= maxT; t += _tickFrequency)
         {
-            string tickText = $"{t:f1}";
+            var tickText = $"{t:f1}";
             var tickTextSize = ImGui.CalcTextSize(tickText);
 
             var p = CanvasCoordsToScreenCoords(0, t);

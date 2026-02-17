@@ -17,7 +17,7 @@ class Reproduce(BossModule module) : Components.Exaflare(module, 7)
         {
             ++NumCasts;
 
-            int index = Lines.FindIndex(item => MathF.Abs(item.Next.Z - caster.Position.Z) < 1);
+            var index = Lines.FindIndex(item => MathF.Abs(item.Next.Z - caster.Position.Z) < 1);
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");

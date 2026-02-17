@@ -15,7 +15,7 @@ class ByregotStrikeCone(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ByregotStrikeKnockback && Module.PrimaryActor.FindStatus(SID.Glow) != null)
-            for (int i = 0; i < 4; ++i)
+            for (var i = 0; i < 4; ++i)
                 _aoes.Add(new(_shape, caster.Position, spell.Rotation + i * 90.Degrees(), Module.CastFinishAt(spell)));
     }
 

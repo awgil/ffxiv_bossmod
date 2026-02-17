@@ -27,7 +27,7 @@ class Miasma(BossModule module) : Components.GenericAOEs(module)
             yield break;
 
         var (order1, order2) = _order == Order.HighLow ? (1, 0) : (0, 1);
-        for (int i = 0; i < 4; ++i)
+        for (var i = 0; i < 4; ++i)
         {
             var l1 = _laneStates[i, order1];
             var l2 = _laneStates[i, order2];
@@ -68,10 +68,10 @@ class Miasma(BossModule module) : Components.GenericAOEs(module)
         if (shape == null)
             return;
 
-        int laneIndex = LaneIndex(shape == _shapeRect ? caster.Position : spell.TargetXZ);
+        var laneIndex = LaneIndex(shape == _shapeRect ? caster.Position : spell.TargetXZ);
         if ((AID)spell.Action.ID is AID.CreepingMiasmaFirst or AID.LingeringMiasmaFirst or AID.SwirlingMiasmaFirst)
         {
-            int heightIndex = (_laneStates[laneIndex, 0].NumCasts, _laneStates[laneIndex, 1].NumCasts) switch
+            var heightIndex = (_laneStates[laneIndex, 0].NumCasts, _laneStates[laneIndex, 1].NumCasts) switch
             {
                 (_, > 0) => 0,
                 ( > 0, _) => 1,
@@ -91,7 +91,7 @@ class Miasma(BossModule module) : Components.GenericAOEs(module)
         else
         {
             // note: for non-rects, we get single 'rest' cast belonging to first set right after 'first' cast of second set
-            int heightIndex =
+            var heightIndex =
                 _laneStates[laneIndex, 0].Shape != shape ? 1 :
                 _laneStates[laneIndex, 1].Shape != shape ? 0 :
                 _laneStates[laneIndex, 0].NumCasts > _laneStates[laneIndex, 1].NumCasts ? 0 : 1;
@@ -121,8 +121,8 @@ class Miasma(BossModule module) : Components.GenericAOEs(module)
         };
         if (shape == null)
             return;
-        int heightIndex = (OID)actor.OID is OID.MiasmaLowRect or OID.MiasmaLowCircle or OID.MiasmaLowDonut ? 0 : 1;
-        int laneIndex = LaneIndex(actor.Position);
+        var heightIndex = (OID)actor.OID is OID.MiasmaLowRect or OID.MiasmaLowCircle or OID.MiasmaLowDonut ? 0 : 1;
+        var laneIndex = LaneIndex(actor.Position);
         _laneStates[laneIndex, heightIndex] = new() { Shape = shape, Activation = WorldState.FutureTime(16.1f), NextOrigin = new(actor.Position.X, Module.Center.Z - Module.Bounds.Radius + (shape == _shapeRect ? 0 : 5)) };
     }
 

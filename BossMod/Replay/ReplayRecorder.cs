@@ -87,7 +87,7 @@ public sealed class ReplayRecorder : IDisposable
         public override Output Emit(ActorStatus v) => WriteEntry(Utils.StatusString(v.ID)).WriteEntry(v.Extra.ToString("X4")).WriteEntry(Utils.StatusTimeString(v.ExpireAt, _curEntry)).EmitActor(v.SourceID);
         public override Output Emit(in ActionEffects v)
         {
-            for (int i = 0; i < ActionEffects.MaxCount; ++i)
+            for (var i = 0; i < ActionEffects.MaxCount; ++i)
                 Emit(v[i], "X16");
             return this;
         }
@@ -96,7 +96,7 @@ public sealed class ReplayRecorder : IDisposable
             foreach (var t in v)
             {
                 EmitActor(t.ID);
-                for (int i = 0; i < ActionEffects.MaxCount; ++i)
+                for (var i = 0; i < ActionEffects.MaxCount; ++i)
                     if (t.Effects[i] != 0)
                         _dest.Write($"!{t.Effects[i]:X16}");
             }
@@ -235,7 +235,7 @@ public sealed class ReplayRecorder : IDisposable
         }
         public override Output Emit(in ActionEffects v)
         {
-            for (int i = 0; i < ActionEffects.MaxCount; ++i)
+            for (var i = 0; i < ActionEffects.MaxCount; ++i)
                 _dest.Write(v[i]);
             return this;
         }
@@ -245,7 +245,7 @@ public sealed class ReplayRecorder : IDisposable
             foreach (var t in v)
             {
                 _dest.Write(t.ID);
-                for (int i = 0; i < ActionEffects.MaxCount; ++i)
+                for (var i = 0; i < ActionEffects.MaxCount; ++i)
                     _dest.Write(t.Effects[i]);
             }
             return this;

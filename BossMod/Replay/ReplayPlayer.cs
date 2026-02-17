@@ -42,7 +42,7 @@ public class ReplayPlayer(Replay r)
     public DateTime PrevTimestamp()
     {
         var curr = CurrTimestamp();
-        for (int i = _nextOp - 1; i >= 0; i--)
+        for (var i = _nextOp - 1; i >= 0; i--)
             if (Replay.Ops[i].Timestamp < curr)
                 return Replay.Ops[i].Timestamp;
         return default;

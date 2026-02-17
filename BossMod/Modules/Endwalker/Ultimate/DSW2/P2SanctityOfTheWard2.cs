@@ -132,7 +132,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
 
         if (Active)
         {
-            float diag = Module.Bounds.Radius / 1.414214f;
+            var diag = Module.Bounds.Radius / 1.414214f;
             Arena.AddLine(Module.Center + new WDir(diag, diag), Module.Center - new WDir(diag, diag), ArenaColor.Border);
             Arena.AddLine(Module.Center + new WDir(diag, -diag), Module.Center - new WDir(diag, -diag), ArenaColor.Border);
         }
@@ -154,7 +154,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
         if (spell.Action == WatchedAction)
         {
             // mark tower as active
-            int index = ClassifyTower(spell.LocXZ);
+            var index = ClassifyTower(spell.LocXZ);
             _towerIndices[index] = Towers.Count - 1;
             _activeTowers.Set(index);
 
@@ -232,13 +232,13 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
     // initial assignments, before swaps
     private bool InitQuadrantAssignments(DSW2Config config)
     {
-        bool validAssignments = false;
+        var validAssignments = false;
         foreach (var (slot, quadrant) in config.P2Sanctity2Pairs.Resolve(Raid))
         {
             validAssignments = true;
             _players[slot].AssignedQuadrant = quadrant;
 
-            bool isTH = Raid[slot]?.Role is Role.Tank or Role.Healer;
+            var isTH = Raid[slot]?.Role is Role.Tank or Role.Healer;
             if (isTH == _preyOnTH)
                 _quadrants[quadrant].PreySlot = slot;
             else
@@ -268,7 +268,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
             // cursed patterns are CW+CCW or CCW+CW
             var q1towers = OuterTowersMask(q1);
             var q2towers = OuterTowersMask(q2);
-            bool cursed = (q1towers & q2towers) == 0 && (q1towers | q2towers) == 0b101; // 100+001 or 001+100
+            var cursed = (q1towers & q2towers) == 0 && (q1towers | q2towers) == 0b101; // 100+001 or 001+100
             if (cursed)
             {
                 //_assignmentDebug |= AssignmentDebug.PreySwapCursed;
@@ -312,8 +312,8 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
         }
         else if (q1swap || q2swap)
         {
-            int swapQ1 = q1swap ? q1 : q2; // prey-role assigned to this quadrant is not a prey target
-            int swapQ2 = q1 ^ 1; // arbitrary
+            var swapQ1 = q1swap ? q1 : q2; // prey-role assigned to this quadrant is not a prey target
+            var swapQ2 = q1 ^ 1; // arbitrary
             if (!_preyTargets[_quadrants[swapQ2].PreySlot])
                 swapQ2 ^= 2; // we guessed wrong - our prey target to swap with is in remaining quadrant
             SwapPreyQuadrants(swapQ1, swapQ2);
@@ -327,8 +327,8 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
 
     private void SwapPreyQuadrants(int q1, int q2)
     {
-        int s1 = _quadrants[q1].PreySlot;
-        int s2 = _quadrants[q2].PreySlot;
+        var s1 = _quadrants[q1].PreySlot;
+        var s2 = _quadrants[q2].PreySlot;
         _quadrants[q1].PreySlot = s2;
         _quadrants[q2].PreySlot = s1;
         _players[s1].AssignedQuadrant = q2;
@@ -427,7 +427,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
 
         // if we still have unassigned towers, assign each of them to each remaining player
         var ambiguousSlots = _quadrants.Select(q => q.NonPreySlot).Where(slot => _players[slot].AssignedTowers.None()).ToArray();
-        for (int t = 12; t < _towerIndices.Length; ++t)
+        for (var t = 12; t < _towerIndices.Length; ++t)
         {
             if (TowerUnassigned(t))
             {
@@ -456,14 +456,14 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
     {
         while (true)
         {
-            int unambiguousInnerTower = -1;
-            int unambiguousQuadrant = -1;
-            for (int q = 0; q < _quadrants.Length; ++q)
+            var unambiguousInnerTower = -1;
+            var unambiguousQuadrant = -1;
+            for (var q = 0; q < _quadrants.Length; ++q)
             {
                 if (_players[_quadrants[q].NonPreySlot].AssignedTowers.Any())
                     continue;
 
-                int potential = FindUnassignedUnambiguousInnerTower(q);
+                var potential = FindUnassignedUnambiguousInnerTower(q);
                 if (potential == -1)
                     continue; // this quadrant has 2 or 0 unassigned inner towers
 
@@ -491,9 +491,9 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
 
     private void AssignInnerTowersCW()
     {
-        for (int distance = 0; distance < _quadrants.Length; ++distance)
+        for (var distance = 0; distance < _quadrants.Length; ++distance)
         {
-            for (int q = 0; q < _quadrants.Length; ++q)
+            for (var q = 0; q < _quadrants.Length; ++q)
             {
                 if (_players[_quadrants[q].NonPreySlot].AssignedTowers.None())
                 {
@@ -509,10 +509,10 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
 
     private int FindUnassignedUnambiguousInnerTower(int quadrant)
     {
-        int candidate1 = 12 + quadrant;
-        int candidate2 = 12 + ((quadrant + 3) & 3);
-        bool available1 = TowerUnassigned(candidate1);
-        bool available2 = TowerUnassigned(candidate2);
+        var candidate1 = 12 + quadrant;
+        var candidate2 = 12 + ((quadrant + 3) & 3);
+        var available1 = TowerUnassigned(candidate1);
+        var available2 = TowerUnassigned(candidate2);
         if (available1 == available2)
             return -1;
         else
@@ -573,7 +573,7 @@ class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(mod
     {
         if ((SID)status.ID == SID.Prey)
         {
-            bool first = _preyTargets.None();
+            var first = _preyTargets.None();
             _preyOnTH = actor.Class.IsSupport();
             _preyTargets.Set(Raid.FindSlot(actor.InstanceID));
 

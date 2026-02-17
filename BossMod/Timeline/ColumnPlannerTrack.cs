@@ -78,7 +78,7 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
             }
             else
             {
-                float windowStart = _edit.Element.Window.TimeSinceGlobalStart(Tree);
+                var windowStart = _edit.Element.Window.TimeSinceGlobalStart(Tree);
                 windowStart += dt;
                 (_edit.Element.Window.AttachNode, _edit.Element.Window.Delay) = Tree.AbsoluteTimeToNodeAndDelay(windowStart, PhaseBranches);
             }
@@ -89,7 +89,7 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
             if (_edit != null)
             {
                 // finish editing
-                float minTime = _edit.Element.Window.AttachNode.PhaseID == 0 && _edit.Element.Window.AttachNode.Predecessor == null ? Timeline.MinTime : 0;
+                var minTime = _edit.Element.Window.AttachNode.PhaseID == 0 && _edit.Element.Window.AttachNode.Predecessor == null ? Timeline.MinTime : 0;
                 if (_edit.EditingEnd)
                     _edit.Element.WindowLength = Math.Max(MathF.Round(_edit.Element.WindowLength, 1), 0.1f);
                 else
@@ -186,7 +186,7 @@ public abstract class ColumnPlannerTrack(Timeline timeline, StateMachineTree tre
 
     protected bool EditElementWindow(Element e)
     {
-        bool modified = false;
+        var modified = false;
 
         var startGlobal = e.Window.TimeSinceGlobalStart(Tree);
         if (ImGui.InputFloat("Press at (relative to pull)", ref startGlobal))

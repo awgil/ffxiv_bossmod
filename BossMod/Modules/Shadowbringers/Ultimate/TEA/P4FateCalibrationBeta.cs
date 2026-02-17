@@ -80,7 +80,7 @@ class P4FateCalibrationBetaDebuffs(BossModule module) : P4ForcedMarchDebuffs(mod
 
     private int GuessLightBeacon()
     {
-        for (int i = 0; i < PartyState.MaxPartySize; ++i)
+        for (var i = 0; i < PartyState.MaxPartySize; ++i)
             if (_colors[i] == Color.Light && i != _sharedSentence && !_farTethers.Contains(i) && !_nearTethers.Contains(i))
                 return i;
         return -1;
@@ -88,7 +88,7 @@ class P4FateCalibrationBetaDebuffs(BossModule module) : P4ForcedMarchDebuffs(mod
 
     private void InitColor(Color color, int beacon)
     {
-        for (int i = 0; i < PartyState.MaxPartySize; ++i)
+        for (var i = 0; i < PartyState.MaxPartySize; ++i)
         {
             if (_colors[i] != color)
                 continue;

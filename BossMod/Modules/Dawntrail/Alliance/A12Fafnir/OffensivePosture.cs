@@ -27,7 +27,7 @@ class DragonBreath(BossModule module) : Components.GenericAOEs(module, AID.Drago
         {
             NumCasts = 0;
             _removeNextAOE = DateTime.MaxValue;
-            for (int i = 0; i < 6; ++i)
+            for (var i = 0; i < 6; ++i)
                 _aoes.Add(new(_shape, caster.Position, spell.Rotation - i * 60.Degrees(), Module.CastFinishAt(spell, 1.2f)));
         }
     }

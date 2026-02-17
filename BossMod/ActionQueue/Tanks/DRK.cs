@@ -95,47 +95,47 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.DarkForce, instantAnimLock: 3.86f); // animLock=3.860s?
-        d.RegisterSpell(AID.HardSlash);
-        d.RegisterSpell(AID.SyphonStrike);
-        d.RegisterSpell(AID.Unleash);
-        d.RegisterSpell(AID.Grit);
-        d.RegisterSpell(AID.ReleaseGrit);
-        d.RegisterSpell(AID.Unmend);
-        d.RegisterSpell(AID.Souleater);
-        d.RegisterSpell(AID.FloodOfDarkness);
-        d.RegisterSpell(AID.BloodWeapon);
-        d.RegisterSpell(AID.ShadowWall);
-        d.RegisterSpell(AID.EdgeOfDarkness);
-        d.RegisterSpell(AID.StalwartSoul);
-        d.RegisterSpell(AID.DarkMind);
-        d.RegisterSpell(AID.LivingDead);
-        d.RegisterSpell(AID.SaltedEarth);
-        d.RegisterSpell(AID.Shadowstride); // animLock=???
-        d.RegisterSpell(AID.AbyssalDrain);
-        d.RegisterSpell(AID.CarveAndSpit);
-        d.RegisterSpell(AID.Bloodspiller);
-        d.RegisterSpell(AID.Quietus);
-        d.RegisterSpell(AID.Delirium);
-        d.RegisterSpell(AID.TheBlackestNight);
-        d.RegisterSpell(AID.EdgeOfShadow);
-        d.RegisterSpell(AID.FloodOfShadow);
-        d.RegisterSpell(AID.DarkMissionary);
-        d.RegisterSpell(AID.LivingShadow);
-        d.RegisterSpell(AID.Oblation);
-        d.RegisterSpell(AID.SaltAndDarkness);
-        d.RegisterSpell(AID.SaltAndDarknessEnd);
-        d.RegisterSpell(AID.Shadowbringer);
-        d.RegisterSpell(AID.ShadowedVigil); // animLock=???
-        d.RegisterSpell(AID.ScarletDelirium); // animLock=???
-        d.RegisterSpell(AID.Comeuppance); // animLock=???
-        d.RegisterSpell(AID.Torcleaver); // animLock=???
-        d.RegisterSpell(AID.Impalement); // animLock=???
-        d.RegisterSpell(AID.Disesteem); // animLock=???
+        defs.RegisterSpell(AID.DarkForce, instantAnimLock: 3.86f); // animLock=3.860s?
+        defs.RegisterSpell(AID.HardSlash);
+        defs.RegisterSpell(AID.SyphonStrike);
+        defs.RegisterSpell(AID.Unleash);
+        defs.RegisterSpell(AID.Grit);
+        defs.RegisterSpell(AID.ReleaseGrit);
+        defs.RegisterSpell(AID.Unmend);
+        defs.RegisterSpell(AID.Souleater);
+        defs.RegisterSpell(AID.FloodOfDarkness);
+        defs.RegisterSpell(AID.BloodWeapon);
+        defs.RegisterSpell(AID.ShadowWall);
+        defs.RegisterSpell(AID.EdgeOfDarkness);
+        defs.RegisterSpell(AID.StalwartSoul);
+        defs.RegisterSpell(AID.DarkMind);
+        defs.RegisterSpell(AID.LivingDead);
+        defs.RegisterSpell(AID.SaltedEarth);
+        defs.RegisterSpell(AID.Shadowstride); // animLock=???
+        defs.RegisterSpell(AID.AbyssalDrain);
+        defs.RegisterSpell(AID.CarveAndSpit);
+        defs.RegisterSpell(AID.Bloodspiller);
+        defs.RegisterSpell(AID.Quietus);
+        defs.RegisterSpell(AID.Delirium);
+        defs.RegisterSpell(AID.TheBlackestNight);
+        defs.RegisterSpell(AID.EdgeOfShadow);
+        defs.RegisterSpell(AID.FloodOfShadow);
+        defs.RegisterSpell(AID.DarkMissionary);
+        defs.RegisterSpell(AID.LivingShadow);
+        defs.RegisterSpell(AID.Oblation);
+        defs.RegisterSpell(AID.SaltAndDarkness);
+        defs.RegisterSpell(AID.SaltAndDarknessEnd);
+        defs.RegisterSpell(AID.Shadowbringer);
+        defs.RegisterSpell(AID.ShadowedVigil); // animLock=???
+        defs.RegisterSpell(AID.ScarletDelirium); // animLock=???
+        defs.RegisterSpell(AID.Comeuppance); // animLock=???
+        defs.RegisterSpell(AID.Torcleaver); // animLock=???
+        defs.RegisterSpell(AID.Impalement); // animLock=???
+        defs.RegisterSpell(AID.Disesteem); // animLock=???
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

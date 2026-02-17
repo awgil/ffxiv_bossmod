@@ -38,4 +38,4 @@ class FanAilStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10633)]
-public class FanAil(ModuleArgs args): SimpleBossModule(args);
+public class FanAil(ModuleArgs args) : SimpleBossModule(args);

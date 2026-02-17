@@ -32,4 +32,4 @@ class OPoorestPauldiaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 8655)]
-public class OPoorestPauldia(ModuleArgs args): SimpleBossModule(args) { }
+public class OPoorestPauldia(ModuleArgs args) : SimpleBossModule(args) { }

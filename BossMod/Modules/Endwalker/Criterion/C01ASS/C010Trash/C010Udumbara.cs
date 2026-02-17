@@ -57,7 +57,7 @@ class C010NUdumbaraStates(BossModule module) : C010UdumbaraStates(module, false)
 class C010SUdumbaraStates(BossModule module) : C010UdumbaraStates(module, true);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11511, SortOrder = 3)]
-public class C010NUdumbara(ModuleArgs args): SimpleBossModule(args)
+public class C010NUdumbara(ModuleArgs args) : SimpleBossModule(args)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
@@ -67,7 +67,7 @@ public class C010NUdumbara(ModuleArgs args): SimpleBossModule(args)
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11511, SortOrder = 3)]
-public class C010SUdumbara(ModuleArgs args): SimpleBossModule(args)
+public class C010SUdumbara(ModuleArgs args) : SimpleBossModule(args)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

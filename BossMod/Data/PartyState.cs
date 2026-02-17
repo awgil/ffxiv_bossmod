@@ -50,7 +50,7 @@ public sealed class PartyState
     // select non-null and optionally alive raid members
     public IEnumerable<Actor> WithoutSlot(bool includeDead = false, bool excludeAlliance = false, bool excludeNPCs = false)
     {
-        for (int i = 0; i < MaxAllies; ++i)
+        for (var i = 0; i < MaxAllies; ++i)
         {
             if (excludeNPCs && i >= MaxAllianceSize)
                 break;
@@ -67,7 +67,7 @@ public sealed class PartyState
 
     public IEnumerable<(int, Actor)> WithSlot(bool includeDead = false, bool excludeAlliance = false)
     {
-        for (int i = 0; i < MaxAllies; ++i)
+        for (var i = 0; i < MaxAllies; ++i)
         {
             if (excludeAlliance && i is >= MaxPartySize and < MaxAllianceSize)
                 continue;
@@ -86,7 +86,7 @@ public sealed class PartyState
     // find a slot index containing specified player (by name); returns -1 if not found
     public int FindSlot(ReadOnlySpan<char> name, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
     {
-        for (int i = 0; i < Members.Length; ++i)
+        for (var i = 0; i < Members.Length; ++i)
             if (name.Equals(Members[i].Name, cmp))
                 return i;
         return -1;
@@ -108,7 +108,7 @@ public sealed class PartyState
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
-        for (int i = 0; i < Members.Length; ++i)
+        for (var i = 0; i < Members.Length; ++i)
             if (Members[i].IsValid())
                 yield return new OpModify(i, Members[i]);
         if (LimitBreakCur != 0 || LimitBreakMax != 10000)

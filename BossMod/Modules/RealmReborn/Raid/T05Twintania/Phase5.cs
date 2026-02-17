@@ -69,7 +69,7 @@ class P5AI(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        bool forbidNeurolinks = true; // stay out of neurolinks by default
+        var forbidNeurolinks = true; // stay out of neurolinks by default
         if (_hatch?.Target != null)
         {
             // see if there is anyone intercepting orb in a neurolink
@@ -90,7 +90,7 @@ class P5AI(BossModule module) : BossComponent(module)
             else if (assignment == ((_deathSentence?.TankedByOT ?? false) ? PartyRolesConfig.Assignment.MT : PartyRolesConfig.Assignment.OT) && neurolinkUnderBoss != null && actor != _liquidHell?.Target)
             {
                 // current offtank should try to intercept orb by standing in a neurolink under boss, unless it is covered by liquid hells or tank is baiting liquid hells away
-                bool neurolinkUnsafe = _liquidHell != null && _liquidHell.Sources(Module).Any(z => neurolinkUnderBoss.Position.InCircle(z.Position, _liquidHell.Shape.Radius));
+                var neurolinkUnsafe = _liquidHell != null && _liquidHell.Sources(Module).Any(z => neurolinkUnderBoss.Position.InCircle(z.Position, _liquidHell.Shape.Radius));
                 if (!neurolinkUnsafe)
                 {
                     forbidNeurolinks = false;

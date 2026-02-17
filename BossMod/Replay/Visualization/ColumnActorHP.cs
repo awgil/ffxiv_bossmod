@@ -33,8 +33,8 @@ public class ColumnActorHP : Timeline.ColumnGroup, IToggleableColumn
 
         foreach (var a in replay.EncounterActions(enc))
         {
-            int damage = 0;
-            int heal = 0;
+            var damage = 0;
+            var heal = 0;
             foreach (var t in a.Targets)
             {
                 foreach (var e in t.Effects)

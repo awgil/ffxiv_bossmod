@@ -30,7 +30,7 @@ public class Duel6Lyon(ModuleArgs init) : BossModule(init, new(50f, -410f), new 
         {
             foreach (var caster in tasteOfBlood.Casters)
             {
-                bool isDueler = tasteOfBlood.Duelers.Contains(caster);
+                var isDueler = tasteOfBlood.Duelers.Contains(caster);
                 Arena.Actor(caster, isDueler ? ArenaColor.Danger : ArenaColor.Enemy, true);
             }
         }

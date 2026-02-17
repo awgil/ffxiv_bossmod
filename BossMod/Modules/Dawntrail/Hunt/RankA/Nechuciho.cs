@@ -115,4 +115,4 @@ class NechucihoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13362)]
-public class Nechuciho(ModuleArgs args): SimpleBossModule(args);
+public class Nechuciho(ModuleArgs args) : SimpleBossModule(args);

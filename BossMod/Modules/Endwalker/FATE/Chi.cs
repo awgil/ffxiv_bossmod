@@ -57,10 +57,10 @@ class Bunkerbuster(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count >= 3)
-            for (int i = 0; i < 3; ++i)
+            for (var i = 0; i < 3; ++i)
                 yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
         if (_casters.Count >= 6)
-            for (int i = 3; i < 6; ++i)
+            for (var i = 3; i < 6; ++i)
                 yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(1.9f));
     }
 
@@ -121,34 +121,34 @@ class BouncingBomb(BossModule module) : Components.GenericAOEs(module)
             if (_casters.Count >= 1 && NumCasts == 0)
                 yield return new(rect, _casters[0].Position, _casters[0].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 4 && NumCasts == 0)
-                for (int i = 1; i < 4; ++i)
+                for (var i = 1; i < 4; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f));
             if (_casters.Count >= 3 && NumCasts == 1)
-                for (int i = 0; i < 3; ++i)
+                for (var i = 0; i < 3; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 8 && NumCasts == 1)
-                for (int i = 3; i < 8; ++i)
+                for (var i = 3; i < 8; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f));
             if (_casters.Count >= 5 && NumCasts == 4)
-                for (int i = 0; i < 5; ++i)
+                for (var i = 0; i < 5; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
         }
         if (bombcount == 2)
         {
             if (_casters.Count >= 2 && NumCasts == 0)
-                for (int i = 0; i < 2; ++i)
+                for (var i = 0; i < 2; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 7 && NumCasts == 0)
-                for (int i = 2; i < 7; ++i)
+                for (var i = 2; i < 7; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), Risky: false);
             if (_casters.Count >= 5 && NumCasts == 2)
-                for (int i = 0; i < 5; ++i)
+                for (var i = 0; i < 5; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
             if (_casters.Count >= 13 && NumCasts == 2)
-                for (int i = 5; i < 13; ++i)
+                for (var i = 5; i < 13; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation.AddSeconds(2.8f), Risky: false);
             if (_casters.Count >= 8 && NumCasts == 7)
-                for (int i = 0; i < 8; ++i)
+                for (var i = 0; i < 8; ++i)
                     yield return new(rect, _casters[i].Position, _casters[i].Rotation, _activation, ArenaColor.Danger);
         }
     }

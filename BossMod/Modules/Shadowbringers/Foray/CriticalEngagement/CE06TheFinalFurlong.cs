@@ -58,8 +58,8 @@ class GraspingRancor : Components.StandardAOEs
             var hand = _hands.FirstOrDefault(h => h.Tether.Target == actor.InstanceID);
             if (hand != null)
             {
-                bool shouldBeFrozen = ((AOEShapeCircle)Shape).Check(hand.Position, Casters[0].CastInfo!.LocXZ);
-                bool isFrozen = hand.Tether.ID == (uint)TetherID.Frozen;
+                var shouldBeFrozen = ((AOEShapeCircle)Shape).Check(hand.Position, Casters[0].CastInfo!.LocXZ);
+                var isFrozen = hand.Tether.ID == (uint)TetherID.Frozen;
                 hints.Add(shouldBeFrozen ? "Face the hand!" : "Look away from hand and kite into safezone!", shouldBeFrozen != isFrozen);
             }
         }
@@ -70,7 +70,7 @@ class GraspingRancor : Components.StandardAOEs
         var hand = _hands.FirstOrDefault(h => h.Tether.Target == pc.InstanceID);
         if (hand != null)
         {
-            bool isFrozen = hand.Tether.ID == (uint)TetherID.Frozen;
+            var isFrozen = hand.Tether.ID == (uint)TetherID.Frozen;
             Arena.Actor(hand, ArenaColor.Object, true);
             Arena.AddLine(hand.Position, pc.Position, isFrozen ? ArenaColor.Safe : ArenaColor.Danger);
         }

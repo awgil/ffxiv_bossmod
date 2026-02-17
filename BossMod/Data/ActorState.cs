@@ -44,10 +44,10 @@ public sealed class ActorState : IEnumerable<Actor>
                 yield return new OpTether(act.InstanceID, act.Tether);
             if (act.CastInfo != null)
                 yield return new OpCastInfo(act.InstanceID, act.CastInfo);
-            for (int i = 0; i < act.Statuses.Length; ++i)
+            for (var i = 0; i < act.Statuses.Length; ++i)
                 if (act.Statuses[i].ID != 0)
                     yield return new OpStatus(act.InstanceID, i, act.Statuses[i]);
-            for (int i = 0; i < act.IncomingEffects.Length; ++i)
+            for (var i = 0; i < act.IncomingEffects.Length; ++i)
                 if (act.IncomingEffects[i].GlobalSequence != 0)
                     yield return new OpIncomingEffect(act.InstanceID, i, act.IncomingEffects[i]);
         }
@@ -67,7 +67,7 @@ public sealed class ActorState : IEnumerable<Actor>
     private void AddPendingEffects(Actor source, ActorCastEvent ev, DateTime timestamp)
     {
         var expiration = timestamp.AddSeconds(3);
-        for (int i = 0; i < ev.Targets.Count; ++i)
+        for (var i = 0; i < ev.Targets.Count; ++i)
         {
             var target = ev.Targets[i].ID == source.InstanceID ? source : Find(ev.Targets[i].ID); // most common case by far is self-target
             if (target == null)
@@ -178,7 +178,7 @@ public sealed class ActorState : IEnumerable<Actor>
                 ws.Actors.CastFinished.Fire(actor);
                 actor.CastInfo = null;
             }
-            for (int i = 0; i < actor.Statuses.Length; ++i)
+            for (var i = 0; i < actor.Statuses.Length; ++i)
             {
                 if (actor.Statuses[i].ID != 0) // clear statuses
                 {

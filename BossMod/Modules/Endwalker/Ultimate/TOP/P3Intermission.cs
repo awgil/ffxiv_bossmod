@@ -61,7 +61,7 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
 
         _haveSafeSpots = true;
 
-        int[] slotsInPriorityOrder = Utils.MakeArray(PartyState.MaxPartySize, -1);
+        var slotsInPriorityOrder = Utils.MakeArray(PartyState.MaxPartySize, -1);
         foreach (var a in _config.P3IntermissionAssignments.Resolve(Raid))
             slotsInPriorityOrder[a.group] = a.slot;
 

@@ -69,4 +69,4 @@ class StorsieStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10623)]
-public class Storsie(ModuleArgs args): SimpleBossModule(args);
+public class Storsie(ModuleArgs args) : SimpleBossModule(args);

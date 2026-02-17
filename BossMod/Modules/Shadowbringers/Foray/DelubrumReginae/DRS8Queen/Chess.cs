@@ -139,10 +139,10 @@ class QueensEdict(BossModule module) : Chess(module)
                 yield break; // not ready yet...
 
             // initialize second safespot: select cells that are SecondEdict distance from safespot and not in columns clipped by second set of guards
-            int forbiddenCol1 = OffsetToCell(GuardStates[2].FinalPosition.X - Module.Center.X);
-            int forbiddenCol2 = OffsetToCell(GuardStates[3].FinalPosition.X - Module.Center.X);
-            int forbiddenRow1 = OffsetToCell(GuardStates[0].FinalPosition.Z - Module.Center.Z);
-            int forbiddenRow2 = OffsetToCell(GuardStates[1].FinalPosition.Z - Module.Center.Z);
+            var forbiddenCol1 = OffsetToCell(GuardStates[2].FinalPosition.X - Module.Center.X);
+            var forbiddenCol2 = OffsetToCell(GuardStates[3].FinalPosition.X - Module.Center.X);
+            var forbiddenRow1 = OffsetToCell(GuardStates[0].FinalPosition.Z - Module.Center.Z);
+            var forbiddenRow2 = OffsetToCell(GuardStates[1].FinalPosition.Z - Module.Center.Z);
             foreach (var s2 in CellsAtManhattanDistance((0, _safespotZOffset), state.SecondEdict).Where(s2 => s2.x != forbiddenCol1 && s2.x != forbiddenCol2))
             {
                 foreach (var s1 in CellsAtManhattanDistance(s2, state.FirstEdict).Where(s1 => s1.z != forbiddenRow1 && s1.z != forbiddenRow2))
@@ -157,7 +157,7 @@ class QueensEdict(BossModule module) : Chess(module)
             }
         }
 
-        uint color = ArenaColor.Safe;
+        var color = ArenaColor.Safe;
         var from = actor.Position;
         foreach (var p in state.Safespots.Skip(NumCasts / 2))
         {
@@ -182,7 +182,7 @@ class QueensEdict(BossModule module) : Chess(module)
 
     private IEnumerable<(int x, int z)> CellsAtManhattanDistance((int x, int z) origin, int distance)
     {
-        for (int x = -2; x <= 2; ++x)
+        for (var x = -2; x <= 2; ++x)
         {
             var dz = distance - Math.Abs(x - origin.x);
             if (dz == 0)

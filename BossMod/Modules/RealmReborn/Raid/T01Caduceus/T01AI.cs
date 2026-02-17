@@ -16,7 +16,7 @@ class T01AI(BossModule module) : BossComponent(module)
         // 4. before clone is spawned, R2 (assumed to be caster) stays on platform #0 and spawns slime there
         // 5. healers stand on platform #5 to be in range of everyone
         var cloneSpawned = _clone?.Clone != null;
-        bool cloneSpawningSoon = !cloneSpawned && Module.PrimaryActor.HPMP.CurHP < 0.73f * Module.PrimaryActor.HPMP.MaxHP;
+        var cloneSpawningSoon = !cloneSpawned && Module.PrimaryActor.HPMP.CurHP < 0.73f * Module.PrimaryActor.HPMP.MaxHP;
         var clone = _clone?.CloneIfValid;
         var hpDiff = clone != null ? (int)(clone.HPMP.CurHP - Module.PrimaryActor.HPMP.CurHP) * 100.0f / Module.PrimaryActor.HPMP.MaxHP : 0;
 
@@ -27,7 +27,7 @@ class T01AI(BossModule module) : BossComponent(module)
         }
         else if (activePlatforms.Any())
         {
-            bool actorIsSpawner = !cloneSpawned && assignment == (activePlatforms[0] ? PartyRolesConfig.Assignment.R2 : PartyRolesConfig.Assignment.R1);
+            var actorIsSpawner = !cloneSpawned && assignment == (activePlatforms[0] ? PartyRolesConfig.Assignment.R2 : PartyRolesConfig.Assignment.R1);
             Func<WPos, bool> nonAllowedPlatforms = actorIsSpawner
                 ? p => !activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) // inverse union of active
                 : p => activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)); // union of active

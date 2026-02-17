@@ -38,7 +38,7 @@ abstract class RubyGlowCommon(BossModule module, Enum? watchedAction = default) 
     {
         var c = QuadrantCenter(q);
         var w = Waymark.Count;
-        float wd = float.MaxValue;
+        var wd = float.MaxValue;
         for (var i = Waymark.A; i < Waymark.Count; i++)
         {
             var pos = WorldState.Waymarks[i];
@@ -174,7 +174,7 @@ abstract class RubyGlowRecolor(BossModule module, int expectedMagicStones) : Rub
             case RecolorState.BeforeStones:
                 if (MagicStones.Count() == _expectedMagicStones)
                 {
-                    int[] counts = new int[4];
+                    var counts = new int[4];
                     foreach (var o in MagicStones)
                         ++counts[QuadrantForPosition(o.Position)];
                     AOEQuadrant = Array.IndexOf(counts, 3);

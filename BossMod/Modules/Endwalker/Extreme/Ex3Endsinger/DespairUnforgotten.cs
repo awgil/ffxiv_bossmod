@@ -36,7 +36,7 @@ class DespairUnforgotten(BossModule module) : BossComponent(module)
         switch ((SID)status.ID)
         {
             case SID.RewindDespair:
-                int rings = status.Extra switch
+                var rings = status.Extra switch
                 {
                     0x17C => 1,
                     0x17D => 2,

@@ -41,7 +41,7 @@ class CanvasTest : TestWindow
         dl.AddRect(cursor, cursor + _screenSize, 0xffffffff);
 
         var mousePos = new WPos(ImGui.GetIO().MousePos - cursor);
-        bool dragging = ImGui.IsMouseDragging(ImGuiMouseButton.Left);
+        var dragging = ImGui.IsMouseDragging(ImGuiMouseButton.Left);
         if (!dragging)
         {
             _mouseoverContour = null;
@@ -52,7 +52,7 @@ class CanvasTest : TestWindow
         foreach (var c in _contours)
         {
             var prev = c[^1];
-            int i = 0;
+            var i = 0;
             foreach (var next in c)
             {
                 dl.PathLineTo(cursor + next.ToVec2());

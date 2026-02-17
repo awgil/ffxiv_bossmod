@@ -34,4 +34,4 @@ class PetalodusStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10632)]
-public class Petalodus(ModuleArgs args): SimpleBossModule(args);
+public class Petalodus(ModuleArgs args) : SimpleBossModule(args);

@@ -56,8 +56,8 @@ class Entrapment : Components.CastCounter
         // so we consider a very conservative range
         var player = Raid.Player();
         if (player != null)
-            for (int z = 0; z < 7; ++z)
-                for (int x = 0; x < 7; ++x)
+            for (var z = 0; z < 7; ++z)
+                for (var x = 0; x < 7; ++x)
                     if (player.Position.InCircle(Module.Center + CellOffset(x, z), 10))
                         _uncovered.Set(IndexFromCell(x, z));
 

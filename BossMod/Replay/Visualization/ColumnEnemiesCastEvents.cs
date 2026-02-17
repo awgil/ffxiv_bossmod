@@ -41,7 +41,7 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
         if (ImGui.Button("Add new!"))
             AddColumn();
 
-        bool needRebuild = false;
+        var needRebuild = false;
         foreach (var na in tree.Nodes(_filters, kv => new($"{kv.Key} ({_moduleInfo?.ActionIDType?.GetEnumName(kv.Key.ID)})")))
         {
             foreach (ref var v in na.Value.AsSpan())
@@ -61,10 +61,10 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
 
     private bool DrawConfigColumns(ref BitMask mask, string name)
     {
-        bool changed = false;
-        for (int c = 0; c < Columns.Count; ++c)
+        var changed = false;
+        for (var c = 0; c < Columns.Count; ++c)
         {
-            bool set = mask[c];
+            var set = mask[c];
             if (ImGui.Checkbox($"###{name}/{c}", ref set))
             {
                 mask[c] = set;
@@ -99,8 +99,8 @@ public class ColumnEnemiesCastEvents : Timeline.ColumnGroup
 
     private uint EventColor(Replay.Action action)
     {
-        bool phys = false;
-        bool magic = false;
+        var phys = false;
+        var magic = false;
         foreach (var t in action.Targets.Where(t => t.Target.Type == ActorType.Player))
         {
             foreach (var e in t.Effects.Where(e => e.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage))

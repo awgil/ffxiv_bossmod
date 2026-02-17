@@ -21,9 +21,9 @@ class HyperdimensionalSlash(BossModule module) : BossComponent(module)
             _tears.Add((TearPosition(target), target));
 
         _riskyTears.Reset();
-        for (int i = 0; i < _tears.Count; ++i)
+        for (var i = 0; i < _tears.Count; ++i)
         {
-            for (int j = i + 1; j < _tears.Count; ++j)
+            for (var j = i + 1; j < _tears.Count; ++j)
             {
                 if (_tears[i].Pos.InCircle(_tears[j].Pos, _linkRadius))
                 {
@@ -43,7 +43,7 @@ class HyperdimensionalSlash(BossModule module) : BossComponent(module)
         if (_laserTargets.None())
             return;
 
-        int tearIndex = _tears.FindIndex(t => t.Source == actor);
+        var tearIndex = _tears.FindIndex(t => t.Source == actor);
         hints.Add(tearIndex >= 0 ? "Next: laser" : "Next: cone", false);
         if (tearIndex >= 0)
         {
@@ -61,7 +61,7 @@ class HyperdimensionalSlash(BossModule module) : BossComponent(module)
             hints.Add("GTFO from laser aoe!");
 
         // make sure actor is either not hit by cone (if is target of a laser) or is hit by a cone (otherwise)
-        bool hitByCone = _aoeCone.Check(actor.Position, Module.Center, _coneDir);
+        var hitByCone = _aoeCone.Check(actor.Position, Module.Center, _coneDir);
         if (tearIndex >= 0 && hitByCone)
             hints.Add("GTFO from cone aoe!");
         else if (tearIndex < 0 && !hitByCone)
@@ -80,7 +80,7 @@ class HyperdimensionalSlash(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        for (int i = 0; i < _tears.Count; ++i)
+        for (var i = 0; i < _tears.Count; ++i)
             Arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? ArenaColor.Danger : ArenaColor.Safe);
 
         if (_laserTargets[pcSlot])

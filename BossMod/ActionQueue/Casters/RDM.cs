@@ -110,54 +110,54 @@ public enum SID : uint
 
 public sealed class Definitions : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.VermilionScourge, castAnimLock: 8.10f); // animLock=8.100s?
-        d.RegisterSpell(AID.Riposte);
-        d.RegisterSpell(AID.EnchantedRiposte);
-        d.RegisterSpell(AID.Jolt);
-        d.RegisterSpell(AID.Verthunder);
-        d.RegisterSpell(AID.CorpsACorps);
-        d.RegisterSpell(AID.Veraero);
-        d.RegisterSpell(AID.Scatter);
-        d.RegisterSpell(AID.VerthunderII);
-        d.RegisterSpell(AID.VeraeroII);
-        d.RegisterSpell(AID.Verfire);
-        d.RegisterSpell(AID.Verstone);
-        d.RegisterSpell(AID.Zwerchhau);
-        d.RegisterSpell(AID.EnchantedZwerchhau);
-        d.RegisterSpell(AID.Engagement);
-        d.RegisterSpell(AID.Displacement, instantAnimLock: 0.80f); // animLock=0.800s?
-        d.RegisterSpell(AID.Fleche);
-        d.RegisterSpell(AID.EnchantedRedoublement);
-        d.RegisterSpell(AID.Acceleration);
-        d.RegisterSpell(AID.Redoublement);
-        d.RegisterSpell(AID.EnchantedMoulinetTrois); // animLock=???
-        d.RegisterSpell(AID.EnchantedMoulinetDeux); // animLock=???
-        d.RegisterSpell(AID.Moulinet);
-        d.RegisterSpell(AID.EnchantedMoulinet);
-        d.RegisterSpell(AID.Vercure);
-        d.RegisterSpell(AID.ContreSixte);
-        d.RegisterSpell(AID.Embolden);
-        d.RegisterSpell(AID.Manafication);
-        d.RegisterSpell(AID.JoltII);
-        d.RegisterSpell(AID.Verraise);
-        d.RegisterSpell(AID.Impact);
-        d.RegisterSpell(AID.Verflare);
-        d.RegisterSpell(AID.Verholy);
-        d.RegisterSpell(AID.Reprise);
-        d.RegisterSpell(AID.EnchantedReprise);
-        d.RegisterSpell(AID.Scorch);
-        d.RegisterSpell(AID.VerthunderIII);
-        d.RegisterSpell(AID.VeraeroIII);
-        d.RegisterSpell(AID.JoltIII); // animLock=???
-        d.RegisterSpell(AID.MagickBarrier);
-        d.RegisterSpell(AID.Resolution);
-        d.RegisterSpell(AID.ViceOfThorns); // animLock=???
-        d.RegisterSpell(AID.GrandImpact); // animLock=???
-        d.RegisterSpell(AID.Prefulgence); // animLock=???
+        defs.RegisterSpell(AID.VermilionScourge, castAnimLock: 8.10f); // animLock=8.100s?
+        defs.RegisterSpell(AID.Riposte);
+        defs.RegisterSpell(AID.EnchantedRiposte);
+        defs.RegisterSpell(AID.Jolt);
+        defs.RegisterSpell(AID.Verthunder);
+        defs.RegisterSpell(AID.CorpsACorps);
+        defs.RegisterSpell(AID.Veraero);
+        defs.RegisterSpell(AID.Scatter);
+        defs.RegisterSpell(AID.VerthunderII);
+        defs.RegisterSpell(AID.VeraeroII);
+        defs.RegisterSpell(AID.Verfire);
+        defs.RegisterSpell(AID.Verstone);
+        defs.RegisterSpell(AID.Zwerchhau);
+        defs.RegisterSpell(AID.EnchantedZwerchhau);
+        defs.RegisterSpell(AID.Engagement);
+        defs.RegisterSpell(AID.Displacement, instantAnimLock: 0.80f); // animLock=0.800s?
+        defs.RegisterSpell(AID.Fleche);
+        defs.RegisterSpell(AID.EnchantedRedoublement);
+        defs.RegisterSpell(AID.Acceleration);
+        defs.RegisterSpell(AID.Redoublement);
+        defs.RegisterSpell(AID.EnchantedMoulinetTrois); // animLock=???
+        defs.RegisterSpell(AID.EnchantedMoulinetDeux); // animLock=???
+        defs.RegisterSpell(AID.Moulinet);
+        defs.RegisterSpell(AID.EnchantedMoulinet);
+        defs.RegisterSpell(AID.Vercure);
+        defs.RegisterSpell(AID.ContreSixte);
+        defs.RegisterSpell(AID.Embolden);
+        defs.RegisterSpell(AID.Manafication);
+        defs.RegisterSpell(AID.JoltII);
+        defs.RegisterSpell(AID.Verraise);
+        defs.RegisterSpell(AID.Impact);
+        defs.RegisterSpell(AID.Verflare);
+        defs.RegisterSpell(AID.Verholy);
+        defs.RegisterSpell(AID.Reprise);
+        defs.RegisterSpell(AID.EnchantedReprise);
+        defs.RegisterSpell(AID.Scorch);
+        defs.RegisterSpell(AID.VerthunderIII);
+        defs.RegisterSpell(AID.VeraeroIII);
+        defs.RegisterSpell(AID.JoltIII); // animLock=???
+        defs.RegisterSpell(AID.MagickBarrier);
+        defs.RegisterSpell(AID.Resolution);
+        defs.RegisterSpell(AID.ViceOfThorns); // animLock=???
+        defs.RegisterSpell(AID.GrandImpact); // animLock=???
+        defs.RegisterSpell(AID.Prefulgence); // animLock=???
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }

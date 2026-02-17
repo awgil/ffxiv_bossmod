@@ -37,7 +37,7 @@ class Polyominoid(BossModule module) : Components.GenericAOEs(module, AID.Polyom
 
         _dangerDirty = false;
         _dangerCells = new();
-        for (int i = 0; i < effStates.Length; i++)
+        for (var i = 0; i < effStates.Length; i++)
         {
             switch (effStates[i])
             {
@@ -75,7 +75,7 @@ class Polyominoid(BossModule module) : Components.GenericAOEs(module, AID.Polyom
 
     public override void OnMapEffect(byte index, uint state)
     {
-        int square = index switch
+        var square = index switch
         {
             1 => 0x0,
             2 => 0x1,
@@ -129,20 +129,20 @@ class Polyominoid(BossModule module) : Components.GenericAOEs(module, AID.Polyom
 
     private void AddPlus(int sq)
     {
-        int x = sq & 0x3;
-        int z = sq & 0xC;
-        for (int i = 0; i < 4; i++)
+        var x = sq & 0x3;
+        var z = sq & 0xC;
+        for (var i = 0; i < 4; i++)
             _dangerCells.Set(z + i);
-        for (int i = 0; i < 4; ++i)
+        for (var i = 0; i < 4; ++i)
             _dangerCells.Set(x + i * 4);
     }
 
     private void AddCross(int sq)
     {
-        int x = sq & 0x3;
-        int z = sq & 0xC;
+        var x = sq & 0x3;
+        var z = sq & 0xC;
         _dangerCells.Set(sq);
-        for (int i = 1; i < 4; ++i)
+        for (var i = 1; i < 4; ++i)
         {
             var x1 = x + i;
             var x2 = x - i;

@@ -147,4 +147,4 @@ class UrnaVariabilisStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13158)]
-public class UrnaVariabilis(ModuleArgs args): SimpleBossModule(args);
+public class UrnaVariabilis(ModuleArgs args) : SimpleBossModule(args);

@@ -159,7 +159,7 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
             var rot = s.NextRotation + _rotation;
             var act = s.NextActivation.AddSeconds(1.1f);
             var max = Math.Min(s.RemainingExplosions, _maxShownExplosions);
-            for (int i = 1; i < max; ++i)
+            for (var i = 1; i < max; ++i)
             {
                 yield return new(_shape, Module.Center, rot, act);
                 rot += _rotation;
@@ -440,7 +440,7 @@ class Fireworks2Hints(BossModule module) : BossComponent(module)
             if (_fireworks.IsSpreadTarget(actor))
             {
                 // spreads always go slightly S of rel E/W
-                bool west = ShouldGoWest(actor);
+                var west = ShouldGoWest(actor);
                 yield return _relNorth.Value + (west ? 95 : -95).Degrees();
             }
             else if (!_dartboard.Bullseye[slot])
@@ -450,7 +450,7 @@ class Fireworks2Hints(BossModule module) : BossComponent(module)
             }
             else if (Raid[_dartboard.Bullseye.WithoutBit(slot).LowestSetBit()] is var partner && partner != null)
             {
-                bool west = ShouldGoWest(actor);
+                var west = ShouldGoWest(actor);
                 if (_fireworks.IsSpreadTarget(partner) && ShouldGoWest(partner) == west)
                     west = !west; // adjust to opposite color
                 yield return _relNorth.Value + (west ? 5 : -5).Degrees();

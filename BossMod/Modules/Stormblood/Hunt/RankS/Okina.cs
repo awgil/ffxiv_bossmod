@@ -45,4 +45,4 @@ class OkinaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5984)]
-public class Okina(ModuleArgs args): SimpleBossModule(args);
+public class Okina(ModuleArgs args) : SimpleBossModule(args);

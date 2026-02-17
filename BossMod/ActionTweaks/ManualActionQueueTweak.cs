@@ -11,7 +11,7 @@
 // - our queue distinguishes GCD and oGCD actions; since oGCDs can be delayed, effective 'expiration' time for oGCDs is much larger than native 0.5s
 // - trying to queue an oGCD action while it is already queued (double tapping) activates 'emergency mode': all preceeding queued actions are removed and this action is returned even if it would delay GCD
 // - entries from the manual queue are added to the autoqueue every frame with appropriate priorities, and usual logic selects best action to execute
-public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, ActionDefinitions defs, ActionTweaksConfig _config)
+public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, ActionDefinitions defs, ActionTweaksConfig config)
 {
     private readonly record struct Entry(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionDefinition Definition, DateTime ExpireAt, float CastTime)
     {
@@ -67,7 +67,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, ActionD
         }
     }
 
-    public bool Enabled => _config.UseManualQueue;
+    public bool Enabled => config.UseManualQueue;
 
     public bool Push(ActionID action, ulong targetId, float castTime, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest)
     {
@@ -82,15 +82,15 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, ActionD
         if (def == null)
             return false; // unknown action, let native queue handle it instead
 
-        bool isGCD = def.IsGCD;
-        float expire = isGCD ? 1.0f : 3.0f;
+        var isGCD = def.IsGCD;
+        var expire = isGCD ? 1.0f : 3.0f;
         if (def.ReadyIn(ws.Client.Cooldowns, ws.Client.DutyActions) > expire)
             return false; // don't bother trying to queue something that's on cd
 
         if (!ResolveTarget(def, player, targetId, getAreaTarget, targetNearest, allowTargetOverride, out var target, out var targetPos))
             return false; // failed to resolve target
 
-        Angle? angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
+        var angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
 
         var expireAt = ws.CurrentTime.AddSeconds(expire);
         var index = _queue.FindIndex(e => e.Definition.MainCooldownGroup == def.MainCooldownGroup); // TODO: what about alt groups and duty actions?..
@@ -204,7 +204,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, ActionD
             return false; // target is valid, but not found in world, bail... (TODO this shouldn't be happening really)
 
         // custom smart-targeting
-        if (allowSmartTarget && _config.SmartTargets && def.SmartTarget != null)
+        if (allowSmartTarget && config.SmartTargets && def.SmartTarget != null)
             target = def.SmartTarget(ws, player, target, hints);
 
         // fallback: if requested, use native "target nearest" function to try to find a valid hostile target

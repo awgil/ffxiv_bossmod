@@ -26,4 +26,4 @@ class ForgivenGossipStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8916)]
-public class ForgivenGossip(ModuleArgs args): SimpleBossModule(args);
+public class ForgivenGossip(ModuleArgs args) : SimpleBossModule(args);

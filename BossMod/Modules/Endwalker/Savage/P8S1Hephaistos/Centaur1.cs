@@ -40,8 +40,8 @@ class UpliftStompDead : Components.UniformStackSpread
         else
         {
             // custom hints for baiting stomps
-            bool isBaiting = Stacks.Any(s => actor.Position.InCircle(s.Target.Position, s.Radius));
-            bool shouldBait = OrderPerSlot[slot] == NumStomps + 1;
+            var isBaiting = Stacks.Any(s => actor.Position.InCircle(s.Target.Position, s.Radius));
+            var shouldBait = OrderPerSlot[slot] == NumStomps + 1;
             hints.Add(shouldBait ? "Bait jump!" : "Avoid jump!", isBaiting != shouldBait);
         }
     }

@@ -177,71 +177,71 @@ public enum SID : uint
     #endregion
 }
 
-sealed class Definitions(GNBConfig _config) : IDefinitions
+sealed class Definitions(GNBConfig config) : IDefinitions
 {
-    public void Initialize(ActionDefinitions d)
+    public void Initialize(ActionDefinitions defs)
     {
-        d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);
-        d.RegisterSpell(AID.KeenEdge);
-        d.RegisterSpell(AID.NoMercy);
-        d.RegisterSpell(AID.BrutalShell);
-        d.RegisterSpell(AID.Camouflage);
-        d.RegisterSpell(AID.DemonSlice);
-        d.RegisterSpell(AID.RoyalGuard);
-        d.RegisterSpell(AID.ReleaseRoyalGuard);
-        d.RegisterSpell(AID.LightningShot);
-        d.RegisterSpell(AID.DangerZone);
-        d.RegisterSpell(AID.SolidBarrel);
-        d.RegisterSpell(AID.BurstStrike);
-        d.RegisterSpell(AID.Nebula);
-        d.RegisterSpell(AID.DemonSlaughter);
-        d.RegisterSpell(AID.Aurora);
-        d.RegisterSpell(AID.Superbolide);
-        d.RegisterSpell(AID.SonicBreak);
-        d.RegisterSpell(AID.Trajectory);
-        d.RegisterSpell(AID.GnashingFang, instantAnimLock: 0.70f);
-        d.RegisterSpell(AID.SavageClaw, instantAnimLock: 0.50f);
-        d.RegisterSpell(AID.WickedTalon, instantAnimLock: 0.77f);
-        d.RegisterSpell(AID.BowShock);
-        d.RegisterSpell(AID.HeartOfLight);
-        d.RegisterSpell(AID.HeartOfStone);
-        d.RegisterSpell(AID.AbdomenTear);
-        d.RegisterSpell(AID.JugularRip);
-        d.RegisterSpell(AID.EyeGouge);
-        d.RegisterSpell(AID.Continuation); // animLock=???
-        d.RegisterSpell(AID.FatedCircle);
-        d.RegisterSpell(AID.Bloodfest);
-        d.RegisterSpell(AID.BlastingZone);
-        d.RegisterSpell(AID.HeartOfCorundum);
-        d.RegisterSpell(AID.Hypervelocity);
-        d.RegisterSpell(AID.DoubleDown);
-        d.RegisterSpell(AID.FatedBrand);
-        d.RegisterSpell(AID.ReignOfBeasts);
-        d.RegisterSpell(AID.NobleBlood);
-        d.RegisterSpell(AID.LionHeart);
+        defs.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);
+        defs.RegisterSpell(AID.KeenEdge);
+        defs.RegisterSpell(AID.NoMercy);
+        defs.RegisterSpell(AID.BrutalShell);
+        defs.RegisterSpell(AID.Camouflage);
+        defs.RegisterSpell(AID.DemonSlice);
+        defs.RegisterSpell(AID.RoyalGuard);
+        defs.RegisterSpell(AID.ReleaseRoyalGuard);
+        defs.RegisterSpell(AID.LightningShot);
+        defs.RegisterSpell(AID.DangerZone);
+        defs.RegisterSpell(AID.SolidBarrel);
+        defs.RegisterSpell(AID.BurstStrike);
+        defs.RegisterSpell(AID.Nebula);
+        defs.RegisterSpell(AID.DemonSlaughter);
+        defs.RegisterSpell(AID.Aurora);
+        defs.RegisterSpell(AID.Superbolide);
+        defs.RegisterSpell(AID.SonicBreak);
+        defs.RegisterSpell(AID.Trajectory);
+        defs.RegisterSpell(AID.GnashingFang, instantAnimLock: 0.70f);
+        defs.RegisterSpell(AID.SavageClaw, instantAnimLock: 0.50f);
+        defs.RegisterSpell(AID.WickedTalon, instantAnimLock: 0.77f);
+        defs.RegisterSpell(AID.BowShock);
+        defs.RegisterSpell(AID.HeartOfLight);
+        defs.RegisterSpell(AID.HeartOfStone);
+        defs.RegisterSpell(AID.AbdomenTear);
+        defs.RegisterSpell(AID.JugularRip);
+        defs.RegisterSpell(AID.EyeGouge);
+        defs.RegisterSpell(AID.Continuation); // animLock=???
+        defs.RegisterSpell(AID.FatedCircle);
+        defs.RegisterSpell(AID.Bloodfest);
+        defs.RegisterSpell(AID.BlastingZone);
+        defs.RegisterSpell(AID.HeartOfCorundum);
+        defs.RegisterSpell(AID.Hypervelocity);
+        defs.RegisterSpell(AID.DoubleDown);
+        defs.RegisterSpell(AID.FatedBrand);
+        defs.RegisterSpell(AID.ReignOfBeasts);
+        defs.RegisterSpell(AID.NobleBlood);
+        defs.RegisterSpell(AID.LionHeart);
 
         // PvP
-        d.RegisterSpell(AID.KeenEdgePvP);
-        d.RegisterSpell(AID.BrutalShellPvP);
-        d.RegisterSpell(AID.SolidBarrelPvP);
-        d.RegisterSpell(AID.BurstStrikePvP);
-        d.RegisterSpell(AID.GnashingFangPvP);
-        d.RegisterSpell(AID.SavageClawPvP);
-        d.RegisterSpell(AID.WickedTalonPvP);
-        d.RegisterSpell(AID.AbdomenTearPvP);
-        d.RegisterSpell(AID.JugularRipPvP);
-        d.RegisterSpell(AID.EyeGougePvP);
-        d.RegisterSpell(AID.ContinuationPvP);
-        d.RegisterSpell(AID.FatedCirclePvP);
-        d.RegisterSpell(AID.BlastingZonePvP);
-        d.RegisterSpell(AID.HeartOfCorundumPvP);
-        d.RegisterSpell(AID.HypervelocityPvP);
-        d.RegisterSpell(AID.FatedBrandPvP);
-        d.RegisterSpell(AID.RoughDividePvP);
-        d.RegisterSpell(AID.RelentlessRushPvP);
-        d.RegisterSpell(AID.TerminalTriggerPvP);
+        defs.RegisterSpell(AID.KeenEdgePvP);
+        defs.RegisterSpell(AID.BrutalShellPvP);
+        defs.RegisterSpell(AID.SolidBarrelPvP);
+        defs.RegisterSpell(AID.BurstStrikePvP);
+        defs.RegisterSpell(AID.GnashingFangPvP);
+        defs.RegisterSpell(AID.SavageClawPvP);
+        defs.RegisterSpell(AID.WickedTalonPvP);
+        defs.RegisterSpell(AID.AbdomenTearPvP);
+        defs.RegisterSpell(AID.JugularRipPvP);
+        defs.RegisterSpell(AID.EyeGougePvP);
+        defs.RegisterSpell(AID.ContinuationPvP);
+        defs.RegisterSpell(AID.FatedCirclePvP);
+        defs.RegisterSpell(AID.BlastingZonePvP);
+        defs.RegisterSpell(AID.HeartOfCorundumPvP);
+        defs.RegisterSpell(AID.HypervelocityPvP);
+        defs.RegisterSpell(AID.FatedBrandPvP);
+        defs.RegisterSpell(AID.RoughDividePvP);
+        defs.RegisterSpell(AID.RelentlessRushPvP);
+        defs.RegisterSpell(AID.TerminalTriggerPvP);
 
-        Customize(d);
+        Customize(defs);
     }
 
     public void Dispose() { }
@@ -250,7 +250,7 @@ sealed class Definitions(GNBConfig _config) : IDefinitions
     {
         d.RegisterChargeIncreaseTrait(AID.Aurora, TraitID.EnhancedAurora);
 
-        d.Spell(AID.LightningShot)!.ForbidExecute = (ws, player, _, _, _) => _config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
+        d.Spell(AID.LightningShot)!.ForbidExecute = (ws, player, _, _, _) => config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
 
         d.Spell(AID.Trajectory)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
 

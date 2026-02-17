@@ -22,7 +22,7 @@ public sealed class StayCloseToTarget(RotationModuleManager manager, Actor playe
 
         configRef.AddOption(RangeDefinition.OnHitbox, "Stay on edge of hitbox (+/- 1 unit)");
 
-        for (float f = 1.1f; f <= 30f; f = MathF.Round(f + 0.1f, 1))
+        for (var f = 1.1f; f <= 30f; f = MathF.Round(f + 0.1f, 1))
         {
             configRef.AddOption((RangeDefinition)(f * 10f - 10f), internalNameOverride: f.ToString(CultureInfo.InvariantCulture));
         }

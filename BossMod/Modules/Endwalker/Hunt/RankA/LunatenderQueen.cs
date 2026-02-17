@@ -44,4 +44,4 @@ class LunatenderQueenStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10629)]
-public class LunatenderQueen(ModuleArgs args): SimpleBossModule(args);
+public class LunatenderQueen(ModuleArgs args) : SimpleBossModule(args);
