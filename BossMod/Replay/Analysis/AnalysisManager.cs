@@ -28,10 +28,10 @@ sealed class AnalysisManager
             foreach (var n in tree.Node("Unknown action effects"))
                 _unkEffects.Value.Draw(tree);
 
-            foreach (var n in tree.Node("Participant info", false, 0xffffffff, () => _participantInfo.Value.DrawContextMenu()))
+            foreach (var n in tree.Node("Participant info", false, 0xffffffff, _participantInfo.Value.DrawContextMenu))
                 _participantInfo.Value.Draw(tree);
 
-            foreach (var n in tree.Node("Ability info", false, 0xffffffff, () => _abilityInfo.Value.DrawContextMenu()))
+            foreach (var n in tree.Node("Ability info", false, 0xffffffff, _abilityInfo.Value.DrawContextMenu))
                 _abilityInfo.Value.Draw(tree);
 
             foreach (var n in tree.Node("Player class definitions"))
@@ -90,19 +90,19 @@ sealed class AnalysisManager
             foreach (var n in tree.Node("State transition timings"))
                 _transitionTimings.Value.Draw(tree);
 
-            foreach (var n in tree.Node("Participant info", false, 0xffffffff, () => _participantInfo.Value.DrawContextMenu()))
+            foreach (var n in tree.Node("Participant info", false, 0xffffffff, _participantInfo.Value.DrawContextMenu))
                 _participantInfo.Value.Draw(tree);
 
-            foreach (var n in tree.Node("Ability info", false, 0xffffffff, () => _abilityInfo.Value.DrawContextMenu()))
+            foreach (var n in tree.Node("Ability info", false, 0xffffffff, _abilityInfo.Value.DrawContextMenu))
                 _abilityInfo.Value.Draw(tree);
 
-            foreach (var n in tree.Node("Status info", false, 0xffffffff, () => _statusInfo.Value.DrawContextMenu()))
+            foreach (var n in tree.Node("Status info", false, 0xffffffff, _statusInfo.Value.DrawContextMenu))
                 _statusInfo.Value.Draw(tree);
 
-            foreach (var n in tree.Node("Icon info", false, 0xffffffff, () => _iconInfo.Value.DrawContextMenu()))
+            foreach (var n in tree.Node("Icon info", false, 0xffffffff, _iconInfo.Value.DrawContextMenu))
                 _iconInfo.Value.Draw(tree);
 
-            foreach (var n in tree.Node("Tether info", false, 0xffffffff, () => _tetherInfo.Value.DrawContextMenu()))
+            foreach (var n in tree.Node("Tether info", false, 0xffffffff, _tetherInfo.Value.DrawContextMenu))
                 _tetherInfo.Value.Draw(tree);
 
             foreach (var n in tree.Node("Map effect info", false, 0xffffffff))
