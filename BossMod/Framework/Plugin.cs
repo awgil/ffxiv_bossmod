@@ -147,6 +147,7 @@ public class Plugin : HostedPlugin
             cf.LoadFromFile(s.Resolve<IDalamudPluginInterface>().ConfigFile);
             return cf;
         }).AsSelf().SingleInstance();
+        containerBuilder.Register(s => new StandardColors(s.Resolve<ColorConfig>())).SingleInstance();
         foreach (var configType in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
         {
             containerBuilder.Register(s =>

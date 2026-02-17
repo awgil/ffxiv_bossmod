@@ -1,5 +1,4 @@
-﻿using DalaMock.Host.Mediator;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin.Services;
 
 namespace BossMod;
@@ -13,7 +12,7 @@ public class BossModuleConfigWindow : UIWindow
     private readonly UITabs _tabs = new();
     private readonly ITextureProvider _tex;
 
-    public BossModuleConfigWindow(MediatorService mediator, BossModuleRegistry.Info info, WorldState ws, ITextureProvider tex) : base(mediator, $"{info.ModuleType.Name} config", true, new(1200, 800))
+    public BossModuleConfigWindow(BossModuleRegistry.Info info, WorldState ws, ITextureProvider tex) : base($"{info.ModuleType.Name} config", true, new(1200, 800))
     {
         _node = info.ConfigType != null ? Service.Config.Get<ConfigNode>(info.ConfigType) : null;
         _ws = ws;

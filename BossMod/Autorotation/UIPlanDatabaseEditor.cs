@@ -1,4 +1,5 @@
-﻿using DalaMock.Host.Mediator;
+﻿using BossMod.Services;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
@@ -30,7 +31,7 @@ public sealed class UIPlanDatabaseEditor
 
     public static void StartPlanEditor(MediatorService mediator, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm)
     {
-        _ = new UIPlanEditorWindow(mediator, bmr, registry, ser, aep, colors, db, plan, sm);
+        mediator.Publish(new CreateWindowMessage(new UIPlanEditorWindow(bmr, registry, ser, aep, colors, db, plan, sm)));
     }
 
     public static void StartPlanEditor(MediatorService mediator, BossModuleRegistry bmr, RotationModuleRegistry autorot, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan)

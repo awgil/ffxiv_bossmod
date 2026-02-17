@@ -2,11 +2,13 @@
 using BossMod;
 using BossMod.Mock;
 using BossMod.Mocks;
+using BossMod.Testing;
 using DalaMock.Core.DI;
 using DalaMock.Core.Mocks;
 using DalaMock.Core.Windows;
 using DalaMock.Shared.Extensions;
 using DalaMock.Shared.Interfaces;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
@@ -77,6 +79,13 @@ static class Program
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateSync>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateFactory>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
+
+            containerBuilder.RegisterSingletonSelf<MainTestWindow>().As<Window>();
+            containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+                .Where(t => t.IsSubclassOf(typeof(TestWindow)) && !t.IsAbstract)
+                .As<TestWindow>()
+                .AsSelf()
+                .SingleInstance();
         }
     }
 

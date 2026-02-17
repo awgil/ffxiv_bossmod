@@ -93,7 +93,7 @@ public sealed class ConfigUI
     public void Open(string tabName = "")
     {
         ShowTab(tabName);
-        _ = new UISimpleWindow(this.mediator, "Boss Mod Settings", Draw, true, new(300, 300));
+        UISimpleWindow.Create(mediator, "Boss Mod Settings", Draw, true, new(300, 300));
     }
 
     public void ShowTab(string name) => _tabs.Select(name);

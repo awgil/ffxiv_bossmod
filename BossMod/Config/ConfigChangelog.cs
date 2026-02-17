@@ -1,5 +1,4 @@
-﻿using DalaMock.Host.Mediator;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using System.Diagnostics.CodeAnalysis;
@@ -82,7 +81,7 @@ public class ConfigChangelogWindow : UIWindow
 
     private int StuffCount => Fields.Count + Notices.Count;
 
-    public ConfigChangelogWindow(MediatorService mediator, ConfigRoot root, IDalamudPluginInterface dalamud) : base(mediator, "VBM Changelog", true, new(400, 300))
+    public ConfigChangelogWindow(ConfigRoot root, IDalamudPluginInterface dalamud) : base("VBM Changelog", true, new(400, 300))
     {
         _root = root;
         IsDev = dalamud.IsDev;

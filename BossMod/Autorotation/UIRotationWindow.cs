@@ -8,6 +8,7 @@ namespace BossMod.Autorotation;
 
 public sealed class UIRotationWindow : UIWindow
 {
+    private readonly MediatorService mediator;
     private readonly RotationModuleManager _mgr;
     private readonly IAmex _amex;
     private readonly BossModuleRegistry _bmr;
@@ -18,11 +19,12 @@ public sealed class UIRotationWindow : UIWindow
     private readonly ActionEffectParser aep;
     private readonly EventSubscriptions _subscriptions;
 
-    public UIRotationWindow(MediatorService mediator, RotationModuleManager mgr, IAmex amex, ConfigUI configUI, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ColorConfig colors, AutorotationConfig cfg, ActionEffectParser aep) : base(mediator, "Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(MediatorService mediator, RotationModuleManager mgr, IAmex amex, ConfigUI configUI, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ColorConfig colors, AutorotationConfig cfg, ActionEffectParser aep) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _registry = registry;
         _ser = ser;
         _colors = colors;
+        this.mediator = mediator;
         _mgr = mgr;
         _amex = amex;
         _bmr = bmr;
@@ -96,7 +98,7 @@ public sealed class UIRotationWindow : UIWindow
                         plans.SelectedIndex = plans.Plans.Count;
                         _mgr.Database.Plans.ModifyPlan(null, plan);
                     }
-                    UIPlanDatabaseEditor.StartPlanEditor(MediatorService, _bmr, _registry, _ser, aep, _colors, _mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
+                    UIPlanDatabaseEditor.StartPlanEditor(mediator, _bmr, _registry, _ser, aep, _colors, _mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
                 }
 
                 if (newSel >= 0 && _mgr.Presets.Count > 0)

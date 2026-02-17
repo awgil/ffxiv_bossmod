@@ -88,7 +88,7 @@ public sealed class ReplayManager : IDisposable
                     builder.Register(_ => R).As<IEnumerable<Replay>>();
                 });
                 var analysis = Scope.Resolve<ReplayAnalysis.AnalysisManager>();
-                Window = new(Mediator, $"Multiple logs: {Identifier}", analysis.Draw, false, new(1200, 800));
+                Window = UISimpleWindow.Create(Mediator, $"Multiple logs: {Identifier}", analysis.Draw, false, new(1200, 800));
             }
             Window?.IsOpen = true;
         }

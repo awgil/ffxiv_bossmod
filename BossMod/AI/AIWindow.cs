@@ -1,5 +1,4 @@
-﻿using DalaMock.Host.Mediator;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.AI;
@@ -11,7 +10,7 @@ internal sealed class AIWindow : UIWindow
     private readonly AIManager _manager;
     private readonly EventSubscriptions _subscriptions;
 
-    public AIWindow(MediatorService mediator, AIManager mgr) : base(mediator, _windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+    public AIWindow(AIManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _manager = mgr;
         _subscriptions = new

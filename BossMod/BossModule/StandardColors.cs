@@ -1,9 +1,9 @@
 ﻿namespace BossMod;
 
 // common color constants (ABGR)
-// TODO: migrate away to direct use of ColorConfig
 public class StandardColors(ColorConfig config)
 {
+    public ColorConfig Configuration => config;
     public uint Background => config.ArenaBackground.ABGR;
     public uint Border => config.ArenaBorder.ABGR;
     public uint AOE => config.ArenaAOE.ABGR;

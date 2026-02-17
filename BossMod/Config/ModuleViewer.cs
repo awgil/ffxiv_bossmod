@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Services;
 using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -397,7 +398,7 @@ public sealed class ModuleViewer
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
                                 if (UIMisc.IconButton(FontAwesomeIcon.Cog, $"###{mod.Info.ModuleType.FullName}_cfg"))
-                                    _ = new BossModuleConfigWindow(mediator, mod.Info, ws, _tex);
+                                    mediator.Publish(new CreateWindowMessage(new BossModuleConfigWindow(mod.Info, ws, _tex)));
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.PlanLevel == 0))
                                 if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, $"###{mod.Info.ModuleType.FullName}_plans"))

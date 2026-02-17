@@ -244,6 +244,6 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     {
         using var stream = File.OpenRead(Obstacles.RootPath + entry.Filename);
         var editor = new Editor(this, new(stream), entry);
-        _ = new UISimpleWindow(mediator, $"Obstacle map {entry.Filename}", editor.Draw, true, new(1000, 1000));
+        UISimpleWindow.Create(mediator, $"Obstacle map {entry.Filename}", editor.Draw, true, new(1000, 1000));
     }
 }

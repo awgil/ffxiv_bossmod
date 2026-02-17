@@ -1,5 +1,4 @@
-﻿using DalaMock.Host.Mediator;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 
 namespace BossMod.Autorotation;
 
@@ -12,7 +11,7 @@ public class UIPlanEditorWindow : UIWindow
     private readonly CooldownPlannerColumns _planner;
     private int _selectedPhase;
 
-    public UIPlanEditorWindow(MediatorService mediator, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm) : base(mediator, $"Cooldown planner: {plan.Guid}", true, new(1200, 900))
+    public UIPlanEditorWindow(BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm) : base($"Cooldown planner: {plan.Guid}", true, new(1200, 900))
     {
         _db = db;
         _original = plan;

@@ -34,9 +34,9 @@ class MainDebugWindow(
     ICondition conditions,
     ColorConfig colorConfig,
     ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet,
-    MediatorService mediator,
-    WindowSystem windows
-) : UIWindow(mediator, "Boss mod debug UI", false, new(300, 200))
+    WindowSystem windows,
+    MediatorService mediator
+) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud, mediator);
     private readonly DebugObjects _debugObjects = new(targetManager, objects);

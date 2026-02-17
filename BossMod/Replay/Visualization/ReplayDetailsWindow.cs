@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod.Autorotation;
+using BossMod.Services;
 using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
@@ -17,6 +18,7 @@ public class ReplayDetailsWindow : UIWindow
     private readonly RotationModuleRegistry _registry;
     private readonly Serializer _ser;
     private readonly ActionEffectParser aep;
+    private readonly MediatorService mediator;
     private readonly AIHints _hints;
     private BossModuleManager _mgr;
     private ZoneModuleManager _zmm;
@@ -68,7 +70,7 @@ public class ReplayDetailsWindow : UIWindow
         ActionEffectParser aep,
         MediatorService mediator,
         ILifetimeScope scope
-    ) : base(mediator, $"Replay: {data.Path}", false, new(1500, 1000))
+    ) : base($"Replay: {data.Path}", false, new(1500, 1000))
     {
         _defs = defs;
         _roles = prc;
@@ -76,6 +78,7 @@ public class ReplayDetailsWindow : UIWindow
         _registry = registry;
         _ser = ser;
         this.aep = aep;
+        this.mediator = mediator;
         _player = new(data);
         _scope = scope;
         _hints = new(tweaks, defs, actionsSheet);
@@ -178,7 +181,7 @@ public class ReplayDetailsWindow : UIWindow
 
             if (_mgr.ActiveModule != null && ImGui.Button("Timeline"))
             {
-                _ = new StateMachineWindow(MediatorService, _mgr.ActiveModule, _colors);
+                mediator.Publish(new CreateWindowMessage(new StateMachineWindow(_mgr.ActiveModule, _colors)));
             }
 
             if (_mgr.ActiveModule?.Info?.PlanLevel > 0)

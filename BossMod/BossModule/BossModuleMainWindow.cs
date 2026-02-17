@@ -1,5 +1,4 @@
-﻿using DalaMock.Host.Mediator;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using static BossMod.BossModuleConfig;
 
@@ -14,7 +13,7 @@ public class BossModuleMainWindow : UIWindow
 
     public delegate BossModuleMainWindow Factory(ZoneModuleManager zmm);
 
-    public BossModuleMainWindow(MediatorService mediator, BossModuleManager mgr, ZoneModuleManager zmm) : base(mediator, _windowID, false, new(400, 400))
+    public BossModuleMainWindow(BossModuleManager mgr, ZoneModuleManager zmm) : base(_windowID, false, new(400, 400))
     {
         _mgr = mgr;
         _zmm = zmm;

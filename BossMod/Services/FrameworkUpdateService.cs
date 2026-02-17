@@ -42,11 +42,11 @@ internal class FrameworkUpdateService(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        foreach (var w in defaultWindows)
-            windowSystem.AddWindow(w);
-
         MediatorService.Subscribe<CreateWindowMessage>(this, CreateWindow);
         MediatorService.Subscribe<DestroyWindowMessage>(this, DestroyWindow);
+
+        foreach (var w in defaultWindows)
+            windowSystem.AddWindow(w);
 
         uiBuilder.OpenMainUi += OpenUi;
         uiBuilder.OpenConfigUi += OpenUi;
@@ -66,7 +66,7 @@ internal class FrameworkUpdateService(
     void CreateWindow(CreateWindowMessage msg)
     {
         var wnd = msg.Window;
-        var detached = msg.Detached;
+        var detached = wnd.DisposeOnClose;
         var existing = windowSystem.Windows.FirstOrDefault(w => w.WindowName == wnd.WindowName);
         if (existing == null)
         {
@@ -118,7 +118,14 @@ internal class FrameworkUpdateService(
 
         var uiHidden = gameGui.GameUiHidden || conditions.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
+        {
+            for (var i = windowSystem.Windows.Count - 1; i >= 0; i--)
+            {
+                if (windowSystem.Windows[i] is UIWindow uiw && uiw.IsDisposed)
+                    windowSystem.RemoveWindow(uiw);
+            }
             windowSystem.Draw();
+        }
 
         hintExecutor.Execute();
 

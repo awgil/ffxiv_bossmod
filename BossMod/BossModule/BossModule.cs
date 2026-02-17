@@ -38,7 +38,7 @@ public abstract class BossModule : IDisposable
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
-    public readonly StandardColors ArenaColor;
+    public StandardColors ArenaColor => Arena.ArenaColor;
     public readonly PartyRolesConfig Roles;
     public ConfigRoot Config => _args.Config;
     protected ITextureProvider Tex => _args.TextureProvider;
@@ -130,10 +130,9 @@ public abstract class BossModule : IDisposable
         WorldState = args.World;
         PrimaryActor = args.Primary;
         WindowConfig = args.Config.Get<BossModuleConfig>();
-        ColorConfig = args.Config.Get<ColorConfig>();
         Roles = args.Config.Get<PartyRolesConfig>();
-        ArenaColor = new(ColorConfig);
-        Arena = new(WindowConfig, ColorConfig, center, bounds);
+        ColorConfig = args.Config.Get<ColorConfig>();
+        Arena = new(WindowConfig, new(ColorConfig), center, bounds);
         Info = args.Registry.FindByOID(args.Primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 

@@ -1,5 +1,4 @@
-﻿using DalaMock.Host.Mediator;
-using Dalamud.Utility;
+﻿using Dalamud.Utility;
 
 namespace BossMod;
 
@@ -8,7 +7,7 @@ public class ZoneModuleWindow : UIWindow
     private readonly ZoneModuleManager _zmm;
     private bool _wasOpen;
 
-    public ZoneModuleWindow(MediatorService mediator, ZoneModuleManager zmm) : base(mediator, "Zone module###Zone module", false, new(400, 400))
+    public ZoneModuleWindow(ZoneModuleManager zmm) : base("Zone module###Zone module", false, new(400, 400))
     {
         _zmm = zmm;
         RespectCloseHotkey = false;
