@@ -48,6 +48,10 @@
     <ProjectReference Include="..\BossMod\BossMod.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.2" />
+  </ItemGroup>
+
   <Target Name="PostBuildScript" AfterTargets="Build">
     <Copy SourceFiles="$(DalamudLibPath)cimgui.dll" DestinationFolder="$(OutputPath)" />
   </Target>

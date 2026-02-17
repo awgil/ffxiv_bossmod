@@ -57,10 +57,14 @@ static class Program
             var logger = scope.Resolve<IPluginLog>();
             var dalamud = scope.Resolve<IDalamudPluginInterface>();
             var isMockConfig = dalamud.ConfigFile.FullName.Contains("DalaMock");
-            if (isMockConfig)
-                configGlobal.Modified.Subscribe(() => configGlobal.SaveToFile(dalamud.ConfigFile));
-            else
-                configGlobal.Modified.Subscribe(() => logger.Info("Config was modified. Saving is disabled."));
+            configGlobal.Modified.Subscribe(() =>
+            {
+                logger.Info("Config was modified.");
+                if (isMockConfig)
+                    configGlobal.SaveToFile(dalamud.ConfigFile);
+                else
+                    logger.Info("Using real config file. Saving is disabled.");
+            });
 
             // always show replays in dev mode, since it's the only useful thing we can do
             configGlobal.Get<ReplayManagementConfig>().ShowUI = true;

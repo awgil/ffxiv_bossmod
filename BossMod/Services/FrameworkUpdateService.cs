@@ -5,6 +5,7 @@ using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -32,7 +33,8 @@ internal class FrameworkUpdateService(
     IUiBuilder uiBuilder,
     ICondition conditions,
     IGameGui gameGui,
-    ConfigUI configUI
+    ConfigUI configUI,
+    IEnumerable<Window> defaultWindows
 ) : DisposableMediatorSubscriberBase(mLogger, mediator), IHostedService
 {
     private TimeSpan _prevUpdateTime;
@@ -40,6 +42,9 @@ internal class FrameworkUpdateService(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        foreach (var w in defaultWindows)
+            windowSystem.AddWindow(w);
+
         MediatorService.Subscribe<CreateWindowMessage>(this, CreateWindow);
         MediatorService.Subscribe<DestroyWindowMessage>(this, DestroyWindow);
 

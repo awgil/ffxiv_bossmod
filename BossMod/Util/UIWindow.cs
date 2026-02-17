@@ -73,7 +73,17 @@ public abstract class UIWindow : Window, IDisposable
     }
 
     // note: it won't be called for a detached window that was never registered...
-    protected virtual void Dispose(bool disposing) => MediatorService.Publish(new DestroyWindowMessage(WindowName));
+    protected virtual void Dispose(bool disposing)
+    {
+        try
+        {
+            MediatorService.Publish(new DestroyWindowMessage(WindowName));
+        }
+        catch (ObjectDisposedException)
+        {
+            // TODO: fix this, it means we are disposing the window after mediator service teardown
+        }
+    }
 }
 
 // utility: window that uses custom delegate to perform drawing - allows avoiding creating derived classes in simple cases

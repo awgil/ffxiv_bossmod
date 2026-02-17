@@ -80,7 +80,7 @@ public sealed class UIRotationWindow : UIWindow
             {
                 ImGui.SameLine();
                 var plans = _mgr.Database.Plans.GetPlans(activeModule.GetType(), player.Class);
-                var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "");
+                var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "##plandropdown");
                 if (newSel != plans.SelectedIndex)
                 {
                     plans.SelectedIndex = newSel;
