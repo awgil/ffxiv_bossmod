@@ -196,7 +196,7 @@ class Replication2HemorrhagicProjection : Components.GenericBaitAway
     readonly DateTime _activation;
     BitMask _targets;
 
-    public static readonly AOEShapeCone Shape = new(50, 25.Degrees());
+    public static readonly AOEShapeCone Shape = new(50, 22.5f.Degrees());
 
     public Replication2HemorrhagicProjection(BossModule module) : base(module, centerAtTarget: true)
     {
@@ -231,7 +231,7 @@ class Replication2HemorrhagicProjection : Components.GenericBaitAway
         foreach (var ally in Raid.WithoutSlot().Exclude(actor))
         {
             var angle = actor.AngleTo(ally);
-            forbidden.ForbidInfiniteCone(actor.Position, angle, 28.Degrees());
+            forbidden.ForbidInfiniteCone(actor.Position, angle, 25.5f.Degrees());
         }
 
         foreach (var (from, to) in forbidden.Forbidden.Segments)

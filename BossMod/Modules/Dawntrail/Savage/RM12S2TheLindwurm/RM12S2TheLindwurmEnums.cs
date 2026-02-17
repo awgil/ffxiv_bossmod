@@ -67,7 +67,7 @@ public enum AID : uint
     TimelessSpite = 46384, // Helper->players, no cast, range 6 circle
     ScaldingWavesReplay = 47329, // Helper->self, no cast, range 50 10-degree cone
     GrotesquerieReplayVisual = 46321, // Lindschrat->self, no cast, single-target
-    HemorrhagicProjectionReplay = 47394, // Helper->self, no cast, range 50 50-degree cone
+    HemorrhagicProjectionReplay = 47394, // Helper->self, no cast, range 50 45-degree cone
     HeavySlamReplayVisual = 46319, // Lindschrat->Understudy, no cast, single-target
     HeavySlamReplay = 48733, // Helper->self, no cast, range 5 circle
 
