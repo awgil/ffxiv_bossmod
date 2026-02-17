@@ -56,7 +56,7 @@ public enum AID : uint
     UnmitigatedImpact = 46320, // Helper->self, no cast, range 60 circle, Heavy Slam "tower" failure
     GrotesquerieVisual = 46313, // Lindschrat->self, no cast, single-target
     GrotesquerieHelper = 46314, // Helper->player, no cast, single-target
-    HemorrhagicProjection = 46315, // Helper->self, no cast, range 50 50-degree cone
+    HemorrhagicProjection = 46315, // Helper->self, no cast, range 50 45-degree cone
 
     Reenactment = 46316, // Boss->self, 3.0s cast, single-target
     FirefallSplashReplay = 46317, // Lindschrat->Understudy, no cast, range 5 circle
@@ -67,7 +67,7 @@ public enum AID : uint
     TimelessSpite = 46384, // Helper->players, no cast, range 6 circle
     ScaldingWavesReplay = 47329, // Helper->self, no cast, range 50 10-degree cone
     GrotesquerieReplayVisual = 46321, // Lindschrat->self, no cast, single-target
-    HemorrhagicProjectionReplay = 47394, // Helper->self, no cast, range 50 50-degree cone
+    HemorrhagicProjectionReplay = 47394, // Helper->self, no cast, range 50 45-degree cone
     HeavySlamReplayVisual = 46319, // Lindschrat->Understudy, no cast, single-target
     HeavySlamReplay = 48733, // Helper->self, no cast, range 5 circle
 
