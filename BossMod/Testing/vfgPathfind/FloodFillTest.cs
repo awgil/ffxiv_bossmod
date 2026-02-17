@@ -1,6 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 
-namespace UIDev.vfgPathfind;
+namespace BossMod.Testing.vfgPathfind;
 
 class FloodFillTest : TestWindow
 {

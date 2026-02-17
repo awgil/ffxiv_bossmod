@@ -1,4 +1,4 @@
-﻿namespace UIDev.vfgPathfind;
+﻿namespace BossMod.Testing.vfgPathfind;
 
 public class FloodFill
 {

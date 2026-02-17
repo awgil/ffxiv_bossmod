@@ -1,7 +1,6 @@
-﻿using BossMod;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 
-namespace UIDev.vfgPathfind;
+namespace BossMod.Testing.vfgPathfind;
 
 public class FloodFillVisualizer
 {
