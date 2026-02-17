@@ -2,7 +2,7 @@
 
 class DecisiveBattleAOE(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
+    private readonly ForkedTowerConfig _config = module.Config.Get<ForkedTowerConfig>();
     private readonly Actor?[] _casters = new Actor?[3];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)

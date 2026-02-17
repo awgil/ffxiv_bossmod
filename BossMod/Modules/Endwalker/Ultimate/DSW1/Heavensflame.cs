@@ -108,7 +108,7 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
         if (icon == 0)
             yield break;
 
-        switch (Service.Config.Get<DSW1Config>().Heavensflame)
+        switch (Module.Config.Get<DSW1Config>().Heavensflame)
         {
             case DSW1Config.HeavensflameHints.Waymarks:
                 {

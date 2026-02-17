@@ -10,7 +10,7 @@ class EngravementOfSouls1Spread(BossModule module) : Components.UniformStackSpre
         public WPos CachedSafespot;
     }
 
-    private readonly P12S1AthenaConfig _config = Service.Config.Get<P12S1AthenaConfig>();
+    private readonly P12S1AthenaConfig _config = module.Config.Get<P12S1AthenaConfig>();
     private readonly EngravementOfSoulsTethers? _tethers = module.FindComponent<EngravementOfSoulsTethers>();
     private readonly PlayerState[] _states = new PlayerState[PartyState.MaxPartySize];
 

@@ -2,7 +2,7 @@
 
 class SagesStaff(BossModule module) : Components.MultiLineStack(module, 2, 40, (AID)0, AID.ManaExpulsion, 11.3f)
 {
-    private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
+    private readonly ForkedTowerConfig _config = module.Config.Get<ForkedTowerConfig>();
     private readonly List<(Actor Actor, int Group3)> _sources = [];
     private DateTime _activation;
 

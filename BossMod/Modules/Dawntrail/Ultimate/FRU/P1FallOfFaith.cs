@@ -3,7 +3,7 @@
 // TODO: more positioning options?..
 class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly int[] _playerOrder = new int[PartyState.MaxPartySize]; // 0 if not assigned, 1-4 if tethered, 5-8 for conga help order (5/6 help group 1, 7/8 help group 2)
     private readonly List<Actor> _tetherTargets = [];
     private readonly List<Actor> _currentBaiters = [];
@@ -123,7 +123,7 @@ class P1FallOfFaith(BossModule module) : Components.CastCounter(module, default)
     private void InitAssignments()
     {
         List<(int slot, int prio)> conga = [];
-        foreach (var (slot, group) in _config.P1FallOfFaithAssignment.Resolve(Raid))
+        foreach (var (slot, group) in _config.P1FallOfFaithAssignment.Resolve(Module))
             if (_playerOrder[slot] == 0)
                 conga.Add((slot, group));
         if (conga.Count != 4)

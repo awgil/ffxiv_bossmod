@@ -18,6 +18,7 @@ public sealed class RotationModuleManager : IDisposable
 
     public readonly List<Preset> Presets = [];
 
+    public readonly ConfigRoot ConfigRoot;
     public readonly AutorotationConfig Config;
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
@@ -75,11 +76,12 @@ public sealed class RotationModuleManager : IDisposable
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
-    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AutorotationConfig config, PartyRolesConfig prc, ActionDefinitions defs, IUnlockState unlockState, AIHints hints, IDalamudPluginInterface dalamud, ExcelSheet<Lumina.Excel.Sheets.Trait> traitsSheet)
+    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, ConfigRoot cfgRoot, ActionDefinitions defs, IUnlockState unlockState, AIHints hints, IDalamudPluginInterface dalamud, ExcelSheet<Lumina.Excel.Sheets.Trait> traitsSheet)
     {
+        ConfigRoot = cfgRoot;
         IsDev = dalamud.IsDev;
-        Config = config;
-        _prc = prc;
+        Config = cfgRoot.Get<AutorotationConfig>();
+        _prc = cfgRoot.Get<PartyRolesConfig>();
         Actions = defs;
         Database = db;
         Bossmods = bmm;

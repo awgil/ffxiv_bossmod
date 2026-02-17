@@ -1,6 +1,4 @@
-﻿using BossMod.AI;
-using BossMod.Autorotation;
-using BossMod.Interfaces;
+﻿using BossMod.Autorotation;
 using Dalamud.Plugin;
 using System.IO;
 using System.Text.Json;
@@ -13,14 +11,14 @@ sealed class IPCProvider : IDisposable
     private Action? _disposeActions;
     private readonly IDalamudPluginInterface _dalamud;
 
-    public IPCProvider(RotationModuleManager autorotation, IAmex amex, IMovementOverride movement, AIManager ai, IDalamudPluginInterface dalamud, RotationModuleRegistry registry, JsonSerializerOptions jsonOpts, BossModuleRegistry bmr)
+    public IPCProvider(RotationModuleManager autorotation, IDalamudPluginInterface dalamud, RotationModuleRegistry registry, JsonSerializerOptions jsonOpts, BossModuleRegistry bmr, ConfigRoot cfgRoot)
     {
         _dalamud = dalamud;
         Register("HasModuleByDataId", (uint dataId) => bmr.FindByOID(dataId) != null);
-        Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
+        Register("Configuration", (IReadOnlyList<string> args, bool save) => cfgRoot.ConsoleCommand(string.Join(' ', args), save));
 
-        DateTime lastModified = DateTime.Now;
-        Service.Config.Modified.Subscribe(() => lastModified = DateTime.Now);
+        var lastModified = DateTime.Now;
+        cfgRoot.Modified.Subscribe(() => lastModified = DateTime.Now);
         Register("Configuration.LastModified", () => lastModified);
 
         Register("Rotation.ActionQueue.HasEntries", () => autorotation.Hints.ActionsToExecute.Entries.Any(x => !x.Manual));

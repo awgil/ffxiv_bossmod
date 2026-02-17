@@ -3,7 +3,7 @@
 class FireballAdds(BossModule module) : Components.AddsMulti(module, [OID.GaseousNereid, OID.GaseousPhobos], 2);
 class FireballTowerHint(BossModule module) : BossComponent(module)
 {
-    private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
+    private readonly ForkedTowerConfig _config = module.Config.Get<ForkedTowerConfig>();
 
     private Actor? _fireballNE;
     private Actor? _fireballSW;

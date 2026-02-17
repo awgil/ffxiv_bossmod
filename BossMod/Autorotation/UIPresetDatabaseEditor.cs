@@ -172,7 +172,7 @@ public sealed class UIPresetDatabaseEditor(
 
     private bool DrawSaveCurrentPresetButton() => UIMisc.Button("Save", 0, (!HaveUnsavedModifications, "Current preset is not modified"), (_selectedPreset?.NameConflict ?? false, "Current preset name is empty or duplicates name of other existing preset"));
 
-    private void RevertCurrentPreset() => _selectedPreset = new(rRegistry, IsDev, PresetDB, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
+    private void RevertCurrentPreset() => _selectedPreset = new(rRegistry, config, IsDev, PresetDB, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
 
     private void SaveCurrentPreset()
     {
@@ -210,7 +210,7 @@ public sealed class UIPresetDatabaseEditor(
     {
         _selectedPresetIndex = -1;
         _selectedPresetDefault = false;
-        _selectedPreset = new(rRegistry, IsDev, PresetDB, referenceIndex, referenceDefault, _selectedModuleType);
+        _selectedPreset = new(rRegistry, config, IsDev, PresetDB, referenceIndex, referenceDefault, _selectedModuleType);
         _selectedPreset.DetachFromSource();
         _selectedPreset.MakeNameUnique();
     }
@@ -288,7 +288,7 @@ public sealed class UIPresetDatabaseEditor(
             var preset = ser.FromJSON<Preset>(json.AsArray()[0]!)!;
             _selectedPresetIndex = -1;
             _selectedPresetDefault = false;
-            _selectedPreset = new(rRegistry, PresetDB, preset, _selectedModuleType);
+            _selectedPreset = new(rRegistry, config, PresetDB, preset, _selectedModuleType);
         }
         catch (Exception ex)
         {

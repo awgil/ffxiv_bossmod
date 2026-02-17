@@ -57,7 +57,7 @@ class P2LuminousHammer(BossModule module) : Components.BaitAwayIcon(module, new 
 
 class P2BrightHunger1(BossModule module) : Components.GenericTowers(module, AID.BrightHunger)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private BitMask _forbidden;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // there are dedicated components for hints
@@ -74,7 +74,7 @@ class P2BrightHunger1(BossModule module) : Components.GenericTowers(module, AID.
     private void RebuildTowers()
     {
         List<(int slot, int prio)> conga = [];
-        foreach (var (slot, group) in _config.P2LightRampantAssignment.Resolve(Raid))
+        foreach (var (slot, group) in _config.P2LightRampantAssignment.Resolve(Module))
             if (!_forbidden[slot])
                 conga.Add((slot, group));
         conga.SortBy(kv => kv.prio);
@@ -170,7 +170,7 @@ class P2BrightHunger2(BossModule module) : Components.GenericTowers(module, AID.
 // note: this also moves to soak or avoid the central tower, because these mechanics overlap
 class P2LightRampantBanish(BossModule module) : P2Banish(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P2BrightHunger2? _tower = module.FindComponent<P2BrightHunger2>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

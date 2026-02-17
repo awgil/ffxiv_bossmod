@@ -16,7 +16,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
     public readonly PlayerState[] States = new PlayerState[PartyState.MaxPartySize];
     public readonly List<(Actor origin, Angle rotation, DateTime activation)> LaserRotations = [];
     public int NumReturnStuns;
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private WDir _relNorth;
     private int _numYellowTethers;
     private DateTime _nextImminent = module.WorldState.FutureTime(21.9f - 2.5f); // approx 2.5s before next step resolves
@@ -190,7 +190,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
     {
         // determine who flexes
         Span<(int slot, int prio)> eastFlex = [(-1, -1), (-1, -1)]; // [support, dd]
-        foreach (var (slot, group) in _config.P3UltimateRelativityAssignment.Resolve(Raid))
+        foreach (var (slot, group) in _config.P3UltimateRelativityAssignment.Resolve(Module))
         {
             var player = Raid[slot];
             if (player == null)

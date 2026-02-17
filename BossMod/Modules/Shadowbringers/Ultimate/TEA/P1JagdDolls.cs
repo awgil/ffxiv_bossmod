@@ -9,8 +9,8 @@ class P1JagdDolls(BossModule module) : BossComponent(module)
     private readonly Actor?[] _dollsByAssignment = new Actor?[8];
     private bool _haveDollAssignments;
 
-    private readonly GroupAssignmentFourUnique _assignment = Service.Config.Get<TEAConfig>().P1DollAssignments;
-    private readonly bool _forbidDolls = Service.Config.Get<TEAConfig>().P1DollPullSafety;
+    private readonly GroupAssignmentFourUnique _assignment = module.Config.Get<TEAConfig>().P1DollAssignments;
+    private readonly bool _forbidDolls = module.Config.Get<TEAConfig>().P1DollPullSafety;
 
     private const float _exhaustRadius = 8.8f;
 
@@ -99,7 +99,7 @@ class P1JagdDolls(BossModule module) : BossComponent(module)
         if (!_assignment.Validate())
             return;
 
-        var pairs = _assignment.Resolve(Raid).ToList();
+        var pairs = _assignment.Resolve(Module).ToList();
         if (pairs.Count == 0)
             return;
 

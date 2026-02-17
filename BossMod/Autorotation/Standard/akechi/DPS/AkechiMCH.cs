@@ -380,7 +380,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             AllowOrForbid.Forbid or _ => false,
         };
     }
-    private bool StopForFlamethrower => Service.Config.Get<MCHConfig>().PauseForFlamethrower && FTleft > 0;
+    private bool StopForFlamethrower => false; // TODO: add track
     private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
     {
         PotionStrategy.AlignWithBuffs => Player.InCombat && BScd <= 6f,

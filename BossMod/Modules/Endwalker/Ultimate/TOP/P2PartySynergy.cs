@@ -6,11 +6,11 @@ class P2PartySynergy(BossModule module) : CommonAssignments(module)
 
     public Glitch ActiveGlitch;
     public bool EnableDistanceHints;
-    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private readonly TOPConfig _config = module.Config.Get<TOPConfig>();
 
     protected override (GroupAssignmentUnique assignment, bool global) Assignments()
     {
-        var config = Service.Config.Get<TOPConfig>();
+        var config = Module.Config.Get<TOPConfig>();
         return (config.P2PartySynergyAssignments, config.P2PartySynergyGlobalPriority);
     }
 
@@ -223,12 +223,13 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
     private int _firstStackSlot = -1;
     private BitMask _firstGroup;
     private string _swaps = "";
-    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private readonly TOPConfig _config;
 
     private static readonly AOEShapeCircle _shape = new(10);
 
     public P2PartySynergyEfficientBladework(BossModule module) : base(module)
     {
+        _config = module.Config.Get<TOPConfig>();
         _synergy = module.FindComponent<P2PartySynergy>();
         _sources.AddRange(module.Enemies(OID.OmegaF));
         // by default, use same group as for synergy

@@ -9,7 +9,7 @@ class P1Explosion(BossModule module) : Components.GenericTowers(module)
 {
     public WDir TowerDir;
     public DateTime Activation;
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private bool _isWideLine;
     private bool _lineDone;
 
@@ -116,7 +116,7 @@ class P1Explosion(BossModule module) : Components.GenericTowers(module)
         TowerDir.X = Towers.Sum(t => t.Position.X - Module.Center.X) > 0 ? 1 : -1;
 
         Span<int> slotByGroup = [-1, -1, -1, -1, -1, -1, -1, -1];
-        foreach (var (slot, group) in _config.P1ExplosionsAssignment.Resolve(Raid))
+        foreach (var (slot, group) in _config.P1ExplosionsAssignment.Resolve(Module))
             slotByGroup[group] = slot;
         if (slotByGroup.Contains(-1))
             return;

@@ -6,7 +6,7 @@ class IceboundBuffoonery(BossModule module) : Components.InvincibleStatus(module
 
 class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBoulder)
 {
-    private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
+    private readonly ForkedTowerConfig _config = module.Config.Get<ForkedTowerConfig>();
 
     // 0 = north, 1 = south
     record struct Charge(WPos Source, WPos Target, DateTime Activation, int Snowball, int Order)

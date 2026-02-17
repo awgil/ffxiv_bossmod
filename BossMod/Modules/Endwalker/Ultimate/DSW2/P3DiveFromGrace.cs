@@ -87,7 +87,7 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, AID.Dar
     }
 
     public int NumJumps { get; private set; }
-    private readonly DSW2Config _config = Service.Config.Get<DSW2Config>();
+    private readonly DSW2Config _config = module.Config.Get<DSW2Config>();
     private bool _haveDirections;
     private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
     private readonly BitMask[] _orderPlayers = new BitMask[3]; // [0] = players with order 1, etc.

@@ -24,13 +24,13 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
         return res;
     }
 
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = manager.ConfigRoot.Get<FRUConfig>();
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Bossmods.ActiveModule is FRU module && module.Raid.TryFindSlot(Player.InstanceID, out var playerSlot))
         {
-            SetForcedMovement(CalculateDestination(module, primaryTarget, strategy.Option(Track.Movement), Service.Config.Get<PartyRolesConfig>()[module.Raid.Members[playerSlot].ContentId]));
+            SetForcedMovement(CalculateDestination(module, primaryTarget, strategy.Option(Track.Movement), Manager.ConfigRoot.Get<PartyRolesConfig>()[module.Raid.Members[playerSlot].ContentId]));
         }
     }
 

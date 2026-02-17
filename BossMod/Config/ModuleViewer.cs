@@ -32,6 +32,7 @@ public sealed class ModuleViewer
 
     private readonly BossModuleConfig _bmConfig;
     private readonly ColorConfig _colors;
+    private readonly ConfigRoot cfgRoot;
     private readonly ActionEffectParser aep;
     private readonly MediatorService mediator;
     private readonly ExcelSheet<BNpcName> bnpcNameSheet;
@@ -62,6 +63,7 @@ public sealed class ModuleViewer
         Serializer ser,
         BossModuleConfig bmConfig,
         ColorConfig colors,
+        ConfigRoot cfgRoot,
         ActionEffectParser aep,
         MediatorService mediator,
         ExcelSheet<BNpcName> bnpcNameSheet,
@@ -77,6 +79,7 @@ public sealed class ModuleViewer
     {
         _bmConfig = bmConfig;
         _colors = colors;
+        this.cfgRoot = cfgRoot;
         this.aep = aep;
         this.mediator = mediator;
         this.bnpcNameSheet = bnpcNameSheet;
@@ -398,7 +401,7 @@ public sealed class ModuleViewer
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
                                 if (UIMisc.IconButton(FontAwesomeIcon.Cog, $"###{mod.Info.ModuleType.FullName}_cfg"))
-                                    mediator.Publish(new CreateWindowMessage(new BossModuleConfigWindow(mod.Info, ws, _tex)));
+                                    mediator.Publish(new CreateWindowMessage(new BossModuleConfigWindow(mod.Info, cfgRoot, ws, _tex)));
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.PlanLevel == 0))
                                 if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, $"###{mod.Info.ModuleType.FullName}_plans"))

@@ -189,14 +189,14 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
 
     private WPos DetermineWaterSafeSpot(Actor source)
     {
-        var ccw = Service.Config.Get<P4S2Config>().Act4WaterBreakCCW;
+        var ccw = Module.Config.Get<P4S2Config>().Act4WaterBreakCCW;
         var dir = (ccw ? -3 : 3) * 45.Degrees();
         return RotateCW(source.Position, dir, 18);
     }
 
     private Actor? DetermineTowerToSoak(Actor source)
     {
-        var ccw = Service.Config.Get<P4S2Config>().Act4DarkSoakCCW;
+        var ccw = Module.Config.Get<P4S2Config>().Act4DarkSoakCCW;
         var pos = RotateCW(source.Position, (ccw ? -1 : 1) * 45.Degrees(), 18);
         return _playerTetherSource.FirstOrDefault(x => x != null && x.Position.InCircle(pos, 4));
     }

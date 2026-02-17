@@ -31,7 +31,7 @@ class WealOfStone2 : PlayActionAOEs
 
 class QuadHints(BossModule module) : Components.CastCounterMulti(module, [AID.MoonbeamsBiteLeft, AID.MoonbeamsBiteRight])
 {
-    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
+    private readonly RM08SHowlingBladeConfig _config = module.Config.Get<RM08SHowlingBladeConfig>();
     private readonly ArcList _forbidden = new(module.Arena.Center, 11);
     private readonly List<Angle> _safeSpots = [];
     private int _startCounter;

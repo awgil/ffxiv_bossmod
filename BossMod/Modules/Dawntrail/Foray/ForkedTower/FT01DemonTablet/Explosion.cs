@@ -2,10 +2,11 @@
 
 class Explosion : Components.CastTowers
 {
-    private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
+    private readonly ForkedTowerConfig _config;
 
     public Explosion(BossModule module) : base(module, AID.Explosion, 4, 4, maxSoakers: int.MaxValue)
     {
+        _config = module.Config.Get<ForkedTowerConfig>();
         EnableHints = false;
     }
 
@@ -28,10 +29,11 @@ class Explosion : Components.CastTowers
 // we can't draw 6 towers when they only have 3 unique positions, plus the player only gets one chance to levitate, so we ignore the levitating towers entirely and treat the ground set as the only ones
 class GravityExplosion : Components.CastTowers
 {
-    private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
+    private readonly ForkedTowerConfig _config;
 
     public GravityExplosion(BossModule module) : base(module, AID.ExplosionGround, 4, minSoakers: 4, maxSoakers: int.MaxValue)
     {
+        _config = module.Config.Get<ForkedTowerConfig>();
         EnableHints = false;
     }
 
@@ -58,10 +60,11 @@ class GravityExplosion : Components.CastTowers
 }
 class EraseGravity : Components.StandardAOEs
 {
-    private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
+    private readonly ForkedTowerConfig _config;
 
     public EraseGravity(BossModule module) : base(module, AID.EraseGravity, 4)
     {
+        _config = module.Config.Get<ForkedTowerConfig>();
         Risky = false;
     }
 

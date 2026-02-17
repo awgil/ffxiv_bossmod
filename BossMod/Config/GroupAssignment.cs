@@ -56,8 +56,8 @@ public class GroupAssignment
     }
 
     // shortcuts using global config
-    public IEnumerable<(int slot, int group)> Resolve(PartyState party) => Resolve(party, Service.Config.Get<PartyRolesConfig>());
-    public BitMask BuildGroupMask(int group, PartyState party) => BuildGroupMask(group, party, Service.Config.Get<PartyRolesConfig>());
+    public IEnumerable<(int slot, int group)> Resolve(BossModule module) => Resolve(module.Raid, module.Roles);
+    public BitMask BuildGroupMask(int group, BossModule module) => BuildGroupMask(group, module.Raid, module.Roles);
 }
 
 // assignments to two light parties with THMR split

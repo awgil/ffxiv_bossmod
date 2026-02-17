@@ -90,7 +90,7 @@ class P4CrystallizeTime(BossModule module) : BossComponent(module)
             }
         }
         Span<(int slot, int prio)> prios = [(-1, -1), (-1, -1), (-1, -1), (-1, -1), (-1, -1), (-1, -1), (-1, -1)];
-        foreach (var (slot, group) in Service.Config.Get<FRUConfig>().P4CrystallizeTimeAssignments.Resolve(Raid))
+        foreach (var (slot, group) in Module.Config.Get<FRUConfig>().P4CrystallizeTimeAssignments.Resolve(Module))
             assign(slot, group, ref prios[(int)PlayerMechanics[slot]]);
     }
 }
@@ -602,7 +602,7 @@ class P4CrystallizeTimeRewind(BossModule module) : Components.Knockback(module)
         {
             var midpoint = SafeCorner();
             Arena.AddCircle(midpoint, 1, ArenaColor.Danger);
-            var offset = AssignedPositionOffset(pc, Service.Config.Get<PartyRolesConfig>()[Module.Raid.Members[pcSlot].ContentId]);
+            var offset = AssignedPositionOffset(pc, Module.Config.Get<PartyRolesConfig>()[Module.Raid.Members[pcSlot].ContentId]);
             if (offset != default)
                 Arena.AddCircle(midpoint + offset, 1, ArenaColor.Safe);
         }

@@ -188,7 +188,7 @@ class Intemperance(BossModule module) : BossComponent(module)
 
     private int SwapCorner()
     {
-        return 2 * (int)Service.Config.Get<P1SConfig>().IntemperanceAsymmetricalSwapCorner;
+        return 2 * (int)Module.Config.Get<P1SConfig>().IntemperanceAsymmetricalSwapCorner;
     }
 
     private WPos PosCenter(int pos)

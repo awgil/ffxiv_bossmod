@@ -68,7 +68,7 @@ class AllaganRot(BossModule module) : BossComponent(module)
             return false; // let rot tick for a while; note that we start moving a bit early, since getting into position takes some time, sometimes up to ~5s
 
         // note: rot timer is 15s, immunity is 40s - so if we pass at <= 5s left, we need 5 people in rotation; currently we hardcode priority to R1 (assumed phys) -> M1 -> M2 -> H1 -> H2 -> R2 (spare, assumed caster)
-        var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
+        var assignments = Module.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
         if (assignments.Length == 0)
             return false; // if assignments are unset, we can't define pass priority
 

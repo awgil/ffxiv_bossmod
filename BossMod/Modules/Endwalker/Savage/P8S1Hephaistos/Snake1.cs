@@ -97,7 +97,7 @@ class Snake1(BossModule module) : PetrifactionCommon(module)
     private void InitAssignments(int order)
     {
         int[] assignedSlots = [-1, -1, -1, -1];
-        foreach (var a in Service.Config.Get<P8S1Config>().Snake1Assignments.Resolve(Raid))
+        foreach (var a in Module.Config.Get<P8S1Config>().Snake1Assignments.Resolve(Module))
             if (_players[a.slot].Order == order)
                 assignedSlots[a.group] = a.slot;
         if (assignedSlots[0] == -1)

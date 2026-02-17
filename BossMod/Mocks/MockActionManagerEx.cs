@@ -2,9 +2,9 @@
 
 namespace BossMod.Mocks;
 
-public sealed class MockActionManagerEx : IAmex
+public sealed class MockActionManagerEx(ActionTweaksConfig cfg) : IAmex
 {
-    public ActionTweaksConfig Config => Service.Config.Get<ActionTweaksConfig>();
+    public ActionTweaksConfig Config => cfg;
 
     public float AnimationLockDelayEstimate => 0.025f;
     public float EffectiveAnimationLock => 0;

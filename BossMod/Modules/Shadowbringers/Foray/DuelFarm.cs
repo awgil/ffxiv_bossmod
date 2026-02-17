@@ -33,7 +33,7 @@ public class DuelFarmConfig : ConfigNode
 
 public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
 {
-    protected readonly DuelFarmConfig _globalConfig = Service.Config.Get<DuelFarmConfig>();
+    protected readonly DuelFarmConfig _globalConfig;
 
     public readonly string Zone;
 
@@ -47,6 +47,7 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
 
     protected DuelFarm(ZoneModuleArgs args, string zone) : base(args)
     {
+        _globalConfig = args.Config.Get<DuelFarmConfig>();
         _subscriptions = new(args.World.Client.FateInfo.Subscribe(OnFateSpawn));
         Zone = zone;
     }
@@ -147,7 +148,7 @@ public enum BozjaDuel : uint
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 735)]
 public class Bozja(ZoneModuleArgs args) : DuelFarm<BozjaDuel>(args, "Bozja")
 {
-    private readonly BozjaFarmConfig _config = Service.Config.Get<BozjaFarmConfig>();
+    private readonly BozjaFarmConfig _config = args.Config.Get<BozjaFarmConfig>();
 
     protected override BozjaDuel FarmTarget
     {
@@ -180,7 +181,7 @@ public enum ZadnorDuel : uint
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 778)]
 public class Zadnor(ZoneModuleArgs args) : DuelFarm<ZadnorDuel>(args, "Zadnor")
 {
-    private readonly ZadnorFarmConfig _config = Service.Config.Get<ZadnorFarmConfig>();
+    private readonly ZadnorFarmConfig _config = args.Config.Get<ZadnorFarmConfig>();
 
     protected override ZadnorDuel FarmTarget
     {

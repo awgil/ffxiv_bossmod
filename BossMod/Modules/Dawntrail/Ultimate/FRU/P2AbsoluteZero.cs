@@ -43,7 +43,7 @@ class P2HiemalRay(BossModule module) : Components.PersistentVoidzoneAtCastTarget
 // TODO: show hint if ice veil is clipped
 class P2Intermission(BossModule module) : Components.GenericBaitAway(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P2SinboundBlizzard? _cones = module.FindComponent<P2SinboundBlizzard>();
     private readonly IReadOnlyList<Actor> _crystalsOfLight = module.Enemies(OID.CrystalOfLight);
     private readonly IReadOnlyList<Actor> _crystalsOfDarkness = module.Enemies(OID.CrystalOfDarkness);

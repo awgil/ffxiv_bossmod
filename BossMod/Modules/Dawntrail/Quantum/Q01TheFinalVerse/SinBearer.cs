@@ -24,8 +24,7 @@ class SinBearer(BossModule module) : BossComponent(module)
 
     public BitMask Immunes;
 
-    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
-    private readonly Q01TheFinalVerseConfig _config = Service.Config.Get<Q01TheFinalVerseConfig>();
+    private readonly Q01TheFinalVerseConfig _config = module.Config.Get<Q01TheFinalVerseConfig>();
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -132,7 +131,7 @@ class SinBearer(BossModule module) : BossComponent(module)
     {
         HaveOrder = true;
 
-        var roles = _prc.EffectiveRolePerSlot(Raid);
+        var roles = Module.Roles.EffectiveRolePerSlot(Raid);
         if (roles.Length == 0) // invalid assignments, can't calculate order
             return;
 

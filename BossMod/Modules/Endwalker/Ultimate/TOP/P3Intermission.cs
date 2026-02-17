@@ -10,7 +10,7 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
         public int Order;
     }
 
-    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private readonly TOPConfig _config = module.Config.Get<TOPConfig>();
     private readonly PlayerState[] _playerStates = new PlayerState[PartyState.MaxPartySize];
     private bool _haveSafeSpots;
 
@@ -62,7 +62,7 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
         _haveSafeSpots = true;
 
         var slotsInPriorityOrder = Utils.MakeArray(PartyState.MaxPartySize, -1);
-        foreach (var a in _config.P3IntermissionAssignments.Resolve(Raid))
+        foreach (var a in _config.P3IntermissionAssignments.Resolve(Module))
             slotsInPriorityOrder[a.group] = a.slot;
 
         int[] assignedRoles = [0, 0, 0];

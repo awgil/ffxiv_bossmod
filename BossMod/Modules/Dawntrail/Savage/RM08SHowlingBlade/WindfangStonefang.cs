@@ -71,7 +71,7 @@ class WindfangStonefang(BossModule module) : Components.CastCounter(module, defa
 
 class WindfangStonefangAI(BossModule module) : BossComponent(module)
 {
-    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
+    private readonly RM08SHowlingBladeConfig _config = module.Config.Get<RM08SHowlingBladeConfig>();
     private readonly WindfangStonefang _ws = module.FindComponent<WindfangStonefang>()!;
     private bool _intercard;
 

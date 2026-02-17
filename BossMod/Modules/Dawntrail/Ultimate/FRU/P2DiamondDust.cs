@@ -117,7 +117,7 @@ class P2DiamondDustHouseOfLight(BossModule module) : Components.GenericBaitAway(
 
 class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private bool? _out;
     private bool? _supportsBaitCones;
     private bool? _conesAtCardinals;
@@ -195,7 +195,7 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
         var supportsAtCardinals = _supportsBaitCones == _conesAtCardinals;
         var offsetTH = supportsAtCardinals ? 0.Degrees() : _config.P2DiamondDustSupportsCCW ? 45.Degrees() : -45.Degrees();
         var offsetDD = !supportsAtCardinals ? 0.Degrees() : _config.P2DiamondDustDDCCW ? 45.Degrees() : -45.Degrees();
-        foreach (var (slot, group) in _config.P2DiamondDustCardinals.Resolve(Raid))
+        foreach (var (slot, group) in _config.P2DiamondDustCardinals.Resolve(Module))
         {
             var support = group < 4;
             var baitCone = _supportsBaitCones == support;
@@ -241,7 +241,7 @@ class P2HeavenlyStrike(BossModule module) : Components.Knockback(module, AID.Hea
             var safeDir = (icicle.AOEs[0].Origin - module.Center).Normalized();
             if (safeDir.X > 0.5f || safeDir.Z > 0.8f)
                 safeDir = -safeDir; // G1
-            foreach (var (slot, group) in Service.Config.Get<FRUConfig>().P2DiamondDustKnockbacks.Resolve(module.Raid))
+            foreach (var (slot, group) in module.Config.Get<FRUConfig>().P2DiamondDustKnockbacks.Resolve(module))
                 res[slot] = group == 1 ? -safeDir : safeDir;
         }
         return res;

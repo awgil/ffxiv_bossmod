@@ -17,7 +17,7 @@ class Bloom6Emblazon(BossModule module) : Emblazon(module)
 
 class HolyHazard(BossModule module) : Components.StandardAOEs(module, AID.HolyHazard, new AOEShapeCone(24, 60.Degrees()), maxCasts: 2)
 {
-    private readonly Ex4ZeleniaConfig _config = Service.Config.Get<Ex4ZeleniaConfig>();
+    private readonly Ex4ZeleniaConfig _config = module.Config.Get<Ex4ZeleniaConfig>();
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _config.ShowHolyHazard ? base.ActiveAOEs(slot, actor) : [];
 }

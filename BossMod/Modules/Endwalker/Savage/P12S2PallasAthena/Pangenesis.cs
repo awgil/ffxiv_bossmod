@@ -75,7 +75,7 @@ class Pangenesis(BossModule module) : Components.GenericTowers(module)
                 }
             }
 
-            var cfg = Service.Config.Get<P12S2PallasAthenaConfig>();
+            var cfg = Module.Config.Get<P12S2PallasAthenaConfig>();
             BitMask forbiddenMask = default;
             for (var i = 0; i < _states.Length; ++i)
             {

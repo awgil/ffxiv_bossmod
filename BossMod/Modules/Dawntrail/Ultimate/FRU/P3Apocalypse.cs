@@ -88,7 +88,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
 
     public int NumStatuses;
     public readonly State[] States = new State[PartyState.MaxPartySize];
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private string _swaps = "";
 
     // for uptime swaps, there are 6 possible swaps within each 'subgroup': no swaps, p1 with p1/p2, p2 with p1/p2 and both
@@ -143,7 +143,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
     private void InitAssignments()
     {
         Span<int> slotPerAssignment = [-1, -1, -1, -1, -1, -1, -1, -1];
-        foreach (var (slot, group) in _config.P3ApocalypseAssignments.Resolve(Raid))
+        foreach (var (slot, group) in _config.P3ApocalypseAssignments.Resolve(Module))
         {
             ref var state = ref States[slot];
             state.InitialGroup = state.AssignedGroup = group < 4 ? 1 : 2;
@@ -262,7 +262,7 @@ class P3ApocalypseSpiritTaker(BossModule module) : SpiritTaker(module)
 
 class P3ApocalypseDarkEruption(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.DarkEruption, AID.DarkEruption, 6, 5.1f)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P3Apocalypse? _apoc = module.FindComponent<P3Apocalypse>();
     private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
 
@@ -391,7 +391,7 @@ class P3DarkestDanceKnockback(BossModule module) : Components.Knockback(module, 
 // position for first dark water - note that this is somewhat arbitrary (range etc)
 class P3ApocalypseAIWater1(BossModule module) : BossComponent(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -420,7 +420,7 @@ class P3ApocalypseAIWater1(BossModule module) : BossComponent(module)
 // position for second dark water & darkest dance - for simplicity, we position in the direction tank would take darkest dance
 class P3ApocalypseAIWater2(BossModule module) : BossComponent(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P3Apocalypse? _apoc = module.FindComponent<P3Apocalypse>();
     private readonly P3ApocalypseDarkWater? _water = module.FindComponent<P3ApocalypseDarkWater>();
 

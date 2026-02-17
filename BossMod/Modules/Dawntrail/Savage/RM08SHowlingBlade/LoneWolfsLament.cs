@@ -56,7 +56,7 @@ class LoneWolfTethers(BossModule module) : BossComponent(module)
 class LoneWolfTowers(BossModule module) : Components.GenericTowers(module)
 {
     private readonly LoneWolfTethers _tethers = module.FindComponent<LoneWolfTethers>()!;
-    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
+    private readonly RM08SHowlingBladeConfig _config = module.Config.Get<RM08SHowlingBladeConfig>();
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

@@ -8,11 +8,10 @@ namespace BossMod.AI;
 public record struct Targeting(AIHints.Enemy Target, float PreferredRange = 3, Positional PreferredPosition = Positional.Any, bool PreferTanking = false);
 
 // constantly follow master
-sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, ITargetManager targetManager) : IDisposable
+sealed class AIBehaviour(AIController ctrl, RotationModuleManager autorot, ITargetManager targetManager, AIConfig _config) : IDisposable
 {
     public WorldState WorldState => autorot.Bossmods.WorldState;
     public float ForceMovementIn { get; private set; } = float.MaxValue; // TODO: reconsider
-    private readonly AIConfig _config = Service.Config.Get<AIConfig>();
     private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _naviDecision;
     private bool _afkMode;

@@ -228,7 +228,7 @@ public class QuestObjective(WorldState ws)
 public abstract class QuestBattle : ZoneModule
 {
     private readonly EventSubscriptions _subscriptions;
-    private readonly ZoneModuleConfig _config = Service.Config.Get<ZoneModuleConfig>();
+    private readonly ZoneModuleConfig _config;
 
     public readonly List<QuestObjective> Objectives;
     public int CurrentObjectiveIndex { get; private set; }
@@ -265,6 +265,7 @@ public abstract class QuestBattle : ZoneModule
     {
         var ws = args.World;
         _conditions = args.Condition;
+        _config = args.Config.Get<ZoneModuleConfig>();
 #pragma warning disable CA2214 // TODO: this is kinda working rn, but still not good...
         Objectives = DefineObjectives(ws, args.Actions);
 #pragma warning restore CA2214

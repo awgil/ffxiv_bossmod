@@ -30,8 +30,7 @@ class ReignJumpCounter(BossModule module) : Components.CastCounterMulti(module, 
 
 class ReignHints(BossModule module) : BossComponent(module)
 {
-    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
-    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
+    private readonly RM08SHowlingBladeConfig _config = module.Config.Get<RM08SHowlingBladeConfig>();
 
     private WPos? _source;
     private bool _in;
@@ -78,7 +77,7 @@ class ReignHints(BossModule module) : BossComponent(module)
         if (_source == null || _config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Disabled)
             yield break;
 
-        var assignment = _prc[WorldState.Party.Members[slot].ContentId];
+        var assignment = Module.Roles[WorldState.Party.Members[slot].ContentId];
         int lp;
         if (_config.ReignHints == RM08SHowlingBladeConfig.ReignStrategy.Any)
             lp = 0;

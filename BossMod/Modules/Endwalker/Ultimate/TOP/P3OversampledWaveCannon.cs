@@ -8,7 +8,7 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     private readonly int[] _playerOrder = new int[PartyState.MaxPartySize];
     private int _numPlayerAngles;
     private readonly List<int> _monitorOrder = [];
-    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private readonly TOPConfig _config = module.Config.Get<TOPConfig>();
 
     private DateTime _resolve;
     private readonly ArcList[] _safeAngles = Utils.GenArray(PartyState.MaxPartySize, () => new ArcList(default, 50));
@@ -103,7 +103,7 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
             if (++_numPlayerAngles == 3)
             {
                 int n = 0, m = 0;
-                foreach (var sg in Service.Config.Get<TOPConfig>().P3MonitorsAssignments.Resolve(Raid).OrderBy(sg => sg.group))
+                foreach (var sg in Module.Config.Get<TOPConfig>().P3MonitorsAssignments.Resolve(Module).OrderBy(sg => sg.group))
                 {
                     _playerOrder[sg.slot] = IsMonitor(sg.slot) ? ++m : ++n;
                     if (IsMonitor(sg.slot))

@@ -48,7 +48,7 @@ public enum NotoriousMonster : uint
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 598)]
 public class Pyros(ZoneModuleArgs args) : EurekaZone<NotoriousMonster>(args, "Pyros")
 {
-    private readonly PyrosConfig _config = Service.Config.Get<PyrosConfig>();
+    private readonly PyrosConfig _config = args.Config.Get<PyrosConfig>();
 
     protected override NotoriousMonster FarmTarget
     {

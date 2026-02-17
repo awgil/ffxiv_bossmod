@@ -45,7 +45,7 @@ class P4DarklitDragonsong(BossModule module) : BossComponent(module)
     {
         Span<int> ccwOrderSlots = [-1, -1, -1, -1, -1, -1, -1, -1];
         int[] playerPrios = [-1, -1, -1, -1, -1, -1, -1, -1];
-        foreach (var (slot, group) in Service.Config.Get<FRUConfig>().P4DarklitDragonsongAssignments.Resolve(Raid))
+        foreach (var (slot, group) in Module.Config.Get<FRUConfig>().P4DarklitDragonsongAssignments.Resolve(Module))
         {
             ccwOrderSlots[group] = slot;
             playerPrios[slot] = group;
@@ -312,7 +312,7 @@ class P4DarklitDragonsongDarkWater(BossModule module) : Components.UniformStackS
 
 class P4SomberDance(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private Actor? _source;
     private DateTime _activation;
 

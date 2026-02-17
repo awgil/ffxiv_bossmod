@@ -17,8 +17,7 @@ class TRHints(BossModule module) : BossComponent(module)
 {
     private readonly Shadowchase _shadows = module.FindComponent<Shadowchase>()!;
     private readonly HeavensearthSuspendedStone _spread = module.FindComponent<HeavensearthSuspendedStone>()!;
-    private readonly RM08SHowlingBladeConfig _config = Service.Config.Get<RM08SHowlingBladeConfig>();
-    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
+    private readonly RM08SHowlingBladeConfig _config = module.Config.Get<RM08SHowlingBladeConfig>();
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -41,7 +40,7 @@ class TRHints(BossModule module) : BossComponent(module)
 
         if (isSpread)
         {
-            switch (_prc[WorldState.Party.Members[pcSlot].ContentId])
+            switch (Module.Roles[WorldState.Party.Members[pcSlot].ContentId])
             {
                 case PartyRolesConfig.Assignment.MT:
                 case PartyRolesConfig.Assignment.R1:

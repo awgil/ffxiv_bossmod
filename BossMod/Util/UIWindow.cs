@@ -40,6 +40,7 @@ public abstract class UIWindow : Window, IDisposable
     // note: it won't be called for a detached window that was never registered...
     protected virtual void Dispose(bool disposing)
     {
+        // once this flag is set, the window will be removed on the next frame
         IsDisposed = true;
     }
 }

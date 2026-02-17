@@ -103,7 +103,7 @@ class Snake2(BossModule module) : PetrifactionCommon(module)
             return;
 
         int[] assignedSlots = [-1, -1, -1, -1, -1, -1, -1, -1]; // supports then dd
-        foreach (var a in Service.Config.Get<P8S1Config>().Snake2Assignments.Resolve(Raid))
+        foreach (var a in Module.Config.Get<P8S1Config>().Snake2Assignments.Resolve(Module))
             assignedSlots[a.group + (Raid[a.slot]?.Role is Role.Tank or Role.Healer ? 0 : 4)] = a.slot;
         if (assignedSlots[0] == -1)
             return; // invalid assignments
@@ -153,7 +153,7 @@ class Snake2(BossModule module) : PetrifactionCommon(module)
 
     private (int, int) AssignSnakesToGroups(int snake1, int snake2)
     {
-        if (Service.Config.Get<P8S1Config>().Snake2CardinalPriorities)
+        if (Module.Config.Get<P8S1Config>().Snake2CardinalPriorities)
         {
             // G1/G2 take N/S, or if Z coords are equal - G1/G2 take W/E
             var pos1 = ActiveGorgons[snake1].caster.Position;

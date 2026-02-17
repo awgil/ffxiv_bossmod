@@ -163,7 +163,7 @@ class A34RedGirlStates : StateMachineBuilder
             .ActivateOnEnter<Hacking>()
             .ActivateOnEnter<HackingWalls>()
             .ActivateOnEnter<HackingPylons>()
-            .ActivateOnEnter<HackModule>()
+            .ActivateOnEnter<HackModule>(Module.Config.Get<A34RedGirlConfig>().AutoHack)
             .ActivateOnEnter<RedSphere>();
     }
 

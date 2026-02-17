@@ -377,7 +377,7 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
 
 class Fireworks2Hints(BossModule module) : BossComponent(module)
 {
-    private readonly C033SStaticeConfig _config = Service.Config.Get<C033SStaticeConfig>();
+    private readonly C033SStaticeConfig _config = module.Config.Get<C033SStaticeConfig>();
     private readonly Fireworks? _fireworks = module.FindComponent<Fireworks>();
     private readonly Dartboard? _dartboard = module.FindComponent<Dartboard>();
     private readonly BurningChains? _chains = module.FindComponent<BurningChains>();

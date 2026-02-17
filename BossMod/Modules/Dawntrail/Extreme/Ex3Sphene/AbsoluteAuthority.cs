@@ -5,7 +5,7 @@ class AbsoluteAuthorityPuddles(BossModule module) : Components.StandardAOEs(modu
 class AbsoluteAuthorityExpansionBoot(BossModule module) : Components.UniformStackSpread(module, 6, 15, 4, alwaysShowSpreads: true) // TODO: verify falloff
 {
     public int NumCasts;
-    private readonly Ex3SpheneConfig _config = Service.Config.Get<Ex3SpheneConfig>();
+    private readonly Ex3SpheneConfig _config = module.Config.Get<Ex3SpheneConfig>();
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {

@@ -215,7 +215,7 @@ class FRUStates : StateMachineBuilder
             .DeactivateOnExit<P1Blastburn>();
         ComponentCondition<P1Explosion>(id + 0x103, 2, comp => comp.NumCasts > 0, "Towers")
             .ActivateOnEnter<P1PowderMarkTrail>()
-            .ExecOnEnter<P1PowderMarkTrail>(comp => comp.AllowTankStacking = Service.Config.Get<FRUConfig>().P1ExplosionsTankbusterCheese)
+            .ExecOnEnter<P1PowderMarkTrail>(comp => comp.AllowTankStacking = Module.Config.Get<FRUConfig>().P1ExplosionsTankbusterCheese)
             .DeactivateOnExit<P1Explosion>();
         ComponentCondition<P1PowderMarkTrail>(id + 0x104, 0.5f, comp => comp.NumCasts > 0, "Tankbusters")
             .DeactivateOnExit<P1PowderMarkTrail>()

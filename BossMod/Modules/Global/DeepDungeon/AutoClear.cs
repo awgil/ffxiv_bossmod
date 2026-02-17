@@ -63,7 +63,7 @@ public abstract partial class AutoClear : ZoneModule
 
     public record class Gaze(Actor Source, AOEShape Shape);
 
-    protected readonly AutoDDConfig _config = Service.Config.Get<AutoDDConfig>();
+    protected readonly AutoDDConfig _config;
     private readonly EventSubscriptions _subscriptions;
 
     private readonly Dictionary<ulong, PomanderID> _chestContentsGold = [];
@@ -94,6 +94,7 @@ public abstract partial class AutoClear : ZoneModule
 
     protected AutoClear(ZoneModuleArgs args, int LevelCap) : base(args)
     {
+        _config = ConfigGlobal.Get<AutoDDConfig>();
         this.LevelCap = LevelCap;
         var ws = args.World;
         _obstacles = new(ws, args.Config.Get<DeveloperConfig>());

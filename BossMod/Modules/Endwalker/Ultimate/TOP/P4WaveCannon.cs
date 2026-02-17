@@ -49,7 +49,7 @@ class P4WaveCannonStack : BossComponent
 
     public P4WaveCannonStack(BossModule module) : base(module)
     {
-        foreach (var (s, g) in Service.Config.Get<TOPConfig>().P4WaveCannonAssignments.Resolve(Raid))
+        foreach (var (s, g) in module.Config.Get<TOPConfig>().P4WaveCannonAssignments.Resolve(module))
             _playerGroups[s] = g;
     }
 

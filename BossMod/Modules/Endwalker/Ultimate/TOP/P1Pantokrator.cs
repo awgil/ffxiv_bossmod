@@ -5,7 +5,7 @@ class P1BallisticImpact(BossModule module) : Components.StandardAOEs(module, AID
 class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
 {
     public List<Actor> Casters = [];
-    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private readonly TOPConfig _config = module.Config.Get<TOPConfig>();
     private readonly P1Pantokrator? _pantokrator = module.FindComponent<P1Pantokrator>();
 
     private static readonly AOEShapeCone _shape = new(65, 30.Degrees());
@@ -78,7 +78,7 @@ class P1Pantokrator(BossModule module) : P1CommonAssignments(module)
 
     protected override (GroupAssignmentUnique assignment, bool global) Assignments()
     {
-        var config = Service.Config.Get<TOPConfig>();
+        var config = Module.Config.Get<TOPConfig>();
         return (config.P1PantokratorAssignments, config.P1PantokratorGlobalPriority);
     }
 

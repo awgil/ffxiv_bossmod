@@ -154,7 +154,7 @@ public class ConfigChangelogWindow : UIWindow
     private void SetOption(VersionedField field, bool value)
     {
         field.FieldInfo.SetValue(field.Node, value);
-        Service.Config.Modified.Fire();
+        _root.Modified.Fire();
 
         Fields.Remove(field);
         if (StuffCount == 0)

@@ -2,7 +2,7 @@
 
 class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly List<AOEInstance> _aoes = []; // 'afterglow'
     private readonly Actor?[] _baiters = [null, null]; // light/left, dark/right
     private readonly BitMask[] _forbidden = [default, default];

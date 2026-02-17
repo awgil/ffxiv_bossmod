@@ -5,7 +5,7 @@ class Flameborn(BossModule module) : Components.Adds(module, (uint)OID.Flameborn
     public int NumSpawned;
 
     private readonly Dictionary<Actor, Actor> _tethers = [];
-    private readonly Q01TheFinalVerseConfig.FlamebornAssignment _assignments = Service.Config.Get<Q01TheFinalVerseConfig>().FlamebornAssignments;
+    private readonly Q01TheFinalVerseConfig.FlamebornAssignment _assignments = module.Config.Get<Q01TheFinalVerseConfig>().FlamebornAssignments;
 
     private record class Add(Actor Actor, int Index, int Owner);
 

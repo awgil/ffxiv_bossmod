@@ -34,7 +34,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
 
     public delegate ColumnPlayerDetails Factory(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay.Encounter enc, Replay.Participant player, Class playerClass);
 
-    public ColumnPlayerDetails(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
+    public ColumnPlayerDetails(ActionDefinitions defs, BossModuleRegistry bmr, RotationModuleRegistry registry, Serializer ser, ActionEffectParser aep, ColorConfig colors, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
         : base(timeline)
     {
         _bmr = bmr;
@@ -56,7 +56,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, player, aep));
 
         _hp = Add(new ColumnActorHP(timeline, tree, phaseBranches, replay, enc, player, aep));
-        _gauge = ColumnPlayerGauge.Create(timeline, tree, phaseBranches, replay, enc, player, playerClass);
+        _gauge = ColumnPlayerGauge.Create(colors, timeline, tree, phaseBranches, replay, enc, player, playerClass);
         if (_gauge != null)
             Add(_gauge);
         _resourceSep = Add(new ColumnSeparator(timeline));

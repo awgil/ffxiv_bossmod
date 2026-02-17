@@ -12,7 +12,7 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
 
     protected override (GroupAssignmentUnique assignment, bool global) Assignments()
     {
-        var config = Service.Config.Get<TOPConfig>();
+        var config = Module.Config.Get<TOPConfig>();
         return (config.P1ProgramLoopAssignments, config.P1ProgramLoopGlobalPriority);
     }
 

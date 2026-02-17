@@ -19,15 +19,16 @@ sealed class PackLoader : IDisposable
     }
 
     private LoadContext? _context;
-    private readonly DeveloperConfig _config = Service.Config.Get<DeveloperConfig>();
+    private readonly DeveloperConfig _config;
     private string _prevDirectory = "";
 
     public IEnumerable<Assembly> Loaded => _context?.Assemblies ?? [];
 
     private readonly EventSubscriptions _subscriptions;
 
-    public PackLoader()
+    public PackLoader(DeveloperConfig config)
     {
+        _config = config;
         _subscriptions = new(
             _config.Modified.ExecuteAndSubscribe(() =>
             {

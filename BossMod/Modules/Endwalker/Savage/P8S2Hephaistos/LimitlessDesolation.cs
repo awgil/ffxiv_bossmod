@@ -9,7 +9,7 @@ class LimitlessDesolation : Components.UniformStackSpread
     private BitMask _activeTowers;
     private readonly int[] _towerAssignments = Utils.MakeArray(PartyState.MaxPartySize, -1); // [slot] = tower index
     private readonly int[] _towerSlots = Utils.MakeArray(_towerOffsets.Length, -1); // [tower index] = slot
-    private readonly bool _thRight = Service.Config.Get<P8S2Config>().LimitlessDesolationTHRight;
+    private readonly bool _thRight;
 
     private const float _towerRadius = 4;
     private static readonly WDir[] _towerOffsets = [new(-15, -15), new(-15, -5), new(-15, 5), new(-5, -15), new(-5, -5), new(-5, 5), new(5, -15), new(5, -5), new(5, 5), new(15, -15), new(15, -5), new(15, 5)];
@@ -17,6 +17,7 @@ class LimitlessDesolation : Components.UniformStackSpread
     public LimitlessDesolation(BossModule module) : base(module, 0, 6, alwaysShowSpreads: true, raidwideOnResolve: false)
     {
         AddSpreads(Raid.WithoutSlot());
+        _thRight = module.Config.Get<P8S2Config>().LimitlessDesolationTHRight;
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

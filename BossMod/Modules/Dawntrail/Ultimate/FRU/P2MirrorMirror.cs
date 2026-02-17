@@ -10,7 +10,7 @@ class P2MirrorMirrorReflectedScytheKickBlue : Components.GenericAOEs
 
     public P2MirrorMirrorReflectedScytheKickBlue(BossModule module) : base(module, AID.ReflectedScytheKickBlue)
     {
-        foreach (var (slot, group) in Service.Config.Get<FRUConfig>().P2MirrorMirror1SpreadSpots.Resolve(Raid))
+        foreach (var (slot, group) in module.Config.Get<FRUConfig>().P2MirrorMirror1SpreadSpots.Resolve(module))
             _rangedSpots[slot] = group >= 4;
     }
 
@@ -70,7 +70,7 @@ class P2MirrorMirrorHouseOfLight(BossModule module) : Components.GenericBaitAway
     public bool RedRangedLeftOfMelee;
     public readonly List<Source> FirstSources = []; // [boss, blue mirror]
     public readonly List<Source> SecondSources = []; // [melee red mirror, ranged red mirror]
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private Angle? _blueMirror;
 
     private List<Source> CurrentSources => NumCasts == 0 ? FirstSources : SecondSources;
@@ -179,7 +179,7 @@ class P2MirrorMirrorBanish : P2Banish
         {
             _anchorMelee = proteans.FirstSources[0].Actor.Position;
             _anchorRanged = module.Center + 0.5f * (proteans.SecondSources[1].Actor.Position - module.Center);
-            foreach (var (slot, group) in Service.Config.Get<FRUConfig>().P2MirrorMirror2SpreadSpots.Resolve(Raid))
+            foreach (var (slot, group) in module.Config.Get<FRUConfig>().P2MirrorMirror2SpreadSpots.Resolve(module))
             {
                 _aroundRanged[slot] = group >= 4;
                 _closerToCenter[slot] = (group & 2) != 0;

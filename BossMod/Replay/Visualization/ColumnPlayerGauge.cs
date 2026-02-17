@@ -9,24 +9,24 @@ public abstract class ColumnPlayerGauge : Timeline.ColumnGroup, IToggleableColum
     protected Replay Replay;
     protected Replay.Encounter Encounter;
 
-    public static ColumnPlayerGauge? Create(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass) => playerClass switch
+    public static ColumnPlayerGauge? Create(ColorConfig colors, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass) => playerClass switch
     {
         //Class.PLD => new ColumnPlayerGaugePLD(timeline, tree, phaseBranches, replay, enc, player), 
         Class.WAR => new ColumnPlayerGaugeWAR(timeline, tree, phaseBranches, replay, enc, player),
         //Class.DRK => new ColumnPlayerGaugeDRK(timeline, tree, phaseBranches, replay, enc, player),
-        Class.GNB => new ColumnPlayerGaugeGNB(timeline, tree, phaseBranches, replay, enc, player),
+        Class.GNB => new ColumnPlayerGaugeGNB(colors, timeline, tree, phaseBranches, replay, enc, player),
         //Class.WHM => new ColumnPlayerGaugeWHM(timeline, tree, phaseBranches, replay, enc, player),
         //Class.SCH => new ColumnPlayerGaugeSCH(timeline, tree, phaseBranches, replay, enc, player),
         //Class.AST => new ColumnPlayerGaugeAST(timeline, tree, phaseBranches, replay, enc, player),
         //Class.SGE => new ColumnPlayerGaugeSGE(timeline, tree, phaseBranches, replay, enc, player),
-        Class.MNK => new ColumnPlayerGaugeMNK(timeline, tree, phaseBranches, replay, enc, player),
+        Class.MNK => new ColumnPlayerGaugeMNK(colors, timeline, tree, phaseBranches, replay, enc, player),
         //Class.DRG => new ColumnPlayerGaugeDRG(timeline, tree, phaseBranches, replay, enc, player),
         //Class.NIN => new ColumnPlayerGaugeNIN(timeline, tree, phaseBranches, replay, enc, player),
-        Class.SAM => new ColumnPlayerGaugeSAM(timeline, tree, phaseBranches, replay, enc, player),
+        Class.SAM => new ColumnPlayerGaugeSAM(colors, timeline, tree, phaseBranches, replay, enc, player),
         //Class.RPR => new ColumnPlayerGaugeRPR(timeline, tree, phaseBranches, replay, enc, player),
         //Class.VPR => new ColumnPlayerGaugeVPR(timeline, tree, phaseBranches, replay, enc, player),
-        Class.BRD => new ColumnPlayerGaugeBRD(timeline, tree, phaseBranches, replay, enc, player),
-        Class.MCH => new ColumnPlayerGaugeMCH(timeline, tree, phaseBranches, replay, enc, player),
+        Class.BRD => new ColumnPlayerGaugeBRD(colors, timeline, tree, phaseBranches, replay, enc, player),
+        Class.MCH => new ColumnPlayerGaugeMCH(colors, timeline, tree, phaseBranches, replay, enc, player),
         //Class.DNC => new ColumnPlayerGaugeDNC(timeline, tree, phaseBranches, replay, enc, player),
         //Class.BLM => new ColumnPlayerGaugeBLM(timeline, tree, phaseBranches, replay, enc, player),
         //Class.SMN => new ColumnPlayerGaugeSMN(timeline, tree, phaseBranches, replay, enc, player),
@@ -108,7 +108,7 @@ public class ColumnPlayerGaugeWAR : ColumnPlayerGauge
 public class ColumnPlayerGaugeGNB : ColumnPlayerGauge
 {
     private readonly ColumnGenericHistory _gauge;
-    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+    private readonly ColorConfig _colors;
 
     public override bool Visible
     {
@@ -116,9 +116,10 @@ public class ColumnPlayerGaugeGNB : ColumnPlayerGauge
         set => _gauge.Width = value ? ColumnGenericHistory.DefaultWidth : 0;
     }
 
-    public ColumnPlayerGaugeGNB(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+    public ColumnPlayerGaugeGNB(ColorConfig colors, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
         : base(timeline, tree, phaseBranches, replay, enc, player)
     {
+        _colors = colors;
         _gauge = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
 
         var prevGauge = 0;
@@ -166,7 +167,7 @@ public class ColumnPlayerGaugeGNB : ColumnPlayerGauge
 #region MNK
 public class ColumnPlayerGaugeMNK : ColumnPlayerGauge
 {
-    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+    private readonly ColorConfig _colors;
     private readonly ColumnGenericHistory _chakras;
     private readonly ColumnGenericHistory _beast1;
     private readonly ColumnGenericHistory _beast2;
@@ -186,9 +187,10 @@ public class ColumnPlayerGaugeMNK : ColumnPlayerGauge
             _nadi.Width = width;
         }
     }
-    public ColumnPlayerGaugeMNK(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+    public ColumnPlayerGaugeMNK(ColorConfig colors, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
         : base(timeline, tree, phaseBranches, replay, enc, player)
     {
+        _colors = colors;
         _chakras = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
         _chakras.Name = "Chakras";
         _beast1 = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
@@ -303,7 +305,7 @@ public class ColumnPlayerGaugeSAM : ColumnPlayerGauge
     private readonly ColumnGenericHistory _kenki;
     private readonly ColumnGenericHistory _sen;
     private readonly ColumnGenericHistory _meditation;
-    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+    private readonly ColorConfig _colors;
 
     public override bool Visible
     {
@@ -316,9 +318,10 @@ public class ColumnPlayerGaugeSAM : ColumnPlayerGauge
             _meditation.Width = width;
         }
     }
-    public ColumnPlayerGaugeSAM(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+    public ColumnPlayerGaugeSAM(ColorConfig colors, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
         : base(timeline, tree, phaseBranches, replay, enc, player)
     {
+        _colors = colors;
         _kenki = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
         _sen = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
         _meditation = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
@@ -412,7 +415,7 @@ public class ColumnPlayerGaugeSAM : ColumnPlayerGauge
 #region BRD
 public class ColumnPlayerGaugeBRD : ColumnPlayerGauge
 {
-    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+    private readonly ColorConfig _colors;
     private readonly ColumnGenericHistory _songs;
     private readonly ColumnGenericHistory _soul;
 
@@ -422,9 +425,10 @@ public class ColumnPlayerGaugeBRD : ColumnPlayerGauge
         set => _songs.Width = _soul.Width = value ? ColumnGenericHistory.DefaultWidth : 0;
     }
 
-    public ColumnPlayerGaugeBRD(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+    public ColumnPlayerGaugeBRD(ColorConfig colors, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
         : base(timeline, tree, phaseBranches, replay, enc, player)
     {
+        _colors = colors;
         _songs = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
         _soul = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
 
@@ -488,7 +492,7 @@ public class ColumnPlayerGaugeBRD : ColumnPlayerGauge
 #region MCH
 public class ColumnPlayerGaugeMCH : ColumnPlayerGauge
 {
-    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
+    private readonly ColorConfig _colors;
     private readonly ColumnGenericHistory _heat;
     private readonly ColumnGenericHistory _battery;
 
@@ -503,9 +507,10 @@ public class ColumnPlayerGaugeMCH : ColumnPlayerGauge
         }
     }
 
-    public ColumnPlayerGaugeMCH(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
+    public ColumnPlayerGaugeMCH(ColorConfig colors, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player)
         : base(timeline, tree, phaseBranches, replay, enc, player)
     {
+        _colors = colors;
         _heat = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
         _heat.Name = "Heat";
         _battery = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));

@@ -13,7 +13,7 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
     public WDir SafeSide;
     public DateTime Activation;
     public readonly int[] AssignedGroups = new int[PartyState.MaxPartySize];
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private OID _safeHalo;
 
     public WDir AssignedLane(int slot) => new(0, AssignedGroups[slot] * 5.4f);
@@ -75,7 +75,7 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
         // initial assignments
         Span<int> tetherSlots = [-1, -1];
         Span<int> prio = [0, 0, 0, 0, 0, 0, 0, 0];
-        foreach (var (slot, group) in _config.P1BoundOfFaithAssignment.Resolve(Raid))
+        foreach (var (slot, group) in _config.P1BoundOfFaithAssignment.Resolve(Module))
         {
             AssignedGroups[slot] = group < 4 ? -1 : 1;
             prio[slot] = group & 3;

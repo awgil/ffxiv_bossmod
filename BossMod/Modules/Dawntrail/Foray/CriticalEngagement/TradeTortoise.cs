@@ -135,7 +135,7 @@ class BuyersRemorseTurtle(BossModule module) : Components.Knockback(module)
 
 class CoinGame(BossModule module) : BossComponent(module)
 {
-    private readonly TradeTortoiseConfig _config = Service.Config.Get<TradeTortoiseConfig>();
+    private readonly TradeTortoiseConfig _config = module.Config.Get<TradeTortoiseConfig>();
 
     // indexed by Transporting status param (minus 0x28)
     // player is only allowed to hold 2 coin bags, so if param >= 4, we finish the mechanic regardless of whether the total is correct

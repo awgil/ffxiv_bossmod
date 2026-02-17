@@ -36,7 +36,7 @@ public enum NotoriousMonster : uint
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 639)]
 public class Hydatos(ZoneModuleArgs args) : EurekaZone<NotoriousMonster>(args, "Hydatos")
 {
-    private readonly HydatosConfig _config = Service.Config.Get<HydatosConfig>();
+    private readonly HydatosConfig _config = args.Config.Get<HydatosConfig>();
 
     protected override NotoriousMonster FarmTarget
     {

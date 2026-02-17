@@ -26,6 +26,9 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         [Track(Actions = [AID.Drill, AID.HotShot, AID.AirAnchor, AID.ChainSaw, AID.Bioblaster])]
         public Track<ToolStrategy> Tools;
 
+        [Track("Pause during Flamethrower", Action = AID.Flamethrower, MinLevel = 70)]
+        public Track<DisabledByDefault> FTPause;
+
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
@@ -87,8 +90,6 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
     private Enemy? BestRangedAOETarget;
     private Enemy? BestChainsawTarget;
 
-    private bool IsPausedForFlamethrower => Service.Config.Get<MCHConfig>().PauseForFlamethrower && Flamethrower;
-
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
@@ -114,7 +115,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         (BestChainsawTarget, NumSawTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
         NumFlamethrowerTargets = Hints.NumPriorityTargetsInAOECone(Player.Position, 8, Player.Rotation.ToDirection(), 45.Degrees());
 
-        if (IsPausedForFlamethrower)
+        if (strategy.FTPause.IsEnabled() && Flamethrower)
             return;
 
         if (CountdownRemaining > 0)

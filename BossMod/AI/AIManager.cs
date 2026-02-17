@@ -80,6 +80,6 @@ sealed class AIManager(RotationModuleManager autorot, IAmex amex, IMovementOverr
     {
         SwitchToIdle();
         Config.FollowSlot = (AIConfig.Slot)masterSlot;
-        Behaviour = new AIBehaviour(_controller, autorot, targetManager);
+        Behaviour = new AIBehaviour(_controller, autorot, targetManager, Config);
     }
 }

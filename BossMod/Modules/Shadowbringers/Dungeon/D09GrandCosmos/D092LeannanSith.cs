@@ -53,7 +53,7 @@ class DirectSeeding(BossModule module) : BossComponent(module)
     ];
     private Angle? CurrentTileset;
 
-    private readonly bool _interactOk = Service.Config.Get<BossModuleConfig>().AllowAutomaticInteract;
+    private readonly bool _interactOk = module.Config.Get<BossModuleConfig>().AllowAutomaticInteract;
 
     private IEnumerable<Actor> Seeds => WorldState.Actors.Where(x => (OID)x.OID is OID.LeannanSeed1 or OID.LeannanSeed2 or OID.LeannanSeed3 or OID.LeannanSeed4);
     private IEnumerable<WPos> TileCenters => CurrentTileset == null ? [] : Tileset.Select(t => t.Rotate(CurrentTileset.Value) + Arena.Center);

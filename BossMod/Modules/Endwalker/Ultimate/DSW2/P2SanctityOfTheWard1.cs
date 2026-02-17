@@ -176,8 +176,8 @@ class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
             _inited = true;
             _severStartDir = Angle.FromDirection(_sever.Source.Position - Module.Center);
 
-            var config = Service.Config.Get<DSW2Config>();
-            _groupEast = config.P2SanctityGroups.BuildGroupMask(1, Raid);
+            var config = Module.Config.Get<DSW2Config>();
+            _groupEast = config.P2SanctityGroups.BuildGroupMask(1, Module);
             if (_groupEast.None())
             {
                 _groupSwapHints = "unconfigured";
@@ -190,7 +190,7 @@ class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
                     _groupEast.Raw ^= 0xff;
                 }
 
-                var effRoles = Service.Config.Get<PartyRolesConfig>().EffectiveRolePerSlot(Raid);
+                var effRoles = Module.Config.Get<PartyRolesConfig>().EffectiveRolePerSlot(Raid);
                 if (config.P2SanctitySwapRole == Role.None)
                 {
                     AssignmentSwapWithRolePartner(effRoles, _sever.Stacks[0].Target, _severStartDir.Rad < 0);

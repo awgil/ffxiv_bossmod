@@ -48,7 +48,7 @@ static class ConfigExtensions
 [ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1018)]
 class FTAllianceSelector(ZoneModuleArgs args) : ZoneModule(args)
 {
-    private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
+    private readonly ForkedTowerConfig _config = args.Config.Get<ForkedTowerConfig>();
 
     public override bool WantDrawExtra() => _config.DrawOverlay && World.Party.Player()?.PosRot.Y < -200;
 

@@ -111,7 +111,7 @@ class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAOEs(modu
         if (NextBlasterIndex != 1)
             return null;
 
-        var strategy = Service.Config.Get<TEAConfig>().P2IntermissionHints;
+        var strategy = Module.Config.Get<TEAConfig>().P2IntermissionHints;
         if (strategy == TEAConfig.P2Intermission.None)
             return null;
 

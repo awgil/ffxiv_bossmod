@@ -100,7 +100,7 @@ class P1UtopianSkySpreadStack(BossModule module) : Components.UniformStackSpread
 // initial positions: resolve tankbuster + 'see' own image
 class P1UtopianSkyAIInitial(BossModule module) : BossComponent(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -123,7 +123,7 @@ class P1UtopianSkyAIInitial(BossModule module) : BossComponent(module)
 // - as soon as all aoe directions have at least one person 'near center', or if resolve is imminent, we move to our final spot
 class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P1UtopianSkyBlastingZone? _aoes = module.FindComponent<P1UtopianSkyBlastingZone>();
     private readonly P1UtopianSkySpreadStack? _spreadStack = module.FindComponent<P1UtopianSkySpreadStack>();
     private BitMask _seenDangerSpot;
@@ -141,7 +141,7 @@ class P1UtopianSkyAIResolve(BossModule module) : BossComponent(module)
             return;
         }
 
-        foreach (var (slot, group) in _config.P1UtopianSkyInitialSpots.Resolve(Raid))
+        foreach (var (slot, group) in _config.P1UtopianSkyInitialSpots.Resolve(Module))
         {
             var spot = group & 3;
             if (folded[spot] && !_seenDangerSpot[spot] && Raid[slot] is var p && p != null && !p.Position.InDonutCone(Module.Center, 12, 20, (180 - 45 * group).Degrees(), 30.Degrees()))

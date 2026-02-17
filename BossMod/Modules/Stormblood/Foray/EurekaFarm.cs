@@ -33,7 +33,7 @@ public class EurekaConfig : ConfigNode
 
 public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
 {
-    protected readonly EurekaConfig _globalConfig = Service.Config.Get<EurekaConfig>();
+    protected readonly EurekaConfig _globalConfig;
 
     public readonly string Zone;
 
@@ -47,6 +47,7 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
 
     protected EurekaZone(ZoneModuleArgs args, string zone) : base(args)
     {
+        _globalConfig = args.Config.Get<EurekaConfig>();
         _subscriptions = new(args.World.Client.FateInfo.Subscribe(OnFateSpawn));
         Zone = zone;
     }

@@ -54,7 +54,7 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
             ? (0.Degrees(), _offsetsNaelCenter)
             : ((twinRel + bahaRel) * 0.5f, _offsetsNaelSide);
         var dirSymmetry = dirToNael + offsetSymmetry;
-        foreach (var p in Service.Config.Get<UCOBConfig>().P3QuickmarchTrioAssignments.Resolve(Raid))
+        foreach (var p in Module.Config.Get<UCOBConfig>().P3QuickmarchTrioAssignments.Resolve(Module))
         {
             var left = p.group < 4;
             var order = p.group & 3;
@@ -79,7 +79,7 @@ class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, AID
                 var dirToNael = Angle.FromDirection(nael.Position - Module.Center);
                 var orders = Towers.Select(t => TowerSortKey(Angle.FromDirection(t.Position - Module.Center), dirToNael)).ToList();
                 MemoryExtensions.Sort(orders.AsSpan(), Towers.AsSpan());
-                foreach (var p in Service.Config.Get<UCOBConfig>().P3HeavensfallTrioTowers.Resolve(Raid))
+                foreach (var p in Module.Config.Get<UCOBConfig>().P3HeavensfallTrioTowers.Resolve(Module))
                 {
                     Towers.Ref(p.group).ForbiddenSoakers = new(~(1ul << p.slot));
                 }

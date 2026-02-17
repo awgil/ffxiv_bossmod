@@ -42,7 +42,7 @@ abstract class CommonAssignments(BossModule module) : BossComponent(module)
     {
         var (ca, global) = Assignments();
         List<(int slot, int group, int priority, int order)> assignments = [];
-        foreach (var a in ca.Resolve(Raid))
+        foreach (var a in ca.Resolve(Module))
             assignments.Add((a.slot, global ? 0 : a.group >> 2, global ? a.group : a.group & 3, PlayerStates[a.slot].Order));
         if (assignments.Count == 0)
             return; // invalid assignments

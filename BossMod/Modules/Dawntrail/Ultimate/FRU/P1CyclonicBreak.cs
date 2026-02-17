@@ -92,7 +92,7 @@ class P1CyclonicBreakCone(BossModule module) : Components.GenericAOEs(module)
 
 class P1CyclonicBreakAIBait(BossModule module) : BossComponent(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P1CyclonicBreakSpreadStack? _spreadStack = module.FindComponent<P1CyclonicBreakSpreadStack>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -108,7 +108,7 @@ class P1CyclonicBreakAIBait(BossModule module) : BossComponent(module)
 
 class P1CyclonicBreakAIDodgeSpreadStack(BossModule module) : BossComponent(module)
 {
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P1CyclonicBreakSpreadStack? _spreadStack = module.FindComponent<P1CyclonicBreakSpreadStack>();
     private readonly P1CyclonicBreakCone? _cones = module.FindComponent<P1CyclonicBreakCone>();
     private readonly ArcList _forbiddenDirections = new(module.PrimaryActor.Position, 0);

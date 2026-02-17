@@ -21,7 +21,7 @@ class P3Gaols(BossModule module) : Components.GenericAOEs(module)
     {
         if (CurState == State.TargetSelection && _targets.Any())
         {
-            var hint = string.Join(" > ", Service.Config.Get<UWUConfig>().P3GaolPriorities.Resolve(Raid).Where(i => _targets[i.slot]).OrderBy(i => i.group).Select(i => Raid[i.slot]?.Name));
+            var hint = string.Join(" > ", Module.Config.Get<UWUConfig>().P3GaolPriorities.Resolve(Module).Where(i => _targets[i.slot]).OrderBy(i => i.group).Select(i => Raid[i.slot]?.Name));
             hints.Add($"Gaols: {hint}");
         }
     }

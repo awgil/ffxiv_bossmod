@@ -133,7 +133,7 @@ class HighConceptCommon(BossModule module) : BossComponent(module)
 
 class HighConcept1(BossModule module) : HighConceptCommon(module)
 {
-    public bool LongGoS => Service.Config.Get<P8S2Config>().HC1LongGoS;
+    public bool LongGoS => Module.Config.Get<P8S2Config>().HC1LongGoS;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

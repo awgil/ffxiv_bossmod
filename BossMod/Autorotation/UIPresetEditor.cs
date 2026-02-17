@@ -13,7 +13,7 @@ public sealed class UIPresetEditor
         public List<(Type type, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder)> Leafs = [];
     }
 
-    private readonly AutorotationConfig _autorotConfig = Service.Config.Get<AutorotationConfig>();
+    private readonly AutorotationConfig _autorotConfig;
     private readonly PresetDatabase _db;
     private readonly RotationModuleRegistry _registry;
     private int _sourcePresetIndex;
@@ -39,8 +39,9 @@ public sealed class UIPresetEditor
 
     public Type? SelectedModuleType => Preset.Modules.BoundSafeAt(_selectedModuleIndex)?.Type;
 
-    public UIPresetEditor(RotationModuleRegistry registry, bool devMode, PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
+    public UIPresetEditor(RotationModuleRegistry registry, AutorotationConfig cfg, bool devMode, PresetDatabase db, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
     {
+        _autorotConfig = cfg;
         _registry = registry;
         _db = db;
         _sourcePresetIndex = index;
@@ -61,8 +62,9 @@ public sealed class UIPresetEditor
         SelectModule(FindModuleByType(initiallySelectedModuleType));
     }
 
-    public UIPresetEditor(RotationModuleRegistry registry, PresetDatabase db, Preset preset, Type? initiallySelectedModuleType)
+    public UIPresetEditor(RotationModuleRegistry registry, AutorotationConfig cfg, PresetDatabase db, Preset preset, Type? initiallySelectedModuleType)
     {
+        _autorotConfig = cfg;
         _registry = registry;
         _db = db;
         _sourcePresetIndex = -1;

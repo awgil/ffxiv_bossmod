@@ -7,7 +7,7 @@ class P2SanctityOfTheWard2VoidzoneIce(BossModule module) : Components.Persistent
 
 class P2SanctityOfTheWard2Knockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.FaithUnmoving, 16)
 {
-    private readonly DSW2Config _config = Service.Config.Get<DSW2Config>();
+    private readonly DSW2Config _config = module.Config.Get<DSW2Config>();
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -218,7 +218,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
     {
         _preySwap = "unconfigured";
         _preyHint = "unknown";
-        var config = Service.Config.Get<DSW2Config>();
+        var config = Module.Config.Get<DSW2Config>();
         if (InitQuadrantAssignments(config))
         {
             InitQuadrantSwaps(config);
@@ -233,7 +233,7 @@ class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTowers(mod
     private bool InitQuadrantAssignments(DSW2Config config)
     {
         var validAssignments = false;
-        foreach (var (slot, quadrant) in config.P2Sanctity2Pairs.Resolve(Raid))
+        foreach (var (slot, quadrant) in config.P2Sanctity2Pairs.Resolve(Module))
         {
             validAssignments = true;
             _players[slot].AssignedQuadrant = quadrant;
@@ -628,8 +628,8 @@ class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(mod
 
     private void InitNonPreyAssignments()
     {
-        var config = Service.Config.Get<DSW2Config>();
-        foreach (var (slot, quadrant) in config.P2Sanctity2Pairs.Resolve(Raid))
+        var config = Module.Config.Get<DSW2Config>();
+        foreach (var (slot, quadrant) in config.P2Sanctity2Pairs.Resolve(Module))
         {
             if (Raid[slot]?.Class.IsSupport() != _preyOnTH)
             {

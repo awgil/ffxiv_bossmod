@@ -3,7 +3,7 @@
 class P6MortalVow : Components.UniformStackSpread
 {
     public int Progress { get; private set; } // 0 before application, N before Nth pass
-    private readonly DSW2Config _config = Service.Config.Get<DSW2Config>();
+    private readonly DSW2Config _config;
     private Actor? _vow;
     private Actor? _target;
     private DateTime _vowExpiration;
@@ -11,6 +11,7 @@ class P6MortalVow : Components.UniformStackSpread
 
     public P6MortalVow(BossModule module) : base(module, 5, 5, 2, 2, true, false)
     {
+        _config = module.Config.Get<DSW2Config>();
         // prepare for initial application on random DD
         AddSpreads(Raid.WithoutSlot(true).Where(p => p.Class.IsDD())); // TODO: activation
     }
@@ -83,7 +84,7 @@ class P6MortalVow : Components.UniformStackSpread
         if (_config.P6MortalVowOrder == DSW2Config.P6MortalVow.None)
             return null;
 
-        var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
+        var assignments = Module.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
         if (assignments.Length == 0)
             return null; // if assignments are unset, we can't define pass priority
 

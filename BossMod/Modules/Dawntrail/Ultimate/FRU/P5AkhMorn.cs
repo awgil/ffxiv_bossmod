@@ -3,7 +3,7 @@
 class P5AkhMorn(BossModule module) : Components.UniformStackSpread(module, 4, 0, 4)
 {
     public Actor? Source;
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private readonly FRUConfig _config = module.Config.Get<FRUConfig>();
     private readonly P5FulgentBlade? _fulgent = module.FindComponent<P5FulgentBlade>();
     private BitMask _leftSoakers;
     private DateTime _activation;
@@ -51,7 +51,7 @@ class P5AkhMorn(BossModule module) : Components.UniformStackSpread(module, 4, 0,
         {
             Source = caster;
             _activation = Module.CastFinishAt(spell, 0.1f);
-            foreach (var (slot, group) in _config.P5AkhMornAssignments.Resolve(Raid))
+            foreach (var (slot, group) in _config.P5AkhMornAssignments.Resolve(Module))
                 _leftSoakers[slot] = group == 0;
         }
     }

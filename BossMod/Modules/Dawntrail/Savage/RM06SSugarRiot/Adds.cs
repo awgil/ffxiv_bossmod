@@ -10,7 +10,7 @@ class Adds(BossModule module) : BossComponent(module)
 
     private int HuffyCat;
 
-    private readonly RM06SSugarRiotConfig _config = Service.Config.Get<RM06SSugarRiotConfig>();
+    private readonly RM06SSugarRiotConfig _config = module.Config.Get<RM06SSugarRiotConfig>();
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {

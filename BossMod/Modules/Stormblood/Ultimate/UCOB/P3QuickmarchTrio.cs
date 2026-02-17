@@ -21,7 +21,7 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
         {
             _relNorth = actor;
             var dirToNorth = Angle.FromDirection(actor.Position - Module.Center);
-            foreach (var p in Service.Config.Get<UCOBConfig>().P3QuickmarchTrioAssignments.Resolve(Raid))
+            foreach (var p in Module.Config.Get<UCOBConfig>().P3QuickmarchTrioAssignments.Resolve(Module))
             {
                 var left = p.group < 4;
                 var order = p.group & 3;

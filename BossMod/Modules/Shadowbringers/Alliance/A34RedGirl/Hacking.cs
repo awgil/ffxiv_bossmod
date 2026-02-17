@@ -40,13 +40,8 @@ class RedSphere(BossModule module) : Components.Adds(module, (uint)OID.RedSphere
 
 class HackRotation(WorldState ws, ActionDefinitions defs) : QuestBattle.UnmanagedRotation(ws, defs, 10)
 {
-    private readonly A34RedGirlConfig _config = Service.Config.Get<A34RedGirlConfig>();
-
     protected override void Exec(Actor? primaryTarget)
     {
-        if (!_config.AutoHack)
-            return;
-
         var whiteColor = Player.FindStatus(SID.ProgramFFFFFFF, DateTime.MaxValue);
         var blackColor = Player.FindStatus(SID.Program000000, DateTime.MaxValue);
         // prioritize pending status over current

@@ -39,8 +39,8 @@ class P3DarkdragonDiveCounter(BossModule module) : Components.GenericTowers(modu
         for (var i = 0; i < Towers.Count; ++i)
             towerIndices[ClassifyTower(Towers[i].Position)] = i;
 
-        var config = Service.Config.Get<DSW2Config>();
-        var assign = config.P3DarkdragonDiveCounterGroups.Resolve(Raid);
+        var config = Module.Config.Get<DSW2Config>();
+        var assign = config.P3DarkdragonDiveCounterGroups.Resolve(Module);
         foreach (var (slot, group) in assign)
         {
             var pos = group & 3;
