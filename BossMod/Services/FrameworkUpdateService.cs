@@ -44,7 +44,6 @@ internal class FrameworkUpdateService(
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         MediatorService.Subscribe<CreateWindowMessage>(this, CreateWindow);
-        MediatorService.Subscribe<DestroyWindowMessage>(this, DestroyWindow);
 
         foreach (var w in defaultWindows)
             windowSystem.AddWindow(w);
@@ -83,15 +82,6 @@ internal class FrameworkUpdateService(
         {
             throw new InvalidOperationException($"Failed to register window {wnd.WindowName} due to name conflict");
         }
-    }
-
-    void DestroyWindow(DestroyWindowMessage msg)
-    {
-        var wnd = windowSystem.Windows.FirstOrDefault(w => w.WindowName == msg.WindowName);
-        if (wnd != null)
-            windowSystem.RemoveWindow(wnd);
-        else
-            throw new InvalidOperationException($"No window named {msg.WindowName} found in WindowSystem.");
     }
 
     void OpenUi() => configUI.Open();
