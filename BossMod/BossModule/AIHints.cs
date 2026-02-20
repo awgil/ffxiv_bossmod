@@ -228,6 +228,16 @@ public sealed class AIHints
             ImminentSpecialMode = (mode, activation);
     }
 
+    public void AddForbiddenDirections(ArcList list, DateTime activation)
+    {
+        foreach (var (from, to) in list.Forbidden.Segments)
+        {
+            var center = (to + from) * 0.5f;
+            var width = (to - from) * 0.5f;
+            ForbiddenDirections.Add((center.Radians(), width.Radians(), activation));
+        }
+    }
+
     // normalize all entries after gathering data: sort by priority / activation timestamp
     // TODO: note that the name is misleading - it actually happens mid frame, before all actions are gathered (eg before autorotation runs), but further steps (eg ai) might consume previously gathered data
     public void Normalize()

@@ -234,12 +234,7 @@ class Replication2HemorrhagicProjection : Components.GenericBaitAway
             forbidden.ForbidInfiniteCone(actor.Position, angle, 25.5f.Degrees());
         }
 
-        foreach (var (from, to) in forbidden.Forbidden.Segments)
-        {
-            var center = (to + from) * 0.5f;
-            var width = (to - from) * 0.5f;
-            hints.ForbiddenDirections.Add((center.Radians(), width.Radians(), _activation));
-        }
+        hints.AddForbiddenDirections(forbidden, _activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

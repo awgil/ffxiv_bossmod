@@ -57,12 +57,7 @@ class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAway(modul
             forbidden.ForbidInfiniteCone(actor.Position, angle, 18.Degrees());
         }
 
-        foreach (var (from, to) in forbidden.Forbidden.Segments)
-        {
-            var center = (to + from) * 0.5f;
-            var width = (to - from) * 0.5f;
-            hints.ForbiddenDirections.Add((center.Radians(), width.Radians(), _activation));
-        }
+        hints.AddForbiddenDirections(forbidden, _activation);
     }
 }
 
