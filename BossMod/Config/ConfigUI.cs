@@ -387,13 +387,43 @@ public sealed class ConfigUI : IDisposable
         return modified;
     }
 
+    public static void DrawGroupPresetIndicator()
+    {
+        ImGui.AlignTextToFramePadding();
+        UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.ListUl);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("This configuration option includes presets. Right click on the dropdown to select a preset.");
+        ImGui.SameLine();
+    }
+
     private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
     {
         var group = member.GetCustomAttribute<GroupDetailsAttribute>();
         if (group == null)
             return false;
 
-        DrawHelp(tooltip);
+        var spaced = false;
+
+        ImGui.AlignTextToFramePadding();
+        if (tooltip.Length > 0)
+        {
+            spaced = true;
+            UIMisc.HelpMarker(tooltip);
+            ImGui.SameLine();
+        }
+
+        if (member.GetCustomAttributes<GroupPresetAttribute>().Any())
+        {
+            spaced = true;
+            DrawGroupPresetIndicator();
+        }
+
+        if (!spaced)
+        {
+            using (ImRaii.PushColor(ImGuiCol.Text, 0))
+                UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle);
+        }
+
         var modified = false;
         foreach (var tn in tree.Node(label, false, v.Validate() ? 0xffffffff : 0xff00ffff, () => DrawPropertyContextMenu(node, member, v)))
         {
