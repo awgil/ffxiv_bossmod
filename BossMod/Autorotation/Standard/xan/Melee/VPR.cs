@@ -359,7 +359,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
                 break;
         }
 
-        if (Unlocked(AID.SerpentsIre) && Coil < CoilMax)
+        if (Unlocked(AID.SerpentsIre) && Coil < CoilMax && strategy.Buffs.Value != OffensiveStrategy.Delay)
             PushOGCD(AID.SerpentsIre, Player);
 
         if (NextPositionalImminent && !NextPositionalCorrect)

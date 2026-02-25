@@ -63,7 +63,8 @@ public class ConfigRoot
     {
         try
         {
-            ConfigConverter.Schema.Save(file, jwriter =>
+            var tmp = new FileInfo(Path.GetTempFileName());
+            ConfigConverter.Schema.Save(tmp, jwriter =>
             {
                 jwriter.WriteStartObject();
                 var ser = Serialization.BuildSerializationOptions();
@@ -75,6 +76,7 @@ public class ConfigRoot
                 jwriter.WriteEndObject();
                 jwriter.WriteString(nameof(AssemblyVersion), AssemblyVersion.ToString());
             });
+            tmp.Replace(file.FullName, Path.ChangeExtension(file.FullName, "json.bak"));
         }
         catch (Exception e)
         {
