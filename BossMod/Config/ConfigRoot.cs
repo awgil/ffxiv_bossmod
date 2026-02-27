@@ -76,7 +76,10 @@ public class ConfigRoot
                 jwriter.WriteEndObject();
                 jwriter.WriteString(nameof(AssemblyVersion), AssemblyVersion.ToString());
             });
-            tmp.Replace(file.FullName, Path.ChangeExtension(file.FullName, "json.bak"));
+            if (file.Exists)
+                tmp.Replace(file.FullName, Path.ChangeExtension(file.FullName, "json.bak"));
+            else
+                tmp.MoveTo(file.FullName);
         }
         catch (Exception e)
         {
