@@ -36,7 +36,7 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase<Var
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Variant AI", "Variant dungeon utilities", "AI (xan)", "xan", RotationModuleQuality.Basic, new(~0ul), MaxLevel: 90).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Variant AI", "Variant dungeon utilities", "AI (xan)", "xan", RotationModuleQuality.Basic, new(~0ul), MaxLevel: 100).WithStrategies<Strategy>();
     }
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
