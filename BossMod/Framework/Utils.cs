@@ -414,5 +414,19 @@ public static partial class Utils
             }
     }
 
+    public static IEnumerable<Components.GenericAOEs.AOEInstance> TakeSpan(this IEnumerable<Components.GenericAOEs.AOEInstance> aoes, TimeSpan ts)
+    {
+        DateTime deadline = default;
+        foreach (var aoe in aoes)
+        {
+            if (deadline == default)
+                deadline = aoe.Activation + ts;
+            if (aoe.Activation >= deadline)
+                break;
+
+            yield return aoe;
+        }
+    }
+
     public static Vector3 ToSystem(this Lumina.Data.Parsing.Common.Vector3 v) => new(v.X, v.Y, v.Z);
 }
