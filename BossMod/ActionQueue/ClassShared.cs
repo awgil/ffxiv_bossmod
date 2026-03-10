@@ -81,6 +81,10 @@ public enum AID : uint
     VariantCure2 = 33862, // available in mount rokkon and aloalo island
     VariantSpiritDart2 = 33863, // available in mount rokkon and aloalo island
     VariantRampart2 = 33864, // available in mount rokkon and aloalo island
+    VariantCure3 = 46939, // available in merchant's tale
+    VariantSpiritDart3 = 46940, // available in merchant's tale
+    VariantRampart3 = 46941, // available in merchant's tale
+    VariantEagleEyeShot = 46942, // available in merchant's tale
 
     #region PvP
     ElixirPvP = 29055,
@@ -134,6 +138,8 @@ public enum SID : uint
     Raise = 148, // applied by Raise to target
 
     // Variant
+    EnmityUp = 3358, // applied by Variant Ultimatum to self, budget tank stance
+    SustainedDamage = 3359, // applied by Variant Spirit Dart to targets
     VulnerabilityDown = 3360, // applied by Variant Rampart to self
 
     // Bozja
@@ -251,6 +257,10 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.VariantCure2);
         d.RegisterSpell(AID.VariantSpiritDart2);
         d.RegisterSpell(AID.VariantRampart2);
+        d.RegisterSpell(AID.VariantCure3);
+        d.RegisterSpell(AID.VariantSpiritDart3);
+        d.RegisterSpell(AID.VariantRampart3);
+        d.RegisterSpell(AID.VariantEagleEyeShot);
         #endregion
 
         #region PvP
