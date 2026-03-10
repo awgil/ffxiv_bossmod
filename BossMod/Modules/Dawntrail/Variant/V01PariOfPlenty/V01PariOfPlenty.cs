@@ -114,7 +114,6 @@ class Fireflight(BossModule module) : Components.GenericAOEs(module)
         public required Actor To;
         public required DateTime Activation;
         public required DateTime Appeared;
-        public bool Donut;
         public WPos FromPos { get; private set; }
         public WPos ToPos { get; private set; }
         public bool IsBoss;

@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Variant.V02LoneSwordmaster;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Variant.V02LoneSwordmaster;
 
 public enum OID : uint
 {
