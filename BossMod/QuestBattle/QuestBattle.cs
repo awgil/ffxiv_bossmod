@@ -288,8 +288,7 @@ public abstract class QuestBattle : ZoneModule
         );
 
         // TODO: get rid of stuff below, this is bad...
-        if (Service.Condition != null)
-            Service.Condition.ConditionChange += OnConditionChange;
+        Service.Condition?.ConditionChange += OnConditionChange;
 
         //_subscriptions = new(
         //    ObjectiveChanged.Subscribe(OnObjectiveChanged),
@@ -315,8 +314,7 @@ public abstract class QuestBattle : ZoneModule
         _subscriptions.Dispose();
 
         // TODO: get rid of stuff below, this is bad...
-        if (Service.Condition != null)
-            Service.Condition.ConditionChange -= OnConditionChange;
+        Service.Condition?.ConditionChange -= OnConditionChange;
 
         base.Dispose(disposing);
     }

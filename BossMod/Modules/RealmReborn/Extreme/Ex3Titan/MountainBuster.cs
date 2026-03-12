@@ -11,8 +11,7 @@ class MountainBuster : Components.Cleave
     {
         base.AddAIHints(slot, actor, assignment, hints);
         var boss = hints.PotentialTargets.Find(e => (OID)e.Actor.OID == OID.Boss);
-        if (boss != null)
-            boss.AttackStrength += 0.25f;
+        boss?.AttackStrength += 0.25f;
     }
 }
 
@@ -27,7 +26,6 @@ class RockBuster : Components.Cleave
     {
         base.AddAIHints(slot, actor, assignment, hints);
         var boss = hints.PotentialTargets.Find(e => (OID)e.Actor.OID == OID.TitansHeart);
-        if (boss != null)
-            boss.AttackStrength += 0.25f;
+        boss?.AttackStrength += 0.25f;
     }
 }

@@ -1,4 +1,4 @@
-﻿
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
 namespace BossMod.Dawntrail.Criterion.C01MerchantsTale.C012LoneSwordmaster;
 
 public enum OID : uint
@@ -490,7 +490,6 @@ class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
     readonly Malefic _malefic = module.FindComponent<Malefic>()!;
     readonly List<(Actor From, Actor To, int Order)> AllTethers = [];
     DateTime _appearedAt;
-    bool _bound;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -551,12 +550,6 @@ class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
-    {
-        if ((SID)status.ID == SID._Gen_Bind)
-            _bound = true;
-    }
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
@@ -576,8 +569,6 @@ class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
 
 class LavaRect(BossModule module) : Components.GenericAOEs(module)
 {
-    bool _active;
-
     public static readonly AOEShape Rect = new AOEShapeRect(10, 10);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => [];
