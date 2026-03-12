@@ -16,7 +16,7 @@ public abstract class BossModule : IDisposable
     public readonly StateMachine StateMachine;
     public readonly Pathfinding.ObstacleMapManager Obstacles;
 
-    internal unsafe void SetPrimaryActor(Actor actor)
+    internal void SetPrimaryActor(Actor actor)
     {
         PrimaryActor = actor;
     }
@@ -219,6 +219,8 @@ public abstract class BossModule : IDisposable
 
         // draw enemies & player
         DrawEnemies(pcSlot, pc);
+        if (DebugOpts.DrawAllActors)
+            DrawDebug();
         Arena.Actor(pc, ArenaColor.PC, true);
     }
 
@@ -303,6 +305,23 @@ public abstract class BossModule : IDisposable
     protected virtual void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+    }
+
+    private void DrawDebug()
+    {
+        List<Actor> highlighted = [];
+        var cursor = ImGui.GetMousePos();
+
+        foreach (var actor in WorldState.Actors.Where(a => !a.IsAlly).Exclude(PrimaryActor))
+        {
+            Arena.Actor(actor.Position, actor.Rotation, ArenaColor.Object);
+            var s = Arena.WorldPositionToScreenPosition(actor.Position);
+            if ((s - cursor).LengthSquared() < 100)
+                highlighted.Add(actor);
+        }
+
+        if (highlighted.Count > 0)
+            ImGui.SetTooltip(string.Join("\n", highlighted));
     }
 
     private void DrawGlobalHints(BossComponent.GlobalHints hints)
@@ -572,4 +591,11 @@ public abstract class BossModule : IDisposable
         foreach (var comp in _components)
             comp.OnEventDirectorUpdate(op.UpdateID, op.Param1, op.Param2, op.Param3, op.Param4);
     }
+
+    public struct DebugOptions()
+    {
+        public bool DrawAllActors = false;
+    }
+
+    internal DebugOptions DebugOpts;
 }

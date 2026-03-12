@@ -158,7 +158,16 @@ class FamiliarCall1(BossModule module) : Components.GenericAOEs(module)
 
 class Hydrobullet(BossModule module) : Components.SpreadFromCastTargets(module, AID.HydrobulletSpread, 15);
 
-class SurgingCurrent(BossModule module) : Components.StandardAOEs(module, AID.SurgingCurrent, new AOEShapeCone(60, 45.Degrees()), maxCasts: 2);
+class SurgingCurrent(BossModule module) : Components.StandardAOEs(module, AID.SurgingCurrent, new AOEShapeCone(60, 45.Degrees()), maxCasts: 2)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if (spell.Action == WatchedAction)
+            Casters.SortBy(c => Module.CastFinishAt(c.CastInfo));
+    }
+}
 
 class Hydrofall(BossModule module) : Components.GenericAOEs(module, AID.Hydrofall)
 {
