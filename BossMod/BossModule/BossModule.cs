@@ -314,7 +314,7 @@ public abstract class BossModule : IDisposable
 
         foreach (var actor in WorldState.Actors.Where(a => !a.IsAlly).Exclude(PrimaryActor))
         {
-            Arena.Actor(actor.Position, actor.Rotation, ArenaColor.Object);
+            Arena.ActorInsideBounds(actor.Position, actor.Rotation, ArenaColor.Object);
             var s = Arena.WorldPositionToScreenPosition(actor.Position);
             if ((s - cursor).LengthSquared() < 100)
                 highlighted.Add(actor);

@@ -1,4 +1,8 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+
+
+
+
 namespace BossMod.Dawntrail.Criterion.C01MerchantsTale.C012LoneSwordmaster;
 
 public enum OID : uint
@@ -193,6 +197,7 @@ static class SideHelpers
 }
 
 class SteelsbreathRelease(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_SteelsbreathRelease);
+class SteelsbreathRelease2(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_SteelsbreathRelease1);
 
 class FromHeaven(BossModule module) : Components.UniformStackSpread(module, 5, 5, maxStackSize: 2)
 {
@@ -380,7 +385,7 @@ class Malefic(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var (i, p) in Raid.WithSlot())
-            DrawSides(p, PlayerStates[i]);
+            DrawSides(p, PlayerStates.BoundSafeAt(i));
     }
 
     public static void DrawSides(MiniArena arena, Actor actor, Side state, uint color = 0)
@@ -416,6 +421,7 @@ class Malefic(BossModule module) : BossComponent(module)
     }
 }
 
+class MaleficPortentCounter(BossModule module) : Components.CastCounter(module, AID._Weaponskill_MaleficPortent1);
 class MaleficPortent(BossModule module) : Components.CastCounter(module, AID._Weaponskill_MaleficPortent1)
 {
     readonly Side[] _sides = new Side[4];
@@ -486,19 +492,27 @@ class MaleficPortent(BossModule module) : Components.CastCounter(module, AID._We
 
 class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
 {
-    readonly Dictionary<ulong, Actor> WallSource = [];
+    bool _bound;
     readonly Malefic _malefic = module.FindComponent<Malefic>()!;
     readonly List<(Actor From, Actor To, int Order)> AllTethers = [];
     DateTime _appearedAt;
+
+    Actor? GetRealSource(Actor target)
+    {
+        Actor? parent = null;
+        while (AllTethers.FirstOrNull(t => t.To == target) is { } tether)
+            parent = target = tether.From;
+        return parent;
+    }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         ulong parentID = 0;
 
-        if (WallSource.TryGetValue(actor.InstanceID, out var force))
+        if (GetRealSource(actor) is { } force)
         {
             parentID = force.InstanceID;
-            if (true)
+            if (!_bound)
             {
                 var bindAt = _appearedAt.AddSeconds(6.8f);
 
@@ -544,9 +558,23 @@ class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
             if (_appearedAt == default)
                 _appearedAt = WorldState.CurrentTime;
 
+            var target = WorldState.Actors.Find(tether.Target)!;
+
             AllTethers.RemoveAll(t => t.From == source);
-            AllTethers.Add((source, WorldState.Actors.Find(tether.Target)!, (OID)source.OID == OID._Gen_ForceOfWill ? 0 : 1));
-            WallSource[tether.Target] = WallSource.TryGetValue(source.InstanceID, out var parent) ? parent : source;
+            AllTethers.Add((source, target, (OID)source.OID == OID._Gen_ForceOfWill ? 0 : 1));
+
+            // if the target player is already in the rect when tethers appear, second tether only spawns after they move
+            if ((OID)target.OID == OID._Gen_ForceOfWill1)
+            {
+                var targetDist = (target.Position - source.Position).Length();
+                var playerTarget = Raid.WithoutSlot().InShape(new AOEShapeRect(60, 2), source.Position, source.Rotation).FirstOrDefault(p =>
+                {
+                    var playerDist = (p.Position - source.Position).Dot(source.Rotation.ToDirection());
+                    return MathF.Abs(playerDist - targetDist) < 0.1f;
+                });
+                if (playerTarget != null)
+                    AllTethers.Add((target, playerTarget, 1));
+            }
         }
     }
 
@@ -557,7 +585,6 @@ class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
             case AID._Weaponskill_UnyieldingWill:
                 NumCasts++;
                 AllTethers.RemoveAll(t => (OID)t.From.OID == OID._Gen_ForceOfWill);
-                WallSource.Clear();
                 break;
             case AID._Weaponskill_UnyieldingWill2:
                 NumCasts++;
@@ -565,21 +592,54 @@ class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
                 break;
         }
     }
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID._Gen_Bind)
+            _bound = true;
+    }
 }
 
 class LavaRect(BossModule module) : Components.GenericAOEs(module)
 {
     public static readonly AOEShape Rect = new AOEShapeRect(10, 10);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => [];
+    DateTime _activation;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_activation == default)
+            yield break;
+
+        yield return new(Rect, Arena.Center + new WDir(10, -10), 180.Degrees(), _activation);
+        yield return new(Rect, Arena.Center + new WDir(10, 10), 90.Degrees(), _activation);
+        yield return new(Rect, Arena.Center + new WDir(-10, 10), default, _activation);
+        yield return new(Rect, Arena.Center + new WDir(-10, -10), -90.Degrees(), _activation);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_SteelsbreathRelease1)
+            _activation = Module.CastFinishAt(spell);
+    }
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
-        if (actor.OID == 0x1EBF72 && state == 0x00010002)
+        if (actor.OID == 0x1EBF72)
         {
-            var rect = CurveApprox.Rect(new WDir(10, -5), new WDir(10, 0), new WDir(0, 5));
-            var clipper = Arena.Bounds.Clipper;
-            Arena.Bounds = new ArenaBoundsCustom(20, clipper.UnionAll(new(rect), new PolygonClipper.Operand(rect.Select(r => r.OrthoR())), new PolygonClipper.Operand(rect.Select(r => r.OrthoL())), new PolygonClipper.Operand(rect.Select(r => -r))));
+            if (state == 0x00010002)
+            {
+                _activation = default;
+                var rect = CurveApprox.Rect(new WDir(10, -5), new WDir(10, 0), new WDir(0, 5));
+                var clipper = Arena.Bounds.Clipper;
+                Arena.Bounds = new ArenaBoundsCustom(20, clipper.UnionAll(new(rect), new PolygonClipper.Operand(rect.Select(r => r.OrthoR())), new PolygonClipper.Operand(rect.Select(r => r.OrthoL())), new PolygonClipper.Operand(rect.Select(r => -r))));
+            }
+
+            if (state == 0x00040008)
+            {
+                Arena.Bounds = new ArenaBoundsSquare(20);
+                _activation = default;
+            }
         }
     }
 }
@@ -664,7 +724,7 @@ class EchoPredict(BossModule module) : Components.GenericAOEs(module)
 
 class WaitingWounds(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_WaitingWounds1, 10, 6, highlightImminent: true);
 
-class SilentEightSpread(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID._Gen_Icon_loc08sp_05a_se_c2, AID._Weaponskill_ResoundingSilence, 8, 5)
+class ResoundingSilence(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID._Gen_Icon_loc08sp_05a_se_c2, AID._Weaponskill_ResoundingSilence, 8, 5)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -672,7 +732,215 @@ class SilentEightSpread(BossModule module) : Components.SpreadFromIcon(module, (
             hints.AddForbiddenZone(_ => true, DateTime.MaxValue);
     }
 }
+class ResoundingSilencePuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID._Weaponskill_ResoundingSilence, m => m.Enemies(0x1EBF73).Where(e => e.EventState != 7), 2);
 class MawOfTheWolf(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_MawOfTheWolf1, new AOEShapeRect(80, 40));
+
+class FangsOfTheUnderworld(BossModule module) : Components.IconLineStack(module, 5, 60, (uint)IconID._Gen_Icon_share_laser_5s_c0w, AID._Weaponskill_FangsOfTheUnderworld1, 5.2f)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            if (NumCasts >= 3)
+            {
+                Source = null;
+                Array.Fill(PlayerRoles, PlayerRole.Ignore);
+            }
+        }
+    }
+}
+
+// initial cast of Malefic 2. 8 seconds means standard hint should be sufficient
+class WillOfTheUnderworldSmallSlow(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_WillOfTheUnderworld)
+{
+    readonly Malefic _malefic = module.FindComponent<Malefic>()!;
+    readonly List<Actor> Casters = [];
+    public bool Risky = true;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var playerSides = _malefic.PlayerStates[slot];
+
+        foreach (var c in Casters)
+        {
+            var hitSide = SideHelpers.FromAngle(c.CastInfo!.Rotation + 180.Degrees());
+            if (playerSides.Matches(hitSide))
+                yield return new(new AOEShapeRect(40, 5), c.CastInfo!.LocXZ, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), Risky: Risky);
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            Casters.Add(caster);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            Casters.Remove(caster);
+        }
+    }
+}
+
+// initial spawns are staggered (2 -> 2), cast starts 2.8s after second set spawns, 4s cast (6.8s)
+// subsequent spawns are in groups of 4, cast starts 3s after spawns
+class WillOfTheUnderworldSmallFast(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_WillOfTheUnderworld1)
+{
+    readonly Malefic _malefic = module.FindComponent<Malefic>()!;
+    public bool Risky = true;
+    int _numSpawned;
+
+    readonly Side[] _predictedSide = new Side[4];
+    DateTime _tethersAt = DateTime.MaxValue;
+
+    readonly List<(Actor Caster, DateTime Predicted)> _casters = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var sides = _malefic.PlayerStates[slot];
+
+        foreach (var c in _casters.Take(4))
+        {
+            if (_tethersAt < c.Predicted)
+                sides |= _predictedSide[slot];
+
+            var hitSide = SideHelpers.FromAngle(c.Caster.Rotation + 180.Degrees());
+
+            if (sides.Matches(hitSide))
+                yield return new AOEInstance(new AOEShapeRect(40, 5), c.Caster.Position, c.Caster.Rotation, c.Predicted, Risky: Risky);
+        }
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID._Gen_ForceOfWill2)
+        {
+            var startAt = _numSpawned switch
+            {
+                < 2 => WorldState.FutureTime(8.7f),
+                < 4 => WorldState.FutureTime(6.8f),
+                _ => WorldState.FutureTime(7)
+            };
+            _casters.Add((actor, startAt));
+            _numSpawned++;
+        }
+    }
+
+    // 189.14 -> 196.18
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        var s = (TetherID)tether.ID switch
+        {
+            TetherID._Gen_Tether_chn_ambd_e_p => Side.E,
+            TetherID._Gen_Tether_chn_ambd_w_p => Side.W,
+            TetherID._Gen_Tether_chn_ambd_s_p => Side.S,
+            TetherID._Gen_Tether_chn_ambd_n_p => Side.N,
+            _ => default
+        };
+        if (s != default && Raid.TryFindSlot(source, out var slot))
+        {
+            _tethersAt = WorldState.FutureTime(7);
+            _predictedSide[slot] = s;
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            var ix = _casters.FindIndex(c => c.Caster == caster);
+            if (ix >= 0)
+                _casters.Ref(ix).Predicted = Module.CastFinishAt(spell);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            _casters.RemoveAll(c => c.Caster == caster);
+        }
+    }
+}
+
+class MaleficAlignment(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_MaleficAlignment1, new AOEShapeCone(40, 45.Degrees()))
+{
+    readonly Malefic _malefic = module.FindComponent<Malefic>()!;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var sides = _malefic.PlayerStates[slot];
+        foreach (var c in Casters)
+        {
+            var hitSide = SideHelpers.FromAngle(c.CastInfo!.Rotation + 180.Degrees());
+            if (sides.Matches(hitSide))
+                yield return new(Shape, c.CastInfo!.LocXZ, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
+        }
+    }
+}
+
+class Plummet(BossModule module) : Components.GenericAOEs(module)
+{
+    readonly List<Actor> Casters = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var c in Casters)
+        {
+            var radius = (AID)c.CastInfo!.Action.ID switch
+            {
+                AID._Weaponskill_Plummet3 => 3,
+                AID._Weaponskill_Plummet => 5,
+                AID._Weaponskill_Plummet1 => 10,
+                _ => 0
+            };
+            if (radius > 0)
+                yield return new(new AOEShapeCircle(radius), c.CastInfo!.LocXZ, default, Module.CastFinishAt(c.CastInfo));
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID._Weaponskill_Plummet:
+            case AID._Weaponskill_Plummet1:
+            case AID._Weaponskill_Plummet3:
+                Casters.Add(caster);
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID._Weaponskill_Plummet:
+            case AID._Weaponskill_Plummet1:
+            case AID._Weaponskill_Plummet3:
+                NumCasts++;
+                Casters.Remove(caster);
+                break;
+        }
+    }
+}
+
+// no idea how big this is
+class PlummetProximity(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Plummet2, 30)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        foreach (var c in Casters)
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(c.CastInfo));
+    }
+}
 
 class C012LoneSwordmasterStates : StateMachineBuilder
 {
@@ -685,8 +953,11 @@ class C012LoneSwordmasterStates : StateMachineBuilder
     {
         Malefic1(id, 9.2f);
         Echoes(id + 0x10000, 5.5f);
+        Malefic2(id + 0x20000, 5.2f);
 
-        SimpleState(id + 0xFF0000, 10000, "???");
+        SimpleState(id + 0xFF0000, 10000, "???")
+            .ActivateOnEnter<Plummet>()
+            .ActivateOnEnter<PlummetProximity>();
     }
 
     void Malefic1(uint id, float delay)
@@ -735,25 +1006,92 @@ class C012LoneSwordmasterStates : StateMachineBuilder
             .ActivateOnEnter<WaitingWounds>();
         ComponentCondition<WaitingWounds>(id + 0x101, 1, w => w.NumCasts > 3, "Puddles 2");
 
-        FromHeaven(id + 0x200, 1, id => ComponentCondition<WaitingWounds>(id, 0, w => w.NumCasts > 6, "Puddles 3"));
+        FromHeaven(id + 0x200, 1, id => ComponentCondition<WaitingWounds>(id, 0, w => w.NumCasts > 6, "Puddles 3").DeactivateOnExit<WaitingWounds>());
 
-        Cast(id + 0x300, AID._Weaponskill_SilentEight, 30, 4)
-            .ActivateOnEnter<SilentEightSpread>()
+        Cast(id + 0x300, AID._Weaponskill_SilentEight, 1.1f, 4)
+            .ActivateOnEnter<ResoundingSilence>()
             .ActivateOnEnter<EchoingEight>()
             .ActivateOnEnter<MawOfTheWolf>();
-        ComponentCondition<SilentEightSpread>(id + 0x310, 5, s => s.NumFinishedSpreads > 0, "Spreads")
-            .DeactivateOnExit<SilentEightSpread>();
+        ComponentCondition<ResoundingSilence>(id + 0x310, 5, s => s.NumFinishedSpreads > 0, "Spreads")
+            .DeactivateOnExit<ResoundingSilence>();
         ComponentCondition<EchoingEight>(id + 0x311, 3.2f, e => e.NumCasts > 0, "Crosses")
             .DeactivateOnExit<EchoingEight>();
         ComponentCondition<MawOfTheWolf>(id + 0x312, 3.2f, m => m.NumCasts > 0, "Half-room")
             .DeactivateOnExit<MawOfTheWolf>();
+
+        Fangs(id + 0x400, 3.2f);
     }
 
-    void SteelsbreathRelease(uint id, float delay)
+    void Malefic2(uint id, float delay)
     {
-        Cast(id, AID._Weaponskill_SteelsbreathRelease, delay, 5, "Raidwide")
+        SteelsbreathRelease(id, delay, "Raidwide + arena change")
+            .ActivateOnEnter<LavaRect>();
+
+        Cast(id + 0x10, AID._Weaponskill_MaleficQuartering, 3.3f, 3)
+            .ActivateOnEnter<Malefic>()
+            .ActivateOnEnter<LashOfLight>()
+            .ActivateOnEnter<ForceOfWill>()
+            .ActivateOnEnter<WillOfTheUnderworldSmallSlow>()
+            .ActivateOnEnter<ResoundingSilence>()
+            .ActivateOnEnter<ResoundingSilencePuddle>();
+
+        ComponentCondition<LashOfLight>(id + 0x20, 8.4f, l => l.NumCasts > 0, "Diagonals 1");
+        ComponentCondition<LashOfLight>(id + 0x21, 2.1f, l => l.NumCasts > 2, "Diagonals 2")
+            .DeactivateOnExit<LashOfLight>();
+
+        ComponentCondition<WillOfTheUnderworldSmallSlow>(id + 0x30, 11.4f, w => w.NumCasts > 0, "Direction AOEs")
+            .DeactivateOnExit<WillOfTheUnderworldSmallSlow>();
+        ComponentCondition<ResoundingSilence>(id + 0x31, 0.7f, s => s.NumFinishedSpreads > 0, "Spreads")
+            .DeactivateOnExit<ResoundingSilence>()
+            .DeactivateOnExit<ForceOfWill>();
+
+        FromHeaven(id + 0x100, 2.1f);
+
+        Cast(id + 0x200, AID._Weaponskill_MaleficQuartering, 3, 3);
+        Cast(id + 0x210, AID._Weaponskill_CardinalHorizons, 3.6f, 4)
+            .ActivateOnEnter<LashOfLight>();
+        ComponentCondition<LashOfLight>(id + 0x220, 0, l => l.NumCasts > 0, "Diagonals 1");
+        ComponentCondition<LashOfLight>(id + 0x221, 2.1f, l => l.NumCasts > 2, "Diagonals 2")
+            .DeactivateOnExit<LashOfLight>();
+
+        Cast(id + 0x230, AID._Weaponskill_MawOfTheWolf, 0.2f, 3.4f)
+            .ActivateOnEnter<MawOfTheWolf>()
+            .ActivateOnEnter<WillOfTheUnderworldSmallFast>()
+            .ActivateOnEnter<MaleficPortent>()
+            .ActivateOnEnter<MaleficPortentCounter>()
+            .ExecOnEnter<WillOfTheUnderworldSmallFast>(n => n.Risky = false);
+        ComponentCondition<MawOfTheWolf>(id + 0x232, 1.5f, m => m.NumCasts > 0, "Half-room")
+            .DeactivateOnExit<MawOfTheWolf>()
+            .ExecOnExit<WillOfTheUnderworldSmallFast>(n => n.Risky = true);
+
+        ComponentCondition<WillOfTheUnderworldSmallFast>(id + 0x240, 2.3f, w => w.NumCasts > 0, "Directions 1");
+        ComponentCondition<WillOfTheUnderworldSmallFast>(id + 0x241, 5.6f, w => w.NumCasts > 4, "Directions 2");
+        ComponentCondition<WillOfTheUnderworldSmallFast>(id + 0x242, 5.6f, w => w.NumCasts > 8, "Directions 3");
+        ComponentCondition<MaleficPortentCounter>(id + 0x243, 3.2f, m => m.NumCasts > 0, "Tethers")
+            .DeactivateOnExit<MaleficPortent>()
+            .DeactivateOnExit<MaleficPortentCounter>();
+        ComponentCondition<WillOfTheUnderworldSmallFast>(id + 0x244, 2.4f, w => w.NumCasts > 12, "Directions 4")
+            .DeactivateOnExit<ResoundingSilencePuddle>()
+            .DeactivateOnExit<WillOfTheUnderworldSmallFast>();
+
+        Cast(id + 0x300, AID._Weaponskill_MaleficAlignment, 2.3f, 3)
+            .ActivateOnEnter<MaleficAlignment>();
+        ComponentCondition<MaleficAlignment>(id + 0x302, 1, m => m.NumCasts > 0, "Directions 5")
+            .DeactivateOnExit<MaleficAlignment>();
+
+        Fangs(id + 0x400, 2.2f);
+
+        SteelsbreathRelease(id + 0x500, 5.1f, "Raidwide + restore arena")
+            .DeactivateOnExit<Malefic>();
+    }
+
+    State SteelsbreathRelease(uint id, float delay, string hint = "Raidwide")
+    {
+        return CastMulti(id, [AID._Weaponskill_SteelsbreathRelease, AID._Weaponskill_SteelsbreathRelease1], delay, 5, hint)
            .ActivateOnEnter<SteelsbreathRelease>()
-           .DeactivateOnExit<SteelsbreathRelease>();
+           .ActivateOnEnter<SteelsbreathRelease2>()
+           .DeactivateOnExit<SteelsbreathRelease>()
+           .DeactivateOnExit<SteelsbreathRelease2>();
     }
 
     void FromHeaven(uint id, float delay, Action<uint>? extra = null)
@@ -768,6 +1106,15 @@ class C012LoneSwordmasterStates : StateMachineBuilder
         ComponentCondition<HeavensConfluence>(id + 0x11, 2.1f, c => c.NumCasts > 1, "In/out 2")
             .DeactivateOnExit<HeavensConfluence>()
             .DeactivateOnExit<FromHeaven>();
+    }
+
+    void Fangs(uint id, float delay)
+    {
+        CastStart(id, AID._Weaponskill_FangsOfTheUnderworld, delay)
+            .ActivateOnEnter<FangsOfTheUnderworld>();
+        ComponentCondition<FangsOfTheUnderworld>(id + 1, 5.2f, f => f.NumCasts > 0, "Stack 1");
+        ComponentCondition<FangsOfTheUnderworld>(id + 2, 2, f => f.NumCasts > 2, "Stack 3")
+            .DeactivateOnExit<FangsOfTheUnderworld>();
     }
 }
 
