@@ -28,6 +28,7 @@ class ReplayDetailsWindow : UIWindow
     private bool _showDebug;
     private readonly EventList _events;
     private readonly ReplayAnalysis.AnalysisManager _analysis;
+    private BossModule.DebugOptions _moduleDebug = new();
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
@@ -97,6 +98,9 @@ class ReplayDetailsWindow : UIWindow
         _rmm.Update(0, false, false);
         if (_mgr.ActiveModule != null)
         {
+            if (ImGui.Checkbox("Draw all actors", ref _moduleDebug.DrawAllActors))
+                _mgr.ActiveModule.DebugOpts = _moduleDebug;
+
             var drawTimerPre = DateTime.Now;
             _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
@@ -527,6 +531,7 @@ class ReplayDetailsWindow : UIWindow
             _rmm = new(_rotationDB, _mgr, _hints);
         }
         _player.AdvanceTo(t, _mgr.Update);
+        _mgr.ActiveModule?.DebugOpts = _moduleDebug;
         _curTime = t;
         ResetPF();
     }
