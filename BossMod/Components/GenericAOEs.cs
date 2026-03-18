@@ -138,3 +138,14 @@ public class ChargeAOEs(BossModule module, Enum aid, float halfWidth) : GenericA
             Casters.RemoveAll(e => e.caster == caster);
     }
 }
+
+public class ProximityAOEs(BossModule module, Enum aid, float radius) : StandardAOEs(module, aid, new AOEShapeCircle(radius))
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (Casters is [{ CastInfo: var castInfo }, ..])
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(castInfo));
+    }
+}
