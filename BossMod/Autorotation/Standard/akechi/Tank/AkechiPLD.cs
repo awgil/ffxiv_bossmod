@@ -18,7 +18,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
+        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
 
         res.DefineTargeting();
         res.DefineHold();
@@ -167,35 +167,35 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     {
         var gauge = World.Client.GetGauge<PaladinGauge>();
         BladeComboStep = gauge.ConfiteorComboStep;
-        DivineMight.Left = StatusRemaining(Player, SID.DivineMight, 30);
+        DivineMight.Left = Status(SID.DivineMight, 30);
         DivineMight.IsActive = DivineMight.Left > 0f;
         FightOrFlight.CD = Cooldown(AID.FightOrFlight);
-        FightOrFlight.Left = StatusRemaining(Player, SID.FightOrFlight, 20);
+        FightOrFlight.Left = Status(SID.FightOrFlight, 20);
         FightOrFlight.IsActive = FightOrFlight.CD is >= 39.5f and <= 60;
         FightOrFlight.IsReady = ActionReady(AID.FightOrFlight);
-        GoringBlade.Left = StatusRemaining(Player, SID.GoringBladeReady, 30);
+        GoringBlade.Left = Status(SID.GoringBladeReady, 30);
         GoringBlade.IsActive = GoringBlade.Left > 0f;
         GoringBlade.IsReady = Unlocked(AID.GoringBlade) && GoringBlade.IsActive;
         Intervene.TotalCD = Cooldown(AID.Intervene);
         Intervene.Charges = Intervene.TotalCD <= 2f ? 2 : Intervene.TotalCD is <= 31f and > 2f ? 1 : 0;
         Intervene.IsReady = Unlocked(AID.Intervene) && Intervene.Charges > 0;
         Requiescat.CD = Cooldown(BestRequiescat);
-        Requiescat.Left = StatusRemaining(Player, SID.Requiescat, 30);
+        Requiescat.Left = Status(SID.Requiescat, 30);
         Requiescat.IsActive = Requiescat.Left > 0;
         Requiescat.IsReady = Unlocked(AID.Requiescat) && Requiescat.CD < 0.6f;
-        Atonement.Left = StatusRemaining(Player, SID.AtonementReady, 30);
+        Atonement.Left = Status(SID.AtonementReady, 30);
         Atonement.IsActive = Atonement.Left > 0;
         Atonement.IsReady = Unlocked(AID.Atonement) && Atonement.IsActive;
-        Supplication.Left = StatusRemaining(Player, SID.SupplicationReady, 30);
+        Supplication.Left = Status(SID.SupplicationReady, 30);
         Supplication.IsActive = Supplication.Left > 0;
         Supplication.IsReady = Unlocked(AID.Supplication) && Supplication.IsActive;
-        Sepulchre.Left = StatusRemaining(Player, SID.SepulchreReady, 30);
+        Sepulchre.Left = Status(SID.SepulchreReady, 30);
         Sepulchre.IsActive = Sepulchre.Left > 0;
         Sepulchre.IsReady = Unlocked(AID.Sepulchre) && Sepulchre.IsActive;
-        Confiteor.Left = StatusRemaining(Player, SID.ConfiteorReady, 30);
+        Confiteor.Left = Status(SID.ConfiteorReady, 30);
         Confiteor.IsActive = Confiteor.Left > 0;
         Confiteor.IsReady = Unlocked(AID.Confiteor) && Confiteor.IsActive && MP >= 1000;
-        BladeOfHonor.Left = StatusRemaining(Player, SID.BladeOfHonorReady, 30);
+        BladeOfHonor.Left = Status(SID.BladeOfHonorReady, 30);
         BladeOfHonor.IsActive = BladeOfHonor.Left > 0;
         BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && BladeOfHonor.IsActive;
         WantAOE = TargetsInAOECircle(5f, 3) || ForceAOE;

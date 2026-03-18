@@ -138,20 +138,18 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected float Cooldown(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
     protected bool ActionReady(AID aid) => Unlocked(aid) && Cooldown(aid) <= 0.5f;
     protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);
-    protected bool HasEffect<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
-    protected int StacksRemaining<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusDetails(target, sid, Player.InstanceID, duration).Stacks;
-    protected float StatusRemaining<SID>(Actor? target, SID sid, float duration = 1000f) where SID : Enum => StatusDetails(target, sid, Player.InstanceID, duration).Left;
-    protected bool StatusExpiringSoon<SID>(float numGCDs, params SID[] statuses) where SID : Enum
-    {
-        var timer = SkSGCDLength * numGCDs;
-        return statuses.Any(status => HasEffect(status) && StatusRemaining(Player, status) < timer);
-    }
+    protected int Stacks<SID>(SID sid, float duration = 1000f, Actor? on = null)
+        where SID : Enum => StatusDetails(on ?? Player, sid, Player.InstanceID, duration).Stacks;
+    protected float Status<SID>(SID sid, float duration = 1000f, Actor? on = null)
+        where SID : Enum => StatusDetails(on ?? Player, sid, Player.InstanceID, duration).Left;
+    protected bool HasStatus<SID>(SID sid) where SID : Enum => Player.FindStatus(sid) != null;
+    protected bool StatusExpiringSoon<SID>(float numGCDs, params SID[] statuses) where SID : Enum => statuses.Any(id => HasStatus(id) && Status(id) < SkSGCDLength * numGCDs + 0.6f);
     protected bool CanWeaveIn => GCD >= 0.6f;
     protected bool CanEarlyWeaveIn => GCD >= 1.26f;
     protected bool CanLateWeaveIn => GCD is <= 1.25f and >= 0.6f;
     protected bool CanQuarterWeaveIn => GCD is < 0.9f and >= 0.5f;
     protected unsafe float ActualComboTimer => Instance()->Combo.Timer;
-    protected unsafe bool ComboExpiringSoon(float NumGCDs)
+    protected bool ComboExpiringSoon(float NumGCDs)
     {
         var GCD = SkSGCDLength * NumGCDs;
         return ActualComboTimer != 0 && ActualComboTimer < GCD;
@@ -539,9 +537,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         CombatTimer = (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds;
         ComboTimer = (float)(object)World.Client.ComboState.Remaining;
         CountdownRemaining = World.Client.CountdownRemaining;
-        HasTrueNorth = StatusRemaining(Player, ClassShared.SID.TrueNorth, 15) > 0.1f;
+        HasTrueNorth = Status(ClassShared.SID.TrueNorth, 15) > 0.1f;
         CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
-        HasSwiftcast = StatusRemaining(Player, ClassShared.SID.Swiftcast, 10) > 0.1f;
+        HasSwiftcast = Status(ClassShared.SID.Swiftcast, 10) > 0.1f;
         CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
         if (Manager.Planner?.EstimateTimeToNextDowntime() is (var downtimeNow, var stateLeft))

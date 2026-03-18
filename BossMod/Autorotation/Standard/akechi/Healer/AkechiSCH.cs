@@ -71,8 +71,8 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         var CanAF = ActionReady(AID.Aetherflow) && aetherflow == 0;
         var (dotTargets, BioLeft) = GetDOTTarget(primaryTarget, BioRemaining, TargetsInAOECircle(5f, 4) ? 3 : 4);
         var BestDOTTarget = Unlocked(AID.Bio1) ? dotTargets : primaryTarget;
-        var dotLeft = StatusRemaining(dotTargets?.Actor, BestDOT);
-        var csLeft = StatusRemaining(mainTarget, SID.ChainStratagem);
+        var dotLeft = Status(BestDOT, on: dotTargets?.Actor);
+        var csLeft = Status(SID.ChainStratagem, on: mainTarget);
 
         var aoe = strategy.Option(Track.AOE);
         var aoeStrat = aoe.As<AOEStrategy>();
@@ -110,13 +110,13 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
                 QueueGCD(BestBio, bTarget, GCDPriority.Average);
         }
 
-        if (HasEffect(SID.ImpactImminent))
+        if (HasStatus(SID.ImpactImminent))
             QueueOGCD(AID.BanefulImpaction, aoeTarget, OGCDPriority.VeryHigh);
 
         var cs = strategy.Option(Track.ChainStratagem);
         var csStrat = cs.As<OGCDStrategy>();
         var csTarget = SingleTargetChoice(mainTarget, cs);
-        if (ShouldUseOGCD(csStrat, csTarget, ActionReady(AID.ChainStratagem), InCombat(csTarget) && CanWeaveIn && !HasEffect(SID.ChainStratagem)))
+        if (ShouldUseOGCD(csStrat, csTarget, ActionReady(AID.ChainStratagem), InCombat(csTarget) && CanWeaveIn && !HasStatus(SID.ChainStratagem)))
             QueueOGCD(AID.ChainStratagem, csTarget, OGCDPrio(csStrat, OGCDPriority.High + 1));
 
         var afStrat = strategy.Option(Track.Aetherflow).As<OGCDStrategy>();

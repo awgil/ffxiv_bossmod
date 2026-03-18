@@ -181,20 +181,20 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private bool CanParadox => Unlocked(AID.Paradox) && HasParadox && MP >= 1600;
     private bool CanLL => Unlocked(AID.LeyLines) &&
                           Cooldown(AID.LeyLines) <= 120 &&
-                          !HasEffect(SID.LeyLines);
+                          !HasStatus(SID.LeyLines);
     private bool CanAmplify => ActionReady(AID.Amplifier);
     private bool CanTC => Unlocked(AID.Triplecast) &&
                           Cooldown(AID.Triplecast) <= 60 &&
-                          !HasEffect(SID.Triplecast);
+                          !HasStatus(SID.Triplecast);
     private bool CanRetrace => ActionReady(AID.Retrace) &&
-                               HasEffect(SID.LeyLines) &&
-                               !HasEffect(SID.CircleOfPower);
+                               HasStatus(SID.LeyLines) &&
+                               !HasStatus(SID.CircleOfPower);
     private bool CanBTL => ActionReady(AID.BetweenTheLines) &&
-                           HasEffect(SID.LeyLines) &&
-                           !HasEffect(SID.CircleOfPower);
-    private bool HasThunderhead => HasEffect(SID.Thunderhead);
+                           HasStatus(SID.LeyLines) &&
+                           !HasStatus(SID.CircleOfPower);
+    private bool HasThunderhead => HasStatus(SID.Thunderhead);
     private bool HasFirestarter => Unlocked(TraitID.Firestarter) &&
-                                   HasEffect(SID.Firestarter);
+                                   HasStatus(SID.Firestarter);
 
     private AID BestThunderST => Unlocked(AID.HighThunder) ? AID.HighThunder : Unlocked(AID.Thunder3) ? AID.Thunder3 : AID.Thunder1;
     private AID BestThunderAOE => Unlocked(AID.HighThunder2) ? AID.HighThunder2 : Unlocked(AID.Thunder4) ? AID.Thunder4 : Unlocked(AID.Thunder2) ? AID.Thunder2 : AID.Thunder1;
@@ -204,7 +204,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private AID BestBlizzardAOE => Unlocked(AID.HighBlizzard2) ? AID.HighBlizzard2 : Unlocked(AID.Blizzard2) ? AID.Blizzard2 : AID.Blizzard1;
     private AID BestDespair => Unlocked(AID.Despair) ? AID.Despair : AID.Flare;
 
-    private bool HasInstants(StrategyValues strategy, Actor? target) => HasSwiftcast || HasEffect(SID.Triplecast) || (Unlocked(AID.Fire3) && HasFirestarter && ((InAF && AF < 3) || (MaxUI))) || WantParadox || WantThunder(strategy, target).Condition || WantPolyglot(strategy, target).Condition || (Unlocked(AID.Despair) && Unlocked(AID.FlareStar) && InAF && MP < 1600 && Souls == 0);
+    private bool HasInstants(StrategyValues strategy, Actor? target) => HasSwiftcast || HasStatus(SID.Triplecast) || (Unlocked(AID.Fire3) && HasFirestarter && ((InAF && AF < 3) || (MaxUI))) || WantParadox || WantThunder(strategy, target).Condition || WantPolyglot(strategy, target).Condition || (Unlocked(AID.Despair) && Unlocked(AID.FlareStar) && InAF && MP < 1600 && Souls == 0);
     private static SID[] ThunderStatus() => [SID.Thunder, SID.ThunderII, SID.ThunderIII, SID.ThunderIV, SID.HighThunder, SID.HighThunderII];
     private float ThunderRemaining(Actor? target) => target == null ? float.MaxValue : ThunderStatus().Select(status => StatusDetails(target, (uint)status, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
     private bool WantParadox => CanParadox && !WantAOE && ((InAF && !HasFirestarter) || (InUI && Hearts == MaxHearts) || (InAF && Souls == 0 && MP < 3200));
@@ -285,7 +285,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         if (InAF)
         {
             if (MaxAF && MP >= (Hearts > 0 ? 800 : 1600) && (!Unlocked(AID.FlareStar) || Souls != 6))
-                QueueGCD(Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1, target, StatusRemaining(Player, SID.Triplecast) is <= 4.5f and not 0 ? prio + 500 : prio + 2);
+                QueueGCD(Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1, target, Status(SID.Triplecast) is <= 4.5f and not 0 ? prio + 500 : prio + 2);
 
             //if we end up in a situation where we can't use FlareStar but we can end, we will use Flare to save rotation
             if (Unlocked(AID.FlareStar) && MP is < 2400 and > 800 && Souls is < 6 and >= 3)
@@ -294,10 +294,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             //if we so happen to not have AF3 on swap, then we instant-cast F3 for it
             if (Unlocked(AID.Fire3) && !MaxAF && MP >= 2000 && !HasFirestarter)
             {
-                if (target != null && CanSwiftcast && !HasEffect(SID.Triplecast) && sc != CommonStrategy.Delay)
+                if (target != null && CanSwiftcast && !HasStatus(SID.Triplecast) && sc != CommonStrategy.Delay)
                     QueueGCD(AID.Swiftcast, target, prio + 3);
 
-                if (target != null && CanTC && !HasEffect(SID.Swiftcast) && tc != CommonStrategy.Delay)
+                if (target != null && CanTC && !HasStatus(SID.Swiftcast) && tc != CommonStrategy.Delay)
                     QueueGCD(AID.Triplecast, target, prio + 2);
 
                 QueueGCD(AID.Fire3, target, prio + 1);
@@ -317,10 +317,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             //if we so happen to not have UI3 on swap, then we instant-cast B3 for it
             if (Unlocked(AID.Blizzard3) && UI != 3)
             {
-                if (target != null && CanSwiftcast && !HasEffect(SID.Triplecast) && sc != CommonStrategy.Delay)
+                if (target != null && CanSwiftcast && !HasStatus(SID.Triplecast) && sc != CommonStrategy.Delay)
                     QueueGCD(AID.Swiftcast, target, prio + 3);
 
-                if (target != null && CanTC && !HasEffect(SID.Swiftcast) && tc != CommonStrategy.Delay)
+                if (target != null && CanTC && !HasStatus(SID.Swiftcast) && tc != CommonStrategy.Delay)
                     QueueGCD(AID.Triplecast, target, prio + 2);
 
                 QueueGCD(AID.Blizzard3, target, prio + 1);
@@ -498,7 +498,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 var scStrat = sc.As<CommonStrategy>();
                 var (scCondition, scPrio) = scStrat switch
                 {
-                    CommonStrategy.Automatic => (InCombat(mainTarget) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast) && MP == 0 && Souls == 0, GCDPriority.ModeratelyLow + 3),
+                    CommonStrategy.Automatic => (InCombat(mainTarget) && !HasStatus(SID.Swiftcast) && !HasStatus(SID.Triplecast) && MP == 0 && Souls == 0, GCDPriority.ModeratelyLow + 3),
                     CommonStrategy.Force => (true, GCDPriority.Forced + 1500),
                     CommonStrategy.ForceWeave => (CanWeaveIn, GCDPriority.Forced),
                     _ => (false, GCDPriority.None)
@@ -510,7 +510,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
                 var tcStrat = tc.As<CommonStrategy>();
                 var (tcCondition, tcPrio) = tcStrat switch
                 {
-                    CommonStrategy.Automatic => (InCombat(mainTarget) && !HasEffect(SID.Swiftcast) && !HasEffect(SID.Triplecast) && InAF && MP is <= 1600, GCDPriority.ModeratelyLow + 2),
+                    CommonStrategy.Automatic => (InCombat(mainTarget) && !HasStatus(SID.Swiftcast) && !HasStatus(SID.Triplecast) && InAF && MP is <= 1600, GCDPriority.ModeratelyLow + 2),
                     CommonStrategy.Force => (true, GCDPriority.Forced + 1500),
                     CommonStrategy.ForceWeave => (CanWeaveIn, GCDPriority.Forced),
                     _ => (false, GCDPriority.None)
@@ -520,7 +520,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
                 if (ActionReady(AID.Transpose) &&
                     ((MaxUI && Unlocked(AID.Paradox) && HasFirestarter && !HasParadox) ||
-                    (MaxAF && (HasEffect(SID.Triplecast) || HasEffect(SID.Swiftcast)) &&
+                    (MaxAF && (HasStatus(SID.Triplecast) || HasStatus(SID.Swiftcast)) &&
                     (Unlocked(AID.Flare) ? (LastActionUsed(AID.Flare) || LastActionUsed(AID.Despair) || (MP == 0 && Souls == 0)) : (LastActionUsed(AID.Fire1) && MP < 1600)))))
                     QueueGCD(AID.Transpose, Player, GCDPriority.High);
             }
@@ -553,10 +553,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
                 if (m is MovementStrategy.Allow or MovementStrategy.AllowNoScathe or MovementStrategy.OnlyOGCDs)
                 {
-                    if (CanSwiftcast && !HasEffect(SID.Triplecast))
+                    if (CanSwiftcast && !HasStatus(SID.Triplecast))
                         QueueOGCD(AID.Swiftcast, Player, OGCDPriority.Severe + 1);
 
-                    if (CanTC && !HasEffect(SID.Swiftcast))
+                    if (CanTC && !HasStatus(SID.Swiftcast))
                         QueueOGCD(AID.Triplecast, Player, OGCDPriority.Severe);
                 }
 
@@ -638,7 +638,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             if (eCondition)
                 QueueGCD(eAction, eTarget, ePrio);
 
-            var aoePrio = StatusRemaining(Player, SID.Triplecast) is < 5f and > 2.5f ? GCDPriority.Average : StatusRemaining(Player, SID.Triplecast) is < 2.5f and > 0f ? GCDPriority.High + 1 : GCDPriority.Low;
+            var aoePrio = Status(SID.Triplecast) is < 5f and > 2.5f ? GCDPriority.Average : Status(SID.Triplecast) is < 2.5f and > 0f ? GCDPriority.High + 1 : GCDPriority.Low;
             var aoeTarget = AOETargetChoice(mainTarget, BestSplashTarget?.Actor, aoe, strategy);
             if (aoeStrat is AOEStrategy.Automatic)
             {

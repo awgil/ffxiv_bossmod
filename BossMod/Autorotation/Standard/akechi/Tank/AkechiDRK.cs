@@ -128,7 +128,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         Darkside.Timer = gauge.DarksideTimer / 1000f;
         Darkside.IsActive = Darkside.Timer > 0.1f;
         Darkside.NeedsRefresh = Darkside.Timer <= 3;
-        SaltedEarth.Left = StatusRemaining(Player, SID.SaltedEarth, 15);
+        SaltedEarth.Left = Status(SID.SaltedEarth, 15);
         SaltedEarth.CD = Cooldown(AID.SaltedEarth);
         SaltedEarth.IsActive = SaltedEarth.Left > 0.1f;
         SaltedEarth.IsReady = Unlocked(AID.SaltedEarth) && SaltedEarth.CD < 0.6f;
@@ -136,12 +136,12 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         AbyssalDrain.IsReady = Unlocked(AID.AbyssalDrain) && AbyssalDrain.CD < 0.6f;
         CarveAndSpit.CD = Cooldown(AID.CarveAndSpit);
         CarveAndSpit.IsReady = Unlocked(AID.CarveAndSpit) && CarveAndSpit.CD < 0.6f;
-        Disesteem.Left = StatusRemaining(Player, SID.Scorn, 30);
+        Disesteem.Left = Status(SID.Scorn, 30);
         Disesteem.IsActive = Disesteem.Left > 0.1f;
         Disesteem.IsReady = Unlocked(AID.Disesteem) && Disesteem.Left > 0.1f;
         Delirium.Step = gauge.DeliriumStep;
-        Delirium.Left = StatusRemaining(Player, BestBloodWeapon, 15);
-        Delirium.Stacks = StacksRemaining(Player, BestBloodWeapon, 15);
+        Delirium.Left = Status(BestBloodWeapon, 15);
+        Delirium.Stacks = Stacks(BestBloodWeapon, 15);
         Delirium.CD = Cooldown(BestDelirium);
         Delirium.IsActive = Delirium.Left > 0.1f;
         Delirium.IsReady = Unlocked(BestDelirium) && Delirium.CD < 0.6f;
@@ -273,7 +273,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         var de = strategy.Option(Track.Disesteem);
         var deStrat = de.As<GCDStrategy>();
         var deTarget = AOETargetChoice(mainTarget, Unlocked(AID.Disesteem) && NumAOERectTargets > 1 ? BestAOERectTargets?.Actor : mainTarget, de, strategy);
-        if (ShouldUseGCD(deStrat, deTarget, Disesteem.IsReady, InCombat(deTarget) && In10y(deTarget) && Darkside.IsActive && Disesteem.IsReady && (RaidBuffsLeft > 0 || (LivingShadow.CD > 80 && Delirium.CD > 30 && !Delirium.IsActive) || StatusRemaining(Player, SID.Scorn) < 10f)))
+        if (ShouldUseGCD(deStrat, deTarget, Disesteem.IsReady, InCombat(deTarget) && In10y(deTarget) && Darkside.IsActive && Disesteem.IsReady && (RaidBuffsLeft > 0 || (LivingShadow.CD > 80 && Delirium.CD > 30 && !Delirium.IsActive) || Status(SID.Scorn) < 10f)))
             QueueGCD(AID.Disesteem, deTarget, deStrat is GCDStrategy.Force ? GCDPriority.Forced : CombatTimer < 30 ? GCDPriority.VeryHigh : GCDPriority.AboveAverage);
 
         var mp = strategy.Option(Track.MP);

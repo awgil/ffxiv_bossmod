@@ -102,7 +102,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     {
         if (ActionReady(action) && track.As<CommonStrategy>() switch
         {
-            CommonStrategy.Buff => HasEffect(SID.NoMercy),
+            CommonStrategy.Buff => HasStatus(SID.NoMercy),
             CommonStrategy.ASAP => true,
             _ => false
         })
@@ -113,7 +113,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
     {
         var gauge = World.Client.GetGauge<GunbreakerGauge>();
         var GunStep = gauge.AmmoComboStep;
-        var hasNM = HasEffect(SID.NoMercyPvP);
+        var hasNM = HasStatus(SID.NoMercyPvP);
         var targetsOk = Hints.NumPriorityTargetsInAOECircle(Player.Position, 6) > 0;
         var mainTarget = primaryTarget?.Actor;
         var rangeOk = Player.DistanceToHitbox(mainTarget) <= 5.99f;
@@ -144,9 +144,9 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
 
         var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
         {
-            RoleActionStrategy.Rampage => (HasEffect(SID.RampageEquippedPvP) && ActionReady(AID.RampagePvP) && Hints.PriorityTargets.Any(h => h.Actor.IsDeadOrDestroyed && !h.Actor.IsFriendlyNPC && !h.Actor.IsAlly && h.Actor.DistanceToHitbox(Player) <= 10) && In10y(mainTarget), AID.RampagePvP, Player),
-            RoleActionStrategy.Rampart => (HasEffect(SID.RampartEquippedPvP) && ActionReady(AID.RampartPvP) && ((PlayerHPP is < 100 and not 0 && EnemiesTargetingSelf(2)) || PlayerHPP is < 50 and not 0), AID.RampartPvP, Player),
-            RoleActionStrategy.FullSwing => (HasEffect(SID.FullSwingEquippedPvP) && ActionReady(AID.FullSwingPvP) && In5y(mainTarget), AID.FullSwingPvP, mainTarget),
+            RoleActionStrategy.Rampage => (HasStatus(SID.RampageEquippedPvP) && ActionReady(AID.RampagePvP) && Hints.PriorityTargets.Any(h => h.Actor.IsDeadOrDestroyed && !h.Actor.IsFriendlyNPC && !h.Actor.IsAlly && h.Actor.DistanceToHitbox(Player) <= 10) && In10y(mainTarget), AID.RampagePvP, Player),
+            RoleActionStrategy.Rampart => (HasStatus(SID.RampartEquippedPvP) && ActionReady(AID.RampartPvP) && ((PlayerHPP is < 100 and not 0 && EnemiesTargetingSelf(2)) || PlayerHPP is < 50 and not 0), AID.RampartPvP, Player),
+            RoleActionStrategy.FullSwing => (HasStatus(SID.FullSwingEquippedPvP) && ActionReady(AID.FullSwingPvP) && In5y(mainTarget), AID.FullSwingPvP, mainTarget),
             _ => (false, AID.None, null)
         };
         if (roleCondition)
@@ -155,13 +155,14 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         if (World.Party.LimitBreakLevel >= 1 && rangeOk && targetsOk && strategy.Option(Track.LimitBreak).As<LBStrategy>() == LBStrategy.Allow)
             QueueGCD(AID.RelentlessRushPvP, Player, GCDPriority.VeryHigh + 1);
 
-        if (HasEffect(SID.RelentlessRushPvP) && rangeOk && targetsOk && strategy.Option(Track.TerminalTrigger).As<TriggerStrategy>() switch
+        var stacks = Stacks(SID.RelentlessShrapnelPvP, on: mainTarget);
+        if (HasStatus(SID.RelentlessRushPvP) && rangeOk && targetsOk && strategy.Option(Track.TerminalTrigger).As<TriggerStrategy>() switch
         {
-            TriggerStrategy.Five => StacksRemaining(mainTarget, SID.RelentlessShrapnelPvP) >= 5,
-            TriggerStrategy.Four => StacksRemaining(mainTarget, SID.RelentlessShrapnelPvP) >= 4,
-            TriggerStrategy.Three => StacksRemaining(mainTarget, SID.RelentlessShrapnelPvP) >= 3,
-            TriggerStrategy.Two => StacksRemaining(mainTarget, SID.RelentlessShrapnelPvP) >= 2,
-            TriggerStrategy.One => StacksRemaining(mainTarget, SID.RelentlessShrapnelPvP) >= 1,
+            TriggerStrategy.Five => stacks >= 5,
+            TriggerStrategy.Four => stacks >= 4,
+            TriggerStrategy.Three => stacks >= 3,
+            TriggerStrategy.Two => stacks >= 2,
+            TriggerStrategy.One => stacks >= 1,
             _ => false
         })
             QueueGCD(AID.TerminalTriggerPvP, Player, GCDPriority.VeryHigh);
@@ -215,7 +216,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
                 (SID.ReadyToGougePvP, AID.EyeGougePvP),
             })
             {
-                if (HasEffect(status))
+                if (HasStatus(status))
                     QueueOGCD(action, mainTarget, ContinuationPrio);
             }
         }

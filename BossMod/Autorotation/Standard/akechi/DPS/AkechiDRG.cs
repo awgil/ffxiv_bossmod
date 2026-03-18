@@ -180,7 +180,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestDOTTargets;
 
     private DragoonGauge Gauge => World.Client.GetGauge<DragoonGauge>();
-    private float PowerLeft => StatusRemaining(Player, SID.PowerSurge, 30);
+    private float PowerLeft => Status(SID.PowerSurge, 30);
     private bool NeedPower => PowerLeft <= SkSGCDLength * 2;
     private bool HasPower => PowerLeft > GCD;
     private bool HasLOTD => Gauge.LotdTimer > GCD;
@@ -198,7 +198,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         TargetsInAOECircle(3f, 2);
 
     private AID BestJump => Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump;
-    private AID BestTrue => (Unlocked(AID.RaidenThrust) && HasEffect(SID.DraconianFire)) ? AID.RaidenThrust : AID.TrueThrust;
+    private AID BestTrue => (Unlocked(AID.RaidenThrust) && HasStatus(SID.DraconianFire)) ? AID.RaidenThrust : AID.TrueThrust;
     private AID BestDisembowel => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : Unlocked(AID.Disembowel) ? AID.Disembowel : AID.TrueThrust;
     private AID BestChaos => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust;
     private AID BestWheeling => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust;
@@ -251,7 +251,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
     {
         AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
         AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : NeedPower ? LowLevelAOE : AID.DoomSpike,
-        _ => !Unlocked(AID.SonicThrust) ? LowLevelAOE : HasEffect(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike,
+        _ => !Unlocked(AID.SonicThrust) ? LowLevelAOE : HasStatus(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike,
     };
 
     private AID FullSTFinishBoth => FullST(false, false, true);
@@ -411,7 +411,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var enhanced = Unlocked(TraitID.EnhancedLifeSurge);
         var ready = enhanced ? Cooldown(AID.LifeSurge) < 40.6f : ReadyIn(AID.LifeSurge) < 0.6f;
 
-        if (!Unlocked(AID.LifeSurge) || HasEffect(SID.LifeSurge) || !ready)
+        if (!Unlocked(AID.LifeSurge) || HasStatus(SID.LifeSurge) || !ready)
             return (false, OGCDPriority.None);
 
         var actionClose =
@@ -430,7 +430,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             : (((HasLC && HasLOTD || !enhanced) && actionClose) ||
                (HasLC && HasLOTD && HasBL &&
                 (actionClose ||
-                 ((StatusRemaining(Player, SID.BattleLitany) is <= 5f and not 0 ||
+                 ((Status(SID.BattleLitany) is <= 5f and not 0 ||
                    Cooldown(AID.LifeSurge) < 0.6f)
                   && ComboLastMove is not AID.Drakesbane && !NeedPower)))));
 
@@ -633,7 +633,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                         TrueNorthStrategy.ASAP => (condition, OGCDPriority.ToGCDPriority),
                         TrueNorthStrategy.Flank => (condition && CanLateWeaveIn && needFlank, OGCDPriority.Average + 5),
                         TrueNorthStrategy.Rear => (condition && CanLateWeaveIn && needRear, OGCDPriority.Average + 5),
-                        TrueNorthStrategy.Force => (!HasEffect(SID.TrueNorth), OGCDPriority.ToGCDPriority),
+                        TrueNorthStrategy.Force => (!HasStatus(SID.TrueNorth), OGCDPriority.ToGCDPriority),
                         _ => (false, OGCDPriority.None)
                     };
                     if (tnCondition)
@@ -649,7 +649,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     (
                         scStrat,
                         scTarget,
-                        Unlocked(AID.Starcross) && HasEffect(SID.StarcrossReady),
+                        Unlocked(AID.Starcross) && HasStatus(SID.StarcrossReady),
                         InCombat(scTarget) && In20y(scTarget) && CanWeaveIn
                     );
                 if (scCondition)
@@ -664,7 +664,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     (
                         nastStrat,
                         nastTarget,
-                        Unlocked(AID.Nastrond) && HasEffect(SID.NastrondReady),
+                        Unlocked(AID.Nastrond) && HasStatus(SID.NastrondReady),
                         ShouldSpear(nastTarget) && CanWeaveIn
                     );
                 if (nastCondition)
@@ -679,7 +679,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                     (
                         rotdStrat,
                         rotdTarget,
-                        Unlocked(AID.RiseOfTheDragon) && HasEffect(SID.DragonsFlight),
+                        Unlocked(AID.RiseOfTheDragon) && HasStatus(SID.DragonsFlight),
                         InCombat(rotdTarget) && In20y(rotdTarget) && CanWeaveIn
                     );
                 if (rotdCondition)
@@ -689,8 +689,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 var md = strategy.Option(Track.MirageDive);
                 var mdStrat = md.As<FlexStrategy>();
                 var mdTarget = SingleTargetChoice(mainTarget, md);
-                var mdStatus = StatusRemaining(Player, SID.DiveReady);
-                var mdMinimum = InCombat(mdTarget) && In20y(mdTarget) && HasEffect(SID.DiveReady);
+                var mdStatus = Status(SID.DiveReady);
+                var mdMinimum = InCombat(mdTarget) && In20y(mdTarget) && HasStatus(SID.DiveReady);
                 var (mdCondition, mdPrio) = mdStrat switch
                 {
                     FlexStrategy.ASAP => (mdMinimum && CanWeaveIn, OGCDPriority.Average + 1),
@@ -738,8 +738,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 var (wtCondition, wtPrio) = wtStrat switch
                 {
                     FlexStrategy.ASAP => (wtMinimum && CanWeaveIn, OGCDPriority.Average + 2),
-                    FlexStrategy.Late => (wtMinimum && HasEffect(SID.DraconianFire), ChangePriority(402, 603, In15y(wtTarget))),
-                    FlexStrategy.LateOrBuffed => (wtMinimum && (HasEffect(SID.DraconianFire) || bursting), HasEffect(SID.DraconianFire) ? ChangePriority(402, 603, In15y(wtTarget)) : ChangePriority(402, 603, In15y(wtTarget), false)),
+                    FlexStrategy.Late => (wtMinimum && HasStatus(SID.DraconianFire), ChangePriority(402, 603, In15y(wtTarget))),
+                    FlexStrategy.LateOrBuffed => (wtMinimum && (HasStatus(SID.DraconianFire) || bursting), HasStatus(SID.DraconianFire) ? ChangePriority(402, 603, In15y(wtTarget)) : ChangePriority(402, 603, In15y(wtTarget), false)),
                     _ => (false, OGCDPriority.None)
                 };
                 if (wtCondition)
@@ -753,14 +753,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             var pt = strategy.Option(Track.PiercingTalon);
             var ptStrat = pt.As<PiercingTalonStrategy>();
             var ptTarget = SingleTargetChoice(mainTarget, pt);
-            var prio = StatusRemaining(Player, SID.EnhancedPiercingTalon) is <= 3f and not 0f ? GCDPriority.Low + 1 : GCDPriority.Low;
+            var prio = Status(SID.EnhancedPiercingTalon) is <= 3f and not 0f ? GCDPriority.Low + 1 : GCDPriority.Low;
             var (ptCondition, ptPrio) = ptStrat switch
             {
-                PiercingTalonStrategy.AllowEX => (InCombat(ptTarget) && HasEffect(SID.EnhancedPiercingTalon), GCDPriority.Low),
+                PiercingTalonStrategy.AllowEX => (InCombat(ptTarget) && HasStatus(SID.EnhancedPiercingTalon), GCDPriority.Low),
                 PiercingTalonStrategy.Allow => (InCombat(ptTarget) && !In3y(ptTarget), GCDPriority.Low),
-                PiercingTalonStrategy.Allow5 => (InCombat(ptTarget) && (HasEffect(SID.EnhancedPiercingTalon) ? !In3y(ptTarget) : !In5y(ptTarget)), GCDPriority.Low),
-                PiercingTalonStrategy.Allow10 => (InCombat(ptTarget) && (HasEffect(SID.EnhancedPiercingTalon) ? !In3y(ptTarget) : !In10y(ptTarget)), GCDPriority.Low),
-                PiercingTalonStrategy.ForceEX => (HasEffect(SID.EnhancedPiercingTalon), GCDPriority.Low + 1),
+                PiercingTalonStrategy.Allow5 => (InCombat(ptTarget) && (HasStatus(SID.EnhancedPiercingTalon) ? !In3y(ptTarget) : !In5y(ptTarget)), GCDPriority.Low),
+                PiercingTalonStrategy.Allow10 => (InCombat(ptTarget) && (HasStatus(SID.EnhancedPiercingTalon) ? !In3y(ptTarget) : !In10y(ptTarget)), GCDPriority.Low),
+                PiercingTalonStrategy.ForceEX => (HasStatus(SID.EnhancedPiercingTalon), GCDPriority.Low + 1),
                 PiercingTalonStrategy.Force => (true, GCDPriority.Low + 1),
                 _ => (false, GCDPriority.None)
             };

@@ -125,12 +125,12 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestFlamethrowerTarget;
     private bool ForceAOE;
 
-    public float RAleft => StatusRemaining(Player, SID.Reassembled);
-    public float HCleft => StatusRemaining(Player, SID.Hypercharged);
-    public float WFleft => StatusRemaining(Player, SID.WildfirePlayer);
-    public float EVleft => StatusRemaining(Player, SID.ExcavatorReady);
-    public float FMFleft => StatusRemaining(Player, SID.FullMetalMachinist);
-    public float FTleft => StatusRemaining(Player, SID.Flamethrower);
+    public float RAleft => Status(SID.Reassembled);
+    public float HCleft => Status(SID.Hypercharged);
+    public float WFleft => Status(SID.WildfirePlayer);
+    public float EVleft => Status(SID.ExcavatorReady);
+    public float FMFleft => Status(SID.FullMetalMachinist);
+    public float FTleft => Status(SID.Flamethrower);
     public float BScd => Cooldown(AID.BarrelStabilizer);
     public float Drillcd => Cooldown(AID.Drill);
     public float AAcd => Unlocked(AID.AirAnchor) ? Cooldown(AID.AirAnchor) : Cooldown(AID.HotShot);
@@ -202,7 +202,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         {
             WildfireStrategy.Automatic => (condition, ChangePriority(-200, 999)),
             WildfireStrategy.AlignWithBurst => (BScd > 90 && condition, ChangePriority(-200, 999)),
-            WildfireStrategy.End => (HasEffect(SID.WildfirePlayer), OGCDPriority.Max),
+            WildfireStrategy.End => (HasStatus(SID.WildfirePlayer), OGCDPriority.Max),
             WildfireStrategy.Force => (CanWF, OGCDPriority.Forced),
             WildfireStrategy.ForceWeave => (CanWF && CanWeaveIn, OGCDPriority.Forced),
             WildfireStrategy.Delay or _ => (false, OGCDPriority.None),
