@@ -8,14 +8,14 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 {
     public enum Track { AOE = SharedTrack.Count, Dives, ElusiveJump, LanceCharge, BattleLitany, LifeSurge, MirageDive, WyrmwindThrust, PiercingTalon, TrueNorth, DragonfireDive, Geirskogul, Stardiver, Jump, Nastrond, RiseOfTheDragon, Starcross }
     public enum AOEStrategy { AutoFinish, ForceSTFinish, ForceSTFinishPS, ForceSTFinishCS, ForceNormalFinish, ForceBuffsFinish, ForceAOEFinish, AutoBreak, ForceSTBreak, ForceSTBreakPS, ForceSTBreakCS, ForceNormalBreak, ForceBuffsBreak, ForceAOEBreak }
-    public enum DivesStrategy { Allow3, Allow5, Allow1, Allow, Allow3NotMoving, Allow5NotMoving, Allow1NotMoving, AllowNotMoving, Forbid }
+    public enum DivesStrategy { InMelee, InMeleeNotMoving, InAny, InAnyNotMoving, Forbid }
     public enum ElusiveDirection { None, CharacterForward, CharacterBackward, CameraForward, CameraBackward }
-    public enum BuffsStrategy { Automatic, Together, RaidBuffsOnly, Force, ForceWeave, Delay }
+    public enum BuffsStrategy { Automatic, Together, Force, ForceWeave, Delay }
     public enum SurgeStrategy { Automatic, WhenBuffed, Force, ForceWeave, ForceNextOpti, ForceNextOptiWeave, Delay }
     public enum FlexStrategy { ASAP, Late, LateOrBuffed, Delay }
     public enum PiercingTalonStrategy { AllowEX, Allow, Allow5, Allow10, Force, ForceEX, Forbid }
     public enum TrueNorthStrategy { Automatic, Send, ASAP, Rear, Flank, Force, Delay }
-    public enum CommonStrategy { Automatic, HasLC, HasBL, HasAll, Force, ForceEX, ForceWeave, ForceWeaveEX, Delay }
+    public enum CommonStrategy { Automatic, HasLC, HasBL, HasAll, Force, ForceWeave, Delay }
 
     public static RotationModuleDefinition Definition()
     {
@@ -47,16 +47,12 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 AID.WheelingThrust, AID.FangAndClaw, //4
                 AID.Drakesbane); //5
 
-        res.Define(Track.Dives).As<DivesStrategy>("Dives", "Allow/Forbid Dive Actions", 199)
-            .AddOption(DivesStrategy.Allow3, "Allow use of Stardiver & Dragonfire Dive only within 3 yalms of target")
-            .AddOption(DivesStrategy.Allow5, "Allow use of Stardiver & Dragonfire Dive only within 5 yalms yalms of target")
-            .AddOption(DivesStrategy.Allow1, "Allow use of Stardiver & Dragonfire Dive only within 1 yalm of target")
-            .AddOption(DivesStrategy.Allow, "Allow use of Stardiver & Dragonfire Dive at any range")
-            .AddOption(DivesStrategy.Allow3NotMoving, "Allow use of Stardiver & Dragonfire Dive only within 3 yalms of target and not moving")
-            .AddOption(DivesStrategy.Allow5NotMoving, "Allow use of Stardiver & Dragonfire Dive only within 5 yalms of target and not moving")
-            .AddOption(DivesStrategy.Allow1NotMoving, "Allow use of Stardiver & Dragonfire Dive only within 1 yalm of target and not moving")
-            .AddOption(DivesStrategy.AllowNotMoving, "Allow use of Stardiver & Dragonfire Dive at any range only when not moving")
-            .AddOption(DivesStrategy.Forbid, "Forbid use of Stardiver & Dragonfire Dive")
+        res.Define(Track.Dives).As<DivesStrategy>("Dives", "Dive Action Range", 199)
+            .AddOption(DivesStrategy.InMelee, "Allow Stardiver & Dragonfire Dive when in melee range of target")
+            .AddOption(DivesStrategy.InMeleeNotMoving, "Allow Stardiver & Dragonfire Dive when in melee range of target and not moving")
+            .AddOption(DivesStrategy.InAny, "Allow Stardiver & Dragonfire Dive at any range of target")
+            .AddOption(DivesStrategy.InAnyNotMoving, "Allow Stardiver & Dragonfire Dive at any range of target but only when not moving")
+            .AddOption(DivesStrategy.Forbid, "Forbid Stardiver & Dragonfire Dive")
             .AddAssociatedActions(AID.DragonfireDive, AID.Stardiver);
 
         res.Define(Track.ElusiveJump).As<ElusiveDirection>("E.Jump", "Elusive Jump", -1)
@@ -68,112 +64,102 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.ElusiveJump);
 
         res.Define(Track.LanceCharge).As<BuffsStrategy>("L.Charge", "Lance Charge", 198)
-            .AddOption(BuffsStrategy.Automatic, "Use Lance Charge optimally")
-            .AddOption(BuffsStrategy.Together, "Use Lance Charge only with Battle Litany; will delay in attempt to align itself with Battle Litany (up to 30s)", 60, 20, ActionTargets.Self, 30)
-            .AddOption(BuffsStrategy.RaidBuffsOnly, "Use Lance Charge only when in alignment with other raid buffs or when raid buffs are active", 60, 20, ActionTargets.Self, 30)
-            .AddOption(BuffsStrategy.Force, "Force use of Lance Charge ASAP", 60, 20, ActionTargets.Self, 30)
-            .AddOption(BuffsStrategy.ForceWeave, "Force use of Lance Charge inside the next possible weave window", 60, 20, ActionTargets.Self, 30)
-            .AddOption(BuffsStrategy.Delay, "Delay use of Lance Charge", 0, 0, ActionTargets.None, 30)
+            .AddOption(BuffsStrategy.Automatic, "Automatically use Lance Charge")
+            .AddOption(BuffsStrategy.Together, "Automatically use Lance Charge with Battle Litany - will delay to align itself (up to 30s)", 60, 20, ActionTargets.Self, 30)
+            .AddOption(BuffsStrategy.Force, "Force Lance Charge ASAP", 60, 20, ActionTargets.Self, 30)
+            .AddOption(BuffsStrategy.ForceWeave, "Force Lance Charge in next possible weave slot", 60, 20, ActionTargets.Self, 30)
+            .AddOption(BuffsStrategy.Delay, "Delay Lance Charge", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.LanceCharge);
 
         res.Define(Track.BattleLitany).As<BuffsStrategy>("B.Litany", "Battle Litany", 198)
-            .AddOption(BuffsStrategy.Automatic, "Use Battle Litany optimally")
-            .AddOption(BuffsStrategy.Together, "Use Battle Litany only with Lance Charge; will delay in attempt to align itself with Lance Charge")
-            .AddOption(BuffsStrategy.RaidBuffsOnly, "Use Battle Litany only when in alignment with other raid buffs or when other raid buffs are active", 60, 20, ActionTargets.Self, 52)
-            .AddOption(BuffsStrategy.Force, "Force use of Battle Litany ASAP", 120, 20, ActionTargets.Self, 52)
-            .AddOption(BuffsStrategy.ForceWeave, "Force use of Battle Litany inside the next possible weave window", 120, 20, ActionTargets.Self, 52)
-            .AddOption(BuffsStrategy.Delay, "Delay use of Battle Litany", 0, 0, ActionTargets.None, 52)
+            .AddOption(BuffsStrategy.Automatic, "Automatically use Battle Litany")
+            .AddOption(BuffsStrategy.Together, "Automatically use Battle Litany with Lance Charge - will delay in attempt to align itself with Lance Charge")
+            .AddOption(BuffsStrategy.Force, "Force Battle Litany ASAP", 120, 20, ActionTargets.Self, 52)
+            .AddOption(BuffsStrategy.ForceWeave, "Force Battle Litany in next possible weave slot", 120, 20, ActionTargets.Self, 52)
+            .AddOption(BuffsStrategy.Delay, "Delay Battle Litany", 0, 0, ActionTargets.None, 52)
             .AddAssociatedActions(AID.BattleLitany);
 
         res.Define(Track.LifeSurge).As<SurgeStrategy>("L.Surge", "Life Surge", 197)
-            .AddOption(SurgeStrategy.Automatic, "Use Life Surge optimally")
-            .AddOption(SurgeStrategy.WhenBuffed, "Use Life Surge optimally - will send before next GCD if applicable", 0, 0, ActionTargets.Self, 6)
-            .AddOption(SurgeStrategy.Force, "Force use of Life Surge ASAP", 40, 5, ActionTargets.Self, 6)
-            .AddOption(SurgeStrategy.ForceWeave, "Force use of Life Surge inside the next possible weave window", 40, 5, ActionTargets.Self, 6)
-            .AddOption(SurgeStrategy.ForceNextOpti, "Force use of Life Surge in next possible optimal window", 40, 5, ActionTargets.Self, 6)
-            .AddOption(SurgeStrategy.ForceNextOptiWeave, "Force use of Life Surge optimally inside the next possible weave window", 40, 5, ActionTargets.Self, 6)
-            .AddOption(SurgeStrategy.Delay, "Delay use of Life Surge", 0, 0, ActionTargets.None, 6)
+            .AddOption(SurgeStrategy.Automatic, "Automatically use Life Surge")
+            .AddOption(SurgeStrategy.WhenBuffed, "Automatically use Life Surge - will clip GCD if needed")
+            .AddOption(SurgeStrategy.Force, "Force Life Surge ASAP", 40, 5, ActionTargets.Self, 6)
+            .AddOption(SurgeStrategy.ForceWeave, "Force Life Surge in next possible weave slot", 40, 5, ActionTargets.Self, 6)
+            .AddOption(SurgeStrategy.ForceNextOpti, "Force Life Surge in next possible optimal window", 40, 5, ActionTargets.Self, 6)
+            .AddOption(SurgeStrategy.ForceNextOptiWeave, "Force Life Surge optimally in next possible weave slot", 40, 5, ActionTargets.Self, 6)
+            .AddOption(SurgeStrategy.Delay, "Delay Life Surge", 0, 0, ActionTargets.None, 6)
             .AddAssociatedActions(AID.LifeSurge);
 
         res.Define(Track.MirageDive).As<FlexStrategy>("M.Dive", "Mirage Dive", 192)
-            .AddOption(FlexStrategy.ASAP, "Use Mirage Dive ASAP when under Dive Ready buff", 0, 0, ActionTargets.Hostile, 68)
-            .AddOption(FlexStrategy.Late, "Use Mirage Dive when Dive Ready buff is about to end", 0, 0, ActionTargets.Hostile, 68)
-            .AddOption(FlexStrategy.LateOrBuffed, "Use Mirage Dive when Dive Ready buff is about to end or when under any buffs", 0, 0, ActionTargets.Hostile, 68)
-            .AddOption(FlexStrategy.Delay, "Delay use of Mirage Dive", 0, 0, ActionTargets.None, 68)
+            .AddOption(FlexStrategy.ASAP, "Automatically use Mirage Dive when under Dive Ready buff", 0, 0, ActionTargets.Hostile, 68)
+            .AddOption(FlexStrategy.Late, "Automatically use Mirage Dive as late as possible - will clip GCD if needed to avoid waste", 0, 0, ActionTargets.Hostile, 68)
+            .AddOption(FlexStrategy.LateOrBuffed, "Automatically use Mirage Dive as late as possible or when under any buffs - will clip GCD if needed to avoid waste", 0, 0, ActionTargets.Hostile, 68)
+            .AddOption(FlexStrategy.Delay, "Delay Mirage Dive", 0, 0, ActionTargets.None, 68)
             .AddAssociatedActions(AID.MirageDive);
 
         res.Define(Track.WyrmwindThrust).As<FlexStrategy>("W.Thrust", "Wyrmwind Thrust", 192)
-            .AddOption(FlexStrategy.ASAP, "Use Wyrmwind Thrust ASAP when Firstminds' Focus is full", 0, 0, ActionTargets.Hostile, 90)
-            .AddOption(FlexStrategy.Late, "Use Wyrmwind Thrust as late as possible", 0, 0, ActionTargets.Hostile, 90)
-            .AddOption(FlexStrategy.LateOrBuffed, "Use Wyrmwind Thrust as late as possible or when under any buffs", 0, 0, ActionTargets.Hostile, 90)
-            .AddOption(FlexStrategy.Delay, "Delay use of Wyrmwind Thrust", 0, 0, ActionTargets.None, 90)
+            .AddOption(FlexStrategy.ASAP, "Automatically use Wyrmwind Thrust ASAP", 0, 0, ActionTargets.Hostile, 90)
+            .AddOption(FlexStrategy.Late, "Automatically use Wyrmwind Thrust as late as possible - will clip GCD if needed to avoid waste", 0, 0, ActionTargets.Hostile, 90)
+            .AddOption(FlexStrategy.LateOrBuffed, "Automatically use Wyrmwind Thrust as late as possible or when under any buffs - will clip GCD if needed to avoid waste", 0, 0, ActionTargets.Hostile, 90)
+            .AddOption(FlexStrategy.Delay, "Delay Wyrmwind Thrust", 0, 0, ActionTargets.None, 90)
             .AddAssociatedActions(AID.WyrmwindThrust);
 
         res.Define(Track.PiercingTalon).As<PiercingTalonStrategy>("P.Talon", "Piercing Talon", 100)
-            .AddOption(PiercingTalonStrategy.AllowEX, "Allow use of Piercing Talon if already in combat, outside melee range, & is Enhanced")
-            .AddOption(PiercingTalonStrategy.Allow, "Allow use of Piercing Talon if already in combat & outside of melee range or further in distance of selected target")
-            .AddOption(PiercingTalonStrategy.Allow5, "Allow use of Piercing Talon if already in combat & 5 yalms or further in distance of selected target")
-            .AddOption(PiercingTalonStrategy.Allow10, "Allow use of Piercing Talon if already in combat & 10 yalms or further in distance of selected target")
-            .AddOption(PiercingTalonStrategy.Force, "Force Piercing Talon ASAP from any distance of selected target")
-            .AddOption(PiercingTalonStrategy.ForceEX, "Force Piercing Talon ASAP from any distance of selected target only if Enhanced")
-            .AddOption(PiercingTalonStrategy.Forbid, "Forbid use of Piercing Talon")
+            .AddOption(PiercingTalonStrategy.AllowEX, "Automatically use Enhanced Piercing Talon if in combat & outside melee range of target")
+            .AddOption(PiercingTalonStrategy.Allow, "Automatically use normal Piercing Talon if in combat & outside melee range of target")
+            .AddOption(PiercingTalonStrategy.Allow5, "Automatically use normal Piercing Talon if in combat & 5+ yalms of target")
+            .AddOption(PiercingTalonStrategy.Allow10, "Automatically use normal Piercing Talon if in combat & 10+ yalms of target")
+            .AddOption(PiercingTalonStrategy.Force, "Force normal Piercing Talon ASAP")
+            .AddOption(PiercingTalonStrategy.ForceEX, "Force Enhanced Piercing Talon ASAP")
+            .AddOption(PiercingTalonStrategy.Forbid, "Forbid Piercing Talon")
             .AddAssociatedActions(AID.PiercingTalon);
 
         res.Define(Track.TrueNorth).As<TrueNorthStrategy>("T.North", "True North", 95)
-            .AddOption(TrueNorthStrategy.Automatic, "Late-weaves True North when out of positional")
-            .AddOption(TrueNorthStrategy.Send, "Late-weaves True North when out of positional - will send before next GCD if applicable")
-            .AddOption(TrueNorthStrategy.ASAP, "Use True North as soon as possible when out of positional", 45, 10, ActionTargets.Self, 50)
-            .AddOption(TrueNorthStrategy.Rear, "Use True North for saving rear positionals only", 45, 10, ActionTargets.Self, 50)
-            .AddOption(TrueNorthStrategy.Flank, "Use True North for saving flank positionals only", 45, 10, ActionTargets.Self, 50)
-            .AddOption(TrueNorthStrategy.Force, "Force use of True North ASAP", 45, 10, ActionTargets.Self, 50)
-            .AddOption(TrueNorthStrategy.Delay, "Delay use of True North", 0, 0, ActionTargets.None, 50)
+            .AddOption(TrueNorthStrategy.Automatic, "Automatically late-weaves True North when out of positional")
+            .AddOption(TrueNorthStrategy.Send, "Automatically late-weaves True North when out of positional - will clip GCD if needed")
+            .AddOption(TrueNorthStrategy.ASAP, "Automatically use True North as soon as possible when out of positional", 45, 10, ActionTargets.Self, 50)
+            .AddOption(TrueNorthStrategy.Rear, "Automatically use True North for saving rear positionals only", 45, 10, ActionTargets.Self, 50)
+            .AddOption(TrueNorthStrategy.Flank, "Automatically use True North for saving flank positionals only", 45, 10, ActionTargets.Self, 50)
+            .AddOption(TrueNorthStrategy.Force, "Force True North ASAP", 45, 10, ActionTargets.Self, 50)
+            .AddOption(TrueNorthStrategy.Delay, "Delay True North", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(ClassShared.AID.TrueNorth);
 
         res.Define(Track.DragonfireDive).As<CommonStrategy>("D.Dive", "Dragonfire Dive", 195)
-            .AddOption(CommonStrategy.Automatic, "Use Dragonfire Dive optimally")
-            .AddOption(CommonStrategy.HasLC, "Use Dragonfire Dive only if Lance Charge buff is currently active", 120, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.HasBL, "Use Dragonfire Dive only if Battle Litany buff is currently active", 120, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.HasAll, "Use Dragonfire Dive only if all buffs are currently active (Lance Charge, Battle Litany, & Life of the Dragon)", 120, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.Automatic, "Automatically use Dragonfire Dive")
+            .AddOption(CommonStrategy.HasLC, "Automatically use Dragonfire Dive if Lance Charge buff is currently active", 120, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.HasBL, "Automatically use Dragonfire Dive if Battle Litany buff is currently active", 120, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.HasAll, "Automatically use Dragonfire Dive if all buffs are currently active (Lance Charge, Battle Litany, & Life of the Dragon)", 120, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.Force, "Force Dragonfire Dive", 120, 0, ActionTargets.Hostile, 50, 91)
-            .AddOption(CommonStrategy.ForceEX, "Force Dragonfire Dive (Grants Dragon's Flight)", 120, 30, ActionTargets.Hostile, 92)
-            .AddOption(CommonStrategy.ForceWeave, "Force Dragonfire Dive inside the next possible weave window", 120, 0, ActionTargets.Hostile, 50, 91)
-            .AddOption(CommonStrategy.ForceWeaveEX, "Force Dragonfire Dive inside the next possible weave window (Grants Dragon's Flight)", 120, 30, ActionTargets.Hostile, 92)
+            .AddOption(CommonStrategy.ForceWeave, "Force Dragonfire Dive in next possible weave slot", 120, 0, ActionTargets.Hostile, 50, 91)
             .AddOption(CommonStrategy.Delay, "Delay Dragonfire Dive", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(AID.DragonfireDive);
 
         res.Define(Track.Geirskogul).As<CommonStrategy>("Gsk.", "Geirskogul", 196)
-            .AddOption(CommonStrategy.Automatic, "Use Geirskogul optimally")
-            .AddOption(CommonStrategy.HasLC, "Use Geirskogul only if Lance Charge buff is currently active", 60, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.HasBL, "Use Geirskogul only if Battle Litany buff is currently active", 60, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.HasAll, "Use Geirskogul only if both Lance Charge & Battle Litany buffs are currently active", 60, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.Automatic, "Automatically use Geirskogul")
+            .AddOption(CommonStrategy.HasLC, "Automatically use Geirskogul if Lance Charge buff is currently active", 60, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.HasBL, "Automatically use Geirskogul if Battle Litany buff is currently active", 60, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.HasAll, "Automatically use Geirskogul if both Lance Charge & Battle Litany buffs are currently active", 60, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.Force, "Force Geirskogul", 60, 0, ActionTargets.Hostile, 60, 69)
-            .AddOption(CommonStrategy.ForceEX, "Force Geirskogul (Grants Life of the Dragon & Nastrond Ready)", 60, 20, ActionTargets.Hostile, 70)
-            .AddOption(CommonStrategy.ForceWeave, "Force Geirskogul inside the next possible weave window", 60, 20, ActionTargets.Hostile, 70)
-            .AddOption(CommonStrategy.ForceWeaveEX, "Force Geirskogul inside the next possible weave window (Grants Life of the Dragon & Nastrond Ready)", 60, 20, ActionTargets.Hostile, 70)
+            .AddOption(CommonStrategy.ForceWeave, "Force Geirskogul in next possible weave slot", 60, 20, ActionTargets.Hostile, 70)
             .AddOption(CommonStrategy.Delay, "Delay Geirskogul", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.Geirskogul);
 
         res.Define(Track.Stardiver).As<CommonStrategy>("S.diver", "Stardiver", 194)
-            .AddOption(CommonStrategy.Automatic, "Use Stardiver optimally")
-            .AddOption(CommonStrategy.HasLC, "Use Stardiver only if Lance Charge buff is currently active", 30, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.HasBL, "Use Stardiver only if Battle Litany buff is currently active", 50, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.HasAll, "Use Stardiver only if all buffs are currently active (Lance Charge, Battle Litany, & Life of the Dragon)", 30, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.Force, "Force Stardiver", 0, 0, ActionTargets.Hostile, 80, 99)
-            .AddOption(CommonStrategy.ForceEX, "Force Stardiver (Grants Starcross Ready)", 20, 0, ActionTargets.Hostile, 100)
-            .AddOption(CommonStrategy.ForceWeave, "Force Stardiver inside the next possible weave window", 0, 0, ActionTargets.Hostile, 80, 99)
-            .AddOption(CommonStrategy.ForceWeaveEX, "Force Stardiver inside the next possible weave window (Grants Starcross Ready)", 20, 0, ActionTargets.Hostile, 100)
+            .AddOption(CommonStrategy.Automatic, "Automatically use Stardiver")
+            .AddOption(CommonStrategy.HasLC, "Automatically use Stardiver if Lance Charge buff is currently active", 30, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.HasBL, "Automatically use Stardiver if Battle Litany buff is currently active", 50, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.HasAll, "Automatically use Stardiver if all buffs are currently active (Lance Charge, Battle Litany, & Life of the Dragon)", 30, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.Force, "Force Stardiver (Grants Starcross Ready)", 20, 0, ActionTargets.Hostile, 100)
+            .AddOption(CommonStrategy.ForceWeave, "Force Stardiver in next possible weave slot (Grants Starcross Ready)", 20, 0, ActionTargets.Hostile, 100)
             .AddOption(CommonStrategy.Delay, "Delay Stardiver", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Stardiver);
 
         res.Define(Track.Jump).As<CommonStrategy>("Jump", uiPriority: 193)
-            .AddOption(CommonStrategy.Automatic, "Use Jump optimally")
-            .AddOption(CommonStrategy.HasLC, "Use Jump only if Lance Charge buff is currently active", 30, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.HasBL, "Use Jump only if Battle Litany buff is currently active", 30, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.HasAll, "Use Jump only if all buffs are currently active (Lance Charge, Battle Litany, & Life of the Dragon)", 30, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.Force, "Force Jump", 30, 0, ActionTargets.Hostile, 30, 67)
-            .AddOption(CommonStrategy.ForceEX, "Force Jump (Grants Dive Ready buff)", 30, 15, ActionTargets.Hostile, 68)
-            .AddOption(CommonStrategy.ForceWeave, "Force Jump inside the next possible weave window", 30, 0, ActionTargets.Hostile, 30, 67)
-            .AddOption(CommonStrategy.ForceWeaveEX, "Force Jump inside the next possible weave window (Grants Dive Ready buff)", 30, 15, ActionTargets.Hostile, 68)
+            .AddOption(CommonStrategy.Automatic, "Automatically use Jump")
+            .AddOption(CommonStrategy.HasLC, "Automatically use Jump if Lance Charge buff is currently active", 30, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.HasBL, "Automatically use Jump if Battle Litany buff is currently active", 30, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.HasAll, "Automatically use Jump if all buffs are currently active (Lance Charge, Battle Litany, & Life of the Dragon)", 30, 0, ActionTargets.Hostile)
+            .AddOption(CommonStrategy.Force, "Force Jump (Grants Dive Ready buff)", 30, 15, ActionTargets.Hostile, 30)
+            .AddOption(CommonStrategy.ForceWeave, "Force Jump in next possible weave slot (Grants Dive Ready buff)", 30, 15, ActionTargets.Hostile, 30)
             .AddOption(CommonStrategy.Delay, "Delay Jump", 0, 0, ActionTargets.None, 30)
             .AddAssociatedActions(AID.Jump, AID.HighJump);
 
@@ -234,7 +220,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
                 ? (dotOnly ? wantChaos //if only caring about Chaotic Spring debuff, focus on that
                     : buffOnly ? wantPower //if only caring about Power Surge buff, focus on that
                     : (wantPower || wantChaos)) //if caring about both, use either
-                : (Unlocked(AID.FullThrust) ? PowerLeft <= SkSGCDLength * 3 //without dot, we focus primarily on Power Surge; if we have Full Thrust - 3 GCDs
+                : (Unlocked(AID.FullThrust) ? PowerLeft <= SkSGCDLength * 3 //without dot, we focus primarily on Power Surge - if we have Full Thrust - 3 GCDs
             : NeedPower); //else - 2 GCDs
 
         return ComboLastMove switch
@@ -365,23 +351,18 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var dd = strategy.Option(Track.DragonfireDive).As<CommonStrategy>();
         var sd = strategy.Option(Track.Stardiver).As<CommonStrategy>();
 
-        //planned forced usage - don't check here
-        if (dd is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX ||
-            sd is CommonStrategy.Force or CommonStrategy.ForceEX or CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX)
+        //planned forced usage of either or - don't check here
+        if (dd is CommonStrategy.Force or CommonStrategy.ForceWeave ||
+            sd is CommonStrategy.Force or CommonStrategy.ForceWeave)
             return true;
 
         var d = strategy.Option(Track.Dives).As<DivesStrategy>();
-        var dontMove = d is DivesStrategy.Allow1NotMoving
-            or DivesStrategy.Allow3NotMoving
-            or DivesStrategy.Allow5NotMoving
-            or DivesStrategy.AllowNotMoving;
+        var dontMove = d is DivesStrategy.InAnyNotMoving or DivesStrategy.InMeleeNotMoving;
 
         return InCombat(target) && (!dontMove || !IsMoving) && d switch
         {
-            DivesStrategy.Allow1 or DivesStrategy.Allow1NotMoving => DistanceFrom(target, 1f),
-            DivesStrategy.Allow3 or DivesStrategy.Allow3NotMoving => In3y(target),
-            DivesStrategy.Allow5 or DivesStrategy.Allow5NotMoving => In5y(target),
-            DivesStrategy.Allow or DivesStrategy.AllowNotMoving => In20y(target),
+            DivesStrategy.InMelee or DivesStrategy.InMeleeNotMoving => In3y(target),
+            DivesStrategy.InAny or DivesStrategy.InAnyNotMoving => In20y(target),
             _ => false,
         };
     }
@@ -401,7 +382,6 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         {
             BuffsStrategy.Automatic => (conditions, OGCDPriority.Severe),
             BuffsStrategy.Together => (conditions && together, OGCDPriority.Severe),
-            BuffsStrategy.RaidBuffsOnly => (conditions && RaidBuffsLeft > GCD, OGCDPriority.Severe),
             BuffsStrategy.Force => (true, OGCDPriority.ToGCDPriority),
             _ => (false, OGCDPriority.None)
         };
@@ -414,8 +394,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         var (condition, prio) = strategy switch
         {
             CommonStrategy.Automatic => (HasPower && InCombat(target) && ActionReady(action) && CanWeaveIn && optimal, OGCDPriority.High),
-            CommonStrategy.Force or CommonStrategy.ForceEX => (ActionReady(action), OGCDPriority.ToGCDPriority),
-            CommonStrategy.ForceWeave or CommonStrategy.ForceWeaveEX => (ActionReady(action) && CanWeaveIn, OGCDPriority.Max + 2),
+            CommonStrategy.Force => (ActionReady(action), OGCDPriority.ToGCDPriority),
+            CommonStrategy.ForceWeave => (ActionReady(action) && CanWeaveIn, OGCDPriority.Max + 2),
             CommonStrategy.HasLC => (HasPower && HasLC && InCombat(target) && ActionReady(action), OGCDPriority.High),
             CommonStrategy.HasBL => (HasPower && HasBL && InCombat(target) && ActionReady(action), OGCDPriority.High),
             CommonStrategy.HasAll => (HasPower && allBuffs && InCombat(target) && ActionReady(action), OGCDPriority.High),

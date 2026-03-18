@@ -405,25 +405,6 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
 
         return OGCDPriority.Low;
     }
-    private int CMDCcharges(AID action)
-    {
-        if (!Unlocked(action))
-            return 0;
-
-        if (Unlocked(TraitID.ChargedActionMastery))
-        {
-            return Cooldown(action) < 0.6f ? 3
-                : Cooldown(action) < 30.6f ? 2
-                : Cooldown(action) < 60.6f ? 1
-                : 0;
-        }
-        else
-        {
-            return Cooldown(action) < 0.6f ? 2
-                : Cooldown(action) < 30.6f ? 1
-                : 0;
-        }
-    }
 
     private bool ShouldUseFlamethrower(AllowOrForbid strategy, Actor? target)
     {

@@ -9,8 +9,8 @@ public enum SharedTrack { Targeting, Hold, Potion, Count }
 public enum SoftTargetStrategy { Automatic, AutoHard, Manual }
 public enum HoldStrategy { DontHold, HoldCooldowns, HoldGauge, HoldBuffs, HoldAbilities, HoldEverything }
 public enum PotionStrategy { Manual, AlignWithBuffs, AlignWithRaidBuffs, Immediate }
-public enum GCDStrategy { Automatic, RaidBuffsOnly, Force, Delay }
-public enum OGCDStrategy { Automatic, RaidBuffsOnly, Force, AnyWeave, EarlyWeave, LateWeave, Delay }
+public enum GCDStrategy { Automatic, Force, Delay }
+public enum OGCDStrategy { Automatic, Force, AnyWeave, EarlyWeave, LateWeave, Delay }
 public enum AllowOrForbid { Allow, Force, Forbid }
 
 public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, Actor player) : RotationModule(manager, player) where AID : struct, Enum where TraitID : Enum
@@ -73,7 +73,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool ShouldUseGCD(GCDStrategy strategy, Actor? target, bool ready, bool optimal = true) => ready && strategy switch
     {
         GCDStrategy.Automatic => target != null && optimal,
-        GCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
         GCDStrategy.Force => true,
         _ => false
     };
@@ -100,7 +99,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool ready, bool optimal = true) => ready && strategy switch
     {
         OGCDStrategy.Automatic => target != null && optimal,
-        OGCDStrategy.RaidBuffsOnly => RaidBuffsLeft > 0f,
         OGCDStrategy.Force => true,
         OGCDStrategy.AnyWeave => CanWeaveIn,
         OGCDStrategy.EarlyWeave => CanEarlyWeaveIn,
@@ -567,24 +565,24 @@ static class ToolsExtensions
     public static RotationModuleDefinition.ConfigRef<SoftTargetStrategy> DefineTargeting(this RotationModuleDefinition res)
         => res.Define(SharedTrack.Targeting).As<SoftTargetStrategy>("Targeting", "", 295)
             .AddOption(SoftTargetStrategy.Automatic, "Allow auto-selecting best target for maximum optimal DPS output - does not change hard target")
-            .AddOption(SoftTargetStrategy.AutoHard, "Auto-select best target for maximum optimal DPS output - will change hard target")
+            .AddOption(SoftTargetStrategy.AutoHard, "Allow auto-selecting best target for maximum optimal DPS output - will change hard target")
             .AddOption(SoftTargetStrategy.Manual, "Forbid auto-selecting best target, instead executing only on whichever target is currently selected");
 
     public static RotationModuleDefinition.ConfigRef<HoldStrategy> DefineHold(this RotationModuleDefinition res)
         => res.Define(SharedTrack.Hold).As<HoldStrategy>("Hold", "Allow or Forbid Abilities", 290)
             .AddOption(HoldStrategy.DontHold, "Allow use of all cooldowns, buffs, or gauge abilities")
-            .AddOption(HoldStrategy.HoldCooldowns, "Forbid use of all cooldowns only")
-            .AddOption(HoldStrategy.HoldGauge, "Forbid use of all gauge abilities only")
-            .AddOption(HoldStrategy.HoldBuffs, "Forbid use of all raidbuffs or buff-related abilities only")
+            .AddOption(HoldStrategy.HoldCooldowns, "Forbid use of all cooldowns")
+            .AddOption(HoldStrategy.HoldGauge, "Forbid use of all gauge abilities")
+            .AddOption(HoldStrategy.HoldBuffs, "Forbid use of all raidbuffs or buff-related abilities")
             .AddOption(HoldStrategy.HoldAbilities, "Forbid use of all cooldowns, buffs, and gauge abilities")
-            .AddOption(HoldStrategy.HoldEverything, "Forbid complete use of ALL actions; standard rotations included");
+            .AddOption(HoldStrategy.HoldEverything, "Forbid complete use of ALL actions - standard rotations included");
 
     public static RotationModuleDefinition.ConfigRef<PotionStrategy> DefinePotion(this RotationModuleDefinition res, ActionID pot)
         => res.Define(SharedTrack.Potion).As<PotionStrategy>("Pots", "Potion Usage (Tinctures, Gemdraughts, etc.)", 280)
-            .AddOption(PotionStrategy.Manual, "Use potion manually")
-            .AddOption(PotionStrategy.AlignWithBuffs, "Use potion when personal buffs are imminent or active")
-            .AddOption(PotionStrategy.AlignWithRaidBuffs, "Use potion when party raid buffs are imminent or active")
-            .AddOption(PotionStrategy.Immediate, "Use potion immediately without restriction", 270, 30)
+            .AddOption(PotionStrategy.Manual, "Do not use potion automatically")
+            .AddOption(PotionStrategy.AlignWithBuffs, "Automatically use potion when personal buffs are imminent or active")
+            .AddOption(PotionStrategy.AlignWithRaidBuffs, "Automatically use potion when party raid buffs are imminent or active")
+            .AddOption(PotionStrategy.Immediate, "Force potion ASAP", 270, 30)
             .AddAssociatedAction(pot);
 
     public static RotationModuleDefinition.ConfigRef<GCDStrategy> DefineGCD<Index, AID>
@@ -595,10 +593,9 @@ static class ToolsExtensions
     {
         var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<GCDStrategy>(internalName, displayName, uiPriority)
-            .AddOption(GCDStrategy.Automatic, $"Automatically use {action.Name()} when optimal", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
-            .AddOption(GCDStrategy.RaidBuffsOnly, $"Automatically use {action.Name()} only when there are raid buffs active", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
-            .AddOption(GCDStrategy.Force, $"Force use of {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
-            .AddOption(GCDStrategy.Delay, $"Delay use of {action.Name()}", 0, 0, ActionTargets.None, minLevel, maxLevel)
+            .AddOption(GCDStrategy.Automatic, $"Automatically use {action.Name()}", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
+            .AddOption(GCDStrategy.Force, $"Force {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel, maxLevel)
+            .AddOption(GCDStrategy.Delay, $"Delay {action.Name()}", 0, 0, ActionTargets.None, minLevel, maxLevel)
             .AddAssociatedActions(aid);
     }
 
@@ -610,13 +607,12 @@ static class ToolsExtensions
     {
         var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<OGCDStrategy>(internalName, displayName: displayName, uiPriority: uiPriority)
-            .AddOption(OGCDStrategy.Automatic, $"Automatically use {action.Name()} when optimal", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
-            .AddOption(OGCDStrategy.RaidBuffsOnly, $"Use {action.Name()} when raid buffs are active", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
-            .AddOption(OGCDStrategy.Force, $"Force use of {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
-            .AddOption(OGCDStrategy.AnyWeave, $"Force use of {action.Name()} in next possible weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
-            .AddOption(OGCDStrategy.EarlyWeave, $"Force use of {action.Name()} in next possible early-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
-            .AddOption(OGCDStrategy.LateWeave, $"Force use of {action.Name()} in next possible late-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
-            .AddOption(OGCDStrategy.Delay, $"Delay use of {action.Name()}", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel: maxLevel)
+            .AddOption(OGCDStrategy.Automatic, $"Automatically use {action.Name()}", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
+            .AddOption(OGCDStrategy.Force, $"Force {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
+            .AddOption(OGCDStrategy.AnyWeave, $"Force {action.Name()} in next possible weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
+            .AddOption(OGCDStrategy.EarlyWeave, $"Force {action.Name()} in next possible early-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
+            .AddOption(OGCDStrategy.LateWeave, $"Force {action.Name()} in next possible late-weave slot", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
+            .AddOption(OGCDStrategy.Delay, $"Delay {action.Name()}", 0, 0, ActionTargets.None, minLevel: minLevel, maxLevel: maxLevel)
             .AddAssociatedActions(aid);
     }
 
@@ -628,9 +624,9 @@ static class ToolsExtensions
     {
         var action = ActionID.MakeSpell(aid);
         return res.Define(track).As<AllowOrForbid>(internalName, displayName: displayName, uiPriority: uiPriority)
-            .AddOption(AllowOrForbid.Allow, $"Allow use of {action.Name()} when available", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
+            .AddOption(AllowOrForbid.Allow, $"Allow {action.Name()} when available", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
             .AddOption(AllowOrForbid.Force, $"Force use {action.Name()} ASAP", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
-            .AddOption(AllowOrForbid.Forbid, $"Forbid use of {action.Name()} entirely", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
+            .AddOption(AllowOrForbid.Forbid, $"Forbid {action.Name()} usage entirely", cooldown, effectDuration, supportedTargets, minLevel: minLevel, maxLevel: maxLevel)
             .AddAssociatedActions(aid);
     }
 
