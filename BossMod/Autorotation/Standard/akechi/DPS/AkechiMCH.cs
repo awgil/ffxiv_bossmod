@@ -4,6 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
+//TODO: cleanup this file - it works ok now (i think?), but it's a fucking mess to look at
 public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     public enum Track { AOE = SharedTrack.Count, Opener, Heat, Battery, Reassemble, Hypercharge, Drill, Wildfire, BarrelStabilizer, AirAnchor, ChainSaw, GaussRound, DoubleCheck, Ricochet, Checkmate, Flamethrower, Excavator, FullMetalField }
@@ -122,7 +123,6 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
     private Enemy? BestSplashTarget;
     private Enemy? BestChainSawTarget;
     private Enemy? BestFlamethrowerTarget;
-    private bool AutoTarget;
     private bool ForceAOE;
 
     public float RAleft => StatusRemaining(Player, SID.Reassembled);
@@ -200,8 +200,8 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             OverheatActive); //last resort - send during Overheat
         return strategy switch
         {
-            WildfireStrategy.Automatic => (condition, DontLoseAbilityPrio(-200, 999)),
-            WildfireStrategy.AlignWithBurst => (BScd > 90 && condition, DontLoseAbilityPrio(-200, 999)),
+            WildfireStrategy.Automatic => (condition, ChangePriority(-200, 999)),
+            WildfireStrategy.AlignWithBurst => (BScd > 90 && condition, ChangePriority(-200, 999)),
             WildfireStrategy.End => (HasEffect(SID.WildfirePlayer), OGCDPriority.Max),
             WildfireStrategy.Force => (CanWF, OGCDPriority.Forced),
             WildfireStrategy.ForceWeave => (CanWF && CanWeaveIn, OGCDPriority.Forced),
@@ -467,7 +467,6 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         BestSplashTarget = ShouldUseRangedAOE ? BestSplashTargets : primaryTarget;
         BestChainSawTarget = ShouldUseSaw ? BestChainSawTargets : primaryTarget;
         BestFlamethrowerTarget = ShouldFlamethrower ? BestConeTarget : primaryTarget;
-        AutoTarget = strategy.AutoTarget();
 
         #region Strategy Definitions
         var opener = strategy.Option(Track.Opener);

@@ -50,7 +50,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.KeenEdge, AID.BrutalShell, AID.SolidBarrel, AID.DemonSlice, AID.DemonSlaughter);
 
         res.Define(Track.Cartridges).As<CartridgeStrategy>("Carts", "Cartridge Usage", 199)
-            .AddOption(CartridgeStrategy.Automatic, "Automatically decide when to use cartridges; uses them optimally", 0, 0, ActionTargets.Hostile, 30)
+            .AddOption(CartridgeStrategy.Automatic, "Automatically use Burst Strike or Fated Circle based on targets nearby", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(CartridgeStrategy.OnlyBS, "Uses Burst Strike optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 30)
             .AddOption(CartridgeStrategy.OnlyFC, "Uses Fated Circle optimally as cartridge spender only, regardless of targets", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(CartridgeStrategy.ForceBS, "Force use of Burst Strike regardless of cartridge count", 0, 0, ActionTargets.Hostile, 30)
@@ -76,8 +76,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 
         res.Define(Track.NoMercy).As<NoMercyStrategy>("NM", "No Mercy", 197)
             .AddOption(NoMercyStrategy.Automatic, "Normal use of No Mercy", supportedTargets: ActionTargets.Self)
-            .AddOption(NoMercyStrategy.BurstReady, "Use No Mercy only when burst is ready; will delay if necessary", supportedTargets: ActionTargets.Self)
-            .AddOption(NoMercyStrategy.Together, "Use No Mercy alongside Bloodfest (will delay to align with it)", supportedTargets: ActionTargets.Self)
+            .AddOption(NoMercyStrategy.BurstReady, "Use No Mercy only when full burst is ready (NM, DD, & BF); will delay if necessary", supportedTargets: ActionTargets.Self)
+            .AddOption(NoMercyStrategy.Together, "Use No Mercy only alongside Bloodfest, regardless of burst; will delay if necessary", supportedTargets: ActionTargets.Self)
             .AddOption(NoMercyStrategy.Force, "Force use of No Mercy, regardless of weaving", 0, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceW, "Force use of No Mercy in next possible weave slot", 60, 20, ActionTargets.Self, 2)
             .AddOption(NoMercyStrategy.ForceQW, "Force use of No Mercy in next possible last second weave slot", 60, 20, ActionTargets.Self, 2)
@@ -147,19 +147,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         return res;
     }
 
-    private byte Ammo;
-    private byte GunComboStep;
-    private int MaxCartridges;
-    private float NMcd;
     private float NMstatus;
-    private float BFcd;
-    private bool HasNM;
-    private bool HasBF;
-    private bool HasBlast;
-    private bool HasRaze;
-    private bool HasRip;
-    private bool HasTear;
-    private bool HasGouge;
+    private float SBstatus;
+    private float Rstatus;
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
     private Enemy? BestSplashTarget;
@@ -167,8 +157,25 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
     private bool ForceAOE;
     private bool WantAOE;
 
+    private GunbreakerGauge Gauge => World.Client.GetGauge<GunbreakerGauge>();
+    private byte Ammo => Gauge.Ammo; //cartridges
+    private byte GunComboStep => Gauge.AmmoComboStep; //Gauge combo - GF & Reign
+    private float NMcd => Cooldown(AID.NoMercy);
+    private float BFcd => Cooldown(AID.Bloodfest);
+    private bool HasNM => NMcd is >= 40f and <= 60;
+    private bool HasBF => HasEffect(SID.Bloodfest);
+    private bool HasReign => HasEffect(SID.ReadyToReign);
+    private bool HasBlast => Unlocked(AID.Hypervelocity) && HasEffect(SID.ReadyToBlast) && !LastActionUsed(AID.Hypervelocity);
+    private bool HasRaze => Unlocked(AID.FatedBrand) && HasEffect(SID.ReadyToRaze) && !LastActionUsed(AID.FatedBrand);
+    private bool HasRip => HasEffect(SID.ReadyToRip) && !LastActionUsed(AID.JugularRip);
+    private bool HasTear => HasEffect(SID.ReadyToTear) && !LastActionUsed(AID.AbdomenTear);
+    private bool HasGouge => HasEffect(SID.ReadyToGouge) && !LastActionUsed(AID.EyeGouge);
     private bool Slow => SkSGCDLength >= 2.5f;
     private bool Fast => SkSGCDLength < 2.5f;
+    private int MaxCartridges
+            => Unlocked(TraitID.CartridgeChargeII) ? HasEffect(SID.Bloodfest) ? 6 : 3 //3 max base, 6 max buffed
+            : Unlocked(TraitID.CartridgeCharge) ? HasEffect(SID.Bloodfest) ? 4 : 2 //2 max base, 4 max buffed
+            : 0; //none without first trait
 
     private AID ContinueST(AID last, bool overcap) => last switch
     {
@@ -202,7 +209,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             AID.NobleBlood => AID.LionHeart,
             _ => AID.None,
         };
-        return gnash != AID.None ? gnash //finish gauge combos first
+        return gnash != AID.None ? gnash //finish Gauge combos first
             : overcap ? continueWithOvercap(ComboLastMove) //finish combo with overcap protection
             : continueNoOvercap(ComboLastMove); //just finish combo
     }
@@ -223,7 +230,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 
     private OGCDPriority ContinuationPrio()
     {
-        var prio = DontLoseAbilityPrio(200, 749);
+        var prio = ChangePriority(200, 749);
         //standard procs
         if (HasRip || HasTear || HasGouge)
             return prio;
@@ -242,23 +249,9 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        var gauge = World.Client.GetGauge<GunbreakerGauge>();
-        Ammo = gauge.Ammo; //cartridges
-        GunComboStep = gauge.AmmoComboStep; //gauge combo - GF & Reign
-        MaxCartridges =
-            Unlocked(TraitID.CartridgeChargeII) ? HasEffect(SID.Bloodfest) ? 6 : 3 //3 max base, 6 max buffed
-            : Unlocked(TraitID.CartridgeCharge) ? HasEffect(SID.Bloodfest) ? 4 : 2 //2 max base, 4 max buffed
-            : 0; //none without first trait
-        NMcd = Cooldown(AID.NoMercy);
-        BFcd = Cooldown(AID.Bloodfest);
-        NMstatus = StatusRemaining(Player, SID.NoMercy, 20);
-        HasNM = NMcd is >= 40f and <= 60;
-        HasBF = HasEffect(SID.Bloodfest);
-        HasBlast = Unlocked(AID.Hypervelocity) && HasEffect(SID.ReadyToBlast) && !LastActionUsed(AID.Hypervelocity);
-        HasRaze = Unlocked(AID.FatedBrand) && HasEffect(SID.ReadyToRaze) && !LastActionUsed(AID.FatedBrand);
-        HasRip = HasEffect(SID.ReadyToRip) && !LastActionUsed(AID.JugularRip);
-        HasTear = HasEffect(SID.ReadyToTear) && !LastActionUsed(AID.AbdomenTear);
-        HasGouge = HasEffect(SID.ReadyToGouge) && !LastActionUsed(AID.EyeGouge);
+        NMstatus = StatusRemaining(Player, SID.NoMercy, 20f);
+        SBstatus = StatusRemaining(Player, SID.ReadyToBreak, 30f);
+        Rstatus = StatusRemaining(Player, SID.ReadyToReign, 30f);
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3.5f, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
@@ -344,13 +337,14 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                     var gfStrat = gf.As<GnashingStrategy>();
                     var gfTarget = SingleTargetChoice(mainTarget, gf);
                     var gfMinimum = gfTarget != null && In3y(gfTarget) && Ammo >= 1 && Cooldown(AID.GnashingFang) < 30.6f && GunComboStep == 0;
+                    var canfit = ActualComboTimer >= SkSGCDLength * 4 || ActualComboTimer == 0; //dont use if combo timer will expire (or if combo timer is 0, just send)
                     var st = gfMinimum && !TargetsInAOECircle(5f, 4);
-                    var burst = st && HasNM && NMstatus >= 12;
-                    var filler = st && NMcd > 7 && ActualComboTimer > SkSGCDLength * 4;
+                    var burst = st && HasNM && !HasReign; //if Lv100 & not opener, we send after Reign combo
+                    var filler = st && NMcd > 7 && canfit;
                     var overcap = st && Cooldown(AID.GnashingFang) < 0.6f && NMcd > 7;
                     var (gfCondition, gfAction, gfPrio) = gfStrat switch
                     {
-                        GnashingStrategy.Automatic => (burst || filler || overcap, AID.GnashingFang, burst || overcap ? GCDPriority.High + 5 : GCDPriority.Average),
+                        GnashingStrategy.Automatic => (burst || filler || overcap, AID.GnashingFang, overcap ? GCDPriority.SlightlyHigh + 9 : burst ? GCDPriority.SlightlyHigh + 7 : GCDPriority.SlightlyHigh),
                         GnashingStrategy.ForceGnash => (gfMinimum, AID.GnashingFang, GCDPriority.Forced),
                         GnashingStrategy.ForceGnash1 => (gfMinimum && Ammo == 1, AID.GnashingFang, GCDPriority.Forced),
                         GnashingStrategy.ForceGnash2 => (gfMinimum && Ammo == 2, AID.GnashingFang, GCDPriority.Forced),
@@ -370,7 +364,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                     var ddStrat = dd.As<DoubleDownStrategy>();
                     var (ddCondition, ddPrio) = ddStrat switch
                     {
-                        DoubleDownStrategy.Automatic => (InCombat(mainTarget) && In5y(mainTarget) && HasNM, GCDPriority.High + 4), //send under No Mercy only
+                        DoubleDownStrategy.Automatic => (InCombat(mainTarget) && In5y(mainTarget) && HasNM, GCDPriority.SlightlyHigh + 6),
                         DoubleDownStrategy.Force => (true, GCDPriority.Forced),
                         DoubleDownStrategy.Force2 => (Ammo == 2, GCDPriority.Forced),
                         DoubleDownStrategy.Force3 => (Ammo == 3, GCDPriority.Forced),
@@ -402,7 +396,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                             (Ammo > 3 && HasEffect(SID.Bloodfest) && !HasNM))), //if we have extra Bloodfest carts after NM, spend them asap
                             onlyfc ? fc : onlybs ? AID.BurstStrike : (useAOE ? Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike : AID.BurstStrike),
                             useAOE ? Player : bsTarget,
-                            GCDPriority.High),
+                            GCDPriority.SlightlyHigh + 2),
                         CartridgeStrategy.ForceBS => (true, AID.BurstStrike, bsTarget, GCDPriority.Forced),
                         CartridgeStrategy.ForceBS1 => (true && Ammo == 1, AID.BurstStrike, bsTarget, GCDPriority.Forced),
                         CartridgeStrategy.ForceBS2 => (true && Ammo == 2, AID.BurstStrike, bsTarget, GCDPriority.Forced),
@@ -416,6 +410,24 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                     if (bsfcCondition)
                         QueueGCD(bsfcAction, bsfcTarget, bsfcPrio);
                 }
+            }
+
+            //Sonic Break
+            if (Unlocked(AID.SonicBreak) && HasEffect(SID.ReadyToBreak))
+            {
+                var sb = strategy.Option(Track.SonicBreak);
+                var sbStrat = sb.As<SonicBreakStrategy>();
+                var sbTarget = AOETargetChoice(mainTarget, BestDOTTarget?.Actor, sb, strategy);
+                var (sbCondition, sbPrio) = sbStrat switch
+                {
+                    SonicBreakStrategy.Automatic => (InCombat(sbTarget) && In3y(sbTarget), GCDPriority.SlightlyHigh + 5),
+                    SonicBreakStrategy.Force => (true, GCDPriority.Forced),
+                    SonicBreakStrategy.Early => (HasNM, GCDPriority.SlightlyHigh + 10),
+                    SonicBreakStrategy.Late => (SBstatus is <= 12.500f and not 0, GCDPriority.SlightlyHigh + 10),
+                    _ => (false, GCDPriority.None)
+                };
+                if (sbCondition)
+                    QueueGCD(AID.SonicBreak, sbTarget, sbPrio);
             }
 
             //Zone
@@ -437,24 +449,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                     InCombat(mainTarget) && In5y(mainTarget) && CanWeaveIn && NMcd is <= 58f and > 39.5f))
                     QueueOGCD(AID.BowShock, Player, OGCDPrio(bowStrat, BowPrio));
             }
-
-            //Sonic Break
-            if (Unlocked(AID.SonicBreak) && HasEffect(SID.ReadyToBreak))
-            {
-                var sb = strategy.Option(Track.SonicBreak);
-                var sbStrat = sb.As<SonicBreakStrategy>();
-                var sbTarget = AOETargetChoice(mainTarget, BestDOTTarget?.Actor, sb, strategy);
-                var (sbCondition, sbPrio) = sbStrat switch
-                {
-                    SonicBreakStrategy.Automatic => (InCombat(sbTarget) && In3y(sbTarget), GCDPriority.High + 3),
-                    SonicBreakStrategy.Force => (true, GCDPriority.Forced),
-                    SonicBreakStrategy.Early => (HasNM, GCDPriority.High + 6),
-                    SonicBreakStrategy.Late => (StatusRemaining(Player, SID.ReadyToBreak, 30) <= SkSGCDLength + 10.000f, GCDPriority.High + 6),
-                    _ => (false, GCDPriority.None)
-                };
-                if (sbCondition)
-                    QueueGCD(AID.SonicBreak, sbTarget, sbPrio);
-            }
         }
 
         //Reign of Beasts + combo
@@ -467,11 +461,11 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             var (rCondition, rAction, rPrio) = rStrat switch
             {
                 ReignStrategy.Automatic => (
-                    InCombat(rTarget) && In3y(rTarget) && !hold && ((HasEffect(SID.ReadyToReign) && (HasNM || !CanFitSkSGCD(StatusRemaining(Player, SID.ReadyToReign, 30), 1)) && GunComboStep == 0) || GunComboStep is 3 or 4),
+                    InCombat(rTarget) && In3y(rTarget) && !hold && ((HasReign && (Rstatus is <= 2.5f and not 0 || (HasNM && GunComboStep == 0))) || GunComboStep is 3 or 4),
                     GunComboStep == 4 ? AID.LionHeart : GunComboStep == 3 ? AID.NobleBlood : AID.ReignOfBeasts,
-                    !CanFitSkSGCD(NMstatus, 3) ? GCDPriority.High + 6 : GCDPriority.High + 2
+                    NMstatus is <= 8 and not 0 || HasReign ? GCDPriority.SlightlyHigh + 8 : GCDPriority.SlightlyHigh + 4
                     ),
-                ReignStrategy.ForceReign => (HasEffect(SID.ReadyToReign), AID.ReignOfBeasts, GCDPriority.Forced),
+                ReignStrategy.ForceReign => (HasReign, AID.ReignOfBeasts, GCDPriority.Forced),
                 ReignStrategy.ForceNoble => (GunComboStep == 3, AID.NobleBlood, GCDPriority.Forced),
                 ReignStrategy.ForceLion => (GunComboStep == 4, AID.LionHeart, GCDPriority.Forced),
                 _ => (false, AID.None, GCDPriority.None),
@@ -480,8 +474,8 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
                 QueueGCD(rAction, rTarget, rPrio);
         }
 
-        //GF combo
-        QueueGCD(GunComboStep is 2 ? AID.WickedTalon : GunComboStep is 1 ? AID.SavageClaw : AID.None, mainTarget, GCDPriority.BelowAverage);
+        //GF combo in filler
+        QueueGCD(GunComboStep is 2 ? AID.WickedTalon : GunComboStep is 1 ? AID.SavageClaw : AID.None, mainTarget, GCDPriority.SlightlyHigh + 3);
 
         //Continuation procs
         //Hypervelocity, Fated Brand, Jugular Rip, Abdomen Tear, & Eye Gouge
@@ -525,7 +519,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         var justusedST =
             ComboLastMove is
                 AID.KeenEdge or AID.BrutalShell or //st
-                AID.GnashingFang or AID.SavageClaw or AID.ReignOfBeasts or AID.NobleBlood; //gauge
+                AID.GnashingFang or AID.SavageClaw or AID.ReignOfBeasts or AID.NobleBlood; //Gauge
         var justusedAOE = ComboLastMove is AID.DemonSlice;
         var stTarget = SingleTargetChoice(mainTarget, aoe);
         var autoTarget = !WantAOE || justusedST ? stTarget : Player;

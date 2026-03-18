@@ -4,6 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
+//TODO: cleanup this file - it works ok now, but it's a fucking mess to look at
 public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     public enum Track { AOE = SharedTrack.Count, Thunder, Ender, Polyglot, Manafont, Triplecast, Swiftcast, LeyLines, TPUS, Movement, Casting, Amplifier, Retrace, BTL }
@@ -20,7 +21,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi BLM", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Ok, BitMask.Build(Class.THM, Class.BLM), 100);
+        var res = new RotationModuleDefinition("Akechi BLM", "Standard Rotation Module", "Standard rotation (Akechi)|DPS", "Akechi", RotationModuleQuality.Basic, BitMask.Build(Class.THM, Class.BLM), 100);
 
         res.DefineTargeting();
         res.DefineHold();
@@ -262,7 +263,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
 
     private void ST(StrategyValues strategy, Actor? target, GCDPriority prio)
     {
-        if (WantAOE)
+        if (WantAOE || ForceAOE)
             return;
 
         if (Player.InCombat && NoUIorAF && target != null)
@@ -326,7 +327,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     }
     private void AOE(StrategyValues strategy, Actor? target, GCDPriority prio)
     {
-        if (!WantAOE)
+        if (!WantAOE || ForceST)
             return;
 
         if (Player.InCombat && NoUIorAF && target != null)
@@ -672,7 +673,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             {
                 if (WantAOE)
                     AOE(strategy, aoeTarget, aoePrio + 201);
-                if (!WantAOE)
+                else
                     ST(strategy, aoeTarget, aoePrio);
             }
 

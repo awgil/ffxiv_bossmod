@@ -1,23 +1,15 @@
 ﻿using BossMod.SCH;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using static BossMod.ActorState;
 using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
 public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
-    public enum Track
-    {
-        AOE = SharedTrack.Count, Bio, EnergyDrain, ChainStratagem, Aetherflow,
-        WhisperingDawn, Adloquium, Succor, FeyIllumination, Lustrate, SacredSoil,
-        Indomitability, DeploymentTactics, EmergencyTactics, Dissipation, Excogitation,
-        Aetherpact, Recitation, FeyBlessing, Consolation, Protraction, Expedient, Seraphism, Seraph
-    }
+    public enum Track { AOE = SharedTrack.Count, Bio, EnergyDrain, ChainStratagem, Aetherflow }
     public enum AOEStrategy { Auto, AutoNoRuin, ForceST, ForceRuin, ForceBroil, ForceArtOfWar }
     public enum BioStrategy { Bio3, Bio6, Bio9, Bio0, Force, Delay }
     public enum EnergyStrategy { Use3, Use2, Use1, Force, ForceWeave, Delay }
-    public enum PercentageStrategy { None, PlayerNotFull, TwoMembersNotFull, ThreeMembersNotFull, FourMembersNotFull, Ninety, Eighty, Seventy, Sixty, Fifty, Forty, Thirty, Twenty, Force }
 
     public static RotationModuleDefinition Definition()
     {
@@ -67,7 +59,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     private AID BestST => Unlocked(AID.Broil1) ? BestBroil : BestRuin;
     private AID BestAOE => Unlocked(AID.ArtOfWar2) ? AID.ArtOfWar2 : AID.ArtOfWar1;
 
-
     private static SID[] GetDotStatus() => [SID.Bio1, SID.Bio2, SID.Biolysis];
     private float BioRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
 
@@ -83,7 +74,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         var dotLeft = StatusRemaining(dotTargets?.Actor, BestDOT);
         var csLeft = StatusRemaining(mainTarget, SID.ChainStratagem);
 
-        #region Standard Rotation
         var aoe = strategy.Option(Track.AOE);
         var aoeStrat = aoe.As<AOEStrategy>();
         var stTarget = SingleTargetChoice(mainTarget, aoe);
@@ -119,7 +109,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
             })
                 QueueGCD(BestBio, bTarget, GCDPriority.Average);
         }
-        #endregion
 
         if (HasEffect(SID.ImpactImminent))
             QueueOGCD(AID.BanefulImpaction, aoeTarget, OGCDPriority.VeryHigh);
@@ -155,11 +144,9 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
                 QueueOGCD(AID.EnergyDrain, edTarget, edPrio);
         }
 
-        //Lucid Dreaming
         if (ActionReady(AID.LucidDreaming) && MP <= 9000 && CanWeaveIn)
             QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average - 1);
 
-        //MND potion
         if (strategy.Potion() switch
         {
             PotionStrategy.AlignWithBuffs => Player.InCombat && Cooldown(AID.ChainStratagem) <= 4f,

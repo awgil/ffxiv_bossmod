@@ -284,7 +284,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         return !Framework.Instance()->BGCollisionModule->RaycastMaterialFilter(&hit, &sourcePos, &direction, distance, 1, flags);
     }
     public bool EnemiesTargetingSelf(int numEnemies)
-        => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Service.ObjectTable.LocalPlayer?.GameObjectId) >= numEnemies;
+        => Hints.PotentialTargets.Count(x => !x.Actor.IsDeadOrDestroyed && x.Actor.TargetID == Player.InstanceID) >= numEnemies;
     protected void GetPvPTarget(float range)
     {
         Actor? RetrieveTarget(Func<Enemy, bool> conditions)
@@ -507,21 +507,24 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         ToGCDPriority = 2000 //converts OGCDPriority to GCDPriority by adding 2000 to the value
     }
 
-    //this is a special case prio where if a certain OGCD ability/action can be weaved, but is lost if you don't use it before next GCD (e.g. VPR:DeathRattle, GNB:Continuation)
-    //so to alleviate this, we will convert to GCD prio and push it to the front of the queue to ensure it does not get wasted
-    protected OGCDPriority DontLoseAbilityPrio(int lowPrio = 200, int highPrio = 400, bool emergencyCondition = true)
+    protected OGCDPriority ChangePriority(int lowPrio = 200, int highPrio = 400, bool emergencyCondition = true, bool convert = true)
     {
-        //can no longer weave - convert to GCD and send immediately
-        if (emergencyCondition && GCD < 0.5f)
+        //in case we need a condition to use this at all - else bail early
+        if (!emergencyCondition)
+            return OGCDPriority.None;
+
+        //convert to GCD if needed
+        if (convert && GCD <= 0.5f)
             return OGCDPriority.ToGCDPriority + 1000; //5000
 
-        //second weave - more priority
-        if (GCD is < 1.25f and >= 0.6f)
-            return OGCDPriority.None + highPrio; //2000 + value
+        //second weave
+        if (GCD is < 1.25f and > 0.5f)
+            return OGCDPriority.None + highPrio; //base 2000 + high value (400 default)
 
-        //first weave - send whenever
-        return OGCDPriority.None + lowPrio; //2000 + value
+        //first weave
+        return OGCDPriority.None + lowPrio; //base 2000 + low value (200 default)
     }
+
     #endregion
 
     public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)

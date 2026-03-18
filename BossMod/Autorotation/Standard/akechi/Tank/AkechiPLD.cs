@@ -306,8 +306,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             var gbMinimum = gbTarget != null && In3y(gbTarget) && GoringBlade.IsReady;
             var (gbCondition, gbPrio) = gbStrat switch
             {
-                GoringBladeStrategy.Automatic => (true, GCDPriority.High),
-                GoringBladeStrategy.Early => (true, GCDPriority.High),
+                GoringBladeStrategy.Automatic or GoringBladeStrategy.Early => (true, GCDPriority.High),
                 GoringBladeStrategy.Late => (!Requiescat.IsActive && GoringBlade.Left is < 25f and not 0f, GCDPriority.SlightlyHigh),
                 GoringBladeStrategy.Force => (true, GCDPriority.Forced),
                 _ => (false, GCDPriority.None)
