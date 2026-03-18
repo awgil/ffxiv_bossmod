@@ -65,7 +65,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
         res.Define(Track.LanceCharge).As<BuffsStrategy>("L.Charge", "Lance Charge", 198)
             .AddOption(BuffsStrategy.Automatic, "Automatically use Lance Charge")
-            .AddOption(BuffsStrategy.Together, "Automatically use Lance Charge with Battle Litany - will delay to align itself (up to 30s)", 60, 20, ActionTargets.Self, 30)
+            .AddOption(BuffsStrategy.Together, "Automatically use Lance Charge with Battle Litany - will delay if necessary (up to 30s)")
             .AddOption(BuffsStrategy.Force, "Force Lance Charge ASAP", 60, 20, ActionTargets.Self, 30)
             .AddOption(BuffsStrategy.ForceWeave, "Force Lance Charge in next possible weave slot", 60, 20, ActionTargets.Self, 30)
             .AddOption(BuffsStrategy.Delay, "Delay Lance Charge", 0, 0, ActionTargets.None, 30)
@@ -73,7 +73,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
         res.Define(Track.BattleLitany).As<BuffsStrategy>("B.Litany", "Battle Litany", 198)
             .AddOption(BuffsStrategy.Automatic, "Automatically use Battle Litany")
-            .AddOption(BuffsStrategy.Together, "Automatically use Battle Litany with Lance Charge - will delay in attempt to align itself with Lance Charge")
+            .AddOption(BuffsStrategy.Together, "Automatically use Battle Litany with Lance Charge - will delay if necessary")
             .AddOption(BuffsStrategy.Force, "Force Battle Litany ASAP", 120, 20, ActionTargets.Self, 52)
             .AddOption(BuffsStrategy.ForceWeave, "Force Battle Litany in next possible weave slot", 120, 20, ActionTargets.Self, 52)
             .AddOption(BuffsStrategy.Delay, "Delay Battle Litany", 0, 0, ActionTargets.None, 52)
@@ -128,8 +128,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CommonStrategy.HasLC, "Automatically use Dragonfire Dive if Lance Charge buff is currently active", 120, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.HasBL, "Automatically use Dragonfire Dive if Battle Litany buff is currently active", 120, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.HasAll, "Automatically use Dragonfire Dive if all buffs are currently active (Lance Charge, Battle Litany, & Life of the Dragon)", 120, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.Force, "Force Dragonfire Dive", 120, 0, ActionTargets.Hostile, 50, 91)
-            .AddOption(CommonStrategy.ForceWeave, "Force Dragonfire Dive in next possible weave slot", 120, 0, ActionTargets.Hostile, 50, 91)
+            .AddOption(CommonStrategy.Force, "Force Dragonfire Dive", 120, 0, ActionTargets.Hostile, 50)
+            .AddOption(CommonStrategy.ForceWeave, "Force Dragonfire Dive in next possible weave slot", 120, 0, ActionTargets.Hostile, 50)
             .AddOption(CommonStrategy.Delay, "Delay Dragonfire Dive", 0, 0, ActionTargets.None, 50)
             .AddAssociatedActions(AID.DragonfireDive);
 
@@ -138,8 +138,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CommonStrategy.HasLC, "Automatically use Geirskogul if Lance Charge buff is currently active", 60, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.HasBL, "Automatically use Geirskogul if Battle Litany buff is currently active", 60, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.HasAll, "Automatically use Geirskogul if both Lance Charge & Battle Litany buffs are currently active", 60, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.Force, "Force Geirskogul", 60, 0, ActionTargets.Hostile, 60, 69)
-            .AddOption(CommonStrategy.ForceWeave, "Force Geirskogul in next possible weave slot", 60, 20, ActionTargets.Hostile, 70)
+            .AddOption(CommonStrategy.Force, "Force Geirskogul", 60, 0, ActionTargets.Hostile, 60)
+            .AddOption(CommonStrategy.ForceWeave, "Force Geirskogul in next possible weave slot", 60, 20, ActionTargets.Hostile, 60)
             .AddOption(CommonStrategy.Delay, "Delay Geirskogul", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.Geirskogul);
 
@@ -148,8 +148,8 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CommonStrategy.HasLC, "Automatically use Stardiver if Lance Charge buff is currently active", 30, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.HasBL, "Automatically use Stardiver if Battle Litany buff is currently active", 50, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.HasAll, "Automatically use Stardiver if all buffs are currently active (Lance Charge, Battle Litany, & Life of the Dragon)", 30, 0, ActionTargets.Hostile)
-            .AddOption(CommonStrategy.Force, "Force Stardiver (Grants Starcross Ready)", 20, 0, ActionTargets.Hostile, 100)
-            .AddOption(CommonStrategy.ForceWeave, "Force Stardiver in next possible weave slot (Grants Starcross Ready)", 20, 0, ActionTargets.Hostile, 100)
+            .AddOption(CommonStrategy.Force, "Force Stardiver (Grants Starcross Ready)", 20, 0, ActionTargets.Hostile, 80)
+            .AddOption(CommonStrategy.ForceWeave, "Force Stardiver in next possible weave slot (Grants Starcross Ready)", 20, 0, ActionTargets.Hostile, 80)
             .AddOption(CommonStrategy.Delay, "Delay Stardiver", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Stardiver);
 
