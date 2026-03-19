@@ -76,7 +76,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
         return res;
     }
 
-    public bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
+    public bool IsReady(AID aid) => Cooldown(aid) <= 0.2f;
     public float DebuffsLeft(Actor? target) => Utils.MaxAll(
         StatusDetails(target, ClassShared.SID.StunPvP, Player.InstanceID, 5).Left,
         StatusDetails(target, ClassShared.SID.HeavyPvP, Player.InstanceID, 5).Left,
@@ -87,7 +87,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        var (BestLineTargets, NumLineTargets) = GetBestTarget(primaryTarget, 40, Is40yRectTarget);
+        var (BestLineTargets, NumLineTargets) = GetBestTarget(primaryTarget, 40, LineTargetCheck(40));
         var (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         var (BestSeraphStrikeTargets, NumSeraphStrikeTargets) = GetBestTarget(primaryTarget, 25, Is10ySplashTarget);
         var BestLineTarget = NumLineTargets > 1 ? BestLineTargets : primaryTarget;
@@ -126,9 +126,9 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
             var bestSStarget = auto ? BestSeraphStrikeTarget?.Actor : mainTarget;
             var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
             {
-                RoleActionStrategy.Haelan => (HasEffect(SID.HaelanEquippedPvP) && MP >= 2500 && PlayerHPP < 60, AID.HaelanPvP, Player),
-                RoleActionStrategy.Stoneskin2 => (HasEffect(SID.StoneskinEquippedPvP) && IsReady(AID.StoneskinIIPvP) && EnemiesTargetingSelf(2), AID.StoneskinIIPvP, Player),
-                RoleActionStrategy.Diabrosis => (HasEffect(SID.DiabrosisEquippedPvP) && IsReady(AID.DiabrosisPvP), AID.DiabrosisPvP, bestSStarget),
+                RoleActionStrategy.Haelan => (HasStatus(SID.HaelanEquippedPvP) && MP >= 2500 && PlayerHPP < 60, AID.HaelanPvP, Player),
+                RoleActionStrategy.Stoneskin2 => (HasStatus(SID.StoneskinEquippedPvP) && IsReady(AID.StoneskinIIPvP) && EnemiesTargetingSelf(2), AID.StoneskinIIPvP, Player),
+                RoleActionStrategy.Diabrosis => (HasStatus(SID.DiabrosisEquippedPvP) && IsReady(AID.DiabrosisPvP), AID.DiabrosisPvP, bestSStarget),
                 _ => (false, AID.None, null)
             };
             if (roleCondition)
@@ -162,7 +162,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
                 CureTargetStrategy.SelfOrParty => auto ? World.Party.WithoutSlot(excludeNPCs: true).Where(a => a.HPMP.CurHP != a.HPMP.MaxHP).OrderBy(a => (float)a.HPMP.CurHP / a.HPMP.MaxHP).FirstOrDefault() : mainTarget ?? Player,
                 _ => null
             };
-            if ((CDRemaining(AID.CureIIPvP) < 12.6f || HasEffect(SID.CureIIIReadyPvP)) && strategy.Option(Track.Cure).As<CureStrategy>() switch
+            if ((Cooldown(AID.CureIIPvP) < 12.6f || HasStatus(SID.CureIIIReadyPvP)) && strategy.Option(Track.Cure).As<CureStrategy>() switch
             {
                 CureStrategy.Eighty => HPP(healtarget) is < 80 and not 0,
                 CureStrategy.Seventy => HPP(healtarget) is < 70 and not 0,
@@ -171,7 +171,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
                 CureStrategy.Fourty => HPP(healtarget) is < 40 and not 0,
                 _ => false
             })
-                QueueGCD(HasEffect(SID.CureIIIReadyPvP) ? AID.CureIIIPvP : AID.CureIIPvP, healtarget, GCDPriority.VeryHigh);
+                QueueGCD(HasStatus(SID.CureIIIReadyPvP) ? AID.CureIIIPvP : AID.CureIIPvP, healtarget, GCDPriority.VeryHigh);
 
             if (IsReady(AID.AfflatusMiseryPvP) && strategy.Option(Track.AfflatusMisery).As<CommonStrategy>() == CommonStrategy.Allow)
                 QueueGCD(AID.AfflatusMiseryPvP, auto ? BestSplashTarget?.Actor : mainTarget, GCDPriority.Average);
@@ -199,7 +199,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
             })
                 QueueGCD(AID.SeraphStrikePvP, bestSStarget, GCDPriority.Average);
 
-            QueueGCD(HasEffect(SID.SacredSightPvP) ? AID.GlareIVPvP : AID.GlareIIIPvP, auto && HasEffect(SID.SacredSightPvP) ? BestSplashTarget?.Actor : mainTarget, GCDPriority.Low);
+            QueueGCD(HasStatus(SID.SacredSightPvP) ? AID.GlareIVPvP : AID.GlareIIIPvP, auto && HasStatus(SID.SacredSightPvP) ? BestSplashTarget?.Actor : mainTarget, GCDPriority.Low);
         }
     }
 }

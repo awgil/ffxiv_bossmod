@@ -85,14 +85,14 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
         return res;
     }
 
-    public bool IsReady(AID aid) => CDRemaining(aid) <= 0.2f;
+    public bool IsReady(AID aid) => Cooldown(aid) <= 0.2f;
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
             return;
 
-        var (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 8, Is8yConeTarget);
+        var (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 8, ConeTargetCheck(8));
         var (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         var (BestSlipstreamTargets, NumSlipstreamTargets) = GetBestTarget(primaryTarget, 25, Is10ySplashTarget);
         var BestConeTarget = NumConeTargets > 1 ? BestConeTargets : primaryTarget;
@@ -131,33 +131,33 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
 
             var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
             {
-                RoleActionStrategy.Comet => (HasEffect(SID.CometEquippedPvP) && IsReady(AID.CometPvP) && !IsMoving, AID.CometPvP, auto ? BestSlipstreamTarget?.Actor : mainTarget),
-                RoleActionStrategy.PhantomDart => (HasEffect(SID.PhantomDartEquippedPvP) && IsReady(AID.PhantomDartPvP), AID.PhantomDartPvP, mainTarget),
-                RoleActionStrategy.Rust => (HasEffect(SID.RustEquippedPvP) && IsReady(AID.RustPvP), AID.RustPvP, mainTarget),
+                RoleActionStrategy.Comet => (HasStatus(SID.CometEquippedPvP) && IsReady(AID.CometPvP) && !IsMoving, AID.CometPvP, auto ? BestSlipstreamTarget?.Actor : mainTarget),
+                RoleActionStrategy.PhantomDart => (HasStatus(SID.PhantomDartEquippedPvP) && IsReady(AID.PhantomDartPvP), AID.PhantomDartPvP, mainTarget),
+                RoleActionStrategy.Rust => (HasStatus(SID.RustEquippedPvP) && IsReady(AID.RustPvP), AID.RustPvP, mainTarget),
                 _ => (false, AID.None, null)
             };
             if (roleCondition)
                 QueueGCD(roleAction, roleTarget, GCDPriority.High + 1);
 
-            if (IsReady(AID.BrandOfPurgatoryPvP) && HasEffect(SID.FirebirdTrance))
+            if (IsReady(AID.BrandOfPurgatoryPvP) && HasStatus(SID.FirebirdTrance))
                 QueueGCD(AID.BrandOfPurgatoryPvP, BestTarget, GCDPriority.High);
 
-            if (IsReady(AID.DeathflarePvP) && HasEffect(SID.DreadwyrmTrance))
+            if (IsReady(AID.DeathflarePvP) && HasStatus(SID.DreadwyrmTrance))
                 QueueGCD(AID.DeathflarePvP, BestTarget, GCDPriority.High);
 
-            if (IsReady(AID.Ruin4PvP) && HasEffect(SID.FurtherRuinPvP))
+            if (IsReady(AID.Ruin4PvP) && HasStatus(SID.FurtherRuinPvP))
             {
                 var (r4Condition, r4Priority) = strategy.Option(Track.RuinIV).As<Ruin4Strategy>() switch
                 {
                     Ruin4Strategy.Early => (true, GCDPriority.High + 1),
-                    Ruin4Strategy.Late => (StatusRemaining(Player, SID.FurtherRuinPvP) <= 3f || CDRemaining(AID.NecrotizePvP) <= 1f, GCDPriority.ModeratelyHigh),
+                    Ruin4Strategy.Late => (Status(SID.FurtherRuinPvP) <= 3f || Cooldown(AID.NecrotizePvP) <= 1f, GCDPriority.ModeratelyHigh),
                     _ => (false, GCDPriority.None)
                 };
                 if (r4Condition)
                     QueueGCD(AID.Ruin4PvP, BestTarget, r4Priority);
             }
 
-            if (CDRemaining(AID.NecrotizePvP) < 10.6f && !HasEffect(SID.FurtherRuinPvP) && strategy.Option(Track.Necrotize).As<CommonStrategy>() == CommonStrategy.Allow)
+            if (Cooldown(AID.NecrotizePvP) < 10.6f && !HasStatus(SID.FurtherRuinPvP) && strategy.Option(Track.Necrotize).As<CommonStrategy>() == CommonStrategy.Allow)
                 QueueGCD(AID.NecrotizePvP, mainTarget, GCDPriority.SlightlyHigh);
 
             if (IsReady(AID.CrimsonCyclonePvP) && strategy.Option(Track.CrimsonCyclone).As<CycloneStrategy>() switch
@@ -171,8 +171,8 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
             })
                 QueueGCD(AID.CrimsonCyclonePvP, BestTarget, GCDPriority.AboveAverage);
 
-            if (HasEffect(SID.CrimsonStrikeReadyPvP))
-                QueueGCD(AID.CrimsonStrikePvP, mainTarget, StatusRemaining(Player, SID.FurtherRuinPvP) <= 3f ? GCDPriority.High + 1 : GCDPriority.AboveAverage);
+            if (HasStatus(SID.CrimsonStrikeReadyPvP))
+                QueueGCD(AID.CrimsonStrikePvP, mainTarget, Status(SID.FurtherRuinPvP) <= 3f ? GCDPriority.High + 1 : GCDPriority.AboveAverage);
 
             if (IsReady(AID.MountainBusterPvP) && DistanceFrom(mainTarget, 8f) && strategy.Option(Track.MountainBuster).As<CommonStrategy>() == CommonStrategy.Allow)
                 QueueGCD(AID.MountainBusterPvP, auto ? BestConeTarget?.Actor : mainTarget, GCDPriority.Average);
@@ -180,10 +180,10 @@ public sealed class AkechiSMNPvP(RotationModuleManager manager, Actor player) : 
             if (IsReady(AID.SlipstreamPvP) && !IsMoving && strategy.Option(Track.Slipstream).As<CommonStrategy>() == CommonStrategy.Allow)
                 QueueGCD(AID.SlipstreamPvP, BestSlipstreamTarget?.Actor, GCDPriority.BelowAverage);
 
-            if (IsReady(AID.AstralImpulsePvP) && HasEffect(SID.DreadwyrmTrance))
+            if (IsReady(AID.AstralImpulsePvP) && HasStatus(SID.DreadwyrmTrance))
                 QueueGCD(AID.AstralImpulsePvP, mainTarget, GCDPriority.SlightlyLow);
 
-            if (IsReady(AID.FountainOfFirePvP) && HasEffect(SID.FirebirdTrance))
+            if (IsReady(AID.FountainOfFirePvP) && HasStatus(SID.FirebirdTrance))
                 QueueGCD(AID.FountainOfFirePvP, mainTarget, GCDPriority.SlightlyLow);
 
             if (IsReady(AID.RadiantAegisPvP) && strategy.Option(Track.RadiantAegis).As<AegisStrategy>() switch
