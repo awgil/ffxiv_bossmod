@@ -127,10 +127,10 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
         switch ((AID)ev.Action.ID)
         {
             case AID.ShrinkingCirclesOfAblution1:
-                AddVoidzone(actor, new AOEShapeCircle(10));
+                AddVoidzone(actor, new AOEShapeCircle(10), World.FutureTime(3.1f));
                 break;
             case AID.GrowingCirclesOfAblution1:
-                AddVoidzone(actor, new AOEShapeDonut(10, 40));
+                AddVoidzone(actor, new AOEShapeDonut(10, 40), World.FutureTime(3.1f));
                 break;
             case AID.Accelerate:
                 AddVoidzone(actor, new AOEShapeDonut(5, 10));
@@ -144,7 +144,7 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
                 break;
 
             case AID.HailOfHeelsCast:
-                AddVoidzone(actor, new AOEShapeCone(8, 90.Degrees()), 3);
+                AddVoidzone(actor, new AOEShapeCone(8, 90.Degrees()), Counter: 3);
                 break;
 
             case AID.HailOfHeels:

@@ -37,6 +37,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         Transfiguration = 565,
         ItemPenalty = 1094,
         Transfiguration2 = 4708,
+        Anointed = 4587,
     }
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -126,6 +127,10 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
     private void SetupKiteZone(in Strategy strategy, Actor? primaryTarget)
     {
         if (!IsRanged || primaryTarget == null || !Player.InCombat || !strategy.Kite.IsEnabled() || World.DeepDungeon.IsBossFloor)
+            return;
+
+        // anointed = full heal every tick, no need to worry about autos
+        if (Player.FindStatus(SID.Anointed) != null)
             return;
 
         // wew
