@@ -25,7 +25,7 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
     public readonly Replay.Encounter? Encounter = enc;
     private readonly Decoder _decoder = new(replay);
     private DateTime _relativeTS;
-    private List<(int index, NetworkState.OpServerIPC op, PacketDecoder.TextNode data)>? _nodes;
+    private List<(int index, NetworkState.OpServerIPC op, Lazy<PacketDecoder.TextNode> data)>? _nodes;
     private readonly HashSet<PacketID> _filteredPackets = [
         PacketID.ActorMove,
         PacketID.ActorControlSelf,
@@ -50,11 +50,20 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
     public void Draw(UITree tree, DateTime reference)
     {
         int index = 0;
-        _nodes ??= [.. ops.OfType<NetworkState.OpServerIPC>().Where(FilterOp).Select(op => (++index, op, _decoder.Decode(op.Packet, op.Timestamp)))];
+        _nodes ??= [.. ops.OfType<NetworkState.OpServerIPC>().Where(FilterOp).Select(op => (++index, op, new Lazy<PacketDecoder.TextNode>(() => _decoder.Decode(op.Packet, op.Timestamp))))];
 
         var timeRef = ImGui.GetIO().KeyShift && _relativeTS != default ? _relativeTS : reference;
-        foreach (var n in tree.Nodes(_nodes, n => new($"{(n.op.Timestamp - timeRef).TotalSeconds:f3}: {n.data.Text}###{n.index}", n.data.Children == null), n => ContextMenu(n.op), n => scrollTo(n.op.Timestamp), n => _relativeTS = n.op.Timestamp))
-            DrawNodes(tree, n.data.Children);
+
+        var c = new ImGuiListClipper();
+        c.Begin(_nodes.Count, 21);
+
+        while (c.Step())
+        {
+            foreach (var n in tree.Nodes(_nodes[c.DisplayStart..c.DisplayEnd], n => new($"{(n.op.Timestamp - timeRef).TotalSeconds:f3}: {n.data.Value.Text}###{n.index}", n.data.Value.Children == null), n => ContextMenu(n.op), n => scrollTo(n.op.Timestamp), n => _relativeTS = n.op.Timestamp))
+                DrawNodes(tree, n.data.Value.Children);
+        }
+
+        c.End();
     }
 
     public void ClearFilters()
