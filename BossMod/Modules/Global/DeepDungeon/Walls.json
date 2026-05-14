@@ -51,7 +51,7 @@
             "Depth": 0.3858328
           },
           "East": {
-            "Position": { "X": -337.13577, "Z": 242.4569 },
+            "Position": { "X": -337.13577, "Z": 242.45688 },
             "Depth": 0.3858328
           }
         },
@@ -84,7 +84,7 @@
             "Depth": 0.3858328
           },
           "East": {
-            "Position": { "X": -217.13625, "Z": 254.45659 },
+            "Position": { "X": -217.13625, "Z": 254.45657 },
             "Depth": 0.3858328
           }
         },
@@ -1017,7 +1017,7 @@
         },
         {
           "North": {
-            "Position": { "X": -299.42346, "Z": 227.94981 },
+            "Position": { "X": -299.42346, "Z": 227.9498 },
             "Depth": 1.214
           },
           "South": {
@@ -1849,7 +1849,7 @@
         },
         {
           "North": {
-            "Position": { "X": 299.99512, "Z": -259.301 },
+            "Position": { "X": 299.99512, "Z": -259.30103 },
             "Depth": 1.140426
           },
           "South": {
@@ -2091,7 +2091,7 @@
         },
         {
           "North": {
-            "Position": { "X": 299.99512, "Z": -259.301 },
+            "Position": { "X": 299.99512, "Z": -259.30103 },
             "Depth": 1.140426
           },
           "South": {
@@ -3523,7 +3523,7 @@
             "Depth": 2.737763
           },
           "South": {
-            "Position": { "X": -300, "Z": 262.9413 },
+            "Position": { "X": -300, "Z": 262.94135 },
             "Depth": 2.737763
           },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
@@ -3643,7 +3643,7 @@
             "Depth": 2.737763
           },
           "South": {
-            "Position": { "X": -300, "Z": 374.9413 },
+            "Position": { "X": -300, "Z": 374.94135 },
             "Depth": 2.737763
           },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
@@ -4241,7 +4241,7 @@
             "Depth": 2.737763
           },
           "South": {
-            "Position": { "X": -300, "Z": 262.9413 },
+            "Position": { "X": -300, "Z": 262.94135 },
             "Depth": 2.737763
           },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
@@ -4361,7 +4361,7 @@
             "Depth": 2.737763
           },
           "South": {
-            "Position": { "X": -300, "Z": 374.9413 },
+            "Position": { "X": -300, "Z": 374.94135 },
             "Depth": 2.737763
           },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
@@ -4483,7 +4483,7 @@
             "Depth": 2.737763
           },
           "South": {
-            "Position": { "X": -300, "Z": 262.9413 },
+            "Position": { "X": -300, "Z": 262.94135 },
             "Depth": 2.737763
           },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
@@ -4603,7 +4603,7 @@
             "Depth": 2.737763
           },
           "South": {
-            "Position": { "X": -300, "Z": 374.9413 },
+            "Position": { "X": -300, "Z": 374.94135 },
             "Depth": 2.737763
           },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
@@ -5919,7 +5919,7 @@
         },
         {
           "North": {
-            "Position": { "X": -299.42346, "Z": 227.94981 },
+            "Position": { "X": -299.42346, "Z": 227.9498 },
             "Depth": 1.214
           },
           "South": {
@@ -6637,7 +6637,7 @@
         },
         {
           "North": {
-            "Position": { "X": -299.42346, "Z": 227.94981 },
+            "Position": { "X": -299.42346, "Z": 227.9498 },
             "Depth": 1.214
           },
           "South": {
@@ -9168,7 +9168,10 @@
         },
         {
           "North": { "Position": { "X": -236, "Z": 237.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -236.01291, "Z": 274.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -236.01291, "Z": 274.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
           "East": { "Position": { "X": -217.3, "Z": 255.99355 }, "Depth": 1 }
         },
@@ -9186,7 +9189,10 @@
         },
         {
           "North": { "Position": { "X": -364, "Z": 281.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -363.9871, "Z": 318.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -363.9871, "Z": 318.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": -382.7, "Z": 299.99353 }, "Depth": 1 },
           "East": {
             "Position": { "X": -345.30002, "Z": 299.97858 },
@@ -9195,7 +9201,10 @@
         },
         {
           "North": { "Position": { "X": -300, "Z": 277.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -299.9871, "Z": 322.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -299.9871, "Z": 322.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": -318.7, "Z": 299.99353 }, "Depth": 1 },
           "East": {
             "Position": { "X": -281.30002, "Z": 299.97858 },
@@ -9204,7 +9213,10 @@
         },
         {
           "North": { "Position": { "X": -236, "Z": 293.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -235.98709, "Z": 330.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -235.98709, "Z": 330.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": -254.7, "Z": 311.99353 }, "Depth": 1 },
           "East": { "Position": { "X": -217.3, "Z": 311.99353 }, "Depth": 1 }
         },
@@ -9222,7 +9234,10 @@
         },
         {
           "North": { "Position": { "X": -352, "Z": 337.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -351.9871, "Z": 374.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -351.9871, "Z": 374.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": -370.7, "Z": 355.99353 }, "Depth": 1 },
           "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
         },
@@ -9234,7 +9249,10 @@
         },
         {
           "North": { "Position": { "X": -236, "Z": 345.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -236.01291, "Z": 390.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -236.01291, "Z": 390.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
           "East": { "Position": { "X": -217.3, "Z": 367.99353 }, "Depth": 1 }
         },
@@ -9322,7 +9340,10 @@
         },
         {
           "North": { "Position": { "X": 312, "Z": -374.7 }, "Depth": 1 },
-          "South": { "Position": { "X": 311.9871, "Z": -337.3 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": 311.9871, "Z": -337.30002 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": 293.3, "Z": -356 }, "Depth": 1 },
           "East": { "Position": { "X": 330.7, "Z": -356.00647 }, "Depth": 1 }
         },
@@ -9355,7 +9376,10 @@
             "Position": { "X": 300.01495, "Z": -318.69998 },
             "Depth": 1
           },
-          "South": { "Position": { "X": 299.9871, "Z": -281.3 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": 299.9871, "Z": -281.30002 },
+            "Depth": 1
+          },
           "West": {
             "Position": { "X": 281.30002, "Z": -300.02142 },
             "Depth": 1
@@ -9492,7 +9516,10 @@
         },
         {
           "North": { "Position": { "X": -236, "Z": 237.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -236.01291, "Z": 274.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -236.01291, "Z": 274.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
           "East": { "Position": { "X": -217.3, "Z": 255.99355 }, "Depth": 1 }
         },
@@ -9510,7 +9537,10 @@
         },
         {
           "North": { "Position": { "X": -364, "Z": 281.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -363.9871, "Z": 318.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -363.9871, "Z": 318.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": -382.7, "Z": 299.99353 }, "Depth": 1 },
           "East": {
             "Position": { "X": -345.30002, "Z": 299.97858 },
@@ -9519,7 +9549,10 @@
         },
         {
           "North": { "Position": { "X": -300, "Z": 277.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -299.9871, "Z": 322.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -299.9871, "Z": 322.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": -318.7, "Z": 299.99353 }, "Depth": 1 },
           "East": {
             "Position": { "X": -281.30002, "Z": 299.97858 },
@@ -9528,7 +9561,10 @@
         },
         {
           "North": { "Position": { "X": -236, "Z": 293.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -235.98709, "Z": 330.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -235.98709, "Z": 330.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": -254.7, "Z": 311.99353 }, "Depth": 1 },
           "East": { "Position": { "X": -217.3, "Z": 311.99353 }, "Depth": 1 }
         },
@@ -9546,7 +9582,10 @@
         },
         {
           "North": { "Position": { "X": -352, "Z": 337.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -351.9871, "Z": 374.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -351.9871, "Z": 374.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": -370.7, "Z": 355.99353 }, "Depth": 1 },
           "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
         },
@@ -9558,7 +9597,10 @@
         },
         {
           "North": { "Position": { "X": -236, "Z": 345.3 }, "Depth": 1 },
-          "South": { "Position": { "X": -236.01291, "Z": 390.7 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -236.01291, "Z": 390.69998 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
           "East": { "Position": { "X": -217.3, "Z": 367.99353 }, "Depth": 1 }
         },
@@ -9646,7 +9688,10 @@
         },
         {
           "North": { "Position": { "X": 312, "Z": -374.7 }, "Depth": 1 },
-          "South": { "Position": { "X": 311.9871, "Z": -337.3 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": 311.9871, "Z": -337.30002 },
+            "Depth": 1
+          },
           "West": { "Position": { "X": 293.3, "Z": -356 }, "Depth": 1 },
           "East": { "Position": { "X": 330.7, "Z": -356.00647 }, "Depth": 1 }
         },
@@ -9679,7 +9724,10 @@
             "Position": { "X": 300.01495, "Z": -318.69998 },
             "Depth": 1
           },
-          "South": { "Position": { "X": 299.9871, "Z": -281.3 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": 299.9871, "Z": -281.30002 },
+            "Depth": 1
+          },
           "West": {
             "Position": { "X": 281.30002, "Z": -300.02142 },
             "Depth": 1
@@ -13351,7 +13399,7 @@
         },
         {
           "North": {
-            "Position": { "X": 299.99512, "Z": -258.9962 },
+            "Position": { "X": 299.99512, "Z": -258.99622 },
             "Depth": 2.2
           },
           "South": {
@@ -13831,7 +13879,7 @@
         },
         {
           "North": {
-            "Position": { "X": 299.99512, "Z": -258.9962 },
+            "Position": { "X": 299.99512, "Z": -258.99622 },
             "Depth": 2.2
           },
           "South": {
@@ -14311,7 +14359,7 @@
         },
         {
           "North": {
-            "Position": { "X": 299.99512, "Z": -258.9962 },
+            "Position": { "X": 299.99512, "Z": -258.99622 },
             "Depth": 2.2
           },
           "South": {
@@ -14791,7 +14839,7 @@
         },
         {
           "North": {
-            "Position": { "X": 299.99512, "Z": -258.9962 },
+            "Position": { "X": 299.99512, "Z": -258.99622 },
             "Depth": 2.2
           },
           "South": {
@@ -15445,6 +15493,3660 @@
           "South": { "Position": { "X": 380, "Z": -199.63799 }, "Depth": 1 },
           "West": { "Position": { "X": 359.638, "Z": -220 }, "Depth": 1 },
           "East": { "Position": { "X": 400.3619, "Z": -220 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.1": {
+    "DungeonId": 4,
+    "Floorset": 0,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": {
+            "Position": { "X": -371.9993, "Z": 219.66422 },
+            "Depth": 1
+          },
+          "South": {
+            "Position": { "X": -371.99872, "Z": 260.3358 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -392.3358, "Z": 239.99904 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 209.66422 }, "Depth": 1 },
+          "South": { "Position": { "X": -300, "Z": 250.33578 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -230, "Z": 220.16603 }, "Depth": 1 },
+          "South": { "Position": { "X": -230, "Z": 263.8069 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": {
+            "Position": { "X": -210.16603, "Z": 240.00006 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -360, "Z": 279.6642 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -360.00058, "Z": 320.3358 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -380.3358, "Z": 299.99905 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -339.6642, "Z": 299.99973 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 279.6642 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -299.9998, "Z": 314.76465 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -320.76465, "Z": 300.00043 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": -279.23535, "Z": 300.00043 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": -230, "Z": 279.6642 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -230.00029, "Z": 320.3358 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -250.33578, "Z": 299.99973 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": -209.66422, "Z": 299.99973 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -360, "Z": 343.1642 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -360.00082, "Z": 381.68094 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -379.68094, "Z": 363.99918 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 344.23535 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -300.00058, "Z": 380.3358 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -230, "Z": 336.1931 }, "Depth": 1 },
+          "South": { "Position": { "X": -230, "Z": 379.83398 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": {
+            "Position": { "X": -210.16603, "Z": 360.00006 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 240, "Z": -389.83398 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 220.16603, "Z": -369.99994 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 263.8069, "Z": -370.00027 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -390.3358 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -349.6642 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": 279.6642, "Z": -370.00027 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 320.3358, "Z": -370.00027 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 360, "Z": -389.83398 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 336.1931, "Z": -370.00027 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": 379.83398, "Z": -369.99994 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 209.66422, "Z": -300.00027 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": 250.33578, "Z": -300.00027 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": {
+            "Position": { "X": 299.99957, "Z": -320.76465 },
+            "Depth": 1
+          },
+          "South": {
+            "Position": { "X": 299.9998, "Z": -279.23514 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": 279.6642, "Z": -300.00027 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": 314.76465, "Z": -299.99988 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 344.23535, "Z": -299.99957 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 380.3358, "Z": -300.00027 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": {
+            "Position": { "X": 240.00128, "Z": -207.66422 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": 219.66422, "Z": -228.00029 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 260.3358, "Z": -228.00029 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -260.3358 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": 300.00128, "Z": -219.66422 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": 279.6642, "Z": -240.00029 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 320.3358, "Z": -240.00029 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 364, "Z": -220.31908 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": 343.16412, "Z": -240.00009 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": 380.68094, "Z": -240.00041 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.2": {
+    "DungeonId": 4,
+    "Floorset": 1,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": {
+            "Position": { "X": -371.9993, "Z": 219.66422 },
+            "Depth": 1
+          },
+          "South": {
+            "Position": { "X": -371.99872, "Z": 260.3358 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -392.35992, "Z": 239.99901 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 209.66422 }, "Depth": 1 },
+          "South": { "Position": { "X": -300, "Z": 250.33578 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -230, "Z": 220.16603 }, "Depth": 1 },
+          "South": { "Position": { "X": -230, "Z": 263.8069 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": {
+            "Position": { "X": -210.16603, "Z": 240.00006 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -360, "Z": 279.6642 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -360.00058, "Z": 320.3358 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -380.3358, "Z": 299.99905 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -339.6642, "Z": 299.99973 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 279.6642 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -299.9999, "Z": 314.76456 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -320.76465, "Z": 299.99973 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": -279.23535, "Z": 299.99973 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": -230, "Z": 279.6642 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -230.00029, "Z": 320.3358 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -250.35992, "Z": 299.9997 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": -209.66422, "Z": 299.99973 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -360, "Z": 343.1642 }, "Depth": 1 },
+          "South": { "Position": { "X": -360, "Z": 381.68094 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -379.68094, "Z": 363.99918 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 344.23535 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -300.00058, "Z": 380.3358 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -230, "Z": 336.1931 }, "Depth": 1 },
+          "South": { "Position": { "X": -230, "Z": 379.83398 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": {
+            "Position": { "X": -210.16603, "Z": 360.00006 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 240, "Z": -389.83398 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 220.16603, "Z": -369.99994 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 263.8069, "Z": -370.00027 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -390.3358 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -349.6642 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": 279.6642, "Z": -370.00027 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 320.3358, "Z": -370.00027 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 360, "Z": -389.83398 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 336.1931, "Z": -370.00027 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": 379.83398, "Z": -369.99994 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 209.66422, "Z": -300.00027 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": 250.33578, "Z": -300.00027 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": {
+            "Position": { "X": 300.00006, "Z": -320.76465 },
+            "Depth": 1
+          },
+          "South": {
+            "Position": { "X": 299.9995, "Z": -279.23505 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": 279.6642, "Z": -300.00027 },
+            "Depth": 1
+          },
+          "East": {
+            "Position": { "X": 314.76465, "Z": -299.99957 },
+            "Depth": 1
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 344.23526, "Z": -299.99847 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 380.3358, "Z": -300.00027 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": {
+            "Position": { "X": 240.00133, "Z": -207.64008 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": 219.66422, "Z": -228.00029 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 260.3358, "Z": -228.00029 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -260.3358 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": 300.00122, "Z": -219.63997 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": 279.6642, "Z": -240.00029 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 320.3358, "Z": -240.00029 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 364, "Z": -220.31908 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": 343.16412, "Z": -240.00009 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 380.68094, "Z": -240 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.3": {
+    "DungeonId": 4,
+    "Floorset": 2,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -364, "Z": 204 }, "Depth": 1 },
+          "South": { "Position": { "X": -364, "Z": 236 }, "Depth": 1 },
+          "West": { "Position": { "X": -380, "Z": 219.99965 }, "Depth": 1 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 228 }, "Depth": 1 },
+          "South": { "Position": { "X": -300, "Z": 260 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -238, "Z": 214.0001 }, "Depth": 1 },
+          "South": { "Position": { "X": -238, "Z": 246 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -222, "Z": 229.99965 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -364, "Z": 260 }, "Depth": 1 },
+          "South": { "Position": { "X": -364, "Z": 292 }, "Depth": 1 },
+          "West": { "Position": { "X": -380, "Z": 275.99966 }, "Depth": 1 },
+          "East": { "Position": { "X": -348, "Z": 275.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 284 }, "Depth": 1 },
+          "South": { "Position": { "X": -300, "Z": 316 }, "Depth": 1 },
+          "West": { "Position": { "X": -316, "Z": 299.99966 }, "Depth": 1 },
+          "East": { "Position": { "X": -284, "Z": 299.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": -238, "Z": 278 }, "Depth": 1 },
+          "South": { "Position": { "X": -238, "Z": 322 }, "Depth": 1 },
+          "West": { "Position": { "X": -260, "Z": 299.99966 }, "Depth": 1 },
+          "East": { "Position": { "X": -216, "Z": 299.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -364, "Z": 324.0001 }, "Depth": 1 },
+          "South": { "Position": { "X": -364, "Z": 368 }, "Depth": 1 },
+          "West": { "Position": { "X": -386, "Z": 345.99966 }, "Depth": 1 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 348 }, "Depth": 1 },
+          "South": { "Position": { "X": -300, "Z": 380 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -214, "Z": 354 }, "Depth": 1 },
+          "South": { "Position": { "X": -214, "Z": 386 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -198, "Z": 369.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 230, "Z": -378 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 214, "Z": -362.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 246, "Z": -362.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -384 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -340 }, "Depth": 1 },
+          "West": { "Position": { "X": 278, "Z": -362.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 322, "Z": -362.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 370, "Z": -402 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 354, "Z": -386.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 386, "Z": -386.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 228, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 260, "Z": -300.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -316 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -284 }, "Depth": 1 },
+          "West": { "Position": { "X": 284, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 316, "Z": -300.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 348, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 380, "Z": -300.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 220, "Z": -220 }, "Depth": 1 },
+          "West": { "Position": { "X": 204, "Z": -236.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 236, "Z": -236.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 276, "Z": -252 }, "Depth": 1 },
+          "South": { "Position": { "X": 276, "Z": -220 }, "Depth": 1 },
+          "West": { "Position": { "X": 260, "Z": -236.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 292, "Z": -236.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 344, "Z": -214 }, "Depth": 1 },
+          "West": { "Position": { "X": 322, "Z": -236.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 366, "Z": -236.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.4": {
+    "DungeonId": 4,
+    "Floorset": 3,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -364, "Z": 204 }, "Depth": 1 },
+          "South": { "Position": { "X": -364, "Z": 236 }, "Depth": 1 },
+          "West": { "Position": { "X": -380, "Z": 219.99965 }, "Depth": 1 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 228 }, "Depth": 1 },
+          "South": { "Position": { "X": -300, "Z": 260 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -238, "Z": 214.0001 }, "Depth": 1 },
+          "South": { "Position": { "X": -238, "Z": 246 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -222, "Z": 229.99965 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -364, "Z": 260 }, "Depth": 1 },
+          "South": { "Position": { "X": -364, "Z": 292 }, "Depth": 1 },
+          "West": { "Position": { "X": -380, "Z": 275.99966 }, "Depth": 1 },
+          "East": { "Position": { "X": -348, "Z": 275.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 284 }, "Depth": 1 },
+          "South": { "Position": { "X": -300, "Z": 316 }, "Depth": 1 },
+          "West": { "Position": { "X": -316, "Z": 299.99966 }, "Depth": 1 },
+          "East": { "Position": { "X": -284, "Z": 299.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": -238, "Z": 278 }, "Depth": 1 },
+          "South": { "Position": { "X": -238, "Z": 322 }, "Depth": 1 },
+          "West": { "Position": { "X": -260, "Z": 299.99966 }, "Depth": 1 },
+          "East": { "Position": { "X": -216, "Z": 299.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -364, "Z": 324.0001 }, "Depth": 1 },
+          "South": { "Position": { "X": -364, "Z": 368 }, "Depth": 1 },
+          "West": { "Position": { "X": -386, "Z": 345.99966 }, "Depth": 1 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 348 }, "Depth": 1 },
+          "South": { "Position": { "X": -300, "Z": 380 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -214, "Z": 354 }, "Depth": 1 },
+          "South": { "Position": { "X": -214, "Z": 386 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -198, "Z": 369.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 230, "Z": -378 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 214, "Z": -362.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 246, "Z": -362.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -384 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -340 }, "Depth": 1 },
+          "West": { "Position": { "X": 278, "Z": -362.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 322, "Z": -362.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 370, "Z": -402 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 354, "Z": -386.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 386, "Z": -386.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 228, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 260, "Z": -300.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -316 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -284 }, "Depth": 1 },
+          "West": { "Position": { "X": 284, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 316, "Z": -300.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 348, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 380, "Z": -300.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 220, "Z": -220 }, "Depth": 1 },
+          "West": { "Position": { "X": 204, "Z": -236.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 236, "Z": -236.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 276, "Z": -252 }, "Depth": 1 },
+          "South": { "Position": { "X": 276, "Z": -220 }, "Depth": 1 },
+          "West": { "Position": { "X": 260, "Z": -236.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 292, "Z": -236.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 344, "Z": -214 }, "Depth": 1 },
+          "West": { "Position": { "X": 322, "Z": -236.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 366, "Z": -236.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.5": {
+    "DungeonId": 4,
+    "Floorset": 4,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -395, "Z": 184 }, "Depth": 1 },
+          "South": { "Position": { "X": -394.9993, "Z": 236 }, "Depth": 1 },
+          "West": { "Position": { "X": -418, "Z": 209.99965 }, "Depth": 1 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": {
+            "Position": { "X": -300.0002, "Z": 200.5001 },
+            "Depth": 1.5
+          },
+          "South": { "Position": { "X": -300, "Z": 239.5 }, "Depth": 1.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -220.0001, "Z": 197 }, "Depth": 1 },
+          "South": { "Position": { "X": -220.00069, "Z": 246 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -194.0001, "Z": 219.99965 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -380.0552, "Z": 274 }, "Depth": 1 },
+          "South": { "Position": { "X": -380.0545, "Z": 326 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -406.0552, "Z": 299.99966 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -354.0552, "Z": 299.99966 }, "Depth": 1 }
+        },
+        {
+          "North": {
+            "Position": { "X": -299.9989, "Z": 276.6015 },
+            "Depth": 1.5
+          },
+          "South": {
+            "Position": { "X": -299.9994, "Z": 323.3998 },
+            "Depth": 1.5
+          },
+          "West": {
+            "Position": { "X": -323.3986, "Z": 299.99908 },
+            "Depth": 1.5
+          },
+          "East": {
+            "Position": { "X": -276.5982, "Z": 300.00098 },
+            "Depth": 1.5
+          }
+        },
+        {
+          "North": { "Position": { "X": -219.9448, "Z": 274 }, "Depth": 1 },
+          "South": { "Position": { "X": -219.94548, "Z": 326 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -245.9448, "Z": 299.99966 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -196.9448, "Z": 299.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -388.0268, "Z": 354 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -388.0283, "Z": 405.9999 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": -414.0276, "Z": 379.9988 }, "Depth": 1 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300.02725, "Z": 354 }, "Depth": 1 },
+          "South": { "Position": { "X": -311.02725, "Z": 411 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -204.8895, "Z": 364 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -204.89018, "Z": 412.9999 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -178.8896, "Z": 389.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 220, "Z": -406.0273 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 197, "Z": -380.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 246, "Z": -380.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -406 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -354 }, "Depth": 1 },
+          "West": { "Position": { "X": 274, "Z": -380.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 326, "Z": -380.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 390, "Z": -421 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 364, "Z": -395.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 416, "Z": -395.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 200.4999, "Z": -300.00052 },
+            "Depth": 1.5
+          },
+          "East": { "Position": { "X": 239.5, "Z": -300.00043 }, "Depth": 1.5 }
+        },
+        {
+          "North": { "Position": { "X": 299.9995, "Z": -323.4 }, "Depth": 1.5 },
+          "South": { "Position": { "X": 299.9995, "Z": -276.6 }, "Depth": 1.5 },
+          "West": {
+            "Position": { "X": 276.5998, "Z": -300.00052 },
+            "Depth": 1.5
+          },
+          "East": {
+            "Position": { "X": 323.3996, "Z": -300.00052 },
+            "Depth": 1.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 354, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 414, "Z": -289.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 210, "Z": -179 }, "Depth": 1 },
+          "West": { "Position": { "X": 184, "Z": -205.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 236, "Z": -205.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -246 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -194 }, "Depth": 1 },
+          "West": { "Position": { "X": 274, "Z": -220.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 326, "Z": -220.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 380, "Z": -186 }, "Depth": 1 },
+          "West": { "Position": { "X": 354, "Z": -212.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 406, "Z": -212.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.6": {
+    "DungeonId": 4,
+    "Floorset": 5,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -395, "Z": 184 }, "Depth": 1 },
+          "South": { "Position": { "X": -394.9993, "Z": 236 }, "Depth": 1 },
+          "West": { "Position": { "X": -418, "Z": 209.99965 }, "Depth": 1 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": {
+            "Position": { "X": -300.0002, "Z": 200.5001 },
+            "Depth": 1.5
+          },
+          "South": { "Position": { "X": -300, "Z": 239.5 }, "Depth": 1.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -220.0001, "Z": 197 }, "Depth": 1 },
+          "South": { "Position": { "X": -220.00069, "Z": 246 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -194.0001, "Z": 219.99965 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -380.0552, "Z": 274 }, "Depth": 1 },
+          "South": { "Position": { "X": -380.0545, "Z": 326 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -406.0552, "Z": 299.99966 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -354.0552, "Z": 299.99966 }, "Depth": 1 }
+        },
+        {
+          "North": {
+            "Position": { "X": -299.9989, "Z": 276.6015 },
+            "Depth": 1.5
+          },
+          "South": {
+            "Position": { "X": -299.9994, "Z": 323.3998 },
+            "Depth": 1.5
+          },
+          "West": {
+            "Position": { "X": -323.3986, "Z": 299.99908 },
+            "Depth": 1.5
+          },
+          "East": {
+            "Position": { "X": -276.5982, "Z": 300.00098 },
+            "Depth": 1.5
+          }
+        },
+        {
+          "North": { "Position": { "X": -219.9448, "Z": 274 }, "Depth": 1 },
+          "South": { "Position": { "X": -219.94548, "Z": 326 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -245.9448, "Z": 299.99966 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -196.9448, "Z": 299.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -388.0268, "Z": 354 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -388.0283, "Z": 405.9999 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": -414.0276, "Z": 379.9988 }, "Depth": 1 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300.02725, "Z": 354 }, "Depth": 1 },
+          "South": { "Position": { "X": -311.02725, "Z": 411 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -204.8895, "Z": 364 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -204.89018, "Z": 412.9999 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -178.8896, "Z": 389.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 220, "Z": -406.0273 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 197, "Z": -380.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 246, "Z": -380.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -406 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -354 }, "Depth": 1 },
+          "West": { "Position": { "X": 274, "Z": -380.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 326, "Z": -380.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 390, "Z": -421 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 364, "Z": -395.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 416, "Z": -395.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 200.4999, "Z": -300.00052 },
+            "Depth": 1.5
+          },
+          "East": { "Position": { "X": 239.5, "Z": -300.00043 }, "Depth": 1.5 }
+        },
+        {
+          "North": { "Position": { "X": 299.9995, "Z": -323.4 }, "Depth": 1.5 },
+          "South": { "Position": { "X": 299.9995, "Z": -276.6 }, "Depth": 1.5 },
+          "West": {
+            "Position": { "X": 276.5998, "Z": -300.00052 },
+            "Depth": 1.5
+          },
+          "East": {
+            "Position": { "X": 323.3996, "Z": -300.00052 },
+            "Depth": 1.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 354, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 414, "Z": -289.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 210, "Z": -179 }, "Depth": 1 },
+          "West": { "Position": { "X": 184, "Z": -205.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 236, "Z": -205.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -246 }, "Depth": 1 },
+          "South": { "Position": { "X": 300, "Z": -194 }, "Depth": 1 },
+          "West": { "Position": { "X": 274, "Z": -220.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 326, "Z": -220.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 380, "Z": -186 }, "Depth": 1 },
+          "West": { "Position": { "X": 354, "Z": -212.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 406, "Z": -212.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.7": {
+    "DungeonId": 4,
+    "Floorset": 6,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -395, "Z": 184 }, "Depth": 1 },
+          "South": { "Position": { "X": -394.9993, "Z": 236 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -420.9999, "Z": 209.99965 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": {
+            "Position": { "X": -300.0002, "Z": 200.5001 },
+            "Depth": 1.5
+          },
+          "South": { "Position": { "X": -300, "Z": 239.5 }, "Depth": 1.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -221.0001, "Z": 194 }, "Depth": 1 },
+          "South": { "Position": { "X": -223.00069, "Z": 246 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -194.0004, "Z": 218.99954 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -380.0552, "Z": 274 }, "Depth": 1 },
+          "South": { "Position": { "X": -380.0545, "Z": 326 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -406.0555, "Z": 300.99966 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -354.0552, "Z": 297.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 276.5 }, "Depth": 1.5 },
+          "South": {
+            "Position": { "X": -299.99948, "Z": 323.5 },
+            "Depth": 1.5
+          },
+          "West": { "Position": { "X": -323.5, "Z": 299.99948 }, "Depth": 1.5 },
+          "East": { "Position": { "X": -276.5, "Z": 299.99948 }, "Depth": 1.5 }
+        },
+        {
+          "North": { "Position": { "X": -219.9448, "Z": 274 }, "Depth": 1 },
+          "South": { "Position": { "X": -219.94548, "Z": 326 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -245.9448, "Z": 299.99966 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -193.9455, "Z": 297.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": {
+            "Position": { "X": -387.0268, "Z": 354.0008 },
+            "Depth": 1
+          },
+          "South": {
+            "Position": { "X": -388.0283, "Z": 405.9999 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -414.0287, "Z": 380.99884 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300.02725, "Z": 354 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -313.02725, "Z": 413.9993 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -204.8895, "Z": 364 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -204.88948, "Z": 417.0003 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -178.8896, "Z": 389.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 219, "Z": -406.0273 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 193.9993, "Z": -378.00034 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 246.001, "Z": -377.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 299, "Z": -406 }, "Depth": 1 },
+          "South": { "Position": { "X": 301, "Z": -354 }, "Depth": 1 },
+          "West": { "Position": { "X": 274, "Z": -380.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 326, "Z": -380.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 390, "Z": -421 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 363.9997, "Z": -394.00034 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 416, "Z": -395.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 200.5, "Z": -300.00052 }, "Depth": 1.5 },
+          "East": { "Position": { "X": 239.5, "Z": -300.00043 }, "Depth": 1.5 }
+        },
+        {
+          "North": { "Position": { "X": 299.9995, "Z": -323.5 }, "Depth": 1.5 },
+          "South": { "Position": { "X": 299.9995, "Z": -276.5 }, "Depth": 1.5 },
+          "West": {
+            "Position": { "X": 276.4998, "Z": -300.00052 },
+            "Depth": 1.5
+          },
+          "East": {
+            "Position": { "X": 323.4996, "Z": -300.00052 },
+            "Depth": 1.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 354, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 418.0014, "Z": -286.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 210, "Z": -179 }, "Depth": 1 },
+          "West": { "Position": { "X": 184, "Z": -205.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 236, "Z": -205.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 298, "Z": -246 }, "Depth": 1 },
+          "South": { "Position": { "X": 301, "Z": -194 }, "Depth": 1 },
+          "West": { "Position": { "X": 274, "Z": -220.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 326.0003, "Z": -219.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 380, "Z": -186 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": 354.0003, "Z": -213.00035 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 406, "Z": -212.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.8": {
+    "DungeonId": 4,
+    "Floorset": 7,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -395, "Z": 184 }, "Depth": 1 },
+          "South": { "Position": { "X": -394.9993, "Z": 236 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -420.9999, "Z": 209.99965 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": {
+            "Position": { "X": -300.0002, "Z": 200.5001 },
+            "Depth": 1.5
+          },
+          "South": { "Position": { "X": -300, "Z": 239.5 }, "Depth": 1.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -221.0001, "Z": 194 }, "Depth": 1 },
+          "South": { "Position": { "X": -223.00069, "Z": 246 }, "Depth": 1 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -194.0004, "Z": 218.99954 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -380.0552, "Z": 274 }, "Depth": 1 },
+          "South": { "Position": { "X": -380.0545, "Z": 326 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -406.0555, "Z": 300.99966 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -354.0552, "Z": 297.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 276.5 }, "Depth": 1.5 },
+          "South": {
+            "Position": { "X": -299.99948, "Z": 323.5 },
+            "Depth": 1.5
+          },
+          "West": { "Position": { "X": -323.5, "Z": 299.99948 }, "Depth": 1.5 },
+          "East": { "Position": { "X": -276.5, "Z": 299.99948 }, "Depth": 1.5 }
+        },
+        {
+          "North": { "Position": { "X": -219.9448, "Z": 274 }, "Depth": 1 },
+          "South": { "Position": { "X": -219.94548, "Z": 326 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": -245.9448, "Z": 299.99966 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": -193.9455, "Z": 297.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": {
+            "Position": { "X": -387.0268, "Z": 354.0008 },
+            "Depth": 1
+          },
+          "South": {
+            "Position": { "X": -388.0283, "Z": 405.9999 },
+            "Depth": 1
+          },
+          "West": {
+            "Position": { "X": -414.0287, "Z": 380.99884 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300.02725, "Z": 354 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -313.02725, "Z": 413.9993 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -204.8895, "Z": 364 }, "Depth": 1 },
+          "South": {
+            "Position": { "X": -204.88948, "Z": 417.0003 },
+            "Depth": 1
+          },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": -178.8896, "Z": 389.99966 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 219, "Z": -406.0273 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 193.9993, "Z": -378.00034 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 246.001, "Z": -377.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 299, "Z": -406 }, "Depth": 1 },
+          "South": { "Position": { "X": 301, "Z": -354 }, "Depth": 1 },
+          "West": { "Position": { "X": 274, "Z": -380.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 326, "Z": -380.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 390, "Z": -421 }, "Depth": 1 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 363.9997, "Z": -394.00034 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 416, "Z": -395.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 200.5, "Z": -300.00052 }, "Depth": 1.5 },
+          "East": { "Position": { "X": 239.5, "Z": -300.00043 }, "Depth": 1.5 }
+        },
+        {
+          "North": { "Position": { "X": 299.9995, "Z": -323.5 }, "Depth": 1.5 },
+          "South": { "Position": { "X": 299.9995, "Z": -276.5 }, "Depth": 1.5 },
+          "West": {
+            "Position": { "X": 276.4998, "Z": -300.00052 },
+            "Depth": 1.5
+          },
+          "East": {
+            "Position": { "X": 323.4996, "Z": -300.00052 },
+            "Depth": 1.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 354, "Z": -300.00034 }, "Depth": 1 },
+          "East": { "Position": { "X": 418.0014, "Z": -286.00034 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 210, "Z": -179 }, "Depth": 1 },
+          "West": { "Position": { "X": 184, "Z": -205.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 236, "Z": -205.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 298, "Z": -246 }, "Depth": 1 },
+          "South": { "Position": { "X": 301, "Z": -194 }, "Depth": 1 },
+          "West": { "Position": { "X": 274, "Z": -220.00035 }, "Depth": 1 },
+          "East": { "Position": { "X": 326.0003, "Z": -219.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 380, "Z": -186 }, "Depth": 1 },
+          "West": {
+            "Position": { "X": 354.0003, "Z": -213.00035 },
+            "Depth": 1
+          },
+          "East": { "Position": { "X": 406, "Z": -212.00035 }, "Depth": 1 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.9": {
+    "DungeonId": 4,
+    "Floorset": 8,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -352, "Z": 228.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -352, "Z": 259.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -367.4323, "Z": 243.99985 },
+            "Depth": 0.5
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 228.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -300, "Z": 259.4323 }, "Depth": 0.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -236, "Z": 240.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -236, "Z": 271.4323 }, "Depth": 0.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": {
+            "Position": { "X": -220.5677, "Z": 255.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -364, "Z": 284.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -364, "Z": 315.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -379.4323, "Z": 299.99985 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": -348.5677, "Z": 299.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 280.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -300, "Z": 319.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -315.4323, "Z": 299.99985 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": -284.5677, "Z": 299.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": -236, "Z": 296.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -236, "Z": 327.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -251.4323, "Z": 311.99985 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": -220.5677, "Z": 311.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -352, "Z": 340.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -352, "Z": 371.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -367.4323, "Z": 355.99985 },
+            "Depth": 0.5
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 340.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -300, "Z": 371.4323 }, "Depth": 0.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -236, "Z": 348.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -236, "Z": 387.4323 }, "Depth": 0.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": {
+            "Position": { "X": -220.5677, "Z": 367.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 256, "Z": -359.4323 }, "Depth": 0.5 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 240.5677, "Z": -344.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 271.4323, "Z": -344.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": {
+            "Position": { "X": 312.0002, "Z": -371.4323 },
+            "Depth": 0.5
+          },
+          "South": {
+            "Position": { "X": 312.0002, "Z": -340.5677 },
+            "Depth": 0.5
+          },
+          "West": {
+            "Position": { "X": 296.5679, "Z": -356.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 327.43253, "Z": -356.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 368, "Z": -359.4323 }, "Depth": 0.5 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 352.5677, "Z": -344.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 383.4323, "Z": -344.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 228.5677, "Z": -288.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 259.4323, "Z": -288.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -315.4324 }, "Depth": 0.5 },
+          "South": { "Position": { "X": 300, "Z": -284.56778 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": 284.5677, "Z": -300.00024 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 315.4323, "Z": -300.00024 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 340.5677, "Z": -288.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 371.4323, "Z": -288.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 244, "Z": -212.5677 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": 228.5677, "Z": -232.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 259.4323, "Z": -232.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -259.4323 }, "Depth": 0.5 },
+          "South": { "Position": { "X": 300, "Z": -228.5677 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": 284.5677, "Z": -244.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 315.4323, "Z": -244.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 356, "Z": -212.5677 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": 340.5677, "Z": -232.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 371.4323, "Z": -232.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    }
+  },
+  "4.10": {
+    "DungeonId": 4,
+    "Floorset": 9,
+    "RoomsA": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -352, "Z": 228.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -352, "Z": 259.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -367.4323, "Z": 243.99985 },
+            "Depth": 0.5
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 228.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -300, "Z": 259.4323 }, "Depth": 0.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -236, "Z": 240.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -236, "Z": 271.4323 }, "Depth": 0.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": {
+            "Position": { "X": -220.5677, "Z": 255.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -364, "Z": 284.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -364, "Z": 315.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -379.4323, "Z": 299.99985 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": -348.5677, "Z": 299.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 280.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -300, "Z": 319.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -315.4323, "Z": 299.99985 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": -284.5677, "Z": 299.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": -236, "Z": 296.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -236, "Z": 327.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -251.4323, "Z": 311.99985 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": -220.5677, "Z": 311.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -352, "Z": 340.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -352, "Z": 371.4323 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": -367.4323, "Z": 355.99985 },
+            "Depth": 0.5
+          },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -300, "Z": 340.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -300, "Z": 371.4323 }, "Depth": 0.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": -236, "Z": 348.5677 }, "Depth": 0.5 },
+          "South": { "Position": { "X": -236, "Z": 387.4323 }, "Depth": 0.5 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": {
+            "Position": { "X": -220.5677, "Z": 367.99985 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        }
+      ]
+    },
+    "RoomsB": {
+      "Rooms": [
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 256, "Z": -359.4323 }, "Depth": 0.5 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 240.5677, "Z": -344.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 271.4323, "Z": -344.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": {
+            "Position": { "X": 312.0002, "Z": -371.4323 },
+            "Depth": 0.5
+          },
+          "South": {
+            "Position": { "X": 312.0002, "Z": -340.5677 },
+            "Depth": 0.5
+          },
+          "West": {
+            "Position": { "X": 296.5679, "Z": -356.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 327.43253, "Z": -356.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 368, "Z": -359.4323 }, "Depth": 0.5 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 352.5677, "Z": -344.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 383.4323, "Z": -344.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 228.5677, "Z": -288.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 259.4323, "Z": -288.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -315.4324 }, "Depth": 0.5 },
+          "South": { "Position": { "X": 300, "Z": -284.56778 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": 284.5677, "Z": -300.00024 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 315.4323, "Z": -300.00024 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": {
+            "Position": { "X": 340.5677, "Z": -288.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 371.4323, "Z": -288.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "West": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "East": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 244, "Z": -212.5677 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": 228.5677, "Z": -232.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 259.4323, "Z": -232.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 300, "Z": -259.4323 }, "Depth": 0.5 },
+          "South": { "Position": { "X": 300, "Z": -228.5677 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": 284.5677, "Z": -244.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 315.4323, "Z": -244.00015 },
+            "Depth": 0.5
+          }
+        },
+        {
+          "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
+          "South": { "Position": { "X": 356, "Z": -212.5677 }, "Depth": 0.5 },
+          "West": {
+            "Position": { "X": 340.5677, "Z": -232.00015 },
+            "Depth": 0.5
+          },
+          "East": {
+            "Position": { "X": 371.4323, "Z": -232.00015 },
+            "Depth": 0.5
+          }
         },
         {
           "North": { "Position": { "X": 0, "Z": 0 }, "Depth": 0 },
