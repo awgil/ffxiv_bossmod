@@ -514,7 +514,7 @@ public abstract partial class AutoClear : ZoneModule
                 pp.Priority = 0;
 
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
-            else if (canTarget && numAggro < Math.Max(1, _config.MaxPull) && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
+            else if (canTarget && numAggro < _config.MaxPull && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
             {
                 if (IsInThisRoomOrAdjacent(pp.Actor))
                     pp.Priority = 0;

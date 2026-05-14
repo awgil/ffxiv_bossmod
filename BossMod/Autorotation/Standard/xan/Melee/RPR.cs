@@ -251,8 +251,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         if (!Player.InCombat)
         {
-            if (!Soulsow)
-                PushGCD(AID.Soulsow, Player, GCDPriority.Soulsow);
+            Sow(strategy);
 
             // if we exit combat while casting, cancel it so we get instant cast instead
             if (Player.CastInfo?.Action.ID == (uint)AID.Soulsow)
@@ -399,7 +398,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private void Sow(in Strategy strategy)
     {
-        if (!Soulsow && strategy.Soulsow.IsEnabled())
+        if (!Soulsow && !SoulReaver && strategy.Soulsow.IsEnabled())
             PushGCD(AID.Soulsow, Player, GCDPriority.Soulsow);
     }
 

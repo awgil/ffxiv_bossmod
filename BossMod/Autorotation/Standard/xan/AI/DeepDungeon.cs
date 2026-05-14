@@ -122,6 +122,9 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         0x3E63, // orthodrone
         0x3E64, // orthosystem γ
         0x3E66, // orthosystem α
+
+        // PT
+        0x4934, // invoked dreamer
     ];
 
     private void SetupKiteZone(in Strategy strategy, Actor? primaryTarget)
