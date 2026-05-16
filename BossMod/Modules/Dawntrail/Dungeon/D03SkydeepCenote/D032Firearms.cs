@@ -93,5 +93,5 @@ class D032FirearmsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 829, NameID = 12888)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 829, NameID = 12888)]
 public class D032Firearms(WorldState ws, Actor primary) : BossModule(ws, primary, new(-85, -155), new ArenaBoundsSquare(20));

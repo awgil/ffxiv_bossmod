@@ -61,5 +61,5 @@ class D152GiantBavaroisStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1549)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 10, NameID = 1549)]
 public class D152GiantBavarois(WorldState ws, Actor primary) : BossModule(ws, primary, new(43, -232), new ArenaBoundsSquare(20));

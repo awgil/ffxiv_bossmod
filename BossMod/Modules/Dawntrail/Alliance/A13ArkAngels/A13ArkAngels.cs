@@ -13,7 +13,7 @@ class MijinGakure(BossModule module) : Components.InvincibleStatus(module, (uint
 class CriticalReaverRaidwide(BossModule module) : Components.CastCounter(module, AID.CriticalReaverRaidwide);
 class CriticalReaverEnrage(BossModule module) : Components.CastInterruptHint(module, AID.CriticalReaverEnrage);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossGK, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13641)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.BossGK, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13641)]
 public class A13ArkAngels(WorldState ws, Actor primary) : BossModule(ws, primary, new(865, -820), new ArenaBoundsCircle(25))
 {
     private Actor? _bossHM;

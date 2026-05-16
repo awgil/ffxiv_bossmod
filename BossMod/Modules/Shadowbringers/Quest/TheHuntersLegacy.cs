@@ -88,5 +88,5 @@ class BalamQuitzStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68812, NameID = 8397)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68812, NameID = 8397)]
 public class BalamQuitz(WorldState ws, Actor primary) : BossModule(ws, primary, new(-247.11f, 688.33f), new ArenaBoundsCircle(19.5f));

@@ -66,5 +66,5 @@ class D132ChortStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1011, NameID = 14734)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1011, NameID = 14734)]
 public class D132Chort(WorldState ws, Actor primary) : BossModule(ws, primary, new(660, -141), new ArenaBoundsCircle(15));

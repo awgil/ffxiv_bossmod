@@ -25,5 +25,5 @@ class DryBlowsRaidwide(BossModule module) : Components.CastCounter(module, AID.D
 class DryBlowsPuddle(BossModule module) : Components.StandardAOEs(module, AID.DryBlowsPuddle, 3);
 class IronOut(BossModule module) : Components.CastCounter(module, AID.IronOutAOE);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 871, NameID = 11398)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 871, NameID = 11398)]
 public class Ex4Barbariccia(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));

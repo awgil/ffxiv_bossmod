@@ -165,5 +165,5 @@ class AyidaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 30)] // bnpcname=9925
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 30)] // bnpcname=9925
 public class Ayida(WorldState ws, Actor primary) : BossModule(ws, primary, new(-200, -580), new ArenaBoundsCircle(20));

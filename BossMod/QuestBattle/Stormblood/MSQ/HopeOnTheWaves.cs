@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 472)]
+[ZoneModuleInfo(472)]
 public class HopeOnTheWaves(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

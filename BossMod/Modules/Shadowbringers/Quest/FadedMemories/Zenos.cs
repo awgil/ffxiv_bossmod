@@ -17,5 +17,5 @@ class ZenosYaeGalvusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69311, NameID = 6039, PrimaryActorOID = (uint)OID.Zenos)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69311, NameID = 6039, PrimaryActorOID = (uint)OID.Zenos)]
 public class ZenosYaeGalvus(WorldState ws, Actor primary) : BossModule(ws, primary, new(-321.03f, 617.73f), new ArenaBoundsCircle(20));

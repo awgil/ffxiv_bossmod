@@ -3,7 +3,7 @@
 class MythrilGreataxe(BossModule module) : Components.StandardAOEs(module, AID.MythrilGreataxe, new AOEShapeCone(71, 30.Degrees()));
 class Hydroptosis(BossModule module) : Components.SpreadFromCastTargets(module, AID.HydroptosisAOE, 6);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Althyk, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12244)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.Althyk, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 911, NameID = 12244)]
 public class A22AlthykNymeia(WorldState ws, Actor primary) : BossModule(ws, primary, new(50, -750), new ArenaBoundsSquare(25))
 {
     private Actor? _nymeia;

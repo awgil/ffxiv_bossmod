@@ -51,6 +51,6 @@ class D90MalacodaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1040, NameID = 14090)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1040, NameID = 14090)]
 public class D90Malacoda(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsRect(20, 20, 45.Degrees(), 28.3f));
 

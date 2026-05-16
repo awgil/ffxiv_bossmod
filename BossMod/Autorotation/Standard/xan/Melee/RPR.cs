@@ -398,7 +398,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private void Sow(in Strategy strategy)
     {
-        if (!Soulsow && !SoulReaver && strategy.Soulsow.IsEnabled())
+        if (!Soulsow && !SoulReaver && (strategy.Soulsow.IsEnabled() || !Player.InCombat))
             PushGCD(AID.Soulsow, Player, GCDPriority.Soulsow);
     }
 

@@ -713,7 +713,7 @@ public abstract class QuestBattle : ZoneModule
 
             var module = $"namespace BossMod.QuestBattle.{expansion};\n" +
                         $"\n" +
-                        $"[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, {World.CurrentCFCID})]\n" +
+                        $"[ZoneModuleInfo( {World.CurrentCFCID})]\n" +
                         $"internal class {questname}(WorldState ws) : QuestBattle(ws)\n" +
                         "{\n" +
                         "   public override List<QuestObjective> DefineObjectives(WorldState ws) => [\n" +

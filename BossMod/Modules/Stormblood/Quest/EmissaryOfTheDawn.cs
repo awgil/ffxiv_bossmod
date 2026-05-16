@@ -30,7 +30,7 @@ class HostileSkyArmorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68612, NameID = 7257)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68612, NameID = 7257)]
 public class HostileSkyArmor(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);

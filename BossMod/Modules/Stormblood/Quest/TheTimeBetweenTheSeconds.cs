@@ -78,7 +78,7 @@ class ZenosYaeGalvusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68034, NameID = 5954)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68034, NameID = 5954)]
 public class ZenosYaeGalvus(WorldState ws, Actor primary) : BossModule(ws, primary, new(-247, 546.5f), CustomBounds)
 {
     private static readonly List<WDir> vertices = [

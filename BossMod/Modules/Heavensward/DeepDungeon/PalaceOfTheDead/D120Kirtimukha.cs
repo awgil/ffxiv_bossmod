@@ -59,5 +59,5 @@ class D120KirtimukhaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 210, NameID = 5384)]
+[ModuleInfo(Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 210, NameID = 5384)]
 public class D120Kirtimukha(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -235), new ArenaBoundsCircle(24));

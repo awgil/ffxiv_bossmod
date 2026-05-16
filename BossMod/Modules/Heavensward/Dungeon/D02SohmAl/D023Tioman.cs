@@ -145,5 +145,5 @@ class D023TiomanStates : StateMachineBuilder
 
     }
 }
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3798)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3798)]
 public class D023Tioman(WorldState ws, Actor primary) : BossModule(ws, primary, new(-103, -395), new ArenaBoundsCircle(27f));

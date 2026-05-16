@@ -245,7 +245,7 @@ class HinkypunkStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13659)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13659)]
 public class Hinkypunk(WorldState ws, Actor primary) : BossModule(ws, primary, new(-570, -160), new ArenaBoundsCircle(20))
 {
     public override bool DrawAllPlayers => true;

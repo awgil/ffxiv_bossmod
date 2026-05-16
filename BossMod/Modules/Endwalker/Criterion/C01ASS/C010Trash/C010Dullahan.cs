@@ -45,8 +45,8 @@ class C010DullahanStates : StateMachineBuilder
 class C010NDullahanStates(BossModule module) : C010DullahanStates(module, false);
 class C010SDullahanStates(BossModule module) : C010DullahanStates(module, true);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11506, SortOrder = 7)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11506, SortOrder = 7)]
 public class C010NDullahan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11506, SortOrder = 7)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11506, SortOrder = 7)]
 public class C010SDullahan(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

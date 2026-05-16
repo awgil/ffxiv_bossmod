@@ -70,7 +70,7 @@ class Sporesplosion(BossModule module) : Components.StandardAOEs(module, AID.Spo
 class Lariat(BossModule module) : Components.GroupedAOEs(module, [AID.LashingLariat1, AID.LashingLariat2], new AOEShapeRect(70, 16));
 class Slaminator(BossModule module) : Components.CastTowers(module, AID.Slaminator, 8, maxSoakers: 8);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1024, NameID = 13756, PlanLevel = 100)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1024, NameID = 13756, PlanLevel = 100)]
 public class RM07SBruteAbombinator(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

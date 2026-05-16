@@ -604,6 +604,6 @@ class A35PromathiaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14779)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14779)]
 public class A35Promathia(WorldState ws, Actor primary) : BossModule(ws, primary, new(-820, -820), new ArenaBoundsCircle(25));
 

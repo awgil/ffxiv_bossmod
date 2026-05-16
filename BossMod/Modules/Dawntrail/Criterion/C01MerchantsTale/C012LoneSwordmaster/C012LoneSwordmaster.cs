@@ -1290,6 +1290,6 @@ class C012LoneSwordmasterStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1079, NameID = 14323, PlanLevel = 100)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1079, NameID = 14323, PlanLevel = 100)]
 public class C012LoneSwordmaster(WorldState ws, Actor primary) : BossModule(ws, primary, new(170, -815), new ArenaBoundsSquare(20));
 

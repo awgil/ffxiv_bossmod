@@ -2,7 +2,7 @@ using BossMod.QuestBattle;
 
 namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.LNC;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 307)]
+[ZoneModuleInfo(307)]
 internal class ADangerousProposition(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

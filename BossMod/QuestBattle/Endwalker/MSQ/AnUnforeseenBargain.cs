@@ -41,7 +41,7 @@ class ZeroAI(WorldState ws) : UnmanagedRotation(ws, 3)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 910)]
+[ZoneModuleInfo(910)]
 internal class AnUnforeseenBargain(WorldState ws) : QuestBattle(ws)
 {
     private readonly ZeroAI _zero = new(ws);

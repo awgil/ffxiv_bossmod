@@ -414,5 +414,5 @@ class A31ShantottoTheDemonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14778)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14778)]
 public class A31ShantottoTheDemon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -720), new ArenaBoundsRect(24, 30));

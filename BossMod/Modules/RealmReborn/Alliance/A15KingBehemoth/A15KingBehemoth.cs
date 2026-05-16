@@ -74,5 +74,5 @@ class A15KingBehemothStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 727)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 727)]
 public class A15KingBehemoth(WorldState ws, Actor primary) : BossModule(ws, primary, new(-110, -368.35f), new ArenaBoundsCircle(29.5f));

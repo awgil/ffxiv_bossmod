@@ -41,5 +41,5 @@ class NoviceDPS03States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 159, NameID = 4784)]
+[ModuleInfo(Incomplete = true, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 159, NameID = 4784)]
 public class NoviceDPS03(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));

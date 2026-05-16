@@ -143,7 +143,7 @@ public enum BozjaDuel : uint
     Menenius
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 735)]
+[ZoneModuleInfo(735)]
 public class Bozja(WorldState ws) : DuelFarm<BozjaDuel>(ws, "Bozja")
 {
     private readonly BozjaFarmConfig _config = Service.Config.Get<BozjaFarmConfig>();
@@ -176,7 +176,7 @@ public enum ZadnorDuel : uint
     Lyon
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 778)]
+[ZoneModuleInfo(778)]
 public class Zadnor(WorldState ws) : DuelFarm<ZadnorDuel>(ws, "Zadnor")
 {
     private readonly ZadnorFarmConfig _config = Service.Config.Get<ZadnorFarmConfig>();

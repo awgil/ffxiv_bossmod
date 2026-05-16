@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Endwalker.ClassJobQuests.RPR;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 814)]
+[ZoneModuleInfo(814)]
 internal class TheHarvestBegins(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

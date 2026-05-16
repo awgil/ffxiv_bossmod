@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.DRK;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 433)]
+[ZoneModuleInfo(433)]
 internal class KindredSpirits(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

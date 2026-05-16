@@ -51,5 +51,5 @@ class VigiliaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 3)] // bnpcname=9396
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 3)] // bnpcname=9396
 public class Vigilia(WorldState ws, Actor primary) : BossModule(ws, primary, new(451, 830), new ArenaBoundsCircle(30));

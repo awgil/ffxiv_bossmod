@@ -144,7 +144,7 @@ class D092OverseerKanilokkaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1008, NameID = 13634)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1008, NameID = 13634)]
 public class D092OverseerKanilokka(WorldState ws, Actor primary) : BossModule(ws, primary, new(116, -66), InitialBounds)
 {
     public static readonly ArenaBoundsCircle InitialBounds = new(20);

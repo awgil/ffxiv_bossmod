@@ -273,5 +273,5 @@ class DaivadipaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1763, NameID = 10269)]
+[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1763, NameID = 10269)]
 public class Daivadipa(WorldState ws, Actor primary) : BossModule(ws, primary, new(-608, 811), new ArenaBoundsSquare(24.5f));

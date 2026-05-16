@@ -10,7 +10,7 @@ class RadiantPlume(BossModule module) : Components.StandardAOEs(module, AID.Radi
 // TODO: consider showing next charge before its cast starts...
 class CrimsonCyclone(BossModule module) : Components.StandardAOEs(module, AID.CrimsonCyclone, new AOEShapeRect(49, 9));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 63, NameID = 1185)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 63, NameID = 1185)]
 public class Ex4Ifrit : BossModule
 {
     public IReadOnlyList<Actor> SmallNails;

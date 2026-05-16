@@ -10,7 +10,7 @@ class CrossTailSwitchLast(BossModule module) : Components.CastCounter(module, AI
 class WickedSpecialCenter(BossModule module) : Components.StandardAOEs(module, AID.WickedSpecialCenterAOE, new AOEShapeRect(40, 10));
 class WickedSpecialSides(BossModule module) : Components.StandardAOEs(module, AID.WickedSpecialSidesAOE, new AOEShapeRect(40, 7.5f));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 992, NameID = 13057, PlanLevel = 100)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 992, NameID = 13057, PlanLevel = 100)]
 public class RM04SWickedThunder(WorldState ws, Actor primary) : BossModule(ws, primary, P1Center, P1DefaultBounds)
 {
     public static readonly WPos P1Center = new(100, 100);

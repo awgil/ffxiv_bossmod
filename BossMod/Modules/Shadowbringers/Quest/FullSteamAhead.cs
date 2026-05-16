@@ -116,7 +116,7 @@ class RanjitStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69155, NameID = 8374)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69155, NameID = 8374)]
 public class Ranjit(WorldState ws, Actor primary) : BossModule(ws, primary, new(-203, 395), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawArenaForeground(int pcSlot, Actor pc)

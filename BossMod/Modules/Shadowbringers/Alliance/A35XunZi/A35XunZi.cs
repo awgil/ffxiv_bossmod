@@ -93,6 +93,6 @@ class A35XunZiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9921)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9921)]
 public class A35XunZi(WorldState ws, Actor primary) : BossModule(ws, primary, new(800, 800), new ArenaBoundsSquare(24.5f));
 

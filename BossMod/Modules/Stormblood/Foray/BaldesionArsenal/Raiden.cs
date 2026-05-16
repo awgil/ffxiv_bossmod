@@ -109,5 +109,5 @@ class RaidenStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7973)]
+[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7973)]
 public class Raiden(WorldState ws, Actor primary) : BAModule(ws, primary, new(0, 458), new ArenaBoundsCircle(35));

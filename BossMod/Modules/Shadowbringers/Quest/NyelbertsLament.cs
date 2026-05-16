@@ -109,7 +109,7 @@ class BovianStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69162, NameID = 8363)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69162, NameID = 8363)]
 public class Bovian(WorldState ws, Actor primary) : BossModule(ws, primary, new(-440, -691), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);

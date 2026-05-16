@@ -241,5 +241,5 @@ class V02NRukhkhStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14377)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14377)]
 public class V02NRukhkh(WorldState ws, Actor primary) : BossModule(ws, primary, new(primary.Position.X, primary.Position.Z + 10), new ArenaBoundsCircle(18f));

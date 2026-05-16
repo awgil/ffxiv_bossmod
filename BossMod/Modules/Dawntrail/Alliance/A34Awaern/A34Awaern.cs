@@ -42,5 +42,5 @@ class A34AwaernStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14838)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14838)]
 public class A34Awaern(WorldState ws, Actor primary) : BossModule(ws, primary, new(-720, 720), new ArenaBoundsSquare(28));

@@ -127,5 +127,5 @@ class D102SoldierS0States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1027, NameID = 13757)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1027, NameID = 13757)]
 public class D102SoldierS0(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -182f), new ArenaBoundsSquare(15.5f));

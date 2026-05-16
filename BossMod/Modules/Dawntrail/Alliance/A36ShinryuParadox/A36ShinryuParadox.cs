@@ -737,7 +737,7 @@ class A36ShinryuParadoxStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14729)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14729)]
 public class A36ShinryuParadox(WorldState ws, Actor primary) : BossModule(ws, primary, new(820, -820), new ArenaBoundsRect(30, 20))
 {
     Actor? Groin;

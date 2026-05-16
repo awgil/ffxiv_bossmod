@@ -5,5 +5,5 @@ class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.Lig
 class BoltsFromTheBlue(BossModule module) : Components.CastCounter(module, AID.BoltsFromTheBlueAOE);
 class DestructiveStrike(BossModule module) : Components.BaitAwayCast(module, AID.DestructiveStrike, new AOEShapeCone(13, 60.Degrees())); // TODO: verify angle
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11274, SortOrder = 2)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11274, SortOrder = 2)]
 public class A10RhalgrEmissary(WorldState ws, Actor primary) : BossModule(ws, primary, new(74, 516), new ArenaBoundsCircle(25));

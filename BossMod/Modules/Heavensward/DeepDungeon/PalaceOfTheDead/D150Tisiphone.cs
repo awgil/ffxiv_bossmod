@@ -85,7 +85,7 @@ class D150TisiphoneStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 213, NameID = 5424)]
+[ModuleInfo(Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 213, NameID = 5424)]
 //public class D150Tisiphone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -237.17f), new ArenaBoundsCircle(24));
 public class D150Tisiphone : BossModule
 {

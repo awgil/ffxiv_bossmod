@@ -135,5 +135,5 @@ class D011MinduruvaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10256)]
+[ModuleInfo(Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 783, NameID = 10256)]
 public class D011Minduruva(WorldState ws, Actor primary) : BossModule(ws, primary, new(68, -124), new ArenaBoundsCircle(19.5f));

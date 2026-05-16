@@ -23,7 +23,7 @@ class XtremeSpectacularRaidwideLast(BossModule module) : Components.RaidwideInst
 class FiresnakingRaidwide(BossModule module) : Components.RaidwideCast(module, AID.Firesnaking);
 class XtremeFiresnakingRaidwide(BossModule module) : Components.RaidwideCast(module, AID.XtremeFiresnaking);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1071, NameID = 14370, PrimaryActorOID = (uint)OID.RedHot, PlanLevel = 100)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1071, NameID = 14370, PrimaryActorOID = (uint)OID.RedHot, PlanLevel = 100)]
 public class RM10STheXtremes(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
 {
     public Actor? B1() => PrimaryActor;

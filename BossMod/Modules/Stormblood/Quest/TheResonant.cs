@@ -82,5 +82,5 @@ public class FordolaRemLupisStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68086, NameID = 6104)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68086, NameID = 6104)]
 public class FordolaRemLupis(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsSquare(19.5f));

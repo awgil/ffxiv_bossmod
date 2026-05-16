@@ -271,5 +271,5 @@ class V06NDeadlyDandanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14475)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14475)]
 public class V06NDeadlyDandan(WorldState ws, Actor primary) : BossModule(ws, primary, new(805.3f, 669.9f), new ArenaBoundsCircle(20f));

@@ -14,7 +14,7 @@ public class AutoAlphi(WorldState ws) : UnmanagedRotation(ws, 25)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 582)]
+[ZoneModuleInfo(582)]
 public class EmissaryOfTheDawn(WorldState ws) : QuestBattle(ws)
 {
     private readonly AutoAlphi _ai = new(ws);

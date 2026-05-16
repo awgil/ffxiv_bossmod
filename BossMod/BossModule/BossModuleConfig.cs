@@ -16,17 +16,20 @@ public class BossModuleConfig : ConfigNode
     }
 
     // boss module settings
-    [PropertyDisplay("Minimal maturity for the module to be loaded", tooltip: "Some modules will have the \"WIP\" status and will not automatically load unless you change this")]
-    public BossModuleInfo.Maturity MinMaturity = BossModuleInfo.Maturity.Contributed;
-
     [PropertyDisplay("Allow modules to automatically use actions")]
     public bool AllowAutomaticActions = true;
 
     [PropertyDisplay("Allow modules to automatically interact with objects", since: "0.3.5.6")]
     public bool AllowAutomaticInteract = true;
 
-    [PropertyDisplay("Show testing radar and hint window", tooltip: "Useful for configuring your radar and hint windows without being inside of a boss encounter", separator: true)]
+    [PropertyDisplay("Show testing radar and hint window", tooltip: "Useful for configuring your radar and hint windows without being inside of a boss encounter")]
     public bool ShowDemo = false;
+
+    [PropertyDisplay("Allow WIP modules", since: "7.5.0.10", tooltip: "WIP modules are unfinished and may have severe bugs. Enable at your own risk.")]
+    public bool AllowIncompleteModules = false;
+
+    [PropertyDisplay("Enable Striking Dummy module during Explorer Mode dungeons", since: "7.5.0.10", separator: true)]
+    public bool EnableDummyModule = false;
 
     // radar window settings
     [PropertyDisplay("Enable radar")]

@@ -71,7 +71,7 @@ class C030SnipperStates : StateMachineBuilder
 class C030NSnipperStates(BossModule module) : C030SnipperStates(module, false);
 class C030SSnipperStates(BossModule module) : C030SnipperStates(module, true);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NSnipper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12537, SortOrder = 2)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NSnipper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12537, SortOrder = 2)]
 public class C030NSnipper(WorldState ws, Actor primary) : C030Trash1(ws, primary)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -81,7 +81,7 @@ public class C030NSnipper(WorldState ws, Actor primary) : C030Trash1(ws, primary
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SSnipper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12537, SortOrder = 2)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SSnipper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12537, SortOrder = 2)]
 public class C030SSnipper(WorldState ws, Actor primary) : C030Trash1(ws, primary)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

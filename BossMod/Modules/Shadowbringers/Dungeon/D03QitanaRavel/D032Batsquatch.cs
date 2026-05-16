@@ -42,5 +42,5 @@ class D032BatsquatchStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8232)]
+[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8232)]
 public class D032Batsquatch(WorldState ws, Actor primary) : BossModule(ws, primary, new(62, -35), new ArenaBoundsCircle(15));

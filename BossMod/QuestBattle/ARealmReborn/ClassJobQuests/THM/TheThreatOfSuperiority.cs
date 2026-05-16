@@ -2,7 +2,7 @@ using BossMod.QuestBattle;
 
 namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.THM;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 324)]
+[ZoneModuleInfo(324)]
 internal class TheThreatOfSuperiority(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

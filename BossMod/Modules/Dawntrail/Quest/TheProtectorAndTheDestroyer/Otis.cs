@@ -32,7 +32,7 @@ class OtisOathbrokenStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70478, NameID = 13168)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70478, NameID = 13168)]
 public class OtisOathbroken(WorldState ws, Actor primary) : BossModule(ws, primary, new(349, -14), new ArenaBoundsCircle(19.5f))
 {
     protected override bool CheckPull() => WorldState.Actors.Any(x => !x.IsAlly && x.InCombat);

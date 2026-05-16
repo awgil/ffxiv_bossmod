@@ -105,5 +105,5 @@ class V08NYawningMawStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14402)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14402)]
 public class V08NYawningMaw(WorldState ws, Actor primary) : BossModule(ws, primary, new(299.77f, 681.98f), new ArenaBoundsCircle(15f));

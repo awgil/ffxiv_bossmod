@@ -125,7 +125,7 @@ class A32MedusaSwarmsingerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14834)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14834)]
 public class A32MedusaSwarmsinger(WorldState ws, Actor primary) : BossModule(ws, primary, new(721, 720), new ArenaBoundsRect(25, 20))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;

@@ -160,5 +160,5 @@ class AlkonostStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)] // bnpcname=9973
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)] // bnpcname=9973
 public class Alkonost(WorldState ws, Actor primary) : BossModule(ws, primary, new(-480, -690), new ArenaBoundsCircle(30));

@@ -48,7 +48,7 @@ class SlickshellCaptainStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68563, NameID = 6891)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68563, NameID = 6891)]
 public class SlickshellCaptain(WorldState ws, Actor primary) : BossModule(ws, primary, BoundsCenter, CustomBounds)
 {
     public static readonly WPos BoundsCenter = new(468.92f, 301.30f);

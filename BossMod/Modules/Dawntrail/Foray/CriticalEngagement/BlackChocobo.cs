@@ -111,7 +111,7 @@ class BlackChocoboStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13637)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13637)]
 public class BlackChocobo(WorldState ws, Actor primary) : BossModule(ws, primary, new(450, 357), new ArenaBoundsSquare(20))
 {
     public Actor? BlackStar { get; private set; }

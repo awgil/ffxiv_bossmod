@@ -28,7 +28,7 @@ class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 812)]
+[ZoneModuleInfo(812)]
 internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
 {
     private readonly AutoThancred _ai = new(ws);

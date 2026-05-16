@@ -36,7 +36,7 @@ public sealed class ZoneModuleManager : IDisposable
             ActiveModule = null;
         }
 
-        var m = ZoneModuleRegistry.CreateModule(WorldState, cfcid, Config.MinMaturity);
+        var m = ZoneModuleRegistry.CreateModule(WorldState, cfcid);
         if (m != null)
         {
             Service.Log($"[ZMM] Loading module '{m.GetType()}' for zone {cfcid}");

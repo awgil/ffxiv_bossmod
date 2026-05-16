@@ -84,6 +84,6 @@ class D10OrnamentalLeafmanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1032, NameID = 13979)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1032, NameID = 13979)]
 public class D10OrnamentalLeafman(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(19.5f));
 

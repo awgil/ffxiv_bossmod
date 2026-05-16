@@ -416,5 +416,5 @@ class RM11TheTyrantStates : StateMachineBuilder
             .ActivateOnEnter<GreatWallOfFire>();
     }
 }
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1072, NameID = 14305)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1072, NameID = 14305)]
 public class RM11TheTyrant(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsRect(20, 20));

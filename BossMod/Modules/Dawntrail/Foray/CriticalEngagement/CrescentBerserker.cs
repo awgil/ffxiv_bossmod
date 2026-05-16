@@ -138,7 +138,7 @@ class CrescentBerserkerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13759)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13759)]
 public class CrescentBerserker(WorldState ws, Actor primary) : BossModule(ws, primary, new(620, 800), new ArenaBoundsCircle(24.5f))
 {
     public override bool DrawAllPlayers => true;

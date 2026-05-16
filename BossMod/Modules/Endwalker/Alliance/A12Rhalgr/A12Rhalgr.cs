@@ -4,7 +4,7 @@ class DestructiveBolt(BossModule module) : Components.SpreadFromCastTargets(modu
 class StrikingMeteor(BossModule module) : Components.StandardAOEs(module, AID.StrikingMeteor, 6);
 class BronzeLightning(BossModule module) : Components.StandardAOEs(module, AID.BronzeLightning, new AOEShapeCone(50, 22.5f.Degrees()), 4);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11273, SortOrder = 3)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 866, NameID = 11273, SortOrder = 3)]
 public class A12Rhalgr(WorldState ws, Actor primary) : BossModule(ws, primary, new(-15, 275), new ArenaBoundsSquare(30)) // note: arena has a really complex shape...
 {
     protected override void DrawArenaForeground(int pcSlot, Actor pc)

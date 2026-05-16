@@ -8,5 +8,5 @@ public class RM05SDancingGreenConfig : ConfigNode
     public float SpotlightHintSeconds = 15;
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1020, NameID = 13778, PlanLevel = 100, Contributors = "xan")]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1020, NameID = 13778, PlanLevel = 100, Contributors = "xan")]
 public class RM05SDancingGreen(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

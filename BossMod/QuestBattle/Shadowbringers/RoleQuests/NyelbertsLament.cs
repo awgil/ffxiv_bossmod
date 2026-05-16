@@ -36,7 +36,7 @@ public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 20)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 686)]
+[ZoneModuleInfo(686)]
 public class NyelbertsLament(WorldState ws) : QuestBattle(ws)
 {
     private readonly AutoNyelbert _ai = new(ws);

@@ -9,7 +9,7 @@ class DevastatingBoltInner(BossModule module) : Components.StandardAOEs(module, 
 class Electrocution(BossModule module) : Components.StandardAOEs(module, AID.Electrocution, 3);
 
 // TODO: ManaFlame component - show reflect hints
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9759, PlanLevel = 80)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 761, NameID = 9759, PlanLevel = 80)]
 public class DRS7 : BossModule
 {
     private readonly IReadOnlyList<Actor> _monks;

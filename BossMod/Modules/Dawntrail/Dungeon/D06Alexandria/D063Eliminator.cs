@@ -184,5 +184,5 @@ class D063EliminatorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 827, NameID = 12729)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 827, NameID = 12729)]
 public class D063Eliminator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-759, -648), new ArenaBoundsSquare(15));

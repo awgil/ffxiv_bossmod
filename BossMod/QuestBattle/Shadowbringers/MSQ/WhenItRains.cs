@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 663)]
+[ZoneModuleInfo(663)]
 public class WhenItRains(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

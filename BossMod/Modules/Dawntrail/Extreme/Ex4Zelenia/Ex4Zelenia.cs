@@ -49,5 +49,5 @@ class SpecterOfTheLostAOE(BossModule module) : Components.StandardAOEs(module, A
 class PerfumedQuietus(BossModule module) : Components.RaidwideCast(module, AID.PerfumedQuietus);
 class AlexandrianBanishII(BossModule module) : Components.StackWithIcon(module, (uint)IconID.AlexandrianBanishII, AID.AlexandrianBanishIIStack, 5, 5.8f);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1031, NameID = 13861, PlanLevel = 100)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1031, NameID = 13861, PlanLevel = 100)]
 public class Ex4Zelenia(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(16));

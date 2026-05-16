@@ -14,6 +14,6 @@
 //    }
 //}
 
-//[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 8072)]
+//[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 8072)]
 //public class Frostmane(WorldState ws, Actor primary) : BossModule(ws, primary, new(-681.4338f, -243.3619f), new ArenaBoundsCircle(80, MapResolution: 1));
 

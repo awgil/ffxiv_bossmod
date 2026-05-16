@@ -186,7 +186,7 @@ class MagitekCoreStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 777, NameID = 10076)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 777, NameID = 10076)]
 public class MagitekCore(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultCenter, DefaultBounds)
 {
     public static readonly WPos DefaultCenter = new(-175, 43);

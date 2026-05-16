@@ -79,7 +79,7 @@ class CacusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1626, NameID = 9634)]
+[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1626, NameID = 9634)]
 public class Cacus(WorldState ws, Actor primary) : BossModule(ws, primary, new(-234.1f, 260.1f), new ArenaBoundsCircle(50))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

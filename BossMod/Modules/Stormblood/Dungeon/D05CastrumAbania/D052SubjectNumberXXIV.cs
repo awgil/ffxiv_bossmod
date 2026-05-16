@@ -127,5 +127,5 @@ class D052SubjectNumberXXIVStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 12392)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 12392)]
 public class D052SubjectNumberXXIV(WorldState ws, Actor primary) : BossModule(ws, primary, new(10.4f, 186.5f), new ArenaBoundsCircle(19));
