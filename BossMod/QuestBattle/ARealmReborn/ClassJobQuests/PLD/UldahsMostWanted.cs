@@ -1,6 +1,6 @@
 namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.PLD;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 314, 253)]
+[ZoneModuleInfo(314, 253)]
 internal class UldahsMostWanted(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
