@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Alliance.A35Promathia;
+﻿
+namespace BossMod.Dawntrail.Alliance.A35Promathia;
 
 public enum OID : uint
 {
@@ -119,18 +120,18 @@ class WheelOfImpregnability(BossModule module) : Components.GenericAOEs(module, 
 class BastionOfTwilight(BossModule module) : Components.GenericAOEs(module, AID.BastionOfTwilight)
 {
     DateTime _activation;
-    bool _risky;
+    public bool Risky;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation != default)
-            yield return new(new AOEShapeDonut(13, 50), Module.PrimaryActor.Position, default, _activation, Risky: _risky);
+            yield return new(new AOEShapeDonut(13, 50), Module.PrimaryActor.Position, default, _activation, Risky: Risky);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.Explosion)
-            _risky = false;
+            Risky = false;
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -148,7 +149,7 @@ class BastionOfTwilight(BossModule module) : Components.GenericAOEs(module, AID.
         }
 
         if ((AID)spell.Action.ID == AID.Explosion)
-            _risky = true;
+            Risky = true;
     }
 }
 class PestilentPenance(BossModule module) : Components.StandardAOEs(module, AID.PestilentPenanceCast, new AOEShapeRect(50, 25));
@@ -214,6 +215,37 @@ class FalseGenesis(BossModule module) : BossComponent(module)
 }
 class FalseGenesisRaidwide(BossModule module) : Components.RaidwideCastDelay(module, AID.FalseGenesisCast, AID.FalseGenesis, 0.6f);
 class DeadlyRebirthRaidwide(BossModule module) : Components.RaidwideCastDelay(module, AID.DeadlyRebirthCast, AID.DeadlyRebirthRaidwide, 2);
+class DeadlyRebirthKB(BossModule module) : Components.Knockback(module, AID.DeadlyRebirthRaidwide, true)
+{
+    DateTime _activation;
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        if (_activation != default)
+            yield return new(default, 20, _activation, Direction: 0.Degrees(), Kind: Kind.DirForward);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var src in Sources(slot, actor))
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center - new WDir(0, 20), 25), src.Activation);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.DeadlyRebirthCast)
+            _activation = Module.CastFinishAt(spell, 2);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            _activation = default;
+        }
+    }
+}
 
 class MemoryReceptacle(BossModule module) : Components.Adds(module, (uint)OID.MemoryReceptacle);
 class AuroralDrape(BossModule module) : Components.StandardAOEs(module, AID.AuroralDrape, new AOEShapeRect(7, 3.5f));
@@ -442,7 +474,8 @@ class A35PromathiaStates : StateMachineBuilder
     void Bastion1(uint id, float delay)
     {
         Cast(id, AID.BastionOfTwilightCast, delay, 2)
-            .ActivateOnEnter<BastionOfTwilight>();
+            .ActivateOnEnter<BastionOfTwilight>()
+            .ExecOnEnter<BastionOfTwilight>(b => b.Risky = true);
 
         Cast(id + 0x10, AID.PestilentPenanceCast, 3.8f, 6.4f, "Big rect")
             .ActivateOnEnter<PestilentPenance>()
@@ -498,10 +531,12 @@ class A35PromathiaStates : StateMachineBuilder
     {
         Targetable(id, true, 6.1f);
         CastStart(id + 1, AID.DeadlyRebirthCast, 2.8f)
-            .ActivateOnEnter<DeadlyRebirthRaidwide>();
+            .ActivateOnEnter<DeadlyRebirthRaidwide>()
+            .ActivateOnEnter<DeadlyRebirthKB>();
         CastEnd(id + 2, 8);
         ComponentCondition<DeadlyRebirthRaidwide>(id + 0x10, 2, r => r.NumCasts > 0, "Raidwide + stun")
             .DeactivateOnExit<DeadlyRebirthRaidwide>()
+            .DeactivateOnExit<DeadlyRebirthKB>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
 
         // duration of Down for the Count
