@@ -1,6 +1,7 @@
 ﻿using BossMod.Network;
 using BossMod.Network.ServerIPC;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 
 namespace BossMod.ReplayVisualization;
 
@@ -55,7 +56,7 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
         var timeRef = ImGui.GetIO().KeyShift && _relativeTS != default ? _relativeTS : reference;
 
         var c = new ImGuiListClipper();
-        c.Begin(_nodes.Count, 21);
+        c.Begin(_nodes.Count, 21 * ImGuiHelpers.GlobalScale);
 
         while (c.Step())
         {
