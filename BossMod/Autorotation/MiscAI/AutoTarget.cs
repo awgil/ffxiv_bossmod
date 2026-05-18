@@ -85,7 +85,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         if (strategy.Option(Track.QuestBattle).As<Flag>() == Flag.Enabled)
             allowAll |= Bossmods.LoadedModules is [{ Info.Category: BossModuleInfo.Category.Quest }];
 
-        if (strategy.Option(Track.DeepDungeon).As<Flag>() == Flag.Enabled)
+        if (strategy.Option(Track.DeepDungeon).As<Flag>() == Flag.Enabled && !World.Party.WithoutSlot(includeDead: true, excludeNPCs: true).Skip(1).Any())
             allowAll |= Bossmods.LoadedModules is [{ Info.Category: BossModuleInfo.Category.DeepDungeon }];
 
         if (strategy.Option(Track.EpicEcho).As<Flag>() == Flag.Enabled)
