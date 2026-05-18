@@ -286,6 +286,11 @@ sealed class WorldStateGameSync : IDisposable
     private unsafe void UpdateActors()
     {
         var mgr = GameObjectManager.Instance();
+
+        // as of 7.5, actors can now have their SpawnIndex reassigned between frames without being destroyed/reused instanceid
+        // so we have to process deletion events first, then creation events; otherwise if an actor is moved to an earlier SpawnIndex, we get data corruption
+        // i.e. two copies of the same actor at different indices, then subsequent iterations attempt to delete both actors, throwing an exception on the second attempt
+        // TODO: deduplicate code, i really hate touching this function
         for (int i = 0; i < _actorsByIndex.Length; ++i)
         {
             var actor = _actorsByIndex[i];
@@ -308,14 +313,20 @@ sealed class WorldStateGameSync : IDisposable
                 RemoveActor(actor);
                 actor = null;
             }
+        }
 
-            if (obj != null)
-            {
-                if (actor != existing)
-                    Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
+        for (int i = 0; i < _actorsByIndex.Length; ++i)
+        {
+            var actor = _actorsByIndex[i];
+            var obj = mgr->Objects.IndexSorted[i].Value;
 
-                UpdateActor(obj, i, actor);
-            }
+            if (obj == null || obj->EntityId == InvalidEntityId || (obj->EntityId & 0xFF000000) == 0xFF000000)
+                continue;
+
+            if (actor != _ws.Actors.Find(obj->EntityId))
+                Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
+
+            UpdateActor(obj, i, actor);
         }
 
         foreach (var (id, ops) in _actorOps)
