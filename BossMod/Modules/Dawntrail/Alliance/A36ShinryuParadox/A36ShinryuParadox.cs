@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Alliance.A36ShinryuParadox;
+﻿namespace BossMod.Dawntrail.Alliance.A36ShinryuParadox;
 
 public enum OID : uint
 {

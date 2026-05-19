@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Alliance.A35Promathia;
+﻿namespace BossMod.Dawntrail.Alliance.A35Promathia;
 
 public enum OID : uint
 {
