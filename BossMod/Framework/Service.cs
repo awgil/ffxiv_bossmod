@@ -38,7 +38,7 @@ public sealed class Service
     public static void Log(string msg) => LogHandlerDebug?.Invoke(msg);
     public static void LogVerbose(string msg) => LogHandlerVerbose?.Invoke(msg);
 
-    public static bool IsDev = true;
+    public static bool IsDev => PluginInterface.IsDev;
 
     public static Lumina.GameData? LuminaGameData;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English);

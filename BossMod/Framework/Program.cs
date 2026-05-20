@@ -1,5 +1,7 @@
 ﻿using BossMod;
+using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
+using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
@@ -13,7 +15,10 @@ sealed class DalamudLibPathAttribute(string path) : Attribute
 
 static class Program
 {
-    private class MockPlugin(IDalamudPluginInterface dalamud, ICommandManager cmd, IDataManager data) : Plugin(dalamud, cmd, data);
+    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud, ICommandManager cmd, IDataManager data) : Plugin(dalamud, cmd, data)
+    {
+        public override IReplacementContainer ReplacementContainer { get; } = mrc;
+    }
 
     static readonly string[] SupportedLibs = [
         "Dalamud",
@@ -24,6 +29,7 @@ static class Program
         "TerraFX.Interop.Windows"
     ];
 
+    // bit of a hack to not have to specify Private=false for every single dependency since they will end up in the output dir and interfere with dalamud if this is loaded as a normal plugin
     static void Initialize()
     {
         var dalapath = Assembly.GetEntryAssembly()!.GetCustomAttribute<DalamudLibPathAttribute>()!.Path;
