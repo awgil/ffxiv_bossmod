@@ -1,18 +1,20 @@
+using Autofac;
 using BossMod.Autorotation;
 using BossMod.Services;
 using DalaMock.Core.Mocks.DalamudServices;
+using DalaMock.Host.Hosting;
+using DalaMock.Shared.Extensions;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
-using System.IO;
-using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 
 namespace BossMod;
 
-public class Plugin : IAsyncDalamudPlugin
+public class Plugin : HostedPlugin
 {
     public string Name => "Boss Mod";
 
@@ -48,7 +50,7 @@ public class Plugin : IAsyncDalamudPlugin
     private readonly AI.AIWindow _wndAI;
     private readonly MainDebugWindow? _wndDebug;
 
-    public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, IDataManager dataManager)
+    public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, IDataManager dataManager) : base(dalamud)
     {
         if (!dalamud.ConfigDirectory.Exists)
             dalamud.ConfigDirectory.Create();
@@ -67,9 +69,9 @@ public class Plugin : IAsyncDalamudPlugin
         Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
         Service.LogHandlerVerbose = (string msg) => Service.Logger.Verbose(msg);
         Service.LuminaGameData = dataManager.GameData;
-        Service.WindowSystem = new("vbm");
+        //Service.WindowSystem = new("vbm");
         //Service.Device = pluginInterface.UiBuilder.Device;
-        Service.Condition.ConditionChange += OnConditionChanged;
+        //Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
 
         if (!isMock)
@@ -81,59 +83,59 @@ public class Plugin : IAsyncDalamudPlugin
 
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
 
-        _packs = new();
-        _hints = new();
+        //_packs = new();
+        //_hints = new();
 
-        _rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
+        //_rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
-        // TODO: this "should" be done properly using DI, not via manual checking
-        if (isMock)
-        {
-            _ws = new(0, "unknown");
-            _movementOverride = new MockMovementOverride();
-            _amex = new MockAmex();
-            _wsSync = new MockWorldStateGameSync();
-        }
-        else
-        {
-            _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, File.ReadAllText("ffxivgame.ver"));
-            _movementOverride = new MovementOverride(dalamud);
-            _amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
-            _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex);
-        }
+        //// TODO: this "should" be done properly using DI, not via manual checking
+        //if (isMock)
+        //{
+        //    _ws = new(0, "unknown");
+        //    _movementOverride = new MockMovementOverride();
+        //    _amex = new MockAmex();
+        //    _wsSync = new MockWorldStateGameSync();
+        //}
+        //else
+        //{
+        //    _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, File.ReadAllText("ffxivgame.ver"));
+        //    _movementOverride = new MovementOverride(dalamud);
+        //    _amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
+        //    _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex);
+        //}
 
-        _bossmod = new(_ws);
-        _zonemod = new(_ws);
-        _hintsBuilder = new(_ws, _bossmod, _zonemod);
-        _rotation = new(_rotationDB, _bossmod, _hints);
-        _ai = new(_rotation, _amex, _movementOverride);
-        _ipc = new(_rotation, _hintsBuilder.Obstacles);
-        _dtr = new(_rotation, _ai);
-        _slashCmd = new(commandManager, "/vbm");
-        _mbox = new(_rotation, _ws);
+        //_bossmod = new(_ws);
+        //_zonemod = new(_ws);
+        //_hintsBuilder = new(_ws, _bossmod, _zonemod);
+        //_rotation = new(_rotationDB, _bossmod, _hints);
+        //_ai = new(_rotation, _amex, _movementOverride);
+        //_ipc = new(_rotation, _hintsBuilder.Obstacles);
+        //_dtr = new(_rotation, _ai);
+        //_slashCmd = new(commandManager, "/vbm");
+        //_mbox = new(_rotation, _ws);
 
-        var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
-        _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
-        _wndBossmod = new(_bossmod, _zonemod);
-        _wndBossmodHints = new(_bossmod, _zonemod);
-        _wndZone = new(_zonemod);
-        _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
-        _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
-        _wndAI = new(_ai);
+        //var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
+        //_configUI = new(Service.Config, _ws, replayDir, _rotationDB);
+        //_wndBossmod = new(_bossmod, _zonemod);
+        //_wndBossmodHints = new(_bossmod, _zonemod);
+        //_wndZone = new(_zonemod);
+        //_wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
+        //_wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
+        //_wndAI = new(_ai);
 
-        if (!isMock)
-            _wndDebug = new(_ws, _rotation, _zonemod, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud) { IsOpen = Service.IsDev };
+        //if (!isMock)
+        //    _wndDebug = new(_ws, _rotation, _zonemod, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud) { IsOpen = Service.IsDev };
 
-        dalamud.UiBuilder.DisableAutomaticUiHide = true;
-        dalamud.UiBuilder.Draw += DrawUI;
-        dalamud.UiBuilder.OpenMainUi += () => OpenConfigUI();
-        dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
-        RegisterSlashCommands();
+        //dalamud.UiBuilder.DisableAutomaticUiHide = true;
+        //dalamud.UiBuilder.Draw += DrawUI;
+        //dalamud.UiBuilder.OpenMainUi += () => OpenConfigUI();
+        //dalamud.UiBuilder.OpenConfigUi += () => OpenConfigUI();
+        //RegisterSlashCommands();
 
-        _ = new ConfigChangelogWindow();
+        //_ = new ConfigChangelogWindow();
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
         _wndDebug?.Dispose();
@@ -158,6 +160,8 @@ public class Plugin : IAsyncDalamudPlugin
         _zonemod.Dispose();
         _bossmod.Dispose();
         ActionDefinitions.Instance.Dispose();
+
+        base.Dispose();
     }
 
     private void RegisterSlashCommands()
@@ -474,10 +478,10 @@ public class Plugin : IAsyncDalamudPlugin
         Service.Log($"Condition change: {flag}={value}");
     }
 
-    public async Task LoadAsync(CancellationToken cancellationToken) { }
-    public async ValueTask DisposeAsync()
+    public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
+    public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
-        Dispose();
-        GC.SuppressFinalize(this);
+        containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
     }
+    public override void ConfigureServices(IServiceCollection serviceCollection) { }
 }

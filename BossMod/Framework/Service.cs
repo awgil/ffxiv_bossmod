@@ -45,7 +45,7 @@ public sealed class Service
     public static T? LuminaRow<T>(uint row) where T : struct, Lumina.Excel.IExcelRow<T> => LuminaSheet<T>()?.GetRowOrDefault(row);
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
-    public static WindowSystem? WindowSystem;
+    public static IWindowSystem WindowSystem = null!;
     public static ImFontPtr IconFontDev = ImFontPtr.Null;
 #pragma warning restore CA2211
 
