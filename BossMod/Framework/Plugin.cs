@@ -1,17 +1,18 @@
 using BossMod.Autorotation;
-using Dalamud.Common;
+using BossMod.Services;
+using DalaMock.Core.Mocks.DalamudServices;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using System.IO;
-using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class Plugin : IDalamudPlugin
+public class Plugin : IAsyncDalamudPlugin
 {
     public string Name => "Boss Mod";
 
@@ -21,9 +22,9 @@ public sealed class Plugin : IDalamudPlugin
     private readonly BossModuleManager _bossmod;
     private readonly ZoneModuleManager _zonemod;
     private readonly AIHintsBuilder _hintsBuilder;
-    private readonly MovementOverride _movementOverride;
-    private readonly ActionManagerEx _amex;
-    private readonly WorldStateGameSync _wsSync;
+    private readonly IMovementOverride _movementOverride;
+    private readonly IAmex _amex;
+    private readonly IWorldStateGameSync _wsSync;
     private readonly RotationModuleManager _rotation;
     private readonly AI.AIManager _ai;
     private readonly IPCProvider _ipc;
@@ -45,17 +46,14 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;
     private readonly AI.AIWindow _wndAI;
-    private readonly MainDebugWindow _wndDebug;
+    private readonly MainDebugWindow? _wndDebug;
 
-    public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, ISigScanner sigScanner, IDataManager dataManager)
+    public unsafe Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, IDataManager dataManager)
     {
         if (!dalamud.ConfigDirectory.Exists)
             dalamud.ConfigDirectory.Create();
-        var dalamudRoot = dalamud.GetType().Assembly.
-                GetType("Dalamud.Service`1", true)!.MakeGenericType(dalamud.GetType().Assembly.GetType("Dalamud.Dalamud", true)!).
-                GetMethod("Get")!.Invoke(null, BindingFlags.Default, null, [], null);
-        var dalamudStartInfo = dalamudRoot?.GetType().GetProperty("StartInfo", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dalamudRoot) as DalamudStartInfo;
-        var gameVersion = dalamudStartInfo?.GameVersion?.ToString() ?? "unknown";
+
+        var isMock = dalamud is MockDalamudPluginInterface;
 
 #if LOCAL_CS
         InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, gameVersion, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
@@ -64,6 +62,7 @@ public sealed class Plugin : IDalamudPlugin
 #endif
 
         dalamud.Create<Service>();
+        Service.PluginInterface = dalamud; // might not be set by dalamock
         Service.IsDev = dalamud.IsDev;
         Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
         Service.LogHandlerVerbose = (string msg) => Service.Logger.Verbose(msg);
@@ -72,7 +71,9 @@ public sealed class Plugin : IDalamudPlugin
         //Service.Device = pluginInterface.UiBuilder.Device;
         Service.Condition.ConditionChange += OnConditionChanged;
         MultiboxUnlock.Exec();
-        Camera.Instance = new();
+
+        if (!isMock)
+            Camera.Instance = new();
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
@@ -81,17 +82,29 @@ public sealed class Plugin : IDalamudPlugin
         ActionDefinitions.Instance.UnlockCheck = QuestUnlocked; // ensure action definitions are initialized and set unlock check functor (we don't really store the quest progress in clientstate, for now at least)
 
         _packs = new();
-
-        var qpf = (ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency;
-        _rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
-        _ws = new(qpf, gameVersion);
         _hints = new();
+
+        _rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
+
+        // TODO: this "should" be done properly using DI, not via manual checking
+        if (isMock)
+        {
+            _ws = new(0, "unknown");
+            _movementOverride = new MockMovementOverride();
+            _amex = new MockAmex();
+            _wsSync = new MockWorldStateGameSync();
+        }
+        else
+        {
+            _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, File.ReadAllText("ffxivgame.ver"));
+            _movementOverride = new MovementOverride(dalamud);
+            _amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
+            _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex);
+        }
+
         _bossmod = new(_ws);
         _zonemod = new(_ws);
         _hintsBuilder = new(_ws, _bossmod, _zonemod);
-        _movementOverride = new(dalamud);
-        _amex = new(_ws, _hints, _movementOverride);
-        _wsSync = new(_ws, _amex);
         _rotation = new(_rotationDB, _bossmod, _hints);
         _ai = new(_rotation, _amex, _movementOverride);
         _ipc = new(_rotation, _hintsBuilder.Obstacles);
@@ -107,7 +120,9 @@ public sealed class Plugin : IDalamudPlugin
         _wndReplay = new(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new(_ai);
-        _wndDebug = new(_ws, _rotation, _zonemod, _amex, _movementOverride, _hintsBuilder, dalamud) { IsOpen = Service.IsDev };
+
+        if (!isMock)
+            _wndDebug = new(_ws, _rotation, _zonemod, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud) { IsOpen = Service.IsDev };
 
         dalamud.UiBuilder.DisableAutomaticUiHide = true;
         dalamud.UiBuilder.Draw += DrawUI;
@@ -121,7 +136,7 @@ public sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         Service.Condition.ConditionChange -= OnConditionChanged;
-        _wndDebug.Dispose();
+        _wndDebug?.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();
@@ -158,7 +173,8 @@ public sealed class Plugin : IDalamudPlugin
                 Service.ChatGui.Print(msg);
             return true;
         });
-        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", _wndDebug.OpenAndBringToFront);
+        if (_wndDebug != null)
+            _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", _wndDebug.OpenAndBringToFront);
         _slashCmd.AddSubcommand("gc").SetSimpleHandler("execute C# garbage collector", () =>
         {
             GC.Collect();
@@ -456,5 +472,12 @@ public sealed class Plugin : IDalamudPlugin
     private void OnConditionChanged(ConditionFlag flag, bool value)
     {
         Service.Log($"Condition change: {flag}={value}");
+    }
+
+    public async Task LoadAsync(CancellationToken cancellationToken) { }
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+        GC.SuppressFinalize(this);
     }
 }

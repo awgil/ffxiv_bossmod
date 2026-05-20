@@ -33,7 +33,20 @@
     <ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+        <AssemblyAttribute Include="DalamudLibPath">
+            <_Parameter1>$(DalamudLibPath)</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+    <PackageReference Include="DalaMock.Core" Version="6.0.1" />
+    <PackageReference Include="DalaMock.Host" Version="6.0.0" />
     <Reference Include="Dalamud.Common" Private="false" />
     <Reference Include="TerraFX.Interop.Windows" Private="false" />
     <PackageReference Include="System.Data.Sqlite" Version="2.0.2" />
