@@ -227,7 +227,11 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
     private bool ShouldPotion(in Strategy strategy)
     {
-        if (!strategy.Potion.IsEnabled() || World.Actors.Any(w => w.OID == (uint)OID.Unei))
+        if (!strategy.Potion.IsEnabled())
+            return false;
+
+        // external heals
+        if (World.Actors.Any(w => w.OID == (uint)OID.Unei) || Player.FindStatus(SID.Anointed) != null)
             return false;
 
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.4f : 0.6f;
