@@ -1,5 +1,6 @@
 ﻿using BossMod.AI;
 using BossMod.Autorotation;
+using BossMod.Dev;
 using BossMod.Interfaces;
 using DalaMock.Core.Mocks.MockServices;
 using DalaMock.Host.Mediator;
@@ -56,7 +57,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
 
-    private readonly EventSubscription _onConfigSave;
+    private readonly EventSubscription? _onConfigSave;
 
     public unsafe TickService(
         MediatorService mediator,
@@ -87,16 +88,20 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
-        _onConfigSave = Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
 
         _packs = new();
         _hints = new();
 
+        // TODO: all of this stuff should be replaced by actual DI, but that will be complicated
         _isMock = uiBuilder is MockUiBuilder;
 
         var configDir = dalamud.ConfigDirectory.FullName;
         if (_isMock)
+        {
             configDir = Path.Join(configDir, "BossMod");
+            _onConfigSave = Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
+        }
+        // otherwise _onConfigSave is attached to maindevwindow
 
         _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
@@ -142,7 +147,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndAI = new AIWindow(_ai);
 
         if (_isMock)
+        {
             _wndReplay.IsOpen = true;
+            _ = new MainDevWindow(dalamud) { IsOpen = true };
+        }
         else
         {
             _wndDebug = new MainDebugWindow(_ws, _rotation, _zonemod, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud)
@@ -384,7 +392,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             if (wnd is UIWindow uiw)
                 uiw.Dispose();
 
-        _onConfigSave.Dispose();
+        _onConfigSave?.Dispose();
         _configUI.Dispose();
         _packs.Dispose();
         _mbox.Dispose();
