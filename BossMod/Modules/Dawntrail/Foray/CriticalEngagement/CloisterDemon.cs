@@ -119,8 +119,4 @@ class CloisterDemonStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13666)]
-public class CloisterDemon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-340, 800), new ArenaBoundsCircle(29.5f))
-{
-    public override bool DrawAllPlayers => true;
-}
-
+public class CloisterDemon(WorldState ws, Actor primary) : CEModule(ws, primary, new(-340, 800), new ArenaBoundsCircle(29.5f));

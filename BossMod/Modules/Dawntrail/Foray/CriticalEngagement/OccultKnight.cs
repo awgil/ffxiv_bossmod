@@ -305,7 +305,5 @@ public class OccultKnight(WorldState ws, Actor primary) : BossModule(ws, primary
         Helper ??= Enemies(OID.DeathWallHelper).FirstOrDefault();
     }
 
-    public override bool DrawAllPlayers => true;
-
-    protected override bool CheckPull() => PrimaryActor.InCombat;
+    protected override bool CheckPull() => base.CheckPull() && PrimaryActor.InCombat;
 }
