@@ -3,7 +3,6 @@ using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 
@@ -15,7 +14,7 @@ sealed class DalamudLibPathAttribute(string path) : Attribute
 
 static class Program
 {
-    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud, ICommandManager cmd, IDataManager data) : Plugin(dalamud, cmd, data)
+    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud) : Plugin(dalamud)
     {
         public override IReplacementContainer ReplacementContainer { get; } = mrc;
     }

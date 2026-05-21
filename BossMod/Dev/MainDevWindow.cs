@@ -33,11 +33,13 @@ class MainDevWindow : UIWindow
     public override void Draw()
     {
         using (ImRaii.Disabled(!ConfigModified))
-            if (ImGui.Button("Save config"))
+            if (ImGui.Button(ConfigModified ? "Save config (modified)" : "Save config"))
             {
                 Service.Config.SaveToFile(dalamud.ConfigFile);
                 ConfigModified = false;
             }
+
+        ImGui.Separator();
 
         foreach (var t in _devWindows)
             if (ImGui.Button($"Show {t}"))

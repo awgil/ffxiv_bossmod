@@ -3,7 +3,6 @@ using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BossMod;
@@ -12,11 +11,8 @@ public class Plugin : HostedPlugin
 {
     public string Name => "Boss Mod";
 
-    public Plugin(IDalamudPluginInterface dalamud, ICommandManager commandManager, IDataManager dataManager) : base(dalamud)
+    public Plugin(IDalamudPluginInterface dalamud) : base(dalamud)
     {
-        if (!dalamud.ConfigDirectory.Exists)
-            dalamud.ConfigDirectory.Create();
-
 #if LOCAL_CS
         InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, gameVersion, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
         FFXIVClientStructs.Interop.Generated.Addresses.Register();

@@ -68,6 +68,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IUiBuilder uiBuilder,
         ICondition condition,
         IPluginLog logger,
+        IFileDialogManager dialog,
         IWindowSystemFactory windowSystemFactory
     ) : base(mLogger, mediator)
     {
@@ -142,13 +143,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod);
         _wndZone = new ZoneModuleWindow(_zonemod);
-        _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
+        _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, dialog, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new AIWindow(_ai);
 
         if (_isMock)
         {
-            _wndReplay.IsOpen = true;
+            Service.Config.Get<ReplayManagementConfig>().ShowUI = true;
             _ = new MainDevWindow(dalamud) { IsOpen = true };
         }
         else
@@ -388,11 +389,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!disposing)
             return;
 
-        foreach (var wnd in windowSystem.Windows)
-            if (wnd is UIWindow uiw)
-                uiw.Dispose();
-
         _onConfigSave?.Dispose();
+        _wndDebug?.Dispose();
+        _wndAI.Dispose();
+        _wndRotation.Dispose();
+        _wndReplay.Dispose();
+        _wndZone.Dispose();
+        _wndBossmodHints.Dispose();
+        _wndBossmod.Dispose();
         _configUI.Dispose();
         _packs.Dispose();
         _mbox.Dispose();
