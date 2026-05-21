@@ -80,8 +80,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         dalamud.Create<Service>();
         Service.PluginInterface = dalamud;
-        Service.LogHandlerDebug = (string msg) => Service.Logger.Debug(msg);
-        Service.LogHandlerVerbose = (string msg) => Service.Logger.Verbose(msg);
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = windowSystem;
 
@@ -198,7 +196,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _ai.Update();
         _amex.FinishActionGather();
 
-        Service.IconFontDev = uiBuilder.FontIcon;
+        Service.IconFont = uiBuilder.FontIcon;
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
             windowSystem.Draw();

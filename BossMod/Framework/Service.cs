@@ -1,5 +1,4 @@
 ﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -30,13 +29,12 @@ public sealed class Service
     [PluginService] public static ITargetManager TargetManager { get; private set; }
     [PluginService] public static IKeyState KeyState { get; private set; }
     [PluginService] public static INotificationManager Notifications { get; private set; }
+    [PluginService] public static IPluginLog PluginLog { get; private set; }
 #pragma warning restore CS8618
 
 #pragma warning disable CA2211
-    public static Action<string>? LogHandlerDebug;
-    public static Action<string>? LogHandlerVerbose;
-    public static void Log(string msg) => LogHandlerDebug?.Invoke(msg);
-    public static void LogVerbose(string msg) => LogHandlerVerbose?.Invoke(msg);
+    public static void Log(string msg, params object[] values) => PluginLog.Debug(msg, values);
+    public static void LogVerbose(string msg, params object[] values) => PluginLog.Verbose(msg, values);
 
     public static bool IsDev => PluginInterface.IsDev;
 
@@ -46,12 +44,8 @@ public sealed class Service
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
     public static IWindowSystem WindowSystem = null!;
-    public static ImFontPtr IconFontDev = ImFontPtr.Null;
+    public static ImFontPtr IconFont = ImFontPtr.Null;
 #pragma warning restore CA2211
-
-    public static ImFontPtr IconFont => IconFontDev.IsNull ? UiBuilder.IconFont : IconFontDev;
-
-    public static bool IsUIDev => PluginInterface == null;
 
     public static readonly ConfigRoot Config = new();
 
