@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Core.Mocks.DalamudServices;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
@@ -131,16 +132,7 @@ public sealed class ReplayManager : IDisposable
         DrawEntries();
         DrawEntriesOperations();
 
-        //if (_fileDialog?.Draw() ?? false)
-        //{
-        //    if (_fileDialog.GetIsOk())
-        //    {
-        //        _path = _fileDialog.GetResults().FirstOrDefault() ?? "";
-        //        _fileDialogStartPath = _fileDialog.GetCurrentPath();
-        //    }
-        //    _fileDialog.Hide();
-        //    _fileDialog = null;
-        //}
+        dialogManager.Draw();
     }
 
     private void DrawEntries()
@@ -207,7 +199,7 @@ public sealed class ReplayManager : IDisposable
             return;
 
         var numSelected = _replayEntries.Count(e => e.Selected);
-        bool shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
+        var shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
         if (ImGui.Button(shouldSelectAll ? "Select all" : "Unselect all", new(80, 0)))
         {
             foreach (var e in _replayEntries)
@@ -247,7 +239,10 @@ public sealed class ReplayManager : IDisposable
         ImGui.SameLine();
         if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.File, ""))
         {
-            dialogManager.OpenFileDialog("Select file", "log", (c, p) =>
+            // FIXME
+            var suffixFilter = dialogManager is MockFileDialogManager ? "log" : ".log";
+
+            dialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
             {
                 if (c)
                 {
