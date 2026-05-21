@@ -91,9 +91,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _packs = new();
         _hints = new();
-        _rotationDB = new(new(dalamud.ConfigDirectory.FullName + "/autorot"), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
         _isMock = uiBuilder is MockUiBuilder;
+
+        var configDir = dalamud.ConfigDirectory.FullName;
+        if (_isMock)
+            configDir = Path.Join(configDir, "BossMod");
+
+        _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
         if (_isMock)
         {
@@ -126,7 +131,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
-        var replayDir = new DirectoryInfo(dalamud.ConfigDirectory.FullName + "/replays");
+        var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
 
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod);
@@ -185,7 +190,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex.FinishActionGather();
 
         Service.IconFontDev = uiBuilder.FontIcon;
-        bool uiHidden = Service.GameGui.GameUiHidden || Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.WatchingCutscene];
+        var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
             windowSystem.Draw();
 
