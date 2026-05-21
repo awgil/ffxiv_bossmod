@@ -98,9 +98,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (_isMock)
         {
             configDir = Path.Join(configDir, "BossMod");
+            // don't save automatically, instead we have a button attached to MainDevWindow (to avoid destructive changes)
+        }
+        else
+        {
             _onConfigSave = Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
         }
-        // otherwise _onConfigSave is attached to maindevwindow
 
         _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
