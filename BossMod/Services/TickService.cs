@@ -411,6 +411,5 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder.Dispose();
         _zonemod.Dispose();
         _bossmod.Dispose();
-        ActionDefinitions.Instance.Dispose();
     }
 }

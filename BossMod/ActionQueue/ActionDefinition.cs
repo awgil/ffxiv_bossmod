@@ -150,13 +150,12 @@ public sealed record class ActionDefinition(ActionID ID)
 
 // database of all supported player-initiated actions
 // note that it is associated to a specific worldstate, so that it can be used for things like action conditions
-public sealed class ActionDefinitions : IDisposable
+public sealed class ActionDefinitions
 {
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>()!;
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
     private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
-    private readonly List<IDisposable> _classDefinitions;
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
 
     public IEnumerable<ActionDefinition> Definitions => _definitions.Values;
@@ -206,32 +205,31 @@ public sealed class ActionDefinitions : IDisposable
 
     private ActionDefinitions()
     {
-        _classDefinitions = [
-            new ClassShared.Definitions(this),
-            new PLD.Definitions(this),
-            new WAR.Definitions(this),
-            new DRK.Definitions(this),
-            new GNB.Definitions(this),
-            new WHM.Definitions(this),
-            new SCH.Definitions(this),
-            new AST.Definitions(this),
-            new SGE.Definitions(this),
-            new MNK.Definitions(this),
-            new DRG.Definitions(this),
-            new NIN.Definitions(this),
-            new SAM.Definitions(this),
-            new RPR.Definitions(this),
-            new BRD.Definitions(this),
-            new MCH.Definitions(this),
-            new DNC.Definitions(this),
-            new BLM.Definitions(this),
-            new SMN.Definitions(this),
-            new RDM.Definitions(this),
-            new BLU.Definitions(this),
-            new PCT.Definitions(this),
-            new VPR.Definitions(this),
-            new Roleplay.Definitions(this),
-        ];
+        // TODO: clean this up, we can use reflection or something
+        _ = new ClassShared.Definitions(this);
+        _ = new PLD.Definitions(this);
+        _ = new WAR.Definitions(this);
+        _ = new DRK.Definitions(this);
+        _ = new GNB.Definitions(this);
+        _ = new WHM.Definitions(this);
+        _ = new SCH.Definitions(this);
+        _ = new AST.Definitions(this);
+        _ = new SGE.Definitions(this);
+        _ = new MNK.Definitions(this);
+        _ = new DRG.Definitions(this);
+        _ = new NIN.Definitions(this);
+        _ = new SAM.Definitions(this);
+        _ = new RPR.Definitions(this);
+        _ = new BRD.Definitions(this);
+        _ = new MCH.Definitions(this);
+        _ = new DNC.Definitions(this);
+        _ = new BLM.Definitions(this);
+        _ = new SMN.Definitions(this);
+        _ = new RDM.Definitions(this);
+        _ = new BLU.Definitions(this);
+        _ = new PCT.Definitions(this);
+        _ = new VPR.Definitions(this);
+        _ = new Roleplay.Definitions(this);
 
         // items (TODO: more generic approach is needed...)
         RegisterItem(IDPotionStr);
@@ -279,12 +277,6 @@ public sealed class ActionDefinitions : IDisposable
             }
             Register(def.ID, def);
         }
-    }
-
-    public void Dispose()
-    {
-        foreach (var c in _classDefinitions)
-            c.Dispose();
     }
 
     // smart targeting utility: return target (if friendly) or null (otherwise)
