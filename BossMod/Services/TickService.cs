@@ -380,14 +380,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!disposing)
             return;
 
+        foreach (var wnd in windowSystem.Windows)
+            if (wnd is UIWindow uiw)
+                uiw.Dispose();
+
         _onConfigSave.Dispose();
-        _wndDebug?.Dispose();
-        _wndAI.Dispose();
-        _wndRotation.Dispose();
-        _wndReplay.Dispose();
-        _wndZone.Dispose();
-        _wndBossmodHints.Dispose();
-        _wndBossmod.Dispose();
         _configUI.Dispose();
         _packs.Dispose();
         _mbox.Dispose();
