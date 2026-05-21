@@ -48,11 +48,11 @@ class ExportWalls() : TestWindow("Deep Dungeon wall export tool", new(400, 400),
 
             Service.Log($"detecting walls for {layer.DeepDungeon.Value.Name} floorset {layer.FloorSet} ({tag}) cfc={cfc}");
 
-            var cc = Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(cfc);
+            var cc = Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(cfc)!;
             var bg = cc.Value.TerritoryType.Value.Bg.ToString();
 
             var lgb = $"bg/{bg[..bg.LastIndexOf('/')]}/bg.lgb";
-            var contents = Service.LuminaGameData!.GetFile<LgbFile>(lgb);
+            var contents = Service.LuminaGameData!.GetFile<LgbFile>(lgb)!;
 
             var newFloor = new Floor<Wall>(layer.DeepDungeon.RowId, layer.FloorSet, new([]), new([]));
 
@@ -93,7 +93,7 @@ class ExportWalls() : TestWindow("Deep Dungeon wall export tool", new(400, 400),
                 {
                     if (obj.Object is Lumina.Data.Parsing.Layer.LayerCommon.SharedGroupInstanceObject sg)
                     {
-                        var contents = Service.LuminaGameData.GetFile<SgbFile>(sg.AssetPath);
+                        var contents = Service.LuminaGameData!.GetFile<SgbFile>(sg.AssetPath)!;
                         var wall = contents.LayerGroups.SelectMany(g => g.Layers).SelectMany(l => l.InstanceObjects).FirstOrDefault(obj => obj.AssetType is Lumina.Data.Parsing.Layer.LayerEntryType.CollisionBox);
                         if (wall.Object is Lumina.Data.Parsing.Layer.LayerCommon.CollisionBoxInstanceObject cb)
                         {
