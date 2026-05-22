@@ -168,7 +168,4 @@ class NymianPetalodusStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13717)]
-public class NymianPetalodus(WorldState ws, Actor primary) : BossModule(ws, primary, new(-117, -850), new ArenaBoundsCircle(20))
-{
-    public override bool DrawAllPlayers => true;
-}
+public class NymianPetalodus(WorldState ws, Actor primary) : CEModule(ws, primary, new(-117, -850), new ArenaBoundsCircle(20));

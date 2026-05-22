@@ -112,7 +112,7 @@ class BlackChocoboStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13637)]
-public class BlackChocobo(WorldState ws, Actor primary) : BossModule(ws, primary, new(450, 357), new ArenaBoundsSquare(20))
+public class BlackChocobo(WorldState ws, Actor primary) : CEModule(ws, primary, new(450, 357), new ArenaBoundsSquare(20))
 {
     public Actor? BlackStar { get; private set; }
     public Actor? Helper { get; private set; }
@@ -122,6 +122,4 @@ public class BlackChocobo(WorldState ws, Actor primary) : BossModule(ws, primary
         BlackStar ??= Enemies(OID.BlackStar).FirstOrDefault();
         Helper ??= Enemies(OID.DeathWallHelper).FirstOrDefault();
     }
-
-    public override bool DrawAllPlayers => true;
 }

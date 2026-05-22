@@ -68,7 +68,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
         var timeRef = ImGui.GetIO().KeyShift && _relativeTS != default ? _relativeTS : reference;
 
         var c = new ImGuiListClipper();
-        c.Begin(_nodes.Count, 21 * ImGuiHelpers.GlobalScale);
+        c.Begin(_nodes.Count, (ImGui.GetFrameHeight() - 2) * ImGuiHelpers.GlobalScale);
 
         while (c.Step())
         {
@@ -250,7 +250,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
 
     private Action? OpContextMenu(WorldState.Operation o)
     {
-        return o switch
+        Action? opSpecific = o switch
         {
             WorldState.OpDirectorUpdate op => () => ContextMenuDirectorUpdate(op),
             ActorState.OpStatus op => () => ContextMenuActorStatus(op),
@@ -258,6 +258,18 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ActorState.OpCastEvent op => () => ContextMenuEventCast(op),
             ActorState.Operation op => () => ContextMenuActor(op),
             _ => null,
+        };
+
+        return () =>
+        {
+            if (opSpecific != null)
+            {
+                opSpecific.Invoke();
+                ImGui.Separator();
+            }
+
+            if (ImGui.MenuItem("Jump to timestamp", "double click"))
+                scrollTo(o.Timestamp);
         };
     }
 

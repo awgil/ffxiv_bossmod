@@ -1,6 +1,6 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 using System.Threading;
@@ -72,17 +72,18 @@ public sealed class ReplayManager : IDisposable
     }
 
     private readonly RotationDatabase _rotationDB;
+    private readonly IFileDialogManager dialogManager;
     private readonly ReplayManagementConfig _config = Service.Config.Get<ReplayManagementConfig>();
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
     private int _nextAnalysisId;
     private string _path = "";
     private string _fileDialogStartPath;
-    private FileDialog? _fileDialog;
 
-    public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
+    public ReplayManager(RotationDatabase rotationDB, IFileDialogManager dialogManager, string fileDialogStartPath)
     {
         _rotationDB = rotationDB;
+        this.dialogManager = dialogManager;
         _fileDialogStartPath = fileDialogStartPath;
         RestoreHistory();
     }
@@ -130,16 +131,7 @@ public sealed class ReplayManager : IDisposable
         DrawEntries();
         DrawEntriesOperations();
 
-        if (_fileDialog?.Draw() ?? false)
-        {
-            if (_fileDialog.GetIsOk())
-            {
-                _path = _fileDialog.GetResults().FirstOrDefault() ?? "";
-                _fileDialogStartPath = _fileDialog.GetCurrentPath();
-            }
-            _fileDialog.Hide();
-            _fileDialog = null;
-        }
+        dialogManager.Draw();
     }
 
     private void DrawEntries()
@@ -206,7 +198,7 @@ public sealed class ReplayManager : IDisposable
             return;
 
         var numSelected = _replayEntries.Count(e => e.Selected);
-        bool shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
+        var shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
         if (ImGui.Button(shouldSelectAll ? "Select all" : "Unselect all", new(80, 0)))
         {
             foreach (var e in _replayEntries)
@@ -244,14 +236,36 @@ public sealed class ReplayManager : IDisposable
     {
         ImGui.InputText("###path", ref _path, 500);
         ImGui.SameLine();
-        if (ImGui.Button("..."))
+        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.File))
         {
-            _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", _fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
-            // work around an oversight(?) in dalamud
-            // TODO: we should use FileDialogManager instead
-            _fileDialog.SelectionChanged += (e, s) => { };
-            _fileDialog.Show();
+            // FIXME
+            var suffixFilter = Service.IsMock ? "log" : ".log";
+
+            dialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
+            {
+                if (c)
+                {
+                    _path = p[0];
+                    _fileDialogStartPath = new FileInfo(_path).Directory!.FullName;
+                }
+            }, 1, _fileDialogStartPath);
         }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Open file");
+        ImGui.SameLine();
+        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen))
+        {
+            dialogManager.OpenFolderDialog("Select directory", (c, p) =>
+            {
+                if (c)
+                {
+                    _path = p;
+                    _fileDialogStartPath = p;
+                }
+            }, _fileDialogStartPath);
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Open folder");
         ImGui.SameLine();
         using (ImRaii.Disabled(_path.Length == 0 || _replayEntries.Any(e => e.Path == _path)))
         {

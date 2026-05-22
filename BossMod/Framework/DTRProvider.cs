@@ -5,8 +5,6 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Utility.Raii;
-using FFXIVClientStructs.FFXIV.Client.System.Input;
-using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace BossMod;
 

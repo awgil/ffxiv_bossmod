@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using BossMod.Services;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -19,7 +20,7 @@ using System.Text;
 namespace BossMod;
 
 // utility that updates a world state to correspond to game state
-sealed class WorldStateGameSync : IDisposable
+sealed class WorldStateGameSync : IWorldStateGameSync
 {
     private const int ObjectTableSize = 819; // should match CS; note that different ranges are used for different purposes - consider splitting?..
     private const uint InvalidEntityId = 0xE0000000;
