@@ -1,4 +1,5 @@
-﻿using BossMod;
+﻿#if DEBUG
+using BossMod;
 using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
 using DalaMock.Shared.Interfaces;
@@ -56,3 +57,4 @@ static class Program
         RealMain();
     }
 }
+#endif

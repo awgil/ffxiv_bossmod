@@ -2,7 +2,6 @@
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
-using DalaMock.Core.Mocks.MockServices;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Game.ClientState.Conditions;
@@ -53,8 +52,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly AIWindow _wndAI;
     private readonly MainDebugWindow? _wndDebug;
 
-    private readonly bool _isMock;
-
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
 
     private readonly EventSubscription? _onConfigSave;
@@ -83,6 +80,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = windowSystem;
 
+        // TODO: all of this stuff should be replaced by actual DI, but that will be complicated
+        // testing against actual type incurs a dependency on DalaMock.Core, which is 60MB
+        Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
+
         MultiboxUnlock.Exec();
 
         Service.Config.Initialize();
@@ -91,12 +92,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _packs = new();
         _hints = new();
 
-        // TODO: all of this stuff should be replaced by actual DI, but that will be complicated
-        _isMock = uiBuilder is MockUiBuilder;
-
         var configDir = dalamud.ConfigDirectory.FullName;
-        if (_isMock)
+        if (Service.IsMock)
         {
+            // bug(?) in dalamock gives us the wrong config dir (top-level directory)
             configDir = Path.Join(configDir, "BossMod");
             // don't save automatically, instead we have a button attached to MainDevWindow (to avoid destructive changes)
         }
@@ -107,7 +106,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
-        if (_isMock)
+        if (Service.IsMock)
         {
             _ws = new(0, "unknown");
             _movementOverride = new MockMovementOverride();
@@ -148,9 +147,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new AIWindow(_ai);
 
-        if (_isMock)
+        if (Service.IsMock)
         {
-            Service.Config.Get<ReplayManagementConfig>().ShowUI = true;
+            Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
             _ = new MainDevWindow(dalamud) { IsOpen = true };
         }
         else
@@ -166,7 +165,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        uiBuilder.Draw += Update;
+        uiBuilder.Draw += UiDraw;
         uiBuilder.DisableAutomaticUiHide = true;
         uiBuilder.OpenConfigUi += OpenUi;
         uiBuilder.OpenMainUi += OpenUi;
@@ -176,14 +175,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        uiBuilder.Draw -= Update;
+        uiBuilder.Draw -= UiDraw;
         uiBuilder.OpenConfigUi -= OpenUi;
         uiBuilder.OpenMainUi -= OpenUi;
 
         condition.ConditionChange -= OnConditionChanged;
     }
 
-    void Update()
+    void UiDraw()
     {
         var tsStart = DateTime.Now;
         var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());

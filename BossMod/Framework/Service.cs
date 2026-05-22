@@ -37,6 +37,7 @@ public sealed class Service
     public static void LogVerbose(string msg, params object[] values) => PluginLog.Verbose(msg, values);
 
     public static bool IsDev => PluginInterface.IsDev;
+    public static bool IsMock;
 
     public static Lumina.GameData? LuminaGameData;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English);

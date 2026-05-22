@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using DalaMock.Core.Mocks.DalamudServices;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
@@ -240,7 +239,7 @@ public sealed class ReplayManager : IDisposable
         if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.File, ""))
         {
             // FIXME
-            var suffixFilter = dialogManager is MockFileDialogManager ? "log" : ".log";
+            var suffixFilter = Service.IsMock ? "log" : ".log";
 
             dialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
             {

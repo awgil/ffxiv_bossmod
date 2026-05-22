@@ -7,7 +7,7 @@ class ShrinkTest : TestWindow
     private readonly List<WDir> _points = [];
     private readonly List<WDir> _innerPoints = [];
 
-    private Vector2 _canvasOrigin = new();
+    private Vector2 _canvasOrigin;
 
     public ShrinkTest() : base("Poly shrink test", new(800, 800), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {

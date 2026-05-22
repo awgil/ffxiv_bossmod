@@ -27,7 +27,9 @@ class MainDevWindow : UIWindow
 
     protected override void Dispose(bool disposing)
     {
-        _configChange.Dispose();
+        if (disposing)
+            _configChange.Dispose();
+        base.Dispose(disposing);
     }
 
     public override void Draw()
