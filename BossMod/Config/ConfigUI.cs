@@ -390,7 +390,7 @@ public sealed class ConfigUI : IDisposable
     public static void DrawGroupPresetIndicator(string text, Action contextMenu)
     {
         ImGui.AlignTextToFramePadding();
-        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ListUl, $"###{text}open"))
+        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ListUl, $"{text}open"))
             ImGui.OpenPopup($"{text}popup");
 
         if (ImGui.BeginPopup($"{text}popup"))

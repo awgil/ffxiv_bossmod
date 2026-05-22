@@ -236,7 +236,7 @@ public sealed class ReplayManager : IDisposable
     {
         ImGui.InputText("###path", ref _path, 500);
         ImGui.SameLine();
-        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.File, ""))
+        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.File))
         {
             // FIXME
             var suffixFilter = Service.IsMock ? "log" : ".log";
@@ -253,7 +253,7 @@ public sealed class ReplayManager : IDisposable
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Open file");
         ImGui.SameLine();
-        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen, ""))
+        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen))
         {
             dialogManager.OpenFolderDialog("Select directory", (c, p) =>
             {
