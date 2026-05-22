@@ -34,16 +34,16 @@
   </ItemGroup>
 
 
-    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-        <OutputType>Exe</OutputType>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
 
-    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-        <AssemblyAttribute Include="DalamudLibPath">
-            <_Parameter1>$(DalamudLibPath)</_Parameter1>
-        </AssemblyAttribute>
-        <PackageReference Include="DalaMock.Core" Version="6.0.1" />
-    </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <AssemblyAttribute Include="DalamudLibPath">
+      <_Parameter1>$(DalamudLibPath)</_Parameter1>
+    </AssemblyAttribute>
+    <PackageReference Include="DalaMock.Core" Version="6.0.1" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DalaMock.Host" Version="6.0.0" />
