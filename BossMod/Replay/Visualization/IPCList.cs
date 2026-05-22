@@ -99,5 +99,8 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
             _filterInvert = true;
             _nodes = null;
         }
+        ImGui.Separator();
+        if (ImGui.MenuItem("Jump to timestamp", "double click"))
+            scrollTo(op.Timestamp);
     }
 }
