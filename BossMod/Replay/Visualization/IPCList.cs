@@ -56,7 +56,7 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
         var timeRef = ImGui.GetIO().KeyShift && _relativeTS != default ? _relativeTS : reference;
 
         var c = new ImGuiListClipper();
-        c.Begin(_nodes.Count, 21 * ImGuiHelpers.GlobalScale);
+        c.Begin(_nodes.Count, (ImGui.GetFrameHeight() - 2) * ImGuiHelpers.GlobalScale);
 
         while (c.Step())
         {
