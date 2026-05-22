@@ -42,6 +42,7 @@
     <AssemblyAttribute Include="DalamudLibPath">
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
+    <PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
     <PackageReference Include="DalaMock.Core" Version="6.0.1" />
   </ItemGroup>
 

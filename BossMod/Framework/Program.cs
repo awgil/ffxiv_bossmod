@@ -43,6 +43,9 @@ static class Program
 
     static void RealMain()
     {
+        // FIXME once fixed in dalamock (video subsystem has to init, otherwise it can't figure out how many monitors we have and always spawns the window in the same place)
+        Veldrid.Sdl2.Sdl2Native.SDL_Init(Veldrid.Sdl2.SDLInitFlags.Video);
+
         var cnt = new MockContainer();
         var ui = cnt.GetMockUi();
         var loader = cnt.GetPluginLoader();
