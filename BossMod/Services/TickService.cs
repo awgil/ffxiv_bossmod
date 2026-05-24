@@ -84,8 +84,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         // testing against actual type incurs a dependency on DalaMock.Core, which is 60MB
         Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
-        MultiboxUnlock.Exec();
-
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
 
@@ -102,6 +100,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         else
         {
             _onConfigSave = Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
+
+            // requires windows/wine
+            MultiboxUnlock.Exec();
         }
 
         _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));

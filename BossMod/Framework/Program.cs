@@ -6,6 +6,7 @@ using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 [AttributeUsage(AttributeTargets.Assembly, Inherited = false, AllowMultiple = false)]
 sealed class DalamudLibPathAttribute(string path) : Attribute
