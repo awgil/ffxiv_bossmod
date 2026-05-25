@@ -2,10 +2,15 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "C#: BossMod Debug",
-      "type": "DotNetWatch",
+      "name": ".NET Stalker",
+      "type": "stalker",
       "request": "launch",
-      "project": "BossMod"
+      "vars": {
+        "projectDir": "${workspaceFolder}/BossMod"
+      },
+      "project": "${workspaceFolder}/BossMod/BossMod.csproj",
+      "process": "BossMod",
+      "cwd": "${workspaceFolder}/BossMod/bin/x64/Debug"
     }
   ]
 }

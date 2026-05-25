@@ -117,7 +117,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
-            _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, File.ReadAllText("ffxivgame.ver"));
+            _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, dataManager.GameData.Repositories["ffxiv"].Version);
             _movementOverride = new MovementOverride(dalamud);
             _amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
             _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex);
