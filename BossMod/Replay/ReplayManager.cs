@@ -72,7 +72,6 @@ public sealed class ReplayManager : IDisposable
     }
 
     private readonly RotationDatabase _rotationDB;
-    private readonly IFileDialogManager dialogManager;
     private readonly ReplayManagementConfig _config = Service.Config.Get<ReplayManagementConfig>();
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
@@ -80,10 +79,9 @@ public sealed class ReplayManager : IDisposable
     private string _path = "";
     private string _fileDialogStartPath;
 
-    public ReplayManager(RotationDatabase rotationDB, IFileDialogManager dialogManager, string fileDialogStartPath)
+    public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
     {
         _rotationDB = rotationDB;
-        this.dialogManager = dialogManager;
         _fileDialogStartPath = fileDialogStartPath;
         RestoreHistory();
     }
@@ -130,8 +128,6 @@ public sealed class ReplayManager : IDisposable
         DrawNewEntry();
         DrawEntries();
         DrawEntriesOperations();
-
-        dialogManager.Draw();
     }
 
     private void DrawEntries()
@@ -241,7 +237,7 @@ public sealed class ReplayManager : IDisposable
             // FIXME
             var suffixFilter = Service.IsMock ? "log" : ".log";
 
-            dialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
+            Service.FileDialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
             {
                 if (c)
                 {
@@ -255,7 +251,7 @@ public sealed class ReplayManager : IDisposable
         ImGui.SameLine();
         if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen))
         {
-            dialogManager.OpenFolderDialog("Select directory", (c, p) =>
+            Service.FileDialogManager.OpenFolderDialog("Select directory", (c, p) =>
             {
                 if (c)
                 {

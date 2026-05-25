@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Shared.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -45,6 +46,7 @@ public sealed class Service
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
     public static IWindowSystem WindowSystem = null!;
+    public static IFileDialogManager FileDialogManager = null!;
     public static ImFontPtr IconFont = ImFontPtr.Null;
 #pragma warning restore CA2211
 

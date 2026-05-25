@@ -79,6 +79,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.PluginInterface = dalamud;
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = windowSystem;
+        Service.FileDialogManager = dialog;
 
         // TODO: all of this stuff should be replaced by actual DI, but that will be complicated
         // testing against actual type incurs a dependency on DalaMock.Core, which is 60MB
@@ -144,7 +145,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod);
         _wndZone = new ZoneModuleWindow(_zonemod);
-        _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, dialog, replayDir);
+        _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
         _wndAI = new AIWindow(_ai);
 
@@ -202,7 +203,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.IconFont = uiBuilder.FontIcon;
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
+        {
             windowSystem.Draw();
+            Service.FileDialogManager.Draw();
+        }
 
         _hintExecutor.Execute();
 
