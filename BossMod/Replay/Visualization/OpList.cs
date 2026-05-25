@@ -68,7 +68,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
         var timeRef = ImGui.GetIO().KeyShift && _relativeTS != default ? _relativeTS : reference;
 
         var c = new ImGuiListClipper();
-        c.Begin(_nodes.Count, (ImGui.GetFrameHeight() - 2) * ImGuiHelpers.GlobalScale);
+        c.Begin(_nodes.Count, ImGui.GetFrameHeight() - 2);
 
         while (c.Step())
         {
