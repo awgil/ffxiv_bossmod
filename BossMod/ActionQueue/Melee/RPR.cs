@@ -108,11 +108,11 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
     private readonly RPRConfig _config = Service.Config.Get<RPRConfig>();
 
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.TheEnd, castAnimLock: 3.70f); // animLock=3.700s?
         d.RegisterSpell(AID.Slice);
@@ -156,8 +156,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

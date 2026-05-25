@@ -276,9 +276,9 @@ public enum SID : uint
     GlovesOff = 3458,
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.Pummel);
         d.RegisterSpell(AID.VoidFireII);
@@ -483,6 +483,4 @@ public sealed class Definitions : IDisposable
 
         d.RegisterSpell(AID.BakeOff);
     }
-
-    public void Dispose() { }
 }

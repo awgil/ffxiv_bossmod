@@ -98,11 +98,11 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
     private readonly DRGConfig _config = Service.Config.Get<DRGConfig>();
 
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f); // animLock=3.700s?
         d.RegisterSpell(AID.TrueThrust);
@@ -141,8 +141,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

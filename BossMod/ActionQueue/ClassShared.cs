@@ -181,11 +181,11 @@ public enum SID : uint
     DiabrosisEquippedPvP = 4497,
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
     private readonly SharedActionsConfig _config = Service.Config.Get<SharedActionsConfig>();
 
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         #region PvE
         d.RegisterSpell(AID.Sprint);
@@ -296,8 +296,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

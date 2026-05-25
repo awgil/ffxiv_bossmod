@@ -91,9 +91,9 @@ public enum SID : uint
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.DarkForce, instantAnimLock: 3.86f); // animLock=3.860s?
         d.RegisterSpell(AID.HardSlash);
@@ -135,8 +135,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

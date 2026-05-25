@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using System.Reflection;
+
+namespace BossMod;
 
 // allowed categories of targets for an action
 [Flags]
@@ -205,31 +207,8 @@ public sealed class ActionDefinitions
 
     private ActionDefinitions()
     {
-        // TODO: clean this up, we can use reflection or something
-        _ = new ClassShared.Definitions(this);
-        _ = new PLD.Definitions(this);
-        _ = new WAR.Definitions(this);
-        _ = new DRK.Definitions(this);
-        _ = new GNB.Definitions(this);
-        _ = new WHM.Definitions(this);
-        _ = new SCH.Definitions(this);
-        _ = new AST.Definitions(this);
-        _ = new SGE.Definitions(this);
-        _ = new MNK.Definitions(this);
-        _ = new DRG.Definitions(this);
-        _ = new NIN.Definitions(this);
-        _ = new SAM.Definitions(this);
-        _ = new RPR.Definitions(this);
-        _ = new BRD.Definitions(this);
-        _ = new MCH.Definitions(this);
-        _ = new DNC.Definitions(this);
-        _ = new BLM.Definitions(this);
-        _ = new SMN.Definitions(this);
-        _ = new RDM.Definitions(this);
-        _ = new BLU.Definitions(this);
-        _ = new PCT.Definitions(this);
-        _ = new VPR.Definitions(this);
-        _ = new Roleplay.Definitions(this);
+        foreach (var d in Utils.GetDerivedTypes<Defs>(Assembly.GetExecutingAssembly()))
+            ((Defs)Activator.CreateInstance(d)!).Define(this);
 
         // items (TODO: more generic approach is needed...)
         RegisterItem(IDPotionStr);
@@ -586,4 +565,9 @@ public sealed class ActionDefinitions
         _definitions[aid].MaxChargesOverride.SortByReverse(c => c.Level);
     }
     public void RegisterChargeIncreaseTrait<AID, TraitID>(AID aid, TraitID traitId) where AID : Enum where TraitID : Enum => RegisterChargeIncreaseTrait(ActionID.MakeSpell(aid), (uint)(object)traitId);
+}
+
+public abstract class Defs
+{
+    public abstract void Define(ActionDefinitions d);
 }
