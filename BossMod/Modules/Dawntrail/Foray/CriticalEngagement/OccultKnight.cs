@@ -292,7 +292,7 @@ class OccultKnightStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13728, PrimaryActorOID = (uint)OID.DeathWallHelper)]
-public class OccultKnight(WorldState ws, Actor primary) : BossModule(ws, primary, new(680, -280), new ArenaBoundsCircle(20))
+public class OccultKnight(WorldState ws, Actor primary) : CEModule(ws, primary, new(680, -280), new ArenaBoundsCircle(20))
 {
     public Actor? Megaloknight() => _megaloknight;
 
