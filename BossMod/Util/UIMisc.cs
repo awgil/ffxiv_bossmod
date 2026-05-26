@@ -89,7 +89,7 @@ public static class UIMisc
             iconSize = ImGui.CalcTextSize(icon.ToIconString());
 
         var textStr = text;
-        if (textStr.Contains('#'))
+        if (textStr.Contains('#', StringComparison.Ordinal))
             textStr = textStr[..textStr.IndexOf('#', StringComparison.Ordinal)];
 
         var framePadding = ImGui.GetStyle().FramePadding;
