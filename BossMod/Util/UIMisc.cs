@@ -71,7 +71,7 @@ public static class UIMisc
         ImGui.TextUnformatted(text);
     }
 
-    public static bool IconButton(FontAwesomeIcon icon, string id) => IconButtonRaw($"{icon.ToIconString()}#{id}");
+    public static bool IconButton(FontAwesomeIcon icon, string id) => IconButtonRaw($"{icon.ToIconString()}##{id}");
     public static bool IconButton(FontAwesomeIcon icon) => IconButtonRaw(icon.ToIconString());
 
     static bool IconButtonRaw(string text)

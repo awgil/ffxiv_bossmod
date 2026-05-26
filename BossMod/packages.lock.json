@@ -4,12 +4,12 @@
     "net10.0-windows7.0": {
       "DalaMock.Core": {
         "type": "Direct",
-        "requested": "[6.0.1, )",
-        "resolved": "6.0.1",
-        "contentHash": "TBUgINP/VPwKtmZ/EmLoIP/MmwxI/9bSIY4LMBvkeJSO2mCNHOcpbRy30MUrVprtoU/inWccZRwDV+jz/J85ig==",
+        "requested": "[6.1.2, )",
+        "resolved": "6.1.2",
+        "contentHash": "H3ybXwhko5fDD9IMilCp3q4oAEuuYChlKsP0s7nzzB0VK1F9vRh+o1+4/p1YUUhJhAyJ3h8YgYlssTd9AObD7g==",
         "dependencies": {
           "Autofac": "9.0.0",
-          "DalaMock.Shared": "6.0.0",
+          "DalaMock.Shared": "6.1.2",
           "Microsoft.DotNet.PlatformAbstractions": "3.1.6",
           "Microsoft.Extensions.Configuration": "10.0.1",
           "Microsoft.Extensions.DependencyModel": "10.0.1",
@@ -21,6 +21,7 @@
           "Newtonsoft.Json": "13.0.4",
           "Serilog": "4.3.0",
           "Serilog.Extensions.Logging": "10.0.0",
+          "SixLabors.Fonts": "2.1.3",
           "StbiSharp": "1.2.1",
           "Veldrid": "4.9.0",
           "Veldrid.SDL2": "4.9.0",
@@ -29,12 +30,12 @@
       },
       "DalaMock.Host": {
         "type": "Direct",
-        "requested": "[6.0.0, )",
-        "resolved": "6.0.0",
-        "contentHash": "X7HL9toXQwo1rbJ1cvDMSvfXVlQd5f+ZJ2lHuZawszHbKt+jGqEp0xK6bJhv8u2ZElhj+T4A48BSk+0JKq7LxA==",
+        "requested": "[6.1.2, )",
+        "resolved": "6.1.2",
+        "contentHash": "a7TuEGNjJMPK7VPPphAlQTq3+FVVyA7bSwPqNv7kwdapFUz6vLRSQ+ivaj7D8STIYt4jYRKjFuClJ2plReErwA==",
         "dependencies": {
           "Autofac.Extensions.DependencyInjection": "10.0.0",
-          "DalaMock.Shared": "6.0.0",
+          "DalaMock.Shared": "6.1.2",
           "Microsoft.Extensions.Hosting": "10.0.4",
           "Microsoft.Extensions.Hosting.Abstractions": "10.0.4",
           "Microsoft.Extensions.ObjectPool": "10.0.4"
@@ -42,9 +43,9 @@
       },
       "DalaMock.Shared": {
         "type": "Direct",
-        "requested": "[6.0.0, )",
-        "resolved": "6.0.0",
-        "contentHash": "nsnYbWerAceRqkPdaa69nDqFFh6SmyHc95x+p0z+Mg576yQaN+SqlSWY6ovWSrJa1AKo88/F+ffWoR0weGz7AA==",
+        "requested": "[6.1.2, )",
+        "resolved": "6.1.2",
+        "contentHash": "kzxZ0yPUrojRZJACyWCNzR/HSiVsY28w8UA3ll+II5xFT4XPJYmTe1XdVTVirqjyogrn4edjGbFbZD4nhO7u9g==",
         "dependencies": {
           "Autofac": "9.0.0"
         }
@@ -453,6 +454,11 @@
           "PolySharp": "1.10.0",
           "SharpGen.Runtime": "2.0.0-beta.13"
         }
+      },
+      "SixLabors.Fonts": {
+        "type": "Transitive",
+        "resolved": "2.1.3",
+        "contentHash": "ORWbZ5BHrC/LZvo+Y09MnoJq5VUKD85LsYALk+YI7CHFra+m5arCkz00IntDM6SrAiB22bvSdKtKmuCyHOKlqg=="
       },
       "StbiSharp": {
         "type": "Transitive",
