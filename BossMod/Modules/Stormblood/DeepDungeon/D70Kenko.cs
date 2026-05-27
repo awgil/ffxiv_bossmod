@@ -29,10 +29,11 @@ public enum IconID : uint
 
 class PredatorClaws(BossModule module) : Components.StandardAOEs(module, AID.PredatorClaws, new AOEShapeCone(15, 60.Degrees()));
 class Slabber(BossModule module) : Components.StandardAOEs(module, AID.Slabber, 8);
+class Ululation(BossModule module) : Components.RaidwideCast(module, AID.Ululation);
+class HoundOutOfHell(BossModule module) : Components.BaitAwayChargeCast(module, AID.HoundOutOfHell, 7);
 class InnerspacePredict(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? Next;
-
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(Next);
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -47,9 +48,31 @@ class InnerspacePredict(BossModule module) : Components.GenericAOEs(module)
             Next = null;
     }
 }
-// TODO only apply invert logic to marked player, will probably need to rewrite component
-class Innerspace(BossModule module) : Components.PersistentInvertibleVoidzone(module, 3, m => m.Enemies(OID.Puddle).Where(p => p.EventState != 7))
+class Innerspace(BossModule module) : Components.GenericAOEs(module)
 {
+    private static readonly AOEShapeCircle _shape = new(3);
+
+    private Actor? _prey;
+    public DateTime InvertResolveAt;
+
+    private bool Inverted(int slot) => Raid[slot] == _prey && WorldState.CurrentTime < InvertResolveAt;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var p in Module.Enemies(OID.Puddle).Where(p => p.EventState != 7))
+        {
+            yield return Inverted(slot)
+                ? new AOEInstance(_shape, p.Position, Color: ArenaColor.SafeFromAOE)
+                : new AOEInstance(_shape, p.Position);
+        }
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.Prey)
+            _prey = actor;
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.HoundOutOfHell)
@@ -61,13 +84,29 @@ class Innerspace(BossModule module) : Components.PersistentInvertibleVoidzone(mo
         if ((AID)spell.Action.ID == AID.Devour)
             InvertResolveAt = default;
     }
-}
-class Ululation(BossModule module) : Components.RaidwideCast(module, AID.Ululation);
-class HoundOutOfHell(BossModule module) : Components.BaitAwayChargeCast(module, AID.HoundOutOfHell, 7);
 
-class KenkoStates : StateMachineBuilder
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        var inside = Module.Enemies(OID.Puddle)
+            .Where(p => p.EventState != 7)
+            .Any(p => _shape.Check(actor.Position, p.Position, default));
+
+        if (Inverted(slot))
+        {
+            if (!inside)
+                hints.Add("Get in the puddle!");
+        }
+        else
+        {
+            if (inside)
+                hints.Add("Get out of the puddle!");
+        }
+    }
+}
+
+class D70KenkoStates : StateMachineBuilder
 {
-    public KenkoStates(BossModule module) : base(module)
+    public D70KenkoStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<PredatorClaws>()
@@ -80,4 +119,4 @@ class KenkoStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 546, NameID = 7489)]
-public class Kenko(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(24));
+public class D70Kenko(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(24));

@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D60Suikazura;
+﻿namespace BossMod.Stormblood.DeepDungeon.D60Suikazura;
 
 public enum OID : uint
 {
@@ -22,7 +22,7 @@ class InfiniteAnguish(BossModule module) : Components.StandardAOEs(module, AID.I
 class FireII(BossModule module) : Components.StandardAOEs(module, AID.FireII, 5);
 class Topple(BossModule module) : Components.StandardAOEs(module, AID.Topple, new AOEShapeCircle(5.5f));
 class SearingChain(BossModule module) : Components.StandardAOEs(module, AID.SearingChain, new AOEShapeRect(61, 2));
-class AncientFlare(BossModule module) : Components.RaidwideCast(module, AID.AncientFlare, "Raidwide, watch your feet after it goes off");
+class AncientFlare(BossModule module) : Components.RaidwideCast(module, AID.AncientFlare, "Raidwide into line AOEs after!");
 
 class D60SuikazuraStates : StateMachineBuilder
 {

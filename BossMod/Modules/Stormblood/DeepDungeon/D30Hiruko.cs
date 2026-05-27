@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D30Hiruko;
+﻿namespace BossMod.Stormblood.DeepDungeon.D30Hiruko;
 
 public enum OID : uint
 {

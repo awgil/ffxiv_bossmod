@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D40Bhima;
+﻿namespace BossMod.Stormblood.DeepDungeon.D40Bhima;
 
 public enum OID : uint
 {
@@ -16,12 +16,42 @@ public enum AID : uint
     Windage = 11906, // 23E3->self, 1.0s cast, range 6 circle // need to make this show up as a void zone while it's still up, just because they cast so quickly
 }
 
+class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, AID.Tornado, 6);
 class AncientAero(BossModule module) : Components.StandardAOEs(module, AID.AncientAero, new AOEShapeRect(52.4f, 4));
 class AncientAeroII(BossModule module) : Components.StandardAOEs(module, AID.AncientAeroII, 6);
-class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 23.5f, true, stopAtWall: true);
-class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, AID.Tornado, 6);
-class Windage(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(z => z.EventState != 7));
+class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 23.5f, true, stopAtWall: true)
+{
+    private static readonly AOEShapeCircle _windShape = new(6f);
 
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    {
+        foreach (var w in Module.Enemies(OID.Whirlwind))
+        {
+            if (w.IsDeadOrDestroyed)
+                continue;
+
+            if (_windShape.Check(pos, w.Position, default))
+                return true;
+        }
+
+        return false;
+    }
+}
+class Windage(BossModule module) : Components.GenericAOEs(module, warningText: "GTFO of Whirlwind!")
+{
+    private static readonly AOEShapeCircle _shape = new(6f);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var w in Module.Enemies(OID.Whirlwind))
+        {
+            if (w.IsDeadOrDestroyed)
+                continue;
+
+            yield return new AOEInstance(_shape, w.Position);
+        }
+    }
+}
 class D40BhimaStates : StateMachineBuilder
 {
     public D40BhimaStates(BossModule module) : base(module)

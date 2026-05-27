@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D10Mojabune;
+﻿namespace BossMod.Stormblood.DeepDungeon.D10Mojabune;
 
 public enum OID : uint
 {
