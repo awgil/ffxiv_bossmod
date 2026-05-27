@@ -42,6 +42,8 @@ public sealed class ActorState : IEnumerable<Actor>
                 yield return new OpDead(act.InstanceID, true);
             if (act.InCombat)
                 yield return new OpCombat(act.InstanceID, true);
+            if (act.IsOpenTreasure)
+                yield return new OpEventOpenTreasure(act.InstanceID);
             if (act.ModelState != default)
                 yield return new OpModelState(act.InstanceID, act.ModelState);
             if (act.EventState != 0)
@@ -578,7 +580,11 @@ public sealed class ActorState : IEnumerable<Actor>
     public Event<Actor> EventOpenTreasure = new();
     public sealed record class OpEventOpenTreasure(ulong InstanceID) : Operation(InstanceID)
     {
-        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventOpenTreasure.Fire(actor);
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.IsOpenTreasure = true;
+            ws.Actors.EventOpenTreasure.Fire(actor);
+        }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("OPNT"u8).EmitActor(InstanceID);
     }
 }
