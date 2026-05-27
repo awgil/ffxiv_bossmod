@@ -39,6 +39,12 @@ static class Program
             var libName = args.Name.Split(',').FirstOrDefault();
             return libName != null && SupportedLibs.Contains(libName) ? Assembly.LoadFrom(Path.Join(dalapath, $"{libName}.dll")) : null;
         };
+
+        // FIXME once dalamock is no longer broken, bundled cimgui is loaded alongside dalamud version and causes segfault
+        var exe = new FileInfo(Assembly.GetExecutingAssembly()!.Location);
+        var cim = Path.Join(exe.DirectoryName, "cimgui.dll");
+        if (File.Exists(cim))
+            File.Delete(cim);
     }
 
     static void RealMain()
