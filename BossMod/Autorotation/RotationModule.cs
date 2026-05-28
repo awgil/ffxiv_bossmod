@@ -166,7 +166,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                     continue;
                 }
 
-                if (inner == typeof(int))
+                if (inner == typeof(long))
                 {
                     var attr = field.GetCustomAttribute<NumberAttribute>() ?? new();
                     Configs.Add(new StrategyConfigInt(field.Name, attr.DisplayName, (long)attr.MinValue, (long)attr.MaxValue, attr.UiPriority, attr.Renderer ?? typeof(IntRenderer), attr.Slider, attr.Speed));

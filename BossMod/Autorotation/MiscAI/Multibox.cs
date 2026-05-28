@@ -1,27 +1,37 @@
-﻿namespace BossMod.Autorotation.MiscAI;
+﻿using BossMod.AI;
 
-public sealed class Multibox(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
+namespace BossMod.Autorotation.MiscAI;
+
+public sealed class Multibox(RotationModuleManager manager, Actor player) : TypedRotationModule<Multibox.Strategy>(manager, player)
 {
-    public enum Track { Leader }
+    readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
+
+    public enum Flag { Disabled, Enabled }
+
+    public struct Strategy
+    {
+        [Number(DisplayName = "Follow slot", MinValue = 0, MaxValue = 7)]
+        public Track<long> Master;
+    }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Multibox functionality for linked clients", "", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000, Order: RotationModuleOrder.HighLevel);
+        var def = new RotationModuleDefinition("Multibox utilities", "", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000, Order: RotationModuleOrder.HighLevel);
 
-        def.DefineInt(Track.Leader, "Leader");
-
-        return def;
+        return def.WithStrategies<Strategy>();
     }
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var leaderId = (ulong)strategy.GetInt(Track.Leader);
-        var leaderSlot = Array.FindIndex(World.Party.Members, m => m.ContentId == leaderId);
-        var leader = World.Party[leaderSlot];
-        if (leader == null)
+        var masterSlot = strategy.Master;
+        var master = masterSlot > 0 ? World.Party[(int)masterSlot.Value] : null;
+        if (master == null || master == Player)
             return;
 
-        Hints.ForcedFocusTarget = leader;
-        Hints.ForcedTarget = World.Actors.Find(leader.TargetID);
+        if (_aiConfig.FocusTargetMaster)
+            Hints.ForcedFocusTarget = master;
+
+        if (Bossmods.ActiveModule == null || _aiConfig.FollowDuringBoss)
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(master, _aiConfig.DistanceToMaster, 0.2f));
     }
 }

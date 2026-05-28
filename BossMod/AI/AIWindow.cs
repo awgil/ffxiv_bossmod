@@ -1,23 +1,34 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using BossMod.Autorotation.MiscAI;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.AI;
 
 internal sealed class AIWindow : UIWindow
 {
-    private const string _windowID = "###AI";
+    private const string _windowID = "Multibox settings###AI";
 
-    private readonly AIManager _manager;
-    private readonly EventSubscriptions _subscriptions;
+    readonly RotationModuleManager _manager;
+    readonly EventSubscriptions _subscriptions;
+    readonly AIConfig _config = Service.Config.Get<AIConfig>();
 
-    public AIWindow(AIManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+    int _masterSlot;
+
+    readonly Preset _pMultibox;
+    readonly Preset _pVbmai;
+    bool _usingAIFallback;
+
+    public AIWindow(RotationModuleManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _manager = mgr;
         _subscriptions = new
         (
-            _manager.Config.Modified.ExecuteAndSubscribe(() => IsOpen = _manager.Config.DrawUI)
+            _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.DrawUI)
         );
         RespectCloseHotkey = false;
+        _pVbmai = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM AI");
+        _pMultibox = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM Multibox");
     }
 
     protected override void Dispose(bool disposing)
@@ -26,51 +37,48 @@ internal sealed class AIWindow : UIWindow
         base.Dispose(disposing);
     }
 
-    public void SetVisible(bool vis)
-    {
-        if (_manager.Config.DrawUI != vis)
-        {
-            _manager.Config.DrawUI = vis;
-            _manager.Config.Modified.Fire();
-        }
-    }
-
     public override bool DrawConditions() => _manager.WorldState.Party.Player() != null;
-
-    public override void PreDraw()
-    {
-        var windowName = _manager.Config.ShowStatusOnTitlebar ? _manager.AIStatus : "AI";
-        WindowName = windowName + _windowID;
-        base.PreDraw();
-    }
 
     public override void Draw()
     {
-        if (!_manager.Config.ShowStatusOnTitlebar)
-            ImGui.TextUnformatted(_manager.AIStatus);
-        ImGui.TextUnformatted(_manager.NaviStatus);
-        _manager.Behaviour?.DrawDebug();
-
-        using (var leaderCombo = ImRaii.Combo("Follow", _manager.Behaviour == null ? "<idle>" : _manager.WorldState.Party[_manager.MasterSlot]?.Name ?? "<unknown>"))
+        using var leaderCombo = ImRaii.Combo("Follow", _masterSlot == 0 ? "<disabled>" : $"#{_masterSlot} {_manager.WorldState.Party[_masterSlot]?.Name ?? "<unknown>"}");
+        if (leaderCombo)
         {
-            if (leaderCombo)
+            if (ImGui.Selectable("<disabled>", _masterSlot == 0))
+                SetSlot(0);
+            foreach (var (i, p) in _manager.WorldState.Party.WithSlot(true).Skip(1))
+                if (ImGui.Selectable(p.Name, _masterSlot == i))
+                    SetSlot(i);
+        }
+    }
+
+    public void SetSlot(int slot)
+    {
+        _masterSlot = slot;
+        if (slot == 0)
+        {
+            _manager.Deactivate(_pMultibox);
+            if (_usingAIFallback)
+                _manager.Deactivate(_pVbmai);
+        }
+        else
+        {
+            var mmod = _pMultibox.Modules[0];
+            mmod.TransientSettings.RemoveAll(s => s.Track == 0);
+            mmod.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueInt() { Value = slot }));
+            _manager.Activate(_pMultibox);
+
+            if (!_manager.Presets.Any(p => p.Modules.Any(m => m.Type == typeof(NormalMovement))))
             {
-                if (ImGui.Selectable("<idle>", _manager.Behaviour == null))
-                {
-                    _manager.Enabled = false;
-                }
-                foreach (var (i, p) in _manager.WorldState.Party.WithSlot(true))
-                {
-                    if (ImGui.Selectable(p.Name, _manager.MasterSlot == i))
-                    {
-                        _manager.Config.FollowSlot = (AIConfig.Slot)i;
-                        _manager.Config.Modified.Fire();
-                        _manager.Enabled = true;
-                    }
-                }
+                _manager.Activate(_pVbmai);
+                _usingAIFallback = true;
             }
         }
     }
 
-    public override void OnClose() => SetVisible(false);
+    public override void OnClose()
+    {
+        _config.DrawUI = false;
+        _config.Modified.Fire();
+    }
 }

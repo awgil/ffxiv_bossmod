@@ -76,10 +76,15 @@ public class ConfigRoot
                 jwriter.WriteEndObject();
                 jwriter.WriteString(nameof(AssemblyVersion), AssemblyVersion.ToString());
             });
-            if (file.Exists)
-                tmp.Replace(file.FullName, Path.ChangeExtension(file.FullName, "json.bak"));
-            else
-                tmp.MoveTo(file.FullName);
+
+            var (from, to) = (file.FullName, Path.ChangeExtension(file.FullName, "json.bak"));
+
+            // why not use File.Replace? why, HRESULT 0x00000498 ERROR_UNABLE_TO_MOVE_REPLACEMENT of course!
+            File.Delete(to);
+            if (File.Exists(from))
+                File.Move(from, to);
+
+            tmp.MoveTo(from);
         }
         catch (Exception e)
         {

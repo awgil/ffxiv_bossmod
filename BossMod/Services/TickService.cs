@@ -31,7 +31,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     readonly IAmex _amex;
     readonly IWorldStateGameSync _wsSync;
     readonly RotationModuleManager _rotation;
-    readonly AIManager _ai;
     readonly IPCProvider _ipc;
     readonly DTRProvider _dtr;
     readonly SlashCommandProvider _slashCmd;
@@ -66,6 +65,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         ICondition condition,
         IPluginLog logger,
         IFileDialogManager dialog,
+        IChatGui chat,
         IWindowSystemFactory windowSystemFactory
     ) : base(mLogger, mediator)
     {
@@ -133,9 +133,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _zonemod = new(_ws);
         _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _rotation = new(_rotationDB, _bossmod, _hints);
-        _ai = new(_rotation, _amex, _movementOverride);
         _ipc = new(_rotation, _hintsBuilder.Obstacles);
-        _dtr = new(_rotation, _ai);
+        _dtr = new(_rotation);
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
@@ -147,7 +146,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndZone = new ZoneModuleWindow(_zonemod);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
-        _wndAI = new AIWindow(_ai);
+        _wndAI = new AIWindow(_rotation);
 
         if (Service.IsMock)
         {
@@ -197,7 +196,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot, moveImminent);
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
-        _ai.Update();
         _amex.FinishActionGather();
 
         Service.IconFont = uiBuilder.FontIcon;
@@ -343,22 +341,19 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     private void RegisterAISlashCommands(SlashCommandHandler cmd)
     {
-        cmd.SetSimpleHandler("toggle AI ui", () => _wndAI.SetVisible(!_wndAI.IsOpen));
-        cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () => _ai.Enabled = true);
-        cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () => _ai.Enabled = false);
-        cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () => _ai.Enabled ^= true);
-        cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable AI mode and follow party member with specified name or at specified slot", masterString =>
+        cmd.SetSimpleHandler("toggle multibox ui", () =>
+        {
+            var aic = Service.Config.Get<AIConfig>();
+            aic.DrawUI = !aic.DrawUI;
+            aic.Modified.Fire();
+        });
+        cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
         {
             var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : _ws.Party.FindSlot(masterString);
             if (_ws.Party[masterSlot] != null)
-            {
-                _ai.SwitchToFollow(masterSlot);
-                _ai.Enabled = true;
-            }
+                _wndAI.SetSlot(masterSlot);
             else
-            {
-                Service.ChatGui.PrintError($"[AI] [Follow] Error: can't find {masterString} in our party");
-            }
+                Service.ChatGui.PrintError($"[MB] [Follow] Error: can't find {masterString} in our party");
             return true;
         });
 
@@ -408,7 +403,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _slashCmd.Dispose();
         _dtr.Dispose();
         _ipc.Dispose();
-        _ai.Dispose();
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();

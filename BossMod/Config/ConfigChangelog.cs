@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -67,6 +67,19 @@ class DashSafetyNotice : ChangelogNotice
     public override void Draw()
     {
         ImGui.TextWrapped($"The option \"Try to prevent dashing into AOEs\" is now enabled by default. You can disable it in Settings -> Action Tweaks.");
+    }
+}
+
+class AIMigrationNotice2 : ChangelogNotice
+{
+    public override Version Since => new(7, 5, 0, 19);
+
+    public override void Draw()
+    {
+        ImGui.TextWrapped($"Legacy AI mode has been removed!");
+        Bullet("You can still follow a specific party member by slot or name, using either the /vbmai command or the UI.");
+        Bullet("The window's name has changed to 'Multibox settings', and options that no longer do anything have been removed.");
+        Bullet("You can configure the follow behavior in the 'Multibox support' section in the Settings window.");
     }
 }
 
