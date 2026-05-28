@@ -1,6 +1,6 @@
 ﻿using BossMod.Global.DeepDungeon;
 
-namespace BossMod.Stormblood.DeepDungeon;
+namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh;
 
 public enum AID : uint
 {

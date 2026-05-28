@@ -101,6 +101,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layou
     public bool IsDead;
     public bool InCombat;
     public bool AggroPlayer; // determines whether a given actor shows in the player's UI enemy list
+    public bool IsOpenTreasure;
     public ActorModelState ModelState;
     public ActorForayInfo ForayInfo;
     public byte EventState; // not sure about the field meaning...

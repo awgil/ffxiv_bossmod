@@ -4,9 +4,9 @@
     "net10.0-windows7.0": {
       "DalaMock.Core": {
         "type": "Direct",
-        "requested": "[6.1.2, )",
-        "resolved": "6.1.2",
-        "contentHash": "H3ybXwhko5fDD9IMilCp3q4oAEuuYChlKsP0s7nzzB0VK1F9vRh+o1+4/p1YUUhJhAyJ3h8YgYlssTd9AObD7g==",
+        "requested": "[6.1.6, )",
+        "resolved": "6.1.6",
+        "contentHash": "+xDdP9Qpb+Gq1zRXDuNJ+h7368aEKgGa/mGuewoN/MBH3SLppdFXg7ap+6VrImIfb1ObfDL0EyPmsDIOiLQLYQ==",
         "dependencies": {
           "Autofac": "9.0.0",
           "DalaMock.Shared": "6.1.2",
@@ -30,9 +30,9 @@
       },
       "DalaMock.Host": {
         "type": "Direct",
-        "requested": "[6.1.2, )",
-        "resolved": "6.1.2",
-        "contentHash": "a7TuEGNjJMPK7VPPphAlQTq3+FVVyA7bSwPqNv7kwdapFUz6vLRSQ+ivaj7D8STIYt4jYRKjFuClJ2plReErwA==",
+        "requested": "[6.1.6, )",
+        "resolved": "6.1.6",
+        "contentHash": "2UommI5hwk3X5LxpaO4BpXPMb131iGRBK3wGYilBF8AKmK6Hv/VTuZ/qTqfr2Q4GwoufXQsyFKwZ1fy4fBBgLg==",
         "dependencies": {
           "Autofac.Extensions.DependencyInjection": "10.0.0",
           "DalaMock.Shared": "6.1.2",
