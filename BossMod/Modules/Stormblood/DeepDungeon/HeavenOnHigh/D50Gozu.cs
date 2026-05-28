@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.D50Gozu;
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D50Gozu;
 
 public enum OID : uint
 {

@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.D20Beccho;
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D20Beccho;
 
 public enum OID : uint
 {

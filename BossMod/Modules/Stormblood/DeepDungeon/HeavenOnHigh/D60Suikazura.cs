@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.D60Suikazura;
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D60Suikazura;
 
 public enum OID : uint
 {

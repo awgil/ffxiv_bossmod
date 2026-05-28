@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.D80Kajigakaka;
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D80Kajigakaka;
 
 public enum OID : uint
 {
