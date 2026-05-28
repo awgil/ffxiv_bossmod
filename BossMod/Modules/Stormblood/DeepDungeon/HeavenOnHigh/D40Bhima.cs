@@ -13,7 +13,7 @@ public enum AID : uint
     AncientAeroIII = 11904, // Boss->self, 5.0s cast, range 50+R circle // KB, not immunable (though shield on hp does block the kb)
     AutoAttack = 6499, // Boss->player, no cast, single-target
     Tornado = 11902, // Boss->player, 3.0s cast, range 6 circle // untelegraph'd circle aoe, mimimum damage
-    Windage = 11906, // 23E3->self, 1.0s cast, range 6 circle // need to make this show up as a void zone while it's still up, just because they cast so quickly
+    Windage = 11906, // 23E3->self, 1.0s cast, range 6 circle
 }
 
 class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, AID.Tornado, 6);
@@ -21,37 +21,19 @@ class AncientAero(BossModule module) : Components.StandardAOEs(module, AID.Ancie
 class AncientAeroII(BossModule module) : Components.StandardAOEs(module, AID.AncientAeroII, 6);
 class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 23.5f, true, stopAtWall: true)
 {
-    private static readonly AOEShapeCircle _windShape = new(6f);
+    static readonly float WindCone = MathF.Atan2(6, 22);
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var w in Module.Enemies(OID.Whirlwind))
+        foreach (var src in Sources(slot, actor))
         {
-            if (w.IsDeadOrDestroyed)
-                continue;
-
-            if (_windShape.Check(pos, w.Position, default))
-                return true;
-        }
-
-        return false;
-    }
-}
-class Windage(BossModule module) : Components.GenericAOEs(module, warningText: "GTFO of Whirlwind!")
-{
-    private static readonly AOEShapeCircle _shape = new(6f);
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        foreach (var w in Module.Enemies(OID.Whirlwind))
-        {
-            if (w.IsDeadOrDestroyed)
-                continue;
-
-            yield return new AOEInstance(_shape, w.Position);
+            foreach (var w in Module.Enemies(OID.Whirlwind).Where(e => !e.IsDeadOrDestroyed))
+                hints.AddForbiddenZone(ShapeContains.Cone(src.Origin, 25, (w.Position - src.Origin).ToAngle(), WindCone.Radians()), src.Activation);
         }
     }
 }
+class Windage(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(w => !w.IsDeadOrDestroyed));
+
 class D40BhimaStates : StateMachineBuilder
 {
     public D40BhimaStates(BossModule module) : base(module)

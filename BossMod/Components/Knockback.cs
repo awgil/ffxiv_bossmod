@@ -183,7 +183,7 @@ public class KnockbackFromCastTarget(BossModule module, Enum aid, float distance
             var minDist = MinDistance + (MinDistanceBetweenHitboxes ? actor.HitboxRadius + c.HitboxRadius : 0);
             if (c.CastInfo!.TargetID == c.InstanceID)
             {
-                yield return new(c.Position, Distance, Module.CastFinishAt(c.CastInfo), Shape, c.CastInfo.Rotation, KnockbackKind, minDist);
+                yield return new(c.CastInfo.LocXZ, Distance, Module.CastFinishAt(c.CastInfo), Shape, c.CastInfo.Rotation, KnockbackKind, minDist);
             }
             else
             {
