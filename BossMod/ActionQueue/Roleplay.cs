@@ -482,5 +482,12 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.DawnlitConviction, castAnimLock: 3.86f);
 
         d.RegisterSpell(AID.BakeOff);
+
+        Customize(d);
+    }
+
+    void Customize(ActionDefinitions d)
+    {
+        d.Spell(AID.RoughDivide)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
     }
 }

@@ -116,22 +116,26 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
             if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Freezing && Hints.ImminentSpecialMode.activation <= World.FutureTime(0.5f))
                 Hints.WantJump = true;
-
-            if (Hints.InteractWithTarget != null)
-            {
-                var targetPos = Hints.InteractWithTarget.Position;
-                // strongly prefer moving towards interact target
-                Hints.GoalZones.Add(p =>
-                {
-                    var length = (p - targetPos).Length();
-
-                    // 99% of eventobjects have an interact range of 3.5y, while the rest have a range of 2.09y
-                    // checking only for the shorter range here would be fine in the vast majority of cases, but it can break interact pathfinding in the case that the target object is partially covered by a forbidden zone with a radius between 2.1 and 3.5
-                    // this is specifically an issue in the metal gear thancred solo duty in endwalker
-                    return length <= 2.09f ? 101 : length <= 3.5f ? 100 : 0;
-                });
-            }
         }
+
+        if (Hints.InteractWithTarget != null)
+        {
+            var targetPos = Hints.InteractWithTarget.Position;
+            // strongly prefer moving towards interact target
+            Hints.GoalZones.Add(p =>
+            {
+                var length = (p - targetPos).Length();
+
+                // 99% of eventobjects have an interact range of 3.5y, while the rest have a range of 2.09y
+                // checking only for the shorter range here would be fine in the vast majority of cases, but it can break interact pathfinding in the case that the target object is partially covered by a forbidden zone with a radius between 2.1 and 3.5
+                // this is specifically an issue in the metal gear thancred solo duty in endwalker
+                return length <= 2.09f ? 101 : length <= 3.5f ? 100 : 0;
+            });
+        }
+
+        // fallback so that we can automatically start some quest battles xddd (the RP rotation is a component on the module, which isn't active until we pull, so no goal zone)
+        if (Hints.GoalZones.Count == 0 && primaryTarget is { IsAlly: false, IsDead: false } && Player.Statuses.Any(s => RotationModuleManager.TransformationStatuses.Contains(s.ID)))
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
 
         var speed = World.Client.MoveSpeed;
         var destinationOpt = strategy.Option(Track.Destination);
