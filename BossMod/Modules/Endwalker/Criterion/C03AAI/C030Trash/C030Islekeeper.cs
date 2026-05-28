@@ -52,8 +52,8 @@ class C030IslekeeperStates : StateMachineBuilder
 class C030NIslekeeperStates(BossModule module) : C030IslekeeperStates(module, false);
 class C030SIslekeeperStates(BossModule module) : C030IslekeeperStates(module, true);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12561, SortOrder = 7)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12561, SortOrder = 7)]
 public class C030NIslekeeper(WorldState ws, Actor primary) : C030Trash2(ws, primary);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12561, SortOrder = 7)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12561, SortOrder = 7)]
 public class C030SIslekeeper(WorldState ws, Actor primary) : C030Trash2(ws, primary);

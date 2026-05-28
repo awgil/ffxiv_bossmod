@@ -4,3 +4,5 @@ bin/
 *.user
 logs/
 launchSettings.json
+/dalamock_ui.json
+/DalaMockConfig.json

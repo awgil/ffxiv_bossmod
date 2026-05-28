@@ -4,15 +4,22 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class BRD(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Dexterity)
+public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, BRD.Strategy>(manager, player, PotionType.Dexterity)
 {
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track(Actions = [AID.BattleVoice, AID.RadiantFinale], MinLevel = 50)]
+        public Track<OffensiveStrategy> Buffs;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan BRD", "Bard", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD), 100);
-
-        def.DefineShared("BV/Finale").AddAssociatedActions(AID.RagingStrikes, AID.MagesBallad, AID.ArmysPaeon, AID.WanderersMinuet, AID.BattleVoice, AID.ApexArrow);
-
-        return def;
+        return new RotationModuleDefinition("xan BRD", "Bard", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD), 100).WithStrategies<Strategy>();
     }
 
     public enum Song : byte
@@ -62,7 +69,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
 
     public int Codas => (Coda.HasFlag(CodaSongs.MagesBallad) ? 1 : 0) + (Coda.HasFlag(CodaSongs.ArmysPaeon) ? 1 : 0) + (Coda.HasFlag(CodaSongs.WanderersMinuet) ? 1 : 0);
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -153,7 +160,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
         return (MathF.Min(wind, poison), wind, poison);
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat || primaryTarget == null)
             return;
@@ -172,7 +179,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
 
         PushOGCD(AID.EmpyrealArrow, primaryTarget);
 
-        if (strategy.BuffsOk())
+        if (strategy.Buffs != OffensiveStrategy.Delay)
         {
             PushOGCD(AID.BattleVoice, Player, delay: GCD - 0.8f);
 
@@ -208,14 +215,14 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private bool ShouldApexArrow(StrategyValues strategy)
+    private bool ShouldApexArrow(in Strategy strategy)
     {
         // can't use
         if (Soul < 80)
             return false;
 
         // buff alignment for 2min
-        if (!strategy.BuffsOk())
+        if (strategy.Buffs == OffensiveStrategy.Delay)
             return false;
 
         if (ReadyIn(AID.RagingStrikes) > 55)

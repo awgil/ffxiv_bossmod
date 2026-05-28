@@ -33,7 +33,7 @@ public enum AID : uint
     CrossReaping = 24396, // L80, instant, GCD, range 3, single-target, targets=Hostile
     VoidReaping = 24395, // L80, instant, GCD, range 3, single-target, targets=Hostile
     Enshroud = 24394, // L80, instant, 15.0s CD (group 3), range 0, single-target, targets=Self
-    SoulSow = 24387, // L82, 5.0s cast, GCD, range 0, single-target, targets=Self
+    Soulsow = 24387, // L82, 5.0s cast, GCD, range 0, single-target, targets=Self
     HarvestMoon = 24388, // L82, instant, GCD, range 25, AOE 5 circle, targets=Hostile
     LemuresSlice = 24399, // L86, instant, 1.0s CD (group 0), range 3, single-target, targets=Hostile
     LemuresScythe = 24400, // L86, instant, 1.0s CD (group 0), range 8, AOE 8+R ?-degree cone, targets=Hostile
@@ -108,11 +108,11 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
     private readonly RPRConfig _config = Service.Config.Get<RPRConfig>();
 
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.TheEnd, castAnimLock: 3.70f); // animLock=3.700s?
         d.RegisterSpell(AID.Slice);
@@ -142,7 +142,7 @@ public sealed class Definitions : IDisposable
         d.RegisterSpell(AID.CrossReaping);
         d.RegisterSpell(AID.VoidReaping);
         d.RegisterSpell(AID.Enshroud);
-        d.RegisterSpell(AID.SoulSow);
+        d.RegisterSpell(AID.Soulsow);
         d.RegisterSpell(AID.HarvestMoon);
         d.RegisterSpell(AID.LemuresSlice);
         d.RegisterSpell(AID.LemuresScythe);
@@ -156,8 +156,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

@@ -90,8 +90,10 @@ public enum SID : uint
     VerfireReady = 1234,
     VerstoneReady = 1235,
     Acceleration = 1238,
+    EmboldenSelf = 1239,
     Dualcast = 1249,
     Embolden = 1297,
+    Manafication = 1971,
     MagickedSwordplay = 3875,
     ThornedFlourish = 3876,
     GrandImpactReady = 3877,
@@ -104,9 +106,9 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.VermilionScourge, castAnimLock: 8.10f); // animLock=8.100s?
         d.RegisterSpell(AID.Riposte);
@@ -155,8 +157,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

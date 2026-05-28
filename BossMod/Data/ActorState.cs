@@ -18,7 +18,19 @@ public sealed class ActorState : IEnumerable<Actor>
     public abstract record class Operation(ulong InstanceID) : WorldState.Operation
     {
         protected abstract void ExecActor(WorldState ws, Actor actor);
-        protected override void Exec(WorldState ws) => ExecActor(ws, ws.Actors._actors[InstanceID]);
+        protected override void Exec(WorldState ws)
+        {
+            Actor actor;
+            try
+            {
+                actor = ws.Actors._actors[InstanceID];
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new InvalidOperationException($"Unable to process operation {GetType()}; actor 0x{InstanceID:X} has disappeared from worldstate!");
+            }
+            ExecActor(ws, actor);
+        }
     }
 
     public IEnumerable<Operation> CompareToInitial()
@@ -30,6 +42,8 @@ public sealed class ActorState : IEnumerable<Actor>
                 yield return new OpDead(act.InstanceID, true);
             if (act.InCombat)
                 yield return new OpCombat(act.InstanceID, true);
+            if (act.IsOpenTreasure)
+                yield return new OpEventOpenTreasure(act.InstanceID);
             if (act.ModelState != default)
                 yield return new OpModelState(act.InstanceID, act.ModelState);
             if (act.EventState != 0)
@@ -485,10 +499,10 @@ public sealed class ActorState : IEnumerable<Actor>
                 {
                     // two annoying cases to handle with pending knockback:
                     // 1: effectresult never arrives
-                    //    * can happen if source dies
-                    //    * some actions just do not get an effectresult - e.g. Inhale cast by the eldthurs-type mobs in Eureka Orthos and Pilgrim's Traverse, knockback is simply applied when the next globalseq action arrives
-                    // 2. effectresult arrives AFTER actioneffect entry is already cleared - in this case we need the kb to stick around until we do receive effectresult
-                    //    * only observed this with type=Knockback direction=6
+                    //    * happens if source dies
+                    //    * happens always for some actions, such as Inhale from Traverse Gigant in Pilgrim's Traverse; effect is simply applied on the next globalseq
+                    // 2. effecthandler entry disappears before effectresult arrives
+                    //    * happens (always?) if type = knockback and direction = 6
                     var requiresEffectResult = val.Type == ActionEffectType.Knockback && Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(val.Value)?.Direction == 6;
                     actor.PendingKnockbacks.Add(new(Value.GlobalSequence, Value.TargetIndex, Value.SourceInstanceId, ws.FutureTime(3), requiresEffectResult));
                 }
@@ -544,6 +558,18 @@ public sealed class ActorState : IEnumerable<Actor>
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PATE"u8).EmitActor(InstanceID).Emit(ActionTimelineID, "X4");
     }
 
+    public Event<Actor, List<(ulong, ushort)>> PlayActionTimelineSync = new();
+    public sealed record class OpPlayActionTimelineSync(ulong InstanceID, List<(ulong, ushort)> Actions) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.PlayActionTimelineSync.Fire(actor, Actions);
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("PATS"u8).EmitActor(InstanceID).Emit(Actions.Count);
+            foreach (var (actor, id) in Actions)
+                output.EmitActor(actor).Emit(id, "X4");
+        }
+    }
+
     public Event<Actor, ushort> EventNpcYell = new();
     public sealed record class OpEventNpcYell(ulong InstanceID, ushort Message) : Operation(InstanceID)
     {
@@ -554,7 +580,11 @@ public sealed class ActorState : IEnumerable<Actor>
     public Event<Actor> EventOpenTreasure = new();
     public sealed record class OpEventOpenTreasure(ulong InstanceID) : Operation(InstanceID)
     {
-        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventOpenTreasure.Fire(actor);
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.IsOpenTreasure = true;
+            ws.Actors.EventOpenTreasure.Fire(actor);
+        }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("OPNT"u8).EmitActor(InstanceID);
     }
 }

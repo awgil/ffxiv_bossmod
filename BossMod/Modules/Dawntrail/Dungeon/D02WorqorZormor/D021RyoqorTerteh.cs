@@ -92,5 +92,5 @@ class D021RyoqorTertehStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12699)]
+[ModuleInfo(Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12699)]
 public class D021RyoqorTerteh(WorldState ws, Actor primary) : BossModule(ws, primary, new(-108, 119), new ArenaBoundsCircle(20));

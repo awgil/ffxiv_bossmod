@@ -292,5 +292,5 @@ class ChiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
+[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1855, NameID = 10400)]
 public class Chi(WorldState ws, Actor primary) : BossModule(ws, primary, new(650, 0), new ArenaBoundsSquare(30));

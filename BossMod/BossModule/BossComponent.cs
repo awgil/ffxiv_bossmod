@@ -60,6 +60,7 @@ public class BossComponent(BossModule module)
     public virtual void OnActorEState(Actor actor, ushort state) { }
     public virtual void OnActorEAnim(Actor actor, uint state) { }
     public virtual void OnActorPlayActionTimelineEvent(Actor actor, ushort id) { }
+    public virtual void OnActorPlayActionTimelineSync(Actor actor, List<(ulong InstanceID, ushort ID)> events) { }
     public virtual void OnActorNpcYell(Actor actor, ushort id) { }
     public virtual void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2) { }
     public virtual void OnMapEffect(byte index, uint state) { }

@@ -5,5 +5,5 @@ class DarkDome(BossModule module) : Components.StandardAOEs(module, AID.DarkDome
 class DarkAshes(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkAshesAOE, 6);
 class DarkSphere(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkSphereAOE, 10);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 881, NameID = 11381, PlanLevel = 90)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 881, NameID = 11381, PlanLevel = 90)]
 public class P6S(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

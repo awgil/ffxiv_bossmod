@@ -159,7 +159,7 @@ class ForgivenTreacheryStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1034, NameID = 13863)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1034, NameID = 13863)]
 public class ForgivenTreachery(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), MakeBounds())
 {
     private static ArenaBoundsCustom MakeBounds()

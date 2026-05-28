@@ -88,7 +88,7 @@ class LakshmiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68508, NameID = 6385)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68508, NameID = 6385)]
 public class Lakshmi(WorldState ws, Actor primary) : BossModule(ws, primary, new(250, -353), new ArenaBoundsSquare(23))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

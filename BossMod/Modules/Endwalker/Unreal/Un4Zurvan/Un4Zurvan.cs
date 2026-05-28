@@ -13,7 +13,7 @@ class P2SouthernCrossVoidzone(BossModule module) : Components.PersistentVoidzone
 class P2WaveCannon(BossModule module) : Components.BaitAwayCast(module, AID.WaveCannonSolo, new AOEShapeRect(55.27f, 5));
 class P2TyrfingFire(BossModule module) : Components.Cleave(module, AID.TyrfingFire, new AOEShapeCircle(5), (uint)OID.BossP2, originAtTarget: true);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 951, NameID = 5567, PlanLevel = 90)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.RemovedUnreal, GroupID = 951, NameID = 5567, PlanLevel = 90)]
 public class Un4Zurvan(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
 {
     private Actor? _bossP2;

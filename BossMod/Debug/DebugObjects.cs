@@ -27,7 +27,7 @@ public class DebugObjects
             var obj = Service.ObjectTable[i];
             if (obj == null)
                 continue;
-            if (!_showCrap && obj.ObjectKind is Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.MountType)
+            if (!_showCrap && obj.ObjectKind is Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Mount)
                 continue;
 
             var internalObj = Utils.GameObjectInternal(obj);
@@ -93,7 +93,7 @@ public class DebugObjects
         if (selected != null)
         {
             var h = new Vector3(0, Utils.GameObjectInternal(selected)->Height, 0);
-            Camera.Instance?.DrawWorldLine(Service.ClientState.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
+            Camera.Instance?.DrawWorldLine(Service.ObjectTable.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
             Camera.Instance?.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
             Camera.Instance?.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
             Camera.Instance?.DrawWorldCircle(selected.Position - h, selected.HitboxRadius, 0xff00ff00);

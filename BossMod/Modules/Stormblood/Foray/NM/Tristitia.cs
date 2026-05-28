@@ -88,5 +88,5 @@ class TristitiaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1422, Contributors = "xan", SortOrder = 12)]
+[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1422, Contributors = "xan", SortOrder = 12)]
 public class Tristitia(WorldState ws, Actor primary) : BossModule(ws, primary, new(-125.7764f, -111.1819f), new ArenaBoundsCircle(80, 1));

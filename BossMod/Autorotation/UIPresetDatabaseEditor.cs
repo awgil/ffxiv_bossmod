@@ -246,9 +246,13 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
         try
         {
             var finfo = new FileInfo("<import from clipboard>");
+            var json = JsonNode.Parse(ImGui.GetClipboardText());
+
+            // handle case where someone has posted the entire raw json for whatever reason
+            if (json?.AsObject()?.TryGetPropertyValue("payload", out var obj) == true)
+                json = obj;
 
             // let users import encounter-specific plans from here for convenience
-            var json = JsonNode.Parse(ImGui.GetClipboardText());
             if (json?.AsObject()?.ContainsKey("Encounter") == true)
             {
                 foreach (var conv in PlanPresetConverter.PlanSchema.Converters)
@@ -279,7 +283,13 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
         }
         catch (Exception ex)
         {
-            Service.Log($"Failed to parse preset: {ex}");
+            Service.Logger.Warning(ex, $"Failed to parse preset");
+            Service.Notifications.AddNotification(new()
+            {
+                Title = "Error while importing preset",
+                Content = ex.Message,
+                Type = Dalamud.Interface.ImGuiNotification.NotificationType.Warning
+            });
         }
     }
 }

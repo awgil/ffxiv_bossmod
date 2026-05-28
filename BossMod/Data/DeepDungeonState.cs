@@ -13,7 +13,7 @@ public sealed class DeepDungeonState
         PT = 4
     }
 
-    public readonly record struct DungeonProgress(byte Floor, byte Tileset, byte WeaponLevel, byte ArmorLevel, byte SyncedGearLevel, byte HoardCount, byte ReturnProgress, byte PassageProgress);
+    public readonly record struct DungeonProgress(byte Floor, byte Tileset, byte WeaponLevel, byte ArmorLevel, byte SyncedGearLevel, byte HoardCount, byte ReturnProgress, byte PassageProgress, bool HoardCurrentFloor);
     public readonly record struct PartyMember(ulong EntityId, byte Room);
     public readonly record struct PomanderState(byte Count, byte Flags)
     {
@@ -92,7 +92,8 @@ public sealed class DeepDungeonState
                 .Emit(Value.SyncedGearLevel)
                 .Emit(Value.HoardCount)
                 .Emit(Value.ReturnProgress)
-                .Emit(Value.PassageProgress);
+                .Emit(Value.PassageProgress)
+                .Emit(Value.HoardCurrentFloor);
         }
     }
 
@@ -110,7 +111,7 @@ public sealed class DeepDungeonState
         {
             output.EmitFourCC("DDMP"u8);
             foreach (var r in Rooms)
-                output.Emit((byte)r, "X2");
+                output.Emit((ushort)r, "X4");
         }
     }
 

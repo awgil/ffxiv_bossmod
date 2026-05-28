@@ -126,5 +126,5 @@ class D022LugaeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 785, NameID = 10281)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 785, NameID = 10281)]
 public class D022Lugae(WorldState ws, Actor primary) : BossModule(ws, primary, new(221, 306), new ArenaBoundsSquare(19.5f));

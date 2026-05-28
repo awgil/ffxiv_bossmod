@@ -41,5 +41,5 @@ class D032GyascutusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3455)]
+[ModuleInfo(Contributors = "VeraNala, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 39, NameID = 3455)]
 public class D032Gyascutus(WorldState ws, Actor primary) : BossModule(ws, primary, new(11.9f, 68f), new ArenaBoundsCircle(19.5f));

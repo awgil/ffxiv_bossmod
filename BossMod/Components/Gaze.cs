@@ -55,6 +55,9 @@ public abstract class GenericGaze(BossModule module, Enum? aid = default, bool i
                 var (min, max) = Inverted ? (45, 315) : (-45, 45);
                 Arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward + min.Degrees()).Rad, (pc.Rotation + eye.Forward + max.Degrees()).Rad);
                 Arena.PathStroke(false, ArenaColor.Enemy);
+
+                if (eye.Range < 100)
+                    Arena.AddCircle(eye.Position, eye.Range, ArenaColor.Object);
             }
         }
     }
@@ -68,7 +71,8 @@ public abstract class GenericGaze(BossModule module, Enum? aid = default, bool i
         dl.AddCircleFilled(eyeCenter, _eyeInnerR, ArenaColor.Border);
     }
 
-    private bool HitByEye(Actor actor, Eye eye) => (actor.Rotation + eye.Forward).ToDirection().Dot((eye.Position - actor.Position).Normalized()) >= 0.707107f; // 45-degree
+    private bool HitByEye(Actor actor, Eye eye) => (actor.Rotation + eye.Forward).ToDirection().Dot((eye.Position - actor.Position).Normalized()) >= 0.707107f // 45-degree
+        && (actor.Position - eye.Position).LengthSq() <= eye.Range * eye.Range;
 
     private Vector2 IndicatorScreenPos(WPos eye)
     {

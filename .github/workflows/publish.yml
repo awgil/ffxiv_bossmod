@@ -2,48 +2,41 @@ name: Build & Publish to Dynamis
 
 on:
   push:
-    tags:
-      - "v*.*.*.*"
+    branches:
+      - master
+      - testing
+  workflow_dispatch:
+    inputs:
+      testing:
+        description: 'Testing release'
+        required: true
+        type: boolean
 
 jobs:
-  Build:
+  build:
+    uses: xanunderscore/DynamisPublishAction/.github/workflows/dynamis.yml@master
+    with:
+      plugin_id: 30
+      internal_name: BossMod
+      project_file: BossMod/BossMod.csproj
+      dotnet_version: 10.0.x
+      dalamud_version: 15
+      testing: ${{ github.ref == 'refs/heads/testing' || inputs.testing == 'true' }}
+    secrets:
+      publisher_key: ${{ secrets.PUBLISHER_KEY }}
+
+  make_release:
     runs-on: ubuntu-latest
-    env:
-        DALAMUD_HOME: /tmp/dalamud
+    needs: build
+    if: needs.build.outputs.completed == 'true'
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/download-artifact@v5
         with:
-          submodules: true
+          name: latest_zip
 
-      - name: Get Tag Name
-        run: echo "tag=$(echo ${{ github.ref }} | sed 's/refs\/tags\/v//')" >> $GITHUB_ENV
-
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+      - uses: softprops/action-gh-release@v2
         with:
-          dotnet-version: 9.0.x
-          
-      - name: Download Dalamud Latest
-        run: |
-          wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
-          unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
-
-      - name: Restore Project
-        run: dotnet restore
-
-      - name: Build Project
-        run: dotnet build --configuration Release BossMod/BossMod.csproj -p:AssemblyVersion=${{ env.tag }}
-
-      - name: Publish Version
-        uses: PunishXIV/dynamis-action@v1
-        id: dynamis
-        with:
-          plugin_id: 30
-          internal_name: "BossMod"
-          version_number: ${{ env.tag }}
-          path: "BossMod/bin/Release/BossMod/latest.zip"
-          type: "latest"
-          dalamud_version: "13"
-        env:
-          PUBLISHER_KEY: ${{ secrets.PUBLISHER_KEY }}
+          name: ${{ needs.build.outputs.version }}
+          tag_name: ${{ needs.build.outputs.release_type == 'testing' && 't' || 'v' }}${{ needs.build.outputs.version }}
+          prerelease: ${{ needs.build.outputs.release_type == 'testing' }}
+          files: latest.zip

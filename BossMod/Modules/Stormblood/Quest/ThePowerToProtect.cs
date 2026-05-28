@@ -64,7 +64,7 @@ class IoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67966, NameID = 5667)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67966, NameID = 5667)]
 public class Io(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, B)
 {
     public static readonly WPos ArenaCenter = new(76.28f, -659.47f);

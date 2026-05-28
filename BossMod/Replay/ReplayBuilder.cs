@@ -398,7 +398,8 @@ public sealed class ReplayBuilder : IDisposable
         }
         if (!forSource && !forTarget)
         {
-            Service.Log($"Skipping confirmation #{seq}/{targetIndex} for {source.InstanceID:X} for unexpected target (src={a.Source.InstanceID:X}, tgt={t.Target.InstanceID:X})");
+            // spammy in new alliance raid
+            // Service.Log($"Skipping confirmation #{seq}/{targetIndex} for {source.InstanceID:X} for unexpected target (src={a.Source.InstanceID:X}, tgt={t.Target.InstanceID:X})");
         }
     }
 
@@ -419,7 +420,7 @@ public sealed class ReplayBuilder : IDisposable
 
     private void EventUserMarker(WorldState.OpUserMarker op)
     {
-        _res.UserMarkers.Add(_ws.CurrentTime, op.Text);
+        _res.UserMarkers.TryAdd(_ws.CurrentTime, op.Text);
     }
 
     private void EventZoneChange(WorldState.OpZoneChange op)

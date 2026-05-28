@@ -7,5 +7,5 @@ class Venom(BossModule module) : Components.StandardAOEs(module, AID.Venom, new 
 class AbsoluteTerror(BossModule module) : Components.StandardAOEs(module, AID.AbsoluteTerrorAOE, new AOEShapeRect(70, 10));
 class WingedTerror(BossModule module) : Components.StandardAOEs(module, AID.WingedTerrorAOE, new AOEShapeRect(70, 12.5f));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13662)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13662)]
 public class A12Fafnir(WorldState ws, Actor primary) : BossModule(ws, primary, new(-500, 600), new ArenaBoundsCircle(30));

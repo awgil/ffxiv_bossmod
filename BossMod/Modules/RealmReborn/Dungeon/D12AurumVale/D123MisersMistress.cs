@@ -41,7 +41,7 @@ class D123MisersMistressStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 5, NameID = 1532)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 5, NameID = 1532)]
 public class D123MisersMistress(WorldState ws, Actor primary) : BossModule(ws, primary, new(-400, -130), new ArenaBoundsSquare(25))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

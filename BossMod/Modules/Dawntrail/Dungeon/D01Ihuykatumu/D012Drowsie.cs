@@ -69,5 +69,5 @@ class D012DrowsieStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12716)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12716)]
 public class D012Drowsie(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, 53), new ArenaBoundsCircle(20));

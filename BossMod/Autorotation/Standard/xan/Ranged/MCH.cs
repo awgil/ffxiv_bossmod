@@ -4,45 +4,64 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class MCH(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Dexterity)
+public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, MCH.Strategy>(manager, player, PotionType.Dexterity)
 {
-    public enum Track { Queen = SharedTrack.Count, Wildfire, Hypercharge, Tools }
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Barrel Stabilizer", MinLevel = 66, Action = AID.BarrelStabilizer)]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Track("Queen", MinLevel = 40, Actions = [AID.AutomatonQueen, AID.RookAutoturret])]
+        public Track<QueenStrategy> Queen;
+
+        [Track("Wildfire", InternalName = "WF", MinLevel = 45, Actions = [AID.Wildfire, AID.Detonator])]
+        public Track<WildfireStrategy> Wildfire;
+
+        [Track(Action = AID.Hypercharge, MinLevel = 30)]
+        public Track<OffensiveStrategy> Hypercharge;
+
+        // not including tool-related actions that have a buff status instead of a cd group
+        [Track(Actions = [AID.Drill, AID.HotShot, AID.AirAnchor, AID.ChainSaw, AID.Bioblaster])]
+        public Track<ToolStrategy> Tools;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public enum QueenStrategy
     {
+        [Option("Summon at 50+ gauge", Targets = ActionTargets.Hostile)]
         MinGauge,
+        [Option("Summon at full gauge", Targets = ActionTargets.Hostile)]
         FullGauge,
+        [Option("Only summon during raid buffs, regardless of gauge", Targets = ActionTargets.Hostile)]
         RaidBuffsOnly,
+        [Option("Do not summon")]
         Never
     }
     public enum WildfireStrategy
     {
+        [Option("Use ASAP; delay in opener until tools are used", Targets = ActionTargets.Hostile)]
         ASAP,
+        [Option("Do not use")]
         Delay,
+        [Option("Delay until Hypercharge window", Targets = ActionTargets.Hostile)]
         Hypercharge
+    }
+
+    public enum ToolStrategy
+    {
+        [Option("Use ASAP", Targets = ActionTargets.Hostile)]
+        Automatic,
+        [Option("Do not use")]
+        Delay
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan MCH", "Machinist", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100);
-
-        def.DefineShared("Barrel Stabilizer").AddAssociatedActions(AID.BarrelStabilizer);
-
-        def.Define(Track.Queen).As<QueenStrategy>("Queen", "Queen")
-            .AddOption(QueenStrategy.MinGauge, "Summon at 50+ gauge")
-            .AddOption(QueenStrategy.FullGauge, "Summon at 100 gauge")
-            .AddOption(QueenStrategy.RaidBuffsOnly, "Delay summon until raid buffs, regardless of gauge")
-            .AddOption(QueenStrategy.Never, "Do not automatically summon Queen at all")
-            .AddAssociatedActions(AID.AutomatonQueen, AID.RookAutoturret);
-
-        def.Define(Track.Wildfire).As<WildfireStrategy>("WF", "Wildfire")
-            .AddOption(WildfireStrategy.ASAP, "Use as soon as possible (delay in opener until after Full Metal Field)")
-            .AddOption(WildfireStrategy.Delay, "Do not use")
-            .AddOption(WildfireStrategy.Hypercharge, "Delay until Hypercharge window");
-
-        def.DefineSimple(Track.Hypercharge, "Hypercharge").AddAssociatedActions(AID.Hypercharge);
-        def.DefineSimple(Track.Tools, "Tools").AddAssociatedActions(AID.Drill, AID.AirAnchor, AID.ChainSaw, AID.Bioblaster);
-
-        return def;
+        return new RotationModuleDefinition("xan MCH", "Machinist", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.MCH), 100).WithStrategies<Strategy>();
     }
 
     public int Heat; // max 100
@@ -70,7 +89,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool IsPausedForFlamethrower => Service.Config.Get<MCHConfig>().PauseForFlamethrower && Flamethrower;
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
 
@@ -112,6 +131,18 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
+        // minion chooses target based on the first target hit with any non-autoattack action after summon
+        // ideally the summon is early-weaved, so we can immediately leg graze and then switch back to chosen target
+        // TODO: this obviously won't work properly if the next action is a GCD that is cdplanned to hit something else; a consistent solution would be to force a clip with Leg Graze, but that sounds really frustrating for users
+        if (Manager.LastCast.Data?.Action.ID is (uint)AID.AutomatonQueen or (uint)AID.RookAutoturret)
+        {
+            if (ResolveTargetOverride(strategy.Queen.TrackRaw) is { } target)
+            {
+                primaryTarget = Hints.FindEnemy(target);
+                PushOGCD(AID.LegGraze, target);
+            }
+        }
+
         if (primaryTarget != null)
         {
             var aoebreakpoint = Overheated && Unlocked(AID.AutoCrossbow) ? 6 : 3;
@@ -130,33 +161,34 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         }
         else
         {
-            if (ExcavatorLeft > GCD)
-                PushGCD(AID.Excavator, BestRangedAOETarget);
-
-            var toolOk = strategy.Simple(Track.Tools) != OffensiveStrategy.Delay;
+            var toolOk = strategy.Tools.Value == ToolStrategy.Automatic;
+            var toolTarget = ResolveTargetOverride(strategy.Tools);
 
             if (toolOk)
             {
-                if (ReadyIn(AID.AirAnchor) <= GCD)
-                    PushGCD(AID.AirAnchor, primaryTarget, priority: 20);
+                if (ExcavatorLeft > GCD)
+                    PushGCD(AID.Excavator, toolTarget ?? BestRangedAOETarget);
 
-                if (ReadyIn(AID.ChainSaw) <= GCD)
-                    PushGCD(AID.ChainSaw, BestChainsawTarget, 10);
+                if (GCDReady(AID.AirAnchor))
+                    PushGCD(AID.AirAnchor, toolTarget ?? primaryTarget, priority: 20);
 
-                if (ReadyIn(AID.Bioblaster) <= GCD && NumAOETargets > 2)
-                    PushGCD(AID.Bioblaster, BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
+                if (GCDReady(AID.ChainSaw))
+                    PushGCD(AID.ChainSaw, toolTarget ?? BestChainsawTarget, 10);
 
-                if (ReadyIn(AID.Drill) <= GCD)
-                    PushGCD(AID.Drill, primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
+                if (GCDReady(AID.Bioblaster) && NumAOETargets > 2)
+                    PushGCD(AID.Bioblaster, toolTarget ?? BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
+
+                if (GCDReady(AID.Drill))
+                    PushGCD(AID.Drill, toolTarget ?? primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
 
                 // different cdgroup fsr
-                if (!Unlocked(AID.AirAnchor) && ReadyIn(AID.HotShot) <= GCD)
-                    PushGCD(AID.HotShot, primaryTarget);
-            }
+                if (!Unlocked(AID.AirAnchor) && GCDReady(AID.HotShot))
+                    PushGCD(AID.HotShot, toolTarget ?? primaryTarget);
 
-            // TODO work out priorities
-            if (FMFLeft > GCD && ExcavatorLeft == 0)
-                PushGCD(AID.FullMetalField, BestRangedAOETarget);
+                // TODO work out priorities
+                if (FMFLeft > GCD && ExcavatorLeft == 0)
+                    PushGCD(AID.FullMetalField, toolTarget ?? BestRangedAOETarget);
+            }
 
             var breakpoint = Unlocked(AID.Scattergun) ? 2 : 1;
 
@@ -177,7 +209,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         OGCD(strategy, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         if (CountdownRemaining == null && !Player.InCombat && Player.DistanceToHitbox(primaryTarget) <= 25 && ReassembleLeft == 0 && ShouldReassemble(strategy, primaryTarget))
             PushGCD(AID.Reassemble, Player, priority: 50);
@@ -185,8 +217,8 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (!Player.InCombat || primaryTarget == null)
             return;
 
-        if (ShouldWildfire(strategy, primaryTarget))
-            PushOGCD(AID.Wildfire, primaryTarget, delay: GCD - 0.8f);
+        if (GetWildfireTarget(strategy, primaryTarget) is { } tar)
+            PushOGCD(AID.Wildfire, tar, delay: GCD - 0.8f);
 
         if (ShouldReassemble(strategy, primaryTarget))
             PushOGCD(AID.Reassemble, Player);
@@ -209,7 +241,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
     private float MaxGaussCD => MaxChargesIn(AID.GaussRound);
     private float MaxRicochetCD => MaxChargesIn(AID.Ricochet);
 
-    private void UseCharges(StrategyValues strategy, Enemy? primaryTarget)
+    private void UseCharges(in Strategy strategy, Enemy? primaryTarget)
     {
         // checking for max charges
         if (CanWeave(MaxGaussCD, 0.6f))
@@ -231,7 +263,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
     private void UseGauss(Enemy? primaryTarget, int charges) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.GaussRound), (Unlocked(AID.DoubleCheck) ? BestRangedAOETarget : primaryTarget)?.Actor, ActionQueue.Priority.Low - 50 + charges);
     private void UseRicochet(Enemy? primaryTarget, int charges) => Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Ricochet), BestRangedAOETarget?.Actor, ActionQueue.Priority.Low - 50 + charges);
 
-    private bool ShouldReassemble(StrategyValues strategy, Enemy? primaryTarget)
+    private bool ShouldReassemble(in Strategy strategy, Enemy? primaryTarget)
     {
         if (ReassembleLeft > 0 || !Unlocked(AID.Reassemble) || Overheated || primaryTarget == null || primaryTarget?.Priority == Enemy.PriorityPointless)
             return false;
@@ -261,14 +293,14 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
-    private bool ShouldMinion(StrategyValues strategy, Enemy? primaryTarget)
+    private bool ShouldMinion(in Strategy strategy, Enemy? primaryTarget)
     {
-        if (!Unlocked(AID.RookAutoturret) || primaryTarget == null || HasMinion || Battery < 50 || ShouldWildfire(strategy, primaryTarget) || primaryTarget?.Priority < 0)
+        if (!Unlocked(AID.RookAutoturret) || primaryTarget == null || HasMinion || Battery < 50 || GetWildfireTarget(strategy, primaryTarget) != null || primaryTarget?.Priority < 0)
             return false;
 
         var almostFull = Battery == 90 && BatteryFromAction(NextGCD) == 20;
 
-        return strategy.Option(Track.Queen).As<QueenStrategy>() switch
+        return strategy.Queen.Value switch
         {
             QueenStrategy.MinGauge => true,
             QueenStrategy.FullGauge => Battery == 100 || almostFull,
@@ -278,9 +310,9 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         };
     }
 
-    private bool ShouldHypercharge(StrategyValues strategy, Enemy? primaryTarget)
+    private bool ShouldHypercharge(in Strategy strategy, Enemy? primaryTarget)
     {
-        // strategy-independent preconditions, hypercharge cannot be used at all in these cases 
+        // strategy-independent preconditions, hypercharge cannot be used at all in these cases
         if (!Unlocked(AID.Hypercharge) || HyperchargedLeft == 0 && Heat < 50 || Overheated)
             return false;
 
@@ -292,7 +324,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         if (primaryTarget?.Priority < 0)
             return false;
 
-        switch (strategy.Simple(Track.Hypercharge))
+        switch (strategy.Hypercharge.Value)
         {
             case OffensiveStrategy.Force:
                 return true;
@@ -304,7 +336,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
 
         // avoid delaying wildfire
         // TODO figure out how long we actually need to wait to ensure enough heat
-        if (ReadyIn(AID.Wildfire) < 20 && !ShouldWildfire(strategy, primaryTarget))
+        if (ReadyIn(AID.Wildfire) < 20 && GetWildfireTarget(strategy, primaryTarget) == null)
             return false;
 
         // we can't early weave if the overheat window will contain a regular GCD, because then it will expire before last HB
@@ -319,29 +351,30 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         return NextToolCap > GCD + 7.5f;
     }
 
-    private bool ShouldWildfire(StrategyValues strategy, Enemy? primaryTarget)
+    private Enemy? GetWildfireTarget(in Strategy strategy, Enemy? primaryTarget)
     {
-        var wfStrat = strategy.Option(Track.Wildfire).As<WildfireStrategy>();
+        var wf = strategy.Wildfire;
+        var wfTarget = ResolveTargetOverride(wf) ?? primaryTarget;
 
-        if (!Unlocked(AID.Wildfire) || !CanWeave(AID.Wildfire) || wfStrat == WildfireStrategy.Delay)
-            return false;
+        if (!Unlocked(AID.Wildfire) || !CanWeave(AID.Wildfire) || wf == WildfireStrategy.Delay)
+            return null;
 
-        if (primaryTarget?.Priority < 0)
-            return false;
+        if (wfTarget?.Priority < 0)
+            return null;
 
-        if (wfStrat == WildfireStrategy.Hypercharge)
-            return Overheated || HyperchargedLeft > 0 || Heat >= 50;
+        if (wf == WildfireStrategy.Hypercharge)
+            return Overheated || HyperchargedLeft > 0 || Heat >= 50 ? wfTarget : null;
 
         // hack for opener - delay until all 4 tool charges are used
         if (CombatTimer < 60)
-            return NextToolCharge > GCD;
+            return NextToolCharge > GCD ? wfTarget : null;
 
-        return FMFLeft == 0;
+        return FMFLeft == 0 ? wfTarget : null;
     }
 
-    private bool ShouldStabilize(StrategyValues strategy, Enemy? primaryTarget)
+    private bool ShouldStabilize(in Strategy strategy, Enemy? primaryTarget)
     {
-        if (!Unlocked(AID.BarrelStabilizer) || !CanWeave(AID.BarrelStabilizer) || !strategy.BuffsOk() || primaryTarget?.Priority < 0)
+        if (!Unlocked(AID.BarrelStabilizer) || !CanWeave(AID.BarrelStabilizer) || strategy.Buffs == OffensiveStrategy.Delay || primaryTarget?.Priority < 0)
             return false;
 
         return OnCooldown(AID.Drill);

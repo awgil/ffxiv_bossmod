@@ -56,7 +56,11 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             {
                 var prio = ActionQueue.Priority.ManualOGCD;
 
-                if (e.Definition.IsGCD || e.Action.Type is ActionType.Pomander or ActionType.Magicite or ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
+                // longest total duration for a weavable ogcd is DRG stardiver at 1.5s; anything with a longer duration is
+                // - a limit break
+                // - a regular item with cast time (choco greens)
+                // - duty specific item-like animation (deep dungeons, bozja, etc)
+                if (e.Definition.IsGCD || e.Definition.TotalDuration > 1.5f)
                     prio = ActionQueue.Priority.ManualGCD;
 
                 queue.Push(e.Action, e.Target, prio, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle, true);

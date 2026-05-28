@@ -399,7 +399,7 @@ class SaunionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 778, NameID = 10192)]
+[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 778, NameID = 10192)]
 public class Saunion(WorldState ws, Actor primary) : BossModule(ws, primary, new(650, -659), new ArenaBoundsRect(26.5f, 26.5f))
 {
     public override bool DrawAllPlayers => true;

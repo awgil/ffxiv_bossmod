@@ -92,44 +92,44 @@ public abstract class PalaceFloorModule(WorldState ws) : AutoClear(ws, 60)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 174)]
+[ZoneModuleInfo(174)]
 public class Palace10(WorldState ws) : PalaceFloorModule(ws);
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 175)]
+[ZoneModuleInfo(175)]
 public class Palace20(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 176)]
+[ZoneModuleInfo(176)]
 public class Palace30(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 177)]
+[ZoneModuleInfo(177)]
 public class Palace40(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 178)]
+[ZoneModuleInfo(178)]
 public class Palace50(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 204)]
+[ZoneModuleInfo(204)]
 public class Palace60(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 205)]
+[ZoneModuleInfo(205)]
 public class Palace70(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 206)]
+[ZoneModuleInfo(206)]
 public class Palace80(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 207)]
+[ZoneModuleInfo(207)]
 public class Palace90(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 208)]
+[ZoneModuleInfo(208)]
 public class Palace100(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 209)]
+[ZoneModuleInfo(209)]
 public class Palace110(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 210)]
+[ZoneModuleInfo(210)]
 public class Palace120(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 211)]
+[ZoneModuleInfo(211)]
 public class Palace130(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 212)]
+[ZoneModuleInfo(212)]
 public class Palace140(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 213)]
+[ZoneModuleInfo(213)]
 public class Palace150(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 214)]
+[ZoneModuleInfo(214)]
 public class Palace160(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 215)]
+[ZoneModuleInfo(215)]
 public class Palace170(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 216)]
+[ZoneModuleInfo(216)]
 public class Palace180(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 217)]
+[ZoneModuleInfo(217)]
 public class Palace190(WorldState ws) : PalaceFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 218)]
+[ZoneModuleInfo(218)]
 public class Palace200(WorldState ws) : PalaceFloorModule(ws);

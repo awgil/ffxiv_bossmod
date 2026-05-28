@@ -203,6 +203,6 @@ class D20ForgivenEmulationStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1033, NameID = 13973)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1033, NameID = 13973)]
 public class D20ForgivenEmulation(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(14.5f));
 

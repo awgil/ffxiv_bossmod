@@ -6,29 +6,31 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class NIN(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player, PotionType.Dexterity)
+public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, NIN.Strategy>(manager, player, PotionType.Dexterity)
 {
-    public enum Track { Hide = SharedTrack.Count, ForkedRaiju, PhantomCannon }
-    public enum HideStrategy { Automatic, Manual }
-    public enum RaijuStrategy { Manual, Automatic }
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Mug/Dokumori", Actions = [AID.Mug, AID.Dokumori])]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Track("Out of combat Hide")]
+        public Track<EnabledByDefault> Hide;
+
+        [Track("Forked Raiju", MinLevel = 90, Action = AID.ForkedRaiju)]
+        public Track<EnabledByDefault> ForkedRaiju;
+
+        [Track("Phantom Cannoneer: Use cannons on cooldown", InternalName = "PCAN", UiPriority = -10, MinLevel = 100, Targets = ActionTargets.Hostile, Actions = [PhantomID.PhantomFire, PhantomID.HolyCannon, PhantomID.DarkCannon, PhantomID.ShockCannon, PhantomID.SilverCannon])]
+        public Track<EnabledByDefault> PhantomCannon;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan NIN", "Ninja", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ROG, Class.NIN), 100);
-
-        def.DefineShared("Mug/Dokumori").AddAssociatedActions(AID.Dokumori);
-
-        def.Define(Track.Hide).As<HideStrategy>("Hide")
-            .AddOption(HideStrategy.Automatic, "Use when out of combat to restore charges")
-            .AddOption(HideStrategy.Manual, "Do not use automatically");
-
-        def.Define(Track.ForkedRaiju).As<RaijuStrategy>("Forked Raiju")
-            .AddOption(RaijuStrategy.Manual, "Do not use automatically")
-            .AddOption(RaijuStrategy.Automatic, "Use when out of melee range");
-
-        def.AbilityTrack(Track.PhantomCannon, "PCAN", "Phantom Cannoneer: use cannons on primary target ASAP").AddAssociatedActions(PhantomID.PhantomFire, PhantomID.HolyCannon, PhantomID.DarkCannon, PhantomID.ShockCannon, PhantomID.SilverCannon);
-
-        return def;
+        return new RotationModuleDefinition("xan NIN", "Ninja", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ROG, Class.NIN), 100).WithStrategies<Strategy>();
     }
 
     public int Ninki;
@@ -90,7 +92,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         452
     ];
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
 
@@ -163,14 +165,16 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        if (Mudra.Left == 0 && strategy.Enabled(Track.PhantomCannon))
+        if (Mudra.Left == 0 && strategy.PhantomCannon.IsEnabled())
         {
+            var cannonTarget = ResolveTargetOverride(strategy.PhantomCannon) ?? primaryTarget;
+
             if (DutyActionReadyIn(PhantomID.SilverCannon) <= GCD)
-                PushGCD((AID)PhantomID.SilverCannon, primaryTarget, 10);
+                PushGCD((AID)PhantomID.SilverCannon, cannonTarget, 10);
             if (DutyActionReadyIn(PhantomID.ShockCannon) <= GCD)
-                PushGCD((AID)PhantomID.ShockCannon, primaryTarget, 8);
+                PushGCD((AID)PhantomID.ShockCannon, cannonTarget, 8);
             if (DutyActionReadyIn(PhantomID.PhantomFire) <= GCD)
-                PushGCD((AID)PhantomID.PhantomFire, primaryTarget, 6);
+                PushGCD((AID)PhantomID.PhantomFire, cannonTarget, 6);
         }
 
         if (PhantomKamaitachi > GCD && Mudra.Left == 0 && ShouldPK(BestRangedAOETarget))
@@ -178,7 +182,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
         if (Raiju.Stacks > 0 && Mudra.Left == 0)
         {
-            if (strategy.Option(Track.ForkedRaiju).As<RaijuStrategy>() == RaijuStrategy.Automatic && Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20)
+            if (strategy.ForkedRaiju.IsEnabled() && Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20)
                 PushGCD(AID.ForkedRaiju, primaryTarget);
 
             if (OnCooldown(AID.TenChiJin))
@@ -346,11 +350,11 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         return (AID.None, null);
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         if (!Player.InCombat)
         {
-            if (strategy.Option(Track.Hide).As<HideStrategy>() == HideStrategy.Automatic
+            if (strategy.Hide.IsEnabled()
                 && Mudra.Left == 0
                 && GCD == 0
                 && Unlocked(AID.Ten1)
@@ -372,7 +376,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         if (ReadyIn(AID.TrickAttack) < 5)
             PushOGCD(AID.Kassatsu, Player);
 
-        var buffsOk = strategy.BuffsOk();
+        var buffsOk = strategy.Buffs != OffensiveStrategy.Delay;
 
         if (buffsOk)
         {
@@ -404,7 +408,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool MugOnCD => TargetMugLeft > 0 || OnCooldown(AID.Mug);
 
-    private bool ShouldBhava(StrategyValues strategy)
+    private bool ShouldBhava(in Strategy strategy)
         => Ninki >= 50 && (Meisui > 0 || TargetTrickLeft > AnimLock || Ninki > 85);
 
     private (Positional, bool) GetNextPositional(Actor? primaryTarget)

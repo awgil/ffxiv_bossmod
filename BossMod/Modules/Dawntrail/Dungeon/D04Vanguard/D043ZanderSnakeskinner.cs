@@ -123,5 +123,5 @@ class D043ZanderSnakeskinnerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831, NameID = 12752)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831, NameID = 12752)]
 public class D043ZanderSnakeskinner(WorldState ws, Actor primary) : BossModule(ws, primary, new(90, -430), new ArenaBoundsCircle(17));

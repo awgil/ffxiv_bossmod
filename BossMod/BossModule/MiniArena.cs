@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 
 namespace BossMod;
 
@@ -288,6 +289,18 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     public void TextWorld(WPos center, string text, uint color, float fontSize = 17)
     {
         TextScreen(WorldPositionToScreenPosition(center), text, color, fontSize);
+    }
+
+    public void IconScreen(Vector2 center, FontAwesomeIcon icon, uint color, float fontSize = 17)
+    {
+        var size = ImGui.CalcTextSizeA(Service.IconFont, fontSize, float.MaxValue, float.MaxValue, icon.ToIconString(), out var i);
+        size.X -= i * 0.5f;
+        ImGui.GetWindowDrawList().AddText(Service.IconFont, fontSize, center - size / 2, color, icon.ToIconString());
+    }
+
+    public void IconWorld(WPos center, FontAwesomeIcon icon, uint color, float fontSize = 17)
+    {
+        IconScreen(WorldPositionToScreenPosition(center), icon, color, fontSize);
     }
 
     // high level utilities

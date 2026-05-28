@@ -124,5 +124,5 @@ class VitusQuoMessallaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68802, NameID = 8872)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68802, NameID = 8872)]
 public class VitusQuoMessalla(WorldState ws, Actor primary) : BossModule(ws, primary, new(-266, -507), new ArenaBoundsCircle(19.5f));

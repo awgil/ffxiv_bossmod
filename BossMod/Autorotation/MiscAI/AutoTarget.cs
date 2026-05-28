@@ -4,7 +4,7 @@ namespace BossMod.Autorotation.MiscAI;
 
 public sealed class AutoTarget(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { General, Retarget, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything, CollectFATE }
+    public enum Track { General, Retarget, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything, CollectFATE, MaxTargets }
     public enum GeneralStrategy { Aggressive, Passive }
     public enum RetargetStrategy { NoTarget, Hostiles, Always, Never }
     public enum Flag { Disabled, Enabled }
@@ -23,33 +23,35 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             .AddOption(RetargetStrategy.Always, "Always switch target to the highest priority enemy")
             .AddOption(RetargetStrategy.Never, "Never switch target; only apply priority changes to enemies");
 
-        res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Prioritize bosses in quest battles", renderer: typeof(DefaultOffRenderer))
+        res.Define(Track.QuestBattle).As<Flag>("QuestBattle", "Prioritize bosses in quest battles", renderer: typeof(DefaultOffRenderer), uiPriority: -50)
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.DeepDungeon).As<Flag>("DD", "Prioritize deep dungeon bosses (solo only)", renderer: typeof(DefaultOffRenderer))
+        res.Define(Track.DeepDungeon).As<Flag>("DD", "Prioritize deep dungeon bosses (solo only)", renderer: typeof(DefaultOffRenderer), uiPriority: -60)
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.EpicEcho).As<Flag>("EE", "Prioritize all targets in unsynced duties", renderer: typeof(DefaultOffRenderer))
+        res.Define(Track.EpicEcho).As<Flag>("EE", "Prioritize all targets in unsynced duties", renderer: typeof(DefaultOffRenderer), uiPriority: -70)
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.Hunt).As<Flag>("Hunt", "Prioritize hunt marks once they have been pulled", renderer: typeof(DefaultOffRenderer))
+        res.Define(Track.Hunt).As<Flag>("Hunt", "Prioritize hunt marks once they have been pulled", renderer: typeof(DefaultOffRenderer), uiPriority: -80)
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.FATE).As<Flag>("FATE", "Prioritize mobs in the current FATE", renderer: typeof(DefaultOffRenderer))
+        res.Define(Track.FATE).As<Flag>("FATE", "Prioritize mobs in the current FATE", renderer: typeof(DefaultOffRenderer), uiPriority: -90)
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.Everything).As<Flag>("Everything", "Prioritize EVERYTHING", renderer: typeof(DefaultOffRenderer))
+        res.Define(Track.Everything).As<Flag>("Everything", "Prioritize EVERYTHING", renderer: typeof(DefaultOffRenderer), uiPriority: -100)
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.CollectFATE).As<Flag>("CollectFATE", "Ignore passive mobs in hand-in FATEs", renderer: typeof(DefaultOffRenderer))
+        res.Define(Track.CollectFATE).As<Flag>("CollectFATE", "Ignore passive mobs in hand-in FATEs", renderer: typeof(DefaultOffRenderer), uiPriority: -110)
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
+
+        res.DefineInt(Track.MaxTargets, "Maximum targets to pull (0 = no max)", minValue: 0, maxValue: 30, uiPriority: -120);
 
         return res;
     }
@@ -60,6 +62,9 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         var generalStrategy = generalOpt.As<GeneralStrategy>();
         if (generalStrategy == GeneralStrategy.Passive)
             return;
+
+        var maxTargets = strategy.GetInt(Track.MaxTargets);
+        var canPullMore = maxTargets == 0 || World.Actors.Count(a => a.AggroPlayer && !a.IsDead) < maxTargets;
 
         Actor? bestTarget = null; // non-null if we bump any priorities
         (int, float) bestTargetKey = (0, float.MinValue); // priority and negated squared distance
@@ -78,32 +83,40 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         var allowAll = strategy.Option(Track.Everything).As<Flag>() == Flag.Enabled;
 
         if (strategy.Option(Track.QuestBattle).As<Flag>() == Flag.Enabled)
-            allowAll |= Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Quest;
+            allowAll |= Bossmods.LoadedModules is [{ Info.Category: BossModuleInfo.Category.Quest }];
 
-        if (strategy.Option(Track.DeepDungeon).As<Flag>() == Flag.Enabled)
-            allowAll |= Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.DeepDungeon && World.Party.WithoutSlot().Count() == 1;
+        if (strategy.Option(Track.DeepDungeon).As<Flag>() == Flag.Enabled && !World.Party.WithoutSlot(includeDead: true, excludeNPCs: true).Skip(1).Any())
+            allowAll |= Bossmods.LoadedModules is [{ Info.Category: BossModuleInfo.Category.DeepDungeon }];
 
         if (strategy.Option(Track.EpicEcho).As<Flag>() == Flag.Enabled)
             allowAll |= Player.Statuses.Any(s => s.ID == 2734);
 
         ulong huntTarget = 0;
 
-        if (strategy.Option(Track.Hunt).As<Flag>() == Flag.Enabled && Bossmods.ActiveModule?.Info?.Category == BossModuleInfo.Category.Hunt && Bossmods.ActiveModule?.PrimaryActor is { InCombat: true, HPRatio: < 0.95f, InstanceID: var i })
+        if (strategy.Option(Track.Hunt).As<Flag>() == Flag.Enabled && Bossmods.ActiveModule is
+            {
+                Info.Category: BossModuleInfo.Category.Hunt,
+                PrimaryActor:
+                {
+                    InCombat: true,
+                    HPRatio: <= 0.95f,
+                    InstanceID: var i
+                }
+            }
+        )
             huntTarget = i;
 
         var targetFates = strategy.Option(Track.FATE).As<Flag>() == Flag.Enabled && Utils.IsPlayerSyncedToFate(World);
-        var skipFate = false;
+        var targetFateMobs = World.Client.ActiveFate.Progress < 100;
 
-        var handinCount = 0;
-
-        if (targetFates)
+        var turnin = Utils.GetFateItem(World.Client.ActiveFate.ID);
+        if (turnin > 0)
         {
-            var handinId = Utils.GetFateItem(World.Client.ActiveFate.ID);
-            if (handinId > 0)
-            {
-                handinCount = World.Client.ActiveFate.HandInCount + (int)World.Client.GetItemQuantity(handinId);
-                skipFate = strategy.Option(Track.CollectFATE).As<Flag>() == Flag.Enabled;
-            }
+            if (strategy.Option(Track.CollectFATE).As<Flag>() == Flag.Enabled)
+                targetFateMobs = false;
+            else
+                // keep targeting mobs until we have enough turnin items (unless we are holding 10, in which case FateUtils is probably trying to perform turnin, let's not interrupt it)
+                targetFateMobs |= World.Client.ActiveFate.HandInCount < FateUtils.TurnInGoldReq && World.Client.GetInventoryItemQuantity(turnin) < FateUtils.TurnInGoldReq;
         }
 
         // first deal with pulling new enemies
@@ -115,7 +128,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                 continue;
             }
 
-            if (allowAll && !target.Actor.IsStrikingDummy && target.Priority == AIHints.Enemy.PriorityUndesirable)
+            if (canPullMore && allowAll && !target.Actor.IsStrikingDummy && target.Priority == AIHints.Enemy.PriorityUndesirable)
             {
                 prioritize(target, 0);
                 continue;
@@ -128,7 +141,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                     prioritize(target, 1);
                     continue;
                 }
-                if (handinCount < 10 && !skipFate)
+                if (targetFateMobs && canPullMore)
                 {
                     prioritize(target, 0);
                     continue;

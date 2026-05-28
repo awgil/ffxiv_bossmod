@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace BossMod.Autorotation;
 
@@ -109,6 +109,19 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
         Configs.Add(new StrategyConfigInt(internalName, displayName, minValue, maxValue, uiPriority, typeof(IntRenderer)));
     }
 
+    internal T NonDefault<T>(params T[] args) where T : struct
+    {
+        T last = default;
+        foreach (var arg in args)
+        {
+            if (!EqualityComparer<T>.Default.Equals(arg, default))
+                return arg;
+            last = arg;
+        }
+
+        return last;
+    }
+
     public RotationModuleDefinition WithStrategies<S>()
     {
         foreach (var field in typeof(S).GetFields())
@@ -122,21 +135,23 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                     var trackInfo = field.GetCustomAttribute<TrackAttribute>() ?? new();
                     var renderer = trackInfo.Renderer ?? inner.GetCustomAttribute<RendererAttribute>()?.Type ?? typeof(TrackRenderer);
 
-                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName, trackInfo.UiPriority, renderer);
+                    var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName ?? field.Name, trackInfo.UiPriority, renderer);
 
                     foreach (var variantName in inner.GetEnumNames())
                     {
                         var variantField = inner.GetField(variantName)!;
                         var fieldSettings = variantField.GetCustomAttribute<OptionAttribute>() ?? new OptionAttribute();
 
-                        trackCfg.Options.Add(new(variantField.Name, fieldSettings.DisplayName)
+                        trackCfg.Options.Add(new(variantField.Name, fieldSettings.DisplayName ?? "")
                         {
-                            Cooldown = fieldSettings.Cooldown,
-                            Effect = fieldSettings.Effect,
-                            SupportedTargets = fieldSettings.Targets,
-                            MinLevel = fieldSettings.MinLevel,
-                            MaxLevel = fieldSettings.MaxLevel,
-                            DefaultPriority = fieldSettings.DefaultPriority
+                            Cooldown = NonDefault(fieldSettings.Cooldown, trackInfo.Cooldown, 0),
+                            Effect = NonDefault(fieldSettings.Effect, trackInfo.Effect, 0),
+                            SupportedTargets = NonDefault(fieldSettings.Targets, trackInfo.Targets, ActionTargets.None),
+                            MinLevel = NonDefault(fieldSettings.MinLevel, trackInfo.MinLevel, 1),
+                            MaxLevel = NonDefault(fieldSettings.MaxLevel, trackInfo.MaxLevel, int.MaxValue),
+                            DefaultPriority = NonDefault(fieldSettings.DefaultPriority, trackInfo.DefaultPriority, ActionQueue.Priority.Medium),
+                            Context = NonDefault(fieldSettings.Context, StrategyContext.All),
+                            Color = fieldSettings.Color
                         });
                     }
 
@@ -179,6 +194,8 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     // the main entry point of the module - given a set of strategy values, fill the queue with a set of actions to execute
     public abstract void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
 
+    public virtual bool WantsLoSFix => false;
+
     public virtual string DescribeState() => "";
 
     // utility to check action/trait unlocks
@@ -206,6 +223,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
     protected Actor? ResolveTargetOverride(in StrategyValueTrack strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
+    protected AIHints.Enemy? ResolveTargetOverride<T>(in Track<T> track) where T : struct => Hints.FindEnemy(Manager.ResolveTargetOverride(track.TrackRaw.Target, track.TrackRaw.TargetParam));
     protected WPos ResolveTargetLocation(in StrategyValueTrack strategy) => Manager.ResolveTargetLocation(strategy.Target, strategy.TargetParam, strategy.Offset1, strategy.Offset2);
 
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);
@@ -283,9 +301,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
 public abstract class TypedRotationModule<TValues>(RotationModuleManager manager, Actor player) : RotationModule(manager, player) where TValues : struct
 {
-    public abstract void Execute(TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
+    public abstract void Execute(in TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving);
 
-    protected abstract TValues FromValues(StrategyValues strategy);
-
-    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) => Execute(FromValues(strategy), ref primaryTarget, estimatedAnimLockDelay, isMoving);
+    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving) => Execute(ValueConverter.FromValues<TValues>(strategy), ref primaryTarget, estimatedAnimLockDelay, isMoving);
 }

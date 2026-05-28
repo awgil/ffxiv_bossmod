@@ -118,7 +118,7 @@ class DebugGraphics
         foreach (var v in _watchedRenderObjects)
         {
             var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
-            Camera.Instance?.DrawWorldLine(Service.ClientState.LocalPlayer!.Position, obj->Position, 0xff0000ff);
+            Camera.Instance?.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
         }
     }
 
@@ -339,14 +339,6 @@ class DebugGraphics
         ImGui.TextUnformatted($"{device->Width:f6} {device->Height:f6}");
     }
 
-    private void DrawMatrix(SharpDX.Matrix mtx)
-    {
-        ImGui.TextUnformatted($"{mtx[0]:f6} {mtx[1]:f6} {mtx[2]:f6} {mtx[3]:f6}");
-        ImGui.TextUnformatted($"{mtx[4]:f6} {mtx[5]:f6} {mtx[6]:f6} {mtx[7]:f6}");
-        ImGui.TextUnformatted($"{mtx[8]:f6} {mtx[9]:f6} {mtx[10]:f6} {mtx[11]:f6}");
-        ImGui.TextUnformatted($"{mtx[12]:f6} {mtx[13]:f6} {mtx[14]:f6} {mtx[15]:f6}");
-    }
-
     private void DrawMatrix(FFXIVClientStructs.FFXIV.Common.Math.Matrix4x4 mtx)
     {
         ImGui.TextUnformatted($"{mtx[0]:f6} {mtx[1]:f6} {mtx[2]:f6} {mtx[3]:f6}");
@@ -357,7 +349,7 @@ class DebugGraphics
 
     public void DrawOverlay()
     {
-        if (Camera.Instance == null || Service.ClientState.LocalPlayer == null)
+        if (Camera.Instance == null || Service.ObjectTable.LocalPlayer == null)
             return;
 
         ImGui.Checkbox("Circle", ref _overlayCircle);
@@ -370,7 +362,7 @@ class DebugGraphics
 
         int mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
         int mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
-        float y = Service.ClientState.LocalPlayer.Position.Y;
+        float y = Service.ObjectTable.LocalPlayer.Position.Y;
         if (_overlayCircle)
         {
             var center = new Vector3(_overlayCenter.X, y, _overlayCenter.Y);
@@ -401,7 +393,7 @@ class DebugGraphics
 
     public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()
     {
-        var player = Utils.GameObjectInternal(Service.ClientState.LocalPlayer);
+        var player = Utils.GameObjectInternal(Service.ObjectTable.LocalPlayer);
         if (player == null || player->DrawObject == null)
             return null;
 

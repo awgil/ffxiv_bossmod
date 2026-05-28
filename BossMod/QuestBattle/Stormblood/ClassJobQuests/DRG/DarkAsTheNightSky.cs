@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.DRG;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 267)]
+[ZoneModuleInfo(267)]
 internal class DarkAsTheNightSky(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

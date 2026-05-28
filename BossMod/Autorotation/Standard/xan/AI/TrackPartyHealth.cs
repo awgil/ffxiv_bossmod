@@ -53,7 +53,13 @@ public class TrackPartyHealth(WorldState World)
         1220, // Excogitation
         1836, // Superbolide
         2685, // Catharsis of Corundum
-        (uint)WAR.SID.BloodwhettingDefenseLong
+        (uint)WAR.SID.BloodwhettingDefenseLong,
+
+        // everything called "HP Recovery Down"
+        2852,
+        2977,
+        2978,
+        3967,
     ];
     private float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);
 

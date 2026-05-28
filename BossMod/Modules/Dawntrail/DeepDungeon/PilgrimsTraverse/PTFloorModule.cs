@@ -127,10 +127,10 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
         switch ((AID)ev.Action.ID)
         {
             case AID.ShrinkingCirclesOfAblution1:
-                AddVoidzone(actor, new AOEShapeCircle(10));
+                AddVoidzone(actor, new AOEShapeCircle(10), World.FutureTime(3.1f));
                 break;
             case AID.GrowingCirclesOfAblution1:
-                AddVoidzone(actor, new AOEShapeDonut(10, 40));
+                AddVoidzone(actor, new AOEShapeDonut(10, 40), World.FutureTime(3.1f));
                 break;
             case AID.Accelerate:
                 AddVoidzone(actor, new AOEShapeDonut(5, 10));
@@ -144,7 +144,7 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
                 break;
 
             case AID.HailOfHeelsCast:
-                AddVoidzone(actor, new AOEShapeCone(8, 90.Degrees()), 3);
+                AddVoidzone(actor, new AOEShapeCone(8, 90.Degrees()), Counter: 3);
                 break;
 
             case AID.HailOfHeels:
@@ -188,23 +188,23 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1032)]
+[ZoneModuleInfo(1032)]
 public class PT10(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1033)]
+[ZoneModuleInfo(1033)]
 public class PT20(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1034)]
+[ZoneModuleInfo(1034)]
 public class PT30(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1035)]
+[ZoneModuleInfo(1035)]
 public class PT40(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1036)]
+[ZoneModuleInfo(1036)]
 public class PT50(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1037)]
+[ZoneModuleInfo(1037)]
 public class PT60(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1038)]
+[ZoneModuleInfo(1038)]
 public class PT70(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1039)]
+[ZoneModuleInfo(1039)]
 public class PT80(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1040)]
+[ZoneModuleInfo(1040)]
 public class PT90(WorldState ws) : PTFloorModule(ws);
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 1041)]
+[ZoneModuleInfo(1041)]
 public class PT100(WorldState ws) : PTFloorModule(ws);

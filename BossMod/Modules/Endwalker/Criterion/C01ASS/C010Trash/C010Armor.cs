@@ -45,8 +45,8 @@ class C010ArmorStates : StateMachineBuilder
 class C010NArmorStates(BossModule module) : C010ArmorStates(module, false);
 class C010SArmorStates(BossModule module) : C010ArmorStates(module, true);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11515, SortOrder = 6)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11515, SortOrder = 6)]
 public class C010NArmor(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11515, SortOrder = 6)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11515, SortOrder = 6)]
 public class C010SArmor(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

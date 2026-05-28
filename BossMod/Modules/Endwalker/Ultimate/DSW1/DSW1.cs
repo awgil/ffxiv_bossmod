@@ -4,7 +4,7 @@ class EmptyDimension(BossModule module) : Components.StandardAOEs(module, AID.Em
 class FullDimension(BossModule module) : Components.StandardAOEs(module, AID.FullDimension, new AOEShapeCircle(6));
 class HoliestHallowing(BossModule module) : Components.CastHint(module, AID.HoliestHallowing, "Interrupt!");
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SerAdelphel, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788, PlanLevel = 90)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SerAdelphel, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 788, PlanLevel = 90)]
 public class DSW1(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(22))
 {
     private Actor? _grinnaux;

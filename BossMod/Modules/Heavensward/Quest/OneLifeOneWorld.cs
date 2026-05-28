@@ -120,5 +120,5 @@ class WarriorOfDarknessStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67885, NameID = 5240)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67885, NameID = 5240)]
 public class WarriorOfDarkness(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));

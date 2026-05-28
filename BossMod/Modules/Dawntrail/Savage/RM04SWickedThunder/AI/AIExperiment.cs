@@ -175,7 +175,7 @@ sealed class AIExperiment(RotationModuleManager manager, Actor player) : AIRotat
 
         var timeToDodge = (module.StateMachine.ActiveState?.Duration ?? 0) - module.StateMachine.TimeSinceTransition;
         var timeToSafety = 2.4f / Speed();
-        var goToDowntime = nextIsDeadly ? (GCD + timeToSafety >= timeToDodge) : (GCD > timeToDodge + timeToSafety);
+        var goToDowntime = nextIsDeadly ? (GCD + timeToSafety >= timeToDodge) : (GCD >= timeToDodge + timeToSafety);
         return goToDowntime ? downtimePos : uptimePos;
     }
 

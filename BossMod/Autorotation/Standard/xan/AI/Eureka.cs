@@ -1,8 +1,21 @@
 ﻿namespace BossMod.Autorotation.xan;
 
-public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase<EurekaAI.Strategy>(manager, player)
 {
-    public enum Track { Platebearer, Potion, Dispel, Feint, Bloodbath }
+    public struct Strategy
+    {
+        [Track("Ignore all AOEs while Platebearer is active", InternalName = "PB")]
+        public Track<DisabledByDefault> Platebearer;
+        [Track(Item = 22306)]
+        public Track<EnabledByDefault> Potion;
+
+        [Track("Auto-Dispel", InternalName = "Auto-Dispel L", Action = EurekaActionID.DispelL)]
+        public Track<EnabledByDefault> Dispel;
+        [Track("Auto-Feint L", InternalName = "Auto-Feint L", Action = EurekaActionID.FeintL)]
+        public Track<EnabledByDefault> Feint;
+        [Track("Auto-Bloodbath L", InternalName = "Auto-Bloodbath L", Action = EurekaActionID.BloodbathL)]
+        public Track<EnabledByDefault> Bloodbath;
+    }
 
     public enum PBIgnore
     {
@@ -18,39 +31,28 @@ public class EurekaAI(RotationModuleManager manager, Actor player) : AIBase(mana
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Eureka AI", "Eureka utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 70);
-
-        def.Define(Track.Platebearer).As<PBIgnore>("PB", "Ignore all AOEs while Platebearer is active")
-            .AddOption(PBIgnore.Disabled)
-            .AddOption(PBIgnore.Enabled);
-        def.AbilityTrack(Track.Potion, "Potion").AddAssociatedAction(ActionDefinitions.IDPotionEureka);
-
-        def.AbilityTrack(Track.Dispel, "Auto-Dispel L").AddAssociatedActions(EurekaActionID.DispelL);
-        def.AbilityTrack(Track.Feint, "Auto-Feint L").AddAssociatedActions(EurekaActionID.FeintL);
-        def.AbilityTrack(Track.Bloodbath, "Auto-Bloodbath L").AddAssociatedActions(EurekaActionID.BloodbathL);
-
-        return def;
+        return new RotationModuleDefinition("Eureka AI", "Eureka utilities", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 70).WithStrategies<Strategy>();
     }
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (strategy.Option(Track.Platebearer).As<PBIgnore>() == PBIgnore.Enabled && Player.Statuses.Any(s => s.ID == (uint)SID.WisdomOfThePlatebearer))
+        if (strategy.Platebearer.IsEnabled() && Player.Statuses.Any(s => s.ID == (uint)SID.WisdomOfThePlatebearer))
             Hints.ForbiddenZones.Clear();
 
-        if (strategy.Enabled(Track.Feint) && HaveLogos(EurekaActionID.FeintL) && primaryTarget?.ForayInfo.Element == 3)
+        if (strategy.Feint.IsEnabled() && HaveLogos(EurekaActionID.FeintL) && primaryTarget?.ForayInfo.Element == 3)
         {
             var feintLeft = primaryTarget.FindStatus(SID.EvasionDown, World.FutureTime(60)) is ActorStatus s ? (s.ExpireAt - World.CurrentTime).TotalSeconds : 0;
             if (feintLeft < NextChargeIn(EurekaActionID.FeintL))
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.FeintL), primaryTarget, ActionQueue.Priority.VeryHigh);
         }
 
-        if (strategy.Enabled(Track.Dispel) && HaveLogos(EurekaActionID.DispelL) && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
+        if (strategy.Dispel.IsEnabled() && HaveLogos(EurekaActionID.DispelL) && Hints.FindEnemy(primaryTarget)?.ShouldBeDispelled == true && primaryTarget?.PendingDispels.Count == 0)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.DispelL), primaryTarget, ActionQueue.Priority.VeryHigh);
 
-        if (strategy.Enabled(Track.Bloodbath) && HaveLogos(EurekaActionID.BloodbathL) && Player.InCombat && Player.PendingHPRatio < 0.5f)
+        if (strategy.Bloodbath.IsEnabled() && HaveLogos(EurekaActionID.BloodbathL) && Player.InCombat && Player.PendingHPRatio < 0.5f)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(EurekaActionID.BloodbathL), Player, ActionQueue.Priority.Medium);
 
-        if (strategy.Enabled(Track.Potion) && InEureka && Player.InCombat && Player.PendingHPRatio < 0.75f)
+        if (strategy.Potion.IsEnabled() && InEureka && Player.InCombat && Player.PendingHPRatio < 0.75f)
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionEureka, Player, ActionQueue.Priority.VeryLow);
     }
 

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.MSQ;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 313)]
+[ZoneModuleInfo(313)]
 internal class VictoryInPeril(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

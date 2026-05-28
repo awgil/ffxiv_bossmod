@@ -40,7 +40,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     public override unsafe void Draw()
     {
         var playerCID = UIState.Instance()->PlayerState.ContentId;
-        var player = Service.ClientState.LocalPlayer;
+        var player = Service.ObjectTable.LocalPlayer;
         ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
         // ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
         ImGui.TextUnformatted($"Player mode: {(player is null ? "No player found" : Utils.CharacterInternal(player)->Mode.ToString())}");
@@ -48,6 +48,8 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var eventFwk = FFXIVClientStructs.FFXIV.Client.Game.Event.EventFramework.Instance();
         var instanceDirector = eventFwk != null ? eventFwk->GetInstanceContentDirector() : null;
         ImGui.TextUnformatted($"Content time left: {(instanceDirector != null ? $"{instanceDirector->ContentDirector.ContentTimeLeft:f1}" : "n/a")}");
+        if (instanceDirector != null)
+            ImGui.TextUnformatted($"Director address: 0x{(nint)instanceDirector:X}");
 
         if (ImGui.Button("Perform full dump"))
         {
@@ -78,6 +80,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.CollapsingHeader("Party"))
         {
             _debugParty.Draw(false);
+        }
+        if (ImGui.CollapsingHeader("Inventory"))
+        {
+            DrawInventory();
         }
         if (ImGui.CollapsingHeader("Party (duty recorder)"))
         {
@@ -264,9 +270,35 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         ImGui.EndTable();
     }
 
+    private void DrawInventory()
+    {
+        var player = Service.ObjectTable.LocalPlayer;
+        if (player == null)
+            return;
+
+        ImGui.BeginTable("items", 3, ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg);
+        ImGui.TableSetupColumn("ID", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Quant", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Name");
+        ImGui.TableHeadersRow();
+        foreach (var (k, i) in ws.Client.Inventory)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(k.ToString());
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(i.ToString());
+            ImGui.TableNextColumn();
+            var namebase = Service.LuminaRow<Lumina.Excel.Sheets.Item>(k % 500000)?.Name.ToString() ?? "<unknown>";
+            var namefull = k > 500000 ? $"{namebase} (HQ)" : namebase;
+            ImGui.TextUnformatted(namefull);
+        }
+        ImGui.EndTable();
+    }
+
     private unsafe void DrawEffects()
     {
-        var player = Service.ClientState.LocalPlayer;
+        var player = Service.ObjectTable.LocalPlayer;
         if (player == null)
             return;
 
@@ -344,9 +376,9 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         var cursorPos = amex.GetWorldPosUnderCursor();
         ImGui.TextUnformatted($"World pos under cursor: {(cursorPos == null ? "n/a" : Utils.Vec3String(cursorPos.Value))}");
 
-        var player = Service.ClientState.LocalPlayer;
+        var player = Service.ObjectTable.LocalPlayer;
         var selfPos = player?.Position ?? new();
-        var targPos = Service.ClientState.LocalPlayer?.TargetObject?.Position ?? new();
+        var targPos = Service.ObjectTable.LocalPlayer?.TargetObject?.Position ?? new();
         var angle = player?.Rotation.Radians() ?? default; //Angle.FromDirection(new((targPos - selfPos).XZ()));
         var ts = FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance();
         DrawTarget("Target", ts->Target, selfPos, angle);

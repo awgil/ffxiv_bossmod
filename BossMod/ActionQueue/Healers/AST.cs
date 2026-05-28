@@ -138,9 +138,9 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.AstralStasis, castAnimLock: 8.10f); // animLock=8.100s?
         d.RegisterSpell(AID.Malefic);
@@ -195,8 +195,6 @@ public sealed class Definitions : IDisposable
         Customize(d);
     }
 
-    public void Dispose() { }
-
     private void Customize(ActionDefinitions d)
     {
         d.RegisterChargeIncreaseTrait(AID.EssentialDignity, TraitID.EnhancedEssentialDignity);
@@ -204,4 +202,3 @@ public sealed class Definitions : IDisposable
         d.RegisterChargeIncreaseTrait(AID.CelestialIntersection, TraitID.EnhancedCelestialIntersection);
     }
 }
-

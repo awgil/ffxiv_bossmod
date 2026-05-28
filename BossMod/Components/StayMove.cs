@@ -20,7 +20,7 @@ public class StayMove(BossModule module, float maxTimeToShowHint = float.Positiv
                 break;
             case Requirement.Move:
                 if (float.IsInfinity(MaxTimeToShowHint) || PlayerStates[slot].Activation <= WorldState.FutureTime(MaxTimeToShowHint))
-                    hints.Add("Move!", actor.Position == actor.PrevPosition);
+                    hints.Add("Move!", actor.Position == actor.PrevPosition && actor.PosRot.Y == actor.PrevPosRot.Y);
                 break;
             case Requirement.NoMove:
                 if (float.IsInfinity(MaxTimeToShowHint) || PlayerStates[slot].Activation <= WorldState.FutureTime(MaxTimeToShowHint))

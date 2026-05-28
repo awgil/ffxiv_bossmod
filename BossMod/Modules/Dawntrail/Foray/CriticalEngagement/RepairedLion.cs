@@ -199,9 +199,5 @@ class RepairedLionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13649)]
-public class RepairedLion(WorldState ws, Actor primary) : BossModule(ws, primary, new(870, 180), new ArenaBoundsCircle(25))
-{
-    public override bool DrawAllPlayers => true;
-}
-
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13649)]
+public class RepairedLion(WorldState ws, Actor primary) : CEModule(ws, primary, new(870, 180), new ArenaBoundsCircle(25));

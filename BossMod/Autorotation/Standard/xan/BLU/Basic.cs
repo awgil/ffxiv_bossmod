@@ -3,8 +3,19 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class BLU(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Intelligence)
+public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, BLU.Strategy>(manager, player, PotionType.Intelligence)
 {
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track(Actions = [AID.Nightbloom, AID.BeingMortal, AID.BothEnds, AID.Apokalypsis, AID.MatraMagic])]
+        public Track<OffensiveStrategy> Buffs;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan BLU", "Blue Mage", "Standard rotation (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.BLU), 80);
@@ -49,7 +60,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : CastxanOl
         _ => World.Client.BlueMageSpells.Contains((uint)action),
     };
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -95,7 +106,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : CastxanOl
             PushGCD(AID.BreathOfMagic, Player, GCDPriority.BuffRefresh);
 
         // if channeling surpanakha, don't use anything else
-        var numSurpTargets = AdjustNumTargets(strategy, Hints.NumPriorityTargetsInAOECone(Player.Position, 16, Player.Rotation.ToDirection(), 60.Degrees()));
+        var numSurpTargets = AdjustNumTargets(strategy.AOE, Hints.NumPriorityTargetsInAOECone(Player.Position, 16, Player.Rotation.ToDirection(), 60.Degrees()));
         var surp = StatusLeft(SID.SurpanakhasFury);
         if (numSurpTargets > 0 && (MaxChargesIn(AID.Surpanakha) == 0 || surp > 0 && ReadyIn(AID.Surpanakha) <= 1))
         {

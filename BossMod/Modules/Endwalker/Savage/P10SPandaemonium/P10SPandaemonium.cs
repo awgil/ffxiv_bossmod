@@ -15,5 +15,5 @@ class PealOfDamnation(BossModule module) : Components.StandardAOEs(module, AID.P
 class PandaemoniacPillars(BossModule module) : Components.CastTowers(module, AID.Bury, 2);
 class Touchdown(BossModule module) : Components.StandardAOEs(module, AID.TouchdownAOE, new AOEShapeCircle(20));
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354, PlanLevel = 90)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 939, NameID = 12354, PlanLevel = 90)]
 public class P10SPandaemonium(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 92.5f), new ArenaBoundsRect(30, 22.5f));

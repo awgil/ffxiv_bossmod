@@ -61,9 +61,10 @@ abstract partial class AutoClear : ZoneModule
 
         if (ImGui.Button("Set closest trap location as ignored"))
         {
-            var pos = _trapsCurrentZone.Select(z => new WPos(z.X, z.Z)).Except(ProblematicTrapLocations).MinBy(t => (t - player.Position).LengthSq()).Rounded(0.1f);
+            var (closestTrapIndex, pos) = _trapsCurrentFloor.Select((z, i) => (i, z.ToWPos())).MinBy(t => (t.Item2 - player.Position).LengthSq());
+            pos = pos.Rounded(0.1f);
             ProblematicTrapLocations.Add(pos);
-            IgnoreTraps.Add(pos);
+            _trapsCurrentFloor.RemoveAt(closestTrapIndex);
         }
     }
 }

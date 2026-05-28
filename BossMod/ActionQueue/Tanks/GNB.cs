@@ -137,7 +137,8 @@ public enum SID : uint
     GreatNebula = 3838, // applied by Nebula to self
     ReadyToRaze = 3839, // applied by Fated Circle to self
     ReadyToBreak = 3886, // applied by No mercy to self
-    ReadyToReign = 3840, // applied by Bloodfest to target
+    ReadyToReign = 3840, // applied by Bloodfest to self
+    Bloodfest = 5051, // applied by Bloodfest to self
 
     //Shared
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
@@ -174,11 +175,11 @@ public enum SID : uint
     #endregion
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
     private readonly GNBConfig _config = Service.Config.Get<GNBConfig>();
 
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);
         d.RegisterSpell(AID.KeenEdge);
@@ -242,8 +243,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

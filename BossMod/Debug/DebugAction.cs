@@ -1,8 +1,7 @@
-﻿using Dalamud.Game.Gui;
+﻿using Dalamud.Bindings.ImGui;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using Dalamud.Bindings.ImGui;
 
 namespace BossMod;
 
@@ -95,59 +94,59 @@ sealed unsafe class DebugAction : IDisposable
         }
 
         var hover = Service.GameGui.HoveredAction;
-        if (hover.ActionID != 0)
+        if (hover.ActionId != 0)
         {
-            var mnemonic = Service.ClientState.LocalPlayer?.ClassJob.ValueNullable?.Abbreviation.ToString();
+            var mnemonic = Service.PlayerState.ClassJob.ValueNullable?.Abbreviation.ToString();
             var rotationType = mnemonic != null ? Type.GetType($"BossMod.{mnemonic}Rotation")?.GetNestedType("AID") : null;
-            ImGui.TextUnformatted($"Hover action: {hover.ActionKind} {hover.ActionID} (base={hover.BaseActionID}) ({mnemonic}: {rotationType?.GetEnumName(hover.ActionID)})");
+            ImGui.TextUnformatted($"Hover action: {hover.DetailKind} {hover.ActionId} (base={hover.BaseActionId}) ({mnemonic}: {rotationType?.GetEnumName(hover.ActionId)})");
 
             string name = "";
             var type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.None;
             uint unlockLink = 0;
-            if ((int)hover.ActionKind == 24) // action
+            if (hover.DetailKind == Dalamud.Game.Gui.DetailKind.Action) // action
             {
-                var data = Service.LuminaRow<Lumina.Excel.Sheets.Action>(hover.ActionID);
+                var data = Service.LuminaRow<Lumina.Excel.Sheets.Action>(hover.ActionId);
                 name = data?.Name.ToString() ?? "";
                 type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action;
                 unlockLink = data?.UnlockLink.RowId ?? 0;
             }
-            else if (hover.ActionKind == HoverActionKind.GeneralAction)
+            else if (hover.DetailKind == Dalamud.Game.Gui.DetailKind.GeneralAction)
             {
-                var data = Service.LuminaRow<Lumina.Excel.Sheets.GeneralAction>(hover.ActionID);
+                var data = Service.LuminaRow<Lumina.Excel.Sheets.GeneralAction>(hover.ActionId);
                 name = data?.Name.ToString() ?? "";
                 type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction;
                 unlockLink = data?.UnlockLink ?? 0;
             }
-            else if (hover.ActionKind == HoverActionKind.Trait)
+            else if (hover.DetailKind == Dalamud.Game.Gui.DetailKind.Trait)
             {
-                var data = Service.LuminaRow<Lumina.Excel.Sheets.Trait>(hover.ActionID);
+                var data = Service.LuminaRow<Lumina.Excel.Sheets.Trait>(hover.ActionId);
                 name = data?.Name.ToString() ?? "";
                 unlockLink = data?.Quest.RowId ?? 0;
             }
 
             ImGui.TextUnformatted($"Name: {name}");
             ImGui.TextUnformatted($"Unlock: {unlockLink} ({Service.LuminaRow<Lumina.Excel.Sheets.Quest>(unlockLink)?.Name}) = {FFXIVClientStructs.FFXIV.Client.Game.QuestManager.IsQuestComplete(unlockLink)}");
-            if (hover.ActionKind == HoverActionKind.Action)
+            if (hover.DetailKind == Dalamud.Game.Gui.DetailKind.Action)
             {
-                ImGui.TextUnformatted($"Range: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(hover.ActionID)}");
-                ImGui.TextUnformatted($"Stacks: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(hover.ActionID, 0)}");
-                ImGui.TextUnformatted($"Adjusted ID: {mgr->GetAdjustedActionId(hover.ActionID)}");
+                ImGui.TextUnformatted($"Range: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionRange(hover.ActionId)}");
+                ImGui.TextUnformatted($"Stacks: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(hover.ActionId, 0)}");
+                ImGui.TextUnformatted($"Adjusted ID: {mgr->GetAdjustedActionId(hover.ActionId)}");
             }
 
             if (type != FFXIVClientStructs.FFXIV.Client.Game.ActionType.None)
             {
-                //ImGui.TextUnformatted($"Cost: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionCost(type, hover.ActionID, 0, 0, 0, 0)}");
-                var action = new ActionID((ActionType)type, hover.ActionID);
+                //ImGui.TextUnformatted($"Cost: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionCost(type, hover.ActionId, 0, 0, 0, 0)}");
+                var action = new ActionID((ActionType)type, hover.ActionId);
                 DrawStatus("Status RC", action, true, true);
                 DrawStatus("Status R-", action, true, false);
                 DrawStatus("Status -C", action, false, true);
                 DrawStatus("Status --", action, false, false);
-                ImGui.TextUnformatted($"Adjusted recast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedRecastTime(type, hover.ActionID):f2}");
-                ImGui.TextUnformatted($"Adjusted cast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedCastTime(type, hover.ActionID):f2}");
-                ImGui.TextUnformatted($"Recast: {mgr->GetRecastTime(type, hover.ActionID):f2}");
-                ImGui.TextUnformatted($"Recast elapsed: {mgr->GetRecastTimeElapsed(type, hover.ActionID):f2}");
-                ImGui.TextUnformatted($"Recast active: {mgr->IsRecastTimerActive(type, hover.ActionID)}");
-                var groupID = mgr->GetRecastGroup((int)type, hover.ActionID);
+                ImGui.TextUnformatted($"Adjusted recast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedRecastTime(type, hover.ActionId):f2}");
+                ImGui.TextUnformatted($"Adjusted cast: {FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetAdjustedCastTime(type, hover.ActionId):f2}");
+                ImGui.TextUnformatted($"Recast: {mgr->GetRecastTime(type, hover.ActionId):f2}");
+                ImGui.TextUnformatted($"Recast elapsed: {mgr->GetRecastTimeElapsed(type, hover.ActionId):f2}");
+                ImGui.TextUnformatted($"Recast active: {mgr->IsRecastTimerActive(type, hover.ActionId)}");
+                var groupID = mgr->GetRecastGroup((int)type, hover.ActionId);
                 ImGui.TextUnformatted($"Recast group: {groupID}");
                 var group = mgr->GetRecastGroupDetail(groupID);
                 if (group != null)
@@ -213,7 +212,7 @@ sealed unsafe class DebugAction : IDisposable
     private void DrawStatus(string prompt, ActionID action, bool checkRecast, bool checkCasting)
     {
         uint extra;
-        var status = _amex.GetActionStatus(action, Service.ClientState.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
+        var status = _amex.GetActionStatus(action, Service.ObjectTable.LocalPlayer?.TargetObjectId ?? 0xE0000000, checkRecast, checkCasting, &extra);
         ImGui.TextUnformatted($"{prompt}: {status} [{extra}] '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
     }
 

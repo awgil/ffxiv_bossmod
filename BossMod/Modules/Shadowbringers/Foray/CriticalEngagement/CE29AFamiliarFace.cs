@@ -149,5 +149,5 @@ class FourthMakeHashmalStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 29)] // bnpcname=9693
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 29)] // bnpcname=9693
 public class FourthMakeHashmal(WorldState ws, Actor primary) : BossModule(ws, primary, new(330, 390), new ArenaBoundsCircle(30));

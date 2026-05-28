@@ -130,6 +130,6 @@ class RedCometStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 7)] // bnpcname=9407
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 7)] // bnpcname=9407
 public class RedComet(WorldState ws, Actor primary) : BossModule(ws, primary, new(393, 268), new ArenaBoundsCircle(19.5f));
 

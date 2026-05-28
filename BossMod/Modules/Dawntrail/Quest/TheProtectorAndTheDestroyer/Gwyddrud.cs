@@ -92,5 +92,5 @@ class GwyddrudStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70478, NameID = 13170, PrimaryActorOID = (uint)OID.BossP2)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70478, NameID = 13170, PrimaryActorOID = (uint)OID.BossP2)]
 public class Gwyddrud(WorldState ws, Actor primary) : BossModule(ws, primary, new(349, -14), new ArenaBoundsCircle(19.5f));

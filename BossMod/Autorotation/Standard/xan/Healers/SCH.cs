@@ -4,28 +4,36 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Mind)
+public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, SCH.Strategy>(manager, player, PotionType.Mind)
 {
-    public enum Track { Place = SharedTrack.Count }
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Chain Stratagem", Actions = [AID.ChainStratagem, AID.Dissipation])]
+        public Track<OffensiveStrategy> Buffs;
+        [Track("Fairy placement")]
+        public Track<FairyPlacement> FairyPlace;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public enum FairyPlacement
     {
+        [Option("Leave fairy alone")]
         Manual,
+        [Option("Automatically use Heel when combat ends", Context = StrategyContext.Preset)]
         AutoHeel,
+        [Option("Automatically place fairy at arena center, if applicable, and automatically Heel when combat ends")]
         FullAuto,
+        [Option("Place fairy at specified location", Targets = ActionTargets.Area, Context = StrategyContext.Plan)]
+        Specific
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SCH", "Scholar", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SCH), 100);
-
-        def.DefineShared("Chain Stratagem").AddAssociatedActions(AID.ChainStratagem, AID.Dissipation);
-
-        def.Define(Track.Place).As<FairyPlacement>("FairyPlace", "Fairy placement")
-            .AddOption(FairyPlacement.Manual, "Do not automatically move fairy")
-            .AddOption(FairyPlacement.AutoHeel, "Automatically order fairy to follow player when combat ends")
-            .AddOption(FairyPlacement.FullAuto, "Automatically place fairy at arena center (if one exists) - order fairy to follow when out of combat");
-
-        return def;
+        return new RotationModuleDefinition("xan SCH", "Scholar", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SCH), 100).WithStrategies<Strategy>();
     }
 
     public int Aetherflow;
@@ -53,7 +61,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
 
     private DateTime _summonWait;
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -119,12 +127,12 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
         PushGCD(AID.Ruin2, primaryTarget);
     }
 
-    private void OGCD(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCD(Strategy strategy, Enemy? primaryTarget)
     {
         if (primaryTarget == null || !Player.InCombat)
             return;
 
-        if (strategy.BuffsOk())
+        if (strategy.Buffs != OffensiveStrategy.Delay)
         {
             //if (Eos != null)
             //    PushOGCD(AID.Dissipation, Player);
@@ -146,7 +154,9 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
             PushOGCD(AID.LucidDreaming, Player);
     }
 
-    private void OrderFairy(StrategyValues strategy)
+    private DateTime _fairyMoveTimer;
+
+    private void OrderFairy(Strategy strategy)
     {
         if (Eos == null)
             return;
@@ -166,9 +176,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
             }
         }
 
-        var strat = strategy.Option(Track.Place).As<FairyPlacement>();
-
-        switch (strat)
+        switch (strategy.FairyPlace.Value)
         {
             case FairyPlacement.Manual:
                 return;
@@ -179,6 +187,17 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : CastxanOl
                 autoheel();
                 autoplace();
                 return;
+            case FairyPlacement.Specific:
+                var dest = ResolveTargetLocation(strategy.FairyPlace.TrackRaw);
+                if (dest == default // no destination, user messed up
+                || Eos.Position.AlmostEqual(dest, 1) // fairy already in position (we can't check current FairyOrder, because she may already be Placed, i.e. at arena center)
+                || _fairyMoveTimer > World.CurrentTime // spam prevention
+                )
+                    return;
+
+                Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 3), null, ActionQueue.Priority.VeryHigh, targetPos: dest.ToVec3(Player.PosRot.Y));
+                _fairyMoveTimer = World.FutureTime(1);
+                break;
         }
     }
 

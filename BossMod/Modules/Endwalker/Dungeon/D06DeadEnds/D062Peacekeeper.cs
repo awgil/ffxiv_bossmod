@@ -101,5 +101,5 @@ class PeacekeeperStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 792, NameID = 10315)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 792, NameID = 10315)]
 public class Peacekeeper(WorldState ws, Actor primary) : BossModule(ws, primary, new(-105, -210), new ArenaBoundsCircle(20));

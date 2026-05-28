@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.DRK;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 432)]
+[ZoneModuleInfo(432)]
 internal class DeclarationOfBlood(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

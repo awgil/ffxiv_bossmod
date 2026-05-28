@@ -4,8 +4,11 @@ public static class RaiseUtil
 {
     public enum Targets
     {
+        [Option("Party members")]
         Party,
+        [Option("Alliance raid members")]
         Alliance,
+        [Option("Any dead player")]
         Everyone
     }
 

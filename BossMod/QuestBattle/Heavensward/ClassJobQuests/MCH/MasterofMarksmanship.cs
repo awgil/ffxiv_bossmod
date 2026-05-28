@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.MCH;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 423)]
+[ZoneModuleInfo(423)]
 internal class MasterOfMarksmanship(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

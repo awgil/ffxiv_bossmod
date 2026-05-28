@@ -17,7 +17,6 @@ public static class BossModuleRegistry
         public uint PrimaryActorOID;
         public Func<WorldState, Actor, BossModule> ModuleFactory;
 
-        public BossModuleInfo.Maturity Maturity;
         public string Contributors = "";
         public BossModuleInfo.Expansion Expansion;
         public BossModuleInfo.Category Category;
@@ -26,6 +25,7 @@ public static class BossModuleRegistry
         public uint NameID;
         public int SortOrder;
         public int PlanLevel;
+        public bool Incomplete;
 
         public static Info? Build(Type module)
         {
@@ -37,10 +37,6 @@ public static class BossModuleRegistry
             var sidType = infoAttr?.StatusIDType ?? module.Module.GetType($"{module.Namespace}.SID");
             var tidType = infoAttr?.TetherIDType ?? module.Module.GetType($"{module.Namespace}.TetherID");
             var iidType = infoAttr?.IconIDType ?? module.Module.GetType($"{module.Namespace}.IconID");
-
-            // skip really-WIP modules without logging to user since they have no use for this information
-            if (infoAttr?.DevOnly == true && !Service.IsDev)
-                return null;
 
             if (statesType == null || !statesType.IsSubclassOf(typeof(StateMachineBuilder)) || statesType.GetConstructor([module]) == null)
             {
@@ -148,7 +144,6 @@ public static class BossModuleRegistry
                 IconIDType = iidType,
                 PrimaryActorOID = primaryOID,
 
-                Maturity = infoAttr?.Maturity ?? BossModuleInfo.Maturity.WIP,
                 Contributors = infoAttr?.Contributors ?? "",
                 Expansion = expansion,
                 Category = category,
@@ -157,6 +152,7 @@ public static class BossModuleRegistry
                 NameID = nameID,
                 SortOrder = sortOrder,
                 PlanLevel = infoAttr?.PlanLevel ?? 0,
+                Incomplete = infoAttr?.Incomplete ?? false,
             };
         }
 
@@ -193,17 +189,24 @@ public static class BossModuleRegistry
 
     public static BossModule? CreateModule(Info? info, WorldState ws, Actor primary) => info?.ModuleFactory(ws, primary);
 
-    public static BossModule? CreateModuleForActor(WorldState ws, Actor primary, BossModuleInfo.Maturity minMaturity)
+    public static BossModule? CreateModuleForActor(WorldState ws, Actor primary, bool allowIncomplete, bool allowStrikingDummy)
     {
         var info = primary.Type is ActorType.Enemy or ActorType.EventObj ? FindByOID(primary.OID) : null;
-        if (info is { } inf)
-        {
-            if (_config.DisabledModules.Contains(inf.ModuleType.ToString()))
-                return null;
-            if (_config.DisabledCategories.Contains(inf.Category))
-                return null;
-        }
-        return info?.Maturity >= minMaturity ? CreateModule(info, ws, primary) : null;
+        if (info is not { } inf)
+            return null;
+
+        if (_config.DisabledModules.Contains(inf.ModuleType.ToString()))
+            return null;
+        if (_config.DisabledCategories.Contains(inf.Category))
+            return null;
+
+        if (inf.Incomplete && !allowIncomplete)
+            return null;
+
+        if (inf.ModuleType == typeof(StrikingDummy.StrikingDummy) && !allowStrikingDummy)
+            return null;
+
+        return CreateModule(inf, ws, primary);
     }
 
     // TODO: this is a hack...

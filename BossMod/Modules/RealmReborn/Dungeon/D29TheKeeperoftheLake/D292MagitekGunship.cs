@@ -74,5 +74,5 @@ class D292MagitekGunshipStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "LegendofIceman, Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3373)]
+[ModuleInfo(Contributors = "LegendofIceman, Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 32, NameID = 3373)]
 public class D292MagitekGunship(WorldState ws, Actor primary) : BossModule(ws, primary, new(8.5f, -150), new ArenaBoundsCircle(19));

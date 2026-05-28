@@ -7,7 +7,7 @@ class HandOfTheDestroyerJudgment(BossModule module) : Components.StandardAOEs(mo
 class SoaringMinuet(BossModule module) : Components.StandardAOEs(module, AID.SoaringMinuet, new AOEShapeCone(40, 135.Degrees()));
 class EudaimonEorzea(BossModule module) : Components.CastCounter(module, AID.EudaimonEorzeaAOE);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301, SortOrder = 7)]
+[ModuleInfo(Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11301, SortOrder = 7)]
 public class A34Eulogia(WorldState ws, Actor primary) : BossModule(ws, primary, new(945, -945), DefaultBounds)
 {
     public static readonly ArenaBoundsCircle DefaultBounds = new(30);

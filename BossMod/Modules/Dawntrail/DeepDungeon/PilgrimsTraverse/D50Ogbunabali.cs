@@ -220,5 +220,5 @@ class D50OgbunabaliStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1036, NameID = 14263)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1036, NameID = 14263)]
 public class D50Ogbunabali(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(15));

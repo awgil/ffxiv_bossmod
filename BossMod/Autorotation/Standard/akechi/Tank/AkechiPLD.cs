@@ -6,7 +6,8 @@ namespace BossMod.Autorotation.akechi;
 
 public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
-    public enum Track { Atonement = SharedTrack.Count, BladeCombo, FightOrFlight, Requiescat, GoringBlade, Holy, Dash, Ranged, SpiritsWithin, CircleOfScorn, BladeOfHonor }
+    public enum Track { AOE = SharedTrack.Count, Atonement, BladeCombo, FightOrFlight, Requiescat, GoringBlade, Holy, Dash, Ranged, SpiritsWithin, CircleOfScorn, BladeOfHonor }
+    public enum AOEStrategy { AutoFinish, ForceSTFinish, ForceAOEFinish, AutoBreak, ForceSTBreak, ForceAOEBreak }
     public enum AtonementStrategy { Automatic, ForceAtonement, ForceSupplication, ForceSepulchre, Delay }
     public enum BladeComboStrategy { Automatic, ForceConfiteor, ForceFaith, ForceTruth, ForceValor, Delay }
     public enum GoringBladeStrategy { Automatic, Early, Late, Force, Delay }
@@ -17,11 +18,20 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Excellent, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
-        res.DefineAOE().AddAssociatedActions(AID.FastBlade, AID.RiotBlade, AID.RageOfHalone, AID.RoyalAuthority, AID.Prominence, AID.TotalEclipse);
+        var res = new RotationModuleDefinition("Akechi PLD", "Standard Rotation Module", "Standard rotation (Akechi)|Tank", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.GLA, (int)Class.PLD), 100);
+
         res.DefineTargeting();
         res.DefineHold();
         res.DefinePotion(ActionDefinitions.IDPotionStr);
+
+        res.Define(Track.AOE).As<AOEStrategy>("ST/AOE", "Single-Target & AoE Rotations", 300)
+            .AddOption(AOEStrategy.AutoFinish, "Automatically select best rotation based on targets nearby - finishes current combo if possible")
+            .AddOption(AOEStrategy.ForceSTFinish, "Force Single-Target rotation, regardless of targets nearby - finishes current combo if possible")
+            .AddOption(AOEStrategy.ForceAOEFinish, "Force AoE rotation, regardless of targets nearby - finishes current combo if possible")
+            .AddOption(AOEStrategy.AutoBreak, "Automatically select best rotation based on targets nearby - will break current combo if in one")
+            .AddOption(AOEStrategy.ForceSTBreak, "Force Single-Target rotation, regardless of targets nearby - will break current combo if in one")
+            .AddOption(AOEStrategy.ForceAOEBreak, "Force AoE rotation, regardless of targets nearby - will break current combo if in one")
+            .AddAssociatedActions(AID.FastBlade, AID.RiotBlade, AID.RageOfHalone, AID.RoyalAuthority, AID.Prominence, AID.TotalEclipse);
 
         res.Define(Track.Atonement).As<AtonementStrategy>("Atones", "Atonement Combo", 155)
             .AddOption(AtonementStrategy.Automatic, "Normal use of Atonement & its combo chain")
@@ -118,14 +128,13 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     private (float Left, bool IsReady, bool IsActive) Sepulchre;
     private (float Left, bool HasMP, bool IsReady, bool IsActive) Confiteor;
     private (float Left, bool IsReady, bool IsActive) BladeOfHonor;
-    private bool ShouldUseAOE;
+    private bool WantAOE;
     private bool Opener;
     private int NumSplashTargets;
     private Enemy? BestSplashTargets;
     private Enemy? BestSplashTarget;
+    private bool ForceAOE;
 
-    private AID FullST => ComboLastMove is AID.RiotBlade ? (Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : Unlocked(AID.RageOfHalone) ? AID.RageOfHalone : AID.FastBlade) : Unlocked(AID.RiotBlade) && ComboLastMove is AID.FastBlade ? AID.RiotBlade : AID.FastBlade;
-    private AID FullAOE => Unlocked(AID.Prominence) && ComboLastMove is AID.TotalEclipse ? AID.Prominence : AID.TotalEclipse;
     private AID BestSpirits => Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
     private AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
     private AID BestHolyCircle => Unlocked(AID.HolyCircle) ? AID.HolyCircle : AID.HolySpirit;
@@ -152,68 +161,90 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         PotionStrategy.Immediate => true,
         _ => false
     };
+    private AID BestEnder => Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : Unlocked(AID.RageOfHalone) ? AID.RageOfHalone : AID.FastBlade;
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         var gauge = World.Client.GetGauge<PaladinGauge>();
         BladeComboStep = gauge.ConfiteorComboStep;
-        DivineMight.Left = StatusRemaining(Player, SID.DivineMight, 30);
+        DivineMight.Left = Status(SID.DivineMight, 30);
         DivineMight.IsActive = DivineMight.Left > 0f;
-        FightOrFlight.CD = CDRemaining(AID.FightOrFlight);
-        FightOrFlight.Left = StatusRemaining(Player, SID.FightOrFlight, 20);
+        FightOrFlight.CD = Cooldown(AID.FightOrFlight);
+        FightOrFlight.Left = Status(SID.FightOrFlight, 20);
         FightOrFlight.IsActive = FightOrFlight.CD is >= 39.5f and <= 60;
         FightOrFlight.IsReady = ActionReady(AID.FightOrFlight);
-        GoringBlade.Left = StatusRemaining(Player, SID.GoringBladeReady, 30);
+        GoringBlade.Left = Status(SID.GoringBladeReady, 30);
         GoringBlade.IsActive = GoringBlade.Left > 0f;
         GoringBlade.IsReady = Unlocked(AID.GoringBlade) && GoringBlade.IsActive;
-        Intervene.TotalCD = CDRemaining(AID.Intervene);
+        Intervene.TotalCD = Cooldown(AID.Intervene);
         Intervene.Charges = Intervene.TotalCD <= 2f ? 2 : Intervene.TotalCD is <= 31f and > 2f ? 1 : 0;
         Intervene.IsReady = Unlocked(AID.Intervene) && Intervene.Charges > 0;
-        Requiescat.CD = CDRemaining(BestRequiescat);
-        Requiescat.Left = StatusRemaining(Player, SID.Requiescat, 30);
+        Requiescat.CD = Cooldown(BestRequiescat);
+        Requiescat.Left = Status(SID.Requiescat, 30);
         Requiescat.IsActive = Requiescat.Left > 0;
         Requiescat.IsReady = Unlocked(AID.Requiescat) && Requiescat.CD < 0.6f;
-        Atonement.Left = StatusRemaining(Player, SID.AtonementReady, 30);
+        Atonement.Left = Status(SID.AtonementReady, 30);
         Atonement.IsActive = Atonement.Left > 0;
         Atonement.IsReady = Unlocked(AID.Atonement) && Atonement.IsActive;
-        Supplication.Left = StatusRemaining(Player, SID.SupplicationReady, 30);
+        Supplication.Left = Status(SID.SupplicationReady, 30);
         Supplication.IsActive = Supplication.Left > 0;
         Supplication.IsReady = Unlocked(AID.Supplication) && Supplication.IsActive;
-        Sepulchre.Left = StatusRemaining(Player, SID.SepulchreReady, 30);
+        Sepulchre.Left = Status(SID.SepulchreReady, 30);
         Sepulchre.IsActive = Sepulchre.Left > 0;
         Sepulchre.IsReady = Unlocked(AID.Sepulchre) && Sepulchre.IsActive;
-        Confiteor.Left = StatusRemaining(Player, SID.ConfiteorReady, 30);
+        Confiteor.Left = Status(SID.ConfiteorReady, 30);
         Confiteor.IsActive = Confiteor.Left > 0;
         Confiteor.IsReady = Unlocked(AID.Confiteor) && Confiteor.IsActive && MP >= 1000;
-        BladeOfHonor.Left = StatusRemaining(Player, SID.BladeOfHonorReady, 30);
+        BladeOfHonor.Left = Status(SID.BladeOfHonorReady, 30);
         BladeOfHonor.IsActive = BladeOfHonor.Left > 0;
         BladeOfHonor.IsReady = Unlocked(AID.BladeOfHonor) && BladeOfHonor.IsActive;
-        ShouldUseAOE = ShouldUseAOECircle(5).OnThreeOrMore || strategy.ForceAOE();
+        WantAOE = TargetsInAOECircle(5f, 3) || ForceAOE;
         (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.Confiteor) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         Opener = CombatTimer <= 10 ? ComboLastMove == AID.RoyalAuthority : ComboTimer > 10;
+        var mainTarget = primaryTarget?.Actor;
 
         if (strategy.HoldEverything())
             return;
 
-        var aoe = strategy.Option(SharedTrack.AOE);
+        var aoe = strategy.Option(Track.AOE);
         var aoeStrat = aoe.As<AOEStrategy>();
-        var aoeTarget = SingleTargetChoice(primaryTarget?.Actor, aoe);
-        var aoeCondition = (ShouldUseAOE ? In5y(aoeTarget) : In3y(aoeTarget)) && aoeTarget != null;
-        if (strategy.AutoFinish() && aoeCondition)
-            QueueGCD(ComboLastMove switch
-            {
-                AID.FastBlade or AID.RiotBlade => FullST,
-                AID.TotalEclipse => FullAOE,
-                AID.RageOfHalone or AID.RoyalAuthority or AID.Prominence or _ => ShouldUseAOE ? FullAOE : FullST,
-            },
-            aoeTarget, GCDPriority.Low);
-        if (strategy.AutoBreak() && aoeCondition)
-            QueueGCD(ShouldUseAOE ? FullAOE : FullST, aoeTarget, GCDPriority.Low);
-        if (strategy.ForceST() && In3y(aoeTarget))
-            QueueGCD(FullST, aoeTarget, GCDPriority.Low);
-        if (strategy.ForceAOE() && In5y(aoeTarget))
-            QueueGCD(FullAOE, Player, GCDPriority.Low);
+        ForceAOE = aoeStrat is AOEStrategy.ForceAOEFinish or AOEStrategy.ForceAOEBreak;
+        var stFinish = ComboLastMove switch
+        {
+            AID.TotalEclipse => Unlocked(AID.Prominence) ? AID.Prominence : AID.FastBlade,
+            AID.RiotBlade => Unlocked(BestEnder) ? BestEnder : AID.FastBlade,
+            AID.FastBlade => Unlocked(AID.RiotBlade) ? AID.RiotBlade : AID.FastBlade,
+            _ => AID.FastBlade,
+        };
+        var stBreak = ComboLastMove switch
+        {
+            AID.RiotBlade => Unlocked(BestEnder) ? BestEnder : AID.FastBlade,
+            AID.FastBlade => Unlocked(AID.RiotBlade) ? AID.RiotBlade : AID.FastBlade,
+            _ => AID.FastBlade,
+        };
+        var aoeFinish = ComboLastMove switch
+        {
+            AID.RiotBlade => Unlocked(BestEnder) ? BestEnder : AID.TotalEclipse,
+            AID.FastBlade => Unlocked(AID.RiotBlade) ? AID.RiotBlade : AID.TotalEclipse,
+            AID.TotalEclipse => Unlocked(AID.Prominence) ? AID.Prominence : AID.TotalEclipse,
+            _ => AID.TotalEclipse,
+        };
+        var aoeBreak = (ComboLastMove is AID.TotalEclipse && Unlocked(AID.Prominence)) ? AID.Prominence : AID.TotalEclipse;
+        var stTarget = SingleTargetChoice(mainTarget, aoe);
+        var autoTarget = WantAOE ? Player : stTarget;
+        var (aoeAction, aoeTarget) = aoeStrat switch
+        {
+            AOEStrategy.AutoFinish => (WantAOE ? aoeFinish : stFinish, autoTarget),
+            AOEStrategy.ForceSTFinish => (stFinish, stTarget),
+            AOEStrategy.ForceAOEFinish => (aoeFinish, Player),
+            AOEStrategy.AutoBreak => (WantAOE ? aoeBreak : stBreak, autoTarget),
+            AOEStrategy.ForceSTBreak => (stBreak, stTarget),
+            AOEStrategy.ForceAOEBreak => (aoeBreak, Player),
+            _ => (AID.None, null)
+        };
+        if ((WantAOE ? In5y(aoeTarget) : In3y(aoeTarget)) && aoeTarget != null)
+            QueueGCD(aoeAction, aoeTarget, GCDPriority.Low);
 
         var fof = strategy.Option(Track.FightOrFlight);
         var fofStrat = fof.As<BuffsStrategy>();
@@ -223,31 +254,31 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             {
                 if (!strategy.HoldBuffs())
                 {
-                    var (fofCondition, fofPrio) = ShouldBuffUp(fofStrat, primaryTarget?.Actor, FightOrFlight.IsReady, Requiescat.CD < 1f);
+                    var (fofCondition, fofPrio) = ShouldBuffUp(fofStrat, mainTarget, FightOrFlight.IsReady, Requiescat.CD < 1f);
                     if (fofCondition)
                         QueueOGCD(AID.FightOrFlight, Player, fofPrio);
 
                     var req = strategy.Option(Track.Requiescat);
                     var reqStrat = req.As<BuffsStrategy>();
-                    var (reqCondition, reqPrio) = ShouldBuffUp(reqStrat, primaryTarget?.Actor, Requiescat.IsReady, FightOrFlight.CD > 55f);
+                    var (reqCondition, reqPrio) = ShouldBuffUp(reqStrat, mainTarget, Requiescat.IsReady, FightOrFlight.CD > 55f);
                     if (reqCondition)
-                        QueueOGCD(BestRequiescat, SingleTargetChoice(primaryTarget?.Actor, req), reqPrio);
+                        QueueOGCD(BestRequiescat, SingleTargetChoice(mainTarget, req), reqPrio);
                 }
 
                 var cos = strategy.Option(Track.CircleOfScorn);
                 var cosStrat = cos.As<OGCDStrategy>();
-                if (ShouldUseOGCD(cosStrat, primaryTarget?.Actor, ActionReady(AID.CircleOfScorn), In5y(primaryTarget?.Actor) && FightOrFlight.CD is < 57.55f and > 12))
+                if (ShouldUseOGCD(cosStrat, mainTarget, ActionReady(AID.CircleOfScorn), In5y(mainTarget) && FightOrFlight.CD is < 57.55f and > 12))
                     QueueOGCD(AID.CircleOfScorn, Player, OGCDPrio(cosStrat, OGCDPriority.AboveAverage));
 
                 var sw = strategy.Option(Track.SpiritsWithin);
                 var swStrat = sw.As<OGCDStrategy>();
-                var swTarget = SingleTargetChoice(primaryTarget?.Actor, sw);
+                var swTarget = SingleTargetChoice(mainTarget, sw);
                 if (ShouldUseOGCD(swStrat, swTarget, ActionReady(BestSpirits), In3y(swTarget) && FightOrFlight.CD is < 57.55f and > 12))
                     QueueOGCD(BestSpirits, swTarget, OGCDPrio(swStrat, OGCDPriority.Average));
 
                 var dash = strategy.Option(Track.Dash);
                 var dashStrat = dash.As<DashStrategy>();
-                var dashTarget = SingleTargetChoice(primaryTarget?.Actor, dash);
+                var dashTarget = SingleTargetChoice(mainTarget, dash);
                 var (dashCondition, dashPrio) = dashStrat switch
                 {
                     DashStrategy.Automatic => (Player.InCombat && dashTarget != null && !IsMoving && In3y(dashTarget) && Intervene.IsReady && FightOrFlight.IsActive, OGCDPriority.SlightlyLow),
@@ -263,18 +294,17 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
             var boh = strategy.Option(Track.BladeOfHonor);
             var bohStrat = boh.As<OGCDStrategy>();
-            var bohTarget = AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, boh, strategy);
+            var bohTarget = AOETargetChoice(mainTarget, BestSplashTarget?.Actor, boh, strategy);
             if (ShouldUseOGCD(bohStrat, bohTarget, BladeOfHonor.IsReady))
                 QueueOGCD(AID.BladeOfHonor, bohTarget, OGCDPrio(bohStrat, OGCDPriority.Low));
 
             var gb = strategy.Option(Track.GoringBlade);
             var gbStrat = gb.As<GoringBladeStrategy>();
-            var gbTarget = SingleTargetChoice(primaryTarget?.Actor, gb);
+            var gbTarget = SingleTargetChoice(mainTarget, gb);
             var gbMinimum = gbTarget != null && In3y(gbTarget) && GoringBlade.IsReady;
             var (gbCondition, gbPrio) = gbStrat switch
             {
-                GoringBladeStrategy.Automatic => (true, GCDPriority.High),
-                GoringBladeStrategy.Early => (true, GCDPriority.High),
+                GoringBladeStrategy.Automatic or GoringBladeStrategy.Early => (true, GCDPriority.High),
                 GoringBladeStrategy.Late => (!Requiescat.IsActive && GoringBlade.Left is < 25f and not 0f, GCDPriority.SlightlyHigh),
                 GoringBladeStrategy.Force => (true, GCDPriority.Forced),
                 _ => (false, GCDPriority.None)
@@ -288,8 +318,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         var boftv = strategy.Option(Track.BladeCombo);
         var boftvStrat = boftv.As<BladeComboStrategy>();
-        var boftvTarget = AOETargetChoice(primaryTarget?.Actor, BestSplashTarget?.Actor, boftv, strategy);
-        var boftvBest = BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : Confiteor.IsReady ? AID.Confiteor : ShouldUseAOE ? BestHolyCircle : AID.HolySpirit;
+        var boftvTarget = AOETargetChoice(mainTarget, BestSplashTarget?.Actor, boftv, strategy);
+        var boftvBest = BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : Confiteor.IsReady ? AID.Confiteor : WantAOE ? BestHolyCircle : AID.HolySpirit;
         var boftvMinimum = boftvTarget != null && In25y(boftvTarget);
         var (boftvCondition, boftvAction, boftvPrio) = boftvStrat switch
         {
@@ -311,7 +341,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         var atone = strategy.Option(Track.Atonement);
         var atoneStrat = atone.As<AtonementStrategy>();
-        var aTarget = SingleTargetChoice(primaryTarget?.Actor, atone);
+        var aTarget = SingleTargetChoice(mainTarget, atone);
         var aMinimum = aTarget != null && In3y(aTarget) && !dmacHold && (Atonement.IsReady || Supplication.IsReady || Sepulchre.IsReady);
         var bestAtonement = Sepulchre.IsReady ? AID.Sepulchre : Supplication.IsReady ? AID.Supplication : AID.Atonement;
         var (aCondition, aAction, aPriority) = atoneStrat switch
@@ -327,8 +357,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         var dmh = strategy.Option(Track.Holy);
         var dmhStrat = dmh.As<HolyStrategy>();
-        var usedmhAOE = dmhStrat is HolyStrategy.OnlyCircle or HolyStrategy.ForceCircle || ShouldUseAOE;
-        var dmhTarget = usedmhAOE ? Player : SingleTargetChoice(primaryTarget?.Actor, dmh);
+        var usedmhAOE = dmhStrat is HolyStrategy.OnlyCircle or HolyStrategy.ForceCircle || WantAOE;
+        var dmhTarget = usedmhAOE ? Player : SingleTargetChoice(mainTarget, dmh);
         var dmhMinimum = dmhTarget != null && DivineMight.IsActive && !dmacHold;
         var hsMinimum = Unlocked(AID.HolySpirit) && In25y(dmhTarget) && dmhMinimum;
         var hcMinimum = Unlocked(AID.HolyCircle) && In5y(dmhTarget) && dmhMinimum;
@@ -352,7 +382,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         var r = strategy.Option(Track.Ranged);
         var rStrat = r.As<RangedStrategy>();
-        var rTarget = SingleTargetChoice(primaryTarget?.Actor, r);
+        var rTarget = SingleTargetChoice(mainTarget, r);
         var (rCondition, rAction, rPriority) = rStrat switch
         {
             RangedStrategy.Automatic => (rTarget != null && !In3y(rTarget), IsMoving || MP < 1000 ? AID.ShieldLob : AID.HolySpirit, GCDPriority.Low + 1),

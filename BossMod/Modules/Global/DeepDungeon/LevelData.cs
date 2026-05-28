@@ -23,14 +23,13 @@ public record class Tileset<T>(List<RoomData<T>> Rooms)
 
 [Serializable]
 public record class RoomData<T>(
-    T Center,
     T North,
     T South,
     T West,
     T East
 )
 {
-    public RoomData<M> Map<M>(Func<T, M> F) => new(F(Center), F(North), F(South), F(West), F(East));
+    public RoomData<M> Map<M>(Func<T, M> F) => new(F(North), F(South), F(West), F(East));
 }
 
 [Serializable]

@@ -69,5 +69,5 @@ class D051DemonTomeStates : StateMachineBuilder
             .ActivateOnEnter<Disclosure>();
     }
 }
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 31, NameID = 3923)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 31, NameID = 3923)]
 public class D051DemonTome(WorldState ws, Actor primary) : BossModule(ws, primary, new(0.5f, 0), new ArenaBoundsRect(19.5f, 10f));

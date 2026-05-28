@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation;
-
-namespace BossMod.QuestBattle.Shadowbringers.MSQ;
+﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
 class AutoEstinien(WorldState ws) : UnmanagedRotation(ws, 10)
 {
@@ -24,7 +22,7 @@ class AutoEstinien(WorldState ws) : UnmanagedRotation(ws, 10)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 702)]
+[ZoneModuleInfo(702)]
 public class VowsOfVirtueDeedsOfCruelty(WorldState ws) : QuestBattle(ws)
 {
     private readonly AutoEstinien _ai = new(ws);

@@ -1,35 +1,37 @@
 ﻿namespace BossMod.Autorotation.xan;
 
-public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<MeleeAI.Strategy>(manager, player)
 {
-    public enum Track { SecondWind, Bloodbath, Stun, LimitBreak }
-    public static RotationModuleDefinition Definition()
+    public struct Strategy
     {
-        var def = new RotationModuleDefinition("Melee DPS AI", "Utilities for melee - bloodbath, second wind, stun", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100);
-
-        def.AbilityTrack(Track.SecondWind, "Second Wind");
-        def.AbilityTrack(Track.Bloodbath, "Bloodbath");
-        def.AbilityTrack(Track.Stun, "Stun");
-        def.AbilityTrack(Track.LimitBreak, "Limit Break").AddAssociatedActions(ClassShared.AID.Braver, ClassShared.AID.Bladedance);
-
-        return def;
+        [Track("Second Wind", InternalName = "Second Wind")]
+        public Track<EnabledByDefault> SecondWind;
+        public Track<EnabledByDefault> Bloodbath;
+        public Track<EnabledByDefault> Stun;
+        [Track("Limit Break", InternalName = "Limit Break", Actions = [ClassShared.AID.Braver, ClassShared.AID.Bladedance])]
+        public Track<EnabledByDefault> LimitBreak;
     }
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public static RotationModuleDefinition Definition()
+    {
+        return new RotationModuleDefinition("Melee DPS AI", "Utilities for melee - bloodbath, second wind, stun", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100).WithStrategies<Strategy>();
+    }
+
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Player.Statuses.Any(x => x.ID is (uint)BossMod.NIN.SID.TenChiJin or (uint)BossMod.NIN.SID.Mudra or 1092))
             return;
 
         // second wind
-        if (strategy.Enabled(Track.SecondWind) && Player.InCombat && Player.PendingHPRatio <= 0.5)
+        if (strategy.SecondWind.IsEnabled() && Player.InCombat && Player.PendingHPRatio <= 0.5)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SecondWind), Player, ActionQueue.Priority.Medium);
 
         // bloodbath
-        if (strategy.Enabled(Track.Bloodbath) && Player.InCombat && Player.PendingHPRatio <= 0.3)
+        if (strategy.Bloodbath.IsEnabled() && Player.InCombat && Player.PendingHPRatio <= 0.3)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Bloodbath), Player, ActionQueue.Priority.Medium);
 
         // low blow
-        if (strategy.Enabled(Track.Stun) && NextChargeIn(ClassShared.AID.LegSweep) == 0)
+        if (strategy.Stun.IsEnabled() && NextChargeIn(ClassShared.AID.LegSweep) == 0)
         {
             var stunnableEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldStun(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (stunnableEnemy != null)
@@ -50,9 +52,9 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase(manag
         ExecLB(strategy, primaryTarget);
     }
 
-    private void ExecLB(StrategyValues strategy, Actor? primaryTarget)
+    private void ExecLB(in Strategy strategy, Actor? primaryTarget)
     {
-        if (!strategy.Enabled(Track.LimitBreak) || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1 || Bossmods.ActiveModule is null)
+        if (!strategy.LimitBreak.IsEnabled() || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1 || Bossmods.ActiveModule is null)
             return;
 
         switch (World.Party.LimitBreakLevel)

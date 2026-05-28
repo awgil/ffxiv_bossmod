@@ -100,7 +100,7 @@ class T01CaduceusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1466, SortOrder = 2, PlanLevel = 50)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 93, NameID = 1466, SortOrder = 2, PlanLevel = 50)]
 public class T01Caduceus : BossModule
 {
     public T01Caduceus(WorldState ws, Actor primary) : base(ws, primary, new(-26, -407), new ArenaBoundsRect(35, 43))

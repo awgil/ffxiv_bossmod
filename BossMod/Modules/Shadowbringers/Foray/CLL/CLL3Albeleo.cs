@@ -53,7 +53,7 @@ class AlbeleoTheMaleficentStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9433)]
+[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9433)]
 public class AlbeleoTheMaleficent(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, -392.4f), MakeBounds())
 {
     private static ArenaBoundsCustom MakeBounds()

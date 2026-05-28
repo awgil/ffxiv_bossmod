@@ -19,7 +19,7 @@ abstract class GenericInvincible(BossModule module, string hint = "Attacking inv
     }
 }
 
-class InvincibleStatus(BossModule module, uint statusId, string hint = "Attacking invincible target!") : GenericInvincible(module, hint)
+class InvincibleStatus(BossModule module, uint statusId, string hint = "Attacking invincible target!", int priority = AIHints.Enemy.PriorityInvincible) : GenericInvincible(module, hint, priority)
 {
     protected readonly List<Actor> _actors = [];
 
@@ -35,18 +35,5 @@ class InvincibleStatus(BossModule module, uint statusId, string hint = "Attackin
     {
         if (status.ID == statusId)
             _actors.Remove(actor);
-    }
-}
-
-class HPThreshold(BossModule module, uint oid, float ratio) : BossComponent(module)
-{
-    public uint ID = oid;
-    public float Ratio = ratio;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var enemy in Module.Enemies(ID))
-            if (enemy.PendingHPRatio < Ratio)
-                hints.SetPriority(enemy, AIHints.Enemy.PriorityPointless);
     }
 }

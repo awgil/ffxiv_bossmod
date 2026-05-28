@@ -1005,7 +1005,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
             return true;
 
         // we want to use potion together with bozja buffs (TODO: reconsider)
-        if (LostBuffsLeft > 0 || LostBuffsIn < GCD)
+        if (LostBuffsLeft > 0 || LostBuffsIn <= GCD)
             return true;
 
         // not aligned

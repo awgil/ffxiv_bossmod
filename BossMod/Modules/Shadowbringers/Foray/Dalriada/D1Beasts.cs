@@ -284,7 +284,7 @@ class FourthLegionAugurStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 778, NameID = 10207)]
+[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 778, NameID = 10207)]
 public class FourthLegionAugur(WorldState ws, Actor primary) : BossModule(ws, primary, new(222, -689), new ArenaBoundsRect(24, 24))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);

@@ -98,10 +98,11 @@ public enum SID : uint
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
     private readonly PLDConfig _config = Service.Config.Get<PLDConfig>();
-    public Definitions(ActionDefinitions d)
+
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.LastBastion, instantAnimLock: 3.86f);
         d.RegisterSpell(AID.FastBlade);
@@ -146,8 +147,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

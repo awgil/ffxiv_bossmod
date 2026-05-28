@@ -241,7 +241,7 @@ public sealed class ConfigUI : IDisposable
         else
         {
             using var invisible = ImRaii.PushColor(ImGuiCol.Text, 0x00000000);
-            UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle, "(?)");
+            UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle);
         }
         ImGui.SameLine();
     }
@@ -387,15 +387,52 @@ public sealed class ConfigUI : IDisposable
         return modified;
     }
 
+    public static void DrawGroupPresetIndicator(string text, Action contextMenu)
+    {
+        ImGui.AlignTextToFramePadding();
+        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ListUl, $"{text}open"))
+            ImGui.OpenPopup($"{text}popup");
+
+        if (ImGui.BeginPopup($"{text}popup"))
+        {
+            contextMenu();
+            ImGui.EndPopup();
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Select a preset");
+        ImGui.SameLine();
+    }
+
     private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
     {
         var group = member.GetCustomAttribute<GroupDetailsAttribute>();
         if (group == null)
             return false;
 
-        DrawHelp(tooltip);
+        var spaced = false;
+
+        ImGui.AlignTextToFramePadding();
+        if (tooltip.Length > 0)
+        {
+            spaced = true;
+            UIMisc.HelpMarker(tooltip);
+            ImGui.SameLine();
+        }
+
+        if (member.GetCustomAttributes<GroupPresetAttribute>().Any())
+        {
+            spaced = true;
+            DrawGroupPresetIndicator(label, () => DrawPropertyContextMenu(node, member, v));
+        }
+
+        if (!spaced)
+        {
+            using (ImRaii.PushColor(ImGuiCol.Text, 0))
+                UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle);
+        }
+
         var modified = false;
-        foreach (var tn in tree.Node(label, false, v.Validate() ? 0xffffffff : 0xff00ffff, () => DrawPropertyContextMenu(node, member, v)))
+        foreach (var tn in tree.Node(label, false, v.Validate() ? 0xffffffff : 0xff00ffff))
         {
             using var indent = ImRaii.PushIndent();
             using var table = ImRaii.Table("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit);

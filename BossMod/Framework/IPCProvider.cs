@@ -1,5 +1,5 @@
-﻿using BossMod.AI;
 using BossMod.Autorotation;
+using BossMod.Pathfinding;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -10,14 +10,30 @@ sealed class IPCProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    public IPCProvider(RotationModuleManager autorotation, ActionManagerEx amex, MovementOverride movement, AIManager ai)
+    public IPCProvider(RotationModuleManager autorotation, ObstacleMapManager obstacles)
     {
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
 
-        DateTime lastModified = DateTime.Now;
+        var lastModified = DateTime.Now;
         Service.Config.Modified.Subscribe(() => lastModified = DateTime.Now);
         Register("Configuration.LastModified", () => lastModified);
+
+        Register("Configuration.DisableModule", (string name, bool disable) =>
+        {
+            var disabledModules = Service.Config.Get<BossModuleConfig>().DisabledModules;
+
+            if (!disable)
+                return disabledModules.Remove(name);
+
+            if (!disabledModules.Contains(name))
+            {
+                disabledModules.Add(name);
+                return true;
+            }
+
+            return false;
+        });
 
         Register("Rotation.ActionQueue.HasEntries", () => autorotation.Hints.ActionsToExecute.Entries.Any(x => !x.Manual));
 
@@ -203,6 +219,12 @@ sealed class IPCProvider : IDisposable
                 ms.TransientSettings.Clear();
             return true;
         });
+
+        Register("ObstacleMap.Generate", (Vector3 centerWorld, float radius, bool writeToFile) => obstacles.GenerateMap(centerWorld, radius, writeToFile));
+        Register("ObstacleMap.GetGenerationStatus", () => obstacles.GenerationStatus);
+        Register("ObstacleMap.HasTempMap", obstacles.HasTempMap);
+        Register("ObstacleMap.ClearTempMap", obstacles.ClearTempMap);
+        Register("ObstacleMap.EvaluateTempMapQuality", obstacles.EvaluateTempMapQuality);
     }
 
     public void Dispose() => _disposeActions?.Invoke();

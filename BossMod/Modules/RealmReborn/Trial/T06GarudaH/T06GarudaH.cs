@@ -82,7 +82,7 @@ class T06GarudaHStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 61, NameID = 1644)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 61, NameID = 1644)]
 public class T06GarudaH : BossModule
 {
     private readonly IReadOnlyList<Actor> _monoliths;

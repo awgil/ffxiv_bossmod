@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation;
-using RID = BossMod.Roleplay.AID;
+﻿using RID = BossMod.Roleplay.AID;
 
 namespace BossMod.QuestBattle.Endwalker.MSQ;
 
@@ -42,7 +41,7 @@ class ZeroAI(WorldState ws) : UnmanagedRotation(ws, 3)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 910)]
+[ZoneModuleInfo(910)]
 internal class AnUnforeseenBargain(WorldState ws) : QuestBattle(ws)
 {
     private readonly ZeroAI _zero = new(ws);
@@ -64,4 +63,3 @@ internal class AnUnforeseenBargain(WorldState ws) : QuestBattle(ws)
             _zero.Execute(player, hints);
     }
 }
-

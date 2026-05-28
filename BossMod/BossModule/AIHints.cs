@@ -1,4 +1,4 @@
-﻿namespace BossMod;
+namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
 public sealed class AIHints
@@ -62,6 +62,13 @@ public sealed class AIHints
         Shared, // cast is expected to hit multiple players; modules might have special behavior when intentionally taking this damage solo
     }
 
+    public enum FateSync
+    {
+        None, // do nothing
+        Enable, // level sync to fate
+        Disable // unsync from fate
+    }
+
     public record struct DamagePrediction(BitMask Players, DateTime Activation, PredictedDamageType Type = PredictedDamageType.None)
     {
         public readonly BitMask Players = Players;
@@ -108,6 +115,8 @@ public sealed class AIHints
 
     // AI will treat the pixels inside these shapes as unreachable and not try to pathfind through them (unlike imminent forbidden zones)
     public List<Func<WPos, bool>> TemporaryObstacles = [];
+    // teleporters for pathfind
+    public List<(WPos from, float fromRadius, WPos to)> Portals = [];
 
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
@@ -143,6 +152,8 @@ public sealed class AIHints
     // misc stuff to execute
     public bool WantJump;
     public bool WantDismount;
+    public FateSync WantFateSync;
+    public bool ShouldLeaveDuty;
 
     // clear all stored data
     public void Clear()
@@ -159,6 +170,7 @@ public sealed class AIHints
         ForbiddenZones.Clear();
         GoalZones.Clear();
         TemporaryObstacles.Clear();
+        Portals.Clear();
         RecommendedPositional = default;
         ForbiddenDirections.Clear();
         ImminentSpecialMode = default;
@@ -171,6 +183,8 @@ public sealed class AIHints
         StatusesToCancel.Clear();
         WantJump = false;
         WantDismount = false;
+        WantFateSync = FateSync.None;
+        ShouldLeaveDuty = false;
     }
 
     public void PrioritizeTargetsByOID(uint oid, int priority = 0)
@@ -214,6 +228,16 @@ public sealed class AIHints
             ImminentSpecialMode = (mode, activation);
     }
 
+    public void AddForbiddenDirections(ArcList list, DateTime activation)
+    {
+        foreach (var (from, to) in list.Forbidden.Segments)
+        {
+            var center = (to + from) * 0.5f;
+            var width = (to - from) * 0.5f;
+            ForbiddenDirections.Add((center.Radians(), width.Radians(), activation));
+        }
+    }
+
     // normalize all entries after gathering data: sort by priority / activation timestamp
     // TODO: note that the name is misleading - it actually happens mid frame, before all actions are gathered (eg before autorotation runs), but further steps (eg ai) might consume previously gathered data
     public void Normalize()
@@ -230,6 +254,8 @@ public sealed class AIHints
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
         foreach (var o in TemporaryObstacles)
             map.BlockPixelsInside(o, -1000);
+        foreach (var (from, radius, to) in Portals)
+            map.AddPortal(from, radius, to);
         if (PathfindMapObstacles.Bitmap != null)
         {
             var offX = -PathfindMapObstacles.Rect.Left;
@@ -254,7 +280,7 @@ public sealed class AIHints
     public int NumPriorityTargetsInAOERect(WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => NumPriorityTargetsInAOE(a => TargetInAOERect(a.Actor, origin, direction, lenFront, halfWidth, lenBack));
     public bool TargetInAOECircle(Actor target, WPos origin, float radius) => target.Position.InCircle(origin, radius + target.HitboxRadius);
     public bool TargetInAOECone(Actor target, WPos origin, float radius, WDir direction, Angle halfAngle) => Intersect.CircleCone(target.Position, target.HitboxRadius, origin, radius, direction, halfAngle);
-    public bool TargetInAOERect(Actor target, WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0)
+    public static bool TargetInAOERect(Actor target, WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0)
     {
         var rectCenterOffset = (lenFront - lenBack) / 2;
         var rectCenter = origin + direction * rectCenterOffset;

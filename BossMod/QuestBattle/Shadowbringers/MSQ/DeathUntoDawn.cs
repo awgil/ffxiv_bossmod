@@ -60,7 +60,7 @@ public class AutoAlisaie(WorldState ws) : UnmanagedRotation(ws, 25)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 780)]
+[ZoneModuleInfo(780)]
 internal class DeathUntoDawn(WorldState ws) : QuestBattle(ws)
 {
     private readonly AutoAlisaie _ai = new(ws);

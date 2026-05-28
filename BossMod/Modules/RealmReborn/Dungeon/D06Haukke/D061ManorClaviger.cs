@@ -28,5 +28,5 @@ class D061ManorClavigerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 6, NameID = 423)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 6, NameID = 423)]
 public class D061ManorClaviger(WorldState ws, Actor primary) : BossModule(ws, primary, new(2.5f, 0), new ArenaBoundsSquare(16)); // TODO: really a rect, x=[-25, +20], y=[-16, +16]

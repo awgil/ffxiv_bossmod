@@ -14,8 +14,7 @@ class Plummet : Components.Cleave
         if ((NextExpected - WorldState.CurrentTime).TotalSeconds < 3)
         {
             var boss = hints.FindEnemy(Module.PrimaryActor);
-            if (boss != null)
-                boss.AttackStrength += 0.3f;
+            boss?.AttackStrength += 0.3f;
         }
     }
 

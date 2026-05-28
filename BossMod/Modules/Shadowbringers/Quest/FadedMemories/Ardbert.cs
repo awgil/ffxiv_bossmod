@@ -109,5 +109,5 @@ class ArdbertStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69311, NameID = 8258, PrimaryActorOID = (uint)OID.Ardbert)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69311, NameID = 8258, PrimaryActorOID = (uint)OID.Ardbert)]
 public class Ardbert(WorldState ws, Actor primary) : BossModule(ws, primary, new(-392, 780), new ArenaBoundsCircle(20));

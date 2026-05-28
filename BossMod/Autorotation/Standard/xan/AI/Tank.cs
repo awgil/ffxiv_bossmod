@@ -2,40 +2,38 @@
 
 namespace BossMod.Autorotation.xan;
 
-public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public class TankAI(RotationModuleManager manager, Actor player) : AIBase<TankAI.Strategy>(manager, player)
 {
-    public enum Track { Stance, Ranged, Interject, Stun, ArmsLength, Mit, Invuln, Protect }
+    public struct Strategy
+    {
+        public Track<StanceStrategy> Stance;
+        [Track(InternalName = "Ranged GCD")]
+        public Track<EnabledByDefault> Ranged;
+        [Track(InternalName = "Interject2", Action = ClassShared.AID.Interject)]
+        public Track<HintedStrategy> Interject;
+        [Track(InternalName = "Low Blow", Action = ClassShared.AID.LowBlow)]
+        public Track<EnabledByDefault> Stun;
+        [Track("Arms' Length", InternalName = "Arms' Length", Action = ClassShared.AID.ArmsLength)]
+        public Track<EnabledByDefault> ArmsLength;
+        [Track("Personal mits", InternalName = "Personal mits")]
+        public Track<EnabledByDefault> Mit;
+        [Track(InternalName = "Invuln")]
+        public Track<EnabledByDefault> Invuln;
+        [Track("Protect party members", InternalName = "Protect party members")]
+        public Track<EnabledByDefault> Protect;
+    }
 
-    enum StanceStrategy
+    public enum StanceStrategy
     {
         Enabled,
         Disabled,
+        [Option("Leech mode: Only enable stance in FATEs")]
         LeechMode
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100);
-
-        def.Define(Track.Stance).As<StanceStrategy>("Stance")
-            .AddOption(StanceStrategy.Enabled)
-            .AddOption(StanceStrategy.Disabled)
-            .AddOption(StanceStrategy.LeechMode, "Leech mode: enable stance only in FATEs");
-        def.AbilityTrack(Track.Ranged, "Ranged GCD");
-
-        def.Define(Track.Interject).As<HintedStrategy>("Interject2", "Interject")
-            .AddOption(HintedStrategy.Disabled, "Don't use")
-            .AddOption(HintedStrategy.HintOnly, "Interrupt enemies if the current module suggests doing it")
-            .AddOption(HintedStrategy.Enabled, "Interrupt all interruptable enemies")
-            .AddAssociatedActions(ClassShared.AID.Interject);
-
-        def.AbilityTrack(Track.Stun, "Low Blow").AddAssociatedActions(ClassShared.AID.LowBlow);
-        def.AbilityTrack(Track.ArmsLength, "Arms' Length").AddAssociatedActions(ClassShared.AID.ArmsLength);
-        def.AbilityTrack(Track.Mit, "Personal mits");
-        def.AbilityTrack(Track.Invuln, "Invuln");
-        def.AbilityTrack(Track.Protect, "Protect party members");
-
-        return def;
+        return new RotationModuleDefinition("Tank AI", "Utilities for tank AI - stance, provoke, interrupt, ranged attack", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PLD, Class.GLA, Class.WAR, Class.MRD, Class.DRK, Class.GNB), 100).WithStrategies<Strategy>();
     }
 
     public record struct Buff(ActionID ID, float Duration, float ApplicationDelay = 0, Func<RotationModule, bool>? CanUse = null)
@@ -126,7 +124,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
 
     private TankActions JobActions => ActionsForJob(Player.Class);
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         // ranged
         if (ShouldRanged(strategy, primaryTarget))
@@ -135,7 +133,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         // stance
         AutoStance(strategy);
 
-        var interjectStrategy = strategy.Option(Track.Interject).As<HintedStrategy>();
+        var interjectStrategy = strategy.Interject.Value;
 
         // interrupt
         if (interjectStrategy.IsEnabled() && NextChargeIn(ClassShared.AID.Interject) == 0)
@@ -148,21 +146,21 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         }
 
         // low blow
-        if (strategy.Enabled(Track.Stun) && NextChargeIn(ClassShared.AID.LowBlow) == 0)
+        if (strategy.Stun.IsEnabled() && NextChargeIn(ClassShared.AID.LowBlow) == 0)
         {
             var stunnableEnemy = Hints.PotentialTargets.Find(e => ShouldInterrupt(e) && Player.DistanceToHitbox(e.Actor) <= 3);
             if (stunnableEnemy != null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.LowBlow), stunnableEnemy.Actor, ActionQueue.Priority.VeryLow);
         }
 
-        if (strategy.Enabled(Track.ArmsLength) && EnemiesAutoingMe.Count() > 1)
+        if (strategy.ArmsLength.IsEnabled() && EnemiesAutoingMe.Count() > 1)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.ArmsLength), Player, ActionQueue.Priority.VeryLow);
 
-        if (strategy.Enabled(Track.Protect))
+        if (strategy.Protect.IsEnabled())
             AutoProtect();
 
-        if (strategy.Enabled(Track.Mit))
-            AutoMit();
+        if (strategy.Mit.IsEnabled())
+            AutoMit(strategy);
 
         switch (Player.Class)
         {
@@ -176,9 +174,9 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         }
     }
 
-    private void AutoStance(StrategyValues strategy)
+    private void AutoStance(in Strategy strategy)
     {
-        var stanceStrategy = strategy.Option(Track.Stance).As<StanceStrategy>();
+        var stanceStrategy = strategy.Stance.Value;
         switch (stanceStrategy)
         {
             case StanceStrategy.Enabled:
@@ -194,9 +192,9 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
         }
     }
 
-    private bool ShouldRanged(StrategyValues strategy, Actor? primaryTarget)
+    private bool ShouldRanged(in Strategy strategy, Actor? primaryTarget)
     {
-        return strategy.Enabled(Track.Ranged)
+        return strategy.Ranged.IsEnabled()
             && Player.DistanceToHitbox(primaryTarget) is > 5 and <= 20
             && !primaryTarget!.IsAlly
             && !Player.Statuses.Any(x => x.ID is (uint)WAR.SID.Berserk or (uint)WAR.SID.InnerRelease);
@@ -238,7 +236,7 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
                 Hints.ActionsToExecute.Push(JobActions.AllyMit.ID, ally, ActionQueue.Priority.Low);
     }
 
-    private void AutoMit()
+    private void AutoMit(in Strategy strategy)
     {
         if (Player.PendingHPRaw == Player.HPMP.CurHP && !Player.InCombat)
             return;
@@ -255,8 +253,8 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
             // set arbitrary deadline to 1 second in the future
             UseOneMit(1);
 
-        // TODO figure out how consistent this is or if we should use predictively instead
-        if (Player.PendingHPRaw <= 0)
+        // PLD/GNB don't have application delay protection so trying to use it in this case would just waste the CD
+        if (Player.PendingHPRaw <= 0 && strategy.Invuln.IsEnabled() && Player.Class is Class.MRD or Class.WAR or Class.DRK)
             Hints.ActionsToExecute.Push(JobActions.Invuln.ID, Player, ActionQueue.Priority.VeryHigh);
 
         foreach (var t in Tankbusters)
@@ -264,18 +262,18 @@ public class TankAI(RotationModuleManager manager, Actor player) : AIBase(manage
                 UseOneMit((float)(t.Item2 - World.CurrentTime).TotalSeconds);
     }
 
-    private void ExecuteGNB(StrategyValues strategy)
+    private void ExecuteGNB(in Strategy strategy)
     {
-        if (strategy.Enabled(Track.Mit) && EnemiesAutoingMe.Any())
+        if (strategy.Mit.IsEnabled() && EnemiesAutoingMe.Any())
         {
             if (Player.PendingHPRatio < 0.8 && Player.FindStatus(BossMod.GNB.SID.Aurora) == null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.GNB.AID.Aurora), Player, ActionQueue.Priority.VeryLow);
         }
     }
 
-    private void ExecuteWAR(StrategyValues strategy)
+    private void ExecuteWAR(in Strategy strategy)
     {
-        if (strategy.Enabled(Track.Mit) && EnemiesAutoingMe.Any())
+        if (strategy.Mit.IsEnabled() && EnemiesAutoingMe.Any())
         {
             if (Player.PendingHPRatio < 0.75)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(WAR.AID.Bloodwhetting), Player, ActionQueue.Priority.Low, delay: GCD - 1f);

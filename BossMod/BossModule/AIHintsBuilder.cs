@@ -348,7 +348,7 @@ public sealed class AIHintsBuilder : IDisposable
 
     private static float DetermineDonutInner(Lumina.Excel.Sheets.Action data)
     {
-        if (Utils.DetermineDonutInner(data, out var radius))
+        if (Utils.GuessDonutInner(data, out var radius))
         {
             if (radius != null)
                 return radius.Value;

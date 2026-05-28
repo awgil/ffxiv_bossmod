@@ -1,6 +1,4 @@
-﻿using BossMod;
-
-namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash1;
+﻿namespace BossMod.Endwalker.Criterion.C02AMR.C020Trash1;
 
 class BloodyCaress(BossModule module, AID aid) : Components.StandardAOEs(module, aid, new AOEShapeCone(12, 60.Degrees()));
 class NBloodyCaress(BossModule module) : BloodyCaress(module, AID.NBloodyCaress);
@@ -75,7 +73,7 @@ class C020RaikoStates : StateMachineBuilder
 class C020NRaikoStates(BossModule module) : C020RaikoStates(module, false);
 class C020SRaikoStates(BossModule module) : C020RaikoStates(module, true);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.NRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12422, SortOrder = 1)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.NRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 946, NameID = 12422, SortOrder = 1)]
 public class C020NRaiko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
@@ -86,7 +84,7 @@ public class C020NRaiko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.SRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12422, SortOrder = 1)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.SRaiko, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 947, NameID = 12422, SortOrder = 1)]
 public class C020SRaiko(WorldState ws, Actor primary) : C020Trash1(ws, primary)
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

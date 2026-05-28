@@ -1,5 +1,4 @@
 ﻿using Dalamud.Bindings.ImGui;
-using System.Text.Json.Nodes;
 
 namespace BossMod.ReplayAnalysis;
 

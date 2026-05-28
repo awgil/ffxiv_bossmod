@@ -3,36 +3,35 @@ using BossMod.SAM;
 
 namespace BossMod.Autorotation.Standard.xan.Utility;
 
-public class ThirdEye(RotationModuleManager manager, Actor player) : AttackxanOld<AID, TraitID>(manager, player)
+public class ThirdEye(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, ThirdEye.Strategy>(manager, player)
 {
-    public enum Track { ThirdEye }
+    public struct Strategy
+    {
+        [Track(Actions = [AID.ThirdEye, AID.Tengentsu])]
+        public Track<ThirdEyeStrategy> ThirdEye;
+    }
 
     public enum ThirdEyeStrategy
     {
+        [Option("Use ~3s before predicted damage", Cooldown = 15, Effect = 4)]
         Automatic,
+        [Option("Use 4s before predicted damage", Cooldown = 15, Effect = 4)]
         AutoMax,
+        [Option("Don't use")]
         Delay
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Auto-ThirdEye", "Third Eye before incoming damage", "Utility (xan)", "xan", RotationModuleQuality.Excellent, BitMask.Build(Class.SAM), 100, 6);
-
-        def.Define(Track.ThirdEye).As<ThirdEyeStrategy>("ThirdEye")
-            .AddOption(ThirdEyeStrategy.Automatic, "Use Third Eye ~3s before predicted damage", 15, 4)
-            .AddOption(ThirdEyeStrategy.AutoMax, "Use Third Eye 4s before predicted damage", 15, 4)
-            .AddOption(ThirdEyeStrategy.Delay, "Don't use")
-            .AddAssociatedActions(AID.ThirdEye, AID.Tengentsu);
-
-        return def;
+        return new RotationModuleDefinition("Auto-ThirdEye", "Third Eye before incoming damage", "Utility (xan)", "xan", RotationModuleQuality.Excellent, BitMask.Build(Class.SAM), 100, 6).WithStrategies<Strategy>();
     }
 
-    public override void Exec(StrategyValues strategy, AIHints.Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, AIHints.Enemy? primaryTarget)
     {
         if (Player.FindStatus(SID.Meditate) != null)
             return;
 
-        var advance = strategy.Option(Track.ThirdEye).As<ThirdEyeStrategy>() switch
+        var advance = strategy.ThirdEye.Value switch
         {
             ThirdEyeStrategy.Automatic => 3,
             ThirdEyeStrategy.AutoMax => 4,

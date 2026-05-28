@@ -41,32 +41,25 @@ public enum Trance
     Lightwyrm
 }
 
-public sealed class SMN(RotationModuleManager manager, Actor player) : CastxanOld<AID, TraitID>(manager, player, PotionType.Intelligence)
+public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, SMN.Strategy>(manager, player, PotionType.Intelligence)
 {
-    public enum Track { Cyclone = SharedTrack.Count }
-    public enum CycloneUse
+    public struct Strategy : IStrategyCommon
     {
-        Automatic,
-        Delay,
-        DelayMove,
-        SkipMove,
-        Skip
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track(Action = AID.SearingLight, MinLevel = 66)]
+        public Track<OffensiveStrategy> Buffs;
+
+        [Option("Ifrit dash", MinLevel = 86, Targets = ActionTargets.Hostile)]
+        public Track<EnabledByDefault> Cyclone;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("xan SMN", "Summoner", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SMN, Class.ACN), 100);
-
-        def.DefineShared("Searing Light").AddAssociatedActions(AID.SearingLight);
-
-        def.Define(Track.Cyclone).As<CycloneUse>("Cyclone")
-            .AddOption(CycloneUse.Automatic, "Use when Ifrit is summoned")
-            .AddOption(CycloneUse.Delay, "Delay automatic use, but do not overwrite Ifrit with any other summon")
-            .AddOption(CycloneUse.DelayMove, "Delay automatic use until player is not holding a movement key - do not overwrite Ifrit with any other summon")
-            .AddOption(CycloneUse.SkipMove, "Skip if a movement key is held, otherwise use")
-            .AddOption(CycloneUse.Skip, "Do not use at all");
-
-        return def;
+        return new RotationModuleDefinition("xan SMN", "Summoner", "Standard rotation (xan)|Casters", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SMN, Class.ACN), 100).WithStrategies<Strategy>();
     }
 
     public SmnFlags TranceFlags;
@@ -210,7 +203,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : CastxanOl
         }
     }
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -274,29 +267,8 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : CastxanOl
             PushGCD(BestGemshine, primaryTarget);
         }
 
-        if (Favor == Favor.Ifrit)
-        {
-            switch (strategy.Option(Track.Cyclone).As<CycloneUse>())
-            {
-                case CycloneUse.Automatic:
-                    PushGCD(AID.CrimsonCyclone, BestAOETarget);
-                    break;
-                case CycloneUse.Delay: // do nothing, pause rotation
-                    return;
-                case CycloneUse.DelayMove:
-                    if (IsMoving)
-                        return;
-                    else
-                        PushGCD(AID.CrimsonCyclone, BestAOETarget);
-                    break;
-                case CycloneUse.SkipMove:
-                    if (!IsMoving)
-                        PushGCD(AID.CrimsonCyclone, BestAOETarget);
-                    break;
-                case CycloneUse.Skip:
-                    break;
-            }
-        }
+        if (Favor == Favor.Ifrit && strategy.Cyclone.IsEnabled())
+            PushGCD(AID.CrimsonCyclone, ResolveTargetOverride(strategy.Cyclone) ?? BestAOETarget);
 
         if (SummonLeft <= GCD)
         {
@@ -330,7 +302,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : CastxanOl
         OGCDs(strategy, primaryTarget);
     }
 
-    private void OGCDs(StrategyValues strategy, Enemy? primaryTarget)
+    private void OGCDs(in Strategy strategy, Enemy? primaryTarget)
     {
         if (NextGCD == AID.Slipstream)
             PushOGCD(AID.Swiftcast, Player);
@@ -396,10 +368,15 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : CastxanOl
             PushOGCD(AID.LuxSolaris, Player);
     }
 
-    private bool ShouldBuff(StrategyValues strategy)
+    private bool ShouldBuff(in Strategy strategy)
     {
-        if (!strategy.BuffsOk())
-            return false;
+        switch (strategy.Buffs.Value)
+        {
+            case OffensiveStrategy.Delay:
+                return false;
+            case OffensiveStrategy.Force:
+                return true;
+        }
 
         if (CombatTimer < 10)
             return SummonLeft < 13;

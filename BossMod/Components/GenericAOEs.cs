@@ -96,7 +96,10 @@ public class GroupedAOEs(BossModule module, Enum[] aids, AOEShape shape, int max
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (IDs.Contains(spell.Action))
+        {
             Casters.Add(caster);
+            Casters.SortBy(c => Module.CastFinishAt(c.CastInfo));
+        }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -133,5 +136,16 @@ public class ChargeAOEs(BossModule module, Enum aid, float halfWidth) : GenericA
     {
         if (spell.Action == WatchedAction)
             Casters.RemoveAll(e => e.caster == caster);
+    }
+}
+
+public class ProximityAOEs(BossModule module, Enum aid, float radius) : StandardAOEs(module, aid, new AOEShapeCircle(radius))
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (Casters is [{ CastInfo: var castInfo }, ..])
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(castInfo));
     }
 }

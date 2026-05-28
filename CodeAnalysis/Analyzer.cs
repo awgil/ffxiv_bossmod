@@ -27,6 +27,7 @@ public class Analyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor RuleNoRealDatetimeInComponents = Register("Use of DateTime.Now in boss module", "DateTime.Now will behave unexpectedly in replays. Use WorldState.CurrentTime instead", DiagnosticSeverity.Error);
     private static readonly DiagnosticDescriptor RuleNoRefTypesInHintFuncs = Register("Reference type captured in closure", "This point test function captures a reference of type {0}, which might be modified before the function is called", DiagnosticSeverity.Error);
     public static readonly DiagnosticDescriptor RuleInternalNamesForOptions = Register("Bad arguments to AddOption", "Second argument ({1}) should match variant name ({0})", DiagnosticSeverity.Error);
+    public static readonly DiagnosticDescriptor RuleNoCompareLessThanGCD = Register("Misbehaving comparison", "Testing if a value is strictly less than the GCD timer may result in false positives when the GCD is at zero. Use \"> GCD\" or \"<= GCD\".");
 
     public override void Initialize(AnalysisContext context)
     {
@@ -38,6 +39,7 @@ public class Analyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeUseInlineFindSlot, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeNoRealDatetime, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeNoRefsInHints, SyntaxKind.Block);
+        context.RegisterSyntaxNodeAction(AnalyzeGCDCompares, SyntaxKind.Block);
         //context.RegisterSyntaxNodeAction(AnalyzeOptionInternalNames, SyntaxKind.Block);
     }
 
@@ -118,6 +120,31 @@ public class Analyzer : DiagnosticAnalyzer
                     }
                 }
             }
+        }
+    }
+
+    private static void AnalyzeGCDCompares(SyntaxNodeAnalysisContext context)
+    {
+        var gcdProp = context.Compilation.GetTypeByMetadataName("BossMod.Autorotation.RotationModule")?
+            .GetMembers()
+            .Where(m => m.Name == "GCD")
+            .ToList();
+        if (gcdProp == null)
+            return;
+
+        void process(SyntaxNode node, ExpressionSyntax syn)
+        {
+            var sym = context.SemanticModel.GetSymbolInfo(syn).Symbol;
+            if (sym != null && gcdProp.Contains(sym))
+                context.ReportDiagnostic(Diagnostic.Create(RuleNoCompareLessThanGCD, node.GetLocation()));
+        }
+
+        foreach (var node in context.Node.DescendantNodes().OfType<BinaryExpressionSyntax>())
+        {
+            if ((node.IsKind(SyntaxKind.LessThanExpression) || node.IsKind(SyntaxKind.GreaterThanOrEqualExpression)) && node.Left is not LiteralExpressionSyntax)
+                process(node, node.Right);
+            else if ((node.IsKind(SyntaxKind.GreaterThanExpression) || node.IsKind(SyntaxKind.LessThanOrEqualExpression)) && node.Right is not LiteralExpressionSyntax)
+                process(node, node.Left);
         }
     }
 

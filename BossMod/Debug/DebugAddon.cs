@@ -94,16 +94,16 @@ public sealed unsafe class DebugAddon : IDisposable
                 res += ", ";
             res += values[i].Type switch
             {
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int => $"int {values[i].Int}",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Bool => $"bool {values[i].Byte}",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt => $"uint {values[i].UInt}",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Float => $"int {values[i].Float}",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.String => $"string",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.String8 => $"string8",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Vector => $"vector",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Pointer => $"pointer",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.ManagedString => $"astring",
-                FFXIVClientStructs.FFXIV.Component.GUI.ValueType.ManagedVector => $"avector",
+                AtkValueType.Int => $"int {values[i].Int}",
+                AtkValueType.Bool => $"bool {values[i].Byte}",
+                AtkValueType.UInt => $"uint {values[i].UInt}",
+                AtkValueType.Float => $"int {values[i].Float}",
+                AtkValueType.String => $"string",
+                AtkValueType.String8 => $"string8",
+                AtkValueType.Vector => $"vector",
+                AtkValueType.Pointer => $"pointer",
+                AtkValueType.ManagedString => $"astring",
+                AtkValueType.ManagedVector => $"avector",
                 _ => $"{values[i].Type} unknown"
             };
         }
