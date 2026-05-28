@@ -172,6 +172,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         uiBuilder.OpenMainUi += OpenUi;
 
         condition.ConditionChange += OnConditionChanged;
+
+        _ = new ConfigChangelogWindow();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

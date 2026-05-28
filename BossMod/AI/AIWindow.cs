@@ -13,11 +13,14 @@ internal sealed class AIWindow : UIWindow
     readonly EventSubscriptions _subscriptions;
     readonly AIConfig _config = Service.Config.Get<AIConfig>();
 
-    int _masterSlot;
+    int _masterSlot = -1;
 
     readonly Preset _pMultibox;
     readonly Preset _pVbmai;
     bool _usingAIFallback;
+
+    bool _noMove;
+    bool _noTarget;
 
     public AIWindow(RotationModuleManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
@@ -41,21 +44,39 @@ internal sealed class AIWindow : UIWindow
 
     public override void Draw()
     {
-        using var leaderCombo = ImRaii.Combo("Follow", _masterSlot == 0 ? "<disabled>" : $"#{_masterSlot} {_manager.WorldState.Party[_masterSlot]?.Name ?? "<unknown>"}");
-        if (leaderCombo)
+        using (var leaderCombo = ImRaii.Combo("Follow", _masterSlot == -1 ? "<disabled>" : $"#{_masterSlot} {_manager.WorldState.Party[_masterSlot]?.Name ?? "<unknown>"}"))
         {
-            if (ImGui.Selectable("<disabled>", _masterSlot == 0))
-                SetSlot(0);
-            foreach (var (i, p) in _manager.WorldState.Party.WithSlot(true).Skip(1))
-                if (ImGui.Selectable(p.Name, _masterSlot == i))
-                    SetSlot(i);
+            if (leaderCombo)
+            {
+                if (ImGui.Selectable("<disabled>", _masterSlot == -1))
+                    SetSlot(-1);
+                foreach (var (i, p) in _manager.WorldState.Party.WithSlot(true))
+                    if (ImGui.Selectable(p.Name, _masterSlot == i))
+                        SetSlot(i);
+            }
+        }
+
+        if (ImGui.Checkbox("Disable movement", ref _noMove))
+        {
+            var normalMove = _pVbmai.Modules[^1];
+            normalMove.TransientSettings.RemoveAll(s => s.Track == 0);
+            if (_noMove)
+                normalMove.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 0 }));
+        }
+
+        if (ImGui.Checkbox("Disable auto-target", ref _noTarget))
+        {
+            var autoT = _pVbmai.Modules[0];
+            autoT.TransientSettings.RemoveAll(s => s.Track == 0);
+            if (_noTarget)
+                autoT.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 1 }));
         }
     }
 
     public void SetSlot(int slot)
     {
         _masterSlot = slot;
-        if (slot == 0)
+        if (slot == -1)
         {
             _manager.Deactivate(_pMultibox);
             if (_usingAIFallback)

@@ -10,7 +10,7 @@ public sealed class Multibox(RotationModuleManager manager, Actor player) : Type
 
     public struct Strategy
     {
-        [Number(DisplayName = "Follow slot", MinValue = 0, MaxValue = 7)]
+        [Number(DisplayName = "Follow slot", MinValue = -1, MaxValue = 7)]
         public Track<long> Master;
     }
 
@@ -25,7 +25,7 @@ public sealed class Multibox(RotationModuleManager manager, Actor player) : Type
     {
         var masterSlot = strategy.Master;
         var master = masterSlot > 0 ? World.Party[(int)masterSlot.Value] : null;
-        if (master == null || master == Player)
+        if (master == null)
             return;
 
         if (_aiConfig.FocusTargetMaster)

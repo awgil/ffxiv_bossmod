@@ -72,7 +72,7 @@ class DashSafetyNotice : ChangelogNotice
 
 class AIMigrationNotice2 : ChangelogNotice
 {
-    public override Version Since => new(7, 5, 0, 19);
+    public override Version Since => new(7, 5, 0, 20);
 
     public override void Draw()
     {
