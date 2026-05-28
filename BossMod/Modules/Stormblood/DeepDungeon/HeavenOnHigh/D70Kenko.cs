@@ -31,46 +31,28 @@ class PredatorClaws(BossModule module) : Components.StandardAOEs(module, AID.Pre
 class Slabber(BossModule module) : Components.StandardAOEs(module, AID.Slabber, 8);
 class Ululation(BossModule module) : Components.RaidwideCast(module, AID.Ululation);
 class HoundOutOfHell(BossModule module) : Components.BaitAwayChargeCast(module, AID.HoundOutOfHell, 7);
-class InnerspacePredict(BossModule module) : Components.GenericAOEs(module)
-{
-    private AOEInstance? Next;
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(Next);
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.Innerspace)
-            Next = new(new AOEShapeCircle(3), WorldState.Actors.Find(spell.MainTargetID)!.Position, default, WorldState.FutureTime(1.6f));
-    }
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID == OID.Puddle)
-            Next = null;
-    }
-}
+class InnerspacePredict(BossModule module) : Components.SpreadFromCastTargets(module, AID.Innerspace, 3);
 class Innerspace(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCircle _shape = new(3);
 
-    private Actor? _prey;
+    private int _prey = -1;
     public DateTime InvertResolveAt;
-
-    private bool Inverted(int slot) => Raid[slot] == _prey && WorldState.CurrentTime < InvertResolveAt;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var p in Module.Enemies(OID.Puddle).Where(p => p.EventState != 7))
         {
-            yield return Inverted(slot)
-                ? new AOEInstance(_shape, p.Position, Color: ArenaColor.SafeFromAOE)
-                : new AOEInstance(_shape, p.Position);
+            yield return slot == _prey && InvertResolveAt != default
+                ? new(_shape, p.Position, Activation: InvertResolveAt, Inverted: true)
+                : new(_shape, p.Position);
         }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID.Prey)
-            _prey = actor;
+        if ((IconID)iconID == IconID.Prey && Raid.TryFindSlot(actor, out var slot))
+            _prey = slot;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -83,24 +65,6 @@ class Innerspace(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID == AID.Devour)
             InvertResolveAt = default;
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        var inside = Module.Enemies(OID.Puddle)
-            .Where(p => p.EventState != 7)
-            .Any(p => _shape.Check(actor.Position, p.Position, default));
-
-        if (Inverted(slot))
-        {
-            if (!inside)
-                hints.Add("Get in the puddle!");
-        }
-        else
-        {
-            if (inside)
-                hints.Add("Get out of the puddle!");
-        }
     }
 }
 
