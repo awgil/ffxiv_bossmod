@@ -4,8 +4,8 @@ namespace BossMod.Shadowbringers.Quest.FullSteamAhead;
 
 public enum OID : uint
 {
-    Boss = 0x295C,
-    BossP2 = 0x295D,
+    Boss = 0x295D,
+    BossP1 = 0x295C,
     LightningVoidzone = 0x1E9685
 }
 
@@ -112,24 +112,18 @@ class RanjitStates : StateMachineBuilder
             .ActivateOnEnter<MercilessLeft>()
             .ActivateOnEnter<MercilessRight>()
             .ActivateOnEnter<UnceremoniousBeheading>()
-            .ActivateOnEnter<Evisceration>()
-            .Raw.Update = () => ((Ranjit)module).BossP2?.IsDeadOrDestroyed == true;
+            .ActivateOnEnter<Evisceration>();
     }
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69155, NameID = 8374)]
 public class Ranjit(WorldState ws, Actor primary) : BossModule(ws, primary, new(-203, 395), new ArenaBoundsCircle(19.5f))
 {
-    public Actor? BossP2 { get; private set; }
+    protected override bool CheckPull() => PrimaryActor.InCombat;
 
-    protected override void UpdateModule()
+    protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        BossP2 ??= WorldState.Actors.FirstOrDefault(d => (OID)d.OID == OID.BossP2);
-    }
-
-    protected override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (BossP2 != null)
-            Arena.Actor(BossP2, ArenaColor.Enemy);
+        base.DrawEnemies(pcSlot, pc);
+        Arena.Actors(Enemies(OID.BossP1), ArenaColor.Enemy);
     }
 }
