@@ -1,4 +1,4 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D90Onda;
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D90Onra;
 
 public enum OID : uint
 {
