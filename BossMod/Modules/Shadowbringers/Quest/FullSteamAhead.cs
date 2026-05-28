@@ -4,7 +4,8 @@ namespace BossMod.Shadowbringers.Quest.FullSteamAhead;
 
 public enum OID : uint
 {
-    Boss = 0x295D,
+    Boss = 0x295C,
+    BossP2 = 0x295D,
     LightningVoidzone = 0x1E9685
 }
 
@@ -60,18 +61,18 @@ class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {
+        if (primaryTarget is { IsTargetable: false })
+            return;
+
         if (World.Client.DutyActions[0].CurCharges > 0)
         {
             UseAction(World.Client.DutyActions[0].Action, primaryTarget);
             return;
         }
 
-        if (primaryTarget == null)
-            return;
-
         var distance = Player.DistanceToHitbox(primaryTarget);
 
-        if (distance <= 3)
+        if (distance > 3)
         {
             UseAction(Roleplay.AID.Smackdown, Player, -100);
 
@@ -99,28 +100,44 @@ class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
 
 class RanjitStates : StateMachineBuilder
 {
-    public RanjitStates(BossModule module) : base(module)
+    public RanjitStates(Ranjit module) : base(module)
     {
-        TrivialPhase()
+        SimplePhase(0, Phase1, "P1")
+            .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed || (module.PrimaryActor.CastInfo?.IsSpell(AID.VeilOfGukumatz) ?? false);
+        SimplePhase(1, Phase2, "Enrage")
+            .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed && (module.BossP2()?.IsDead ?? false);
+    }
+
+    private void Phase1(uint id)
+    {
+        SimpleState(id, 10000, "Enrage")
             .ActivateOnEnter<HotPursuit>()
             .ActivateOnEnter<ThancredAI>()
             .ActivateOnEnter<NexusOfThunder>()
             .ActivateOnEnter<CoiledLevin>()
-            .ActivateOnEnter<LightningVoidzone>()
+            .ActivateOnEnter<LightningVoidzone>();
+    }
+
+    private void Phase2(uint id)
+    {
+        SimpleState(id, 10000, "Enrage")
+            .ActivateOnEnter<ThancredAI>()
             .ActivateOnEnter<KatunCycle>()
             .ActivateOnEnter<MercilessLeft>()
             .ActivateOnEnter<MercilessRight>()
             .ActivateOnEnter<UnceremoniousBeheading>()
-            .ActivateOnEnter<Evisceration>()
-            ;
+            .ActivateOnEnter<Evisceration>();
     }
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69155, NameID = 8374)]
 public class Ranjit(WorldState ws, Actor primary) : BossModule(ws, primary, new(-203, 395), new ArenaBoundsCircle(19.5f))
 {
-    protected override void DrawArenaForeground(int pcSlot, Actor pc)
+    public Actor? BossP1() => PrimaryActor;
+    public Actor? BossP2() => Enemies(OID.BossP2).FirstOrDefault(a => !a.IsDestroyed);
+    protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        Arena.Actors(Enemies(0x295C), ArenaColor.Enemy);
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        Arena.Actor(BossP2(), ArenaColor.Enemy);
     }
 }
