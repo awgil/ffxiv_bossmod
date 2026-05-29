@@ -16,15 +16,10 @@ internal sealed class MockMovementOverride : IMovementOverride
     public bool IsMoving() => false;
     public bool IsMoveRequested() => false;
     public bool IsForceUnblocked() => false;
-    public bool FollowPathActive() => false;
 
-    public bool MovementBlocked { get; set; }
     public Vector3? DesiredDirection { get; set; }
     public Angle MisdirectionThreshold { get; set; }
     public Angle? DesiredSpinDirection { get; set; }
-
-    public WDir UserMove { get; }
-    public WDir ActualMove { get; }
 
     public void Dispose() { }
 }
