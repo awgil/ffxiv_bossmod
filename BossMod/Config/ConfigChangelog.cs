@@ -72,14 +72,11 @@ class DashSafetyNotice : ChangelogNotice
 
 class AIMigrationNotice2 : ChangelogNotice
 {
-    public override Version Since => new(7, 5, 0, 20);
+    public override Version Since => new(7, 5, 0, 21);
 
     public override void Draw()
     {
-        ImGui.TextWrapped($"Legacy AI mode has been removed!");
-        Bullet("You can still follow a specific party member by slot or name, using either the /vbmai command or the UI.");
-        Bullet("The window's name has changed to 'Multibox settings', and options that no longer do anything have been removed.");
-        Bullet("You can configure the follow behavior in the 'Multibox support' section in the Settings window.");
+        ImGui.TextWrapped($"Legacy AI has been replaced by VBM AI.");
     }
 }
 

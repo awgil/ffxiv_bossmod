@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using BossMod.Autorotation.MiscAI;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
@@ -17,21 +16,23 @@ internal sealed class AIWindow : UIWindow
 
     readonly Preset _pMultibox;
     readonly Preset _pVbmai;
-    bool _usingAIFallback;
-
-    bool _noMove;
-    bool _noTarget;
 
     public AIWindow(RotationModuleManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _manager = mgr;
-        _subscriptions = new
-        (
-            _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.DrawUI)
-        );
-        RespectCloseHotkey = false;
         _pVbmai = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM AI");
         _pMultibox = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM Multibox");
+        _subscriptions = new
+        (
+            _config.Modified.ExecuteAndSubscribe(() =>
+            {
+                IsOpen = _config.DrawUI;
+                TogglePreset();
+                ToggleMove();
+                ToggleTarget();
+            })
+        );
+        RespectCloseHotkey = false;
     }
 
     protected override void Dispose(bool disposing)
@@ -56,44 +57,48 @@ internal sealed class AIWindow : UIWindow
             }
         }
 
-        if (ImGui.Checkbox("Disable movement", ref _noMove))
-        {
-            var normalMove = _pVbmai.Modules[^1];
-            normalMove.TransientSettings.RemoveAll(s => s.Track == 0);
-            if (_noMove)
-                normalMove.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 0 }));
-        }
+        if (ImGui.Checkbox("Disable movement", ref _config.ForbidMovement))
+            _config.Modified.Fire();
 
-        if (ImGui.Checkbox("Disable auto-target", ref _noTarget))
-        {
-            var autoT = _pVbmai.Modules[0];
-            autoT.TransientSettings.RemoveAll(s => s.Track == 0);
-            if (_noTarget)
-                autoT.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 1 }));
-        }
+        if (ImGui.Checkbox("Disable auto-target", ref _config.ForbidActions))
+            _config.Modified.Fire();
+    }
+
+    void TogglePreset()
+    {
+        if (_config.Enabled)
+            _manager.Activate(_pVbmai);
+        else
+            _manager.Deactivate(_pVbmai);
+    }
+
+    void ToggleMove()
+    {
+        var normalMove = _pVbmai.Modules[^1];
+        normalMove.TransientSettings.RemoveAll(s => s.Track == 0);
+        if (_config.ForbidMovement)
+            normalMove.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 0 }));
+    }
+
+    void ToggleTarget()
+    {
+        var autoT = _pVbmai.Modules[0];
+        autoT.TransientSettings.RemoveAll(s => s.Track == 0);
+        if (_config.ForbidActions)
+            autoT.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 1 }));
     }
 
     public void SetSlot(int slot)
     {
         _masterSlot = slot;
         if (slot == -1)
-        {
             _manager.Deactivate(_pMultibox);
-            if (_usingAIFallback)
-                _manager.Deactivate(_pVbmai);
-        }
         else
         {
             var mmod = _pMultibox.Modules[0];
             mmod.TransientSettings.RemoveAll(s => s.Track == 0);
             mmod.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueInt() { Value = slot }));
             _manager.Activate(_pMultibox);
-
-            if (!_manager.Presets.Any(p => p.Modules.Any(m => m.Type == typeof(NormalMovement))))
-            {
-                _manager.Activate(_pVbmai);
-                _usingAIFallback = true;
-            }
         }
     }
 

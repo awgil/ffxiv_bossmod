@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+﻿using BossMod.AI;
+using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
@@ -11,7 +12,9 @@ internal sealed class DTRProvider : IDisposable
 {
     private readonly RotationModuleManager _mgr;
     private readonly IDtrBarEntry _autorotationEntry = Service.DtrBar.Get("vbm-autorotation");
+    private readonly IDtrBarEntry _aiEntry = Service.DtrBar.Get("vbm-ai");
     private readonly IDtrBarEntry _statsEntry = Service.DtrBar.Get("vbm-stats");
+    private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
     private bool _wantOpenPopup;
 
     public unsafe DTRProvider(RotationModuleManager manager)
@@ -19,11 +22,22 @@ internal sealed class DTRProvider : IDisposable
         _mgr = manager;
 
         _autorotationEntry.OnClick = _ => _wantOpenPopup = true;
+        _aiEntry.Tooltip = "Left click: toggle AI - Right click: toggle window";
+
+        _aiEntry.OnClick = ev =>
+        {
+            if (ev.ClickType == MouseClickType.Right)
+                _aiConfig.DrawUI ^= true;
+            else
+                _aiConfig.Enabled ^= true;
+            _aiConfig.Modified.Fire();
+        };
     }
 
     public void Dispose()
     {
         _autorotationEntry.Remove();
+        _aiEntry.Remove();
         _statsEntry.Remove();
     }
 
@@ -33,6 +47,9 @@ internal sealed class DTRProvider : IDisposable
         var (icon, name) = _mgr.Presets.Count == 0 ? (BitmapFontIcon.SwordSheathed, "Idle") : _mgr.IsForceDisabled ? (BitmapFontIcon.SwordSheathed, "Disabled") : (BitmapFontIcon.SwordUnsheathed, string.Join(", ", _mgr.PresetNames));
         Payload prefix = _mgr.Config.ShowDTR == AutorotationConfig.DtrStatus.TextOnly ? new TextPayload("vbm: ") : new IconPayload(icon);
         _autorotationEntry.Text = new SeString(prefix, new TextPayload(name));
+
+        _aiEntry.Shown = _aiConfig.ShowDTR;
+        _aiEntry.Text = "AI: " + (_aiConfig.Enabled ? "On" : "Off");
 
         _statsEntry.Shown = _mgr.Config.ShowStatsDTR;
         _statsEntry.Text = _mgr.LastPathfindMs > 0
