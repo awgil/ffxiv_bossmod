@@ -19,7 +19,7 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape)> _activeGazes = [];
     private readonly List<Actor> _invincible = [];
     private ArenaBoundsCircle? _activeFateBounds;
-    private bool AvoidGazes => _gazeConfig.Enabled && _gazeConfig.AvoidGazes;
+    private bool AvoidGazes => _gazeConfig.Enabled2 && _gazeConfig.AvoidGazes;
 
     private float ConeFallback => Math.Clamp(_hintConfig.ConeFallbackAngle, 1, 180);
 

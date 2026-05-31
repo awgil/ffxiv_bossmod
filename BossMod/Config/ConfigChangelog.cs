@@ -80,6 +80,16 @@ class AIMigrationNotice2 : ChangelogNotice
     }
 }
 
+class SmartRotationNotice : ChangelogNotice
+{
+    public override Version Since => new(7, 5, 0, 22);
+
+    public override void Draw()
+    {
+        ImGui.TextWrapped("'Smart character orientation' has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks.");
+    }
+}
+
 public class ConfigChangelogWindow : UIWindow
 {
     private readonly Version PreviousVersion;

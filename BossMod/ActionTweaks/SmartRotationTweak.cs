@@ -4,12 +4,12 @@
 class SmartRotationConfig : ConfigNode
 {
     [PropertyDisplay("Enable the feature", tooltip: "Replace in-game 'auto face target' option with a smarter alternative.\nWhen using an action, changes direction only if target is not in frontal cone.\nDuring cast, keep character facing the target.")]
-    public bool Enabled = false;
+    public bool Enabled2 = true;
 
-    [PropertyDisplay("Automatically avoid gazes", depends: nameof(Enabled))]
+    [PropertyDisplay("Automatically avoid gazes", depends: nameof(Enabled2))]
     public bool AvoidGazes = true;
 
-    [PropertyDisplay("Time before gaze activation to start avoiding", depends: nameof(Enabled))]
+    [PropertyDisplay("Time before gaze activation to start avoiding", depends: nameof(Enabled2))]
     [PropertySlider(0, 10, Speed = 0.01f)]
     public float MinTimeToAvoid = 0.5f;
 }
@@ -24,7 +24,7 @@ public sealed class SmartRotationTweak(WorldState ws, AIHints hints)
     private readonly DisjointSegmentList _forbidden = new();
     private readonly Angle _minWindow = 5.Degrees();
 
-    public bool Enabled => _config.Enabled;
+    public bool Enabled => _config.Enabled2;
 
     // return 'ideal orientation' for a spell, or null if spell is not oriented (self-targeted or does not require facing)
     public Angle? GetSpellOrientation(uint spellId, WPos playerPos, bool targetIsSelf, WPos? targetPos, WPos targetLoc)
@@ -41,7 +41,7 @@ public sealed class SmartRotationTweak(WorldState ws, AIHints hints)
 
     public Angle? GetSafeRotation(Angle currentDirection, Angle? preferredDirection, Angle preferredHalfWidth)
     {
-        if (!_config.Enabled)
+        if (!_config.Enabled2)
             return null;
 
         var midpoint = preferredDirection ?? default; // center angles in forbidden list around this midpoint, to simplify preferred check later
