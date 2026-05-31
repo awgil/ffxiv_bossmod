@@ -92,14 +92,21 @@ internal sealed class AIWindow : UIWindow
     {
         _masterSlot = slot;
         if (slot == -1)
+        {
+            _config.Enabled = false;
             _manager.Deactivate(_pMultibox);
+        }
         else
         {
+            _config.Enabled = true;
             var mmod = _pMultibox.Modules[0];
             mmod.TransientSettings.RemoveAll(s => s.Track == 0);
             mmod.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueInt() { Value = slot }));
             _manager.Activate(_pMultibox);
         }
+
+        // in previous version, selecting an entry in the dropdown would turn AI off or on
+        TogglePreset();
     }
 
     public override void OnClose()
