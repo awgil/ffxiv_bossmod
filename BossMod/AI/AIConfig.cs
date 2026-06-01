@@ -3,7 +3,7 @@
 [ConfigDisplay(Name = "AI Configuration", Order = 8)]
 sealed class AIConfig : ConfigNode
 {
-    [PropertyDisplay("Enable (turns on 'VBM AI' preset)")]
+    [PropertyDisplay("Enable")]
     public bool Enabled = false;
 
     // ui settings

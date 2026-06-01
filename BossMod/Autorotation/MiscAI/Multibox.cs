@@ -16,7 +16,7 @@ public sealed class Multibox(RotationModuleManager manager, Actor player) : Type
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Multibox utilities", "", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000, Order: RotationModuleOrder.HighLevel);
+        var def = new RotationModuleDefinition("Multibox utilities", "", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000);
 
         return def.WithStrategies<Strategy>();
     }

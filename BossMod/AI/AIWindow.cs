@@ -15,12 +15,10 @@ internal sealed class AIWindow : UIWindow
     int _masterSlot = -1;
 
     readonly Preset _pMultibox;
-    readonly Preset _pVbmai;
 
     public AIWindow(RotationModuleManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _manager = mgr;
-        _pVbmai = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM AI");
         _pMultibox = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM Multibox");
         _subscriptions = new
         (
@@ -67,14 +65,14 @@ internal sealed class AIWindow : UIWindow
     void TogglePreset()
     {
         if (_config.Enabled)
-            _manager.Activate(_pVbmai);
+            _manager.Activate(_pMultibox);
         else
-            _manager.Deactivate(_pVbmai);
+            _manager.Deactivate(_pMultibox);
     }
 
     void ToggleMove()
     {
-        var normalMove = _pVbmai.Modules[^1];
+        var normalMove = _pMultibox.Modules[^1];
         normalMove.TransientSettings.RemoveAll(s => s.Track == 0);
         if (_config.ForbidMovement)
             normalMove.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 0 }));
@@ -82,7 +80,7 @@ internal sealed class AIWindow : UIWindow
 
     void ToggleTarget()
     {
-        var autoT = _pVbmai.Modules[0];
+        var autoT = _pMultibox.Modules[0];
         autoT.TransientSettings.RemoveAll(s => s.Track == 0);
         if (_config.ForbidActions)
             autoT.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 1 }));
@@ -91,6 +89,9 @@ internal sealed class AIWindow : UIWindow
     public void SetSlot(int slot)
     {
         _masterSlot = slot;
+        var mbox = _pMultibox.Modules[1];
+        mbox.TransientSettings.RemoveAll(s => s.Track == 0);
+        mbox.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueInt() { Value = slot }));
         if (slot == -1)
         {
             _config.Enabled = false;
@@ -99,14 +100,8 @@ internal sealed class AIWindow : UIWindow
         else
         {
             _config.Enabled = true;
-            var mmod = _pMultibox.Modules[0];
-            mmod.TransientSettings.RemoveAll(s => s.Track == 0);
-            mmod.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueInt() { Value = slot }));
             _manager.Activate(_pMultibox);
         }
-
-        // in previous version, selecting an entry in the dropdown would turn AI off or on
-        TogglePreset();
     }
 
     public override void OnClose()

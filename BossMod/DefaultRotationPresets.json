@@ -506,7 +506,23 @@
     {
         "Name": "VBM Multibox",
         "Modules": {
-            "BossMod.Autorotation.MiscAI.Multibox": []
+            "BossMod.Autorotation.MiscAI.AutoTarget": [
+                {
+                    "Track": "Retarget",
+                    "Option": "Always"
+                },
+                {
+                    "Track": "FATE",
+                    "Option": "Enabled"
+                }
+            ],
+            "BossMod.Autorotation.MiscAI.Multibox": [],
+            "BossMod.Autorotation.MiscAI.NormalMovement": [
+                {
+                    "Track": "Destination",
+                    "Option": "Pathfind"
+                }
+            ]
         }
     }
   ]
