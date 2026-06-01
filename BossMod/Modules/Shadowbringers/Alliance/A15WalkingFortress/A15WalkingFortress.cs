@@ -127,7 +127,7 @@ class GoliathTankLaserTurret(BossModule module) : Components.GenericAOEs(module,
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => new AOEInstance(new AOEShapeRect(85, 5), p.caster.Position, p.direction, p.activation));
 }
 // actual radius (9.6 units) is too wide
-class ConvenientSelfDestruction(BossModule module) : Components.CastLineOfSightAOE(module, AID.ConvenientSelfDestructionLOS, 85, false, 6)
+class ConvenientSelfDestruction(BossModule module) : Components.CastLineOfSightAOE(module, AID.ConvenientSelfDestructionLOS, 85, false, blockerRadius: 6)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.GoliathTank).Where(t => t.CastInfo == null);
 }

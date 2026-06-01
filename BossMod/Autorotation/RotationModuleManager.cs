@@ -63,6 +63,7 @@ public sealed class RotationModuleManager : IDisposable
         439, // "Toad", palace of the dead
         1546, // "Odder", heaven-on-high
         3502, // "Owlet", EO
+        1284, // "Out of the Action", bardam's mettle b2 and probably some others
         404, // "Transporting", not a transformation but prevents actions
         4235, // "Rage" status from Phantom Berserker, prevents all actions and movement
         4376, // "Transporting", variant in Occult Crescent

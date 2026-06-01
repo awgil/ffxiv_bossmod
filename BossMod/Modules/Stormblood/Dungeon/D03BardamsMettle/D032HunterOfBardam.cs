@@ -53,7 +53,7 @@ public enum IconID : uint
 class CometFirst(BossModule module) : Components.StandardAOEs(module, AID.CometFirst, 4);
 class CometRest(BossModule module) : Components.StandardAOEs(module, AID.CometRest, 4);
 
-class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, AID.MeteorImpact, 50, false)
+class MeteorImpact(BossModule module) : Components.CastLineOfSightAOE(module, AID.MeteorImpact, 50, false, 1)
 {
     private Actor? castActor;
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.StarShard).Where(x => !x.IsDead);
@@ -78,40 +78,8 @@ class Reconstruct(BossModule module) : Components.StandardAOEs(module, AID.Recon
 class CometImpact(BossModule module) : Components.StandardAOEs(module, AID.CometImpact, new AOEShapeCircle(9));
 class BardamsRing(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeDonut(10, 20), (uint)IconID.BardamsRing, AID.BardamsRing, 3.5f, true);
 
-class Tremblor(BossModule module) : Components.ConcentricAOEs(module, _shapes)
-{
-    private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10), new AOEShapeDonut(10, 20)];
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if ((AID)spell.Action.ID == AID.Tremblor1)
-            AddSequence(caster.Position, Module.CastFinishAt(spell));
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (Sequences.Count > 0)
-        {
-            var order = (AID)spell.Action.ID switch
-            {
-                AID.Tremblor1 => 0,
-                AID.Tremblor2 => 1,
-                _ => -1
-            };
-            AdvanceSequence(order, caster.Position, WorldState.FutureTime(1.5f));
-        }
-    }
-}
-
-class TremblorFinal(BossModule module) : Components.StandardAOEs(module, AID.Tremblor2, new AOEShapeDonut(10, 20))
-{
-    private readonly Tremblor _aoe = module.FindComponent<Tremblor>()!;
-
-    public override void Update()
-    {
-        MaxCasts = _aoe.Sequences.Count != 0 ? 0 : 1;
-    }
-}
+class TremblorCircle(BossModule module) : Components.StandardAOEs(module, AID.Tremblor1, 10);
+class TremblorDonut(BossModule module) : Components.StandardAOEs(module, AID.Tremblor2, new AOEShapeDonut(10, 20));
 
 class HeavyStrike(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
@@ -146,8 +114,8 @@ class D032HunterOfBardamStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<CometFirst>()
             .ActivateOnEnter<CometRest>()
-            .ActivateOnEnter<Tremblor>()
-            .ActivateOnEnter<TremblorFinal>()
+            .ActivateOnEnter<TremblorCircle>()
+            .ActivateOnEnter<TremblorDonut>()
             .ActivateOnEnter<HeavyStrike>()
             .ActivateOnEnter<Charge>()
             .ActivateOnEnter<EmptyGaze>()
@@ -160,11 +128,4 @@ class D032HunterOfBardamStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz (MeteorImpact rewritten with help from xan)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 240, NameID = 6180)]
-public class D032HunterOfBardam(WorldState ws, Actor primary) : BossModule(ws, primary, new(-28.5f, -14), new ArenaBoundsCircle(19.5f))
-{
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var e in hints.PotentialTargets)
-            e.Priority = -1;
-    }
-}
+public class D032HunterOfBardam(WorldState ws, Actor primary) : BossModule(ws, primary, new(-28.5f, -14), new ArenaBoundsCircle(19.5f));

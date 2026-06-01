@@ -349,11 +349,26 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     private void RegisterAISlashCommands(SlashCommandHandler cmd)
     {
+        var aiConfig = Service.Config.Get<AIConfig>();
         cmd.SetSimpleHandler("toggle multibox ui", () =>
         {
-            var aic = Service.Config.Get<AIConfig>();
-            aic.DrawUI = !aic.DrawUI;
-            aic.Modified.Fire();
+            aiConfig.DrawUI ^= true;
+            aiConfig.Modified.Fire();
+        });
+        cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () =>
+        {
+            aiConfig.Enabled = true;
+            aiConfig.Modified.Fire();
+        });
+        cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () =>
+        {
+            aiConfig.Enabled = false;
+            aiConfig.Modified.Fire();
+        });
+        cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () =>
+        {
+            aiConfig.Enabled ^= true;
+            aiConfig.Modified.Fire();
         });
         cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
         {
@@ -368,6 +383,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         // TODO: this should really be removed, it's a weird synonym for /vbm cfg AIConfig ...
         cmd.SetComplexHandler("", "", args =>
         {
+            Service.Log($"vbmai args: {args}");
             Span<Range> ranges = stackalloc Range[2];
             var numRanges = args.Split(ranges, ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (numRanges == 1)

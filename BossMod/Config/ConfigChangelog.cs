@@ -76,7 +76,7 @@ class AIMigrationNotice2 : ChangelogNotice
 
     public override void Draw()
     {
-        var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-migration:-advanced";
+        var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide";
         ImGui.TextWrapped("Legacy AI has been replaced by VBM AI.");
         Bullet("If you're a legacy AI user, you don't need to do anything! The existing AI interface has been retained for compatibility.");
         Bullet($"For more information, see {link}.");
