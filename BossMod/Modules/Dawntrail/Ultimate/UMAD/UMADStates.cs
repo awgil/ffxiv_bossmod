@@ -15,6 +15,8 @@ class UMADStates : StateMachineBuilder
         P1JudgmentBuster(id + 0x30000, 4.1f);
         P1Gravitas1(id + 0x40000, 7.2f);
         P1Gravitas2(id + 0x50000, 4.6f);
+        P1JudgmentBuster(id + 0x60000, 3.6f);
+        P1TeleTrouncing(id + 0x70000, 6.9f);
 
         Timeout(id + 0xFF0000, 10000, "???");
     }
@@ -115,13 +117,13 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1BlizzardIIIBlowout>();
         ComponentCondition<P1GravitasVitrophyre>(id + 0x30, 0.1f, v => v.Stacks.Count == 0, "Stacks + puddles appear");
         ComponentCondition<P1GravitasVitrophyre>(id + 0x40, 4, g => g.Spreads.Count == 0, "Spreads")
-            .ActivateOnEnter<P1IntemperateWill>()
+            .ActivateOnEnter<P1GravitationalWaveIntemperateWill>()
             .DeactivateOnExit<P1GravitasVitrophyre>();
 
         P1RevoltingRuin(id + 0x100, 0.8f);
 
-        ComponentCondition<P1IntemperateWill>(id + 0x200, 0.8f, p => p.NumCasts > 0, "Left/right")
-            .DeactivateOnExit<P1IntemperateWill>();
+        ComponentCondition<P1GravitationalWaveIntemperateWill>(id + 0x200, 0.8f, p => p.NumCasts > 0, "Left/right")
+            .DeactivateOnExit<P1GravitationalWaveIntemperateWill>();
     }
 
     void P1Gravitas2(uint id, float delay)
@@ -133,7 +135,32 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P1GravitasVitrophyre>(id + 0x10, delay, g => g.Stacks.Count == 0, "Stacks");
 
         ComponentCondition<P1GravitasVitrophyre>(id + 0x20, 4, g => g.Spreads.Count == 0, "Spreads")
-            .ActivateOnEnter<P1IntemperateWill>()
+            .ActivateOnEnter<P1GravitationalWaveIntemperateWill>()
+            .ExecOnEnter<P1GravitationalWaveIntemperateWill>(w => w.Risky = false)
             .DeactivateOnExit<P1GravitasVitrophyre>();
+
+        ComponentCondition<P1GravitationalWaveIntemperateWill>(id + 0x30, 4.5f, g => g.NumCasts > 0, "Left/right")
+            .ActivateOnEnter<P1DoubleTroubleTrap>()
+            .ActivateOnEnter<P1DoubleTroubleTrapKB>()
+            .ActivateOnEnter<P1GravitasPuddleSoak>()
+            .ExecOnEnter<P1GravitationalWaveIntemperateWill>(w => w.Risky = true)
+            .DeactivateOnExit<P1GravitationalWaveIntemperateWill>();
+
+        // might not have any confetti holders alive at this point depending on prog
+        ComponentCondition<P1DoubleTroubleTrapCounter>(id + 0x100, 3.8f, t => t.Resolved, "Confetti 2")
+            .ActivateOnEnter<P1DoubleTroubleTrapCounter>()
+            .ExecOnEnter<P1DoubleTroubleTrapCounter>(c => c.Timeout = 3.8f)
+            .DeactivateOnExit<P1DoubleTroubleTrap>()
+            .DeactivateOnExit<P1DoubleTroubleTrapKB>()
+            .DeactivateOnExit<P1DoubleTroubleTrapCounter>();
+
+        ComponentCondition<P1GravitasPuddleSoak>(id + 0x110, 5.5f, p => p.Puddles.Count == 0, "Puddles disappear")
+            .DeactivateOnExit<P1GravitasPuddle>()
+            .DeactivateOnExit<P1GravitasPuddleSoak>();
+    }
+
+    void P1TeleTrouncing(uint id, float delay)
+    {
+        Cast(id, AID._Ability_TeleTrouncing, delay, 5);
     }
 }

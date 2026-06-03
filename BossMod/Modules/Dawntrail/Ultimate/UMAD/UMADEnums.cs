@@ -44,18 +44,36 @@ public enum AID : uint
     _Ability_Vitrophyre = 47792, // GravenImageP1->players, no cast, range 5 circle
     _Ability_GravitationalWave = 47793, // GravenImageP1->self, no cast, range 100 ?-degree cone
     _Ability_IntemperateWill = 47794, // _Gen_GravenImage->self, no cast, range 100 ?-degree cone
-}
 
-// intemperate will notes
-// EObjAnim: 0x1EBFBD = 00400080: east (right) side cleave 5.2s later
+    _Ability_GravityIII = 47791, // Helper->self, no cast, range 5 circle
+    _Ability_TeleTrouncing = 47801, // BossP1->self, 5.0s cast, single-target
+    _Ability_TeleTrouncing1 = 47802, // Helper->players, no cast, range 2 circle
+    _Weaponskill_ = 50516, // BossP1->self, 3.0s cast, single-target
+    _Ability_IdyllicWill = 47798, // GravenImageP1->players, no cast, range 5 circle
+    _Weaponskill_1 = 50517, // BossP1->self, no cast, single-target
+    _Ability_AveMaria = 47795, // GravenImageP1->self, no cast, range 100 circle
+    _Ability_IndolentWill = 47796, // GravenImageP1->self, no cast, range 100 circle
+    _Ability_IndulgentWill = 47797, // GravenImageP1->player, no cast, single-target
+}
 
 public enum SID : uint
 {
-    _Gen_DamageDown = 2911, // Helper/_Gen_GravenImage->player, extra=0x0
-    _Gen_MagicVulnerabilityUp = 2941, // Helper/_Gen_GravenImage->player, extra=0x0
-    _Gen_DoubleTroubleTrap = 5078, // none->player, extra=0x0
-    _Gen_Weakness = 43, // none->player, extra=0x0
-    _Gen_Transcendent = 418, // none->player, extra=0x0
+    MagicVulnerabilityUp = 2941, // Helper/_Gen_GravenImage->player, extra=0x0
+    DoubleTroubleTrap = 5078, // none->player, extra=0x0
+
+    // players are always assigned one of the 1 set; if the second status is from the 2 set, the two arrows differ by 90 degrees
+    TelePortentN1 = 4876, // Helper->player, extra=0x0
+    TelePortentS1 = 4877, // Helper->player, extra=0x0
+    TelePortentE1 = 4878, // Helper->player, extra=0x0
+    TelePortentW1 = 4879, // Helper->player, extra=0x0
+    TelePortentN2 = 5079, // Helper->player, extra=0x0
+    TelePortentS2 = 5080, // Helper->player, extra=0x0
+    TelePortentE2 = 5081, // Helper->player, extra=0x0
+    TelePortentW2 = 5082, // Helper->player, extra=0x0
+
+    Sleep = 4894, // GravenImageP1->player, extra=0x0
+    Bind = 2518, // none->player, extra=0x0
+    Confused = 1283, // GravenImageP1->player, extra=0x0
 }
 
 public enum IconID : uint
