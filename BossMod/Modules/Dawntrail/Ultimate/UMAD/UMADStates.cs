@@ -128,7 +128,7 @@ class UMADStates : StateMachineBuilder
     {
         ComponentCondition<P1GravitasVitrophyre>(id, 0, g => g.Stacks.Count > 0)
             .ActivateOnEnter<P1GravitasVitrophyre>()
-            .ExecOnEnter<P1GravitasVitrophyre>(p => p.NegativeOffset = 1.9f);
+            .ExecOnEnter<P1GravitasVitrophyre>(p => p.SetNegativeOffset(1.9f));
 
         ComponentCondition<P1GravitasVitrophyre>(id + 0x10, delay, g => g.Stacks.Count == 0, "Stacks");
 

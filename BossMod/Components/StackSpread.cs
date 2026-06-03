@@ -31,7 +31,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
     public IEnumerable<Stack> ActiveStacks => IncludeDeadTargets ? Stacks : Stacks.Where(s => !s.Target.IsDead);
     public IEnumerable<Spread> ActiveSpreads => IncludeDeadTargets ? Spreads : Spreads.Where(s => !s.Target.IsDead);
 
-    public bool PermitOverlap = false;
+    public bool PermitOverlap;
     public bool EnableHints = true;
 
     public bool IsStackTarget(Actor? actor) => Stacks.Any(s => s.Target == actor);

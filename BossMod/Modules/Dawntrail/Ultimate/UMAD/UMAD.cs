@@ -1,6 +1,4 @@
-﻿
-
-namespace BossMod.Dawntrail.Ultimate.UMAD;
+﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 class P1RevoltingRuinIIIFirst(BossModule module) : Components.BaitAwayCast(module, AID._Ability_RevoltingRuinIII, new AOEShapeCone(100, 60.Degrees()));
 
@@ -298,15 +296,12 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
 {
     readonly List<Spread> _predicted = [];
 
-    public float NegativeOffset
+    public void SetNegativeOffset(float value)
     {
-        set
-        {
-            for (var i = 0; i < Stacks.Count; i++)
-                Stacks.Ref(i).Activation -= TimeSpan.FromSeconds(value);
-            for (var i = 0; i < Spreads.Count; i++)
-                Spreads.Ref(i).Activation -= TimeSpan.FromSeconds(value);
-        }
+        for (var i = 0; i < Stacks.Count; i++)
+            Stacks.Ref(i).Activation -= TimeSpan.FromSeconds(value);
+        for (var i = 0; i < Spreads.Count; i++)
+            Spreads.Ref(i).Activation -= TimeSpan.FromSeconds(value);
     }
 
     public P1GravitasVitrophyre(BossModule module) : base(module, 5, 0)
