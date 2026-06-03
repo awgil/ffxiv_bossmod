@@ -1,4 +1,5 @@
 ﻿
+
 namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 class P1RevoltingRuinIIIFirst(BossModule module) : Components.BaitAwayCast(module, AID._Ability_RevoltingRuinIII, new AOEShapeCone(100, 60.Degrees()));
@@ -290,6 +291,75 @@ class P1Hyperdrive(BossModule module) : Components.GenericBaitAway(module, AID._
 
         if (_first != default && WorldState.Actors.Find(Module.PrimaryActor.TargetID) is { } target)
             CurrentBaits.Add(new(Module.PrimaryActor, target, new AOEShapeCircle(5), _first));
+    }
+}
+
+class P1GravitasVitrophyre : Components.UniformStackSpread
+{
+    readonly List<Spread> _predicted = [];
+
+    public float NegativeOffset
+    {
+        set
+        {
+            for (var i = 0; i < Stacks.Count; i++)
+                Stacks.Ref(i).Activation -= TimeSpan.FromSeconds(value);
+            for (var i = 0; i < Spreads.Count; i++)
+                Spreads.Ref(i).Activation -= TimeSpan.FromSeconds(value);
+        }
+    }
+
+    public P1GravitasVitrophyre(BossModule module) : base(module, 5, 0)
+    {
+        PermitOverlap = true;
+    }
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_elem0f && WorldState.Actors.Find(tether.Target) is { } target)
+        {
+            if (source.Position.AlmostEqual(new(102.5f, 27), 5))
+                AddStack(target, WorldState.FutureTime(6.5f));
+            else
+                _predicted.Add(new(target, 5, WorldState.FutureTime(10.6f)));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID._Ability_Gravitas && Stacks.Count > 0)
+        {
+            Stacks.RemoveAt(0);
+            Spreads.AddRange(_predicted);
+            _predicted.Clear();
+        }
+
+        if ((AID)spell.Action.ID == AID._Ability_Vitrophyre && Spreads.Count > 0)
+            Spreads.RemoveAt(0);
+    }
+}
+
+class P1GravitasPuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID._Ability_Gravitas, m => m.Enemies(OID.GravitasP1).Where(e => e.EventState != 7), 0.7f);
+
+class P1IntemperateWill(BossModule module) : Components.GenericAOEs(module, AID._Ability_IntemperateWill)
+{
+    AOEInstance? _predicted;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_predicted);
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == 0x1EBFBD && state == 0x00400080)
+            _predicted = new(new AOEShapeCone(100, 90.Degrees()), Arena.Center, 90.Degrees(), WorldState.FutureTime(5.2f));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            _predicted = null;
+        }
     }
 }
 

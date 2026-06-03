@@ -13,9 +13,10 @@ class UMADStates : StateMachineBuilder
         P1FireBlizzard1(id + 0x10000, 7.8f);
         P1WaveCannon(id + 0x20000, 3.4f);
         P1JudgmentBuster(id + 0x30000, 4.1f);
+        P1Gravitas1(id + 0x40000, 7.2f);
+        P1Gravitas2(id + 0x50000, 4.6f);
 
-        Timeout(id + 0xFF0000, 10000, "???")
-            .ActivateOnEnter<P1BlizzardIIIBlowout>();
+        Timeout(id + 0xFF0000, 10000, "???");
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -78,6 +79,7 @@ class UMADStates : StateMachineBuilder
 
         ComponentCondition<P1DoubleTroubleTrap>(id + 0x200, 1, e => e.NumCasts > 0, "Confetti 1")
             .DeactivateOnExit<P1DoubleTroubleTrap>()
+            .DeactivateOnExit<P1DoubleTroubleTrapKB>()
             .ExecOnExit<P1BlizzardIIIBlowout>(b => b.Risky = true)
             .ExecOnExit<P1ThrummingThunderIII>(t => t.Risky = true);
 
@@ -91,10 +93,47 @@ class UMADStates : StateMachineBuilder
         Cast(id, AID._Ability_LightOfJudgment, delay, 5, "Raidwide")
             .ActivateOnEnter<P1LightOfJudgment>()
             .ActivateOnEnter<P1Hyperdrive>()
+            .ExecOnEnter<P1Hyperdrive>(h => h.EnableHints = false)
             .DeactivateOnExit<P1LightOfJudgment>();
 
-        ComponentCondition<P1Hyperdrive>(id + 0x10, 3.1f, h => h.NumCasts > 0, "Tankbuster 1");
+        ComponentCondition<P1Hyperdrive>(id + 0x10, 3.1f, h => h.NumCasts > 0, "Tankbuster 1")
+            .ExecOnEnter<P1Hyperdrive>(h => h.EnableHints = true);
         ComponentCondition<P1Hyperdrive>(id + 0x20, 4.3f, h => h.NumCasts > 2, "Tankbuster 3")
             .DeactivateOnExit<P1Hyperdrive>();
+    }
+
+    void P1Gravitas1(uint id, float delay)
+    {
+        Cast(id, AID._Ability_GravenImage, delay, 3);
+
+        CastStart(id + 0x10, AID._Ability_BlizzardIIIBlowout3, 2.1f)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1GravitasVitrophyre>()
+            .ActivateOnEnter<P1GravitasPuddle>();
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x20, 5.1f, b => b.NumCasts > 0, "Quadrants")
+            .DeactivateOnExit<P1BlizzardIIIBlowout>();
+        ComponentCondition<P1GravitasVitrophyre>(id + 0x30, 0.1f, v => v.Stacks.Count == 0, "Stacks + puddles appear");
+        ComponentCondition<P1GravitasVitrophyre>(id + 0x40, 4, g => g.Spreads.Count == 0, "Spreads")
+            .ActivateOnEnter<P1IntemperateWill>()
+            .DeactivateOnExit<P1GravitasVitrophyre>();
+
+        P1RevoltingRuin(id + 0x100, 0.8f);
+
+        ComponentCondition<P1IntemperateWill>(id + 0x200, 0.8f, p => p.NumCasts > 0, "Left/right")
+            .DeactivateOnExit<P1IntemperateWill>();
+    }
+
+    void P1Gravitas2(uint id, float delay)
+    {
+        ComponentCondition<P1GravitasVitrophyre>(id, 0, g => g.Stacks.Count > 0)
+            .ActivateOnEnter<P1GravitasVitrophyre>()
+            .ExecOnEnter<P1GravitasVitrophyre>(p => p.NegativeOffset = 1.9f);
+
+        ComponentCondition<P1GravitasVitrophyre>(id + 0x10, delay, g => g.Stacks.Count == 0, "Stacks");
+
+        ComponentCondition<P1GravitasVitrophyre>(id + 0x20, 4, g => g.Spreads.Count == 0, "Spreads")
+            .ActivateOnEnter<P1IntemperateWill>()
+            .DeactivateOnExit<P1GravitasVitrophyre>();
     }
 }

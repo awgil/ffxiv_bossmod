@@ -71,7 +71,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
             }
 
             if (numParticipatingStacks > 1)
-                hints.Add("Stack!");
+                hints.Add("Stack!", !PermitOverlap);
             else if (numParticipatingStacks == 1)
                 hints.Add("Stack!", false);
             else if (numUnsatisfiedStacks > 0)
