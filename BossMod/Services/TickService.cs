@@ -193,8 +193,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         condition.ConditionChange -= OnConditionChanged;
     }
 
-    bool _firstDraw;
-
     void UiDraw()
     {
         var tsStart = DateTime.Now;
@@ -216,12 +214,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             windowSystem.Draw();
             Service.FileDialogManager.Draw();
-        }
-
-        if (!_firstDraw)
-        {
-            _wndReplay.BringToFront();
-            _firstDraw = true;
         }
 
         _hintExecutor.Execute();

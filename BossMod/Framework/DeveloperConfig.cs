@@ -1,6 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 [ConfigDisplay(Name = "Developer settings", Order = 9)]
 public sealed class DeveloperConfig : ConfigNode
@@ -13,9 +11,4 @@ public sealed class DeveloperConfig : ConfigNode
 
     [PropertyDisplay("Obstacle maps: source path", tooltip: "Should be <repo root>/BossMod/Pathfinding/ObstacleMaps/maplist.json")]
     public string MapSourcePath = "";
-
-    public override void DrawCustom(UITree tree, WorldState ws)
-    {
-        ImGui.Text("wtf?");
-    }
 }
