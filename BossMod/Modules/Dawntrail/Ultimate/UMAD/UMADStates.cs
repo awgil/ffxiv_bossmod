@@ -155,6 +155,7 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1DoubleTroubleTrapCounter>();
 
         ComponentCondition<P1GravitasPuddleSoak>(id + 0x110, 5.5f, p => p.Puddles.Count == 0, "Puddles disappear")
+            .ExecOnEnter<P1GravitasPuddleSoak>(p => p.EnableHints = true)
             .DeactivateOnExit<P1GravitasPuddle>()
             .DeactivateOnExit<P1GravitasPuddleSoak>();
     }
