@@ -114,7 +114,7 @@ class SickestTakeOff(BossModule module) : Components.StandardAOEs(module, AID.Si
 class DeepVarial(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
-    private static readonly AOEShapeCone cone = new(60f, 45.Degrees());
+    private static readonly AOEShapeCone cone = new(60f, 60.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
