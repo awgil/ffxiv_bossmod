@@ -99,7 +99,7 @@ public sealed unsafe class DebugAddon : IDisposable
                 AtkValueType.UInt => $"uint {values[i].UInt}",
                 AtkValueType.Float => $"int {values[i].Float}",
                 AtkValueType.String => $"string",
-                AtkValueType.String8 => $"string8",
+                AtkValueType.ConstString => $"conststring",
                 AtkValueType.Vector => $"vector",
                 AtkValueType.Pointer => $"pointer",
                 AtkValueType.ManagedString => $"astring",

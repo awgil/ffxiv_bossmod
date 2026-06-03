@@ -179,6 +179,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             _ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(1, 1, 1, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
             _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false, "xan")));
+
+            Service.LuminaGameData!.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
         }
     }
 
@@ -190,6 +192,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         condition.ConditionChange -= OnConditionChanged;
     }
+
+    bool _firstDraw;
 
     void UiDraw()
     {
@@ -212,6 +216,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             windowSystem.Draw();
             Service.FileDialogManager.Draw();
+        }
+
+        if (!_firstDraw)
+        {
+            _wndReplay.BringToFront();
+            _firstDraw = true;
         }
 
         _hintExecutor.Execute();

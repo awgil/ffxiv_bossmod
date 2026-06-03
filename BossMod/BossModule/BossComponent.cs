@@ -81,13 +81,17 @@ public class BossComponent(BossModule module)
         if (table.InstanceID != primaryTarget.InstanceID)
         {
             if (allowGuessing)
-                return Raid.WithSlot().OrderBy(r => r.Item2.Role switch
-                {
-                    Role.Tank => 1,
-                    Role.Melee or Role.Ranged => 2,
-                    Role.Healer => 3,
-                    _ => 4
-                });
+                return Raid.WithSlot().OrderBy(r =>
+                    // if boss is targeting a specific person, we know they are #1
+                    primaryTarget.TargetID == r.Item2.InstanceID
+                    ? 0
+                    : r.Item2.Role switch
+                    {
+                        Role.Tank => 1,
+                        Role.Melee or Role.Ranged => 2,
+                        Role.Healer => 3,
+                        _ => 4
+                    });
             else
                 return [];
         }
