@@ -17,7 +17,7 @@ internal sealed class DTRProvider : IDisposable
     private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
     private bool _wantOpenPopup;
 
-    public unsafe DTRProvider(RotationModuleManager manager)
+    public DTRProvider(RotationModuleManager manager)
     {
         _mgr = manager;
 

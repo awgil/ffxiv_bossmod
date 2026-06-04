@@ -2,7 +2,7 @@
 
 namespace BossMod.Autorotation.MiscAI;
 
-public sealed class Multibox(RotationModuleManager manager, Actor player) : TypedRotationModule<Multibox.Strategy>(manager, player)
+public sealed class FollowSlot(RotationModuleManager manager, Actor player) : TypedRotationModule<FollowSlot.Strategy>(manager, player)
 {
     readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
 
@@ -10,13 +10,13 @@ public sealed class Multibox(RotationModuleManager manager, Actor player) : Type
 
     public struct Strategy
     {
-        [Number(DisplayName = "Follow slot", MinValue = -1, MaxValue = 7)]
+        [Number(DisplayName = "Slot", MinValue = -1, MaxValue = 7)]
         public Track<long> Master;
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Multibox utilities", "", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000);
+        var def = new RotationModuleDefinition("Follow party slot", "", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 1000);
 
         return def.WithStrategies<Strategy>();
     }

@@ -1,3 +1,4 @@
+using BossMod.AI;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 
 namespace BossMod.Autorotation;
@@ -30,6 +31,9 @@ public sealed class RotationModuleManager : IDisposable
     private bool WantsLoSFix => ActiveModulesFlat.Any(m => m.Module.WantsLoSFix);
 
     public static readonly Preset ForceDisable = new(""); // empty preset, so if it's activated, rotation is force disabled
+
+    private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
+    private readonly Preset _pMultibox;
 
     public bool IsForceDisabled => Presets.Count == 1 && Presets[0] == ForceDisable;
 
@@ -79,6 +83,7 @@ public sealed class RotationModuleManager : IDisposable
         Bossmods = bmm;
         PlayerSlot = playerSlot;
         Hints = hints;
+        _pMultibox = Database.Presets.DefaultPresets.First(f => f.Name == "VBM Multibox");
         _subscriptions = new
         (
             WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(PlayerInstanceId == a.InstanceID)),
@@ -93,7 +98,8 @@ public sealed class RotationModuleManager : IDisposable
             WorldState.Client.ActionRequested.Subscribe(OnActionRequested),
             WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged),
             WorldState.Client.ActionFailedLoS.Subscribe(OnLoSFailed),
-            Database.Presets.PresetModified.Subscribe(OnPresetModified)
+            Database.Presets.PresetModified.Subscribe(OnPresetModified),
+            _aiConfig.Modified.Subscribe(() => DirtyActiveModules(true))
         );
     }
 
@@ -114,7 +120,15 @@ public sealed class RotationModuleManager : IDisposable
         }
 
         // rebuild modules if needed
-        _activeModules ??= Presets.Count > 0 ? [.. Presets.SelectMany((p, i) => RebuildActiveModules(p.Modules, i))] : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules, 0) : [];
+        if (_activeModules == null)
+        {
+            // ensure AI compatibility status matches config option, unless force disabled
+            Presets.Remove(_pMultibox);
+            if (_aiConfig.Enabled && !Presets.Contains(ForceDisable))
+                Presets.Add(_pMultibox);
+
+            _activeModules ??= Presets.Count > 0 ? [.. Presets.SelectMany((p, i) => RebuildActiveModules(p.Modules, i))] : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules, 0) : [];
+        }
 
         _activeModules?.SortBy(m => m.module.Definition.Order);
 

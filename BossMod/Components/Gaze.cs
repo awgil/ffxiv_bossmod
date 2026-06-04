@@ -31,6 +31,9 @@ public abstract class GenericGaze(BossModule module, Enum? aid = default, bool i
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (!EnableHints)
+            return;
+
         if (Inverted)
         {
             foreach (var eye in ActiveEyes(slot, actor).Where(eye => actor.Position.InCircle(eye.Position, eye.Range)))

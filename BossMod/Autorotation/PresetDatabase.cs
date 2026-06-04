@@ -14,7 +14,7 @@ public sealed class PresetDatabase
 
     private readonly FileInfo _dbPath;
 
-    public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset }).Concat(UserPresets);
+    public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset || p.Name == "VBM Multibox" }).Concat(UserPresets);
 
     public PresetDatabase(string rootPath, FileInfo defaultPresets)
     {

@@ -171,6 +171,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        // TODO: this should be in worldstate, but how?
         clientState.Logout += OnLogout;
 
         uiBuilder.Draw += UiDraw;
@@ -191,6 +192,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        clientState.Logout -= OnLogout;
+
         uiBuilder.Draw -= UiDraw;
         uiBuilder.OpenConfigUi -= OpenUi;
         uiBuilder.OpenMainUi -= OpenUi;

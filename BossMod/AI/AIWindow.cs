@@ -25,7 +25,6 @@ internal sealed class AIWindow : UIWindow
             _config.Modified.ExecuteAndSubscribe(() =>
             {
                 IsOpen = _config.DrawUI;
-                TogglePreset();
                 ToggleMove();
                 ToggleTarget();
             })
@@ -62,14 +61,6 @@ internal sealed class AIWindow : UIWindow
             _config.Modified.Fire();
     }
 
-    void TogglePreset()
-    {
-        if (_config.Enabled)
-            _manager.Activate(_pMultibox);
-        else
-            _manager.Deactivate(_pMultibox);
-    }
-
     void ToggleMove()
     {
         var normalMove = _pMultibox.Modules[^1];
@@ -92,16 +83,9 @@ internal sealed class AIWindow : UIWindow
         var mbox = _pMultibox.Modules[1];
         mbox.TransientSettings.RemoveAll(s => s.Track == 0);
         mbox.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueInt() { Value = slot }));
-        if (slot == -1)
-        {
-            _config.Enabled = false;
-            _manager.Deactivate(_pMultibox);
-        }
-        else
-        {
-            _config.Enabled = true;
-            _manager.Activate(_pMultibox);
-        }
+
+        _config.Enabled = slot >= 0;
+        _config.Modified.Fire();
     }
 
     public override void OnClose()
