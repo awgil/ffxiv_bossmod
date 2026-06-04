@@ -9,7 +9,7 @@ class UMADStates : StateMachineBuilder
         _module = (UMAD)module;
 
         SimplePhase(0, P1, "P1")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, P2, "P2")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => _module.BossP2()?.IsDeadOrDestroyed == true;

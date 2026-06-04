@@ -38,6 +38,7 @@ public sealed class BossModuleManager : IDisposable
         (
             WorldState.Actors.Added.Subscribe(ActorAdded),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate),
+            WorldState.CurrentZoneChanged.Subscribe(OnZoneChange),
             Config.Modified.ExecuteAndSubscribe(ConfigChanged)
         );
 
@@ -188,21 +189,19 @@ public sealed class BossModuleManager : IDisposable
     {
         if (diru.UpdateID == 0x4000_0005)
         {
-            Service.Log($"[BMM] Raid wiped, unloading all modules");
             _wipeInProgress = true;
-
-            for (var i = LoadedModules.Count - 1; i >= 0; i--)
-            {
-                if (LoadedModules[i].StateMachine.ActiveState != null)
-                    ModuleDeactivated.Fire(LoadedModules[i]);
-                UnloadModule(i);
-            }
+            ForceUnload("wipe");
         }
 
         // TODO: reverse these; 0005 is referenced in Dalamud as the DutyWipe op, but there are a few different IDs that are always triggered after wipe, including 000F, 0011, 0013
         // 0006 is Duty Recommenced, but is unsuitable here because it fires after actors are recreated (at least i think it does lol i didnt check)
         if (diru.UpdateID == 0x4000_0011)
             _wipeInProgress = false;
+    }
+
+    private void OnZoneChange(WorldState.OpZoneChange zc)
+    {
+        ForceUnload("ZoneInit");
     }
 
     private void ConfigChanged()
@@ -212,5 +211,18 @@ public sealed class BossModuleManager : IDisposable
             LoadModule(CreateDemoModule());
         else if (!Config.ShowDemo && demoIndex >= 0)
             UnloadModule(demoIndex);
+    }
+
+    public void ForceUnload(string? cause = null)
+    {
+        if (cause != null)
+            Service.Log($"[BMM] Unload requested with cause: {cause}");
+
+        for (var i = LoadedModules.Count - 1; i >= 0; i--)
+        {
+            if (LoadedModules[i].StateMachine.ActiveState != null)
+                ModuleDeactivated.Fire(LoadedModules[i]);
+            UnloadModule(i);
+        }
     }
 }

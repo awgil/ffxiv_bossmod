@@ -41,6 +41,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly IUiBuilder uiBuilder;
     private readonly ICondition condition;
     private readonly IPluginLog logger;
+    private readonly IClientState clientState;
     private readonly IHintExecutor _hintExecutor;
 
     private readonly BossModuleMainWindow _wndBossmod;
@@ -66,6 +67,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IPluginLog logger,
         IFileDialogManager dialog,
         IChatGui chat,
+        IClientState clientState,
         IWindowSystemFactory windowSystemFactory
     ) : base(mLogger, mediator)
     {
@@ -73,6 +75,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         this.uiBuilder = uiBuilder;
         this.condition = condition;
         this.logger = logger;
+        this.clientState = clientState;
         windowSystem = windowSystemFactory.Create("vbm");
 
         dalamud.Create<Service>();
@@ -168,6 +171,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        clientState.Logout += OnLogout;
+
         uiBuilder.Draw += UiDraw;
         uiBuilder.DisableAutomaticUiHide = true;
         uiBuilder.OpenConfigUi += OpenUi;
@@ -234,6 +239,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     void OnConditionChanged(ConditionFlag flag, bool value)
     {
         logger.Debug($"Condition change: {flag}={value}");
+    }
+
+    void OnLogout(int type, int code)
+    {
+        _bossmod.ForceUnload($"logout type={type}, code={code}");
     }
 
     void OpenConfigUI(string tab = "")
