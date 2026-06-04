@@ -37,4 +37,10 @@ public class UMAD(WorldState ws, Actor primary) : BossModule(ws, primary, new(10
     {
         _bossP2 ??= StateMachine.ActivePhaseIndex == 1 ? Enemies(OID.BossP2).FirstOrDefault() : null;
     }
+
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        Arena.Actor(_bossP2, ArenaColor.Enemy);
+    }
 }
