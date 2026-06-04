@@ -25,8 +25,6 @@ class UMADStates : StateMachineBuilder
         P1Gravitas2(id + 0x50000, 4.6f);
         P1JudgmentBuster(id + 0x60000, 3.6f);
         P1TeleTrouncing(id + 0x70000, 6.9f);
-
-        Timeout(id + 0xFF0000, 10000, "???");
     }
 
     void P2(uint id)
@@ -178,7 +176,53 @@ class UMADStates : StateMachineBuilder
     {
         Cast(id, AID._Ability_TeleTrouncing, delay, 5)
             .ActivateOnEnter<P1TelePortent>()
+            .ActivateOnEnter<P1IdyllicWill>()
+            .ActivateOnEnter<P1IndulgentWill>()
+            .ActivateOnEnter<P1Arrow>();
+
+        ComponentCondition<P1TelePortent>(id + 0x10, 7.7f, p => p.NumArrows > 0, "Arrows 1");
+
+        CastStart(id + 0x100, AID._Ability_GravenImage, 1.3f);
+
+        ComponentCondition<P1TelePortent>(id + 0x110, 1.7f, p => p.NumArrows > 8, "Arrows 2")
+            .DeactivateOnExit<P1TelePortent>();
+
+        ComponentCondition<P1DoubleTroubleTrapCounter>(id + 0x200, 5.5f, p => p.Resolved, "Confetti 3")
+            .ActivateOnEnter<P1DoubleTroubleTrap>()
+            .ActivateOnEnter<P1DoubleTroubleTrapKB>()
+            .ActivateOnEnter<P1DoubleTroubleTrapCounter>()
+            .ExecOnEnter<P1DoubleTroubleTrap>(p => p.EnableHints = true)
+            .ExecOnEnter<P1DoubleTroubleTrapCounter>(c => c.Timeout = 5.5f)
+            .DeactivateOnExit<P1DoubleTroubleTrap>()
+            .DeactivateOnExit<P1DoubleTroubleTrapKB>()
+            .DeactivateOnExit<P1DoubleTroubleTrapCounter>();
+
+        ComponentCondition<P1IdyllicWillCounter>(id + 0x300, 5.6f, p => p.NumCasts > 0, "Stuns")
+            .ActivateOnEnter<P1IdyllicWillCounter>()
+            .ActivateOnEnter<P1StatueGaze>()
+            .ExecOnEnter<P1IndulgentWill>(p => p.Draw = true)
+            .ExecOnEnter<P1IdyllicWill>(p => p.Activate())
+            .DeactivateOnExit<P1IdyllicWillCounter>()
+            .DeactivateOnExit<P1IdyllicWill>()
+            .DeactivateOnExit<P1IndulgentWill>()
+            .SetHint(StateMachine.StateHint.DowntimeStart);
+
+        Timeout(id + 0x310, 5.9f) // stuns end
+            .SetHint(StateMachine.StateHint.DowntimeEnd)
+            .DeactivateOnExit<P1Arrow>()
+            .ExecOnExit<P1StatueGaze>(s => s.EnableHints = true);
+
+        CastStart(id + 0x400, AID._Ability_MysteryMagic, 2)
             .ActivateOnEnter<P1ThrummingThunderIII>()
             .ActivateOnEnter<P1FlagrantFireIII>();
+
+        Condition(id + 0x410, 5, () => Module.FindComponent<P1ThrummingThunderIII>()!.NumCasts > 0 && Module.FindComponent<P1StatueGaze>()!.NumCasts > 0, "Lightning + gaze")
+            .DeactivateOnExit<P1ThrummingThunderIII>()
+            .DeactivateOnExit<P1StatueGaze>();
+
+        ComponentCondition<P1FlagrantFireIII>(id + 0x420, 0.7f, p => !p.Active, "Stack/spread")
+            .DeactivateOnExit<P1FlagrantFireIII>();
+
+        Targetable(id + 0x1000, false, 10.3f, "Boss disappears");
     }
 }

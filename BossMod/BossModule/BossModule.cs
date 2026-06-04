@@ -190,6 +190,9 @@ public abstract class BossModule : IDisposable
 
     public virtual void DrawArena(int pcSlot, Actor pc, bool haveRisks)
     {
+        if (WindowConfig.ShowWaymarks)
+            DrawWaymarks();
+
         // draw background
         DrawArenaBackground(pcSlot, pc);
         foreach (var comp in _components)
@@ -200,8 +203,6 @@ public abstract class BossModule : IDisposable
             Arena.Border(haveRisks && WindowConfig.ShowBorderRisk ? ArenaColor.Enemy : ArenaColor.Border);
         if (WindowConfig.ShowCardinals)
             Arena.CardinalNames();
-        if (WindowConfig.ShowWaymarks)
-            DrawWaymarks();
         if (WindowConfig.ShowSigns)
             DrawSigns();
 

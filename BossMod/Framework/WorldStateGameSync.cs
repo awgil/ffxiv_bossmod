@@ -600,6 +600,14 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         for (int i = 0; i < group->MemberCount; ++i)
         {
             var member = group->PartyMembers.GetPointer(i);
+
+            // party state can briefly be inconsistent when entering duty recorder
+            if (member == null)
+            {
+                UpdatePartySlot(i, PartyState.EmptySlot);
+                continue;
+            }
+
             if (member->ContentId != player->ContentId && Array.FindIndex(_ws.Party.Members, m => m.ContentId == member->ContentId) < 0)
                 AddPartyMember(BuildPartyMember(member));
             // else: member is either a player (it was handled by a different function) or already exists in party state

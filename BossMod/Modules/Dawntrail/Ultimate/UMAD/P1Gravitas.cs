@@ -53,13 +53,13 @@ class P1GravitasPuddle : Components.PersistentVoidzoneAtCastTarget
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID.GravitasP1)
+        if ((OID)actor.OID == OID.Gravitas)
             _puddles.Add(actor);
     }
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
-        if ((OID)actor.OID == OID.GravitasP1 && state == 0x00100020)
+        if ((OID)actor.OID == OID.Gravitas && state == 0x00100020)
             _puddles.Remove(actor);
     }
 }
@@ -86,13 +86,13 @@ class P1GravitasPuddleSoak(BossModule module) : Components.CastCounter(module, A
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
-        if ((OID)actor.OID == OID.GravitasP1 && state == 0x00100020)
+        if ((OID)actor.OID == OID.Gravitas && state == 0x00100020)
             Puddles.Add(actor);
     }
 
     public override void OnActorEState(Actor actor, ushort state)
     {
-        if ((OID)actor.OID == OID.GravitasP1 && state == 4)
+        if ((OID)actor.OID == OID.Gravitas && state == 4)
         {
             Puddles.Remove(actor);
             if (Puddles.Count == 0)

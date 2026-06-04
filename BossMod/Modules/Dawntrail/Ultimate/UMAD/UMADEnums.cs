@@ -4,8 +4,9 @@ namespace BossMod.Dawntrail.Ultimate.UMAD;
 public enum OID : uint
 {
     BossP1 = 0x4C30, // R6.000, x1
-    GravenImageP1 = 0x4C31, // R0.500, x9
-    GravitasP1 = 0x1EC022, // blue puddle, R5.000
+    GravenImage = 0x4C31, // R0.500, x9
+    Gravitas = 0x1EC022, // blue puddle, R5.000
+    TelePortent = 0x1EC023, // arrow, R2.000
 
     BossP2 = 0x4C32, // R6.020, x1
 
@@ -51,11 +52,11 @@ public enum AID : uint
     _Ability_TeleTrouncing = 47801, // BossP1->self, 5.0s cast, single-target
     _Ability_TeleTrouncing1 = 47802, // Helper->players, no cast, range 2 circle
     _Weaponskill_ = 50516, // BossP1->self, 3.0s cast, single-target
-    _Ability_IdyllicWill = 47798, // GravenImageP1->players, no cast, range 5 circle
+    _Ability_IndulgentWill = 47797, // GravenImageP1->player, no cast, single-target, applies confusion
+    _Ability_IdyllicWill = 47798, // GravenImageP1->players, no cast, range 5 circle, applies sleep
     _Weaponskill_1 = 50517, // BossP1->self, no cast, single-target
-    _Ability_AveMaria = 47795, // GravenImageP1->self, no cast, range 100 circle
-    _Ability_IndolentWill = 47796, // GravenImageP1->self, no cast, range 100 circle
-    _Ability_IndulgentWill = 47797, // GravenImageP1->player, no cast, single-target
+    _Ability_AveMaria = 47795, // GravenImageP1->self, no cast, range 100 circle, inverted gaze
+    _Ability_IndolentWill = 47796, // GravenImageP1->self, no cast, range 100 circle, gaze
     P1LightOfJudgmentEnrage = 47803, // BossP1->self, 5.0s cast, range 100 circle
 
     _Ability_UltimateEmbrace = 49740, // BossP2->players, 5.0s cast, range 5 circle

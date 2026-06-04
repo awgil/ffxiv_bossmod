@@ -2,6 +2,8 @@
 
 class P1TelePortent(BossModule module) : BossComponent(module)
 {
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
+
     [Flags]
     enum Direction : byte
     {
@@ -52,6 +54,8 @@ class P1TelePortent(BossModule module) : BossComponent(module)
         return Direction.None;
     }
 
+    public int NumArrows { get; private set; }
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         var newDir = (SID)status.ID switch
@@ -79,28 +83,75 @@ class P1TelePortent(BossModule module) : BossComponent(module)
         if (dir.D1 == default || dir.D2 == default)
             return;
 
-        var wd = ToWDir(dir.All);
+        switch (_config.P1Arrows)
+        {
+            case UMADConfig.P1ArrowShape.BigBox:
+                var wd = ToWDir(dir.All);
 
-        if (dir.All == dir.D1.Dir)
-        {
-            // matched arrows
-            var cardinal = wd.OrthoL() * 12;
-            var preCardinal = (wd + wd.OrthoL() * 0.5f).OrthoL() * 12;
-            _hintSpots[slot].AddRange([(dir.All, Arena.Center + cardinal), (dir.All, Arena.Center + preCardinal)]);
+                if (dir.All == dir.D1.Dir)
+                {
+                    // matched arrows
+                    var cardinal = wd.OrthoL() * 12;
+                    var preCardinal = (wd + wd.OrthoL() * 0.5f).OrthoL() * 12;
+                    _hintSpots[slot].AddRange([(dir.All, Arena.Center + cardinal), (dir.All, Arena.Center + preCardinal)]);
+                }
+                else
+                {
+                    // unmatched arrows
+                    var intercard = wd.OrthoL() * 6;
+                    var preIntercard = intercard + (wd + wd.OrthoL()).Sign().OrthoL() * 6;
+                    _hintSpots[slot].AddRange([(FromWDir(wd.Rotate(-45.Degrees())), Arena.Center + intercard * 2), (FromWDir(wd.Rotate(45.Degrees())), Arena.Center + preIntercard)]);
+                }
+                break;
         }
-        else
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        var missingDir = (SID)status.ID switch
         {
-            // unmatched arrows
-            var intercard = wd.OrthoL() * 6;
-            var preIntercard = intercard + (wd + wd.OrthoL()).Sign().OrthoL() * 6;
-            _hintSpots[slot].AddRange([(FromWDir(wd.Rotate(-45.Degrees())), Arena.Center + intercard * 2), (FromWDir(wd.Rotate(45.Degrees())), Arena.Center + preIntercard)]);
-        }
+            SID.TelePortentN1 or SID.TelePortentN2 => Direction.Up,
+            SID.TelePortentS1 or SID.TelePortentS2 => Direction.Down,
+            SID.TelePortentE1 or SID.TelePortentE2 => Direction.Right,
+            SID.TelePortentW1 or SID.TelePortentW2 => Direction.Left,
+            _ => default
+        };
+
+        if (missingDir == default)
+            return;
+
+        NumArrows++;
+
+        if (!Raid.TryFindSlot(actor, out var slot))
+            return;
+
+        _timesHit[slot]++;
+        var matchingSpot = _hintSpots[slot].Where(s => s.Item1 == missingDir).MinBy(s => (actor.Position - s.Item2).LengthSq());
+        _hintSpots[slot].Remove(matchingSpot);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var d = _debuffs[slot];
+        if (d.D2 == default)
+            return;
         hints.Add($"{d.D1.Dir} => {d.D2.Dir}", false);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_timesHit[slot] > 1)
+            return;
+
+        var spotsNow = _hintSpots[slot].Where(h =>
+        {
+            var toCheck = _timesHit[slot] == 0 ? _debuffs[slot].D1.Dir : _debuffs[slot].D2.Dir;
+            return h.Item1 == toCheck;
+        }).Select(s => ShapeContains.InvertedCircle(s.Item2, 1)).ToList();
+
+        var deadline = _timesHit[slot] == 0 ? _debuffs[slot].D1.Time : _debuffs[slot].D2.Time;
+
+        hints.AddForbiddenZone(ShapeContains.Intersection(spotsNow), deadline);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -110,7 +161,146 @@ class P1TelePortent(BossModule module) : BossComponent(module)
             var toCheck = _timesHit[pcSlot] == 0 ? _debuffs[pcSlot].D1.Dir : _debuffs[pcSlot].D2.Dir;
 
             Arena.AddCircle(sp, 0.75f, sd == toCheck ? ArenaColor.Safe : ArenaColor.Danger);
-            //Arena.TextWorld(sp, sd.ToString(), ArenaColor.Object);
+        }
+    }
+}
+
+class P1Arrow(BossModule module) : BossComponent(module)
+{
+    readonly List<Actor> _arrows = [];
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.TelePortent)
+            _arrows.Add(actor);
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if ((OID)actor.OID == OID.TelePortent)
+            _arrows.Remove(actor);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var positions = _arrows.Select(r => r.Position).ToList();
+        hints.AddForbiddenZone(p => positions.Any(p2 => p2.InCircle(p, 2)));
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var arr in _arrows)
+        {
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(arr.Position, 2, 0xFF000000, 2);
+            Arena.AddCircle(arr.Position, 2, ArenaColor.Danger);
+            Arena.AddLine(arr.Position + new WDir(0, 1).Rotate(arr.Rotation), arr.Position + new WDir(1, 0).Rotate(arr.Rotation), ArenaColor.Danger);
+            Arena.AddLine(arr.Position + new WDir(0, 1).Rotate(arr.Rotation), arr.Position + new WDir(-1, 0).Rotate(arr.Rotation), ArenaColor.Danger);
+            Arena.AddLine(arr.Position + new WDir(0, 1).Rotate(arr.Rotation), arr.Position + new WDir(0, -1).Rotate(arr.Rotation), ArenaColor.Danger);
+        }
+    }
+
+    public override void Update()
+    {
+        _arrows.RemoveAll(a => a.EventState == 7);
+    }
+}
+
+class P1IndulgentWill(BossModule module) : BossComponent(module)
+{
+    BitMask _targets;
+    public bool Draw;
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_elem0f && source.Position.AlmostEqual(new(95, 25), 5) && Raid.TryFindSlot(tether.Target, out var target))
+            _targets.Set(target);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (!_targets[pcSlot] || !Draw)
+            return;
+
+        var closestAlly = Raid.WithoutSlot().Exclude(pc).Closest(pc.Position);
+        if (closestAlly != null)
+        {
+            var dir = closestAlly.Position - pc.Position;
+            var len = MathF.Max(1, dir.Length() - 3);
+            var dest = pc.Position + dir.Normalized() * len;
+
+            Arena.AddLine(pc.Position, dest, ArenaColor.Danger);
+            Arena.ActorProjected(pc.Position, dest, dir.ToAngle(), ArenaColor.Danger);
+        }
+    }
+}
+
+class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0, 5)
+{
+    readonly List<Spread> _stored = [];
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_elem0f && source.Position.AlmostEqual(new(107, 43), 5) && WorldState.Actors.Find(tether.Target) is { } target)
+            _stored.Add(new(target, 5, WorldState.FutureTime(9)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID._Ability_IdyllicWill)
+            Spreads.Clear();
+    }
+
+    public void Activate()
+    {
+        Spreads.AddRange(_stored);
+        _stored.Clear();
+    }
+}
+
+class P1IdyllicWillCounter(BossModule module) : Components.CastCounter(module, AID._Ability_IdyllicWill);
+
+// Indolent Will: 0x1EBFBE plays 00400080 at 105.25, 34
+// Ave Maria: 0x1EBFBF plays 00400080
+
+class P1StatueGaze : Components.GenericGaze
+{
+    WPos? _source;
+    DateTime _activation;
+
+    public P1StatueGaze(BossModule module) : base(module)
+    {
+        EnableHints = false;
+    }
+
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
+    {
+        if (_source.HasValue)
+            yield return new(_source.Value, _activation);
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == 0x1EBFBE && state == 0x00400080)
+        {
+            _source = new(105.25f, 34);
+            _activation = WorldState.FutureTime(9.9f);
+        }
+
+        if (actor.OID == 0x1EBFBF && state == 0x00400080)
+        {
+            _source = new(95, 25);
+            _activation = WorldState.FutureTime(9.9f);
+            Inverted = true;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID._Ability_IndolentWill or AID._Ability_AveMaria)
+        {
+            NumCasts++;
+            _source = null;
         }
     }
 }
