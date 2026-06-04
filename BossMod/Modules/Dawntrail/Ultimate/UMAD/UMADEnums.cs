@@ -7,6 +7,8 @@ public enum OID : uint
     GravenImageP1 = 0x4C31, // R0.500, x9
     GravitasP1 = 0x1EC022, // blue puddle, R5.000
 
+    BossP2 = 0x4C32, // R6.020, x1
+
     Helper = 0x233C, // R0.500, x37, Helper type
 }
 
@@ -54,6 +56,10 @@ public enum AID : uint
     _Ability_AveMaria = 47795, // GravenImageP1->self, no cast, range 100 circle
     _Ability_IndolentWill = 47796, // GravenImageP1->self, no cast, range 100 circle
     _Ability_IndulgentWill = 47797, // GravenImageP1->player, no cast, single-target
+    P1LightOfJudgmentEnrage = 47803, // BossP1->self, 5.0s cast, range 100 circle
+
+    _Ability_UltimateEmbrace = 49740, // BossP2->players, 5.0s cast, range 5 circle
+    _Ability_Forsaken = 47804, // BossP2->self, 7.0s cast, range 100 circle
 }
 
 public enum SID : uint

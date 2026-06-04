@@ -2,9 +2,17 @@
 
 class UMADStates : StateMachineBuilder
 {
+    readonly UMAD _module;
+
     public UMADStates(BossModule module) : base(module)
     {
-        DeathPhase(0, P1);
+        _module = (UMAD)module;
+
+        SimplePhase(0, P1, "P1")
+            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
+        SimplePhase(1, P2, "P2")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .Raw.Update = () => _module.BossP2()?.IsDeadOrDestroyed == true;
     }
 
     private void P1(uint id)
@@ -21,14 +29,19 @@ class UMADStates : StateMachineBuilder
         Timeout(id + 0xFF0000, 10000, "???");
     }
 
+    void P2(uint id)
+    {
+        Timeout(id + 0xFF0000, 10000, "P2!!!");
+    }
+
     void P1RevoltingRuin(uint id, float delay)
     {
         CastStart(id, AID._Ability_RevoltingRuinIII, delay)
             .ActivateOnEnter<P1RevoltingRuinIIIFirst>()
             .ActivateOnEnter<P1RevoltingRuinIIISecond>();
 
-        ComponentCondition<P1RevoltingRuinIIIFirst>(id + 0x10, 5, r => r.NumCasts > 0, "Tankbuster (1st aggro)");
-        ComponentCondition<P1RevoltingRuinIIISecond>(id + 0x20, 3.4f, r => r.NumCasts > 0, "Tankbuster (2nd aggro)")
+        ComponentCondition<P1RevoltingRuinIIIFirst>(id + 0x10, 5.1f, r => r.NumCasts > 0, "Tankbuster (1st aggro)");
+        ComponentCondition<P1RevoltingRuinIIISecond>(id + 0x20, 3.1f, r => r.NumCasts > 0, "Tankbuster (2nd aggro)")
             .DeactivateOnExit<P1RevoltingRuinIIIFirst>()
             .DeactivateOnExit<P1RevoltingRuinIIISecond>();
     }
@@ -44,7 +57,7 @@ class UMADStates : StateMachineBuilder
 
         CastStart(id + 0x10, AID._Ability_MysteryMagic, 3.2f);
 
-        ComponentCondition<P1PulseWave>(id + 0x100, 2.5f, p => p.NumCasts > 0, "Knockback")
+        ComponentCondition<P1PulseWave>(id + 0x100, 2.6f, p => p.NumCasts > 0, "Knockback")
             .DeactivateOnExit<P1PulseWave>()
             .ExecOnExit<P1FlagrantFireIII>(f => f.EnableHints = true)
             .ExecOnExit<P1BlizzardIIIBlowout>(b => b.Risky = true);
@@ -52,7 +65,7 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P1BlizzardIIIBlowout>(id + 0x110, 2.3f, p => p.NumCasts > 0, "Quadrants")
             .DeactivateOnExit<P1BlizzardIIIBlowout>();
 
-        ComponentCondition<P1FlagrantFireIII>(id + 0x120, 0.9f, p => !p.Active, "Stack/spread")
+        ComponentCondition<P1FlagrantFireIII>(id + 0x120, 0.8f, p => !p.Active, "Stack/spread")
             .DeactivateOnExit<P1FlagrantFireIII>();
     }
 
@@ -100,7 +113,7 @@ class UMADStates : StateMachineBuilder
 
         ComponentCondition<P1Hyperdrive>(id + 0x10, 3.1f, h => h.NumCasts > 0, "Tankbuster 1")
             .ExecOnEnter<P1Hyperdrive>(h => h.EnableHints = true);
-        ComponentCondition<P1Hyperdrive>(id + 0x20, 4.3f, h => h.NumCasts > 2, "Tankbuster 3")
+        ComponentCondition<P1Hyperdrive>(id + 0x20, 4.2f, h => h.NumCasts > 2, "Tankbuster 3")
             .DeactivateOnExit<P1Hyperdrive>();
     }
 
@@ -113,7 +126,7 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P1GravitasVitrophyre>()
             .ActivateOnEnter<P1GravitasPuddle>();
 
-        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x20, 5.1f, b => b.NumCasts > 0, "Quadrants")
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x20, 5, b => b.NumCasts > 0, "Quadrants")
             .DeactivateOnExit<P1BlizzardIIIBlowout>();
         ComponentCondition<P1GravitasVitrophyre>(id + 0x30, 0.1f, v => v.Stacks.Count == 0, "Stacks + puddles appear");
         ComponentCondition<P1GravitasVitrophyre>(id + 0x40, 4, g => g.Spreads.Count == 0, "Spreads")
@@ -154,7 +167,8 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1DoubleTroubleTrapKB>()
             .DeactivateOnExit<P1DoubleTroubleTrapCounter>();
 
-        ComponentCondition<P1GravitasPuddleSoak>(id + 0x110, 5.5f, p => p.Puddles.Count == 0, "Puddles disappear")
+        // unsoaked puddles live 5.5s, but doing the mechanic correctly will despawn them earlier
+        Timeout(id + 0x110, 5.5f, "Puddles disappear")
             .ExecOnEnter<P1GravitasPuddleSoak>(p => p.EnableHints = true)
             .DeactivateOnExit<P1GravitasPuddle>()
             .DeactivateOnExit<P1GravitasPuddleSoak>();
@@ -162,6 +176,9 @@ class UMADStates : StateMachineBuilder
 
     void P1TeleTrouncing(uint id, float delay)
     {
-        Cast(id, AID._Ability_TeleTrouncing, delay, 5);
+        Cast(id, AID._Ability_TeleTrouncing, delay, 5)
+            .ActivateOnEnter<P1TelePortent>()
+            .ActivateOnEnter<P1ThrummingThunderIII>()
+            .ActivateOnEnter<P1FlagrantFireIII>();
     }
 }

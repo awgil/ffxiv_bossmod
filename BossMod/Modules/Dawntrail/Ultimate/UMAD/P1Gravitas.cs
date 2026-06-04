@@ -93,7 +93,11 @@ class P1GravitasPuddleSoak(BossModule module) : Components.CastCounter(module, A
     public override void OnActorEState(Actor actor, ushort state)
     {
         if ((OID)actor.OID == OID.GravitasP1 && state == 4)
+        {
             Puddles.Remove(actor);
+            if (Puddles.Count == 0)
+                EnableHints = false;
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
