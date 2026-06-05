@@ -247,7 +247,7 @@ class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_IdyllicWill)
+        if ((AID)spell.Action.ID == AID.IdyllicWill)
             Spreads.Clear();
     }
 
@@ -258,7 +258,7 @@ class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0
     }
 }
 
-class P1IdyllicWillCounter(BossModule module) : Components.CastCounter(module, AID._Ability_IdyllicWill);
+class P1IdyllicWillCounter(BossModule module) : Components.CastCounter(module, AID.IdyllicWill);
 
 // Indolent Will: 0x1EBFBE plays 00400080 at 105.25, 34
 // Ave Maria: 0x1EBFBF plays 00400080
@@ -297,7 +297,7 @@ class P1StatueGaze : Components.GenericGaze
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_IndolentWill or AID._Ability_AveMaria)
+        if ((AID)spell.Action.ID is AID.IndolentWill or AID.AveMaria)
         {
             NumCasts++;
             _source = null;

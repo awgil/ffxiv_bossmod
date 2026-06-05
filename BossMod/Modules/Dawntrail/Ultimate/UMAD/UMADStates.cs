@@ -35,7 +35,7 @@ class UMADStates : StateMachineBuilder
 
     void P1RevoltingRuin(uint id, float delay)
     {
-        CastStart(id, AID._Ability_RevoltingRuinIII, delay)
+        CastStart(id, AID.RevoltingRuinIIIFirst, delay)
             .ActivateOnEnter<P1RevoltingRuinIIIFirst>()
             .ActivateOnEnter<P1RevoltingRuinIIISecond>();
 
@@ -47,14 +47,14 @@ class UMADStates : StateMachineBuilder
 
     void P1FireBlizzard1(uint id, float delay)
     {
-        Cast(id, AID._Ability_GravenImage, delay, 3)
+        Cast(id, AID.GravenImage, delay, 3)
             .ActivateOnEnter<P1PulseWave>()
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
             .ActivateOnEnter<P1FlagrantFireIII>()
             .ExecOnEnter<P1FlagrantFireIII>(f => f.EnableHints = false)
             .ExecOnEnter<P1BlizzardIIIBlowout>(b => b.Risky = false);
 
-        CastStart(id + 0x10, AID._Ability_MysteryMagic, 3.2f);
+        CastStart(id + 0x10, AID.MysteryMagic, 3.2f);
 
         ComponentCondition<P1PulseWave>(id + 0x100, 2.6f, p => p.NumCasts > 0, "Knockback")
             .DeactivateOnExit<P1PulseWave>()
@@ -70,7 +70,7 @@ class UMADStates : StateMachineBuilder
 
     void P1WaveCannon(uint id, float delay)
     {
-        CastStart(id, AID._Ability_DoubleTroubleTrap, delay)
+        CastStart(id, AID.DoubleTroubleTrapCast, delay)
             .ActivateOnEnter<P1WaveCannon>();
 
         ComponentCondition<P1WaveCannon>(id + 0x10, 0.8f, p => p.NumCasts > 0, "Lasers")
@@ -84,7 +84,7 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1Explosion>()
             .ExecOnExit<P1DoubleTroubleTrap>(t => t.EnableHints = true);
 
-        CastStart(id + 0x110, AID._Ability_MysteryMagic, 2.7f)
+        CastStart(id + 0x110, AID.MysteryMagic, 2.7f)
             .ActivateOnEnter<P1DoubleTroubleTrapKB>()
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
             .ActivateOnEnter<P1ThrummingThunderIII>()
@@ -104,7 +104,7 @@ class UMADStates : StateMachineBuilder
 
     void P1JudgmentBuster(uint id, float delay)
     {
-        Cast(id, AID._Ability_LightOfJudgment, delay, 5, "Raidwide")
+        Cast(id, AID.LightOfJudgment, delay, 5, "Raidwide")
             .ActivateOnEnter<P1LightOfJudgment>()
             .ActivateOnEnter<P1Hyperdrive>()
             .ExecOnEnter<P1Hyperdrive>(h => h.EnableHints = false)
@@ -118,9 +118,9 @@ class UMADStates : StateMachineBuilder
 
     void P1Gravitas1(uint id, float delay)
     {
-        Cast(id, AID._Ability_GravenImage, delay, 3);
+        Cast(id, AID.GravenImage, delay, 3);
 
-        CastStart(id + 0x10, AID._Ability_BlizzardIIIBlowout3, 2.1f)
+        CastStart(id + 0x10, AID.BlizzardIIIBlowoutCast, 2.1f)
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
             .ActivateOnEnter<P1GravitasVitrophyre>()
             .ActivateOnEnter<P1GravitasPuddle>();
@@ -175,7 +175,7 @@ class UMADStates : StateMachineBuilder
 
     void P1TeleTrouncing(uint id, float delay)
     {
-        Cast(id, AID._Ability_TeleTrouncing, delay, 5)
+        Cast(id, AID.TeleTrouncingCast, delay, 5)
             .ActivateOnEnter<P1TelePortent>()
             .ActivateOnEnter<P1IdyllicWill>()
             .ActivateOnEnter<P1IndulgentWill>()
@@ -183,7 +183,7 @@ class UMADStates : StateMachineBuilder
 
         ComponentCondition<P1TelePortent>(id + 0x10, 7.7f, p => p.NumArrows > 0, "Arrows 1");
 
-        CastStart(id + 0x100, AID._Ability_GravenImage, 1.3f);
+        CastStart(id + 0x100, AID.GravenImage, 1.3f);
 
         ComponentCondition<P1TelePortent>(id + 0x110, 1.7f, p => p.NumArrows > 8, "Arrows 2")
             .DeactivateOnExit<P1TelePortent>();
@@ -213,7 +213,7 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1Arrow>()
             .ExecOnExit<P1StatueGaze>(s => s.EnableHints = true);
 
-        CastStart(id + 0x400, AID._Ability_MysteryMagic, 2)
+        CastStart(id + 0x400, AID.MysteryMagic, 2)
             .ActivateOnEnter<P1ThrummingThunderIII>()
             .ActivateOnEnter<P1FlagrantFireIII>();
 

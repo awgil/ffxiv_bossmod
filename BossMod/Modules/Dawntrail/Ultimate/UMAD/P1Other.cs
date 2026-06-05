@@ -1,20 +1,20 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
-class P1RevoltingRuinIIIFirst(BossModule module) : Components.BaitAwayCast(module, AID._Ability_RevoltingRuinIII, new AOEShapeCone(100, 60.Degrees()));
+class P1RevoltingRuinIIIFirst(BossModule module) : Components.BaitAwayCast(module, AID.RevoltingRuinIIIFirst, new AOEShapeCone(100, 60.Degrees()));
 
 class P1RevoltingRuinIIISecond : Components.GenericBaitAway
 {
     Actor? _caster;
     DateTime _resolve;
 
-    public P1RevoltingRuinIIISecond(BossModule module) : base(module, AID._Ability_RevoltingRuinIII1)
+    public P1RevoltingRuinIIISecond(BossModule module) : base(module, AID.RevoltingRuinIIISecond)
     {
         EnableHints = false;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_RevoltingRuinIII)
+        if ((AID)spell.Action.ID == AID.RevoltingRuinIIIFirst)
         {
             _caster = caster;
             _resolve = Module.CastFinishAt(spell, 3.4f);
@@ -23,7 +23,7 @@ class P1RevoltingRuinIIISecond : Components.GenericBaitAway
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_RevoltingRuinIII)
+        if ((AID)spell.Action.ID == AID.RevoltingRuinIIIFirst)
             EnableHints = true;
 
         if (spell.Action == WatchedAction)
@@ -45,15 +45,15 @@ class P1RevoltingRuinIIISecond : Components.GenericBaitAway
     }
 }
 
-class P1LightOfJudgment(BossModule module) : Components.RaidwideCast(module, AID._Ability_LightOfJudgment);
+class P1LightOfJudgment(BossModule module) : Components.RaidwideCast(module, AID.LightOfJudgment);
 
-class P1Hyperdrive(BossModule module) : Components.GenericBaitAway(module, AID._Ability_Hyperdrive, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster)
+class P1Hyperdrive(BossModule module) : Components.GenericBaitAway(module, AID.Hyperdrive, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster)
 {
     DateTime _first;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_LightOfJudgment)
+        if ((AID)spell.Action.ID == AID.LightOfJudgment)
             _first = Module.CastFinishAt(spell, 3.1f);
     }
 

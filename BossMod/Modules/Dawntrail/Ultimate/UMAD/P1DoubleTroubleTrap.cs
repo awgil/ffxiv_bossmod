@@ -18,7 +18,7 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_DoubleTroubleTrap1)
+        if ((AID)spell.Action.ID == AID.DoubleTroubleTrapStack)
         {
             Stacks.Clear();
             NumCasts++;
@@ -26,7 +26,7 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
     }
 }
 
-class P1DoubleTroubleTrapKB(BossModule module) : Components.Knockback(module, AID._Ability_DoubleTroubleTrap1, true)
+class P1DoubleTroubleTrapKB(BossModule module) : Components.Knockback(module, AID.DoubleTroubleTrapStack, true)
 {
     readonly List<(Actor Source, DateTime Activation)> _sources = [];
 
@@ -55,7 +55,7 @@ class P1DoubleTroubleTrapKB(BossModule module) : Components.Knockback(module, AI
 }
 
 // passing confetti isn't required to survive P1, so we should continue to show expected state transitions regardless of how many stacks are alive
-class P1DoubleTroubleTrapCounter(BossModule module) : Components.CastCounter(module, AID._Ability_DoubleTroubleTrap1)
+class P1DoubleTroubleTrapCounter(BossModule module) : Components.CastCounter(module, AID.DoubleTroubleTrapStack)
 {
     public float Timeout;
     public bool Resolved;

@@ -30,14 +30,14 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_Gravitas && Stacks.Count > 0)
+        if ((AID)spell.Action.ID == AID.Gravitas && Stacks.Count > 0)
         {
             Stacks.RemoveAt(0);
             Spreads.AddRange(_predicted);
             _predicted.Clear();
         }
 
-        if ((AID)spell.Action.ID == AID._Ability_Vitrophyre && Spreads.Count > 0)
+        if ((AID)spell.Action.ID == AID.Vitrophyre && Spreads.Count > 0)
             Spreads.RemoveAt(0);
     }
 }
@@ -46,7 +46,7 @@ class P1GravitasPuddle : Components.PersistentVoidzoneAtCastTarget
 {
     readonly List<Actor> _puddles = [];
 
-    public P1GravitasPuddle(BossModule module) : base(module, 5, AID._Ability_Gravitas, _ => [], 0.7f)
+    public P1GravitasPuddle(BossModule module) : base(module, 5, AID.Gravitas, _ => [], 0.7f)
     {
         Sources = _ => _puddles;
     }
@@ -66,7 +66,7 @@ class P1GravitasPuddle : Components.PersistentVoidzoneAtCastTarget
 
 // EAnim 00100020 for puddles "priming" (can be soaked)
 // EState 4 for puddles vanishing, whether soaked or not; unsoaked ones vanish about 0.7s later
-class P1GravitasPuddleSoak(BossModule module) : Components.CastCounter(module, AID._Ability_GravityIII)
+class P1GravitasPuddleSoak(BossModule module) : Components.CastCounter(module, AID.GravityIII)
 {
     public readonly List<Actor> Puddles = [];
 
@@ -125,7 +125,7 @@ class P1GravitationalWaveIntemperateWill(BossModule module) : Components.Generic
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_GravitationalWave or AID._Ability_IntemperateWill)
+        if ((AID)spell.Action.ID is AID.GravitationalWave or AID.IntemperateWill)
         {
             NumCasts++;
             _predicted = null;

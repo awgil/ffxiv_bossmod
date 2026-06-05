@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
-class P1PulseWave(BossModule module) : Components.Knockback(module, AID._Ability_PulseWave, true)
+class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWave, true)
 {
     DateTime _activation;
     BitMask _targets;
@@ -32,8 +32,8 @@ class P1PulseWave(BossModule module) : Components.Knockback(module, AID._Ability
     }
 }
 
-class P1BlizzardIIIBlowout(BossModule module) : Components.GroupedAOEs(module, [AID._Ability_BlizzardIIIBlowout1, AID._Ability_BlizzardIIIBlowout2], new AOEShapeCone(40, 45.Degrees()));
-class P1ThrummingThunderIII(BossModule module) : Components.GroupedAOEs(module, [AID._Ability_ThrummingThunderIII2, AID._Ability_ThrummingThunderIII], new AOEShapeRect(40, 5));
+class P1BlizzardIIIBlowout(BossModule module) : Components.GroupedAOEs(module, [AID.BlizzardIIIBlowout2, AID.BlizzardIIIBlowout1], new AOEShapeCone(40, 45.Degrees()));
+class P1ThrummingThunderIII(BossModule module) : Components.GroupedAOEs(module, [AID.ThrummingThunderIII1, AID.ThrummingThunderIII2], new AOEShapeRect(40, 5));
 
 class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(module, 6, 5, 4, 4)
 {
@@ -49,20 +49,20 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
     {
         switch ((IconID)iconID)
         {
-            case IconID._Gen_Icon_m0462trg_a0c:
+            case IconID.FireSpread:
                 _displayed = Mechanic.Spread;
                 Init();
                 break;
-            case IconID._Gen_Icon_m0462trg_b0c:
+            case IconID.FireStack:
                 _stackTargets.Set(Raid.FindSlot(targetID));
                 _displayed = Mechanic.Stack;
                 Init();
                 break;
-            case IconID._Gen_Icon_m0462trg_c01c:
+            case IconID.MysteryMagicFireLie:
                 _lying = Lying.Yes;
                 Init();
                 break;
-            case IconID._Gen_Icon_m0462trg_c02c:
+            case IconID.MysteryMagicFireTruth:
                 _lying = Lying.No;
                 Init();
                 break;
@@ -73,10 +73,10 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Ability_FlagrantFireIII:
+            case AID.FlagrantFireIIIStack:
                 Stacks.Clear();
                 break;
-            case AID._Ability_FlagrantFireIII1:
+            case AID.FlagrantFireIIISpread:
                 Spreads.Clear();
                 break;
         }
@@ -126,7 +126,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
 
 class P1WaveCannon : Components.UntelegraphedBait
 {
-    public P1WaveCannon(BossModule module) : base(module, AID._Ability_WaveCannon)
+    public P1WaveCannon(BossModule module) : base(module, AID.WaveCannon)
     {
         CurrentBaits.Add(new(new(100, 65), Raid.WithSlot().Mask(), new AOEShapeRect(100, 3), WorldState.FutureTime(4.3f), 8));
     }
@@ -141,7 +141,7 @@ class P1WaveCannon : Components.UntelegraphedBait
     }
 }
 
-class P1Explosion(BossModule module) : Components.CastTowers(module, AID._Ability_Explosion, 4)
+class P1Explosion(BossModule module) : Components.CastTowers(module, AID.ExplosionP1, 4)
 {
     readonly DateTime[] _vuln = new DateTime[8];
 
