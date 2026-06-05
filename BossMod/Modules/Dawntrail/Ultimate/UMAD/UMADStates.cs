@@ -29,7 +29,8 @@ class UMADStates : StateMachineBuilder
 
     void P2(uint id)
     {
-        Timeout(id + 0xFF0000, 10000, "P2!!!");
+        Timeout(id + 0xFF0000, 10000, "P2!!!")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
     }
 
     void P1RevoltingRuin(uint id, float delay)
