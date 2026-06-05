@@ -6,6 +6,7 @@ using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
 using System.IO;
 using System.Reflection;
+using static DalaMock.Core.Fonts.MockDefaultFontConfig;
 
 [AttributeUsage(AttributeTargets.Assembly, Inherited = false, AllowMultiple = false)]
 sealed class DalamudLibPathAttribute(string path) : Attribute
@@ -49,7 +50,16 @@ static class Program
 
     static void RealMain()
     {
-        var cnt = new MockContainer();
+        var cnt = new MockContainer(new()
+        {
+            GamePathString = "E:\\SteamLibrary\\steamapps\\common\\FINAL FANTASY XIV Online\\game\\sqpack",
+            PluginSavePathString = "C:\\Users\\me\\AppData\\Roaming\\XIVLauncher\\pluginConfigs",
+            DefaultFont = new()
+            {
+                Kind = FontKind.DalamudDefault,
+                SizePt = 14
+            }
+        });
         var ui = cnt.GetMockUi();
         var loader = cnt.GetPluginLoader();
         var pl = loader.AddPlugin(typeof(MockPlugin));
