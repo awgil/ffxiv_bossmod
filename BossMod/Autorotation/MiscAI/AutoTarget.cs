@@ -74,12 +74,12 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         var canPullMore = maxTargets == 0 || World.Actors.Count(a => a.AggroPlayer && !a.IsDead) < maxTargets;
 
         Actor? bestTarget = null; // non-null if we bump any priorities
-        (int, float) bestTargetKey = (0, float.MinValue); // priority and negated squared distance
+        (bool, int, float) bestTargetKey = (false, 0, float.MinValue); // "force target" flag, priority, and negated squared distance
         void prioritize(AIHints.Enemy e, int prio)
         {
             e.Priority = prio;
 
-            var key = (e.Priority, -(e.Actor.Position - Player.Position).LengthSq());
+            var key = (e.ShouldBeTargeted, e.Priority, -(e.Actor.Position - Player.Position).LengthSq());
             if (key.CompareTo(bestTargetKey) > 0)
             {
                 bestTarget = e.Actor;

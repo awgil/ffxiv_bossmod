@@ -89,17 +89,15 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
         bool canTarget(AIHints.Enemy enemy) => enemy.Priority == AIHints.Enemy.PriorityUndesirable && (!_globalConfig.AssistMode || enemy.Actor.InCombat);
 
         foreach (var e in hints.PotentialTargets.Where(t => t.Actor.NameID == farmNameID))
-        {
             if (canTarget(e) && (e.Actor.Position - player.Position).LengthSq() <= farmRange * farmRange)
             {
-                e.Priority = 0;
-
-                var wePull = !e.Actor.InCombat;
-
-                if (wePull && (hints.ForcedTarget == null || (hints.ForcedTarget.Position - player.Position).LengthSq() > (e.Actor.Position - player.Position).LengthSq()))
-                    hints.ForcedTarget = e.Actor;
+                if (e.Actor.InCombat)
+                    // someone else pulled
+                    e.Priority = 0;
+                else
+                    // we pull
+                    e.ShouldBeTargeted = true;
             }
-        }
     }
 
     public override void DrawExtra()
