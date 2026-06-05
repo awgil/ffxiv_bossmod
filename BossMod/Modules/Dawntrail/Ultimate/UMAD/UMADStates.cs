@@ -27,12 +27,6 @@ class UMADStates : StateMachineBuilder
         P1TeleTrouncing(id + 0x70000, 6.9f);
     }
 
-    void P2(uint id)
-    {
-        Timeout(id + 0xFF0000, 10000, "P2!!!")
-            .SetHint(StateMachine.StateHint.DowntimeEnd);
-    }
-
     void P1RevoltingRuin(uint id, float delay)
     {
         CastStart(id, AID.RevoltingRuinIIIFirst, delay)
@@ -225,5 +219,42 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1FlagrantFireIII>();
 
         Targetable(id + 0x1000, false, 10.3f, "Boss disappears");
+    }
+
+    void P2(uint id)
+    {
+        ActorTargetable(id, _module.BossP2, true, 10.3f, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+        ActorCast(id + 0x10, _module.BossP2, AID._Ability_UltimateEmbrace, 7.2f, 5, true, "Tankbuster")
+            .ActivateOnEnter<P2UltimateEmbrace>()
+            .DeactivateOnExit<P2UltimateEmbrace>();
+
+        P2Forsaken(id + 0x10000, 8.3f);
+
+        Timeout(id + 0xFF0000, 10000, "???");
+    }
+
+    void P2Forsaken(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP2, AID._Ability_Forsaken, delay, 7, true, "Raidwide")
+            .ActivateOnEnter<P2ForsakenRaidwide>()
+            .ActivateOnEnter<P2PathOfLight>()
+            .ActivateOnEnter<P2Shapes>()
+            .ActivateOnEnter<P2StackSpread>()
+            .ActivateOnEnter<P2Spellwave>()
+            .ActivateOnEnter<P2AllThingsEnding>()
+            .DeactivateOnExit<P2ForsakenRaidwide>();
+
+        ComponentCondition<P2PathOfLight>(id + 0x10, 13.2f, p => p.NumCasts == 2, "Towers 1");
+        ComponentCondition<P2Shapes>(id + 0x20, 0.6f, s => s.NumCasts > 0, "Shapes 1");
+
+        ComponentCondition<P2PastFutureEnd>(id + 0x30, 2.3f, p => p.Active)
+            .ActivateOnEnter<P2PastFutureEnd>();
+
+        ComponentCondition<P2PastFutureEnd>(id + 0x31, 6.9f, p => !p.Active, "Clones");
+        ComponentCondition<P2PathOfLight>(id + 0x32, 0.2f, p => p.NumCasts == 4, "Towers 2");
+        ComponentCondition<P2Shapes>(id + 0x33, 0.6f, s => s.NumCasts > 0, "Shapes 2")
+            .ExecOnEnter<P2Shapes>(s => s.Reset());
     }
 }

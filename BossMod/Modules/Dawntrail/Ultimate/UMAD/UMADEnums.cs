@@ -66,6 +66,7 @@ public enum AID : uint
     _Ability_Spelldriver = 47808, // Helper->players, no cast, range 5 circle, stack
     _Ability_Spellscatter = 47809, // Helper->players, no cast, range 5 circle, spread
     _Ability_Spellwave = 47810, // Helper->self, no cast, range 40 90-degree cone, cone
+    _Ability_FuturesEnd = 47826, // BossP2-self, 6.4s cast, single-target
     _Ability_PastsEnd = 47827, // BossP2->self, 6.4s cast, single-target
     _Ability_PastsEnd1 = 47833, // 4C39->players, no cast, range 5 circle
     _Ability_PastsEnd2 = 47831, // BossP2->players, no cast, range 5 circle
@@ -93,9 +94,9 @@ public enum SID : uint
     Confused = 1283, // GravenImage->player, extra=0x0
 
     SpellsTrouble = 5083, // none->player, extra=0x4/0x3/0x2/0x1
-    _Gen_ = 5084, // none->player, extra=0x0
-    _Gen_1 = 5085, // none->player, extra=0x0
-    _Gen_2 = 5086, // none->player, extra=0x0
+    ForsakenStack = 5084, // none->player, extra=0x0
+    ForsakenSpread = 5085, // none->player, extra=0x0
+    ForsakenCone = 5086, // none->player, extra=0x0
 }
 
 public enum IconID : uint
