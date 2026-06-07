@@ -157,9 +157,11 @@ public sealed class ConfigUI : IDisposable
                 continue;
 
             var disabled = false;
+            var nested = false;
 
             if (props.Depends is { } prop)
             {
+                nested = true;
                 var dependsEnabled = node.GetType().GetField(prop)?.GetValue(node) switch
                 {
                     bool v => v,
@@ -171,7 +173,7 @@ public sealed class ConfigUI : IDisposable
             var value = field.GetValue(node);
             using (ImRaii.Disabled(disabled))
             {
-                if (DrawProperty(props.Label, props.Tooltip, node, field, value, root, tree, ws))
+                if (DrawProperty(props.Label, props.Tooltip, nested, node, field, value, root, tree, ws))
                 {
                     node.Modified.Fire();
                 }
@@ -230,7 +232,7 @@ public sealed class ConfigUI : IDisposable
         return _filterNodes.Any(matchesOneFilter);
     }
 
-    private static void DrawHelp(string tooltip)
+    private static void DrawHelp(string tooltip, bool nested = false)
     {
         // draw tooltip marker with proper alignment
         ImGui.AlignTextToFramePadding();
@@ -244,24 +246,37 @@ public sealed class ConfigUI : IDisposable
             UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle);
         }
         ImGui.SameLine();
+        if (nested)
+        {
+            var sHeight = ImGui.GetFrameHeight();
+            var sBox = new Vector2(sHeight, sHeight);
+
+            var bar = "└";
+            var pos = ImGui.GetCursorScreenPos();
+            var size = ImGui.CalcTextSize(bar);
+
+            ImGui.Dummy(new(sHeight - ImGui.GetStyle().ItemInnerSpacing.X, 0));
+            ImGui.SameLine();
+            ImGui.GetWindowDrawList().AddText(pos + (sBox - size) * 0.5f, ImGui.GetColorU32(ImGuiCol.Text), bar);
+        }
     }
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
     {
-        bool v => DrawProperty(label, tooltip, node, member, v),
-        Enum v => DrawProperty(label, tooltip, node, member, v),
-        float v => DrawProperty(label, tooltip, node, member, v),
-        int v => DrawProperty(label, tooltip, node, member, v),
-        string v => DrawProperty(label, tooltip, node, member, v),
-        Color v => DrawProperty(label, tooltip, node, member, v),
-        Color[] v => DrawProperty(label, tooltip, node, member, v),
-        GroupAssignment v => DrawProperty(label, tooltip, node, member, v, root, tree, ws),
+        bool v => DrawProperty(label, tooltip, nested, node, member, v),
+        Enum v => DrawProperty(label, tooltip, nested, node, member, v),
+        float v => DrawProperty(label, tooltip, nested, node, member, v),
+        int v => DrawProperty(label, tooltip, nested, node, member, v),
+        string v => DrawProperty(label, tooltip, nested, node, member, v),
+        Color v => DrawProperty(label, tooltip, nested, node, member, v),
+        Color[] v => DrawProperty(label, tooltip, nested, node, member, v),
+        GroupAssignment v => DrawProperty(label, tooltip, nested, node, member, v, root, tree, ws),
         _ => false
     };
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, bool v)
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, bool v)
     {
-        DrawHelp(tooltip);
+        DrawHelp(tooltip, nested);
         var combo = member.GetCustomAttribute<PropertyComboAttribute>();
         if (combo != null)
         {
@@ -282,9 +297,9 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, Enum v)
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, Enum v)
     {
-        DrawHelp(tooltip);
+        DrawHelp(tooltip, nested);
         if (UICombo.Enum(label, ref v))
         {
             member.SetValue(node, v);
@@ -293,9 +308,9 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, float v)
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, float v)
     {
-        DrawHelp(tooltip);
+        DrawHelp(tooltip, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         if (slider != null)
         {
@@ -320,9 +335,9 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, int v)
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, int v)
     {
-        DrawHelp(tooltip);
+        DrawHelp(tooltip, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         if (slider != null)
         {
@@ -347,9 +362,9 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, string v)
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, string v)
     {
-        DrawHelp(tooltip);
+        DrawHelp(tooltip, nested);
         if (ImGui.InputText(label, ref v, 256))
         {
             member.SetValue(node, v);
@@ -358,9 +373,9 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, Color v)
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, Color v)
     {
-        DrawHelp(tooltip);
+        DrawHelp(tooltip, nested);
         var col = v.ToFloat4();
         if (ImGui.ColorEdit4(label, ref col, ImGuiColorEditFlags.PickerHueWheel))
         {
@@ -370,12 +385,12 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, Color[] v)
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, Color[] v)
     {
         var modified = false;
         for (int i = 0; i < v.Length; ++i)
         {
-            DrawHelp(tooltip);
+            DrawHelp(tooltip, nested);
             var col = v[i].ToFloat4();
             if (ImGui.ColorEdit4($"{label} {i}", ref col, ImGuiColorEditFlags.PickerHueWheel))
             {
@@ -403,7 +418,7 @@ public sealed class ConfigUI : IDisposable
         ImGui.SameLine();
     }
 
-    private static bool DrawProperty(string label, string tooltip, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
+    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
     {
         var group = member.GetCustomAttribute<GroupDetailsAttribute>();
         if (group == null)
@@ -417,6 +432,11 @@ public sealed class ConfigUI : IDisposable
             spaced = true;
             UIMisc.HelpMarker(tooltip);
             ImGui.SameLine();
+            if (nested)
+            {
+                ImGui.Text("   ");
+                ImGui.SameLine();
+            }
         }
 
         if (member.GetCustomAttributes<GroupPresetAttribute>().Any())

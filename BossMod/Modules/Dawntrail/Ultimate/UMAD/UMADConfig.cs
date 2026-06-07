@@ -1,5 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
+[ConfigDisplay(Parent = typeof(DawntrailConfig))]
 public class UMADConfig : ConfigNode
 {
     public enum P1ArrowShape

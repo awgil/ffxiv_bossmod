@@ -31,7 +31,7 @@ public sealed class ActionTweaksConfig : ConfigNode
         M12
     }
 
-    [PropertyDisplay("Key to hold to allow movement while casting", depends: nameof(PreventMovingWhileCasting), tags: ["slidecast"])]
+    [PropertyDisplay("Hold to allow movement while casting", depends: nameof(PreventMovingWhileCasting), tags: ["slidecast"])]
     public ModifierKey MoveEscapeHatch = ModifierKey.None;
 
     [PropertyDisplay("Automatically cancel a cast when target is dead")]
@@ -48,20 +48,20 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Use actions on mouseover target")]
     public bool PreferMouseover = false;
 
-    [PropertyDisplay("Smart ability targeting", tooltip: "If the usual (mouseover/primary) target is not valid for an action, select the next best target automatically (e.g. co-tank for Shirk)")]
-    public bool SmartTargets = true;
-
     [PropertyDisplay("Use custom queueing for manually pressed actions", tooltip: "This setting allows better integration with autorotations and will prevent you from triple-weaving or drifting GCDs if you press a healing ability while autorotation is going on")]
     public bool UseManualQueue = false;
+
+    [PropertyDisplay("Smart ability targeting", tooltip: "If the usual (mouseover/primary) target is not valid for an action, select the next best target automatically (e.g. co-tank for Shirk)", depends: nameof(UseManualQueue))]
+    public bool SmartTargets = true;
 
     [PropertyDisplay("Try to prevent dashing into AOEs", tooltip: "Prevent automatic use of targeted dashes (like WAR Onslaught) if they would move you into a dangerous area. May not work as expected in instances that do not have modules.\n\nThis option will also apply to manually pressed dashes if you have \"Use custom queueing for manually pressed actions\" enabled.", since: "0.0.0.290")]
     public bool DashSafety = true;
 
-    [PropertyDisplay("Apply the previous option to all dashes, not just gap closers", tooltip: "Includes backdashes (e.g. SAM Yaten), teleports (e.g. NIN Shukuchi), and fixed-length dashes (e.g. DRG Elusive Jump)", depends: nameof(DashSafety))]
+    [PropertyDisplay("Apply to all dashes, not just gap closers", tooltip: "Includes backdashes (e.g. SAM Yaten), teleports (e.g. NIN Shukuchi), and fixed-length dashes (e.g. DRG Elusive Jump)", depends: nameof(DashSafety))]
     public bool DashSafetyExtra = true;
 
     [PropertyDisplay("Automatically manage auto attacks", tooltip: "This setting prevents starting autos early during countdown, starts them automatically at pull, when switching targets and when using any actions that don't explicitly cancel autos.")]
-    public bool AutoAutos = false;
+    public bool AutoAutos2 = true;
 
     [PropertyDisplay("Automatically dismount to execute actions")]
     public bool AutoDismount = true;

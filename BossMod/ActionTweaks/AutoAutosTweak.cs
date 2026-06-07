@@ -8,7 +8,7 @@ public sealed class AutoAutosTweak(WorldState ws, AIHints hints)
 
     public const float PrePullThreshold = 0.5f; // effect result delay for autos
 
-    public bool Enabled => _config.AutoAutos;
+    public bool Enabled => _config.AutoAutos2;
 
     public bool ShouldPreventAutoActivation(uint spellId)
     {
