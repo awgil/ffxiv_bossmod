@@ -24,11 +24,18 @@ abstract partial class AutoClear : ZoneModule
         ImGui.Text($"Kills: {Kills}");
 
         var maxPull = _config.MaxPull;
-
         ImGui.SetNextItemWidth(200);
         if (ImGui.DragInt("Max mobs to pull", ref maxPull, 0.05f, 0, 15))
         {
             _config.MaxPull = maxPull;
+            _config.Modified.Fire();
+        }
+
+        var scale = _config.MinimapScale;
+        ImGui.SetNextItemWidth(200);
+        if (ImGui.DragFloat("Minimap scale", ref scale, 0.05f, 0.2f, 3))
+        {
+            _config.MinimapScale = scale;
             _config.Modified.Fire();
         }
 

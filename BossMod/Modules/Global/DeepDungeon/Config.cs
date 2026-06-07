@@ -24,6 +24,9 @@ public class AutoDDConfig : ConfigNode
     public bool Enable = true;
     [PropertyDisplay("Enable minimap")]
     public bool EnableMinimap = true;
+    [PropertyDisplay("Minimap scale")]
+    [PropertySlider(min: 0.2f, max: 3, Speed = 0.05f)]
+    public float MinimapScale = 1.0f;
     [PropertyDisplay("Try to avoid traps", tooltip: "Avoid known trap locations sourced from PalacePal data. (Traps revealed by a Pomander of Sight will always be avoided regardless of this setting.)")]
     public bool TrapHints = true;
     [PropertyDisplay("Draw potential trap locations in game world")]
