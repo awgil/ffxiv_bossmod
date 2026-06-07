@@ -516,7 +516,7 @@
                     "Option": "Enabled"
                 }
             ],
-            "BossMod.Autorotation.MiscAI.Multibox": [],
+            "BossMod.Autorotation.MiscAI.FollowSlot": [],
             "BossMod.Autorotation.MiscAI.NormalMovement": [
                 {
                     "Track": "Destination",

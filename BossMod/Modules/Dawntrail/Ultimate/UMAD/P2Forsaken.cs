@@ -1,15 +1,13 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
-class P2UltimateEmbrace(BossModule module) : Components.CastSharedTankbuster(module, AID._Ability_UltimateEmbrace, 5);
+class P2UltimateEmbrace(BossModule module) : Components.CastSharedTankbuster(module, AID.UltimateEmbrace, 5);
 
-class P2ForsakenRaidwide(BossModule module) : Components.RaidwideCast(module, AID._Ability_Forsaken);
-
-class P2AllThingsEnding(BossModule module) : Components.StandardAOEs(module, AID._Ability_AllThingsEnding, new AOEShapeCone(100, 90.Degrees()));
+class P2ForsakenRaidwide(BossModule module) : Components.RaidwideCast(module, AID.Forsaken);
 
 // mapeffect: XX.00020001
 // index is 1 (N) clockwise through 8 (NW)
 // tower triggers 10.2s later
-class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID._Ability_ThePathOfLight)
+class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.ThePathOfLight)
 {
     public override void OnMapEffect(byte index, uint state)
     {
@@ -32,7 +30,7 @@ class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID._A
     public bool InAnyTower(Actor a) => Towers.Any(t => a.Position.InCircle(t.Position, t.Radius));
 }
 
-class P2Shapes(BossModule module) : Components.CastCounterMulti(module, [AID._Ability_Spelldriver, AID._Ability_Spellscatter, AID._Ability_Spellwave])
+class P2Shapes(BossModule module) : Components.CastCounterMulti(module, [AID.Spelldriver, AID.Spellscatter, AID.Spellwave])
 {
     public enum Shape
     {
@@ -87,12 +85,12 @@ class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Ability_ThePathOfLight:
+            case AID.ThePathOfLight:
                 _castPending = true;
                 break;
-            case AID._Ability_Spellscatter:
-            case AID._Ability_Spellwave:
-            case AID._Ability_Spelldriver:
+            case AID.Spellscatter:
+            case AID.Spellwave:
+            case AID.Spelldriver:
                 _castPending = false;
                 break;
         }
@@ -116,7 +114,7 @@ class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5
     }
 }
 
-class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID._Ability_Spellwave)
+class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID.Spellwave)
 {
     readonly P2Shapes _shapes = module.FindComponent<P2Shapes>()!;
     readonly P2PathOfLight _towers = module.FindComponent<P2PathOfLight>()!;
@@ -127,12 +125,12 @@ class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID._A
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Ability_ThePathOfLight:
+            case AID.ThePathOfLight:
                 _castPending = true;
                 break;
-            case AID._Ability_Spellscatter:
-            case AID._Ability_Spellwave:
-            case AID._Ability_Spelldriver:
+            case AID.Spellscatter:
+            case AID.Spellwave:
+            case AID.Spelldriver:
                 _castPending = false;
                 break;
         }
@@ -154,7 +152,8 @@ class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID._A
     }
 }
 
-class P2PastFutureEnd(BossModule module) : Components.UniformStackSpread(module, 0, 5)
+// boss/clone jumps on nearest player
+class P2PastsEndFuturesEnd(BossModule module) : Components.UniformStackSpread(module, 0, 5)
 {
     WPos _source;
     DateTime _activation;
@@ -162,7 +161,7 @@ class P2PastFutureEnd(BossModule module) : Components.UniformStackSpread(module,
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_PastsEnd or AID._Ability_FuturesEnd)
+        if ((AID)spell.Action.ID is AID.PastsEndCast or AID.FuturesEndCast)
         {
             _source = spell.LocXZ;
             _activation = Module.CastFinishAt(spell, 0.2f);
@@ -171,10 +170,10 @@ class P2PastFutureEnd(BossModule module) : Components.UniformStackSpread(module,
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_PastsEnd1 or AID._Ability_PastsEnd2)
+        if ((AID)spell.Action.ID is AID.FuturesEndBossAOE or AID.PastsEndBossAOE or AID.FuturesEndCloneAOE or AID.PastsEndCloneAOE)
         {
             _numJumps++;
-            if (_numJumps >= 3)
+            if (_numJumps == 4)
             {
                 _source = default;
                 _numJumps = 0;
@@ -190,5 +189,76 @@ class P2PastFutureEnd(BossModule module) : Components.UniformStackSpread(module,
             return;
 
         AddSpreads(Raid.WithoutSlot().SortedByRange(_source).Take(4), _activation);
+    }
+}
+
+class P2AllThingsEnding(BossModule module) : Components.GroupedAOEs(module, [AID.AllThingsEnding1, AID.AllThingsEnding2], new AOEShapeCone(100, 90.Degrees()));
+
+// cast starts 6s after boss castevent
+// based on replay analysis, it seems like these are each individually baited on a random player
+class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
+{
+    enum Bait
+    {
+        None,
+        Front,
+        Behind
+    }
+
+    Bait _next;
+    DateTime _activation;
+
+    readonly List<Actor> _sources = [];
+
+    public bool Draw;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.FuturesEndCast:
+                _next = Bait.Front;
+                _activation = Module.CastFinishAt(spell, 6);
+                break;
+            case AID.PastsEndCast:
+                _next = Bait.Behind;
+                _activation = Module.CastFinishAt(spell, 6);
+                break;
+            case AID.AllThingsEnding1:
+            case AID.AllThingsEnding2:
+                _sources.Remove(caster);
+                if (_sources.Count == 0)
+                {
+                    _next = default;
+                    _activation = default;
+                }
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.FuturesEndBossAOE or AID.PastsEndBossAOE or AID.FuturesEndCloneAOE or AID.PastsEndCloneAOE) // or FuturesEnd1/FuturesEnd2
+            _sources.Add(caster);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (Draw)
+        {
+            foreach (var src in _sources)
+            {
+                var dir = src.AngleTo(pc);
+                if (_next == Bait.Behind)
+                    dir += 180.Degrees();
+                Arena.AddCone(src.Position, 30, dir, 90.Degrees(), ArenaColor.Danger);
+            }
+        }
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (_next != default)
+            hints.Add($"Next bait: {_next}");
     }
 }

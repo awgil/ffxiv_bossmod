@@ -4,9 +4,9 @@
     "net10.0-windows7.0": {
       "DalaMock.Core": {
         "type": "Direct",
-        "requested": "[6.1.6, )",
-        "resolved": "6.1.6",
-        "contentHash": "+xDdP9Qpb+Gq1zRXDuNJ+h7368aEKgGa/mGuewoN/MBH3SLppdFXg7ap+6VrImIfb1ObfDL0EyPmsDIOiLQLYQ==",
+        "requested": "[6.1.7, )",
+        "resolved": "6.1.7",
+        "contentHash": "pCJSHtWf9rucDOS35sk1KrJzR7s13lk7ym93anfUBdtjMCY0vSJ/QIi5wlvQuTPS/NrACQudGPMO389bNEkRYA==",
         "dependencies": {
           "Autofac": "9.0.0",
           "DalaMock.Shared": "6.1.2",

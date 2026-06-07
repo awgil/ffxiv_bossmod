@@ -60,18 +60,21 @@ public enum AID : uint
     IndolentWill = 47796, // GravenImage->self, no cast, range 100 circle, gaze
     LightOfJudgmentEnrage = 47803, // BossP1->self, 5.0s cast, range 100 circle
 
-    _Ability_UltimateEmbrace = 49740, // BossP2->players, 5.0s cast, range 5 circle, stack buster
-    _Ability_Forsaken = 47804, // BossP2->self, 7.0s cast, range 100 circle
-    _Ability_ThePathOfLight = 47806, // Helper->self, no cast, range 4 circle, tower
-    _Ability_Spelldriver = 47808, // Helper->players, no cast, range 5 circle, stack
-    _Ability_Spellscatter = 47809, // Helper->players, no cast, range 5 circle, spread
-    _Ability_Spellwave = 47810, // Helper->self, no cast, range 40 90-degree cone, cone
-    _Ability_FuturesEnd = 47826, // BossP2-self, 6.4s cast, single-target
-    _Ability_PastsEnd = 47827, // BossP2->self, 6.4s cast, single-target
-    _Ability_PastsEnd1 = 47833, // 4C39->players, no cast, range 5 circle
-    _Ability_PastsEnd2 = 47831, // BossP2->players, no cast, range 5 circle
-    _Ability_AllThingsEnding = 47837, // 4C39/BossP2->self, 5.0s cast, range 100 180-degree cone
-    _Ability_TheRiverOfLight = 47807, // Helper->self, no cast, range 100 circle
+    UltimateEmbrace = 49740, // BossP2->players, 5.0s cast, range 5 circle, stack buster
+    Forsaken = 47804, // BossP2->self, 7.0s cast, range 100 circle
+    ThePathOfLight = 47806, // Helper->self, no cast, range 4 circle, tower
+    TheRiverOfLight = 47807, // Helper->self, no cast, range 100 circle, tower failure
+    Spelldriver = 47808, // Helper->players, no cast, range 5 circle, stack
+    Spellscatter = 47809, // Helper->players, no cast, range 5 circle, spread
+    Spellwave = 47810, // Helper->self, no cast, range 40 90-degree cone, cone
+    FuturesEndCast = 47826, // BossP2-self, 6.4s cast, single-target
+    PastsEndCast = 47827, // BossP2->self, 6.4s cast, single-target
+    FuturesEndBossAOE = 47830, // BossP2->players, no cast, range 5 circle
+    PastsEndBossAOE = 47831, // BossP2->players, no cast, range 5 circle
+    FuturesEndCloneAOE = 47832, // CloneP2->players, no cast, range 5 circle
+    PastsEndCloneAOE = 47833, // CloneP2->players, no cast, range 5 circle
+    AllThingsEnding1 = 47836, // BossP2/CloneP2->self, 5.0s cast, range 100 180-degree cone
+    AllThingsEnding2 = 47837, // BossP2/CloneP2->self, 5.0s cast, range 100 180-degree cone
 }
 
 public enum SID : uint
@@ -94,6 +97,7 @@ public enum SID : uint
     Confused = 1283, // GravenImage->player, extra=0x0
 
     SpellsTrouble = 5083, // none->player, extra=0x4/0x3/0x2/0x1
+    // these statuses are invisible, shape is temporarily indicated by an icon appearing over the player (at start of mechanic or after taking tower)
     ForsakenStack = 5084, // none->player, extra=0x0
     ForsakenSpread = 5085, // none->player, extra=0x0
     ForsakenCone = 5086, // none->player, extra=0x0
@@ -104,12 +108,12 @@ public enum IconID : uint
     Tankbuster = 218, // player->self
     FireSpread = 127, // player->self
     FireStack = 128, // player->self
-    MysteryMagicFireLie = 673, // Boss->self
-    MysteryMagicFireTruth = 674, // Boss->self
-    MysteryMagicIceLie = 675, // Boss->self
-    MysteryMagicIceTruth = 676, // Boss->self
-    MysteryMagicThunderLie = 677, // Boss->self
-    MysteryMagicThunderTruth = 678, // Boss->self
+    MysteryMagicFireLie = 673, // BossP1->self
+    MysteryMagicFireTruth = 674, // BossP1->self
+    MysteryMagicIceLie = 675, // BossP1->self
+    MysteryMagicIceTruth = 676, // BossP1->self
+    MysteryMagicThunderLie = 677, // BossP1->self
+    MysteryMagicThunderTruth = 678, // BossP1->self
 
     SharedBuster = 259, // player->self
     ForsakenStack = 715, // player->self

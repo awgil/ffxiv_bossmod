@@ -226,7 +226,7 @@ class UMADStates : StateMachineBuilder
         ActorTargetable(id, _module.BossP2, true, 10.3f, "Boss appears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
-        ActorCast(id + 0x10, _module.BossP2, AID._Ability_UltimateEmbrace, 7.2f, 5, true, "Tankbuster")
+        ActorCast(id + 0x10, _module.BossP2, AID.UltimateEmbrace, 7.2f, 5, true, "Tankbuster")
             .ActivateOnEnter<P2UltimateEmbrace>()
             .DeactivateOnExit<P2UltimateEmbrace>();
 
@@ -237,7 +237,7 @@ class UMADStates : StateMachineBuilder
 
     void P2Forsaken(uint id, float delay)
     {
-        ActorCast(id, _module.BossP2, AID._Ability_Forsaken, delay, 7, true, "Raidwide")
+        ActorCast(id, _module.BossP2, AID.Forsaken, delay, 7, true, "Raidwide")
             .ActivateOnEnter<P2ForsakenRaidwide>()
             .ActivateOnEnter<P2PathOfLight>()
             .ActivateOnEnter<P2Shapes>()
@@ -249,12 +249,14 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P2PathOfLight>(id + 0x10, 13.2f, p => p.NumCasts == 2, "Towers 1");
         ComponentCondition<P2Shapes>(id + 0x20, 0.6f, s => s.NumCasts > 0, "Shapes 1");
 
-        ComponentCondition<P2PastFutureEnd>(id + 0x30, 2.3f, p => p.Active)
-            .ActivateOnEnter<P2PastFutureEnd>();
+        ComponentCondition<P2PastsEndFuturesEnd>(id + 0x30, 2.3f, p => p.Active)
+            .ActivateOnEnter<P2AllThingsEndingBait>()
+            .ActivateOnEnter<P2PastsEndFuturesEnd>();
 
-        ComponentCondition<P2PastFutureEnd>(id + 0x31, 6.9f, p => !p.Active, "Clones");
+        ComponentCondition<P2PastsEndFuturesEnd>(id + 0x31, 6.9f, p => !p.Active, "Clones");
         ComponentCondition<P2PathOfLight>(id + 0x32, 0.2f, p => p.NumCasts == 4, "Towers 2");
         ComponentCondition<P2Shapes>(id + 0x33, 0.6f, s => s.NumCasts > 0, "Shapes 2")
-            .ExecOnEnter<P2Shapes>(s => s.Reset());
+            .ExecOnEnter<P2Shapes>(s => s.Reset())
+            .ExecOnExit<P2AllThingsEndingBait>(b => b.Draw = true);
     }
 }
