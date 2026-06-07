@@ -206,7 +206,9 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
     }
 
     Bait _next;
+#pragma warning disable IDE0052 // Remove unread private members
     DateTime _activation;
+#pragma warning restore IDE0052 // Remove unread private members
 
     readonly List<Actor> _sources = [];
 
