@@ -627,7 +627,12 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 if (!Player.InCombat)
                     prio = GCDPriority.Meditate;
 
-                if (UptimeIn > GCD + 1 || (UptimeIn ?? 0) == 0 && primaryTarget == null)
+                // real downtime according to state machine, we have time to meditate
+                if (UptimeIn > GCD + 1)
+                    prio = GCDPriority.Meditate;
+
+                // regular combat and no target, meditate is ok
+                if (UptimeIn == null && primaryTarget == null)
                     prio = GCDPriority.Meditate;
                 break;
             case MeditationStrategy.Greedy:
