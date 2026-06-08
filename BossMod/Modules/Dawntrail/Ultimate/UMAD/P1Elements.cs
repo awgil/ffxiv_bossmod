@@ -8,7 +8,7 @@ class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWav
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_elem0f)
+        if ((TetherID)tether.ID == TetherID.GravenImage)
         {
             _source = source.Position;
             _targets.Set(Raid.FindSlot(tether.Target));

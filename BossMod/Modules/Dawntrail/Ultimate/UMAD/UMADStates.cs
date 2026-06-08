@@ -98,7 +98,7 @@ class UMADStates : StateMachineBuilder
 
     void P1JudgmentBuster(uint id, float delay)
     {
-        Cast(id, AID.LightOfJudgment, delay, 5, "Raidwide")
+        Cast(id, AID.LightOfJudgmentP1, delay, 5, "Raidwide")
             .ActivateOnEnter<P1LightOfJudgment>()
             .ActivateOnEnter<P1Hyperdrive>()
             .ExecOnEnter<P1Hyperdrive>(h => h.EnableHints = false)
@@ -293,22 +293,22 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P2AllThingsEnding>(id + 0x430, 4.9f, p => p.Casters.Count == 0, "Baits resolve")
             .DeactivateOnExit<P2AllThingsEnding>();
 
-        ActorCast(id + 0x1000, _module.BossP2, AID._Ability_LightOfJudgment, 4.2f, 5, true, "Raidwide")
+        ActorCast(id + 0x1000, _module.BossP2, AID.LightOfJudgmentP2, 4.2f, 5, true, "Raidwide")
             .ActivateOnEnter<P2LightOfJudgment>()
             .DeactivateOnExit<P2LightOfJudgment>();
     }
 
     void P2Trine(uint id, float delay)
     {
-        ActorCast(id, _module.BossP2, AID._Ability_Trine, delay, 3, true)
+        ActorCast(id, _module.BossP2, AID.TrineCast, delay, 3, true)
             .ActivateOnEnter<P2Trine>();
 
-        ActorCastMulti(id + 0x10, _module.BossP2, [AID._Ability_WingsOfDestruction3, AID._Ability_WingsOfDestruction], 3.1f, 4, true, "Left/right")
+        ActorCastMulti(id + 0x10, _module.BossP2, [AID.WingsOfDestructionL, AID.WingsOfDestructionR], 3.1f, 4, true, "Left/right")
             .ActivateOnEnter<P2WingsOfDestructionLeftRight>()
             .DeactivateOnExit<P2WingsOfDestructionLeftRight>();
 
         ComponentCondition<P2Trine>(id + 0x100, 5.7f, p => p.NumCasts == 9, "Trines 1");
-        ActorCastStart(id + 0x101, _module.BossP2, AID._Ability_WingsOfDestruction1, 0.5f, true)
+        ActorCastStart(id + 0x101, _module.BossP2, AID.WingsOfDestructionBusterCast, 0.5f, true)
             .ActivateOnEnter<P2WingsOfDestructionBuster>();
         ComponentCondition<P2Trine>(id + 0x102, 1.5f, p => p.NumCasts == 12, "Trines 2");
         ComponentCondition<P2Trine>(id + 0x103, 2.1f, p => p.NumCasts == 21, "Trines 3")

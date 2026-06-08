@@ -1,5 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Dawntrail.Ultimate.UMAD;
+﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 public enum OID : uint
 {
@@ -40,7 +39,7 @@ public enum AID : uint
     ExplosionP1 = 47786, // Helper->self, 3.0s cast, range 4 circle, tower
     UnmitigatedExplosionP1 = 47787, // Helper->self, no cast, range 100 circle
 
-    LightOfJudgment = 50722, // BossP1->self, 5.0s cast, range 100 circle, raidwide
+    LightOfJudgmentP1 = 50722, // BossP1->self, 5.0s cast, range 100 circle, raidwide
     Hyperdrive = 49739, // BossP1->players, no cast, range 5 circle, 3 hit tankbuster
 
     Gravitas = 47788, // GravenImage->players, no cast, range 5 circle
@@ -58,7 +57,7 @@ public enum AID : uint
     IdyllicWill = 47798, // GravenImage->players, no cast, range 5 circle, applies sleep
     AveMaria = 47795, // GravenImage->self, no cast, range 100 circle, inverted gaze
     IndolentWill = 47796, // GravenImage->self, no cast, range 100 circle, gaze
-    LightOfJudgmentEnrage = 47803, // BossP1->self, 5.0s cast, range 100 circle
+    LightOfJudgmentP1Enrage = 47803, // BossP1->self, 5.0s cast, range 100 circle
 
     UltimateEmbrace = 49740, // BossP2->players, 5.0s cast, range 5 circle, stack buster
     Forsaken = 47804, // BossP2->self, 7.0s cast, range 100 circle
@@ -77,14 +76,14 @@ public enum AID : uint
     AllThingsEnding1 = 47836, // BossP2/CloneP2->self, 5.0s cast, range 100 180-degree cone
     AllThingsEnding2 = 47837, // BossP2/CloneP2->self, 5.0s cast, range 100 180-degree cone
 
-    _Ability_LightOfJudgment = 47805, // BossP2->self, 5.0s cast, range 100 circle
-    _Ability_Trine = 47839, // BossP2->self, 3.0s cast, single-target
-    _Ability_Trine1 = 47840, // Helper->self, no cast, range 6 circle
-    _Ability_WingsOfDestruction1 = 50311, // BossP2->self, 4.0s cast, single-target
-    _Ability_WingsOfDestruction3 = 47821, // BossP2->self, 4.0s cast, range 80 width 40 rect
-    _Ability_WingsOfDestruction = 47822, // BossP2->self, 4.0s cast, range 80 width 40 rect
-    _Ability_WingsOfDestruction2 = 47823, // Helper->players, no cast, range 7 circle
-    _Ability_LightOfJudgment1 = 47841, // BossP2->self, 5.0s cast, range 100 circle
+    LightOfJudgmentP2 = 47805, // BossP2->self, 5.0s cast, range 100 circle
+    TrineCast = 47839, // BossP2->self, 3.0s cast, single-target
+    Trine = 47840, // Helper->self, no cast, range 6 circle
+    WingsOfDestructionL = 47821, // BossP2->self, 4.0s cast, range 80 width 40 rect
+    WingsOfDestructionR = 47822, // BossP2->self, 4.0s cast, range 80 width 40 rect
+    WingsOfDestructionBusterCast = 50311, // BossP2->self, 4.0s cast, single-target
+    WingsOfDestructionBuster = 47823, // Helper->players, no cast, range 7 circle
+    LightOfJudgmentP2Enrage = 47841, // BossP2->self, 5.0s cast, range 100 circle
 }
 
 public enum SID : uint
@@ -133,5 +132,5 @@ public enum IconID : uint
 
 public enum TetherID : uint
 {
-    _Gen_Tether_chn_elem0f = 45, // GravenImage->player
+    GravenImage = 45, // GravenImage->player, used for every statue-related P1 mechanic
 }

@@ -19,7 +19,7 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_elem0f && WorldState.Actors.Find(tether.Target) is { } target)
+        if ((TetherID)tether.ID == TetherID.GravenImage && WorldState.Actors.Find(tether.Target) is { } target)
         {
             if (source.Position.AlmostEqual(new(102.5f, 27), 5))
                 AddStack(target, WorldState.FutureTime(6.5f));

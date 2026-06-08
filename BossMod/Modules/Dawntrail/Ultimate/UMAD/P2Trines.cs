@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
-class P2WingsOfDestructionLeftRight(BossModule module) : Components.GroupedAOEs(module, [AID._Ability_WingsOfDestruction3, AID._Ability_WingsOfDestruction], new AOEShapeRect(80, 20));
+class P2WingsOfDestructionLeftRight(BossModule module) : Components.GroupedAOEs(module, [AID.WingsOfDestructionL, AID.WingsOfDestructionR], new AOEShapeRect(80, 20));
 
 // trine triggers 10.7s after EObjAnim 00100020 of either 1EBFB3 or 1EBFB2
 // trine is an equilateral triangle with an edge length of 10, so circumcircle radius cR = 10 * √3 / 3
 // so casts are at (obj.X + cR, obj.Z), (obj.X - cR / 2, obj.Z + 5), (obj.X - cR / 2, obj.Z - 5) for 0x1EBFB2, flipped horizontally for 0x1EBFB3
-class P2Trine(BossModule module) : Components.GenericAOEs(module, AID._Ability_Trine1)
+class P2Trine(BossModule module) : Components.GenericAOEs(module, AID.Trine)
 {
     static readonly float TrineRadius = 10 * MathF.Sqrt(3) / 3;
 
@@ -75,16 +75,14 @@ class P2Trine(BossModule module) : Components.GenericAOEs(module, AID._Ability_T
     }
 }
 
-class P2TrineTracker(BossModule module) : Components.DebugCasts(module, [AID._Ability_Trine1], new AOEShapeCircle(6));
-
-class P2WingsOfDestructionBuster(BossModule module) : Components.GenericBaitAway(module, AID._Ability_WingsOfDestruction2, centerAtTarget: true)
+class P2WingsOfDestructionBuster(BossModule module) : Components.GenericBaitAway(module, AID.WingsOfDestructionBuster, centerAtTarget: true)
 {
     DateTime _activation;
     Actor? _source;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_WingsOfDestruction1)
+        if ((AID)spell.Action.ID == AID.WingsOfDestructionBusterCast)
         {
             _source = caster;
             _activation = Module.CastFinishAt(spell, 0.1f);

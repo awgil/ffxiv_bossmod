@@ -213,7 +213,7 @@ class P1IndulgentWill(BossModule module) : BossComponent(module)
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_elem0f && source.Position.AlmostEqual(new(95, 25), 5) && Raid.TryFindSlot(tether.Target, out var target))
+        if ((TetherID)tether.ID == TetherID.GravenImage && source.Position.AlmostEqual(new(95, 25), 5) && Raid.TryFindSlot(tether.Target, out var target))
             _targets.Set(target);
     }
 
@@ -241,7 +241,7 @@ class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_elem0f && source.Position.AlmostEqual(new(107, 43), 5) && WorldState.Actors.Find(tether.Target) is { } target)
+        if ((TetherID)tether.ID == TetherID.GravenImage && source.Position.AlmostEqual(new(107, 43), 5) && WorldState.Actors.Find(tether.Target) is { } target)
             _stored.Add(new(target, 5, WorldState.FutureTime(9)));
     }
 

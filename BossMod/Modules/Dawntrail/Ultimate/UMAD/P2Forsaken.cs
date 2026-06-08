@@ -335,4 +335,4 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
     }
 }
 
-class P2LightOfJudgment(BossModule module) : Components.RaidwideCast(module, AID._Ability_LightOfJudgment);
+class P2LightOfJudgment(BossModule module) : Components.RaidwideCast(module, AID.LightOfJudgmentP2);
