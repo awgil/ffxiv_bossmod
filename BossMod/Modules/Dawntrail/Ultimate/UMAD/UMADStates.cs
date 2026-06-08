@@ -105,6 +105,7 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1LightOfJudgment>();
 
         ComponentCondition<P1Hyperdrive>(id + 0x10, 3.1f, h => h.NumCasts > 0, "Tankbuster 1")
+            .SetHint(StateMachine.StateHint.Tankbuster)
             .ExecOnEnter<P1Hyperdrive>(h => h.EnableHints = true);
         ComponentCondition<P1Hyperdrive>(id + 0x20, 4.2f, h => h.NumCasts > 2, "Tankbuster 3")
             .DeactivateOnExit<P1Hyperdrive>();
@@ -226,13 +227,21 @@ class UMADStates : StateMachineBuilder
         ActorTargetable(id, _module.BossP2, true, 10.3f, "Boss appears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
-        ActorCast(id + 0x10, _module.BossP2, AID.UltimateEmbrace, 7.2f, 5, true, "Tankbuster")
-            .ActivateOnEnter<P2UltimateEmbrace>()
-            .DeactivateOnExit<P2UltimateEmbrace>();
-
+        P2UltimateEmbrace(id + 0x10, 7.2f);
         P2Forsaken(id + 0x10000, 8.3f);
+        P2Trine(id + 0x20000, 8.2f);
+        ActorTargetable(id + 0x30000, _module.BossP2, false, 3.3f, "Boss disappears")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
 
         Timeout(id + 0xFF0000, 10000, "???");
+    }
+
+    void P2UltimateEmbrace(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP2, AID.UltimateEmbrace, delay, 5, true, "Tankbuster")
+            .SetHint(StateMachine.StateHint.Tankbuster)
+            .ActivateOnEnter<P2UltimateEmbrace>()
+            .DeactivateOnExit<P2UltimateEmbrace>();
     }
 
     void P2Forsaken(uint id, float delay)
@@ -246,17 +255,68 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P2AllThingsEnding>()
             .DeactivateOnExit<P2ForsakenRaidwide>();
 
-        ComponentCondition<P2PathOfLight>(id + 0x10, 13.2f, p => p.NumCasts == 2, "Towers 1");
-        ComponentCondition<P2Shapes>(id + 0x20, 0.6f, s => s.NumCasts > 0, "Shapes 1");
+        void TowerSet(uint id, int round, float delay = 5.1f)
+        {
+            var r1 = (round - 1) * 2 + 1;
+            ComponentCondition<P2PathOfLight>(id, delay, p => p.NumCasts == 2 * r1, $"Towers {r1}");
+            ComponentCondition<P2Shapes>(id + 1, 0.6f, s => s.NumCasts > 0, $"Shapes {r1}")
+                .ExecOnEnter<P2Shapes>(s => s.Reset())
+                .ExecOnEnter<P2PathOfLight>(p => p.EnableHints = false)
+                .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true);
 
-        ComponentCondition<P2PastsEndFuturesEnd>(id + 0x30, 2.3f, p => p.Active)
-            .ActivateOnEnter<P2AllThingsEndingBait>()
-            .ActivateOnEnter<P2PastsEndFuturesEnd>();
+            ComponentCondition<P2PastsEndFuturesEnd>(id + 0x10, 2.3f, p => p.Active)
+                .ActivateOnEnter<P2AllThingsEndingBait>()
+                .ActivateOnEnter<P2PastsEndFuturesEnd>();
+            ComponentCondition<P2PastsEndFuturesEnd>(id + 0x11, 6.9f, p => !p.Active, "Clones")
+                .DeactivateOnExit<P2PastsEndFuturesEnd>();
 
-        ComponentCondition<P2PastsEndFuturesEnd>(id + 0x31, 6.9f, p => !p.Active, "Clones");
-        ComponentCondition<P2PathOfLight>(id + 0x32, 0.2f, p => p.NumCasts == 4, "Towers 2");
-        ComponentCondition<P2Shapes>(id + 0x33, 0.6f, s => s.NumCasts > 0, "Shapes 2")
-            .ExecOnEnter<P2Shapes>(s => s.Reset())
-            .ExecOnExit<P2AllThingsEndingBait>(b => b.Draw = true);
+            ComponentCondition<P2PathOfLight>(id + 0x12, 0.2f, p => p.NumCasts == 2 * (r1 + 1), $"Towers {r1 + 1}");
+            ComponentCondition<P2Shapes>(id + 0x13, 0.6f, s => s.NumCasts > 0, $"Shapes {r1 + 1}")
+                .ExecOnEnter<P2Shapes>(s => s.Reset())
+                .ExecOnExit<P2AllThingsEndingBait>(b => b.Draw = true)
+                .ExecOnExit<P2PathOfLight>(p => p.EnableHints = false)
+                .DeactivateOnExit<P2Shapes>(round == 4)
+                .DeactivateOnExit<P2StackSpread>(round == 4)
+                .DeactivateOnExit<P2Spellwave>(round == 4);
+
+            ComponentCondition<P2AllThingsEndingBait>(id + 0x20, 5.4f, p => p.Casting, "Baits")
+                .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true)
+                .DeactivateOnExit<P2AllThingsEndingBait>()
+                .DeactivateOnExit<P2PathOfLight>(round == 4);
+        }
+
+        TowerSet(id + 0x100, 1, 13.2f);
+        TowerSet(id + 0x200, 2);
+        TowerSet(id + 0x300, 3);
+        TowerSet(id + 0x400, 4);
+
+        ComponentCondition<P2AllThingsEnding>(id + 0x430, 4.9f, p => p.Casters.Count == 0, "Baits resolve")
+            .DeactivateOnExit<P2AllThingsEnding>();
+
+        ActorCast(id + 0x1000, _module.BossP2, AID._Ability_LightOfJudgment, 4.2f, 5, true, "Raidwide")
+            .ActivateOnEnter<P2LightOfJudgment>()
+            .DeactivateOnExit<P2LightOfJudgment>();
+    }
+
+    void P2Trine(uint id, float delay)
+    {
+        ActorCast(id, _module.BossP2, AID._Ability_Trine, delay, 3, true)
+            .ActivateOnEnter<P2Trine>();
+
+        ActorCastMulti(id + 0x10, _module.BossP2, [AID._Ability_WingsOfDestruction3, AID._Ability_WingsOfDestruction], 3.1f, 4, true, "Left/right")
+            .ActivateOnEnter<P2WingsOfDestructionLeftRight>()
+            .DeactivateOnExit<P2WingsOfDestructionLeftRight>();
+
+        ComponentCondition<P2Trine>(id + 0x100, 5.7f, p => p.NumCasts == 9, "Trines 1");
+        ActorCastStart(id + 0x101, _module.BossP2, AID._Ability_WingsOfDestruction1, 0.5f, true)
+            .ActivateOnEnter<P2WingsOfDestructionBuster>();
+        ComponentCondition<P2Trine>(id + 0x102, 1.5f, p => p.NumCasts == 12, "Trines 2");
+        ComponentCondition<P2Trine>(id + 0x103, 2.1f, p => p.NumCasts == 21, "Trines 3")
+            .DeactivateOnExit<P2Trine>();
+        ComponentCondition<P2WingsOfDestructionBuster>(id + 0x110, 0.4f, p => p.NumCasts > 0, "Tankbusters")
+            .SetHint(StateMachine.StateHint.Tankbuster)
+            .DeactivateOnExit<P2WingsOfDestructionBuster>();
+
+        P2UltimateEmbrace(id + 0x200, 2.1f);
     }
 }

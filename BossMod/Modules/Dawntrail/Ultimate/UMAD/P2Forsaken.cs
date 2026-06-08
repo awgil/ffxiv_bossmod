@@ -9,12 +9,17 @@ class P2ForsakenRaidwide(BossModule module) : Components.RaidwideCast(module, AI
 // tower triggers 10.2s later
 class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.ThePathOfLight)
 {
+    // even towers appear about 0.5s before odd towers trigger, and i DO NOT want to have to write code accounting for 4 towers, so instead we save the even towers until the odd towers despawn
+    readonly List<Tower> _stored = [];
+
     public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 1 and <= 8 && state == 0x00020001)
         {
             var angle = (180 - (index - 1) * 45).Degrees();
-            Towers.Add(new(Arena.Center + angle.ToDirection() * 8, 4, minSoakers: 2, maxSoakers: 2, default, WorldState.FutureTime(10.2f)));
+
+            var tower = new Tower(Arena.Center + angle.ToDirection() * 8, 4, minSoakers: 2, maxSoakers: 2, default, WorldState.FutureTime(10.2f));
+            (Towers.Count >= 2 ? _stored : Towers).Add(tower);
         }
     }
 
@@ -24,14 +29,21 @@ class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.Th
         {
             NumCasts++;
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
+            if (Towers.Count == 0 && _stored.Count > 0)
+            {
+                Towers.AddRange(_stored);
+                _stored.Clear();
+            }
         }
     }
 
     public bool InAnyTower(Actor a) => Towers.Any(t => a.Position.InCircle(t.Position, t.Radius));
 }
 
-class P2Shapes(BossModule module) : Components.CastCounterMulti(module, [AID.Spelldriver, AID.Spellscatter, AID.Spellwave])
+class P2Shapes : Components.CastCounterMulti
 {
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
+
     public enum Shape
     {
         None,
@@ -42,10 +54,64 @@ class P2Shapes(BossModule module) : Components.CastCounterMulti(module, [AID.Spe
 
     public readonly Shape[] Shapes = new Shape[8];
 
+    readonly int[] _buddySlot = Utils.MakeArray(8, -1);
+
+    public P2Shapes(BossModule module) : base(module, [AID.Spelldriver, AID.Spellscatter, AID.Spellwave])
+    {
+        var partnerIds = Utils.GenArray<int[]>(4, () => [-1, -1]);
+        foreach (var (slot, grp) in _config.P2ForsakenPairs.Resolve(Raid))
+        {
+            if (partnerIds[grp][0] == -1)
+                partnerIds[grp][0] = slot;
+            else
+                partnerIds[grp][1] = slot;
+        }
+
+        if (partnerIds.All(p => p.All(p1 => p1 >= 0)))
+        {
+            for (var i = 0; i < partnerIds.Length; i++)
+            {
+                _buddySlot[partnerIds[i][0]] = partnerIds[i][1];
+                _buddySlot[partnerIds[i][1]] = partnerIds[i][0];
+            }
+        }
+    }
+
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Shapes[slot] != default)
             hints.Add($"Current shape: {Shapes[slot]}", false);
+        if (_buddySlot[slot] >= 0 && Shapes[_buddySlot[slot]] != default)
+            hints.Add($"Buddy shape: {Shapes[_buddySlot[slot]]}", false);
+    }
+
+    // delete this nephew
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (!Service.IsDev)
+            return;
+
+        var triangleRadius = 0.577f * 1.5f;
+        foreach (var (slot, player) in Raid.WithSlot())
+        {
+            var shapeOrigin = player.Position - Arena.CameraAzimuth.ToDirection() * 2;
+            switch (Shapes[slot])
+            {
+                case Shape.Cone:
+                    var points = (shapeOrigin + Arena.CameraAzimuth.ToDirection() * triangleRadius, shapeOrigin + (Arena.CameraAzimuth - 120.Degrees()).ToDirection() * triangleRadius, shapeOrigin + (Arena.CameraAzimuth + 120.Degrees()).ToDirection() * triangleRadius);
+                    Arena.AddTriangle(points.Item1, points.Item2, points.Item3, 0xFF000000, 2);
+                    Arena.AddTriangleFilled(points.Item1, points.Item2, points.Item3, ArenaColor.Danger);
+                    break;
+                case Shape.Spread:
+                    Arena.AddCircle(shapeOrigin, 0.75f, 0xFF000000, 2);
+                    Arena.AddCircleFilled(shapeOrigin, 0.75f, ArenaColor.Danger);
+                    break;
+                case Shape.Stack:
+                    Arena.AddCircle(shapeOrigin, 0.75f, 0xFF000000, 2);
+                    Arena.AddCircle(shapeOrigin, 0.75f, ArenaColor.Danger);
+                    break;
+            }
+        }
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -72,9 +138,11 @@ class P2Shapes(BossModule module) : Components.CastCounterMulti(module, [AID.Spe
     {
         NumCasts = 0;
     }
+
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => _buddySlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
 }
 
-class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5, 5, 3)
+class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5, 5, 3, alwaysShowSpreads: true)
 {
     readonly P2Shapes _shapes = module.FindComponent<P2Shapes>()!;
     readonly P2PathOfLight _towers = module.FindComponent<P2PathOfLight>()!;
@@ -213,6 +281,7 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
     readonly List<Actor> _sources = [];
 
     public bool Draw;
+    public bool Casting { get; private set; }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -231,6 +300,7 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
                 _sources.Remove(caster);
                 if (_sources.Count == 0)
                 {
+                    Casting = true;
                     _next = default;
                     _activation = default;
                 }
@@ -264,3 +334,5 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
             hints.Add($"Next bait: {_next}");
     }
 }
+
+class P2LightOfJudgment(BossModule module) : Components.RaidwideCast(module, AID._Ability_LightOfJudgment);

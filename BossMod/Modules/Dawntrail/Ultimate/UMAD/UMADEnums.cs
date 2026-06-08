@@ -67,6 +67,7 @@ public enum AID : uint
     Spelldriver = 47808, // Helper->players, no cast, range 5 circle, stack
     Spellscatter = 47809, // Helper->players, no cast, range 5 circle, spread
     Spellwave = 47810, // Helper->self, no cast, range 40 90-degree cone, cone
+    SpellsTrouble = 47811, // Helper->player, no cast, single-target, kills players with debuff stacks remaining at end of forsaken
     FuturesEndCast = 47826, // BossP2-self, 6.4s cast, single-target
     PastsEndCast = 47827, // BossP2->self, 6.4s cast, single-target
     FuturesEndBossAOE = 47830, // BossP2->players, no cast, range 5 circle
@@ -75,6 +76,15 @@ public enum AID : uint
     PastsEndCloneAOE = 47833, // CloneP2->players, no cast, range 5 circle
     AllThingsEnding1 = 47836, // BossP2/CloneP2->self, 5.0s cast, range 100 180-degree cone
     AllThingsEnding2 = 47837, // BossP2/CloneP2->self, 5.0s cast, range 100 180-degree cone
+
+    _Ability_LightOfJudgment = 47805, // BossP2->self, 5.0s cast, range 100 circle
+    _Ability_Trine = 47839, // BossP2->self, 3.0s cast, single-target
+    _Ability_Trine1 = 47840, // Helper->self, no cast, range 6 circle
+    _Ability_WingsOfDestruction1 = 50311, // BossP2->self, 4.0s cast, single-target
+    _Ability_WingsOfDestruction3 = 47821, // BossP2->self, 4.0s cast, range 80 width 40 rect
+    _Ability_WingsOfDestruction = 47822, // BossP2->self, 4.0s cast, range 80 width 40 rect
+    _Ability_WingsOfDestruction2 = 47823, // Helper->players, no cast, range 7 circle
+    _Ability_LightOfJudgment1 = 47841, // BossP2->self, 5.0s cast, range 100 circle
 }
 
 public enum SID : uint

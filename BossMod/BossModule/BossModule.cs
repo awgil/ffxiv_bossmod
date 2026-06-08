@@ -313,7 +313,7 @@ public abstract class BossModule : IDisposable
         List<Actor> highlighted = [];
         var cursor = ImGui.GetMousePos();
 
-        foreach (var actor in WorldState.Actors.Where(a => !a.IsAlly).Exclude(PrimaryActor))
+        foreach (var actor in WorldState.Actors.Where(a => !a.IsAlly || !a.IsTargetable).Exclude(PrimaryActor))
         {
             Arena.ActorInsideBounds(actor.Position, actor.Rotation, ArenaColor.Object);
             var s = Arena.WorldPositionToScreenPosition(actor.Position);

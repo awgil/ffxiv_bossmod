@@ -45,7 +45,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
 
     // these are set at the beginning of each draw
     public Vector2 ScreenCenter { get; private set; }
-    private Angle _cameraAzimuth;
+    public Angle CameraAzimuth { get; private set; }
     private float _cameraSinAzimuth;
     private float _cameraCosAzimuth = 1;
 
@@ -73,7 +73,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
             _triCache.NextFrame();
         }
         ScreenCenter = cursor + centerOffset;
-        _cameraAzimuth = cameraAzimuth;
+        CameraAzimuth = cameraAzimuth;
         _cameraSinAzimuth = cameraAzimuth.Sin();
         _cameraCosAzimuth = cameraAzimuth.Cos();
         //var camWorld = SharpDX.Matrix.RotationYawPitchRoll(azimuth, altitude, 0);
@@ -166,7 +166,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     {
         thickness *= Config.ThicknessScale;
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth.Rad;
+        float sDir = MathF.PI / 2 - centerDirection.Rad + CameraAzimuth.Rad;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathLineTo(sCenter);
         drawlist.PathArcTo(sCenter, radius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -177,7 +177,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     {
         thickness *= Config.ThicknessScale;
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth.Rad;
+        float sDir = MathF.PI / 2 - centerDirection.Rad + CameraAzimuth.Rad;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathArcTo(sCenter, innerRadius / Bounds.Radius * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
         drawlist.PathArcTo(sCenter, outerRadius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -229,7 +229,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     // adds a bunch of points corresponding to arc - if path is non empty, this adds an edge from last point to first arc point
     public void PathArcTo(WPos center, float radius, float amin, float amax)
     {
-        ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth.Rad, MathF.PI / 2 - amax + _cameraAzimuth.Rad);
+        ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, MathF.PI / 2 - amin + CameraAzimuth.Rad, MathF.PI / 2 - amax + CameraAzimuth.Rad);
     }
 
     public void PathStroke(bool closed, uint color, float thickness = 1)
