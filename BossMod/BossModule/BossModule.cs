@@ -188,10 +188,15 @@ public abstract class BossModule : IDisposable
         }
     }
 
+    static bool IsMelee(Actor pc) => pc is { Role: Role.Melee or Role.Tank } or { Class: Class.RDM };
+
     public virtual void DrawArena(int pcSlot, Actor pc, bool haveRisks)
     {
         if (WindowConfig.ShowWaymarks)
             DrawWaymarks();
+
+        if (WindowConfig.ShowMeleeRange && IsMelee(pc) && WorldState.Actors.Find(pc.TargetID) is { IsAlly: false } target)
+            Arena.AddCircle(target.Position, target.HitboxRadius + pc.HitboxRadius + 3, ColorConfig.ArenaMeleeRing.ABGR);
 
         // draw background
         DrawArenaBackground(pcSlot, pc);

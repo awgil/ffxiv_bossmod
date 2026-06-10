@@ -61,6 +61,9 @@ public sealed class ColorConfig : ConfigNode
     [PropertyDisplay("Arena: generic/irrelevant focus target")]
     public Color ArenaPlayerGenericFocus = Color.FromComponents(0, 255, 255);
 
+    [PropertyDisplay("Arena: melee range indicator")]
+    public Color ArenaMeleeRing = Color.FromComponents(255, 255, 255, 128);
+
     [PropertyDisplay("Planner: background")]
     public Color PlannerBackground = new(0x80362b00); // solarized base03; old: 0x40404040
 
