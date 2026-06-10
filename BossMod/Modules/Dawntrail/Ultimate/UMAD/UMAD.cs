@@ -17,6 +17,8 @@ public class UMAD(WorldState ws, Actor primary) : BossModule(ws, primary, new(10
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        if (Service.IsDev)
+            Arena.AddCircle(PrimaryActor.Position, PrimaryActor.HitboxRadius + pc.HitboxRadius + 3, ArenaColor.Border);
         Arena.Actor(_bossP2, ArenaColor.Enemy);
     }
 }

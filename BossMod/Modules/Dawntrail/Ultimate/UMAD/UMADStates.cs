@@ -51,7 +51,6 @@ class UMADStates : StateMachineBuilder
         CastStart(id + 0x10, AID.MysteryMagic, 3.2f);
 
         ComponentCondition<P1PulseWave>(id + 0x100, 2.6f, p => p.NumCasts > 0, "Knockback")
-            .DeactivateOnExit<P1PulseWave>()
             .ExecOnExit<P1FlagrantFireIII>(f => f.EnableHints = true)
             .ExecOnExit<P1BlizzardIIIBlowout>(b => b.Risky = true);
 
@@ -59,7 +58,8 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1BlizzardIIIBlowout>();
 
         ComponentCondition<P1FlagrantFireIII>(id + 0x120, 0.8f, p => !p.Active, "Stack/spread")
-            .DeactivateOnExit<P1FlagrantFireIII>();
+            .DeactivateOnExit<P1FlagrantFireIII>()
+            .DeactivateOnExit<P1PulseWave>();
     }
 
     void P1WaveCannon(uint id, float delay)

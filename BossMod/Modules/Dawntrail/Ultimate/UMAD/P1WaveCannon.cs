@@ -2,17 +2,20 @@
 
 class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWave, true)
 {
-    DateTime _activation;
-    BitMask _targets;
     WPos _source;
+
+    public DateTime Activation { get; private set; }
+    public BitMask Targets;
+
+    bool _blizzardStarted;
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GravenImage)
         {
             _source = source.Position;
-            _targets.Set(Raid.FindSlot(tether.Target));
-            _activation = WorldState.FutureTime(5.1f);
+            Targets.Set(Raid.FindSlot(tether.Target));
+            Activation = WorldState.FutureTime(5.1f);
         }
     }
 
@@ -21,23 +24,40 @@ class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWav
         if (spell.Action == WatchedAction)
         {
             NumCasts++;
-            _targets.Clear(Raid.FindSlot(spell.MainTargetID));
+            Targets.Clear(Raid.FindSlot(spell.MainTargetID));
         }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        _blizzardStarted |= (AID)spell.Action.ID is AID.BlizzardIIIBlowout1 or AID.BlizzardIIIBlowout2;
     }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (_targets[slot])
-            yield return new(_source, 13, _activation);
+        if (Targets[slot])
+            yield return new(_source, 13, Activation);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Targets[slot] || _blizzardStarted)
+            return;
+
+        // TODO tweak zone size. we want the player to move north if they get tethered, since blizzard zones are only visible for ~2.5s before kb activates
+        // max melee is 9.5y circle around arena center
+        hints.AddForbiddenZone(ShapeContains.InvertedRect(new(100, 80), new(100, 93), 40), Activation);
     }
 }
 
-class P1BlizzardIIIBlowout(BossModule module) : Components.GroupedAOEs(module, [AID.BlizzardIIIBlowout2, AID.BlizzardIIIBlowout1], new AOEShapeCone(40, 45.Degrees()));
+class P1BlizzardIIIBlowout(BossModule module) : Components.GroupedAOEs(module, [AID.BlizzardIIIBlowout1, AID.BlizzardIIIBlowout2], new AOEShapeCone(40, 45.Degrees()));
 class P1ThrummingThunderIII(BossModule module) : Components.GroupedAOEs(module, [AID.ThrummingThunderIII1, AID.ThrummingThunderIII2], new AOEShapeRect(40, 5));
 
 class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(module, 6, 5, 4, 4)
 {
-    P1PulseWave? _knockback;
+    readonly P1PulseWave? _pulseWave = module.FindComponent<P1PulseWave>();
+    readonly P1BlizzardIIIBlowout? _blizzard = module.FindComponent<P1BlizzardIIIBlowout>();
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
 
     enum Mechanic { None, Stack, Spread }
     enum Lying { Unsure, No, Yes }
@@ -46,6 +66,8 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
     Lying _lying;
 
     BitMask _stackTargets; // empty if boss is lying or if the displayed mechanic is spread
+
+    bool HintsInitialized;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -127,12 +149,84 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
 
     public override void Update()
     {
-        _knockback ??= Module.FindComponent<P1PulseWave>();
+        if (_pulseWave == null)
+        {
+            HintsInitialized = true;
+            return;
+        }
+
+        if (HintsInitialized || !Active || _pulseWave.Targets.NumSetBits() < 4)
+            return;
+
+        HintsInitialized = true;
     }
 
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.DrawArenaForeground(pcSlot, pc);
+        var myOrder = _config.P1WaveCannonConga[assignment];
+        if (!HintsInitialized || myOrder < 0 || _pulseWave?.NumCasts > 0)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+
+        var pcSlot = slot;
+        var pc = actor;
+
+        WPos mySpot;
+
+        var isSpread = Spreads.Count > 0;
+
+        if (isSpread)
+            // space players evenly-ish across the arena
+            mySpot = Arena.Center + new WDir((myOrder - 3.5f) * 5, 0);
+        else
+            mySpot = Arena.Center + new WDir(myOrder > 3 ? 7 : -7, 0);
+
+        var safeDirZ = 1;
+
+        if (_blizzard?.ActiveAOEs(pcSlot, pc).Any(e => e.Check(mySpot + new WDir(0, safeDirZ))) == true)
+            safeDirZ = -safeDirZ;
+
+        if (isSpread)
+        {
+            var bossDirX = myOrder > 3 ? -1 : 1;
+
+            switch (myOrder)
+            {
+                // MT/M1 can move in horizontally to relative n/s to give other melees space
+                case 3:
+                case 4:
+                    mySpot += new WDir(1.5f * bossDirX, 6 * safeDirZ);
+                    break;
+                // OT/M2 can also move in horizontally, staying relative e/w
+                case 2:
+                case 5:
+                    mySpot += new WDir(1.5f * bossDirX, safeDirZ);
+                    break;
+                // ranged move further away from center to give partner space
+                case 1:
+                case 6:
+                    mySpot.Z += safeDirZ * 3;
+                    break;
+                default:
+                    mySpot.Z += safeDirZ;
+                    break;
+            }
+        }
+        else
+        {
+            mySpot.Z += safeDirZ * 2;
+        }
+
+        if (_pulseWave!.Targets[pcSlot])
+        {
+            var dirToSpot = new WPos(100, 65) - mySpot;
+            var dist = 13;
+            mySpot += dirToSpot.Normalized() * dist;
+        }
+
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(mySpot, isSpread ? 1 : 6), _pulseWave!.Activation);
     }
 }
 
