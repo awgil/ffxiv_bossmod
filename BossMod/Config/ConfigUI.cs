@@ -157,11 +157,16 @@ public sealed class ConfigUI : IDisposable
             if (filter?.Invoke(props) == false)
                 continue;
 
+            var newSection = field.GetCustomAttribute<SectionStartAttribute>();
+
             var disabled = false;
             var nested = false;
 
             if (props.Depends is { } prop)
             {
+                if (newSection != null)
+                    throw new InvalidOperationException($"A field with a dependency cannot start a new config section");
+
                 nested = true;
                 var dependsEnabled = node.GetType().GetField(prop)?.GetValue(node) switch
                 {
@@ -171,6 +176,15 @@ public sealed class ConfigUI : IDisposable
                 disabled = !dependsEnabled;
             }
 
+            if (newSection != null)
+            {
+                if (newSection.Separator)
+                    ImGui.Separator();
+
+                if (newSection.Label.Length > 0)
+                    ImGui.TextDisabled(newSection.Label);
+            }
+
             var value = field.GetValue(node);
             using (ImRaii.Disabled(disabled))
             {
@@ -178,11 +192,6 @@ public sealed class ConfigUI : IDisposable
                 {
                     node.Modified.Fire();
                 }
-            }
-
-            if (props.Separator)
-            {
-                ImGui.Separator();
             }
         }
 

@@ -28,10 +28,11 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Allow WIP modules", since: "7.5.0.10", tooltip: "WIP modules are unfinished and may have severe bugs. Enable at your own risk.")]
     public bool AllowIncompleteModules = false;
 
-    [PropertyDisplay("Enable Striking Dummy module during Explorer Mode dungeons", since: "7.5.0.10", separator: true)]
+    [PropertyDisplay("Enable Striking Dummy module during Explorer Mode dungeons", since: "7.5.0.10")]
     public bool EnableDummyModule = false;
 
     // radar window settings
+    [SectionStart]
     [PropertyDisplay("Enable radar")]
     public bool Enable = true;
 
@@ -92,10 +93,11 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show role-based colors on otherwise uncolored players in the radar")]
     public bool ColorPlayersBasedOnRole = false;
 
-    [PropertyDisplay("Always show focus targeted party member", separator: true)]
+    [PropertyDisplay("Always show focus targeted party member")]
     public bool ShowFocusTargetPlayer = false;
 
     // hint window settings
+    [SectionStart]
     [PropertyDisplay("Show text hints in separate window", tooltip: "Separates the radar window from the hints window, allowing you to reposition the hints window")]
     public bool HintsInSeparateWindow = false;
 
@@ -105,10 +107,11 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show raidwide hints")]
     public bool ShowGlobalHints = true;
 
-    [PropertyDisplay("Show player hints and warnings", separator: true)]
+    [PropertyDisplay("Show player hints and warnings")]
     public bool ShowPlayerHints = true;
 
     // misc. settings
+    [SectionStart]
     [PropertyDisplay("Show movement hints in world", tooltip: "Not used very much, but can show you arrows in the game world to indicate where to move for certain mechanics")]
     public bool ShowWorldArrows = false;
 
