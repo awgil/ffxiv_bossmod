@@ -24,7 +24,7 @@ public sealed class FollowSlot(RotationModuleManager manager, Actor player) : Ty
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         // fallback for users not using autorot (this module is meant to replace legacy ai)
-        if (Hints.GoalZones.Count == 0 && primaryTarget != null)
+        if (Hints.GoalZones.Count == 0 && primaryTarget is { IsAlly: false })
         {
             var effectiveRange = Player.Role is Role.Melee or Role.Tank ? 3 : 25;
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, effectiveRange));
