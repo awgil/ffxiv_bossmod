@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 using System.Reflection;
@@ -232,7 +233,7 @@ public sealed class ConfigUI : IDisposable
         return _filterNodes.Any(matchesOneFilter);
     }
 
-    private static void DrawHelp(string tooltip, bool nested = false)
+    public static void DrawHelp(string tooltip, bool nested = false)
     {
         // draw tooltip marker with proper alignment
         ImGui.AlignTextToFramePadding();
@@ -243,22 +244,25 @@ public sealed class ConfigUI : IDisposable
         else
         {
             using var invisible = ImRaii.PushColor(ImGuiCol.Text, 0x00000000);
-            UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle);
+            UIMisc.IconText(FontAwesomeIcon.InfoCircle);
         }
         ImGui.SameLine();
         if (nested)
-        {
-            var sHeight = ImGui.GetFrameHeight();
-            var sBox = new Vector2(sHeight, sHeight);
+            DrawNesting();
+    }
 
-            var bar = "└";
-            var pos = ImGui.GetCursorScreenPos();
-            var size = ImGui.CalcTextSize(bar);
+    private static void DrawNesting()
+    {
+        var sHeight = ImGui.GetFrameHeight();
+        var sBox = new Vector2(sHeight, sHeight);
 
-            ImGui.Dummy(new(sHeight - ImGui.GetStyle().ItemInnerSpacing.X, 0));
-            ImGui.SameLine();
-            ImGui.GetWindowDrawList().AddText(pos + (sBox - size) * 0.5f, ImGui.GetColorU32(ImGuiCol.Text), bar);
-        }
+        var bar = "└";
+        var pos = ImGui.GetCursorScreenPos();
+        var size = ImGui.CalcTextSize(bar);
+
+        ImGui.Dummy(new(sHeight - ImGui.GetStyle().ItemInnerSpacing.X, 0));
+        ImGui.SameLine();
+        ImGui.GetWindowDrawList().AddText(pos + (sBox - size) * 0.5f, ImGui.GetColorU32(ImGuiCol.Text), bar);
     }
 
     private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
@@ -402,10 +406,12 @@ public sealed class ConfigUI : IDisposable
         return modified;
     }
 
-    public static void DrawGroupPresetIndicator(string text, Action contextMenu)
+    public static void DrawGroupPresetIndicator(string text, string help, Action contextMenu)
     {
         ImGui.AlignTextToFramePadding();
-        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ListUl, $"{text}open"))
+        var paddingX = ImGui.GetStyle().FramePadding.X;
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() - paddingX);
+        if (UIMisc.IconButton(help == "" ? FontAwesomeIcon.ListUl : FontAwesomeIcon.InfoCircle))
             ImGui.OpenPopup($"{text}popup");
 
         if (ImGui.BeginPopup($"{text}popup"))
@@ -414,8 +420,18 @@ public sealed class ConfigUI : IDisposable
             ImGui.EndPopup();
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Select a preset");
+        {
+            ImGui.BeginTooltip();
+            if (help != "")
+            {
+                ImGui.TextUnformatted(help);
+                ImGui.Separator();
+            }
+            ImGui.TextUnformatted("Click to select a preset");
+            ImGui.EndTooltip();
+        }
         ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() - paddingX);
     }
 
     private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
@@ -424,32 +440,32 @@ public sealed class ConfigUI : IDisposable
         if (group == null)
             return false;
 
-        var spaced = false;
+        var haveTooltip = tooltip.Length > 0;
+        var havePresetButton = member.GetCustomAttributes<GroupPresetAttribute>().Any();
+
+        var spaced = haveTooltip || havePresetButton;
 
         ImGui.AlignTextToFramePadding();
-        if (tooltip.Length > 0)
+        if (havePresetButton)
         {
-            spaced = true;
+            DrawGroupPresetIndicator(label, tooltip, () => DrawPropertyContextMenu(node, member, v));
+        }
+        else if (haveTooltip)
+        {
             UIMisc.HelpMarker(tooltip);
             ImGui.SameLine();
-            if (nested)
+        }
+        else
+        {
+            using (ImRaii.PushColor(ImGuiCol.Text, 0))
             {
-                ImGui.Text("   ");
+                UIMisc.IconText(FontAwesomeIcon.InfoCircle);
                 ImGui.SameLine();
             }
         }
 
-        if (member.GetCustomAttributes<GroupPresetAttribute>().Any())
-        {
-            spaced = true;
-            DrawGroupPresetIndicator(label, () => DrawPropertyContextMenu(node, member, v));
-        }
-
-        if (!spaced)
-        {
-            using (ImRaii.PushColor(ImGuiCol.Text, 0))
-                UIMisc.IconText(Dalamud.Interface.FontAwesomeIcon.InfoCircle);
-        }
+        if (nested)
+            DrawNesting();
 
         var modified = false;
         foreach (var tn in tree.Node(label, false, v.Validate() ? 0xffffffff : 0xff00ffff))

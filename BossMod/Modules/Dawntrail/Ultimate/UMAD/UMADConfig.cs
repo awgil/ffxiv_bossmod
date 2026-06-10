@@ -14,7 +14,18 @@ public class UMADConfig : ConfigNode
     public P1ArrowShape P1Arrows = P1ArrowShape.BigBox;
 
     [PropertyDisplay("P2 Forsaken: pair assignments")]
+    [GroupDetails(["1", "2", "3", "4"])]
     public GroupAssignmentRolePairs P2ForsakenPairs = GroupAssignmentRolePairs.MeleeRanged();
+
+    [PropertyDisplay("P2 Forsaken: tower priority", separator: true, tooltip: "Ordered left to right, looking at boss; 1 = always in left tower, 8 = always in right tower")]
+    [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
+    [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
+    public GroupAssignmentUnique P2ForsakenTiebreaker = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
+
+    [PropertyDisplay("P1 Gravitas 1: conga line order for Wave Cannon (W -> E)")]
+    [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
+    [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
+    public GroupAssignmentUnique P1WaveCannonConga = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
 }
 
 public class GroupAssignmentRolePairs : GroupAssignment
@@ -32,8 +43,9 @@ public class GroupAssignmentRolePairs : GroupAssignment
     public override bool Validate()
     {
         var counts = new int[4];
-        for (int i = 0; i < Assignments.Length; i++)
-            counts[Assignments[i]]++;
-        return counts.All(x => x == 2);
+        for (var i = 0; i < Assignments.Length; i++)
+            if (Assignments[i] is >= 0 and < 4)
+                counts[Assignments[i]]++;
+        return counts.All(c => c == 2);
     }
 }

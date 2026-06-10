@@ -37,6 +37,8 @@ class P1ThrummingThunderIII(BossModule module) : Components.GroupedAOEs(module, 
 
 class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(module, 6, 5, 4, 4)
 {
+    P1PulseWave? _knockback;
+
     enum Mechanic { None, Stack, Spread }
     enum Lying { Unsure, No, Yes }
 
@@ -121,6 +123,16 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
     {
         foreach (var player in Raid.WithoutSlot())
             AddSpread(player, WorldState.FutureTime(5.8f));
+    }
+
+    public override void Update()
+    {
+        _knockback ??= Module.FindComponent<P1PulseWave>();
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
     }
 }
 
