@@ -417,11 +417,15 @@ public sealed class ConfigUI : IDisposable
 
     public static void DrawGroupPresetIndicator(string text, string help, Action contextMenu)
     {
+        using var _ = ImRaii.PushId(text);
         ImGui.AlignTextToFramePadding();
         var paddingX = ImGui.GetStyle().FramePadding.X;
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() - paddingX);
-        if (UIMisc.IconButton(help == "" ? FontAwesomeIcon.ListUl : FontAwesomeIcon.InfoCircle))
+        if (UIMisc.IconButton(help.Length == 0 ? FontAwesomeIcon.ListUl : FontAwesomeIcon.InfoCircle))
+        {
+            Service.Log($"Opening popup {text}popup");
             ImGui.OpenPopup($"{text}popup");
+        }
 
         if (ImGui.BeginPopup($"{text}popup"))
         {
@@ -431,7 +435,7 @@ public sealed class ConfigUI : IDisposable
         if (ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
-            if (help != "")
+            if (help.Length > 0)
             {
                 ImGui.TextUnformatted(help);
                 ImGui.Separator();
