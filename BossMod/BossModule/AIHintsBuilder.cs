@@ -119,6 +119,7 @@ public sealed class AIHintsBuilder : IDisposable
 
             // determine default priority for the enemy
             var priority = actor.FateID > 0 && actor.FateID != allowedFateID ? AIHints.Enemy.PriorityInvincible // fate mob in fate we are NOT a part of can't be damaged at all
+                : MathF.Abs(actor.PosRot.Y - (_ws.Party.Player()?.PosRot.Y ?? 0)) > 12 ? AIHints.Enemy.PriorityInvincible // too far away from us vertically - TODO, this really sucks as a solution, but figuring out whether a particular enemy can be moved to is extremely hard
                 : actor.PendingDead ? AIHints.Enemy.PriorityPointless // this mob is about to be dead, any attacks will likely ghost
                 : actor.AggroPlayer ? 0 // enemies in our enmity list can be attacked, regardless of who they are targeting (since they are keeping us in combat)
                 : actor.InCombat && _ws.Party.FindSlot(actor.TargetID) >= 0 ? 0 // we generally want to assist our party members (note that it includes allied npcs in duties)

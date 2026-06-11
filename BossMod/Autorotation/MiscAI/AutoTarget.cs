@@ -96,7 +96,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             allowAll |= Bossmods.LoadedModules is [{ Info.Category: BossModuleInfo.Category.DeepDungeon }];
 
         if (strategy.Option(Track.EpicEcho).As<Flag>() == Flag.Enabled)
-            allowAll |= Player.Statuses.Any(s => s.ID == 2734);
+            allowAll |= Utils.IsPlayerUnsynced(World);
 
         ulong huntTarget = 0;
 
