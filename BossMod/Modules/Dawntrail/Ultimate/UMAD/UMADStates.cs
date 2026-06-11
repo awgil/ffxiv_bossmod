@@ -54,9 +54,10 @@ class UMADStates : StateMachineBuilder
         ActorTargetable(id + 0x200, _module.ExdeathP3, true, 3.1f, "Bosses appear")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
-        Timeout(id + 0xFF0000, 10000, "???")
-            .ActivateOnEnter<P3Firewall>()
-            .ActivateOnEnter<P3ThunderIII>();
+        ActorCast(id + 0x300, _module.ChaosP3, AID._Ability_TheDecisiveBattle, 0.2f, 3, true, "Firewall")
+            .ActivateOnEnter<P3Firewall>();
+
+        P3BowelsOfAgony(id + 0x10000, 14.5f);
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -336,5 +337,26 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P2WingsOfDestructionBuster>();
 
         P2UltimateEmbrace(id + 0x200, 2.1f);
+    }
+
+    void P3BowelsOfAgony(uint id, float delay)
+    {
+        ActorCast(id, _module.ChaosP3, AID._Ability_BowelsOfAgony, delay, 5, true, "Raidwide")
+            .ActivateOnEnter<P3BowelsOfAgony>()
+            .ActivateOnEnter<P3EntropyFluid>()
+            .ActivateOnEnter<P3Crystals>(Service.IsDev)
+            .ExecOnEnter<P3EntropyFluid>(p => p.EnableHints = false)
+            .DeactivateOnExit<P3BowelsOfAgony>();
+
+        ActorCast(id + 0x10, _module.ExdeathP3, AID._Ability_ThunderIII, 12.2f, 7, true, "Explosion + elements 1")
+            .ActivateOnEnter<P3ThunderIII>()
+            .ActivateOnEnter<P3InfernoTsunami>()
+            .ExecOnEnter<P3EntropyFluid>(p => p.EnableHints = true);
+
+        ComponentCondition<P3InfernoTsunami>(id + 0x20, 1, p => p.NumCasts > 0, "Crystals 1")
+            //.ExecOnEnter<P3InfernoTsunami>(p => p.EnableHints = true);
+            .DeactivateOnExit<P3InfernoTsunami>();
+
+        Timeout(id + 0xFF0000, 10000, "???");
     }
 }

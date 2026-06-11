@@ -17,6 +17,10 @@ public enum OID : uint
     P3Kefka1 = 0x4BFB, // R2.700, x0 (spawn during fight)
     P3Kefka2 = 0x482B, // R6.000, x0 (spawn during fight)
 
+    FireCrystal = 0x1EC03A,
+    WaterCrystal = 0x1EC03B,
+    WindCrystal = 0x1EC03C,
+
     Helper = 0x233C, // R0.500, x37, Helper type
 }
 
@@ -98,12 +102,12 @@ public enum AID : uint
     _Ability_TheDecisiveBattle1 = 49891, // ExdeathP3->self, 3.0s cast, single-target
     _AutoAttack_ = 49744, // ExdeathP3->player, no cast, single-target
     _Ability_BowelsOfAgony = 47858, // ChaosP3->self, 5.0s cast, range 100 circle
-    _Ability_StrayFlames = 47859, // Helper->player, no cast, range 5 circle
-    _Ability_ThunderIII = 47890, // ExdeathP3->self, 7.0s cast, range 11+R circle
-    _Ability_Inferno = 47860, // Helper->player, no cast, range ?-10 donut
-    _Ability_Cyclone = 47864, // Helper->player, no cast, range 6 circle
-    _Ability_StraySpray = 47862, // Helper->player, no cast, range ?-10 donut
-    _Ability_Tsunami = 47861, // Helper->players, no cast, range 5 circle
+    _Ability_ThunderIII = 47890, // ExdeathP3->self, 7.0s cast, range 11+R circle, bigass aoe
+    _Ability_StrayFlames = 47859, // Helper->player, no cast, range 5 circle, Entropy expiration
+    _Ability_Inferno = 47860, // Helper->player, no cast, range 4-10 donut, fire crystal bait
+    _Ability_StraySpray = 47862, // Helper->player, no cast, range 4-10 donut, Fluid expiration
+    _Ability_Tsunami = 47861, // Helper->players, no cast, range 5 circle, water crystal bait
+    _Ability_Cyclone = 47864, // Helper->player, no cast, range 6 circle, wind stack (requires at least 2 players)
     _Ability_ThunderIII1 = 47881, // ExdeathP3->self, 5.0s cast, single-target
 }
 
