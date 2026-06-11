@@ -479,9 +479,12 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCast))
             UIState.Instance()->Hotbar.CancelCast();
 
-        var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
-        if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
-            _inst->UseAction(CSActionType.GeneralAction, 1);
+        if (!GameMain.IsInPvPArea())
+        {
+            var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
+            if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
+                _inst->UseAction(CSActionType.GeneralAction, 1);
+        }
 
         if (_hints.WantDismount && !_movement.FollowPathActive() && _dismountTweak.AllowDismount())
             _inst->UseAction(CSActionType.Action, 4);

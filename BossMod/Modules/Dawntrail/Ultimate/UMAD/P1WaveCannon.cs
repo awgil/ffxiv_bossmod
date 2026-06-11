@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Dawntrail.Ultimate.UMAD;
+﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWave, true)
 {

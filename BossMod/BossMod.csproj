@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>7.5.1.2</Version>
+    <Version>7.5.1.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,7 +42,6 @@
     <AssemblyAttribute Include="DalamudLibPath">
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
-    <PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
     <PackageReference Include="DalaMock.Core" Version="6.1.7" />
   </ItemGroup>
 
