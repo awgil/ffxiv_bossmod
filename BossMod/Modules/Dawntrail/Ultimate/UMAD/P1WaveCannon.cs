@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
+﻿
+namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWave, true)
 {
@@ -50,13 +51,22 @@ class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWav
     }
 }
 
-class P1BlizzardIIIBlowout(BossModule module) : Components.GroupedAOEs(module, [AID.BlizzardIIIBlowout1, AID.BlizzardIIIBlowout2], new AOEShapeCone(40, 45.Degrees()));
+class P1BlizzardIIIBlowout(BossModule module) : Components.GroupedAOEs(module, [AID.BlizzardIIIBlowout1, AID.BlizzardIIIBlowout2], new AOEShapeCone(40, 45.Degrees()))
+{
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (Module.FindComponent<P1PulseWave>() is { } pw)
+            return base.ActiveAOEs(slot, actor).Select(a => a with { Risky = !pw.Targets[slot] });
+
+        return base.ActiveAOEs(slot, actor);
+    }
+}
 class P1ThrummingThunderIII(BossModule module) : Components.GroupedAOEs(module, [AID.ThrummingThunderIII1, AID.ThrummingThunderIII2], new AOEShapeRect(40, 5));
 
 class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(module, 6, 5, 4, 4)
 {
-    readonly P1PulseWave? _pulseWave = module.FindComponent<P1PulseWave>();
-    readonly P1BlizzardIIIBlowout? _blizzard = module.FindComponent<P1BlizzardIIIBlowout>();
+    //readonly P1PulseWave? _pulseWave = module.FindComponent<P1PulseWave>();
+    //readonly P1BlizzardIIIBlowout? _blizzard = module.FindComponent<P1BlizzardIIIBlowout>();
     readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
 
     enum Mechanic { None, Stack, Spread }
@@ -163,7 +173,8 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var myOrder = _config.P1WaveCannonConga[assignment];
-        if (myOrder < 0 || _pulseWave is null or { NumCasts: > 0 } || EnableHints)
+        var (isKB, kbAt) = Module.FindComponent<P1PulseWave>() is { } pw ? (pw.Targets[slot], pw.Activation) : (actor.PendingKnockbacks.Count > 0, default);
+        if (myOrder < 0 || EnableHints && !isKB)
         {
             base.AddAIHints(slot, actor, assignment, hints);
             return;
@@ -184,7 +195,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
 
         var safeDirZ = 1;
 
-        if (_blizzard?.ActiveAOEs(pcSlot, pc).Any(e => e.Check(mySpot + new WDir(0, safeDirZ))) == true)
+        if (Module.FindComponent<P1BlizzardIIIBlowout>()?.ActiveAOEs(pcSlot, pc).Any(e => e.Check(mySpot + new WDir(0, safeDirZ))) == true)
             safeDirZ = -safeDirZ;
 
         if (isSpread)
@@ -218,13 +229,13 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
             mySpot.Z += safeDirZ * 2;
         }
 
-        if (_pulseWave.Targets[pcSlot])
+        if (isKB)
         {
             var dirToSpot = P1PulseWave.Origin - mySpot;
             mySpot += dirToSpot.Normalized() * P1PulseWave.Distance;
         }
 
-        hints.AddForbiddenZone(ShapeContains.InvertedCircle(mySpot, isSpread ? 1 : 6), _pulseWave.Activation);
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(mySpot, isSpread ? 1 : 4), kbAt);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
