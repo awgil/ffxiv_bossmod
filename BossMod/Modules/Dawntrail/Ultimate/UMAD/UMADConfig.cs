@@ -3,11 +3,18 @@
 [ConfigDisplay(Parent = typeof(DawntrailConfig))]
 public class UMADConfig : ConfigNode
 {
+    [PropertyDisplay("P1 Gravitas 1: conga line order for Wave Cannon (W -> E)", tooltip: "WIP. Does nothing.")]
+    [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
+    [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
+    public GroupAssignmentUnique P1WaveCannonConga = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
+
     public enum P1ArrowShape
     {
         None,
         [PropertyDisplay("Big box (CW)")]
-        BigBox
+        BigBox,
+        [PropertyDisplay("Big box 'freaky' (cardinal arrows are slightly closer to the boss)")]
+        Freaky
     }
 
     [PropertyDisplay("P1 Tele-Portent: arrow placement hints")]
@@ -23,11 +30,7 @@ public class UMADConfig : ConfigNode
     [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
     public GroupAssignmentUnique P2ForsakenTiebreaker = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
 
-    [SectionStart("AI-only settings")]
-    [PropertyDisplay("P1 Gravitas 1: conga line order for Wave Cannon (W -> E)", tooltip: "WIP. Does nothing.")]
-    [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
-    [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
-    public GroupAssignmentUnique P1WaveCannonConga = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
+    //[SectionStart("AI-only settings")]
 }
 
 public class GroupAssignmentRolePairs : GroupAssignment

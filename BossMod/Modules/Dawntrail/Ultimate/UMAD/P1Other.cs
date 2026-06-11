@@ -12,6 +12,12 @@ class P1RevoltingRuinIIISecond : Components.GenericBaitAway
         EnableHints = false;
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (EnableHints)
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.RevoltingRuinIIIFirst)

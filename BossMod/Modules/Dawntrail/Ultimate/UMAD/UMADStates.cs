@@ -52,14 +52,14 @@ class UMADStates : StateMachineBuilder
 
         ComponentCondition<P1PulseWave>(id + 0x100, 2.6f, p => p.NumCasts > 0, "Knockback")
             .ExecOnExit<P1FlagrantFireIII>(f => f.EnableHints = true)
-            .ExecOnExit<P1BlizzardIIIBlowout>(b => b.Risky = true);
+            .ExecOnExit<P1BlizzardIIIBlowout>(b => b.Risky = true)
+            .DeactivateOnExit<P1PulseWave>();
 
         ComponentCondition<P1BlizzardIIIBlowout>(id + 0x110, 2.3f, p => p.NumCasts > 0, "Quadrants")
             .DeactivateOnExit<P1BlizzardIIIBlowout>();
 
         ComponentCondition<P1FlagrantFireIII>(id + 0x120, 0.8f, p => !p.Active, "Stack/spread")
-            .DeactivateOnExit<P1FlagrantFireIII>()
-            .DeactivateOnExit<P1PulseWave>();
+            .DeactivateOnExit<P1FlagrantFireIII>();
     }
 
     void P1WaveCannon(uint id, float delay)

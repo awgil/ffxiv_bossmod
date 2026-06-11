@@ -2,7 +2,8 @@
 
 class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWave, true)
 {
-    WPos _source;
+    public static readonly WPos Origin = new(100, 65);
+    public const float Distance = 13f;
 
     public DateTime Activation { get; private set; }
     public BitMask Targets;
@@ -13,7 +14,6 @@ class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWav
     {
         if ((TetherID)tether.ID == TetherID.GravenImage)
         {
-            _source = source.Position;
             Targets.Set(Raid.FindSlot(tether.Target));
             Activation = WorldState.FutureTime(5.1f);
         }
@@ -36,7 +36,7 @@ class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWav
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (Targets[slot])
-            yield return new(_source, 13, Activation);
+            yield return new(Origin, Distance, Activation);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -66,8 +66,6 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
     Lying _lying;
 
     BitMask _stackTargets; // empty if boss is lying or if the displayed mechanic is spread
-
-    bool HintsInitialized;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -130,14 +128,29 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
         if (_stackTargets.NumSetBits() == 1)
             return;
 
-        foreach (var (_, knownTarget) in Raid.WithSlot().IncludedInMask(_stackTargets))
-            AddStack(knownTarget, WorldState.FutureTime(5.8f));
+        BitMask maskLeft = new(), maskRight = new();
+        foreach (var (slot, group) in _config.P1WaveCannonConga.Resolve(Raid))
+        {
+            if (group < 4)
+                maskLeft.Set(slot);
+            else
+                maskRight.Set(slot);
+        }
+
+        void addMasked(int slot, Actor target)
+        {
+            var allowedMask = maskLeft[slot] ? maskLeft : maskRight[slot] ? maskRight : default;
+            AddStack(target, WorldState.FutureTime(5.8f), allowedMask.Any() ? ~allowedMask : default);
+        }
+
+        foreach (var (slot, knownTarget) in Raid.WithSlot().IncludedInMask(_stackTargets))
+            addMasked(slot, knownTarget);
 
         if (Stacks.Count == 0)
         {
-            var partySorted = Raid.WithoutSlot().OrderBy(r => r.Class.IsDD()).ToList();
-            AddStack(partySorted[0], WorldState.FutureTime(5.8f));
-            AddStack(partySorted[^1], WorldState.FutureTime(5.8f));
+            var partySorted = Raid.WithSlot().OrderBy(r => r.Item2.Class.IsDD()).ToList();
+            addMasked(partySorted[0].Item1, partySorted[0].Item2);
+            addMasked(partySorted[^1].Item1, partySorted[^1].Item2);
         }
     }
 
@@ -147,24 +160,10 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
             AddSpread(player, WorldState.FutureTime(5.8f));
     }
 
-    public override void Update()
-    {
-        if (_pulseWave == null)
-        {
-            HintsInitialized = true;
-            return;
-        }
-
-        if (HintsInitialized || !Active || _pulseWave.Targets.NumSetBits() < 4)
-            return;
-
-        HintsInitialized = true;
-    }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var myOrder = _config.P1WaveCannonConga[assignment];
-        if (!HintsInitialized || myOrder < 0 || _pulseWave?.NumCasts > 0)
+        if (myOrder < 0 || _pulseWave is null or { NumCasts: > 0 } || EnableHints)
         {
             base.AddAIHints(slot, actor, assignment, hints);
             return;
@@ -181,7 +180,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
             // space players evenly-ish across the arena
             mySpot = Arena.Center + new WDir((myOrder - 3.5f) * 5, 0);
         else
-            mySpot = Arena.Center + new WDir(myOrder > 3 ? 7 : -7, 0);
+            mySpot = Arena.Center + new WDir(myOrder > 3 ? 6 : -6, 0);
 
         var safeDirZ = 1;
 
@@ -204,7 +203,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
                 case 5:
                     mySpot += new WDir(1.5f * bossDirX, safeDirZ);
                     break;
-                // ranged move further away from center to give partner space
+                // ranged 1s move further away from center line to give partner space
                 case 1:
                 case 6:
                     mySpot.Z += safeDirZ * 3;
@@ -219,14 +218,22 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
             mySpot.Z += safeDirZ * 2;
         }
 
-        if (_pulseWave!.Targets[pcSlot])
+        if (_pulseWave.Targets[pcSlot])
         {
-            var dirToSpot = new WPos(100, 65) - mySpot;
-            var dist = 13;
-            mySpot += dirToSpot.Normalized() * dist;
+            var dirToSpot = P1PulseWave.Origin - mySpot;
+            mySpot += dirToSpot.Normalized() * P1PulseWave.Distance;
         }
 
-        hints.AddForbiddenZone(ShapeContains.InvertedCircle(mySpot, isSpread ? 1 : 6), _pulseWave!.Activation);
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(mySpot, isSpread ? 1 : 6), _pulseWave.Activation);
+    }
+
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    {
+        if (IsSpreadTarget(player))
+            return PlayerPriority.Danger;
+        if (IsStackTarget(player))
+            return PlayerPriority.Interesting;
+        return Active ? PlayerPriority.Normal : PlayerPriority.Irrelevant;
     }
 }
 
@@ -234,7 +241,7 @@ class P1WaveCannon : Components.UntelegraphedBait
 {
     public P1WaveCannon(BossModule module) : base(module, AID.WaveCannon)
     {
-        CurrentBaits.Add(new(new(100, 65), Raid.WithSlot().Mask(), new AOEShapeRect(100, 3), WorldState.FutureTime(4.3f), 8));
+        CurrentBaits.Add(new(P1PulseWave.Origin, Raid.WithSlot().Mask(), new AOEShapeRect(100, 3), WorldState.FutureTime(4.3f), 8));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -261,8 +268,27 @@ class P1Explosion(BossModule module) : Components.CastTowers(module, AID.Explosi
     {
         base.OnCastStarted(caster, spell);
 
-        if (spell.Action == WatchedAction)
-            for (var i = 0; i < Towers.Count; i++)
-                Towers.Ref(i).ForbiddenSoakers = Raid.WithSlot().WhereSlot(s => _vuln[s] > Towers[i].Activation).Mask();
+        if (spell.Action == WatchedAction && Towers.Count == 4)
+        {
+            Towers.SortBy(t => t.Position.X);
+
+            List<(int Group, int Slot)> _slots = [];
+
+            foreach (var (slot, group) in Service.Config.Get<UMADConfig>().P1WaveCannonConga.Resolve(Raid))
+                _slots.Add((group, slot));
+
+            _slots.SortBy(s => s.Group);
+
+            var itower = 0;
+            foreach (var (group, slot) in _slots)
+            {
+                if (_vuln[slot] < Towers[itower].Activation)
+                {
+                    Towers.Ref(itower++).ForbiddenSoakers = ~BitMask.Build(slot);
+                    if (itower >= 4)
+                        break;
+                }
+            }
+        }
     }
 }

@@ -86,12 +86,13 @@ class P1TelePortent(BossModule module) : BossComponent(module)
         switch (_config.P1Arrows)
         {
             case UMADConfig.P1ArrowShape.BigBox:
+            case UMADConfig.P1ArrowShape.Freaky:
                 var wd = ToWDir(dir.All);
 
                 if (dir.All == dir.D1.Dir)
                 {
                     // matched arrows
-                    var cardinal = wd.OrthoL() * 12;
+                    var cardinal = wd.OrthoL() * (_config.P1Arrows == UMADConfig.P1ArrowShape.Freaky ? 11 : 12);
                     var preCardinal = (wd + wd.OrthoL() * 0.5f).OrthoL() * 12;
                     _hintSpots[slot].AddRange([(dir.All, Arena.Center + cardinal), (dir.All, Arena.Center + preCardinal)]);
                 }
