@@ -3,7 +3,7 @@
 [ConfigDisplay(Parent = typeof(DawntrailConfig))]
 public class UMADConfig : ConfigNode
 {
-    [PropertyDisplay("P1 Gravitas 1: conga line order for Wave Cannon (W -> E)", tooltip: "WIP. Does nothing.")]
+    [PropertyDisplay("P1 Gravitas 1: conga line order for Wave Cannon (W -> E)")]
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
     [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
     public GroupAssignmentUnique P1WaveCannonConga = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
@@ -19,6 +19,16 @@ public class UMADConfig : ConfigNode
 
     [PropertyDisplay("P1 Tele-Portent: arrow placement hints")]
     public P1ArrowShape P1Arrows = P1ArrowShape.BigBox;
+
+    public enum P2ForsakenStrategyType
+    {
+        None,
+        [PropertyDisplay("Kroxy/Rinon: AAABBBBA, role pairs")]
+        KroxyRinon
+    }
+
+    [PropertyDisplay("P2 Forsaken strategy", tooltip: "WIP. Does nothing.")]
+    public P2ForsakenStrategyType P2ForsakenStrategy = P2ForsakenStrategyType.None;
 
     [PropertyDisplay("P2 Forsaken: pair assignments")]
     [GroupDetails(["1", "2", "3", "4"])]

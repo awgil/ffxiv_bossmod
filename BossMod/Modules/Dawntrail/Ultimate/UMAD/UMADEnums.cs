@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 public enum OID : uint
 {
@@ -9,6 +10,12 @@ public enum OID : uint
 
     BossP2 = 0x4C32, // R6.020, x1
     CloneP2 = 0x4C39, // R3.500, x0 (spawn during fight)
+
+    ChaosP3 = 0x4C34, // R6.000, x0 (spawn during fight)
+    ExdeathP3 = 0x4C35, // R3.800, x0 (spawn during fight)
+    // dunno who these guys are. probably related to limit cut
+    P3Kefka1 = 0x4BFB, // R2.700, x0 (spawn during fight)
+    P3Kefka2 = 0x482B, // R6.000, x0 (spawn during fight)
 
     Helper = 0x233C, // R0.500, x37, Helper type
 }
@@ -84,6 +91,20 @@ public enum AID : uint
     WingsOfDestructionBusterCast = 50311, // BossP2->self, 4.0s cast, single-target
     WingsOfDestructionBuster = 47823, // Helper->players, no cast, range 7 circle
     LightOfJudgmentP2Enrage = 47841, // BossP2->self, 5.0s cast, range 100 circle
+
+    _Ability_AeroIIIAssault = 50167, // BossP1->self, 3.0s cast, range 40 circle
+    _Ability_DefinitionOfInsanity = 47842, // BossP1->self, 4.0s cast, single-target
+    _Ability_TheDecisiveBattle = 49890, // ChaosP3->self, 3.0s cast, single-target
+    _Ability_TheDecisiveBattle1 = 49891, // ExdeathP3->self, 3.0s cast, single-target
+    _AutoAttack_ = 49744, // ExdeathP3->player, no cast, single-target
+    _Ability_BowelsOfAgony = 47858, // ChaosP3->self, 5.0s cast, range 100 circle
+    _Ability_StrayFlames = 47859, // Helper->player, no cast, range 5 circle
+    _Ability_ThunderIII = 47890, // ExdeathP3->self, 7.0s cast, range 11+R circle
+    _Ability_Inferno = 47860, // Helper->player, no cast, range ?-10 donut
+    _Ability_Cyclone = 47864, // Helper->player, no cast, range 6 circle
+    _Ability_StraySpray = 47862, // Helper->player, no cast, range ?-10 donut
+    _Ability_Tsunami = 47861, // Helper->players, no cast, range 5 circle
+    _Ability_ThunderIII1 = 47881, // ExdeathP3->self, 5.0s cast, single-target
 }
 
 public enum SID : uint
@@ -110,6 +131,18 @@ public enum SID : uint
     ForsakenStack = 5084, // none->player, extra=0x0
     ForsakenSpread = 5085, // none->player, extra=0x0
     ForsakenCone = 5086, // none->player, extra=0x0
+
+    _Gen_DownForTheCount = 774, // BossP1->player, extra=0xEC7
+    _Gen_InEvent = 1268, // none->player, extra=0x0
+    _Gen_EpicHero = 4192, // none->player, extra=0x0
+    _Gen_EpicVillain = 4193, // none->ChaosP3, extra=0x0
+    _Gen_FatedHero = 4194, // none->player, extra=0x0
+    _Gen_FatedVillain = 4195, // none->ExdeathP3, extra=0x0
+    _Gen_Entropy = 1600, // none->player, extra=0x0
+    _Gen_DynamicFluid = 1601, // none->player, extra=0x0
+    _Gen_Headwind = 1602, // none->player, extra=0x0
+    _Gen_Tailwind = 1603, // none->player, extra=0x0
+    _Gen_WindResistanceDownII = 1052, // Helper->player, extra=0x0
 }
 
 public enum IconID : uint

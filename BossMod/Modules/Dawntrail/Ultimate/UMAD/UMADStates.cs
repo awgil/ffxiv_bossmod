@@ -12,10 +12,13 @@ class UMADStates : StateMachineBuilder
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, P2, "P2")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => _module.BossP2()?.IsDeadOrDestroyed == true;
+            .Raw.Update = () => _module.BossP2() is { IsTargetable: false, HPRatio: < 1 };
+        SimplePhase(2, P3, "P3")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .Raw.Update = () => _module.ExdeathP3()?.IsDeadOrDestroyed == true && _module.ChaosP3()?.IsDeadOrDestroyed == true;
     }
 
-    private void P1(uint id)
+    void P1(uint id)
     {
         P1RevoltingRuin(id, 10.2f);
         P1FireBlizzard1(id + 0x10000, 7.8f);
@@ -25,6 +28,35 @@ class UMADStates : StateMachineBuilder
         P1Gravitas2(id + 0x50000, 4.6f);
         P1JudgmentBuster(id + 0x60000, 3.6f);
         P1TeleTrouncing(id + 0x70000, 6.9f);
+    }
+
+    void P2(uint id)
+    {
+        ActorTargetable(id, _module.BossP2, true, 10.3f, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+        P2UltimateEmbrace(id + 0x10, 7.2f);
+        P2Forsaken(id + 0x10000, 8.3f);
+        P2Trine(id + 0x20000, 8.2f);
+
+        // if the dps check is not met, he actually disappears after 3.3s
+        ActorTargetable(id + 0x30000, _module.BossP2, false, 4.1f, "Boss disappears")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
+    }
+
+    void P3(uint id)
+    {
+        ActorCast(id, _module.KefkaP3, AID._Ability_AeroIIIAssault, 2.4f, 3, false, "Knockback")
+            .ActivateOnEnter<P3AeroIIIAssault>()
+            .DeactivateOnExit<P3AeroIIIAssault>();
+
+        ActorCast(id + 0x100, _module.KefkaP3, AID._Ability_DefinitionOfInsanity, 33.7f, 4, false);
+        ActorTargetable(id + 0x200, _module.ExdeathP3, true, 3.1f, "Bosses appear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+        Timeout(id + 0xFF0000, 10000, "???")
+            .ActivateOnEnter<P3Firewall>()
+            .ActivateOnEnter<P3ThunderIII>();
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -220,20 +252,6 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P1FlagrantFireIII>();
 
         Targetable(id + 0x1000, false, 10.3f, "Boss disappears");
-    }
-
-    void P2(uint id)
-    {
-        ActorTargetable(id, _module.BossP2, true, 10.3f, "Boss appears")
-            .SetHint(StateMachine.StateHint.DowntimeEnd);
-
-        P2UltimateEmbrace(id + 0x10, 7.2f);
-        P2Forsaken(id + 0x10000, 8.3f);
-        P2Trine(id + 0x20000, 8.2f);
-        ActorTargetable(id + 0x30000, _module.BossP2, false, 3.3f, "Boss disappears")
-            .SetHint(StateMachine.StateHint.DowntimeStart);
-
-        Timeout(id + 0xFF0000, 10000, "???");
     }
 
     void P2UltimateEmbrace(uint id, float delay)

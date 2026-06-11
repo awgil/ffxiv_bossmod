@@ -32,19 +32,19 @@ class P2Trine(BossModule module) : Components.GenericAOEs(module, AID.Trine)
 
         var activation = WorldState.FutureTime(10.7f);
 
-        switch (oidToTest)
+        var flipX = oidToTest switch
         {
-            case 0x1EBFB2:
-                AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(TrineRadius, 0), default, activation));
-                AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(TrineRadius * -0.5f, 5), default, activation));
-                AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(TrineRadius * -0.5f, -5), default, activation));
-                break;
-            case 0x1EBFB3:
-                AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(-TrineRadius, 0), default, activation));
-                AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(TrineRadius * 0.5f, 5), default, activation));
-                AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(TrineRadius * 0.5f, -5), default, activation));
-                break;
-        }
+            0x1EBFB2 => 1,
+            0x1EBFB3 => -1,
+            _ => 0
+        };
+
+        if (flipX == 0)
+            return;
+
+        AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(TrineRadius * flipX, 0), default, activation));
+        AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(TrineRadius * flipX * -0.5f, 5), default, activation));
+        AddWave(new(new AOEShapeCircle(6), actor.Position + new WDir(TrineRadius * flipX * -0.5f, -5), default, activation));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
