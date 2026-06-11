@@ -64,8 +64,6 @@ class P1ThrummingThunderIII(BossModule module) : Components.GroupedAOEs(module, 
 
 class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(module, 6, 5, 4, 4)
 {
-    //readonly P1PulseWave? _pulseWave = module.FindComponent<P1PulseWave>();
-    //readonly P1BlizzardIIIBlowout? _blizzard = module.FindComponent<P1BlizzardIIIBlowout>();
     readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
 
     enum Mechanic { None, Stack, Spread }
@@ -282,15 +280,8 @@ class P1Explosion(BossModule module) : Components.CastTowers(module, AID.Explosi
         {
             Towers.SortBy(t => t.Position.X);
 
-            List<(int Group, int Slot)> _slots = [];
-
-            foreach (var (slot, group) in Service.Config.Get<UMADConfig>().P1WaveCannonConga.Resolve(Raid))
-                _slots.Add((group, slot));
-
-            _slots.SortBy(s => s.Group);
-
             var itower = 0;
-            foreach (var (group, slot) in _slots)
+            foreach (var (slot, group) in Service.Config.Get<UMADConfig>().P1WaveCannonConga.Resolve(Raid).OrderBy(s => s.group))
             {
                 if (_vuln[slot] < Towers[itower].Activation)
                 {
@@ -298,6 +289,13 @@ class P1Explosion(BossModule module) : Components.CastTowers(module, AID.Explosi
                     if (itower >= 4)
                         break;
                 }
+            }
+
+            if (itower == 0)
+            {
+                var vulnAll = BitMask.Build([.. Enumerable.Range(0, _vuln.Length).Where(i => _vuln[i] != default)]);
+                for (var i = 0; i < Towers.Count; i++)
+                    Towers.Ref(i).ForbiddenSoakers = vulnAll;
             }
         }
     }
