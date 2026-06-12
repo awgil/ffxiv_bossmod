@@ -127,21 +127,33 @@ public class PartyRolesConfig : ConfigNode
         // melee prio is invariably group-specific so we just assign it to both melees and make the user fix it
         Assignment[] assOrdered = [Assignment.MT, Assignment.OT, Assignment.H1, Assignment.H2, Assignment.M1, Assignment.M1, Assignment.R1, Assignment.R2];
 
-        foreach (var (m, a) in members.OrderBy(r => (r.Class.GetRole(), RolePrio(r.Class))).Zip(assOrdered))
+        var (numMelee, numRanged) = members.Aggregate((0, 0), (acc, pm) => pm.Class.GetRole() switch
+        {
+            Role.Melee => (acc.Item1 + 1, acc.Item2),
+            Role.Ranged => (acc.Item1, acc.Item2 + 1),
+            _ => acc
+        });
+
+        foreach (var (m, a) in members.OrderBy(r => (r.Class.GetRole(), RolePrio(r.Class, numMelee == 1 && numRanged == 3))).Zip(assOrdered))
             Assignments[m.CID] = a;
 
         Modified.Fire();
     }
 
-    static int RolePrio(Class c) => c switch
+    static int RolePrio(Class c, bool doubleCaster) => (c.GetClassCategory(), c) switch
     {
-        Class.WAR => 0,
-        Class.PLD or Class.GNB => 1,
-        Class.DRK => 2,
+        (_, Class.WAR) => 0,
+        (_, Class.PLD or Class.GNB) => 1,
+        (_, Class.DRK) => 2,
 
-        Class.AST or Class.WHM => 0,
-        Class.SGE or Class.SCH => 1,
+        (_, Class.AST or Class.WHM) => 0,
+        (_, Class.SGE or Class.SCH) => 1,
 
-        _ => 0
+        (ClassCategory.Melee, _) => 0,
+        (_, Class.RDM or Class.BLM) when doubleCaster => 1,
+        (ClassCategory.PhysRanged, _) => 2,
+        (ClassCategory.Caster, _) => 3,
+
+        _ => 10
     };
 }
