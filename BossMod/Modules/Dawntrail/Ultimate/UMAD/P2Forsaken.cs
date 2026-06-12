@@ -11,8 +11,9 @@ class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.Th
 {
     // even towers appear about 0.5s before odd towers trigger, and i DO NOT want to have to write code accounting for 4 towers, so instead we save the even towers until the odd towers despawn
     readonly List<Tower> _stored = [];
+    private (BitMask Left, BitMask Right) towerAssignments;
 
-    public (BitMask Left, BitMask Right) TowerAssignments { private get; set; }
+    public void SetTowerAssignments((BitMask Left, BitMask Right) value) => towerAssignments = value;
 
     public override void OnMapEffect(byte index, uint state)
     {
@@ -45,7 +46,8 @@ class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.Th
         if (Towers.Count != 2)
             return;
 
-        var (lMask, rMask) = TowerAssignments;
+        var (lMask, rMask) = towerAssignments;
+        towerAssignments = (default, default);
         if (lMask == default && rMask == default)
             return;
 
@@ -57,8 +59,6 @@ class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.Th
         l.ForbiddenSoakers = ~lMask;
         r.ForbiddenSoakers = ~rMask;
         Towers.AddRange([l, r]);
-
-        TowerAssignments = (default, default);
     }
 
     public bool InAnyTower(Actor a) => Towers.Any(t => a.Position.InCircle(t.Position, t.Radius));
@@ -163,6 +163,21 @@ class P2Shapes : Components.CastCounterMulti
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => BuddySlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
 
+    int _numTowersDone;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.ThePathOfLight)
+        {
+            _numTowersDone++;
+            if (_numTowersDone == 14)
+            {
+                _numAssignments += 4; // hack
+                AssignTowers();
+            }
+        }
+    }
+
     public void Reset()
     {
         NumCasts = 0;
@@ -220,10 +235,10 @@ class P2Shapes : Components.CastCounterMulti
                 switch (Shapes[pcSlot])
                 {
                     case Shape.Stack:
-                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(20.Degrees()) * -3);
+                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(20.Degrees()) * -3.5f);
                         break;
                     case Shape.Spread:
-                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers * 3);
+                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers * 3.5f);
                         break;
                 }
             }
@@ -235,7 +250,7 @@ class P2Shapes : Components.CastCounterMulti
                 switch (Shapes[pcSlot])
                 {
                     case Shape.Cone:
-                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * -3);
+                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * -3.5f);
                         break;
                     case Shape.Spread:
                         addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * 3.5f);
@@ -247,7 +262,7 @@ class P2Shapes : Components.CastCounterMulti
                 switch (Shapes[pcSlot])
                 {
                     case Shape.Cone:
-                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * -3);
+                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * -3.5f);
                         break;
                     case Shape.Spread:
                         addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * 3.5f);
@@ -285,7 +300,7 @@ class P2Shapes : Components.CastCounterMulti
                     rightTower.Set(slot);
             }
 
-            var isInTower = (group == TowerGroup.A) == (_numAssignments is 8 or 12 or 16 or 28);
+            var isInTower = (group == TowerGroup.A) == (_numAssignments is 8 or 12 or 16 or 36);
             if (!isInTower)
                 continue;
 
@@ -313,7 +328,7 @@ class P2Shapes : Components.CastCounterMulti
     void SetAssignments(BitMask left, BitMask right)
     {
         CurrentAssignments = (left, right);
-        Module.FindComponent<P2PathOfLight>()!.TowerAssignments = CurrentAssignments;
+        Module.FindComponent<P2PathOfLight>()!.SetTowerAssignments(CurrentAssignments);
     }
 }
 
@@ -337,6 +352,15 @@ class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5
                 _castPending = false;
                 break;
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // disallow autorot from dashing during shape resolution, sick fuck
+        if (_castPending)
+            hints.AddForbiddenZone(_ => true, WorldState.FutureTime(100));
     }
 
     public override void Update()
