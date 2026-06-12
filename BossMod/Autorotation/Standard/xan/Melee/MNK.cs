@@ -138,7 +138,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         [Option("Do not use")]
         None,
         [Option("Use when outside melee range", Targets = ActionTargets.Party | ActionTargets.Hostile)]
-        GapClose
+        GapClose,
+        [Option("Use to cancel knockback", Targets = ActionTargets.Party | ActionTargets.Hostile)]
+        Knockback
     }
     public enum BlitzStrategy
     {
@@ -196,6 +198,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public int NumBlitzTargets;
     public int NumAOETargets;
     public int NumLineTargets;
+
+    private DateTime LastDash;
 
     private Enemy? BestBlitzTarget;
     private Enemy? BestRangedTarget; // fire's reply
@@ -300,6 +304,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
+        if (Manager.LastCast is (var ts, { } data) && data.IsSpell(AID.Thunderclap))
+            LastDash = ts;
+
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 3);
         HaveTarget = primaryTarget != null && Player.InCombat;
 
@@ -587,11 +594,24 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         var tc = strategy.TC;
-        if (tc.Value == TCStrategy.GapClose)
+        switch (tc.Value)
         {
-            var tcTarget = ResolveTargetOverride(tc) ?? primaryTarget;
-            if (Player.DistanceToHitbox(tcTarget) is > 3 and < 25)
-                PushOGCD(AID.Thunderclap, tcTarget, OGCDPriority.TrueNorth);
+            case TCStrategy.GapClose:
+                var tcTarget = ResolveTargetOverride(tc) ?? primaryTarget;
+                if (Player.DistanceToHitbox(tcTarget) is > 3 and < 25)
+                    PushOGCD(AID.Thunderclap, tcTarget, OGCDPriority.TrueNorth);
+                break;
+
+            // we can't consistently use effectresult to time the dash since action requests are affected by RTT. maybe it would work for someone with better ping but not me
+            case TCStrategy.Knockback:
+                // FIXME: should instead check whether the last dash was before the start of this plan entry but that will be more work
+                if (LastDash.AddSeconds(2) < World.CurrentTime && Player.PendingKnockbacks.Count > 0)
+                {
+                    var dashTarget = ResolveTargetOverride(tc)?.Actor ?? primaryTarget?.Actor ?? World.Party.WithoutSlot(includeDead: false).Exclude(Player).Closest(Player.Position);
+                    if (dashTarget != null)
+                        Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Thunderclap), dashTarget, tc.Priority(ActionQueue.Priority.Low + (int)OGCDPriority.PerfectBalance), forced: true);
+                }
+                break;
         }
     }
 
