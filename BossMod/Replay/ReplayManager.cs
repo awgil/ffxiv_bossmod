@@ -358,5 +358,5 @@ public sealed class ReplayManager : IDisposable
             _replayEntries.Add(new(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
     }
 
-    private bool RememberReplays => Service.SigScanner == null && _config.RememberReplays;
+    private bool RememberReplays => Service.IsMock && _config.RememberReplays;
 }

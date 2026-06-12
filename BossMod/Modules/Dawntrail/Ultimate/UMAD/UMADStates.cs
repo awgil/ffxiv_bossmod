@@ -294,12 +294,16 @@ class UMADStates : StateMachineBuilder
                 .ExecOnEnter<P2Shapes>(s => s.Reset())
                 .ExecOnExit<P2AllThingsEndingBait>(b => b.Draw = true)
                 .ExecOnExit<P2PathOfLight>(p => p.EnableHints = false)
+                .ExecOnExit<P2StackSpread>(p => p.EnableHints = false)
+                .ExecOnExit<P2Spellwave>(p => p.EnableHints = false)
                 .DeactivateOnExit<P2Shapes>(round == 4)
                 .DeactivateOnExit<P2StackSpread>(round == 4)
                 .DeactivateOnExit<P2Spellwave>(round == 4);
 
             ComponentCondition<P2AllThingsEndingBait>(id + 0x20, 5.4f, p => p.Casting, "Baits")
                 .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true)
+                .ExecOnExit<P2StackSpread>(p => p.EnableHints = true)
+                .ExecOnExit<P2Spellwave>(p => p.EnableHints = true)
                 .DeactivateOnExit<P2AllThingsEndingBait>()
                 .DeactivateOnExit<P2PathOfLight>(round == 4);
         }

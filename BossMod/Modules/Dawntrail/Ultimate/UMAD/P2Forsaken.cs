@@ -12,13 +12,16 @@ class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.Th
     // even towers appear about 0.5s before odd towers trigger, and i DO NOT want to have to write code accounting for 4 towers, so instead we save the even towers until the odd towers despawn
     readonly List<Tower> _stored = [];
 
+    public (BitMask Left, BitMask Right) TowerAssignments { private get; set; }
+
     public override void OnMapEffect(byte index, uint state)
     {
         if (index is >= 1 and <= 8 && state == 0x00020001)
         {
             var angle = (180 - (index - 1) * 45).Degrees();
 
-            var tower = new Tower(Arena.Center + angle.ToDirection() * 8, 4, minSoakers: 2, maxSoakers: 2, default, WorldState.FutureTime(10.2f));
+            var tower = new Tower(Arena.Center + angle.ToDirection() * 8, 4, minSoakers: 2, maxSoakers: 2, new(0xff), WorldState.FutureTime(10.2f));
+
             (Towers.Count >= 2 ? _stored : Towers).Add(tower);
         }
     }
@@ -37,12 +40,42 @@ class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.Th
         }
     }
 
+    public override void Update()
+    {
+        if (Towers.Count != 2)
+            return;
+
+        var (lMask, rMask) = TowerAssignments;
+        if (lMask == default && rMask == default)
+            return;
+
+        var (l, r) = (Towers[0], Towers[1]);
+        Towers.Clear();
+        if ((r.Position - Arena.Center).Dot((l.Position - Arena.Center).OrthoR()) > 0)
+            (l, r) = (r, l);
+
+        l.ForbiddenSoakers = ~lMask;
+        r.ForbiddenSoakers = ~rMask;
+        Towers.AddRange([l, r]);
+
+        TowerAssignments = (default, default);
+    }
+
     public bool InAnyTower(Actor a) => Towers.Any(t => a.Position.InCircle(t.Position, t.Radius));
 }
 
 class P2Shapes : Components.CastCounterMulti
 {
     readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
+
+    P2PathOfLight? TowerComponent
+    {
+        get
+        {
+            field ??= Module.FindComponent<P2PathOfLight>();
+            return field;
+        }
+    }
 
     public enum Shape
     {
@@ -53,8 +86,15 @@ class P2Shapes : Components.CastCounterMulti
     }
 
     public readonly Shape[] Shapes = new Shape[8];
+    public readonly Shape[] InitialShapes = new Shape[8];
+    public readonly int[] BuddySlot = Utils.MakeArray(8, -1);
+    public readonly int[] Tiebreaker = Utils.MakeArray(8, -1);
 
-    readonly int[] _buddySlot = Utils.MakeArray(8, -1);
+    int _numAssignments;
+
+    public enum TowerGroup { Unknown, A, B }
+
+    public TowerGroup Group(int pcSlot) => InitialShapes[pcSlot] == default || BuddySlot[pcSlot] < 0 ? TowerGroup.Unknown : InitialShapes[pcSlot] == InitialShapes[BuddySlot[pcSlot]] ? TowerGroup.B : TowerGroup.A;
 
     public P2Shapes(BossModule module) : base(module, [AID.Spelldriver, AID.Spellscatter, AID.Spellwave])
     {
@@ -71,75 +111,210 @@ class P2Shapes : Components.CastCounterMulti
         {
             for (var i = 0; i < partnerIds.Length; i++)
             {
-                _buddySlot[partnerIds[i][0]] = partnerIds[i][1];
-                _buddySlot[partnerIds[i][1]] = partnerIds[i][0];
+                BuddySlot[partnerIds[i][0]] = partnerIds[i][1];
+                BuddySlot[partnerIds[i][1]] = partnerIds[i][0];
             }
         }
+        foreach (var (slot, grp) in _config.P2ForsakenTiebreaker.Resolve(Raid))
+            Tiebreaker[slot] = grp;
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Shapes[slot] != default)
             hints.Add($"Current shape: {Shapes[slot]}", false);
-        if (_buddySlot[slot] >= 0 && Shapes[_buddySlot[slot]] != default)
-            hints.Add($"Buddy shape: {Shapes[_buddySlot[slot]]}", false);
+        if (BuddySlot[slot] >= 0 && Shapes[BuddySlot[slot]] != default)
+            hints.Add($"Buddy shape: {Shapes[BuddySlot[slot]]}", false);
     }
 
-    // delete this nephew
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        if (!Service.IsDev)
-            return;
-
-        var triangleRadius = 0.577f * 1.5f;
-        foreach (var (slot, player) in Raid.WithSlot())
-        {
-            var shapeOrigin = player.Position - Arena.CameraAzimuth.ToDirection() * 2;
-            switch (Shapes[slot])
-            {
-                case Shape.Cone:
-                    var points = (shapeOrigin + Arena.CameraAzimuth.ToDirection() * triangleRadius, shapeOrigin + (Arena.CameraAzimuth - 120.Degrees()).ToDirection() * triangleRadius, shapeOrigin + (Arena.CameraAzimuth + 120.Degrees()).ToDirection() * triangleRadius);
-                    Arena.AddTriangle(points.Item1, points.Item2, points.Item3, 0xFF000000, 2);
-                    Arena.AddTriangleFilled(points.Item1, points.Item2, points.Item3, ArenaColor.Danger);
-                    break;
-                case Shape.Spread:
-                    Arena.AddCircle(shapeOrigin, 0.75f, 0xFF000000, 2);
-                    Arena.AddCircleFilled(shapeOrigin, 0.75f, ArenaColor.Danger);
-                    break;
-                case Shape.Stack:
-                    Arena.AddCircle(shapeOrigin, 0.75f, 0xFF000000, 2);
-                    Arena.AddCircle(shapeOrigin, 0.75f, ArenaColor.Danger);
-                    break;
-            }
-        }
+        foreach (var w in _destinations[pcSlot])
+            Arena.AddCircle(w, 0.5f, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        var shape = (SID)status.ID switch
+        foreach (var w in _destinations[slot])
+            movementHints.Add((actor.Position, w, ArenaColor.Safe));
+    }
+
+    // there is an invisible status associated with each debuff, but note that at least one player per round gets the same shape they already had, which does NOT trigger statusgain again
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        var shape = (IconID)iconID switch
         {
-            SID.ForsakenStack => Shape.Stack,
-            SID.ForsakenSpread => Shape.Spread,
-            SID.ForsakenCone => Shape.Cone,
+            IconID.ForsakenStack => Shape.Stack,
+            IconID.ForsakenSpread => Shape.Spread,
+            IconID.ForsakenCone => Shape.Cone,
             _ => default
         };
 
         if (shape != default && Raid.TryFindSlot(actor, out var slot))
+        {
+            _numAssignments++;
+            if (InitialShapes[slot] == default)
+                InitialShapes[slot] = shape;
             Shapes[slot] = shape;
+            if (_numAssignments >= 8 && _numAssignments % 4 == 0)
+                AssignTowers();
+        }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
-    {
-        if ((SID)status.ID is SID.ForsakenStack or SID.ForsakenSpread or SID.ForsakenCone && Raid.TryFindSlot(actor, out var slot))
-            Shapes[slot] = Shape.None;
-    }
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => BuddySlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
 
     public void Reset()
     {
         NumCasts = 0;
     }
 
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => _buddySlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
+    readonly List<WPos>[] _destinations = Utils.GenArray<List<WPos>>(8, () => []);
+
+    public override void Update()
+    {
+        foreach (var w in _destinations)
+            w.Clear();
+
+        foreach (var (pcSlot, _) in Raid.WithSlot())
+            UpdateMoveHints(pcSlot);
+    }
+
+    void UpdateMoveHints(int pcSlot)
+    {
+        if (Shapes[pcSlot] == default)
+            return;
+
+        if (_config.P2ForsakenStrategy != UMADConfig.P2ForsakenStrategyType.KroxyRinon)
+            return;
+
+        var (tLeft, tRight) = CurrentAssignments;
+        if (tLeft[pcSlot] && tRight[pcSlot])
+            return;
+
+        if (TowerComponent is not { } towers || towers.Towers.Count != 2 || !towers.EnableHints)
+            return;
+
+        var dirToTowers = towers.Towers.Aggregate(new WDir(), (wd, t) => wd + (t.Position - Arena.Center)).Normalized();
+
+        var oddSet = _numAssignments % 8 == 0;
+
+        void addDestination(WPos p) => _destinations[pcSlot].Add(p);
+
+        if (oddSet)
+        {
+            if (tLeft[pcSlot])
+            {
+                switch (Shapes[pcSlot])
+                {
+                    case Shape.Cone:
+                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * (8 + 3));
+                        break;
+                    case Shape.Stack:
+                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 7);
+                        break;
+                }
+            }
+
+            if (tRight[pcSlot])
+            {
+                switch (Shapes[pcSlot])
+                {
+                    case Shape.Stack:
+                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(20.Degrees()) * -3);
+                        break;
+                    case Shape.Spread:
+                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers * 3);
+                        break;
+                }
+            }
+        }
+        else
+        {
+            if (tLeft[pcSlot])
+            {
+                switch (Shapes[pcSlot])
+                {
+                    case Shape.Cone:
+                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * -3);
+                        break;
+                    case Shape.Spread:
+                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * 3.5f);
+                        break;
+                }
+            }
+            if (tRight[pcSlot])
+            {
+                switch (Shapes[pcSlot])
+                {
+                    case Shape.Cone:
+                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * -3);
+                        break;
+                    case Shape.Spread:
+                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * 3.5f);
+                        break;
+                }
+            }
+        }
+    }
+
+    void AssignTowers()
+    {
+        SetAssignments(new(0xff), new(0xff));
+
+        if (_config.P2ForsakenStrategy != UMADConfig.P2ForsakenStrategyType.KroxyRinon)
+            return;
+
+        BitMask leftTower = new();
+        BitMask rightTower = new();
+
+        var oddSet = _numAssignments % 8 == 0;
+
+        foreach (var (slot, _) in Raid.WithSlot())
+        {
+            var group = Group(slot);
+            if (group == TowerGroup.Unknown)
+                return;
+
+            void tiebreak(Shape s)
+            {
+                // 0 if no corresponding player is found, e.g. if they died (mechanic is bricked anyway at that point), avoid breaking hints entirely
+                var order = Tiebreaker[slot] - Tiebreaker[Enumerable.Range(0, 8).Where(s0 => Group(s0) == group && Shapes[s0] == s && s0 != slot).DefaultIfEmpty(slot).First()];
+                if (order <= 0)
+                    leftTower.Set(slot);
+                if (order >= 0)
+                    rightTower.Set(slot);
+            }
+
+            var isInTower = (group == TowerGroup.A) == (_numAssignments is 8 or 12 or 16 or 28);
+            if (!isInTower)
+                continue;
+
+            if (oddSet)
+            {
+                if (Shapes[slot] == Shape.Cone)
+                    leftTower.Set(slot);
+                if (Shapes[slot] == Shape.Spread)
+                    rightTower.Set(slot);
+                if (Shapes[slot] == Shape.Stack)
+                    tiebreak(Shapes[slot]);
+            }
+            else
+            {
+                if (Shapes[slot] is Shape.Cone or Shape.Spread)
+                    tiebreak(Shapes[slot]);
+            }
+        }
+
+        SetAssignments(leftTower, rightTower);
+    }
+
+    (BitMask, BitMask) CurrentAssignments;
+
+    void SetAssignments(BitMask left, BitMask right)
+    {
+        CurrentAssignments = (left, right);
+        Module.FindComponent<P2PathOfLight>()!.TowerAssignments = CurrentAssignments;
+    }
 }
 
 class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5, 5, 3, alwaysShowSpreads: true)
