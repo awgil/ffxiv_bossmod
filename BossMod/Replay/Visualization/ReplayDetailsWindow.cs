@@ -1,6 +1,7 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 
@@ -42,8 +43,9 @@ class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, new(800, 800))
+    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, default)
     {
+        Size = (ImGui.GetMainViewport().Size - new Vector2(150, 150)) / ImGuiHelpers.GlobalScale;
         _player = new(data);
         _rotationDB = rotationDB;
         _mgr = new(_player.WorldState);
