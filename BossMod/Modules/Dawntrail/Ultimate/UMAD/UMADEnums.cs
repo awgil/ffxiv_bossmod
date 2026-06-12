@@ -33,7 +33,7 @@ public enum AID : uint
     GravenImage = 48370, // BossP1->self, 3.0s cast, single-target
     MysteryMagic = 47764, // BossP1->self, 5.0s cast, single-target
 
-    PulseWave = 47785, // GravenImage->player, no cast, single-target, knockback
+    PulseWave = 47785, // GravenImage->player, no cast, single-target, knockback. application delay is about 0.5s, doesn't show in analysis fsr
     BlizzardIIIBlowoutCast = 47765, // BossP1->self, 5.0s cast, single-target
     BlizzardIIIBlowout1 = 47768, // Helper->self, 5.0s cast, range 40 90-degree cone
     BlizzardIIIBlowoutFake = 47771, // Helper->self, 5.0s cast, range 40 90-degree cone, does nothing

@@ -167,6 +167,8 @@ class P2Shapes : Components.CastCounterMulti
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
+        base.OnEventCast(caster, spell);
+
         if ((AID)spell.Action.ID == AID.ThePathOfLight)
         {
             _numTowersDone++;

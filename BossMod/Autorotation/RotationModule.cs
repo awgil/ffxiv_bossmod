@@ -137,6 +137,8 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
 
                     var trackCfg = new StrategyConfigTrack(inner, trackInfo.InternalName ?? field.Name, trackInfo.DisplayName ?? field.Name, trackInfo.UiPriority, renderer);
 
+                    trackCfg.AssociatedActions.AddRange(trackInfo.ActionIDs);
+
                     foreach (var variantName in inner.GetEnumNames())
                     {
                         var variantField = inner.GetField(variantName)!;
