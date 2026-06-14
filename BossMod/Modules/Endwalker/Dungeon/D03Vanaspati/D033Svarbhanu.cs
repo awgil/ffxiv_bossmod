@@ -101,15 +101,6 @@ class ChaoticUndercurrent(BossModule module) : Components.GenericAOEs(module)
         _aoes.Add(new(rect, coords[indices.Item1], rotation, activation));
         _aoes.Add(new(rect, coords[indices.Item2], rotation, activation));
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var source = Module.FindComponent<CosmicKissKnockback>()!.Sources(slot, actor).FirstOrDefault();
-        if (source != default)
-        { } // remove forbidden zones while knockback is active to not confuse the AI
-        else
-            base.AddAIHints(slot, actor, assignment, hints);
-    }
 }
 
 class CosmicKissSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.CosmicKissSpread, 6);
@@ -164,36 +155,21 @@ class CosmicKissRaidwide(BossModule module) : Components.RaidwideCast(module, AI
 
 class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CosmicKiss, 13)
 {
-    private static readonly Angle a90 = 90.Degrees();
-    private static readonly Angle a45 = 45.Degrees();
-    private static readonly Angle a0 = 0.Degrees();
-    private static readonly Angle a180 = 180.Degrees();
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<ChaoticUndercurrent>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<Func<WPos, bool>>();
-        var component = Module.FindComponent<ChaoticUndercurrent>()?.ActiveAOEs(slot, actor)?.ToList();
-        var source = Sources(slot, actor).FirstOrDefault();
-        if (component != null && component.Count != 0 && source != default)
+        foreach (var src in Sources(slot, actor))
         {
-            if (component!.Any(x => x.Origin.Z == -152) && component!.Any(x => x.Origin.Z == -162))
+            if (!IsImmune(slot, src.Activation))
             {
-                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a0, a45));
-                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a180, a45));
+                var orig = src.Origin;
+                var center = Arena.Center;
+                hints.AddForbiddenZone(p =>
+                {
+                    var dir = (p - orig).Normalized();
+                    var proj = p + dir * 13;
+                    return !proj.AlmostEqual(center, 20);
+                }, src.Activation);
             }
-            else if (component!.Any(x => x.Origin.Z == -142) && component!.Any(x => x.Origin.Z == -172))
-            {
-                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a90, a45));
-                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, -a90, a45));
-            }
-            else if (component!.Any(x => x.Origin.Z == -142) && component!.Any(x => x.Origin.Z == -152))
-                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a180, a90));
-            else if (component!.Any(x => x.Origin.Z == -162) && component!.Any(x => x.Origin.Z == -172))
-                forbidden.Add(ShapeContains.InvertedCone(Arena.Center, 7, a0, a90));
-            if (forbidden.Count > 0)
-                hints.AddForbiddenZone(p => forbidden.Any(f => f(p)), source.Activation);
         }
     }
 }
