@@ -161,6 +161,12 @@ class P2Shapes : Components.CastCounterMulti
         }
     }
 
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.SpellsTrouble && Raid.TryFindSlot(actor, out var slot))
+            Shapes[slot] = default;
+    }
+
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => BuddySlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
 
     int _numTowersDone;
