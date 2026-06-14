@@ -244,6 +244,7 @@ public abstract unsafe class PacketDecoder
             ActorControlCategory.SetDutyActionActive => $"slot0={p1}, slot1={p2}",
             ActorControlCategory.SetDutyActionCharges => $"slot0={p1}, slot1={p2}",
             ActorControlCategory.IncrementRecast => $"group {p1}: dt=dt={p2 * 0.01f:f2}s",
+            ActorControlCategory.Knockback => $"{(p1 / 10000f - 3.14f).Radians().Deg:f2}deg {p2 / 10000f:0.###}y (speed {p3 * 0.01f:0.###}?)",
             _ => ""
         };
         return new TextNode($"{category} {details} ({p1:X8} {p2:X8} {p3:X8} {p4:X8} {p5:X8} {p6:X8} {DecodeActor(targetID)})");
