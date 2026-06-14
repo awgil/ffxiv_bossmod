@@ -46,18 +46,19 @@ class UMADStates : StateMachineBuilder
 
     void P3(uint id)
     {
-        ActorCast(id, _module.KefkaP3, AID._Ability_AeroIIIAssault, 2.4f, 3, false, "Knockback")
+        ActorCast(id, _module.KefkaP3, AID.AeroIIIAssault, 2.4f, 3, false, "Knockback")
             .ActivateOnEnter<P3AeroIIIAssault>()
             .DeactivateOnExit<P3AeroIIIAssault>();
 
-        ActorCast(id + 0x100, _module.KefkaP3, AID._Ability_DefinitionOfInsanity, 33.7f, 4, false);
+        ActorCast(id + 0x100, _module.KefkaP3, AID.DefinitionOfInsanity, 33.7f, 4, false);
         ActorTargetable(id + 0x200, _module.ExdeathP3, true, 3.1f, "Bosses appear")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
-        ActorCast(id + 0x300, _module.ChaosP3, AID._Ability_TheDecisiveBattle, 0.2f, 3, true, "Firewall")
+        ActorCast(id + 0x300, _module.ChaosP3, AID.DecisiveBattleA, 0.2f, 3, true, "Firewall")
             .ActivateOnEnter<P3Firewall>();
 
         P3BowelsOfAgony(id + 0x10000, 14.5f);
+        P3UltimaBlaster(id + 0x30000, 9.2f);
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -345,21 +346,74 @@ class UMADStates : StateMachineBuilder
 
     void P3BowelsOfAgony(uint id, float delay)
     {
-        ActorCast(id, _module.ChaosP3, AID._Ability_BowelsOfAgony, delay, 5, true, "Raidwide")
+        ActorCast(id, _module.ChaosP3, AID.BowelsOfAgony, delay, 5, true, "Raidwide")
             .ActivateOnEnter<P3BowelsOfAgony>()
             .ActivateOnEnter<P3EntropyFluid>()
+            .ActivateOnEnter<P3Cyclone>()
             .ActivateOnEnter<P3Crystals>(Service.IsDev)
-            .ExecOnEnter<P3EntropyFluid>(p => p.EnableHints = false)
+            .ActivateOnEnter<P3HeadwindTailwind>()
             .DeactivateOnExit<P3BowelsOfAgony>();
 
-        ActorCast(id + 0x10, _module.ExdeathP3, AID._Ability_ThunderIII, 12.2f, 7, true, "Explosion + elements 1")
+        ActorCast(id + 0x10, _module.ExdeathP3, AID.ThunderIIICircle, 12.2f, 7, true, "Thunder + elements 1")
             .ActivateOnEnter<P3ThunderIII>()
             .ActivateOnEnter<P3InfernoTsunami>()
-            .ExecOnEnter<P3EntropyFluid>(p => p.EnableHints = true);
+            .ExecOnEnter<P3EntropyFluid>(p => p.EnableHints = true)
+            .ExecOnEnter<P3InfernoTsunami>(p => p.EnableHints = true)
+            .DeactivateOnExit<P3ThunderIII>();
 
         ComponentCondition<P3InfernoTsunami>(id + 0x20, 1, p => p.NumCasts > 0, "Crystals 1")
-            //.ExecOnEnter<P3InfernoTsunami>(p => p.EnableHints = true);
+            .DeactivateOnExit<P3EntropyFluid>()
             .DeactivateOnExit<P3InfernoTsunami>();
+
+        ActorCastStart(id + 0x30, _module.ExdeathP3, AID.ThunderIIIBusterCast, 3.2f, true)
+            .ActivateOnEnter<P3ThunderIIIBuster>();
+        ComponentCondition<P3ThunderIIIBuster>(id + 0x31, 5, p => p.NumCasts > 0, "Tankbuster 1")
+            .DeactivateOnExit<P3ThunderIIIBuster>();
+
+        id += 0x10000;
+
+        ActorCastStartMulti(id, _module.ChaosP3, [AID.LongitudinalImplosion, AID.LatitudinalImplosion], 7.8f, true)
+            .ActivateOnEnter<P3EntropyFluid>()
+            .ActivateOnEnter<P3Shockwave>();
+
+        ComponentCondition<P3Shockwave>(id + 0x10, 5.7f, p => p.NumCasts == 2, "Front/sides 1")
+            .ActivateOnEnter<P3InfernoTsunami>();
+        ComponentCondition<P3Shockwave>(id + 0x11, 2, p => p.NumCasts == 4, "Front/sides 2")
+            .ExecOnEnter<P3EntropyFluid>(p => p.EnableHints = true)
+            .ExecOnEnter<P3InfernoTsunami>(p => p.EnableHints = true)
+            .DeactivateOnExit<P3Shockwave>();
+
+        ComponentCondition<P3EntropyFluid>(id + 0x12, 2.2f, p => p.NumCasts == 2, "Elements 2");
+        ComponentCondition<P3InfernoTsunami>(id + 0x13, 1, p => p.NumCasts > 0, "Crystals 2")
+            .DeactivateOnExit<P3EntropyFluid>()
+            .DeactivateOnExit<P3InfernoTsunami>();
+    }
+
+    void P3UltimaBlaster(uint id, float delay)
+    {
+        ActorCastStart(id, _module.ChaosP3, AID.UmbraSmash, delay, true, "Superjump bait")
+            .ActivateOnEnter<P3UmbraSmashBait>()
+            .ActivateOnEnter<P3UltimaBlasterRaidwide>()
+            .ActivateOnEnter<P3UltimaBlasterCharge>()
+            .ActivateOnEnter<P3UmbraSmash>()
+            .DeactivateOnExit<P3UmbraSmashBait>()
+            .ExecOnEnter<P3UltimaBlasterCharge>(c => c.Draw = false);
+        ActorCastStart(id + 1, _module.ExdeathP3, AID.VacuumWave, 0.1f, true)
+            .ActivateOnEnter<P3VacuumWave>();
+
+        ComponentCondition<P3UltimaBlasterRaidwide>(id + 0x10, 0.8f, r => r.NumCasts > 0, "Dashes start");
+
+        ComponentCondition<P3UmbraSmash>(id + 0x20, 4.1f, p => p.NumCasts > 0, "Superjump")
+            .DeactivateOnExit<P3UmbraSmash>();
+        ComponentCondition<P3VacuumWave>(id + 0x30, 3.1f, p => p.NumCasts > 0, "Knockback")
+            .DeactivateOnExit<P3VacuumWave>();
+
+        ComponentCondition<P3Cyclone>(id + 0x100, 3.9f, c => c.NumCasts == 8, "Final cyclones")
+            .DeactivateOnExit<P3Cyclone>()
+            .DeactivateOnExit<P3HeadwindTailwind>()
+            .ExecOnExit<P3UltimaBlasterCharge>(b => b.Draw = true);
+
+        ComponentCondition<P3UltimaBlasterCharge>(id + 0x110, 11, p => p.NumCasts > 0, "Charges start");
 
         Timeout(id + 0xFF0000, 10000, "???");
     }

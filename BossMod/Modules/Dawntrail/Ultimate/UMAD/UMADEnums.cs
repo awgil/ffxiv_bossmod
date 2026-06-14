@@ -14,8 +14,8 @@ public enum OID : uint
     ChaosP3 = 0x4C34, // R6.000, x0 (spawn during fight)
     ExdeathP3 = 0x4C35, // R3.800, x0 (spawn during fight)
     // dunno who these guys are. probably related to limit cut
-    P3Kefka1 = 0x4BFB, // R2.700, x0 (spawn during fight)
-    P3Kefka2 = 0x482B, // R6.000, x0 (spawn during fight)
+    KefkaCloneP3 = 0x4BFB, // R2.700, x0 (spawn during fight), casts Ultima Blaster
+    OtherKefkaP3 = 0x482B, // R6.000, x0 (spawn during fight)
 
     FireCrystal = 0x1EC03A,
     WaterCrystal = 0x1EC03B,
@@ -96,19 +96,33 @@ public enum AID : uint
     WingsOfDestructionBuster = 47823, // Helper->players, no cast, range 7 circle
     LightOfJudgmentP2Enrage = 47841, // BossP2->self, 5.0s cast, range 100 circle
 
-    _Ability_AeroIIIAssault = 50167, // BossP1->self, 3.0s cast, range 40 circle
-    _Ability_DefinitionOfInsanity = 47842, // BossP1->self, 4.0s cast, single-target
-    _Ability_TheDecisiveBattle = 49890, // ChaosP3->self, 3.0s cast, single-target
-    _Ability_TheDecisiveBattle1 = 49891, // ExdeathP3->self, 3.0s cast, single-target
-    _AutoAttack_ = 49744, // ExdeathP3->player, no cast, single-target
-    _Ability_BowelsOfAgony = 47858, // ChaosP3->self, 5.0s cast, range 100 circle
-    _Ability_ThunderIII = 47890, // ExdeathP3->self, 7.0s cast, range 11+R circle, bigass aoe
-    _Ability_StrayFlames = 47859, // Helper->player, no cast, range 5 circle, Entropy expiration
-    _Ability_Inferno = 47860, // Helper->player, no cast, range 4-10 donut, fire crystal bait
-    _Ability_StraySpray = 47862, // Helper->player, no cast, range 4-10 donut, Fluid expiration
-    _Ability_Tsunami = 47861, // Helper->players, no cast, range 5 circle, water crystal bait
-    _Ability_Cyclone = 47864, // Helper->player, no cast, range 6 circle, wind stack (requires at least 2 players)
-    _Ability_ThunderIII1 = 47881, // ExdeathP3->self, 5.0s cast, single-target
+    AeroIIIAssault = 50167, // BossP1->self, 3.0s cast, range 40 circle
+    Trance = 49878, // BossP1->self, 3.9s cast, single-target
+    DefinitionOfInsanity = 47842, // BossP1->self, 4.0s cast, single-target
+    DecisiveBattleA = 49890, // ChaosP3->self, 3.0s cast, single-target
+    DecisiveBattleB = 49891, // ExdeathP3->self, 3.0s cast, single-target
+    AutoExdeath = 49744, // ExdeathP3->player, no cast, single-target
+    BowelsOfAgony = 47858, // ChaosP3->self, 5.0s cast, range 100 circle
+
+    ThunderIIICircle = 47890, // ExdeathP3->self, 7.0s cast, range 11+R circle, bigass aoe
+    StrayFlames = 47859, // Helper->player, no cast, range 5 circle, Entropy expiration
+    Inferno = 47860, // Helper->player, no cast, range 4-10 donut, fire crystal bait
+    StraySpray = 47862, // Helper->player, no cast, range 4-10 donut, Fluid expiration
+    Tsunami = 47861, // Helper->players, no cast, range 5 circle, water crystal bait
+    StrayGusts = 47863, // Helper->player, no cast, single-target, kills player if they failed the "gaze"
+    Cyclone = 47864, // Helper->player, no cast, range 6 circle, wind stack (requires at least 2 players)
+    ThunderIIIBusterCast = 47881, // ExdeathP3->self, 5.0s cast, single-target
+    ThunderIIIBuster = 47884, // Helper->player, no cast, range 5 circle
+
+    LongitudinalImplosion = 47869, // ChaosP3->self, 5.0+0.8s cast, single-target
+    LatitudinalImplosion = 47870, // ChaosP3->self, 5.0+0.8s cast, single-target
+    Shockwave = 47871, // Helper->self, no cast, range 40 90-degree cone
+    UltimaBlasterRaidwide = 47843, // P3Kefka1->self, no cast, range 100 circle
+    UmbraSmash = 47872, // ChaosP3->location, 5.0s cast, range 100 circle
+    VacuumWave = 47891, // ExdeathP3->self, 8.0s cast, range 100 circle
+    Aetherlink1 = 49892, // ChaosP3->self, no cast, single-target
+    Aetherlink2 = 49893, // ExdeathP3->self, no cast, single-target
+    UltimaBlasterCharge = 47844, // P3Kefka1->self, no cast, range 100 width 6 rect
 }
 
 public enum SID : uint
@@ -136,17 +150,20 @@ public enum SID : uint
     ForsakenSpread = 5085, // none->player, extra=0x0
     ForsakenCone = 5086, // none->player, extra=0x0
 
-    _Gen_DownForTheCount = 774, // BossP1->player, extra=0xEC7
-    _Gen_InEvent = 1268, // none->player, extra=0x0
-    _Gen_EpicHero = 4192, // none->player, extra=0x0
-    _Gen_EpicVillain = 4193, // none->ChaosP3, extra=0x0
-    _Gen_FatedHero = 4194, // none->player, extra=0x0
-    _Gen_FatedVillain = 4195, // none->ExdeathP3, extra=0x0
-    _Gen_Entropy = 1600, // none->player, extra=0x0
-    _Gen_DynamicFluid = 1601, // none->player, extra=0x0
-    _Gen_Headwind = 1602, // none->player, extra=0x0
-    _Gen_Tailwind = 1603, // none->player, extra=0x0
-    _Gen_WindResistanceDownII = 1052, // Helper->player, extra=0x0
+    DownForTheCount = 774, // BossP1->player, extra=0xEC7
+    InEvent = 1268, // none->player, extra=0x0
+
+    EpicHero = 4192, // none->player, extra=0x0
+    EpicVillain = 4193, // none->ChaosP3, extra=0x0
+    FatedHero = 4194, // none->player, extra=0x0
+    FatedVillain = 4195, // none->ExdeathP3, extra=0x0
+    Entropy = 1600, // none->player, extra=0x0
+    DynamicFluid = 1601, // none->player, extra=0x0
+    Headwind = 1602, // none->player, extra=0x0
+    Tailwind = 1603, // none->player, extra=0x0
+    WindResistanceDownII = 1052, // Helper->player, extra=0x0
+    LightningResistanceDownII = 2998, // Helper->player, extra=0x0
+    UnkBoss = 2273, // BossP1->BossP1, extra=0x1FF/0x22B
 }
 
 public enum IconID : uint
@@ -165,9 +182,19 @@ public enum IconID : uint
     ForsakenStack = 715, // player->self
     ForsakenSpread = 716, // player->self
     ForsakenCone = 717, // player->self
+
+    Blaster1 = 336, // player->self
+    Blaster2 = 337, // player->self
+    Blaster3 = 338, // player->self
+    Blaster4 = 339, // player->self
+    Blaster5 = 437, // player->self
+    Blaster6 = 438, // player->self
+    Blaster7 = 439, // player->self
+    Blaster8 = 440, // player->self
 }
 
 public enum TetherID : uint
 {
     GravenImage = 45, // GravenImage->player, used for every statue-related P1 mechanic
+    ExdeathThunder = 64, // ExdeathP3->GravenImage
 }
