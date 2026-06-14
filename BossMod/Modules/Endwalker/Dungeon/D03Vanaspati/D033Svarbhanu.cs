@@ -101,6 +101,14 @@ class ChaoticUndercurrent(BossModule module) : Components.GenericAOEs(module)
         _aoes.Add(new(rect, coords[indices.Item1], rotation, activation));
         _aoes.Add(new(rect, coords[indices.Item2], rotation, activation));
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var kb = Module.FindComponent<CosmicKissKnockback>()!;
+
+        if (actor.PendingKnockbacks.Count > 0 || !kb.Sources(slot, actor).Any(s => !kb.IsImmune(slot, s.Activation)))
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
 }
 
 class CosmicKissSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.CosmicKissSpread, 6);
@@ -161,13 +169,15 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
         {
             if (!IsImmune(slot, src.Activation))
             {
+                var currents = Module.FindComponent<ChaoticUndercurrent>()!.ActiveAOEs(slot, actor).Select(a => (a.Origin, a.Rotation)).ToList();
+
                 var orig = src.Origin;
                 var center = Arena.Center;
                 hints.AddForbiddenZone(p =>
                 {
                     var dir = (p - orig).Normalized();
                     var proj = p + dir * 13;
-                    return !proj.AlmostEqual(center, 20);
+                    return !proj.AlmostEqual(center, 20) || currents.Any(r => proj.InRect(r.Origin, r.Rotation, 40, 0, 5));
                 }, src.Activation);
             }
         }
