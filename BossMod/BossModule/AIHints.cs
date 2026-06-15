@@ -177,6 +177,7 @@ public sealed class AIHints
         ForcedTarget = null;
         ForcedFocusTarget = null;
         ForcedMovement = null;
+        SpinDirection = null;
         InteractWithTarget = null;
         ForbiddenZones.Clear();
         GoalZones.Clear();
