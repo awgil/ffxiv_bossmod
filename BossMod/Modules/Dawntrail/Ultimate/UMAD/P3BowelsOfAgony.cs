@@ -304,30 +304,22 @@ class P3Shockwave(BossModule module) : Components.GenericAOEs(module, AID.Shockw
 // thus Vacuum Wave on cleansed players deals a 20y knockback, 10y on debuffed players, and $someBigNumber on debuffed players who fail the gaze mechanic
 class P3HeadwindTailwind(BossModule module) : Components.Knockback(module, ignoreImmunes: true)
 {
-    record struct VacuumWave(WPos Origin, DateTime Activation);
-    VacuumWave? _wave;
+    record struct VacuumWave(WPos Origin, DateTime Activation, bool EventHappened);
+    VacuumWave _wave;
 
     // 1 = headwind, 2 = tailwind
     public readonly int[] Direction = new int[8];
 
-    // hack for AI mode
-    readonly bool[] _knockbackPending = new bool[8];
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.VacuumWave)
-            _wave = new(spell.LocXZ, Module.CastFinishAt(spell));
+            _wave = new(spell.LocXZ, Module.CastFinishAt(spell), false);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.VacuumWave)
-        {
-            _wave = null;
-            foreach (var tar in spell.Targets)
-                if (Raid.TryFindSlot(tar.ID, out var slot))
-                    _knockbackPending[slot] = true;
-        }
+            _wave = _wave with { EventHappened = true };
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -342,15 +334,6 @@ class P3HeadwindTailwind(BossModule module) : Components.Knockback(module, ignor
             Direction[slot] = dir;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
-    {
-        if ((SID)status.ID is SID.Headwind or SID.Tailwind && Raid.TryFindSlot(actor, out var slot))
-        {
-            _knockbackPending[slot] = false;
-            Direction[slot] = 0;
-        }
-    }
-
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (Module.FindComponent<P3InfernoTsunami>() is { } tsunami && tsunami.EnableHints)
@@ -358,8 +341,8 @@ class P3HeadwindTailwind(BossModule module) : Components.Knockback(module, ignor
                 if (src.Shape.Check(actor.Position, src.Target))
                     yield return new(src.Target.Position, KnockDistance(slot, actor, src.Target.Position), src.Activation);
 
-        if (_wave is { } vw)
-            yield return new(vw.Origin, KnockDistance(slot, actor, vw.Origin), vw.Activation);
+        if (_wave.Origin != default)
+            yield return new(_wave.Origin, KnockDistance(slot, actor, _wave.Origin), _wave.Activation);
     }
 
     float KnockDistance(int pcSlot, Actor pc, WPos source)
@@ -376,7 +359,7 @@ class P3HeadwindTailwind(BossModule module) : Components.Knockback(module, ignor
         if (rel > 0.7071067f)
             return 10;
         if (rel < -0.7071068f)
-            return 50;
+            return 40;
         return 20;
     }
 
@@ -400,13 +383,6 @@ class P3HeadwindTailwind(BossModule module) : Components.Knockback(module, ignor
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_knockbackPending[slot])
-        {
-            // TODO: uhhhh this basically just replicates what NormalMovement does during pending knockbacks...is there any sane way to handle this? please don't make me generalize pending knockbacks...
-            hints.ForcedMovement = new();
-            return;
-        }
-
         if (Direction[slot] == 0)
             return;
 
@@ -430,9 +406,24 @@ class P3HeadwindTailwind(BossModule module) : Components.Knockback(module, ignor
         foreach (var src in Sources(slot, actor).Take(1))
         {
             var dir = Direction[slot] == 1 ? "away from" : "toward";
-            var hint = _wave == null ? $"Face {dir} bait!" : $"Face {dir} boss!";
+            var hint = _wave.Origin == default ? $"Face {dir} bait!" : $"Face {dir} boss!";
             hints.Add(hint, KnockDistance(slot, actor, src.Origin) > 10);
         }
+    }
+
+    // can't rely on EffectResult, because we only get one for each player that fails the mechanic, which ideally nobody should be doing
+    // can't rely on PendingKnockbacks, since Vacuum Wave and the crystal spells don't apply a knockback
+    // can't rely on Knockback ActorControlSelf, because it is only applied to the PoV player, and presumably they don't get one if they're dead (so in replays the component would get stuck until unload)
+    // so instead we resort to this nonsense
+    public override void Update()
+    {
+        if (_wave.EventHappened)
+            foreach (var player in Raid.WithoutSlot())
+                if (player.LastFrameMovement.Length() / WorldState.Frame.Duration > 15)
+                {
+                    _wave = default;
+                    break;
+                }
     }
 }
 
