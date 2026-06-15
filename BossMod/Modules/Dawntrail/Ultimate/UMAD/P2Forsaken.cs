@@ -87,14 +87,14 @@ class P2Shapes : Components.CastCounterMulti
 
     public readonly Shape[] Shapes = new Shape[8];
     public readonly Shape[] InitialShapes = new Shape[8];
-    public readonly int[] BuddySlot = Utils.MakeArray(8, -1);
+    public readonly int[] PartnerSlot = Utils.MakeArray(8, -1);
     public readonly int[] Tiebreaker = Utils.MakeArray(8, -1);
 
     int _numAssignments;
 
     public enum TowerGroup { Unknown, A, B }
 
-    public TowerGroup Group(int pcSlot) => InitialShapes[pcSlot] == default || BuddySlot[pcSlot] < 0 ? TowerGroup.Unknown : InitialShapes[pcSlot] == InitialShapes[BuddySlot[pcSlot]] ? TowerGroup.B : TowerGroup.A;
+    public TowerGroup Group(int pcSlot) => InitialShapes[pcSlot] == default || PartnerSlot[pcSlot] < 0 ? TowerGroup.Unknown : InitialShapes[pcSlot] == InitialShapes[PartnerSlot[pcSlot]] ? TowerGroup.B : TowerGroup.A;
 
     public P2Shapes(BossModule module) : base(module, [AID.Spelldriver, AID.Spellscatter, AID.Spellwave])
     {
@@ -111,8 +111,8 @@ class P2Shapes : Components.CastCounterMulti
         {
             for (var i = 0; i < partnerIds.Length; i++)
             {
-                BuddySlot[partnerIds[i][0]] = partnerIds[i][1];
-                BuddySlot[partnerIds[i][1]] = partnerIds[i][0];
+                PartnerSlot[partnerIds[i][0]] = partnerIds[i][1];
+                PartnerSlot[partnerIds[i][1]] = partnerIds[i][0];
             }
         }
         foreach (var (slot, grp) in _config.P2ForsakenTiebreaker.Resolve(Raid))
@@ -123,8 +123,8 @@ class P2Shapes : Components.CastCounterMulti
     {
         if (Shapes[slot] != default)
             hints.Add($"Current shape: {Shapes[slot]}", false);
-        if (BuddySlot[slot] >= 0 && Shapes[BuddySlot[slot]] != default)
-            hints.Add($"Buddy shape: {Shapes[BuddySlot[slot]]}", false);
+        if (PartnerSlot[slot] >= 0 && Shapes[PartnerSlot[slot]] != default)
+            hints.Add($"Partner shape: {Shapes[PartnerSlot[slot]]}", false);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -167,7 +167,7 @@ class P2Shapes : Components.CastCounterMulti
             Shapes[slot] = default;
     }
 
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => BuddySlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PartnerSlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
 
     int _numTowersDone;
 

@@ -12,7 +12,7 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
             Spreads.Ref(i).Activation -= TimeSpan.FromSeconds(value);
     }
 
-    public P1GravitasVitrophyre(BossModule module) : base(module, 5, 0)
+    public P1GravitasVitrophyre(BossModule module) : base(module, 5, 5)
     {
         PermitOverlap = true;
     }
@@ -39,6 +39,28 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
 
         if ((AID)spell.Action.ID == AID.Vitrophyre && Spreads.Count > 0)
             Spreads.RemoveAt(0);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+
+        if (_predicted.Any(t => t.Target == actor))
+            hints.Add("Prepare to spread!", false);
+
+        if (IsSpreadTarget(actor) && Module.Enemies(OID.Gravitas).Any(g => actor.Position.InCircle(g.Position, 10)))
+            hints.Add("Bait away from puddles!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (IsSpreadTarget(actor))
+        {
+            var gravity = Module.Enemies(OID.Gravitas).Select(g => ShapeContains.Circle(g.Position, 5 + SpreadRadius)).ToList();
+            hints.AddForbiddenZone(ShapeContains.Union(gravity), Spreads[0].Activation);
+        }
     }
 }
 

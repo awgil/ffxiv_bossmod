@@ -164,6 +164,19 @@ class P1TelePortent(BossModule module) : BossComponent(module)
             Arena.AddCircle(sp, 0.75f, sd == toCheck ? ArenaColor.Safe : ArenaColor.Danger);
         }
     }
+
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        var toCheck = _timesHit[slot] == 0 ? _debuffs[slot].D1.Dir : _debuffs[slot].D2.Dir;
+
+        WPos last = default;
+
+        foreach (var (d, s) in _hintSpots[slot].OrderBy(s => s.Item1 != toCheck))
+        {
+            movementHints.Add(d == toCheck ? actor.Position : last, s, d == toCheck ? ArenaColor.Safe : ArenaColor.Danger);
+            last = s;
+        }
+    }
 }
 
 class P1Arrow(BossModule module) : BossComponent(module)

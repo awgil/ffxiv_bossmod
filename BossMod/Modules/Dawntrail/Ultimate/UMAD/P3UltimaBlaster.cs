@@ -17,13 +17,8 @@ class P3UmbraSmashBait : Components.GenericBaitAway
     {
         CurrentBaits.Clear();
 
-        if (((UMAD)Module).ChaosP3() is not { } chaos)
-            return;
-
-        if (Raid.WithoutSlot().Farthest(chaos.Position) is not { } target)
-            return;
-
-        CurrentBaits.Add(new(chaos, target, new AOEShapeCircle(20), _activation));
+        if (((UMAD)Module).ChaosP3() is { } chaos && Raid.WithoutSlot().Farthest(chaos.Position) is { } target)
+            CurrentBaits.Add(new(chaos, target, new AOEShapeCircle(20), _activation));
     }
 }
 
@@ -80,6 +75,7 @@ class P3UltimaBlasterCharge(BossModule module) : Components.UntelegraphedBait(mo
     {
         var order = (IconID)iconID switch
         {
+            // these ids aren't contiguous, don't try to be clever
             IconID.Blaster1 => 0,
             IconID.Blaster2 => 1,
             IconID.Blaster3 => 2,
@@ -108,10 +104,27 @@ class P3UltimaBlasterCharge(BossModule module) : Components.UntelegraphedBait(mo
         }
     }
 
+    WPos SafeSpot(Bait b)
+    {
+        var fromBait = Arena.Center - b.Origin;
+        return Arena.Center + fromBait.Normalized().Rotate(_cloneRotate * 0.5f) * 19;
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (Draw)
-            base.DrawArenaForeground(pcSlot, pc);
+        if (!Draw)
+            return;
+
+        base.DrawArenaForeground(pcSlot, pc);
+
+        foreach (var bait in BaitsOn(pcSlot))
+            Arena.AddCircle(SafeSpot(bait), 0.75f, ArenaColor.Safe);
+    }
+
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        foreach (var bait in BaitsOn(slot))
+            movementHints.Add(actor.Position, SafeSpot(bait), ArenaColor.Safe);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
