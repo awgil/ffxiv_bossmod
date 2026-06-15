@@ -71,9 +71,9 @@ public sealed class ReplayManager : IDisposable
     }
 
     private readonly RotationDatabase _rotationDB;
-    private readonly ReplayManagementConfig _config = Service.Config.Get<ReplayManagementConfig>();
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
+    private readonly ReplayHistory _replayHistory;
     private int _nextAnalysisId;
     private string _path = "";
     private string _fileDialogStartPath;
@@ -82,6 +82,7 @@ public sealed class ReplayManager : IDisposable
     {
         _rotationDB = rotationDB;
         _fileDialogStartPath = fileDialogStartPath;
+        _replayHistory = ReplayHistory.Load();
         RestoreHistory();
     }
 
@@ -344,19 +345,13 @@ public sealed class ReplayManager : IDisposable
 
     private void SaveHistory()
     {
-        if (!RememberReplays)
-            return;
-        _config.ReplayHistory = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? false, r.Window?.CurrentTime ?? default))];
-        _config.Modified.Fire();
+        _replayHistory.History = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? false, r.Window?.CurrentTime ?? default))];
+        _replayHistory.Save();
     }
 
     private void RestoreHistory()
     {
-        if (!RememberReplays)
-            return;
-        foreach (var memory in _config.ReplayHistory)
-            _replayEntries.Add(new(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
+        foreach (var rp in _replayHistory.History)
+            _replayEntries.Add(new(rp.Path, rp.IsOpen, rp.PlaybackPosition));
     }
-
-    private bool RememberReplays => Service.IsMock && _config.RememberReplays;
 }

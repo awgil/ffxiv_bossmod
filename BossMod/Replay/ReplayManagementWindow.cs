@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Lumina.Excel.Sheets;
