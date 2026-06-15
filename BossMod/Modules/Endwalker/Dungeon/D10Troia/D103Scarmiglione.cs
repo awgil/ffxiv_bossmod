@@ -68,7 +68,7 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
     }
 
     private bool WallCheck(WPos pos) => WallCheck(Arena.Center, Walls, pos);
-    private static bool WallCheck(WPos center, List<(ulong, Angle Angle)> walls, WPos pos) => walls.Any(w => Angle.FromDirection(pos - center).AlmostEqual(w.Angle, 3.Degrees().Rad));
+    private static bool WallCheck(WPos center, List<(ulong, Angle Angle)> walls, WPos pos) => walls.Any(w => Angle.FromDirection(pos - center).AlmostEqual(w.Angle, 2.5f.Degrees().Rad));
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -81,9 +81,9 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
     }
 }
 
-class ScarmiglioneStates : StateMachineBuilder
+class D103ScarmiglioneStates : StateMachineBuilder
 {
-    public ScarmiglioneStates(BossModule module) : base(module)
+    public D103ScarmiglioneStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<VacuumWave>()
@@ -101,7 +101,4 @@ class ScarmiglioneStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372)]
-public class Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(25))
-{
-    protected override void DrawArenaBackground(int pcSlot, Actor pc) => Arena.ZoneDonut(Arena.Center, 21, 25, ArenaColor.AOE);
-}
+public class D103Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(21));

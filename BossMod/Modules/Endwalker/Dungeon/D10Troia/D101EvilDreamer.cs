@@ -32,11 +32,11 @@ class UniteMare2(BossModule module) : Components.StandardAOEs(module, AID.UniteM
 class VoidGravity(BossModule module) : Components.SpreadFromCastTargets(module, AID.VoidGravity, 6);
 class EndlessNightmare(BossModule module) : Components.CastHint(module, AID.EndlessNightmare, "Kill before enrage!", showCastTimeLeft: true);
 
-class EvilDreamerStates : StateMachineBuilder
+class D101EvilDreamerStates : StateMachineBuilder
 {
-    private readonly EvilDreamer _module;
+    private readonly D101EvilDreamer _module;
 
-    public EvilDreamerStates(EvilDreamer module) : base(module)
+    public D101EvilDreamerStates(D101EvilDreamer module) : base(module)
     {
         _module = module;
 
@@ -53,7 +53,7 @@ class EvilDreamerStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11382)]
-public class EvilDreamer(WorldState ws, Actor primary) : BossModule(ws, primary, new(168, 90), new ArenaBoundsCircle(20))
+public class D101EvilDreamer(WorldState ws, Actor primary) : BossModule(ws, primary, new(168, 90), new ArenaBoundsCircle(20))
 {
     public Actor? ReallyBigEvilDreamer => Enemies(0x3988).FirstOrDefault();
 

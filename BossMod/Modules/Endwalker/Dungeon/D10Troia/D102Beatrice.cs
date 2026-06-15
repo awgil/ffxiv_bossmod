@@ -32,9 +32,9 @@ class VoidNail(BossModule module) : Components.SpreadFromCastTargets(module, AID
 class ToricVoid(BossModule module) : Components.StandardAOEs(module, AID.ToricVoid, new AOEShapeDonut(10, 20));
 class Antipressure(BossModule module) : Components.StackWithCastTargets(module, AID.Antipressure, 6);
 
-class BeatriceStates : StateMachineBuilder
+class D102BeatriceStates : StateMachineBuilder
 {
-    public BeatriceStates(BossModule module) : base(module)
+    public D102BeatriceStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<EyeOfTroia>()
@@ -51,4 +51,4 @@ class BeatriceStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11384)]
-public class Beatrice(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -148), new ArenaBoundsCircle(20));
+public class D102Beatrice(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -148), new ArenaBoundsCircle(20));
