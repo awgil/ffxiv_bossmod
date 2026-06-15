@@ -248,7 +248,8 @@ class P3ThunderIIIBuster(BossModule module) : Components.GenericBaitAway(module,
         if (spell.Action == WatchedAction)
         {
             NumCasts++;
-            _source = null;
+            if (NumCasts == 2)
+                _source = null;
         }
     }
 
@@ -441,11 +442,6 @@ class P3Cyclone(BossModule module) : Components.GenericStackSpread(module)
 
     DateTime _pendingActivation;
     int _numPending;
-
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        //hints.Add($"Num predicted: {_numPending}");
-    }
 
     bool HasWind(ulong instanceId) => WorldState.Actors.Find(instanceId)?.Statuses.Any(s => (SID)s.ID is SID.Headwind or SID.Tailwind) == true;
 

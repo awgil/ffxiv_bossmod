@@ -14,7 +14,7 @@ public enum OID : uint
     ChaosP3 = 0x4C34, // R6.000, x0 (spawn during fight)
     ExdeathP3 = 0x4C35, // R3.800, x0 (spawn during fight)
     // dunno who these guys are. probably related to limit cut
-    KefkaCloneP3 = 0x4BFB, // R2.700, x0 (spawn during fight), casts Ultima Blaster
+    CloneP3 = 0x4BFB, // R2.700, x0 (spawn during fight), casts Ultima Blaster
     OtherKefkaP3 = 0x482B, // R6.000, x0 (spawn during fight)
 
     FireCrystal = 0x1EC03A,
@@ -117,12 +117,12 @@ public enum AID : uint
     LongitudinalImplosion = 47869, // ChaosP3->self, 5.0+0.8s cast, single-target
     LatitudinalImplosion = 47870, // ChaosP3->self, 5.0+0.8s cast, single-target
     Shockwave = 47871, // Helper->self, no cast, range 40 90-degree cone
-    UltimaBlasterRaidwide = 47843, // P3Kefka1->self, no cast, range 100 circle
+    UltimaBlasterRaidwide = 47843, // CloneP3->self, no cast, range 100 circle
     UmbraSmash = 47872, // ChaosP3->location, 5.0s cast, range 100 circle
     VacuumWave = 47891, // ExdeathP3->self, 8.0s cast, range 100 circle
     Aetherlink1 = 49892, // ChaosP3->self, no cast, single-target
     Aetherlink2 = 49893, // ExdeathP3->self, no cast, single-target
-    UltimaBlasterCharge = 47844, // P3Kefka1->self, no cast, range 100 width 6 rect
+    UltimaBlasterCharge = 47844, // CloneP3->self, no cast, range 100 width 6 rect
 }
 
 public enum SID : uint

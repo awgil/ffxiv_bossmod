@@ -367,12 +367,13 @@ class UMADStates : StateMachineBuilder
 
         ActorCastStart(id + 0x30, _module.ExdeathP3, AID.ThunderIIIBusterCast, 3.2f, true)
             .ActivateOnEnter<P3ThunderIIIBuster>();
-        ComponentCondition<P3ThunderIIIBuster>(id + 0x31, 5, p => p.NumCasts > 0, "Tankbuster 1")
+        ComponentCondition<P3ThunderIIIBuster>(id + 0x31, 5, p => p.NumCasts > 0, "Tankbuster hit 1");
+        ComponentCondition<P3ThunderIIIBuster>(id + 0x32, 3.1f, p => p.NumCasts > 1, "Tankbuster hit 2")
             .DeactivateOnExit<P3ThunderIIIBuster>();
 
         id += 0x10000;
 
-        ActorCastStartMulti(id, _module.ChaosP3, [AID.LongitudinalImplosion, AID.LatitudinalImplosion], 7.8f, true)
+        ActorCastStartMulti(id, _module.ChaosP3, [AID.LongitudinalImplosion, AID.LatitudinalImplosion], 4.7f, true)
             .ActivateOnEnter<P3EntropyFluid>()
             .ActivateOnEnter<P3Shockwave>();
 
