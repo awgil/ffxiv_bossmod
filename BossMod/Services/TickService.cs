@@ -160,10 +160,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
-            _wndDebug = new MainDebugWindow(_ws, _rotation, _zonemod, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud)
-            {
-                IsOpen = dalamud.IsDev
-            };
+            _wndDebug = new MainDebugWindow(_ws, _rotation, _zonemod, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud);
         }
 
         RegisterSlashCommands();

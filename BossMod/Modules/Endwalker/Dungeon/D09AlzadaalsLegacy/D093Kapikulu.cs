@@ -35,6 +35,15 @@ public enum TetherID : uint
     ManaExplosion = 188 // Boss->Helper
 }
 
+public enum SID : uint
+{
+    Spinning = 2973, // Boss->player, extra=0x7
+    Dizzy = 2974, // Boss->player, extra=0x0
+    Fetters = 2975, // Boss->player, extra=0xEC4
+    StabWound1 = 3061, // none->player, extra=0x0
+    StabWound2 = 3062, // none->player, extra=0x0
+}
+
 class BillowingBoltsArenaChange(BossModule module) : BossComponent(module)
 {
     private static readonly ArenaBoundsRect smallerBounds = new(15, 20);
@@ -132,6 +141,41 @@ class RotaryGale(BossModule module) : Components.SpreadFromCastTargets(module, A
 class CrewelSlice(BossModule module) : Components.SingleTargetDelayableCast(module, AID.CrewelSlice);
 class BillowingBolts(BossModule module) : Components.RaidwideCast(module, AID.BillowingBolts);
 
+class SpinningHints(BossModule module) : BossComponent(module)
+{
+    int _numBlades;
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.Spinning)
+            _numBlades = 0;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.BastingBlade)
+            _numBlades++;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor.FindStatus(SID.Spinning) == null)
+            return;
+
+        if (_numBlades == 0)
+        {
+            var d0 = Arena.Center + new WDir(0, -5);
+            var d1 = Arena.Center + new WDir(0, 14);
+            hints.GoalZones.Add(p => p.AlmostEqual(d0 + new WDir(14, 0), 1) || p.AlmostEqual(d0 - new WDir(14, 0), 1) || p.AlmostEqual(d1 + new WDir(14, 0), 1) || p.AlmostEqual(d1 - new WDir(14, 0), 1) ? 1 : 0);
+        }
+        else
+        {
+            var dest2 = Arena.Center + new WDir(0, -10);
+            hints.GoalZones.Add(p => p.InCircle(dest2, 1) ? 1 : 0);
+        }
+    }
+}
+
 class D093KapikuluStates : StateMachineBuilder
 {
     public D093KapikuluStates(BossModule module) : base(module)
@@ -145,7 +189,8 @@ class D093KapikuluStates : StateMachineBuilder
             .ActivateOnEnter<MagnitudeOpus>()
             .ActivateOnEnter<CrewelSlice>()
             .ActivateOnEnter<RotaryGale>()
-            .ActivateOnEnter<BillowingBolts>();
+            .ActivateOnEnter<BillowingBolts>()
+            .ActivateOnEnter<SpinningHints>();
     }
 }
 

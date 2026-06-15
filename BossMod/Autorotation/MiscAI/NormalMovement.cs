@@ -60,6 +60,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
     public const float MeleeRange = 3;
     public const float CasterRange = 25;
+    const float SpinningLookahead = 5.5f;
 
     private Task<NavigationDecision> _decisionTask = Task.FromResult(default(NavigationDecision));
     private NavigationDecision _lastDecision;
@@ -137,6 +138,16 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         if (Hints.GoalZones.Count == 0 && primaryTarget is { IsAlly: false, IsDead: false } && Player.Statuses.Any(s => RotationModuleManager.TransformationStatuses.Contains(s.ID)))
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
 
+        var isSpinning = Player.Statuses.Any(s => s.ID == 2973);
+
+        // simulate forward forced movement; this is kind of a hack, but it definitely doesn't belong in modules because it's part of the movement constraint
+        if (isSpinning)
+        {
+            // rect is offset by -1 unit player-relative. we know very well that player-centered shapes make the pathfinder freak the fuck out
+            Hints.AddForbiddenZone(ShapeContains.Rect(Player.Position, Player.Rotation, SpinningLookahead, SpinningLookahead + 2, SpinningLookahead + 2), World.FutureTime(2));
+            Hints.AddForbiddenZone(ShapeContains.Cone(Player.Position, 100, Player.Rotation + 180.Degrees(), 45.Degrees()), DateTime.MaxValue);
+        }
+
         var speed = World.Client.MoveSpeed;
         var destinationOpt = strategy.Option(Track.Destination);
         var destinationStrategy = destinationOpt.As<DestinationStrategy>();
@@ -174,6 +185,14 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             _lastDecision = default;
             Manager.LastPathfindMs = 0;
             Manager.LastRasterizeMs = 0;
+        }
+
+        if (isSpinning)
+        {
+            if (Hints.SpinDirection == null && navi.Destination is { } wp)
+                Hints.SpinDirection = Player.DirectionTo(wp).ToAngle();
+
+            return;
         }
 
         if (navi.Destination == null)
