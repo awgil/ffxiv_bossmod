@@ -308,7 +308,9 @@ class P2Shapes : Components.CastCounterMulti
                     rightTower.Set(slot);
             }
 
+#pragma warning disable IDE0047 // Remove unnecessary parentheses, you serious bro?
             var isInTower = (group == TowerGroup.A) == (_numAssignments is 8 or 12 or 16 or 36);
+#pragma warning restore IDE0047 // Remove unnecessary parentheses
             if (!isInTower)
                 continue;
 

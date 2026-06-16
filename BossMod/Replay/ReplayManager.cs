@@ -351,6 +351,9 @@ public sealed class ReplayManager : IDisposable
 
     private void RestoreHistory()
     {
+        if (!Service.IsMock)
+            return;
+
         foreach (var rp in _replayHistory.History)
             _replayEntries.Add(new(rp.Path, rp.IsOpen, rp.PlaybackPosition));
     }
