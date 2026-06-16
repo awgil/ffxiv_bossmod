@@ -74,6 +74,9 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show cardinal direction names on radar")]
     public bool ShowCardinals = false;
 
+    [PropertyDisplay("Draw N cardinal in a different color", depends: nameof(ShowCardinals), since: "7.5.1.6")]
+    public bool HighlightN = false;
+
     [PropertyDisplay("Cardinal direction font size")]
     [PropertySlider(0.1f, 100, Speed = 1)]
     public float CardinalsFontSize = 17;

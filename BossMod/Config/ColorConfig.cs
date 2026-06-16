@@ -9,6 +9,9 @@ public sealed class ColorConfig : ConfigNode
     [PropertyDisplay("Arena: border")]
     public Color ArenaBorder = new(0xffffffff);
 
+    [PropertyDisplay("Arena: N cardinal highlight")]
+    public Color ArenaHighlightN = new(0xff00ffff);
+
     [PropertyDisplay("Arena: typical danger zone (AOE)")]
     public Color ArenaAOE = new(0x80008080);
 

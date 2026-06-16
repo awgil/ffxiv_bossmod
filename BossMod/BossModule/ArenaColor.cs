@@ -8,6 +8,7 @@ public static class ArenaColor
 
     public static uint Background => Config.ArenaBackground.ABGR;
     public static uint Border => Config.ArenaBorder.ABGR;
+    public static uint HighlightN => Config.ArenaHighlightN.ABGR;
     public static uint AOE => Config.ArenaAOE.ABGR;
     public static uint SafeFromAOE => Config.ArenaSafeFromAOE.ABGR;
     public static uint Danger => Config.ArenaDanger.ABGR;
