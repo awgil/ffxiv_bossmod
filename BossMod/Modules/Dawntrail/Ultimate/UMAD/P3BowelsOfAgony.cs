@@ -262,7 +262,7 @@ class P3ThunderIIIBuster(BossModule module) : Components.GenericBaitAway(module,
     }
 }
 
-class P3Shockwave(BossModule module) : Components.GenericAOEs(module, AID.Shockwave)
+class P3LatLongShockwave(BossModule module) : Components.GenericAOEs(module, AID.LatLongShockwave)
 {
     readonly List<AOEInstance> _predicted = [];
 

@@ -1,5 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Dawntrail.Ultimate.UMAD;
+﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 public enum OID : uint
 {
@@ -16,6 +15,7 @@ public enum OID : uint
     // dunno who these guys are. probably related to limit cut
     CloneP3 = 0x4BFB, // R2.700, x0 (spawn during fight), casts Ultima Blaster
     OtherKefkaP3 = 0x482B, // R6.000, x0 (spawn during fight)
+    BlackHoleP3 = 0x4C38, // R1.000, x0 (spawn during fight)
 
     FireCrystal = 0x1EC03A,
     WaterCrystal = 0x1EC03B,
@@ -113,16 +113,34 @@ public enum AID : uint
     Cyclone = 47864, // Helper->player, no cast, range 6 circle, wind stack (requires at least 2 players)
     ThunderIIIBusterCast = 47881, // ExdeathP3->self, 5.0s cast, single-target
     ThunderIIIBuster = 47884, // Helper->player, no cast, range 5 circle
-
     LongitudinalImplosion = 47869, // ChaosP3->self, 5.0+0.8s cast, single-target
     LatitudinalImplosion = 47870, // ChaosP3->self, 5.0+0.8s cast, single-target
-    Shockwave = 47871, // Helper->self, no cast, range 40 90-degree cone
+    LatLongShockwave = 47871, // Helper->self, no cast, range 40 90-degree cone
+
     UltimaBlasterRaidwide = 47843, // CloneP3->self, no cast, range 100 circle
     UmbraSmash = 47872, // ChaosP3->location, 5.0s cast, range 100 circle
     VacuumWave = 47891, // ExdeathP3->self, 8.0s cast, range 100 circle
     Aetherlink1 = 49892, // ChaosP3->self, no cast, single-target
     Aetherlink2 = 49893, // ExdeathP3->self, no cast, single-target
     UltimaBlasterCharge = 47844, // CloneP3->self, no cast, range 100 width 6 rect
+
+    Max = 47845, // BossP1->self, 5.0s cast, single-target, big kefka
+    EarthquakeRaidwideCast = 50545, // ChaosP3->self, 5.0s cast, single-target
+    EarthquakeRaidwide = 50546, // Helper->self, 5.0s cast, range 100 circle
+    EarthquakeInstant = 47866, // Helper->self, no cast, range 100 circle
+    SlapHappyRightHand = 47846, // BossP1->self, 5.0s cast, single-target, followed by party stack
+    SlapHappyLeftHand = 47847, // BossP1->self, 5.0s cast, single-target, followed by role spread
+    _Ability_SlapHappy1 = 47848, // Helper->self, no cast, range 13 circle
+    _Ability_SlapHappy2 = 47849, // Helper->self, 1.5s cast, range 6 circle
+    SlapHappyShockingImpact = 47850, // Helper->self, no cast, range 100 45?-degree cone, party stack, TODO verify angle
+    SlapHappyShockwave = 47851, // Helper->self, no cast, range 100 45?-degree cone, role spread, TODO verify angle
+    BlackHole = 47867, // ExdeathP3->self, 3.0s cast, single-target
+    Nothingness = 47868, // 4C38->self, no cast, range 125 width 6 rect
+    DamningEdict = 47873, // ChaosP3->self, 5.0s cast, range 60 width 80 rect
+    BlackSpark = 48333, // Helper->player, no cast, single-target, triggered by touching black hole, applies dd
+    LookUponMeAndDespairCast = 47852, // BossP1->self, 4.0+1.0s cast, single-target
+    LookUponMeAndDespair = 47854, // Helper->self, 5.0s cast, range 100 width 16 rect
+    UnkP3 = 50362, // BossP1->self, no cast, single-target
 }
 
 public enum SID : uint
@@ -164,6 +182,16 @@ public enum SID : uint
     WindResistanceDownII = 1052, // Helper->player, extra=0x0
     LightningResistanceDownII = 2998, // Helper->player, extra=0x0
     UnkBoss = 2273, // BossP1->BossP1, extra=0x1FF/0x22B
+    UnkBoss2 = 2536, // none->BossP1, extra=0x1FA
+
+    Accretion = 1604, // none->player, extra=0x0
+    PrimordialCrust = 5454, // none->player, extra=0x0
+    FirstInLine = 3004, // none->player, extra=0x0
+    SecondInLine = 3005, // none->player, extra=0x0
+    ThirdInLine = 3006, // none->player, extra=0x0
+    EarthResistanceDownII = 3372, // Helper->player, extra=0x0
+    Unbecoming = 5452, // BlackHoleP3->player, extra=0x1
+    MeanestExistence = 5453, // BlackHoleP3->player, extra=0x0
 }
 
 public enum IconID : uint
@@ -197,4 +225,5 @@ public enum TetherID : uint
 {
     GravenImage = 45, // GravenImage->player, used for every statue-related P1 mechanic
     ExdeathThunder = 64, // ExdeathP3->GravenImage
+    BlackHole = 84, // BlackHoleP3->player
 }

@@ -1,6 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace BossMod;
@@ -223,13 +222,16 @@ public class ConfigChangelogWindow : UIWindow
 
     private static Version GetCurrentPluginVersion()
     {
-        return Service.IsDev ? new(999, 0, 0, 0) : Assembly.GetExecutingAssembly().GetName().Version!;
+        return Assembly.GetExecutingAssembly().GetName().Version!;
     }
 
-    [SuppressMessage("Design", "CA1024:Use properties where appropriate", Justification = "fuck it")]
+#pragma warning disable CA1024 // Use properties where appropriate
     private static Version GetPreviousPluginVersion()
     {
+        // uncomment to test changelog
+        //return new(0, 0, 0, 1);
+
         // change to a smaller value to test changelog
-        return Service.IsDev ? new(999, 0, 0, 0) : Service.Config.AssemblyVersion;
+        return Service.Config.AssemblyVersion;
     }
 }

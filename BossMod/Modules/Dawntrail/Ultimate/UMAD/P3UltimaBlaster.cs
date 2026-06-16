@@ -118,7 +118,10 @@ class P3UltimaBlasterCharge(BossModule module) : Components.UntelegraphedBait(mo
         base.DrawArenaForeground(pcSlot, pc);
 
         foreach (var bait in BaitsOn(pcSlot))
+        {
+            Arena.AddCircle(bait.Origin, 30, ArenaColor.Object);
             Arena.AddCircle(SafeSpot(bait), 0.75f, ArenaColor.Safe);
+        }
     }
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)

@@ -60,6 +60,9 @@ public class TrackPartyHealth(WorldState World)
         2977,
         2978,
         3967,
+
+        // Accretion, triggers earth raidwide when healing target to full, let players handle it manually
+        1604
     ];
     private float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);
 

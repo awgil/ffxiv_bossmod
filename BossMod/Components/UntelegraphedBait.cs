@@ -69,8 +69,11 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
+        var playerIsBaiting = false;
         foreach (var bait in BaitsOn(pcSlot))
         {
+            playerIsBaiting = true;
+
             if (bait.IsStack)
                 bait.Shape.Draw(Arena, bait.Position(pc), bait.Angle(pc), bait.ForbiddenTargets[pcSlot] ? ArenaColor.AOE : ArenaColor.SafeFromAOE);
 
@@ -82,7 +85,7 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
         foreach (var bait in BaitsNotOn(pcSlot))
         {
             foreach (var baiter in PossibleTargets(bait).Take(bait.Count))
-                bait.Shape.Draw(Arena, bait.Position(baiter), bait.Angle(baiter), bait.IsStack && !bait.ForbiddenTargets[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
+                bait.Shape.Draw(Arena, bait.Position(baiter), bait.Angle(baiter), bait.IsStack && !bait.ForbiddenTargets[pcSlot] && !playerIsBaiting ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
         }
     }
 
