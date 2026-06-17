@@ -57,7 +57,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
     }
 
     public bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
-    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Service.ClientState.LocalPlayer?.GameObjectId) >= numEnemies;
+    public bool EnemiesTargetingSelf(int numEnemies) => Service.ObjectTable.Count(o => o.IsTargetable && !o.IsDead && o.TargetObjectId == Player.InstanceID) >= numEnemies;
     public float PlayerHPP => (float)Player.HPMP.CurHP / Player.HPMP.MaxHP * 100;
     public float DebuffsLeft(Actor? target) => Utils.MaxAll(
         StatusDetails(target, ClassShared.SID.StunPvP, Player.InstanceID, 5).Left,

@@ -291,8 +291,8 @@ class OccultKnightStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13728, PrimaryActorOID = (uint)OID.DeathWallHelper)]
-public class OccultKnight(WorldState ws, Actor primary) : BossModule(ws, primary, new(680, -280), new ArenaBoundsCircle(20))
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13728, PrimaryActorOID = (uint)OID.DeathWallHelper)]
+public class OccultKnight(WorldState ws, Actor primary) : CEModule(ws, primary, new(680, -280), new ArenaBoundsCircle(20))
 {
     public Actor? Megaloknight() => _megaloknight;
 
@@ -305,7 +305,5 @@ public class OccultKnight(WorldState ws, Actor primary) : BossModule(ws, primary
         Helper ??= Enemies(OID.DeathWallHelper).FirstOrDefault();
     }
 
-    public override bool DrawAllPlayers => true;
-
-    protected override bool CheckPull() => PrimaryActor.InCombat;
+    protected override bool CheckPull() => base.CheckPull() && PrimaryActor.InCombat;
 }

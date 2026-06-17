@@ -127,7 +127,7 @@ class GoliathTankLaserTurret(BossModule module) : Components.GenericAOEs(module,
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => new AOEInstance(new AOEShapeRect(85, 5), p.caster.Position, p.direction, p.activation));
 }
 // actual radius (9.6 units) is too wide
-class ConvenientSelfDestruction(BossModule module) : Components.CastLineOfSightAOE(module, AID.ConvenientSelfDestructionLOS, 85, false, 6)
+class ConvenientSelfDestruction(BossModule module) : Components.CastLineOfSightAOE(module, AID.ConvenientSelfDestructionLOS, 85, false, blockerRadius: 6)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.GoliathTank).Where(t => t.CastInfo == null);
 }
@@ -192,6 +192,6 @@ class A15WalkingFortressStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9153)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9153)]
 public class A15WalkingFortress(WorldState ws, Actor primary) : BossModule(ws, primary, new(900, 427), new ArenaBoundsSquare(30));
 

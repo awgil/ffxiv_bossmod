@@ -3,7 +3,7 @@
 [ConfigDisplay(Name = "Automatic out-of-combat utility actions", Parent = typeof(ActionTweaksConfig), Since = "0.0.0.245", Order = -10, Tags = ["peloton"])]
 class OutOfCombatActionsConfig : ConfigNode
 {
-    [PropertyDisplay("Enable the feature")]
+    [PropertyDisplay("Enabled")]
     public bool Enabled = false;
 
     // changed name so that it's treated as a new option (that's set to false) since everyone hates this feature and it's extremely hard to find in the settings

@@ -163,10 +163,10 @@ public enum SID : uint
     #endregion
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
     private readonly WHMConfig _config = Service.Config.Get<WHMConfig>();
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.PulseOfLife, castAnimLock: 8.10f); // animLock=8.100s?
         d.RegisterSpell(AID.Stone);
@@ -219,8 +219,6 @@ public sealed class Definitions : IDisposable
 
         Customize(d);
     }
-
-    public void Dispose() { }
 
     private void Customize(ActionDefinitions d)
     {

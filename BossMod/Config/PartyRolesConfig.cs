@@ -63,8 +63,11 @@ public class PartyRolesConfig : ConfigNode
         return res;
     }
 
+    record struct PartyMember(ulong CID, string Name, Class Class, Assignment Assignment);
+
     public override void DrawCustom(UITree tree, WorldState ws)
     {
+        List<PartyMember> party = [];
         using (var table = ImRaii.Table("tab2", 10, ImGuiTableFlags.SizingFixedFit))
         {
             if (table)
@@ -74,14 +77,13 @@ public class PartyRolesConfig : ConfigNode
                 ImGui.TableSetupColumn("Name");
                 ImGui.TableHeadersRow();
 
-                List<(ulong cid, string name, char role, Assignment assignment)> party = [];
                 for (int i = 0; i < PartyState.MaxPartySize; ++i)
                 {
                     ref var m = ref ws.Party.Members[i];
                     if (m.IsValid())
-                        party.Add((m.ContentId, m.Name, ws.Party[i]?.Role.ToString()[0] ?? '?', this[m.ContentId]));
+                        party.Add(new(m.ContentId, m.Name, ws.Party[i]?.Class ?? Class.None, this[m.ContentId]));
                 }
-                party.SortBy(e => e.role);
+                party.SortBy(e => e.Class.GetRole());
 
                 foreach (var (contentID, name, classRole, assignment) in party)
                 {
@@ -99,7 +101,7 @@ public class PartyRolesConfig : ConfigNode
                         }
                     }
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"({classRole}) {name}");
+                    ImGui.TextUnformatted($"({classRole.GetRole().ToString()[0]}) {name}");
                 }
             }
         }
@@ -114,5 +116,44 @@ public class PartyRolesConfig : ConfigNode
             using var color = ImRaii.PushColor(ImGuiCol.Text, 0xff00ff00);
             ImGui.TextUnformatted("All good!");
         }
+
+        using var _ = ImRaii.Disabled(party.Count != 8);
+        if (ImGui.Button("Auto-assign slots"))
+            TryAutoAssign(party);
     }
+
+    void TryAutoAssign(List<PartyMember> members)
+    {
+        // melee prio is invariably group-specific so we just assign it to both melees and make the user fix it
+        Assignment[] assOrdered = [Assignment.MT, Assignment.OT, Assignment.H1, Assignment.H2, Assignment.M1, Assignment.M1, Assignment.R1, Assignment.R2];
+
+        var (numMelee, numRanged) = members.Aggregate((0, 0), (acc, pm) => pm.Class.GetRole() switch
+        {
+            Role.Melee => (acc.Item1 + 1, acc.Item2),
+            Role.Ranged => (acc.Item1, acc.Item2 + 1),
+            _ => acc
+        });
+
+        foreach (var (m, a) in members.OrderBy(r => (r.Class.GetRole(), RolePrio(r.Class, numMelee == 1 && numRanged == 3))).Zip(assOrdered))
+            Assignments[m.CID] = a;
+
+        Modified.Fire();
+    }
+
+    static int RolePrio(Class c, bool doubleCaster) => (c.GetClassCategory(), c) switch
+    {
+        (_, Class.WAR) => 0,
+        (_, Class.PLD or Class.GNB) => 1,
+        (_, Class.DRK) => 2,
+
+        (_, Class.AST or Class.WHM) => 0,
+        (_, Class.SGE or Class.SCH) => 1,
+
+        (ClassCategory.Melee, _) => 0,
+        (_, Class.RDM or Class.BLM) when doubleCaster => 1,
+        (ClassCategory.PhysRanged, _) => 2,
+        (ClassCategory.Caster, _) => 3,
+
+        _ => 10
+    };
 }

@@ -37,5 +37,5 @@ class D101ChudoYudoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1677)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1677)]
 public class D101ChudoYudo(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 115), new ArenaBoundsSquare(20));

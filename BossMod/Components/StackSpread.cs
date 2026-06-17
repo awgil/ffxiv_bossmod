@@ -31,6 +31,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
     public IEnumerable<Stack> ActiveStacks => IncludeDeadTargets ? Stacks : Stacks.Where(s => !s.Target.IsDead);
     public IEnumerable<Spread> ActiveSpreads => IncludeDeadTargets ? Spreads : Spreads.Where(s => !s.Target.IsDead);
 
+    public bool PermitOverlap;
     public bool EnableHints = true;
 
     public bool IsStackTarget(Actor? actor) => Stacks.Any(s => s.Target == actor);
@@ -53,7 +54,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
             foreach (var (j, other) in Raid.WithSlot().InRadiusExcluding(actor, stack.Radius))
             {
                 ++numStacked;
-                stackedWithOtherStackOrAvoid |= stack.ForbiddenPlayers[j] || IsStackTarget(other);
+                stackedWithOtherStackOrAvoid |= stack.ForbiddenPlayers[j] || IsStackTarget(other) && !PermitOverlap;
             }
             hints.Add("Stack!", stackedWithOtherStackOrAvoid || numStacked < stack.MinSize || numStacked > stack.MaxSize);
         }
@@ -70,7 +71,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
             }
 
             if (numParticipatingStacks > 1)
-                hints.Add("Stack!");
+                hints.Add("Stack!", !PermitOverlap);
             else if (numParticipatingStacks == 1)
                 hints.Add("Stack!", false);
             else if (numUnsatisfiedStacks > 0)
@@ -113,9 +114,11 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
 
         if (Stacks.FirstOrDefault(s => s.Target == actor) is var actorStack && actorStack.Target != null)
         {
-            // forbid standing next to other stack markers
-            foreach (var stackWith in ActiveStacks.Where(s => s.Target != actor))
-                hints.AddForbiddenZone(ShapeContains.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
+            if (!PermitOverlap)
+                // forbid standing next to other stack markers
+                foreach (var stackWith in ActiveStacks.Where(s => s.Target != actor))
+                    hints.AddForbiddenZone(ShapeContains.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
+
             // and try to stack with closest non-stack/spread player
             var closest = Raid.WithoutSlot().Where(p => p != actor && !IsSpreadTarget(p) && !IsStackTarget(p)).Closest(actor.Position);
             if (closest != null)

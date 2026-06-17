@@ -98,12 +98,12 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
                 if (farmNameID == 8058 && e.Actor.ForayInfo.Level < 61)
                     continue;
 
-                e.Priority = 0;
-
-                var wePull = !e.Actor.InCombat;
-
-                if (wePull && (hints.ForcedTarget == null || (hints.ForcedTarget.Position - player.Position).LengthSq() > (e.Actor.Position - player.Position).LengthSq()))
-                    hints.ForcedTarget = e.Actor;
+                if (e.Actor.InCombat)
+                    // someone else pulled
+                    e.Priority = 0;
+                else
+                    // we pull
+                    e.ShouldBeTargeted = true;
             }
         }
     }

@@ -88,7 +88,7 @@ class GraoullyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67231, NameID = 4190)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 67231, NameID = 4190)]
 public class Graoully(WorldState ws, Actor primary) : BossModule(ws, primary, BCenter, BBounds)
 {
     public static readonly WPos BCenter = new(-515.285f, -304.69f);

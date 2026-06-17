@@ -13,7 +13,7 @@ public sealed class DeepDungeonState
         PT = 4
     }
 
-    public readonly record struct DungeonProgress(byte Floor, byte Tileset, byte WeaponLevel, byte ArmorLevel, byte SyncedGearLevel, byte HoardCount, byte ReturnProgress, byte PassageProgress);
+    public readonly record struct DungeonProgress(byte Floor, byte Tileset, byte WeaponLevel, byte ArmorLevel, byte SyncedGearLevel, byte HoardCount, byte ReturnProgress, byte PassageProgress, bool HoardCurrentFloor);
     public readonly record struct PartyMember(ulong EntityId, byte Room);
     public readonly record struct PomanderState(byte Count, byte Flags)
     {
@@ -57,6 +57,7 @@ public sealed class DeepDungeonState
     public int GetPomanderSlot(PomanderID pid) => GetDungeonDefinition().PomanderSlot.FindIndex(p => p.RowId == (uint)pid);
     public PomanderState GetPomanderState(PomanderID pid) => GetPomanderSlot(pid) is var s && s >= 0 ? Pomanders[s] : default;
     public PomanderID GetPomanderID(int slot) => GetDungeonDefinition().PomanderSlot is var slots && slot >= 0 && slot < slots.Count ? (PomanderID)slots[slot].RowId : PomanderID.None;
+    public ActionID GetPomanderActionID(int slot) => new(ActionType.Pomander, GetDungeonDefinition().PomanderSlot[slot].RowId);
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
@@ -91,7 +92,8 @@ public sealed class DeepDungeonState
                 .Emit(Value.SyncedGearLevel)
                 .Emit(Value.HoardCount)
                 .Emit(Value.ReturnProgress)
-                .Emit(Value.PassageProgress);
+                .Emit(Value.PassageProgress)
+                .Emit(Value.HoardCurrentFloor);
         }
     }
 
@@ -109,7 +111,7 @@ public sealed class DeepDungeonState
         {
             output.EmitFourCC("DDMP"u8);
             foreach (var r in Rooms)
-                output.Emit((byte)r, "X2");
+                output.Emit((ushort)r, "X4");
         }
     }
 

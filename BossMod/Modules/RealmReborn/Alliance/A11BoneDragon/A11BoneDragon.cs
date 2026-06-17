@@ -140,5 +140,5 @@ class A11BoneDragonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 706)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 706)]
 public class A11BoneDragon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-451.2f, 23.93f), new ArenaBoundsCircle(49.4f, MapResolution: 1));

@@ -11,7 +11,7 @@ class MistralShriek(BossModule module) : Components.RaidwideCast(module, AID.Mis
 class Gigastorm(BossModule module) : Components.StandardAOEs(module, AID.Gigastorm, new AOEShapeCircle(6.5f));
 class GreatWhirlwind(BossModule module) : Components.StandardAOEs(module, AID.GreatWhirlwind, 8);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 65, NameID = 1644)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 65, NameID = 1644)]
 public class Ex2Garuda : BossModule
 {
     public IReadOnlyList<Actor> Monoliths;

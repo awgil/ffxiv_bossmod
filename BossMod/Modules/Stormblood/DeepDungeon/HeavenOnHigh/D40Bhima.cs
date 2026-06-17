@@ -1,0 +1,51 @@
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D40Bhima;
+
+public enum OID : uint
+{
+    Boss = 0x23E2, // R2.400, x1
+    Whirlwind = 0x23E3, // R1.000, x0 (spawn during fight)
+}
+
+public enum AID : uint
+{
+    AncientAero = 11905, // Boss->self, 3.0s cast, range 50+R width 8 rect // casted after the KB
+    AncientAeroII = 11903, // Boss->location, 3.0s cast, range 6 circle
+    AncientAeroIII = 11904, // Boss->self, 5.0s cast, range 50+R circle // KB, not immunable (though shield on hp does block the kb)
+    AutoAttack = 6499, // Boss->player, no cast, single-target
+    Tornado = 11902, // Boss->player, 3.0s cast, range 6 circle // untelegraph'd circle aoe, mimimum damage
+    Windage = 11906, // 23E3->self, 1.0s cast, range 6 circle
+}
+
+class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, AID.Tornado, 6);
+class AncientAero(BossModule module) : Components.StandardAOEs(module, AID.AncientAero, new AOEShapeRect(52.4f, 4));
+class AncientAeroII(BossModule module) : Components.StandardAOEs(module, AID.AncientAeroII, 6);
+class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 23.5f, true, stopAtWall: true)
+{
+    static readonly float WindCone = MathF.Atan2(6, 22);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var src in Sources(slot, actor))
+        {
+            foreach (var w in Module.Enemies(OID.Whirlwind).Where(e => !e.IsDeadOrDestroyed))
+                hints.AddForbiddenZone(ShapeContains.Cone(src.Origin, 25, (w.Position - src.Origin).ToAngle(), WindCone.Radians()), src.Activation);
+        }
+    }
+}
+class Windage(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.Whirlwind).Where(w => !w.IsDeadOrDestroyed));
+
+class D40BhimaStates : StateMachineBuilder
+{
+    public D40BhimaStates(BossModule module) : base(module)
+    {
+        TrivialPhase()
+            .ActivateOnEnter<AncientAero>()
+            .ActivateOnEnter<AncientAeroII>()
+            .ActivateOnEnter<AncientAeroIII>()
+            .ActivateOnEnter<Tornado>()
+            .ActivateOnEnter<Windage>();
+    }
+}
+
+[ModuleInfo(Contributors = "LegendofIceman", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 543, NameID = 7483)]
+public class D40Bhima(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(25));

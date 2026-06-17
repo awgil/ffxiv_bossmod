@@ -142,5 +142,5 @@ class ArchAethereaterStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13406)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13406)]
 public class ArchAethereater(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);

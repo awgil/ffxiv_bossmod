@@ -71,11 +71,11 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                         ImGui.Separator();
 
                     using (var disable = ImRaii.Disabled(i == 0 || Plan.Modules[i - 1].Definition.Order != m.Definition.Order))
-                        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowUp, "^", $"###up{i}"))
+                        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowUp, $"up{i}"))
                             post += SwapModulesAction(i, false);
                     ImGui.SameLine();
                     using (var disable = ImRaii.Disabled(i == Plan.Modules.Count - 1 || Plan.Modules[i + 1].Definition.Order != m.Definition.Order))
-                        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowDown, "v", $"###down{i}"))
+                        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowDown, $"down{i}"))
                             post += SwapModulesAction(i, true);
                     ImGui.SameLine();
                     var added = true;
@@ -86,7 +86,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                     if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
                     {
                         using var tooltip = ImRaii.Tooltip();
-                        if (tooltip)
+                        if (tooltip.Alive)
                         {
                             ImGui.TextUnformatted("Hold shift to remove");
                             UIRotationModule.DescribeModule(m.Type, m.Definition);
@@ -103,7 +103,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                     if (ImGui.IsItemHovered())
                     {
                         using var tooltip = ImRaii.Tooltip();
-                        if (tooltip)
+                        if (tooltip.Alive)
                         {
                             UIRotationModule.DescribeModule(mt, m.Definition);
                         }
@@ -278,7 +278,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             if (config.Options.Count(opt => Plan.Level >= opt.MinLevel && Plan.Level <= opt.MaxLevel) <= 1)
                 continue; // don't bother showing tracks that have no customization options
 
-            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo, m.Defaults[i]), insertionPoint);
+            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo, (StrategyValueTrack)m.Defaults[i]), insertionPoint);
             col.Width = config.UIPriority >= 0 || m.Tracks[i].Count > 0 ? _trackWidth : 0;
             col.NotifyModified = () => OnModifiedStrategy(m, i, col);
             foreach (var entry in m.Tracks[i])

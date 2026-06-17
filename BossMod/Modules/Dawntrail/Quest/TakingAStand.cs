@@ -192,7 +192,7 @@ class BakoolJaJaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70438, NameID = 12677)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70438, NameID = 12677)]
 public class BakoolJaJa(WorldState ws, Actor primary) : BossModule(ws, primary, new(500, -175), new ArenaBoundsCircle(25))
 {
     protected override bool CheckPull() => true;

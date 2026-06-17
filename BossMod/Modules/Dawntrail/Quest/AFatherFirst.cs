@@ -328,5 +328,5 @@ class GuloolJaJaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "xan", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70419, NameID = 12675, PlanLevel = 94)]
+[ModuleInfo(Contributors = "xan", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70419, NameID = 12675, PlanLevel = 94)]
 public class GuloolJaJa(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 49), new ArenaBoundsRect(15, 20));

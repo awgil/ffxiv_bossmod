@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 
 namespace BossMod;
 
@@ -44,7 +45,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
 
     // these are set at the beginning of each draw
     public Vector2 ScreenCenter { get; private set; }
-    private Angle _cameraAzimuth;
+    public Angle CameraAzimuth { get; private set; }
     private float _cameraSinAzimuth;
     private float _cameraCosAzimuth = 1;
 
@@ -72,7 +73,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
             _triCache.NextFrame();
         }
         ScreenCenter = cursor + centerOffset;
-        _cameraAzimuth = cameraAzimuth;
+        CameraAzimuth = cameraAzimuth;
         _cameraSinAzimuth = cameraAzimuth.Sin();
         _cameraCosAzimuth = cameraAzimuth.Cos();
         //var camWorld = SharpDX.Matrix.RotationYawPitchRoll(azimuth, altitude, 0);
@@ -165,7 +166,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     {
         thickness *= Config.ThicknessScale;
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth.Rad;
+        float sDir = MathF.PI / 2 - centerDirection.Rad + CameraAzimuth.Rad;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathLineTo(sCenter);
         drawlist.PathArcTo(sCenter, radius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -176,7 +177,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     {
         thickness *= Config.ThicknessScale;
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + _cameraAzimuth.Rad;
+        float sDir = MathF.PI / 2 - centerDirection.Rad + CameraAzimuth.Rad;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathArcTo(sCenter, innerRadius / Bounds.Radius * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
         drawlist.PathArcTo(sCenter, outerRadius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -228,7 +229,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     // adds a bunch of points corresponding to arc - if path is non empty, this adds an edge from last point to first arc point
     public void PathArcTo(WPos center, float radius, float amin, float amax)
     {
-        ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, MathF.PI / 2 - amin + _cameraAzimuth.Rad, MathF.PI / 2 - amax + _cameraAzimuth.Rad);
+        ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / Bounds.Radius * ScreenHalfSize, MathF.PI / 2 - amin + CameraAzimuth.Rad, MathF.PI / 2 - amax + CameraAzimuth.Rad);
     }
 
     public void PathStroke(bool closed, uint color, float thickness = 1)
@@ -290,6 +291,18 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         TextScreen(WorldPositionToScreenPosition(center), text, color, fontSize);
     }
 
+    public void IconScreen(Vector2 center, FontAwesomeIcon icon, uint color, float fontSize = 17)
+    {
+        var size = ImGui.CalcTextSizeA(Service.IconFont, fontSize, float.MaxValue, float.MaxValue, icon.ToIconString(), out var i);
+        size.X -= i * 0.5f;
+        ImGui.GetWindowDrawList().AddText(Service.IconFont, fontSize, center - size / 2, color, icon.ToIconString());
+    }
+
+    public void IconWorld(WPos center, FontAwesomeIcon icon, uint color, float fontSize = 17)
+    {
+        IconScreen(WorldPositionToScreenPosition(center), icon, color, fontSize);
+    }
+
     // high level utilities
     // draw arena border
     public void Border(uint color)
@@ -315,7 +328,8 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         var offCenter = ScreenHalfSize + ScreenMarginSize / 2;
         var offS = RotatedCoords(new(0, offCenter));
         var offE = RotatedCoords(new(offCenter, 0));
-        TextScreen(ScreenCenter - offS, "N", ArenaColor.Border, Config.CardinalsFontSize);
+        var nColor = Config.HighlightN ? ArenaColor.HighlightN : ArenaColor.Border;
+        TextScreen(ScreenCenter - offS, "N", nColor, Config.CardinalsFontSize);
         TextScreen(ScreenCenter + offS, "S", ArenaColor.Border, Config.CardinalsFontSize);
         TextScreen(ScreenCenter + offE, "E", ArenaColor.Border, Config.CardinalsFontSize);
         TextScreen(ScreenCenter - offE, "W", ArenaColor.Border, Config.CardinalsFontSize);

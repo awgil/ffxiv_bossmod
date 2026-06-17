@@ -334,6 +334,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("ESTA"u8)] = ParseActorEventObjectStateChange,
             [new("EANM"u8)] = ParseActorEventObjectAnimation,
             [new("PATE"u8)] = ParseActorPlayActionTimelineEvent,
+            [new("PATS"u8)] = ParseActorPlayActionTimelineSync,
             [new("NYEL"u8)] = ParseActorEventNpcYell,
             [new("OPNT"u8)] = ParseActorEventOpenTreasure,
             [new("PAR "u8)] = ParsePartyModify,
@@ -356,6 +357,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLVL"u8)] = ParseClientClassJobLevels,
             [new("CLAF"u8)] = ParseClientActiveFate,
             [new("CPET"u8)] = ParseClientActivePet,
+            [new("CHOC"u8)] = ParseClientActiveCompanion,
             [new("CLFT"u8)] = ParseClientFocusTarget,
             [new("CLFD"u8)] = ParseClientForcedMovementDirection,
             [new("CLKV"u8)] = ParseClientContentKVData,
@@ -363,6 +365,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("HATE"u8)] = ParseClientHateInfo,
             [new("CLPR"u8)] = ParseClientProcTimers,
             [new("INVT"u8)] = ParseClientInventory,
+            [new("FLOS"u8)] = ParseClientFailedLoS,
             [new("DDPG"u8)] = ParseDeepDungeonProgress,
             [new("DDMP"u8)] = ParseDeepDungeonMap,
             [new("DDPT"u8)] = ParseDeepDungeonParty,
@@ -488,6 +491,7 @@ public sealed class ReplayParserLog : IDisposable
     private ClientState.OpProcTimersChange ParseClientProcTimers() => new([_input.ReadFloat(), _input.ReadFloat(), _input.ReadFloat(), _input.ReadFloat()]);
 
     private ClientState.OpInventoryChange ParseClientInventory() => new(_input.ReadUInt(false), _input.ReadUInt(false));
+    private ClientState.OpActionFailedLoS ParseClientFailedLoS() => new(_input.ReadUInt(false), _input.ReadActorID());
 
     private WaymarkState.OpWaymarkChange ParseWaymarkChange(bool set)
         => new(_version < 10 ? Enum.Parse<Waymark>(_input.ReadString()) : (Waymark)_input.ReadByte(false), set ? _input.ReadVec3() : null);
@@ -653,6 +657,15 @@ public sealed class ReplayParserLog : IDisposable
     private ActorState.OpEventObjectStateChange ParseActorEventObjectStateChange() => new(_input.ReadActorID(), _input.ReadUShort(true));
     private ActorState.OpEventObjectAnimation ParseActorEventObjectAnimation() => new(_input.ReadActorID(), _input.ReadUShort(true), _input.ReadUShort(true));
     private ActorState.OpPlayActionTimelineEvent ParseActorPlayActionTimelineEvent() => new(_input.ReadActorID(), _input.ReadUShort(true));
+    private ActorState.OpPlayActionTimelineSync ParseActorPlayActionTimelineSync()
+    {
+        var owner = _input.ReadActorID();
+        var count = _input.ReadInt();
+        List<(ulong, ushort)> actions = [];
+        for (var i = 0; i < count; i++)
+            actions.Add((_input.ReadActorID(), _input.ReadUShort(true)));
+        return new(owner, actions);
+    }
     private ActorState.OpEventNpcYell ParseActorEventNpcYell() => new(_input.ReadActorID(), _input.ReadUShort(false));
     private ActorState.OpEventOpenTreasure ParseActorEventOpenTreasure() => new(_input.ReadActorID());
     private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), new(_input.ReadULong(true), _input.ReadULong(true), _version >= 15 && _input.ReadBool(), _version < 15 ? "" : _input.ReadString()));
@@ -750,6 +763,7 @@ public sealed class ReplayParserLog : IDisposable
 
     private ClientState.OpActiveFateChange ParseClientActiveFate() => new(new(_input.ReadUInt(false), _input.ReadVec3(), _input.ReadFloat(), _version >= 27 ? _input.ReadByte(false) : default, _version >= 27 ? _input.ReadByte(false) : default, _version >= 28 ? _input.ReadUInt(false) : default));
     private ClientState.OpActivePetChange ParseClientActivePet() => new(new(_input.ReadULong(true), _input.ReadByte(false), _input.ReadByte(false)));
+    private ClientState.OpActiveCompanionChange ParseClientActiveCompanion() => new(new(_input.ReadULong(true), _input.ReadByte(false), _input.ReadFloat(), _version >= 30 && _input.ReadBool()));
     private ClientState.OpFocusTargetChange ParseClientFocusTarget() => new(_input.ReadULong(true));
     private ClientState.OpForcedMovementDirectionChange ParseClientForcedMovementDirection() => new(_input.ReadAngle());
     private ClientState.OpContentKVDataChange ParseClientContentKVData() => new([
@@ -761,7 +775,7 @@ public sealed class ReplayParserLog : IDisposable
         _input.ReadUInt(false),
     ]);
 
-    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new((DeepDungeonState.DungeonType)_input.ReadByte(false), new(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false)));
+    private DeepDungeonState.OpProgressChange ParseDeepDungeonProgress() => new((DeepDungeonState.DungeonType)_input.ReadByte(false), new(_input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _input.ReadByte(false), _version >= 29 && _input.ReadBool()));
     private DeepDungeonState.OpMapDataChange ParseDeepDungeonMap()
     {
         var rooms = new FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags[DeepDungeonState.NumRooms];
@@ -773,7 +787,10 @@ public sealed class ReplayParserLog : IDisposable
         else
         {
             for (var i = 0; i < rooms.Length; ++i)
-                rooms[i] = (FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags)_input.ReadByte(true);
+            {
+                var roomRaw = _version >= 29 ? _input.ReadUShort(true) : _input.ReadByte(true);
+                rooms[i] = (FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags)roomRaw;
+            }
         }
         return new(rooms);
     }

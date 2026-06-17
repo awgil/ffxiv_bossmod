@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM06SSugarRiot;
 
-[ConfigDisplay(Parent = typeof(DawntrailConfig))]
+[ConfigDisplay(Parent = typeof(DawntrailConfig), Order = -7)]
 class RM06SSugarRiotConfig : ConfigNode
 {
     [PropertyDisplay("Enable priority hints for adds phase (only used by VBM autorotation)")]
@@ -32,7 +32,7 @@ class RM06SSugarRiotConfig : ConfigNode
     public bool ForbiddenManta = true;
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1022, NameID = 13822, PlanLevel = 100, Contributors = "xan")]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1022, NameID = 13822, PlanLevel = 100, Contributors = "xan")]
 public class RM06SSugarRiot(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(20))
 {
     public static readonly WPos ArenaCenter = new(100, 100);

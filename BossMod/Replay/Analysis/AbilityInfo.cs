@@ -619,8 +619,8 @@ class AbilityInfo : CommonEnumInfo
 
     private float? DetermineDonutInner(Lumina.Excel.Sheets.Action data)
     {
-        Utils.DetermineDonutInner(data, out var innerRadius);
-        return innerRadius;
+        Utils.GuessDonutInner(data, out var size);
+        return size;
     }
 
     private string? ComponentString(ActionID aid, ActionData d)

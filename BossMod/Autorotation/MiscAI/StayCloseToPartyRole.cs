@@ -26,12 +26,12 @@ public sealed class StayCloseToPartyRole(RotationModuleManager manager, Actor pl
             roleRef.AddOption(role);
         }
 
-        var rangeRef = def.Define(Tracks.Range).As<RangeDefinition>("range");
+        var rangeRef = def.Define(Tracks.Range).As<RangeDefinition>("range", "Range to ally", renderer: typeof(FakeFloatRenderer));
 
         rangeRef.AddOption(RangeDefinition.OnHitbox, "Stay on edge of hitbox (+/- 1 unit)");
         for (var f = 1.1f; f <= 30f; f = MathF.Round(f + 0.1f, 1))
         {
-            rangeRef.AddOption((RangeDefinition)(f * 10f - 10f));
+            rangeRef.AddOption((RangeDefinition)(f * 10f - 10f), internalNameOverride: f.ToString(CultureInfo.InvariantCulture));
         }
 
         return def;

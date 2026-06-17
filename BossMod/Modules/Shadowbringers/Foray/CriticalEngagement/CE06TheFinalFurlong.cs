@@ -103,5 +103,5 @@ class SpartoiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 6)] // bnpcname=9405
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 6)] // bnpcname=9405
 public class Spartoi(WorldState ws, Actor primary) : BossModule(ws, primary, new(644, 228), new ArenaBoundsCircle(27));

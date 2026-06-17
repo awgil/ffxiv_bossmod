@@ -48,6 +48,7 @@ public class Q01TheFinalVerseConfig : ConfigNode
     {
         var modified = false;
 
+        ConfigUI.DrawHelp(""); // fixes spacing
         foreach (var _ in tree.Node("Fevered Flame assignments", contextMenu: () =>
         {
             if (ImGui.MenuItem("Single Merge (pastebin)"))

@@ -87,5 +87,5 @@ class D121LyngbakrStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12336)]
+[ModuleInfo(Contributors = "dhoggpt, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 822, NameID = 12336)]
 public class D121Lyngbakr(WorldState ws, Actor primary) : BossModule(ws, primary, new(-322, 120), new ArenaBoundsCircle(20));

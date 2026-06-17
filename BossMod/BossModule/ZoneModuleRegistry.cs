@@ -4,9 +4,8 @@ namespace BossMod;
 
 // attribute for defining zone module's metadata; it is required by each module to be loaded
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public sealed class ZoneModuleInfoAttribute(BossModuleInfo.Maturity maturity, uint cfcId, uint territoryID = 0) : Attribute
+public sealed class ZoneModuleInfoAttribute(uint cfcId, uint territoryID = 0) : Attribute
 {
-    public BossModuleInfo.Maturity Maturity => maturity;
     public uint CFCID => cfcId;
     public uint TerritoryID => territoryID;
 }
@@ -36,8 +35,8 @@ public static class ZoneModuleRegistry
         }
     }
 
-    public static ZoneModule? CreateModule(WorldState ws, uint cfcId, BossModuleInfo.Maturity minMaturity)
+    public static ZoneModule? CreateModule(WorldState ws, uint cfcId)
     {
-        return cfcId != 0 && _modulesByCFC.TryGetValue(cfcId, out var info) && info.Desc.Maturity >= minMaturity ? info.Factory(ws) : null;
+        return cfcId != 0 && _modulesByCFC.TryGetValue(cfcId, out var info) ? info.Factory(ws) : null;
     }
 }

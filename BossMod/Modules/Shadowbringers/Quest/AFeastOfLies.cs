@@ -86,5 +86,5 @@ class RanjitStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69167, NameID = 8374)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69167, NameID = 8374)]
 public class Ranjit(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 18), new ArenaBoundsCircle(15));

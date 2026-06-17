@@ -95,5 +95,5 @@ class D043StorgeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 656, NameID = 8249)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 656, NameID = 8249)]
 public class D043Storge(WorldState ws, Actor primary) : BossModule(ws, primary, new(195, -95), new ArenaBoundsSquare(14.5f));

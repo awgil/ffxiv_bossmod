@@ -110,11 +110,13 @@ public abstract unsafe class PacketDecoder
         PacketID.EventPlay128 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 128)),
         PacketID.EventPlay255 when (EventPlayN*)payload is var p => DecodeEventPlay(p, Math.Min((int)p->PayloadLength, 255)),
         PacketID.ServerRequestCallbackResponse1 when (DecodeServerRequestCallbackResponse*)payload is var p => DecodeServerRequestCallbackResponse(p),
-        PacketID.MapEffect when (MapEffect*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
+        PacketID.MapEffect1 when (MapEffect*)payload is var p => new($"{p->DirectorID:X8}.{p->Index} = {p->State1:X4} {p->State2:X4}, pad={p->pad9:X2} {p->padA:X4} {p->padC:X8}"),
         PacketID.NpcYell when (NpcYell*)payload is var p => new($"{DecodeActor(p->SourceID)}: {p->Message} '{Service.LuminaRow<Lumina.Excel.Sheets.NpcYell>(p->Message)?.Text}' (u8={p->u8}, uE={p->uE}, u10={p->u10}, u18={p->u18})"),
         PacketID.WaymarkPreset when (WaymarkPreset*)payload is var p => DecodeWaymarkPreset(p),
         PacketID.Waymark when (ServerIPC.Waymark*)payload is var p => DecodeWaymark(p),
         PacketID.ActorGauge when (ActorGauge*)payload is var p => new($"{p->ClassJobID} = {p->Payload:X16}"),
+        PacketID.DeepDungeonMap when (DeepDungeonMap*)payload is var p => DecodeDDMap(p),
+        PacketID.PlayActionTimelineSync when (PlayActionTimelineSync*)payload is var p => DecodePATSync(p),
         _ => null
     };
 
@@ -242,6 +244,7 @@ public abstract unsafe class PacketDecoder
             ActorControlCategory.SetDutyActionActive => $"slot0={p1}, slot1={p2}",
             ActorControlCategory.SetDutyActionCharges => $"slot0={p1}, slot1={p2}",
             ActorControlCategory.IncrementRecast => $"group {p1}: dt=dt={p2 * 0.01f:f2}s",
+            ActorControlCategory.Knockback => $"{(p1 / 10000f - 3.14f).Radians().Deg:f2}deg {p2 / 10000f:0.###}y (speed {p3 * 0.01f:0.###}?)",
             _ => ""
         };
         return new TextNode($"{category} {details} ({p1:X8} {p2:X8} {p3:X8} {p4:X8} {p5:X8} {p6:X8} {DecodeActor(targetID)})");
@@ -371,6 +374,35 @@ public abstract unsafe class PacketDecoder
         return res;
     }
     private TextNode DecodeWaymark(ServerIPC.Waymark* p) => new($"{p->ID}: {p->Active != 0} at {Utils.Vec3String(new(p->PosX * 0.001f, p->PosY * 0.001f, p->PosZ * 0.001f))}, pad={p->pad2:X4}");
+
+    private TextNode DecodePATSync(PlayActionTimelineSync* p)
+    {
+        var res = new TextNode($"PlayActionTimelineSync");
+        for (var i = 0; i < 10; i++)
+        {
+            var id = p->EntityIds[i];
+            if (id == 0xE0000000)
+                break;
+
+            var evt = p->TimelineIds[i];
+
+            res.AddChild($"{DecodeActor(id)}: 0x{evt:X4}");
+        }
+        return res;
+    }
+
+    private TextNode DecodeDDMap(DeepDungeonMap* p)
+    {
+        List<Lumina.Excel.Sheets.DeepDungeonFloorEffectUI> effects = [];
+        if (Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonStatus>(p->StatusId)?.FloorEffectUI.ValueNullable is { } v && v.RowId > 0)
+            effects.Add(v);
+        if (Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonBan>(p->BanId)?.FloorEffectUI.ValueNullable is { } v2 && v2.RowId > 0)
+            effects.Add(v2);
+        if (Service.LuminaRow<Lumina.Excel.Sheets.DeepDungeonDanger>(p->DangerId)?.FloorEffectUI.ValueNullable is { } v3 && v3.RowId > 0)
+            effects.Add(v3);
+
+        return new($"Layout={p->LayoutInitType}, effects=[{string.Join(", ", effects.Select(e => e.Name))}]");
+    }
 
     public static Vector3 IntToFloatCoords(ushort x, ushort y, ushort z)
     {

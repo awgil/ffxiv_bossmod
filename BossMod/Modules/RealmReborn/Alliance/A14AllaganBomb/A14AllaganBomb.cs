@@ -39,5 +39,5 @@ class A14AllaganBombStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 1873)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 92, NameID = 1873)]
 public class A14AllaganBomb(WorldState ws, Actor primary) : BossModule(ws, primary, new(-110, -165.6f), new ArenaBoundsCircle(33.2f));

@@ -45,5 +45,5 @@ class D011ForgivenDissonanceStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8299)]
+[ModuleInfo(Contributors = "legendoficeman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 676, NameID = 8299)]
 public class D011ForgivenDissonance(WorldState ws, Actor primary) : BossModule(ws, primary, new(-15, 240), new ArenaBoundsCircle(19.5f));

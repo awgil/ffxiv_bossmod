@@ -62,6 +62,9 @@ public class TOPConfig() : ConfigNode()
     [PropertyCombo("North (LPDU)", "South (Aether)")]
     public bool P3LastMonitorSouth = false;
 
+    [PropertyDisplay("P3 Monitors: automatically face correct direction before mechanic resolves", tooltip: "This feature requires Settings -> Action Tweaks -> Smart Character Orientation to be enabled.")]
+    public bool P3MonitorForbiddenDirections = true;
+
     [PropertyDisplay("P4 Wave Cannon: priority, from North to South (assuming south flex)")]
     [GroupDetails(["W1", "E1", "W2", "E2", "W3", "E3", "W4", "E4"])]
     [GroupPreset("LPDU (TRHM)", [0, 1, 4, 5, 6, 7, 2, 3])]

@@ -72,3 +72,50 @@ class P3Inception3Debuffs(BossModule module) : Components.GenericStackSpread(mod
         return remaining.Any() ? Raid[remaining.LowestSetBit()] : null;
     }
 }
+
+class P3Inception3EarlyHints(BossModule module) : BossComponent(module)
+{
+    private WPos[]? _safespots;
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (_safespots != null)
+            Arena.AddCircle(_safespots[pcSlot], 1, ArenaColor.Safe);
+    }
+
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (_safespots != null)
+            movementHints.Add((actor.Position, _safespots[slot], ArenaColor.Safe));
+    }
+
+    public override void Update()
+    {
+        if (_safespots != null)
+            return;
+
+        var h = Module.Enemies(OID.TrueHeart).FirstOrDefault();
+        if (h != null && h.LastFrameMovement != default)
+        {
+            var dir = h.LastFrameMovement.Normalized();
+            var edgeDist = Intersect.RayCircle(h.Position, dir, Arena.Center, 21.5f);
+            if (edgeDist is > 0 and < float.MaxValue)
+            {
+                Init(h.Position + dir * edgeDist);
+            }
+        }
+    }
+
+    private void Init(WPos heartPosition)
+    {
+        _safespots = new WPos[8];
+
+        var relNorth = (heartPosition - Arena.Center).ToAngle();
+
+        foreach (var (slot, actor) in Raid.WithSlot())
+        {
+            var safeSide = actor.Role is Role.Tank || actor.FindStatus(SID.SharedSentence) != null ? 90.Degrees() : -90.Degrees();
+            _safespots[slot] = Arena.Center + (relNorth + safeSide).ToDirection() * 18;
+        }
+    }
+}

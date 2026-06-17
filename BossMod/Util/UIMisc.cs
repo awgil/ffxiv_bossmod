@@ -1,6 +1,7 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Textures;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
@@ -70,31 +71,63 @@ public static class UIMisc
         ImGui.TextUnformatted(text);
     }
 
-    // works around issues with fonts in uidev
-    public static unsafe bool IconButton(FontAwesomeIcon icon, string fallback, string text)
+    public static bool IconButton(FontAwesomeIcon icon, string id) => IconButtonRaw($"{icon.ToIconString()}##{id}");
+    public static bool IconButton(FontAwesomeIcon icon) => IconButtonRaw(icon.ToIconString());
+
+    static bool IconButtonRaw(string text)
     {
-        if (Service.PluginInterface == null)
-            return ImGui.Button(fallback + text);
-        using var scope = ImRaii.PushFont(UiBuilder.IconFont);
-        return ImGui.Button(icon.ToIconString() + text);
+        using (ImRaii.PushFont(Service.IconFont))
+            return ImGui.Button(text);
     }
 
-    public static unsafe void IconText(FontAwesomeIcon icon, string fallback)
+    public static bool IconButtonWithText(FontAwesomeIcon icon, string text)
     {
-        if (Service.PluginInterface == null)
+        bool button;
+
+        Vector2 iconSize;
+        using (ImRaii.PushFont(Service.IconFont))
+            iconSize = ImGui.CalcTextSize(icon.ToIconString());
+
+        var textStr = text;
+        if (textStr.Contains('#', StringComparison.Ordinal))
+            textStr = textStr[..textStr.IndexOf('#', StringComparison.Ordinal)];
+
+        var framePadding = ImGui.GetStyle().FramePadding;
+        var iconPadding = 3 * ImGuiHelpers.GlobalScale;
+
+        var cursor = ImGui.GetCursorScreenPos();
+
+        using (ImRaii.PushId(text))
         {
-            ImGui.TextUnformatted(fallback);
+            var textSize = ImGui.CalcTextSize(textStr);
+            var width = iconSize.X + textSize.X + framePadding.X * 2 + iconPadding;
+            var height = ImGui.GetFrameHeight();
+
+            button = ImGui.Button(string.Empty, new Vector2(width, height));
         }
-        else
-        {
-            using var scope = ImRaii.PushFont(UiBuilder.IconFont);
-            ImGui.TextUnformatted(icon.ToIconString());
-        }
+
+        var iconPos = cursor + framePadding;
+        var textPos = new Vector2(iconPos.X + iconSize.X + iconPadding, cursor.Y + framePadding.Y);
+
+        var dl = ImGui.GetWindowDrawList();
+
+        using (ImRaii.PushFont(Service.IconFont))
+            dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon.ToIconString());
+
+        dl.AddText(textPos, ImGui.GetColorU32(ImGuiCol.Text), textStr);
+
+        return button;
+    }
+
+    public static void IconText(FontAwesomeIcon icon)
+    {
+        using var scope = ImRaii.PushFont(Service.IconFont);
+        ImGui.TextUnformatted(icon.ToIconString());
     }
 
     public static void HelpMarker(Func<string> helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle)
     {
-        IconText(icon, "(?)");
+        IconText(icon);
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
         {
             using var tooltip = ImRaii.Tooltip();

@@ -151,5 +151,5 @@ class D053AmbroseStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 825, NameID = 12695)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 825, NameID = 12695)]
 public class D053Ambrose(WorldState ws, Actor primary) : BossModule(ws, primary, new(190, 0), new ArenaBoundsRect(15, 19.5f));

@@ -22,7 +22,6 @@ public abstract class UIWindow : Window, IDisposable
         DisposeOnClose = detached;
         Size = initialSize;
         SizeCondition = ImGuiCond.FirstUseEver;
-        AllowClickthrough = AllowPinning = !Service.IsUIDev;
         if (titleBarButtons != null)
         {
             TitleBarButtons = titleBarButtons;
@@ -70,7 +69,7 @@ public abstract class UIWindow : Window, IDisposable
 }
 
 // utility: window that uses custom delegate to perform drawing - allows avoiding creating derived classes in simple cases
-public class UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<Window.TitleBarButton>? titleBarButtons = null)
+public class UISimpleWindow(string name, Action draw, bool detached, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null)
     : UIWindow(name, detached, initialSize, flags, titleBarButtons)
 {
     private readonly Action _draw = draw;

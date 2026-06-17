@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Savage.RM08SHowlingBlade;
 
-[ConfigDisplay(Order = 0x300, Parent = typeof(DawntrailConfig))]
+[ConfigDisplay(Order = -5, Parent = typeof(DawntrailConfig))]
 public class RM08SHowlingBladeConfig : ConfigNode
 {
     public enum ReignStrategy

@@ -98,5 +98,5 @@ class D042AmphibiousTalosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 656, NameID = 8250)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 656, NameID = 8250)]
 public class D042AmphibiousTalos(WorldState ws, Actor primary) : BossModule(ws, primary, new(208, 275), new ArenaBoundsCircle(19.55f));

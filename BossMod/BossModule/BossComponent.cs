@@ -60,6 +60,7 @@ public class BossComponent(BossModule module)
     public virtual void OnActorEState(Actor actor, ushort state) { }
     public virtual void OnActorEAnim(Actor actor, uint state) { }
     public virtual void OnActorPlayActionTimelineEvent(Actor actor, ushort id) { }
+    public virtual void OnActorPlayActionTimelineSync(Actor actor, List<(ulong InstanceID, ushort ID)> events) { }
     public virtual void OnActorNpcYell(Actor actor, ushort id) { }
     public virtual void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2) { }
     public virtual void OnMapEffect(byte index, uint state) { }
@@ -80,13 +81,17 @@ public class BossComponent(BossModule module)
         if (table.InstanceID != primaryTarget.InstanceID)
         {
             if (allowGuessing)
-                return Raid.WithSlot().OrderBy(r => r.Item2.Role switch
-                {
-                    Role.Tank => 1,
-                    Role.Melee or Role.Ranged => 2,
-                    Role.Healer => 3,
-                    _ => 4
-                });
+                return Raid.WithSlot().OrderBy(r =>
+                    // if boss is targeting a specific person, we know they are #1
+                    primaryTarget.TargetID == r.Item2.InstanceID
+                    ? 0
+                    : r.Item2.Role switch
+                    {
+                        Role.Tank => 1,
+                        Role.Melee or Role.Ranged => 2,
+                        Role.Healer => 3,
+                        _ => 4
+                    });
             else
                 return [];
         }

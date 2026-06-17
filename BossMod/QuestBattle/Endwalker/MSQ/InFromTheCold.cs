@@ -41,7 +41,7 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
     }
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 793)]
+[ZoneModuleInfo(793)]
 internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 {
     private readonly ImperialAI _ai = new(ws);

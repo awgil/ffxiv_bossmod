@@ -31,5 +31,5 @@ class D032IchorousIreStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 3, NameID = 554)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 3, NameID = 554)]
 public class D032IchorousIre(WorldState ws, Actor primary) : BossModule(ws, primary, new(26.97f, 113.97f), new ArenaBoundsCircle(20));

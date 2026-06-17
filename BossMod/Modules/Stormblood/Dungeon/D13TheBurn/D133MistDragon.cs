@@ -153,5 +153,5 @@ class D133MistDragonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 585, NameID = 7672)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 585, NameID = 7672)]
 public class D133MistDragon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300f, -400f), new ArenaBoundsCircle(20f));

@@ -80,7 +80,7 @@ class D143GaiusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2136)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 16, NameID = 2136)]
 public class D143Gaius(WorldState ws, Actor primary) : BossModule(ws, primary, new(-562, 220), new ArenaBoundsRect(15, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

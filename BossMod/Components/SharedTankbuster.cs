@@ -15,22 +15,43 @@ public class GenericSharedTankbuster(BossModule module, Enum? aid, AOEShape shap
     // circle shapes typically have origin at target
     public GenericSharedTankbuster(BossModule module, Enum? aid, float radius) : this(module, aid, new AOEShapeCircle(radius), true) { }
 
+    public static readonly uint[] InvulnStatuses = [
+        82, // Hallowed Ground
+        409, // Holmgang
+        810, // Living Dead
+        811, // Walking Dead
+        1836, // Superbolide
+        2564, // Lost EXcellence
+    ];
+
+    public static bool IsInvulnerableAt(Actor actor, DateTime time)
+    {
+        foreach (var status in actor.Statuses)
+            if (InvulnStatuses.Contains(status.ID))
+                return status.ExpireAt > time;
+
+        return false;
+    }
+
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (Target == null)
             return;
+
+        var targetInvuln = IsInvulnerableAt(Target, Activation);
+
         if (Target == actor)
         {
-            hints.Add("Stack with other tanks or press invuln!", !Raid.WithoutSlot().Any(a => a != actor && a.Role == Role.Tank && InAOE(a)));
+            if (!targetInvuln)
+                hints.Add("Stack with other tanks!", !Raid.WithoutSlot().Any(a => a != actor && a.Role == Role.Tank && InAOE(a)));
         }
         else if (actor.Role == Role.Tank)
         {
-            hints.Add("Stack with tank!", !InAOE(actor));
+            if (!targetInvuln)
+                hints.Add("Stack with tank!", !InAOE(actor));
         }
         else
-        {
             hints.Add("GTFO from tank!", InAOE(actor));
-        }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

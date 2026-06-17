@@ -181,5 +181,5 @@ class AmhulukStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 777, NameID = 10075)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 777, NameID = 10075)]
 public class Amhuluk(WorldState ws, Actor primary) : BossModule(ws, primary, new(-520, 145), new ArenaBoundsCircle(20));

@@ -81,7 +81,7 @@ class T05IfritHStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 59, NameID = 1185)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 59, NameID = 1185)]
 public class T05IfritH : BossModule
 {
     private readonly IReadOnlyList<Actor> _nails;

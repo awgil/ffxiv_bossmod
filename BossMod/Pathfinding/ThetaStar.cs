@@ -118,6 +118,12 @@ public class ThetaStar
             VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX + 1, nextNodeY, nextNodeIndex + 1, CenterToNeighbour - nextNode.EnterOffset.X);
         if (nextNodeY < _map.MaxY)
             VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nextNodeX, nextNodeY + 1, nextNodeIndex + _map.Width, CenterToNeighbour - nextNode.EnterOffset.Y);
+        if (_map.Portals.TryGetValue(nextNodeIndex, out var neighbours))
+            foreach (var n in neighbours)
+            {
+                var (nX, nY) = _map.IndexToGrid(n);
+                VisitNeighbour(nextNodeX, nextNodeY, nextNodeIndex, nX, nY, n, CenterToNeighbour);
+            }
         return true;
     }
 

@@ -200,5 +200,5 @@ class D042ProtectorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831, NameID = 12757)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831, NameID = 12757)]
 public class D042Protector(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -100), new ArenaBoundsRect(12, 20));

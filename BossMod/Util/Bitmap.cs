@@ -1,5 +1,5 @@
-﻿using SharpDX.Win32;
-using System.IO;
+﻿using System.IO;
+using TerraFX.Interop.Windows;
 using System.Runtime.InteropServices;
 
 namespace BossMod;
@@ -157,26 +157,26 @@ public sealed class Bitmap
         if (fileHeader.Type != Magic)
             throw new ArgumentException($"Not a bitmap: magic is {fileHeader.Type:X4}");
 
-        var header = stream.ReadStruct<BitmapInfoHeader>();
-        if (header.SizeInBytes != Marshal.SizeOf<BitmapInfoHeader>())
-            throw new ArgumentException($"Bitmap has unsupported header size {header.SizeInBytes}");
-        if (header.Width <= 0)
-            throw new ArgumentException($"Bitmap has non-positive width {header.Width}");
-        if (header.Height >= 0)
-            throw new ArgumentException($"Bitmap is not top-down (height={header.Height})");
-        if (header.BitCount != 1)
-            throw new ArgumentException($"Bitmap is not 1bpp (bitcount={header.BitCount})");
-        if (header.Compression != 0)
-            throw new ArgumentException($"Bitmap has unsupported compression method {header.Compression:X8}");
-        if (header.XPixelsPerMeter != header.YPixelsPerMeter || header.XPixelsPerMeter <= 0)
-            throw new ArgumentException($"Bitmap has inconsistent or non-positive resolution {header.XPixelsPerMeter}x{header.YPixelsPerMeter}");
-        if (header.ColorUsedCount is not 0 or 2)
-            throw new ArgumentException($"Bitmap has wrong palette size {header.ColorUsedCount}");
+        var header = stream.ReadStruct<BITMAPINFOHEADER>();
+        if (header.biSize != Marshal.SizeOf<BITMAPINFOHEADER>())
+            throw new ArgumentException($"Bitmap has unsupported header size {header.biSize}");
+        if (header.biWidth <= 0)
+            throw new ArgumentException($"Bitmap has non-positive width {header.biWidth}");
+        if (header.biHeight >= 0)
+            throw new ArgumentException($"Bitmap is not top-down (height={header.biHeight})");
+        if (header.biBitCount != 1)
+            throw new ArgumentException($"Bitmap is not 1bpp (bitcount={header.biBitCount})");
+        if (header.biCompression != 0)
+            throw new ArgumentException($"Bitmap has unsupported compression method {header.biCompression:X8}");
+        if (header.biXPelsPerMeter != header.biYPelsPerMeter || header.biXPelsPerMeter <= 0)
+            throw new ArgumentException($"Bitmap has inconsistent or non-positive resolution {header.biXPelsPerMeter}x{header.biYPelsPerMeter}");
+        if (header.biClrUsed is not (0 or 2))
+            throw new ArgumentException($"Bitmap has wrong palette size {header.biClrUsed}");
 
-        Width = header.Width;
-        Height = -header.Height;
+        Width = header.biWidth;
+        Height = -header.biHeight;
         BytesPerRow = (Width + 31) >> 5 << 2;
-        Resolution = header.XPixelsPerMeter;
+        Resolution = header.biXPelsPerMeter;
         Color0 = Color.FromARGB(reader.ReadUInt32());
         Color1 = Color.FromARGB(reader.ReadUInt32());
         Pixels = reader.ReadBytes(Height * BytesPerRow);
@@ -185,9 +185,9 @@ public sealed class Bitmap
     public void Save(string filename)
     {
         using var fstream = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.Read);
-        var headerSize = Marshal.SizeOf<FileHeader>() + Marshal.SizeOf<BitmapInfoHeader>() + 2 * Marshal.SizeOf<uint>();
+        var headerSize = Marshal.SizeOf<FileHeader>() + Marshal.SizeOf<BITMAPINFOHEADER>() + 2 * Marshal.SizeOf<uint>();
         fstream.WriteStruct(new FileHeader() { Type = Magic, Size = headerSize + Pixels.Length, OffBits = headerSize });
-        fstream.WriteStruct(new BitmapInfoHeader() { SizeInBytes = Marshal.SizeOf<BitmapInfoHeader>(), Width = Width, Height = -Height, PlaneCount = 1, BitCount = 1, XPixelsPerMeter = Resolution, YPixelsPerMeter = Resolution });
+        fstream.WriteStruct(new BITMAPINFOHEADER() { biSize = (uint)Marshal.SizeOf<BITMAPINFOHEADER>(), biWidth = Width, biHeight = -Height, biPlanes = 1, biBitCount = 1, biXPelsPerMeter = Resolution, biYPelsPerMeter = Resolution });
         fstream.WriteStruct(Color0.ToARGB());
         fstream.WriteStruct(Color1.ToARGB());
         fstream.Write(Pixels);

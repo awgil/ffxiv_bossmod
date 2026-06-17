@@ -1,8 +1,9 @@
-﻿using BossMod.Pathfinding;
+using BossMod.Pathfinding;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using Dalamud.Bindings.ImGui;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace BossMod;
 
@@ -129,6 +130,56 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
         }
     }
 
+    sealed class TempMapViewer : UIBitmapEditor
+    {
+        private readonly DebugObstacles _owner;
+        private readonly ObstacleMapDatabase.Entry _e;
+
+        public TempMapViewer(DebugObstacles owner, Bitmap bm, ObstacleMapDatabase.Entry e) : base(bm)
+        {
+            _owner = owner;
+            _e = e;
+            CurrentMode = PanModeId;
+        }
+
+        protected override void DrawSidebar()
+        {
+            var player = _owner.Obstacles.World.Party.Player();
+            ImGui.TextUnformatted("IPC temp map");
+            ImGui.TextUnformatted($"Generation task: {_owner.Obstacles.GenerationStatus}");
+            ImGui.TextUnformatted($"Key: {_e.Filename}");
+            ImGui.TextUnformatted($"Bounds min {_e.MinBounds}  max {_e.MaxBounds}");
+            ImGui.TextUnformatted($"Origin {_e.Origin}  grid {Bitmap.Width}x{Bitmap.Height}  cell {Bitmap.PixelSize:F3} yalms");
+
+            if (player != null)
+            {
+                var playerOffset = ((player.Position - _e.Origin) / Bitmap.PixelSize).Floor();
+                ImGui.TextUnformatted($"Player cell: {playerOffset.X}x/{playerOffset.Z}z");
+            }
+
+            if (HoveredPixel.x >= 0 && HoveredPixel.y >= 0)
+            {
+                ImGui.TextUnformatted($"Hovered cell: {HoveredPixel.x}x{HoveredPixel.y}");
+                var y = player?.PosRot.Y ?? 0;
+                var tl = _e.Origin + new WDir(HoveredPixel.x, HoveredPixel.y) * Bitmap.PixelSize;
+                var br = tl + new WDir(Bitmap.PixelSize, Bitmap.PixelSize);
+                Camera.Instance?.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
+                Camera.Instance?.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
+                Camera.Instance?.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
+                Camera.Instance?.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
+            }
+        }
+
+        protected override IEnumerable<(int x, int y, Color c)> HighlighedCells()
+        {
+            if (_owner.Obstacles.World.Party.Player() is { } player)
+            {
+                var playerOffset = ((player.Position - _e.Origin) / Bitmap.PixelSize).Floor();
+                yield return ((int)playerOffset.X, (int)playerOffset.Z, new(0xff00ff00));
+            }
+        }
+    }
+
     internal readonly ObstacleMapManager Obstacles = obstacles;
     private readonly UITree _tree = new();
     private readonly Func<Vector3, string, float, Vector3, Vector3, (Vector3, Vector3)> _createMap = (startingPos, filename, pixelSize, minBounds, maxBounds) => dalamud.GetIpcSubscriber<Vector3, string, float, Vector3, Vector3, (Vector3, Vector3)>("vnavmesh.Nav.BuildBitmapBounded").InvokeFunc(startingPos, filename, pixelSize, minBounds, maxBounds);
@@ -143,6 +194,22 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     public void Draw()
     {
         ImGui.TextUnformatted($"Database root: {Obstacles.RootPath}");
+
+        ImGui.Separator();
+        ImGui.TextUnformatted("Temp map (IPC / memory)");
+        var gen = Obstacles.GenerationStatus;
+        if (gen is not TaskStatus.RanToCompletion)
+            ImGui.TextUnformatted($"Build task: {gen}");
+        if (Obstacles.TempMapMeta is not { } meta)
+        {
+            ImGui.TextDisabled("No temp map loaded.");
+        }
+        else
+        {
+            ImGui.TextUnformatted($"{meta.Filename}  {meta.Width}x{meta.Height} cells");
+            if (ImGui.Button("Open viewer##tempObstacle") && Obstacles.TryCloneTempMap(out var ent, out var bmp))
+                _ = new UISimpleWindow($"Temp obstacle map: {ent.Filename}", new TempMapViewer(this, bmp, ent).Draw, true, new(1000, 1000));
+        }
 
         var curZoneEntries = Obstacles.Database.Entries.GetValueOrDefault(Obstacles.CurrentKey());
         using (ImRaii.Disabled(!Obstacles.CanEditDatabase()))

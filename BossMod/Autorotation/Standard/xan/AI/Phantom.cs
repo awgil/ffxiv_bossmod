@@ -2,34 +2,68 @@
 
 namespace BossMod.Autorotation.xan;
 
-public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(manager, player)
+public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<PhantomAI.Strategy>(manager, player)
 {
-    public enum Track
+    public struct Strategy
     {
-        Cannoneer,
-        Ranger,
-        TimeMage,
-        Chemist,
-        Samurai,
-        Bard,
-        Monk,
-        Predict,
-        Chakra
+        [Track("Cannoneer: Use cannon actions on best AOE target as soon as they become available", Actions = [PhantomID.DarkCannon, PhantomID.HolyCannon, PhantomID.ShockCannon, PhantomID.SilverCannon, PhantomID.PhantomFire])]
+        public Track<EnabledByDefault> Cannoneer;
+
+        [Track("Ranger: Use Phantom Aim on cooldown", Action = PhantomID.PhantomAim)]
+        public Track<EnabledByDefault> Ranger;
+
+        [Track("Time Mage: Use Comet ASAP if it will be instant", Actions = [PhantomID.OccultComet, PhantomID.OccultQuick])]
+        public Track<EnabledByDefault> TimeMage;
+
+        [Track("Chemist: Raise", Action = PhantomID.Revive)]
+        public Track<RaiseStrategy> Chemist;
+
+        [Track("Samurai: Use Iainuki on best AOE target", Action = PhantomID.Iainuki)]
+        public Track<EnabledByDefault> Samurai;
+
+        [Track("Bard: Use Aria/Rime in combat", Actions = [PhantomID.OffensiveAria, PhantomID.HerosRime])]
+        public Track<EnabledByDefault> Bard;
+
+        [Track("Monk: Use Kick to maintain buff, use Counterstance during downtime", Actions = [PhantomID.PhantomKick, PhantomID.Counterstance, PhantomID.OccultCounter])]
+        public Track<EnabledByDefault> Monk;
+
+        [Track("Monk: Use Occult Chakra", Action = PhantomID.OccultChakra)]
+        public Track<ChakraStrategy> Chakra;
+
+        [Track("Oracle: Predict", Actions = [PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall])]
+        public Track<PredictStrategy> Predict;
+
+        [Track("Mystic Knight: Use blades/Magic Shell on cooldown", Actions = [PhantomID.SunderingSpellblade, PhantomID.MagicShell, PhantomID.HolySpellblade, PhantomID.BlazingSpellblade])]
+        public Track<EnabledByDefault> MysticKnight;
+
+        [Track("Gladiator: Finish", Actions = [PhantomID.Finisher, PhantomID.Defend, PhantomID.LongReach, PhantomID.BladeBlitz])]
+        public Track<EnabledByDefault> Gladiator;
+
+        [Track("Dancer: Dance", Actions = [PhantomID.Dance, PhantomID.PhantomSwordDance, PhantomID.TemptingTango, PhantomID.Jitterbug, PhantomID.MysteryWaltz, PhantomID.Quickstep])]
+        public Track<EnabledByDefault> Dancer;
     }
 
     public enum RaiseStrategy
     {
+        [Option("Disabled")]
         Never,
+        [Option("Out of combat")]
         OutOfCombat,
+        [Option("Always")]
         InCombat
     }
 
     public enum PredictStrategy
     {
+        [Option("Use first available damage action that isn't Starfall")]
         AutoConservative,
+        [Option("Use first available damage action, including Starfall if HP is high enough")]
         AutoGreedy,
+        [Option("Use Starfall")]
         AutoSuperGreedy,
+        [Option("Use Blessing (heal)")]
         HealOnly,
+        [Option("Don't use")]
         Disabled
     }
 
@@ -44,56 +78,19 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
 
     public enum ChakraStrategy
     {
+        [Option("If HP or MP is low")]
         Any,
+        [Option("If HP is below 30%")]
         HP,
+        [Option("If MP is below 30%")]
         MP,
+        [Option("Never")]
         Disabled
     }
 
     public static RotationModuleDefinition Definition()
     {
-        var def = new RotationModuleDefinition("Phantom Job AI", "Basic phantom job action automation", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 100);
-
-        def.AbilityTrack(Track.Cannoneer, "Cannoneer", "Cannoneer: Use cannon actions on best AOE target as soon as they become available")
-            .AddAssociatedActions(PhantomID.DarkCannon, PhantomID.HolyCannon, PhantomID.ShockCannon, PhantomID.SilverCannon, PhantomID.PhantomFire);
-
-        def.AbilityTrack(Track.Ranger, "Ranger", "Ranger: Use Phantom Aim on cooldown")
-            .AddAssociatedActions(PhantomID.PhantomAim);
-
-        def.AbilityTrack(Track.TimeMage, "TimeMage", "Time Mage: Use Comet ASAP if it will be instant")
-            .AddAssociatedActions(PhantomID.OccultComet, PhantomID.OccultQuick);
-
-        def.Define(Track.Chemist).As<RaiseStrategy>("Chemist", "Chemist: Raise")
-            .AddOption(RaiseStrategy.Never, "Disabled")
-            .AddOption(RaiseStrategy.OutOfCombat, "Out of combat")
-            .AddOption(RaiseStrategy.InCombat, "Always")
-            .AddAssociatedActions(PhantomID.Revive);
-
-        def.AbilityTrack(Track.Samurai, "Samurai", "Samurai: Use Iainuki on best AOE target")
-            .AddAssociatedActions(PhantomID.Iainuki);
-
-        def.AbilityTrack(Track.Bard, "Bard", "Bard: Use Aria/Rime in combat")
-            .AddAssociatedActions(PhantomID.OffensiveAria, PhantomID.HerosRime);
-
-        def.AbilityTrack(Track.Monk, "Monk", "Monk: Use Kick to maintain buff, use Counterstance during downtime")
-            .AddAssociatedActions(PhantomID.PhantomKick, PhantomID.Counterstance, PhantomID.OccultCounter);
-
-        def.Define(Track.Predict).As<PredictStrategy>("Predict", "Oracle: Predict")
-            .AddOption(PredictStrategy.AutoConservative, "Use first available damage action that isn't Starfall")
-            .AddOption(PredictStrategy.AutoGreedy, "Use first available damage action; allow Starfall if HP is high enough")
-            .AddOption(PredictStrategy.AutoSuperGreedy, "Use Starfall, regardless of HP")
-            .AddOption(PredictStrategy.HealOnly, "Use Blessing (heal)")
-            .AddOption(PredictStrategy.Disabled, "Don't use")
-            .AddAssociatedActions(PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall);
-
-        def.Define(Track.Chakra).As<ChakraStrategy>("Chakra", "Monk: Use Occult Chakra")
-            .AddOption(ChakraStrategy.Any, "If HP or MP is low")
-            .AddOption(ChakraStrategy.HP, "Only if HP is below 30%")
-            .AddOption(ChakraStrategy.MP, "Only if MP is below 30%")
-            .AddOption(ChakraStrategy.Disabled, "Never")
-            .AddAssociatedActions(PhantomID.OccultChakra);
-
-        return def;
+        return new RotationModuleDefinition("Phantom Job AI", "Basic phantom job action automation", "AI (xan)", "xan", RotationModuleQuality.WIP, new(~0ul), MaxLevel: 100).WithStrategies<Strategy>();
     }
 
     public static readonly uint[] UndeadMobs = [
@@ -129,16 +126,20 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         0x35ef
     ];
 
-    public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    float DesiredRange = float.MaxValue;
+
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (World.Client.CountdownRemaining > 0)
             return;
 
+        DesiredRange = float.MaxValue;
+
         var isMidCombo = CheckMidCombo();
 
-        if (strategy.Enabled(Track.Cannoneer) && !isMidCombo)
+        if (strategy.Cannoneer.IsEnabled() && !isMidCombo)
         {
-            var prio = strategy.Option(Track.Cannoneer).Priority(ActionQueue.Priority.High + 500);
+            var prio = strategy.Cannoneer.Priority(ActionQueue.Priority.High + 500);
 
             var bestTarget = primaryTarget?.IsAlly == false ? primaryTarget : null;
             var bestCount = bestTarget == null ? 0 : Hints.NumPriorityTargetsInAOECircle(bestTarget.Position, 5);
@@ -170,16 +171,16 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             }
         }
 
-        if (strategy.Enabled(Track.Ranger) && primaryTarget?.IsAlly == false && Player.InCombat)
+        if (strategy.Ranger.IsEnabled() && primaryTarget?.IsAlly == false && Player.InCombat)
         {
-            var prio = strategy.Option(Track.Ranger).Priority(ActionQueue.Priority.Low);
+            var prio = strategy.Ranger.Priority(ActionQueue.Priority.Low);
 
             UseAction(PhantomID.PhantomAim, Player, prio);
         }
 
-        if (strategy.Enabled(Track.TimeMage) && primaryTarget?.IsAlly == false)
+        if (strategy.TimeMage.IsEnabled() && primaryTarget?.IsAlly == false)
         {
-            var prio = strategy.Option(Track.TimeMage).Priority(ActionQueue.Priority.High + 500);
+            var prio = strategy.TimeMage.Priority(ActionQueue.Priority.High + 500);
 
             var nextGCD = World.FutureTime(GCD);
             var haveSwift = Player.Statuses.Any(s => InstantCastStatus.Contains(s.ID) && s.ExpireAt > nextGCD);
@@ -189,8 +190,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             UseAction(PhantomID.OccultQuick, Player, prio);
         }
 
-        var option = strategy.Option(Track.Chemist);
-        var canRaise = option.As<RaiseStrategy>() switch
+        var option = strategy.Chemist;
+        var canRaise = option.Value switch
         {
             RaiseStrategy.InCombat => true,
             RaiseStrategy.OutOfCombat => !Player.InCombat,
@@ -205,18 +206,18 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
                 UseAction(PhantomID.Revive, tar, prio);
         }
 
-        if (strategy.Enabled(Track.Samurai) && primaryTarget?.IsAlly == false && !isMidCombo)
+        if (strategy.Samurai.IsEnabled() && primaryTarget?.IsAlly == false && !isMidCombo)
         {
-            var prio = strategy.Option(Track.Samurai).Priority(ActionQueue.Priority.High + 500);
+            var prio = strategy.Samurai.Priority(ActionQueue.Priority.High + 500);
             if (UseAction(PhantomID.Iainuki, primaryTarget, prio, 0.8f))
                 Hints.GoalZones.Add(Hints.GoalAOECone(primaryTarget, 8, 60.Degrees()));
         }
 
-        if (strategy.Enabled(Track.Bard) && primaryTarget?.IsAlly == false && Player.InCombat)
+        if (strategy.Bard.IsEnabled() && primaryTarget?.IsAlly == false && Player.InCombat)
         {
             var ariaLeft = SelfStatusDetails(PhantomSID.OffensiveAria, 70).Left;
             var rimeLeft = SelfStatusDetails(PhantomSID.HerosRime, 20).Left;
-            var prio = strategy.Option(Track.Bard).Priority(ActionQueue.Priority.Low);
+            var prio = strategy.Bard.Priority(ActionQueue.Priority.Low);
 
             UseAction(PhantomID.HerosRime, Player, prio);
 
@@ -224,9 +225,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
                 UseAction(PhantomID.OffensiveAria, Player, prio);
         }
 
-        if (strategy.Enabled(Track.Monk) && Player.InCombat)
+        if (strategy.Monk.IsEnabled() && Player.InCombat)
         {
-            var prio = strategy.Option(Track.Monk).Priority(ActionQueue.Priority.Low);
+            var prio = strategy.Monk.Priority(ActionQueue.Priority.Low);
 
             var counterLeft = SelfStatusDetails(PhantomSID.Counterstance, 60).Left;
             if (counterLeft <= 30 && !Hints.PriorityTargets.Any())
@@ -242,14 +243,13 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             }
         }
 
-        var chakraOpt = strategy.Option(Track.Chakra);
-        var chakraStrategy = chakraOpt.As<ChakraStrategy>();
-        if (chakraStrategy != ChakraStrategy.Disabled && Player.InCombat)
+        var chakraOpt = strategy.Chakra;
+        if (chakraOpt.Value != ChakraStrategy.Disabled && Player.InCombat)
         {
             var lowHP = Player.HPMP.CurHP < Player.HPMP.MaxHP * 0.3f;
             var lowMP = Player.HPMP.CurMP < Player.HPMP.MaxMP * 0.3f;
 
-            var useOk = chakraStrategy switch
+            var useOk = chakraOpt.Value switch
             {
                 ChakraStrategy.Any => lowHP || lowMP,
                 ChakraStrategy.HP => lowHP,
@@ -261,13 +261,12 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
                 UseAction(PhantomID.OccultChakra, Player, chakraOpt.Priority(ActionQueue.Priority.Low));
         }
 
-        var predictOpt = strategy.Option(Track.Predict);
-        var predictStrategy = predictOpt.As<PredictStrategy>();
-        if (predictStrategy != PredictStrategy.Disabled)
+        var predictOpt = strategy.Predict;
+        if (predictOpt != PredictStrategy.Disabled)
         {
             var (pred, flags) = GetPrediction();
 
-            var haveTarget = Player.InCombat && predictStrategy switch
+            var haveTarget = Player.InCombat && predictOpt.Value switch
             {
                 PredictStrategy.AutoConservative or PredictStrategy.AutoGreedy or PredictStrategy.AutoSuperGreedy => primaryTarget?.IsAlly == false,
                 PredictStrategy.HealOnly => true,
@@ -282,7 +281,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             var isSafe = pred != Prediction.Starfall;
             var isLastPrediction = flags == 0xF;
 
-            var canUse = predictStrategy switch
+            var canUse = predictOpt.Value switch
             {
                 PredictStrategy.AutoConservative => isDmg && isSafe,
                 PredictStrategy.AutoGreedy => isDmg && (isSafe || EnoughHP),
@@ -294,6 +293,58 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
             if (canUse && haveTarget || isLastPrediction)
                 UseAction(GetID(pred), Player, predictOpt.Priority(ActionQueue.Priority.High));
         }
+
+        if (strategy.MysticKnight.IsEnabled())
+        {
+            if (primaryTarget?.IsAlly == false)
+            {
+                if (primaryTarget.FindStatus(PhantomSID.BlazingBane, DateTime.MaxValue) == null)
+                    UseAction(PhantomID.BlazingSpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+
+                UseAction(PhantomID.HolySpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+                UseAction(PhantomID.SunderingSpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+            }
+
+            // shell has permanent uptime (60s duration, 60s cooldown)
+            UseAction(PhantomID.MagicShell, Player, ActionQueue.Priority.High);
+        }
+
+        if (strategy.Gladiator.IsEnabled())
+        {
+            if (Hints.PredictedDamage.Any(p => p.Players[0] && p.Activation < World.FutureTime(4)) || EnemiesAutoingMe.Any())
+                UseAction(PhantomID.Defend, Player, ActionQueue.Priority.High);
+
+            if (primaryTarget?.IsAlly == false)
+            {
+                UseAction(PhantomID.Finisher, primaryTarget, ActionQueue.Priority.VeryHigh);
+                UseAction(PhantomID.LongReach, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (primaryTarget.Position.InCircle(Player.Position, Player.HitboxRadius + primaryTarget.HitboxRadius + 8))
+                    UseAction(PhantomID.BladeBlitz, Player, ActionQueue.Priority.VeryHigh);
+            }
+        }
+
+        if (strategy.Dancer.IsEnabled())
+        {
+            if (SelfStatusLeft(PhantomSID.Quickstep) < 5)
+                UseAction(PhantomID.Quickstep, Player, ActionQueue.Priority.High);
+
+            if (primaryTarget?.IsAlly == false)
+            {
+                UseAction(PhantomID.Dance, Player, ActionQueue.Priority.High);
+
+                if (Player.FindStatus(PhantomSID.PoisedToSwordDance) != null)
+                    UseAction(PhantomID.PhantomSwordDance, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.TemptedToTango) != null)
+                    UseAction(PhantomID.TemptingTango, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.Jitterbugged) != null)
+                    UseAction(PhantomID.Jitterbug, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.WillingToWaltz) != null)
+                    UseAction(PhantomID.MysteryWaltz, primaryTarget, ActionQueue.Priority.VeryHigh);
+            }
+        }
+
+        if (DesiredRange < float.MaxValue && primaryTarget != null)
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, DesiredRange, 1));
     }
 
     private bool EnoughHP => Player.HPMP.MaxHP * 0.9f < Player.HPMP.CurHP + Player.HPMP.Shield;
@@ -340,14 +391,18 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase(man
         (uint)PhantomSID.OccultQuick
     ];
 
+    bool IsTransformedAction(PhantomID p) => p is PhantomID.PhantomJudgment or PhantomID.Cleansing or PhantomID.Blessing or PhantomID.Starfall or PhantomID.PhantomSwordDance or PhantomID.TemptingTango or PhantomID.Jitterbug or PhantomID.MysteryWaltz;
+
     // returns true if the action is ready to be used, so we can add movement hints for e.g. maximizing aoe targets
     private bool UseAction(PhantomID pid, Actor target, float prio, float castTime = 0)
     {
-        var cd = pid is PhantomID.PhantomJudgment or PhantomID.Cleansing or PhantomID.Blessing or PhantomID.Starfall ? 0 : DutyActionCD(ActionID.MakeSpell(pid));
+        var action = ActionID.MakeSpell(pid);
+        var cd = IsTransformedAction(pid) ? 0 : DutyActionCD(action);
 
         if (cd <= GCD)
         {
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(pid), target, prio, castTime: castTime);
+            DesiredRange = MathF.Min(DesiredRange, ActionDefinitions.Instance[action]?.Range ?? float.MaxValue);
+            Hints.ActionsToExecute.Push(action, target, prio, castTime: castTime);
             return true;
         }
         return false;

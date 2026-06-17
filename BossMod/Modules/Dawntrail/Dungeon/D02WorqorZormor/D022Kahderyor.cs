@@ -193,5 +193,5 @@ class D022KahderyorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12703)]
+[ModuleInfo(Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12703)]
 public class D022Kahderyor(WorldState ws, Actor primary) : BossModule(ws, primary, new(-53, -57), new ArenaBoundsCircle(20));

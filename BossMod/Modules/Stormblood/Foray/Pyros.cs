@@ -45,7 +45,7 @@ public enum NotoriousMonster : uint
     Penthesilea
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.WIP, 598)]
+[ZoneModuleInfo(598)]
 public class Pyros(WorldState ws) : EurekaZone<NotoriousMonster>(ws, "Pyros")
 {
     private readonly PyrosConfig _config = Service.Config.Get<PyrosConfig>();

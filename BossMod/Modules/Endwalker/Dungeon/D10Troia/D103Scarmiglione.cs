@@ -3,6 +3,7 @@
 public enum OID : uint
 {
     Boss = 0x39C5,
+    Necroserf = 0x39C7,
     Helper = 0x233C,
 }
 
@@ -31,59 +32,94 @@ class BlightedBedevilment(BossModule module) : Components.StandardAOEs(module, A
 class CursedEcho(BossModule module) : Components.RaidwideCast(module, AID.CursedEcho);
 class RottenRampage(BossModule module) : Components.StandardAOEs(module, AID.RottenRampageAOE, 6);
 class RottenRampagePlayer(BossModule module) : Components.SpreadFromCastTargets(module, AID.RottenRampageSpread, 6);
+
+class Necroserf(BossModule module) : Components.Adds(module, (uint)OID.Necroserf, forbidDots: true);
+
 class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.VacuumWave, 30)
 {
-    private readonly List<(ulong ID, Angle Angle)> Walls = [];
+    BitMask _activeWalls = new(0xfff);
 
-    public const float WallHalfWidth = 6; // this is probably wrong
-    public static readonly Angle WallHalfAngle = WallHalfWidth.Degrees();
+    static readonly float WallHalfAngle = MathF.Atan2(4.5f, 20);
+
+    static Angle AngleToWall(int bit)
+    {
+        var group = bit / 3;
+        var ix = bit % 3;
+        var baseDir = 135 - 90 * group;
+        return (baseDir + (1 - ix) * 26).Degrees();
+    }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         base.DrawArenaForeground(pcSlot, pc);
-        foreach (var (_, w) in Walls)
+
+        foreach (var bit in _activeWalls.SetBits())
         {
-            // TODO this is really slow, what's the deal with that
-            Arena.PathArcTo(Arena.Center, 20, (w - WallHalfAngle).Rad, (w + WallHalfAngle).Rad);
-            Arena.PathStroke(false, 0x80ffffff, 2);
+            var realDir = AngleToWall(bit).ToDirection();
+            Arena.AddLine(Arena.Center + realDir * 20 + realDir.OrthoL() * 4.5f, Arena.Center + realDir * 20 + realDir.OrthoR() * 4.5f, ArenaColor.Border);
         }
     }
 
-    public override void OnActorCreated(Actor actor)
+    float DistanceToWall(WPos player, WPos origin)
     {
-        if (actor.OID == 0x39C8)
-            Walls.Add((actor.InstanceID, Angle.FromDirection(actor.Position - Arena.Center)));
+        var dist = 30f;
+        var dir = player - origin;
+        var angle = dir.ToAngle();
+        foreach (var bit in _activeWalls.SetBits())
+        {
+            var wa = AngleToWall(bit);
+            if (angle.AlmostEqual(wa, WallHalfAngle))
+            {
+                var wd = wa.ToDirection();
+                dist = MathF.Min(dist, Intersect.RaySegment(dir, dir.Normalized(), wd * 20 + wd.OrthoL() * 4.5f, wd * 20 + wd.OrthoR() * 4.5f) - 0.5f);
+            }
+        }
+
+        return dist;
     }
 
-    public override void OnActorDestroyed(Actor actor)
+    public override void OnMapEffect(byte index, uint state)
     {
-        if (actor.OID == 0x39C8)
-            Walls.RemoveAll(w => w.ID == actor.InstanceID);
+        if (index is >= 5 and < 17)
+        {
+            if (state == 0x00020001)
+                _activeWalls.Clear(index - 5);
+            if (state == 0x00040001)
+                _activeWalls.Set(index - 5);
+        }
     }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        foreach (var c in Casters)
-            yield return new(c.Position, WallCheck(actor.Position) ? 19 - (actor.Position - Module.Arena.Center).Length() : Distance, Module.CastFinishAt(c.CastInfo));
+        foreach (var caster in Casters)
+        {
+            var activation = Module.CastFinishAt(caster.CastInfo);
+            if (!IsImmune(slot, activation))
+            {
+                var origin = caster.CastInfo!.LocXZ;
+                yield return new(origin, DistanceToWall(actor.Position, origin), activation);
+            }
+        }
     }
-
-    private bool WallCheck(WPos pos) => WallCheck(Arena.Center, Walls, pos);
-    private static bool WallCheck(WPos center, List<(ulong, Angle Angle)> walls, WPos pos) => walls.Any(w => Angle.FromDirection(pos - center).AlmostEqual(w.Angle, 3.Degrees().Rad));
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Casters.FirstOrDefault() is Actor c)
+        foreach (var src in Sources(slot, actor))
         {
-            var walls = Walls.ToList();
-            var center = Arena.Center;
-            hints.AddForbiddenZone(p => !WallCheck(center, walls, p), Module.CastFinishAt(c.CastInfo));
+            List<Func<WPos, bool>> safeCones = [];
+            foreach (var bit in _activeWalls.SetBits())
+                // we need to aim for the center of a wall, since they're flat and aiming at the edge will cause you to slide off and land in the voidzone
+                safeCones.Add(ShapeContains.InvertedCone(Arena.Center, 30, AngleToWall(bit), (WallHalfAngle * 0.5f).Radians()));
+
+            if (safeCones.Count > 0)
+                hints.AddForbiddenZone(ShapeContains.Intersection(safeCones), src.Activation);
         }
     }
 }
 
-class ScarmiglioneStates : StateMachineBuilder
+class D103ScarmiglioneStates : StateMachineBuilder
 {
-    public ScarmiglioneStates(BossModule module) : base(module)
+    public D103ScarmiglioneStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<VacuumWave>()
@@ -95,13 +131,11 @@ class ScarmiglioneStates : StateMachineBuilder
             .ActivateOnEnter<BlightedSweep>()
             .ActivateOnEnter<Firedamp>()
             .ActivateOnEnter<Nox>()
+            .ActivateOnEnter<Necroserf>()
             .ActivateOnEnter<VoidVortex>()
             .ActivateOnEnter<VoidGravity>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372)]
-public class Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(25))
-{
-    protected override void DrawArenaBackground(int pcSlot, Actor pc) => Arena.ZoneDonut(Arena.Center, 21, 25, ArenaColor.AOE);
-}
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372)]
+public class D103Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(21));

@@ -72,5 +72,5 @@ class D261WandilStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 27, NameID = 3038)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 27, NameID = 3038)]
 public class D261Wandil(WorldState ws, Actor primary) : BossModule(ws, primary, new(56.5f, -88.8f), new ArenaBoundsCircle(18));

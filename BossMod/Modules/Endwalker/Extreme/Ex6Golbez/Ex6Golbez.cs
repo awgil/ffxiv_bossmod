@@ -15,5 +15,5 @@ class VoidBlizzard(BossModule module) : Components.StackWithCastTargets(module, 
 class VoidAero(BossModule module) : Components.StackWithCastTargets(module, AID.VoidAero, 3, 2);
 class VoidTornado(BossModule module) : Components.StackWithCastTargets(module, AID.VoidTornado, 6, 4);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 950, NameID = 12365, PlanLevel = 90)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 950, NameID = 12365, PlanLevel = 90)]
 public class Ex6Golbez(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(15));

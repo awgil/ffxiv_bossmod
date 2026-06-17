@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.SideQuests;
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 173)]
+[ZoneModuleInfo(173)]
 internal class ABloodyReunion(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

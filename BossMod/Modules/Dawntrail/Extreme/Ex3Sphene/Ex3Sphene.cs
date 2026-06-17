@@ -4,7 +4,7 @@ class ProsecutionOfWar(BossModule module) : Components.TankSwap(module, AID.Pros
 class DyingMemory(BossModule module) : Components.CastCounter(module, AID.DyingMemory);
 class DyingMemoryLast(BossModule module) : Components.CastCounter(module, AID.DyingMemoryLast);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1017, NameID = 13029, PlanLevel = 100)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1017, NameID = 13029, PlanLevel = 100)]
 public class Ex3Sphene(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), NormalBounds)
 {
     public static readonly ArenaBoundsSquare NormalBounds = new(20);

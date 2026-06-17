@@ -1,6 +1,5 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 using System.Threading;
@@ -72,18 +71,18 @@ public sealed class ReplayManager : IDisposable
     }
 
     private readonly RotationDatabase _rotationDB;
-    private readonly ReplayManagementConfig _config = Service.Config.Get<ReplayManagementConfig>();
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
+    private readonly ReplayHistory _replayHistory;
     private int _nextAnalysisId;
     private string _path = "";
     private string _fileDialogStartPath;
-    private FileDialog? _fileDialog;
 
     public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
     {
         _rotationDB = rotationDB;
         _fileDialogStartPath = fileDialogStartPath;
+        _replayHistory = ReplayHistory.Load();
         RestoreHistory();
     }
 
@@ -129,17 +128,6 @@ public sealed class ReplayManager : IDisposable
         DrawNewEntry();
         DrawEntries();
         DrawEntriesOperations();
-
-        if (_fileDialog?.Draw() ?? false)
-        {
-            if (_fileDialog.GetIsOk())
-            {
-                _path = _fileDialog.GetResults().FirstOrDefault() ?? "";
-                _fileDialogStartPath = _fileDialog.GetCurrentPath();
-            }
-            _fileDialog.Hide();
-            _fileDialog = null;
-        }
     }
 
     private void DrawEntries()
@@ -206,7 +194,7 @@ public sealed class ReplayManager : IDisposable
             return;
 
         var numSelected = _replayEntries.Count(e => e.Selected);
-        bool shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
+        var shouldSelectAll = _replayEntries.Count == 0 || numSelected < _replayEntries.Count;
         if (ImGui.Button(shouldSelectAll ? "Select all" : "Unselect all", new(80, 0)))
         {
             foreach (var e in _replayEntries)
@@ -244,11 +232,36 @@ public sealed class ReplayManager : IDisposable
     {
         ImGui.InputText("###path", ref _path, 500);
         ImGui.SameLine();
-        if (ImGui.Button("..."))
+        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.File))
         {
-            _fileDialog ??= new("select_log", "Select file or directory", "Log files{.log},All files{.*}", _fileDialogStartPath, "", ".log", 1, false, ImGuiFileDialogFlags.SelectOnly);
-            _fileDialog.Show();
+            // FIXME
+            var suffixFilter = Service.IsMock ? "log" : ".log";
+
+            Service.FileDialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
+            {
+                if (c)
+                {
+                    _path = p[0];
+                    _fileDialogStartPath = new FileInfo(_path).Directory!.FullName;
+                }
+            }, 1, _fileDialogStartPath);
         }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Open file");
+        ImGui.SameLine();
+        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen))
+        {
+            Service.FileDialogManager.OpenFolderDialog("Select directory", (c, p) =>
+            {
+                if (c)
+                {
+                    _path = p;
+                    _fileDialogStartPath = p;
+                }
+            }, _fileDialogStartPath);
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Open folder");
         ImGui.SameLine();
         using (ImRaii.Disabled(_path.Length == 0 || _replayEntries.Any(e => e.Path == _path)))
         {
@@ -332,19 +345,16 @@ public sealed class ReplayManager : IDisposable
 
     private void SaveHistory()
     {
-        if (!RememberReplays)
-            return;
-        _config.ReplayHistory = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? false, r.Window?.CurrentTime ?? default))];
-        _config.Modified.Fire();
+        _replayHistory.History = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? false, r.Window?.CurrentTime ?? default))];
+        _replayHistory.Save();
     }
 
     private void RestoreHistory()
     {
-        if (!RememberReplays)
+        if (!Service.IsMock)
             return;
-        foreach (var memory in _config.ReplayHistory)
-            _replayEntries.Add(new(memory.Path, memory.IsOpen, _config.RememberReplayTimes ? memory.PlaybackPosition : null));
-    }
 
-    private bool RememberReplays => Service.SigScanner == null && _config.RememberReplays;
+        foreach (var rp in _replayHistory.History)
+            _replayEntries.Add(new(rp.Path, rp.IsOpen, rp.PlaybackPosition));
+    }
 }

@@ -1,21 +1,33 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.AI;
 
 internal sealed class AIWindow : UIWindow
 {
-    private const string _windowID = "###AI";
+    private const string _windowID = "Multibox settings###AI";
 
-    private readonly AIManager _manager;
-    private readonly EventSubscriptions _subscriptions;
+    readonly RotationModuleManager _manager;
+    readonly EventSubscriptions _subscriptions;
+    readonly AIConfig _config = Service.Config.Get<AIConfig>();
 
-    public AIWindow(AIManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+    int _masterSlot = -1;
+
+    readonly Preset _pMultibox;
+
+    public AIWindow(RotationModuleManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _manager = mgr;
+        _pMultibox = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM Multibox");
         _subscriptions = new
         (
-            _manager.Config.Modified.ExecuteAndSubscribe(() => IsOpen = _manager.Config.DrawUI)
+            _config.Modified.ExecuteAndSubscribe(() =>
+            {
+                IsOpen = _config.DrawUI;
+                ToggleMove();
+                ToggleTarget();
+            })
         );
         RespectCloseHotkey = false;
     }
@@ -26,51 +38,59 @@ internal sealed class AIWindow : UIWindow
         base.Dispose(disposing);
     }
 
-    public void SetVisible(bool vis)
-    {
-        if (_manager.Config.DrawUI != vis)
-        {
-            _manager.Config.DrawUI = vis;
-            _manager.Config.Modified.Fire();
-        }
-    }
-
     public override bool DrawConditions() => _manager.WorldState.Party.Player() != null;
-
-    public override void PreDraw()
-    {
-        var windowName = _manager.Config.ShowStatusOnTitlebar ? _manager.AIStatus : "AI";
-        WindowName = windowName + _windowID;
-        base.PreDraw();
-    }
 
     public override void Draw()
     {
-        if (!_manager.Config.ShowStatusOnTitlebar)
-            ImGui.TextUnformatted(_manager.AIStatus);
-        ImGui.TextUnformatted(_manager.NaviStatus);
-        _manager.Behaviour?.DrawDebug();
-
-        using (var leaderCombo = ImRaii.Combo("Follow", _manager.Behaviour == null ? "<idle>" : _manager.WorldState.Party[_manager.MasterSlot]?.Name ?? "<unknown>"))
+        using (var leaderCombo = ImRaii.Combo("Follow", _masterSlot == -1 ? "<disabled>" : $"#{_masterSlot} {_manager.WorldState.Party[_masterSlot]?.Name ?? "<unknown>"}"))
         {
             if (leaderCombo)
             {
-                if (ImGui.Selectable("<idle>", _manager.Behaviour == null))
-                {
-                    _manager.Enabled = false;
-                }
+                if (ImGui.Selectable("<disabled>", _masterSlot == -1))
+                    SetSlot(-1);
                 foreach (var (i, p) in _manager.WorldState.Party.WithSlot(true))
-                {
-                    if (ImGui.Selectable(p.Name, _manager.MasterSlot == i))
-                    {
-                        _manager.Config.FollowSlot = (AIConfig.Slot)i;
-                        _manager.Config.Modified.Fire();
-                        _manager.Enabled = true;
-                    }
-                }
+                    if (ImGui.Selectable(p.Name, _masterSlot == i))
+                        SetSlot(i);
             }
         }
+
+        if (ImGui.Checkbox("Disable movement", ref _config.ForbidMovement))
+            _config.Modified.Fire();
+
+        if (ImGui.Checkbox("Disable auto-target", ref _config.ForbidActions))
+            _config.Modified.Fire();
     }
 
-    public override void OnClose() => SetVisible(false);
+    void ToggleMove()
+    {
+        var normalMove = _pMultibox.Modules[^1];
+        normalMove.TransientSettings.RemoveAll(s => s.Track == 0);
+        if (_config.ForbidMovement)
+            normalMove.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 0 }));
+    }
+
+    void ToggleTarget()
+    {
+        var autoT = _pMultibox.Modules[0];
+        autoT.TransientSettings.RemoveAll(s => s.Track == 0);
+        if (_config.ForbidActions)
+            autoT.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 1 }));
+    }
+
+    public void SetSlot(int slot)
+    {
+        _masterSlot = slot;
+        var mbox = _pMultibox.Modules[1];
+        mbox.TransientSettings.RemoveAll(s => s.Track == 0);
+        mbox.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueInt() { Value = slot }));
+
+        _config.Enabled = slot >= 0;
+        _config.Modified.Fire();
+    }
+
+    public override void OnClose()
+    {
+        _config.DrawUI = false;
+        _config.Modified.Fire();
+    }
 }

@@ -258,5 +258,5 @@ class D112GalateaMagnaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 10308)]
+[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 10308)]
 public class D112GalateaMagna(WorldState ws, Actor primary) : BossModule(ws, primary, new(350, -394), new ArenaBoundsCircle(19.5f));

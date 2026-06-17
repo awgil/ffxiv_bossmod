@@ -4,6 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
+[Renderer(typeof(TargetingRenderer))]
 public enum Targeting
 {
     Manual,
@@ -11,39 +12,69 @@ public enum Targeting
     AutoPrimary,
     AutoTryPri
 }
+
+[Renderer(typeof(OffensiveStrategyRenderer))]
 public enum OffensiveStrategy
 {
     Automatic,
     Delay,
     Force
 }
+
+[Renderer(typeof(DefaultOnRenderer))]
+public enum EnabledByDefault
+{
+    Enabled,
+    Disabled
+}
+
+[Renderer(typeof(DefaultOffRenderer))]
+public enum DisabledByDefault
+{
+    Disabled,
+    Enabled
+}
+
 public enum AOEStrategy
 {
+    [Option("Use AOE rotation if beneficial")]
     AOE,
+    [Option("Use single-target rotation")]
     ST,
+    [Option("Always use AOE rotation, even on one target")]
     ForceAOE,
+    [Option("Use single-target rotation; do not use ANY actions that can hit multiple targets")]
     ForceST
 }
 
 public enum SharedTrack { Targeting, AOE, Buffs, Count }
 
-public abstract class Attackxan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
+public interface IStrategyCommon
+{
+    public abstract Targeting Targeting { get; }
+    public abstract AOEStrategy AOE { get; }
+}
+
+public abstract class Attackxan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID, TValues>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
+    where TValues : struct
 {
     protected sealed override float GCDLength => AttackGCDLength;
 }
 
-public abstract class Castxan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID>(manager, player, potType)
+public abstract class Castxan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID, TValues>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
+    where TValues : struct
 {
     protected sealed override float GCDLength => SpellGCDLength;
 }
 
-public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor player, PotionType potType) : RotationModule(manager, player)
+public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType) : TypedRotationModule<TValues>(manager, player)
     where AID : struct, Enum
     where TraitID : Enum
+    where TValues : struct
 {
     public PotionType PotionType { get; init; } = potType;
 
@@ -81,6 +112,10 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected abstract float GCDLength { get; }
 
     public bool CanFitGCD(float duration, int extraGCDs = 0) => GCD + GCDLength * extraGCDs < duration;
+
+    // frame alignment/cooldown reduction produces inconsistent results in combat, i.e. on MCH, 2.5 GCD drill will quasi-randomly not be considered ready
+    // i don't know if this is because our CD reduction code is buggy or if it's an inherent limitation
+    protected bool GCDReady(AID aid) => ReadyIn(aid) < GCD + 0.05f;
 
     protected bool OnCooldown(AID aid) => MaxChargesIn(aid) > 0;
 
@@ -206,11 +241,9 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// <param name="strategy">Targeting strategy</param>
     /// <param name="primaryTarget">Player's current target - may be null</param>
     /// <param name="range">Maximum distance from the player to search for a candidate target</param>
-    protected void SelectPrimaryTarget(StrategyValues strategy, ref Enemy? primaryTarget, float range)
+    protected void SelectPrimaryTarget(in IStrategyCommon strategy, ref Enemy? primaryTarget, float range)
     {
-        var t = strategy.Option(SharedTrack.Targeting).As<Targeting>();
-
-        if (t is Targeting.Auto or Targeting.AutoTryPri)
+        if (strategy.Targeting is Targeting.Auto or Targeting.AutoTryPri)
         {
             if (Player.DistanceToHitbox(primaryTarget) > range)
             {
@@ -225,17 +258,17 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     protected delegate P PriorityFunc<P>(int totalTargets, Actor primaryTarget);
 
     protected (Enemy? Best, int Targets) SelectTarget(
-        StrategyValues strategy,
+        in IStrategyCommon strategy,
         Enemy? primaryTarget,
         float range,
         PositionCheck isInAOE
     ) => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, _) => numTargets, a => a);
 
-    protected (Enemy? Best, int Targets) SelectTargetByHP(StrategyValues strategy, Enemy? primaryTarget, float range, PositionCheck isInAOE)
+    protected (Enemy? Best, int Targets) SelectTargetByHP(in IStrategyCommon strategy, Enemy? primaryTarget, float range, PositionCheck isInAOE)
         => SelectTarget(strategy, primaryTarget, range, isInAOE, (numTargets, actor) => (numTargets, numTargets > 2 ? actor.HPMP.CurHP : 0), args => args.numTargets);
 
     protected (Enemy? Best, int Priority) SelectTarget<P>(
-        StrategyValues strategy,
+        in IStrategyCommon strategy,
         Enemy? primaryTarget,
         float range,
         PositionCheck isInAOE,
@@ -243,8 +276,8 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         Func<P, int> simplify
     ) where P : struct, IComparable
     {
-        var aoe = strategy.Option(SharedTrack.AOE).As<AOEStrategy>();
-        var targeting = strategy.Option(SharedTrack.Targeting).As<Targeting>();
+        var targeting = strategy.Targeting;
+        var aoe = strategy.AOE;
 
         var targetOutOfCombat = primaryTarget?.Priority == Enemy.PriorityUndesirable;
 
@@ -262,7 +295,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
                     // wanted targets will be hit
                     : numOk;
 
-            return prioritize(AdjustNumTargets(strategy, numTargets), potentialTarget);
+            return prioritize(AdjustNumTargets(aoe, numTargets), potentialTarget);
         }
 
         // in regular ST mode and when using a skill that deals splash damage (like Primal Rend), it is possible that primary target has prio 0 if the splash damage would hit a forbidden target
@@ -298,10 +331,10 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
     /// <param name="getTimer"></param>
     /// <param name="maxAllowedTargets"></param>
     /// <returns></returns>
-    protected (Enemy? Target, P Timer) SelectDotTarget<P>(StrategyValues strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
+    protected (Enemy? Target, P Timer) SelectDotTarget<P>(in IStrategyCommon strategy, Enemy? initial, Func<Actor?, P> getTimer, int maxAllowedTargets) where P : struct, IComparable
     {
         var forbidden = initial?.ForbidDOTs ?? false;
-        switch (strategy.Targeting())
+        switch (strategy.Targeting)
         {
             case Targeting.Manual:
             case Targeting.AutoPrimary:
@@ -344,11 +377,12 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, range));
     }
 
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
+    protected void GoalZoneCombined(in IStrategyCommon strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
+        var a = strategy.AOE;
         var (_, positional, imminent, _) = Hints.RecommendedPositional;
 
-        if (!strategy.AOEOk() || !Unlocked(firstUnlockedAoeAction))
+        if (!strategy.AOE.AOEOk() || !Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
         if (PlayerTarget == null)
@@ -364,12 +398,12 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
     }
 
-    protected int NumMeleeAOETargets(StrategyValues strategy) => NumNearbyTargets(strategy, 5);
+    protected int NumMeleeAOETargets(IStrategyCommon strategy) => NumNearbyTargets(strategy, 5);
 
-    protected int NumNearbyTargets(StrategyValues strategy, float range) => AdjustNumTargets(strategy, Hints.NumPriorityTargetsInAOECircle(Player.Position, range));
+    protected int NumNearbyTargets(IStrategyCommon strategy, float range) => AdjustNumTargets(strategy.AOE, Hints.NumPriorityTargetsInAOECircle(Player.Position, range));
 
-    protected int AdjustNumTargets(StrategyValues strategy, int reported)
-        => reported == 0 ? 0 : strategy.AOE() switch
+    protected int AdjustNumTargets(AOEStrategy aoe, int reported)
+        => reported == 0 ? 0 : aoe switch
         {
             AOEStrategy.AOE => reported,
             AOEStrategy.ST => 1,
@@ -379,18 +413,21 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         };
 
     protected PositionCheck IsSplashTarget => (Actor primary, Actor other) => Hints.TargetInAOECircle(other, primary.Position, 5);
-    protected PositionCheck Is25yRectTarget => (Actor primary, Actor other) => Hints.TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 2);
+    protected PositionCheck Is25yRectTarget => (Actor primary, Actor other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 2);
 
     /// <summary>
     /// Get <em>effective</em> cast time for the provided action.<br/>
-    /// The default implementation returns the action's base cast time multiplied by the player's spell-speed factor, which accounts for haste buffs (like Leylines) and slow debuffs. It also accounts for Swiftcast.<br/>
+    /// The default implementation returns the action's base cast time multiplied by the player's spellspeed factor, which accounts for haste buffs (like Leylines) and slow debuffs. It also accounts for Swiftcast.<br/>
     /// Subclasses should handle job-specific cast speed adjustments, such as RDM's Dualcast or PCT's motifs.
     /// </summary>
     /// <param name="aid"></param>
     /// <returns></returns>
     protected virtual float GetCastTime(AID aid)
     {
-        var def = ActionDefinitions.Instance.Spell(aid)!;
+        var def = ActionDefinitions.Instance.Spell(aid);
+        if (def == null)
+            return 0;
+
         var hasteMod = GCDLength / 2.5f;
 
         if (SwiftcastLeft > GCD && def.Category is ActionCategory.Spell)
@@ -462,7 +499,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         }
     }
 
-    public sealed override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    public sealed override void Execute(in TValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         IsMoving = isMoving;
         NextGCD = default;
@@ -558,7 +595,7 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
         _ => false
     };
 
-    public abstract void Exec(StrategyValues strategy, Enemy? primaryTarget);
+    public abstract void Exec(in TValues strategy, Enemy? primaryTarget);
 
     protected (float Left, int Stacks) Status<SID>(SID status, float? pendingDuration = null) where SID : Enum => Player.FindStatus(status, pendingDuration == null ? null : World.FutureTime(pendingDuration.Value)) is ActorStatus s ? (StatusDuration(s.ExpireAt), s.Extra & 0xFF) : (0, 0);
     protected float StatusLeft<SID>(SID status, float? pendingDuration = null) where SID : Enum => Status(status, pendingDuration).Left;
@@ -573,31 +610,31 @@ public abstract class Basexan<AID, TraitID>(RotationModuleManager manager, Actor
 
 static class Extendxan
 {
-    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineShared(this RotationModuleDefinition def)
+    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineShared(this RotationModuleDefinition def, string buffTrackName)
     {
-        return def.DefineSharedTA().DefineSimple(SharedTrack.Buffs, "Buffs");
+        return def.DefineSharedTA().DefineSimple(SharedTrack.Buffs, "Buffs", displayName: buffTrackName, uiPriority: 498, renderer: typeof(OffensiveStrategyRenderer));
     }
 
     public static RotationModuleDefinition DefineSharedTA(this RotationModuleDefinition def)
     {
-        def.Define(SharedTrack.Targeting).As<Targeting>("Targeting")
+        def.Define(SharedTrack.Targeting).As<Targeting>("Targeting", uiPriority: 500, renderer: typeof(TargetingRenderer))
             .AddOption(xan.Targeting.Manual, "Use player's current target for all actions")
             .AddOption(xan.Targeting.Auto, "Automatically select best target (highest number of nearby targets) for AOE actions")
             .AddOption(xan.Targeting.AutoPrimary, "Automatically select best target for AOE actions - ensure player target is hit")
             .AddOption(xan.Targeting.AutoTryPri, "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
 
-        def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE")
-            .AddOption(AOEStrategy.AOE, "Use AOE actions if beneficial")
-            .AddOption(AOEStrategy.ST, "Use single-target actions")
-            .AddOption(AOEStrategy.ForceAOE, "Always use AOE actions, even on one target")
-            .AddOption(AOEStrategy.ForceST, "Forbid any action that can hit multiple targets");
+        def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 499)
+            .AddOption(AOEStrategy.AOE, "Use AOE rotation if beneficial")
+            .AddOption(AOEStrategy.ST, "Use single-target rotation")
+            .AddOption(AOEStrategy.ForceAOE, "Always use AOE rotation, even on one target")
+            .AddOption(AOEStrategy.ForceST, "Use single-target rotation; do not use ANY actions that hit multiple targets");
 
         return def;
     }
 
-    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineSimple<Index>(this RotationModuleDefinition def, Index track, string name, int minLevel = 1, float uiPriority = 0) where Index : Enum
+    public static RotationModuleDefinition.ConfigRef<OffensiveStrategy> DefineSimple<Index>(this RotationModuleDefinition def, Index track, string name, string displayName = "", int minLevel = 1, float uiPriority = 0, Type? renderer = null) where Index : Enum
     {
-        return def.Define(track).As<OffensiveStrategy>(name, uiPriority: uiPriority)
+        return def.Define(track).As<OffensiveStrategy>(name, displayName, uiPriority: uiPriority, renderer: renderer ?? typeof(OffensiveStrategyRenderer))
             .AddOption(OffensiveStrategy.Automatic, "Use when optimal", minLevel: minLevel)
             .AddOption(OffensiveStrategy.Delay, "Don't use", minLevel: minLevel)
             .AddOption(OffensiveStrategy.Force, "Use ASAP", minLevel: minLevel);
@@ -607,6 +644,12 @@ static class Extendxan
     public static Targeting Targeting(this StrategyValues strategy) => strategy.Option(SharedTrack.Targeting).As<Targeting>();
     public static OffensiveStrategy Simple<Index>(this StrategyValues strategy, Index track) where Index : Enum => strategy.Option(track).As<OffensiveStrategy>();
     public static bool BuffsOk(this StrategyValues strategy) => strategy.Option(SharedTrack.Buffs).As<OffensiveStrategy>() != OffensiveStrategy.Delay;
-    public static bool AOEOk(this StrategyValues strategy) => strategy.AOE() is AOEStrategy.AOE or AOEStrategy.ForceAOE;
+    public static bool AOEOk(this StrategyValues strategy) => strategy.AOE().AOEOk();
+    public static bool AOEOk(this AOEStrategy aoe) => aoe is AOEStrategy.AOE or AOEStrategy.ForceAOE;
     public static float DistanceToHitbox(this Actor actor, Enemy? other) => actor.DistanceToHitbox(other?.Actor);
+
+    public static bool IsEnabled(this EnabledByDefault d) => d == EnabledByDefault.Enabled;
+    public static bool IsEnabled(this DisabledByDefault d) => d == DisabledByDefault.Enabled;
+    public static bool IsEnabled(this Track<EnabledByDefault> d) => d.Value == EnabledByDefault.Enabled;
+    public static bool IsEnabled(this Track<DisabledByDefault> d) => d.Value == DisabledByDefault.Enabled;
 }

@@ -45,5 +45,5 @@ class D031SnatcherStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team (LTS, Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 789, NameID = 10717)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (LTS, Malediktus), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 789, NameID = 10717)]
 public class D031Snatcher(WorldState ws, Actor primary) : BossModule(ws, primary, new(-375, 85), new ArenaBoundsCircle(19.5f));

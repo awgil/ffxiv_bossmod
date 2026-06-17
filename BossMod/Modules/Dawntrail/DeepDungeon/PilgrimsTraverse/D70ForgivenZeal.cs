@@ -174,6 +174,6 @@ class D70ForgivenZealStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1038, NameID = 13971)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1038, NameID = 13971)]
 public class D70ForgivenZeal(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(10, MapResolution: 0.25f));
 

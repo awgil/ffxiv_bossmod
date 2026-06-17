@@ -11,7 +11,7 @@ public enum OID : uint
     InconspicuousSwitch = 0x1E8558,
 }
 
-[ZoneModuleInfo(BossModuleInfo.Maturity.Verified, 4)]
+[ZoneModuleInfo(4)]
 public class D01Sastasha(WorldState ws) : ZoneModule(ws)
 {
     public enum Switch { Unknown, Blue, Red, Green, Resolved }

@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Services;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 
@@ -7,11 +8,11 @@ namespace BossMod.Autorotation;
 public sealed class UIRotationWindow : UIWindow
 {
     private readonly RotationModuleManager _mgr;
-    private readonly ActionManagerEx _amex;
+    private readonly IAmex _amex;
     private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
     private readonly EventSubscriptions _subscriptions;
 
-    public UIRotationWindow(RotationModuleManager mgr, ActionManagerEx amex, Action openConfig) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, Action openConfig) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
         _amex = amex;
@@ -67,7 +68,7 @@ public sealed class UIRotationWindow : UIWindow
             {
                 ImGui.SameLine();
                 var plans = _mgr.Database.Plans.GetPlans(activeModule.GetType(), player.Class);
-                var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "");
+                var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "###root");
                 if (newSel != plans.SelectedIndex)
                 {
                     plans.SelectedIndex = newSel;
@@ -112,7 +113,7 @@ public sealed class UIRotationWindow : UIWindow
         {
             ImGui.SameLine();
             using (ImRaii.PushColor(ImGuiCol.Text, 0xff00ff00))
-                UIMisc.IconText(FontAwesomeIcon.BoltLightning, "(4)");
+                UIMisc.IconText(FontAwesomeIcon.BoltLightning);
             if (ImGui.IsItemHovered())
             {
                 using var tooltip = ImRaii.Tooltip();

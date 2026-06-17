@@ -288,8 +288,7 @@ public abstract class QuestBattle : ZoneModule
         );
 
         // TODO: get rid of stuff below, this is bad...
-        if (Service.Condition != null)
-            Service.Condition.ConditionChange += OnConditionChange;
+        Service.Condition?.ConditionChange += OnConditionChange;
 
         //_subscriptions = new(
         //    ObjectiveChanged.Subscribe(OnObjectiveChanged),
@@ -315,8 +314,7 @@ public abstract class QuestBattle : ZoneModule
         _subscriptions.Dispose();
 
         // TODO: get rid of stuff below, this is bad...
-        if (Service.Condition != null)
-            Service.Condition.ConditionChange -= OnConditionChange;
+        Service.Condition?.ConditionChange -= OnConditionChange;
 
         base.Dispose(disposing);
     }
@@ -668,7 +666,7 @@ public abstract class QuestBattle : ZoneModule
                 {
                     if (vec.SpecifiedInPath)
                     {
-                        UIMisc.IconText(FontAwesomeIcon.Star, "*");
+                        UIMisc.IconText(FontAwesomeIcon.Star);
                         ImGui.SameLine();
                     }
                     ImGui.TextUnformatted(Utils.Vec3String(vec.Position));
@@ -715,7 +713,7 @@ public abstract class QuestBattle : ZoneModule
 
             var module = $"namespace BossMod.QuestBattle.{expansion};\n" +
                         $"\n" +
-                        $"[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, {World.CurrentCFCID})]\n" +
+                        $"[ZoneModuleInfo( {World.CurrentCFCID})]\n" +
                         $"internal class {questname}(WorldState ws) : QuestBattle(ws)\n" +
                         "{\n" +
                         "   public override List<QuestObjective> DefineObjectives(WorldState ws) => [\n" +

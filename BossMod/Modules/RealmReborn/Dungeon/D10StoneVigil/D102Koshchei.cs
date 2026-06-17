@@ -70,5 +70,5 @@ class D102KoshcheiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1678)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 11, NameID = 1678)]
 public class D102Koshchei(WorldState ws, Actor primary) : BossModule(ws, primary, new(40, -80), new ArenaBoundsSquare(10));

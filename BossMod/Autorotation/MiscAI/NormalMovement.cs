@@ -5,13 +5,13 @@ namespace BossMod.Autorotation.MiscAI;
 
 public sealed class NormalMovement(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion, Async }
+    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion, DelayMovement }
     public enum DestinationStrategy { None, Pathfind, Explicit }
     public enum RangeStrategy { Any, MaxRange, GreedGCDExplicit, GreedLastMomentExplicit, GreedAutomatic }
     public enum CastStrategy { Leeway, Explicit, Greedy, FinishMove, DropMove, FinishInstants, DropInstants }
     public enum ForbiddenZoneCushionStrategy { None, Small, Medium, Large }
     public enum SpecialModesStrategy { Automatic, Ignore }
-    public enum AsyncStrategy { Off, On }
+    public enum DelayMovementStrategy { None, Short, Long }
 
     public const float GreedTolerance = 0.15f;
 
@@ -48,10 +48,10 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             .AddOption(ForbiddenZoneCushionStrategy.Small, "Prefer to stay 0.5y away from forbidden zones")
             .AddOption(ForbiddenZoneCushionStrategy.Medium, "Prefer to stay 1.5y away from forbidden zones")
             .AddOption(ForbiddenZoneCushionStrategy.Large, "Prefer to stay 3y away from forbidden zones");
-
-        res.Define(Track.Async).As<AsyncStrategy>("Async", "Async pathfinding")
-            .AddOption(AsyncStrategy.Off, "Disabled")
-            .AddOption(AsyncStrategy.On, "Enabled - in the future this behavior will be the default and this option will be removed");
+        res.Define(Track.DelayMovement).As<DelayMovementStrategy>("DelayMovement", "Delay Movement", 9)
+            .AddOption(DelayMovementStrategy.None, "Do not delay movement")
+            .AddOption(DelayMovementStrategy.Short, "Delay movement by 0.5s")
+            .AddOption(DelayMovementStrategy.Long, "Delay movement by 1s");
 
         return res;
     }
@@ -60,40 +60,38 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
     public const float MeleeRange = 3;
     public const float CasterRange = 25;
+    const float SpinningLookahead = 5.5f;
 
     private Task<NavigationDecision> _decisionTask = Task.FromResult(default(NavigationDecision));
     private NavigationDecision _lastDecision;
 
-    private NavigationDecision GetDecision(StrategyValues strategy, float speed, float cushionSize)
+    private DateTime? TimeToMove;
+    private NavigationDecision GetDecision(float speed, float cushionSize)
     {
-        if (strategy.Option(Track.Async).As<AsyncStrategy>() == AsyncStrategy.On)
+        if (_decisionTask.IsCompletedSuccessfully)
         {
-            if (_decisionTask.IsCompletedSuccessfully)
-            {
-                _lastDecision = _decisionTask.Result;
-                Manager.LastRasterizeMs = (float)_lastDecision.RasterizeTime.TotalMilliseconds;
-                Manager.LastPathfindMs = (float)_lastDecision.PathfindTime.TotalMilliseconds;
-            }
-
-            if (_decisionTask.IsCompleted)
-            {
-                if (_decisionTask.Exception is { } exception)
-                    Service.Log($"exception during pathfind: {exception}");
-
-                _decisionTask = NavigationDecision.BuildAsync(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
-            }
-
-            return _lastDecision;
+            _lastDecision = _decisionTask.Result;
+            Manager.LastRasterizeMs = (float)_lastDecision.RasterizeTime.TotalMilliseconds;
+            Manager.LastPathfindMs = (float)_lastDecision.PathfindTime.TotalMilliseconds;
         }
 
-        var decision = NavigationDecision.Build(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
-        Manager.LastRasterizeMs = (float)decision.RasterizeTime.TotalMilliseconds;
-        Manager.LastPathfindMs = (float)decision.PathfindTime.TotalMilliseconds;
-        return decision;
+        if (_decisionTask.IsCompleted)
+        {
+            if (_decisionTask.Exception is { } exception)
+                Service.Log($"exception during pathfind: {exception}");
+
+            _decisionTask = NavigationDecision.BuildAsync(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
+        }
+
+        return _lastDecision;
     }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        // do nothing if we're already being moved by some other module (i.e. quest battle pathfinding)
+        if (Hints.ForcedMovement != null)
+            return;
+
         var castOpt = strategy.Option(Track.Cast);
         var castStrategy = castOpt.As<CastStrategy>();
         if (castStrategy is CastStrategy.FinishInstants or CastStrategy.DropInstants)
@@ -119,21 +117,35 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
             if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Freezing && Hints.ImminentSpecialMode.activation <= World.FutureTime(0.5f))
                 Hints.WantJump = true;
+        }
 
-            if (Hints.InteractWithTarget != null)
+        if (Hints.InteractWithTarget != null)
+        {
+            var targetPos = Hints.InteractWithTarget.Position;
+            // strongly prefer moving towards interact target
+            Hints.GoalZones.Add(p =>
             {
-                var targetPos = Hints.InteractWithTarget.Position;
-                // strongly prefer moving towards interact target
-                Hints.GoalZones.Add(p =>
-                {
-                    var length = (p - targetPos).Length();
+                var length = (p - targetPos).Length();
 
-                    // 99% of eventobjects have an interact range of 3.5y, while the rest have a range of 2.09y
-                    // checking only for the shorter range here would be fine in the vast majority of cases, but it can break interact pathfinding in the case that the target object is partially covered by a forbidden zone with a radius between 2.1 and 3.5
-                    // this is specifically an issue in the metal gear thancred solo duty in endwalker
-                    return length <= 2.09f ? 101 : length <= 3.5f ? 100 : 0;
-                });
-            }
+                // 99% of eventobjects have an interact range of 3.5y, while the rest have a range of 2.09y
+                // checking only for the shorter range here would be fine in the vast majority of cases, but it can break interact pathfinding in the case that the target object is partially covered by a forbidden zone with a radius between 2.1 and 3.5
+                // this is specifically an issue in the metal gear thancred solo duty in endwalker
+                return length <= 2.09f ? 101 : length <= 3.5f ? 100 : 0;
+            });
+        }
+
+        // fallback so that we can automatically start some quest battles xddd (the RP rotation is a component on the module, which isn't active until we pull, so no goal zone)
+        if (Hints.GoalZones.Count == 0 && primaryTarget is { IsAlly: false, IsDead: false } && Player.Statuses.Any(s => RotationModuleManager.TransformationStatuses.Contains(s.ID)))
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
+
+        var isSpinning = Player.Statuses.Any(s => s.ID == 2973);
+
+        // simulate forward forced movement; this is kind of a hack, but it definitely doesn't belong in modules because it's part of the movement constraint
+        if (isSpinning)
+        {
+            // rect is offset by -1 unit player-relative. we know very well that player-centered shapes make the pathfinder freak the fuck out
+            Hints.AddForbiddenZone(ShapeContains.Rect(Player.Position, Player.Rotation, SpinningLookahead, SpinningLookahead + 2, SpinningLookahead + 2), World.FutureTime(2));
+            Hints.AddForbiddenZone(ShapeContains.Cone(Player.Position, 100, Player.Rotation + 180.Degrees(), 45.Degrees()), DateTime.MaxValue);
         }
 
         var speed = World.Client.MoveSpeed;
@@ -147,13 +159,21 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             ForbiddenZoneCushionStrategy.Large => 3.0f,
             _ => 0f
         };
+        var delay = strategy.Option(Track.DelayMovement).As<DelayMovementStrategy>() switch
+        {
+            DelayMovementStrategy.Short => 0.5f,
+            DelayMovementStrategy.Long => 1.0f,
+            _ => 0f
+        };
         NavigationDecision navi = default;
         var resetStats = true;
         switch (destinationStrategy)
         {
             case DestinationStrategy.Pathfind:
-                navi = GetDecision(strategy, speed, cushionSize);
+                navi = GetDecision(speed, cushionSize);
                 resetStats = false;
+                if (delay > 0)
+                    TimeToMove ??= World.FutureTime(delay);
                 break;
             case DestinationStrategy.Explicit:
                 navi = new() { Destination = ResolveTargetLocation(destinationOpt.Value), TimeToGoal = destinationOpt.Value.ExpireIn };
@@ -167,8 +187,22 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             Manager.LastRasterizeMs = 0;
         }
 
+        if (isSpinning)
+        {
+            if (Hints.SpinDirection == null && navi.Destination is { } wp)
+                Hints.SpinDirection = Player.DirectionTo(wp).ToAngle();
+
+            return;
+        }
+
         if (navi.Destination == null)
+        {
+            TimeToMove = null;
             return; // nothing to do
+        }
+
+        if (World.CurrentTime < TimeToMove)
+            return; // delaying movement
 
         var rangeOpt = strategy.Option(Track.Range);
         var rangeStrategy = rangeOpt.As<RangeStrategy>();

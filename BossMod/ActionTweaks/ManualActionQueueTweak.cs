@@ -53,7 +53,18 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         {
             float expireOrder = 0; // we don't actually care about values, only ordering...
             foreach (ref var e in _queue.AsSpan())
-                queue.Push(e.Action, e.Target, e.Definition.IsGCD ? ActionQueue.Priority.ManualGCD : ActionQueue.Priority.ManualOGCD, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle, true);
+            {
+                var prio = ActionQueue.Priority.ManualOGCD;
+
+                // longest total duration for a weavable ogcd is DRG stardiver at 1.5s; anything with a longer duration is
+                // - a limit break
+                // - a regular item with cast time (choco greens)
+                // - duty specific item-like animation (deep dungeons, bozja, etc)
+                if (e.Definition.IsGCD || e.Definition.TotalDuration > 1.5f)
+                    prio = ActionQueue.Priority.ManualGCD;
+
+                queue.Push(e.Action, e.Target, prio, expireOrder++, 0, e.CastTime, e.TargetPos, e.FacingAngle, true);
+            }
         }
     }
 

@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -67,6 +67,40 @@ class DashSafetyNotice : ChangelogNotice
     public override void Draw()
     {
         ImGui.TextWrapped($"The option \"Try to prevent dashing into AOEs\" is now enabled by default. You can disable it in Settings -> Action Tweaks.");
+    }
+}
+
+class AIMigrationNotice2 : ChangelogNotice
+{
+    public override Version Since => new(7, 5, 0, 22);
+
+    public override void Draw()
+    {
+        var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide";
+        ImGui.TextWrapped("Legacy AI has been replaced by VBM AI.");
+        Bullet("If you're a legacy AI user, you don't need to do anything! The existing AI interface has been retained for compatibility.");
+        Bullet($"For more information, see {link}.");
+        if (ImGui.Button("Open wiki"))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(link) { UseShellExecute = true });
+            }
+            catch (Exception e)
+            {
+                Service.Log($"Error opening link: {e}");
+            }
+        }
+    }
+}
+
+class SmartRotationNotice : ChangelogNotice
+{
+    public override Version Since => new(7, 5, 0, 22);
+
+    public override void Draw()
+    {
+        ImGui.TextWrapped("'Smart character orientation' has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks.");
     }
 }
 

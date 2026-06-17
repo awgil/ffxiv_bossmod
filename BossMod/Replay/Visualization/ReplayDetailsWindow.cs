@@ -1,5 +1,7 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 
@@ -28,6 +30,7 @@ class ReplayDetailsWindow : UIWindow
     private bool _showDebug;
     private readonly EventList _events;
     private readonly ReplayAnalysis.AnalysisManager _analysis;
+    private BossModule.DebugOptions _moduleDebug = new();
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
@@ -40,8 +43,9 @@ class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, Service.IsUIDev ? new(1100, 1500) : new(1500, 1000))
+    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, default)
     {
+        Size = (ImGui.GetMainViewport().Size - new Vector2(150, 150)) / ImGuiHelpers.GlobalScale;
         _player = new(data);
         _rotationDB = rotationDB;
         _mgr = new(_player.WorldState);
@@ -90,6 +94,7 @@ class ReplayDetailsWindow : UIWindow
         }
         if (!_azimuthOverride)
             _azimuth = _mgr.WorldState.Client.CameraAzimuth.Deg;
+        ImGui.SetNextItemWidth(150);
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
@@ -97,6 +102,9 @@ class ReplayDetailsWindow : UIWindow
         _rmm.Update(0, false, false);
         if (_mgr.ActiveModule != null)
         {
+            if (ImGui.Checkbox("Draw all actors", ref _moduleDebug.DrawAllActors))
+                _mgr.ActiveModule.DebugOpts = _moduleDebug;
+
             var drawTimerPre = DateTime.Now;
             _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);
             var drawTimerPost = DateTime.Now;
@@ -201,31 +209,35 @@ class ReplayDetailsWindow : UIWindow
     {
         ImGui.TextUnformatted($"{_curTime:O}");
         ImGui.SameLine();
-        if (ImGui.Button("<<<"))
+        if (UIMisc.IconButtonWithText(FontAwesomeIcon.StepBackward, "20s"))
             Rewind(20);
         ImGui.SameLine();
-        if (ImGui.Button("<<"))
+        if (UIMisc.IconButtonWithText(FontAwesomeIcon.StepBackward, "5s"))
             Rewind(5);
         ImGui.SameLine();
-        if (ImGui.Button("<"))
+        if (UIMisc.IconButtonWithText(FontAwesomeIcon.StepBackward, "1s"))
             Rewind(1);
         ImGui.SameLine();
-        if (ImGui.Button("|<"))
+        if (UIMisc.IconButton(FontAwesomeIcon.StepBackward))
             RewindPrevFrame();
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Back 1 frame");
         ImGui.SameLine();
-        if (ImGui.Button("||"))
+        if (UIMisc.IconButton(_playSpeed == 0 ? FontAwesomeIcon.Play : FontAwesomeIcon.Pause))
             _playSpeed = _playSpeed == 0 ? 1 : 0;
         ImGui.SameLine();
-        if (ImGui.Button(">|"))
+        if (UIMisc.IconButton(FontAwesomeIcon.StepForward))
             AdvanceNextFrame();
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Forward 1 frame");
         ImGui.SameLine();
-        if (ImGui.Button(">"))
+        if (UIMisc.IconButtonWithText(FontAwesomeIcon.Play, "0.2x"))
             _playSpeed = 0.2f;
         ImGui.SameLine();
-        if (ImGui.Button(">>"))
+        if (UIMisc.IconButtonWithText(FontAwesomeIcon.Play, "1x"))
             _playSpeed = 1;
         ImGui.SameLine();
-        if (ImGui.Button(">>>"))
+        if (UIMisc.IconButtonWithText(FontAwesomeIcon.Play, "10x"))
             _playSpeed = 10;
 
         ImGui.SameLine();
@@ -331,7 +343,7 @@ class ReplayDetailsWindow : UIWindow
         if (ImGui.IsItemHovered() && numRealStatuses + actor.PendingStatuses.Count + actor.PendingDispels.Count + numIncoming > 0)
         {
             using var tooltip = ImRaii.Tooltip();
-            if (tooltip)
+            if (tooltip.Alive)
             {
                 string fromString(string prefix, ulong instanceId) => instanceId == 0 ? "" : $", {prefix} {_player.WorldState.Actors.Find(instanceId)?.ToString() ?? instanceId.ToString("X")}";
                 for (int i = 0; i < actor.Statuses.Length; ++i)
@@ -376,11 +388,11 @@ class ReplayDetailsWindow : UIWindow
         ImGui.TableSetupColumn("Z", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
         ImGui.TableSetupColumn("Rot", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 90);
         ImGui.TableSetupColumn("HP", ImGuiTableColumnFlags.WidthFixed, 200);
-        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.None, 100);
-        ImGui.TableSetupColumn("Target", ImGuiTableColumnFlags.None, 100);
-        ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.None, 100);
-        ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.None, 100);
-        ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.None, 250);
+        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Target", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Cast", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.WidthFixed, 250);
         ImGui.TableHeadersRow();
         foreach ((int slot, var player) in _player.WorldState.Party.WithSlot(true))
         {
@@ -527,6 +539,7 @@ class ReplayDetailsWindow : UIWindow
             _rmm = new(_rotationDB, _mgr, _hints);
         }
         _player.AdvanceTo(t, _mgr.Update);
+        _mgr.ActiveModule?.DebugOpts = _moduleDebug;
         _curTime = t;
         ResetPF();
     }

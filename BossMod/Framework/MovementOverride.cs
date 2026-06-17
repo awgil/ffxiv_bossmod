@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Services;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -27,11 +28,11 @@ public unsafe struct MoveControllerSubMemberForMine
     [FieldOffset(0x94)] public byte Spinning;
 }
 
-public sealed unsafe class MovementOverride : IDisposable
+public sealed unsafe class MovementOverride : IMovementOverride
 {
-    public Vector3? DesiredDirection;
-    public Angle MisdirectionThreshold;
-    public Angle? DesiredSpinDirection;
+    public Vector3? DesiredDirection { get; set; }
+    public Angle MisdirectionThreshold { get; set; }
+    public Angle? DesiredSpinDirection { get; set; }
 
     public WDir UserMove { get; private set; } // unfiltered movement direction, as read from input
     public WDir ActualMove { get; private set; } // actual movement direction, as of last input read
@@ -115,7 +116,9 @@ public sealed unsafe class MovementOverride : IDisposable
 
     private void RMIWalkDetour(MoveControllerSubMemberForMine* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
     {
-        _forcedControlState = null;
+        if (bAdditiveUnk == 0)
+            _forcedControlState = null;
+
         _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
 
         // handling the Spinning status, during which we can only steer toward a desired safe spot

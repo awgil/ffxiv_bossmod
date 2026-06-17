@@ -96,6 +96,56 @@ public static class CurveApprox
     public static IEnumerable<WPos> Rect(WPos center, WDir dx, WDir dz) => Rect(dx, dz).Select(off => center + off);
     public static IEnumerable<WPos> Rect(WPos center, WDir dirZ, float halfWidth, float halfHeight) => Rect(center, dirZ.OrthoL() * halfWidth, dirZ * halfHeight);
 
+    [Flags]
+    public enum Corners : byte
+    {
+        None = 0,
+        NE = 1,
+        NW = 2,
+        SW = 4,
+        SE = 8,
+
+        All = NW | NE | SE | SW
+    }
+
+    public static IEnumerable<WDir> TruncatedRect(WDir dx, WDir dz, float size, Corners corners)
+    {
+        if (corners.HasFlag(Corners.NE))
+        {
+            yield return dx - dz - new WDir(size, 0);
+            yield return dx - dz + new WDir(0, size);
+        }
+        else
+            yield return dx - dz;
+
+        if (corners.HasFlag(Corners.SE))
+        {
+            yield return dx + dz - new WDir(0, size);
+            yield return dx + dz - new WDir(size, 0);
+        }
+        else
+            yield return dx + dz;
+
+        if (corners.HasFlag(Corners.SW))
+        {
+            yield return -dx + dz + new WDir(size, 0);
+            yield return -dx + dz - new WDir(0, size);
+        }
+        else
+            yield return -dx + dz;
+
+        if (corners.HasFlag(Corners.NW))
+        {
+            yield return -dx - dz + new WDir(0, size);
+            yield return -dx - dz + new WDir(size, 0);
+        }
+        else
+            yield return -dx - dz;
+    }
+
+    public static IEnumerable<WDir> TruncatedRect(WDir dirZ, float halfWidth, float halfHeight, float size, Corners corners) => TruncatedRect(dirZ.OrthoL() * halfWidth, dirZ * halfHeight, size, corners);
+    public static IEnumerable<WDir> TruncatedRect(WDir center, WDir dx, WDir dz, float size, Corners corners) => TruncatedRect(dx, dz, size, corners).Select(off => center + off);
+
     // for angles, we use standard FF convention: 0 is 'south'/down/(0, -r), and then increases clockwise
     private static WDir PolarToCartesian(float r, Angle phi) => r * phi.ToDirection();
 }

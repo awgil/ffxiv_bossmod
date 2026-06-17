@@ -3,13 +3,24 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID>(manager, player, PotionType.Intelligence)
+public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, BLU.Strategy>(manager, player, PotionType.Intelligence)
 {
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track(Actions = [AID.Nightbloom, AID.BeingMortal, AID.BothEnds, AID.Apokalypsis, AID.MatraMagic])]
+        public Track<OffensiveStrategy> Buffs;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
     public static RotationModuleDefinition Definition()
     {
         var def = new RotationModuleDefinition("xan BLU", "Blue Mage", "Standard rotation (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.BLU), 80);
 
-        def.DefineShared().AddAssociatedActions(AID.Nightbloom, AID.BeingMortal, AID.BothEnds, AID.Apokalypsis, AID.MatraMagic);
+        def.DefineShared("Burst actions").AddAssociatedActions(AID.Nightbloom, AID.BeingMortal, AID.BothEnds, AID.Apokalypsis, AID.MatraMagic);
 
         return def;
     }
@@ -49,7 +60,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         _ => World.Client.BlueMageSpells.Contains((uint)action),
     };
 
-    public override void Exec(StrategyValues strategy, Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 25);
 
@@ -57,7 +68,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 
         Mimic = CurrentMimic();
 
-        if (World.CurrentCFCID > 0 && World.Party.WithoutSlot().Count(p => p.Type == ActorType.Player) == 1)
+        if (Utils.IsPlayerUnsynced(World, mightyGuard: true))
         {
             if (CanUse(AID.BasicInstinct) && Player.FindStatus(SID.MightyGuard) == null)
                 PushGCD(AID.MightyGuard, Player);
@@ -95,7 +106,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.BreathOfMagic, Player, GCDPriority.BuffRefresh);
 
         // if channeling surpanakha, don't use anything else
-        var numSurpTargets = AdjustNumTargets(strategy, Hints.NumPriorityTargetsInAOECone(Player.Position, 16, Player.Rotation.ToDirection(), 60.Degrees()));
+        var numSurpTargets = AdjustNumTargets(strategy.AOE, Hints.NumPriorityTargetsInAOECone(Player.Position, 16, Player.Rotation.ToDirection(), 60.Degrees()));
         var surp = StatusLeft(SID.SurpanakhasFury);
         if (numSurpTargets > 0 && (MaxChargesIn(AID.Surpanakha) == 0 || surp > 0 && ReadyIn(AID.Surpanakha) <= 1))
         {
@@ -107,7 +118,9 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.TheRoseOfDestruction, primaryTarget, GCDPriority.GCDWithCooldown);
 
         // standard filler spells
-        PushGCD(AID.GoblinPunch, primaryTarget, GCDPriority.FillerST);
+        if (primaryTarget != null && GetCurrentPositional(primaryTarget.Actor) is Positional.Front or Positional.Any)
+            PushGCD(AID.GoblinPunch, primaryTarget, GCDPriority.FillerST);
+
         PushGCD(AID.SonicBoom, primaryTarget, GCDPriority.FillerST);
 
         if (World.Actors.Any(p => p.Type == ActorType.Chocobo && p.OwnerID == Player.InstanceID))

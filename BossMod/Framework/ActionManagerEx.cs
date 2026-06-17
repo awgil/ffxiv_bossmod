@@ -1,4 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game;
+﻿using BossMod.Services;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
@@ -29,7 +30,7 @@ namespace BossMod;
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
 // 7. auto cancel cast utility
 // TODO: should not be public!
-public sealed unsafe class ActionManagerEx : IDisposable
+public sealed unsafe class ActionManagerEx : IAmex
 {
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
     public ActionID CastAction => new((ActionType)_inst->CastActionType, _inst->CastActionId);
@@ -41,10 +42,10 @@ public sealed unsafe class ActionManagerEx : IDisposable
     public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
     public float AnimationLockDelayEstimate => _animLockTweak.DelayEstimate;
 
-    public Event<ClientActionRequest> ActionRequestExecuted = new();
-    public Event<ulong, ActorCastEvent> ActionEffectReceived = new();
+    public Event<ClientActionRequest> ActionRequestExecuted { get; } = new();
+    public Event<ulong, ActorCastEvent> ActionEffectReceived { get; } = new();
 
-    public ActionTweaksConfig Config = Service.Config.Get<ActionTweaksConfig>();
+    public ActionTweaksConfig Config { get; } = Service.Config.Get<ActionTweaksConfig>();
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
@@ -246,6 +247,11 @@ public sealed unsafe class ActionManagerEx : IDisposable
     {
         if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
             action = BozjaActionID.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
+
+        // the spell that corresponds with pomanders/magicite can't directly be used by players, so actionstatus will always be 579
+        if (action.Type is ActionType.Pomander or ActionType.Magicite)
+            return 0;
+
         return _inst->GetActionStatus((CSActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
     }
 
@@ -282,7 +288,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
 
     // see ActionEffectHandler.Receive - there are a few hardcoded actions here
     private bool ExpectAnimationLockUpdate(ActionEffectHandler.Header* header)
-        => header->SourceSequence != 0 && !(header->ActionType == CSActionType.Action && (NIN.AID)header->ActionId is NIN.AID.Ten1 or NIN.AID.Chi1 or NIN.AID.Jin1 or NIN.AID.Ten2 or NIN.AID.Chi2 or NIN.AID.Jin2)
+        => header->SourceSequence != 0 && !(header->ActionType == (byte)CSActionType.Action && (NIN.AID)header->ActionId is NIN.AID.Ten1 or NIN.AID.Chi1 or NIN.AID.Jin1 or NIN.AID.Ten2 or NIN.AID.Chi2 or NIN.AID.Jin2)
         || header->ForceAnimationLock;
 
     // perform some action transformations to simplify implementation of queueing; UseActionLocation expects some normalization to be already done
@@ -306,7 +312,7 @@ public sealed unsafe class ActionManagerEx : IDisposable
                     return id != 0 ? new(ActionType.Spell, id) : action;
                 }
                 // special case for lunar sprint, copied from UseGeneralAction
-                else if (action == ActionDefinitions.IDGeneralSprint && GameMain.Instance()->CurrentTerritoryIntendedUseId == 60)
+                else if (action == ActionDefinitions.IDGeneralSprint && GameMain.Instance()->CurrentTerritoryIntendedUseId == FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.CosmicExploration)
                 {
                     return new(ActionType.Spell, 43357);
                 }
@@ -360,26 +366,13 @@ public sealed unsafe class ActionManagerEx : IDisposable
             // fake action types
             case ActionType.BozjaHolsterSlot0:
             case ActionType.BozjaHolsterSlot1:
-                var state = PublicContentBozja.GetState(); // note: if it's non-null, the director instance can't be null too
-                var holsterIndex = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
-                return holsterIndex >= 0 && PublicContentBozja.GetInstance()->UseFromHolster((uint)holsterIndex, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0);
+                return UseBozjaHolsterNative(action);
             case ActionType.Pomander:
-                var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-                var slot = _ws.DeepDungeon.GetPomanderSlot((PomanderID)action.ID);
-                if (dd != null && slot >= 0)
-                {
-                    dd->UsePomander((uint)slot);
-                    return true;
-                }
-                return false;
+                UsePomanderNative(action);
+                return true;
             case ActionType.Magicite:
-                dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
-                if (dd != null)
-                {
-                    dd->UseStone(action.ID);
-                    return true;
-                }
-                return false;
+                UseStoneNative(action);
+                return true;
 
             default:
                 // fall back to UAL hook for everything not covered explicitly
@@ -407,7 +400,12 @@ public sealed unsafe class ActionManagerEx : IDisposable
         var currentTargetId = isCasting ? (ulong)castInfo->TargetId : (AutoQueue.Target?.InstanceID ?? 0xE0000000);
         var currentTargetSelf = currentTargetId == player->EntityId;
         var currentTargetObj = currentTargetSelf ? &player->GameObject : currentTargetId is not 0 and not 0xE0000000 ? GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(currentTargetId) : null;
-        WPos? currentTargetPos = currentTargetObj != null ? new WPos(currentTargetObj->Position.X, currentTargetObj->Position.Z) : null;
+        WPos? currentTargetPos = null;
+        if (currentTargetObj != null)
+        {
+            var realPos = *currentTargetObj->GetPosition();
+            currentTargetPos = new(realPos.X, realPos.Z);
+        }
         var currentTargetLoc = isCasting ? new WPos(castInfo->TargetLocation.X, castInfo->TargetLocation.Z) : new(AutoQueue.TargetPos.XZ()); // note: this only matters for area-targeted spells, for which targetlocation in castinfo is set correctly
         var idealOrientation = currentAction ? _smartRotationTweak.GetSpellOrientation(GetSpellIdForAction(currentAction), new(player->Position.X, player->Position.Z), currentTargetSelf, currentTargetPos, currentTargetLoc) : null;
         // avoiding a gaze has a priority over restore
@@ -481,9 +479,12 @@ public sealed unsafe class ActionManagerEx : IDisposable
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCast))
             UIState.Instance()->Hotbar.CancelCast();
 
-        var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
-        if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
-            _inst->UseAction(CSActionType.GeneralAction, 1);
+        if (!GameMain.IsInPvPArea())
+        {
+            var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
+            if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
+                _inst->UseAction(CSActionType.GeneralAction, 1);
+        }
 
         if (_hints.WantDismount && !_movement.FollowPathActive() && _dismountTweak.AllowDismount())
             _inst->UseAction(CSActionType.Action, 4);
@@ -566,29 +567,87 @@ public sealed unsafe class ActionManagerEx : IDisposable
         return ret;
     }
 
-    private bool UseBozjaFromHolsterDirectorDetour(PublicContentBozja* self, uint holsterIndex, uint slot)
+    private Angle GetPlayerRotation()
     {
         var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-        var prevRot = player != null ? player->Rotation.Radians() : default;
-        var res = _useBozjaFromHolsterDirectorHook.Original(self, holsterIndex, slot);
-        var currRot = player != null ? player->Rotation.Radians() : default;
-        if (res)
-        {
-            var entry = (BozjaHolsterID)self->State.HolsterActions[(int)holsterIndex];
-            HandleActionRequest(ActionID.MakeBozjaHolster(entry, (int)slot), 0, 0xE0000000, default, prevRot, currRot);
-        }
-        return res;
+        return player != null ? player->Rotation.Radians() : default;
     }
 
-    // TODO add to manual queue (and also add holsters)
+    private bool UseBozjaFromHolsterDirectorDetour(PublicContentBozja* self, uint holsterIndex, uint slot)
+    {
+        var state = PublicContentBozja.GetState();
+        if (state == null)
+            return false;
+        var action = new ActionID(slot == 0 ? ActionType.BozjaHolsterSlot0 : ActionType.BozjaHolsterSlot1, state->HolsterActions[(int)holsterIndex]);
+
+        if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
+            return true;
+
+        return UseBozjaHolsterNative(action);
+    }
+
+    private bool UseBozjaHolsterNative(ActionID action)
+    {
+        var state = PublicContentBozja.GetState();
+        var ix = state != null ? state->HolsterActions.IndexOf((byte)action.ID) : -1;
+        var prevRot = GetPlayerRotation();
+        if (ix >= 0 && _useBozjaFromHolsterDirectorHook.Original(PublicContentBozja.GetInstance(), (uint)ix, action.Type == ActionType.BozjaHolsterSlot1 ? 1u : 0))
+        {
+            _inst->AnimationLock = 2.1f;
+            HandleActionRequest(action, 0, 0xE0000000, default, prevRot, GetPlayerRotation());
+            return true;
+        }
+
+        return false;
+    }
+
     private void UsePomanderDetour(InstanceContentDeepDungeon* self, uint slot)
     {
-        _usePomanderHook.Original(self, slot);
+        var action = _ws.DeepDungeon.GetPomanderActionID((int)slot);
+        if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
+            return;
+
+        UsePomanderNative(action);
+    }
+
+    private void UsePomanderNative(ActionID action)
+    {
+        if (_inst->AnimationLock > 0)
+            return;
+
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        var slot = _ws.DeepDungeon.GetPomanderSlot((PomanderID)action.ID);
+        if (dd != null && slot >= 0)
+        {
+            var prevRot = GetPlayerRotation();
+            _usePomanderHook.Original(dd, (uint)slot);
+            _inst->AnimationLock = 2.1f;
+            HandleActionRequest(action, 0, 0xE0000000, default, prevRot, GetPlayerRotation());
+        }
     }
 
     private void UseStoneDetour(InstanceContentDeepDungeon* self, uint slot)
     {
-        _useStoneHook.Original(self, slot);
+        var action = new ActionID(ActionType.Magicite, slot + 1);
+        if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
+            return;
+
+        UseStoneNative(action);
+    }
+
+    private void UseStoneNative(ActionID action)
+    {
+        if (_inst->AnimationLock > 0)
+            return;
+
+        var dd = EventFramework.Instance()->GetInstanceContentDeepDungeon();
+        if (dd != null)
+        {
+            var prevRot = GetPlayerRotation();
+            _useStoneHook.Original(dd, action.ID - 1);
+            _inst->AnimationLock = 2.1f;
+            HandleActionRequest(action, 0, 0xE0000000, default, prevRot, GetPlayerRotation());
+        }
     }
 
     private void ProcessPacketActionEffectDetour(uint casterID, Character* casterObj, Vector3* targetPos, ActionEffectHandler.Header* header, ActionEffectHandler.TargetEffects* effects, GameObjectId* targets)

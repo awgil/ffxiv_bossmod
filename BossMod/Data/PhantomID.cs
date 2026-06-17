@@ -58,7 +58,28 @@ public enum PhantomID : uint
     TrapDetection = 41648,
     PilferWeapon = 41649,
     OccultResuscitation = 41650,
-    OccultTreasuresight = 41651
+    OccultTreasuresight = 41651,
+
+    SunderingSpellblade = 46591,
+    MagicShell = 46590,
+    HolySpellblade = 46592,
+    BlazingSpellblade = 46593,
+
+    Finisher = 46594,
+    Defend = 46595,
+    LongReach = 46596,
+    BladeBlitz = 46597,
+
+    Dance = 46598,
+    PhantomSwordDance = 46599,
+    TemptingTango = 46600,
+    Jitterbug = 46601,
+    MysteryWaltz = 46602,
+    Quickstep = 46603,
+    SteadfastStance = 46604,
+    Mesmerize = 46605,
+
+    InquiringMind = 46606,
 }
 
 public enum PhantomSID : uint
@@ -124,4 +145,22 @@ public enum PhantomSID : uint
     Vigilance = 4277, // applied by Vigilance to self, grants Foreseen Offense when entering combat
     ForeseenOffense = 4278, // +60% crit
     WeaponPilfered = 4279, // applied by Pilfer Weapon to target, -10% attack power
+
+    MagicShell = 4788, // applied by Magic Shell to self/ally, 20% shield
+    HonedSpellblade = 4789, // applied when Magic Shell breaks, buffs next spellblade
+    BlazingSpellblade = 4790, // applied by Blazing Spellblade to self, +5% damage
+    BlazingBane = 4791, // applied by Blazing Spellblade to target, -5% damage
+
+    Defend = 4792, // applied by Defend to self, grants Fervor stack when hit
+    FinishingFervor = 4793, // applied by Defend to self, buffs Finisher
+
+    PoisedToSwordDance = 4794, // applied by Dance
+    TemptedToTango = 4795, // applied by Dance
+    Jitterbugged = 4796, // applied by Dance
+    WillingToWaltz = 4797, // applied by Dance
+    Quickstep = 4798, // applied by Quickstep, evasion buff
+    QuickerStep = 4799, // applied by crystal, damage buff
+    SteadfastStance = 4800, // applied by Steadfast Stance to self/ally, 10% shield
+    Enamored = 4801, // applied by Mesmerize to target, -10% damage, -5% defense
+    Mesmerized = 4802, // applied by Mesmerize to target, -40% damage
 }

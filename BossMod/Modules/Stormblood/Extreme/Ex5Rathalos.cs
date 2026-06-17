@@ -1,10 +1,9 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-
-namespace BossMod.Stormblood.Extreme.Ex5Rathalos;
+﻿namespace BossMod.Stormblood.Extreme.Ex5Rathalos;
 
 public enum OID : uint
 {
     Boss = 0x212F, // R5.460, x1
+    Helper = 0x18D6, // R1.300, x1, mixed
     WyvernsTail = 0x23D9, // R3.900, x1, Part type
     SteppeSheep = 0x2131, // R0.700, x0 (spawn during fight)
     SteppeYamaa = 0x2132, // R1.920, x0 (spawn during fight)
@@ -16,40 +15,41 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _Weaponskill_Roar = 11459, // Boss->self, no cast, range 50+R circle
-    _Weaponskill_Mangle = 10323, // Boss->self, 2.5s cast, range 10 ?-degree cone
-    _Weaponskill_Mangle1 = 10332, // 18D6->self, no cast, range 10 ?-degree cone
-    _Weaponskill_TailSmash = 10324, // 18D6->self, no cast, range 11 ?-degree cone
-    _Weaponskill_Rush = 10326, // Boss->location, 2.0s cast, width 9 rect charge
-    _Weaponskill_Rush1 = 10813, // 18D6->location, no cast, width 9 rect charge
-    _Weaponskill_TailSwing = 10325, // Boss->self, no cast, range 11 ?-degree cone
-    _Weaponskill_TailSwing1 = 10812, // 18D6->self, no cast, range 11 ?-degree cone
-    _AutoAttack_Attack = 872, // 2133/2132/2131/2130->player/Boss, no cast, single-target
-    _AutoAttack_Attack1 = 870, // 2134->player/Boss, no cast, single-target
-    _Weaponskill_Roar1 = 10333, // Boss->self, no cast, range 50+R circle
-    _Weaponskill_Rush2 = 10344, // 2130->Boss, 2.0s cast, width 8 rect charge
-    _Ability_Lanolin = 10328, // 2133->self, 2.5s cast, single-target
-    _Weaponskill_KingOfTheSkies = 10334, // Boss->location, no cast, range 50 circle
-    _Weaponskill_KingOfTheSkies1 = 11545, // 18D6->location, no cast, range 50 circle
-    _Weaponskill_SweepingFlames = 10338, // Boss->self, no cast, range 11 ?-degree cone
-    _Weaponskill_SweepingFlames1 = 11446, // 18D6->self, no cast, range 11 ?-degree cone
-    _Weaponskill_Mangle2 = 10339, // Boss->self, 0.7s cast, range 9 ?-degree cone
-    _Weaponskill_Mangle3 = 11447, // 18D6->self, no cast, range 9 ?-degree cone
-    _Weaponskill_Fireball = 10335, // Boss->player, 5.0s cast, range 5 circle
-    _Weaponskill_Fireball1 = 10336, // 18D6->player, no cast, range 5 circle
-    _Weaponskill_Fireball2 = 11530, // Boss->player, 3.0s cast, range 5 circle
-    _Weaponskill_Fireball3 = 11531, // 18D6->player, no cast, range 5 circle
-    _Weaponskill_Rush3 = 10337, // Boss->location, 1.0s cast, width 10 rect charge
-    _Weaponskill_Rush4 = 11445, // 18D6->location, no cast, width 9 rect charge
-    _Weaponskill_VeniVidiVici = 21847, // Boss->location, no cast, width 10 rect charge
-    _Weaponskill_Lullaby = 10340, // 2131->self, 3.0s cast, range 3+R circle
-    _Weaponskill_HeadButt = 10341, // 2133->location, 2.5s cast, range 3+R width 3 rect
+    Roar1 = 11459, // Boss->self, no cast, range 50+R circle
+    MangleVisual = 10323, // Boss->self, 2.5s cast, range 10 120-degree cone
+    Mangle = 10332, // Helper->self, no cast, range 10 120-degree cone
+    TailSmash = 10324, // Helper->self, no cast, range 11 ?-degree cone, this gets used immediately after Mangle but i guess it only hits behind him? i don't feel like testing it fuck that
+    RushVisual1 = 10326, // Boss->location, 2.0s cast, width 9 rect charge
+    Rush1 = 10813, // Helper->location, no cast, width 9 rect charge
+    TailSwingVisual = 10325, // Boss->self, no cast, range 11 180-degree cone
+    TailSwing = 10812, // Helper->self, no cast, range 11 180-degree cone
+    Roar2 = 10333, // Boss->self, no cast, range 50+R circle, applies stun
+    KingOfTheSkiesVisual = 10334, // Boss->location, no cast, range 50 circle
+    KingOfTheSkies = 11545, // Helper->location, no cast, range 50 circle
+    SweepingFlamesVisual = 10338, // Boss->self, no cast, range 11 120-degree cone
+    SweepingFlames = 11446, // Helper->self, no cast, range 11 120-degree cone
+    Mangle2Visual = 10339, // Boss->self, 0.7s cast, range 9 90-degree cone
+    Mangle2 = 11447, // Helper->self, no cast, range 9 90-degree cone
+    FireballBossFirst = 10335, // Boss->player, 5.0s cast, range 5 circle
+    FireballFirst = 10336, // Helper->player, no cast, range 5 circle
+    FireballBossRest = 11530, // Boss->player, 3.0s cast, range 5 circle
+    FireballRest = 11531, // Helper->player, no cast, range 5 circle
+    RushVisual2 = 10337, // Boss->location, 1.0s cast, width 10 rect charge
+    Rush2 = 11445, // Helper->location, no cast, width 9 rect charge
+    VeniVidiVici = 21847, // Boss->location, no cast, width 10 rect charge
+
+    GarulaRush = 10344, // Garula->Boss, 2.0s cast, width 8 rect charge, stuns boss
+    CoeurlAuto = 870, // SteppeCoeurl->player/Boss, no cast, single-target
+    MobAutos = 872, // SteppeYamaa1/SteppeYamaa/SteppeSheep/Garula->player/Boss, no cast, single-target
+    Lanolin = 10328, // SteppeYamaa1->self, 2.5s cast, single-target
+    Lullaby = 10340, // SteppeSheep->self, 3.0s cast, range 3+R circle
+    HeadButt = 10341, // SteppeYamaa1->location, 2.5s cast, range 3+R width 3 rect
 }
 
-class Mangle(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Mangle, new AOEShapeCone(10f, 60.Degrees()));
-class Rush2(BossModule module) : Components.ChargeAOEs(module, AID._Weaponskill_Rush2, 4f);
-class Lullaby(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Lullaby, 3.7f);
-class HeadButt(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HeadButt, new AOEShapeRect(4.92f, 1.5f));
+class Mangle(BossModule module) : Components.StandardAOEs(module, AID.MangleVisual, new AOEShapeCone(10f, 60.Degrees()));
+class Rush2(BossModule module) : Components.ChargeAOEs(module, AID.GarulaRush, 4f);
+class Lullaby(BossModule module) : Components.StandardAOEs(module, AID.Lullaby, 3.7f);
+class HeadButt(BossModule module) : Components.StandardAOEs(module, AID.HeadButt, new AOEShapeRect(4.92f, 1.5f));
 
 class Rush(BossModule module) : Components.GenericAOEs(module)
 {
@@ -59,9 +59,9 @@ class Rush(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Rush or AID._Weaponskill_Rush3)
+        if ((AID)spell.Action.ID is AID.RushVisual1 or AID.RushVisual2)
         {
-            var delay = (AID)spell.Action.ID is AID._Weaponskill_Rush ? 0.6f : 1.3f;
+            var delay = (AID)spell.Action.ID is AID.RushVisual1 ? 0.6f : 1.3f;
 
             var chargeDir = spell.LocXZ - caster.Position;
             _nextAOE = new(new AOEShapeRect(chargeDir.Length() + 6, 4.5f), caster.Position, chargeDir.ToAngle(), Module.CastFinishAt(spell, delay));
@@ -70,14 +70,14 @@ class Rush(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Rush1 or AID._Weaponskill_Rush4)
+        if ((AID)spell.Action.ID is AID.Rush1 or AID.Rush2)
         {
             _nextAOE = null;
         }
     }
 }
 
-class TailSwing(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_TailSwing)
+class TailSwing(BossModule module) : Components.GenericAOEs(module, AID.TailSwingVisual)
 {
     private AOEInstance? _nextAOE;
 
@@ -90,12 +90,12 @@ class TailSwing(BossModule module) : Components.GenericAOEs(module, AID._Weapons
             _nextAOE = new(new AOEShapeCone(11, 90.Degrees()), caster.Position, spell.Rotation - 90.Degrees(), WorldState.FutureTime(1.9f));
         }
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_TailSwing1)
+        if ((AID)spell.Action.ID == AID.TailSwing)
             _nextAOE = null;
     }
 }
 
-class SweepingFlames(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_SweepingFlames)
+class SweepingFlames(BossModule module) : Components.GenericAOEs(module, AID.SweepingFlamesVisual)
 {
     private AOEInstance? _nextAOE;
 
@@ -108,12 +108,12 @@ class SweepingFlames(BossModule module) : Components.GenericAOEs(module, AID._We
             _nextAOE = new(new AOEShapeCone(11, 60.Degrees()), caster.Position, spell.Rotation, WorldState.FutureTime(1.5f));
         }
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_SweepingFlames1)
+        if ((AID)spell.Action.ID == AID.SweepingFlames)
             _nextAOE = null;
     }
 }
 
-class Mangle2(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Mangle2)
+class Mangle2(BossModule module) : Components.GenericAOEs(module, AID.Mangle2Visual)
 {
     private AOEInstance? _nextAOE;
 
@@ -129,34 +129,34 @@ class Mangle2(BossModule module) : Components.GenericAOEs(module, AID._Weaponski
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Mangle3)
+        if ((AID)spell.Action.ID == AID.Mangle2)
             _nextAOE = null;
     }
 }
 
-class FireballStack1(BossModule module) : Components.StackWithCastTargets(module, AID._Weaponskill_Fireball, 5);
-class FireballStack2(BossModule module) : Components.StackWithCastTargets(module, AID._Weaponskill_Fireball2, 5);
-class FirePuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID._Weaponskill_Fireball1, m => m.Enemies(OID.Fireball).Where(e => e.EventState != 7), 0.5f)
+class FireballStack1(BossModule module) : Components.StackWithCastTargets(module, AID.FireballBossFirst, 5);
+class FireballStack2(BossModule module) : Components.StackWithCastTargets(module, AID.FireballBossRest, 5);
+class FirePuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.FireballFirst, m => m.Enemies(OID.Fireball).Where(e => e.EventState != 7), 0.5f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
 
-        if ((AID)spell.Action.ID is AID._Weaponskill_Fireball1 or AID._Weaponskill_Fireball3)
+        if ((AID)spell.Action.ID is AID.FireballFirst or AID.FireballRest)
         {
             _predictedByEvent.Add((WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ, WorldState.FutureTime(CastEventToSpawn)));
         }
     }
 }
 
-class KingOfTheSkies(BossModule module) : Components.GenericLineOfSightAOE(module, AID._Weaponskill_KingOfTheSkies, 100, false)
+class KingOfTheSkies(BossModule module) : Components.GenericLineOfSightAOE(module, AID.KingOfTheSkiesVisual, 100, false)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
             Modify(new(100, 82), Module.Enemies(OID.Garula).Select(e => (e.Position, e.HitboxRadius)), WorldState.FutureTime(7));
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_KingOfTheSkies1)
+        if ((AID)spell.Action.ID == AID.KingOfTheSkies)
             Modify(null, []);
     }
 }
@@ -192,9 +192,9 @@ class TargetHints(BossModule module) : BossComponent(module)
     }
 }
 
-class RathalosStates : StateMachineBuilder
+class Ex5RathalosStates : StateMachineBuilder
 {
-    public RathalosStates(BossModule module) : base(module)
+    public Ex5RathalosStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Mangle>()
@@ -214,6 +214,6 @@ class RathalosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 475, NameID = 7221)]
-public class Rathalos(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(24.5f));
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 475, NameID = 7221)]
+public class Ex5Rathalos(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(24.5f));
 

@@ -50,6 +50,8 @@ public enum SID : uint
     VortexBarrier = 3012, // Boss->Boss, extra=0x0
 }
 
+class VortexBarrier(BossModule module) : Components.InvincibleStatus(module, (uint)SID.VortexBarrier);
+
 class EarthenFury(BossModule module) : Components.RaidwideCast(module, AID.EarthenFuryAOE);
 class Geocrush(BossModule module) : Components.StandardAOEs(module, AID.Geocrush, new AOEShapeCircle(25)); // TODO: verify falloff...
 class Landslide1(BossModule module) : Components.StandardAOEs(module, AID.Landslide1, new AOEShapeRect(40, 3));
@@ -85,11 +87,12 @@ class T04PortaDecumana1States : StateMachineBuilder
             .ActivateOnEnter<MistralShriek>()
             .ActivateOnEnter<Hellfire>()
             .ActivateOnEnter<RadiantPlume>()
-            .ActivateOnEnter<VulcanBurst>();
+            .ActivateOnEnter<VulcanBurst>()
+            .ActivateOnEnter<VortexBarrier>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 1)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 830, NameID = 2137, SortOrder = 1)]
 public class T04PortaDecumana1(WorldState ws, Actor primary) : BossModule(ws, primary, new(-772, -600), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

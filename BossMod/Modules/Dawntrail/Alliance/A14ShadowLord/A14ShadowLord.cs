@@ -5,7 +5,7 @@ class TeraSlash(BossModule module) : Components.CastCounter(module, AID.TeraSlas
 class UnbridledRage(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(100, 4), (uint)IconID.UnbridledRage, AID.UnbridledRageAOE, 5.9f);
 class DarkNova(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkNova, 6);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13653)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1015, NameID = 13653)]
 public class A14ShadowLord(WorldState ws, Actor primary) : BossModule(ws, primary, new(150, 800), NormalBounds)
 {
     public static readonly ArenaBoundsCircle NormalBounds = new(30); // TODO: verify radius

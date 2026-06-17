@@ -108,10 +108,10 @@ public enum SID : uint
     Swiftcast = ClassShared.SID.Swiftcast, // applied by Swiftcast to self
 }
 
-public sealed class Definitions : IDisposable
+public sealed class Definitions : Defs
 {
     private readonly PCTConfig _config = Service.Config.Get<PCTConfig>();
-    public Definitions(ActionDefinitions d)
+    public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.ChromaticFantasy);
         d.RegisterSpell(AID.FireInRed);
@@ -162,8 +162,6 @@ public sealed class Definitions : IDisposable
         Customize(d);
     }
 
-    public void Dispose() { }
-
     private void Customize(ActionDefinitions d)
     {
         d.RegisterChargeIncreaseTrait(AID.StrikingMuse, TraitID.EnhancedPictomancyII);
@@ -176,4 +174,3 @@ public sealed class Definitions : IDisposable
         d.Spell(AID.Smudge)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
     }
 }
-

@@ -1,8 +1,6 @@
-﻿using Lumina.Excel.Sheets;
+﻿namespace BossMod.QuestBattle.Heavensward.MSQ;
 
-namespace BossMod.QuestBattle.Heavensward.MSQ;
-
-[ZoneModuleInfo(BossModuleInfo.Maturity.Contributed, 395)]
+[ZoneModuleInfo(395)]
 public sealed class ASeriesOfUnfortunateEvents(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [

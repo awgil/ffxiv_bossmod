@@ -236,7 +236,7 @@ class TtokrroneStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1871, NameID = 12733)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1871, NameID = 12733)]
 public class Ttokrrone(WorldState ws, Actor primary) : BossModule(ws, primary, new(53, -820), new ArenaBoundsCircle(29.5f))
 {
     // if boss is pulled when player is really far away and helpers aren't loaded, some components might never see resolve casts and get stuck forever

@@ -114,5 +114,5 @@ class SorobanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed, GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68552, NameID = 7240)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68552, NameID = 7240)]
 public class Soroban(WorldState ws, Actor primary) : BossModule(ws, primary, new(62, -372), new ArenaBoundsSquare(19));

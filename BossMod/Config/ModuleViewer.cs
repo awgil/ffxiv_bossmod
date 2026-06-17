@@ -351,21 +351,16 @@ public sealed class ModuleViewer : IDisposable
                             }
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
-                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, "cfg", $"###{mod.Info.ModuleType.FullName}_cfg"))
+                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, $"{mod.Info.ModuleType.FullName}_cfg"))
                                     _ = new BossModuleConfigWindow(mod.Info, ws);
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.PlanLevel == 0))
-                                if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, "plan", $"###{mod.Info.ModuleType.FullName}_plans"))
+                                if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, $"{mod.Info.ModuleType.FullName}_plans"))
                                     ImGui.OpenPopup($"{mod.Info.ModuleType.FullName}_popup");
                             ImGui.SameLine();
                             UIMisc.HelpMarker(() => ModuleHelpText(mod));
                             ImGui.SameLine();
-                            var textColor = mod.Info.Maturity switch
-                            {
-                                BossModuleInfo.Maturity.WIP => 0xff0000ff,
-                                BossModuleInfo.Maturity.Verified => 0xff00ff00,
-                                _ => 0xffffffff
-                            };
+                            var textColor = mod.Info.Incomplete ? 0xff0000ff : 0xff00ff00;
                             using (ImRaii.PushColor(ImGuiCol.Text, textColor))
                                 ImGui.TextUnformatted($"{mod.Name} [{mod.Info.ModuleType.Name}]");
 

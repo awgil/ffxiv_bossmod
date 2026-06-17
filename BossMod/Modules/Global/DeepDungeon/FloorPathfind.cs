@@ -59,3 +59,69 @@ internal class FloorPathfind(ReadOnlySpan<RoomFlags> Map)
             yield return roomIndex + 1;
     }
 }
+
+abstract partial class AutoClear : ZoneModule
+{
+    private void HandleFloorPathfind(Actor player, AIHints hints)
+    {
+        var slot = Array.FindIndex(Palace.Party, p => p.EntityId == player.InstanceID);
+        if (slot < 0)
+            return;
+
+        var destRoom = _floorRects[Palace.Progress.Tileset][DesiredRoom];
+        if (destRoom.Contains(player.Position) || DesiredRoom == 0)
+        {
+            DesiredRoom = 0;
+            return;
+        }
+
+        // player is in a hallway/bridge near destination room, move closer
+        if (PlayerRoom == DesiredRoom)
+        {
+            hints.GoalZones.Add(p => p.InRect(destRoom.Pos, default(Angle), destRoom.Scale.Z, destRoom.Scale.Z, destRoom.Scale.X) ? 10 : 0);
+            return;
+        }
+
+        var path = new FloorPathfind(Palace.Rooms).Pathfind(PlayerRoom, DesiredRoom);
+        if (path.Count == 0)
+        {
+            Service.Log($"no path from {PlayerRoom} to {DesiredRoom}, doing nothing");
+            return;
+        }
+
+        var destBox = _floorRects[Palace.Progress.Tileset][path[0]];
+        var srcBox = PlayerRoomBox;
+
+        var srcToDest = destBox.Pos - srcBox.Pos;
+        var srcToDestLen = srcToDest.Length();
+        var playerPos = player.Position;
+        var srcToPlayer = playerPos - srcBox.Pos;
+        var playerProgress = srcToDest.Dot(srcToPlayer) / srcToDestLen;
+        var srcToDestCardinal = ToCardinal(srcToDest).Sign();
+
+        var rectWidth = 10f;
+
+        if (Service.IsDev)
+        {
+            var a = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
+            var b = srcBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();
+            var c = destBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoR() * rectWidth).ToVec3();
+            var d = destBox.Position with { Y = player.PosRot.Y } + (srcToDest.Normalized().OrthoL() * rectWidth).ToVec3();
+            Camera.Instance?.DrawWorldLine(a, b, 0xFFFF00FF);
+            Camera.Instance?.DrawWorldLine(b, c, 0xFFFF00FF);
+            Camera.Instance?.DrawWorldLine(c, d, 0xFFFF00FF);
+            Camera.Instance?.DrawWorldLine(d, a, 0xFFFF00FF);
+        }
+
+        hints.GoalZones.Add(p =>
+        {
+            // align the near side of the goal rect to the grid since we get annoying jittering otherwise
+            if (p.InRect(playerPos, srcToDestCardinal, 10, 100, 100))
+                return 0;
+
+            if (p.InRect(srcBox.Pos, srcToDest.ToAngle(), srcToDestLen, srcToDestLen, rectWidth))
+                return 1;
+            return 0;
+        });
+    }
+}

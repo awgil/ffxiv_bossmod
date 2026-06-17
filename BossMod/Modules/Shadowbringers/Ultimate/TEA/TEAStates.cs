@@ -326,7 +326,8 @@ class TEAStates : StateMachineBuilder
         ActorCastEnd(id + 0x20, _module.BruteJustice, 1.8f); // judgment debuffs appear ~0.8s after cast end
 
         ActorCast(id + 0x100, _module.CruiseChaser, AID.LimitCutP2, 3.2f, 2, false, "CC invuln") // note: BJ starts flarethrower cast together with CC; invuln is applied ~0.6s after cast end
-            .ActivateOnEnter<P2Flarethrower>();
+            .ActivateOnEnter<P2Flarethrower>()
+            .ActivateOnEnter<P2CCInvincible>();
         ActorCastEnd(id + 0x102, _module.BruteJustice, 1.9f)
             .ActivateOnEnter<P2PlasmaShield>();
         ComponentCondition<P2Flarethrower>(id + 0x103, 0.3f, comp => comp.NumCasts > 0, "Baited flamethrower")
@@ -339,6 +340,7 @@ class TEAStates : StateMachineBuilder
 
         ComponentCondition<P2CompressedWaterLightning>(id + 0x200, 8.7f, comp => !comp.ResolveImminent, "Water/lightning 3")
             .DeactivateOnExit<P2CompressedWaterLightning>()
+            .DeactivateOnExit<P2CCInvincible>()
             .ExecOnExit<P2Nisi>(comp => comp.ShowPassHint = 4); // fourth nisi pass should happen after last stacks, while resolving propeller wind
 
         ActorCastStart(id + 0x300, _module.CruiseChaser, AID.PropellerWind, 12.5f);
@@ -444,18 +446,22 @@ class TEAStates : StateMachineBuilder
             .DeactivateOnExit<P3Inception2>();
 
         // debuffs (restraining x2, aggravated x2, shared) appear right before cast start
-        ActorCast(id + 0x200, _module.AlexPrime, AID.Inception, 2.2f, 5, true);
+        ActorCast(id + 0x200, _module.AlexPrime, AID.Inception, 2.2f, 5, true)
+            .ActivateOnEnter<P3Inception3EarlyHints>()
+            .ActivateOnEnter<P3Inception4Hints>(); // component self-activates when all debuffs are applied
         Condition(id + 0x208, 4.0f, () => _module.TrueHeart()?.IsDead ?? true, "Heart disappears");
         ComponentCondition<P3Inception3Sacrament>(id + 0x210, 4.3f, comp => comp.NumCasts > 0, "Shared sentence")
             .ActivateOnEnter<P3Inception3Sacrament>()
             .ActivateOnEnter<P3Inception3Debuffs>()
             .DeactivateOnExit<P3Inception3Debuffs>() // note: debuffs resolve ~0.3s before sacrament
-            .DeactivateOnExit<P3Inception3Sacrament>();
+            .DeactivateOnExit<P3Inception3Sacrament>()
+            .DeactivateOnExit<P3Inception3EarlyHints>();
 
         ActorCastStart(id + 0x300, _module.BruteJustice, AID.SuperJump, 5.1f)
             .ActivateOnEnter<P2SuperJump>()
             .ActivateOnEnter<P3Inception4Cleaves>();
-        ComponentCondition<P3Inception4Cleaves>(id + 0x301, 0.9f, comp => comp.NumCasts >= 1);
+        ComponentCondition<P3Inception4Cleaves>(id + 0x301, 0.9f, comp => comp.NumCasts >= 1)
+            .DeactivateOnExit<P3Inception4Hints>();
         ComponentCondition<P3Inception4Cleaves>(id + 0x302, 1.1f, comp => comp.NumCasts >= 2);
         ComponentCondition<P3Inception4Cleaves>(id + 0x303, 1.1f, comp => comp.NumCasts >= 3)
             .DeactivateOnExit<P3Inception4Cleaves>();

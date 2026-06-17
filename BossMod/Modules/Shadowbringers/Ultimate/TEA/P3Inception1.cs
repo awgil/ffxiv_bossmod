@@ -30,6 +30,16 @@ class P3Inception1(BossModule module) : Components.CastCounter(module, AID.Judgm
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (hints.FindEnemy(((TEA)Module).TrueHeart()) is { } heart)
+        {
+            heart.ForbidDOTs = true;
+            // hitting heart advances combo
+            heart.Priority = -1;
+        }
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (!AllSpheresSpawned)
