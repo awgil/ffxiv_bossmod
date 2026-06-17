@@ -39,7 +39,7 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
 {
     BitMask _activeWalls = new(0xfff);
 
-    static readonly float WallHalfAngle = MathF.Atan2(4.5f, 20);
+    static readonly float WallHalfAngle = MathF.Atan2(4.5f, 19.05f);
 
     static Angle AngleToWall(int bit)
     {
@@ -56,7 +56,8 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
         foreach (var bit in _activeWalls.SetBits())
         {
             var realDir = AngleToWall(bit).ToDirection();
-            Arena.AddLine(Arena.Center + realDir * 20 + realDir.OrthoL() * 4.5f, Arena.Center + realDir * 20 + realDir.OrthoR() * 4.5f, ArenaColor.Border);
+            // wall center at 20 units away from arena center, with a depth of 0.45 units, minus 0.5 units for player hitbox
+            Arena.AddLine(Arena.Center + realDir * 19.05f + realDir.OrthoL() * 4.5f, Arena.Center + realDir * 19.05f + realDir.OrthoR() * 4.5f, ArenaColor.Border);
         }
     }
 
@@ -71,7 +72,7 @@ class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module,
             if (angle.AlmostEqual(wa, WallHalfAngle))
             {
                 var wd = wa.ToDirection();
-                dist = MathF.Min(dist, Intersect.RaySegment(dir, dir.Normalized(), wd * 20 + wd.OrthoL() * 4.5f, wd * 20 + wd.OrthoR() * 4.5f) - 0.5f);
+                dist = MathF.Min(dist, Intersect.RaySegment(dir, dir.Normalized(), wd * 19.05f + wd.OrthoL() * 4.5f, wd * 19.05f + wd.OrthoR() * 4.5f));
             }
         }
 
@@ -138,4 +139,4 @@ class D103ScarmiglioneStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372)]
-public class D103Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(21));
+public class D103Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(20));
