@@ -27,10 +27,15 @@ public class ReplayHistory
             var m = JsonSerializer.Deserialize<List<ReplayMemory>>(stream);
             return new() { History = m! };
         }
-        catch (IOException ex)
+        catch (Exception ex)
         {
-            Service.PluginLog.Warning(ex, "Unable to load replay history");
-            return new() { History = [] };
+            if (ex is JsonException or IOException)
+            {
+                Service.PluginLog.Warning(ex, "Unable to load replay history");
+                return new() { History = [] };
+            }
+
+            throw;
         }
     }
 
