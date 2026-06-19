@@ -27,7 +27,7 @@ public class UMADConfig : ConfigNode
         KroxyRinon
     }
 
-    [PropertyDisplay("P2 Forsaken strategy", tooltip: "WIP. Does nothing.")]
+    [PropertyDisplay("P2 Forsaken strategy")]
     public P2ForsakenStrategyType P2ForsakenStrategy = P2ForsakenStrategyType.None;
 
     [PropertyDisplay("P2 Forsaken: pair assignments")]
@@ -35,7 +35,7 @@ public class UMADConfig : ConfigNode
     [GroupPreset("HTMR, role pairs", [0, 1, 0, 1, 2, 3, 2, 3])]
     public GroupAssignmentRolePairs P2ForsakenPairs = GroupAssignmentRolePairs.MeleeRanged();
 
-    [PropertyDisplay("P2 Forsaken: tower priority", tooltip: "Ordered left to right, looking at boss; 1 = always in left tower, 8 = always in right tower\r\nWIP. Does nothing.")]
+    [PropertyDisplay("P2 Forsaken: tower priority", tooltip: "Ordered left to right, looking at boss; 1 = always in left tower, 8 = always in right tower")]
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
     [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
     public GroupAssignmentUnique P2ForsakenTiebreaker = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };

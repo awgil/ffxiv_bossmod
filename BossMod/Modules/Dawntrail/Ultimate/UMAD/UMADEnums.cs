@@ -33,7 +33,7 @@ public enum AID : uint
     GravenImage = 48370, // BossP1->self, 3.0s cast, single-target
     MysteryMagic = 47764, // BossP1->self, 5.0s cast, single-target
 
-    PulseWave = 47785, // GravenImage->player, no cast, single-target, knockback. application delay is about 0.5s, doesn't show in analysis fsr
+    PulseWave = 47785, // GravenImage->player, no cast, single-target, knockback. application delay is about 0.5s
     BlizzardIIIBlowoutCast = 47765, // BossP1->self, 5.0s cast, single-target
     BlizzardIIIBlowout1 = 47768, // Helper->self, 5.0s cast, range 40 90-degree cone
     BlizzardIIIBlowoutFake = 47771, // Helper->self, 5.0s cast, range 40 90-degree cone, does nothing
@@ -130,12 +130,12 @@ public enum AID : uint
     EarthquakeInstant = 47866, // Helper->self, no cast, range 100 circle
     SlapHappyRightHand = 47846, // BossP1->self, 5.0s cast, single-target, followed by party stack
     SlapHappyLeftHand = 47847, // BossP1->self, 5.0s cast, single-target, followed by role spread
-    _Ability_SlapHappy1 = 47848, // Helper->self, no cast, range 13 circle
-    _Ability_SlapHappy2 = 47849, // Helper->self, 1.5s cast, range 6 circle
+    SlapHappyBig = 47848, // Helper->self, no cast, range 13 circle
+    SlapHappySmall = 47849, // Helper->self, 1.5s cast, range 6 circle
     SlapHappyShockingImpact = 47850, // Helper->self, no cast, range 100 45?-degree cone, party stack, TODO verify angle
     SlapHappyShockwave = 47851, // Helper->self, no cast, range 100 45?-degree cone, role spread, TODO verify angle
     BlackHole = 47867, // ExdeathP3->self, 3.0s cast, single-target
-    Nothingness = 47868, // 4C38->self, no cast, range 125 width 6 rect
+    Nothingness = 47868, // BlackHoleP3->self, no cast, range 125 width 6 rect
     DamningEdict = 47873, // ChaosP3->self, 5.0s cast, range 60 width 80 rect
     BlackSpark = 48333, // Helper->player, no cast, single-target, triggered by touching black hole, applies dd
     LookUponMeAndDespairCast = 47852, // BossP1->self, 4.0+1.0s cast, single-target
@@ -182,7 +182,7 @@ public enum SID : uint
     WindResistanceDownII = 1052, // Helper->player, extra=0x0
     LightningResistanceDownII = 2998, // Helper->player, extra=0x0
     UnkBoss = 2273, // BossP1->BossP1, extra=0x1FF/0x22B
-    UnkBoss2 = 2536, // none->BossP1, extra=0x1FA
+    P3Max = 2536, // none->BossP1, extra=0x1FA
 
     Accretion = 1604, // none->player, extra=0x0
     PrimordialCrust = 5454, // none->player, extra=0x0

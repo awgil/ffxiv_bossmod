@@ -47,6 +47,7 @@ class UMADStates : StateMachineBuilder
     void P3(uint id)
     {
         ActorCast(id, _module.KefkaP3, AID.AeroIIIAssault, 2.4f, 3, false, "Knockback")
+            .ActivateOnEnter<P3KefkaIndicator>()
             .ActivateOnEnter<P3AeroIIIAssault>()
             .DeactivateOnExit<P3AeroIIIAssault>();
 
@@ -437,9 +438,11 @@ class UMADStates : StateMachineBuilder
     void P3Earthquake(uint id, float delay)
     {
         P3ThunderIIIBuster(id, delay);
-        P3Firewall(id + 0x100, 2);
+        P3Firewall(id + 0x100, 1.8f);
+        ActorCastEnd(id + 0x1FF, _module.ExdeathP3, 0.1f, true);
         P3ThunderIIIBuster(id + 0x200, 4.2f)
             .ActivateOnEnter<P3EarthquakeRaidwide>()
+            .ActivateOnEnter<P3Nothingness>()
             .ActivateOnEnter<P3EarthHints>();
         ComponentCondition<P3EarthquakeRaidwide>(id + 0x210, 1.9f, p => p.NumCasts > 0, "Raidwide + debuffs")
             .DeactivateOnExit<P3EarthquakeRaidwide>();
@@ -458,8 +461,7 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P3SlapHappyShockwave>();
 
         ComponentCondition<P3Nothingness>(id + 0x100, 7.4f, n => n.NumCasts == 1, "Laser 1")
-            .ActivateOnEnter<P3Blackhole>()
-            .ActivateOnEnter<P3Nothingness>();
+            .ActivateOnEnter<P3Blackhole>();
 
         ActorCastStart(id + 0x101, _module.ExdeathP3, AID.ThunderIIIBusterCast, 5.3f, true)
             .ActivateOnEnter<P3ThunderIIIBuster>();
