@@ -73,6 +73,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
     Lying _lying;
 
     BitMask _stackTargets; // empty if boss is lying or if the displayed mechanic is spread
+    bool _blizzardHappened;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -107,6 +108,10 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
                 break;
             case AID.FlagrantFireIIISpread:
                 Spreads.Clear();
+                break;
+            case AID.BlizzardIIIBlowout1:
+            case AID.BlizzardIIIBlowout2:
+                _blizzardHappened = true;
                 break;
         }
     }
@@ -170,15 +175,13 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var myOrder = _config.P1WaveCannonConga[assignment];
-        var (isKB, kbAt) = Module.FindComponent<P1PulseWave>() is { } pw ? (pw.Targets[slot], pw.Activation) : (actor.PendingKnockbacks.Count > 0, default);
-        if (myOrder < 0 || EnableHints && !isKB)
+        if (myOrder < 0 || _blizzardHappened)
         {
             base.AddAIHints(slot, actor, assignment, hints);
             return;
         }
 
-        var pcSlot = slot;
-        var pc = actor;
+        var (isKB, kbAt) = Module.FindComponent<P1PulseWave>() is { } pw ? (pw.Targets[slot], pw.Activation) : (actor.PendingKnockbacks.Count > 0, default);
 
         WPos mySpot;
 
@@ -192,7 +195,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
 
         var safeDirZ = 1;
 
-        if (Module.FindComponent<P1BlizzardIIIBlowout>()?.ActiveAOEs(pcSlot, pc).Any(e => e.Check(mySpot + new WDir(0, safeDirZ))) == true)
+        if (Module.FindComponent<P1BlizzardIIIBlowout>()?.ActiveAOEs(slot, actor).Any(e => e.Check(mySpot + new WDir(0, safeDirZ))) == true)
             safeDirZ = -safeDirZ;
 
         if (isSpread)
@@ -204,7 +207,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
                 // MT/M1 can move in horizontally to relative n/s to give other melees space
                 case 3:
                 case 4:
-                    mySpot += new WDir(1.5f * bossDirX, 6 * safeDirZ);
+                    mySpot += new WDir(1.5f * bossDirX, 8 * safeDirZ);
                     break;
                 // OT/M2 can also move in horizontally, staying relative e/w
                 case 2:
