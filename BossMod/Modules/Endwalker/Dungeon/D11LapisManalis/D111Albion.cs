@@ -225,8 +225,8 @@ class Icebreaker(BossModule module) : Components.GenericAOEs(module)
 
 class IcyThroes2(BossModule module) : Components.StandardAOEs(module, AID.IcyThroes4, new AOEShapeCircle(6));
 class KnockOnIce(BossModule module) : Components.StandardAOEs(module, AID.KnockOnIce2, new AOEShapeCircle(5));
-class RightSlam(BossModule module) : Components.StandardAOEs(module, AID.RightSlam, new AOEShapeRect(20, 80, 0, -90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
-class LeftSlam(BossModule module) : Components.StandardAOEs(module, AID.LeftSlam, new AOEShapeRect(20, 80, 0, 90.Degrees())); //full width = half width in this case + angle is detected incorrectly, length and width are also switched
+
+class Slam(BossModule module) : Components.GroupedAOEs(module, [AID.RightSlam, AID.LeftSlam], new AOEShapeRect(80, 10));
 class AlbionsEmbrace(BossModule module) : Components.SingleTargetCast(module, AID.AlbionsEmbrace);
 
 class RoarOfAlbion(BossModule module) : Components.CastLineOfSightAOE(module, AID.RoarOfAlbion, 60, false)
@@ -240,8 +240,7 @@ class D111AlbionStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<WildlifeCrossing>()
-            .ActivateOnEnter<LeftSlam>()
-            .ActivateOnEnter<RightSlam>()
+            .ActivateOnEnter<Slam>()
             .ActivateOnEnter<AlbionsEmbrace>()
             .ActivateOnEnter<Icebreaker>()
             .ActivateOnEnter<KnockOnIce>()
