@@ -15,6 +15,8 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
     public string WarningText = warningText;
     public string InvertedText = invertedText;
 
+    public bool Check(int slot, Actor actor, WPos position) => ActiveAOEs(slot, actor).Any(a => a.Check(position));
+
     public abstract IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

@@ -3,7 +3,7 @@
 [ConfigDisplay(Parent = typeof(DawntrailConfig))]
 public class UMADConfig : ConfigNode
 {
-    [PropertyDisplay("P1 Gravitas 1: conga line order for Wave Cannon (W -> E)")]
+    [PropertyDisplay("P1 Graven 1: conga line order for Wave Cannon (W -> E)")]
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
     [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
     public GroupAssignmentUnique P1WaveCannonConga = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
@@ -40,7 +40,20 @@ public class UMADConfig : ConfigNode
     [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
     public GroupAssignmentUnique P2ForsakenTiebreaker = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
 
-    //[SectionStart("AI-only settings")]
+    public enum P1GravityPuddlePlacement
+    {
+        None,
+        [PropertyDisplay("Whole party stack on A/C marker")]
+        StackAll
+    }
+
+    [SectionStart("AI-only settings")]
+    [PropertyDisplay("P1 Gravitas: Puddle drop strategy")]
+    public P1GravityPuddlePlacement P1GravityPuddleStrategy = P1GravityPuddlePlacement.None;
+
+    [PropertyDisplay("P1 Gravitas: Spread destinations")]
+    [GroupDetails(["G1 (left)", "G2 (right)"])]
+    public GroupAssignmentLightParties P1GravityPuddleSpread = GroupAssignmentLightParties.DefaultLightParties();
 }
 
 public class GroupAssignmentRolePairs : GroupAssignment

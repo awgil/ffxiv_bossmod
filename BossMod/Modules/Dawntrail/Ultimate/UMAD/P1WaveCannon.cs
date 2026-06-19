@@ -195,7 +195,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
 
         var safeDirZ = 1;
 
-        if (Module.FindComponent<P1BlizzardIIIBlowout>()?.ActiveAOEs(slot, actor).Any(e => e.Check(mySpot + new WDir(0, safeDirZ))) == true)
+        if (Module.FindComponent<P1BlizzardIIIBlowout>()?.Check(slot, actor, mySpot + new WDir(0, safeDirZ)) == true)
             safeDirZ = -safeDirZ;
 
         if (isSpread)
@@ -250,6 +250,8 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
 
 class P1WaveCannon : Components.UntelegraphedBait
 {
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
+
     public P1WaveCannon(BossModule module) : base(module, AID.WaveCannon)
     {
         CurrentBaits.Add(new(P1PulseWave.Origin, Raid.WithSlot().Mask(), new AOEShapeRect(100, 3), WorldState.FutureTime(4.3f), 8));
@@ -262,6 +264,24 @@ class P1WaveCannon : Components.UntelegraphedBait
             NumCasts++;
             CurrentBaits.Clear();
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (CurrentBaits.Count == 0)
+            return;
+
+        var activation = CurrentBaits[0].Activation;
+        var myOrder = _config.P1WaveCannonConga[assignment];
+
+        if (activation < WorldState.FutureTime(1) || myOrder < 0)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+
+        var dest = P1PulseWave.Origin + new WDir(0, 38).Rotate(((myOrder - 3.5f) * 8).Degrees());
+        hints.AddForbiddenZone(ShapeContains.InvertedCircle(dest, 1), activation);
     }
 }
 

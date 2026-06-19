@@ -111,7 +111,11 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P1Explosion>(id + 0x100, 1.5f, e => e.NumCasts > 0, "Towers")
             .ActivateOnEnter<P1DoubleTroubleTrap>()
             .DeactivateOnExit<P1Explosion>()
-            .ExecOnExit<P1DoubleTroubleTrap>(t => t.EnableHints = true);
+            .ExecOnExit<P1DoubleTroubleTrap>(t =>
+            {
+                t.EnableHints = true;
+                t.Order = 1;
+            });
 
         CastStart(id + 0x110, AID.MysteryMagic, 2.7f)
             .ActivateOnEnter<P1DoubleTroubleTrapKB>()
@@ -183,6 +187,7 @@ class UMADStates : StateMachineBuilder
 
         ComponentCondition<P1GravitationalWaveIntemperateWill>(id + 0x30, 4.5f, g => g.NumCasts > 0, "Left/right")
             .ActivateOnEnter<P1DoubleTroubleTrap>()
+            .ExecOnEnter<P1DoubleTroubleTrap>(p => p.Order = 2)
             .ActivateOnEnter<P1DoubleTroubleTrapKB>()
             .ActivateOnEnter<P1GravitasPuddleSoak>()
             .ExecOnEnter<P1GravitationalWaveIntemperateWill>(w => w.Risky = true)

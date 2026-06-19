@@ -2,7 +2,9 @@
 
 class P1DoubleTroubleTrap : Components.UniformStackSpread
 {
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
     public int NumCasts { get; private set; }
+    public int Order;
 
     public P1DoubleTroubleTrap(BossModule module) : base(module, 6, 0, 4)
     {
@@ -23,6 +25,24 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
             Stacks.Clear();
             NumCasts++;
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Stacks.FirstOrNull() is not { Activation: var activation })
+            return;
+
+        if (Order == 1)
+        {
+            var myOrder = _config.P1WaveCannonConga[assignment];
+            if (myOrder < 0)
+                return;
+
+            var side = myOrder < 4 ? -1 : 1;
+            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center + new WDir((IsStackTarget(actor) ? 9 : 7) * side, 0), 1), activation);
+        }
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 

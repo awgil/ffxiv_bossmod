@@ -182,7 +182,7 @@ public sealed class ConfigUI : IDisposable
                     ImGui.Separator();
 
                 if (newSection.Label.Length > 0)
-                    ImGui.TextDisabled(newSection.Label);
+                    ImGui.Text(newSection.Label);
             }
 
             var value = field.GetValue(node);
