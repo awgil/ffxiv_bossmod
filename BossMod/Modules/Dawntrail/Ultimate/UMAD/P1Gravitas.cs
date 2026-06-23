@@ -75,15 +75,11 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
                             dest.X += 1;
                     }
                     else
-                    {
-                        dest = new(99.5f, 112);
-                        if (Module.FindComponent<P1GravitationalWaveIntemperateWill>()?.Check(slot, actor, dest) == true)
-                            dest.X += 1;
-                    }
+                        dest = new(100, 112);
                     if (IsStackTarget(actor))
                         hints.AddForbiddenZone(ShapeContains.PrecisePosition(dest, new(0, 1), 0.5f, actor.Position, 0.5f), a);
                     else
-                        hints.AddForbiddenZone(ShapeContains.InvertedCircle(new(100, dest.Z), 5), a);
+                        hints.AddForbiddenZone(ShapeContains.InvertedCircle(new(100, dest.Z), 4.5f), a);
                 }
                 else
                     base.AddAIHints(slot, actor, assignment, hints);
@@ -101,7 +97,7 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
             if (spreadParty >= 0)
             {
                 var safeSide = spreadParty == 0 ? _facingBoss + 90.Degrees() : _facingBoss - 90.Degrees();
-                var ctr = Arena.Center;
+                var ctr = Arena.Center + safeSide.ToDirection() * 5;
                 hints.GoalZones.Add(p => p.InCone(ctr, safeSide, 90.Degrees()) ? 1 : 0);
             }
         }
@@ -182,6 +178,12 @@ class P1GravitationalWaveIntemperateWill(BossModule module) : Components.Generic
     AOEInstance? _predicted;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_predicted).Select(w => w with { Risky = Risky });
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var aoe in ActiveAOEs(slot, actor))
+            hints.AddForbiddenZone(aoe.Check, aoe.Activation);
+    }
 
     public override void OnActorEAnim(Actor actor, uint state)
     {

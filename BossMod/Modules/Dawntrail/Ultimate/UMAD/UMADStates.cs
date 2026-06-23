@@ -196,6 +196,7 @@ class UMADStates : StateMachineBuilder
         // might not have any confetti holders alive at this point depending on prog
         ComponentCondition<P1DoubleTroubleTrapCounter>(id + 0x100, 3.8f, t => t.Resolved, "Confetti 2")
             .ActivateOnEnter<P1DoubleTroubleTrapCounter>()
+            .ExecOnEnter<P1DoubleTroubleTrap>(p => p.EnableHints = true)
             .ExecOnEnter<P1DoubleTroubleTrapCounter>(c => c.Timeout = 3.8f)
             .DeactivateOnExit<P1DoubleTroubleTrap>()
             .DeactivateOnExit<P1DoubleTroubleTrapKB>()

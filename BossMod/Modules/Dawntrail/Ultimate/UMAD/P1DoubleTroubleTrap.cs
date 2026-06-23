@@ -35,14 +35,35 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
         if (Order == 1)
         {
             var myOrder = _config.P1WaveCannonConga[assignment];
-            if (myOrder < 0)
+            if (myOrder >= 0)
+            {
+                var side = myOrder < 4 ? -1 : 1;
+                hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center + new WDir((IsStackTarget(actor) ? 9 : 5.75f) * side, 0), 1), activation);
                 return;
-
-            var side = myOrder < 4 ? -1 : 1;
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center + new WDir((IsStackTarget(actor) ? 9 : 7) * side, 0), 1), activation);
+            }
         }
-        else
-            base.AddAIHints(slot, actor, assignment, hints);
+
+        if (Order == 2 && _config.P1GravityPuddleStrategy == UMADConfig.P1GravityPuddlePlacement.StackAll && EnableHints)
+        {
+            var ourSide = actor.Class.IsSupport() ? -1 : 1;
+            if (Module.Enemies(OID.Gravitas).Where(a => MathF.Sign(a.Position.Z - 100) == ourSide).Closest(Arena.Center) is { } closestPuddle)
+            {
+                if (IsStackTarget(actor))
+                {
+                    var puddleEdgeZ = closestPuddle.Position.Z - 6 * ourSide;
+                    hints.AddForbiddenZone(ShapeContains.PrecisePosition(new(100, puddleEdgeZ), new(0, 1), 0.5f, actor.Position, 0.5f), activation);
+                    return;
+                }
+
+                if (Stacks.FirstOrNull(s => s.Target.Class.IsSupport() == actor.Class.IsSupport()) is { } stackWith)
+                {
+                    hints.AddForbiddenZone(ShapeContains.PrecisePosition(new(stackWith.Target.Position.X, stackWith.Target.Position.Z - 2 * ourSide), new(0, 1), 0.5f, actor.Position, 0.5f), activation);
+                    return;
+                }
+            }
+        }
+
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 
