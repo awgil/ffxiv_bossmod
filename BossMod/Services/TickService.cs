@@ -9,6 +9,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
+using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -56,6 +57,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly ConfigUI _configUI; // TODO: should be a proper window!
 
     private readonly EventSubscription? _onConfigSave;
+
+    private readonly ICallGateSubscriber<bool>? _vnavIsReady;
 
     public unsafe TickService(
         MediatorService mediator,
@@ -109,6 +112,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             // requires windows/wine
             MultiboxUnlock.Exec();
         }
+
+        if (!Service.IsMock)
+            _vnavIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
 
         _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
@@ -232,7 +238,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _hintExecutor.Execute();
 
-        CreateBitmapIfMissing();
+        if (_vnavIsReady != null)
+            CreateBitmapIfMissing(_vnavIsReady);
 
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
@@ -248,9 +255,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     }
 
     bool _pauseBitmapGeneration;
-    ICallGateSubscriber<bool>? _vnavIsReady;
 
-    void CreateBitmapIfMissing()
+    void CreateBitmapIfMissing(ICallGateSubscriber<bool> isReady)
     {
         if (_pauseBitmapGeneration)
             return;
@@ -262,16 +268,17 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (entry != null && data != null)
             return;
 
-        _vnavIsReady ??= Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
-        if (_vnavIsReady == null)
+        try
         {
-            Service.Logger.Warning("vnav is not registered (yet), pausing");
+            if (!isReady.InvokeFunc())
+                return;
+        }
+        catch (IpcNotReadyError ex)
+        {
+            Service.Logger.Debug(ex, "Unable to call vnav IPC, pausing");
             _pauseBitmapGeneration = true;
             return;
         }
-
-        if (!_vnavIsReady.InvokeFunc())
-            return;
 
         try
         {
