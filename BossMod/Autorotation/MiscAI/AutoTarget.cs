@@ -62,13 +62,13 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (strategy.Option(Track.Treasure).As<Flag>() == Flag.Enabled)
+            Hints.InteractWithTarget ??= World.Actors.Where(a => a.Type == ActorType.Treasure && a.IsTargetable && !a.IsOpenTreasure).OrderBy(a => (a.Position - Player.Position).LengthSq()).FirstOrDefault();
+
         var generalOpt = strategy.Option(Track.General);
         var generalStrategy = generalOpt.As<GeneralStrategy>();
         if (generalStrategy == GeneralStrategy.Passive)
             return;
-
-        if (strategy.Option(Track.Treasure).As<Flag>() == Flag.Enabled)
-            Hints.InteractWithTarget ??= World.Actors.Where(a => a.Type == ActorType.Treasure && a.IsTargetable && !a.IsOpenTreasure).OrderBy(a => (a.Position - Player.Position).LengthSq()).FirstOrDefault();
 
         var maxTargets = strategy.GetInt(Track.MaxTargets);
         var canPullMore = maxTargets == 0 || World.Actors.Count(a => a.AggroPlayer && !a.IsDead) < maxTargets;
