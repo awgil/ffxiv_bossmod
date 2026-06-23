@@ -13,22 +13,23 @@ public sealed class ObstacleMapDatabase
         public int ViewWidth = ViewWidth;
         public int ViewHeight = ViewHeight;
         public string Filename = Filename;
+        public bool Embedded;
 
         public bool Contains(Vector3 p) => p.X >= MinBounds.X && p.Y >= MinBounds.Y && p.Z >= MinBounds.Z && p.X <= MaxBounds.X && p.Y <= MaxBounds.Y && p.Z <= MaxBounds.Z;
     }
 
     public readonly Dictionary<uint, List<Entry>> Entries = [];
 
-    public void Load(Stream stream)
+    public void Load(Stream stream, bool embedded)
     {
-        Entries.Clear();
         using var json = Serialization.ReadJson(stream);
         foreach (var jentries in json.RootElement.EnumerateObject())
         {
             var sep = jentries.Name.IndexOf('.', StringComparison.Ordinal);
             var zone = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[..sep]) : uint.Parse(jentries.Name);
             var cfc = sep >= 0 ? uint.Parse(jentries.Name.AsSpan()[(sep + 1)..]) : 0;
-            var entries = Entries[(zone << 16) | cfc] = [];
+            Entries.TryAdd((zone << 16) | cfc, []);
+            var entries = Entries[(zone << 16) | cfc];
             foreach (var jentry in jentries.Value.EnumerateArray())
             {
                 entries.Add(new(
@@ -38,12 +39,13 @@ public sealed class ObstacleMapDatabase
                     jentry.GetProperty(nameof(Entry.ViewWidth)).GetInt32(),
                     jentry.GetProperty(nameof(Entry.ViewHeight)).GetInt32(),
                     jentry.GetProperty(nameof(Entry.Filename)).GetString() ?? ""
-                ));
+                )
+                { Embedded = embedded });
             }
         }
     }
 
-    public void Save(string listPath)
+    public void Save(string listPath, bool embedded)
     {
         try
         {
@@ -52,13 +54,13 @@ public sealed class ObstacleMapDatabase
             jwriter.WriteStartObject();
             foreach (var (key, entries) in Entries)
             {
-                if (entries.Count == 0)
+                if (entries.Count(e => e.Embedded == embedded) == 0)
                     continue; // no entries, skip
 
                 var zone = key >> 16;
                 var cfc = key & 0xFFFF;
                 jwriter.WriteStartArray(cfc != 0 ? $"{zone}.{cfc}" : $"{zone}");
-                foreach (var e in entries)
+                foreach (var e in entries.Where(e => e.Embedded == embedded))
                 {
                     jwriter.WriteStartObject();
                     WriteVec3(jwriter, nameof(Entry.MinBounds), e.MinBounds);

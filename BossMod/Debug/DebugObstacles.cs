@@ -1,7 +1,7 @@
 using BossMod.Pathfinding;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
-using Dalamud.Bindings.ImGui;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -47,12 +47,12 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
 
             if (ImGui.Button("Save"))
             {
-                Bitmap.Save(owner.Obstacles.RootPath + e.Filename);
+                Bitmap.Save(owner.Obstacles.SourceFilename(e.Filename));
             }
             ImGui.SameLine();
             if (ImGui.Button("Reload"))
             {
-                using var stream = File.OpenRead(owner.Obstacles.RootPath + e.Filename);
+                using var stream = File.OpenRead(owner.Obstacles.SourceFilename(e.Filename));
                 CheckpointNoClone(new(stream));
             }
 
@@ -193,7 +193,8 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
 
     public void Draw()
     {
-        ImGui.TextUnformatted($"Database root: {Obstacles.RootPath}");
+        ImGui.TextUnformatted($"Local database root: {Obstacles.SourceRoot.FullName}");
+        ImGui.TextUnformatted($"Generated maps root: {Obstacles.UserRoot.FullName}");
 
         ImGui.Separator();
         ImGui.TextUnformatted("Temp map (IPC / memory)");
@@ -212,18 +213,15 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
         }
 
         var curZoneEntries = Obstacles.Database.Entries.GetValueOrDefault(Obstacles.CurrentKey());
-        using (ImRaii.Disabled(!Obstacles.CanEditDatabase()))
-        {
-            if (ImGui.Button("Create new region"))
-                CreateRegion();
-            ImGui.SameLine();
-            using (ImRaii.Disabled(!_dbModified))
-                if (ImGui.Button("Save"))
-                    SaveDatabase();
-            ImGui.SameLine();
-            if (ImGui.Button(_dbModified ? "Revert" : "Reload"))
-                ReloadDatabase();
-        }
+        if (ImGui.Button("Create new region"))
+            CreateRegion();
+        ImGui.SameLine();
+        using (ImRaii.Disabled(!_dbModified))
+            if (ImGui.Button("Save"))
+                SaveDatabase();
+        ImGui.SameLine();
+        if (ImGui.Button(_dbModified ? "Revert" : "Reload"))
+            ReloadDatabase();
 
         ImGui.DragFloat3("Map min bounds", ref _minBounds, 1, -1024, 1024);
         ImGui.DragFloat3("Map max bounds", ref _maxBounds, 1, -1024, 1024);
@@ -239,7 +237,6 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     private void DrawEntries(List<ObstacleMapDatabase.Entry> entries)
     {
         Action? modifications = null;
-        using var disableScope = ImRaii.Disabled(!Obstacles.CanEditDatabase());
         for (int i = 0; i < entries.Count; ++i)
         {
             using var id = ImRaii.PushId(i);
@@ -257,8 +254,9 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
             ImGui.SameLine();
             if (ImGui.Button("Edit"))
                 OpenEditor(entries[index]);
+            var emb = entries[i].Embedded ? "[embedded] " : "";
             ImGui.SameLine();
-            ImGui.TextUnformatted($"[{i}] {entries[i]}");
+            ImGui.TextUnformatted($"{emb}[{i}] {entries[i]}");
         }
 
         modifications?.Invoke();
@@ -269,7 +267,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     {
         var pos = Obstacles.World.Party.Player()?.PosRot.XYZ() ?? default;
         var filename = GenerateMapName();
-        var (min, max) = _createMap(pos, Obstacles.RootPath + filename, 0.5f, _minBounds, _maxBounds);
+        var (min, max) = _createMap(pos, Obstacles.SourceFilename(filename), 0.5f, _minBounds, _maxBounds);
         var (tweakMin, tweakMax) = _minBounds == DefaultMinBounds && _maxBounds == DefaultMaxBounds ? (min - new Vector3(0, 1, 0), max + new Vector3(0, 10, 0)) : (min, max); // account for jumping etc...
         var entry = new ObstacleMapDatabase.Entry(tweakMin, tweakMax, new(min.XZ()), 60, 60, filename);
         OpenEditor(entry);
@@ -285,13 +283,13 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
 
     private void SaveDatabase()
     {
-        Obstacles.SaveDatabase();
+        Obstacles.SaveDatabase(true);
         _dbModified = false;
     }
 
     private void DeleteMap(List<ObstacleMapDatabase.Entry> entries, int index)
     {
-        new FileInfo(Obstacles.RootPath + entries[index].Filename).Delete();
+        new FileInfo(Obstacles.EntryFilename(entries[index])).Delete();
         entries.RemoveAt(index);
         _dbModified = true;
     }
@@ -301,15 +299,21 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
         for (int i = 1; ; ++i)
         {
             var name = $"{Obstacles.World.CurrentZone}.{Obstacles.World.CurrentCFCID}.{i}.bmp";
-            if (!new FileInfo(Obstacles.RootPath + name).Exists)
+            if (!new FileInfo(Obstacles.SourceFilename(name)).Exists)
                 return name;
         }
     }
 
     private void OpenEditor(ObstacleMapDatabase.Entry entry)
     {
-        using var stream = File.OpenRead(Obstacles.RootPath + entry.Filename);
+        var fname = Obstacles.EntryFilename(entry);
+        var wasGenerated = !entry.Embedded;
+        entry.Embedded = true;
+        using var stream = File.OpenRead(fname);
         var editor = new Editor(this, new(stream), entry);
         _ = new UISimpleWindow($"Obstacle map {entry.Filename}", editor.Draw, true, new(1000, 1000));
+
+        if (wasGenerated)
+            SaveDatabase(); // update both user-generated and source entries list to prevent conflicts; TODO we should also delete the generated bitmap file
     }
 }

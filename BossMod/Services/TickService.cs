@@ -8,6 +8,7 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -170,8 +171,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     {
         // TODO: this should be in worldstate, but how?
         clientState.Logout += OnLogout;
+        clientState.ZoneInit += OnZoneInit;
 
-        uiBuilder.Draw += UiDraw;
+        uiBuilder.Draw += Update;
         uiBuilder.DisableAutomaticUiHide = true;
         uiBuilder.OpenConfigUi += OpenUi;
         uiBuilder.OpenMainUi += OpenUi;
@@ -190,15 +192,21 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         clientState.Logout -= OnLogout;
+        clientState.ZoneInit -= OnZoneInit;
 
-        uiBuilder.Draw -= UiDraw;
+        uiBuilder.Draw -= Update;
         uiBuilder.OpenConfigUi -= OpenUi;
         uiBuilder.OpenMainUi -= OpenUi;
 
         condition.ConditionChange -= OnConditionChanged;
     }
 
-    void UiDraw()
+    private void OnZoneInit(Dalamud.Game.ClientState.ZoneInitEventArgs obj)
+    {
+        _pauseBitmapGeneration = false;
+    }
+
+    void Update()
     {
         var tsStart = DateTime.Now;
         var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
@@ -223,6 +231,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _hintExecutor.Execute();
 
+        CreateBitmapIfMissing();
+
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
     }
@@ -234,6 +244,43 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         return link == 0
             || Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse.RowId == 31 // deep dungeons check is hardcoded in game
             || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
+    }
+
+    bool _pauseBitmapGeneration;
+    ICallGateSubscriber<bool>? _vnavIsReady;
+
+    void CreateBitmapIfMissing()
+    {
+        if (_pauseBitmapGeneration)
+            return;
+
+        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.Jumping, ConditionFlag.InFlight) || _ws.Party.Player() is not { } player)
+            return;
+
+        var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
+        if (entry != null && data != null)
+            return;
+
+        _vnavIsReady ??= Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
+        if (_vnavIsReady == null)
+        {
+            Service.Logger.Warning("vnav is not registered (yet), pausing");
+            _pauseBitmapGeneration = true;
+            return;
+        }
+
+        if (!_vnavIsReady.InvokeFunc())
+            return;
+
+        try
+        {
+            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 1024, true);
+        }
+        catch (Exception ex)
+        {
+            Service.Logger.Warning(ex, "Unable to generate an obstacle map, pausing");
+            _pauseBitmapGeneration = true;
+        }
     }
 
     void OnConditionChanged(ConditionFlag flag, bool value)

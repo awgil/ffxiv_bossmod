@@ -69,8 +69,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     private readonly Hook<ProcessMapEffectNDelegate> _processMapEffect2Hook;
     private readonly Hook<ProcessMapEffectNDelegate> _processMapEffect3Hook;
 
-    public unsafe delegate byte ProcessLegacyMapEffectDelegate(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length);
-    private readonly Hook<ProcessLegacyMapEffectDelegate> _processLegacyMapEffectHook;
+    private readonly Hook<EventFramework.Delegates.SetDirectorData> _processLegacyMapEffectHook;
 
     private unsafe delegate void ProcessPacketRSVDataDelegate(byte* packet);
     private readonly Hook<ProcessPacketRSVDataDelegate> _processPacketRSVDataHook;
@@ -170,7 +169,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
         Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
 
-        _processLegacyMapEffectHook = Service.Hook.HookFromSignature<ProcessLegacyMapEffectDelegate>("89 54 24 10 48 89 4C 24 ?? 53 56 57 41 55 41 57 48 83 EC 30 48 8B 99 ?? ?? ?? ??", ProcessLegacyMapEffectDetour);
+        _processLegacyMapEffectHook = Service.Hook.HookFromAddress<EventFramework.Delegates.SetDirectorData>(EventFramework.Addresses.SetDirectorData.Value, ProcessLegacyMapEffectDetour);
         _processLegacyMapEffectHook.Enable();
         Service.Log($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
 
@@ -1134,11 +1133,10 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         }
     }
 
-    private unsafe byte ProcessLegacyMapEffectDetour(EventFramework* fwk, EventId eventId, byte seq, byte unk, void* data, ulong length)
+    private unsafe void ProcessLegacyMapEffectDetour(EventFramework* fwk, EventId eventId, byte seq, byte unk, byte* data, ulong length)
     {
-        var res = _processLegacyMapEffectHook.Original(fwk, eventId, seq, unk, data, length);
+        _processLegacyMapEffectHook.Original(fwk, eventId, seq, unk, data, length);
         _globalOps.Add(new WorldState.OpLegacyMapEffect(seq, unk, new Span<byte>(data, (int)length).ToArray()));
-        return res;
     }
 
     private unsafe void InventoryAckDetour(InventoryManager* mgr, uint a1, void* a2)
