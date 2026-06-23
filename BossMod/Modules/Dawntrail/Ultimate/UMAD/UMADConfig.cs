@@ -13,8 +13,6 @@ public class UMADConfig : ConfigNode
         None,
         [PropertyDisplay("Big box (CW)")]
         BigBox,
-        [PropertyDisplay("Big box 'freaky' (cardinal arrows are slightly closer to the boss)")]
-        Freaky
     }
 
     [PropertyDisplay("P1 Tele-Portent: arrow placement hints")]

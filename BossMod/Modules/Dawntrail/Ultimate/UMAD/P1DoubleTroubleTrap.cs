@@ -38,7 +38,7 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
             if (myOrder >= 0)
             {
                 var side = myOrder < 4 ? -1 : 1;
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center + new WDir((IsStackTarget(actor) ? 9 : 5.75f) * side, 0), 1), activation);
+                hints.AddForbiddenZone(ShapeContains.PrecisePosition(Arena.Center + new WDir((IsStackTarget(actor) ? 9 : 5.75f) * side, 0), new(0, 1), 0.5f, actor.Position, 0.1f), activation);
                 return;
             }
         }
@@ -51,13 +51,13 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
                 if (IsStackTarget(actor))
                 {
                     var puddleEdgeZ = closestPuddle.Position.Z - 6 * ourSide;
-                    hints.AddForbiddenZone(ShapeContains.PrecisePosition(new(100, puddleEdgeZ), new(0, 1), 0.5f, actor.Position, 0.5f), activation);
+                    hints.AddForbiddenZone(ShapeContains.PrecisePosition(new(100, puddleEdgeZ), new(0, 1), 0.5f, actor.Position, 0.1f), activation);
                     return;
                 }
 
                 if (Stacks.FirstOrNull(s => s.Target.Class.IsSupport() == actor.Class.IsSupport()) is { } stackWith)
                 {
-                    hints.AddForbiddenZone(ShapeContains.PrecisePosition(new(stackWith.Target.Position.X, stackWith.Target.Position.Z - 2 * ourSide), new(0, 1), 0.5f, actor.Position, 0.5f), activation);
+                    hints.AddForbiddenZone(ShapeContains.PrecisePosition(new(stackWith.Target.Position.X, stackWith.Target.Position.Z - 1 * ourSide), new(0, 1), 0.5f, actor.Position, 0.1f), activation);
                     return;
                 }
             }
