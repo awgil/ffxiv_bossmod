@@ -254,7 +254,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (_pauseBitmapGeneration)
             return;
 
-        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.Jumping, ConditionFlag.InFlight) || _ws.Party.Player() is not { } player)
+        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.Jumping, ConditionFlag.InFlight, ConditionFlag.Jumping61, ConditionFlag.Unknown101) || _ws.Party.Player() is not { } player)
             return;
 
         var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
