@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Dalamud.Interface.Utility;
+
+namespace BossMod;
 
 [ConfigDisplay(Name = "Boss Modules and Radar", Order = 1)]
 public class BossModuleConfig : ConfigNode
@@ -54,6 +56,8 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Radar arena scale factor", tooltip: "Scale of the arena inside of the radar window")]
     [PropertySlider(0.1f, 10, Speed = 0.1f, Logarithmic = true)]
     public float ArenaScale = 1;
+
+    public float EffectiveArenaScale => ImGuiHelpers.GlobalScale * ArenaScale;
 
     [PropertyDisplay("Radar element thickness scale factor", tooltip: "Globally scales the outline thickness of radar elements")]
     [PropertySlider(0.1f, 10, Speed = 0.1f, Logarithmic = true)]

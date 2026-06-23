@@ -40,8 +40,8 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         }
     } = bounds;
 
-    public float ScreenHalfSize => 150 * Config.ArenaScale;
-    public float ScreenMarginSize => 20 * Config.ArenaScale;
+    public float ScreenHalfSize => 150 * Config.EffectiveArenaScale;
+    public float ScreenMarginSize => 20 * Config.EffectiveArenaScale;
 
     // these are set at the beginning of each draw
     public Vector2 ScreenCenter { get; private set; }
@@ -282,8 +282,8 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
 
     public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
     {
-        var size = ImGui.CalcTextSize(text) * Config.ArenaScale;
-        ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize * Config.ArenaScale, center - size / 2, color, text);
+        var size = ImGui.CalcTextSize(text) * Config.EffectiveArenaScale;
+        ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize * Config.EffectiveArenaScale, center - size / 2, color, text);
     }
 
     public void TextWorld(WPos center, string text, uint color, float fontSize = 17)
