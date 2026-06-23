@@ -54,7 +54,7 @@ public sealed class ObstacleMapDatabase
             jwriter.WriteStartObject();
             foreach (var (key, entries) in Entries)
             {
-                if (entries.Count(e => e.Embedded == embedded) == 0)
+                if (!entries.Any(e => e.Embedded == embedded))
                     continue; // no entries, skip
 
                 var zone = key >> 16;
