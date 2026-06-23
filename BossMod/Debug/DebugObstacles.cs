@@ -193,7 +193,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
 
     public void Draw()
     {
-        ImGui.TextUnformatted($"Local database root: {Obstacles.SourceRoot.FullName}");
+        ImGui.TextUnformatted($"Local database root: {Obstacles.SourceRoot}");
         ImGui.TextUnformatted($"Generated maps root: {Obstacles.UserRoot.FullName}");
 
         ImGui.Separator();

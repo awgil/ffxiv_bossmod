@@ -27,7 +27,7 @@ public sealed class ObstacleMapManager : IDisposable
     public readonly DirectoryInfo UserRoot = new(Path.Join(ReplayHistory.GetStorageDir().FullName, "obstacles"));
     public readonly FileInfo UserList;
 
-    public readonly DirectoryInfo SourceRoot;
+    public readonly string SourceRoot;
 
     public ObstacleMapManager(WorldState ws)
     {
@@ -38,7 +38,7 @@ public sealed class ObstacleMapManager : IDisposable
         );
 
         UserList = new(Path.Join(UserRoot.FullName, "maplist.json"));
-        SourceRoot = new(_config.MapSourcePath);
+        SourceRoot = _config.MapSourcePath;
         if (!UserRoot.Exists)
             UserRoot.Create();
 
@@ -51,7 +51,7 @@ public sealed class ObstacleMapManager : IDisposable
         _subscriptions.Dispose();
     }
 
-    public string SourceFilename(string filename) => Path.Join(SourceRoot.FullName, filename);
+    public string SourceFilename(string filename) => Path.Join(SourceRoot, filename);
     public string GeneratedFilename(string filename) => Path.Join(UserRoot.FullName, filename);
     public string EntryFilename(ObstacleMapDatabase.Entry e) => e.Embedded ? SourceFilename(e.Filename) : GeneratedFilename(e.Filename);
 
