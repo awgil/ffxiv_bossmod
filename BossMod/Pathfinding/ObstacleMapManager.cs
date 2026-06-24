@@ -283,7 +283,7 @@ public sealed class ObstacleMapManager : IDisposable
                 try
                 {
                     using var eStream = e.Embedded
-                        ? (Service.IsDev && SourceRoot != ""
+                        ? (Service.IsDev && SourceRoot.Length > 0
                             ? File.OpenRead(Path.Join(SourceRoot, e.Filename))
                             : GetEmbeddedResource(e.Filename))
                         : File.OpenRead(Path.Join(UserRoot.FullName, e.Filename));
