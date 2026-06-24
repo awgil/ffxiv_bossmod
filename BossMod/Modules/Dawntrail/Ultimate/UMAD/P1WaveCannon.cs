@@ -232,7 +232,9 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
         if (isKB)
         {
             var dirToStatue = P1PulseWave.Origin - mySpot;
-            mySpot += dirToStatue.Normalized() * P1PulseWave.Distance * 0.5f;
+            // if KB destination is south, we can preposition exactly; if it's north, it might actually be outside the arena (for m1/r1)
+            var factor = mySpot.Z > 100 ? 1 : 0.75f;
+            mySpot += dirToStatue.Normalized() * P1PulseWave.Distance * factor;
         }
 
         hints.AddForbiddenZone(ShapeContains.InvertedCircle(mySpot, isSpread ? 1 : 4), kbAt);
