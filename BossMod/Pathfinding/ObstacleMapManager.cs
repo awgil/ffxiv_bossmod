@@ -246,8 +246,6 @@ public sealed class ObstacleMapManager : IDisposable
         {
             Database.Entries.Clear();
 
-            Service.Log("cleared database (reload)");
-
             using (var builtin = GetEmbeddedResource("maplist.json"))
                 Database.Load(builtin, true);
 
@@ -256,8 +254,6 @@ public sealed class ObstacleMapManager : IDisposable
                 using var user = UserList.OpenRead();
                 Database.Load(user, false);
             }
-
-            Service.Log("reloaded database (reload)");
         }
         catch (Exception ex)
         {

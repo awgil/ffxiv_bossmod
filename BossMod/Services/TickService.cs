@@ -261,6 +261,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (_pauseBitmapGeneration)
             return;
 
+        // my kingdom for one condition flag that indicates "standing on the ground not doing anything weird"
         if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Jumping, ConditionFlag.Jumping61, ConditionFlag.Unknown101, ConditionFlag.Diving, (ConditionFlag)47) || _ws.Party.Player() is not { } player)
             return;
 
