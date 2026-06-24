@@ -282,7 +282,11 @@ public sealed class ObstacleMapManager : IDisposable
             {
                 try
                 {
-                    using var eStream = e.Embedded ? GetEmbeddedResource(e.Filename) : File.OpenRead(Path.Join(UserRoot.FullName, e.Filename));
+                    using var eStream = e.Embedded
+                        ? (Service.IsDev && SourceRoot != ""
+                            ? File.OpenRead(Path.Join(SourceRoot, e.Filename))
+                            : GetEmbeddedResource(e.Filename))
+                        : File.OpenRead(Path.Join(UserRoot.FullName, e.Filename));
                     var bitmap = new Bitmap(eStream);
                     _entries.Add((e, bitmap));
                 }
@@ -376,8 +380,11 @@ public sealed class ObstacleMapManager : IDisposable
     {
         for (var i = 1; ; ++i)
         {
+            if (i > 100)
+                throw new InvalidOperationException($"More than 100 bitmaps have been generated for {World.CurrentZone}.{World.CurrentCFCID}, this means something is wrong!");
+
             var name = $"{World.CurrentZone}.{World.CurrentCFCID}.auto.{i}.bmp";
-            if (!new FileInfo(UserRoot + name).Exists)
+            if (!File.Exists(GeneratedFilename(name)))
                 return name;
         }
     }

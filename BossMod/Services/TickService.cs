@@ -59,6 +59,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly EventSubscription? _onConfigSave;
 
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
+    private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
 
     public unsafe TickService(
         MediatorService mediator,
@@ -114,7 +115,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
 
         if (!Service.IsMock)
+        {
             _vnavIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
+            _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
+        }
 
         _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
@@ -238,8 +242,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _hintExecutor.Execute();
 
-        if (_vnavIsReady != null)
-            CreateBitmapIfMissing(_vnavIsReady);
+        if (_vnavIsReady != null && _vnavIsOnMesh != null)
+            CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
 
         Camera.Instance?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
@@ -256,17 +260,23 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     bool _pauseBitmapGeneration;
 
-    void CreateBitmapIfMissing(ICallGateSubscriber<bool> isReady)
+    void CreateBitmapIfMissing(ICallGateSubscriber<bool> isReady, ICallGateSubscriber<Vector3, float, bool, bool> isPointOnMesh)
     {
-        if (_pauseBitmapGeneration)
+        if (_pauseBitmapGeneration || _ws.Party.Player() is not { } player || !Service.Config.Get<DeveloperConfig>().AutoBitmaps)
             return;
 
-        // my kingdom for one condition flag that indicates "standing on the ground not doing anything weird"
-        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Jumping, ConditionFlag.Jumping61, ConditionFlag.Unknown101, ConditionFlag.Diving, (ConditionFlag)47) || _ws.Party.Player() is not { } player)
-            return;
-
+        // already have an entry, everything is ok
         var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
         if (entry != null && data != null)
+            return;
+
+        // scorched earth approach: if player is moving at all, assume we can't trust their position
+        // this covers jumping and clientpaths, as well as some annoying edge cases that don't show up anywhere else: walking off the boat in ihuykatumu (during which IsJumping() returns false), walking off of any wall-less arena (which puts you into condition 47, not Jumping), etc
+        if (player.PosRot != player.PrevPosRot)
+            return;
+
+        // try to do nothing if player is in any state that isn't "standing on the ground"
+        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Diving))
             return;
 
         try
@@ -276,7 +286,20 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         catch (IpcNotReadyError ex)
         {
-            Service.Logger.Debug(ex, "Unable to call vnav IPC, pausing");
+            Service.Logger.Debug(ex, "vnav is not loaded, pausing");
+            _pauseBitmapGeneration = true;
+            return;
+        }
+
+        try
+        {
+            // if player is standing on a little rock or at the edge of accessible ground, we want to avoid generating a bitmap every frame which just overwrites an existing one
+            if (!isPointOnMesh.InvokeFunc(player.PosRot.XYZ(), 2, true))
+                return;
+        }
+        catch (IpcNotReadyError ex)
+        {
+            Service.Logger.Debug(ex, "vnav is too old, must be >=1.2.3.8 to support auto generation");
             _pauseBitmapGeneration = true;
             return;
         }

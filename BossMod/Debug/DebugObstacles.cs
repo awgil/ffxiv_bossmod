@@ -269,7 +269,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
         var filename = GenerateMapName();
         var (min, max) = _createMap(pos, Obstacles.SourceFilename(filename), 0.5f, _minBounds, _maxBounds);
         var (tweakMin, tweakMax) = _minBounds == DefaultMinBounds && _maxBounds == DefaultMaxBounds ? (min - new Vector3(0, 1, 0), max + new Vector3(0, 10, 0)) : (min, max); // account for jumping etc...
-        var entry = new ObstacleMapDatabase.Entry(tweakMin, tweakMax, new(min.XZ()), 60, 60, filename);
+        var entry = new ObstacleMapDatabase.Entry(tweakMin, tweakMax, new(min.XZ()), 60, 60, filename) { Embedded = true };
         OpenEditor(entry);
         Obstacles.Database.Entries.GetOrAdd(Obstacles.CurrentKey()).Add(entry);
         _dbModified = true;
