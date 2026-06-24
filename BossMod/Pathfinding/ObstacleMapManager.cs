@@ -21,6 +21,7 @@ public sealed class ObstacleMapManager : IDisposable
     private readonly EventSubscriptions _subscriptions;
     private readonly List<(ObstacleMapDatabase.Entry entry, Bitmap data)> _entries = [];
     private readonly Lock _tempMapLock = new();
+    private readonly Lock _resetLock = new();
     private (ObstacleMapDatabase.Entry entry, Bitmap data)? _tempMap;
     private Task? _generationTask;
 
@@ -54,6 +55,19 @@ public sealed class ObstacleMapManager : IDisposable
     public string SourceFilename(string filename) => Path.Join(SourceRoot, filename);
     public string GeneratedFilename(string filename) => Path.Join(UserRoot.FullName, filename);
     public string EntryFilename(ObstacleMapDatabase.Entry e) => e.Embedded ? SourceFilename(e.Filename) : GeneratedFilename(e.Filename);
+
+    public void ClearGenerated()
+    {
+        lock (_resetLock)
+        {
+            if (UserRoot.Exists)
+            {
+                UserRoot.Delete(true);
+                UserRoot.Create();
+            }
+            ReloadDatabase();
+        }
+    }
 
     public (ObstacleMapDatabase.Entry? entry, Bitmap? data) Find(Vector3 pos)
     {
@@ -249,7 +263,7 @@ public sealed class ObstacleMapManager : IDisposable
             using (var builtin = GetEmbeddedResource("maplist.json"))
                 Database.Load(builtin, true);
 
-            if (UserList.Exists)
+            if (File.Exists(UserList.FullName))
             {
                 using var user = UserList.OpenRead();
                 Database.Load(user, false);
@@ -300,6 +314,9 @@ public sealed class ObstacleMapManager : IDisposable
 
     public bool GenerateMap(Vector3 centerWorld, float radius, bool writeToFile)
     {
+        if (_resetLock.IsHeldByCurrentThread)
+            return false;
+
         if (_generationTask is { IsFaulted: true })
         {
             var exc = _generationTask.Exception;

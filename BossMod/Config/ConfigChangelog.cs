@@ -254,16 +254,16 @@ public class ConfigChangelogWindow : UIWindow
         }
     }
 
-    private static Version GetCurrentPluginVersion()
+    public static Version GetCurrentPluginVersion()
     {
         return Assembly.GetExecutingAssembly().GetName().Version!;
     }
 
 #pragma warning disable CA1024 // Use properties where appropriate
-    private static Version GetPreviousPluginVersion()
+    public static Version GetPreviousPluginVersion()
     {
         // uncomment to test changelog
-        //return new(7, 5, 1, 0);
+        // return new(7, 5, 1, 0);
 
         // change to a smaller value to test changelog
         return Service.Config.AssemblyVersion;

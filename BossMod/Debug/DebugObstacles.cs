@@ -195,6 +195,8 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     {
         ImGui.TextUnformatted($"Local database root: {Obstacles.SourceRoot}");
         ImGui.TextUnformatted($"Generated maps root: {Obstacles.UserRoot.FullName}");
+        if (ImGui.Button("Clear all generated maps"))
+            Obstacles.ClearGenerated();
 
         ImGui.Separator();
         ImGui.TextUnformatted("Temp map (IPC / memory)");

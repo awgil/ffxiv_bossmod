@@ -130,7 +130,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _wsSync = new MockWorldStateGameSync();
             _hintExecutor = new MockHintExecutor();
 
-            Service.LuminaGameData!.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
+            Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
         }
         else
         {
@@ -179,6 +179,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        Version cutoff = new(7, 5, 1, 13);
+        if (ConfigChangelogWindow.GetPreviousPluginVersion() < cutoff && ConfigChangelogWindow.GetCurrentPluginVersion() >= cutoff)
+        {
+            Service.Log($"Removing potentially broken bitmaps from {_hintsBuilder.Obstacles.UserRoot.FullName}");
+            _hintsBuilder.Obstacles.ClearGenerated();
+        }
+
         // TODO: this should be in worldstate, but how?
         clientState.Logout += OnLogout;
         clientState.ZoneInit += OnZoneInit;
@@ -306,7 +313,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         try
         {
-            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 1024, true);
+            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 2048, true);
         }
         catch (Exception ex)
         {
@@ -354,6 +361,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             GC.WaitForPendingFinalizers();
             GC.Collect();
         });
+
+        _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", _hintsBuilder.Obstacles.ClearGenerated);
 
         _slashCmd.Register();
         _slashCmd.RegisterAlias("/vbmai", "ai"); // TODO: deprecated
