@@ -251,7 +251,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private Func<AIHints.Enemy, float> RateEnemy(StrategyEnemySelection criterion) => criterion switch
     {
-        StrategyEnemySelection.Closest => Player != null ? e => -(e.Actor.Position - Player.Position).LengthSq() : _ => 0,
+        StrategyEnemySelection.Closest => Player != null ? e => -Player.DistanceToHitbox(e.Actor) : _ => 0,
         StrategyEnemySelection.LowestCurHP => e => -e.Actor.HPMP.CurHP,
         StrategyEnemySelection.HighestCurHP => e => e.Actor.HPMP.CurHP,
         StrategyEnemySelection.LowestMaxHP => e => -e.Actor.HPMP.MaxHP,
