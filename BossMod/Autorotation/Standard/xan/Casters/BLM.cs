@@ -268,7 +268,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        if (!Hints.PriorityTargets.Any())
+        if (!Hints.PriorityTargets.Any(p => Player.DistanceToHitbox(p.Actor) < 40))
         {
             if (ReadyIn(AID.Transpose) == 0)
             {
@@ -295,10 +295,10 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
                 PushGCD(AID.UmbralSoul, Player, GCDPriority.Standard);
         }
 
-        if (primaryTarget == null)
-            return;
-
         GoalZoneSingle(25);
+
+        if (primaryTarget == null || Player.DistanceToHitbox(primaryTarget.Actor) > 50)
+            return;
 
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID) is Actor ll)
             Hints.GoalZones.Add(p => p.InCircle(ll.Position, 3) ? 0.5f : 0);
