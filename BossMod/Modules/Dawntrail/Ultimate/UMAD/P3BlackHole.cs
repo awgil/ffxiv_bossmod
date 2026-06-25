@@ -93,7 +93,7 @@ class P3SlapHappyShockwave(BossModule module) : Components.UntelegraphedBait(mod
             case AID.SlapHappyRightHand:
                 _numExpected = 1;
                 activation = Module.CastFinishAt(spell, 3.4f);
-                CurrentBaits.Add(new(Arena.Center, new(0xff), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1, stackSize: 8));
+                CurrentBaits.Add(new(Arena.Center, new(0xff), new AOEShapeCone(100, 30.Degrees()), activation, count: 1, stackSize: 8));
                 break;
         }
     }
@@ -273,6 +273,7 @@ class P3Nothingness : Components.BaitAwayTethers
                 ReportError("unable to assign tethers - can't find kefka???");
                 return;
             }
+            // the closest hole to kefka's right is at least 45 degrees away, whereas the one directly under him may be <1 degree counterclockwise, but should still be treated as the basis for prioritization
             foreach (var (h, r) in _holes.ClockOrderWith(bh => bh.Hole, k3, k3.Position + (k3.Rotation + 5.Degrees()).ToDirection()).Zip(toApply))
                 h.DesiredTarget = r;
         }
@@ -281,3 +282,5 @@ class P3Nothingness : Components.BaitAwayTethers
 
 class P3DamningEdict(BossModule module) : Components.StandardAOEs(module, AID.DamningEdict, new AOEShapeRect(60, 40));
 class P3HotTail(BossModule module) : Components.StandardAOEs(module, AID.LookUponMeAndDespair, new AOEShapeRect(100, 8));
+
+// vfx/monster/gimmick6/eff/z3oy_b0_g10c0c.avfx
