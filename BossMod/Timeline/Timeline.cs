@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 
 namespace BossMod;
 
@@ -18,8 +18,8 @@ public class Timeline
 
         public virtual void DrawHeader(Vector2 topLeft)
         {
-            var s = ImGui.CalcTextSize(Name);
-            ImGui.GetWindowDrawList().AddText(topLeft + new Vector2((Width - s.X) * 0.5f, 0), 0xffffffff, Name);
+            ImGui.SetCursorPos(topLeft - ImGui.GetWindowPos() + new Vector2(Width * 0.5f, ImGui.GetFrameHeight() * -0.5f));
+            UIMisc.TextRotated(Name, MathF.PI / 3);
         }
 
         public virtual void Draw() { }
@@ -95,7 +95,7 @@ public class Timeline
     public float MaxTime;
     public float? CurrentTime;
     public float PixelsPerSecond = 10 * ImGuiHelpers.GlobalScale;
-    public float TopMargin = 20 * ImGuiHelpers.GlobalScale;
+    public float TopMargin = 40 * ImGuiHelpers.GlobalScale;
     public float BottomMargin = 5 * ImGuiHelpers.GlobalScale;
     public ColumnGroup Columns;
 
@@ -123,9 +123,9 @@ public class Timeline
         Columns.Update();
 
         _screenClientTL = ImGui.GetCursorScreenPos();
+        _screenClientTL.Y += TopMargin;
         Columns.DrawHeader(_screenClientTL + new Vector2(_timeAxisWidth, 0));
 
-        _screenClientTL.Y += TopMargin;
         ImGui.SetCursorScreenPos(_screenClientTL);
         _screenClientTL.X += _timeAxisWidth;
 

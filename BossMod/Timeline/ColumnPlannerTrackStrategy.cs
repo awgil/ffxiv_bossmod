@@ -44,33 +44,47 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
         }
     }
 
+    static readonly Angle Angle60 = new(60 * Angle.DegToRad);
+    static readonly float Tan60 = MathF.Tan(Angle60.Rad);
+
     public override void DrawHeader(Vector2 topLeft)
     {
         using var _ = ImRaii.PushId($"{config.OptionEnum}_{config.InternalName}");
         var paddingY = ImGui.GetStyle().ItemSpacing.Y;
         var cursor = ImGui.GetCursorPos();
         var isHovered = false;
-        using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0, paddingY)))
+        var hideTooltip = false;
+        var windowRect = ImGui.GetClipRectMin(ImGui.GetWindowDrawList());
+        var clickableEdge = new WDir((topLeft - ImGui.GetWindowPos()).Y, 0).Rotate(Angle60).ToVec2();
+
+        using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0)))
         {
-            var textSize = ImGui.CalcTextSize(Name);
             var originAdj = topLeft - ImGui.GetWindowPos();
-            using (ImRaii.Group())
+            var mouseAbs = ImGui.GetMousePos();
+            var mouseRelative = mouseAbs - topLeft;
+
+            if (mouseAbs.Y > windowRect.Y && mouseRelative.Y <= 0)
             {
-                ImGui.SetCursorPos(originAdj);
-                ImGui.Selectable("", DefaultOverride.Option > 0, ImGuiSelectableFlags.None, textSize with { X = Width });
-                isHovered = ImGui.IsItemHovered();
-                ImGui.SetCursorPos(originAdj + new Vector2((Width - textSize.X) * 0.5f, 0));
-                ImGui.Text(Name);
+                var offX = mouseRelative.X + mouseRelative.Y / Tan60;
+                if (offX >= 0 && offX <= Width)
+                {
+                    isHovered = true;
+                    ImGui.AddQuadFilled(ImGui.GetWindowDrawList(), topLeft, topLeft + clickableEdge, topLeft + clickableEdge + new Vector2(Width, 0), topLeft + new Vector2(Width, 0), 0xFF404040);
+                }
             }
+
+            ImGui.SetCursorPos(originAdj + new Vector2(Width * 0.5f, 0) + new WDir(ImGui.GetFrameHeight() * 0.5f, 0).Rotate(Angle60).ToVec2());
+            UIMisc.TextRotated(Name, MathF.PI / 3);
         }
 
-        if (isHovered && config.InternalName != config.DisplayName && config.DisplayName.Length > 0)
-            ImGui.SetTooltip(config.DisplayName);
+        if (isHovered)
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         using (var popup = ImRaii.Popup("settings"))
         {
             if (popup)
             {
+                hideTooltip = true;
                 var def = DefaultOverride;
                 if (UIStrategyValue.DrawEditorTrackOption(def, config, level, "Plan default"))
                 {
@@ -84,7 +98,10 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
             }
         }
 
-        if (ImGui.IsItemClicked())
+        if (!hideTooltip && isHovered && config.InternalName != config.DisplayName && config.DisplayName.Length > 0)
+            ImGui.SetTooltip(config.DisplayName);
+
+        if (isHovered && ImGui.IsMouseDown(ImGuiMouseButton.Left))
             ImGui.OpenPopup("settings");
 
         ImGui.SetCursorPos(cursor);
