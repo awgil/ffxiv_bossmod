@@ -273,7 +273,7 @@ class P3Nothingness : Components.BaitAwayTethers
                 ReportError("unable to assign tethers - can't find kefka???");
                 return;
             }
-            foreach (var (h, r) in _holes.ClockOrderWith(bh => bh.Hole, k3, k3.Position + k3.Rotation.ToDirection()).Zip(toApply))
+            foreach (var (h, r) in _holes.ClockOrderWith(bh => bh.Hole, k3, k3.Position + (k3.Rotation + 5.Degrees()).ToDirection()).Zip(toApply))
                 h.DesiredTarget = r;
         }
     }
