@@ -4,6 +4,9 @@ class P2UltimateEmbrace(BossModule module) : Components.CastSharedTankbuster(mod
 
 class P2ForsakenRaidwide(BossModule module) : Components.RaidwideCast(module, AID.Forsaken);
 
+// notes: raidplan has clone baiters positioning relative to kefka's inner hitbox ring
+// hitbox vfx isn't a specific integer size, it's scaled to the enemy, so the inner hitbox is roughly 5.15 units in radius (and the outer hitbox is 6.02)
+
 // mapeffect: XX.00020001
 // index is 1 (N) clockwise through 8 (NW)
 // tower triggers 10.2s later

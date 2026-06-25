@@ -54,28 +54,25 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
         var cursor = ImGui.GetCursorPos();
         var isHovered = false;
         var hideTooltip = false;
+
         var windowRect = ImGui.GetClipRectMin(ImGui.GetWindowDrawList());
         var clickableEdge = new WDir((topLeft - ImGui.GetWindowPos()).Y, 0).Rotate(Angle60).ToVec2();
+        var originAdj = topLeft - ImGui.GetWindowPos();
+        var mouseAbs = ImGui.GetMousePos();
+        var mouseRelative = mouseAbs - topLeft;
 
-        using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0)))
+        if (mouseAbs.Y > windowRect.Y && mouseRelative.Y <= 0)
         {
-            var originAdj = topLeft - ImGui.GetWindowPos();
-            var mouseAbs = ImGui.GetMousePos();
-            var mouseRelative = mouseAbs - topLeft;
-
-            if (mouseAbs.Y > windowRect.Y && mouseRelative.Y <= 0)
+            var offX = mouseRelative.X + mouseRelative.Y / Tan60;
+            if (offX >= 0 && offX <= Width)
             {
-                var offX = mouseRelative.X + mouseRelative.Y / Tan60;
-                if (offX >= 0 && offX <= Width)
-                {
-                    isHovered = true;
-                    ImGui.AddQuadFilled(ImGui.GetWindowDrawList(), topLeft, topLeft + clickableEdge, topLeft + clickableEdge + new Vector2(Width, 0), topLeft + new Vector2(Width, 0), 0xFF404040);
-                }
+                isHovered = true;
+                ImGui.AddQuadFilled(ImGui.GetWindowDrawList(), topLeft, topLeft + clickableEdge, topLeft + clickableEdge + new Vector2(Width, 0), topLeft + new Vector2(Width, 0), 0xFF404040);
             }
-
-            ImGui.SetCursorPos(originAdj + new Vector2(Width * 0.5f, 0) + new WDir(ImGui.GetFrameHeight() * 0.5f, 0).Rotate(Angle60).ToVec2());
-            UIMisc.TextRotated(Name, MathF.PI / 3);
         }
+
+        ImGui.SetCursorPos(originAdj + new Vector2(Width * 0.5f, 0) + new WDir(ImGui.GetFrameHeight() * 0.5f, 0).Rotate(Angle60).ToVec2());
+        UIMisc.TextRotated(Name, MathF.PI / 3);
 
         if (isHovered)
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
