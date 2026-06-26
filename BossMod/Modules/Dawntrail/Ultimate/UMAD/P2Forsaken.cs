@@ -303,8 +303,8 @@ class P2Shapes : Components.CastCounterMulti
                         yield return Arena.Center + dirToTowers.Rotate(-45.Degrees()) * (8 + 2.5f);
                         break;
                     case Shape.Stack:
-                        // "safest" position is dir * 7, but raidplan specifies to stand exactly on the hitbox (which is fine since it's borderline impossible for humans to eyeball the stack radius)
-                        yield return (Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 6.02f);
+                        // use optimal solution (which covers entire tower) as opposed to the raidplan solution (which is easier to eyeball but can miss the cone player)
+                        yield return Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 7;
                         break;
                 }
             }
@@ -319,11 +319,11 @@ class P2Shapes : Components.CastCounterMulti
                         // 2. not getting kicked; depending on how bad the baits were, this might be impossible
                         // 3. not clipping support side non-tower stack player
                         // this position is almost exactly what the kroxy raidplan recommends for this baiter
-                        yield return (Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(35.Degrees()) * -3.25f);
+                        yield return Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(35.Degrees()) * -3.25f;
                         break;
                     case Shape.Spread:
                         // dps side spread positioning barely matters as long as they're in tower
-                        yield return (Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers * 3.5f);
+                        yield return Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers * 3.5f;
                         break;
                 }
             }
@@ -335,10 +335,10 @@ class P2Shapes : Components.CastCounterMulti
                 switch (ResolvingShapes[pcSlot])
                 {
                     case Shape.Cone:
-                        yield return (Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-16.Degrees()) * -3.6f);
+                        yield return Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-16.Degrees()) * -3.6f;
                         break;
                     case Shape.Spread:
-                        yield return (Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * 3.5f);
+                        yield return Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * 3.5f;
                         break;
                 }
             }
@@ -348,11 +348,11 @@ class P2Shapes : Components.CastCounterMulti
                 {
                     // raidplan wants us exactly on the intersection between kefka's inner hitbox ring and the tower edge, and cone baiters are positioned based on that
                     case Shape.Cone:
-                        yield return (Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(16.Degrees()) * -3.6f);
+                        yield return Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(16.Degrees()) * -3.6f;
                         break;
                     // again positioning is not super important, we just need to not accidentally bait cone
                     case Shape.Spread:
-                        yield return (Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * 3.5f);
+                        yield return Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * 3.5f;
                         break;
                 }
             }
