@@ -105,7 +105,8 @@ class P2Shapes : Components.CastCounterMulti
 
     readonly WDir[] _prevTowers = [default, default];
     DateTime _nextDeadline;
-    int _pendingShapes;
+    int _pendingCasts;
+    int _pendingIcons;
 
     int _numAssignments;
 
@@ -187,11 +188,14 @@ class P2Shapes : Components.CastCounterMulti
             _ => default
         };
 
+        // TODO: what happens if someone is dead when the first shapes are assigned?
         if (shape != default && Raid.TryFindSlot(actor, out var slot))
         {
             _numAssignments++;
             if (InitialShapes[slot] == default)
                 InitialShapes[slot] = shape;
+            else
+                _pendingIcons--;
             Shapes[slot] = shape;
 
             // first tower set
@@ -201,8 +205,8 @@ class P2Shapes : Components.CastCounterMulti
                 AssignTowers();
             }
 
-            // rarely, the last shape icon can appear after the last cast event happens
-            if (_numAssignments > 8 && _numAssignments % 4 == 0 && _pendingShapes == 0)
+            // casts usually happen after icons. usually
+            if (_numAssignments > 8 && _pendingIcons == 0 && _pendingCasts == 0)
                 AssignTowers();
         }
     }
@@ -210,7 +214,11 @@ class P2Shapes : Components.CastCounterMulti
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellsTrouble && Raid.TryFindSlot(actor, out var slot))
+        {
             Shapes[slot] = default;
+            if (--_pendingIcons == 0 && _pendingCasts == 0)
+                AssignTowers();
+        }
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PartnerSlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
@@ -222,19 +230,19 @@ class P2Shapes : Components.CastCounterMulti
             Shapes.CopyTo(ResolvingShapes);
             _prevTowers[1] = _prevTowers[0];
             _prevTowers[0] = caster.Position - Arena.Center;
-            _pendingShapes += spell.Targets.Count;
-            _nextDeadline = WorldState.FutureTime(0.7f);
+            _pendingCasts += spell.Targets.Count;
+            _pendingIcons += spell.Targets.Count;
+            _nextDeadline = WorldState.FutureTime(0.6f);
         }
 
         if ((AID)spell.Action.ID is AID.Spellwave or AID.Spelldriver or AID.Spellscatter)
         {
             NumCasts++;
-
-            if (--_pendingShapes == 0)
+            if (--_pendingCasts == 0)
             {
                 _numResolves++;
-                // most common order of operations: cast events happen after next set of icons appears
-                if (_numAssignments % 4 == 0)
+                // casts usually happen after icons
+                if (_pendingIcons == 0)
                     AssignTowers();
 
                 if (TowerComponent?.Towers.FirstOrNull() is { } nt)
@@ -261,7 +269,7 @@ class P2Shapes : Components.CastCounterMulti
 
         WDir towersDir;
 
-        if (_pendingShapes > 0)
+        if (_pendingCasts > 0 || _pendingIcons > 0)
             towersDir = ((_prevTowers[0] + _prevTowers[1]) * 0.5f).Normalized();
         else if (towers.Towers.Count == 2)
             towersDir = towers.DirToTowers();
