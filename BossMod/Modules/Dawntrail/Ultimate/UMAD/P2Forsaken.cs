@@ -99,10 +99,13 @@ class P2Shapes : Components.CastCounterMulti
     public readonly int[] PartnerSlot = Utils.MakeArray(8, -1);
     public readonly int[] Tiebreaker = Utils.MakeArray(8, -1);
 
+    public bool Baiting;
+
     int _numResolves;
 
-    bool _shapesPending;
     readonly WDir[] _prevTowers = [default, default];
+    DateTime _nextDeadline;
+    int _pendingShapes;
 
     int _numAssignments;
 
@@ -143,29 +146,37 @@ class P2Shapes : Components.CastCounterMulti
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        foreach (var (w, i) in GetMoveHints(pcSlot))
-            Arena.AddCircle(w, 0.5f, i ? ArenaColor.Safe : ArenaColor.Danger);
+        foreach (var w in GetMoveHints(pcSlot))
+            Arena.AddCircle(w, 0.5f, Baiting ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var hintResolution = TowerComponent?.Towers.FirstOrNull()?.Activation ?? DateTime.MaxValue;
+        if (Baiting)
+            return;
 
-        foreach (var (spot, _) in GetMoveHints(slot))
+        foreach (var spot in GetMoveHints(slot))
         {
             hints.ForbiddenZones.Clear();
 
-            hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), hintResolution);
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), _nextDeadline);
         }
     }
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        foreach (var (w, i) in GetMoveHints(slot))
-            movementHints.Add((actor.Position, w, i ? ArenaColor.Safe : ArenaColor.Danger));
+        foreach (var w in GetMoveHints(slot))
+        {
+            var origin = actor.Position;
+            if (Baiting)
+                foreach (var sp in Module.FindComponent<P2AllThingsEndingBait>()?.GetSafeSpot() ?? [])
+                    origin = sp;
+            movementHints.Add(origin, w, Baiting ? ArenaColor.Danger : ArenaColor.Safe);
+        }
     }
 
     // there is an invisible status associated with each debuff, but note that at least one player per round gets the same shape they already had, which does NOT trigger statusgain again
+    // icon -> cast event order is not consistent
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         var shape = (IconID)iconID switch
@@ -183,11 +194,16 @@ class P2Shapes : Components.CastCounterMulti
                 InitialShapes[slot] = shape;
             Shapes[slot] = shape;
 
+            // first tower set
             if (_numAssignments == 8)
             {
-                Shapes.CopyTo(ResolvingShapes);
+                _nextDeadline = WorldState.FutureTime(11.6f);
                 AssignTowers();
             }
+
+            // rarely, the last shape icon can appear after the last cast event happens
+            if (_numAssignments > 8 && _numAssignments % 4 == 0 && _pendingShapes == 0)
+                AssignTowers();
         }
     }
 
@@ -201,24 +217,29 @@ class P2Shapes : Components.CastCounterMulti
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(caster, spell);
-
         if ((AID)spell.Action.ID == AID.ThePathOfLight)
         {
             Shapes.CopyTo(ResolvingShapes);
             _prevTowers[1] = _prevTowers[0];
             _prevTowers[0] = caster.Position - Arena.Center;
-            _shapesPending = true;
+            _pendingShapes += spell.Targets.Count;
+            _nextDeadline = WorldState.FutureTime(0.7f);
         }
 
         if ((AID)spell.Action.ID is AID.Spellwave or AID.Spelldriver or AID.Spellscatter)
         {
-            if (_shapesPending)
+            NumCasts++;
+
+            if (--_pendingShapes == 0)
+            {
                 _numResolves++;
-            _shapesPending = false;
-            Shapes.CopyTo(ResolvingShapes);
-            if (_numAssignments % 4 == 0)
-                AssignTowers();
+                // most common order of operations: cast events happen after next set of icons appears
+                if (_numAssignments % 4 == 0)
+                    AssignTowers();
+
+                if (TowerComponent?.Towers.FirstOrNull() is { } nt)
+                    _nextDeadline = nt.Activation;
+            }
         }
     }
 
@@ -227,7 +248,7 @@ class P2Shapes : Components.CastCounterMulti
         NumCasts = 0;
     }
 
-    IEnumerable<(WPos Destination, bool Imminent)> GetMoveHints(int pcSlot)
+    IEnumerable<WPos> GetMoveHints(int pcSlot)
     {
         if (Shapes.All(s => s == default))
             return [];
@@ -235,21 +256,27 @@ class P2Shapes : Components.CastCounterMulti
         if (_config.P2ForsakenStrategy != UMADConfig.P2ForsakenStrategyType.KroxyRinon)
             return [];
 
-        var (tLeft, tRight) = CurrentAssignments;
-
         if (TowerComponent is not { } towers || towers.NumCasts == 0 && towers.Towers.Count < 2)
             return [];
 
-        var baiting = !towers.EnableHints && !_shapesPending;
+        WDir towersDir;
 
-        var towersDir = _shapesPending ? ((_prevTowers[0] + _prevTowers[1]) * 0.5f).Normalized() : towers.DirToTowers();
+        if (_pendingShapes > 0)
+            towersDir = ((_prevTowers[0] + _prevTowers[1]) * 0.5f).Normalized();
+        else if (towers.Towers.Count == 2)
+            towersDir = towers.DirToTowers();
+        else
+            // only happens during pre-even gap before new towers spawn; realistically we should just predict the tower rotation but that's slightly more work and thus annoying
+            return [];
 
         var oddSet = _numResolves % 2 == 0;
 
+        var (tLeft, tRight) = CurrentAssignments;
+
         if (tLeft[pcSlot] || tRight[pcSlot])
-            return GetInsideTowerHints(pcSlot, oddSet, towersDir).Select(p => (p, !baiting));
+            return GetInsideTowerHints(pcSlot, oddSet, towersDir);
         else
-            return GetOutsideTowerHints(pcSlot, oddSet, towersDir).Select(p => (p, !baiting));
+            return GetOutsideTowerHints(pcSlot, oddSet, towersDir);
     }
 
     // the positions for these hints are copied verbatim from the raidplan, as opposed to being mathematically "optimal" or close to it, as we need to ensure that we don't mess with honest players' learned positioning
@@ -368,6 +395,7 @@ class P2Shapes : Components.CastCounterMulti
 
     void AssignTowers()
     {
+        Shapes.CopyTo(ResolvingShapes);
         SetAssignments(new(0xff), new(0xff));
 
         if (_config.P2ForsakenStrategy != UMADConfig.P2ForsakenStrategyType.KroxyRinon)
@@ -515,11 +543,12 @@ class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID.Sp
     // damage only
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        base.AddAIHints(slot, actor, assignment, hints);
+
         foreach (var b in CurrentBaits)
         {
-            hints.AddPredictedDamage(Raid.WithSlot().Exclude(b.Source).WhereActor(a => IsClippedBy(a, b)).Mask(), b.Activation);
-
-            // forbid target/source from dashing
+            // forbid target/source from dashing while bait is active
+            // (this zone will be removed by the other component if role-specific forsaken hints are configured properly)
             if (b.Target == actor || b.Source == actor)
                 hints.AddForbiddenZone(_ => true, DateTime.MaxValue);
         }
@@ -664,13 +693,20 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
                 movementHints.Add(actor.Position, p, ArenaColor.Safe);
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Draw)
+            foreach (var p in GetSafeSpot())
+                hints.AddForbiddenZone(ShapeContains.PrecisePosition(p, new(0, 1), 0.5f, actor.Position, 0.1f), _activation);
+    }
+
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (_next != default)
             hints.Add($"Next bait: {_next}");
     }
 
-    IEnumerable<WPos> GetSafeSpot()
+    public IEnumerable<WPos> GetSafeSpot()
     {
         if (Module.FindComponent<P2PathOfLight>() is not { } towers || towers.Towers.Count != 2)
             yield break;

@@ -308,9 +308,11 @@ class UMADStates : StateMachineBuilder
                 .DeactivateOnExit<P2Spellwave>(round == 4);
 
             ComponentCondition<P2AllThingsEndingBait>(id + 0x20, 5.4f, p => p.Casting, "Baits")
-                .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true)
-                .ExecOnExit<P2StackSpread>(p => p.EnableHints = true)
-                .ExecOnExit<P2Spellwave>(p => p.EnableHints = true)
+                .ExecOnEnter<P2Shapes>(s => s.Baiting = true, round < 4)
+                .ExecOnExit<P2Shapes>(s => s.Baiting = false, round < 4)
+                .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true, round < 4)
+                .ExecOnExit<P2StackSpread>(p => p.EnableHints = true, round < 4)
+                .ExecOnExit<P2Spellwave>(p => p.EnableHints = true, round < 4)
                 .DeactivateOnExit<P2AllThingsEndingBait>()
                 .DeactivateOnExit<P2PathOfLight>(round == 4);
         }
