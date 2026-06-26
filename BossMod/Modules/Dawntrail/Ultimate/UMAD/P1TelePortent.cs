@@ -143,15 +143,12 @@ class P1TelePortent(BossModule module) : BossComponent(module)
         if (_timesHit[slot] > 1)
             return;
 
-        var spotsNow = _hintSpots[slot].Where(h =>
-        {
-            var toCheck = _timesHit[slot] == 0 ? _debuffs[slot].D1.Dir : _debuffs[slot].D2.Dir;
-            return h.Item1 == toCheck;
-        }).Select(s => ShapeContains.InvertedCircle(s.Item2, 1)).ToList();
+        var nextDir = _timesHit[slot] == 0 ? _debuffs[slot].D1 : _debuffs[slot].D2;
 
-        var deadline = _timesHit[slot] == 0 ? _debuffs[slot].D1.Time : _debuffs[slot].D2.Time;
+        var nextSpots = _hintSpots[slot].Where(h => h.Item1 == nextDir.Dir);
 
-        hints.AddForbiddenZone(ShapeContains.Intersection(spotsNow), deadline);
+        foreach (var (_, spot) in nextSpots.Take(1))
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), nextDir.Time);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

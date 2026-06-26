@@ -65,6 +65,8 @@ class P2PathOfLight(BossModule module) : Components.GenericTowers(module, AID.Th
     }
 
     public bool InAnyTower(Actor a) => Towers.Any(t => a.Position.InCircle(t.Position, t.Radius));
+
+    public WDir DirToTowers() => Towers.Aggregate(new WDir(), (wd, t) => wd + (t.Position - Arena.Center)).Normalized();
 }
 
 class P2Shapes : Components.CastCounterMulti
@@ -88,10 +90,19 @@ class P2Shapes : Components.CastCounterMulti
         Cone
     }
 
+    // actual current debuff on player
     public readonly Shape[] Shapes = new Shape[8];
+    // what we are treating as the current debuff on the player, since we need to hold positions until the tower-triggered aoes go off
+    public readonly Shape[] ResolvingShapes = new Shape[8];
+    // used for determining group
     public readonly Shape[] InitialShapes = new Shape[8];
     public readonly int[] PartnerSlot = Utils.MakeArray(8, -1);
     public readonly int[] Tiebreaker = Utils.MakeArray(8, -1);
+
+    int _numResolves;
+
+    bool _shapesPending;
+    readonly WDir[] _prevTowers = [default, default];
 
     int _numAssignments;
 
@@ -132,14 +143,26 @@ class P2Shapes : Components.CastCounterMulti
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        foreach (var w in _destinations[pcSlot])
-            Arena.AddCircle(w, 0.5f, ArenaColor.Safe);
+        foreach (var (w, i) in GetMoveHints(pcSlot))
+            Arena.AddCircle(w, 0.5f, i ? ArenaColor.Safe : ArenaColor.Danger);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var hintResolution = TowerComponent?.Towers.FirstOrNull()?.Activation ?? DateTime.MaxValue;
+
+        foreach (var (spot, _) in GetMoveHints(slot))
+        {
+            hints.ForbiddenZones.Clear();
+
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), hintResolution);
+        }
     }
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        foreach (var w in _destinations[slot])
-            movementHints.Add((actor.Position, w, ArenaColor.Safe));
+        foreach (var (w, i) in GetMoveHints(slot))
+            movementHints.Add((actor.Position, w, i ? ArenaColor.Safe : ArenaColor.Danger));
     }
 
     // there is an invisible status associated with each debuff, but note that at least one player per round gets the same shape they already had, which does NOT trigger statusgain again
@@ -159,8 +182,12 @@ class P2Shapes : Components.CastCounterMulti
             if (InitialShapes[slot] == default)
                 InitialShapes[slot] = shape;
             Shapes[slot] = shape;
-            if (_numAssignments >= 8 && _numAssignments % 4 == 0)
+
+            if (_numAssignments == 8)
+            {
+                Shapes.CopyTo(ResolvingShapes);
                 AssignTowers();
+            }
         }
     }
 
@@ -172,20 +199,26 @@ class P2Shapes : Components.CastCounterMulti
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => PartnerSlot[pcSlot] == playerSlot ? PlayerPriority.Critical : PlayerPriority.Irrelevant;
 
-    int _numTowersDone;
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
 
         if ((AID)spell.Action.ID == AID.ThePathOfLight)
         {
-            _numTowersDone++;
-            if (_numTowersDone == 14)
-            {
-                _numAssignments += 4; // hack
+            Shapes.CopyTo(ResolvingShapes);
+            _prevTowers[1] = _prevTowers[0];
+            _prevTowers[0] = caster.Position - Arena.Center;
+            _shapesPending = true;
+        }
+
+        if ((AID)spell.Action.ID is AID.Spellwave or AID.Spelldriver or AID.Spellscatter)
+        {
+            if (_shapesPending)
+                _numResolves++;
+            _shapesPending = false;
+            Shapes.CopyTo(ResolvingShapes);
+            if (_numAssignments % 4 == 0)
                 AssignTowers();
-            }
         }
     }
 
@@ -194,62 +227,68 @@ class P2Shapes : Components.CastCounterMulti
         NumCasts = 0;
     }
 
-    readonly List<WPos>[] _destinations = Utils.GenArray<List<WPos>>(8, () => []);
-
-    public override void Update()
+    IEnumerable<(WPos Destination, bool Imminent)> GetMoveHints(int pcSlot)
     {
-        foreach (var w in _destinations)
-            w.Clear();
-
-        foreach (var (pcSlot, _) in Raid.WithSlot())
-            UpdateMoveHints(pcSlot);
-    }
-
-    void UpdateMoveHints(int pcSlot)
-    {
-        if (Shapes[pcSlot] == default)
-            return;
+        if (Shapes.All(s => s == default))
+            return [];
 
         if (_config.P2ForsakenStrategy != UMADConfig.P2ForsakenStrategyType.KroxyRinon)
-            return;
+            return [];
 
         var (tLeft, tRight) = CurrentAssignments;
-        if (tLeft[pcSlot] && tRight[pcSlot])
-            return;
 
-        if (TowerComponent is not { } towers || towers.Towers.Count != 2 || !towers.EnableHints)
-            return;
+        if (TowerComponent is not { } towers || towers.NumCasts == 0 && towers.Towers.Count < 2)
+            return [];
 
-        var dirToTowers = towers.Towers.Aggregate(new WDir(), (wd, t) => wd + (t.Position - Arena.Center)).Normalized();
+        var baiting = !towers.EnableHints && !_shapesPending;
 
-        var oddSet = _numAssignments % 8 == 0;
+        var towersDir = _shapesPending ? ((_prevTowers[0] + _prevTowers[1]) * 0.5f).Normalized() : towers.DirToTowers();
 
-        void addDestination(WPos p) => _destinations[pcSlot].Add(p);
+        var oddSet = _numResolves % 2 == 0;
+
+        if (tLeft[pcSlot] || tRight[pcSlot])
+            return GetInsideTowerHints(pcSlot, oddSet, towersDir).Select(p => (p, !baiting));
+        else
+            return GetOutsideTowerHints(pcSlot, oddSet, towersDir).Select(p => (p, !baiting));
+    }
+
+    // the positions for these hints are copied verbatim from the raidplan, as opposed to being mathematically "optimal" or close to it, as we need to ensure that we don't mess with honest players' learned positioning
+    IEnumerable<WPos> GetInsideTowerHints(int pcSlot, bool oddSet, WDir dirToTowers)
+    {
+        var (tLeft, tRight) = CurrentAssignments;
 
         if (oddSet)
         {
             if (tLeft[pcSlot])
             {
-                switch (Shapes[pcSlot])
+                switch (ResolvingShapes[pcSlot])
                 {
                     case Shape.Cone:
-                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * (8 + 3));
+                        // raidplan recommends that the support side stack stands exactly on the boss hitbox edge, which is at +6.02 units, meaning the maximum distance we can safely move away is <11.02
+                        yield return Arena.Center + dirToTowers.Rotate(-45.Degrees()) * (8 + 2.5f);
                         break;
                     case Shape.Stack:
-                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 7);
+                        // "safest" position is dir * 7, but raidplan specifies to stand exactly on the hitbox (which is fine since it's borderline impossible for humans to eyeball the stack radius)
+                        yield return (Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 6.02f);
                         break;
                 }
             }
 
             if (tRight[pcSlot])
             {
-                switch (Shapes[pcSlot])
+                switch (ResolvingShapes[pcSlot])
                 {
                     case Shape.Stack:
-                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(20.Degrees()) * -3.5f);
+                        // stand slightly further away from tower edge; we need to account for
+                        // 1. always hitting both stack players, who sometimes like to position very deep, i.e. close to the midpoint between the two towers, they shouldn't really be doing this
+                        // 2. not getting kicked; depending on how bad the baits were, this might be impossible
+                        // 3. not clipping support side non-tower stack player
+                        // this position is almost exactly what the kroxy raidplan recommends for this baiter
+                        yield return (Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(35.Degrees()) * -3.25f);
                         break;
                     case Shape.Spread:
-                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers * 3.5f);
+                        // dps side spread positioning barely matters as long as they're in tower
+                        yield return (Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers * 3.5f);
                         break;
                 }
             }
@@ -258,27 +297,71 @@ class P2Shapes : Components.CastCounterMulti
         {
             if (tLeft[pcSlot])
             {
-                switch (Shapes[pcSlot])
+                switch (ResolvingShapes[pcSlot])
                 {
                     case Shape.Cone:
-                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * -3.5f);
+                        yield return (Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-16.Degrees()) * -3.6f);
                         break;
                     case Shape.Spread:
-                        addDestination(Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * 3.5f);
+                        yield return (Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 8 + dirToTowers.Rotate(-10.Degrees()) * 3.5f);
                         break;
                 }
             }
             if (tRight[pcSlot])
             {
-                switch (Shapes[pcSlot])
+                switch (ResolvingShapes[pcSlot])
                 {
+                    // raidplan wants us exactly on the intersection between kefka's inner hitbox ring and the tower edge, and cone baiters are positioned based on that
                     case Shape.Cone:
-                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * -3.5f);
+                        yield return (Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(16.Degrees()) * -3.6f);
                         break;
+                    // again positioning is not super important, we just need to not accidentally bait cone
                     case Shape.Spread:
-                        addDestination(Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * 3.5f);
+                        yield return (Arena.Center + dirToTowers.Rotate(45.Degrees()) * 8 + dirToTowers.Rotate(10.Degrees()) * 3.5f);
                         break;
                 }
+            }
+        }
+    }
+
+    static readonly float ConeBaitDistance = MathF.Sqrt(7.25f * 7.25f + 7.25f * 7.25f);
+
+    IEnumerable<WPos> GetOutsideTowerHints(int pcSlot, bool oddSet, WDir dirToTowers)
+    {
+        var myOrder = (new BitMask(0xff) & ~(CurrentAssignments.Item1 | CurrentAssignments.Item2)).SetBits().OrderBy(i => Tiebreaker[i]).TakeWhile(i => i != pcSlot).Count();
+
+        if (oddSet)
+        {
+            switch (myOrder)
+            {
+                case 0:
+                    // behind supp tower
+                    yield return Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 12.5f;
+                    break;
+                case 1:
+                    // in front of supp tower, try to stay away from dps stack
+                    yield return Arena.Center + dirToTowers.Rotate(-45.Degrees()) * 3.5f;
+                    break;
+                case >= 2:
+                    // in front of dps tower; make sure we are behind the line tangent to both tower edges on the kefka side, since that's where clones are hitting
+                    yield return Arena.Center + dirToTowers.Rotate(30.Degrees()) * 3.5f;
+                    break;
+            }
+        }
+        else
+        {
+            switch (myOrder)
+            {
+                case 0:
+                case 3:
+                    // cone bait
+                    yield return Arena.Center + dirToTowers.Rotate(myOrder == 0 ? -90.Degrees() : 90.Degrees()) * ConeBaitDistance;
+                    break;
+                case 1:
+                case 2:
+                    // melee range clone bait
+                    yield return Arena.Center + dirToTowers.Rotate(myOrder == 1 ? 35.Degrees() : -35.Degrees()) * -6.02f;
+                    break;
             }
         }
     }
@@ -293,7 +376,7 @@ class P2Shapes : Components.CastCounterMulti
         BitMask leftTower = new();
         BitMask rightTower = new();
 
-        var oddSet = _numAssignments % 8 == 0;
+        var oddSet = _numResolves % 2 == 0;
 
         foreach (var (slot, _) in Raid.WithSlot())
         {
@@ -312,7 +395,7 @@ class P2Shapes : Components.CastCounterMulti
             }
 
 #pragma warning disable IDE0047 // Remove unnecessary parentheses, you serious bro?
-            var isInTower = (group == TowerGroup.A) == (_numAssignments is 8 or 12 or 16 or 36);
+            var isInTower = (group == TowerGroup.A) == (_numResolves is 0 or 1 or 2 or 7);
 #pragma warning restore IDE0047 // Remove unnecessary parentheses
             if (!isInTower)
                 continue;
@@ -345,12 +428,26 @@ class P2Shapes : Components.CastCounterMulti
     }
 }
 
-class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5, 5, 3, alwaysShowSpreads: true)
+class P2StackSpread : Components.UniformStackSpread
 {
-    readonly P2Shapes _shapes = module.FindComponent<P2Shapes>()!;
-    readonly P2PathOfLight _towers = module.FindComponent<P2PathOfLight>()!;
+    readonly P2PathOfLight _towers;
+
+    P2Shapes? Shapes
+    {
+        get
+        {
+            field ??= Module.FindComponent<P2Shapes>();
+            return field;
+        }
+    }
 
     bool _castPending;
+
+    public P2StackSpread(BossModule module) : base(module, 5, 5, 3, 3, alwaysShowSpreads: true)
+    {
+        ExtraAISpreadThreshold = 0;
+        _towers = module.FindComponent<P2PathOfLight>()!;
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -367,18 +464,9 @@ class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5
         }
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        // disallow autorot from dashing during shape resolution, sick fuck
-        if (_castPending)
-            hints.AddForbiddenZone(_ => true, WorldState.FutureTime(100));
-    }
-
     public override void Update()
     {
-        if (_castPending)
+        if (_castPending || Shapes == null)
             return;
 
         Stacks.Clear();
@@ -386,9 +474,9 @@ class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5
 
         foreach (var (i, player) in Raid.WithSlot().WhereActor(_towers.InAnyTower))
         {
-            if (_shapes.Shapes[i] == P2Shapes.Shape.Stack)
+            if (Shapes.Shapes[i] == P2Shapes.Shape.Stack)
                 AddStack(player, _towers.Towers[0].Activation);
-            else if (_shapes.Shapes[i] == P2Shapes.Shape.Spread)
+            else if (Shapes.Shapes[i] == P2Shapes.Shape.Spread)
                 AddSpread(player, _towers.Towers[0].Activation);
         }
     }
@@ -396,8 +484,16 @@ class P2StackSpread(BossModule module) : Components.UniformStackSpread(module, 5
 
 class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID.Spellwave)
 {
-    readonly P2Shapes _shapes = module.FindComponent<P2Shapes>()!;
     readonly P2PathOfLight _towers = module.FindComponent<P2PathOfLight>()!;
+
+    P2Shapes? Shapes
+    {
+        get
+        {
+            field ??= Module.FindComponent<P2Shapes>();
+            return field;
+        }
+    }
 
     bool _castPending;
 
@@ -416,14 +512,27 @@ class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID.Sp
         }
     }
 
+    // damage only
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var b in CurrentBaits)
+        {
+            hints.AddPredictedDamage(Raid.WithSlot().Exclude(b.Source).WhereActor(a => IsClippedBy(a, b)).Mask(), b.Activation);
+
+            // forbid target/source from dashing
+            if (b.Target == actor || b.Source == actor)
+                hints.AddForbiddenZone(_ => true, DateTime.MaxValue);
+        }
+    }
+
     public override void Update()
     {
-        if (_castPending)
+        if (_castPending || Shapes == null)
             return;
 
         CurrentBaits.Clear();
 
-        foreach (var (i, player) in Raid.WithSlot().WhereSlot(s => _shapes.Shapes[s] == P2Shapes.Shape.Cone).WhereActor(_towers.InAnyTower))
+        foreach (var (i, player) in Raid.WithSlot().WhereSlot(s => Shapes.Shapes[s] == P2Shapes.Shape.Cone).WhereActor(_towers.InAnyTower))
         {
             var closest = Raid.WithoutSlot().Exclude(player).Closest(player.Position);
             if (closest != null)
@@ -433,11 +542,16 @@ class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID.Sp
 }
 
 // boss/clone jumps on nearest player
-class P2PastsEndFuturesEnd(BossModule module) : Components.UniformStackSpread(module, 0, 5)
+class P2PastsEndFuturesEnd : Components.UniformStackSpread
 {
     WPos _source;
     DateTime _activation;
     int _numJumps;
+
+    public P2PastsEndFuturesEnd(BossModule module) : base(module, 0, 5)
+    {
+        ExtraAISpreadThreshold = 0;
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -537,13 +651,33 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
                     dir += 180.Degrees();
                 Arena.AddCone(src.Position, 30, dir, 90.Degrees(), ArenaColor.Danger);
             }
+
+            foreach (var sp in GetSafeSpot())
+                Arena.AddCircle(sp, 0.5f, ArenaColor.Safe);
         }
+    }
+
+    public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
+    {
+        if (Draw)
+            foreach (var p in GetSafeSpot())
+                movementHints.Add(actor.Position, p, ArenaColor.Safe);
     }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (_next != default)
             hints.Add($"Next bait: {_next}");
+    }
+
+    IEnumerable<WPos> GetSafeSpot()
+    {
+        if (Module.FindComponent<P2PathOfLight>() is not { } towers || towers.Towers.Count != 2)
+            yield break;
+
+        var dt = towers.DirToTowers();
+        // max melee is 6.02 + 3 + 0.5
+        yield return Arena.Center + dt * 9.25f * (_next == Bait.Behind ? 1 : -1);
     }
 }
 

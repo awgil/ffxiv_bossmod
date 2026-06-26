@@ -276,10 +276,11 @@ class UMADStates : StateMachineBuilder
         ActorCast(id, _module.BossP2, AID.Forsaken, delay, 7, true, "Raidwide")
             .ActivateOnEnter<P2ForsakenRaidwide>()
             .ActivateOnEnter<P2PathOfLight>()
-            .ActivateOnEnter<P2Shapes>()
             .ActivateOnEnter<P2StackSpread>()
             .ActivateOnEnter<P2Spellwave>()
             .ActivateOnEnter<P2AllThingsEnding>()
+            .ActivateOnEnter<P2PastsEndFuturesEnd>()
+            .ActivateOnEnter<P2Shapes>()
             .DeactivateOnExit<P2ForsakenRaidwide>();
 
         void TowerSet(uint id, int round, float delay = 5.1f)
@@ -292,10 +293,8 @@ class UMADStates : StateMachineBuilder
                 .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true);
 
             ComponentCondition<P2PastsEndFuturesEnd>(id + 0x10, 2.3f, p => p.Active)
-                .ActivateOnEnter<P2AllThingsEndingBait>()
-                .ActivateOnEnter<P2PastsEndFuturesEnd>();
-            ComponentCondition<P2PastsEndFuturesEnd>(id + 0x11, 6.9f, p => !p.Active, "Clones")
-                .DeactivateOnExit<P2PastsEndFuturesEnd>();
+                .ActivateOnEnter<P2AllThingsEndingBait>();
+            ComponentCondition<P2PastsEndFuturesEnd>(id + 0x11, 6.9f, p => !p.Active, "Clones");
 
             ComponentCondition<P2PathOfLight>(id + 0x12, 0.2f, p => p.NumCasts == 2 * (r1 + 1), $"Towers {r1 + 1}");
             ComponentCondition<P2Shapes>(id + 0x13, 0.6f, s => s.NumCasts > 0, $"Shapes {r1 + 1}")

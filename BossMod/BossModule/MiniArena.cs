@@ -282,8 +282,8 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
 
     public void TextScreen(Vector2 center, string text, uint color, float fontSize = 17)
     {
-        var size = ImGui.CalcTextSize(text) * Config.EffectiveArenaScale;
-        ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize * Config.EffectiveArenaScale, center - size / 2, color, text);
+        var size = ImGui.CalcTextSizeA(ImGui.GetFont(), fontSize, 1000, -1, text, out _) * Config.EffectiveArenaScale;
+        ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize * Config.EffectiveArenaScale, center - size / 2, color, $"{text}");
     }
 
     public void TextWorld(WPos center, string text, uint color, float fontSize = 17)
