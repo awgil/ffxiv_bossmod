@@ -19,7 +19,10 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
 
         foreach (var _1 in tree.Node("Potential targets", hints.PotentialTargets.Count == 0))
         {
-            tree.LeafNodes(hints.PotentialTargets, e => $"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - player.Position).Length():f2}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}, dots={e.AllowDOTs}");
+            foreach (var pt in tree.Nodes(hints.PotentialTargets, e => new($"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - player.Position).Length():f2}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}, dots={e.AllowDOTs}###{e.Actor.InstanceID}-{e.Actor.SpawnIndex}")))
+            {
+                tree.LeafNodes(Enumerable.Reverse(pt.PrioHistory), ph => $"{ph.Value}, reason={ph.Reason}");
+            }
         }
         tree.LeafNode($"Forced target: {hints.ForcedTarget}{((hints.ForcedTarget?.IsTargetable ?? true) ? "" : " (untargetable)")}");
         tree.LeafNode($"Forced movement: {hints.ForcedMovement} (misdirection threshold={hints.MisdirectionThreshold})");

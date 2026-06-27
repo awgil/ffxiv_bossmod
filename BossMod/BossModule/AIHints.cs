@@ -1,9 +1,11 @@
+using System.Diagnostics;
+
 namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
 public sealed class AIHints
 {
-    public class Enemy(Actor actor, int priority, bool shouldBeTanked)
+    public class Enemy(Actor actor, int priority, bool shouldBeTanked, string prioReason)
     {
         public const int PriorityPointless = -1; // attacking enemy won't improve your parse, but will give gauge and advance combo (e.g. boss locked to 1 HP, useless add in raid, etc)
         public const int PriorityInvincible = -2; // attacking enemy will have no effect at all besides breaking your combo, but hitting it with AOEs is fine
@@ -12,6 +14,7 @@ public sealed class AIHints
 
         public Actor Actor = actor;
         private int _priority = priority;
+        public readonly List<(int Value, string Reason)> PrioHistory = [(priority, $"{prioReason} at {new StackFrame(1, true).GetMethod()}")];
         public int Priority
         {
             get => _priority;
@@ -19,7 +22,10 @@ public sealed class AIHints
             {
                 // we should never change priority if it has been set to pointless, since that means the target is dying and further actions targeting it are a waste
                 if (_priority != PriorityPointless)
+                {
+                    PrioHistory.Add((_priority, new StackFrame(1, true).GetMethod()?.ToString() ?? "<unknown>"));
                     _priority = value;
+                }
             }
         }
         //public float TimeToKill;
