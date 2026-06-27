@@ -7,10 +7,25 @@ class P3EarthHints(BossModule module) : BossComponent(module)
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Accretion)
-            _accretions.Add(actor);
+        {
+            if (actor.FindStatus(SID.FirstInLine) != null)
+                _accretions.Insert(0, actor);
+            else
+                _accretions.Add(actor);
+        }
+
+        if ((SID)status.ID == SID.FirstInLine && _accretions.Contains(actor))
+        {
+            _accretions.Remove(actor);
+            _accretions.Insert(0, actor);
+        }
     }
 
-    public override void AddGlobalHints(GlobalHints hints) => hints.Add($"Accretion: {string.Join(", ", _accretions.Select(a => a.Name))}");
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (_accretions.Count > 0)
+            hints.Add($"Accretions: {string.Join(", ", _accretions.Select(a => a.Name))}");
+    }
 }
 
 class P3KefkaIndicator(BossModule module) : BossComponent(module)
@@ -93,7 +108,7 @@ class P3SlapHappyShockwave(BossModule module) : Components.UntelegraphedBait(mod
             case AID.SlapHappyRightHand:
                 _numExpected = 1;
                 activation = Module.CastFinishAt(spell, 3.4f);
-                CurrentBaits.Add(new(Arena.Center, new(0xff), new AOEShapeCone(100, 30.Degrees()), activation, count: 1, stackSize: 8));
+                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Healer).Mask(), new AOEShapeCone(100, 30.Degrees()), activation, count: 1, stackSize: 8));
                 break;
         }
     }
@@ -116,15 +131,9 @@ class P3Blackhole(BossModule module) : Components.PersistentVoidzone(module, 2, 
 
 class P3Nothingness : Components.BaitAwayTethers
 {
-    enum TargetRole
-    {
-        Unknown,
-        DPS,
-        Support,
-        Accretion
-    }
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
 
-    record struct TargetOrder(TargetRole Role, int Order);
+    record struct TargetOrder(char Role, int Order);
     readonly TargetOrder[] _order = new TargetOrder[8];
 
     class Blackhole
@@ -147,7 +156,10 @@ class P3Nothingness : Components.BaitAwayTethers
 
         var order = _order[slot];
         if (order != default)
-            hints.Add($"Order: {order.Role} {order.Order}", false);
+        {
+            var os = order.Role == 'D' ? "DPS" : order.Role == 'S' ? "Support" : order.Role == 'A' ? "Accretion" : "";
+            hints.Add($"Order: {os} {order.Order}", false);
+        }
 
         foreach (var b in CurrentBaits)
         {
@@ -226,12 +238,12 @@ class P3Nothingness : Components.BaitAwayTethers
         if (order > 0 && Raid.TryFindSlot(actor, out var slot))
         {
             _order[slot].Order = order;
-            if (_order[slot].Role == TargetRole.Unknown)
-                _order[slot].Role = actor.Class.IsDD() ? TargetRole.DPS : TargetRole.Support;
+            if (_order[slot].Role == default)
+                _order[slot].Role = actor.Class.IsDD() ? 'D' : 'S';
         }
 
         if ((SID)status.ID == SID.Accretion && Raid.TryFindSlot(actor, out slot))
-            _order[slot] = _order[slot] with { Role = TargetRole.Accretion };
+            _order[slot] = _order[slot] with { Role = 'A' };
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -247,24 +259,34 @@ class P3Nothingness : Components.BaitAwayTethers
         foreach (var h in _holes)
             h.DesiredTarget = default;
 
-        TargetOrder[] toApply = (NumCasts, _holes.Count) switch
+        var iteration = (NumCasts, _holes.Count) switch
         {
-            // set 1
-            (0, 1) => [new(TargetRole.DPS, 1)],
-            (1, 2) => [new(TargetRole.DPS, 1), new(TargetRole.Support, 1)],
-            // set 2
-            (3, 3) => [new(TargetRole.DPS, 1), new(TargetRole.Support, 1), new(TargetRole.Accretion, 1)],
-            (6, 3) => [new(TargetRole.DPS, 2), new(TargetRole.Support, 1), new(TargetRole.Accretion, 1)],
-            (9, 3) => [new(TargetRole.DPS, 2), new(TargetRole.Support, 2), new(TargetRole.Accretion, 1)],
-            // set 3
-            (12, 3) => [new(TargetRole.DPS, 2), new(TargetRole.Support, 2), new(TargetRole.Accretion, 2)],
-            (15, 3) => [new(TargetRole.DPS, 3), new(TargetRole.Support, 2), new(TargetRole.Accretion, 2)],
-            (18, 3) => [new(TargetRole.DPS, 3), new(TargetRole.Support, 3), new(TargetRole.Accretion, 2)],
-            // set 4
-            (21, 2) => [new(TargetRole.DPS, 3), new(TargetRole.Support, 3)],
-            (23, 1) => [new(TargetRole.Support, 3)],
+            (0, 1) => 0,
+            (1, 2) => 1,
+            (3, 3) => 2,
+            (6, 3) => 3,
+            (9, 3) => 4,
+            (12, 3) => 5,
+            (15, 3) => 6,
+            (18, 3) => 7,
+            (21, 2) => 8,
+            (23, 1) => 9,
+            _ => -1
+        };
+
+        if (iteration < 0)
+            return;
+
+        var toApply = _config.P3BlackholeStrategy switch
+        {
+            UMADConfig.P3BlackholeStrategyType.DSA => BlackholeOrder.DSA[iteration],
+            UMADConfig.P3BlackholeStrategyType.SDA => BlackholeOrder.SDA[iteration],
+            UMADConfig.P3BlackholeStrategyType.DoubleTether => BlackholeOrder.DoubleTether[iteration],
             _ => []
         };
+
+        if (toApply.Length == 0)
+            return;
 
         if (toApply.Length > 0)
         {
@@ -275,7 +297,7 @@ class P3Nothingness : Components.BaitAwayTethers
             }
             // the closest hole to kefka's right is at least 45 degrees away, whereas the one directly under him may be <1 degree counterclockwise, but should still be treated as the basis for prioritization
             foreach (var (h, r) in _holes.ClockOrderWith(bh => bh.Hole, k3, k3.Position + (k3.Rotation + 5.Degrees()).ToDirection()).Zip(toApply))
-                h.DesiredTarget = r;
+                h.DesiredTarget = new(r.Role, r.Order);
         }
     }
 }

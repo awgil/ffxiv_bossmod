@@ -127,7 +127,7 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
             var numUnsatisfiedStacks = 0;
             foreach (var s in CurrentBaits.Where(s => !s.ForbiddenTargets[slot] && s.IsStack))
             {
-                foreach (var target in PossibleTargets(s))
+                foreach (var target in PossibleTargets(s).Take(s.Count))
                 {
                     if (s.Shape.Check(actor.Position, s.Position(target), s.Angle(target)))
                         ++numParticipatingStacks;

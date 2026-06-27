@@ -372,10 +372,13 @@ public abstract class BossModule : IDisposable
                 Arena.TextWorld(new(pos.Value.XZ()), text, 0xFF000000, 25);
             Arena.TextWorld(new(pos.Value.XZ()), text, color, 22);
 
-            if (text is "A" or "B" or "C" or "D")
-                Arena.AddCircle(new(pos.Value.XZ()), 1.25f, color);
-            else
-                Arena.AddRect(new(pos.Value.XZ()), new(0, 1), 1.1f, 1.1f, 1.1f, color);
+            if (WindowConfig.StrokeWaymarks)
+            {
+                if (text is "A" or "B" or "C" or "D")
+                    Arena.AddCircle(new(pos.Value.XZ()), 1.25f, color);
+                else
+                    Arena.AddRect(new(pos.Value.XZ()), new(0, 1), 1.1f, 1.1f, 1.1f, color);
+            }
         }
     }
 

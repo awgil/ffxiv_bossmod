@@ -38,6 +38,20 @@ public class UMADConfig : ConfigNode
     [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
     public GroupAssignmentUnique P2ForsakenTiebreaker = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
 
+    public enum P3BlackholeStrategyType
+    {
+        None,
+        [PropertyDisplay("DPS -> Support -> Accretion")]
+        DSA,
+        [PropertyDisplay("Support -> DPS -> Accretion")]
+        SDA,
+        [PropertyDisplay("DSA with double tethers")]
+        DoubleTether
+    }
+
+    [PropertyDisplay("P3 Blackhole strategy")]
+    public P3BlackholeStrategyType P3BlackholeStrategy = P3BlackholeStrategyType.None;
+
     public enum P1GravityPuddlePlacement
     {
         None,
@@ -74,4 +88,55 @@ public class GroupAssignmentRolePairs : GroupAssignment
                 counts[Assignments[i]]++;
         return counts.All(c => c == 2);
     }
+}
+
+public static class BlackholeOrder
+{
+    public static readonly (char Role, int Order)[][] DSA = [
+        [('D', 1)],
+        [('D', 1), ('S', 1)],
+
+        [('D', 1), ('S', 1), ('A', 1)],
+        [('D', 2), ('S', 1), ('A', 1)],
+        [('D', 2), ('S', 2), ('A', 1)],
+
+        [('D', 2), ('S', 2), ('A', 2)],
+        [('D', 3), ('S', 2), ('A', 2)],
+        [('D', 3), ('S', 3), ('A', 2)],
+
+        [('D', 3), ('S', 3)],
+        [('S', 3)],
+    ];
+
+    public static readonly (char Role, int Order)[][] SDA = [
+        [('S', 1)],
+        [('S', 1), ('D', 1)],
+
+        [('S', 1), ('D', 1), ('A', 1)],
+        [('S', 2), ('D', 1), ('A', 1)],
+        [('S', 2), ('D', 2), ('A', 1)],
+
+        [('S', 2), ('D', 2), ('A', 2)],
+        [('S', 3), ('D', 2), ('A', 2)],
+        [('S', 3), ('D', 3), ('A', 2)],
+
+        [('S', 3), ('D', 3)],
+        [('D', 3)],
+    ];
+
+    public static readonly (char Role, int Order)[][] DoubleTether = [
+        [('S', 1)],
+        [('D', 1), ('D', 1)],
+
+        [('D', 1), ('S', 1), ('A', 1)],
+        [('D', 2), ('S', 1), ('A', 1)],
+        [('D', 2), ('S', 2), ('A', 1)],
+
+        [('D', 2), ('S', 2), ('A', 2)],
+        [('D', 3), ('S', 2), ('A', 2)],
+        [('D', 3), ('S', 3), ('A', 2)],
+
+        [('S', 3), ('S', 3)],
+        [('D', 3)]
+    ];
 }

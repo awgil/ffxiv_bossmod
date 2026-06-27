@@ -253,6 +253,12 @@ class P3ThunderIIIBuster(BossModule module) : Components.GenericBaitAway(module,
         }
     }
 
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (_source != null)
+            hints.Add("Tankbuster");
+    }
+
     public override void Update()
     {
         CurrentBaits.Clear();

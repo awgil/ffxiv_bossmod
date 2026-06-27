@@ -88,6 +88,9 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show waymarks on radar")]
     public bool ShowWaymarks = false;
 
+    [PropertyDisplay("Show waymark shapes on radar", since: "7.5.1.15", depends: nameof(ShowWaymarks))]
+    public bool StrokeWaymarks = false;
+
     [PropertyDisplay("Show signs on radar ('attack', 'bind', 'ignore', and shape markers)", since: "0.4.10.0")]
     public bool ShowSigns = false;
 
