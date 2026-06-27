@@ -497,6 +497,8 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P3SlapHappyShockwave>();
 
         Timeout(id + 0xFF0000, 10000, "???")
+            .ActivateOnEnter<P3ThunderIIIBuster>()
+            .ActivateOnEnter<P3LatLongShockwave>()
             .ActivateOnEnter<P3DamningEdict>()
             .ActivateOnEnter<P3HotTail>();
     }

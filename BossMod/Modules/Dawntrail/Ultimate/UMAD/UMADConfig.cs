@@ -49,7 +49,7 @@ public class UMADConfig : ConfigNode
         DoubleTether
     }
 
-    [PropertyDisplay("P3 Blackhole strategy")]
+    [PropertyDisplay("P3 Blackhole tether assignments")]
     public P3BlackholeStrategyType P3BlackholeStrategy = P3BlackholeStrategyType.None;
 
     public enum P1GravityPuddlePlacement
