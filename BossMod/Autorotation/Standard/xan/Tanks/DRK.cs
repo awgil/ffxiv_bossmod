@@ -43,12 +43,12 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         Automatic,
         [Option("Use during burst, only if multiple targets will be hit")]
         BurstMulti,
-        [Option("Use ASAP, if multiple targets will be hit")]
-        AnyMulti,
         [Option("Do not use")]
         Delay,
         [Option("Use ASAP")]
         Force,
+        [Option("Use ASAP, if multiple targets will be hit")]
+        AnyMulti,
     }
 
     public static RotationModuleDefinition Definition()
