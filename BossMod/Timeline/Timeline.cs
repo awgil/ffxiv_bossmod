@@ -129,7 +129,7 @@ public class Timeline
         ImGui.SetCursorScreenPos(_screenClientTL);
         _screenClientTL.X += _timeAxisWidth;
 
-        Height = MathF.Max(10, ImGui.GetWindowPos().Y + ImGui.GetWindowHeight() - _screenClientTL.Y - TopMargin - BottomMargin - 8);
+        Height = MathF.Max(10, ImGui.GetWindowPos().Y + ImGui.GetWindowHeight() - _screenClientTL.Y - BottomMargin - 8);
         ImGui.InvisibleButton("canvas", new(_timeAxisWidth + Columns.Width, Height), ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight);
         HandleScrollZoom();
         DrawTimeAxis();

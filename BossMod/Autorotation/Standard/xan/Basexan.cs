@@ -7,9 +7,13 @@ namespace BossMod.Autorotation.xan;
 [Renderer(typeof(TargetingRenderer))]
 public enum Targeting
 {
+    [Option("Use player's target")]
     Manual,
+    [Option("Automatically pick best target for all actions")]
     Auto,
+    [Option("Automatically pick best target; player target must be hit")]
     AutoPrimary,
+    [Option("Automatically pick best target; if player has a target, hit it")]
     AutoTryPri
 }
 
@@ -575,7 +579,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         return (Bossmods.RaidCooldowns.DamageBuffLeft(Player, primaryTarget), buffsIn.Value);
     }
 
-    private bool HavePartyBuff(Actor player) => player.Class switch
+    static bool HavePartyBuff(Actor player) => player.Class switch
     {
         Class.MNK => player.Level >= 70, // brotherhood
         Class.DRG => player.Level >= 52, // battle litany
