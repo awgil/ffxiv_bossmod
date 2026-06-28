@@ -214,6 +214,16 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         return default;
     }
 
+    public float MaxChargesIn(ActionID action)
+    {
+        if (ActionDefinitions.Instance[action] is not { } def || !def.IsUnlocked(World, Player))
+            return float.MaxValue;
+
+        return def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level);
+    }
+
+    public float MaxChargesIn<AID>(AID aid) where AID : Enum => MaxChargesIn(ActionID.MakeSpell(aid));
+
     public bool TraitUnlocked(uint id)
     {
         var trait = Service.LuminaRow<Lumina.Excel.Sheets.Trait>(id);
