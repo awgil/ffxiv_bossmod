@@ -44,12 +44,12 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
         }
     }
 
-    static readonly Angle Angle60 = new(60 * Angle.DegToRad);
-    static readonly float Cos60 = Angle60.Cos();
-    static readonly float Sin60 = Angle60.Sin();
-    static readonly float Tan60 = MathF.Tan(Angle60.Rad);
+    const float HeaderAngle = 60 * Angle.DegToRad;
+    static readonly float HeaderCos = MathF.Cos(HeaderAngle);
+    static readonly float HeaderSin = MathF.Sin(HeaderAngle);
+    static readonly float HeaderTan = MathF.Tan(HeaderAngle);
 
-    static Vector2 ClickableEdge => new(Timeline.TopMargin * Cos60, -Timeline.TopMargin * Sin60);
+    static Vector2 ClickableEdge => new(Timeline.TopMargin * HeaderCos, -Timeline.TopMargin * HeaderSin);
 
     public override void DrawHeader(Vector2 topLeft)
     {
@@ -74,16 +74,16 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
 
         if (ImGui.IsItemHovered() && mouseAbs.Y > viewMinY && mouseRelative.Y <= 0)
         {
-            var offX = mouseRelative.X + mouseRelative.Y / Tan60;
-            if (offX >= 0 && offX <= Width)
+            var offX = mouseRelative.X + mouseRelative.Y / HeaderTan;
+            if (offX >= 0 && offX < Width)
             {
                 isActuallyHovered = true;
                 ImGui.AddQuadFilled(ImGui.GetWindowDrawList(), topLeft, topLeft + ClickableEdge, topLeft + ClickableEdge + new Vector2(Width, 0), topLeft + new Vector2(Width, 0), 0xFF404040);
             }
         }
 
-        ImGui.SetCursorPos(originAdj + new Vector2(Width * 0.5f, 0) + new WDir(ImGui.GetFrameHeight() * 0.5f, 0).Rotate(Angle60).ToVec2());
-        UIMisc.TextRotated(Name, MathF.PI / 3);
+        ImGui.SetCursorPos(originAdj + new Vector2(Width * 0.5f, 0) + new WDir(ImGui.GetFrameHeight() * 0.5f, 0).Rotate(new WDir(HeaderSin, HeaderCos)).ToVec2());
+        UIMisc.TextRotated(Name, HeaderAngle);
 
         wl.PopClipRect();
 
