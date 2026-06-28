@@ -1,4 +1,4 @@
-﻿namespace BossMod.RealmReborn.Novice.NoviceBasicFinal;
+﻿namespace BossMod.Global.HallOfTheNovice.NoviceBasicFinal;
 
 public enum OID : uint
 {

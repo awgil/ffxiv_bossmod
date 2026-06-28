@@ -51,11 +51,18 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Expansion.Shadowbringers, 61878, exVersion.GetRow(3).Name);
         Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion.GetRow(4).Name);
         Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion.GetRow(5).Name);
+        Customize(BossModuleInfo.Expansion.Global, 61875, "Global");
 
         var contentType = Service.LuminaSheet<ContentType>()!;
+        Customize(BossModuleInfo.Category.Uncategorized, contentType.GetRow(1), "Uncategorized");
         Customize(BossModuleInfo.Category.Dungeon, contentType.GetRow(2));
-        Customize(BossModuleInfo.Category.Trial, contentType.GetRow(4));
-        Customize(BossModuleInfo.Category.Raid, contentType.GetRow(5));
+        Customize(BossModuleInfo.Category.Trial, contentType.GetRow(4), "Normal Trials");
+        Customize(BossModuleInfo.Category.Extreme, contentType.GetRow(4), "Extreme Trials");
+        Customize(BossModuleInfo.Category.Raid, contentType.GetRow(5), "Normal Raids");
+        Customize(BossModuleInfo.Category.Savage, contentType.GetRow(5), "Savage Raids");
+        Customize(BossModuleInfo.Category.Ultimate, contentType.GetRow(28), "Ultimate Raids");
+        Customize(BossModuleInfo.Category.Unreal, contentType.GetRow(4), "Unreal Trials");
+        Customize(BossModuleInfo.Category.Alliance, contentType.GetRow(5), "Alliance Raids");
         Customize(BossModuleInfo.Category.Chaotic, contentType.GetRow(37));
         Customize(BossModuleInfo.Category.PVP, contentType.GetRow(6));
         Customize(BossModuleInfo.Category.Quest, contentType.GetRow(7));
@@ -64,20 +71,14 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Category.GoldSaucer, contentType.GetRow(19));
         Customize(BossModuleInfo.Category.DeepDungeon, contentType.GetRow(21));
         Customize(BossModuleInfo.Category.Quantum, contentType.GetRow(21), "Quantum");
-        Customize(BossModuleInfo.Category.Ultimate, contentType.GetRow(28));
         Customize(BossModuleInfo.Category.Variant, contentType.GetRow(30), "Variant Dungeons");
         Customize(BossModuleInfo.Category.Criterion, contentType.GetRow(30), "Criterion Dungeons");
+        Customize(BossModuleInfo.Category.HallOfTheNovice, contentType.GetRow(20), "Hall of the Novice");
 
         var playStyle = Service.LuminaSheet<CharaCardPlayStyle>()!;
         Customize(BossModuleInfo.Category.Foray, playStyle.GetRow(6));
         Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle.GetRow(8));
         Customize(BossModuleInfo.Category.Hunt, playStyle.GetRow(10));
-
-        _categories[(int)BossModuleInfo.Category.Extreme].icon = _categories[(int)BossModuleInfo.Category.Trial].icon;
-        _categories[(int)BossModuleInfo.Category.Unreal].icon = _categories[(int)BossModuleInfo.Category.Trial].icon;
-        _categories[(int)BossModuleInfo.Category.Savage].icon = _categories[(int)BossModuleInfo.Category.Raid].icon;
-        _categories[(int)BossModuleInfo.Category.Alliance].icon = _categories[(int)BossModuleInfo.Category.Raid].icon;
-        //_categories[(int)BossModuleInfo.Category.Event].icon = GetIcon(61757);
 
         _iconFATE = contentType.GetRow(8).Icon;
         _iconHunt = (uint)playStyle.GetRow(10).Icon;
@@ -428,9 +429,9 @@ public sealed class ModuleViewer : IDisposable
                 var nmName = FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name);
                 return (new(nmName, groupId, groupId), new(module, Service.LuminaRow<Fate>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.GoldSaucer:
-                return (new("Gold saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new("Gold Saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
             default:
-                return (new("Ungrouped", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new("Uncategorized", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
         }
     }
 

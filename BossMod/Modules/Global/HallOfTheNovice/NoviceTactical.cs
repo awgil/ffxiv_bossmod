@@ -1,4 +1,4 @@
-namespace BossMod.RealmReborn.Novice.NoviceTactical;
+namespace BossMod.Global.HallOfTheNovice.NoviceTactical;
 
 public enum OID : uint
 {

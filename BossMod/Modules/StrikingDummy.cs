@@ -17,7 +17,7 @@ class StrikingDummyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(PlanLevel = 100)]
+[ModuleInfo(PlanLevel = 100, Category = BossModuleInfo.Category.Uncategorized, Expansion = BossModuleInfo.Expansion.Global)]
 public class StrikingDummy(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(10))
 {
     public override bool CheckReset() => !PrimaryActor.InCombat;

@@ -1,4 +1,4 @@
-﻿namespace BossMod.RealmReborn.Novice.NoviceDPS05;
+﻿namespace BossMod.Global.HallOfTheNovice.NoviceDPS05;
 
 public enum OID : uint
 {
