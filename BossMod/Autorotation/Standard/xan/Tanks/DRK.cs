@@ -13,6 +13,9 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         [Track("Living Shadow", MinLevel = 80, Action = AID.LivingShadow)]
         public Track<OffensiveStrategy> Buffs;
 
+        [Track("Disesteem", MinLevel = 100, Action = AID.Disesteem)]
+        public Track<DisesteemStrategy> Disesteem;
+
         [Track("Edge of Shadow", MinLevel = 40)]
         public Track<EdgeStrategy> Edge;
 
@@ -32,6 +35,20 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         Force,
         [Option("Use ASAP, but save 3000 MP for TBN", MinLevel = 70, Targets = ActionTargets.Hostile)]
         ForceTBN
+    }
+
+    public enum DisesteemStrategy
+    {
+        [Option("Use as a ranged GCD, or if raid buffs are about to expire")]
+        Automatic,
+        [Option("Use during burst, only if multiple targets will be hit")]
+        BurstMulti,
+        [Option("Use ASAP, if multiple targets will be hit")]
+        AnyMulti,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force,
     }
 
     public static RotationModuleDefinition Definition()
@@ -57,6 +74,33 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     private Enemy? BestRangedAOETarget;
     private Enemy? BestLineTarget;
 
+    public enum GCDPriority
+    {
+        None = 0,
+        Ranged = 50,
+        DisesteemRanged = 100,
+        Standard = 200,
+        AOE = 300,
+        Blood = 400,
+        BloodAOE = 500,
+        Deli = 600,
+        DeliAOE = 700,
+        Disesteem = 900,
+    }
+
+    public enum OGCDPriority
+    {
+        None = 0,
+        Edge = 200,
+        SaltAndDarkness = 500,
+        Carve = 550,
+        SHB = 600,
+        SaltedEarth = 650,
+        Delirium = 700,
+        LivingShadow = 800,
+        EdgeRefresh = 900,
+    }
+
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
@@ -80,95 +124,76 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         OGCD(strategy, primaryTarget);
 
         if (CountdownRemaining > 0)
+        {
+            if (Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20 && CountdownRemaining < 0.7f)
+                PushOGCD(AID.Shadowstride, primaryTarget);
+
             return;
+        }
 
         GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.Unleash, 3, maximumActionRange: 20);
 
-        if (Darkside > GCD)
-        {
-            if (Scorn > GCD && (RaidBuffsLeft > GCD || RaidBuffsIn > 9000))
-                PushGCD(AID.Disesteem, BestLineTarget);
+        if (ComboLastMove == AID.SyphonStrike)
+            PushGCD(AID.Souleater, primaryTarget, GCDPriority.Standard);
 
-            if (EnhancedDelirium > 0)
-            {
-                if (NumAOETargets > 1)
-                    PushGCD(AID.Impalement, Player);
+        if (ComboLastMove == AID.HardSlash)
+            PushGCD(AID.SyphonStrike, primaryTarget, GCDPriority.Standard);
 
-                switch (DeliriumStep)
-                {
-                    case 0:
-                        PushGCD(AID.ScarletDelirium, primaryTarget);
-                        break;
-                    case 1:
-                        PushGCD(AID.Comeuppance, primaryTarget);
-                        break;
-                    case 2:
-                        PushGCD(AID.Torcleaver, primaryTarget);
-                        break;
-                }
-            }
-
-            if (ShouldBlood(strategy))
-            {
-                if (NumAOETargets > 2)
-                    PushGCD(AID.Quietus, Player);
-
-                PushGCD(AID.Bloodspiller, primaryTarget);
-            }
-        }
+        PushGCD(AID.HardSlash, primaryTarget, GCDPriority.Standard);
 
         if (NumAOETargets > 2)
         {
             if (ComboLastMove == AID.Unleash)
-                PushGCD(AID.StalwartSoul, Player);
+                PushGCD(AID.StalwartSoul, Player, GCDPriority.AOE);
 
-            PushGCD(AID.Unleash, Player);
+            PushGCD(AID.Unleash, Player, GCDPriority.AOE);
         }
 
-        if (ComboLastMove == AID.SyphonStrike)
-            PushGCD(AID.Souleater, primaryTarget);
+        Disesteem(strategy);
 
-        if (ComboLastMove == AID.HardSlash)
-            PushGCD(AID.SyphonStrike, primaryTarget);
+        if (EnhancedDelirium > GCD)
+        {
+            if (NumAOETargets > 1)
+                PushGCD(AID.Impalement, Player, GCDPriority.DeliAOE);
 
-        PushGCD(AID.HardSlash, primaryTarget);
-    }
+            PushGCD(DeliriumStep switch
+            {
+                0 => AID.ScarletDelirium,
+                1 => AID.Comeuppance,
+                2 => AID.Torcleaver,
+                _ => AID.None
+            }, primaryTarget, GCDPriority.Deli);
+        }
 
-    public enum OGCDPriority
-    {
-        None = 0,
-        Edge = 200,
-        SaltAndDarkness = 500,
-        Carve = 550,
-        SHB = 600,
-        SaltedEarth = 650,
-        Delirium = 700,
-        LivingShadow = 800,
-        EdgeRefresh = 900,
+        UseBlood(strategy, primaryTarget);
     }
 
     private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
+        // prepull shadow if requested
+        if (strategy.Buffs == OffensiveStrategy.Force)
+            PushOGCD(AID.LivingShadow, Player, OGCDPriority.LivingShadow);
+
         if (primaryTarget == null || !Player.InCombat)
             return;
 
         Edge(strategy, primaryTarget);
 
-        if (Darkside > 0 && strategy.Buffs != OffensiveStrategy.Delay)
+        if (strategy.Buffs != OffensiveStrategy.Delay)
             PushOGCD(AID.LivingShadow, Player, OGCDPriority.LivingShadow);
 
         if (!Unlocked(AID.Delirium))
             PushOGCD(AID.BloodWeapon, Player, OGCDPriority.Delirium);
 
-        if (Blood > 0 || CombatTimer > 30)
+        if (CanFitGCD(RaidBuffsLeft, 2) || RaidBuffsIn <= GCD || CombatTimer > 30)
             PushOGCD(AID.Delirium, Player, OGCDPriority.Delirium);
 
-        if (!CanWeave(AID.Delirium))
+        if (OnCooldown(AID.Delirium))
         {
-            if (NumAOETargets > 0)
+            if (NumAOETargets > 0 && DowntimeIn > 15)
                 PushOGCD(AID.SaltedEarth, Player, OGCDPriority.SaltedEarth);
 
-            if (NumLineTargets > 0 && (RaidBuffsLeft > 0 || RaidBuffsIn > 9000))
+            if (NumLineTargets > 0 && (RaidBuffsLeft > AnimLock || RaidBuffsIn > 9000))
                 PushOGCD(AID.Shadowbringer, BestLineTarget, OGCDPriority.SHB);
 
             if (NumRangedAOETargets > 2)
@@ -181,23 +206,20 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         }
     }
 
-    private bool ShouldBlood(in Strategy strategy)
+    private void UseBlood(in Strategy strategy, Enemy? primaryTarget)
     {
-        if (Darkside <= GCD)
-            return false;
+        if (Blood < 50 && Delirium <= GCD) // can't use
+            return;
 
-        if (Delirium > 0)
-            return true;
+        var nextBlood = NextGCD is AID.Souleater or AID.StalwartSoul ? Blood + 20 : Blood;
 
-        if (Blood < 50)
-            return false;
+        if (RaidBuffsLeft > GCD || nextBlood > 100)
+        {
+            if (NumAOETargets > 2)
+                PushGCD(AID.Quietus, Player, GCDPriority.BloodAOE);
 
-        if (RaidBuffsLeft > GCD)
-            return true;
-
-        var impendingBlood = ComboLastMove == (NumAOETargets > 2 ? AID.Unleash : AID.SyphonStrike);
-
-        return Blood + (impendingBlood ? 20 : 0) > 100;
+            PushGCD(AID.Bloodspiller, primaryTarget, GCDPriority.Blood);
+        }
     }
 
     private void Edge(in Strategy strategy, Enemy? primaryTarget)
@@ -245,5 +267,28 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
                     use(OGCDPriority.Edge);
                 break;
         }
+    }
+
+    void Disesteem(in Strategy strategy)
+    {
+        if (Scorn <= GCD || strategy.Disesteem == DisesteemStrategy.Delay)
+            return;
+
+        var isBurst = RaidBuffsLeft > GCD || RaidBuffsIn > 9000;
+
+        var prio = strategy.Disesteem.Value switch
+        {
+            DisesteemStrategy.Automatic => isBurst ? GCDPriority.DisesteemRanged : GCDPriority.None,
+            DisesteemStrategy.BurstMulti => NumLineTargets > 1 && isBurst ? GCDPriority.Disesteem : GCDPriority.None,
+            DisesteemStrategy.AnyMulti => NumLineTargets > 1 ? GCDPriority.Disesteem : GCDPriority.None,
+            DisesteemStrategy.Force => GCDPriority.Disesteem,
+            _ => GCDPriority.None
+        };
+
+        // regardless of strategy, use it or lose it (except Delay, handled earlier)
+        if (!CanFitGCD(Scorn, 1) || CanFitGCD(RaidBuffsLeft) && !CanFitGCD(RaidBuffsLeft, 1))
+            prio = GCDPriority.Disesteem;
+
+        PushGCD(AID.Disesteem, BestLineTarget, prio);
     }
 }
