@@ -31,26 +31,38 @@ class P3EarthHints(BossModule module) : BossComponent(module)
 class P3KefkaIndicator(BossModule module) : BossComponent(module)
 {
     Actor? _bigKefka;
+    bool offset;
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.P3Max)
+        {
             _bigKefka = actor;
+            offset = true;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.StandOnArena)
+            offset = false;
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_bigKefka is { } k)
-            Arena.Actor(k.Position - k.Rotation.ToDirection() * 20, k.Rotation, ArenaColor.Object);
+            Arena.Actor(offset ? k.Position - k.Rotation.ToDirection() * 20 : k.Position, k.Rotation, ArenaColor.Object);
     }
 }
 
 class P3SlapHappy(BossModule module) : Components.GenericAOEs(module)
 {
+    public bool Risky = true;
     readonly List<AOEInstance> _predicted = [];
 
     const float Displacement = 10;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => p with { Risky = Risky });
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -304,5 +316,3 @@ class P3Nothingness : Components.BaitAwayTethers
 
 class P3DamningEdict(BossModule module) : Components.StandardAOEs(module, AID.DamningEdict, new AOEShapeRect(60, 40));
 class P3HotTail(BossModule module) : Components.StandardAOEs(module, AID.LookUponMeAndDespair, new AOEShapeRect(100, 8));
-
-// vfx/monster/gimmick6/eff/z3oy_b0_g10c0c.avfx

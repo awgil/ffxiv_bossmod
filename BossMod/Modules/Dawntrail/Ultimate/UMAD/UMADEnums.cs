@@ -111,6 +111,7 @@ public enum AID : uint
     Tsunami = 47861, // Helper->players, no cast, range 5 circle, water crystal bait
     StrayGusts = 47863, // Helper->player, no cast, single-target, kills player if they failed the "gaze"
     Cyclone = 47864, // Helper->player, no cast, range 6 circle, wind stack (requires at least 2 players)
+    StrayEarth = 47865, // Helper->player, no cast, single-target, kills player when primordial crust/accretion expires
     ThunderIIIBusterCast = 47881, // ExdeathP3->self, 5.0s cast, single-target
     ThunderIIIBuster = 47884, // Helper->player, no cast, range 5 circle
     LongitudinalImplosion = 47869, // ChaosP3->self, 5.0+0.8s cast, single-target
@@ -138,9 +139,20 @@ public enum AID : uint
     Nothingness = 47868, // BlackHoleP3->self, no cast, range 125 width 6 rect
     DamningEdict = 47873, // ChaosP3->self, 5.0s cast, range 60 width 80 rect
     BlackSpark = 48333, // Helper->player, no cast, single-target, triggered by touching black hole, applies dd
-    LookUponMeAndDespairCast = 47852, // BossP1->self, 4.0+1.0s cast, single-target
+    LookUponMeAndDespairCast1 = 47852, // BossP1->self, 4.0+1.0s cast, single-target
+    LookUponMeAndDespairCast2 = 47853, // BossP1->self, 4.0+1.0s cast, single-target
     LookUponMeAndDespair = 47854, // Helper->self, 5.0s cast, range 100 width 16 rect
-    UnkP3 = 50362, // BossP1->self, no cast, single-target
+    Unk1P3 = 50362, // BossP1->self, no cast, single-target
+    StandOnArena = 50483, // BossP1->self, no cast, single-target
+
+    WhiteHole = 48486, // ExdeathP3->self, 5.0s cast, range 80 circle
+    BlizzardIIICast = 47887, // ExdeathP3->self, 3.0s cast, single-target
+    BlizzardIII = 47885, // Helper->location, 3.0s cast, range 6 circle
+    KnockDownCast = 47874, // ChaosP3->self, 5.0s cast, single-target
+    KnockDown = 47875, // Helper->players, no cast, range 6 circle, stack
+    StompAMoleVisual = 47855, // BossP1->self, 5.0s cast, single-target
+    StompAMole = 47856, // Helper->self, 1.5s cast, range 5 circle
+    UnmitigatedImpactP3 = 47857, // Helper->self, no cast, range 100 circle, stomp tower explosion
 }
 
 public enum SID : uint
@@ -219,6 +231,8 @@ public enum IconID : uint
     Blaster6 = 438, // player->self
     Blaster7 = 439, // player->self
     Blaster8 = 440, // player->self
+
+    KnockDownShare = 161, // player->self
 }
 
 public enum TetherID : uint

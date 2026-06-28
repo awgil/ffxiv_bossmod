@@ -59,7 +59,10 @@ class UMADStates : StateMachineBuilder
         P3BowelsOfAgony(id + 0x10000, 14.5f);
         P3UltimaBlaster(id + 0x20000, 9.2f);
         P3Earthquake(id + 0x30000, 0.9f);
-        P3Blackhole(id + 0x40000, 10.4f);
+        P3Blackhole1(id + 0x40000, 10.4f);
+        P3Blackhole2(id + 0x50000, 0);
+        P3Blackhole3(id + 0x60000, 10.3f);
+        P3StompAMole(id + 0x70000, 6);
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -455,16 +458,16 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P3EarthquakeRaidwide>();
     }
 
-    void P3Blackhole(uint id, float delay)
+    void P3Blackhole1(uint id, float delay)
     {
         ActorCastStartMulti(id, _module.KefkaP3, [AID.SlapHappyLeftHand, AID.SlapHappyRightHand], delay)
             .ActivateOnEnter<P3SlapHappy>()
             .ActivateOnEnter<P3SlapHappyShockwave>();
 
         ComponentCondition<P3SlapHappy>(id + 1, 5.8f, s => s.NumCasts > 0, "Slams start");
-        ComponentCondition<P3SlapHappy>(id + 2, 2.6f, s => s.NumCasts >= 4, "Slams finish")
+        ComponentCondition<P3SlapHappy>(id + 2, 2.6f, s => s.NumCasts >= 4)
             .DeactivateOnExit<P3SlapHappy>();
-        ComponentCondition<P3SlapHappyShockwave>(id + 0x10, 0.1f, s => s.Resolved, "Protean(s)")
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x10, 0.1f, s => s.Resolved, "Stack(s)")
             .DeactivateOnExit<P3SlapHappyShockwave>();
 
         ComponentCondition<P3Nothingness>(id + 0x100, 7.4f, n => n.NumCasts == 1, "Laser 1")
@@ -478,28 +481,102 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P3ThunderIIIBuster>(id + 0x104, 3.1f, t => t.NumCasts > 1, "Tankbuster hit 2")
             .SetHint(StateMachine.StateHint.Tankbuster)
             .DeactivateOnExit<P3ThunderIIIBuster>();
+    }
 
-        ActorCastStart(id + 0x200, _module.ChaosP3, AID.DamningEdict, 0, true)
+    void P3Blackhole2(uint id, float delay)
+    {
+        ActorCastStart(id, _module.ChaosP3, AID.DamningEdict, delay, true)
             .ActivateOnEnter<P3DamningEdict>();
-        ActorCastStartMulti(id + 0x201, _module.KefkaP3, [AID.SlapHappyLeftHand, AID.SlapHappyRightHand], 1.3f)
+        ActorCastStartMulti(id + 1, _module.KefkaP3, [AID.SlapHappyLeftHand, AID.SlapHappyRightHand], 1.3f)
             .ActivateOnEnter<P3SlapHappy>()
             .ActivateOnEnter<P3SlapHappyShockwave>()
             .ExecOnEnter<P3SlapHappyShockwave>(s => s.EnableHints = false);
 
-        ComponentCondition<P3DamningEdict>(id + 0x202, 3.7f, d => d.NumCasts > 0, "Cleave")
+        ComponentCondition<P3DamningEdict>(id + 2, 3.7f, d => d.NumCasts > 0, "Cleave")
             .DeactivateOnExit<P3DamningEdict>()
             .ExecOnExit<P3SlapHappyShockwave>(s => s.EnableHints = true);
 
-        ComponentCondition<P3SlapHappy>(id + 0x210, 2.1f, s => s.NumCasts > 0, "Slams start");
-        ComponentCondition<P3SlapHappy>(id + 0x211, 2.6f, s => s.NumCasts >= 4, "Slams finish")
+        ComponentCondition<P3SlapHappy>(id + 0x10, 2.1f, s => s.NumCasts > 0, "Slams start");
+        ComponentCondition<P3SlapHappy>(id + 0x11, 2.6f, s => s.NumCasts >= 4)
             .DeactivateOnExit<P3SlapHappy>();
-        ComponentCondition<P3SlapHappyShockwave>(id + 0x220, 0.1f, s => s.Resolved, "Protean(s)")
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x20, 0.1f, s => s.Resolved, "Stack(s)")
             .DeactivateOnExit<P3SlapHappyShockwave>();
 
-        Timeout(id + 0xFF0000, 10000, "???")
-            .ActivateOnEnter<P3ThunderIIIBuster>()
-            .ActivateOnEnter<P3LatLongShockwave>()
-            .ActivateOnEnter<P3DamningEdict>()
+        ComponentCondition<P3Nothingness>(id + 0x100, 7.6f, n => n.NumCasts == 6, "Lasers 3");
+        ComponentCondition<P3Nothingness>(id + 0x110, 5, n => n.NumCasts == 9, "Lasers 4");
+        ComponentCondition<P3Nothingness>(id + 0x120, 5, n => n.NumCasts == 12, "Lasers 5");
+
+        ActorCastStart(id + 0x130, _module.ChaosP3, AID.DamningEdict, 0, true)
+            .ActivateOnEnter<P3DamningEdict>();
+        ActorCastStartMulti(id + 0x131, _module.KefkaP3, [AID.LookUponMeAndDespairCast1, AID.LookUponMeAndDespairCast2], 1.4f)
             .ActivateOnEnter<P3HotTail>();
+
+        ComponentCondition<P3DamningEdict>(id + 0x132, 3.5f, d => d.NumCasts > 0, "Cleave")
+            .DeactivateOnExit<P3DamningEdict>();
+        ActorCastStart(id + 0x133, _module.ExdeathP3, AID.ThunderIIIBusterCast, 1, true)
+            .ActivateOnEnter<P3ThunderIIIBuster>();
+
+        ComponentCondition<P3HotTail>(id + 0x134, 0.6f, p => p.NumCasts > 0, "Body slam")
+            .DeactivateOnExit<P3HotTail>();
+        ComponentCondition<P3ThunderIIIBuster>(id + 0x135, 4.5f, p => p.NumCasts > 0, "Tankbuster hit 1")
+            .SetHint(StateMachine.StateHint.Tankbuster);
+        ComponentCondition<P3ThunderIIIBuster>(id + 0x136, 3.1f, t => t.NumCasts > 1, "Tankbuster hit 2")
+            .SetHint(StateMachine.StateHint.Tankbuster)
+            .DeactivateOnExit<P3ThunderIIIBuster>();
+    }
+
+    void P3Blackhole3(uint id, float delay)
+    {
+        ComponentCondition<P3Nothingness>(id, delay, n => n.NumCasts == 15, "Lasers 6");
+        ComponentCondition<P3Nothingness>(id + 0x10, 5, n => n.NumCasts == 18, "Lasers 7");
+        ComponentCondition<P3Nothingness>(id + 0x20, 5.1f, n => n.NumCasts == 21, "Lasers 8");
+
+        ActorCastStart(id + 0x100, _module.ExdeathP3, AID.WhiteHole, 6.1f, true)
+            .ActivateOnEnter<P3SlapHappy>()
+            .ActivateOnEnter<P3SlapHappyShockwave>()
+            .ExecOnEnter<P3SlapHappyShockwave>(s => s.EnableHints = false);
+        ActorCastStartMulti(id + 0x101, _module.ChaosP3, [AID.LongitudinalImplosion, AID.LatitudinalImplosion], 0, true)
+            .ActivateOnEnter<P3LatLongShockwave>();
+        ActorCastEnd(id + 0x102, _module.ExdeathP3, 5, true, "HP check");
+
+        ComponentCondition<P3LatLongShockwave>(id + 0x103, 0.7f, p => p.NumCasts == 2, "Front/sides 1");
+        ComponentCondition<P3LatLongShockwave>(id + 0x104, 2, p => p.NumCasts == 4, "Front/sides 2")
+            .DeactivateOnExit<P3LatLongShockwave>();
+
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x110, 2.3f, p => p.Resolved, "Stack(s)")
+            .ExecOnEnter<P3SlapHappyShockwave>(p => p.EnableHints = true)
+            .DeactivateOnExit<P3SlapHappy>()
+            .DeactivateOnExit<P3SlapHappyShockwave>();
+
+        ComponentCondition<P3Nothingness>(id + 0x200, 7.2f, n => n.NumCasts == 23, "Lasers 9");
+
+        ActorCastStartMulti(id + 0x210, _module.KefkaP3, [AID.LookUponMeAndDespairCast1, AID.LookUponMeAndDespairCast2], 1.9f)
+            .ActivateOnEnter<P3HotTail>();
+
+        ComponentCondition<P3HotTail>(id + 0x211, 5, p => p.NumCasts > 0, "Body slam")
+            .DeactivateOnExit<P3HotTail>();
+
+        ComponentCondition<P3Nothingness>(id + 0x220, 0.3f, n => n.NumCasts == 24, "Final laser")
+            .DeactivateOnExit<P3Nothingness>()
+            .DeactivateOnExit<P3EarthHints>();
+    }
+
+    void P3StompAMole(uint id, float delay)
+    {
+        ActorCastStart(id, _module.ExdeathP3, AID.BlizzardIIICast, delay, true)
+            .ActivateOnEnter<P3StompAMole>()
+            .ActivateOnEnter<P3KnockDown>()
+            .ExecOnEnter<P3StompAMole>(m => m.EnableHints = false)
+            .ExecOnEnter<P3KnockDown>(m => m.EnableHints = false)
+            .DeactivateOnExit<P3Blackhole>();
+
+        ComponentCondition<P3BlizzardIII>(id + 0x10, 3, p => p.NumBaits == 1, "Puddles start")
+            .ActivateOnEnter<P3BlizzardIII>();
+
+        ComponentCondition<P3BlizzardIII>(id + 0x20, 5, p => p.NumBaits == 2)
+            .ExecOnExit<P3StompAMole>(m => m.EnableHints = true)
+            .ExecOnExit<P3KnockDown>(m => m.EnableHints = true);
+
+        Timeout(id + 0xF000, delay, "???");
     }
 }
