@@ -95,8 +95,8 @@ public class Timeline
     public float MaxTime;
     public float? CurrentTime;
     public float PixelsPerSecond = 10 * ImGuiHelpers.GlobalScale;
-    public float TopMargin = 40 * ImGuiHelpers.GlobalScale;
-    public float BottomMargin = 5 * ImGuiHelpers.GlobalScale;
+    public static float TopMargin => 80 * ImGuiHelpers.GlobalScale;
+    public static float BottomMargin => 5 * ImGuiHelpers.GlobalScale;
     public ColumnGroup Columns;
 
     private float _tickFrequency = 5;

@@ -5,7 +5,7 @@ using Dalamud.Interface.Utility.Raii;
 namespace BossMod;
 
 public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, StrategyConfigTrack config, int level, BossModuleRegistry.Info? moduleInfo, StrategyValueTrack defaultOverride)
-    : ColumnPlannerTrack(timeline, tree, phaseBranches, config.InternalName)
+    : ColumnPlannerTrack(timeline, tree, phaseBranches, config.DisplayName.Length > 0 && config.DisplayName.Length < config.InternalName.Length ? config.DisplayName : config.InternalName)
 {
     public StrategyValueTrack DefaultOverride { get; private set; } = defaultOverride;
 
@@ -54,14 +54,19 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
         var cursor = ImGui.GetCursorPos();
         var isHovered = false;
         var hideTooltip = false;
+        var wl = ImGui.GetWindowDrawList();
+        var wp = ImGui.GetWindowPos();
 
-        var windowRect = ImGui.GetClipRectMin(ImGui.GetWindowDrawList());
-        var clickableEdge = new WDir((topLeft - ImGui.GetWindowPos()).Y, 0).Rotate(Angle60).ToVec2();
-        var originAdj = topLeft - ImGui.GetWindowPos();
+        var viewMinY = cursor.Y + wl.GetClipRectMin().Y - Timeline.TopMargin;
+
+        wl.PushClipRect(new(0, viewMinY), new(int.MaxValue, int.MaxValue), true);
+
+        var clickableEdge = new WDir((topLeft - wp).Y, 0).Rotate(Angle60).ToVec2();
+        var originAdj = topLeft - wp;
         var mouseAbs = ImGui.GetMousePos();
         var mouseRelative = mouseAbs - topLeft;
 
-        if (mouseAbs.Y > windowRect.Y && mouseRelative.Y <= 0)
+        if (mouseAbs.Y > viewMinY && mouseRelative.Y <= 0)
         {
             var offX = mouseRelative.X + mouseRelative.Y / Tan60;
             if (offX >= 0 && offX <= Width)
@@ -73,6 +78,8 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
 
         ImGui.SetCursorPos(originAdj + new Vector2(Width * 0.5f, 0) + new WDir(ImGui.GetFrameHeight() * 0.5f, 0).Rotate(Angle60).ToVec2());
         UIMisc.TextRotated(Name, MathF.PI / 3);
+
+        wl.PopClipRect();
 
         if (isHovered)
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
@@ -95,8 +102,8 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
             }
         }
 
-        if (!hideTooltip && isHovered && config.InternalName != config.DisplayName && config.DisplayName.Length > 0)
-            ImGui.SetTooltip(config.DisplayName);
+        if (!hideTooltip && isHovered && config.UIName != Name)
+            ImGui.SetTooltip(config.UIName);
 
         if (isHovered && ImGui.IsMouseDown(ImGuiMouseButton.Left))
             ImGui.OpenPopup("settings");
