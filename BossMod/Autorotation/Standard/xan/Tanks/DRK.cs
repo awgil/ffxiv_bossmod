@@ -25,7 +25,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
     public enum EdgeStrategy
     {
-        [Option("Use to refresh Darkside, or during raid buffs", Targets = ActionTargets.Hostile)]
+        [Option("Use to refresh Darkside, during raid buffs, or if TBN is active", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Automatic usage, but save 3000 MP for TBN", MinLevel = 70, Targets = ActionTargets.Hostile)]
         AutomaticTBN,
@@ -125,8 +125,8 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         if (CountdownRemaining > 0)
         {
-            if (Player.DistanceToHitbox(primaryTarget) is > 3 and <= 20 && CountdownRemaining < 0.7f)
-                PushOGCD(AID.Shadowstride, primaryTarget);
+            if (CountdownRemaining < 0.98f)
+                PushGCD(AID.Unmend, primaryTarget);
 
             return;
         }
@@ -156,6 +156,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
             if (NumAOETargets > 1)
                 PushGCD(AID.Impalement, Player, GCDPriority.DeliAOE);
 
+            // should always use these even on dying targets as they restore mp, plus if the target is dying that probably means impending phase transition so we would lose the buff
             PushGCD(DeliriumStep switch
             {
                 0 => AID.ScarletDelirium,
@@ -218,7 +219,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
             if (NumAOETargets > 2)
                 PushGCD(AID.Quietus, Player, GCDPriority.BloodAOE);
 
-            PushGCD(AID.Bloodspiller, primaryTarget, GCDPriority.Blood);
+            PushGCD(AID.Bloodspiller, primaryTarget, GCDPriority.Blood, 0, false);
         }
     }
 
@@ -230,41 +231,43 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         var track = strategy.Edge;
         var edgeTarget = ResolveTargetOverride(track);
 
-        void use(OGCDPriority prio)
+        void use(OGCDPriority prio, bool useOnDyingTarget)
         {
             if (NumLineTargets > 2 || !Unlocked(AID.EdgeOfDarkness))
-                PushOGCD(AID.FloodOfDarkness, edgeTarget ?? BestLineTarget, prio);
+                PushOGCD(AID.FloodOfDarkness, edgeTarget ?? BestLineTarget, prio, 0, useOnDyingTarget);
 
-            PushOGCD(AID.EdgeOfDarkness, edgeTarget ?? primaryTarget, prio);
+            PushOGCD(AID.EdgeOfDarkness, edgeTarget ?? primaryTarget, prio, 0, useOnDyingTarget);
         }
 
         if (track == EdgeStrategy.Delay || !canUse)
             return;
 
-        if (Darkside <= GCD)
+        if (Darkside <= GCD + 0.6f + AnimationLockDelay)
         {
-            use(OGCDPriority.EdgeRefresh);
+            use(OGCDPriority.EdgeRefresh, true);
             return;
         }
 
-        var buffs = RaidBuffsLeft > GCD || RaidBuffsIn > 9000;
+        var canUseAuto
+            = RaidBuffsLeft > AnimLock || RaidBuffsIn > 9000
+            || DarkArts && World.Party.WithoutSlot().Any(p => p.FindStatus(SID.TheBlackestNight, Player.InstanceID, DateTime.MaxValue) != null);
 
         switch (track.Value)
         {
             case EdgeStrategy.Automatic:
-                if (buffs)
-                    use(OGCDPriority.Edge);
+                if (canUseAuto)
+                    use(OGCDPriority.Edge, false);
                 break;
             case EdgeStrategy.AutomaticTBN:
-                if (buffs && canUseTBN)
-                    use(OGCDPriority.Edge);
+                if (canUseAuto && canUseTBN)
+                    use(OGCDPriority.Edge, false);
                 break;
             case EdgeStrategy.Force:
-                use(OGCDPriority.Edge);
+                use(OGCDPriority.Edge, true);
                 break;
             case EdgeStrategy.ForceTBN:
                 if (canUseTBN)
-                    use(OGCDPriority.Edge);
+                    use(OGCDPriority.Edge, true);
                 break;
         }
     }
@@ -286,7 +289,8 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         };
 
         // regardless of strategy, use it or lose it (except Delay, handled earlier)
-        if (!CanFitGCD(Scorn, 1) || CanFitGCD(RaidBuffsLeft) && !CanFitGCD(RaidBuffsLeft, 1))
+        // TODO: this is a hack because no party perfectly aligns their buffs per-GCD, we need to track *all* active buffs and check when the first one is going away
+        if (!CanFitGCD(Scorn, 1) || CanFitGCD(RaidBuffsLeft) && !CanFitGCD(RaidBuffsLeft, 2))
             prio = GCDPriority.Disesteem;
 
         PushGCD(AID.Disesteem, BestLineTarget, prio);
