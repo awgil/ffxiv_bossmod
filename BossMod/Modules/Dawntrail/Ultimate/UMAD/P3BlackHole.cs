@@ -151,8 +151,11 @@ class P3Nothingness : Components.BaitAwayTethers
     class Blackhole
     {
         public required Actor Hole;
+        public bool Predicted; // true if this blackhole hasn't spawned a tether yet, but is going to
         public int CastsLeft;
         public TargetOrder DesiredTarget;
+        public TargetOrder DesiredNextTarget;
+        public bool SwapImminent => DesiredTarget != DesiredNextTarget;
     }
 
     readonly List<Blackhole> _holes = [];
@@ -172,6 +175,9 @@ class P3Nothingness : Components.BaitAwayTethers
             var os = order.Role == 'D' ? "DPS" : order.Role == 'S' ? "Support" : order.Role == 'A' ? "Accretion" : "";
             hints.Add($"Order: {os} {order.Order}", false);
         }
+
+        if (_holes.Any(h => h.Predicted && h.DesiredTarget == _order[slot] || h.DesiredNextTarget == _order[slot] && h.SwapImminent))
+            hints.Add("Prepare to take tether!", false);
 
         foreach (var b in CurrentBaits)
         {
@@ -198,10 +204,14 @@ class P3Nothingness : Components.BaitAwayTethers
     {
         base.OnTethered(source, tether);
 
-        if ((TetherID)tether.ID == TetherID.BlackHole && !_holes.Any(h => h.Hole == source))
+        if ((TetherID)tether.ID == TetherID.BlackHole)
         {
-            _holes.Add(new() { Hole = source, CastsLeft = NumCasts is < 3 or >= 21 ? 1 : 3 });
-            AssignHoles();
+            _holes.RemoveAll(h => h.Hole == source && h.Predicted);
+            if (!_holes.Any(h => h.Hole == source))
+            {
+                _holes.Add(new() { Hole = source, CastsLeft = NumCasts is < 3 or >= 21 ? 1 : 3 });
+                AssignHoles();
+            }
         }
     }
 
@@ -230,11 +240,22 @@ class P3Nothingness : Components.BaitAwayTethers
                 var color = isMine ? ArenaColor.Safe : ArenaColor.Danger;
                 var width = (bait.Target == pc) == isMine ? 1 : 2;
 
+                if (bh.DesiredNextTarget == _order[pcSlot] && bh.SwapImminent)
+                    width = 2;
+
                 if (Arena.Config.ShowOutlinesAndShadows)
                     Arena.AddLine(bait.Source.Position, bait.Target.Position, 0xFF000000, width + 1);
                 Arena.AddLine(bait.Source.Position, bait.Target.Position, color, width);
             }
+            else if (bh.Predicted && bh.DesiredTarget == _order[pcSlot])
+                Arena.AddCircle(bh.Hole.Position, 1, ArenaColor.Danger, 2);
         }
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.BlackHoleP3)
+            AssignHoles();
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -268,10 +289,14 @@ class P3Nothingness : Components.BaitAwayTethers
 
     void AssignHoles()
     {
+        _holes.RemoveAll(h => h.Predicted);
         foreach (var h in _holes)
+        {
             h.DesiredTarget = default;
+            h.DesiredNextTarget = default;
+        }
 
-        var iteration = (NumCasts, _holes.Count) switch
+        var iteration = (NumCasts, _holes.Count(h => !h.Predicted)) switch
         {
             (0, 1) => 0,
             (1, 2) => 1,
@@ -289,27 +314,66 @@ class P3Nothingness : Components.BaitAwayTethers
         if (iteration < 0)
             return;
 
-        var toApply = _config.P3BlackholeStrategy switch
+        var bhOrder = _config.P3BlackholeStrategy switch
         {
-            UMADConfig.P3BlackholeStrategyType.DSA => BlackholeOrder.DSA[iteration],
-            UMADConfig.P3BlackholeStrategyType.SDA => BlackholeOrder.SDA[iteration],
-            UMADConfig.P3BlackholeStrategyType.DoubleTether => BlackholeOrder.DoubleTether[iteration],
+            UMADConfig.P3BlackholeStrategyType.DSA => BlackholeOrder.DSA,
+            UMADConfig.P3BlackholeStrategyType.SDA => BlackholeOrder.SDA,
+            UMADConfig.P3BlackholeStrategyType.DoubleTether => BlackholeOrder.DoubleTether,
             _ => []
         };
 
-        if (toApply.Length == 0)
+        if (bhOrder.Length == 0)
             return;
 
-        if (toApply.Length > 0)
+        if (((UMAD)Module).KefkaP3() is not { } k3)
         {
-            if (((UMAD)Module).KefkaP3() is not { } k3)
+            ReportError("unable to assign tethers - can't find kefka???");
+            return;
+        }
+
+        // set 2 spawns CCW of set 1
+        if (iteration == 0)
+        {
+            var dirFirst = _holes[0].Hole.Position - Arena.Center;
+            var allHoles = WorldState.Actors.Where(a => (OID)a.OID == OID.BlackHoleP3);
+            _holes.Add(new()
             {
-                ReportError("unable to assign tethers - can't find kefka???");
-                return;
+                Hole = allHoles.Closest(Arena.Center + dirFirst.OrthoL())!,
+                Predicted = true,
+            });
+            _holes.Add(new()
+            {
+                Hole = allHoles.Closest(Arena.Center - dirFirst)!,
+                Predicted = true,
+            });
+        }
+
+        // last tether spawns CW of set 9
+        if (iteration == 8)
+        {
+            var dirFirst = (_holes[0].Hole.Position - Arena.Center + (_holes[1].Hole.Position - Arena.Center)) * 0.5f;
+            var allHoles = WorldState.Actors.Where(a => (OID)a.OID == OID.BlackHoleP3);
+            _holes.Add(new()
+            {
+                Hole = allHoles.Closest(Arena.Center + dirFirst.Rotate(-135.Degrees()))!,
+                Predicted = true
+            });
+        }
+
+        // the closest hole to kefka's right is at least 45 degrees away, whereas the one directly under him may be <1 degree counterclockwise, but should still be treated as the basis for prioritization
+        var holesOrdered = _holes.ClockOrderWith(bh => bh.Hole, k3, k3.Position + (k3.Rotation + 5.Degrees()).ToDirection());
+
+        int i = 0, j = 0;
+        foreach (var blackhole in holesOrdered)
+        {
+            var assignment = blackhole.Predicted ? bhOrder[iteration + 1][j++] : bhOrder[iteration][i++];
+            blackhole.DesiredTarget = new(assignment.Role, assignment.Order);
+
+            if (iteration is >= 2 and < 7)
+            {
+                var nextAssignment = bhOrder[iteration + 1][i - 1];
+                blackhole.DesiredNextTarget = new(nextAssignment.Role, nextAssignment.Order);
             }
-            // the closest hole to kefka's right is at least 45 degrees away, whereas the one directly under him may be <1 degree counterclockwise, but should still be treated as the basis for prioritization
-            foreach (var (h, r) in _holes.ClockOrderWith(bh => bh.Hole, k3, k3.Position + (k3.Rotation + 5.Degrees()).ToDirection()).Zip(toApply))
-                h.DesiredTarget = new(r.Role, r.Order);
         }
     }
 }

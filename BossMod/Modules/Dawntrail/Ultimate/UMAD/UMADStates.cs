@@ -573,7 +573,7 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P3BlizzardIII>(id + 0x10, 3, p => p.NumBaits == 1, "Puddles start")
             .ActivateOnEnter<P3BlizzardIII>();
 
-        ComponentCondition<P3BlizzardIII>(id + 0x20, 5, p => p.NumBaits == 2)
+        ComponentCondition<P3BlizzardIII>(id + 0x20, 3.1f, p => p.NumBaits == 2)
             .ExecOnExit<P3StompAMole>(m => m.EnableHints = true)
             .ExecOnExit<P3KnockDown>(m => m.EnableHints = true);
 
