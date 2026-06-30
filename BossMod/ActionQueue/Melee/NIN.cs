@@ -193,7 +193,7 @@ public sealed class Definitions : Defs
     {
         d.RegisterChargeIncreaseTrait(AID.Shukuchi, TraitID.EnhancedShukuchiII);
 
-        d.Spell(AID.ForkedRaiju)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
-        d.Spell(AID.Shukuchi)!.ForbidExecute = ActionDefinitions.DashToPositionCheck;
+        d.Spell(AID.ForkedRaiju)!.AllowExecute = ActionPredicate.AllowDashToTarget;
+        d.Spell(AID.Shukuchi)!.AllowExecute = ActionPredicate.AllowDashToPosition;
     }
 }

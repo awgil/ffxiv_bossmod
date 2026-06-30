@@ -162,6 +162,6 @@ public sealed class Definitions : Defs
         // smart targets
         d.Spell(AID.WardensPaean)!.SmartTarget = ActionDefinitions.SmartTargetEsunable;
 
-        d.Spell(AID.RepellingShot)!.ForbidExecute = ActionDefinitions.BackdashCheck(10);
+        d.Spell(AID.RepellingShot)!.AllowExecute = ActionPredicate.AllowBackdash(10);
     }
 }

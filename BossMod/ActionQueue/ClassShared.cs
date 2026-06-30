@@ -299,8 +299,10 @@ public sealed class Definitions : Defs
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Interject)!.ForbidExecute = (_, _, act, _) => !(act.Target?.CastInfo?.Interruptible ?? false); // don't use interject if target is not casting interruptible spell
-        d.Spell(AID.Reprisal)!.ForbidExecute = (_, player, _, hints) => !hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(player.Position, 5 + e.Actor.HitboxRadius)); // don't use reprisal if no one would be hit; TODO: consider checking only target?..
+        d.Spell(AID.Interject)!.AllowExecute = (_, _, act, _) => act.Target is { CastInfo.Interruptible: true }; // don't use interject if target is not casting interruptible spell
+        d.Spell(AID.HeadGraze)!.AllowExecute = (_, _, act, _) => act.Target is { CastInfo.Interruptible: true };
+
+        d.Spell(AID.Reprisal)!.AllowExecute = (_, player, _, hints) => hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(player.Position, 5 + e.Actor.HitboxRadius)); // don't use reprisal if no one would be hit; TODO: consider checking only target?..
         d.Spell(AID.Shirk)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 
         //d.Spell(AID.Repose)!.EffectDuration = 30;
@@ -310,8 +312,7 @@ public sealed class Definitions : Defs
         //d.Spell(AID.Feint)!.EffectDuration = 10;
         //d.Spell(AID.TrueNorth)!.EffectDuration = 10;
 
-        d.Spell(AID.Peloton)!.ForbidExecute = (_, player, _, _) => player.InCombat;
-        d.Spell(AID.HeadGraze)!.ForbidExecute = (_, _, act, _) => !(act.Target?.CastInfo?.Interruptible ?? false);
+        d.Spell(AID.Peloton)!.AllowExecute = (_, player, _, _) => !player.InCombat;
 
         //d.Spell(AID.Addle)!.EffectDuration = 10;
         //d.Spell(AID.Sleep)!.EffectDuration = 30;
@@ -321,21 +322,21 @@ public sealed class Definitions : Defs
         //d.Spell(AID.Surecast)!.EffectDuration = 6;
 
         // regular dash check doesn't work since this one is awkwardly fixed distance
-        d.Spell(PhantomID.PhantomKick)!.ForbidExecute = (_, player, action, hints) =>
+        d.Spell(PhantomID.PhantomKick)!.AllowExecute = (_, player, action, hints) =>
         {
             var cfg = Service.Config.Get<ActionTweaksConfig>();
             var target = action.Target;
             if (target == null || !cfg.DashSafety)
-                return false;
-
-            if (player.PendingKnockbacks.Count > 0)
                 return true;
 
+            if (player.PendingKnockbacks.Count > 0)
+                return false;
+
             var dir = player.DirectionTo(target).Normalized() * 15;
-            return ActionDefinitions.IsDashDangerous(player.Position, player.Position + dir, hints);
+            return ActionPredicate.IsDashSafe(player.Position, player.Position + dir, hints);
         };
 
-        d.Spell(PhantomID.OccultFeatherfoot)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
+        d.Spell(PhantomID.OccultFeatherfoot)!.AllowExecute = ActionPredicate.AllowDashFixed(15);
         d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
     }
 }

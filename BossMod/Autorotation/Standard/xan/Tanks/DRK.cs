@@ -153,7 +153,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         if (EnhancedDelirium > GCD)
         {
-            if (NumAOETargets > 1)
+            if (NumAOETargets > 2)
                 PushGCD(AID.Impalement, Player, GCDPriority.DeliAOE);
 
             // should always use these even on dying targets as they restore mp, plus if the target is dying that probably means impending phase transition so we would lose the buff

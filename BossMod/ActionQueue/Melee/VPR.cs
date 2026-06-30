@@ -170,6 +170,6 @@ public sealed class Definitions : Defs
     {
         d.RegisterChargeIncreaseTrait(AID.Slither, TraitID.EnhancedSlither);
 
-        d.Spell(AID.Slither)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
+        d.Spell(AID.Slither)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
 }

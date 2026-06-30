@@ -171,9 +171,9 @@ public sealed class Definitions : Defs
         // hardcoded mechanics
         d.RegisterChargeIncreaseTrait(AID.Onslaught, TraitID.EnhancedOnslaught);
 
-        d.Spell(AID.Tomahawk)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyTomahawk && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
+        d.Spell(AID.Tomahawk)!.AllowExecute = (ws, player, _, _) => !(_config.ForbidEarlyTomahawk && !player.InCombat && ws.Client.CountdownRemaining > 0.7f);
         d.Spell(AID.Holmgang)!.SmartTarget = (_, player, target, _) => _config.HolmgangSelf ? player : target;
-        d.Spell(AID.Equilibrium)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use equilibrium at full hp
+        d.Spell(AID.Equilibrium)!.AllowExecute = (_, player, _, _) => player.PendingHPRatio < 1; // don't use equilibrium at full hp
         d.Spell(AID.NascentFlash)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 
         // upgrades (TODO: don't think we actually care...)
@@ -188,6 +188,6 @@ public sealed class Definitions : Defs
         //d.Spell(AID.StormPath)!.TransformAction = config.STCombos ? () => ActionID.MakeSpell(Rotation.GetNextSTComboAction(ComboLastMove, AID.StormPath)) : null;
         //d.Spell(AID.MythrilTempest)!.TransformAction = config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextAOEComboAction(ComboLastMove)) : null;
 
-        d.Spell(AID.Onslaught)!.ForbidExecute = d.Spell(AID.PrimalRend)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
+        d.Spell(AID.Onslaught)!.AllowExecute = d.Spell(AID.PrimalRend)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
 }

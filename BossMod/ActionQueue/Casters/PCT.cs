@@ -171,6 +171,6 @@ public sealed class Definitions : Defs
         d.Spell(AID.Smudge)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
-        d.Spell(AID.Smudge)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
+        d.Spell(AID.Smudge)!.AllowExecute = ActionPredicate.AllowDashFixed(15);
     }
 }

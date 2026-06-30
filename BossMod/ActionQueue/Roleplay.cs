@@ -488,6 +488,6 @@ public sealed class Definitions : Defs
 
     void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.RoughDivide)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
+        d.Spell(AID.RoughDivide)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
 }

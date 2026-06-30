@@ -172,7 +172,7 @@ public sealed class Definitions : Defs
         // hardcoded mechanics
         d.RegisterChargeIncreaseTrait(AID.Thunderclap, TraitID.EnhancedThunderclap);
 
-        d.Spell(AID.Thunderclap)!.ForbidExecute = ActionDefinitions.DashToPositionCheck;
+        d.Spell(AID.Thunderclap)!.AllowExecute = ActionPredicate.AllowDashToPosition;
 
         // upgrades (TODO: don't think we actually care...)
         //d.Spell(AID.SteelPeak)!.TransformAction = d.Spell(AID.ForbiddenChakra)!.TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);

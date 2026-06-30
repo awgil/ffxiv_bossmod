@@ -165,10 +165,10 @@ public sealed class Definitions : Defs
         //d.Spell(AID.DoomSpike)!.TransformAction = d.Spell(AID.DraconianFury)!.TransformAction = () => ActionID.MakeSpell(_state.BestDoomSpike);
         //d.Spell(AID.Geirskogul)!.TransformAction = d.Spell(AID.Nastrond)!.TransformAction = () => ActionID.MakeSpell(_state.BestGeirskogul);
 
-        d.Spell(AID.Stardiver)!.ForbidExecute =
-            d.Spell(AID.DragonfireDive)!.ForbidExecute =
-            d.Spell(AID.WingedGlide)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
-        d.Spell(AID.ElusiveJump)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15, backwards: true);
+        d.Spell(AID.Stardiver)!.AllowExecute =
+            d.Spell(AID.DragonfireDive)!.AllowExecute =
+            d.Spell(AID.WingedGlide)!.AllowExecute = ActionPredicate.AllowDashToTarget;
+        d.Spell(AID.ElusiveJump)!.AllowExecute = ActionPredicate.AllowDashFixed(15, backwards: true);
     }
 
     public float EffectApplicationDelay(AID aid) => aid switch

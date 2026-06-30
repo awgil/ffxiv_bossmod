@@ -116,6 +116,6 @@ public sealed class ActionQueue
                 return false;
         }
 
-        return def.ForbidExecute == null || !def.ForbidExecute.Invoke(ws, player, entry, hints);
+        return def.AllowExecute == null || def.AllowExecute.Invoke(ws, player, entry, hints);
     }
 }

@@ -138,6 +138,6 @@ public sealed class Definitions : Defs
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Shadowstride)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
+        d.Spell(AID.Shadowstride)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
 }
