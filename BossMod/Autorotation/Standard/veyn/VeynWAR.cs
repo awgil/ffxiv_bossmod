@@ -4,7 +4,7 @@ namespace BossMod.Autorotation;
 
 public sealed class VeynWAR(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { AOE, Burst, Potion, PrimalRend, Tomahawk, InnerRelease, Infuriate, Upheaval, Wrath, Onslaught, Bozja }
+    public enum Track { AOE, Burst, Potion, PrimalRend, Tomahawk, InnerRelease, Infuriate, Upheaval, Wrath, Onslaught, Bozja, FellCleave }
     public enum AOEStrategy { SingleTarget, ForceAOE, Auto, AutoFinishCombo }
     public enum BurstStrategy { Automatic, Spend, Conserve, UnderRaidBuffs, UnderPotion, ForceExtendST, IgnoreST }
     public enum PotionStrategy { Manual, AlignWithRaidBuffs, AlignWithIR, Immediate }
@@ -14,6 +14,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
     public enum InfuriateStrategy { Automatic, Delay, ForceIfNoNC, ForceIfChargesCapping }
     public enum OnslaughtStrategy { Automatic, Forbid, NoReserve, Force, ForceReserve, ReserveTwo, GapClose }
     public enum BozjaStrategy { None, WithIR, BloodRage }
+    public enum FellCleaveStrategy { Automatic, Delay }
 
     public static RotationModuleDefinition Definition()
     {
@@ -101,6 +102,11 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
             .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower))
             .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice))
             .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostBloodRage));
+
+        res.Define(Track.FellCleave).As<FellCleaveStrategy>("FC", "Fell Cleave", uiPriority: 65)
+            .AddOption(FellCleaveStrategy.Automatic, "Use during burst or to prevent overcap")
+            .AddOption(FellCleaveStrategy.Delay, "Don't use")
+            .AddAssociatedActions(WAR.AID.FellCleave);
 
         return res;
     }
@@ -270,7 +276,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
             var needTarget = action is WAR.AID.InnerBeast or WAR.AID.FellCleave or WAR.AID.InnerChaos;
             if (!needTarget || primaryTarget != null && !primaryTarget.IsAlly)
             {
-                var prio = InnerReleaseUnlocked ? FellCleavePriorityIR() : FellCleavePriorityBerserk();
+                var prio = InnerReleaseUnlocked ? FellCleavePriorityIR(strategy) : FellCleavePriorityBerserk(strategy);
                 QueueGCD(action, needTarget ? primaryTarget : Player, prio);
             }
         }
@@ -543,8 +549,11 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
         return haveFC ? WAR.AID.FellCleave : WAR.AID.InnerBeast;
     }
 
-    private GCDPriority FellCleavePriorityIR()
+    private GCDPriority FellCleavePriorityIR(StrategyValues strategy)
     {
+        if (strategy.Option(Track.FellCleave).As<FellCleaveStrategy>() == FellCleaveStrategy.Delay)
+            return GCDPriority.None;
+
         // check for risk of losing NC buff (having a buff implies that we've unlocked at least Chaotic Cyclone)
         // NC buff also implies 50+ gauge (given by infuriate that gave NC buff)
         var ncActive = CanFitGCD(NascentChaosLeft);
@@ -608,8 +617,11 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
         }
     }
 
-    private GCDPriority FellCleavePriorityBerserk()
+    private GCDPriority FellCleavePriorityBerserk(StrategyValues strategy)
     {
+        if (strategy.Option(Track.FellCleave).As<FellCleaveStrategy>() == FellCleaveStrategy.Delay)
+            return GCDPriority.None;
+
         // check for risk of losing NC buff (having a buff implies that we've unlocked at least Chaotic Cyclone)
         // NC buff also implies 50+ gauge (given by infuriate that gave NC buff)
         // note: technically it's possible to unlock NC (and even PR) without unlocking IR by skipping a quest

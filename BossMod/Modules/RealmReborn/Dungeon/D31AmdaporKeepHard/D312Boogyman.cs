@@ -38,7 +38,7 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
                     foreach (var luminescence in luminescences)
                     {
                         hints.GoalZones.Add(hints.GoalProximity(luminescence.Position, 0.5f, 10f));
-                        hints.FindEnemy(luminescence)?.ForcePriority(1);
+                        hints.SetPriority(luminescence, 1);
                     }
                 }
             }
