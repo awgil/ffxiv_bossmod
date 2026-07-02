@@ -15,7 +15,7 @@ class UMADStates : StateMachineBuilder
             .Raw.Update = () => _module.BossP2() is { IsTargetable: false, HPRatio: < 1 };
         SimplePhase(2, P3, "P3")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => _module.ExdeathP3()?.IsDeadOrDestroyed == true && _module.ChaosP3()?.IsDeadOrDestroyed == true;
+            .Raw.Update = () => _module.ExdeathP3() is { HPMP.CurHP: 1 } && _module.ChaosP3() is { HPMP.CurHP: 1 };
     }
 
     void P1(uint id)
@@ -63,6 +63,7 @@ class UMADStates : StateMachineBuilder
         P3Blackhole2(id + 0x50000, 0);
         P3Blackhole3(id + 0x60000, 10.3f);
         P3StompAMole(id + 0x70000, 6);
+        P3Enrage(id + 0x80000, 13.4f);
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -563,9 +564,11 @@ class UMADStates : StateMachineBuilder
 
     void P3StompAMole(uint id, float delay)
     {
-        ActorCastStart(id, _module.ExdeathP3, AID.BlizzardIIICast, delay, true)
+        ActorCastStart(id, _module.ExdeathP3, AID.BlizzardIIIPuddleCast, delay, true)
             .ActivateOnEnter<P3StompAMole>()
             .ActivateOnEnter<P3KnockDown>()
+            .ActivateOnEnter<P3BigBang>()
+            .ActivateOnEnter<P3BlizzardIIIFreeze>()
             .ExecOnEnter<P3StompAMole>(m => m.EnableHints = false)
             .ExecOnEnter<P3KnockDown>(m => m.EnableHints = false)
             .DeactivateOnExit<P3Blackhole>();
@@ -577,6 +580,45 @@ class UMADStates : StateMachineBuilder
             .ExecOnExit<P3StompAMole>(m => m.EnableHints = true)
             .ExecOnExit<P3KnockDown>(m => m.EnableHints = true);
 
-        Timeout(id + 0xF000, delay, "???");
+        ComponentCondition<P3KnockDown>(id + 0x30, 2.5f, k => k.NumFinishedStacks == 1, "Stack 1");
+        ComponentCondition<P3StompAMole>(id + 0x31, 0.1f, s => s.NumCasts == 1, "Stomp 1");
+        ComponentCondition<P3StompAMole>(id + 0x32, 1.3f, s => s.NumCasts == 2, "Stomp 2");
+        ComponentCondition<P3StompAMole>(id + 0x33, 1.3f, s => s.NumCasts == 3, "Stomp 3");
+        ComponentCondition<P3StompAMole>(id + 0x34, 1.3f, s => s.NumCasts == 4, "Stomp 4")
+            .DeactivateOnExit<P3StompAMole>()
+            .DeactivateOnExit<P3BlizzardIII>();
+
+        ActorCastStart(id + 0x40, _module.ExdeathP3, AID.BlizzardIIIFreezeCast, 0.6f, true);
+        ActorCastStart(id + 0x41, _module.ChaosP3, AID.BigBangCast, 0.4f, true);
+
+        ComponentCondition<P3KnockDown>(id + 0x50, 0.5f, k => k.NumFinishedStacks == 2, "Stack 2")
+            .DeactivateOnExit<P3KnockDown>()
+            .ExecOnExit<P3BigBang>(b => b.Risky = true);
+
+        ActorCastEnd(id + 0x51, _module.ExdeathP3, 3.1f, true, "Deep freeze")
+            .DeactivateOnExit<P3BlizzardIIIFreeze>();
+        ComponentCondition<P3BigBang>(id + 0x52, 1.5f, b => b.NumCasts > 0, "Delayed AOEs")
+            .DeactivateOnExit<P3BigBang>();
+    }
+
+    void P3Enrage(uint id, float delay)
+    {
+        var castStart = SimpleState(id, delay, "");
+        castStart.Raw.Comment = "Exdeath/Chaos enrage start";
+        castStart.Raw.Update = _ =>
+        {
+            var exStart = _module.ExdeathP3() is { CastInfo.Action.ID: var id } && (AID)id is AID.MeteorEnrageSlow or AID.MeteorEnrageFast;
+            var chStart = _module.ChaosP3() is { CastInfo.Action.ID: var id2 } && (AID)id2 is AID.BowelsOfAgonyEnrageSlow or AID.BowelsOfAgonyEnrageFast;
+            return exStart || chStart ? 0 : -1;
+        };
+
+        var castEnd = SimpleState(id + 1, 10, "Double enrage");
+        castEnd.Raw.Comment = "Exdeath/Chaos enrage end";
+        castEnd.Raw.Update = _ =>
+        {
+            var exEnd = _module.ExdeathP3() is { CastInfo: null };
+            var chEnd = _module.ChaosP3() is { CastInfo: null };
+            return exEnd && chEnd ? 0 : -1;
+        };
     }
 }

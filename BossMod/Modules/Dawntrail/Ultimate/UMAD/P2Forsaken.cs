@@ -274,7 +274,7 @@ class P2Shapes : Components.CastCounterMulti
         else if (towers.Towers.Count == 2)
             towersDir = towers.DirToTowers();
         else
-            // only happens during pre-even gap before new towers spawn; realistically we should just predict the tower rotation but that's slightly more work and thus annoying
+            // only happens during pre-even gap before new towers spawn; TODO use the known tower rotation and add a predicted destination
             return [];
 
         var oddSet = _numResolves % 2 == 0;
@@ -401,6 +401,7 @@ class P2Shapes : Components.CastCounterMulti
         }
     }
 
+    // TODO: even if the player has not correctly configured party roles, we can still infer partners for the mechanic based on who takes the first set of towers (if using rinon pastebin, maybe also for other strats)
     void AssignTowers()
     {
         Shapes.CopyTo(ResolvingShapes);
@@ -564,7 +565,20 @@ class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID.Sp
 
     public override void Update()
     {
-        if (_castPending || Shapes == null)
+        if (_castPending)
+        {
+            // while pending, we should keep updating targets to reduce visual confusion for greeders
+            for (var i = 0; i < CurrentBaits.Count; i++)
+            {
+                var src = CurrentBaits[i].Source;
+                var tar = Raid.WithoutSlot().Exclude(src).Closest(src.Position);
+                if (tar != null)
+                    CurrentBaits.Ref(i).Target = tar;
+            }
+            return;
+        }
+
+        if (Shapes == null)
             return;
 
         CurrentBaits.Clear();
@@ -637,9 +651,7 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
     }
 
     Bait _next;
-#pragma warning disable IDE0052 // Remove unread private members
     DateTime _activation;
-#pragma warning restore IDE0052 // Remove unread private members
 
     readonly List<Actor> _sources = [];
 

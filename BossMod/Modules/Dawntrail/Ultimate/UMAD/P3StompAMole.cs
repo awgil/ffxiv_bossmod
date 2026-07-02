@@ -20,6 +20,8 @@ class P3BlizzardIII(BossModule module) : Components.StandardAOEs(module, AID.Bli
 
 class P3StompAMole(BossModule module) : Components.GenericTowers(module, AID.StompAMole)
 {
+    BitMask _stackFirst;
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.StompAMoleVisual)
@@ -33,9 +35,9 @@ class P3StompAMole(BossModule module) : Components.GenericTowers(module, AID.Sto
     {
         if ((IconID)iconID == IconID.KnockDownShare && NumCasts == 0)
         {
-            var roleShare = Raid.WithSlot().WhereActor(a => a.Class.IsSupport() == actor.Class.IsSupport()).Mask();
+            _stackFirst = Raid.WithSlot().WhereActor(a => a.Class.IsSupport() == actor.Class.IsSupport()).Mask();
             for (var i = 0; i < Towers.Count; i++)
-                Towers.Ref(i).ForbiddenSoakers = roleShare;
+                Towers.Ref(i).ForbiddenSoakers = _stackFirst;
         }
     }
 
@@ -48,9 +50,64 @@ class P3StompAMole(BossModule module) : Components.GenericTowers(module, AID.Sto
                 Towers.RemoveAt(0);
 
             if (NumCasts++ < 2)
-                Towers.Add(new(caster.Position, 5, 2, 2, default, WorldState.FutureTime(5)));
+                Towers.Add(new(caster.Position, 5, 2, 2, ~_stackFirst, WorldState.FutureTime(5)));
         }
     }
 }
 
 class P3KnockDown(BossModule module) : Components.StackWithIcon(module, (uint)IconID.KnockDownShare, AID.KnockDown, 6, 5.7f, 4, 4);
+
+class P3BlizzardIIIFreeze(BossModule module) : Components.StayMove(module)
+{
+    public int NumCasts { get; private set; }
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.BlizzardIIIFreezeCast)
+            Array.Fill(PlayerStates, new(Requirement.Move, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.BlizzardIIIFreezeCast)
+        {
+            NumCasts++;
+            Array.Fill(PlayerStates, default);
+        }
+    }
+}
+
+class P3BigBang(BossModule module) : Components.GenericAOEs(module, AID.BigBangAOE)
+{
+    public bool Risky;
+    readonly List<WPos> _sources = [];
+    DateTime _activation;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_activation != default)
+        {
+            foreach (var s in _sources)
+                yield return new(new AOEShapeCircle(6), s, default, _activation, Risky: Risky);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.KnockDown)
+            _sources.Add(WorldState.Actors.Find(spell.MainTargetID)?.Position ?? default);
+
+        if (spell.Action == WatchedAction)
+        {
+            _sources.Clear();
+            NumCasts++;
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.BigBangCast)
+        {
+            _activation = Module.CastFinishAt(spell);
+        }
+    }
+}

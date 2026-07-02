@@ -146,13 +146,20 @@ public enum AID : uint
     StandOnArena = 50483, // BossP1->self, no cast, single-target
 
     WhiteHole = 48486, // ExdeathP3->self, 5.0s cast, range 80 circle
-    BlizzardIIICast = 47887, // ExdeathP3->self, 3.0s cast, single-target
     BlizzardIII = 47885, // Helper->location, 3.0s cast, range 6 circle
     KnockDownCast = 47874, // ChaosP3->self, 5.0s cast, single-target
     KnockDown = 47875, // Helper->players, no cast, range 6 circle, stack
     StompAMoleVisual = 47855, // BossP1->self, 5.0s cast, single-target
     StompAMole = 47856, // Helper->self, 1.5s cast, range 5 circle
     UnmitigatedImpactP3 = 47857, // Helper->self, no cast, range 100 circle, stomp tower explosion
+    BlizzardIIIPuddleCast = 47887, // ExdeathP3->self, 3.0s cast, single-target
+    BlizzardIIIFreezeCast = 47889, // ExdeathP3->self, 4.0s cast, range 100 circle
+    BigBangCast = 47877, // ChaosP3->self, 5.0s cast, single-target
+    BigBangAOE = 47878, // Helper->self, no cast, range 6 circle
+    MeteorEnrageFast = 49752, // ExdeathP3->self, 5.0s cast, range 100 circle
+    BowelsOfAgonyEnrageFast = 49753, // ChaosP3->self, 5.0s cast, range 100 circle
+    MeteorEnrageSlow = 50718, // ExdeathP3->self, 10.0s cast, range 100 circle
+    BowelsOfAgonyEnrageSlow = 50719, // copied from sheets, probably never gonna see this one 
 }
 
 public enum SID : uint
