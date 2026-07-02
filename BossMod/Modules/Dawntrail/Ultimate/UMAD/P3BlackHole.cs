@@ -113,9 +113,9 @@ class P3SlapHappyShockwave(BossModule module) : Components.UntelegraphedBait(mod
             case AID.SlapHappyLeftHand:
                 _numExpected = 3;
                 activation = Module.CastFinishAt(spell, 3.4f);
-                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.IsDD()).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1, stackSize: 4));
-                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Healer).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1, stackSize: 2));
-                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Tank).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1, stackSize: 2));
+                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.IsDD()).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1));
+                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Healer).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1));
+                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Tank).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1));
                 break;
             case AID.SlapHappyRightHand:
                 _numExpected = 1;
