@@ -23,10 +23,11 @@ public sealed class AIHints
                 // we should never change priority if it has been set to pointless, since that means the target is dying and further actions targeting it are a waste
                 if (_priority != PriorityPointless)
                 {
+                    _priority = value;
+
                     // will be empty if tracing is off, ideally quicker than checking the config flag dozens of times every frame
                     if (PrioHistory.Count > 0)
                         PrioHistory.Add((_priority, new StackFrame(1, true).ToString()));
-                    _priority = value;
                 }
             }
         }
