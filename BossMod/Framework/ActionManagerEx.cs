@@ -1,4 +1,5 @@
 ﻿using BossMod.Services;
+using Dalamud.Game.ClientState.Conditions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -479,7 +480,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCast))
             UIState.Instance()->Hotbar.CancelCast();
 
-        if (!GameMain.IsInPvPArea() && !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback])
+        if (!GameMain.IsInPvPArea() && !Service.Condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))
         {
             var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
             if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
