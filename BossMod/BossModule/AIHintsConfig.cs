@@ -30,4 +30,7 @@ public sealed class AIHintsConfig : ConfigNode
 
     [PropertyDisplay("Behavior for actions without AOE indicators", since: "0.3.0.0", tooltip: "This setting only applies when no module is active.")]
     public OmenBehavior OmenSetting = OmenBehavior.Automatic;
+
+    [PropertyDisplay("Enable priority tracing", tooltip: "Only useful for debugging. Will slightly reduce performance.")]
+    public bool PriorityTracing = false;
 }

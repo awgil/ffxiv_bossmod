@@ -1,25 +1,20 @@
+using System.Diagnostics;
+
 namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
 public sealed class AIHints
 {
-#pragma warning disable CS9113 // Parameter is unread.
-    public class Enemy(Actor actor, int priority, bool shouldBeTanked, string prioReason)
-#pragma warning restore CS9113
+    public class Enemy
     {
         public const int PriorityPointless = -1; // attacking enemy won't improve your parse, but will give gauge and advance combo (e.g. boss locked to 1 HP, useless add in raid, etc)
         public const int PriorityInvincible = -2; // attacking enemy will have no effect at all besides breaking your combo, but hitting it with AOEs is fine
         public const int PriorityUndesirable = -3; // enemy can be attacked if targeted manually by a player, but should be considered forbidden for AOE actions (i.e. mobs that are not in combat, or are in combat with someone else's party)
         public const int PriorityForbidden = -4; // attacking this enemy will probably lead to a wipe; autoattacks and actions that target it will be forcibly prevented (if custom queueing is enabled)
 
-        public Actor Actor = actor;
-        private int _priority = priority;
-        public readonly List<(int Value, string Reason)> PrioHistory
-#if PRIO_TRACE_ON
-            = [(priority, $"{prioReason} at {new StackFrame(1, true).GetMethod()}")];
-#else
-            = [];
-#endif
+        public Actor Actor;
+        private int _priority;
+        public readonly List<(int Value, string Reason)> PrioHistory;
         public int Priority
         {
             get => _priority;
@@ -28,19 +23,19 @@ public sealed class AIHints
                 // we should never change priority if it has been set to pointless, since that means the target is dying and further actions targeting it are a waste
                 if (_priority != PriorityPointless)
                 {
-#if PRIO_TRACE_ON
-                    PrioHistory.Add((_priority, new StackFrame(1, true).GetMethod()?.ToString() ?? "<unknown>"));
-#endif
+                    // will be empty if tracing is off, ideally quicker than checking the config flag dozens of times every frame
+                    if (PrioHistory.Count > 0)
+                        PrioHistory.Add((_priority, new StackFrame(1, true).ToString()));
                     _priority = value;
                 }
             }
         }
         //public float TimeToKill;
         public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
-        public WPos DesiredPosition = actor.Position; // tank AI will try to move enemy to this position
-        public Angle DesiredRotation = actor.Rotation; // tank AI will try to rotate enemy to this angle
+        public WPos DesiredPosition; // tank AI will try to move enemy to this position
+        public Angle DesiredRotation; // tank AI will try to rotate enemy to this angle
         public float TankDistance = 2; // enemy will start moving if distance between hitboxes is bigger than this
-        public bool ShouldBeTanked = shouldBeTanked; // tank AI will try to tank this enemy
+        public bool ShouldBeTanked; // tank AI will try to tank this enemy
         public bool PreferProvoking; // tank AI will provoke enemy if not targeted
         public bool ForbidDOTs; // if true, dots on target are forbidden
         public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
@@ -48,6 +43,18 @@ public sealed class AIHints
         public bool ShouldBeDispelled; // if set, AI will try to cast a dispel action; only relevant for foray content
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
         public bool Spikes; // if set, autoattacks will be prevented
+
+        public Enemy(Actor actor, int priority, bool shouldBeTanked, string prioReason)
+        {
+            Actor = actor;
+            _priority = priority;
+            PrioHistory = [];
+            if (Service.Config.Get<AIHintsConfig>().PriorityTracing)
+                PrioHistory.Add((priority, $"{prioReason} at {new StackFrame(1, true)}"));
+            DesiredPosition = actor.Position;
+            DesiredRotation = actor.Rotation;
+            ShouldBeTanked = shouldBeTanked;
+        }
 
         public bool ShouldBeTargeted
         {
