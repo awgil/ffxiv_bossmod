@@ -16,6 +16,9 @@ class UMADStates : StateMachineBuilder
         SimplePhase(2, P3, "P3")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => _module.ExdeathP3() is { HPMP.CurHP: 1 } && _module.ChaosP3() is { HPMP.CurHP: 1 };
+        SimplePhase(3, P4, "P4")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .Raw.Update = () => _module.KefkaP4()?.IsDeadOrDestroyed == true;
     }
 
     void P1(uint id)
@@ -64,6 +67,28 @@ class UMADStates : StateMachineBuilder
         P3Blackhole3(id + 0x60000, 10.3f);
         P3StompAMole(id + 0x70000, 6);
         P3Enrage(id + 0x80000, 13.4f);
+    }
+
+    void P4(uint id)
+    {
+        ActorTargetable(id, _module.KefkaP4, true, 4.4f, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+        ActorCast(id + 0x10, _module.KefkaP4, AID._Ability_KefkaSays, 5.2f, 5, true);
+
+        ActorCastStart(id + 0x100, _module.KefkaP4, AID.MysteryMagic, 4.6f, true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>()
+            .ActivateOnEnter<P4GrandCross>()
+            .ActivateOnEnter<P4Tsunami>()
+            .ActivateOnEnter<P4Inferno>()
+            .ActivateOnEnter<P4StrayFlames>()
+            .ActivateOnEnter<P4StrayCircle>()
+            .ActivateOnEnter<P4EdgeOfDeath>()
+            .ActivateOnEnter<P4Antilight>()
+            .ActivateOnEnter<P4Debuffs>();
+
+        Timeout(id + 0xFF0000, 10000, "???");
     }
 
     void P1RevoltingRuin(uint id, float delay)

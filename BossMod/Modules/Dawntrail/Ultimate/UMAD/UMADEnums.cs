@@ -12,14 +12,15 @@ public enum OID : uint
 
     ChaosP3 = 0x4C34, // R6.000, x0 (spawn during fight)
     ExdeathP3 = 0x4C35, // R3.800, x0 (spawn during fight)
-    // dunno who these guys are. probably related to limit cut
-    CloneP3 = 0x4BFB, // R2.700, x0 (spawn during fight), casts Ultima Blaster
-    OtherKefkaP3 = 0x482B, // R6.000, x0 (spawn during fight)
-    BlackHoleP3 = 0x4C38, // R1.000, x0 (spawn during fight)
-
     FireCrystal = 0x1EC03A,
     WaterCrystal = 0x1EC03B,
     WindCrystal = 0x1EC03C,
+    CloneP3 = 0x4BFB, // R2.700, x0 (spawn during fight), casts Ultima Blaster
+    BlackHoleP3 = 0x4C38, // R1.000, x0 (spawn during fight)
+
+    KefkaP4 = 0x482B, // R6.000, x0 (spawn during fight)
+    ChaosP4 = 0x4C33, // R6.000, x0 (spawn during fight)
+    NeoExdeathP4 = 0x4C36, // R9.000, x0 (spawn during fight)
 
     Helper = 0x233C, // R0.500, x37, Helper type
 }
@@ -160,6 +161,29 @@ public enum AID : uint
     BowelsOfAgonyEnrageFast = 49753, // ChaosP3->self, 5.0s cast, range 100 circle
     MeteorEnrageSlow = 50718, // ExdeathP3->self, 10.0s cast, range 100 circle
     BowelsOfAgonyEnrageSlow = 50719, // copied from sheets, probably never gonna see this one 
+
+    _Ability_KefkaSays = 49884, // KefkaP4->self, 5.0s cast, single-target
+    _Ability_GrandCross = 47892, // NeoExdeathP4->self, 9.0s cast, range 100 circle
+    _Ability_Inferno = 47902, // ChaosP4->self, 9.0s cast, single-target
+    _Ability_Inferno1 = 47904, // Helper->self, 9.0s cast, range 100 circle
+    _Ability_Tsunami = 47905, // Helper->self, 9.0s cast, range 100 circle
+    _Ability_Tsunami1 = 47903, // ChaosP4->self, 9.0s cast, single-target
+    DeathBolt1 = 47896, // Helper->players, no cast, range 8 circle
+    DeathBolt2 = 47897, // Helper->players, no cast, range 8 circle
+    DeathShriek1 = 47894, // Helper->self, no cast, range 100 circle
+    DeathShriek2 = 47895, // Helper->self, no cast, range 100 circle
+    DeathSurge1 = 47900, // Helper->self, no cast, range 100 circle
+    DeathSurge2 = 47901, // Helper->self, no cast, range 100 circle
+    DeathWave1 = 47898, // Helper->players, no cast, range 8 circle
+    DeathWave2 = 47899, // Helper->players, no cast, range 8 circle
+    StrayFlames1 = 47906, // Helper->location, 5.0s cast, range 6 circle
+    StrayFlames2 = 47907, // Helper->location, 5.0s cast, range 6-40 donut
+    _Ability_StraySpray = 47909, // Helper->location, 5.0s cast, range 6 circle
+    _Ability_FloodOfNaught = 50081, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
+    _Ability_EdgeOfDeath = 50070, // Helper->self, 5.5s cast, range 48 width 2 rect
+    _Ability_WhiteAntilight = 50068, // Helper->self, 5.5s cast, range 47 width 21 rect
+    _Ability_BlackAntilight = 50069, // Helper->self, 5.5s cast, range 47 width 21 rect
+    _Ability_ManaCharge = 47780, // KefkaP4->self, 3.0s cast, single-target
 }
 
 public enum SID : uint
@@ -194,8 +218,8 @@ public enum SID : uint
     EpicVillain = 4193, // none->ChaosP3, extra=0x0
     FatedHero = 4194, // none->player, extra=0x0
     FatedVillain = 4195, // none->ExdeathP3, extra=0x0
-    Entropy = 1600, // none->player, extra=0x0
-    DynamicFluid = 1601, // none->player, extra=0x0
+    EntropyP3 = 1600, // none->player, extra=0x0
+    DynamicFluidP3 = 1601, // none->player, extra=0x0
     Headwind = 1602, // none->player, extra=0x0
     Tailwind = 1603, // none->player, extra=0x0
     WindResistanceDownII = 1052, // Helper->player, extra=0x0
@@ -211,6 +235,22 @@ public enum SID : uint
     EarthResistanceDownII = 3372, // Helper->player, extra=0x0
     Unbecoming = 5452, // BlackHoleP3->player, extra=0x1
     MeanestExistence = 5453, // BlackHoleP3->player, extra=0x0
+
+    P4TruthLie = 2056, // none->NeoExdeathP4/ChaosP4, extra=0x461 (neo exdeath, lying)/0x45F (chaos, lying)/0x460 (chaos, truthing)/0x462 (neo exdeath, truthing)
+    CursedShriek = 5543, // none->player, extra=0x0
+    ForkedLightning = 5544, // none->player, extra=0x0
+    CompressedWater = 5545, // none->player, extra=0x0
+    AccelerationBomb = 5546, // none->player, extra=0x0
+    EntropyP4 = 5547, // none->player, extra=0x0
+    DynamicFluidP4 = 5548, // none->player, extra=0x0
+    AllaganField = 454, // none->player, extra=0x0, real debuff (is there a fake one?)
+    WhiteWound1 = 4887, // none->player, extra=0x0
+    BlackWound1 = 4888, // none->player, extra=0x0
+    WhiteWound2 = 5541, // Helper->player, extra=0x0, real debuff
+    BlackWound2 = 5542, // none->player, extra=0x0, real debuff
+    BeyondDeath1 = 5464, // none->player, extra=0x0
+    BeyondDeath2 = 1382, // none->player, extra=0x0, real debuff
+    Petrification = 3007, // Helper->player, extra=0x0
 }
 
 public enum IconID : uint

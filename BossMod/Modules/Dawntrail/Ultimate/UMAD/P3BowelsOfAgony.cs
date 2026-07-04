@@ -107,10 +107,10 @@ class P3EntropyFluid : Components.GenericBaitAway
     {
         switch ((SID)status.ID)
         {
-            case SID.Entropy:
+            case SID.EntropyP3:
                 CurrentBaits.Add(new(actor, actor, Circle, status.ExpireAt));
                 break;
-            case SID.DynamicFluid:
+            case SID.DynamicFluidP3:
                 CurrentBaits.Add(new(actor, actor, Donut, status.ExpireAt));
                 break;
         }
