@@ -95,8 +95,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         Automatic,
         [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         Force,
-        [Option("Ensure usage at least 2 GCDs before next downtime", Targets = ActionTargets.Hostile)]
-        PreDowntime
+        [Option("Use as soon as multiple targets can be hit", Targets = ActionTargets.Hostile)]
+        Multi,
     }
     public enum NadiStrategy
     {
@@ -199,13 +199,15 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     public int NumBlitzTargets;
     public int NumAOETargets;
-    public int NumLineTargets;
+    public int NumWindTargets;
+    public int NumEnlightenmentTargets;
 
     private DateTime LastDash;
 
-    private Enemy? BestBlitzTarget;
-    private Enemy? BestRangedTarget; // fire's reply
-    private Enemy? BestLineTarget; // enlightenment, wind's reply
+    private Enemy? BlitzTarget;
+    private Enemy? FiresReplyTarget; // fire's reply
+    private Enemy? WindTarget; // wind's reply
+    private Enemy? EnlightenmentTarget;
 
     public bool HaveLunar => Nadi.HasFlag(NadiFlags.Lunar);
     public bool HaveSolar => Nadi.HasFlag(NadiFlags.Solar);
@@ -338,39 +340,32 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         {
             if (currentBlitzIsTargeted)
             {
-                if (ResolveTargetOverride(strategy.Blitz) is { } forcedBlitzTarget)
-                {
-                    BestBlitzTarget = forcedBlitzTarget;
-                    NumBlitzTargets = Hints.NumPriorityTargetsInAOECircle(BestBlitzTarget.Actor.Position, 5);
-                }
-                else
-                {
-                    (BestBlitzTarget, NumBlitzTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
-                }
+                (BlitzTarget, NumBlitzTargets) = OrSelectTarget(strategy, primaryTarget, strategy.Blitz, 3, IsSplashTarget);
             }
             else
             {
-                BestBlitzTarget = null;
+                BlitzTarget = null;
                 NumBlitzTargets = NumAOETargets;
             }
         }
         else
         {
-            BestBlitzTarget = null;
+            BlitzTarget = null;
             NumBlitzTargets = 0;
         }
 
         (CurrentForm, FormLeft) = DetermineForm();
 
-        BestRangedTarget = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget).Best;
-        (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, IsEnlightenmentTarget);
+        FiresReplyTarget = OrSelectTarget(strategy, primaryTarget, strategy.FiresReply, 20, IsSplashTarget).Best;
+        (WindTarget, NumWindTargets) = OrSelectTarget(strategy, primaryTarget, strategy.WindsReply, 10, IsEnlightenmentTarget);
+        (EnlightenmentTarget, NumEnlightenmentTargets) = SelectTarget(strategy, primaryTarget, 10, IsEnlightenmentTarget);
 
         EffectiveForm = GetEffectiveForm(strategy);
 
         Meditate(strategy, primaryTarget);
         FormShift(strategy, primaryTarget);
 
-        var sprint = StatusLeft(BossMod.SGE.SID.Sprint);
+        var sprint = StatusLeft(ClassShared.SID.Sprint);
 
         if (CountdownRemaining > 0)
         {
@@ -437,8 +432,57 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, maximumActionRange: 20);
 
-        if (Player.InCombat)
-            OGCD(strategy, primaryTarget);
+        OGCD(strategy, primaryTarget);
+    }
+
+    // TODO: just a convenience method, this should be in basexan
+    (Enemy? Best, int Targets) OrSelectTarget<T>(in Strategy strategy, Enemy? primaryTarget, in Track<T> strategyTrack, float range, PositionCheck isInAOE) where T : struct
+    {
+        return ResolveTargetOverride(strategyTrack) is { } targetOverride
+            ? (targetOverride, Hints.PriorityTargets.Count(p => isInAOE(targetOverride.Actor, p.Actor)))
+            : SelectTarget(strategy, primaryTarget, range, isInAOE);
+    }
+
+    private void FiresReply(in Strategy strategy)
+    {
+        if (FiresReplyLeft <= GCD)
+            return;
+
+        var prio = strategy.FiresReply.Value switch
+        {
+            FRStrategy.Automatic => CurrentForm == Form.Raptor ? GCDPriority.FiresReply : GCDPriority.None,
+            FRStrategy.Ranged => CanFitGCD(FiresReplyLeft, 1) ? GCDPriority.FireRanged : GCDPriority.FiresReply,
+            FRStrategy.Force => GCDPriority.FiresReply,
+            _ => GCDPriority.None
+        };
+
+        if (!CanFitGCD(FiresReplyLeft, 1))
+            prio = GCDPriority.FiresReply;
+
+        PushGCD(AID.FiresReply, FiresReplyTarget, prio);
+    }
+
+    private void WindsReply(in Strategy strategy)
+    {
+        if (WindsReplyLeft <= GCD)
+            return;
+
+        var expiring = !CanFitGCD(WindsReplyLeft, 1) || EffectiveDowntimeIn < WindsReplyLeft && !CanFitGCD(EffectiveDowntimeIn, 2);
+        var buffsExpiring = FireLeft > GCD && !CanFitGCD(FireLeft, 1);
+
+        switch (strategy.WindsReply.Value)
+        {
+            case WRStrategy.Automatic:
+                PushGCD(AID.WindsReply, WindTarget, expiring || buffsExpiring ? GCDPriority.WindsReply : GCDPriority.WindRanged);
+                break;
+            case WRStrategy.Force:
+                PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply);
+                break;
+            case WRStrategy.Multi:
+                if (NumWindTargets > 1 || expiring)
+                    PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply);
+                break;
+        }
     }
 
     private void Prep(in Strategy strategy)
@@ -471,186 +515,6 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 1 => AID.FourPointFury,
                 _ => AID.ArmOfTheDestroyer
             }, Player, GCDPriority.Basic, deadlineNext);
-    }
-
-    private Form GetEffectiveForm(in Strategy strategy)
-    {
-        if (PerfectBalanceLeft == 0)
-        {
-            if (Unlocked(AID.SnapPunch))
-                return CurrentForm;
-
-            if (Unlocked(AID.TrueStrike))
-                return CurrentForm == Form.Raptor ? Form.Raptor : Form.OpoOpo;
-
-            return Form.OpoOpo;
-        }
-
-        var nadi = strategy.Nadi.Value;
-
-        if (ForcedLunar || nadi == NadiStrategy.Lunar)
-            return Form.OpoOpo;
-
-        // TODO throw away all this crap and fix odd lunar PB (it should not be used before rof)
-
-        // force lunar PB iff we are in opener, have lunar nadi already, and this is our last PB charge, aka double lunar opener
-        // if we have lunar but this is NOT our last charge, it means we came out of downtime with lunar nadi (i.e. dungeon), so solar -> pr is optimal
-        // this condition is unfortunately a little contrived. there are no other general cases in the monk rotation where we want to overwrite a lunar, as it's overall a dps loss
-        // NextChargeIn(PerfectBalance) > GCD is also not quite correct. ideally this would test whether a PB charge will come up during the riddle of fire window
-        // but in fights with extended downtime, nadis will already be explicitly planned out, so this isn't super important
-        var forcedDoubleLunar = CombatTimer < 30 && HaveLunar && ReadyIn(AID.PerfectBalance) > GCD && CanFitGCD(FireLeft, 3);
-        var forcedSolar = nadi == NadiStrategy.Solar
-            || ForcedSolar
-            || HaveLunar && !HaveSolar && !forcedDoubleLunar;
-
-        var canCoeurl = forcedSolar;
-        var canRaptor = forcedSolar;
-        var canOpo = true;
-
-        foreach (var chak in BeastChakra)
-        {
-            canCoeurl &= chak != BeastChakraType.Coeurl;
-            canRaptor &= chak != BeastChakraType.Raptor;
-            if (ForcedSolar)
-                canOpo &= chak != BeastChakraType.OpoOpo;
-        }
-
-        // nice conditional
-        return canOpo && OpoStacks == 0
-            ? Form.OpoOpo
-            : canRaptor && RaptorStacks == 0
-                ? Form.Raptor
-                : canCoeurl
-                    ? Form.Coeurl
-                    : canRaptor
-                        ? Form.Raptor
-                        : Form.OpoOpo;
-    }
-
-    private void QueuePB(in Strategy strategy, Enemy? primaryTarget)
-    {
-        var pbstrat = strategy.PB.Value;
-        var prio = strategy.PB.Priority();
-
-        // hard requirements missing, or pb delayed by plan
-        if (BeastChakra[0] != BeastChakraType.None || PerfectBalanceLeft > 0 || pbstrat == PBStrategy.Delay)
-            return;
-
-        // forced usage
-        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget == null)
-        {
-            PushAction(AID.PerfectBalance, Player, prio, 0);
-            return;
-        }
-        if (pbstrat == PBStrategy.ForceMinus3 && CanWeave(AID.RiddleOfFire, 3))
-        {
-            PushAction(AID.PerfectBalance, Player, prio, 0);
-            return;
-        }
-
-        // basic autorot logic to optimize number of opo gcds
-        if (NextGCD == AID.FiresReply || CurrentForm != Form.Raptor)
-            return;
-
-        if (pbstrat == PBStrategy.ForceOpo || !Unlocked(AID.RiddleOfFire))
-        {
-            PushAction(AID.PerfectBalance, Player, prio, 0);
-            return;
-        }
-
-        // prevent odd window double blitz
-        // TODO figure out the actual mathematical equation that differentiates odd windows, this is stupid
-        if (BrotherhoodLeft == 0 && MaxChargesIn(AID.PerfectBalance) > 30)
-            return;
-
-        if (
-            CanWeave(AID.RiddleOfFire, 3) && HaveTarget && strategy.RoF != RoFStrategy.Delay
-            || CanFitGCD(FireLeft, 3))
-        {
-            // in case of drift or whatever, if we end up wanting to triple weave after opo, delay PB in favor of using FR to get formless
-            // check if BH cooldown is >118s. if we only checked CanWeave for both then autorotation would do BH -> PB because RoF is slightly delayed to get the optimal late weave
-            var bhImminentOrUsed = CanWeave(AID.Brotherhood) || ReadyIn(AID.Brotherhood) + GCDLength > 120;
-
-            if (CombatTimer > 10 && bhImminentOrUsed && CanWeave(AID.RiddleOfFire) && Unlocked(AID.FiresReply))
-                return;
-
-            PushAction(AID.PerfectBalance, Player, prio, 0);
-        }
-    }
-
-    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
-    {
-        var potionPrio = strategy.Pot.Priority();
-        switch (strategy.Pot.Value)
-        {
-            case PotionStrategy.Now:
-                Potion(potionPrio);
-                break;
-            case PotionStrategy.PreBuffs:
-                if (HaveTarget && CanWeave(AID.Brotherhood, 4))
-                    Potion(potionPrio);
-                break;
-        }
-
-        Brotherhood(strategy, primaryTarget);
-        QueuePB(strategy, primaryTarget);
-
-        var (useRof, rofLate) = ShouldRoF(strategy);
-
-        if (useRof)
-            PushAction(AID.RiddleOfFire, Player, strategy.RoF.Priority(), rofLate ? GCD - EarliestRoF(AnimationLockDelay) : 0);
-
-        if (ShouldRoW(strategy))
-            PushAction(AID.RiddleOfWind, Player, strategy.RoW.Priority(), 0);
-
-        UseTN(strategy, primaryTarget, useRof);
-
-        if (HaveTarget && Chakra >= 5)
-        {
-            if (NumLineTargets >= 3)
-                PushOGCD(AID.HowlingFist, BestLineTarget, OGCDPriority.TFC);
-
-            PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC, useOnDyingTarget: false);
-        }
-
-        // TODO: all of this needs to be moved to ClassMNKUtility
-        var tc = strategy.TC;
-        switch (tc.Value)
-        {
-            case TCStrategy.GapClose:
-                var tcTarget = ResolveTargetOverride(tc) ?? primaryTarget;
-                if (Player.DistanceToHitbox(tcTarget) is > 3 and <= 25)
-                    // set forced mode=on to ignore safety, tc isn't part of the rotation so if the player requested it at a specific time then they probably know what they're doing
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Thunderclap), tcTarget?.Actor, tc.Priority(ActionQueue.Priority.Low + (int)OGCDPriority.TrueNorth), forced: true);
-                break;
-
-            // we can't consistently use effectresult to time the dash since action requests are affected by RTT. maybe it would work for someone with better ping but not me
-            case TCStrategy.Knockback:
-                // FIXME: should instead check whether the last dash was before the start of this plan entry but that will be more work
-                if (LastDash.AddSeconds(2) < World.CurrentTime && Player.PendingKnockbacks.Count > 0)
-                {
-                    var dashTarget = ResolveTargetOverride(tc)?.Actor ?? primaryTarget?.Actor ?? World.Party.WithoutSlot(includeDead: false).Exclude(Player).Closest(Player.Position);
-                    if (dashTarget != null)
-                        Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Thunderclap), dashTarget, tc.Priority(ActionQueue.Priority.Low + (int)OGCDPriority.PerfectBalance), forced: true);
-                }
-                break;
-        }
-    }
-
-    private void Brotherhood(in Strategy strategy, Enemy? primaryTarget)
-    {
-        switch (strategy.Brotherhood.Value)
-        {
-            case OffensiveStrategy.Automatic:
-                if (HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
-                    PushAction(AID.Brotherhood, Player, strategy.Brotherhood.Priority(), 0);
-                break;
-            case OffensiveStrategy.Force:
-                PushAction(AID.Brotherhood, Player, strategy.Brotherhood.Priority(), 0);
-                break;
-            default:
-                return;
-        }
     }
 
     private void Meditate(in Strategy strategy, Enemy? primaryTarget)
@@ -720,81 +584,234 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         };
 
         if (should)
-            PushGCD(currentBlitz, BestBlitzTarget, currentBlitz is AID.TornadoKick or AID.PhantomRush ? GCDPriority.PR : GCDPriority.Blitz);
+            PushGCD(currentBlitz, BlitzTarget, currentBlitz is AID.TornadoKick or AID.PhantomRush ? GCDPriority.PR : GCDPriority.Blitz);
     }
 
-    private void FiresReply(in Strategy strategy)
+    private Form GetEffectiveForm(in Strategy strategy)
     {
-        if (FiresReplyLeft <= GCD)
-            return;
-
-        var prio = strategy.FiresReply.Value switch
+        if (PerfectBalanceLeft == 0)
         {
-            FRStrategy.Automatic => CurrentForm == Form.Raptor ? GCDPriority.FiresReply : GCDPriority.None,
-            FRStrategy.Ranged => CanFitGCD(FiresReplyLeft, 1) ? GCDPriority.FireRanged : GCDPriority.FiresReply,
-            FRStrategy.Force => GCDPriority.FiresReply,
-            _ => GCDPriority.None
-        };
+            if (Unlocked(AID.SnapPunch))
+                return CurrentForm;
 
-        if (!CanFitGCD(FiresReplyLeft, 1))
-            prio = GCDPriority.FiresReply;
+            if (Unlocked(AID.TrueStrike))
+                return CurrentForm == Form.Raptor ? Form.Raptor : Form.OpoOpo;
 
-        PushGCD(AID.FiresReply, ResolveTargetOverride(strategy.FiresReply) ?? BestRangedTarget, prio);
+            return Form.OpoOpo;
+        }
+
+        var nadi = strategy.Nadi.Value;
+
+        if (ForcedLunar || nadi == NadiStrategy.Lunar)
+            return Form.OpoOpo;
+
+        // TODO throw away all this crap and fix odd lunar PB (it should not be used before rof)
+
+        // force lunar PB iff we are in opener, have lunar nadi already, and this is our last PB charge, aka double lunar opener
+        // if we have lunar but this is NOT our last charge, it means we came out of downtime with lunar nadi (i.e. dungeon), so solar -> pr is optimal
+        // this condition is unfortunately a little contrived. there are no other general cases in the monk rotation where we want to overwrite a lunar, as it's overall a dps loss
+        // NextChargeIn(PerfectBalance) > GCD is also not quite correct. ideally this would test whether a PB charge will come up during the riddle of fire window
+        // but in fights with extended downtime, nadis will already be explicitly planned out, so this isn't super important
+        var forcedDoubleLunar = CombatTimer < 30 && HaveLunar && ReadyIn(AID.PerfectBalance) > GCD && CanFitGCD(FireLeft, 3);
+        var forcedSolar = nadi == NadiStrategy.Solar
+            || ForcedSolar
+            || HaveLunar && !HaveSolar && !forcedDoubleLunar;
+
+        var canCoeurl = forcedSolar;
+        var canRaptor = forcedSolar;
+        var canOpo = true;
+
+        foreach (var chak in BeastChakra)
+        {
+            canCoeurl &= chak != BeastChakraType.Coeurl;
+            canRaptor &= chak != BeastChakraType.Raptor;
+            if (ForcedSolar)
+                canOpo &= chak != BeastChakraType.OpoOpo;
+        }
+
+        // nice conditional
+        return canOpo && OpoStacks == 0
+            ? Form.OpoOpo
+            : canRaptor && RaptorStacks == 0
+                ? Form.Raptor
+                : canCoeurl
+                    ? Form.Coeurl
+                    : canRaptor
+                        ? Form.Raptor
+                        : Form.OpoOpo;
     }
 
-    private void WindsReply(in Strategy strategy)
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
-        if (WindsReplyLeft <= GCD)
-            return;
-
-        // always queue with low prio, this lets us fallback to winds reply when out of range for melee GCDs
-        var prio = GCDPriority.WindRanged;
-
-        // if riddle of fire is about to expire, or if the WR buff itself is about to expire, use ASAP
-        if (FireLeft > GCD && !CanFitGCD(FireLeft, 1) || !CanFitGCD(WindsReplyLeft, 1))
-            prio = GCDPriority.WindsReply;
-
-        switch (strategy.WindsReply.Value)
+        var potionPrio = strategy.Pot.Priority();
+        switch (strategy.Pot.Value)
         {
-            case WRStrategy.Force:
-                prio = GCDPriority.WindsReply;
+            case PotionStrategy.Now:
+                Potion(potionPrio);
                 break;
-            case WRStrategy.PreDowntime:
-                if (EffectiveDowntimeIn < WindsReplyLeft && !CanFitGCD(EffectiveDowntimeIn, 2))
-                    prio = GCDPriority.WindsReply;
+            case PotionStrategy.PreBuffs:
+                if (HaveTarget && CanWeave(AID.Brotherhood, 4))
+                    Potion(potionPrio);
                 break;
         }
 
-        PushGCD(AID.WindsReply, ResolveTargetOverride(strategy.WindsReply) ?? BestLineTarget, prio);
-    }
+        UseBrotherhood(strategy);
+        UsePB(strategy, primaryTarget);
+        UseRoF(strategy);
+        UseRoW(strategy);
+        UseTN(strategy, primaryTarget);
 
-    private float DesiredFireWindow => GCDLength * 10;
-    private float EarliestRoF(float estimatedDelay) => MathF.Max(estimatedDelay + 0.8f, 20.6f - DesiredFireWindow);
+        if (HaveTarget && Chakra >= 5)
+        {
+            if (NumEnlightenmentTargets >= 3)
+                PushOGCD(AID.HowlingFist, EnlightenmentTarget, OGCDPriority.TFC);
+
+            PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC, useOnDyingTarget: false);
+        }
+
+        // TODO: all of this needs to be moved to ClassMNKUtility
+        var tc = strategy.TC;
+        switch (tc.Value)
+        {
+            case TCStrategy.GapClose:
+                var tcTarget = ResolveTargetOverride(tc) ?? primaryTarget;
+                if (Player.DistanceToHitbox(tcTarget) is > 3 and <= 25)
+                    // set forced mode=on to ignore safety, tc isn't part of the rotation so if the player requested it at a specific time then they probably know what they're doing
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Thunderclap), tcTarget?.Actor, tc.Priority(ActionQueue.Priority.Low + (int)OGCDPriority.TrueNorth), forced: true);
+                break;
+
+            // we can't consistently use effectresult to time the dash since action requests are affected by RTT. maybe it would work for someone with better ping but not me
+            case TCStrategy.Knockback:
+                // FIXME: should instead check whether the last dash was before the start of this plan entry but that will be more work
+                if (LastDash.AddSeconds(2) < World.CurrentTime && Player.PendingKnockbacks.Count > 0)
+                {
+                    var dashTarget = ResolveTargetOverride(tc)?.Actor ?? primaryTarget?.Actor ?? World.Party.WithoutSlot(includeDead: false).Exclude(Player).Closest(Player.Position);
+                    if (dashTarget != null)
+                        Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Thunderclap), dashTarget, tc.Priority(ActionQueue.Priority.Low + (int)OGCDPriority.PerfectBalance), forced: true);
+                }
+                break;
+        }
+    }
 
     private void Potion(float priority) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, priority);
 
-    private (bool Use, bool Late) ShouldRoF(in Strategy strategy) => strategy.RoF.Value switch
+    private void UseBrotherhood(in Strategy strategy)
     {
-        RoFStrategy.Automatic => (HaveTarget && !CanWeave(AID.Brotherhood) && DowntimeIn > AnimLock + 20, true),
-        RoFStrategy.Force => (true, false),
-        RoFStrategy.ForceMidWeave => (true, true),
-        _ => (false, false)
-    };
+        switch (strategy.Brotherhood.Value)
+        {
+            case OffensiveStrategy.Automatic:
+                if (HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
+                    PushAction(AID.Brotherhood, Player, strategy.Brotherhood.Priority(), 0);
+                break;
+            case OffensiveStrategy.Force:
+                PushAction(AID.Brotherhood, Player, strategy.Brotherhood.Priority(), 0);
+                break;
+            default:
+                return;
+        }
+    }
 
-    private bool ShouldRoW(in Strategy strategy) => strategy.RoW.Value switch
+    private void UsePB(in Strategy strategy, Enemy? primaryTarget)
     {
-        OffensiveStrategy.Automatic => HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > AnimLock + 15,
-        OffensiveStrategy.Force => true,
-        _ => false
-    };
+        var pbstrat = strategy.PB.Value;
+        var prio = strategy.PB.Priority();
 
-    private void UseTN(in Strategy strategy, Enemy? primaryTarget, bool rofPlanned)
+        // hard requirements missing, or pb delayed by plan
+        if (BeastChakra[0] != BeastChakraType.None || PerfectBalanceLeft > 0 || !Player.InCombat || pbstrat == PBStrategy.Delay)
+            return;
+
+        // forced usage
+        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget == null)
+        {
+            PushAction(AID.PerfectBalance, Player, prio, 0);
+            return;
+        }
+        if (pbstrat == PBStrategy.ForceMinus3 && CanWeave(AID.RiddleOfFire, 3))
+        {
+            PushAction(AID.PerfectBalance, Player, prio, 0);
+            return;
+        }
+
+        // basic autorot logic to optimize number of opo gcds
+        if (NextGCD == AID.FiresReply || CurrentForm != Form.Raptor)
+            return;
+
+        if (pbstrat == PBStrategy.ForceOpo || !Unlocked(AID.RiddleOfFire))
+        {
+            PushAction(AID.PerfectBalance, Player, prio, 0);
+            return;
+        }
+
+        // prevent odd window double blitz
+        // TODO figure out the actual mathematical equation that differentiates odd windows, this is stupid
+        if (BrotherhoodLeft == 0 && MaxChargesIn(AID.PerfectBalance) > 30)
+            return;
+
+        var shouldUse = CanFitGCD(FireLeft, 3) || strategy.RoF.Value switch
+        {
+            RoFStrategy.Automatic => HaveTarget && CanWeave(AID.RiddleOfFire, 3) && DowntimeIn > ReadyIn(AID.RiddleOfFire) + 20,
+            // automatic strategy should never result in downtime PB regardless of RoF state. player should use the Prep strategies if needed
+            RoFStrategy.Force or RoFStrategy.ForceMidWeave => DowntimeIn > 0 && CanWeave(AID.RiddleOfFire, 3),
+            _ => false
+        };
+
+        if (shouldUse)
+        {
+            // in case of drift or whatever, if we end up wanting to triple weave after opo, delay PB in favor of using FR to get formless
+            // check if BH cooldown is >118s. if we only checked CanWeave for both then autorotation would do BH -> PB because RoF is slightly delayed to get the optimal late weave
+            var bhImminentOrUsed = CanWeave(AID.Brotherhood) || ReadyIn(AID.Brotherhood) + GCDLength > 120;
+
+            if (CombatTimer > 10 && bhImminentOrUsed && CanWeave(AID.RiddleOfFire) && Unlocked(AID.FiresReply))
+                return;
+
+            PushAction(AID.PerfectBalance, Player, prio, 0);
+        }
+    }
+
+    private void UseRoF(in Strategy strategy)
+    {
+        var earliestRof = MathF.Max(AnimationLockDelay + 0.8f, 20.6f - GCDLength * 10);
+
+        switch (strategy.RoF.Value)
+        {
+            case RoFStrategy.Automatic:
+                // standard opener, use once bh is pressed, hold if downtime is imminent
+                if (HaveTarget && !CanWeave(AID.Brotherhood) && DowntimeIn > AnimLock + 20)
+                    PushAction(AID.RiddleOfFire, Player, strategy.RoF.Priority(), GCD - earliestRof);
+                break;
+            case RoFStrategy.Force:
+                // downtime rof etc
+                PushAction(AID.RiddleOfFire, Player, strategy.RoF.Priority(), 0);
+                break;
+            case RoFStrategy.ForceMidWeave:
+                // mid weave assumes our GCD is rolling which implies a target
+                if (HaveTarget)
+                    PushAction(AID.RiddleOfFire, Player, strategy.RoF.Priority(), GCD - earliestRof);
+                break;
+        }
+    }
+
+    private void UseRoW(in Strategy strategy)
+    {
+        switch (strategy.RoW.Value)
+        {
+            case OffensiveStrategy.Automatic:
+                if (HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > AnimLock + 15)
+                    PushAction(AID.RiddleOfWind, Player, strategy.RoW.Priority(), 0);
+                break;
+            case OffensiveStrategy.Force:
+                PushAction(AID.RiddleOfWind, Player, strategy.RoW.Priority(), 0);
+                break;
+        }
+    }
+
+    private void UseTN(in Strategy strategy, Enemy? primaryTarget)
     {
         switch (strategy.TrueNorth.Value)
         {
             case OffensiveStrategy.Automatic:
-                if (NextPositionalImminent && !NextPositionalCorrect && Player.DistanceToHitbox(primaryTarget) < 6)
-                    PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, rofPlanned ? 0 : GCD - 0.8f);
+                if (NextPositionalImminent && !NextPositionalCorrect && Player.DistanceToHitbox(primaryTarget) < 6 && primaryTarget?.Priority >= 0)
+                    PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, GCD - 0.8f);
                 break;
             case OffensiveStrategy.Force:
                 if (TrueNorthLeft == 0)
