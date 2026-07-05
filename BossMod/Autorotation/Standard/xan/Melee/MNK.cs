@@ -13,27 +13,27 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         [Track(UiPriority = 499)]
         public Track<AOEStrategy> AOE;
 
-        [Track(InternalName = "BH", MinLevel = 70, UiPriority = 99, Action = AID.Brotherhood)]
+        [Track(InternalName = "BH", MinLevel = 70, UiPriority = 99, Action = AID.Brotherhood, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.Brotherhood)]
         public Track<OffensiveStrategy> Brotherhood;
 
         // RoF
-        [Track("Riddle of Fire", MinLevel = 68, UiPriority = 96, Action = AID.RiddleOfFire)]
+        [Track("Riddle of Fire", MinLevel = 68, UiPriority = 96, Action = AID.RiddleOfFire, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.RiddleOfFire)]
         public Track<RoFStrategy> RoF;
         [Track("Fire's Reply", MinLevel = 100, UiPriority = 95, Action = AID.FiresReply)]
         public Track<FRStrategy> FiresReply;
 
         // RoW
-        [Track("Riddle of Wind", UiPriority = 94, MinLevel = 72, Action = AID.RiddleOfWind)]
+        [Track("Riddle of Wind", UiPriority = 94, MinLevel = 72, Action = AID.RiddleOfWind, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.RiddleOfWind)]
         public Track<OffensiveStrategy> RoW;
         [Track("Wind's Reply", UiPriority = 93, MinLevel = 96, Action = AID.WindsReply)]
         public Track<WRStrategy> WindsReply;
 
         // blitz/nadi stuff
-        [Track("Perfect Balance", UiPriority = 89, Action = AID.PerfectBalance)]
+        [Track("Perfect Balance", UiPriority = 89, Action = AID.PerfectBalance, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.PerfectBalance)]
         public Track<PBStrategy> PB;
         [Track(UiPriority = 88, MinLevel = 60)]
         public Track<NadiStrategy> Nadi;
-        [Track(UiPriority = 87, MinLevel = 60, Actions = [AID.ElixirField, AID.FlintStrike, AID.TornadoKick, AID.ElixirBurst, AID.RisingPhoenix, AID.PhantomRush])]
+        [Track(UiPriority = 87, MinLevel = 60, Actions = [AID.ElixirField, AID.FlintStrike, AID.TornadoKick, AID.ElixirBurst, AID.RisingPhoenix, AID.PhantomRush], Targets = ActionTargets.Hostile)]
         public Track<BlitzStrategy> Blitz;
 
         // downtime
@@ -47,7 +47,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         // other
         [Track("Thunderclap", MinLevel = 35, UiPriority = 69, Action = AID.Thunderclap)]
         public Track<TCStrategy> TC;
-        [Track("Potion", UiPriority = 59, Item = 1045995)]
+        [Track("Potion", UiPriority = 59, Item = 1045995, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.Potion)]
         public Track<PotionStrategy> Pot;
         [Track(UiPriority = 49)]
         public Track<EngageStrategy> Engage;
@@ -124,6 +124,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         Automatic,
         [Option("Use after next Opo GCD", MinLevel = 50)]
         ForceOpo,
+        [Option("Use 3 GCDs before next RoF window, regardless of current form", MinLevel = 50)]
+        ForceMinus3,
         [Option("Use ASAP", MinLevel = 50)]
         Force,
         [Option("Do not use", MinLevel = 50)]
@@ -328,14 +330,24 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         FiresReplyLeft = StatusLeft(SID.FiresRumination);
         EarthsReplyLeft = StatusLeft(SID.EarthsRumination);
         BrotherhoodLeft = StatusLeft(SID.Brotherhood);
-        (var currentBlitz, var currentBlitzIsTargeted) = GetCurrentBlitz();
+        var (currentBlitz, currentBlitzIsTargeted) = GetCurrentBlitz();
 
         NumAOETargets = NumMeleeAOETargets(strategy);
 
         if (BlitzLeft > GCD)
         {
             if (currentBlitzIsTargeted)
-                (BestBlitzTarget, NumBlitzTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
+            {
+                if (ResolveTargetOverride(strategy.Blitz) is { } forcedBlitzTarget)
+                {
+                    BestBlitzTarget = forcedBlitzTarget;
+                    NumBlitzTargets = Hints.NumPriorityTargetsInAOECircle(BestBlitzTarget.Actor.Position, 5);
+                }
+                else
+                {
+                    (BestBlitzTarget, NumBlitzTargets) = SelectTarget(strategy, primaryTarget, 3, IsSplashTarget);
+                }
+            }
             else
             {
                 BestBlitzTarget = null;
@@ -518,22 +530,31 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     private void QueuePB(in Strategy strategy, Enemy? primaryTarget)
     {
         var pbstrat = strategy.PB.Value;
+        var prio = strategy.PB.Priority();
 
-        if (BeastChakra[0] != BeastChakraType.None || NextGCD == AID.FiresReply || pbstrat == PBStrategy.Delay || PerfectBalanceLeft > 0)
+        // hard requirements missing, or pb delayed by plan
+        if (BeastChakra[0] != BeastChakraType.None || PerfectBalanceLeft > 0 || pbstrat == PBStrategy.Delay)
             return;
 
-        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget is null)
+        // forced usage
+        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget == null)
         {
-            PushOGCD(AID.PerfectBalance, Player, OGCDPriority.PerfectBalance);
+            PushAction(AID.PerfectBalance, Player, prio, 0);
+            return;
+        }
+        if (pbstrat == PBStrategy.ForceMinus3 && CanWeave(AID.RiddleOfFire, 3))
+        {
+            PushAction(AID.PerfectBalance, Player, prio, 0);
             return;
         }
 
-        if (CurrentForm != Form.Raptor)
+        // basic autorot logic to optimize number of opo gcds
+        if (NextGCD == AID.FiresReply || CurrentForm != Form.Raptor)
             return;
 
         if (pbstrat == PBStrategy.ForceOpo || !Unlocked(AID.RiddleOfFire))
         {
-            PushOGCD(AID.PerfectBalance, Player, OGCDPriority.PerfectBalance);
+            PushAction(AID.PerfectBalance, Player, prio, 0);
             return;
         }
 
@@ -542,22 +563,24 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         if (BrotherhoodLeft == 0 && MaxChargesIn(AID.PerfectBalance) > 30)
             return;
 
-        if (ShouldRoF(strategy, 3).Use || CanFitGCD(FireLeft, 3))
+        if (
+            CanWeave(AID.RiddleOfFire, 3) && HaveTarget && strategy.RoF != RoFStrategy.Delay
+            || CanFitGCD(FireLeft, 3))
         {
             // in case of drift or whatever, if we end up wanting to triple weave after opo, delay PB in favor of using FR to get formless
             // check if BH cooldown is >118s. if we only checked CanWeave for both then autorotation would do BH -> PB because RoF is slightly delayed to get the optimal late weave
-            var bhImminentOrUsed = CanWeave(AID.Brotherhood) || ReadyIn(AID.Brotherhood) + AttackGCDLength > 120;
+            var bhImminentOrUsed = CanWeave(AID.Brotherhood) || ReadyIn(AID.Brotherhood) + GCDLength > 120;
 
             if (CombatTimer > 10 && bhImminentOrUsed && CanWeave(AID.RiddleOfFire) && Unlocked(AID.FiresReply))
                 return;
 
-            PushOGCD(AID.PerfectBalance, Player, OGCDPriority.PerfectBalance);
+            PushAction(AID.PerfectBalance, Player, prio, 0);
         }
     }
 
     private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
-        var potionPrio = strategy.Pot.Priority(ActionQueue.Priority.Low + 100 + (float)OGCDPriority.Potion);
+        var potionPrio = strategy.Pot.Priority();
         switch (strategy.Pot.Value)
         {
             case PotionStrategy.Now:
@@ -575,17 +598,14 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         var (useRof, rofLate) = ShouldRoF(strategy);
 
         if (useRof)
-            PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire, rofLate ? GCD - EarliestRoF(AnimationLockDelay) : 0);
-
-        if (strategy.RoF.Value == RoFStrategy.Force && !HaveTarget)
-            PushOGCD(AID.RiddleOfFire, Player, OGCDPriority.RiddleOfFire);
+            PushAction(AID.RiddleOfFire, Player, strategy.RoF.Priority(), rofLate ? GCD - EarliestRoF(AnimationLockDelay) : 0);
 
         if (ShouldRoW(strategy))
-            PushOGCD(AID.RiddleOfWind, Player, OGCDPriority.RiddleOfWind);
+            PushAction(AID.RiddleOfWind, Player, strategy.RoW.Priority(), 0);
 
         UseTN(strategy, primaryTarget, useRof);
 
-        if (HaveTarget && Chakra >= 5 && !useRof)
+        if (HaveTarget && Chakra >= 5)
         {
             if (NumLineTargets >= 3)
                 PushOGCD(AID.HowlingFist, BestLineTarget, OGCDPriority.TFC);
@@ -593,13 +613,15 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC, useOnDyingTarget: false);
         }
 
+        // TODO: all of this needs to be moved to ClassMNKUtility
         var tc = strategy.TC;
         switch (tc.Value)
         {
             case TCStrategy.GapClose:
                 var tcTarget = ResolveTargetOverride(tc) ?? primaryTarget;
-                if (Player.DistanceToHitbox(tcTarget) is > 3 and < 25)
-                    PushOGCD(AID.Thunderclap, tcTarget, OGCDPriority.TrueNorth);
+                if (Player.DistanceToHitbox(tcTarget) is > 3 and <= 25)
+                    // set forced mode=on to ignore safety, tc isn't part of the rotation so if the player requested it at a specific time then they probably know what they're doing
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Thunderclap), tcTarget?.Actor, tc.Priority(ActionQueue.Priority.Low + (int)OGCDPriority.TrueNorth), forced: true);
                 break;
 
             // we can't consistently use effectresult to time the dash since action requests are affected by RTT. maybe it would work for someone with better ping but not me
@@ -621,10 +643,10 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         {
             case OffensiveStrategy.Automatic:
                 if (HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
-                    PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
+                    PushAction(AID.Brotherhood, Player, strategy.Brotherhood.Priority(), 0);
                 break;
             case OffensiveStrategy.Force:
-                PushOGCD(AID.Brotherhood, Player, OGCDPriority.Brotherhood);
+                PushAction(AID.Brotherhood, Player, strategy.Brotherhood.Priority(), 0);
                 break;
             default:
                 return;
@@ -751,19 +773,13 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
     private void Potion(float priority) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, priority);
 
-    private (bool Use, bool LateWeave) ShouldRoF(Strategy strategy, int extraGCDs = 0)
+    private (bool Use, bool Late) ShouldRoF(in Strategy strategy) => strategy.RoF.Value switch
     {
-        if (!CanWeave(AID.RiddleOfFire, extraGCDs))
-            return (false, false);
-
-        return strategy.RoF.Value switch
-        {
-            RoFStrategy.Automatic => (HaveTarget && (extraGCDs > 0 || !CanWeave(AID.Brotherhood)) && DowntimeIn > AnimLock + 20, true),
-            RoFStrategy.Force => (true, false),
-            RoFStrategy.ForceMidWeave => (true, true),
-            _ => (false, false)
-        };
-    }
+        RoFStrategy.Automatic => (HaveTarget && !CanWeave(AID.Brotherhood) && DowntimeIn > AnimLock + 20, true),
+        RoFStrategy.Force => (true, false),
+        RoFStrategy.ForceMidWeave => (true, true),
+        _ => (false, false)
+    };
 
     private bool ShouldRoW(in Strategy strategy) => strategy.RoW.Value switch
     {
