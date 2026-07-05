@@ -10,12 +10,16 @@ public class UMAD(WorldState ws, Actor primary) : BossModule(ws, primary, new(10
     Actor? _exdeathP3;
     Actor? _kefkaP3;
     Actor? _kefkaP4;
+    Actor? _neoExdeathP4;
+    Actor? _chaosP4;
 
     public Actor? BossP2() => _bossP2;
     public Actor? ChaosP3() => _chaosP3;
     public Actor? ExdeathP3() => _exdeathP3;
     public Actor? KefkaP3() => _kefkaP3;
     public Actor? KefkaP4() => _kefkaP4;
+    public Actor? NeoExdeathP4() => _neoExdeathP4;
+    public Actor? ChaosP4() => _chaosP4;
 
     protected override void UpdateModule()
     {
@@ -28,7 +32,11 @@ public class UMAD(WorldState ws, Actor primary) : BossModule(ws, primary, new(10
             _kefkaP3 ??= Enemies(OID.BossP1).FirstOrDefault();
 
         if (StateMachine.ActivePhaseIndex == 3)
+        {
             _kefkaP4 ??= Enemies(OID.KefkaP4).FirstOrDefault();
+            _neoExdeathP4 ??= Enemies(OID.NeoExdeathP4).FirstOrDefault();
+            _chaosP4 ??= Enemies(OID.ChaosP4).FirstOrDefault();
+        }
     }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)

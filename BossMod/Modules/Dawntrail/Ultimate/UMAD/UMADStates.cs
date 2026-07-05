@@ -76,19 +76,13 @@ class UMADStates : StateMachineBuilder
 
         ActorCast(id + 0x10, _module.KefkaP4, AID._Ability_KefkaSays, 5.2f, 5, true);
 
-        ActorCastStart(id + 0x100, _module.KefkaP4, AID.MysteryMagic, 4.6f, true)
+        P4GrandCross(id + 0x100, 4.6f);
+
+        Timeout(id + 0xFF0000, 10000, "???")
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
             .ActivateOnEnter<P1ThrummingThunderIII>()
-            .ActivateOnEnter<P4GrandCross>()
-            .ActivateOnEnter<P4Tsunami>()
-            .ActivateOnEnter<P4Inferno>()
-            .ActivateOnEnter<P4StrayFlames>()
-            .ActivateOnEnter<P4StrayCircle>()
-            .ActivateOnEnter<P4EdgeOfDeath>()
             .ActivateOnEnter<P4Antilight>()
-            .ActivateOnEnter<P4Debuffs>();
-
-        Timeout(id + 0xFF0000, 10000, "???");
+            .ActivateOnEnter<P4EdgeOfDeath>();
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -645,5 +639,66 @@ class UMADStates : StateMachineBuilder
             var chEnd = _module.ChaosP3() is { CastInfo: null };
             return exEnd && chEnd ? 0 : -1;
         };
+    }
+
+    void P4GrandCross(uint id, float delay)
+    {
+        ActorCastStart(id, _module.KefkaP4, AID.MysteryMagic, delay, true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>()
+            .ActivateOnEnter<P4StrayFlames>()
+            .ActivateOnEnter<P4StrayCircle>()
+            .ActivateOnEnter<P4Debuffs>();
+
+        ActorCastStart(id + 1, _module.NeoExdeathP4, AID._Ability_GrandCross, 0.3f)
+            .ActivateOnEnter<P4GrandCross>();
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 2, 4.6f, b => b.NumCasts > 0, "Elements 1");
+
+        ActorCastStartMulti(id + 3, _module.ChaosP4, [AID._Ability_Inferno, AID._Ability_Tsunami1], 0.5f)
+            .ActivateOnEnter<P4Tsunami>()
+            .ActivateOnEnter<P4Inferno>()
+            .DeactivateOnExit<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+
+        ComponentCondition<P4GrandCross>(id + 4, 3.9f, p => p.NumCasts > 0, "Grand Cross 1")
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ActorCastEnd(id + 5, _module.ChaosP4, 5.1f, false, "Fire/water 1")
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ActorCastStart(id + 0x10, _module.KefkaP4, AID.MysteryMagic, 0.5f, true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>();
+
+        ActorCastStart(id + 0x11, _module.NeoExdeathP4, AID._Ability_GrandCross, 0.4f);
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x12, 4.5f, b => b.NumCasts > 0, "Elements 2");
+
+        ActorCastStartMulti(id + 0x13, _module.ChaosP4, [AID._Ability_Inferno, AID._Ability_Tsunami1], 0.6f)
+            .DeactivateOnExit<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+
+        ComponentCondition<P4GrandCross>(id + 0x14, 3.9f, p => p.NumCasts > 1, "Grand Cross 2")
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ActorCastEnd(id + 0x15, _module.ChaosP4, 5.1f, false, "Fire/water 2")
+            .DeactivateOnExit<P4Inferno>()
+            .DeactivateOnExit<P4Tsunami>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ActorCastStart(id + 0x20, _module.KefkaP4, AID.MysteryMagic, 0.6f, true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>();
+
+        ActorCastStart(id + 0x21, _module.NeoExdeathP4, AID._Ability_GrandCross, 0.3f);
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x22, 4.7f, b => b.NumCasts > 0, "Elements 3")
+            .DeactivateOnExit<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+
+        ComponentCondition<P4GrandCross>(id + 0x23, 4.3f, p => p.NumCasts > 2, "Grand Cross 3")
+            .DeactivateOnExit<P4GrandCross>()
+            .SetHint(StateMachine.StateHint.Raidwide);
     }
 }
