@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 public enum OID : uint
 {
