@@ -44,6 +44,8 @@ public sealed class ActorState : IEnumerable<Actor>
                 yield return new OpCombat(act.InstanceID, true);
             if (act.IsOpenTreasure)
                 yield return new OpEventOpenTreasure(act.InstanceID);
+            if (act.Visibility != default)
+                yield return new OpVisibility(act.InstanceID, act.Visibility);
             if (act.ModelState != default)
                 yield return new OpModelState(act.InstanceID, act.ModelState);
             if (act.EventState != 0)
@@ -272,6 +274,17 @@ public sealed class ActorState : IEnumerable<Actor>
             ws.Actors.IsTargetableChanged.Fire(actor);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC(Value ? "ATG+"u8 : "ATG-"u8).EmitActor(InstanceID);
+    }
+
+    public Event<Actor> VisibilityChanged = new();
+    public sealed record class OpVisibility(ulong InstanceID, Visibility Value) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.Visibility = Value;
+            ws.Actors.VisibilityChanged.Fire(actor);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("AVIS"u8).EmitActor(InstanceID).Emit(Value.Encode());
     }
 
     public Event<Actor> IsAllyChanged = new();

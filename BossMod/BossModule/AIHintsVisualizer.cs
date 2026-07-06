@@ -19,7 +19,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
 
         foreach (var _1 in tree.Node("Potential targets", hints.PotentialTargets.Count == 0))
         {
-            foreach (var pt in tree.Nodes(hints.PotentialTargets, e => new($"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - player.Position).Length():f2}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}, dots={e.AllowDOTs}###{e.Actor.InstanceID}-{e.Actor.SpawnIndex}", e.PrioHistory.Count == 0)))
+            foreach (var pt in tree.Nodes(hints.PotentialTargets, e => new($"[{e.Priority}] {e.Actor} (str={e.AttackStrength:f2}), dist={(e.Actor.Position - player.Position).Length():f2}, v={e.Actor.Visibility}, tank={e.ShouldBeTanked}/{e.PreferProvoking}/{e.DesiredPosition}/{e.DesiredRotation}, dots={e.AllowDOTs}###{e.Actor.InstanceID}-{e.Actor.SpawnIndex}", e.PrioHistory.Count == 0)))
             {
                 tree.LeafNodes(Enumerable.Reverse(pt.PrioHistory), ph => $"{ph.Value}, reason={ph.Reason}");
             }
