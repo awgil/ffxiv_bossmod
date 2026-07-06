@@ -219,8 +219,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
                     var req = strategy.Option(Track.Requiescat);
                     var reqStrat = req.As<BuffsStrategy>();
-                    var reqTarget = SingleTargetChoice(mainTarget, req);
-                    var (reqCondition, reqPrio) = ShouldBuffUp(reqStrat, mainTarget, ActionReady(BestRequiescat), FOFcd > 55f);
+                    var reqTarget = Unlocked(AID.Imperator) ? AOETargetChoice(mainTarget, bladesTarget, req, strategy) : SingleTargetChoice(mainTarget, req);
+                    var (reqCondition, reqPrio) = ShouldBuffUp(reqStrat, reqTarget, ActionReady(BestRequiescat), FOFcd > 55f);
                     if (reqCondition)
                         QueueOGCD(BestRequiescat, reqTarget, reqPrio);
                 }
