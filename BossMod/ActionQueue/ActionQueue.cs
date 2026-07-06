@@ -100,7 +100,7 @@ public sealed class ActionQueue
         if (!allowDismount && AutoDismountTweak.IsMountPreventingAction(ws, def.ID))
             return false;
 
-        if (entry.Target?.Visibility == Visibility.Blocked && Service.LuminaRow<Lumina.Excel.Sheets.Action>(entry.Action.ID)?.RequiresLineOfSight == true)
+        if (entry.Target?.Visibility == Visibility.Blocked && def.RequiresLineOfSight)
             return false;
 
         if (def.ID.Type == ActionType.Item && ws.Client.GetInventoryItemQuantity(def.ID.ID) == 0)

@@ -78,6 +78,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public int ExtraCooldownGroup = -1;
     public float Cooldown; // for single charge (if multi-charge action); can be adjusted by a number of factors (TODO: add functor)
     public ActionAspect Aspect; // useful for BLM and BLU
+    public bool RequiresLineOfSight;
     public int MaxChargesBase; // baseline max-charges when action is unlocked
     public readonly List<(int Charges, int Level, uint UnlockLink)> MaxChargesOverride = []; // trait overrides for max-charges (applied in order)
     public bool IsRoleAction; // unlocked conditions are different for these
@@ -385,6 +386,7 @@ public sealed class ActionDefinitions
             UnlockLink = SpellUnlockLink(data),
             AllowedTargets = SpellAllowedTargets(data),
             Range = SpellRange(data, isPhysRanged),
+            RequiresLineOfSight = data.RequiresLineOfSight,
             CastTime = SpellBaseCastTime(data),
             MainCooldownGroup = SpellMainCDGroup(data),
             ExtraCooldownGroup = SpellExtraCDGroup(data),
@@ -422,6 +424,7 @@ public sealed class ActionDefinitions
             AllowedTargets = targets,
             Range = range,
             CastTime = castTime,
+            RequiresLineOfSight = itemAction.Action.Value.RequiresLineOfSight,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown,
             InstantAnimLock = animLock,
@@ -433,6 +436,7 @@ public sealed class ActionDefinitions
             AllowedTargets = targets,
             Range = range,
             CastTime = castTime,
+            RequiresLineOfSight = itemAction.Action.Value.RequiresLineOfSight,
             MainCooldownGroup = cdgroup,
             Cooldown = cooldown * 0.9f,
             InstantAnimLock = animLock,

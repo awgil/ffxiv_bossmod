@@ -31,8 +31,8 @@ public sealed class AIHintsConfig : ConfigNode
     [PropertyDisplay("Behavior for actions without AOE indicators", since: "0.3.0.0", tooltip: "This setting only applies when no module is active.")]
     public OmenBehavior OmenSetting = OmenBehavior.Automatic;
 
-    [PropertyDisplay("Enable raycasting", tooltip: "Prevents vbm from trying to attack mobs that it can't see. Disable to improve performance, but AI mode will not behave optimally.")]
-    public bool Raycasting = true;
+    [PropertyDisplay("Enable raycasting", tooltip: "Prevents VBM from trying to attack mobs that it can't see. Disable to improve performance, but AI mode will not behave optimally.")]
+    public bool EnableRaycasts = true;
 
     [PropertyDisplay("Enable priority tracing", tooltip: "Only useful for debugging. Will slightly reduce performance.")]
     public bool PriorityTracing = false;

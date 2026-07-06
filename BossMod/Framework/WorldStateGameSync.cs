@@ -367,28 +367,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         var forayInfo = forayInfoPtr == null ? default : new ActorForayInfo(forayInfoPtr->Level, forayInfoPtr->Element);
         var isOpenTreasure = obj->ObjectKind == ObjectKind.Treasure && ((Treasure*)obj)->Flags.HasFlag(Treasure.TreasureFlags.Opened);
 
-        var visibility = Visibility.Unknown;
-
-        if (_solverConfig.Raycasting && targetable)
-        {
-            var playerObj = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-            if (playerObj != null)
-            {
-                var sourcePos = playerObj->Position;
-                var targetPos = obj->Position;
-                sourcePos.Y += 2;
-                targetPos.Y += 2;
-                var offset = targetPos - sourcePos;
-                // if distance to target is >50y, their nameplate isn't visible and we definitely can't target them
-                if (offset.SqrMagnitude <= 2500)
-                {
-                    var distance = offset.Magnitude;
-                    var direction = offset / distance;
-                    var flags = stackalloc int[] { 0x4000, 0, 0x4000, 0 };
-                    visibility = BGCollisionModule.RaycastMaterialFilter(sourcePos, direction, out var hit, distance) ? Visibility.Blocked : Visibility.Visible;
-                }
-            }
-        }
+        var visibility = targetable ? DetermineVisibility(obj) : Visibility.Unknown;
 
         if (act == null)
         {
@@ -496,6 +475,35 @@ sealed class WorldStateGameSync : IWorldStateGameSync
                 }
             }
         }
+    }
+
+    private unsafe Visibility DetermineVisibility(GameObject* obj)
+    {
+        if (!_solverConfig.EnableRaycasts)
+            return Visibility.Unknown;
+
+        var playerObj = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+
+        if (playerObj == null)
+            return Visibility.Unknown;
+
+        if (playerObj == obj)
+            return Visibility.Visible;
+
+        var sourcePos = playerObj->Position;
+        var targetPos = obj->Position;
+        sourcePos.Y += 2;
+        targetPos.Y += 2;
+        var offset = targetPos - sourcePos;
+        // if distance to target is >50y, their nameplate isn't visible and we definitely can't target them
+        if (offset.SqrMagnitude <= 2500)
+        {
+            var distance = offset.Magnitude;
+            var direction = offset / distance;
+            return BGCollisionModule.RaycastMaterialFilter(sourcePos, direction, out _, distance) ? Visibility.Blocked : Visibility.Visible;
+        }
+
+        return Visibility.Unknown;
     }
 
     private void UpdateActorCastInfo(Actor act, ActorCastInfo? cast)
