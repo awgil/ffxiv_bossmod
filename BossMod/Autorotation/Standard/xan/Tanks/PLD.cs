@@ -244,7 +244,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
                     PushOGCD(AID.Intervene, dashTarget);
                 break;
             case DashStrategy.HoldOne:
-                if (FightOrFlight > 0 && CanWeave(MaxChargesIn(AID.Intervene), 0.8f))
+                if (FightOrFlight > 0 && CanWeave(MaxChargesIn(AID.Intervene), 0.6f))
                     PushOGCD(AID.Intervene, dashTarget);
                 break;
             case DashStrategy.GapCloser:

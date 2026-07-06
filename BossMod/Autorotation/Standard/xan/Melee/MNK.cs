@@ -237,8 +237,6 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public bool ForcedLunar => BeastCount > 1 && BeastChakra[0] == BeastChakra[1] && !HaveBothNadi;
     public bool ForcedSolar => BeastCount > 1 && BeastChakra[0] != BeastChakra[1] && !HaveBothNadi;
 
-    public bool CanFormShift => Unlocked(AID.FormShift) && PerfectBalanceLeft == 0;
-
     // rockbreaker is a gain on 3 at 22.1% crit but i aint calculating that
     public int AOEBreakpoint => Unlocked(AID.ShadowOfTheDestroyer) && EffectiveForm == Form.OpoOpo && OpoStacks == 0 ? 3 : 4;
     public bool UseAOE => NumAOETargets >= AOEBreakpoint;
