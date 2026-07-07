@@ -268,7 +268,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         }
 
         if (Favor == Favor.Ifrit && strategy.Cyclone.IsEnabled())
-            PushGCD(AID.CrimsonCyclone, ResolveTargetOverride(strategy.Cyclone) ?? BestAOETarget);
+            PushGCD(AID.CrimsonCyclone, ResolveEnemy(strategy.Cyclone) ?? BestAOETarget);
 
         if (SummonLeft <= GCD)
         {

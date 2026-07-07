@@ -66,7 +66,7 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (shelAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(shelAction), shelAction == PLD.AID.Intervention ? ResolveTargetOverride(shel.Value) ?? CoTank() : Player, shel.Priority(), shel.Value.ExpireIn); //Sheltron & Intervention execution
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(shelAction), shelAction == PLD.AID.Intervention ? ResolveTarget(shel.Value) ?? CoTank() : Player, shel.Priority(), shel.Value.ExpireIn); //Sheltron & Intervention execution
 
         var sent = strategy.Option(Track.Sentinel);
         var sentAction = sent.As<SentOption>() switch
@@ -94,7 +94,7 @@ public sealed class ClassPLDUtility(RotationModuleManager manager, Actor player)
         var bash = strategy.Option(Track.ShieldBash);
         if (bash.As<SimpleOption>() == SimpleOption.Use)
         {
-            var target = ResolveTargetOverride(bash.Value) ?? primaryTarget;
+            var target = ResolveTarget(bash.Value) ?? primaryTarget;
             if (target?.FindStatus(WAR.SID.Stun) == null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(PLD.AID.ShieldBash), target, ActionQueue.Priority.VeryHigh, bash.Value.ExpireIn);
         }

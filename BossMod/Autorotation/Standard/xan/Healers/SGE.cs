@@ -218,7 +218,7 @@ public sealed class SGE(RotationModuleManager manager, Actor player) : Castxan<A
         switch (strategy.Kardia.Value)
         {
             case KardiaStrategy.Specific:
-                return ResolveTargetOverride(strategy.Kardia.TrackRaw);
+                return ResolveTarget(strategy.Kardia.TrackRaw);
             case KardiaStrategy.Manual:
                 return null;
         }

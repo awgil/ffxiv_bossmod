@@ -264,10 +264,10 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             {
                 case HarpeStrategy.Automatic:
                     if (EnhancedHarpe > GCD)
-                        PushGCD(AID.Harpe, ResolveTargetOverride(strategy.Harpe) ?? primaryTarget, GCDPriority.EnhancedHarpe);
+                        PushGCD(AID.Harpe, ResolveEnemy(strategy.Harpe) ?? primaryTarget, GCDPriority.EnhancedHarpe);
                     break;
                 case HarpeStrategy.Ranged:
-                    PushOGCD(AID.Harpe, ResolveTargetOverride(strategy.Harpe) ?? primaryTarget, 50);
+                    PushOGCD(AID.Harpe, ResolveEnemy(strategy.Harpe) ?? primaryTarget, 50);
                     break;
             }
         }
@@ -351,7 +351,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             _ => GCDPriority.None
         };
 
-        PushGCD(AID.HarvestMoon, ResolveTargetOverride(strategy.HM) ?? BestRangedAOETarget, prio);
+        PushGCD(AID.HarvestMoon, ResolveEnemy(strategy.HM) ?? BestRangedAOETarget, prio);
     }
 
     private void DDRefresh(Enemy? primaryTarget)
@@ -385,7 +385,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             _ => GCDPriority.None
         };
 
-        PushGCD(AID.Perfectio, ResolveTargetOverride(opt) ?? BestRangedAOETarget, prio);
+        PushGCD(AID.Perfectio, ResolveEnemy(opt) ?? BestRangedAOETarget, prio);
     }
 
     private void PlentifulHarvest(in Strategy strategy)
@@ -393,7 +393,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (ImmortalSacrifice.Left <= GCD || BloodsownCircle > GCD || !strategy.PH.IsEnabled() || SoulReaver)
             return;
 
-        PushGCD(AID.PlentifulHarvest, ResolveTargetOverride(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest);
+        PushGCD(AID.PlentifulHarvest, ResolveEnemy(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest);
     }
 
     private void Sow(in Strategy strategy)
@@ -444,7 +444,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         // before 70, blood stalk IS our dps output from red gauge, so we don't want to waste it on dying targets
         var haveBlueGauge = Unlocked(AID.Gallows);
-        var targetOverride = ResolveTargetOverride(strategy.RedGauge);
+        var targetOverride = ResolveEnemy(strategy.RedGauge);
 
         void useBloodStalk()
         {
@@ -502,7 +502,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (!shouldUse)
             return;
 
-        var sliceTarget = ResolveTargetOverride(strategy.Slice);
+        var sliceTarget = ResolveEnemy(strategy.Slice);
 
         // assuming if a target is specified, we don't want to use AOE rotation - TODO is this necessary at all?
         if (NumAOETargets > 2 && sliceTarget == null)
@@ -519,7 +519,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (BlueSouls == 1)
         {
             if (strategy.Communio.IsEnabled())
-                PushGCD(AID.Communio, ResolveTargetOverride(strategy.Communio) ?? BestRangedAOETarget, GCDPriority.Communio);
+                PushGCD(AID.Communio, ResolveEnemy(strategy.Communio) ?? BestRangedAOETarget, GCDPriority.Communio);
 
             if (Soulsow)
                 PushGCD(AID.HarvestMoon, BestRangedAOETarget, GCDPriority.EnshroudMove);

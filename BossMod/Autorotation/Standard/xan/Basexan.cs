@@ -205,7 +205,17 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         PushAction(aid, target, ActionQueue.Priority.Low + priority, delay);
     }
 
-    protected bool PushAction(AID aid, Actor? target, float priority, float delay)
+    protected bool UsePlanned<T>(in Track<T> strategyTrack, AID action, Actor? defaultTarget, float delay = 0, float additionalPriority = 0, bool forced = false, Func<Actor?, bool>? predicate = null) where T : struct
+    {
+        var realTarget = ResolveTarget(strategyTrack) ?? defaultTarget;
+
+        if (predicate?.Invoke(realTarget) == false)
+            return false;
+
+        return PushAction(action, realTarget, strategyTrack.Priority() + additionalPriority, delay, forced);
+    }
+
+    protected bool PushAction(AID aid, Actor? target, float priority, float delay, bool forced = false)
     {
         if ((uint)(object)aid == 0)
             return false;
@@ -233,7 +243,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
                 targetPos = target.PosRot.XYZ();
         }
 
-        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos, castTime: GetSlidecastTime(aid));
+        Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), target, priority, delay: delay, targetPos: targetPos, castTime: GetSlidecastTime(aid), forced: forced);
         return true;
     }
 

@@ -286,7 +286,7 @@ public sealed class VPR(RotationModuleManager manager, Actor player) : Attackxan
 
         // fallback 2 for out of range
         if (strategy.Snap == SnapStrategy.Ranged)
-            PushGCD(AID.WrithingSnap, ResolveTargetOverride(strategy.Snap) ?? primaryTarget);
+            PushGCD(AID.WrithingSnap, ResolveEnemy(strategy.Snap) ?? primaryTarget);
 
         var pos = GetPositional(strategy);
         UpdatePositionals(primaryTarget, ref pos);

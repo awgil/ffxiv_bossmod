@@ -47,12 +47,12 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
         if (lbLevel > 0)
         {
             var lbAction = lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.BreathOfTheEarth : ClassShared.AID.HealingWind);
-            Hints.ActionsToExecute.Push(lbAction, ResolveTargetOverride(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: ActionDefinitions.Instance[lbAction]!.CastTime);
+            Hints.ActionsToExecute.Push(lbAction, ResolveTarget(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: ActionDefinitions.Instance[lbAction]!.CastTime);
         }
 
         var addle = strategy.Option(SharedTrack.Addle);
         if (addle.As<AddleOption>() != AddleOption.None)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), ResolveTargetOverride(strategy.Option(SharedTrack.Addle).Value) ?? primaryTarget, addle.Priority(), addle.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), ResolveTarget(strategy.Option(SharedTrack.Addle).Value) ?? primaryTarget, addle.Priority(), addle.Value.ExpireIn);
 
         var swift = strategy.Option(SharedTrack.Swiftcast);
         if (swift.As<SwiftcastOption>() != SwiftcastOption.None)

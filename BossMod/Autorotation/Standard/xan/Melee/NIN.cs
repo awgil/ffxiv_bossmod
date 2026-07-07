@@ -167,7 +167,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
         if (Mudra.Left == 0 && strategy.PhantomCannon.IsEnabled())
         {
-            var cannonTarget = ResolveTargetOverride(strategy.PhantomCannon) ?? primaryTarget;
+            var cannonTarget = ResolveEnemy(strategy.PhantomCannon) ?? primaryTarget;
 
             if (DutyActionReadyIn(PhantomID.SilverCannon) <= GCD)
                 PushGCD((AID)PhantomID.SilverCannon, cannonTarget, 10);

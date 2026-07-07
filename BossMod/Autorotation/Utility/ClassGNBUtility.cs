@@ -53,7 +53,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
         //Aurora execution
         var aurora = strategy.Option(Track.Aurora);
-        var auroraTarget = ResolveTargetOverride(aurora.Value) ?? primaryTarget ?? Player; //Smart-Targeting
+        var auroraTarget = ResolveTarget(aurora.Value) ?? primaryTarget ?? Player; //Smart-Targeting
         var auroraStrat = aurora.As<AuroraStrategy>();
         var auroraCD = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(DRK.AID.Oblation)!.MainCooldownGroup].Remaining;
         var hasAurora = StatusDetails(auroraTarget, GNB.SID.Aurora, Player.InstanceID).Left > 0.1f; //Checks if status is present
@@ -66,7 +66,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
 
         //Heart of Stone / Corundum execution
         var hoc = strategy.Option(Track.HeartOfCorundum);
-        var hocTarget = ResolveTargetOverride(hoc.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
+        var hocTarget = ResolveTarget(hoc.Value) ?? CoTank() ?? primaryTarget ?? Player; //Smart-Targets Co-Tank if set to Automatic, if no Co-Tank then targets self
         var BestHOC = ActionUnlocked(ActionID.MakeSpell(GNB.AID.HeartOfCorundum)) ? GNB.AID.HeartOfCorundum : GNB.AID.HeartOfStone;
         var hocStrat = hoc.As<HoCOption>();
         if (hocStrat != default)
@@ -75,7 +75,7 @@ public sealed class ClassGNBUtility(RotationModuleManager manager, Actor player)
         //Trajectory execution
         var dash = strategy.Option(Track.Trajectory);
         var dashStrategy = strategy.Option(Track.Trajectory).As<DashStrategy>();
-        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
+        var dashTarget = ResolveTarget(dash.Value) ?? primaryTarget; //Smart-Targeting
         var distance = Player.DistanceToHitbox(dashTarget);
         var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(GNB.AID.Trajectory)!.MainCooldownGroup].Remaining;
         var shouldDash = dashStrategy switch

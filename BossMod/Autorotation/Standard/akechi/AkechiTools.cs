@@ -163,8 +163,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected delegate P PriorityFunc<P>(int totalTargets, Actor primaryTarget);
 
     protected bool TargetsInAOECircle(float range = 3f, int numTargets = 1) => Hints.NumPriorityTargetsInAOECircle(Player.Position, range) >= numTargets;
-    protected Actor? SingleTargetChoice(Actor? manual, StrategyValues.OptionRef track) => ResolveTargetOverride(track.Value) ?? manual;
-    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => ResolveTargetOverride(track.Value) ?? (strategy.AutoTarget() ? auto : manual);
+    protected Actor? SingleTargetChoice(Actor? manual, StrategyValues.OptionRef track) => ResolveTarget(track.Value) ?? manual;
+    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => ResolveTarget(track.Value) ?? (strategy.AutoTarget() ? auto : manual);
 
     //position checks
     protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);

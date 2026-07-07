@@ -85,12 +85,12 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (cureAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cureAction), ResolveTargetOverride(cure.Value) ?? defaultHealTarget, cure.Priority(), cure.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(cureAction)!.CastTime);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cureAction), ResolveTarget(cure.Value) ?? defaultHealTarget, cure.Priority(), cure.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(cureAction)!.CastTime);
 
         var regen = strategy.Option(Track.Regen);
         if (regen.As<SimpleOption>() == SimpleOption.Use)
         {
-            var regenTarget = ResolveTargetOverride(regen.Value) ?? defaultHealTarget;
+            var regenTarget = ResolveTarget(regen.Value) ?? defaultHealTarget;
             if (regenTarget.FindStatus(WHM.SID.Regen) == null)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(WHM.AID.Regen), regenTarget, regen.Priority(), regen.Value.ExpireIn);
         }

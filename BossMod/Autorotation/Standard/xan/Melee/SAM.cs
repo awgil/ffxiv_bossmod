@@ -199,7 +199,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         NumTenkaTargets = NumNearbyTargets(strategy, 8);
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, InLineAOE);
 
-        var dotTarget = ResolveTargetOverride(strategy.Higanbana) ?? primaryTarget;
+        var dotTarget = ResolveEnemy(strategy.Higanbana) ?? primaryTarget;
 
         (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, dotTarget, HiganbanaLeft, 2);
 
@@ -279,7 +279,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
             _ => GCDPriority.None,
         };
 
-        PushGCD(AID.Enpi, ResolveTargetOverride(strategy.Enpi) ?? primaryTarget, enpiprio);
+        PushGCD(AID.Enpi, ResolveEnemy(strategy.Enpi) ?? primaryTarget, enpiprio);
 
         var pos = GetNextPositional(strategy);
         UpdatePositionals(primaryTarget, ref pos);

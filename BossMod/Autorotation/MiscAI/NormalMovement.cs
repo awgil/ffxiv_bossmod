@@ -208,7 +208,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         var rangeStrategy = rangeOpt.As<RangeStrategy>();
         if (rangeStrategy != RangeStrategy.Any && Player.InCombat)
         {
-            var rangeReference = ResolveTargetOverride(rangeOpt.Value) ?? primaryTarget;
+            var rangeReference = ResolveTarget(rangeOpt.Value) ?? primaryTarget;
             if (rangeReference != null)
             {
                 // TODO: instead of hardcoding, is it possible to reuse goal zones for this purpose?

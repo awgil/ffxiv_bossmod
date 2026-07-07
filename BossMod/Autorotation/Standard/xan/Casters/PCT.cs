@@ -206,10 +206,10 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         BestLineTarget = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget).Best;
 
-        MuseTarget = ResolveTargetOverride(strategy.Muse) ?? BestAOETarget;
-        PortraitTarget = ResolveTargetOverride(strategy.Portrait) ?? BestLineTarget;
-        HammerTarget = ResolveTargetOverride(strategy.Hammer) ?? BestAOETarget;
-        HolyTarget = ResolveTargetOverride(strategy.Holy) ?? BestAOETarget;
+        MuseTarget = ResolveEnemy(strategy.Muse) ?? BestAOETarget;
+        PortraitTarget = ResolveEnemy(strategy.Portrait) ?? BestLineTarget;
+        HammerTarget = ResolveEnemy(strategy.Hammer) ?? BestAOETarget;
+        HolyTarget = ResolveEnemy(strategy.Holy) ?? BestAOETarget;
 
         if (!Player.InCombat && Player.CastInfo is { Action: var act } && (AID)act.ID is AID.PomMotif or AID.WingMotif or AID.ClawMotif or AID.MawMotif or AID.HammerMotif or AID.StarrySkyMotif)
             Hints.ForceCancelCast = true;

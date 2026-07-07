@@ -10,14 +10,26 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
-        [Track("Living Shadow", MinLevel = 80, Action = AID.LivingShadow)]
+        [Track("Living Shadow", MinLevel = 80, Action = AID.LivingShadow, OGCDPriority = OGCDPriority.LivingShadow)]
         public Track<OffensiveStrategy> Buffs;
 
         [Track("Disesteem", MinLevel = 100, Action = AID.Disesteem)]
         public Track<DisesteemStrategy> Disesteem;
 
-        [Track("Edge of Shadow", MinLevel = 40)]
+        [Track("Edge of Shadow", MinLevel = 40, Actions = [AID.EdgeOfDarkness, AID.EdgeOfShadow, AID.FloodOfDarkness, AID.FloodOfShadow], OGCDPriority = OGCDPriority.Edge)]
         public Track<EdgeStrategy> Edge;
+
+        [Track("Bloodspiller", MinLevel = 62, Actions = [AID.Bloodspiller, AID.Quietus])]
+        public Track<OffensiveStrategy> Blood;
+
+        [Track("Delirium", MinLevel = 35, Actions = [AID.BloodWeapon, AID.Delirium], OGCDPriority = OGCDPriority.Delirium)]
+        public Track<OffensiveStrategy> Delirium;
+
+        [Track("Salted Earth", MinLevel = 52, Actions = [AID.SaltedEarth, AID.SaltAndDarkness], OGCDPriority = OGCDPriority.SaltedEarth)]
+        public Track<OffensiveStrategy> Salt;
+
+        [Track("Shadowbringer", MinLevel = 90, Action = AID.Shadowbringer, OGCDPriority = OGCDPriority.SHB)]
+        public Track<OffensiveStrategy> ShB;
 
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
@@ -25,7 +37,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
     public enum EdgeStrategy
     {
-        [Option("Use to refresh Darkside, during raid buffs, or if TBN is active", Targets = ActionTargets.Hostile)]
+        [Option("Use to refresh Darkside, during raid buffs, or to prevent Dark Arts overcap", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Automatic usage, but save 3000 MP for TBN", MinLevel = 70, Targets = ActionTargets.Hostile)]
         AutomaticTBN,
@@ -93,8 +105,8 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         None = 0,
         Edge = 200,
         SaltAndDarkness = 500,
-        Carve = 550,
         SHB = 600,
+        Carve = 610,
         SaltedEarth = 650,
         Delirium = 700,
         LivingShadow = 800,
@@ -121,12 +133,12 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget);
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 2));
 
-        OGCD(strategy, primaryTarget);
-
         if (CountdownRemaining > 0)
         {
             if (CountdownRemaining < 0.98f)
                 PushGCD(AID.Unmend, primaryTarget);
+
+            OGCD(strategy, primaryTarget);
 
             return;
         }
@@ -167,43 +179,55 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         UseBlood(strategy, primaryTarget);
+
+        OGCD(strategy, primaryTarget);
     }
 
     private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
-        // prepull shadow if requested
-        if (strategy.Buffs == OffensiveStrategy.Force)
-            PushOGCD(AID.LivingShadow, Player, OGCDPriority.LivingShadow);
+        if (SaltedEarth > 0)
+            PushOGCD(AID.SaltAndDarkness, Player, OGCDPriority.SaltAndDarkness);
 
-        if (primaryTarget == null || !Player.InCombat)
-            return;
+        if (strategy.Buffs.Value switch
+        {
+            OffensiveStrategy.Automatic => Player.InCombat && DowntimeIn > 22,
+            OffensiveStrategy.Force => true,
+            _ => false
+        })
+            UsePlanned(strategy.Buffs, AID.LivingShadow, Player);
 
         Edge(strategy, primaryTarget);
 
-        if (strategy.Buffs != OffensiveStrategy.Delay)
-            PushOGCD(AID.LivingShadow, Player, OGCDPriority.LivingShadow);
-
-        if (!Unlocked(AID.Delirium))
-            PushOGCD(AID.BloodWeapon, Player, OGCDPriority.Delirium);
-
-        if (CanFitGCD(RaidBuffsLeft, 2) || RaidBuffsIn <= GCD || CombatTimer > 30)
-            PushOGCD(AID.Delirium, Player, OGCDPriority.Delirium);
-
-        if (OnCooldown(AID.Delirium))
+        if (strategy.Delirium.Value switch
         {
-            if (NumAOETargets > 0 && DowntimeIn > 15)
-                PushOGCD(AID.SaltedEarth, Player, OGCDPriority.SaltedEarth);
+            OffensiveStrategy.Automatic => Player.InCombat && (CanFitGCD(RaidBuffsLeft, 2) || RaidBuffsIn <= GCD || CombatTimer > 30),
+            OffensiveStrategy.Force => true,
+            _ => false
+        })
+            UsePlanned(strategy.Delirium, Unlocked(AID.Delirium) ? AID.Delirium : AID.BloodWeapon, Player);
 
-            if (NumLineTargets > 0 && (RaidBuffsLeft > AnimLock || RaidBuffsIn > 9000))
-                PushOGCD(AID.Shadowbringer, BestLineTarget, OGCDPriority.SHB);
+        if (strategy.Salt.Value switch
+        {
+            OffensiveStrategy.Automatic => Player.InCombat && OnCooldown(AID.Delirium) && NumAOETargets > 0 && DowntimeIn > 15,
+            OffensiveStrategy.Force => true,
+            _ => false
+        })
+            UsePlanned(strategy.Salt, AID.SaltedEarth, Player);
+
+        if (Player.InCombat)
+        {
+            if (strategy.ShB.Value switch
+            {
+                OffensiveStrategy.Automatic => OnCooldown(AID.Delirium) && RaidBuffsLeft > AnimLock || RaidBuffsIn > 9000,
+                OffensiveStrategy.Force => true,
+                _ => false
+            })
+                UsePlanned(strategy.ShB, AID.Shadowbringer, BestLineTarget?.Actor, additionalPriority: MaxChargesIn(AID.Shadowbringer) <= GCD ? 20 : 0);
 
             if (NumRangedAOETargets > 2)
                 PushOGCD(AID.AbyssalDrain, BestRangedAOETarget, OGCDPriority.Carve);
 
             PushOGCD(AID.CarveAndSpit, primaryTarget, OGCDPriority.Carve);
-
-            if (SaltedEarth > 0)
-                PushOGCD(AID.SaltAndDarkness, Player, OGCDPriority.SaltAndDarkness);
         }
     }
 
@@ -212,14 +236,21 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         if (Blood < 50 && Delirium <= GCD) // can't use
             return;
 
-        var nextBlood = NextGCD is AID.Souleater or AID.StalwartSoul ? Blood + 20 : Blood;
+        var nextBlood = Blood;
+
+        if (NextGCD is AID.Souleater or AID.StalwartSoul)
+            nextBlood += 20;
+
+        // deli will give us +30 blood starting on next gcd (and we can't spend gauge during it) so prevent overcap
+        if (strategy.Delirium != OffensiveStrategy.Delay && CanWeave(AID.Delirium, 1) && (CanFitGCD(RaidBuffsLeft, 3) || RaidBuffsIn <= GCD + GCDLength || CombatTimer > 30))
+            nextBlood += 30;
 
         if (RaidBuffsLeft > GCD || nextBlood > 100)
         {
             if (NumAOETargets > 2)
                 PushGCD(AID.Quietus, Player, GCDPriority.BloodAOE);
 
-            PushGCD(AID.Bloodspiller, primaryTarget, GCDPriority.Blood, 0, false);
+            PushGCD(AID.Bloodspiller, primaryTarget, GCDPriority.Blood, useOnDyingTarget: false);
         }
     }
 
@@ -229,28 +260,31 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         var canUseTBN = MP >= 6000 || DarkArts || !Unlocked(AID.TheBlackestNight);
 
         var track = strategy.Edge;
-        var edgeTarget = ResolveTargetOverride(track);
+        var edgeTarget = ResolveEnemy(track);
 
         void use(OGCDPriority prio, bool useOnDyingTarget)
         {
-            if (NumLineTargets > 2 || !Unlocked(AID.EdgeOfDarkness))
-                PushOGCD(AID.FloodOfDarkness, edgeTarget ?? BestLineTarget, prio, 0, useOnDyingTarget);
+            var pExtra = (int)prio - (int)OGCDPriority.Edge;
 
-            PushOGCD(AID.EdgeOfDarkness, edgeTarget ?? primaryTarget, prio, 0, useOnDyingTarget);
+            if (NumLineTargets > 2 || !Unlocked(AID.EdgeOfDarkness))
+                UsePlanned(track, AID.FloodOfDarkness, (edgeTarget ?? BestLineTarget)?.Actor, additionalPriority: pExtra);
+
+            UsePlanned(track, AID.EdgeOfDarkness, (edgeTarget ?? primaryTarget)?.Actor, additionalPriority: pExtra);
         }
 
         if (track == EdgeStrategy.Delay || !canUse)
             return;
 
-        if (Darkside <= GCD + 0.6f + AnimationLockDelay)
+        if (Darkside <= GCD + 0.6f + AnimationLockDelay && Player.InCombat)
         {
             use(OGCDPriority.EdgeRefresh, true);
             return;
         }
 
-        var canUseAuto
-            = RaidBuffsLeft > AnimLock || RaidBuffsIn > 9000
-            || DarkArts && World.Party.WithoutSlot().Any(p => p.FindStatus(SID.TheBlackestNight, Player.InstanceID, DateTime.MaxValue) != null);
+        var canUseAuto = Player.InCombat &&
+            (RaidBuffsLeft > AnimLock
+            || RaidBuffsIn > 9000
+            || DarkArts && World.Party.WithoutSlot().Any(p => p.FindStatus(SID.TheBlackestNight, Player.InstanceID, DateTime.MaxValue) != null));
 
         switch (track.Value)
         {

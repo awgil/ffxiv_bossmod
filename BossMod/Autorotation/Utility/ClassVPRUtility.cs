@@ -28,7 +28,7 @@ public sealed class ClassVPRUtility(RotationModuleManager manager, Actor player)
 
         var dash = strategy.Option(Track.Slither);
         var dashStrategy = strategy.Option(Track.Slither).As<DashStrategy>();
-        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
+        var dashTarget = ResolveTarget(dash.Value) ?? primaryTarget; //Smart-Targeting
         var distance = Player.DistanceToHitbox(dashTarget);
         var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(VPR.AID.Slither)!.MainCooldownGroup].Remaining;
         var shouldDash = dashStrategy switch

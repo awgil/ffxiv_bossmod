@@ -13,23 +13,23 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         [Track(UiPriority = 499)]
         public Track<AOEStrategy> AOE;
 
-        [Track(InternalName = "BH", MinLevel = 70, UiPriority = 99, Action = AID.Brotherhood, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.Brotherhood)]
+        [Track(InternalName = "BH", MinLevel = 70, UiPriority = 99, Action = AID.Brotherhood, OGCDPriority = OGCDPriority.Brotherhood)]
         public Track<OffensiveStrategy> Brotherhood;
 
         // RoF
-        [Track("Riddle of Fire", MinLevel = 68, UiPriority = 96, Action = AID.RiddleOfFire, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.RiddleOfFire)]
+        [Track("Riddle of Fire", MinLevel = 68, UiPriority = 96, Action = AID.RiddleOfFire, OGCDPriority = OGCDPriority.RiddleOfFire)]
         public Track<RoFStrategy> RoF;
         [Track("Fire's Reply", MinLevel = 100, UiPriority = 95, Action = AID.FiresReply)]
         public Track<FRStrategy> FiresReply;
 
         // RoW
-        [Track("Riddle of Wind", UiPriority = 94, MinLevel = 72, Action = AID.RiddleOfWind, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.RiddleOfWind)]
+        [Track("Riddle of Wind", UiPriority = 94, MinLevel = 72, Action = AID.RiddleOfWind, OGCDPriority = OGCDPriority.RiddleOfWind)]
         public Track<OffensiveStrategy> RoW;
         [Track("Wind's Reply", UiPriority = 93, MinLevel = 96, Action = AID.WindsReply)]
         public Track<WRStrategy> WindsReply;
 
         // blitz/nadi stuff
-        [Track("Perfect Balance", UiPriority = 89, Action = AID.PerfectBalance, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.PerfectBalance)]
+        [Track("Perfect Balance", UiPriority = 89, Action = AID.PerfectBalance, OGCDPriority = OGCDPriority.PerfectBalance)]
         public Track<PBStrategy> PB;
         [Track(UiPriority = 88, MinLevel = 60)]
         public Track<NadiStrategy> Nadi;
@@ -47,11 +47,11 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         // other
         [Track("Thunderclap", MinLevel = 35, UiPriority = 69, Action = AID.Thunderclap)]
         public Track<TCStrategy> TC;
-        [Track("Potion", UiPriority = 59, Item = 1045995, DefaultPriority = ActionQueue.Priority.Low + (int)OGCDPriority.Potion)]
+        [Track("Potion", UiPriority = 59, Item = 1045995, OGCDPriority = OGCDPriority.Potion)]
         public Track<PotionStrategy> Pot;
         [Track(UiPriority = 49)]
         public Track<EngageStrategy> Engage;
-        [Track("True North", MinLevel = 50, UiPriority = 48, Action = AID.TrueNorth)]
+        [Track("True North", MinLevel = 50, UiPriority = 48, Action = AID.TrueNorth, OGCDPriority = OGCDPriority.TrueNorth)]
         public Track<OffensiveStrategy> TrueNorth;
 
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
@@ -139,9 +139,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     {
         [Option("Do not use")]
         None,
-        [Option("Use when outside melee range", Targets = ActionTargets.Party | ActionTargets.Hostile)]
+        [Option("Use when outside melee range", Targets = ActionTargets.Hostile, OGCDPriority = OGCDPriority.TrueNorth)]
         GapClose,
-        [Option("Use to cancel knockback", Targets = ActionTargets.Party | ActionTargets.Hostile)]
+        [Option("Use to cancel knockback", Targets = ActionTargets.Party | ActionTargets.Hostile, OGCDPriority = OGCDPriority.PerfectBalance)]
         Knockback
     }
     public enum BlitzStrategy
@@ -371,6 +371,10 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.FormShift, Player);
 
             SmartEngage(strategy, primaryTarget);
+
+            // prepull row/bh/etc
+            OGCD(strategy, primaryTarget);
+
             return;
         }
 
@@ -436,7 +440,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     // TODO: just a convenience method, this should be in basexan
     (Enemy? Best, int Targets) OrSelectTarget<T>(in Strategy strategy, Enemy? primaryTarget, in Track<T> strategyTrack, float range, PositionCheck isInAOE) where T : struct
     {
-        return ResolveTargetOverride(strategyTrack) is { } targetOverride
+        return ResolveEnemy(strategyTrack) is { } targetOverride
             ? (targetOverride, Hints.PriorityTargets.Count(p => isInAOE(targetOverride.Actor, p.Actor)))
             : SelectTarget(strategy, primaryTarget, range, isInAOE);
     }
@@ -642,16 +646,13 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
         var potionPrio = strategy.Pot.Priority();
-        switch (strategy.Pot.Value)
+        if (strategy.Pot.Value switch
         {
-            case PotionStrategy.Now:
-                Potion(potionPrio);
-                break;
-            case PotionStrategy.PreBuffs:
-                if (HaveTarget && CanWeave(AID.Brotherhood, 4))
-                    Potion(potionPrio);
-                break;
-        }
+            PotionStrategy.Now => true,
+            PotionStrategy.PreBuffs => HaveTarget && CanWeave(AID.Brotherhood, 4),
+            _ => false
+        })
+            UsePlanned(strategy.Pot, (AID)ActionDefinitions.IDPotionStr.ID, Player);
 
         UseBrotherhood(strategy);
         UsePB(strategy, primaryTarget);
@@ -659,7 +660,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         UseRoW(strategy);
         UseTN(strategy, primaryTarget);
 
-        if (HaveTarget && Chakra >= 5)
+        if (HaveTarget && Chakra >= 5 && Player.InCombat)
         {
             if (NumEnlightenmentTargets >= 3)
                 PushOGCD(AID.HowlingFist, EnlightenmentTarget, OGCDPriority.TFC);
@@ -672,47 +673,35 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         switch (tc.Value)
         {
             case TCStrategy.GapClose:
-                var tcTarget = ResolveTargetOverride(tc) ?? primaryTarget;
-                if (Player.DistanceToHitbox(tcTarget) is > 3 and <= 25)
-                    // set forced mode=on to ignore safety, tc isn't part of the rotation so if the player requested it at a specific time then they probably know what they're doing
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Thunderclap), tcTarget?.Actor, tc.Priority(ActionQueue.Priority.Low + (int)OGCDPriority.TrueNorth), forced: true);
+                UsePlanned(tc, AID.Thunderclap, primaryTarget?.Actor, forced: true, predicate: (t) => Player.DistanceToHitbox(t) > 3);
                 break;
 
             // we can't consistently use effectresult to time the dash since action requests are affected by RTT. maybe it would work for someone with better ping but not me
             case TCStrategy.Knockback:
                 // FIXME: should instead check whether the last dash was before the start of this plan entry but that will be more work
                 if (LastDash.AddSeconds(2) < World.CurrentTime && Player.PendingKnockbacks.Count > 0)
-                {
-                    var dashTarget = ResolveTargetOverride(tc)?.Actor ?? primaryTarget?.Actor ?? World.Party.WithoutSlot(includeDead: false).Exclude(Player).Closest(Player.Position);
-                    if (dashTarget != null)
-                        Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Thunderclap), dashTarget, tc.Priority(ActionQueue.Priority.Low + (int)OGCDPriority.PerfectBalance), forced: true);
-                }
+                    UsePlanned(tc, AID.Thunderclap, primaryTarget?.Actor ?? World.Party.WithoutSlot(includeDead: false).Exclude(Player).Closest(Player.Position), additionalPriority: 1900, forced: true);
                 break;
         }
     }
 
-    private void Potion(float priority) => Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, priority);
-
     private void UseBrotherhood(in Strategy strategy)
     {
-        switch (strategy.Brotherhood.Value)
+        if (strategy.Brotherhood.Value switch
         {
-            case OffensiveStrategy.Automatic:
-                if (HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0)
-                    PushAction(AID.Brotherhood, Player, strategy.Brotherhood.Priority(), 0);
-                break;
-            case OffensiveStrategy.Force:
-                PushAction(AID.Brotherhood, Player, strategy.Brotherhood.Priority(), 0);
-                break;
-            default:
-                return;
-        }
+            OffensiveStrategy.Automatic => HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0,
+            OffensiveStrategy.Force => true,
+            _ => false
+        })
+            UsePlanned(strategy.Brotherhood, AID.Brotherhood, Player);
     }
 
     private void UsePB(in Strategy strategy, Enemy? primaryTarget)
     {
-        var pbstrat = strategy.PB.Value;
-        var prio = strategy.PB.Priority();
+        var track = strategy.PB;
+        var pbstrat = track.Value;
+
+        void use() => UsePlanned(track, AID.PerfectBalance, Player);
 
         // hard requirements missing, or pb delayed by plan
         if (BeastChakra[0] != BeastChakraType.None || PerfectBalanceLeft > 0 || !Player.InCombat || pbstrat == PBStrategy.Delay)
@@ -721,12 +710,12 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         // forced usage
         if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget == null)
         {
-            PushAction(AID.PerfectBalance, Player, prio, 0);
+            use();
             return;
         }
         if (pbstrat == PBStrategy.ForceMinus3 && CanWeave(AID.RiddleOfFire, 3))
         {
-            PushAction(AID.PerfectBalance, Player, prio, 0);
+            use();
             return;
         }
 
@@ -736,7 +725,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         if (pbstrat == PBStrategy.ForceOpo || !Unlocked(AID.RiddleOfFire))
         {
-            PushAction(AID.PerfectBalance, Player, prio, 0);
+            use();
             return;
         }
 
@@ -762,7 +751,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             if (CombatTimer > 10 && bhImminentOrUsed && CanWeave(AID.RiddleOfFire) && Unlocked(AID.FiresReply))
                 return;
 
-            PushAction(AID.PerfectBalance, Player, prio, 0);
+            use();
         }
     }
 
@@ -775,32 +764,29 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             case RoFStrategy.Automatic:
                 // standard opener, use once bh is pressed, hold if downtime is imminent
                 if (HaveTarget && !CanWeave(AID.Brotherhood) && DowntimeIn > AnimLock + 20)
-                    PushAction(AID.RiddleOfFire, Player, strategy.RoF.Priority(), GCD - earliestRof);
+                    UsePlanned(strategy.RoF, AID.RiddleOfFire, Player, GCD - earliestRof);
                 break;
             case RoFStrategy.Force:
-                // downtime rof etc
-                PushAction(AID.RiddleOfFire, Player, strategy.RoF.Priority(), 0);
+                // downtime rof etc, gcd is irrelevant
+                UsePlanned(strategy.RoF, AID.RiddleOfFire, Player);
                 break;
             case RoFStrategy.ForceMidWeave:
                 // mid weave assumes our GCD is rolling which implies a target
                 if (HaveTarget)
-                    PushAction(AID.RiddleOfFire, Player, strategy.RoF.Priority(), GCD - earliestRof);
+                    UsePlanned(strategy.RoF, AID.RiddleOfFire, Player, GCD - earliestRof);
                 break;
         }
     }
 
     private void UseRoW(in Strategy strategy)
     {
-        switch (strategy.RoW.Value)
+        if (strategy.RoW.Value switch
         {
-            case OffensiveStrategy.Automatic:
-                if (HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > AnimLock + 15)
-                    PushAction(AID.RiddleOfWind, Player, strategy.RoW.Priority(), 0);
-                break;
-            case OffensiveStrategy.Force:
-                PushAction(AID.RiddleOfWind, Player, strategy.RoW.Priority(), 0);
-                break;
-        }
+            OffensiveStrategy.Automatic => HaveTarget && !CanWeave(AID.RiddleOfFire) && DowntimeIn > AnimLock + 15,
+            OffensiveStrategy.Force => true,
+            _ => false
+        })
+            UsePlanned(strategy.RoW, AID.RiddleOfWind, Player);
     }
 
     private void UseTN(in Strategy strategy, Enemy? primaryTarget)
@@ -809,11 +795,11 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         {
             case OffensiveStrategy.Automatic:
                 if (NextPositionalImminent && !NextPositionalCorrect && Player.DistanceToHitbox(primaryTarget) < 6 && primaryTarget?.Priority >= 0)
-                    PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth, GCD - 0.8f);
+                    UsePlanned(strategy.TrueNorth, AID.TrueNorth, Player, GCD - 0.8f);
                 break;
             case OffensiveStrategy.Force:
                 if (TrueNorthLeft == 0)
-                    PushOGCD(AID.TrueNorth, Player, OGCDPriority.TrueNorth);
+                    UsePlanned(strategy.TrueNorth, AID.TrueNorth, Player);
                 break;
         }
     }

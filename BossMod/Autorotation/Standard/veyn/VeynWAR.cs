@@ -262,7 +262,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
         if (CanFitGCD(PRLeft))
         {
             var pr = strategy.Option(Track.PrimalRend);
-            var target = ResolveTargetOverride(pr.Value) ?? primaryTarget;
+            var target = ResolveTarget(pr.Value) ?? primaryTarget;
             if (target != null && !target.IsAlly)
             {
                 var prio = PRPriority(pr.As<PrimalRendStrategy>(), target);
@@ -334,7 +334,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
         {
             var stratOns = strategy.Option(Track.Onslaught);
             var stratOnsOpt = stratOns.As<OnslaughtStrategy>();
-            var target = ResolveTargetOverride(stratOns.Value) ?? primaryTarget;
+            var target = ResolveTarget(stratOns.Value) ?? primaryTarget;
             if (target != null && !target.IsAlly && ShouldUseOnslaught(stratOnsOpt, target))
             {
                 // special case for use as gapcloser - it has to be very high priority

@@ -58,7 +58,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
 
         // TBN
         var tbn = strategy.Option(Track.TheBlackestNight);
-        var tbnTarget = ResolveTargetOverride(tbn.Value) ?? Player; // principle of least astonishment, if target isn't specified then we assume the player needs the mit, not cotank
+        var tbnTarget = ResolveTarget(tbn.Value) ?? Player; // principle of least astonishment, if target isn't specified then we assume the player needs the mit, not cotank
         if (Player.HPMP.CurMP >= 3000 && tbn.As<TBNStrategy>() == TBNStrategy.Use)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.TheBlackestNight), tbnTarget, tbn.Priority(), tbn.Value.ExpireIn);
 
@@ -66,7 +66,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         var oblation = strategy.Option(Track.Oblation);
         Actor[] oblationTargets = oblation.As<OblationStrategy>() switch
         {
-            OblationStrategy.Use => [ResolveTargetOverride(oblation.Value) ?? Player],
+            OblationStrategy.Use => [ResolveTarget(oblation.Value) ?? Player],
             OblationStrategy.Both => CoTank() is { } tank ? [Player, tank] : [Player],
             _ => []
         };
@@ -88,7 +88,7 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
         // Dash
         var dash = strategy.Option(Track.Shadowstride);
         var dashStrategy = strategy.Option(Track.Shadowstride).As<DashStrategy>();
-        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget;
+        var dashTarget = ResolveTarget(dash.Value) ?? primaryTarget;
 
         var useDash = Player.DistanceToHitbox(dashTarget) is > 3 and <= 20 && dashStrategy switch
         {

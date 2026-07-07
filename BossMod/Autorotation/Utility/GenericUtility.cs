@@ -35,7 +35,7 @@ public abstract class GenericUtility(RotationModuleManager manager, Actor player
     protected void ExecuteSimple<AID>(in StrategyValues.OptionRef opt, AID aid, Actor? defaultTarget, float castTime = 0) where AID : Enum
     {
         if (opt.As<SimpleOption>() == SimpleOption.Use)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), ResolveTargetOverride(opt.Value) ?? defaultTarget, opt.Priority(), opt.Value.ExpireIn, castTime: castTime);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(aid), ResolveTarget(opt.Value) ?? defaultTarget, opt.Priority(), opt.Value.ExpireIn, castTime: castTime);
     }
 
     // returns 0 if not needed, or current LB level

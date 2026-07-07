@@ -112,7 +112,7 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         var pact = strategy.Option(Track.Aetherpact);
         var pactStrat = pact.As<AetherpactOption>();
-        var pactTarget = ResolveTargetOverride(pact.Value) ?? primaryTarget ?? Player;
+        var pactTarget = ResolveTarget(pact.Value) ?? primaryTarget ?? Player;
         var juicing = pactTarget.FindStatus(SCH.SID.FeyUnion) != null;
         if (pactStrat != AetherpactOption.None)
         {

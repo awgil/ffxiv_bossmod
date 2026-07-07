@@ -350,7 +350,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         var partner = p.Value switch
         {
             PartnerStrategy.Automatic => FindAutoPartner(),
-            PartnerStrategy.SelectTarget => ResolveTargetOverride(p.TrackRaw),
+            PartnerStrategy.SelectTarget => ResolveTarget(p.TrackRaw),
             _ => null
         };
 
