@@ -110,6 +110,8 @@ public sealed class AIHintsBuilder : IDisposable
     // fill list of potential targets from world state
     private void FillEnemies(AIHints hints, bool playerIsDefaultTank, int priorityPassive = AIHints.Enemy.PriorityUndesirable)
     {
+        var playerY = _ws.Party.Player() is { } p ? p.PosRot.Y : 0;
+
         var allowedFateID = Utils.IsPlayerSyncedToFate(_ws) ? _ws.Client.ActiveFate.ID : 0;
         foreach (var actor in _ws.Actors.Where(a => IsTargetable(a) && !a.IsAlly && !a.IsDead))
         {
@@ -119,6 +121,7 @@ public sealed class AIHintsBuilder : IDisposable
 
             // determine default priority for the enemy
             var (priority, reason) = actor.FateID > 0 && actor.FateID != allowedFateID ? (AIHints.Enemy.PriorityInvincible, $"fate {actor.FateID} != ${allowedFateID}") // fate mob in fate we are NOT a part of can't be damaged at all
+                : MathF.Abs(actor.PosRot.Y - playerY) > 12 ? (AIHints.Enemy.PriorityPointless, "delta Y") // FIXME: this should be deleted once I work out how raycasting should interact with target priority
                 : actor.PendingDead ? (AIHints.Enemy.PriorityPointless, "dying") // this mob is about to be dead, any attacks will likely ghost
                 : actor.AggroPlayer ? (0, "aggro table") // enemies in our enmity list can be attacked, regardless of who they are targeting (since they are keeping us in combat)
                 : actor.InCombat && _ws.Party.FindSlot(actor.TargetID) >= 0 ? (0, "attacking party") // we generally want to assist our party members (note that it includes allied npcs in duties)
