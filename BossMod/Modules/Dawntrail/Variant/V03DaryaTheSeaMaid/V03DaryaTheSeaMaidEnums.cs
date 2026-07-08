@@ -52,9 +52,9 @@ public enum AID : uint {
     SurgingCurrent1 = 45827, // Helper->self, 8.0s cast, range 60 ?-degree cone
 
     AlluringOrder = 47090, // Boss->self, 4.0s cast, range 70 circle
-
     AquaBall = 45834, // Boss->self, 2.0+1.0s cast, single-target
     AquaBall1 = 45835, // Helper->location, 3.0s cast, range 5 circle
+
     RecedingTwinTides = 45828, // Boss->self, 3.0+1.0s cast, single-target
     NearTide = 45829, // Helper->location, 4.0s cast, range 10 circle
     FarTide = 45833, // Helper->location, no cast, range ?-40 donut
@@ -62,14 +62,16 @@ public enum AID : uint {
 
 public enum SID : uint {
     MagicVulnerabilityUp = 2941, // Helper->player, extra=0x0
-    NearShoreShackles = 4724, // none->player, extra=0x0
-    Dropsy = 3797, // none->player, extra=0x0
     Weakness = 43, // none->player, extra=0x0
     Transcendent = 418, // none->player, extra=0x0
+    VulnerabilityUp = 1789, // 4A96->player, extra=0x1
+
     LeftFace = 2163, // Boss->player, extra=0x0
     ForwardMarch = 2161, // Boss->player, extra=0x0
     ForcedMarch = 1257, // Boss->player, extra=0x1/0x4
-    VulnerabilityUp = 1789, // 4A96->player, extra=0x1
+
+    NearShoreShackles = 4724, // none->player, extra=0x0
+    Dropsy = 3797, // none->player, extra=0x0
 }
 
 public enum VfxID : uint {

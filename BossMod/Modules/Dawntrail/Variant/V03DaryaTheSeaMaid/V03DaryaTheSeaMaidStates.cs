@@ -15,6 +15,10 @@ class V03DaryaTheSeaMaidStates : StateMachineBuilder {
             .ActivateOnEnter<SwimmingInTheAir>()
             .ActivateOnEnter<SwimmingInTheAirSpread>()
             .ActivateOnEnter<CeaselessCurrent>()
-            .ActivateOnEnter<SurgingCurrent>();
+            .ActivateOnEnter<SurgingCurrent>()
+            .ActivateOnEnter<AlluringOrderRaidwide>()
+            .ActivateOnEnter<AlluringOrderForcedMovement>()
+            .ActivateOnEnter<AquaBall>()
+            .ActivateOnEnter<RecedingTwinTides>();
     }
 }

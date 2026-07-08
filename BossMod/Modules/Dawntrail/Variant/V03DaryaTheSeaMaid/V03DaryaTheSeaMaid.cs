@@ -247,5 +247,41 @@ class CeaselessCurrent(BossModule module) : Components.Exaflare(module, new AOES
 
 class SurgingCurrent(BossModule module) : Components.StandardAOEs(module, AID.SurgingCurrent1, new AOEShapeCone(60.0f, 45.0f.Degrees()), highlightImminent: true);
 
+class AlluringOrderRaidwide(BossModule module) : Components.RaidwideCast(module, AID.AlluringOrder);
+
+// TODO get the missing IDs - fill in the default ones
+class AlluringOrderForcedMovement(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f,
+    (uint)SID.ForcedMarch, (uint)default, (uint)SID.LeftFace, (uint)default);
+
+class AquaBall(BossModule module) : Components.StandardAOEs(module, AID.AquaBall1, new AOEShapeCircle(5f));
+
+class RecedingTwinTides(BossModule module) : Components.GenericAOEs(module) {
+    private List<AOEInstance> aoes = [];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID == (uint)AID.RecedingTwinTides) {
+            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
+            aoes.Add(new(new AOEShapeDonut(6.0f, 40.0f), caster.Position, caster.Rotation, Module.CastFinishAt(spell))); // TODO verify AOE inner size
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (spell.Action.ID == (uint)AID.NearTide || spell.Action.ID == (uint)AID.FarTide) {
+            if (aoes.Count > 0) {
+                aoes.RemoveAt(0);
+            }
+        }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        int shown = 0;
+        foreach (var aoe in aoes) {
+            uint colour = shown == 0 ? ArenaColor.Danger : ArenaColor.AOE;
+            yield return aoe with { Color = colour };
+            shown++;
+        }
+    }
+}
+
 [ModuleInfo(Incomplete = true, PrimaryActorOID = (uint)OID.DaryaSeaMaid, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1084, NameID = 14291)]
 public class V03DaryaTheSeaMaid(WorldState ws, Actor primary) : BossModule(ws, primary, new(375, 530), new ArenaBoundsSquare(20));
