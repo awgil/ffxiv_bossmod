@@ -1,12 +1,14 @@
 ﻿namespace BossMod.Dawntrail.Variant.V03DaryaSeaMaid;
 
 public enum OID : uint {
-    Boss = 0x4A94,
+    DaryaSeaMaid = 0x4A94,
     Helper = 0x233C,
     SeabornStalwart = 0x4A96, // R2.000, x0 (spawn during fight)
-    SeabornSteed = 0x4A95, // R2.200, x0 (spawn during fight)
-    SeabornSteward = 0x4A97, // R2.200, x0 (spawn during fight)
-    SeabornSoldier = 0x4A98, // R2.200, x0 (spawn during fight)
+    SeabornSteed = 0x4A95, // R2.200, x0 (spawn during fight) - Horse
+    SeabornSteward = 0x4A97, // R2.200, x0 (spawn during fight) - Turtle
+    SeabornSoldier = 0x4A98, // R2.200, x0 (spawn during fight) - Crab
+    BlueSphere = 0x1EBF1C,// R0.500, x0 (spawn during fight), EventObj type
+    DonutSphere = 0x1EBF1D, // R0.500, x0 (spawn during fight), EventObj type
 }
 
 public enum AID : uint {
@@ -23,10 +25,11 @@ public enum AID : uint {
     Watersong3 = 45805, // 4A95->self, 1.0s cast, range 40 width 8 rect
 
     SunkenTreasure = 45812, // Boss->self, 3.0+1.0s cast, single-target
-    Hydrobullet = 45815, // Boss->self, 3.0+1.0s cast, single-target
-    Hydrobullet1 = 45816, // Helper->player, 5.0s cast, range 15 circle
     SphereShatter = 45814, // Helper->self, no cast, range ?-20 donut
     SphereShatter1 = 45813, // Helper->self, no cast, range 18 circle
+    HydrobulletCast = 45815, // Boss->self, 3.0+1.0s cast, single-target
+    HydrobulletSpread = 45816, // Helper->player, 5.0s cast, range 15 circle
+
     Hydrocannon = 45801, // Boss->self, 4.0+1.0s cast, single-target
     Hydrocannon1 = 45836, // Helper->self/player, 5.0s cast, range 70 width 6 rect
     AquaSpear = 45817, // Boss->self, 4.0s cast, single-target
@@ -62,8 +65,21 @@ public enum SID : uint {
     VulnerabilityUp = 1789, // 4A96->player, extra=0x1
 }
 
+public enum VfxID : uint {
+    Horse = 2741,
+    Stalwart = 2742,
+    Turtle = 2743,
+    Crab = 2744
+}
+
+public enum State : uint {
+    FirstState = 1048608,
+    SecondState = 4194432,
+    BlowUpState = 262152,
+}
+
 public enum IconID : uint {
-    _Gen_Icon_lockon5_t0h = 23, // player->self
+    Hydrobullet = 23, // player->self
     _Gen_Icon_tank_laser_5sec_lockon_c0a1 = 471, // player->self
     _Gen_Icon_m0941trg_a1h = 658, // player->self
 }
