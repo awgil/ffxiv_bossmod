@@ -63,11 +63,11 @@ class SunkenTreasure(BossModule module) : Components.GenericAOEs(module) {
 
     public override void OnActorEAnim(Actor actor, uint state) {
         if (actor.OID == (uint)OID.BlueSphere || actor.OID == (uint)OID.DonutSphere) {
-            if (state == (uint)State.FirstState) {
+            if (state == 1048608) {
                 orbs.Add(actor);
             }
 
-            if (state == (uint)State.BlowUpState) {
+            if (state == 262152) {
                 orbs.Remove(actor);
                 NumCasts++;
             }
@@ -99,17 +99,19 @@ class Hydrobullet : Components.BaitAwayIcon {
 class Hydrocannon(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(70f, 3f), (uint)IconID.Hydrocannon, AID.Hydrocannon1, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster);
 
 class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpear1, new AOEShapeRect(8f, 4f)) {
-    private List<AOEInstance> aoes = [];
+    readonly List<(Actor Actor, DateTime Spawn)> tiles = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        foreach (var aoe in aoes) {
-            yield return aoe;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => tiles.Where(t => t.Actor.EventState != 7).Select(t => new AOEInstance(new AOEShapeRect(4, 4, 4), t.Actor.Position, default, t.Spawn.AddSeconds(2)));
+
+    public override void OnActorCreated(Actor actor) {
+        if (actor.OID == (uint)OID.AquaSpearTile) {
+            tiles.Add((actor, WorldState.CurrentTime));
         }
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action == WatchedAction) {
-            aoes.Add(new AOEInstance(Shape, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation, Module.CastFinishAt(spell), Color, Risky));
+    public override void OnActorEAnim(Actor actor, uint state) {
+        if (state == 0x00040008) {
+            tiles.RemoveAll(t => t.Actor == actor);
         }
     }
 }
@@ -203,6 +205,7 @@ class SwimmingInTheAir(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
+// Players without anything can stand in the bait as well with no worry
 class SwimmingInTheAirSpread : Components.BaitAwayIcon {
     public SwimmingInTheAirSpread(BossModule module) : base(module, new AOEShapeCircle(15.0f), (uint)IconID.Hydrobullet2, AID.HydrobulletSpread2, centerAtTarget: true) {
         EnableHints = false;
@@ -261,7 +264,7 @@ class RecedingTwinTides(BossModule module) : Components.GenericAOEs(module) {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.RecedingTwinTides) {
             aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(new AOEShapeDonut(6.0f, 40.0f), caster.Position, caster.Rotation, Module.CastFinishAt(spell))); // TODO verify AOE inner size
+            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Module.CastFinishAt(spell))); // TODO verify AOE inner size
         }
     }
 

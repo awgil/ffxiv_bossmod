@@ -10,6 +10,7 @@ public enum OID : uint {
     SwimmingInTheAirOrb = 0x1EBF1B, // R0.500, x0 (spawn during fight), EventObj type
     BlueSphere = 0x1EBF1C,// R0.500, x0 (spawn during fight), EventObj type
     DonutSphere = 0x1EBF1D, // R0.500, x0 (spawn during fight), EventObj type
+    AquaSpearTile = 0x1EBF1E, // R0.500, x0 (spawn during fight), EventObj type
 }
 
 public enum AID : uint {
@@ -79,12 +80,6 @@ public enum VfxID : uint {
     Stalwart = 2742,
     Turtle = 2743,
     Crab = 2744
-}
-
-public enum State : uint {
-    FirstState = 1048608,
-    SecondState = 4194432,
-    BlowUpState = 262152,
 }
 
 public enum IconID : uint {
