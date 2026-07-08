@@ -89,6 +89,7 @@ class SunkenTreasure(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
+// Players without anything can stand in the bait as well with no worry
 class Hydrobullet : Components.BaitAwayIcon {
     public Hydrobullet(BossModule module) : base(module, new AOEShapeCircle(5.0f), (uint)IconID.Hydrobullet, AID.HydrobulletSpread, centerAtTarget: true) {
         EnableHints = false;
@@ -179,6 +180,72 @@ class SeaShackles(BossModule module) : BossComponent(module) {
 
 // Arena is 40.0f, and it knocks you back 3 full squares so 24.0f - slightly over to ensure the player will be safe
 class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 24.5f, kind: Kind.DirForward);
+
+class SwimmingInTheAir(BossModule module) : Components.GenericAOEs(module) {
+    private List<AOEInstance> aoes = [];
+
+    public override void OnActorCreated(Actor actor) {
+        if (actor.OID == (uint)OID.SwimmingInTheAirOrb) {
+            aoes.Add(new(new AOEShapeCircle(12f), actor.Position, actor.Rotation, default, ArenaColor.AOE));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (spell.Action.ID == (uint)AID.Hydrofall) {
+           aoes.Clear();
+        }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        foreach (var aoe in aoes) {
+            yield return aoe;
+        }
+    }
+}
+
+class SwimmingInTheAirSpread : Components.BaitAwayIcon {
+    public SwimmingInTheAirSpread(BossModule module) : base(module, new AOEShapeCircle(15.0f), (uint)IconID.Hydrobullet2, AID.HydrobulletSpread2, centerAtTarget: true) {
+        EnableHints = false;
+    }
+}
+
+class CeaselessCurrent(BossModule module) : Components.Exaflare(module, new AOEShapeRect(8.0f, 20.0f)) {
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        foreach (var (c, t, r) in FutureAOEs()) {
+            yield return new(Shape, c, r, t, FutureColor, Risky: false);
+        }
+
+        foreach (var (c, t, r) in ImminentAOEs()) {
+            yield return new(Shape, c, r, t, ImminentColor);
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if ((AID)spell.Action.ID == AID.CeaselessCurrentFirst) {
+            Lines.Add(new() {
+                Next = spell.LocXZ,
+                Advance = spell.Rotation.ToDirection() * 8,
+                Rotation = spell.Rotation.ToDirection().Rounded().ToAngle(),
+                NextExplosion = Module.CastFinishAt(spell),
+                TimeToMove = 2.1f,
+                ExplosionsLeft = 5,
+                MaxShownExplosions = 2
+            });
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if ((AID)spell.Action.ID is AID.CeaselessCurrentFirst or AID.CeaselessCurrentRest) {
+            NumCasts++;
+            var ix = Lines.FindIndex(l => l.Rotation.AlmostEqual(caster.Rotation, 0.1f));
+            if (ix >= 0) {
+                AdvanceLine(Lines[ix], Lines[ix].Next);
+            }
+        }
+    }
+}
+
+class SurgingCurrent(BossModule module) : Components.StandardAOEs(module, AID.SurgingCurrent1, new AOEShapeCone(60.0f, 45.0f.Degrees()), highlightImminent: true);
 
 [ModuleInfo(Incomplete = true, PrimaryActorOID = (uint)OID.DaryaSeaMaid, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1084, NameID = 14291)]
 public class V03DaryaTheSeaMaid(WorldState ws, Actor primary) : BossModule(ws, primary, new(375, 530), new ArenaBoundsSquare(20));

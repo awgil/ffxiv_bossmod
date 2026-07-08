@@ -11,6 +11,10 @@ class V03DaryaTheSeaMaidStates : StateMachineBuilder {
             .ActivateOnEnter<Hydrocannon>()
             .ActivateOnEnter<AquaSpear>()
             .ActivateOnEnter<SeaShackles>()
-            .ActivateOnEnter<TidalWave>();
+            .ActivateOnEnter<TidalWave>()
+            .ActivateOnEnter<SwimmingInTheAir>()
+            .ActivateOnEnter<SwimmingInTheAirSpread>()
+            .ActivateOnEnter<CeaselessCurrent>()
+            .ActivateOnEnter<SurgingCurrent>();
     }
 }

@@ -7,6 +7,7 @@ public enum OID : uint {
     SeabornSteed = 0x4A95, // R2.200, x0 (spawn during fight) - Horse
     SeabornSteward = 0x4A97, // R2.200, x0 (spawn during fight) - Turtle
     SeabornSoldier = 0x4A98, // R2.200, x0 (spawn during fight) - Crab
+    SwimmingInTheAirOrb = 0x1EBF1B, // R0.500, x0 (spawn during fight), EventObj type
     BlueSphere = 0x1EBF1C,// R0.500, x0 (spawn during fight), EventObj type
     DonutSphere = 0x1EBF1D, // R0.500, x0 (spawn during fight), EventObj type
 }
@@ -28,7 +29,7 @@ public enum AID : uint {
     SphereShatter = 45814, // Helper->self, no cast, range ?-20 donut
     SphereShatter1 = 45813, // Helper->self, no cast, range 18 circle
     HydrobulletCast = 45815, // Boss->self, 3.0+1.0s cast, single-target
-    HydrobulletSpread = 45816, // Helper->player, 5.0s cast, range 15 circle
+    HydrobulletSpread = 45816, // Helper->player, 5.0s cast, range 15 circle - used during SunkenTreasure
 
     Hydrocannon = 45801, // Boss->self, 4.0+1.0s cast, single-target
     Hydrocannon1 = 45836, // Helper->self/player, 5.0s cast, range 70 width 6 rect
@@ -40,14 +41,18 @@ public enum AID : uint {
     TidalWave1 = 45820, // Helper->self, 6.0s cast, range 60 width 60 rect
 
     SwimmingInTheAir = 45809, // Boss->self, 4.0s cast, single-target
-    Hydrobullet2 = 45811, // Helper->player, 6.0s cast, range 15 circle
     Hydrofall = 45810, // Helper->location, 1.0s cast, range 12 circle
-    CeaselessCurrent = 45823, // Boss->self, 4.0+1.0s cast, single-target
-    CeaselessCurrent1 = 45824, // Helper->self, 5.0s cast, range 8 width 40 rect
-    CeaselessCurrent2 = 45825, // Helper->self, no cast, range 8 width 40 rect
+    HydrobulletSpread2 = 45811, // Helper->player, 6.0s cast, range 15 circle - used during SwimmingInTheAir
+
+    CeaselessCurrentBoss = 45823, // Boss->self, 4.0+1.0s cast, single-target
+    CeaselessCurrentFirst = 45824, // Helper->self, 5.0s cast, range 8 width 40 rect
+    CeaselessCurrentRest = 45825, // Helper->self, no cast, range 8 width 40 rect
+
     SurgingCurrent = 45826, // Boss->self, 7.0+1.0s cast, single-target
     SurgingCurrent1 = 45827, // Helper->self, 8.0s cast, range 60 ?-degree cone
+
     AlluringOrder = 47090, // Boss->self, 4.0s cast, range 70 circle
+
     AquaBall = 45834, // Boss->self, 2.0+1.0s cast, single-target
     AquaBall1 = 45835, // Helper->location, 3.0s cast, range 5 circle
     RecedingTwinTides = 45828, // Boss->self, 3.0+1.0s cast, single-target
@@ -83,7 +88,7 @@ public enum State : uint {
 public enum IconID : uint {
     Hydrobullet = 23, // player->self
     Hydrocannon = 471, // player->self
-    _Gen_Icon_m0941trg_a1h = 658, // player->self
+    Hydrobullet2 = 658, // player->self
 }
 
 public enum TetherID : uint {
