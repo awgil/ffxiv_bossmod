@@ -2,6 +2,7 @@
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
+using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Game.ClientState.Conditions;
@@ -240,6 +241,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex.FinishActionGather();
 
         Service.IconFont = uiBuilder.FontIcon;
+        Service.DefaultFont = uiBuilder.FontDefault;
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
         {
@@ -513,6 +515,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!disposing)
             return;
 
+        GaugeViewer.Dispose();
         _onConfigSave?.Dispose();
         _wndDebug?.Dispose();
         _wndAI.Dispose();

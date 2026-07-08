@@ -48,6 +48,7 @@ public sealed class Service
     public static IWindowSystem WindowSystem = null!;
     public static IFileDialogManager FileDialogManager = null!;
     public static ImFontPtr IconFont = ImFontPtr.Null;
+    public static ImFontPtr DefaultFont = ImFontPtr.Null;
 #pragma warning restore CA2211
 
     public static readonly ConfigRoot Config = new();
