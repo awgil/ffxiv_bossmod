@@ -10,13 +10,11 @@ public enum OID : uint {
     SwimmingInTheAirOrb = 0x1EBF1B, // R0.500, x0 (spawn during fight), EventObj type
     BlueSphere = 0x1EBF1C,// R0.500, x0 (spawn during fight), EventObj type
     DonutSphere = 0x1EBF1D, // R0.500, x0 (spawn during fight), EventObj type
-    AquaSpearTile = 0x1EBF1E, // R0.500, x0 (spawn during fight), EventObj type
 }
 
 public enum AID : uint {
     AutoAttack = 45769, // Boss->player, no cast, single-target
     Teleport = 45770, // Boss->location, no cast, single-target - Boss teleports to the middle of the map
-
     PiercingPlunge = 45837, // Boss->self, 5.0s cast, range 70 circle
 
     FamiliarCall = 45771, // Boss->self, 3.0+1.0s cast, single-target
@@ -67,11 +65,12 @@ public enum SID : uint {
     Transcendent = 418, // none->player, extra=0x0
     VulnerabilityUp = 1789, // 4A96->player, extra=0x1
 
+    NearShoreShackles = 4724, // none->player, extra=0x0
+
     LeftFace = 2163, // Boss->player, extra=0x0
     ForwardMarch = 2161, // Boss->player, extra=0x0
     ForcedMarch = 1257, // Boss->player, extra=0x1/0x4
 
-    NearShoreShackles = 4724, // none->player, extra=0x0
     Dropsy = 3797, // none->player, extra=0x0
 }
 

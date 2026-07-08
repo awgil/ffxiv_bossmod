@@ -98,20 +98,24 @@ class Hydrobullet : Components.BaitAwayIcon {
 
 class Hydrocannon(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(70f, 3f), (uint)IconID.Hydrocannon, AID.Hydrocannon1, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster);
 
-class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpear1, new AOEShapeRect(8f, 4f)) {
-    readonly List<(Actor Actor, DateTime Spawn)> tiles = [];
+class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpear1, new AOEShapeRect(4f, 4f, 4f)) {
+    private List<AOEInstance> aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => tiles.Where(t => t.Actor.EventState != 7).Select(t => new AOEInstance(new AOEShapeRect(4, 4, 4), t.Actor.Position, default, t.Spawn.AddSeconds(2)));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        foreach (var aoe in aoes) {
+            yield return aoe;
+        }
+    }
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.AquaSpearTile) {
-            tiles.Add((actor, WorldState.CurrentTime));
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action == WatchedAction) {
+            aoes.Add(new AOEInstance(Shape, caster.Position, caster.Rotation));
         }
     }
 
     public override void OnActorEAnim(Actor actor, uint state) {
         if (state == 0x00040008) {
-            tiles.RemoveAll(t => t.Actor == actor);
+            aoes.RemoveAll(t => t.Origin.AlmostEqual(actor.Position, 1.0f));
         }
     }
 }
@@ -135,6 +139,12 @@ class SeaShackles(BossModule module) : BossComponent(module) {
     public override void OnUntethered(Actor source, ActorTetherInfo tether) {
         if (tether.ID == (uint)TetherID.SeaShackles || tether.ID == (uint)TetherID.SeaShacklesSafe) {
             Assignments[Raid.FindSlot(source.InstanceID)] = default;
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status) {
+        if (status.ID == (uint)SID.NearShoreShackles) {
+            Assignments[Raid.FindSlot(actor.InstanceID)] = default;
         }
     }
 
@@ -253,8 +263,9 @@ class SurgingCurrent(BossModule module) : Components.StandardAOEs(module, AID.Su
 class AlluringOrderRaidwide(BossModule module) : Components.RaidwideCast(module, AID.AlluringOrder);
 
 // TODO get the missing IDs - fill in the default ones
+// TODO verify move timer - use log timers to work it out
 class AlluringOrderForcedMovement(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f,
-    (uint)SID.ForcedMarch, (uint)default, (uint)SID.LeftFace, (uint)default);
+    (uint)SID.ForwardMarch, (uint)default, (uint)SID.LeftFace, (uint)default);
 
 class AquaBall(BossModule module) : Components.StandardAOEs(module, AID.AquaBall1, new AOEShapeCircle(5f));
 
