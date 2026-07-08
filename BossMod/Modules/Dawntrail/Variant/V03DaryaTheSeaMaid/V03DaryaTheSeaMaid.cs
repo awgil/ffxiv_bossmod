@@ -95,6 +95,90 @@ class Hydrobullet : Components.BaitAwayIcon {
     }
 }
 
+class Hydrocannon(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(70f, 3f), (uint)IconID.Hydrocannon, AID.Hydrocannon1, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster);
+
+class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpear1, new AOEShapeRect(8f, 4f)) {
+    private List<AOEInstance> aoes = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        foreach (var aoe in aoes) {
+            yield return aoe;
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action == WatchedAction) {
+            aoes.Add(new AOEInstance(Shape, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation, Module.CastFinishAt(spell), Color, Risky));
+        }
+    }
+}
+
+// TODO does it matter if the players are really far away? or will it auto solve if so
+class SeaShackles(BossModule module) : BossComponent(module) {
+    private readonly List<(Actor, Actor)> _distant = [];
+    public record struct Assignment(Role Partner, int PartnerSlot, bool tooClose);
+    public readonly Assignment[] Assignments = new Assignment[PartyState.MaxPartySize];
+
+    public override void OnTethered(Actor source, ActorTetherInfo tether) {
+        if (tether.ID == (uint)TetherID.SeaShackles) {
+            Assign(source, WorldState.Actors.Find(tether.Target)!, true);
+        }
+
+        if (tether.ID == (uint)TetherID.SeaShacklesSafe) {
+            Assign(source, WorldState.Actors.Find(tether.Target)!, false);
+        }
+    }
+
+    public override void OnUntethered(Actor source, ActorTetherInfo tether) {
+        if (tether.ID == (uint)TetherID.SeaShackles || tether.ID == (uint)TetherID.SeaShacklesSafe) {
+            Assignments[Raid.FindSlot(source.InstanceID)] = default;
+        }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc) {
+        foreach (var (a, b) in _distant) {
+            var assign = Assignments[pcSlot];
+            var colour = assign.tooClose ? ArenaColor.Danger : ArenaColor.Safe;
+            if (assign.Partner != Role.None) {
+                if (assign.tooClose == true) {
+                    Arena.AddLine(a.Position, b.Position, colour);
+                }
+
+                if (assign.tooClose == false) {
+                    Arena.AddLine(a.Position, b.Position, colour);
+                }
+            }
+
+            Arena.Actor(a, colour);
+            Arena.Actor(b, colour);
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints) {
+        var assign = Assignments[slot];
+        if (assign.Partner != Role.None) {
+            if (assign.tooClose == true) {
+                hints.Add("Stay far from partner!", true);
+            }
+
+            if (assign.tooClose == false)
+            {
+                hints.Add("Stay far from partner!", false);
+            }
+        }
+    }
+
+    private void Assign(Actor a, Actor b, bool tooClose) {
+        var aslot = Raid.FindSlot(a.InstanceID);
+        var bslot = Raid.FindSlot(b.InstanceID);
+        Assignments[aslot] = new(b.Role, bslot, tooClose);
+        Assignments[bslot] = new(a.Role, aslot, tooClose);
+        _distant.Add((a, b));
+    }
+}
+
+// Arena is 40.0f, and it knocks you back 3 full squares so 24.0f - slightly over to ensure the player will be safe
+class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 24.5f, kind: Kind.DirForward);
 
 [ModuleInfo(Incomplete = true, PrimaryActorOID = (uint)OID.DaryaSeaMaid, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1084, NameID = 14291)]
 public class V03DaryaTheSeaMaid(WorldState ws, Actor primary) : BossModule(ws, primary, new(375, 530), new ArenaBoundsSquare(20));

@@ -7,6 +7,10 @@ class V03DaryaTheSeaMaidStates : StateMachineBuilder {
             .ActivateOnEnter<PiercingPlunge>()
             .ActivateOnEnter<FamiliarCall>()
             .ActivateOnEnter<SunkenTreasure>()
-            .ActivateOnEnter<Hydrobullet>();
+            .ActivateOnEnter<Hydrobullet>()
+            .ActivateOnEnter<Hydrocannon>()
+            .ActivateOnEnter<AquaSpear>()
+            .ActivateOnEnter<SeaShackles>()
+            .ActivateOnEnter<TidalWave>();
     }
 }

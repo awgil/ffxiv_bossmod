@@ -32,11 +32,13 @@ public enum AID : uint {
 
     Hydrocannon = 45801, // Boss->self, 4.0+1.0s cast, single-target
     Hydrocannon1 = 45836, // Helper->self/player, 5.0s cast, range 70 width 6 rect
+
     AquaSpear = 45817, // Boss->self, 4.0s cast, single-target
     AquaSpear1 = 45818, // Helper->self, 3.0s cast, range 8 width 8 rect
     SeaShackles = 45821, // Boss->self, 4.0+1.0s cast, range 70 circle
     TidalWave = 45819, // Boss->self, 4.0+1.0s cast, single-target
     TidalWave1 = 45820, // Helper->self, 6.0s cast, range 60 width 60 rect
+
     SwimmingInTheAir = 45809, // Boss->self, 4.0s cast, single-target
     Hydrobullet2 = 45811, // Helper->player, 6.0s cast, range 15 circle
     Hydrofall = 45810, // Helper->location, 1.0s cast, range 12 circle
@@ -80,11 +82,11 @@ public enum State : uint {
 
 public enum IconID : uint {
     Hydrobullet = 23, // player->self
-    _Gen_Icon_tank_laser_5sec_lockon_c0a1 = 471, // player->self
+    Hydrocannon = 471, // player->self
     _Gen_Icon_m0941trg_a1h = 658, // player->self
 }
 
 public enum TetherID : uint {
-    _Gen_Tether_chn_closer_01h = 376, // player->player
-    _Gen_Tether_chn_closer_clear01h = 377, // player->player
+    SeaShackles = 376, // player->player
+    SeaShacklesSafe = 377, // player->player
 }
