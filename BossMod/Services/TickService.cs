@@ -274,6 +274,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (_pauseBitmapGeneration || _ws.Party.Player() is not { } player || !Service.Config.Get<DeveloperConfig>().AutoBitmaps)
             return;
 
+        unsafe
+        {
+            // vnav isn't reliable in housing zones and there's not really a reason to have bitmaps there anyway
+            // TODO isn't there a oneliner for this?
+            if (FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance()->CurrentTerritoryIntendedUseId is FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.HousingIndoor or FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.HousingOutdoor)
+                return;
+        }
+
         // already have an entry, everything is ok
         var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
         if (entry != null && data != null)
