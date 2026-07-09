@@ -126,8 +126,8 @@ class P3EntropyFluid : Components.GenericBaitAway
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID.StrayFlames:
-            case AID.StraySpray:
+            case AID.StrayFlamesP3:
+            case AID.StraySprayP3:
                 NumCasts++;
                 CurrentBaits.RemoveAll(b => b.Target.InstanceID == spell.MainTargetID);
                 break;
@@ -159,14 +159,14 @@ class P3InfernoTsunami : Components.GenericBaitAway
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID.StrayFlames:
+            case AID.StrayFlamesP3:
                 _imminent = Element.Fire;
                 break;
-            case AID.StraySpray:
+            case AID.StraySprayP3:
                 _imminent = Element.Water;
                 break;
-            case AID.Inferno:
-            case AID.Tsunami:
+            case AID.InfernoP3:
+            case AID.TsunamiP3:
                 NumCasts++;
                 _imminent = Element.None;
                 break;
@@ -450,7 +450,7 @@ class P3Cyclone(BossModule module) : Components.GenericStackSpread(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.Inferno or AID.Tsunami or AID.VacuumWave)
+        if ((AID)spell.Action.ID is AID.InfernoP3 or AID.TsunamiP3 or AID.VacuumWave)
         {
             var numHit = spell.Targets.Count(t => t.ID != spell.MainTargetID && HasWind(t.ID));
             _pendingActivation = WorldState.FutureTime(2);

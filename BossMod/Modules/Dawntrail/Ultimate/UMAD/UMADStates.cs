@@ -74,15 +74,14 @@ class UMADStates : StateMachineBuilder
         ActorTargetable(id, _module.KefkaP4, true, 4.4f, "Boss appears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
-        ActorCast(id + 0x10, _module.KefkaP4, AID._Ability_KefkaSays, 5.2f, 5, true);
+        ActorCast(id + 0x10, _module.KefkaP4, AID.KefkaSays, 5.2f, 5, true);
 
         P4GrandCross(id + 0x100, 4.6f);
+        P4UltimaUpsurge(id + 0x10000, 7.1f);
 
         Timeout(id + 0xFF0000, 10000, "???")
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
-            .ActivateOnEnter<P1ThrummingThunderIII>()
-            .ActivateOnEnter<P4Antilight>()
-            .ActivateOnEnter<P4EdgeOfDeath>();
+            .ActivateOnEnter<P1ThrummingThunderIII>();
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -646,16 +645,16 @@ class UMADStates : StateMachineBuilder
         ActorCastStart(id, _module.KefkaP4, AID.MysteryMagic, delay, true)
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
             .ActivateOnEnter<P1ThrummingThunderIII>()
-            .ActivateOnEnter<P4StrayFlames>()
+            .ActivateOnEnter<P4StrayDonut>()
             .ActivateOnEnter<P4StrayCircle>()
             .ActivateOnEnter<P4Debuffs>();
 
-        ActorCastStart(id + 1, _module.NeoExdeathP4, AID._Ability_GrandCross, 0.3f)
+        ActorCastStart(id + 1, _module.NeoExdeathP4, AID.GrandCross, 0.3f)
             .ActivateOnEnter<P4GrandCross>();
 
         ComponentCondition<P1BlizzardIIIBlowout>(id + 2, 4.6f, b => b.NumCasts > 0, "Elements 1");
 
-        ActorCastStartMulti(id + 3, _module.ChaosP4, [AID._Ability_Inferno, AID._Ability_Tsunami1], 0.5f)
+        ActorCastStartMulti(id + 3, _module.ChaosP4, [AID.InfernoCastP4, AID.TsunamiCastP4], 0.5f)
             .ActivateOnEnter<P4Tsunami>()
             .ActivateOnEnter<P4Inferno>()
             .DeactivateOnExit<P1BlizzardIIIBlowout>()
@@ -671,11 +670,11 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
             .ActivateOnEnter<P1ThrummingThunderIII>();
 
-        ActorCastStart(id + 0x11, _module.NeoExdeathP4, AID._Ability_GrandCross, 0.4f);
+        ActorCastStart(id + 0x11, _module.NeoExdeathP4, AID.GrandCross, 0.4f);
 
         ComponentCondition<P1BlizzardIIIBlowout>(id + 0x12, 4.5f, b => b.NumCasts > 0, "Elements 2");
 
-        ActorCastStartMulti(id + 0x13, _module.ChaosP4, [AID._Ability_Inferno, AID._Ability_Tsunami1], 0.6f)
+        ActorCastStartMulti(id + 0x13, _module.ChaosP4, [AID.InfernoCastP4, AID.TsunamiCastP4], 0.6f)
             .DeactivateOnExit<P1BlizzardIIIBlowout>()
             .DeactivateOnExit<P1ThrummingThunderIII>();
 
@@ -691,7 +690,8 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
             .ActivateOnEnter<P1ThrummingThunderIII>();
 
-        ActorCastStart(id + 0x21, _module.NeoExdeathP4, AID._Ability_GrandCross, 0.3f);
+        ActorCastStart(id + 0x21, _module.NeoExdeathP4, AID.GrandCross, 0.3f)
+            .ActivateOnEnter<P4Antilight>();
 
         ComponentCondition<P1BlizzardIIIBlowout>(id + 0x22, 4.7f, b => b.NumCasts > 0, "Elements 3")
             .DeactivateOnExit<P1BlizzardIIIBlowout>()
@@ -700,5 +700,26 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P4GrandCross>(id + 0x23, 4.3f, p => p.NumCasts > 2, "Grand Cross 3")
             .DeactivateOnExit<P4GrandCross>()
             .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    void P4UltimaUpsurge(uint id, float delay)
+    {
+        ActorCastMulti(id, _module.NeoExdeathP4, [AID.FloodOfNaught2, AID.FloodOfNaught1], delay, 5)
+            .ActivateOnEnter<P4EdgeOfDeath>();
+
+        ComponentCondition<P4Antilight>(id + 0x10, 0.5f, p => p.NumCasts > 0, "Antilight")
+            .DeactivateOnExit<P4Antilight>()
+            .DeactivateOnExit<P4EdgeOfDeath>();
+
+        ActorCastStart(id + 0x100, _module.KefkaP4, AID.ManaCharge, 5.1f, true);
+
+        ComponentCondition<P4DeathWaveBolt>(id + 0x101, 3.3f, b => b.NumCasts > 0, "Stack/spread/bombs 1")
+            .ActivateOnEnter<P4DeathBomb>()
+            .ActivateOnEnter<P4DeathWaveBolt>();
+
+        // TODO remove this, just need to ensure that autorot doesn't press something the frame after spreads go off if accel bomb happens to be slightly delayed
+        Timeout(id + 0x102, 1)
+            .DeactivateOnExit<P4DeathBomb>()
+            .DeactivateOnExit<P4DeathWaveBolt>();
     }
 }

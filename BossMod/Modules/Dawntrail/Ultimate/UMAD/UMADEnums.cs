@@ -107,10 +107,10 @@ public enum AID : uint
     BowelsOfAgony = 47858, // ChaosP3->self, 5.0s cast, range 100 circle
 
     ThunderIIICircle = 47890, // ExdeathP3->self, 7.0s cast, range 11+R circle, bigass aoe
-    StrayFlames = 47859, // Helper->player, no cast, range 5 circle, Entropy expiration
-    Inferno = 47860, // Helper->player, no cast, range 4-10 donut, fire crystal bait
-    StraySpray = 47862, // Helper->player, no cast, range 4-10 donut, Fluid expiration
-    Tsunami = 47861, // Helper->players, no cast, range 5 circle, water crystal bait
+    StrayFlamesP3 = 47859, // Helper->player, no cast, range 5 circle, Entropy expiration
+    InfernoP3 = 47860, // Helper->player, no cast, range 4-10 donut, fire crystal bait
+    StraySprayP3 = 47862, // Helper->player, no cast, range 4-10 donut, Fluid expiration
+    TsunamiP3 = 47861, // Helper->players, no cast, range 5 circle, water crystal bait
     StrayGusts = 47863, // Helper->player, no cast, single-target, kills player if they failed the "gaze"
     Cyclone = 47864, // Helper->player, no cast, range 6 circle, wind stack (requires at least 2 players)
     StrayEarth = 47865, // Helper->player, no cast, single-target, kills player when primordial crust/accretion expires
@@ -163,28 +163,32 @@ public enum AID : uint
     MeteorEnrageSlow = 50718, // ExdeathP3->self, 10.0s cast, range 100 circle
     BowelsOfAgonyEnrageSlow = 50719, // copied from sheets, probably never gonna see this one 
 
-    _Ability_KefkaSays = 49884, // KefkaP4->self, 5.0s cast, single-target
-    _Ability_GrandCross = 47892, // NeoExdeathP4->self, 9.0s cast, range 100 circle
-    _Ability_Inferno = 47902, // ChaosP4->self, 9.0s cast, single-target
-    _Ability_Inferno1 = 47904, // Helper->self, 9.0s cast, range 100 circle
-    _Ability_Tsunami = 47905, // Helper->self, 9.0s cast, range 100 circle
-    _Ability_Tsunami1 = 47903, // ChaosP4->self, 9.0s cast, single-target
-    DeathBolt1 = 47896, // Helper->players, no cast, range 8 circle
-    DeathBolt2 = 47897, // Helper->players, no cast, range 8 circle
+    KefkaSays = 49884, // KefkaP4->self, 5.0s cast, single-target
+    GrandCross = 47892, // NeoExdeathP4->self, 9.0s cast, range 100 circle
+    InfernoCastP4 = 47902, // ChaosP4->self, 9.0s cast, single-target
+    TsunamiCastP4 = 47903, // ChaosP4->self, 9.0s cast, single-target
+    InfernoHitP4 = 47904, // Helper->self, 9.0s cast, range 100 circle
+    TsunamiHitP4 = 47905, // Helper->self, 9.0s cast, range 100 circle
+    DeathBomb = 47893, // Helper->player, no cast, single-target
     DeathShriek1 = 47894, // Helper->self, no cast, range 100 circle
     DeathShriek2 = 47895, // Helper->self, no cast, range 100 circle
+    DeathBoltNormal = 47896, // Helper->players, no cast, range 8 circle
+    DeathBoltInverted = 47897, // Helper->players, no cast, range 8 circle
+    DeathWaveNormal = 47898, // Helper->players, no cast, range 8 circle
+    DeathWaveInverted = 47899, // Helper->players, no cast, range 8 circle
     DeathSurge1 = 47900, // Helper->self, no cast, range 100 circle
     DeathSurge2 = 47901, // Helper->self, no cast, range 100 circle
-    DeathWave1 = 47898, // Helper->players, no cast, range 8 circle
-    DeathWave2 = 47899, // Helper->players, no cast, range 8 circle
-    StrayFlames1 = 47906, // Helper->location, 5.0s cast, range 6 circle
-    StrayFlames2 = 47907, // Helper->location, 5.0s cast, range 6-40 donut
-    _Ability_StraySpray = 47909, // Helper->location, 5.0s cast, range 6 circle
-    _Ability_FloodOfNaught = 50081, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
-    _Ability_EdgeOfDeath = 50070, // Helper->self, 5.5s cast, range 48 width 2 rect
-    _Ability_WhiteAntilight = 50068, // Helper->self, 5.5s cast, range 47 width 21 rect
-    _Ability_BlackAntilight = 50069, // Helper->self, 5.5s cast, range 47 width 21 rect
-    _Ability_ManaCharge = 47780, // KefkaP4->self, 3.0s cast, single-target
+    StrayFlamesNormalP4 = 47906, // Helper->location, 5.0s cast, range 6 circle
+    StrayFlamesInvertedP4 = 47907, // Helper->location, 5.0s cast, range 6-40 donut
+    StraySprayNormalP4 = 47908, // Helper->location, 5.0s cast, range 6-40 donut (presumably)
+    StraySprayInvertedP4 = 47909, // Helper->location, 5.0s cast, range 6 circle
+    FloodOfNaught1 = 50067, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
+    FloodOfNaught2 = 50081, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
+    WhiteAntilight = 50068, // Helper->self, 5.5s cast, range 47 width 21 rect
+    BlackAntilight = 50069, // Helper->self, 5.5s cast, range 47 width 21 rect
+    EdgeOfDeath = 50070, // Helper->self, 5.5s cast, range 48 width 2 rect
+    ManaCharge = 47780, // KefkaP4->self, 3.0s cast, single-target
+    ThrummingThunderIIIP4 = 50654, // KefkaP4->self, 5.0s cast, single-target
 }
 
 public enum SID : uint

@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
-class P4GrandCross(BossModule module) : Components.RaidwideCast(module, AID._Ability_GrandCross);
-class P4Inferno(BossModule module) : Components.RaidwideCast(module, AID._Ability_Inferno1);
-class P4Tsunami(BossModule module) : Components.RaidwideCast(module, AID._Ability_Tsunami1);
+class P4GrandCross(BossModule module) : Components.RaidwideCast(module, AID.GrandCross);
+class P4Inferno(BossModule module) : Components.RaidwideCast(module, AID.InfernoHitP4);
+class P4Tsunami(BossModule module) : Components.RaidwideCast(module, AID.TsunamiCastP4);
 
-class P4StrayFlames(BossModule module) : Components.StandardAOEs(module, AID.StrayFlames, new AOEShapeDonut(6, 40));
-class P4StrayCircle(BossModule module) : Components.GroupedAOEs(module, [AID._Ability_StraySpray, AID.StrayFlames1], new AOEShapeCircle(6));
-class P4EdgeOfDeath(BossModule module) : Components.StandardAOEs(module, AID._Ability_EdgeOfDeath, new AOEShapeRect(48, 1));
+class P4StrayDonut(BossModule module) : Components.GroupedAOEs(module, [AID.StrayFlamesInvertedP4, AID.StraySprayNormalP4], new AOEShapeDonut(6, 40));
+class P4StrayCircle(BossModule module) : Components.GroupedAOEs(module, [AID.StraySprayInvertedP4, AID.StrayFlamesNormalP4], new AOEShapeCircle(6));
+class P4EdgeOfDeath(BossModule module) : Components.StandardAOEs(module, AID.EdgeOfDeath, new AOEShapeRect(48, 1));
 
-class P4Antilight(BossModule module) : Components.GroupedAOEs(module, [AID._Ability_WhiteAntilight, AID._Ability_BlackAntilight], new AOEShapeRect(47, 10.5f))
+class P4Antilight(BossModule module) : Components.GroupedAOEs(module, [AID.WhiteAntilight, AID.BlackAntilight], new AOEShapeRect(47, 10.5f))
 {
     enum Wound
     {
@@ -72,7 +72,7 @@ class P4Antilight(BossModule module) : Components.GroupedAOEs(module, [AID._Abil
         foreach (var c in Casters)
         {
             var cast = c.CastInfo!;
-            var casterColor = cast.IsSpell(AID._Ability_WhiteAntilight) ? Wound.White : Wound.Black;
+            var casterColor = cast.IsSpell(AID.WhiteAntilight) ? Wound.White : Wound.Black;
             var isFatal = casterColor == req.Color;
             var mustDie = req.Req == Requirement.Die;
             if (isFatal != mustDie)
@@ -86,7 +86,7 @@ class P4Debuffs(BossModule module) : BossComponent(module)
     bool _exdeathTrue;
     bool _chaosTrue;
 
-    enum Debuff
+    public enum Debuff
     {
         None,
         Shriek, // gaze
@@ -97,7 +97,15 @@ class P4Debuffs(BossModule module) : BossComponent(module)
         Fluid, // baited donut AOE
     }
 
-    readonly List<(Debuff D, bool Real, DateTime Expiration)>[] _debuffs = Utils.GenArray<List<(Debuff D, bool Real, DateTime Expiration)>>(8, () => []);
+    public readonly List<(Debuff D, bool Real, DateTime Expiration)>[] Debuffs = Utils.GenArray<List<(Debuff D, bool Real, DateTime Expiration)>>(8, () => []);
+
+    public IEnumerable<(int Slot, Actor Actor, Debuff Debuff, bool Real, DateTime Expiration)> EnumerateDebuffs(DateTime deadline)
+    {
+        foreach (var (i, player) in Raid.WithSlot())
+            foreach (var (d, r, e) in Debuffs[i])
+                if (deadline > e)
+                    yield return (i, player, d, r, e);
+    }
 
     static string DebuffReadable(Debuff d, bool real) => d switch
     {
@@ -112,8 +120,8 @@ class P4Debuffs(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        foreach (var (db, t, e) in _debuffs[slot])
-            hints.Add($"{DebuffReadable(db, t)} in {(e - WorldState.CurrentTime).TotalSeconds:f1}s", false);
+        foreach (var (db, t, e) in Debuffs[slot])
+            hints.Add($"{DebuffReadable(db, t)} in {Math.Max(0, (e - WorldState.CurrentTime).TotalSeconds):f1}s", false);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -150,8 +158,8 @@ class P4Debuffs(BossModule module) : BossComponent(module)
 
         if (dbf != default && Raid.TryFindSlot(actor, out var slot))
         {
-            _debuffs[slot].Add((dbf, real, status.ExpireAt));
-            _debuffs[slot].SortBy(s => s.Expiration);
+            Debuffs[slot].Add((dbf, real, status.ExpireAt));
+            Debuffs[slot].SortBy(s => s.Expiration);
         }
     }
 
@@ -170,9 +178,72 @@ class P4Debuffs(BossModule module) : BossComponent(module)
 
         if (dbf != default && Raid.TryFindSlot(actor, out var slot))
         {
-            var ix = _debuffs[slot].FindIndex(d => d.D == dbf);
+            var ix = Debuffs[slot].FindIndex(d => d.D == dbf);
             if (ix >= 0)
-                _debuffs[slot].RemoveAt(ix);
+                Debuffs[slot].RemoveAt(ix);
         }
+    }
+}
+
+class P4DeathWaveBolt : Components.UniformStackSpread
+{
+    public int NumCasts { get; private set; }
+
+    public P4DeathWaveBolt(BossModule module) : base(module, 8, 8, 3, 3, true)
+    {
+        foreach (var (_, player, debuff, real, exp) in module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(10)))
+        {
+            switch (debuff)
+            {
+                case P4Debuffs.Debuff.Water:
+                    if (real)
+                        AddStack(player, exp);
+                    else
+                        AddSpread(player, exp);
+                    break;
+                case P4Debuffs.Debuff.Lightning:
+                    if (real)
+                        AddSpread(player, exp);
+                    else
+                        AddStack(player, exp);
+                    break;
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.DeathWaveNormal:
+            case AID.DeathBoltInverted:
+                NumCasts++;
+                Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+                break;
+
+            case AID.DeathWaveInverted:
+            case AID.DeathBoltNormal:
+                NumCasts++;
+                Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+                break;
+        }
+    }
+}
+
+class P4DeathBomb : Components.StayMove
+{
+    public P4DeathBomb(BossModule module) : base(module)
+    {
+        foreach (var (i, _, debuff, real, exp) in Module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(10)))
+        {
+            if (debuff == P4Debuffs.Debuff.Bomb)
+                SetState(i, new(real ? Requirement.Stay : Requirement.Move, exp));
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID == SID.AccelerationBomb && Raid.TryFindSlot(actor, out var slot))
+            ClearState(slot);
     }
 }
