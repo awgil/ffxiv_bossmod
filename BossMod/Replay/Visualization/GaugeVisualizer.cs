@@ -198,8 +198,7 @@ internal class GaugeVisualizer
         var gauge = clientState.GetGauge<MonkGauge>();
         var origin = ImGui.GetCursorPos();
 
-        if (!Service.Texture.GetFromGame("ui/uld/JobHudMNK0_hr1.tex").TryGetWrap(out var wrap, out _))
-            return;
+        var wrap = Wrap(HudMNK, "mnk_hud");
 
         // beast chakra
         ImGui.Image(wrap.Handle, Scale(114, 48), new Vector2(0.0000f, 0.4602f), new Vector2(0.2767f, 0.6726f));
