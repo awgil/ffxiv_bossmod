@@ -126,10 +126,10 @@ class ReplayDetailsWindow : UIWindow
                 }
             }
 
-            if (_povSlot == 0 && _mgr.WorldState.Party[0] is { } player)
+            if (_showDebug && _povSlot == 0 && _mgr.WorldState.Party[0] is { } player)
             {
                 var cursor = ImGui.GetCursorPos();
-                GaugeViewer.Instance().Draw(player, _mgr.WorldState.Client);
+                GaugeVisualizer.Instance().Draw(player, _mgr.WorldState.Client);
                 ImGui.SetCursorPos(cursor);
             }
 

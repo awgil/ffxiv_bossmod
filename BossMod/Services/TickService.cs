@@ -523,7 +523,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!disposing)
             return;
 
-        GaugeViewer.Dispose();
+        GaugeVisualizer.Dispose();
         _onConfigSave?.Dispose();
         _wndDebug?.Dispose();
         _wndAI.Dispose();
