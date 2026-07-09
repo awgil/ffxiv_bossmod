@@ -14,7 +14,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         public Track<AOEStrategy> AOE;
 
         [Track(InternalName = "BH", MinLevel = 70, UiPriority = 99, Action = AID.Brotherhood, OGCDPriority = OGCDPriority.Brotherhood)]
-        public Track<OffensiveStrategy> Brotherhood;
+        public Track<BHStrategy> Brotherhood;
 
         // RoF
         [Track("Riddle of Fire", MinLevel = 68, UiPriority = 96, Action = AID.RiddleOfFire, OGCDPriority = OGCDPriority.RiddleOfFire)]
@@ -77,6 +77,18 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         Force,
         [Option("Do not use")]
         Delay
+    }
+
+    public enum BHStrategy
+    {
+        [Option("Use in opener, or on cooldown (unless downtime would interrupt it)")]
+        Automatic,
+        [Option("Don't use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force,
+        [Option("Use ASAP, as long as a GCD has been used first (for early opener)")]
+        ForceGCD
     }
     public enum FRStrategy
     {
@@ -689,8 +701,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     {
         if (strategy.Brotherhood.Value switch
         {
-            OffensiveStrategy.Automatic => HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0,
-            OffensiveStrategy.Force => true,
+            BHStrategy.Automatic => HaveTarget && (CombatTimer > 10 || BeastCount >= 2) && DowntimeIn > AnimLock + 20 && GCD > 0,
+            BHStrategy.Force => true,
+            BHStrategy.ForceGCD => GCD > 0,
             _ => false
         })
             UsePlanned(strategy.Brotherhood, AID.Brotherhood, Player);
