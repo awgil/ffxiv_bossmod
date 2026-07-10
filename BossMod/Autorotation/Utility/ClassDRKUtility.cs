@@ -97,6 +97,6 @@ public sealed class ClassDRKUtility(RotationModuleManager manager, Actor player)
             _ => false
         };
         if (useDash)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Shadowstride), dashTarget, dash.Priority(), dash.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(DRK.AID.Shadowstride), dashTarget, dash.Priority(), dash.Value.ExpireIn, forced: true);
     }
 }
