@@ -260,7 +260,7 @@ class SeaShackles(BossModule module) : BossComponent(module) {
 }
 
 // Arena is 40.0f, and it knocks you back slightly over 3 full squares so 24.0f + a tiny bit
-class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 25.0f, kind: Kind.DirForward) {
+class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 25.5f, kind: Kind.DirForward) {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
         foreach (var src in Sources(slot, actor)) {
@@ -278,7 +278,7 @@ class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, 
                 var bounds = Arena.Bounds;
 
                 hints.AddForbiddenZone(p => {
-                    var proj = p + direction * 25.0f;
+                    var proj = p + direction * 25.5f;
 
                     if (!bounds.Contains(proj - center)) {
                         return true;
@@ -289,7 +289,7 @@ class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, 
                     }
 
                     foreach (var tile in tiles) {
-                        if (Intersect.RayRect(p, direction, tile.Origin, tile.Rotation.ToDirection(), 4f, 4f) <= 25.0f) {
+                        if (Intersect.RayRect(p, direction, tile.Origin, tile.Rotation.ToDirection(), 4f, 4f) <= 25.5f) {
                             return true;
                         }
                     }
