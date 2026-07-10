@@ -3,14 +3,14 @@
 class PiercingPlunge(BossModule module) : Components.RaidwideCast(module, AID.PiercingPlunge);
 
 class FamiliarCall(BossModule module) : Components.GenericAOEs(module) {
-    private List<(String name, OID animal)> vfxOrder = []; // Stores an easy-to-read name for callouts and the animal OID for aoes
-    private TimeSpan cooldown = TimeSpan.FromSeconds(0.5);
-    private DateTime lastVFX = DateTime.MinValue;
+    protected record struct Caster(Actor source, AOEShape shape, DateTime activation);
+    protected readonly List<List<Caster>> sources = [];
+    protected readonly List<String> vfxOrder = []; // Stores an easy-to-read name for callouts and the animal OID for aoes
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.FamiliarCall) {
             vfxOrder.Clear();
-            lastVFX = DateTime.MinValue;
+            sources.Clear();
         }
     }
 
@@ -28,68 +28,77 @@ class FamiliarCall(BossModule module) : Components.GenericAOEs(module) {
                 return;
             }
 
-            vfxOrder.Add((name, animal));
+            var activation = sources.Count > 0 ? sources[^1][0].activation.AddSeconds(3.0f) : WorldState.FutureTime(11.6f);
+            sources.Add([..Module.Enemies(animal).Select(c => new Caster(c, new AOEShapeRect(40f, 4f), activation))]);
+            vfxOrder.Add(name);
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.Watersong || spell.Action.ID == (uint)AID.Watersong1 ||
             spell.Action.ID == (uint)AID.Watersong2 || spell.Action.ID == (uint)AID.Watersong3) {
-            if ((WorldState.CurrentTime - lastVFX) < cooldown) {
-                return;
-            }
 
-            if (vfxOrder.Count > 0) {
-                vfxOrder.RemoveAt(0);
-                lastVFX = WorldState.CurrentTime;
-                NumCasts++;
-            }
-        }
-    }
+            if (sources.Count > 0) {
+                sources[0].RemoveAll(c => c.source == caster);
+                if (sources[0].Count == 0) {
+                    NumCasts++;
+                    sources.RemoveAt(0);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        int show = 0;
-        foreach (var nextAOE in vfxOrder.Take(2)) {
-            uint colour = show == 0 ? ArenaColor.Danger : ArenaColor.AOE;
-            foreach (var animal in Module.Enemies(nextAOE.animal)) {
-                yield return new(new AOEShapeRect(40f, 4f), animal.Position, animal.Rotation, default, colour, show == 0);
-            }
-            show++;
-        }
-    }
-
-    public override void AddGlobalHints(GlobalHints hints) {
-        if (vfxOrder.Count > 0) {
-            hints.Add("Order: " + string.Join(", ", vfxOrder.Select(o => o.name)));
-        }
-    }
-}
-
-class SunkenTreasure(BossModule module) : Components.GenericAOEs(module) {
-    private List<Actor> orbs = [];
-
-    public override void OnActorEAnim(Actor actor, uint state) {
-        if (actor.OID == (uint)OID.BlueSphere || actor.OID == (uint)OID.DonutSphere) {
-            if (state == 1048608) {
-                orbs.Add(actor);
-            }
-
-            if (state == 262152) {
-                orbs.Remove(actor);
-                NumCasts++;
+                    if (vfxOrder.Count > 0) {
+                        vfxOrder.RemoveAt(0);
+                    }
+                }
             }
         }
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
         int shown = 0;
-        foreach (var orb in orbs) {
+        foreach (var srcs in sources.Take(2)) {
+            foreach (var src in srcs) {
+                yield return new(src.shape, src.source.Position, src.source.Rotation, src.activation, shown == 0 ? ArenaColor.Danger : ArenaColor.AOE, shown == 0);
+            }
+            shown++;
+        }
+    }
+
+    public override void AddGlobalHints(GlobalHints hints) {
+        if (vfxOrder.Count > 0) {
+            hints.Add("Order: " + string.Join(", ", vfxOrder));
+        }
+    }
+}
+
+class SunkenTreasure(BossModule module) : Components.GenericAOEs(module) {
+    private List<AOEInstance> sources = [];
+
+    public override void OnActorEAnim(Actor actor, uint state) {
+        if (state == 1048608) {
+            if (actor.OID == (uint)OID.BlueSphere) {
+                sources.Add(new(new AOEShapeCircle(18f), actor.Position, actor.Rotation, WorldState.FutureTime(7.2f)));
+            }
+
+            if (actor.OID == (uint)OID.DonutSphere) {
+                sources.Add(new(new AOEShapeDonut(4f, 20f), actor.Position, actor.Rotation, WorldState.FutureTime(7.2f)));
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (spell.Action.ID == (uint)AID.SphereShatter || spell.Action.ID == (uint)AID.SphereShatter1) {
+            NumCasts++;
+            sources.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 1.0f));
+        }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        int shown = 0;
+        foreach (var source in sources) {
             if (shown >= 5) {
                 break;
             }
 
-            var shape = (orb.OID == (uint)OID.BlueSphere) ? (AOEShape)new AOEShapeCircle(18f) : (AOEShape)new AOEShapeDonut(4f, 20f);
-            yield return new(shape, orb.Position, orb.Rotation);
+            yield return new(source.Shape, source.Origin, source.Rotation, source.Activation);
             shown++;
         }
     }
@@ -145,10 +154,13 @@ class SeaShackles(BossModule module) : BossComponent(module) {
     public record struct Assignment(Role Partner, int PartnerSlot, bool tooClose);
     public Assignment[] Assignments = new Assignment[PartyState.MaxPartySize];
     private bool active = false; // Game instance doesn't delete tethers on wipes, so we have to guard against them
+    private int NumCasts = 0;
+    private DateTime activation = DateTime.MaxValue;
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.SeaShackles) {
             active = true;
+            activation = WorldState.FutureTime(4.0f);
         }
     }
 
@@ -177,6 +189,12 @@ class SeaShackles(BossModule module) : BossComponent(module) {
         if (status.ID == (uint)SID.NearShoreShackles) {
             Assignments[Raid.FindSlot(actor.InstanceID)] = default;
             _distant.RemoveAll(t => t.Item1.InstanceID == actor.InstanceID || t.Item2.InstanceID == actor.InstanceID);
+            NumCasts++;
+
+            if (NumCasts == Raid.WithoutSlot().Count()) {
+                active = false;
+            }
+
         }
     }
 
@@ -210,8 +228,7 @@ class SeaShackles(BossModule module) : BossComponent(module) {
                 hints.Add("Stay far from partner!", true);
             }
 
-            if (assign.tooClose == false)
-            {
+            if (assign.tooClose == false) {
                 hints.Add("Stay far from partner!", false);
             }
         }
@@ -223,11 +240,11 @@ class SeaShackles(BossModule module) : BossComponent(module) {
         foreach (var (a, b) in _distant) {
             if (a.InstanceID == actor.InstanceID || b.InstanceID == actor.InstanceID) {
                 if (a.InstanceID == actor.InstanceID) {
-                    hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 10.0f));
+                    hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 10.0f), activation);
                 }
 
                 if (b.InstanceID == actor.InstanceID) {
-                    hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 10.0f));
+                    hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 10.0f), activation);
                 }
             }
         }
@@ -242,7 +259,7 @@ class SeaShackles(BossModule module) : BossComponent(module) {
     }
 }
 
-// Arena is 40.0f, and it knocks you back 3 full squares so 24.0f
+// Arena is 40.0f, and it knocks you back slightly over 3 full squares so 24.0f + a tiny bit
 class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 25.0f, kind: Kind.DirForward) {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
@@ -289,7 +306,7 @@ class SwimmingInTheAir(BossModule module) : Components.GenericAOEs(module) {
 
     public override void OnActorCreated(Actor actor) {
         if (actor.OID == (uint)OID.SwimmingInTheAirOrb) {
-            aoes.Add(new(new AOEShapeCircle(12f), actor.Position, actor.Rotation, default, ArenaColor.AOE));
+            aoes.Add(new(new AOEShapeCircle(12f), actor.Position, actor.Rotation));
         }
     }
 
@@ -453,14 +470,16 @@ class RecedingTwinTides(BossModule module) : Components.GenericAOEs(module) {
     private List<AOEInstance> aoes = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.RecedingTwinTides) {
-            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, Risky: true));
-            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Risky: false));
+        if (spell.Action.ID == (uint)AID.NearTideReceding) {
+            var activation = Module.CastFinishAt(spell);
+            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, activation, Risky: true));
+            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, WorldState.FutureTime(spell.RemainingTime + 3.2f), Risky: false));
         }
 
-        if (spell.Action.ID == (uint)AID.EncroachingTwinTides) {
-            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Risky: true));
-            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, Risky: false));
+        if (spell.Action.ID == (uint)AID.FarTideEncroaching) {
+            var activation = Module.CastFinishAt(spell);
+            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, activation, Risky: true));
+            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, WorldState.FutureTime(spell.RemainingTime + 3.2f), Risky: false));
         }
     }
 
