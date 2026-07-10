@@ -240,11 +240,11 @@ class SeaShackles(BossModule module) : BossComponent(module) {
         foreach (var (a, b) in _distant) {
             if (a.InstanceID == actor.InstanceID || b.InstanceID == actor.InstanceID) {
                 if (a.InstanceID == actor.InstanceID) {
-                    hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 10.0f), activation);
+                    hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 13.0f), activation);
                 }
 
                 if (b.InstanceID == actor.InstanceID) {
-                    hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 10.0f), activation);
+                    hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 13.0f), activation);
                 }
             }
         }
