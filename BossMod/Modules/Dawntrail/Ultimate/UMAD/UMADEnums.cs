@@ -172,10 +172,10 @@ public enum AID : uint
     DeathBomb = 47893, // Helper->player, no cast, single-target
     DeathShriek1 = 47894, // Helper->self, no cast, range 100 circle
     DeathShriek2 = 47895, // Helper->self, no cast, range 100 circle
-    DeathBoltNormal = 47896, // Helper->players, no cast, range 8 circle
-    DeathBoltInverted = 47897, // Helper->players, no cast, range 8 circle
-    DeathWaveNormal = 47898, // Helper->players, no cast, range 8 circle
-    DeathWaveInverted = 47899, // Helper->players, no cast, range 8 circle
+    DeathBoltNormal = 47896, // Helper->players, no cast, range 8 circle, spread
+    DeathBoltInverted = 47897, // Helper->players, no cast, range 8 circle, stack
+    DeathWaveNormal = 47898, // Helper->players, no cast, range 8 circle, stack
+    DeathWaveInverted = 47899, // Helper->players, no cast, range 8 circle, spread
     DeathSurge1 = 47900, // Helper->self, no cast, range 100 circle
     DeathSurge2 = 47901, // Helper->self, no cast, range 100 circle
     StrayFlamesNormalP4 = 47906, // Helper->location, 5.0s cast, range 6 circle

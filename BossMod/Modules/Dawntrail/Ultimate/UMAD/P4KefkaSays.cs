@@ -133,7 +133,7 @@ class P4Debuffs(BossModule module) : BossComponent(module)
                 case 0x45F:
                     _chaosTrue = false;
                     break;
-                case 0x460F:
+                case 0x460:
                     _chaosTrue = true;
                     break;
                 case 0x461:
