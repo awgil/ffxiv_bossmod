@@ -82,17 +82,27 @@ class SunkenTreasure(BossModule module) : Components.GenericAOEs(module) {
                 break;
             }
 
-            var shape = (orb.OID == (uint)OID.BlueSphere) ? (AOEShape)new AOEShapeCircle(18f) : (AOEShape)new AOEShapeDonut(6f, 20f);
+            var shape = (orb.OID == (uint)OID.BlueSphere) ? (AOEShape)new AOEShapeCircle(18f) : (AOEShape)new AOEShapeDonut(4f, 20f);
             yield return new(shape, orb.Position, orb.Rotation);
             shown++;
         }
     }
 }
 
-// Players without anything can stand in the bait as well with no worry
-class Hydrobullet : Components.BaitAwayIcon {
-    public Hydrobullet(BossModule module) : base(module, new AOEShapeCircle(5.0f), (uint)IconID.Hydrobullet, AID.HydrobulletSpread, centerAtTarget: true) {
-        EnableHints = false;
+class Hydrobullet(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Hydrobullet, AID.HydrobulletSpread, 15.0f, 5.0f) {
+    private AlluringOrderForcedMovement alluringOrderForcedMovement = module.FindComponent<AlluringOrderForcedMovement>()!;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        if (alluringOrderForcedMovement.active == true) {
+            return;
+        }
+
+        var actorSpread = Spreads.FirstOrDefault(s => s.Target == actor);
+        if (actorSpread.Target != null) {
+            foreach (var p in Raid.WithoutSlot().Exclude(actor).Where(p => Spreads.Any(s => s.Target == p))) {
+                hints.AddForbiddenZone(ShapeContains.Circle(p.Position, actorSpread.Radius), actorSpread.Activation);
+            }
+        }
     }
 }
 
@@ -120,36 +130,46 @@ class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpe
     }
 }
 
-// TODO does it matter if the players are really far away? or will it auto solve if so
+// TODO tether distance is 8-10m apart once set in - todo verify this - stand one square apart when they start
+//  if it fails then stand two squares part and test until 3 squares part
+//  once the tether is locked see how close you can get before it breaks
+//  depending on finding, remove TetherID from Assignment and assign + clean up AddAIHints
+//  remove update function
 class SeaShackles(BossModule module) : BossComponent(module) {
     private readonly List<(Actor, Actor)> _distant = [];
-    public record struct Assignment(Role Partner, int PartnerSlot, bool tooClose);
+    public record struct Assignment(Role Partner, int PartnerSlot, bool tooClose, TetherID tetherID);
     public readonly Assignment[] Assignments = new Assignment[PartyState.MaxPartySize];
 
     public override void OnTethered(Actor source, ActorTetherInfo tether) {
         if (tether.ID == (uint)TetherID.SeaShackles) {
-            Assign(source, WorldState.Actors.Find(tether.Target)!, true);
+            Assign(source, WorldState.Actors.Find(tether.Target)!, true, (TetherID)tether.ID);
         }
 
         if (tether.ID == (uint)TetherID.SeaShacklesSafe) {
-            Assign(source, WorldState.Actors.Find(tether.Target)!, false);
+            Assign(source, WorldState.Actors.Find(tether.Target)!, false, (TetherID)tether.ID);
         }
     }
 
     public override void OnUntethered(Actor source, ActorTetherInfo tether) {
         if (tether.ID == (uint)TetherID.SeaShackles || tether.ID == (uint)TetherID.SeaShacklesSafe) {
             Assignments[Raid.FindSlot(source.InstanceID)] = default;
+            _distant.RemoveAll(t => t.Item1.InstanceID == source.InstanceID || t.Item2.InstanceID == source.InstanceID);
         }
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status) {
         if (status.ID == (uint)SID.NearShoreShackles) {
             Assignments[Raid.FindSlot(actor.InstanceID)] = default;
+            _distant.RemoveAll(t => t.Item1.InstanceID == actor.InstanceID || t.Item2.InstanceID == actor.InstanceID);
         }
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc) {
         foreach (var (a, b) in _distant) {
+            if (a.InstanceID != pc.InstanceID && b.InstanceID != pc.InstanceID) {
+                continue;
+            }
+
             var assign = Assignments[pcSlot];
             var colour = assign.tooClose ? ArenaColor.Danger : ArenaColor.Safe;
             if (assign.Partner != Role.None) {
@@ -181,20 +201,97 @@ class SeaShackles(BossModule module) : BossComponent(module) {
         }
     }
 
-    private void Assign(Actor a, Actor b, bool tooClose) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // TODO refactor this code depending on how tethers set in, if same then can relay on the same logic
+        //  However I feel like once the tether is correctly setup it has a lower distance before it will break
+        foreach (var (a, b) in _distant) {
+            if (a.InstanceID == actor.InstanceID || b.InstanceID == actor.InstanceID) {
+                var assign = Assignments[slot];
+                if (assign.tetherID == TetherID.SeaShackles) {
+                    if (a.InstanceID == actor.InstanceID) {
+                        hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 10.0f));
+                    }
+
+                    if (b.InstanceID == actor.InstanceID) {
+                        hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 10.0f));
+                    }
+                }
+
+                if (assign.tetherID == TetherID.SeaShacklesSafe) {
+                    if (a.InstanceID == actor.InstanceID) {
+                        hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 10.0f));
+                    }
+
+                    if (b.InstanceID == actor.InstanceID) {
+                        hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 10.0f));
+                    }
+                }
+            }
+        }
+    }
+
+    public override void Update() {
+        foreach (var (a, b) in _distant) {
+            Service.Logger.Info("Tether distance apart: " + (a.Position - b.Position).Length()); // TODO remove once tested
+        }
+    }
+
+    private void Assign(Actor a, Actor b, bool tooClose, TetherID tetherID) {
         var aslot = Raid.FindSlot(a.InstanceID);
         var bslot = Raid.FindSlot(b.InstanceID);
-        Assignments[aslot] = new(b.Role, bslot, tooClose);
-        Assignments[bslot] = new(a.Role, aslot, tooClose);
+        Assignments[aslot] = new(b.Role, bslot, tooClose, tetherID);
+        Assignments[bslot] = new(a.Role, aslot, tooClose, tetherID);
         _distant.Add((a, b));
     }
 }
 
-// Arena is 40.0f, and it knocks you back 3 full squares so 24.0f - slightly over to ensure the player will be safe
-class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 24.5f, kind: Kind.DirForward);
+// Arena is 40.0f, and it knocks you back 3 full squares so 24.0f
+class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 24.0f, kind: Kind.DirForward) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        base.AddAIHints(slot, actor, assignment, hints);
+        foreach (var src in Sources(slot, actor)) {
+            if (!IsImmune(slot, src.Activation)) {
+                var tiles = Module.FindComponent<AquaSpear>()!.ActiveAOEs(slot, actor).Select(a => (a.Origin, a.Rotation)).ToList();
+                var partnerAssigned = Module.FindComponent<SeaShackles>()!.Assignments[slot];
+                var partner = partnerAssigned.Partner != Role.None ? Raid[partnerAssigned.PartnerSlot] : null;
+                var distanceFromPartner = partnerAssigned.tetherID == TetherID.SeaShackles ? 10.0f : 10.0f;
+
+                if (partner == null) {
+                    continue;
+                }
+
+                var direction = src.Direction.ToDirection().Normalized();
+                var center = Arena.Center;
+                var bounds = Arena.Bounds;
+
+                hints.AddForbiddenZone(p => {
+                    var proj = p + direction * 24.0f;
+
+                    if (!bounds.Contains(proj - center)) {
+                        return true;
+                    }
+
+                    if (Intersect.RayCircle(p, direction, partner.Position, distanceFromPartner) <= 1000f) {
+                        return true;
+                    }
+
+                    foreach (var tile in tiles) {
+                        if (Intersect.RayRect(p, direction, tile.Origin, tile.Rotation.ToDirection(), 4f, 4f) <= 24.0f) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }, src.Activation);
+            }
+        }
+    }
+}
 
 class SwimmingInTheAir(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+    public List<AOEInstance> aoes = [];
 
     public override void OnActorCreated(Actor actor) {
         if (actor.OID == (uint)OID.SwimmingInTheAirOrb) {
@@ -215,10 +312,56 @@ class SwimmingInTheAir(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
-// Players without anything can stand in the bait as well with no worry
-class SwimmingInTheAirSpread : Components.BaitAwayIcon {
-    public SwimmingInTheAirSpread(BossModule module) : base(module, new AOEShapeCircle(15.0f), (uint)IconID.Hydrobullet2, AID.HydrobulletSpread2, centerAtTarget: true) {
-        EnableHints = false;
+class SwimingInTheAirStackSpread(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Tidalspout,
+    (uint)IconID.Hydrobullet2, AID.Tidalspout, AID.HydrobulletSpread2, 6.0f, 15.0f, 6.0f, 2, 3, true) {
+    private SwimmingInTheAir? swimmingInTheAir = module.FindComponent<SwimmingInTheAir>();
+    private WPos? safeSpot;
+
+    private WPos[] possibleSafeSpots = [
+        new(363.000f, 518.000f), // NW
+        new(387.000f, 518.000f), // NE
+        new(363.000f, 542.000f), // SW
+        new(387.000f, 542.000f) // SE
+    ];
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        base.OnEventCast(caster, spell);
+
+        if (spell.Action.ID == (uint)AID.Tidalspout) {
+            safeSpot = null;
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (safeSpot != null) {
+            if (!IsStackTarget(actor) && !IsSpreadTarget(actor)) {
+                hints.GoalZones.Add(hints.GoalProximity(safeSpot.Value, 6.0f, 1000.0f));
+            }
+        }
+    }
+
+    public override void Update() {
+        var stackMask = new BitMask();
+
+        if (swimmingInTheAir == null) {
+            return;
+        }
+
+        if (Stacks.Count > 0) {
+            var stack = Stacks[0];
+
+            foreach (var (slot, player) in Raid.WithSlot()) {
+                if (!IsStackTarget(player) && !IsSpreadTarget(player)) {
+                    stackMask.Set(slot);
+                }
+            }
+
+            stack.ForbiddenPlayers = ~stackMask;
+            Stacks[0] = stack;
+            safeSpot = possibleSafeSpots.Where(p => !swimmingInTheAir.aoes.Any(o => o.Shape.Check(p, o.Origin, o.Rotation))).MinBy(p => (p - stack.Target.Position).LengthSq());
+        }
     }
 }
 
@@ -262,10 +405,54 @@ class SurgingCurrent(BossModule module) : Components.StandardAOEs(module, AID.Su
 
 class AlluringOrderRaidwide(BossModule module) : Components.RaidwideCast(module, AID.AlluringOrder);
 
-// TODO get the missing IDs - fill in the default ones
-// TODO verify move timer - use log timers to work it out
-class AlluringOrderForcedMovement(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f,
-    (uint)SID.ForwardMarch, (uint)default, (uint)SID.LeftFace, (uint)default);
+class AlluringOrderForcedMovement(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) {
+    public bool active = false;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (spell.Action.ID == (uint)AID.AlluringOrder) {
+            active = true;
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status) {
+        base.OnStatusLose(actor, status);
+
+        if (status.ID == (uint)SID.ForcedMarch) {
+            active = false;
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        if (active == false) {
+            return;
+        }
+
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        var state = State.GetValueOrDefault(actor.InstanceID);
+        if (state == null || state.PendingMoves.Count == 0) {
+            return;
+        }
+        var dangerousPositions = Raid.WithoutSlot().Exclude(actor).Where(HasForcedMovements).Select(a => ForcedMovements(a).Last().to).ToList();
+
+        var direction = (actor.Rotation + state.PendingMoves[0].dir).ToDirection();
+        var distance = MovementSpeed * state.PendingMoves[0].duration;
+        var bounds = Arena.Bounds;
+        var center = Arena.Center;
+
+        hints.AddForbiddenZone(p => {
+            if (!bounds.Contains(p + distance * direction - center)) {
+                return true;
+            }
+
+            if (dangerousPositions.Any(d => (p + distance * direction).InCircle(d, 15.0f))) {
+                return true;
+            }
+
+            return false;
+        }, state.PendingMoves[0].activation);
+    }
+}
 
 class AquaBall(BossModule module) : Components.StandardAOEs(module, AID.AquaBall1, new AOEShapeCircle(5f));
 
@@ -274,13 +461,19 @@ class RecedingTwinTides(BossModule module) : Components.GenericAOEs(module) {
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.RecedingTwinTides) {
-            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Module.CastFinishAt(spell))); // TODO verify AOE inner size
+            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, Risky: true));
+            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Risky: false));
+        }
+
+        if (spell.Action.ID == (uint)AID.EncroachingTwinTides) {
+            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Risky: true));
+            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, Risky: false));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.NearTide || spell.Action.ID == (uint)AID.FarTide) {
+        if (spell.Action.ID == (uint)AID.NearTideReceding || spell.Action.ID == (uint)AID.FarTideReceding ||
+            spell.Action.ID == (uint)AID.NearTideEncroaching || spell.Action.ID == (uint)AID.FarTideEncroaching) {
             if (aoes.Count > 0) {
                 aoes.RemoveAt(0);
             }
@@ -291,7 +484,7 @@ class RecedingTwinTides(BossModule module) : Components.GenericAOEs(module) {
         int shown = 0;
         foreach (var aoe in aoes) {
             uint colour = shown == 0 ? ArenaColor.Danger : ArenaColor.AOE;
-            yield return aoe with { Color = colour };
+            yield return aoe with { Color = colour, Risky = shown == 0 };
             shown++;
         }
     }

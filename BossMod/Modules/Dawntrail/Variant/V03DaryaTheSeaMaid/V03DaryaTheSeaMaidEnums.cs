@@ -42,6 +42,7 @@ public enum AID : uint {
     SwimmingInTheAir = 45809, // Boss->self, 4.0s cast, single-target
     Hydrofall = 45810, // Helper->location, 1.0s cast, range 12 circle
     HydrobulletSpread2 = 45811, // Helper->player, 6.0s cast, range 15 circle - used during SwimmingInTheAir
+    Tidalspout = 47089, // Helper->players, 6.0s cast, range 6 circle
 
     CeaselessCurrentBoss = 45823, // Boss->self, 4.0+1.0s cast, single-target
     CeaselessCurrentFirst = 45824, // Helper->self, 5.0s cast, range 8 width 40 rect
@@ -55,8 +56,11 @@ public enum AID : uint {
     AquaBall1 = 45835, // Helper->location, 3.0s cast, range 5 circle
 
     RecedingTwinTides = 45828, // Boss->self, 3.0+1.0s cast, single-target
-    NearTide = 45829, // Helper->location, 4.0s cast, range 10 circle
-    FarTide = 45833, // Helper->location, no cast, range ?-40 donut
+    NearTideReceding = 45829, // Helper->location, 4.0s cast, range 10 circle
+    FarTideReceding = 45833, // Helper->location, no cast, range ?-40 donut
+    EncroachingTwinTides = 45831, // DaryaSeaMaid->self, 3.0+1.0s cast, single-target
+    FarTideEncroaching = 45832, // Helper->location, 4.0s cast, range 10-40 donut
+    NearTideEncroaching= 45830, // Helper->location, no cast, range 10 circle
 }
 
 public enum SID : uint {
@@ -67,11 +71,16 @@ public enum SID : uint {
 
     NearShoreShackles = 4724, // none->player, extra=0x0
 
-    LeftFace = 2163, // Boss->player, extra=0x0
     ForwardMarch = 2161, // Boss->player, extra=0x0
+    AboutFace = 2162, // DaryaSeaMaid->player, extra=0x0
+    LeftFace = 2163, // Boss->player, extra=0x0
+    RightFace = 2164, // Boss->player, extra=0x0
     ForcedMarch = 1257, // Boss->player, extra=0x1/0x4
 
     Dropsy = 3797, // none->player, extra=0x0
+    _Gen_Dropsy1 = 3075, // none->player, extra=0x0
+    _Gen_Dropsy2 = 3076, // none->player, extra=0x0
+
 }
 
 public enum VfxID : uint {
@@ -85,6 +94,7 @@ public enum IconID : uint {
     Hydrobullet = 23, // player->self
     Hydrocannon = 471, // player->self
     Hydrobullet2 = 658, // player->self
+    Tidalspout = 318, // player->self
 }
 
 public enum TetherID : uint {
