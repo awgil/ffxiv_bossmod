@@ -7,6 +7,13 @@ class FamiliarCall(BossModule module) : Components.GenericAOEs(module) {
     private TimeSpan cooldown = TimeSpan.FromSeconds(0.5);
     private DateTime lastVFX = DateTime.MinValue;
 
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID == (uint)AID.FamiliarCall) {
+            vfxOrder.Clear();
+            lastVFX = DateTime.MinValue;
+        }
+    }
+
     public override void OnEventVFX(Actor actor, uint vfxID, ulong targetID) {
         if (actor.OID == (uint)OID.DaryaSeaMaid) {
             var (name, animal) = (VfxID)vfxID switch {
@@ -72,7 +79,6 @@ class SunkenTreasure(BossModule module) : Components.GenericAOEs(module) {
                 NumCasts++;
             }
         }
-
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
@@ -111,13 +117,11 @@ class Hydrocannon(BossModule module) : Components.BaitAwayIcon(module, new AOESh
 class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpear1, new AOEShapeRect(4f, 4f, 4f)) {
     private List<AOEInstance> aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        foreach (var aoe in aoes) {
-            yield return aoe;
-        }
-    }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID == (uint)AID.AquaSpear) {
+            aoes.Clear();
+        }
+
         if (spell.Action == WatchedAction) {
             aoes.Add(new AOEInstance(Shape, caster.Position, caster.Rotation));
         }
@@ -128,25 +132,37 @@ class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpe
             aoes.RemoveAll(t => t.Origin.AlmostEqual(actor.Position, 1.0f));
         }
     }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        foreach (var aoe in aoes) {
+            yield return aoe;
+        }
+    }
 }
 
-// TODO tether distance is 8-10m apart once set in - todo verify this - stand one square apart when they start
-//  if it fails then stand two squares part and test until 3 squares part
-//  once the tether is locked see how close you can get before it breaks
-//  depending on finding, remove TetherID from Assignment and assign + clean up AddAIHints
-//  remove update function
 class SeaShackles(BossModule module) : BossComponent(module) {
     private readonly List<(Actor, Actor)> _distant = [];
-    public record struct Assignment(Role Partner, int PartnerSlot, bool tooClose, TetherID tetherID);
-    public readonly Assignment[] Assignments = new Assignment[PartyState.MaxPartySize];
+    public record struct Assignment(Role Partner, int PartnerSlot, bool tooClose);
+    public Assignment[] Assignments = new Assignment[PartyState.MaxPartySize];
+    private bool active = false; // Game instance doesn't delete tethers on wipes, so we have to guard against them
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID == (uint)AID.SeaShackles) {
+            active = true;
+        }
+    }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether) {
+        if (active == false) {
+            return;
+        }
+
         if (tether.ID == (uint)TetherID.SeaShackles) {
-            Assign(source, WorldState.Actors.Find(tether.Target)!, true, (TetherID)tether.ID);
+            Assign(source, WorldState.Actors.Find(tether.Target)!, true);
         }
 
         if (tether.ID == (uint)TetherID.SeaShacklesSafe) {
-            Assign(source, WorldState.Actors.Find(tether.Target)!, false, (TetherID)tether.ID);
+            Assign(source, WorldState.Actors.Find(tether.Target)!, false);
         }
     }
 
@@ -204,51 +220,30 @@ class SeaShackles(BossModule module) : BossComponent(module) {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        // TODO refactor this code depending on how tethers set in, if same then can relay on the same logic
-        //  However I feel like once the tether is correctly setup it has a lower distance before it will break
         foreach (var (a, b) in _distant) {
             if (a.InstanceID == actor.InstanceID || b.InstanceID == actor.InstanceID) {
-                var assign = Assignments[slot];
-                if (assign.tetherID == TetherID.SeaShackles) {
-                    if (a.InstanceID == actor.InstanceID) {
-                        hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 10.0f));
-                    }
-
-                    if (b.InstanceID == actor.InstanceID) {
-                        hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 10.0f));
-                    }
+                if (a.InstanceID == actor.InstanceID) {
+                    hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 10.0f));
                 }
 
-                if (assign.tetherID == TetherID.SeaShacklesSafe) {
-                    if (a.InstanceID == actor.InstanceID) {
-                        hints.AddForbiddenZone(ShapeContains.Circle(b.Position, 10.0f));
-                    }
-
-                    if (b.InstanceID == actor.InstanceID) {
-                        hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 10.0f));
-                    }
+                if (b.InstanceID == actor.InstanceID) {
+                    hints.AddForbiddenZone(ShapeContains.Circle(a.Position, 10.0f));
                 }
             }
         }
     }
 
-    public override void Update() {
-        foreach (var (a, b) in _distant) {
-            Service.Logger.Info("Tether distance apart: " + (a.Position - b.Position).Length()); // TODO remove once tested
-        }
-    }
-
-    private void Assign(Actor a, Actor b, bool tooClose, TetherID tetherID) {
+    private void Assign(Actor a, Actor b, bool tooClose) {
         var aslot = Raid.FindSlot(a.InstanceID);
         var bslot = Raid.FindSlot(b.InstanceID);
-        Assignments[aslot] = new(b.Role, bslot, tooClose, tetherID);
-        Assignments[bslot] = new(a.Role, aslot, tooClose, tetherID);
+        Assignments[aslot] = new(b.Role, bslot, tooClose);
+        Assignments[bslot] = new(a.Role, aslot, tooClose);
         _distant.Add((a, b));
     }
 }
 
 // Arena is 40.0f, and it knocks you back 3 full squares so 24.0f
-class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 24.0f, kind: Kind.DirForward) {
+class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 25.0f, kind: Kind.DirForward) {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
         foreach (var src in Sources(slot, actor)) {
@@ -256,7 +251,6 @@ class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, 
                 var tiles = Module.FindComponent<AquaSpear>()!.ActiveAOEs(slot, actor).Select(a => (a.Origin, a.Rotation)).ToList();
                 var partnerAssigned = Module.FindComponent<SeaShackles>()!.Assignments[slot];
                 var partner = partnerAssigned.Partner != Role.None ? Raid[partnerAssigned.PartnerSlot] : null;
-                var distanceFromPartner = partnerAssigned.tetherID == TetherID.SeaShackles ? 10.0f : 10.0f;
 
                 if (partner == null) {
                     continue;
@@ -267,18 +261,18 @@ class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, 
                 var bounds = Arena.Bounds;
 
                 hints.AddForbiddenZone(p => {
-                    var proj = p + direction * 24.0f;
+                    var proj = p + direction * 25.0f;
 
                     if (!bounds.Contains(proj - center)) {
                         return true;
                     }
 
-                    if (Intersect.RayCircle(p, direction, partner.Position, distanceFromPartner) <= 1000f) {
+                    if (Intersect.RayCircle(p, direction, partner.Position, 10.0f) <= 1000f) {
                         return true;
                     }
 
                     foreach (var tile in tiles) {
-                        if (Intersect.RayRect(p, direction, tile.Origin, tile.Rotation.ToDirection(), 4f, 4f) <= 24.0f) {
+                        if (Intersect.RayRect(p, direction, tile.Origin, tile.Rotation.ToDirection(), 4f, 4f) <= 25.0f) {
                             return true;
                         }
                     }
@@ -312,8 +306,7 @@ class SwimmingInTheAir(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
-class SwimingInTheAirStackSpread(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Tidalspout,
-    (uint)IconID.Hydrobullet2, AID.Tidalspout, AID.HydrobulletSpread2, 6.0f, 15.0f, 6.0f, 2, 3, true) {
+class SwimingInTheAirStackSpread(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Tidalspout, (uint)IconID.Hydrobullet2, AID.Tidalspout, AID.HydrobulletSpread2, 6.0f, 15.0f, 6.0f, 2, 3, true) {
     private SwimmingInTheAir? swimmingInTheAir = module.FindComponent<SwimmingInTheAir>();
     private WPos? safeSpot;
 
