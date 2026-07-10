@@ -155,7 +155,7 @@ class P3Nothingness : Components.BaitAwayTethers
         public int CastsLeft;
         public TargetOrder DesiredTarget;
         public TargetOrder DesiredNextTarget;
-        public bool SwapImminent => DesiredTarget != DesiredNextTarget;
+        public bool SwapImminent => DesiredTarget != DesiredNextTarget && CastsLeft > 1;
     }
 
     readonly List<Blackhole> _holes = [];
