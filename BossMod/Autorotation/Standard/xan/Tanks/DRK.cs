@@ -260,16 +260,15 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         var canUseTBN = MP >= 6000 || DarkArts || !Unlocked(AID.TheBlackestNight);
 
         var track = strategy.Edge;
-        var edgeTarget = ResolveEnemy(track);
 
         void use(OGCDPriority prio, bool useOnDyingTarget)
         {
             var pExtra = (int)prio - (int)OGCDPriority.Edge;
 
             if (NumLineTargets > 2 || !Unlocked(AID.EdgeOfDarkness))
-                UsePlanned(track, AID.FloodOfDarkness, (edgeTarget ?? BestLineTarget)?.Actor, additionalPriority: pExtra);
+                UsePlanned(track, AID.FloodOfDarkness, BestLineTarget, additionalPriority: pExtra, predicate: e => useOnDyingTarget || e?.Priority >= 0);
 
-            UsePlanned(track, AID.EdgeOfDarkness, (edgeTarget ?? primaryTarget)?.Actor, additionalPriority: pExtra);
+            UsePlanned(track, AID.EdgeOfDarkness, primaryTarget, additionalPriority: pExtra, predicate: e => useOnDyingTarget || e?.Priority >= 0);
         }
 
         if (track == EdgeStrategy.Delay || !canUse)

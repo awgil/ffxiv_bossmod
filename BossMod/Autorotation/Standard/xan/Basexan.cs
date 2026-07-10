@@ -205,6 +205,16 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         PushAction(aid, target, ActionQueue.Priority.Low + priority, delay);
     }
 
+    protected bool UsePlanned<T>(in Track<T> strategyTrack, AID action, Enemy? defaultTarget, float delay = 0, float additionalPriority = 0, bool forced = false, Func<Enemy?, bool>? predicate = null) where T : struct
+    {
+        var realTarget = ResolveEnemy(strategyTrack) ?? defaultTarget;
+
+        if (predicate?.Invoke(realTarget) == false)
+            return false;
+
+        return PushAction(action, realTarget?.Actor, strategyTrack.Priority() + additionalPriority, delay, forced);
+    }
+
     protected bool UsePlanned<T>(in Track<T> strategyTrack, AID action, Actor? defaultTarget, float delay = 0, float additionalPriority = 0, bool forced = false, Func<Actor?, bool>? predicate = null) where T : struct
     {
         var realTarget = ResolveTarget(strategyTrack) ?? defaultTarget;
