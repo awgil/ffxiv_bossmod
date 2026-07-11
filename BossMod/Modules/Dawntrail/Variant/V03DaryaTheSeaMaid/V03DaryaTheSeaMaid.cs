@@ -253,12 +253,13 @@ class SeaShackles(BossModule module) : BossComponent(module) {
 
 // Arena is 40.0f, and it knocks you back slightly over 3 full squares so 24.0f + a tiny bit
 class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave1, 25.5f, kind: Kind.DirForward) {
+    private readonly V03DaryaTheSeaMaidConfig _config = Service.Config.Get<V03DaryaTheSeaMaidConfig>();
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
         foreach (var src in Sources(slot, actor)) {
             if (!IsImmune(slot, src.Activation)) {
                 var tiles = Module.FindComponent<AquaSpear>()!.ActiveAOEs(slot, actor).Select(a => (a.Origin, a.Rotation)).ToList();
-
                 var direction = src.Direction.ToDirection().Normalized();
                 var center = Arena.Center;
                 var bounds = Arena.Bounds;
@@ -278,6 +279,27 @@ class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, 
 
                     return false;
                 }, src.Activation);
+
+                if (_config.TidalWaveAntiKB && (src.Activation - WorldState.CurrentTime).TotalSeconds <= 0.5f) {
+                    var dangerous = false;
+                    var actorPosition = actor.Position + direction * 25.5f;
+
+                    if (!bounds.Contains(actorPosition - center)) {
+                        dangerous = true;
+                    }
+
+                    foreach (var tile in tiles) {
+                        if (Intersect.RayRect(actor.Position, direction, tile.Origin, tile.Rotation.ToDirection(), 4f, 4f) <= 25.5f) {
+                            dangerous = true;
+                            break;
+                        }
+                    }
+
+                    if (dangerous == true) {
+                        var action = actor.Class.GetClassCategory() is ClassCategory.Healer or ClassCategory.Caster ? ActionID.MakeSpell(ClassShared.AID.Surecast) : ActionID.MakeSpell(ClassShared.AID.ArmsLength);
+                        hints.ActionsToExecute.Push(action, actor, ActionQueue.Priority.High, (float)(src.Activation - WorldState.CurrentTime).TotalSeconds);
+                    }
+                }
             }
         }
     }
@@ -396,6 +418,14 @@ class AlluringOrderRaidwide(BossModule module) : Components.RaidwideCast(module,
 class AlluringOrderForcedMovement(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) {
     public bool active = false;
     private int NumCasts = 0;
+    private readonly V03DaryaTheSeaMaidConfig _config = Service.Config.Get<V03DaryaTheSeaMaidConfig>();
+
+    private WPos[] corners = [
+        new(363.000f, 518.000f), // NW
+        new(387.000f, 518.000f), // NE
+        new(363.000f, 542.000f), // SW
+        new(387.000f, 542.000f) // SE
+    ];
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.AlluringOrder) {
@@ -418,22 +448,23 @@ class AlluringOrderForcedMovement(BossModule module) : Components.StatusDrivenFo
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
         var state = State.GetValueOrDefault(actor.InstanceID);
-        if (state == null || state.PendingMoves.Count == 0) {
+        if (state == null || state.PendingMoves.Count == 0 || _config.AlluringOrderCornerSafeSpot == false) {
             return;
         }
-        var dangerousPositions = Raid.WithoutSlot().Exclude(actor).Where(HasForcedMovements).Select(a => ForcedMovements(a).Last().to).ToList();
+        var corner = corners[(int)_config.AlluringOrderCorner];
 
-        var direction = (actor.Rotation + state.PendingMoves[0].dir).ToDirection();
+        var forcedDirection = Angle.FromDirection((corner - actor.Position).Normalized()) - state.PendingMoves[0].dir;
         var distance = MovementSpeed * state.PendingMoves[0].duration;
         var bounds = Arena.Bounds;
         var center = Arena.Center;
 
+        hints.ForbiddenDirections.Add(((forcedDirection + 180.Degrees()).Normalized(), 170.Degrees(), state.PendingMoves[0].activation));
         hints.AddForbiddenZone(p => {
-            if (!bounds.Contains(p + distance * direction - center)) {
+            if (p.InCircle(corner, distance)) {
                 return true;
             }
 
-            if (dangerousPositions.Any(d => (p + distance * direction).InCircle(d, 15.0f))) {
+            if (!bounds.Contains((p + distance * (corner - p).Normalized()) - center)) {
                 return true;
             }
 
