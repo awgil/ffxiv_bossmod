@@ -5,6 +5,7 @@ using BossMod.Interfaces;
 using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
@@ -15,6 +16,7 @@ using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -374,6 +376,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", _hintsBuilder.Obstacles.ClearGenerated);
 
+        _slashCmd.AddSubcommand("helpme").SetSimpleHandler("gather diagnostic information", HelpMe);
+
         _slashCmd.Register();
         _slashCmd.RegisterAlias("/vbmai", "ai"); // TODO: deprecated
     }
@@ -513,6 +517,95 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 return Service.Config.ConsoleCommand($"AIConfig {args[ranges[0]]} {value}").Count == 0;
             }
             return false;
+        });
+    }
+
+    private void HelpMe()
+    {
+        StringBuilder diag = new();
+
+        var i = 0;
+
+        diag.AppendLine($"VBM {typeof(TickService).Assembly.GetName().Version}");
+        diag.AppendLine($"current zone: {_ws.CurrentZone}/{_ws.CurrentCFCID}");
+
+        var player = _ws.Party.Player();
+
+        if (player != null)
+        {
+            diag.AppendLine();
+            diag.AppendLine("player:");
+            diag.AppendLine($"L{player.Level} {player.Class}, HP {player.HPMP.CurHP}/{player.HPMP.MaxHP}, MP {player.HPMP.CurMP}/{player.HPMP.MaxMP}");
+
+            diag.AppendLine();
+            diag.AppendLine("statuses:");
+            foreach (var sid in player.Statuses)
+            {
+                if (sid.ID == 0)
+                    continue;
+                var desc = Service.LuminaRow<Lumina.Excel.Sheets.Status>(sid.ID);
+                diag.AppendLine($"status [{i++}]: {sid.ID} '{desc?.Name ?? "unknown"}' p=0x{sid.Extra:X} ({(sid.ExpireAt - _ws.CurrentTime).TotalSeconds:f1})");
+            }
+        }
+
+        diag.AppendLine();
+        diag.AppendLine("autorot:");
+        foreach (var m in _rotation.Presets)
+        {
+            diag.AppendLine($"{m.Name}");
+            foreach (var mod in m.Modules)
+            {
+                diag.AppendLine($"- {mod.Definition.DisplayName} ({mod.Type.FullName})");
+                foreach (var s in mod.TransientSettings)
+                {
+                    var track = mod.Definition.Configs[s.Track];
+                    diag.AppendLine($"  - {track.InternalName} = {track.ToDisplayString(s.Value)}");
+                }
+            }
+        }
+
+        diag.AppendLine();
+        diag.AppendLine("modules:");
+        foreach (var m in _bossmod.LoadedModules)
+        {
+            var s = m.StateMachine.ActiveState == null ? "inactive" : "active";
+            diag.AppendLine($"{m.GetType()} ({s}) (OID=0x{m.PrimaryActor.OID:X})");
+        }
+
+        if (player != null)
+        {
+            diag.AppendLine();
+            diag.AppendLine("bitmap:");
+
+            var (entry, _) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
+            if (entry != null)
+                diag.AppendLine(entry.ToString());
+
+            var (map, rect) = _hints.PathfindMapObstacles;
+            diag.AppendLine($"current bounds: {rect}");
+
+            if (map != null)
+            {
+                var offX = -rect.Left;
+                var offY = -rect.Top;
+                var r = rect.Clamped(map.FullRect).Clamped(new(0, 0, map.Width, map.Height), offX, offY);
+                var allPx = (r.Bottom - r.Top) * (r.Right - r.Left);
+                var filledPx = 0;
+                for (var y = r.Top; y < r.Bottom; ++y)
+                    for (var x = r.Left; x < r.Right; ++x)
+                        if (map[x, y])
+                            filledPx++;
+
+                diag.AppendLine($"map is {filledPx}/{allPx} filled ({filledPx / (float)allPx * 100:f2}%)");
+            }
+        }
+
+        ImGui.SetClipboardText(diag.ToString());
+
+        Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry()
+        {
+            Type = Dalamud.Game.Text.XivChatType.Echo,
+            Message = "[VBM] Diagnostic data has been copied to your clipboard."
         });
     }
 
