@@ -4,12 +4,10 @@ class PiercingPlunge(BossModule module) : Components.RaidwideCast(module, AID.Pi
 
 class FamiliarCall(BossModule module) : Components.GenericAOEs(module) {
     protected record struct Caster(Actor source, AOEShape shape, DateTime activation);
-    protected readonly List<List<Caster>> sources = [];
-    protected readonly List<String> vfxOrder = []; // Stores an easy-to-read name for callouts and the animal OID for aoes
+    protected readonly List<(List<Caster> casters, String name)> sources = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.FamiliarCall) {
-            vfxOrder.Clear();
             sources.Clear();
         }
     }
@@ -28,9 +26,8 @@ class FamiliarCall(BossModule module) : Components.GenericAOEs(module) {
                 return;
             }
 
-            var activation = sources.Count > 0 ? sources[^1][0].activation.AddSeconds(3.0f) : WorldState.FutureTime(11.6f);
-            sources.Add([..Module.Enemies(animal).Select(c => new Caster(c, new AOEShapeRect(40f, 4f), activation))]);
-            vfxOrder.Add(name);
+            var activation = sources.Count > 0 ? sources[^1].casters[0].activation.AddSeconds(3.0f) : WorldState.FutureTime(11.6f);
+            sources.Add(([..Module.Enemies(animal).Select(c => new Caster(c, new AOEShapeRect(40f, 4f), activation))], name));
         }
     }
 
@@ -39,14 +36,10 @@ class FamiliarCall(BossModule module) : Components.GenericAOEs(module) {
             spell.Action.ID == (uint)AID.Watersong2 || spell.Action.ID == (uint)AID.Watersong3) {
 
             if (sources.Count > 0) {
-                sources[0].RemoveAll(c => c.source == caster);
-                if (sources[0].Count == 0) {
+                sources[0].casters.RemoveAll(c => c.source == caster);
+                if (sources[0].casters.Count == 0) {
                     NumCasts++;
                     sources.RemoveAt(0);
-
-                    if (vfxOrder.Count > 0) {
-                        vfxOrder.RemoveAt(0);
-                    }
                 }
             }
         }
@@ -55,7 +48,7 @@ class FamiliarCall(BossModule module) : Components.GenericAOEs(module) {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
         int shown = 0;
         foreach (var srcs in sources.Take(2)) {
-            foreach (var src in srcs) {
+            foreach (var src in srcs.casters) {
                 yield return new(src.shape, src.source.Position, src.source.Rotation, src.activation, shown == 0 ? ArenaColor.Danger : ArenaColor.AOE, shown == 0);
             }
             shown++;
@@ -63,8 +56,8 @@ class FamiliarCall(BossModule module) : Components.GenericAOEs(module) {
     }
 
     public override void AddGlobalHints(GlobalHints hints) {
-        if (vfxOrder.Count > 0) {
-            hints.Add("Order: " + string.Join(", ", vfxOrder));
+        if (sources.Count > 0) {
+            hints.Add("Order: " + string.Join(", ", sources.Select(o => o.name)));
         }
     }
 }
@@ -127,10 +120,6 @@ class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpe
     private List<AOEInstance> aoes = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.AquaSpear) {
-            aoes.Clear();
-        }
-
         if (spell.Action == WatchedAction) {
             aoes.Add(new AOEInstance(Shape, caster.Position, caster.Rotation));
         }
@@ -142,11 +131,7 @@ class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpe
         }
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        foreach (var aoe in aoes) {
-            yield return aoe;
-        }
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes;
 }
 
 class SeaShackles(BossModule module) : BossComponent(module) {
@@ -155,7 +140,7 @@ class SeaShackles(BossModule module) : BossComponent(module) {
     public Assignment[] Assignments = new Assignment[PartyState.MaxPartySize];
     private bool active = false; // Game instance doesn't delete tethers on wipes, so we have to guard against them
     private int NumCasts = 0;
-    private DateTime activation = DateTime.MaxValue;
+    private DateTime activation;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.SeaShackles) {
@@ -194,7 +179,6 @@ class SeaShackles(BossModule module) : BossComponent(module) {
             if (NumCasts == Raid.WithoutSlot().Count()) {
                 active = false;
             }
-
         }
     }
 
@@ -266,12 +250,6 @@ class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, 
         foreach (var src in Sources(slot, actor)) {
             if (!IsImmune(slot, src.Activation)) {
                 var tiles = Module.FindComponent<AquaSpear>()!.ActiveAOEs(slot, actor).Select(a => (a.Origin, a.Rotation)).ToList();
-                var partnerAssigned = Module.FindComponent<SeaShackles>()!.Assignments[slot];
-                var partner = partnerAssigned.Partner != Role.None ? Raid[partnerAssigned.PartnerSlot] : null;
-
-                if (partner == null) {
-                    continue;
-                }
 
                 var direction = src.Direction.ToDirection().Normalized();
                 var center = Arena.Center;
@@ -281,10 +259,6 @@ class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, 
                     var proj = p + direction * 25.5f;
 
                     if (!bounds.Contains(proj - center)) {
-                        return true;
-                    }
-
-                    if (Intersect.RayCircle(p, direction, partner.Position, 10.0f) <= 1000f) {
                         return true;
                     }
 
@@ -312,15 +286,11 @@ class SwimmingInTheAir(BossModule module) : Components.GenericAOEs(module) {
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.Hydrofall) {
-           aoes.Clear();
+           aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 1.0f));
         }
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        foreach (var aoe in aoes) {
-            yield return aoe;
-        }
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes;
 }
 
 class SwimingInTheAirStackSpread(BossModule module) : Components.IconStackSpread(module, (uint)IconID.Tidalspout, (uint)IconID.Hydrobullet2, AID.Tidalspout, AID.HydrobulletSpread2, 6.0f, 15.0f, 6.0f, 2, 3, true) {
@@ -438,7 +408,6 @@ class AlluringOrderForcedMovement(BossModule module) : Components.StatusDrivenFo
         }
 
         base.AddAIHints(slot, actor, assignment, hints);
-
         var state = State.GetValueOrDefault(actor.InstanceID);
         if (state == null || state.PendingMoves.Count == 0) {
             return;
@@ -471,14 +440,12 @@ class RecedingTwinTides(BossModule module) : Components.GenericAOEs(module) {
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.NearTideReceding) {
-            var activation = Module.CastFinishAt(spell);
-            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, activation, Risky: true));
+            aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, Module.CastFinishAt(spell), Risky: true));
             aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, WorldState.FutureTime(spell.RemainingTime + 3.2f), Risky: false));
         }
 
         if (spell.Action.ID == (uint)AID.FarTideEncroaching) {
-            var activation = Module.CastFinishAt(spell);
-            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, activation, Risky: true));
+            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Module.CastFinishAt(spell), Risky: true));
             aoes.Add(new(new AOEShapeCircle(10f), caster.Position, caster.Rotation, WorldState.FutureTime(spell.RemainingTime + 3.2f), Risky: false));
         }
     }
