@@ -100,6 +100,13 @@ class SunkenTreasure(BossModule module) : Components.GenericAOEs(module) {
 class Hydrobullet(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Hydrobullet, AID.HydrobulletSpread, 15.0f, 5.0f) {
     private AlluringOrderForcedMovement alluringOrderForcedMovement = module.FindComponent<AlluringOrderForcedMovement>()!;
 
+    // If the player somehow dies before their spread icons go off, they will keep the spread on them
+    public override void OnStatusLose(Actor actor, ActorStatus status) {
+        if (status.ID == (uint)SID.ForcedMarch) {
+            Spreads.RemoveAll(s => s.Target == actor);
+        }
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         if (alluringOrderForcedMovement.active == true) {
             return;
@@ -144,6 +151,7 @@ class SeaShackles(BossModule module) : BossComponent(module) {
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.SeaShackles) {
+            NumCasts = 0;
             active = true;
             activation = WorldState.FutureTime(4.0f);
         }
@@ -387,26 +395,27 @@ class AlluringOrderRaidwide(BossModule module) : Components.RaidwideCast(module,
 
 class AlluringOrderForcedMovement(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace) {
     public bool active = false;
+    private int NumCasts = 0;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.AlluringOrder) {
+            NumCasts = 0;
             active = true;
         }
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status) {
         base.OnStatusLose(actor, status);
-
         if (status.ID == (uint)SID.ForcedMarch) {
-            active = false;
+            NumCasts++;
+
+            if (NumCasts == Raid.WithoutSlot().Count()) {
+                active = false;
+            }
         }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
-        if (active == false) {
-            return;
-        }
-
         base.AddAIHints(slot, actor, assignment, hints);
         var state = State.GetValueOrDefault(actor.InstanceID);
         if (state == null || state.PendingMoves.Count == 0) {
