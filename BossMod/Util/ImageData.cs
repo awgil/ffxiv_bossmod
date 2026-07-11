@@ -10,6 +10,8 @@ public readonly record struct ImageData(int Width, int Height, byte[] Data)
 {
     public static readonly ImageData Empty = new(0, 0, []);
 
+    public readonly byte[] Data = Data;
+
     public RawImageSpecification ImageSpecification => RawImageSpecification.Rgba32(Width, Height);
 
     public ImageData Tint(uint tint, uint bias)
@@ -28,7 +30,7 @@ public readonly record struct ImageData(int Width, int Height, byte[] Data)
             outputSpan[i] = Vector128.Max(addendVec + Vector128.Min(inputSpan[i], ~addendVec), subtrahendVec) -
                             subtrahendVec;
 
-        return this with { Data = output };
+        return new(Width, Height, output);
     }
 
     public static ImageData FromTexFile(TexFile tex) => new(tex.Header.Width, tex.Header.Height, tex.GetRgbaImageData());
