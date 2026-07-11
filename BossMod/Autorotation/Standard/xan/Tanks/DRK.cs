@@ -10,6 +10,10 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
+
+        [Track("Unmend", MinLevel = 15, Action = AID.Unmend)]
+        public Track<DisabledByDefault> Unmend;
+
         [Track("Living Shadow", MinLevel = 80, Action = AID.LivingShadow, OGCDPriority = OGCDPriority.LivingShadow)]
         public Track<OffensiveStrategy> Buffs;
 
@@ -145,6 +149,9 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.Unleash, 3, maximumActionRange: 20);
 
+        if (strategy.Unmend.IsEnabled())
+            PushGCD(AID.Unmend, ResolveEnemy(strategy.Unmend) ?? primaryTarget, GCDPriority.Ranged);
+
         if (ComboLastMove == AID.SyphonStrike)
             PushGCD(AID.Souleater, primaryTarget, GCDPriority.Standard);
 
@@ -163,7 +170,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         Disesteem(strategy);
 
-        if (EnhancedDelirium > GCD)
+        if (EnhancedDelirium > GCD && Darkside > GCD)
         {
             if (NumAOETargets > 2)
                 PushGCD(AID.Impalement, Player, GCDPriority.DeliAOE);
