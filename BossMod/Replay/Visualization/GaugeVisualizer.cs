@@ -113,9 +113,9 @@ internal class GaugeVisualizer
         var dl = ImGui.GetWindowDrawList();
 
         ImGui.SetCursorPos(origin);
-        var crMin = origin + ImGui.GetWindowPos();
+        var crAbs = ImGui.GetCursorScreenPos();
         // -7px on left and right edges (i think ninegrid handles this normally)
-        dl.PushClipRect(crMin + Scale(7, 0), crMin + Scale(153, 20));
+        dl.PushClipRect(crAbs + Scale(7, 0), crAbs + Scale(153, 20), true);
         ImGui.Image(Tint(GaugeSimple, color, key).Handle, Scale(current * 160 / maximum, 20), new Vector2(0.0000f, 0.2632f), new Vector2(1, 0.3947f));
         dl.PopClipRect();
 
@@ -124,7 +124,7 @@ internal class GaugeVisualizer
 
         if (showText)
         {
-            var textOrig = crMin + Scale(125, 11);
+            var textOrig = crAbs + Scale(125, 11);
             var text = MathF.Floor(current).ToString();
             if (GaugeFont.Available)
             {
