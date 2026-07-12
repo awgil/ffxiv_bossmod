@@ -3,9 +3,26 @@
 class P4GrandCross(BossModule module) : Components.RaidwideCast(module, AID.GrandCross);
 class P4Inferno(BossModule module) : Components.RaidwideCast(module, AID.InfernoHitP4);
 class P4Tsunami(BossModule module) : Components.RaidwideCast(module, AID.TsunamiCastP4);
+class P4UltimaUpsurge(BossModule module) : Components.RaidwideCast(module, AID.UltimaUpsurge);
 
 class P4StrayDonut(BossModule module) : Components.GroupedAOEs(module, [AID.StrayFlamesInvertedP4, AID.StraySprayNormalP4], new AOEShapeDonut(6, 40));
 class P4StrayCircle(BossModule module) : Components.GroupedAOEs(module, [AID.StraySprayInvertedP4, AID.StrayFlamesNormalP4], new AOEShapeCircle(6));
+class P4StrayCounter(BossModule module) : Components.CastCounterMulti(module, [AID.StrayFlamesNormalP4, AID.StrayFlamesInvertedP4, AID.StraySprayNormalP4, AID.StraySprayInvertedP4])
+{
+    public int NumCasters { get; private set; }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (WatchedActions.Contains(spell.Action))
+            NumCasters++;
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (WatchedActions.Contains(spell.Action))
+            NumCasters--;
+    }
+}
 class P4EdgeOfDeath(BossModule module) : Components.StandardAOEs(module, AID.EdgeOfDeath, new AOEShapeRect(48, 1));
 
 class P4Antilight(BossModule module) : Components.GroupedAOEs(module, [AID.WhiteAntilight, AID.BlackAntilight], new AOEShapeRect(47, 10.5f))
@@ -107,22 +124,15 @@ class P4Debuffs(BossModule module) : BossComponent(module)
                     yield return (i, player, d, r, e);
     }
 
-    static string DebuffReadable(Debuff d, bool real) => d switch
+    public class GlobalP4Hints
     {
-        Debuff.Shriek => real ? "Gaze" : "Inverted gaze",
-        Debuff.Lightning => real ? "Spread (lightning)" : "Stack (fake lightning)",
-        Debuff.Water => real ? "Stack (water)" : "Spread (fake water)",
-        Debuff.Bomb => real ? "Accel bomb" : "Deep freeze (fake bomb)",
-        Debuff.Entropy => real ? "Delayed puddle" : "Delayed donut",
-        Debuff.Fluid => real ? "Delayed donut" : "Delayed puddle",
-        _ => ""
-    };
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        foreach (var (db, t, e) in Debuffs[slot])
-            hints.Add($"{DebuffReadable(db, t)} in {Math.Max(0, (e - WorldState.CurrentTime).TotalSeconds):f1}s", false);
+        public bool? Gaze1;
+        public bool? Fire;
+        public bool? Gaze2;
+        public bool? Water;
     }
+
+    public readonly GlobalP4Hints HelpHints = new();
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
@@ -138,9 +148,17 @@ class P4Debuffs(BossModule module) : BossComponent(module)
                     break;
                 case 0x461:
                     _exdeathTrue = false;
+                    if (HelpHints.Gaze1 == null)
+                        HelpHints.Gaze1 = false;
+                    else
+                        HelpHints.Gaze2 ??= false;
                     break;
                 case 0x462:
                     _exdeathTrue = true;
+                    if (HelpHints.Gaze1 == null)
+                        HelpHints.Gaze1 = true;
+                    else
+                        HelpHints.Gaze2 ??= true;
                     break;
             }
         }
@@ -156,11 +174,28 @@ class P4Debuffs(BossModule module) : BossComponent(module)
             _ => (Debuff.None, false)
         };
 
+        if (dbf == Debuff.Entropy)
+            HelpHints.Fire = real;
+        if (dbf == Debuff.Fluid)
+            HelpHints.Water = real;
+
         if (dbf != default && Raid.TryFindSlot(actor, out var slot))
         {
             Debuffs[slot].Add((dbf, real, status.ExpireAt));
             Debuffs[slot].SortBy(s => s.Expiration);
         }
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (HelpHints.Gaze1 is { } g1)
+            hints.Add($"Gazes 1: " + (g1 ? "Normal" : "Inverted"));
+        if (HelpHints.Fire is { } f)
+            hints.Add($"Fire: " + (f ? "Move out" : "Stay in"));
+        if (HelpHints.Gaze2 is { } g2)
+            hints.Add("Gazes 2: " + (g2 ? "Normal" : "Inverted"));
+        if (HelpHints.Water is { } w)
+            hints.Add("Water: " + (w ? "Stay in" : "Move out"));
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
@@ -191,7 +226,9 @@ class P4DeathWaveBolt : Components.UniformStackSpread
 
     public P4DeathWaveBolt(BossModule module) : base(module, 8, 8, 3, 3, true)
     {
-        foreach (var (_, player, debuff, real, exp) in module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(10)))
+        EnableHints = false;
+
+        foreach (var (_, player, debuff, real, exp) in module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(15)))
         {
             switch (debuff)
             {
@@ -228,22 +265,72 @@ class P4DeathWaveBolt : Components.UniformStackSpread
                 break;
         }
     }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (EnableHints)
+            base.AddHints(slot, actor, hints);
+        else if (IsSpreadTarget(actor))
+            hints.Add("Prepare to spread!", false);
+        else
+            hints.Add("Prepare to stack!", false);
+    }
 }
 
 class P4DeathBomb : Components.StayMove
 {
-    public P4DeathBomb(BossModule module) : base(module)
+    public P4DeathBomb(BossModule module) : base(module, 5)
     {
-        foreach (var (i, _, debuff, real, exp) in Module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(10)))
-        {
+        foreach (var (i, _, debuff, real, exp) in Module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(15)))
             if (debuff == P4Debuffs.Debuff.Bomb)
                 SetState(i, new(real ? Requirement.Stay : Requirement.Move, exp));
-        }
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.AccelerationBomb && Raid.TryFindSlot(actor, out var slot))
             ClearState(slot);
+    }
+}
+
+class P4DeathShriek : Components.GenericGaze
+{
+    readonly List<(Actor, DateTime)> _sources = [];
+
+    public P4DeathShriek(BossModule module) : base(module)
+    {
+        EnableHints = false;
+
+        foreach (var (_, player, debuff, real, exp) in Module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(10)))
+            if (debuff == P4Debuffs.Debuff.Shriek)
+            {
+                Inverted = !real;
+                _sources.Add((player, exp));
+            }
+    }
+
+    public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
+    {
+        foreach (var (player, time) in _sources)
+            if (player != actor)
+                yield return new(player.Position, time);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.DeathShriek1 or AID.DeathShriek2)
+        {
+            NumCasts++;
+            if (_sources.Count > 0)
+                _sources.RemoveAt(0);
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+
+        if (EnableHints && _sources.Any(s => s.Item1 == actor))
+            hints.Add("You have gaze, be careful!", false);
     }
 }

@@ -60,10 +60,7 @@ internal class GaugeVisualizer
         }
     }
 
-    private IDalamudTextureWrap Generate(string key, Func<IDalamudTextureWrap> generate)
-    {
-        return _tex.TryGetValue(key, out var wrap) ? wrap : (_tex[key] = generate());
-    }
+    private IDalamudTextureWrap Generate(string key, Func<IDalamudTextureWrap> generate) => _tex.TryGetValue(key, out var wrap) ? wrap : (_tex[key] = generate());
 
     private IDalamudTextureWrap Wrap(string key, string path) => Generate(key, () =>
     {
@@ -181,7 +178,7 @@ internal class GaugeVisualizer
         {
             ImGui.SetCursorPos(origin + Scale(0, 36));
             if (Service.Texture.GetFromGame("ui/uld/JobHudDRK0_hr1.tex").TryGetWrap(out var wrap, out _))
-                ImGui.Image(wrap.Handle, Scale(28, 28), new Vector2(0.8526f, 0.f), new Vector2(0.9263f, 0.0946f));
+                ImGui.Image(wrap.Handle, Scale(28, 28), new Vector2(0.8526f, 0), new Vector2(0.9263f, 0.0946f));
         }
     }
 

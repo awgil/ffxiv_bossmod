@@ -77,11 +77,11 @@ class UMADStates : StateMachineBuilder
         ActorCast(id + 0x10, _module.KefkaP4, AID.KefkaSays, 5.2f, 5, true);
 
         P4GrandCross(id + 0x100, 4.6f);
-        P4UltimaUpsurge(id + 0x10000, 7.1f);
+        P4Death(id + 0x10000, 7.1f);
 
-        Timeout(id + 0xFF0000, 10000, "???")
-            .ActivateOnEnter<P1BlizzardIIIBlowout>()
-            .ActivateOnEnter<P1ThrummingThunderIII>();
+        Timeout(id + 0x20000, 4.2f, "Boss disappears (enrage)");
+
+        Timeout(id + 0xFF0000, 10000, "???");
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -702,7 +702,7 @@ class UMADStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
-    void P4UltimaUpsurge(uint id, float delay)
+    void P4Death(uint id, float delay)
     {
         ActorCastMulti(id, _module.NeoExdeathP4, [AID.FloodOfNaught2, AID.FloodOfNaught1], delay, 5)
             .ActivateOnEnter<P4EdgeOfDeath>();
@@ -711,15 +711,82 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P4Antilight>()
             .DeactivateOnExit<P4EdgeOfDeath>();
 
-        ActorCastStart(id + 0x100, _module.KefkaP4, AID.ManaCharge, 5.1f, true);
-
-        ComponentCondition<P4DeathWaveBolt>(id + 0x101, 3.3f, b => b.NumCasts > 0, "Stack/spread/bombs 1")
+        ActorCastStart(id + 0x100, _module.KefkaP4, AID.ManaCharge, 5.4f, true)
             .ActivateOnEnter<P4DeathBomb>()
-            .ActivateOnEnter<P4DeathWaveBolt>();
+            .ActivateOnEnter<P4DeathWaveBolt>()
+            .ExecOnEnter<P4DeathWaveBolt>(p => p.EnableHints = true);
 
-        // TODO remove this, just need to ensure that autorot doesn't press something the frame after spreads go off if accel bomb happens to be slightly delayed
-        Timeout(id + 0x102, 1)
-            .DeactivateOnExit<P4DeathBomb>()
-            .DeactivateOnExit<P4DeathWaveBolt>();
+        Condition(id + 0x101, 3.3f, () =>
+        {
+            var bolt = Module.FindComponent<P4DeathWaveBolt>()!;
+            var bomb = Module.FindComponent<P4DeathBomb>()!;
+
+            return bolt.NumCasts > 0 && bomb.PlayerStates.All(s => s.Requirement == default);
+        }, "Stack/spread/bombs 1")
+            .DeactivateOnExit<P4DeathWaveBolt>()
+            .DeactivateOnExit<P4DeathBomb>();
+
+        ActorCastStart(id + 0x110, _module.KefkaP4, AID.ThrummingThunderIIIP4, 3, true)
+            .ActivateOnEnter<P1ThrummingThunderIII>()
+            .ActivateOnEnter<P4DeathShriek>();
+
+        ComponentCondition<P1ThrummingThunderIII>(id + 0x111, 4.9f, p => p.NumCasts > 0, "Lightning")
+            .ExecOnEnter<P4DeathShriek>(s => s.EnableHints = true)
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+
+        ComponentCondition<P4DeathShriek>(id + 0x112, 1, p => p.NumCasts > 0, "Gazes 1")
+            .DeactivateOnExit<P4DeathShriek>()
+            .ExecOnExit<P4Debuffs>(p => p.HelpHints.Gaze1 = null);
+
+        ActorCastStart(id + 0x200, _module.KefkaP4, AID.UltimaUpsurge, 4.2f, true)
+            .ActivateOnEnter<P4UltimaUpsurge>()
+            .ActivateOnEnter<P4StrayCounter>();
+
+        ComponentCondition<P4StrayCounter>(id + 0x201, 2.6f, p => p.NumCasters > 0, "Delayed baits 1")
+            .ExecOnExit<P4Debuffs>(p => p.HelpHints.Fire = null);
+
+        ActorCastEnd(id + 0x202, _module.KefkaP4, 2.4f, true, "Raidwide")
+            .DeactivateOnExit<P4UltimaUpsurge>();
+
+        ComponentCondition<P4StrayCounter>(id + 0x210, 2.5f, p => p.NumCasts > 0, "Delayed AOEs 1")
+            .ActivateOnEnter<P4DeathWaveBolt>()
+            .ActivateOnEnter<P4DeathBomb>()
+            .DeactivateOnExit<P4StrayCounter>();
+
+        Condition(id + 0x211, 4.2f, () =>
+        {
+            var bolt = Module.FindComponent<P4DeathWaveBolt>()!;
+            var bomb = Module.FindComponent<P4DeathBomb>()!;
+
+            return bolt.NumCasts > 0 && bomb.PlayerStates.All(s => s.Requirement == default);
+        }, "Stack/spread/bombs 2")
+            .ExecOnEnter<P4DeathWaveBolt>(p => p.EnableHints = true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P4DeathWaveBolt>()
+            .DeactivateOnExit<P4DeathBomb>();
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x212, 1.2f, p => p.NumCasts > 0, "Ice")
+            .DeactivateOnExit<P1BlizzardIIIBlowout>();
+
+        ComponentCondition<P4DeathShriek>(id + 0x213, 6.8f, p => p.NumCasts > 0, "Gazes 2")
+            .ActivateOnEnter<P4DeathShriek>()
+            .ExecOnEnter<P4DeathShriek>(p => p.EnableHints = true)
+            .DeactivateOnExit<P4DeathShriek>()
+            .ExecOnExit<P4Debuffs>(p => p.HelpHints.Gaze2 = null);
+
+        ComponentCondition<P4StrayCounter>(id + 0x220, 5.7f, p => p.NumCasters > 0, "Delayed baits 2")
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>()
+            .ActivateOnEnter<P4StrayCounter>()
+            .DeactivateOnExit<P4Debuffs>();
+
+        ComponentCondition<P4StrayCounter>(id + 0x221, 4.9f, p => p.NumCasts > 0, "Delayed AOEs 2")
+            .DeactivateOnExit<P4StrayCounter>()
+            .DeactivateOnExit<P4StrayCircle>()
+            .DeactivateOnExit<P4StrayDonut>();
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x222, 0.9f, p => p.NumCasts > 0, "Final ice/thunder")
+            .DeactivateOnExit<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P1ThrummingThunderIII>();
     }
 }

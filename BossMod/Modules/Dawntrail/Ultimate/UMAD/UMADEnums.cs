@@ -184,11 +184,14 @@ public enum AID : uint
     StraySprayInvertedP4 = 47909, // Helper->location, 5.0s cast, range 6 circle
     FloodOfNaught1 = 50067, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
     FloodOfNaught2 = 50081, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
+    FloodOfNaught3 = 50082, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
     WhiteAntilight = 50068, // Helper->self, 5.5s cast, range 47 width 21 rect
     BlackAntilight = 50069, // Helper->self, 5.5s cast, range 47 width 21 rect
     EdgeOfDeath = 50070, // Helper->self, 5.5s cast, range 48 width 2 rect
     ManaCharge = 47780, // KefkaP4->self, 3.0s cast, single-target
     ThrummingThunderIIIP4 = 50654, // KefkaP4->self, 5.0s cast, single-target
+    UltimaUpsurge = 49738, // KefkaP4->self, 5.0s cast, range 100 circle
+    ManaRelease = 47781, // KefkaP4->self, 7.0s cast, single-target
 }
 
 public enum SID : uint
