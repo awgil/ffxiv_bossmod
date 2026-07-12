@@ -9,6 +9,7 @@ public enum OID : uint {
 
 public enum AID : uint {
     AutoAttack = 43367, // Boss->player, no cast, single-target
+    JumpScare = 43041, // Boss->player, no cast, single-target
 
     Stare = 43268, // Boss->self, 5.0s cast, range 60 width 8 rect
     Stare1 = 43044, // Boss->self, 5.0s cast, range 60 width 8 rect
@@ -26,8 +27,9 @@ public enum SID : uint {
     Stun = 4374, // 4818->player, extra=0x0
 }
 
+
 class Stare(BossModule module) : Components.GroupedAOEs(module, [AID.Stare, AID.Stare1], new AOEShapeRect(60, 4));
-class Oogle(BossModule module) : Components.CastGaze(module, AID.Oogle, false, 40.0f);
+class Oogle(BossModule module) : Components.CastGaze(module, AID.Oogle, false);
 class VoidThunderII(BossModule module) : Components.StandardAOEs(module, AID.VoidThunderII, 6.0f);
 
 class MarkOfDeath(BossModule module) : Components.GenericAOEs(module, AID.MarkOfDeath) {
