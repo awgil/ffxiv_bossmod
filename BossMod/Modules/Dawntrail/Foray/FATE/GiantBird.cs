@@ -33,4 +33,4 @@ class GiantBirdStates : StateMachineBuilder {
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13739)]
-public class GiantBird(WorldState ws, Actor primary) : BossModule(ws, primary, new(-547.0f, -600.0f), new ArenaBoundsCircle(30));
+public class GiantBird(WorldState ws, Actor primary) : BossModule(ws, primary, new(-547.0f, -600.0f), new ArenaBoundsCircle(40));

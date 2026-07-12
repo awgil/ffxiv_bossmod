@@ -67,4 +67,4 @@ class MadMudarchStates : StateMachineBuilder {
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13816)]
-public class MadMudarch(WorldState ws, Actor primary) : BossModule(ws, primary, new(-585.0f, 323.0f), new ArenaBoundsCircle(30));
+public class MadMudarch(WorldState ws, Actor primary) : BossModule(ws, primary, new(-585.0f, 323.0f), new ArenaBoundsCircle(40));

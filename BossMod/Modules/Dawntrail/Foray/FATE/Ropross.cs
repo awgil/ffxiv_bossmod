@@ -24,7 +24,7 @@ public enum AID : uint {
     AeroIV = 41391, // Boss->self, 5.0s cast, range 60 circle
 }
 
-class GlidingSwoop(BossModule module) : Components.StandardAOEs(module, AID.GlidingSwoop, new AOEShapeCircle(30f));
+class GlidingSwoop(BossModule module) : Components.StandardAOEs(module, AID.GlidingSwoop, new AOEShapeCircle(25f));
 class BitingScratch(BossModule module) : Components.StandardAOEs(module, AID.BitingScratch, new AOEShapeCone(40.0f, 45.0f.Degrees()));
 class FeatherRain(BossModule module) : Components.StandardAOEs(module, AID.FeatherRain, new AOEShapeCircle(11.0f));
 class AeroIV(BossModule module) : Components.RaidwideCast(module, AID.AeroIV);
@@ -59,4 +59,4 @@ class RoprossStates : StateMachineBuilder {
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13740)]
-public class Ropross(WorldState ws, Actor primary) : BossModule(ws, primary, new(-231.0f, 252.0f), new ArenaBoundsCircle(35));
+public class Ropross(WorldState ws, Actor primary) : BossModule(ws, primary, new(-231.0f, 252.0f), new ArenaBoundsCircle(40));
