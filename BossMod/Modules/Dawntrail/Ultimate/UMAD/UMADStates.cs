@@ -735,13 +735,7 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P4DeathBomb>()
             .ExecOnEnter<P4DeathWaveBolt>(p => p.EnableHints = p.Draw = true);
 
-        Condition(id + 0x101, 3.3f, () =>
-        {
-            var bolt = Module.FindComponent<P4DeathWaveBolt>()!;
-            var bomb = Module.FindComponent<P4DeathBomb>()!;
-
-            return bolt.NumCasts > 0 && bomb.PlayerStates.All(s => s.Requirement == default);
-        }, "Stack/spread/bombs 1")
+        Condition(id + 0x101, 3.3f, () => Module.FindComponent<P4DeathWaveBolt>()!.NumCasts > 0 && Module.FindComponent<P4DeathBomb>()!.PlayerStates.All(s => s.Requirement == default), "Stack/spread/bombs 1")
             .DeactivateOnExit<P4DeathWaveBolt>()
             .DeactivateOnExit<P4DeathBomb>();
 
@@ -775,13 +769,7 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P4DeathBomb>()
             .DeactivateOnExit<P4StrayCounter>();
 
-        Condition(id + 0x211, 4.2f, () =>
-        {
-            var bolt = Module.FindComponent<P4DeathWaveBolt>()!;
-            var bomb = Module.FindComponent<P4DeathBomb>()!;
-
-            return bolt.NumCasts > 0 && bomb.PlayerStates.All(s => s.Requirement == default);
-        }, "Stack/spread/bombs 2")
+        Condition(id + 0x211, 4.2f, () => Module.FindComponent<P4DeathWaveBolt>()!.NumCasts > 0 && Module.FindComponent<P4DeathBomb>()!.PlayerStates.All(s => s.Requirement == default), "Stack/spread/bombs 2")
             .ExecOnEnter<P4DeathWaveBolt>(p => p.EnableHints = true)
             .ActivateOnEnter<P1BlizzardIIIBlowout>()
             .DeactivateOnExit<P4DeathWaveBolt>()
