@@ -223,12 +223,13 @@ class P4Debuffs(BossModule module) : BossComponent(module)
 class P4DeathWaveBolt : Components.UniformStackSpread
 {
     public int NumCasts { get; private set; }
+    public bool Draw;
 
     public P4DeathWaveBolt(BossModule module) : base(module, 8, 8, 3, 3, true)
     {
         EnableHints = false;
 
-        foreach (var (_, player, debuff, real, exp) in module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(15)))
+        foreach (var (_, player, debuff, real, exp) in module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(30)))
         {
             switch (debuff)
             {
@@ -275,6 +276,14 @@ class P4DeathWaveBolt : Components.UniformStackSpread
         else
             hints.Add("Prepare to stack!", false);
     }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (Draw)
+            base.DrawArenaForeground(pcSlot, pc);
+    }
+
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Draw ? base.CalcPriority(pcSlot, pc, playerSlot, player, ref customColor) : PlayerPriority.Irrelevant;
 }
 
 class P4DeathBomb : Components.StayMove
@@ -332,5 +341,41 @@ class P4DeathShriek : Components.GenericGaze
 
         if (EnableHints && _sources.Any(s => s.Item1 == actor))
             hints.Add("You have gaze, be careful!", false);
+    }
+}
+
+class P4DelayedBait : BossComponent
+{
+    readonly bool IsCircle;
+
+    public P4DelayedBait(BossModule module) : base(module)
+    {
+        foreach (var (_, _, debuff, real, _) in Module.FindComponent<P4Debuffs>()!.EnumerateDebuffs(WorldState.FutureTime(10)))
+        {
+            if (debuff == P4Debuffs.Debuff.Fluid)
+            {
+                IsCircle = !real;
+                break;
+            }
+
+            if (debuff == P4Debuffs.Debuff.Entropy)
+            {
+                IsCircle = real;
+                break;
+            }
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (Arena.Config.ShowOutlinesAndShadows)
+            Arena.AddCircle(pc.Position, 6, 0xFF000000, 2);
+        Arena.AddCircle(pc.Position, 6, ArenaColor.Danger);
+        if (!IsCircle)
+        {
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddCircle(pc.Position, 40, 0xFF000000, 2);
+            Arena.AddCircle(pc.Position, 40, ArenaColor.Danger);
+        }
     }
 }
