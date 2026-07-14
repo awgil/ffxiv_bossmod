@@ -35,6 +35,9 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         [Track("Shadowbringer", MinLevel = 90, Action = AID.Shadowbringer, OGCDPriority = OGCDPriority.SHB)]
         public Track<OffensiveStrategy> ShB;
 
+        [Track("Carve & Spit", MinLevel = 60, Actions = [AID.CarveAndSpit, AID.AbyssalDrain], OGCDPriority = OGCDPriority.Carve)]
+        public Track<CarveStrategy> Carve;
+
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
@@ -67,6 +70,18 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         AnyMulti,
     }
 
+    public enum CarveStrategy
+    {
+        [Option("Automatically choose action; use on cooldown")]
+        Automatic,
+        [Option("Don't use")]
+        Delay,
+        [Option("Use C&S ASAP")]
+        ForceCarve,
+        [Option("Use Abyssal Drain ASAP")]
+        ForceDrain
+    }
+
     public static RotationModuleDefinition Definition()
     {
         return new RotationModuleDefinition("xan DRK", "Dark Knight", "Standard rotation (xan)|Tanks", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.DRK), 100).WithStrategies<Strategy>();
@@ -86,6 +101,8 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
     public int NumAOETargets;
     public int NumRangedAOETargets;
     public int NumLineTargets;
+
+    private Actor? Salt;
 
     private Enemy? BestRangedAOETarget;
     private Enemy? BestLineTarget;
@@ -132,6 +149,8 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         EnhancedDelirium = StatusStacks(SID.EnhancedDelirium);
         SaltedEarth = StatusLeft(SID.SaltedEarth);
         Scorn = StatusLeft(SID.Scorn);
+
+        Salt = World.Actors.FirstOrDefault(a => a.OID == 0x17C && a.OwnerID == Player.InstanceID);
 
         NumAOETargets = NumMeleeAOETargets(strategy);
         (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 20, IsSplashTarget);
@@ -192,7 +211,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(in Strategy strategy, Enemy? primaryTarget)
     {
-        if (SaltedEarth > 0)
+        if (SaltedEarth > 0 && Salt is { } s && Hints.NumPriorityTargetsInAOECircle(s.Position, 5) > 0)
             PushOGCD(AID.SaltAndDarkness, Player, OGCDPriority.SaltAndDarkness);
 
         if (strategy.Buffs.Value switch
@@ -215,26 +234,39 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         if (strategy.Salt.Value switch
         {
-            OffensiveStrategy.Automatic => Player.InCombat && OnCooldown(AID.Delirium) && NumAOETargets > 0 && DowntimeIn > 15,
+            OffensiveStrategy.Automatic => Player.InCombat && NumAOETargets > 0 && DowntimeIn > 15 && (HaveRaidBuffsUntil(AnimLock) || CombatTimer > 10),
             OffensiveStrategy.Force => true,
             _ => false
         })
             UsePlanned(strategy.Salt, AID.SaltedEarth, Player);
 
-        if (Player.InCombat)
+        if (Darkside > AnimLock && strategy.ShB.Value switch
         {
-            if (strategy.ShB.Value switch
-            {
-                OffensiveStrategy.Automatic => OnCooldown(AID.Delirium) && RaidBuffsLeft > AnimLock || RaidBuffsIn > 9000,
-                OffensiveStrategy.Force => true,
-                _ => false
-            })
-                UsePlanned(strategy.ShB, AID.Shadowbringer, BestLineTarget?.Actor, additionalPriority: MaxChargesIn(AID.Shadowbringer) <= GCD ? 20 : 0);
+            OffensiveStrategy.Automatic => Player.InCombat && HaveRaidBuffsUntil(AnimLock),
+            OffensiveStrategy.Force => true,
+            _ => false
+        })
+            // +20 prio so overcapped shb (620) is used before c&s (610)
+            UsePlanned(strategy.ShB, AID.Shadowbringer, BestLineTarget?.Actor, additionalPriority: MaxChargesIn(AID.Shadowbringer) <= GCD ? 20 : 0);
 
-            if (NumRangedAOETargets > 2)
-                PushOGCD(AID.AbyssalDrain, BestRangedAOETarget, OGCDPriority.Carve);
+        switch (strategy.Carve.Value)
+        {
+            case CarveStrategy.Automatic:
+                if (Player.InCombat && (HaveRaidBuffsUntil(AnimLock) || CombatTimer > 10))
+                {
+                    if (NumRangedAOETargets > 2)
+                        UsePlanned(strategy.Carve, AID.AbyssalDrain, BestRangedAOETarget, additionalPriority: 1);
 
-            PushOGCD(AID.CarveAndSpit, primaryTarget, OGCDPriority.Carve);
+                    UsePlanned(strategy.Carve, AID.CarveAndSpit, primaryTarget);
+                }
+                break;
+
+            case CarveStrategy.ForceCarve:
+                UsePlanned(strategy.Carve, AID.CarveAndSpit, primaryTarget);
+                break;
+            case CarveStrategy.ForceDrain:
+                UsePlanned(strategy.Carve, AID.AbyssalDrain, BestRangedAOETarget ?? primaryTarget);
+                break;
         }
     }
 
@@ -252,7 +284,12 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.Delirium != OffensiveStrategy.Delay && CanWeave(AID.Delirium, 1) && (CanFitGCD(RaidBuffsLeft, 3) || RaidBuffsIn <= GCD + GCDLength || CombatTimer > 30))
             nextBlood += 30;
 
-        if (RaidBuffsLeft > GCD || nextBlood > 100)
+        if (strategy.Blood.Value switch
+        {
+            OffensiveStrategy.Automatic => HaveRaidBuffs || nextBlood > 100,
+            OffensiveStrategy.Force => true,
+            _ => false
+        })
         {
             if (NumAOETargets > 2)
                 PushGCD(AID.Quietus, Player, GCDPriority.BloodAOE);
@@ -273,7 +310,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
             var pExtra = (int)prio - (int)OGCDPriority.Edge;
 
             if (NumLineTargets > 2 || !Unlocked(AID.EdgeOfDarkness))
-                UsePlanned(track, AID.FloodOfDarkness, BestLineTarget, additionalPriority: pExtra, predicate: e => useOnDyingTarget || e?.Priority >= 0);
+                UsePlanned(track, AID.FloodOfDarkness, BestLineTarget, additionalPriority: pExtra + 1, predicate: e => useOnDyingTarget || e?.Priority >= 0);
 
             UsePlanned(track, AID.EdgeOfDarkness, primaryTarget, additionalPriority: pExtra, predicate: e => useOnDyingTarget || e?.Priority >= 0);
         }
@@ -287,10 +324,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
             return;
         }
 
-        var canUseAuto = Player.InCombat &&
-            (RaidBuffsLeft > AnimLock
-            || RaidBuffsIn > 9000
-            || DarkArts && World.Party.WithoutSlot().Any(p => p.FindStatus(SID.TheBlackestNight, Player.InstanceID, DateTime.MaxValue) != null));
+        var canUseAuto = Player.InCombat && (HaveRaidBuffsUntil(AnimLock) || DarkArts && World.Party.WithoutSlot().Any(p => p.FindStatus(SID.TheBlackestNight, Player.InstanceID, DateTime.MaxValue) != null));
 
         switch (track.Value)
         {
@@ -317,12 +351,10 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         if (Scorn <= GCD || strategy.Disesteem == DisesteemStrategy.Delay)
             return;
 
-        var isBurst = RaidBuffsLeft > GCD || RaidBuffsIn > 9000;
-
         var prio = strategy.Disesteem.Value switch
         {
-            DisesteemStrategy.Automatic => isBurst ? GCDPriority.DisesteemRanged : GCDPriority.None,
-            DisesteemStrategy.BurstMulti => NumLineTargets > 1 && isBurst ? GCDPriority.Disesteem : GCDPriority.None,
+            DisesteemStrategy.Automatic => HaveRaidBuffs ? GCDPriority.DisesteemRanged : GCDPriority.None,
+            DisesteemStrategy.BurstMulti => NumLineTargets > 1 && HaveRaidBuffs ? GCDPriority.Disesteem : GCDPriority.None,
             DisesteemStrategy.AnyMulti => NumLineTargets > 1 ? GCDPriority.Disesteem : GCDPriority.None,
             DisesteemStrategy.Force => GCDPriority.Disesteem,
             _ => GCDPriority.None

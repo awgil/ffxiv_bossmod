@@ -117,6 +117,9 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
 
     public bool CanFitGCD(float duration, int extraGCDs = 0) => GCD + GCDLength * extraGCDs < duration;
 
+    protected bool HaveRaidBuffs => HaveRaidBuffsUntil(GCD);
+    protected bool HaveRaidBuffsUntil(float deadline) => RaidBuffsLeft > deadline || RaidBuffsIn > 9000;
+
     // frame alignment/cooldown reduction produces inconsistent results in combat, i.e. on MCH, 2.5 GCD drill will quasi-randomly not be considered ready
     // i don't know if this is because our CD reduction code is buggy or if it's an inherent limitation
     protected bool GCDReady(AID aid) => ReadyIn(aid) < GCD + 0.05f;
