@@ -34,13 +34,6 @@ public class WhenItRains(WorldState ws) : QuestBattle(ws)
             .WithConnection(new Vector3(-455.64f, 8.23f, -195.11f))
             .WithConnection(new Vector3(-528.04f, 14.35f, -243.61f))
             .WithConnection(new Vector3(-696.80f, 51.18f, -235.22f))
-            .Hints((player, hints) => {
-                if (World.Actors.FirstOrDefault(x => x.OID == 0x1EA4D5) is Actor minibossArena)
-                {
-                    hints.PathfindMapCenter = minibossArena.Position;
-                    hints.PathfindMapBounds = new ArenaBoundsCircle(19.5f);
-                }
-            })
     ];
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
