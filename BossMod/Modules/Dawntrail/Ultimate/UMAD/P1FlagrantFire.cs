@@ -192,6 +192,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
 
     void AddTelePortentHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        // TODO: static stack/spread spots, yoloing it will probably scare the hoes
         base.AddAIHints(slot, actor, assignment, hints);
     }
 

@@ -62,7 +62,6 @@ class P1BlizzardIIIBlowout(BossModule module) : Components.GroupedAOEs(module, [
 }
 class P1ThrummingThunderIII(BossModule module) : Components.GroupedAOEs(module, [AID.ThrummingThunderIII1, AID.ThrummingThunderIII2], new AOEShapeRect(40, 5));
 
-
 class P1WaveCannon : Components.UntelegraphedBait
 {
     readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
