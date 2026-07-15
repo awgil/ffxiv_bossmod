@@ -150,7 +150,6 @@
   ],
   "863.664": [
     {
-      "Comment": "Feast of Lies (quest battle) final boss arena (inaccessible from ground level)",
       "MinBoundsX": -69.5,
       "MinBoundsY": 81,
       "MinBoundsZ": -83.5,
@@ -162,6 +161,21 @@
       "ViewWidth": 60,
       "ViewHeight": 60,
       "Filename": "863.664.1.bmp"
+    }
+  ],
+  "932.743": [
+    {
+      "MinBoundsX": -411.5,
+      "MinBoundsY": -230,
+      "MinBoundsZ": 760,
+      "MaxBoundsX": -372.5,
+      "MaxBoundsY": -219,
+      "MaxBoundsZ": 799,
+      "OriginX": -411.5,
+      "OriginZ": 760,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "932.743.1.bmp"
     }
   ]
 }
