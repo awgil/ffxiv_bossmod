@@ -19,5 +19,10 @@ public class ASleepDisturbed(WorldState ws) : QuestBattle(ws)
             .Hints((player, hints) => {
                 hints.InteractWithTarget = World.Actors.Where(a => InteractTargets.Contains((int)a.OID) && a.IsTargetable).OrderBy(a => a.OID).FirstOrDefault();
             })
+            .With(obj => {
+                obj.OnActorKilled += (actor) => obj.CompleteIf(actor.OID == (uint)BossMod.Shadowbringers.Quest.ASleepDistubed.OID.Boss);
+            }),
+
+        new QuestObjective(ws).WithConnection(new Vector3(100, 0, 110))
     ];
 }
