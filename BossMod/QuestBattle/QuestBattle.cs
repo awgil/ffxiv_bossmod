@@ -295,9 +295,8 @@ public abstract class QuestBattle : ZoneModule
         //    ObjectiveCleared.Subscribe(OnObjectiveCleared)
         //);
 
-        if (Service.PluginInterface == null)
+        if (Service.IsMock)
         {
-            //Log($"UIDev detected, skipping initialization");
             _pathfind = new PathfindNoop();
             _meshIsReady = new PathReadyNoop();
         }

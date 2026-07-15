@@ -48,9 +48,6 @@ internal class AnUnforeseenBargain(WorldState ws) : QuestBattle(ws)
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {
-        hints.PathfindMapCenter = new(97.85f, 286);
-        hints.PathfindMapBounds = new ArenaBoundsCircle(19.5f);
-
         foreach (var h in hints.PotentialTargets)
             if (h.Actor.CastInfo is { Action.ID: 33042 } ci)
                 hints.ForbiddenDirections.Add((player.AngleTo(h.Actor), 45.Degrees(), World.FutureTime(ci.NPCRemainingTime)));
