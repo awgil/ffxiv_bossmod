@@ -269,7 +269,11 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P1DoubleTroubleTrap>()
             .ActivateOnEnter<P1DoubleTroubleTrapKB>()
             .ActivateOnEnter<P1DoubleTroubleTrapCounter>()
-            .ExecOnEnter<P1DoubleTroubleTrap>(p => { p.EnableHints = true; p.Order = 3; })
+            .ExecOnEnter<P1DoubleTroubleTrap>(p =>
+            {
+                p.EnableHints = true;
+                p.Order = 3;
+            })
             .ExecOnEnter<P1DoubleTroubleTrapCounter>(c => c.Timeout = 5.5f)
             .DeactivateOnExit<P1DoubleTroubleTrap>()
             .DeactivateOnExit<P1DoubleTroubleTrapKB>()
