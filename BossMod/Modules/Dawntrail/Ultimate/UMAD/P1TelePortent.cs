@@ -247,6 +247,7 @@ class P1IndulgentWill(BossModule module) : BossComponent(module)
 
 class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0, 5)
 {
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
     readonly List<Spread> _stored = [];
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -265,6 +266,53 @@ class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0
     {
         Spreads.AddRange(_stored);
         _stored.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_config.P1ArrowsSpreadStrategy == UMADConfig.P1ArrowsSpots.KefkabinStatic && assignment != PartyRolesConfig.Assignment.Unassigned)
+            return;
+
+        base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
+
+class P1ArrowsPositioning : BossComponent
+{
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
+    readonly DateTime _deadline;
+
+    public P1ArrowsPositioning(BossModule module) : base(module)
+    {
+        _deadline = WorldState.FutureTime(5.6f);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_config.P1ArrowsSpreadStrategy == UMADConfig.P1ArrowsSpots.KefkabinStatic)
+        {
+            Angle? cardinal = assignment switch
+            {
+                PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.R1 => 180.Degrees(),
+                PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.R2 => -90.Degrees(),
+                PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.H1 => default,
+                PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.H2 => 90.Degrees(),
+                _ => null
+            };
+            if (cardinal == null)
+                return;
+
+            var inside = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2;
+
+            var myArrow = Module.Enemies(OID.TelePortent).MinBy(t => MathF.Abs((t.Position - Arena.Center).ToAngle().Rad - cardinal.Value.Rad));
+            if (myArrow != null)
+            {
+                var offset = cardinal.Value.ToDirection() * 3;
+                var spot = myArrow.Position + (inside ? -offset : offset);
+
+                hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), _deadline);
+            }
+        }
     }
 }
 

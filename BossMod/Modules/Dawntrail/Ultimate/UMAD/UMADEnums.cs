@@ -23,7 +23,7 @@ public enum OID : uint
     ChaosP4 = 0x4C33, // R6.000, x0 (spawn during fight)
     NeoExdeathP4 = 0x4C36, // R9.000, x0 (spawn during fight)
 
-    KefkaP5 = 0x4C37,
+    KefkaP5 = 0x4C37, // R8.010, x0 (spawn during fight)
 
     Helper = 0x233C, // R0.500, x37, Helper type
 }
@@ -184,9 +184,10 @@ public enum AID : uint
     StrayFlamesInvertedP4 = 47907, // Helper->location, 5.0s cast, range 6-40 donut
     StraySprayNormalP4 = 47908, // Helper->location, 5.0s cast, range 6-40 donut (presumably)
     StraySprayInvertedP4 = 47909, // Helper->location, 5.0s cast, range 6 circle
-    FloodOfNaught1 = 50067, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
-    FloodOfNaught2 = 50081, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
-    FloodOfNaught3 = 50082, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
+    FloodOfNaught1 = 50066, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
+    FloodOfNaught2 = 50067, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
+    FloodOfNaught3 = 50081, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
+    FloodOfNaught4 = 50082, // NeoExdeathP4->self, 5.0+0.5s cast, single-target
     WhiteAntilight = 50068, // Helper->self, 5.5s cast, range 47 width 21 rect
     BlackAntilight = 50069, // Helper->self, 5.5s cast, range 47 width 21 rect
     EdgeOfDeath = 50070, // Helper->self, 5.5s cast, range 48 width 2 rect

@@ -66,6 +66,26 @@ public class UMADConfig : ConfigNode
     [PropertyDisplay("P1 Gravitas: Spread destinations")]
     [GroupDetails(["G1 (left)", "G2 (right)"])]
     public GroupAssignmentLightParties P1GravityPuddleSpread = GroupAssignmentLightParties.DefaultLightParties();
+
+    public enum P1ArrowsStacks
+    {
+        None,
+        [PropertyDisplay("Supports NW, DPS SE")]
+        SuppNDamageS
+    }
+
+    [PropertyDisplay("P1 Tele-Portent: Confetti positions")]
+    public P1ArrowsStacks P1ArrowsConfettiStrategy = P1ArrowsStacks.None;
+
+    public enum P1ArrowsSpots
+    {
+        None,
+        [PropertyDisplay("Melee in, ranged out; G1 N/S, G2 E/W")]
+        KefkabinStatic
+    }
+
+    [PropertyDisplay("P1 Tele-Portent: Post-confetti positions")]
+    public P1ArrowsSpots P1ArrowsSpreadStrategy = P1ArrowsSpots.None;
 }
 
 public class GroupAssignmentRolePairs : GroupAssignment

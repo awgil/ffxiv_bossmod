@@ -15,7 +15,7 @@ class UMADStates : StateMachineBuilder
             .Raw.Update = () => _module.BossP2() is { IsTargetable: false, HPRatio: < 1 };
         SimplePhase(2, P3, "P3")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => _module.ExdeathP3() is { HPMP.CurHP: 1 } && _module.ChaosP3() is { HPMP.CurHP: 1 };
+            .Raw.Update = () => _module.ExdeathP3() is { HPMP.CurHP: 1, IsTargetable: false } && _module.ChaosP3() is { HPMP.CurHP: 1, IsTargetable: false };
         SimplePhase(3, P4, "P4")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => _module.KefkaP4() is { IsTargetable: false, HPRatio: < 1 };
@@ -269,18 +269,20 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P1DoubleTroubleTrap>()
             .ActivateOnEnter<P1DoubleTroubleTrapKB>()
             .ActivateOnEnter<P1DoubleTroubleTrapCounter>()
-            .ExecOnEnter<P1DoubleTroubleTrap>(p => p.EnableHints = true)
+            .ExecOnEnter<P1DoubleTroubleTrap>(p => { p.EnableHints = true; p.Order = 3; })
             .ExecOnEnter<P1DoubleTroubleTrapCounter>(c => c.Timeout = 5.5f)
             .DeactivateOnExit<P1DoubleTroubleTrap>()
             .DeactivateOnExit<P1DoubleTroubleTrapKB>()
             .DeactivateOnExit<P1DoubleTroubleTrapCounter>();
 
         ComponentCondition<P1IdyllicWillCounter>(id + 0x300, 5.6f, p => p.NumCasts > 0, "Stuns")
+            .ActivateOnEnter<P1ArrowsPositioning>()
             .ActivateOnEnter<P1IdyllicWillCounter>()
             .ActivateOnEnter<P1StatueGaze>()
             .ExecOnEnter<P1IndulgentWill>(p => p.Draw = true)
             .ExecOnEnter<P1IdyllicWill>(p => p.Activate())
             .DeactivateOnExit<P1IdyllicWillCounter>()
+            .DeactivateOnExit<P1ArrowsPositioning>()
             .DeactivateOnExit<P1IdyllicWill>()
             .DeactivateOnExit<P1IndulgentWill>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
@@ -292,7 +294,8 @@ class UMADStates : StateMachineBuilder
 
         CastStart(id + 0x400, AID.MysteryMagic, 2)
             .ActivateOnEnter<P1ThrummingThunderIII>()
-            .ActivateOnEnter<P1FlagrantFireIII>();
+            .ActivateOnEnter<P1FlagrantFireIII>()
+            .ExecOnEnter<P1FlagrantFireIII>(p => p.Iteration = 1);
 
         Condition(id + 0x410, 5, () => Module.FindComponent<P1ThrummingThunderIII>()!.NumCasts > 0 && Module.FindComponent<P1StatueGaze>()!.NumCasts > 0, "Lightning + gaze")
             .DeactivateOnExit<P1ThrummingThunderIII>()
@@ -723,7 +726,7 @@ class UMADStates : StateMachineBuilder
 
     void P4Death(uint id, float delay)
     {
-        ActorCastMulti(id, _module.NeoExdeathP4, [AID.FloodOfNaught2, AID.FloodOfNaught1], delay, 5)
+        ActorCastMulti(id, _module.NeoExdeathP4, [AID.FloodOfNaught1, AID.FloodOfNaught2, AID.FloodOfNaught3, AID.FloodOfNaught4], delay, 5)
             .ActivateOnEnter<P4DeathWaveBolt>()
             .ActivateOnEnter<P4EdgeOfDeath>();
 
@@ -820,7 +823,7 @@ class UMADStates : StateMachineBuilder
         for (var i = 2u; i <= count; i++)
         {
             var j = i;
-            ComponentCondition<P5FellForces>(id + i, 3.1f, p => p.NumCasts == 3 * j, $"Autos {i}", maxOverdue: 100)
+            ComponentCondition<P5FellForces>(id + i, 3.1f, p => p.NumCasts == 3 * j, $"Autos {i}")
                 .DeactivateOnExit<P5FellForces>(i == count);
         }
     }

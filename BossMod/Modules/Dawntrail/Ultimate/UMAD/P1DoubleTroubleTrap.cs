@@ -63,6 +63,20 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
             }
         }
 
+        if (Order == 3 && _config.P1ArrowsConfettiStrategy == UMADConfig.P1ArrowsStacks.SuppNDamageS && EnableHints)
+        {
+            WPos dest = (IsStackTarget(actor), actor.Class.IsSupport()) switch
+            {
+                (true, true) => new(94, 94),
+                (true, false) => new(106, 106),
+                (false, true) => new(95, 95),
+                (false, false) => new(105, 105)
+            };
+
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(dest, new(0, 1), 0.5f, actor.Position, 0.1f), activation);
+            return;
+        }
+
         base.AddAIHints(slot, actor, assignment, hints);
     }
 }
