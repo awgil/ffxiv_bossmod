@@ -433,7 +433,15 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.SixSidedStar, primaryTarget, GCDPriority.SSS);
                 break;
             case OffensiveStrategy.Automatic:
-                if (EffectiveDowntimeIn > 0 && !CanFitGCD(EffectiveDowntimeIn, 1))
+                var shouldUse = EffectiveDowntimeIn > 0 && !CanFitGCD(EffectiveDowntimeIn, 1);
+
+                if (Hints.ImminentSpecialMode.mode == SpecialMode.Pyretic)
+                {
+                    var pyreticDeadline = (float)Math.Max(0, (Hints.ImminentSpecialMode.activation - World.CurrentTime).TotalSeconds);
+                    shouldUse |= pyreticDeadline > 0 && !CanFitGCD(pyreticDeadline, 1);
+                }
+
+                if (shouldUse)
                     PushGCD(AID.SixSidedStar, primaryTarget, GCDPriority.SSS, useOnDyingTarget: false);
                 break;
         }
