@@ -6,7 +6,6 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
     public int NumCasts { get; private set; }
     public int Order;
 
-    private DateTime _lastActivation;
     private BitMask _wasStack;
 
     public P1DoubleTroubleTrap(BossModule module) : base(module, 6, 0, 4)
@@ -25,7 +24,6 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
     {
         if ((AID)spell.Action.ID == AID.DoubleTroubleTrapStack)
         {
-            _lastActivation = WorldState.CurrentTime;
             _wasStack.Set(Raid.FindSlot(spell.MainTargetID));
             Stacks.Clear();
             NumCasts++;

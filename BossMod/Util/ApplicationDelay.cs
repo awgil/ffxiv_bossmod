@@ -443,7 +443,6 @@ public static class ApplicationDelay
         Register(MNK.AID.PouncingCoeurl, 1.02f);
         Register(MNK.AID.ElixirField, 1.07f);
         Register(MNK.AID.EarthsReply, 1.07f);
-        Register(MNK.AID.ElixirField, 1.07f);
         Register(MNK.AID.Bootshine, 1.11f);
         Register(MNK.AID.HowlingFist, 1.16f);
         Register(MNK.AID.WindsReply, 1.20f);

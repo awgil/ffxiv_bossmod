@@ -390,7 +390,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             {
                 Form.Coeurl => AID.Rockbreaker,
                 Form.Raptor => AID.FourPointFury,
-                _ => AID.ArmOfTheDestroyer
+                _ => Unlocked(AID.ShadowOfTheDestroyer) ? AID.ShadowOfTheDestroyer : AID.ArmOfTheDestroyer
             };
             PushGCD(aoeAction, Player, GCDPriority.AOE);
         }
@@ -401,19 +401,19 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         {
             case Form.Coeurl:
                 PushGCD(AID.Demolish, primaryTarget, GCDPriority.BasicSaver);
-                PushGCD(AID.SnapPunch, primaryTarget, prioBuffed(CoeurlStacks), useOnDyingTarget: false);
+                PushGCD(Unlocked(AID.PouncingCoeurl) ? AID.PouncingCoeurl : AID.SnapPunch, primaryTarget, prioBuffed(CoeurlStacks), useOnDyingTarget: false);
                 break;
             case Form.Raptor:
                 PushGCD(AID.TwinSnakes, primaryTarget, GCDPriority.BasicSaver);
-                PushGCD(AID.TrueStrike, primaryTarget, prioBuffed(RaptorStacks), useOnDyingTarget: false);
+                PushGCD(Unlocked(AID.RisingRaptor) ? AID.RisingRaptor : AID.TrueStrike, primaryTarget, prioBuffed(RaptorStacks), useOnDyingTarget: false);
                 break;
             case Form.OpoOpo:
                 PushGCD(AID.DragonKick, primaryTarget, GCDPriority.BasicSaver);
-                PushGCD(AID.Bootshine, primaryTarget, prioBuffed(OpoStacks), useOnDyingTarget: false);
+                PushGCD(Unlocked(AID.LeapingOpo) ? AID.LeapingOpo : AID.Bootshine, primaryTarget, prioBuffed(OpoStacks), useOnDyingTarget: false);
                 break;
             default:
                 PushGCD(AID.DragonKick, primaryTarget, GCDPriority.BasicSaver);
-                PushGCD(AID.Bootshine, primaryTarget, FormShiftLeft > GCD ? prioBuffed(OpoStacks) : GCDPriority.Basic, useOnDyingTarget: false);
+                PushGCD(Unlocked(AID.LeapingOpo) ? AID.LeapingOpo : AID.Bootshine, primaryTarget, FormShiftLeft > GCD ? prioBuffed(OpoStacks) : GCDPriority.Basic, useOnDyingTarget: false);
                 break;
         }
 
