@@ -22,9 +22,19 @@ public enum AID : uint {
     EncroachingTwinTides = 41776, // Boss->self, 5.0s cast, single-target
     FarTideEncroaching = 41777, // 4719->location, 5.0s cast, range 10-40 donut
     NearTideEncroaching = 41775, // 4719->location, 7.0s cast, range 10 circle
+
+    VoidWaterIIICast = 41783, // Boss->self, 3.0s cast, single-target
+    VoidWaterIII = 41784, // Nammu->location, 3.0s cast, range 6 circle
+
+    LeftTwinTentacleFirst = 41779, // Boss->self, 5.0s cast, range 60 ?-degree cone
+    RightTentacleSecond = 41782, // Boss->self, no cast, range 60 ?-degree cone
+
+    RightTwinTentacleFirst = 41781, // Boss->self, 5.0s cast, range 60 ?-degree cone
+    LeftTentacleSecond = 41780, // Boss->self, no cast, range 60 ?-degree cone
 }
 
 class VoidWaterIV1(BossModule module) : Components.RaidwideCast(module, AID.VoidWaterIV);
+class VoidWaterIII(BossModule module) : Components.StandardAOEs(module, AID.VoidWaterIII, 6f);
 
 // We change this to draw to the foreground as the exaflares casts overlap with the first one, and it can look confusing where is exactly safe
 class TidelineStart(BossModule module) : Components.StandardAOEs(module, AID.TidelineStart, new AOEShapeRect(50f, 5f), highlightImminent: true) {
@@ -129,13 +139,42 @@ class TwinTides(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
+class TwinTentacle(BossModule module) : Components.GenericAOEs(module) {
+    private List<AOEInstance> aoes = [];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID == (uint)AID.LeftTwinTentacleFirst) {
+            aoes.Add(new(new AOEShapeCone(60.0f, 90.0f.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoL().ToAngle(), Module.CastFinishAt(spell), Color: ArenaColor.Danger, Risky: true));
+            aoes.Add(new(new AOEShapeCone(60.0f, 90.0f.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoR().ToAngle(), Module.CastFinishAt(spell, 2.0f), Color: ArenaColor.Danger, Risky: true));
+        }
+
+        if (spell.Action.ID == (uint)AID.RightTwinTentacleFirst) {
+            aoes.Add(new(new AOEShapeCone(60.0f, 90.0f.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoR().ToAngle(), Module.CastFinishAt(spell) , Color: ArenaColor.Danger, Risky: true));
+            aoes.Add(new(new AOEShapeCone(60.0f, 90.0f.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoL().ToAngle(), Module.CastFinishAt(spell, 2.0f) , Color: ArenaColor.Danger, Risky: true));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (spell.Action.ID == (uint)AID.LeftTwinTentacleFirst || spell.Action.ID == (uint)AID.RightTwinTentacleFirst ||
+            spell.Action.ID == (uint)AID.RightTentacleSecond || spell.Action.ID == (uint)AID.LeftTentacleSecond) {
+            if (aoes.Count > 0) {
+                aoes.RemoveAt(0);
+            }
+        }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes.Take(1);
+}
+
 class NammuStates : StateMachineBuilder {
     public NammuStates(BossModule module) : base(module) {
         TrivialPhase()
             .ActivateOnEnter<VoidWaterIV1>()
             .ActivateOnEnter<TidelineStart>()
             .ActivateOnEnter<TidelineExaFlare>()
-            .ActivateOnEnter<TwinTides>();
+            .ActivateOnEnter<TwinTides>()
+            .ActivateOnEnter<VoidWaterIII>()
+            .ActivateOnEnter<TwinTentacle>();
     }
 }
 
