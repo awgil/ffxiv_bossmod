@@ -50,10 +50,12 @@ class Trounce(BossModule module) : Components.StandardAOEs(module, AID.Trounce, 
 
 class ThriceComeThunder(BossModule module) : Components.GenericAOEs(module) {
     private List<AOEInstance> aoes = [];
+    private int waves = 0;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.ThriceComeThunderInner) {
             aoes.Add(new(new AOEShapeCircle(10), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
+            waves++;
         }
 
         if (spell.Action.ID == (uint)AID.ThriceComeThunderMiddle) {
@@ -70,15 +72,18 @@ class ThriceComeThunder(BossModule module) : Components.GenericAOEs(module) {
             aoes.SortBy(a => a.Activation);
             if (aoes.Count > 0) {
                 aoes.RemoveAt(0);
+
+                if (spell.Action.ID == (uint)AID.ThriceComeThunderOuter) {
+                    waves--;
+                }
             }
         }
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        int waves = (aoes.Count + 2) / 3;
         int show = 0;
         foreach (var aoe in aoes.OrderBy(a => a.Activation).Take(2 * waves)) {
-            yield return aoe with { Color = show < waves ? ArenaColor.Danger : ArenaColor.AOE };
+            yield return aoe with { Color = show < waves ? ArenaColor.Danger : ArenaColor.AOE, Risky = show < waves };
             show++;
         }
     }
