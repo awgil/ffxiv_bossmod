@@ -34,23 +34,10 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        DateTime activation;
-        bool isStack;
-
-        if (Stacks.FirstOrNull() is { } stack)
-        {
-            activation = stack.Activation;
-            isStack = IsStackTarget(actor);
-        }
-        // weird "bug": even though double trouble is the source of the knockback according to logs, moving the frame after the cast event still seems to affect teammates' trajectories and we really don't want that
-        // might be placebo lol
-        else if (_wasStack[slot] && _lastActivation.AddMilliseconds(200) > WorldState.CurrentTime)
-        {
-            activation = _lastActivation;
-            isStack = true;
-        }
-        else
+        if (Stacks.FirstOrNull() is not { Activation: var activation })
             return;
+
+        var isStack = IsStackTarget(actor);
 
         if (Order == 1)
         {
@@ -89,8 +76,8 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
             {
                 (true, true) => new(94, 94),
                 (true, false) => new(106, 106),
-                (false, true) => new(95, 95),
-                (false, false) => new(105, 105)
+                (false, true) => new(96, 96),
+                (false, false) => new(104, 104)
             };
 
             hints.AddForbiddenZone(ShapeContains.PrecisePosition(dest, new(0, 1), 0.5f, actor.Position, 0.1f), activation);
@@ -126,6 +113,30 @@ class P1DoubleTroubleTrapKB(BossModule module) : Components.Knockback(module, AI
             if (_sources.Count > 0)
                 _sources.RemoveAt(0);
         }
+    }
+}
+
+// have to wait until confetti knockbacks actually go off before moving, since kb type is 6 (meaning that the cast itself does nothing and the knockback is applied later via ActorControl)
+class P1DoubleTroubleStay(BossModule module) : BossComponent(module)
+{
+    BitMask PendingStacks;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.DoubleTroubleTrapStack)
+            PendingStacks.Set(Raid.FindSlot(spell.MainTargetID));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (PendingStacks[slot])
+            hints.ForcedMovement = new(0);
+    }
+
+    public override void Update()
+    {
+        if (Raid.WithoutSlot().All(p => p.PendingKnockbacks.Count == 0))
+            PendingStacks.Reset();
     }
 }
 

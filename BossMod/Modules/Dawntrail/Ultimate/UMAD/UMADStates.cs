@@ -9,6 +9,7 @@ class UMADStates : StateMachineBuilder
         _module = (UMAD)module;
 
         SimplePhase(0, P1, "P1")
+            .ActivateOnEnter<P1DoubleTroubleStay>()
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, P2, "P2")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)

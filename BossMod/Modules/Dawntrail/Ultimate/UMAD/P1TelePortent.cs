@@ -295,7 +295,7 @@ class P1ArrowsPositioning : BossComponent
             {
                 PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.R1 => 180.Degrees(),
                 PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.R2 => -90.Degrees(),
-                PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.H1 => default,
+                PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.H1 => default(Angle),
                 PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.H2 => 90.Degrees(),
                 _ => null
             };
