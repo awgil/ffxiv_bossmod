@@ -304,16 +304,6 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         PerfectBalance = 2004
     }
 
-    private float GetApplicationDelay(AID action) => action switch
-    {
-        AID.SixSidedStar => 0.62f,
-        AID.DragonKick => 1.29f,
-        AID.ForbiddenChakra => 1.48f,
-        AID.Demolish => 1.60f,
-        // add more if needed
-        _ => 0
-    };
-
     public override string DescribeState() => $"F={BuffedGCDsLeft}, PB={PBGCDsLeft}";
 
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)

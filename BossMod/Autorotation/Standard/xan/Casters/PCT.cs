@@ -137,17 +137,6 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         High = 600
     }
 
-    private float GetApplicationDelay(AID action) => action switch
-    {
-        AID.RainbowDrip => 1.24f,
-        AID.FireInRed => 0.84f,
-        AID.ClawedMuse => 0.98f,
-        AID.FangedMuse => 1.16f,
-        AID.MogOfTheAges => 1.15f,
-        AID.RetributionOfTheMadeen => 1.30f,
-        _ => 0
-    };
-
     public const uint LeylinesOID = 0x6DF;
 
     private AID BestLivingMuse

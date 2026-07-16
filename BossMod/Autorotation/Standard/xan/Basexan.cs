@@ -153,6 +153,8 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
 
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
 
+    protected float GetApplicationDelay(AID action) => ApplicationDelay.Get((uint)(object)action);
+
     // override if some action requires specific runtime checks that aren't covered by the existing framework code
     protected virtual bool CanUse(AID action) => true;
 

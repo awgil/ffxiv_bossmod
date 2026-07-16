@@ -75,12 +75,6 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool HaveTarget(Enemy? primaryTarget) => NumAOETargets > 1 || primaryTarget != null;
 
-    private static float GetApplicationDelay(AID aid) => aid switch
-    {
-        AID.StandardFinish or AID.SingleStandardFinish or AID.DoubleStandardFinish => 0.54f,
-        _ => 0
-    };
-
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, range: 25);
