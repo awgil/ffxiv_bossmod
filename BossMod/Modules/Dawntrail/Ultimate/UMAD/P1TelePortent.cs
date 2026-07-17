@@ -304,7 +304,7 @@ class P1ArrowsPositioning : BossComponent
 
             var inside = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2;
 
-            var myArrow = Module.Enemies(OID.TelePortent).MinBy(t => MathF.Abs((t.Position - Arena.Center).ToAngle().Rad - cardinal.Value.Rad));
+            var myArrow = Module.Enemies(OID.TelePortent).MinBy(t => MathF.Abs((t.Position - Arena.Center).ToAngle().DistanceToAngle(cardinal.Value).Rad));
             if (myArrow != null)
             {
                 var offset = cardinal.Value.ToDirection() * 3;
