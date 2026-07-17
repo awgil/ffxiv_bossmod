@@ -137,6 +137,21 @@ class ArenaScaleNotice : ChangelogNotice
     }
 }
 
+class MacroNotice : ChangelogNotice
+{
+    public override Version Since => new(7, 5, 1, 28);
+
+    public override void Draw()
+    {
+        ImGui.Text("You can now use");
+        ImGui.SameLine();
+        using (ImRaii.PushFont(Service.MonoFont))
+            ImGui.Text("/vbm macro");
+        ImGui.SameLine();
+        ImGui.Text("in your macros to enable custom queueing for the duration of the macro.");
+    }
+}
+
 public class ConfigChangelogWindow : UIWindow
 {
     private readonly Version PreviousVersion;
@@ -263,7 +278,7 @@ public class ConfigChangelogWindow : UIWindow
     public static Version GetPreviousPluginVersion()
     {
         // uncomment to test changelog
-        // return new(7, 5, 1, 0);
+        return new(7, 5, 1, 0);
 
         // change to a smaller value to test changelog
         return Service.Config.AssemblyVersion;

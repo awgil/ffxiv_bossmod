@@ -244,6 +244,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex.FinishActionGather();
 
         Service.IconFont = uiBuilder.FontIcon;
+        Service.MonoFont = uiBuilder.FontMono;
         Service.FontAtlas = uiBuilder.FontAtlas;
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
@@ -384,7 +385,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
                     _amex.MacroCapture = true;
                 else
-                    Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry() { Type = Dalamud.Game.Text.XivChatType.Echo, Message = "This command doesn't do anything unless it's inside a macro." });
+                    Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry() { Type = Dalamud.Game.Text.XivChatType.Echo, Message = "That command doesn't do anything unless it's inside a macro." });
             }
         });
         _slashCmd.AddSubcommand("macro-off").SetSimpleHandler("disables VBM action queue inside a macro, if it has been enabled previously", () =>
@@ -394,7 +395,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
                     _amex.MacroCapture = false;
                 else
-                    Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry() { Type = Dalamud.Game.Text.XivChatType.Echo, Message = "This command doesn't do anything unless it's inside a macro." });
+                    Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry() { Type = Dalamud.Game.Text.XivChatType.Echo, Message = "That command doesn't do anything unless it's inside a macro." });
             }
         });
 
