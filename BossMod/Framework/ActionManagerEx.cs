@@ -9,6 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
@@ -38,6 +39,8 @@ public sealed unsafe class ActionManagerEx : IAmex
     public float ComboTimeLeft => _inst->Combo.Timer;
     public uint ComboLastMove => _inst->Combo.Action;
     public ActionID QueuedAction => new((ActionType)_inst->QueuedActionType, _inst->QueuedActionId);
+
+    public bool MacroCapture { get; set; }
 
     public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
     public float AnimationLockDelayEstimate => _animLockTweak.DelayEstimate;
@@ -485,6 +488,9 @@ public sealed unsafe class ActionManagerEx : IAmex
 
         if (_hints.WantDismount && !_movement.FollowPathActive() && _dismountTweak.AllowDismount())
             _inst->UseAction(CSActionType.Action, 4);
+
+        if (MacroCapture && RaptureShellModule.Instance()->MacroCurrentLine < 0)
+            MacroCapture = false;
     }
 
     // note: targetId is usually your current primary target (or 0xE0000000 if you don't target anyone), unless you do something like /ac XXX <f> etc
@@ -526,9 +532,9 @@ public sealed unsafe class ActionManagerEx : IAmex
             return 0xE0000000;
         }
 
-        // note: only standard mode can be filtered
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
-        if (mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, findNearestTarget))
+        var canManualQueue = mode == ActionManager.UseActionMode.None || mode == ActionManager.UseActionMode.Macro && MacroCapture;
+        if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, findNearestTarget))
             return false;
 
         bool areaTargeted = false;

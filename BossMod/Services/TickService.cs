@@ -13,6 +13,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
@@ -375,6 +376,27 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         });
 
         _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", _hintsBuilder.Obstacles.ClearGenerated);
+
+        _slashCmd.AddSubcommand("macro").SetSimpleHandler("enables VBM action queue inside macros (by default, any actions used in macros bypass the queue)", () =>
+        {
+            unsafe
+            {
+                if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
+                    _amex.MacroCapture = true;
+                else
+                    Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry() { Type = Dalamud.Game.Text.XivChatType.Echo, Message = "This command doesn't do anything unless it's inside a macro." });
+            }
+        });
+        _slashCmd.AddSubcommand("macro-off").SetSimpleHandler("disables VBM action queue inside a macro, if it has been enabled previously", () =>
+        {
+            unsafe
+            {
+                if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
+                    _amex.MacroCapture = false;
+                else
+                    Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry() { Type = Dalamud.Game.Text.XivChatType.Echo, Message = "This command doesn't do anything unless it's inside a macro." });
+            }
+        });
 
         _slashCmd.AddSubcommand("helpme").SetSimpleHandler("gather diagnostic information", HelpMe);
 
