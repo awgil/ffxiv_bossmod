@@ -747,6 +747,9 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P4DeathWaveBolt>()
             .DeactivateOnExit<P4DeathBomb>();
 
+        // mana charge
+        ActorCastEnd(id + 0x102, _module.KefkaP4, 0.2f, true);
+
         ActorCastStart(id + 0x110, _module.KefkaP4, AID.ThrummingThunderIIIP4, 3, true)
             .ActivateOnEnter<P1ThrummingThunderIII>()
             .ActivateOnEnter<P4DeathShriek>();
