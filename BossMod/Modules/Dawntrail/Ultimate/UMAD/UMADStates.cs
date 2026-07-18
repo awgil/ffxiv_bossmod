@@ -93,7 +93,8 @@ class UMADStates : StateMachineBuilder
 
     void P5(uint id)
     {
-        ActorTargetable(id, _module.KefkaP5, true, 30.7f, "Boss appears");
+        ActorTargetable(id, _module.KefkaP5, true, 30.7f, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
 
         P5UltimaRepeater(id + 0x100, 3.1f);
         P5FellForces(id + 0x200, 2.8f, 3);

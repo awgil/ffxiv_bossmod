@@ -278,9 +278,8 @@ public class ConfigChangelogWindow : UIWindow
     public static Version GetPreviousPluginVersion()
     {
         // uncomment to test changelog
-        return new(7, 5, 1, 0);
+        //return new(7, 5, 1, 0);
 
-        // change to a smaller value to test changelog
         return Service.Config.AssemblyVersion;
     }
 }
