@@ -21,6 +21,7 @@ public enum AID : uint {
     Reproduce = 30339, // Boss->self, 3.0s cast, single-target
     HeatVortex = 30340, // 46BA->self, 4.0s cast, range 10 circle
     FireBlast = 30341, // 46B9->self, 5.0s cast, range 25 width 6 rect
+    EruptionCast = 30345, // Boss->self, 3.0s cast, single-target
     Eruption = 30346, // 46BB->location, 3.0s cast, range 8 circle
 
     DryCycleCast = 30342, // Boss->self, 3.0s cast, single-target

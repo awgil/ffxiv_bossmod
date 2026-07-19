@@ -29,12 +29,15 @@ public enum AID : uint {
 
     ZombieBreath = 42004, // Boss->self, 5.0s cast, range 40 180-degree cone
 
-    _Weaponskill_BreathWing = 42008, // Boss->self, 4.0s cast, single-target
+    BreathWingCast = 42008, // Boss->self, 4.0s cast, single-target
+    BreathWingCast1 = 42006, // Boss->self, 5.0s cast, single-target
+    BreathWing = 42007, // AdvancedAevis->location, 5.0s cast, range 30 circle
 }
 
 class ZombieScales(BossModule module) : Components.GroupedAOEs(module, [AID.ZombieScales, AID.ZombieScales1], new AOEShapeCone(40.0f, 22.5f.Degrees()), 4, true);
 class AeroII(BossModule module) : Components.StandardAOEs(module, AID.AeroII, 4f);
 class ZombieBreath(BossModule module) : Components.StandardAOEs(module, AID.ZombieBreath, new AOEShapeCone(40f, 90.Degrees()));
+class BreathWing(BossModule module) : Components.RaidwideCast(module, AID.BreathWing);
 
 class TripleFlight(BossModule module) : Components.GenericAOEs(module) {
     private List<AOEInstance> aoes = [];
@@ -78,7 +81,8 @@ class AdvancedAevisStates : StateMachineBuilder {
             .ActivateOnEnter<ZombieScales>()
             .ActivateOnEnter<AeroII>()
             .ActivateOnEnter<TripleFlight>()
-            .ActivateOnEnter<ZombieBreath>();
+            .ActivateOnEnter<ZombieBreath>()
+            .ActivateOnEnter<BreathWing>();
     }
 }
 

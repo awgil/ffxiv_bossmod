@@ -40,8 +40,8 @@ class Rupture(BossModule module) : Components.GenericAOEs(module) {
     private List<AOEInstance> aoes = [];
 
     public override void OnStatusGain(Actor actor, ActorStatus status) {
-        if (status.ID == (uint)SID.Growth && status.Extra == 0x03) {
-            aoes.Add(new(new AOEShapeCircle(16f), actor.Position, actor.Rotation));
+        if (status.ID == (uint)SID.Growth && status.Extra == 0x02) {
+            aoes.Add(new(new AOEShapeCircle(16f), actor.Position, actor.Rotation, WorldState.FutureTime(7.3f)));
         }
     }
 
