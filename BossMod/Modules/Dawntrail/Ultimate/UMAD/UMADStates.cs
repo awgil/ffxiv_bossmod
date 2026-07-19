@@ -860,8 +860,10 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P5ChaoticFlare>()
             .DeactivateOnExit<P5MaddeningOrchestraSecond>()
             .DeactivateOnExit<P5ChaoticFlare>();
-        ComponentCondition<P5Surprise>(id + 3, 3.5f, s => s.NumCasts == 2, "Tank spreads")
-            .ActivateOnEnter<P5Surprise>()
-            .DeactivateOnExit<P5Surprise>();
+        ComponentCondition<P5SurpriseBait>(id + 3, 3.5f, s => s.NumCasts == 2, "Flare + holy")
+            .ActivateOnEnter<P5SurpriseBait>()
+            .ActivateOnEnter<P5ChaoticHoly>()
+            .DeactivateOnExit<P5SurpriseBait>()
+            .DeactivateOnExit<P5ChaoticHoly>();
     }
 }

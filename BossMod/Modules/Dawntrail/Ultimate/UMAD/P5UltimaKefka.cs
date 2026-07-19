@@ -181,15 +181,17 @@ class P5MaddeningOrchestraSecond(BossModule module) : Components.GenericBaitAway
     }
 }
 
-class P5Surprise : Components.GenericBaitAway
+class P5SurpriseBait : Components.GenericBaitAway
 {
-    public P5Surprise(BossModule module) : base(module, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster)
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
+
+    public P5SurpriseBait(BossModule module) : base(module, centerAtTarget: true, damageType: AIHints.PredictedDamageType.Tankbuster)
     {
         foreach (var player in Raid.WithoutSlot())
         {
             if (player.FindStatus(SID.SurpriseFlare) is { } fl)
                 CurrentBaits.Add(new(player, player, new AOEShapeCircle(25), fl.ExpireAt));
-            else if (player.FindStatus(SID.SurpriseHoly) is { } h)
+            else if (player.FindStatus(SID.SurpriseHoly) is { } h && _config.P5MaddeningSpreadAll)
                 CurrentBaits.Add(new(player, player, new AOEShapeCircle(6), h.ExpireAt));
         }
     }
@@ -200,6 +202,32 @@ class P5Surprise : Components.GenericBaitAway
         {
             NumCasts++;
             CurrentBaits.Clear();
+        }
+    }
+}
+
+class P5ChaoticHoly : Components.UniformStackSpread
+{
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
+
+    public int NumCasts { get; private set; }
+
+    public P5ChaoticHoly(BossModule module) : base(module, 6, 0, 7)
+    {
+        if (_config.P5MaddeningSpreadAll)
+            return;
+
+        foreach (var player in Raid.WithoutSlot())
+            if (player.FindStatus(SID.SurpriseHoly) is { } h)
+                AddStack(player, h.ExpireAt, Raid.WithSlot().WhereActor(a => a.FindStatus(SID.SurpriseFlare) != null).Mask());
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID._Ability_ChaoticHoly)
+        {
+            NumCasts++;
+            Stacks.Clear();
         }
     }
 }

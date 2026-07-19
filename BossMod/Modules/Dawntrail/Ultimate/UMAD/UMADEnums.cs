@@ -138,7 +138,7 @@ public enum AID : uint
     SlapHappyBig = 47848, // Helper->self, no cast, range 13 circle
     SlapHappySmall = 47849, // Helper->self, 1.5s cast, range 6 circle
     SlapHappyShockingImpact = 47850, // Helper->self, no cast, range 100 60-degree cone, party stack
-    SlapHappyShockwave = 47851, // Helper->self, no cast, range 100 45?-degree cone, role spread, TODO verify angle
+    SlapHappyShockwave = 47851, // Helper->self, no cast, range 100 60-degree cone, role spread
     BlackHole = 47867, // ExdeathP3->self, 3.0s cast, single-target
     Nothingness = 47868, // BlackHoleP3->self, no cast, range 125 width 6 rect
     DamningEdict = 47873, // ChaosP3->self, 5.0s cast, range 60 width 80 rect
