@@ -33,6 +33,7 @@ public sealed class TheKeyToVictory(WorldState ws) : QuestBattle(ws)
                 .CompleteOnKilled((uint)OID.Colossus),
 
             new QuestObjective(ws)
+                .WithConnection(new Vector3(-280.29f, 11.18f, 189.36f))
                 .WithInteract(OID.TatteredDiary)
                 .CompleteOnDestroyed((uint)OID.TatteredDiary),
 
