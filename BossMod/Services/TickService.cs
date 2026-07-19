@@ -623,7 +623,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             }
         }
 
-        ImGui.SetClipboardText(diag.ToString());
+        ImGui.SetClipboardText($"```{diag.ToString()}```");
 
         Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry()
         {
