@@ -487,7 +487,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         }
 
         if (_hints.WantDismount && !_movement.FollowPathActive() && _dismountTweak.AllowDismount())
-            _inst->UseAction(CSActionType.Action, 4);
+            _inst->UseAction(CSActionType.GeneralAction, 23);
 
         if (MacroCapture && RaptureShellModule.Instance()->MacroCurrentLine < 0)
             MacroCapture = false;

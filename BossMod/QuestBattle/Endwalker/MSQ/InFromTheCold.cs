@@ -50,7 +50,10 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
     {
         foreach (var h in hints.PotentialTargets.Where(p => p.Actor.Position.InCircle(player.Position, 40)))
             if (!h.Actor.InCombat && !h.Actor.Position.AlmostEqual(new(111, -317), 10))
+            {
                 hints.AddForbiddenZone(ShapeContains.Cone(h.Actor.Position, 8.5f + h.Actor.HitboxRadius, h.Actor.Rotation, 45.Degrees()));
+                hints.AddForbiddenZone(ShapeContains.Circle(h.Actor.Position, h.Actor.HitboxRadius));
+            }
 
         _ai.Execute(player, hints);
     }
@@ -76,6 +79,9 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Reaper 1")
+            .MoveHint(new WPos(134, -290), 0.1f)
+            .MoveHint(new WPos(133, -262), 0.2f)
+            .MoveHint(new WPos(133, -234), 0.3f)
             .WithInteract(0x1EB456)
             .With(obj => obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.UpdateID == 0x10000002 && diru.Param1 == 0x76DF)),
 
@@ -95,6 +101,9 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Fuel")
+            .MoveHint(new WPos(133, -231), 0.1f)
+            .MoveHint(new WPos(160, -224), 0.2f)
+            .MoveHint(new WPos(188, -227), 0.3f)
             .WithInteract(0x1EB69E)
             .Hints((player, hints) => {
                 if (player.Position.AlmostEqual(new WPos(109, -257.263f), 2))
@@ -104,6 +113,8 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Refuel")
+            .MoveHint(new WPos(165, -235), 0.1f)
+            .MoveHint(new WPos(137, -233), 0.2f)
             .Hints((player, hints) => {
                 hints.InteractWithOID(World, 0x1EB56F);
                 if (hints.InteractWithTarget == null)
@@ -122,11 +133,16 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Help the townspeople")
+            .WithConnection(new Vector3(96, 10.8f, -215.7f))
+            .WithConnection(new Vector3(17, 10.8f, -154.9f))
             .Hints((player, hints) => {
                 hints.WantDismount = true;
-                hints.GoalZones.Add(hints.GoalSingleTarget(new WPos(12, -148), 5, 0.5f));
-                hints.GoalZones.Add(hints.GoalSingleTarget(new WPos(-81, -180), 5, 0.75f));
             })
+            .CompleteOnKilled(0x351C), // almasty
+
+        new QuestObjective(ws)
+            .Named("Miniboss")
+            .WithConnection(new Vector3(-80, 10.8f, -181.5f))
             .With(obj => {
                 obj.OnStatusGain += (act, st) => obj.CompleteIf(act.OID == 0 && st.ID == 2737);
             }),
