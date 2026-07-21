@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
@@ -30,6 +31,8 @@ public class Timeline
             Draw();
             x += Width;
         }
+
+        public virtual IEnumerable<string> GetSupportedFilters() => [];
     }
 
     // a number of consecutive columns grouped together
@@ -74,12 +77,14 @@ public class Timeline
         public T Add<T>(T col) where T : Column
         {
             Columns.Add(col);
+            Timeline.UpdateFilters();
             return col;
         }
 
         public T AddBefore<T>(T col, Column next) where T : Column
         {
             Columns.Insert(Columns.IndexOf(next), col);
+            Timeline.UpdateFilters();
             return col;
         }
 
@@ -88,6 +93,8 @@ public class Timeline
             Columns.Add(new(Timeline));
             return Columns[^1];
         }
+
+        public override IEnumerable<string> GetSupportedFilters() => Columns.SelectMany(c => c.GetSupportedFilters());
     }
 
     public readonly ColorConfig Colors = Service.Config.Get<ColorConfig>();
@@ -116,11 +123,35 @@ public class Timeline
     public Timeline()
     {
         Columns = new(this);
+        UpdateFilters();
     }
 
     public void Draw()
     {
         Columns.Update();
+
+        if (_allFilters.Count > 0)
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Condition filters:");
+        }
+        for (var i = 0; i < _allFilters.Count; i++)
+        {
+            ImGui.SameLine();
+            var k = _allFilters[i];
+            var isHidden = _hiddenFilters.Contains(k);
+            using (ImRaii.PushColor(ImGuiCol.Button, 0xff000080, isHidden))
+            {
+                if (ImGui.Button(k))
+                {
+                    if (isHidden)
+                        _hiddenFilters.Remove(k);
+                    else
+                        _hiddenFilters.Add(k);
+                    UpdateFilters();
+                }
+            }
+        }
 
         _screenClientTL = ImGui.GetCursorScreenPos();
         _screenClientTL.Y += TopMargin;
@@ -160,6 +191,18 @@ public class Timeline
             ImGui.EndTooltip();
             _tooltip.Clear();
         }
+    }
+
+    private ImmutableSortedSet<string> _allFilters = [];
+    private readonly HashSet<string> _hiddenFilters = [];
+
+    public ImmutableSortedSet<string> ActiveFilters { get; private set; } = [];
+
+    public void UpdateFilters()
+    {
+        Service.Log($"Updating filters");
+        _allFilters = [.. Columns.GetSupportedFilters()];
+        ActiveFilters = _allFilters.Except(_hiddenFilters);
     }
 
     // API below is supposed to be called during column's Draw() function

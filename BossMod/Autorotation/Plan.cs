@@ -14,6 +14,8 @@ public sealed record class Plan(string Name, Type Encounter)
         public float WindowLength;
         public bool Disabled;
         public StrategyValue Value = Value;
+        public StrategyCondition ConditionType;
+        public int ConditionParam;
     }
 
     public readonly record struct Module(Type Type, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, List<List<Entry>> Tracks, List<StrategyValue> Defaults) : IRotationModuleData
@@ -261,6 +263,12 @@ public class JsonPlanConverter : JsonConverter<Plan>
         if (jelem.TryGetProperty(nameof(Plan.Entry.Disabled), out var jdisabled))
             entry.Disabled = jdisabled.GetBoolean();
 
+        if (jelem.TryGetProperty(nameof(Plan.Entry.ConditionType), out var ctype))
+        {
+            entry.ConditionType = Enum.Parse<StrategyCondition>(ctype.GetString() ?? "");
+            entry.ConditionParam = jelem.GetProperty(nameof(Plan.Entry.ConditionParam)).GetInt32();
+        }
+
         entry.Value.DeserializeFields(jelem);
     }
 
@@ -271,6 +279,12 @@ public class JsonPlanConverter : JsonConverter<Plan>
         writer.WriteNumber(nameof(Plan.Entry.WindowLength), entry.WindowLength);
         if (entry.Disabled)
             writer.WriteBoolean(nameof(Plan.Entry.Disabled), entry.Disabled);
+
+        if (entry.ConditionType != default)
+        {
+            writer.WriteString(nameof(Plan.Entry.ConditionType), entry.ConditionType.ToString());
+            writer.WriteNumber(nameof(Plan.Entry.ConditionParam), entry.ConditionParam);
+        }
 
         entry.Value.SerializeFields(writer);
     }

@@ -17,7 +17,7 @@ public sealed class PlanExecution
         public StateFlag Vulnerable = new(false, float.MaxValue);
     }
 
-    public record class EntryData(float WindowStart, float WindowEnd, int BranchID, int NumBranches, StrategyValue Value)
+    public record class EntryData(float WindowStart, float WindowEnd, int BranchID, int NumBranches, StrategyValue Value, StrategyCondition ConditionType, int ConditionParam)
     {
         public bool IntersectBranchRange(int branchID, int numBranches) => BranchID < branchID + numBranches && branchID < BranchID + NumBranches;
         public bool IsActive(float t, StateData s) => t >= WindowStart && t <= WindowEnd && IntersectBranchRange(s.BranchID, s.NumBranches);
@@ -80,7 +80,7 @@ public sealed class PlanExecution
         return (s.Vulnerable.Active, s.Vulnerable.TransitionIn - Math.Min(Module.StateMachine.TimeSinceTransition, s.Duration));
     }
 
-    public StrategyValues ActiveStrategyOverrides(int moduleIndex)
+    public StrategyValues ActiveStrategyOverrides(int moduleIndex, WorldState ws, int playerSlot)
     {
         var s = FindCurrentStateData();
         var t = GetVirtualTime(s);
@@ -91,18 +91,18 @@ public sealed class PlanExecution
             // set global default
             res.Values[i] = data.Defaults[i];
             // then override with entries
-            var entry = GetEntryAt(data.Tracks[i], t, s);
+            var entry = GetEntryAt(data.Tracks[i], ws, playerSlot, t, s);
             if (entry != null)
                 res.Values[i] = entry.Value with { ExpireIn = entry.WindowEnd - t };
         }
         return res;
     }
 
-    public StrategyValueTrack? ActiveForcedTarget()
+    public StrategyValueTrack? ActiveForcedTarget(WorldState ws, int playerSlot)
     {
         var s = FindCurrentStateData();
         var t = GetVirtualTime(s);
-        return GetEntryAt(ForcedTargets, t, s)?.Value as StrategyValueTrack;
+        return GetEntryAt(ForcedTargets, ws, playerSlot, t, s)?.Value as StrategyValueTrack;
     }
 
     private StateData ProcessState(StateMachineTree tree, StateMachineTree.Node curState, StateData? prev, StateData? nextPhaseStart)
@@ -164,7 +164,7 @@ public sealed class PlanExecution
                 if (s != null)
                 {
                     var windowStart = s.EnterTime + Math.Min(s.Duration, entry.TimeSinceActivation);
-                    res.Add(new(windowStart, windowStart + entry.WindowLength, s.BranchID, s.NumBranches, entry.Value));
+                    res.Add(new(windowStart, windowStart + entry.WindowLength, s.BranchID, s.NumBranches, entry.Value, entry.ConditionType, entry.ConditionParam));
                 }
                 else
                 {
@@ -175,6 +175,20 @@ public sealed class PlanExecution
         return res;
     }
 
+    // TODO: this should be replay-scoped, but we need to add roles config to replays for that
+    private static bool FilterEntry(EntryData data, WorldState world, int playerSlot)
+    {
+        switch (data.ConditionType)
+        {
+            case StrategyCondition.AssignedRole:
+                var role = (PartyRolesConfig.Assignment)data.ConditionParam;
+                var member = world.Party.Members.BoundSafeAt(playerSlot);
+                return member.ContentId != 0 && Service.Config.Get<PartyRolesConfig>()[member.ContentId] == role;
+            default:
+                return true;
+        }
+    }
+
     // if there are several intersecting entries, select one with biggest windowstart
-    private EntryData? GetEntryAt(List<EntryData> entries, float t, StateData s) => entries.Where(e => e.IsActive(t, s)).MaxBy(s => s.WindowStart);
+    private EntryData? GetEntryAt(List<EntryData> entries, WorldState world, int playerSlot, float t, StateData s) => entries.Where(e => FilterEntry(e, world, playerSlot) && e.IsActive(t, s)).MaxBy(s => s.WindowStart);
 }
