@@ -231,3 +231,6 @@ class P5ChaoticHoly : Components.UniformStackSpread
         }
     }
 }
+
+class P5ForsakenGround(BossModule module) : Components.StandardAOEs(module, AID._Ability_ForsakenGround, 8);
+class P5ForsakenPuddle(BossModule module) : Components.StandardAOEs(module, AID._Ability_Forsaken1, 8);

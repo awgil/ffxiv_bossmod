@@ -25,6 +25,10 @@ public enum OID : uint
 
     KefkaP5 = 0x4C37, // R8.010, x0 (spawn during fight)
 
+    FireTower = 0x1EC03E,
+    IceTower = 0x1EC03F,
+    LightningTower = 0x1EC040,
+
     Helper = 0x233C, // R0.500, x37, Helper type
 }
 

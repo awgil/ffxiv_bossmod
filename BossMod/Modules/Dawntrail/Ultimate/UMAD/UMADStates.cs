@@ -101,8 +101,16 @@ class UMADStates : StateMachineBuilder
         P5Flood(id + 0x10000, 0.3f);
         P5MaddeningOrchestra(id + 0x20000, 4);
         P5FellForces(id + 0x21000, 4.7f, 2);
+        P5Celestriad(id + 0x30000, 1.5f);
+        P5UltimaRepeater(id + 0x31000, 4.1f);
+        P5FellForces(id + 0x32000, 2.7f, 2);
+        P5StrayApocalypse(id + 0x40000, 1.4f);
+        P5MaddeningOrchestra(id + 0x50000, 3.3f);
+        P5FellForces(id + 0x51000, 4.7f, 3);
 
-        Timeout(id + 0xFF0000, 10000, "???");
+        Timeout(id + 0xFF0000, 10000, "???")
+            .ActivateOnEnter<P5ForsakenGround>()
+            .ActivateOnEnter<P5ForsakenPuddle>();
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -865,5 +873,36 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P5ChaoticHoly>()
             .DeactivateOnExit<P5SurpriseBait>()
             .DeactivateOnExit<P5ChaoticHoly>();
+    }
+
+    void P5Celestriad(uint id, float delay)
+    {
+        ActorCast(id, _module.KefkaP5, AID._Ability_Celestriad, delay, 5, true)
+            .ActivateOnEnter<P5Celestriad>()
+            .ActivateOnEnter<P5CatastrophicChoice>();
+        ComponentCondition<P5Celestriad>(id + 0x10, 9.1f, c => c.NumCasts == 4, "Towers 1");
+        ComponentCondition<P5CatastrophicChoice>(id + 0x11, 0.2f, p => p.NumCasts == 1, "In/out");
+        ComponentCondition<P5Celestriad>(id + 0x20, 5.9f, c => c.NumCasts == 8, "Towers 2");
+        ComponentCondition<P5Celestriad>(id + 0x30, 6, c => c.NumCasts == 12, "Towers 3")
+            .DeactivateOnExit<P5Celestriad>();
+        ComponentCondition<P5CatastrophicChoice>(id + 0x31, 0.2f, p => p.NumCasts == 2, "In/out")
+            .DeactivateOnExit<P5CatastrophicChoice>();
+    }
+
+    void P5StrayApocalypse(uint id, float delay)
+    {
+        ActorCastStart(id, _module.KefkaP5, AID._Ability_StrayApocalypse1, delay, true)
+            .ActivateOnEnter<P5StrayApocalypse>();
+        ComponentCondition<P5StrayApocalypse>(id + 1, 4, p => p.NumCasts > 0, "Exaflares start");
+        ActorCastEnd(id + 2, _module.KefkaP5, 0, true);
+
+        ActorCastStart(id + 0x10, _module.KefkaP5, AID._Ability_StrayEntropy, 12.2f, true)
+            .ActivateOnEnter<P5StrayEntropy>();
+
+        ComponentCondition<P5StrayApocalypse>(id + 0x100, 3.5f, p => p.NumCasts == 84, "Exaflares finish")
+            .DeactivateOnExit<P5StrayApocalypse>();
+
+        ComponentCondition<P5StrayEntropy>(id + 0x101, 2.5f, s => !s.Active, "Spreads")
+            .DeactivateOnExit<P5StrayEntropy>();
     }
 }
