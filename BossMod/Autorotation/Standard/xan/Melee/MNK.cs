@@ -663,7 +663,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             PotionStrategy.PreBuffs => HaveTarget && CanWeave(AID.Brotherhood, 4),
             _ => false
         })
-            UsePlanned(strategy.Pot, (AID)ActionDefinitions.IDPotionStr.ID, Player);
+            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, strategy.Pot.Priority());
 
         UseBrotherhood(strategy);
         UsePB(strategy, primaryTarget);
