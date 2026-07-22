@@ -45,4 +45,7 @@ public sealed class AutorotationConfig : ConfigNode
     [PropertyDisplay("Early pull threshold", tooltip: "If someone enters combat with a boss when the countdown is longer than this value, it's consider a ninja-pull and autorotation is force disabled")]
     [PropertySlider(0, 30, Speed = 1)]
     public float EarlyPullThreshold = 1.5f;
+
+    [PropertyDisplay("Disable autorotation if the boss is pulled without a countdown", tooltip: "Only applies if you have a cooldown plan active.", since: "7.5.1.28")]
+    public bool PlannedPullSafety = true;
 }

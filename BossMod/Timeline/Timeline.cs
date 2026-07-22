@@ -193,16 +193,15 @@ public class Timeline
         }
     }
 
-    private ImmutableSortedSet<string> _allFilters = [];
-    private readonly HashSet<string> _hiddenFilters = [];
+    private List<string> _allFilters = [];
+    private readonly List<string> _hiddenFilters = [];
 
     public ImmutableSortedSet<string> ActiveFilters { get; private set; } = [];
 
     public void UpdateFilters()
     {
-        Service.Log($"Updating filters");
-        _allFilters = [.. Columns.GetSupportedFilters()];
-        ActiveFilters = _allFilters.Except(_hiddenFilters);
+        _allFilters = [.. Columns.GetSupportedFilters().Distinct()];
+        ActiveFilters = [.. _allFilters.Except(_hiddenFilters)];
     }
 
     // API below is supposed to be called during column's Draw() function

@@ -75,6 +75,9 @@ class P5CatastrophicChoice(BossModule module) : Components.GenericAOEs(module)
             case AID._Ability_CatastrophicChoice:
                 _predicted = new(new AOEShapeCircle(10), caster.Position, default, Module.CastFinishAt(spell, 0.8f));
                 break;
+            case AID._Ability_CatastrophicChoice1:
+                _predicted = new(new AOEShapeDonut(10, 40), caster.Position, default, Module.CastFinishAt(spell, 0.8f));
+                break;
         }
     }
 
