@@ -22,11 +22,10 @@ public enum AID : uint {
 }
 
 public enum SID : uint {
-    Gen = 2552, // 47DD/4818->47DD/4818, extra=0x372
+    Search = 2552, // 47DD/4818->47DD/4818, extra=0x372
     Prey = 4473, // 4818->player, extra=0x0
     Stun = 4374, // 4818->player, extra=0x0
 }
-
 
 class Stare(BossModule module) : Components.GroupedAOEs(module, [AID.Stare, AID.Stare1], new AOEShapeRect(60, 4));
 class Oogle(BossModule module) : Components.CastGaze(module, AID.Oogle, false);
@@ -38,7 +37,20 @@ class MarkOfDeath(BossModule module) : Components.GenericAOEs(module, AID.MarkOf
 
         foreach (var eye in observersEyes) {
             if (!eye.IsDead) {
-                yield return new(new AOEShapeCone(7.5f, 60.0f.Degrees()), eye.Position, eye.Rotation); // Slightly bigger aoe as the target is constantly moving
+                yield return new(new AOEShapeCone(8.5f, 60.0f.Degrees()), eye.Position, eye.Rotation);
+            }
+        }
+    }
+
+    // Puts a large circle around the enemy since it can turn direction which can cause issues when standing right next to the cone outline
+    // so best to just keep away from the enemy a decent distance
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        var observersEyes = WorldState.Actors.Where(a => a.OID is (uint)OID.ObserversEye or (uint)OID.ObserversEye1).ToList();
+        foreach (var eye in observersEyes) {
+            if (!eye.IsDead) {
+                hints.AddForbiddenZone(new AOEShapeCircle(8.5f), eye.Position);
             }
         }
     }
@@ -54,5 +66,5 @@ class ObserverStates : StateMachineBuilder {
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13853)]
+[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13853)]
 public class Observer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-71.000f, 557.000f), new ArenaBoundsCircle(40));

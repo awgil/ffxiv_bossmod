@@ -32,12 +32,16 @@ public enum AID : uint {
     BreathWingCast = 42008, // Boss->self, 4.0s cast, single-target
     BreathWingCast1 = 42006, // Boss->self, 5.0s cast, single-target
     BreathWing = 42007, // AdvancedAevis->location, 5.0s cast, range 30 circle
+
+    QuarryLakeBoss = 42002, // Boss->self, 5.0s cast, single-target
+    QuarryLake = 42003, // AdvancedAevis->location, 5.0s cast, range 40 circle
 }
 
 class ZombieScales(BossModule module) : Components.GroupedAOEs(module, [AID.ZombieScales, AID.ZombieScales1], new AOEShapeCone(40.0f, 22.5f.Degrees()), 4, true);
 class AeroII(BossModule module) : Components.StandardAOEs(module, AID.AeroII, 4f);
 class ZombieBreath(BossModule module) : Components.StandardAOEs(module, AID.ZombieBreath, new AOEShapeCone(40f, 90.Degrees()));
 class BreathWing(BossModule module) : Components.RaidwideCast(module, AID.BreathWing);
+class QuarryLake(BossModule module) : Components.CastGaze(module, AID.QuarryLake);
 
 class TripleFlight(BossModule module) : Components.GenericAOEs(module) {
     private List<AOEInstance> aoes = [];
@@ -82,10 +86,10 @@ class AdvancedAevisStates : StateMachineBuilder {
             .ActivateOnEnter<AeroII>()
             .ActivateOnEnter<TripleFlight>()
             .ActivateOnEnter<ZombieBreath>()
-            .ActivateOnEnter<BreathWing>();
+            .ActivateOnEnter<BreathWing>()
+            .ActivateOnEnter<QuarryLake>();
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13704)]
+[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13704)]
 public class AdvancedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-48.0f, -320.0f), new ArenaBoundsCircle(40));
-

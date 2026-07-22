@@ -36,8 +36,40 @@ public enum AID : uint {
 class VoidWaterIV1(BossModule module) : Components.RaidwideCast(module, AID.VoidWaterIV);
 class VoidWaterIII(BossModule module) : Components.StandardAOEs(module, AID.VoidWaterIII, 6f);
 
-// We change this to draw to the foreground as the exaflares casts overlap with the first one, and it can look confusing where is exactly safe
 class TidelineStart(BossModule module) : Components.StandardAOEs(module, AID.TidelineStart, new AOEShapeRect(50f, 5f), highlightImminent: true) {
+    private ActorCastInfo? spellInstance = null;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        base.OnCastStarted(caster, spell);
+        if (spell.Action == WatchedAction) {
+            spellInstance = spell;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        base.OnEventCast(caster, spell);
+        if (spell.Action == WatchedAction) {
+            spellInstance = null;
+        }
+    }
+
+    // Directions the AI to stand as close as possible to the starting line for an easier dodge into the middle due to TwinTides
+    // otherwise it will sometimes move outwards against the exaflares and won't be able to dodge TwinTides correctly
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (spellInstance == null) {
+            return;
+        }
+
+        var shapeInstance = Shape;
+        var rotation = spellInstance.Rotation;
+        var right = spellInstance.LocXZ + rotation.ToDirection().OrthoR() * 1f;
+        var left = spellInstance.LocXZ + rotation.ToDirection().OrthoL() * 1f;
+        hints.GoalZones.Add(p => shapeInstance.Check(p, right, rotation) || shapeInstance.Check(p, left, rotation) ? 100.0f : 0);
+    }
+
+    // We change this to draw to the foreground as the exaflares casts overlap with the first one, and it can look confusing where is exactly safe
     public override void DrawArenaForeground(int pcSlot, Actor pc) {
         foreach (var c in ActiveAOEs(pcSlot, pc)) {
             var col = c.Color;
@@ -94,7 +126,6 @@ class TidelineExaFlare(BossModule module) : Components.Exaflare(module, new AOES
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if ((AID)spell.Action.ID is AID.TidelineStart or AID.TidelineNext) {
-            NumCasts++;
             var ix = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position + l.Advance / 2, 1.0f));
             if (ix >= 0) {
                 AdvanceLine(Lines[ix], caster.Position + Lines[ix].Advance / 2);
@@ -102,6 +133,10 @@ class TidelineExaFlare(BossModule module) : Components.Exaflare(module, new AOES
                     Lines.RemoveAt(ix);
                 }
             }
+        }
+
+        if (spell.Action.ID == (uint)AID.TidelineStart) {
+            NumCasts++;
         }
     }
 }
@@ -178,5 +213,5 @@ class NammuStates : StateMachineBuilder {
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13701)]
+[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13701)]
 public class Nammu(WorldState ws, Actor primary) : BossModule(ws, primary, new(162.3f, 681.3f), new ArenaBoundsCircle(40));

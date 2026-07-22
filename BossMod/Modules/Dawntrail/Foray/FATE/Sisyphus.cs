@@ -102,5 +102,5 @@ class SisyphusStates : StateMachineBuilder {
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13703)]
+[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13703)]
 public class Sisyphus(WorldState ws, Actor primary) : BossModule(ws, primary, new(-227.0f, 37.0f), new ArenaBoundsCircle(40));

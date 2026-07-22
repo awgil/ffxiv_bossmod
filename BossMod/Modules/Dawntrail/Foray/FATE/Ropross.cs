@@ -58,5 +58,5 @@ class RoprossStates : StateMachineBuilder {
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13740)]
+[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13740)]
 public class Ropross(WorldState ws, Actor primary) : BossModule(ws, primary, new(-231.0f, 252.0f), new ArenaBoundsCircle(40));
