@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
+namespace BossMod.Endwalker.Criterion.C02AMR.C023Moko;
 
 // the main complexity is that first status and cast-start happen at the same time, so we can receive them in arbitrary order
 // we need cast to know proper rotation (we can't use actor's rotation, since it's interpolated)
@@ -13,10 +13,22 @@ class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeCircle _shapeOut = new(6);
     private static readonly AOEShapeDonut _shapeIn = new(6, 40);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(2);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var upwell = Module.FindComponent<Upwell>();
+        if (upwell?.BlocksFollowingMechanics == true)
+            yield break;
+
+        foreach (var aoe in _aoes.Take(2))
+            yield return aoe;
+    }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
+        var upwell = Module.FindComponent<Upwell>();
+        if (upwell?.BlocksFollowingMechanics == true)
+            return;
+
         if (_hints.Count > 0)
             hints.Add($"Safespots: {string.Join(" > ", _hints)}");
     }
