@@ -342,7 +342,7 @@ class IaiGiriResolve(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FleetingIaiGiriBait(BossModule module) : IaiGiriBait(module, 3, 60)
+class FleetingIaiGiriBait(BossModule module) : IaiGiriBait(module, 3, 30)
 {
     public override void AddGlobalHints(GlobalHints hints)
     {

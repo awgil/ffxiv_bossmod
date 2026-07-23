@@ -70,7 +70,7 @@ class Upwell(BossModule module) : Components.Exaflare(module, _shapeNarrow)
             TimeToMove = 2,
             ExplosionsLeft = NumExplosions(caster.Position + advance, advance),
 
-            MaxShownExplosions = 2
+            MaxShownExplosions = 1
         });
 
         Lines.Add(new()
@@ -81,7 +81,7 @@ class Upwell(BossModule module) : Components.Exaflare(module, _shapeNarrow)
             NextExplosion = nextExplosion,
             TimeToMove = 2,
             ExplosionsLeft = NumExplosions(caster.Position - advance, -advance),
-            MaxShownExplosions = 2
+            MaxShownExplosions = 1
         });
     }
 
