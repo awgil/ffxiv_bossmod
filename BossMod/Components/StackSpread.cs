@@ -55,13 +55,13 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
     {
         get
         {
-            if (IncludeDeadTargets)
+            var count = Stacks.Count;
+            if (count == 0 || IncludeDeadTargets)
             {
                 return Stacks;
             }
             else
             {
-                var count = Stacks.Count;
                 var stacks = CollectionsMarshal.AsSpan(Stacks);
                 var activeStacks = new List<Stack>(count);
                 for (var i = 0; i < count; ++i)
@@ -81,13 +81,13 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
     {
         get
         {
-            if (IncludeDeadTargets)
+            var count = Spreads.Count;
+            if (count == 0 || IncludeDeadTargets)
             {
                 return Spreads;
             }
             else
             {
-                var count = Spreads.Count;
                 var activeSpreads = new List<Spread>(count);
                 var spreads = CollectionsMarshal.AsSpan(Spreads);
                 for (var i = 0; i < count; ++i)
@@ -281,8 +281,16 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
         // ideally we should provide per-mechanic spread spots, but for simple cases we should try to let melee spread close and healers/rdd spread far from main target...
 
         var spreads = CollectionsMarshal.AsSpan(ActiveSpreads);
+        var stacks = CollectionsMarshal.AsSpan(ActiveStacks);
         var lenSpreads = spreads.Length;
         var isSpreadTarget = false;
+
+        var partyWOS = Raid.WithSlot();
+        var lenPWOS = partyWOS.Length;
+        if (lenPWOS < 2) // no need to generate forbidden zones if there are no allies
+        {
+            goto skipFZs;
+        }
 
         for (var i = 0; i < lenSpreads; ++i)
         {
@@ -296,13 +304,11 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
             {
                 isSpreadTarget = true;
 
-                var partyWOS = Raid.WithoutSlot();
-                var lenPWOS = partyWOS.Length;
                 var radius = s.Radius;
                 var act = s.Activation;
                 for (var j = 0; j < lenPWOS; ++j)
                 {
-                    var p = partyWOS[j];
+                    var p = partyWOS[j].Item2;
 
                     for (var k = 0; k < lenSpreads; ++k)
                     {
@@ -319,7 +325,6 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
             }
         }
 
-        var stacks = CollectionsMarshal.AsSpan(ActiveStacks);
         var lenStacks = stacks.Length;
         var isStackTarget = false;
 
@@ -330,8 +335,7 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
             if (s.Target == actor)
             {
                 isStackTarget = true;
-                var partyWOS = Raid.WithSlot();
-                var lenPWOS = partyWOS.Length;
+
                 var stacksIFzTarget = new List<ShapeDistance>(lenPWOS - 1);
                 var radius = s.Radius;
 
@@ -414,7 +418,7 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
                 hints.AddForbiddenZone(new SDOutsideOfUnion([.. stacksIFz]), act);
             }
         }
-
+    skipFZs:
         if (RaidwideOnResolve)
         {
             var firstActivation = DateTime.MaxValue;
@@ -441,6 +445,7 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
                 BitMask stackMask = default;
                 BitMask mask = default;
                 mask.Raw = 0xFFFFFFFFFFFFFFFF;
+
                 for (var i = 0; i < countStack; ++i)
                 {
                     ref var s = ref stacks[i];
