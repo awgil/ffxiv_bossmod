@@ -94,6 +94,7 @@ class UMADStates : StateMachineBuilder
     void P5(uint id)
     {
         ActorTargetable(id, _module.KefkaP5, true, 30.7f, "Boss appears")
+            .ActivateOnEnter<P5ForsakenHoles>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
         P5UltimaRepeater(id + 0x100, 3.1f);
@@ -107,10 +108,9 @@ class UMADStates : StateMachineBuilder
         P5StrayApocalypse(id + 0x40000, 1.4f);
         P5MaddeningOrchestra(id + 0x50000, 3.3f);
         P5FellForces(id + 0x51000, 4.7f, 3);
+        P5Forsaken(id + 0x60000, 1.4f);
 
-        Timeout(id + 0xFF0000, 10000, "???")
-            .ActivateOnEnter<P5ForsakenGround>()
-            .ActivateOnEnter<P5ForsakenPuddle>();
+        ActorCast(id + 0x70000, _module.KefkaP5, AID.ForsakenNull, 5.1f, 26, true, "Enrage");
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -824,7 +824,7 @@ class UMADStates : StateMachineBuilder
 
     void P5UltimaRepeater(uint id, float delay)
     {
-        ActorCast(id, _module.KefkaP5, AID._Ability_UltimaRepeater, delay, 4, true)
+        ActorCast(id, _module.KefkaP5, AID.UltimaRepeaterCast, delay, 4, true)
             .ActivateOnEnter<P5UltimaRepeater>();
 
         ComponentCondition<P5UltimaRepeater>(id + 0x10, 1.1f, p => p.NumCasts > 0, "Raidwide 1");
@@ -847,7 +847,7 @@ class UMADStates : StateMachineBuilder
 
     void P5Flood(uint id, float delay)
     {
-        ActorCastStart(id, _module.KefkaP5, AID._Ability_Flood, delay, true)
+        ActorCastStart(id, _module.KefkaP5, AID.FloodCast, delay, true)
             .ActivateOnEnter<P5Flood>()
             .ActivateOnEnter<P5ChaoticFlood>();
 
@@ -859,7 +859,7 @@ class UMADStates : StateMachineBuilder
 
     void P5MaddeningOrchestra(uint id, float delay)
     {
-        ActorCastStart(id, _module.KefkaP5, AID._Ability_MaddeningOrchestra, delay, true)
+        ActorCastStart(id, _module.KefkaP5, AID.MaddeningOrchestra, delay, true)
             .ActivateOnEnter<P5MaddeningOrchestraFirst>()
             .ActivateOnEnter<P5MaddeningOrchestraSecond>();
         ComponentCondition<P5MaddeningOrchestraFirst>(id + 1, 5.9f, p => p.NumCasts == 5, "Random spreads")
@@ -877,7 +877,7 @@ class UMADStates : StateMachineBuilder
 
     void P5Celestriad(uint id, float delay)
     {
-        ActorCast(id, _module.KefkaP5, AID._Ability_Celestriad, delay, 5, true)
+        ActorCast(id, _module.KefkaP5, AID.Celestriad, delay, 5, true)
             .ActivateOnEnter<P5Celestriad>()
             .ActivateOnEnter<P5CatastrophicChoice>();
         ComponentCondition<P5Celestriad>(id + 0x10, 9.1f, c => c.NumCasts == 4, "Towers 1");
@@ -891,12 +891,12 @@ class UMADStates : StateMachineBuilder
 
     void P5StrayApocalypse(uint id, float delay)
     {
-        ActorCastStart(id, _module.KefkaP5, AID._Ability_StrayApocalypse1, delay, true)
+        ActorCastStart(id, _module.KefkaP5, AID.StrayApocalypseCast, delay, true)
             .ActivateOnEnter<P5StrayApocalypse>();
         ComponentCondition<P5StrayApocalypse>(id + 1, 4, p => p.NumCasts > 0, "Exaflares start");
         ActorCastEnd(id + 2, _module.KefkaP5, 0, true);
 
-        ActorCastStart(id + 0x10, _module.KefkaP5, AID._Ability_StrayEntropy, 12.2f, true)
+        ActorCastStart(id + 0x10, _module.KefkaP5, AID.StrayEntropyCast, 12.2f, true)
             .ActivateOnEnter<P5StrayEntropy>();
 
         ComponentCondition<P5StrayApocalypse>(id + 0x100, 3.5f, p => p.NumCasts == 84, "Exaflares finish")
@@ -904,5 +904,30 @@ class UMADStates : StateMachineBuilder
 
         ComponentCondition<P5StrayEntropy>(id + 0x101, 2.5f, s => !s.Active, "Spreads")
             .DeactivateOnExit<P5StrayEntropy>();
+    }
+
+    void P5Forsaken(uint id, float delay)
+    {
+        ActorCast(id, _module.KefkaP5, AID.ForsakenP5Cast, delay, 10, true, "Raidwide")
+            .ActivateOnEnter<P5ForsakenGround>()
+            .ActivateOnEnter<P5ForsakenPuddle>()
+            .ActivateOnEnter<P5ForsakenRaidwideCast>()
+            .ActivateOnEnter<P5ForsakenRaidwideInstant>()
+            .ActivateOnEnter<P5ForsakenBonds>()
+            .DeactivateOnExit<P5ForsakenRaidwideCast>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ComponentCondition<P5ForsakenBonds>(id + 0x10, 5.1f, p => p.NumFinishedStacks == 1, "Stack");
+        ComponentCondition<P5ForsakenRaidwideInstant>(id + 0x11, 3.1f, p => p.NumCasts == 1, "Raidwide")
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<P5ForsakenBonds>(id + 0x12, 5.1f, p => p.NumFinishedStacks == 2, "Stack");
+        ComponentCondition<P5ForsakenRaidwideInstant>(id + 0x13, 3.1f, p => p.NumCasts == 2, "Raidwide")
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<P5ForsakenBonds>(id + 0x14, 5.1f, p => p.NumFinishedStacks == 3, "Stack");
+        ComponentCondition<P5ForsakenRaidwideInstant>(id + 0x15, 3.1f, p => p.NumCasts == 3, "Raidwide")
+            .DeactivateOnExit<P5ForsakenRaidwideInstant>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<P5ForsakenBonds>(id + 0x16, 5.1f, p => p.NumFinishedStacks == 4, "Stack")
+            .DeactivateOnExit<P5ForsakenBonds>();
     }
 }
