@@ -71,9 +71,21 @@ class P5Celestriad(BossModule module) : Components.GenericTowers(module)
             return;
         }
 
-        var soakers = Raid.WithSlot().GroupBy(a => new Element[] { Element.Fire, Element.Ice, Element.Lightning }.Count(e => a.Item2.FindStatus(Debuff(e), DateTime.MaxValue) != null)).OrderByDescending(s => s.Key);
+        // players with the highest number of debuffs get first dibs
+        // not checking expiration date here, since every player only has 2 vulns by the time set 3 resolves
+        var soakers = Raid.WithSlot().GroupBy(a => new Element[] { Element.Fire, Element.Ice, Element.Lightning }.Count(e => a.Item2.FindStatus(Debuff(e), DateTime.MaxValue) != null)).OrderByDescending(s => s.Key).GetEnumerator();
 
-        foreach (var (slot, debuff) in soakers.First())
+        try
+        {
+            soakers.MoveNext();
+        }
+        catch (InvalidOperationException ex)
+        {
+            ReportError($"crash while assigning towers: {ex}");
+            return;
+        }
+
+        foreach (var (slot, debuff) in soakers.Current)
         {
             var ft = _towers.Where(t => IsForbidden(debuff, t.Element, t.Activation));
             var forbidden = _towers.Where(t => IsForbidden(debuff, t.Element, t.Activation)).MaxBy(t => t.Pos.Group, new ClockComparer());
@@ -97,7 +109,17 @@ class P5Celestriad(BossModule module) : Components.GenericTowers(module)
             allowedTower.Allowed.Set(slot);
         }
 
-        var others = soakers.Last().Mask();
+        try
+        {
+            soakers.MoveNext();
+        }
+        catch (InvalidOperationException ex)
+        {
+            ReportError($"crash while assigning towers: {ex}");
+            return;
+        }
+
+        var others = soakers.Current.Mask();
 
         foreach (var t in _towers)
             Towers.Add(new(t.Actor.Position, 3, 2, 2, t.Allowed.Any() ? ~t.Allowed : ~others, t.Activation));
