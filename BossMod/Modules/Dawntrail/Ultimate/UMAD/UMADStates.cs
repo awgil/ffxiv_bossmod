@@ -21,6 +21,7 @@ class UMADStates : StateMachineBuilder
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => _module.KefkaP4() is { IsTargetable: false, HPRatio: < 1 };
         SimplePhase(4, P5, "P5")
+            .ActivateOnEnter<P5ForsakenHoles>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => _module.KefkaP5()?.IsDead == true;
     }
@@ -94,7 +95,6 @@ class UMADStates : StateMachineBuilder
     void P5(uint id)
     {
         ActorTargetable(id, _module.KefkaP5, true, 31, "Boss appears")
-            .ActivateOnEnter<P5ForsakenHoles>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
         P5UltimaRepeater(id + 0x100, 3.1f);
