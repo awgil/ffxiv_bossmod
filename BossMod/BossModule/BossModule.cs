@@ -262,15 +262,18 @@ public abstract class BossModule : IDisposable
         hints.PathfindMapCenter = Center;
         hints.PathfindMapBounds = Bounds;
 
-        var (entry, bitmap) = Obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
-        if (entry != null && bitmap != null && bitmap.PixelSize == Bounds.MapResolution)
+        if (Info is not { BitmapDisabled: true })
         {
-            var originCell = (Center - entry.Origin) / bitmap.PixelSize;
-            var originX = (int)originCell.X;
-            var originZ = (int)originCell.Z;
-            var halfH = (int)(Bounds.PfHalfHeight / bitmap.PixelSize);
-            var halfW = (int)(Bounds.PfHalfWidth / bitmap.PixelSize);
-            hints.PathfindMapObstacles = new(bitmap, new(originX - halfW, originZ - halfH, originX + halfW, originZ + halfH));
+            var (entry, bitmap) = Obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
+            if (entry != null && bitmap != null && bitmap.PixelSize == Bounds.MapResolution)
+            {
+                var originCell = (Center - entry.Origin) / bitmap.PixelSize;
+                var originX = (int)originCell.X;
+                var originZ = (int)originCell.Z;
+                var halfH = (int)(Bounds.PfHalfHeight / bitmap.PixelSize);
+                var halfW = (int)(Bounds.PfHalfWidth / bitmap.PixelSize);
+                hints.PathfindMapObstacles = new(bitmap, new(originX - halfW, originZ - halfH, originX + halfW, originZ + halfH));
+            }
         }
 
         foreach (var comp in _components)
