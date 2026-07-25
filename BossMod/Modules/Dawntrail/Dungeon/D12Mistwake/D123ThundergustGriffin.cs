@@ -61,16 +61,11 @@ class ElectrifyingFlight(BossModule module) : Components.Knockback(module)
     {
         foreach (var src in Sources(slot, actor))
         {
-            // TODO: this is lazy and causes "greed" settings from NormalMove to spaz out in the middle of the arena
-            var kbDir = src.Kind switch
-            {
-                Kind.DirLeft => src.Direction.ToDirection().OrthoL(),
-                Kind.DirRight => src.Direction.ToDirection().OrthoR(),
-                _ => default
-            };
+            var orig = src.Origin;
+            var kbDir = src.Direction;
             var dist = src.Distance;
-            var ctr = Arena.Center;
-            hints.AddForbiddenZone(p => !(p + kbDir * dist).InCircle(ctr, 20), src.Activation);
+
+            hints.AddForbiddenZone(p => p.InRect(orig, kbDir, 20, 0, 20) && !(p + kbDir.ToDirection() * dist).InCircle(orig, 20), src.Activation);
         }
     }
 
@@ -83,9 +78,8 @@ class ElectrifyingFlight(BossModule module) : Components.Knockback(module)
         if (IsImmune(slot, activation))
             yield break;
 
-        var dir = _caster.Rotation.ToDirection().OrthoL().Dot(_caster.DirectionTo(actor)) > 0 ? Kind.DirLeft : Kind.DirRight;
-
-        yield return new(_caster.Position, 12, activation, Direction: _caster.Rotation, Kind: dir);
+        yield return new(Arena.Center, 12, activation, new AOEShapeRect(20, 20), _caster.Rotation + 90.Degrees(), Kind.DirForward);
+        yield return new(Arena.Center, 12, activation, new AOEShapeRect(20, 20), _caster.Rotation - 90.Degrees(), Kind.DirForward);
     }
 }
 
