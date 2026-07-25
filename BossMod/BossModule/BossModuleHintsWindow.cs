@@ -20,6 +20,8 @@ public class BossModuleHintsWindow : UIWindow
         Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         if (_mgr.Config.Lock)
             Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
+        if (_mgr.Config.HintsFloating)
+            Flags |= ImGuiWindowFlags.NoBackground;
     }
 
     public override void Draw()

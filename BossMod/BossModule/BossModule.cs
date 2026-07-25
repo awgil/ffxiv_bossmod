@@ -172,7 +172,7 @@ public abstract class BossModule : IDisposable
         if (includeText)
         {
             if (WindowConfig.ShowMechanicTimers)
-                StateMachine.Draw();
+                StateMachine.Draw(ActualShadowColor);
 
             if (WindowConfig.ShowGlobalHints)
                 DrawGlobalHints(CalculateGlobalHints());
@@ -187,6 +187,9 @@ public abstract class BossModule : IDisposable
             Arena.End();
         }
     }
+
+    // sestringrenderer is a bit expensive so let's not do all the extra work if the hints window is opaque
+    Color ActualShadowColor => WindowConfig.HintsFloating ? WindowConfig.HintShadowColor : default;
 
     static bool IsMelee(Actor pc) => pc is { Role: Role.Melee or Role.Tank } or { Class: Class.RDM };
 
@@ -336,7 +339,7 @@ public abstract class BossModule : IDisposable
         using var color = ImRaii.PushColor(ImGuiCol.Text, 0xffffff00);
         foreach (var hint in hints)
         {
-            ImGui.TextUnformatted(hint);
+            Utils.TextOutlined(hint, ActualShadowColor);
             ImGui.SameLine();
         }
         ImGui.NewLine();
@@ -347,7 +350,7 @@ public abstract class BossModule : IDisposable
         foreach ((var hint, bool risk) in hints)
         {
             using var color = ImRaii.PushColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
-            ImGui.TextUnformatted(hint);
+            Utils.TextOutlined(hint, ActualShadowColor);
             ImGui.SameLine();
         }
         ImGui.NewLine();
