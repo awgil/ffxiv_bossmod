@@ -73,19 +73,17 @@ class P5Celestriad(BossModule module) : Components.GenericTowers(module)
 
         // players with the highest number of debuffs get first dibs
         // not checking expiration date here, since every player only has 2 vulns by the time set 3 resolves
-        var soakers = Raid.WithSlot().GroupBy(a => new Element[] { Element.Fire, Element.Ice, Element.Lightning }.Count(e => a.Item2.FindStatus(Debuff(e), DateTime.MaxValue) != null)).OrderByDescending(s => s.Key).GetEnumerator();
+        var soakers = Raid.WithSlot(includeDead: true).GroupBy(a => new Element[] { Element.Fire, Element.Ice, Element.Lightning }.Count(e => a.Item2.FindStatus(Debuff(e), DateTime.MaxValue) != null)).OrderByDescending(s => s.Key).ToList();
 
-        try
+        // we expect two groups of players (started with debuff vs did not start with debuff)
+        // if this isn't the case at any point, that means someone missed tower and died (thus losing status), etc, so heuristic breaks down
+        if (soakers.Count != 2)
         {
-            soakers.MoveNext();
-        }
-        catch (InvalidOperationException ex)
-        {
-            ReportError($"crash while assigning towers: {ex}");
+            AssignSimple();
             return;
         }
 
-        foreach (var (slot, debuff) in soakers.Current)
+        foreach (var (slot, debuff) in soakers[0])
         {
             var ft = _towers.Where(t => IsForbidden(debuff, t.Element, t.Activation));
             var forbidden = _towers.Where(t => IsForbidden(debuff, t.Element, t.Activation)).MaxBy(t => t.Pos.Group, new ClockComparer());
@@ -109,17 +107,7 @@ class P5Celestriad(BossModule module) : Components.GenericTowers(module)
             allowedTower.Allowed.Set(slot);
         }
 
-        try
-        {
-            soakers.MoveNext();
-        }
-        catch (InvalidOperationException ex)
-        {
-            ReportError($"crash while assigning towers: {ex}");
-            return;
-        }
-
-        var others = soakers.Current.Mask();
+        var others = soakers[1].Mask();
 
         foreach (var t in _towers)
             Towers.Add(new(t.Actor.Position, 3, 2, 2, t.Allowed.Any() ? ~t.Allowed : ~others, t.Activation));
