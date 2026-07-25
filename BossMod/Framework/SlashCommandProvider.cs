@@ -92,7 +92,7 @@ public sealed class SlashCommandProvider(ICommandManager commandManager, string 
         Service.Log($"OnCommand: {cmd} {args}");
         if (!Execute(args))
         {
-            Service.ChatGui.PrintError($"Unrecognized slash command: {cmd} {args}");
+            Service.ChatMessage($"Unrecognized slash command: {cmd} {args}");
             foreach (var h in BuildHelp(false))
                 Service.ChatGui.Print($"* {h}");
         }
