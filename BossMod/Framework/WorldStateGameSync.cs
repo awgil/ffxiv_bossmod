@@ -495,15 +495,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         sourcePos.Y += 2;
         targetPos.Y += 2;
         var offset = targetPos - sourcePos;
-        // if distance to target is >50y, their nameplate isn't visible and we definitely can't target them
-        if (offset.SqrMagnitude <= 2500)
-        {
-            var distance = offset.Magnitude;
-            var direction = offset / distance;
-            return BGCollisionModule.RaycastMaterialFilter(sourcePos, direction, out _, distance) ? Visibility.Blocked : Visibility.Visible;
-        }
-
-        return Visibility.Unknown;
+        var distance = offset.Magnitude;
+        var direction = offset / distance;
+        return BGCollisionModule.RaycastMaterialFilter(sourcePos, direction, out _, distance) ? Visibility.Blocked : Visibility.Visible;
     }
 
     private void UpdateActorCastInfo(Actor act, ActorCastInfo? cast)
