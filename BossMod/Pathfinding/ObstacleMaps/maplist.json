@@ -29,45 +29,7 @@
   ],
   "1266.1027": [
     {
-      "MinBoundsX": -216,
-      "MinBoundsY": -42.5,
-      "MinBoundsZ": 130.5,
-      "MaxBoundsX": 18.5,
-      "MaxBoundsY": 7,
-      "MaxBoundsZ": 438.5,
-      "OriginX": -216,
-      "OriginZ": 130.5,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "1266.1027.1.bmp"
-    },
-    {
-      "MinBoundsX": -262.5,
-      "MinBoundsY": -71,
-      "MinBoundsZ": 85.5,
-      "MaxBoundsX": -233.5,
-      "MaxBoundsY": -49,
-      "MaxBoundsZ": 136.5,
-      "OriginX": -262.5,
-      "OriginZ": 85.5,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "1266.1027.2.bmp"
-    },
-    {
-      "MinBoundsX": -260,
-      "MinBoundsY": -100.5,
-      "MinBoundsZ": -57,
-      "MaxBoundsX": -126,
-      "MaxBoundsY": -63.5,
-      "MaxBoundsZ": 98,
-      "OriginX": -260,
-      "OriginZ": -57,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "1266.1027.3.bmp"
-    },
-    {
+      "Comment": "Connections for staircases",
       "MinBoundsX": -24,
       "MinBoundsY": -197,
       "MinBoundsZ": -348.5,
@@ -148,38 +110,9 @@
       "Filename": "1040.6.1.bmp"
     }
   ],
-  "863.664": [
-    {
-      "MinBoundsX": -69.5,
-      "MinBoundsY": 81,
-      "MinBoundsZ": -83.5,
-      "MaxBoundsX": 84.5,
-      "MaxBoundsY": 96,
-      "MaxBoundsZ": 59,
-      "OriginX": -69.5,
-      "OriginZ": -83.5,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "863.664.1.bmp"
-    }
-  ],
-  "932.743": [
-    {
-      "MinBoundsX": -411.5,
-      "MinBoundsY": -230,
-      "MinBoundsZ": 760,
-      "MaxBoundsX": -372.5,
-      "MaxBoundsY": -219,
-      "MaxBoundsZ": 799,
-      "OriginX": -411.5,
-      "OriginZ": 760,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "932.743.1.bmp"
-    }
-  ],
   "620": [
     {
+      "Comment": "Southern half of The Peaks spanning both sides of castrum gate",
       "MinBoundsX": -882,
       "MinBoundsY": 254,
       "MinBoundsZ": -44,
@@ -210,6 +143,7 @@
   ],
   "763.581": [
     {
+	  "Comment": "Caves",
       "MinBoundsX": -587.5,
       "MinBoundsY": -661,
       "MinBoundsZ": -208.5,
@@ -264,6 +198,7 @@
   ],
   "612": [
     {
+      "Comment": "The Fringes spanning both sides of bridge",
       "MinBoundsX": -752,
       "MinBoundsY": 15.5,
       "MinBoundsZ": -888,
@@ -277,23 +212,9 @@
       "Filename": "612.0.1.bmp"
     }
   ],
-  "621": [
-    {
-      "MinBoundsX": 493,
-      "MinBoundsY": 59,
-      "MinBoundsZ": 411,
-      "MaxBoundsX": 822,
-      "MaxBoundsY": 104,
-      "MaxBoundsZ": 710.5,
-      "OriginX": 493,
-      "OriginZ": 411,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "621.0.1.bmp"
-    }
-  ],
   "1011.793": [
     {
+      "Comment": "In From the Cold with cutout next to Wounded Imperial",
       "MinBoundsX": -795.5,
       "MinBoundsY": -37.5,
       "MinBoundsZ": -942.5,
@@ -309,6 +230,7 @@
   ],
   "959": [
     {
+      "Comment": "Mare Lamentorum full zone",
       "MinBoundsX": -816,
       "MinBoundsY": -169,
       "MinBoundsZ": -847.5,
@@ -324,6 +246,7 @@
   ],
   "815": [
     {
+      "Comment": "Amh Araeng full zone",
       "MinBoundsX": -646.5,
       "MinBoundsY": -119.5,
       "MinBoundsZ": -727,
@@ -335,36 +258,6 @@
       "ViewWidth": 60,
       "ViewHeight": 60,
       "Filename": "815.0.1.bmp"
-    }
-  ],
-  "401": [
-    {
-      "MinBoundsX": -422,
-      "MinBoundsY": 60.5,
-      "MinBoundsZ": -474.5,
-      "MaxBoundsX": -126.5,
-      "MaxBoundsY": 106.5,
-      "MaxBoundsZ": -149.5,
-      "OriginX": -422,
-      "OriginZ": -474.5,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "401.0.1.bmp"
-    }
-  ],
-  "938.777": [
-    {
-      "MinBoundsX": -865,
-      "MinBoundsY": -26.5,
-      "MinBoundsZ": -54.5,
-      "MaxBoundsX": -68,
-      "MaxBoundsY": 17,
-      "MaxBoundsZ": 298.5,
-      "OriginX": -865,
-      "OriginZ": -54.5,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "938.777.2.bmp"
     }
   ]
 }

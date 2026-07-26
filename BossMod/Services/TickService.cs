@@ -286,19 +286,34 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 return;
         }
 
-        // already have an entry, everything is ok
-        var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
-        if (entry != null && data != null)
-            return;
-
         // scorched earth approach: if player is moving at all, assume we can't trust their position
         // this covers jumping and clientpaths, as well as some annoying edge cases that don't show up anywhere else: walking off the boat in ihuykatumu (during which IsJumping() returns false), walking off of any wall-less arena (which puts you into condition 47, not Jumping), etc
         if (player.PosRot != player.PrevPosRot)
             return;
 
         // try to do nothing if player is in any state that isn't "standing on the ground"
-        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Diving))
+        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Diving, ConditionFlag.Jumping))
             return;
+
+        var insertAtFront = false;
+
+        var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
+        if (entry != null && data != null)
+        {
+            var poff = ((player.Position - entry.Origin) / data.PixelSize).Floor();
+            var px = (int)poff.X;
+            var py = (int)poff.Z;
+
+            var playerDeepInObstacle = px >= 0 && py >= 0 && px < data.Width && py < data.Height && data[px, py] && (px == 0 || data[px - 1, py]) && (py == 0 || data[px, py - 1]) && (px == (data.Width - 1) || data[px + 1, py]) && (py == (data.Height - 1) || data[px, py + 1]);
+
+            if (playerDeepInObstacle)
+                // we are probably standing on an isolated landmass that is within the current map's bounding box
+                // we should try to generate a new map from player's current position and make it higher priority (assumption is that this area has a smaller bounding box)
+                insertAtFront = true;
+            else
+                // standing in normal part of map, everything is fine
+                return;
+        }
 
         try
         {
@@ -327,7 +342,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         try
         {
-            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 2048, true);
+            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 2048, true, insertAtFront);
         }
         catch (Exception ex)
         {

@@ -312,7 +312,7 @@ public sealed class ObstacleMapManager : IDisposable
         }
     }
 
-    public bool GenerateMap(Vector3 centerWorld, float radius, bool writeToFile)
+    public bool GenerateMap(Vector3 centerWorld, float radius, bool writeToFile, bool insertAtFront)
     {
         if (_resetLock.IsHeldByCurrentThread)
             return false;
@@ -349,7 +349,11 @@ public sealed class ObstacleMapManager : IDisposable
                 var bitmap = new Bitmap(stream);
                 if (writeToFile)
                 {
-                    Database.Entries.GetOrAdd(CurrentKey()).Add(entry);
+                    var entryList = Database.Entries.GetOrAdd(CurrentKey());
+                    if (insertAtFront)
+                        entryList.Insert(0, entry);
+                    else
+                        entryList.Add(entry);
                     SaveDatabase(false);
                 }
                 else
