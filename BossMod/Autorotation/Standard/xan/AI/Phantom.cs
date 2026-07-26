@@ -30,6 +30,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         [Track("Monk: Use Occult Chakra", Action = PhantomID.OccultChakra)]
         public Track<ChakraStrategy> Chakra;
 
+        [Track("Thief: Use Steal", Action = PhantomID.Steal)]
+        public Track<DisabledByDefault> Steal;
+
         [Track("Oracle: Predict", Actions = [PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall])]
         public Track<PredictStrategy> Predict;
 
@@ -260,6 +263,10 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
             if (useOk)
                 UseAction(PhantomID.OccultChakra, Player, chakraOpt.Priority(ActionQueue.Priority.Low));
         }
+
+        var stealOpt = strategy.Steal;
+        if (stealOpt.Value.IsEnabled() && primaryTarget?.IsAlly == false)
+            UseAction(PhantomID.Steal, primaryTarget, stealOpt.Priority(ActionQueue.Priority.Medium));
 
         var predictOpt = strategy.Predict;
         if (predictOpt != PredictStrategy.Disabled)

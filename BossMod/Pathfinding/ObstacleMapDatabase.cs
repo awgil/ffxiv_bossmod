@@ -5,7 +5,7 @@ namespace BossMod.Pathfinding;
 
 public sealed class ObstacleMapDatabase
 {
-    public sealed record class Entry(Vector3 MinBounds, Vector3 MaxBounds, WPos Origin, int ViewWidth, int ViewHeight, string Filename, string Comment)
+    public sealed record class Entry(Vector3 MinBounds, Vector3 MaxBounds, WPos Origin, int ViewWidth, int ViewHeight, string Filename, string Comment = "")
     {
         public Vector3 MinBounds = MinBounds;
         public Vector3 MaxBounds = MaxBounds;
@@ -40,7 +40,7 @@ public sealed class ObstacleMapDatabase
                     jentry.GetProperty(nameof(Entry.ViewWidth)).GetInt32(),
                     jentry.GetProperty(nameof(Entry.ViewHeight)).GetInt32(),
                     jentry.GetProperty(nameof(Entry.Filename)).GetString() ?? "",
-                    jentry.GetProperty(nameof(Entry.Comment)).GetString() ?? ""
+                    jentry.TryGetProperty(nameof(Entry.Comment), out var el) ? (el.GetString() ?? "") : ""
                 )
                 { Embedded = embedded });
             }

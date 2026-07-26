@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -96,14 +97,14 @@ public sealed class ObstacleMapManager : IDisposable
         }
     }
 
-    public bool TryCloneTempMap(out ObstacleMapDatabase.Entry entry, out Bitmap bitmap)
+    public bool TryCloneTempMap([NotNullWhen(true)] out ObstacleMapDatabase.Entry? entry, [NotNullWhen(true)] out Bitmap? bitmap)
     {
         lock (_tempMapLock)
         {
             if (_tempMap is not { } t)
             {
-                entry = null!;
-                bitmap = null!;
+                entry = null;
+                bitmap = null;
                 return false;
             }
 
