@@ -131,7 +131,7 @@ public class BossModuleConfig : ConfigNode
 
     // misc. settings
     [SectionStart]
-    [PropertyDisplay("Show movement hints in world", tooltip: "Not used very much, but can show you arrows in the game world to indicate where to move for certain mechanics")]
+    [PropertyDisplay("Show movement hints in world")]
     public bool ShowWorldArrows = false;
 
     public List<string> DisabledModules = [];
