@@ -1,7 +1,6 @@
 {
   "822.659": [
     {
-      "Comment": "Mt. Gulg with breakable miniboss walls added",
       "MinBoundsX": -71.5,
       "MinBoundsY": -141.5,
       "MinBoundsZ": -232.5,
@@ -12,7 +11,8 @@
       "OriginZ": -232.5,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "822.659.1.bmp"
+      "Filename": "822.659.1.bmp",
+      "Comment": "Mt. Gulg with breakable miniboss walls added"
     },
     {
       "MinBoundsX": -292.5,
@@ -30,7 +30,6 @@
   ],
   "1266.1027": [
     {
-      "Comment": "Connections for staircases",
       "MinBoundsX": -24,
       "MinBoundsY": -197,
       "MinBoundsZ": -348.5,
@@ -41,7 +40,8 @@
       "OriginZ": -348.5,
       "ViewWidth": 42,
       "ViewHeight": 60,
-      "Filename": "1266.1027.6.bmp"
+      "Filename": "1266.1027.6.bmp",
+      "Comment": "Connections for staircases"
     },
     {
       "MinBoundsX": -50.5,
@@ -82,7 +82,8 @@
       "OriginZ": -30.5,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "1040.6.4.bmp"
+      "Filename": "1040.6.4.bmp",
+      "Comment": "Haukke Manor top floor"
     },
     {
       "MinBoundsX": -85,
@@ -95,7 +96,8 @@
       "OriginZ": -55,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "1040.6.2.bmp"
+      "Filename": "1040.6.2.bmp",
+      "Comment": "Haukke Manor bottom floor"
     },
     {
       "MinBoundsX": -85,
@@ -108,12 +110,12 @@
       "OriginZ": -53,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "1040.6.1.bmp"
+      "Filename": "1040.6.1.bmp",
+      "Comment": "Haukke Manor ground floor"
     }
   ],
   "620": [
     {
-      "Comment": "Southern half of The Peaks spanning both sides of castrum gate",
       "MinBoundsX": -882,
       "MinBoundsY": 254,
       "MinBoundsZ": -44,
@@ -124,27 +126,12 @@
       "OriginZ": -44,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "620.0.1.bmp"
-    }
-  ],
-  "138": [
-    {
-      "MinBoundsX": -518,
-      "MinBoundsY": -43,
-      "MinBoundsZ": 396,
-      "MaxBoundsX": -180.5,
-      "MaxBoundsY": -23,
-      "MaxBoundsZ": 768.5,
-      "OriginX": -518,
-      "OriginZ": 396,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "138.0.1.bmp"
+      "Filename": "620.0.1.bmp",
+      "Comment": "Southern half of The Peaks spanning both sides of castrum gate"
     }
   ],
   "763.581": [
     {
-      "Comment": "Caves",
       "MinBoundsX": -587.5,
       "MinBoundsY": -661,
       "MinBoundsZ": -208.5,
@@ -155,7 +142,8 @@
       "OriginZ": -208.5,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "763.581.1.bmp"
+      "Filename": "763.581.1.bmp",
+      "Comment": "Caves"
     },
     {
       "MinBoundsX": -838.5,
@@ -199,7 +187,6 @@
   ],
   "612": [
     {
-      "Comment": "The Fringes spanning both sides of bridge",
       "MinBoundsX": -752,
       "MinBoundsY": 15.5,
       "MinBoundsZ": -888,
@@ -210,12 +197,12 @@
       "OriginZ": -888,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "612.0.1.bmp"
+      "Filename": "612.0.1.bmp",
+      "Comment": "The Fringes spanning both sides of bridge"
     }
   ],
   "1011.793": [
     {
-      "Comment": "In From the Cold with cutout next to Wounded Imperial",
       "MinBoundsX": -795.5,
       "MinBoundsY": -37.5,
       "MinBoundsZ": -942.5,
@@ -226,12 +213,12 @@
       "OriginZ": -942.5,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "1011.793.auto.2.bmp"
+      "Filename": "1011.793.auto.2.bmp",
+      "Comment": "In From the Cold with cutout next to Wounded Imperial"
     }
   ],
   "959": [
     {
-      "Comment": "Mare Lamentorum full zone",
       "MinBoundsX": -816,
       "MinBoundsY": -169,
       "MinBoundsZ": -847.5,
@@ -242,12 +229,12 @@
       "OriginZ": -847.5,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "959.0.1.bmp"
+      "Filename": "959.0.1.bmp",
+      "Comment": "Mare Lamentorum full zone"
     }
   ],
   "815": [
     {
-      "Comment": "Amh Araeng full zone",
       "MinBoundsX": -646.5,
       "MinBoundsY": -119.5,
       "MinBoundsZ": -727,
@@ -258,39 +245,8 @@
       "OriginZ": -727,
       "ViewWidth": 60,
       "ViewHeight": 60,
-      "Filename": "815.0.1.bmp"
-    }
-  ],
-  "863.664": [
-    {
-      "Comment": "A Feast of Lies upper floor",
-      "MinBoundsX": -69.5,
-      "MinBoundsY": 81,
-      "MinBoundsZ": -83.5,
-      "MaxBoundsX": 84.5,
-      "MaxBoundsY": 96,
-      "MaxBoundsZ": 59,
-      "OriginX": -69.5,
-      "OriginZ": -83.5,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "863.664.1.bmp"
-    }
-  ],
-  "932.743": [
-    {
-      "Comment": "Faded Memories final boss arena",
-      "MinBoundsX": -411.5,
-      "MinBoundsY": -230,
-      "MinBoundsZ": 760,
-      "MaxBoundsX": -372.5,
-      "MaxBoundsY": -219,
-      "MaxBoundsZ": 799,
-      "OriginX": -411.5,
-      "OriginZ": 760,
-      "ViewWidth": 60,
-      "ViewHeight": 60,
-      "Filename": "932.743.1.bmp"
+      "Filename": "815.0.1.bmp",
+      "Comment": "Amh Araeng full zone"
     }
   ]
 }

@@ -96,7 +96,7 @@ public sealed class AIHintsBuilder : IDisposable
             FillEnemies(hints, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank), outOfCombatPriority);
             if (activeModule != null)
             {
-                activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints);
+                activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints, Obstacles);
             }
             else
             {
