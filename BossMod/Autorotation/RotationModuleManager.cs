@@ -32,6 +32,10 @@ public sealed class RotationModuleManager : IDisposable
     public int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
     public PlanExecution? Planner;
+
+    // raised whenever the active plan (and therefore the set of upcoming planned actions) changes; used by external IPC users (RSR) to know when to re-poll
+    public event Action? PlannedActionsChanged;
+
     private static readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
     private readonly EventSubscriptions _subscriptions;
     private List<ActiveModule>? ActiveModules;
@@ -143,6 +147,7 @@ public sealed class RotationModuleManager : IDisposable
             Service.Log($"[RMM] Changing active plan: '{Planner?.Plan?.Guid}' -> '{expectedPlan?.Guid}'");
             Planner = Bossmods.ActiveModule != null ? new(Bossmods.ActiveModule, expectedPlan) : null;
             DirtyActiveModules(Preset == null);
+            PlannedActionsChanged?.Invoke();
         }
 
         // rebuild modules if needed

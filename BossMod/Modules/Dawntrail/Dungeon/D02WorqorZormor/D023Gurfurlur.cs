@@ -179,7 +179,7 @@ sealed class Allfire(BossModule module) : Components.GenericAOEs(module)
         if (!first)
             return aoes;
 
-        var max = count >= 12 ? 12 : count == 8 ? 8 : 4;
+        var max = count >= 12 ? 12 : count >= 8 ? 8 : count >= 4 ? 4 : count;
         var deadline = aoes[0].Activation.AddSeconds(1d);
         var color = Colors.Danger;
         for (var i = 0; i < max; ++i)

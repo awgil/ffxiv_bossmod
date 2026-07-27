@@ -527,6 +527,24 @@ sealed class IPCProvider : IDisposable
         Register("ObstacleMap.HasTempMap", obstacles.HasTempMap);
         Register("ObstacleMap.ClearTempMap", obstacles.ClearTempMap);
         Register("ObstacleMap.EvaluateTempMapQuality", obstacles.EvaluateTempMapQuality);
+
+        // Cooldown Planner IPC endpoints for external plugin integration (RSR)
+        // returns a JSON-serialized array of PlanExecution.PlannedAction entries, resolved along the currently active plan branch
+        Register("Plan.GetUpcomingActions", (float lookAheadSeconds) =>
+        {
+            var planner = autorotation.Planner;
+            if (planner == null)
+                return "[]";
+
+            var actions = planner.GetUpcomingPlannedActions(bossmod.WorldState, autorotation.PlayerSlot, lookAheadSeconds);
+            return JsonSerializer.Serialize(actions);
+        });
+
+        // push notification: fired whenever the active plan changes
+        var plannedActionsChangedProvider = Service.PluginInterface.GetIpcProvider<object>("BossMod.Plan.ActionsChanged");
+        void OnPlannedActionsChanged() => plannedActionsChangedProvider.SendMessage();
+        autorotation.PlannedActionsChanged += OnPlannedActionsChanged;
+        _disposeActions += () => autorotation.PlannedActionsChanged -= OnPlannedActionsChanged;
     }
 
     public void Dispose() => _disposeActions?.Invoke();
