@@ -1,6 +1,7 @@
 {
   "822.659": [
     {
+      "Comment": "Mt. Gulg with breakable miniboss walls added",
       "MinBoundsX": -71.5,
       "MinBoundsY": -141.5,
       "MinBoundsZ": -232.5,
@@ -143,7 +144,7 @@
   ],
   "763.581": [
     {
-	  "Comment": "Caves",
+      "Comment": "Caves",
       "MinBoundsX": -587.5,
       "MinBoundsY": -661,
       "MinBoundsZ": -208.5,
@@ -258,6 +259,38 @@
       "ViewWidth": 60,
       "ViewHeight": 60,
       "Filename": "815.0.1.bmp"
+    }
+  ],
+  "863.664": [
+    {
+      "Comment": "A Feast of Lies upper floor",
+      "MinBoundsX": -69.5,
+      "MinBoundsY": 81,
+      "MinBoundsZ": -83.5,
+      "MaxBoundsX": 84.5,
+      "MaxBoundsY": 96,
+      "MaxBoundsZ": 59,
+      "OriginX": -69.5,
+      "OriginZ": -83.5,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "863.664.1.bmp"
+    }
+  ],
+  "932.743": [
+    {
+      "Comment": "Faded Memories final boss arena",
+      "MinBoundsX": -411.5,
+      "MinBoundsY": -230,
+      "MinBoundsZ": 760,
+      "MaxBoundsX": -372.5,
+      "MaxBoundsY": -219,
+      "MaxBoundsZ": 799,
+      "OriginX": -411.5,
+      "OriginZ": 760,
+      "ViewWidth": 60,
+      "ViewHeight": 60,
+      "Filename": "932.743.1.bmp"
     }
   ]
 }
