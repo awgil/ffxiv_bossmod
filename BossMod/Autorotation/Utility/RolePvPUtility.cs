@@ -17,7 +17,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
                 Class.WHM, Class.SCH, Class.AST, Class.SGE,
                 Class.MNK, Class.DRG, Class.NIN, Class.SAM, Class.RPR, Class.VPR,
                 Class.BRD, Class.MCH, Class.DNC,
-                Class.BLM, Class.SMN, Class.RDM, Class.PCT), 100, 30);
+                Class.BLM, Class.SMN, Class.RDM, Class.PCT), 100, 30, PvP: PvPCompatibility.PvPOnly);
 
         res.Define(Track.Elixir).As<ElixirStrategy>("Elixir", uiPriority: 150)
             .AddOption(ElixirStrategy.Far, "Allows use of Elixir if resources are low and no targets are nearby within 50 yalms")

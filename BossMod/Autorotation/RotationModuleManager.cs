@@ -101,6 +101,7 @@ public sealed class RotationModuleManager : IDisposable
             WorldState.Client.CountdownChanged.Subscribe(OnCountdownChanged),
             WorldState.Client.ActionFailedLoS.Subscribe(OnLoSFailed),
             Database.Presets.PresetModified.Subscribe(OnPresetModified),
+            WorldState.IsPvPAreaChanged.Subscribe(a => DirtyActiveModules(true)),
             _aiConfig.Modified.Subscribe(() => DirtyActiveModules(true))
         );
     }
@@ -287,6 +288,17 @@ public sealed class RotationModuleManager : IDisposable
                     continue;
                 if (!def.CanUseWhileRoleplaying && isRPMode)
                     continue;
+
+                var compat = def.PvP switch
+                {
+                    PvPCompatibility.None => !WorldState.IsPvPArea,
+                    PvPCompatibility.PvPOnly => WorldState.IsPvPArea,
+                    _ => true
+                };
+
+                if (!compat)
+                    continue;
+
                 res.Add((index, new(i, def, modules[i].Builder(this, player))));
             }
         }

@@ -239,6 +239,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         if (_ws.Network.IDScramble != scramble)
             _ws.Execute(new NetworkState.OpIDScramble(scramble));
 
+        if (_ws.IsPvPArea != GameMain.IsInPvPArea())
+            _ws.Execute(new WorldState.OpPvPArea(GameMain.IsInPvPArea()));
+
         foreach (var op in _globalOps)
         {
             _ws.Execute(op);

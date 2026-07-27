@@ -18,7 +18,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi GNB (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.GNB), 100, 30);
+        var res = new RotationModuleDefinition("Akechi GNB (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.GNB), 100, 30, PvP: PvPCompatibility.PvPOnly);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
             .AddOption(TargetingStrategy.Auto, "Automatically select best target")
             .AddOption(TargetingStrategy.Manual, "Manually select target");

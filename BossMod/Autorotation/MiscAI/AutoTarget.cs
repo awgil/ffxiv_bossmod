@@ -11,7 +11,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
     public static RotationModuleDefinition Definition()
     {
-        RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel, CanUseWhileRoleplaying: true);
+        RotationModuleDefinition res = new("Automatic targeting", "Collection of utilities to automatically target and pull mobs based on different criteria.", "AI", "veyn", RotationModuleQuality.Basic, new(~0ul), 1000, 1, RotationModuleOrder.HighLevel, CanUseWhileRoleplaying: true, PvP: PvPCompatibility.Any);
 
         res.Define(Track.General).As<GeneralStrategy>("General")
             .AddOption(GeneralStrategy.Aggressive, "Automatically prioritize targets", supportedTargets: ActionTargets.Hostile)
