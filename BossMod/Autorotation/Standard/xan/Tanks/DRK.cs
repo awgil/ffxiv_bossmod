@@ -32,8 +32,8 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         [Track("Salted Earth", MinLevel = 52, Actions = [AID.SaltedEarth, AID.SaltAndDarkness], OGCDPriority = OGCDPriority.SaltedEarth)]
         public Track<OffensiveStrategy> Salt;
 
-        [Track("Shadowbringer", MinLevel = 90, Action = AID.Shadowbringer, OGCDPriority = OGCDPriority.SHB)]
-        public Track<OffensiveStrategy> ShB;
+        [Track("Shadowbringer", MinLevel = 90, Action = AID.Shadowbringer, OGCDPriority = OGCDPriority.SHB, Targets = ActionTargets.Hostile)]
+        public Track<SHBStrategy> ShB;
 
         [Track("Carve & Spit", MinLevel = 60, Actions = [AID.CarveAndSpit, AID.AbyssalDrain], OGCDPriority = OGCDPriority.Carve)]
         public Track<CarveStrategy> Carve;
@@ -80,6 +80,20 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         ForceCarve,
         [Option("Use Abyssal Drain ASAP")]
         ForceDrain
+    }
+
+    public enum SHBStrategy
+    {
+        [Option("Use both charges during raid buffs")]
+        Automatic,
+        [Option("Use one charge during raid buffs")]
+        AutomaticMax,
+        [Option("Don't use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force,
+        [Option("Use one charge ASAP")]
+        ForceMax
     }
 
     public static RotationModuleDefinition Definition()
@@ -242,8 +256,10 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         if (Darkside > AnimLock && strategy.ShB.Value switch
         {
-            OffensiveStrategy.Automatic => Player.InCombat && HaveRaidBuffsUntil(AnimLock),
-            OffensiveStrategy.Force => true,
+            SHBStrategy.Automatic => Player.InCombat && HaveRaidBuffsUntil(AnimLock),
+            SHBStrategy.AutomaticMax => Player.InCombat && HaveRaidBuffsUntil(AnimLock) && MaxChargesIn(AID.Shadowbringer) <= GCD,
+            SHBStrategy.Force => true,
+            SHBStrategy.ForceMax => MaxChargesIn(AID.Shadowbringer) <= strategy.ShB.ExpireIn,
             _ => false
         })
             // +20 prio so overcapped shb (620) is used before c&s (610)
