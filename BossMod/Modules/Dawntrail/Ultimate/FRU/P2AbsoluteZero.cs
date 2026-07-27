@@ -88,6 +88,22 @@ sealed class P2Intermission(BossModule module) : Components.GenericBaitAway(modu
         }
     }
 
+    public override void OnMapEffect(byte index, uint state)
+    {
+        if (index == 0x18)
+        {
+            switch (state)
+            {
+                case 0x00020001u: // crystal appears
+                    Arena.Bounds = new ArenaBoundsCustom([new Polygon(Arena.Center, 20f, 64)], [new Polygon(new(100.5f, 100f), 6f, 16)]); // crystal collision is slightly off center for some reason
+                    break;
+                case 0x00080004u: // crystal destroyed
+                    Arena.Bounds = FRU.BuildArena().arena;
+                    break;
+            }
+        }
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // enemy priorities

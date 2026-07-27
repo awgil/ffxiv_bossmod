@@ -9,9 +9,18 @@ sealed class P4HallowedWings(BossModule module) : Components.SimpleAOEGroups(mod
 sealed class P5ParadiseLost(BossModule module) : Components.CastCounter(module, (uint)AID.ParadiseLostP5AOE);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.BossP1, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1006, NameID = 9707, PlanLevel = 100)]
-public sealed class FRU(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+public sealed class FRU : BossModule
 {
-    private static readonly ArenaBoundsCustom arena = new([new Polygon(new(100f, 100f), 20f, 64)]) { IsCircle = true };
+    public FRU(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private FRU(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    public static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Polygon(new(100f, 100f), 20f, 64)]) { IsCircle = true };
+        return (arena.Center, arena);
+    }
+
     public static readonly ArenaBoundsSquare PathfindHugBorderBounds = new(20f); // this is a hack to allow precise positioning near border by some mechanics, TODO reconsider
 
     public override bool ShouldPrioritizeAllEnemies => true;

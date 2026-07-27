@@ -4,7 +4,7 @@ sealed class FRUStates : StateMachineBuilder
 {
     private readonly FRU _module;
 
-    private static bool IsActorDead(Actor? a, bool valueIfNull) => a == null ? valueIfNull : (a.IsDeadOrDestroyed || a.HPMP.CurHP <= 1);
+    private static bool IsActorDead(Actor? a, bool valueIfNull) => a == null ? valueIfNull : (a.IsDeadOrDestroyed || a.HPMP.CurHP <= 1u);
 
     public FRUStates(FRU module) : base(module)
     {
@@ -387,10 +387,9 @@ sealed class FRUStates : StateMachineBuilder
             .ActivateOnEnter<P2SinboundBlizzard>()
             .ActivateOnEnter<P2Intermission>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
-        ActorCast(id + 0x1010, _module.IceVeil, (uint)AID.EndlessIceAge, 4.7f, 40, true, "Enrage")
+        ActorCast(id + 0x1010, _module.IceVeil, (uint)AID.EndlessIceAge, 4.7f, 40f, true, "Enrage")
             .ActivateOnEnter<P2HiemalStorm>()
             .ActivateOnEnter<P2HiemalRay>()
-            .DeactivateOnExit<P2Intermission>()
             .DeactivateOnExit<P2SinboundBlizzard>()
             .DeactivateOnExit<P2HiemalStorm>()
             .DeactivateOnExit<P2HiemalRay>();
@@ -400,6 +399,7 @@ sealed class FRUStates : StateMachineBuilder
     {
         ComponentCondition<P3Junction>(id, delay, comp => comp.NumCasts > 0, "Raidwide")
             .ActivateOnEnter<P3Junction>()
+            .DeactivateOnExit<P2Intermission>()
             .DeactivateOnExit<P3Junction>()
             .SetHint(StateMachine.StateHint.Raidwide);
         ActorTargetable(id + 0x10, _module.BossP3, true, 14.2f, "Boss appears")

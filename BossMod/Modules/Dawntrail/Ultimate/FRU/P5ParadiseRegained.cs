@@ -50,9 +50,9 @@ sealed class P5ParadiseRegainedBaits(BossModule module) : Components.GenericBait
     private DateTime _activation;
     private bool _tetherClosest;
 
-    private static readonly AOEShapeCone _shapeCleaveL = new(19f, 120f.Degrees(), 60f.Degrees()); // note: looks wrong with correct range...
-    private static readonly AOEShapeCone _shapeCleaveD = new(19f, 120f.Degrees(), -60f.Degrees());
-    private static readonly AOEShapeCircle _shapeTether = new(4);
+    private readonly AOEShapeCone _shapeCleaveL = new(20f, 120f.Degrees(), 60f.Degrees()); // note: looks wrong on bait target with correct range...
+    private readonly AOEShapeCone _shapeCleaveD = new(20f, 120f.Degrees(), -60f.Degrees());
+    private readonly AOEShapeCircle _shapeTether = new(4);
 
     public override void Update()
     {

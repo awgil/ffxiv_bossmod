@@ -283,9 +283,14 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
         var spreads = CollectionsMarshal.AsSpan(ActiveSpreads);
         var stacks = CollectionsMarshal.AsSpan(ActiveStacks);
         var lenSpreads = spreads.Length;
+        var lenStacks = stacks.Length;
+        if (lenStacks == 0 && lenSpreads == 0) // nothing to do
+        {
+            return;
+        }
         var isSpreadTarget = false;
 
-        var partyWOS = Raid.WithSlot();
+        var partyWOS = Raid.WithSlot(includeDead: IncludeDeadTargets);
         var lenPWOS = partyWOS.Length;
         if (lenPWOS < 2) // no need to generate forbidden zones if there are no allies
         {
@@ -325,7 +330,6 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
             }
         }
 
-        var lenStacks = stacks.Length;
         var isStackTarget = false;
 
         for (var i = 0; i < lenStacks; ++i)
