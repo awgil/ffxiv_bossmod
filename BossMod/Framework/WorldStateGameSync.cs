@@ -234,13 +234,15 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         {
             _ws.Execute(new WorldState.OpZoneChange((ushort)Service.ClientState.TerritoryType, GameMain.Instance()->CurrentContentFinderConditionId));
         }
+
+        var isPVP = GameMain.IsInPvPArea();
+        if (_ws.IsPvPArea != isPVP)
+            _ws.Execute(new WorldState.OpPvPArea(isPVP));
+
         var proxy = fwk->NetworkModuleProxy->ReceiverCallback;
         var scramble = Network.IDScramble.Get();
         if (_ws.Network.IDScramble != scramble)
             _ws.Execute(new NetworkState.OpIDScramble(scramble));
-
-        if (_ws.IsPvPArea != GameMain.IsInPvPArea())
-            _ws.Execute(new WorldState.OpPvPArea(GameMain.IsInPvPArea()));
 
         foreach (var op in _globalOps)
         {
