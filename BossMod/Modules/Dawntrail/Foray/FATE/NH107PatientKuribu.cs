@@ -15,13 +15,15 @@ public enum AID : uint {
     StoneIII1 = 50071, // 4DCC->self, 4.5s cast, range 40 45-degree cone
 
     EnsorcelAeroIII = 49905, // PatientKuribu->self, 5.0s cast, single-target
-    AeroIII = 49908, // 4DCC->location, 4.0s cast, range 40 width 8 rect
+    AeroIII = 49908, // 4DCC->location, 4.0s cast, range 40 width 8 rect - This is a real cast as well
+    AeroIII1 = 50072, // PatientKuribu1->location, 4.5s cast, range 40 width 8 rect - This is a real cast
 
     HolyCast = 49911, // PatientKuribu->self, 3.0s cast, single-target
     HolyStart = 49912, // 4DCC->self, 5.0s cast, range 6 circle
     HolyNext = 49913, // 4DCC->location, 3.0s cast, range 6 circle
 
-    LongswordAndSorcery = 50121, // PatientKuribu->self, 5.0s cast, range ?-25 donut
+    ShortswordAndSorcery = 50118, // PatientKuribu->self, 5.0s cast, range 15 circle
+    LongswordAndSorcery = 50121, // PatientKuribu->self, 5.0s cast, range 15-25 donut
 }
 
 public enum SID : uint {
@@ -31,19 +33,22 @@ public enum SID : uint {
 
 sealed class Glory(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Glory, new AOEShapeCone(50.0f, 45.0f.Degrees()));
 sealed class StoneIII(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.StoneIII, (uint)AID.StoneIII1],
-    new AOEShapeCone(40.0f, 45.0f.Degrees()));
-sealed class AeroIII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.AeroIII, new AOEShapeRect(40.0f, 4.0f));
+    new AOEShapeCone(40.0f, 22.5f.Degrees()));
+sealed class AeroIII(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.AeroIII, (uint)AID.AeroIII1], new AOEShapeRect(40.0f, 4.0f));
 sealed class Holy(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.HolyStart, (uint)AID.HolyNext], new AOEShapeCircle(6.0f));
+sealed class ShortswordAndSorcery(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ShortswordAndSorcery, new AOEShapeCircle(15.0f));
+sealed class LongswordAndSorcery(BossModule module) : Components.SimpleAOEs(module, (uint)AID.LongswordAndSorcery, new AOEShapeDonut(15.0f, 25.0f));
 
 [SkipLocalsInit]
 sealed class PatientKuribuStates : StateMachineBuilder {
-    public PatientKuribuStates(BossModule module) : base(module)
-    {
+    public PatientKuribuStates(BossModule module) : base(module) {
         TrivialPhase()
             .ActivateOnEnter<Glory>()
             .ActivateOnEnter<StoneIII>()
             .ActivateOnEnter<AeroIII>()
-            .ActivateOnEnter<Holy>();
+            .ActivateOnEnter<Holy>()
+            .ActivateOnEnter<ShortswordAndSorcery>()
+            .ActivateOnEnter<LongswordAndSorcery>();
     }
 }
 
