@@ -26,7 +26,7 @@ public static class BossModuleRegistry
         public int SortOrder;
         public int PlanLevel;
         public bool Incomplete;
-        public bool BitmapDisabled;
+        public bool BitmapEnabled;
 
         public static Info? Build(Type module)
         {
@@ -135,6 +135,15 @@ public static class BossModuleRegistry
                 sortOrder = (int)primaryOID;
             }
 
+            var bitmapEnabled = (infoAttr?.BitmapType ?? BossModuleInfo.BitmapType.Auto) switch
+            {
+                // basic assumption is that only "outdoor" content needs a map loaded; most multiplayer duties have static or relatively simple arena bounds that are controlled by map effects (outdoor content includes quest battles, which are normally set in roped-off sections of towns or overworld zones)
+                // even for dynamic arenas, bitmaps are likely to be counterproductive since non-permanent sections of the arena geometry are marked with the 0x2000000 flag, meaning vnav does not generate tiles on them
+                BossModuleInfo.BitmapType.Auto => category is BossModuleInfo.Category.Foray or BossModuleInfo.Category.Hunt or BossModuleInfo.Category.FATE or BossModuleInfo.Category.Quest or BossModuleInfo.Category.PVP,
+                BossModuleInfo.BitmapType.Enabled => true,
+                _ => false
+            };
+
             return new Info(module, statesType)
             {
                 ConfigType = configType,
@@ -154,7 +163,7 @@ public static class BossModuleRegistry
                 SortOrder = sortOrder,
                 PlanLevel = infoAttr?.PlanLevel ?? 0,
                 Incomplete = infoAttr?.Incomplete ?? false,
-                BitmapDisabled = infoAttr?.BitmapDisabled ?? false
+                BitmapEnabled = bitmapEnabled
             };
         }
 

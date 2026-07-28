@@ -260,7 +260,7 @@ public abstract class BossModule : IDisposable
         hints.PathfindMapCenter = Center;
         hints.PathfindMapBounds = Bounds;
 
-        if (Info is not { BitmapDisabled: true })
+        if (Info?.BitmapEnabled == true)
         {
             var (entry, bitmap) = obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
             if (entry != null && bitmap != null && bitmap.PixelSize == Bounds.MapResolution)

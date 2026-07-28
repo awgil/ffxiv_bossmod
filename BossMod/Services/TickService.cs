@@ -286,11 +286,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 return;
         }
 
-        // scorched earth approach: if player is moving at all, assume we can't trust their position
+        // scorched earth approach: if player is moving vertically, assume we can't trust their position
         // this covers jumping and clientpaths, as well as some annoying edge cases that don't show up anywhere else: walking off the boat in ihuykatumu (during which IsJumping() returns false), walking off of any wall-less arena (which puts you into condition 47, not Jumping), etc
-        // TODO: this is overly restrictive, doesn't work in boss arenas that are entirely filled because the pathfinder tries to move somewhere every frame (at least with AI on)
-        //if (player.PosRot != player.PrevPosRot)
-        //    return;
+        if (player.PosRot.Y != player.PrevPosRot.Y)
+            return;
 
         // try to do nothing if player is in any state that isn't "standing on the ground"
         if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Diving, ConditionFlag.Jumping, (ConditionFlag)47))

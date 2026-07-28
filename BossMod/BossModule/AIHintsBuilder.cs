@@ -110,8 +110,6 @@ public sealed class AIHintsBuilder : IDisposable
     // fill list of potential targets from world state
     private void FillEnemies(AIHints hints, bool playerIsDefaultTank, int priorityPassive = AIHints.Enemy.PriorityUndesirable)
     {
-        var playerY = _ws.Party.Player() is { } p ? p.PosRot.Y : 0;
-
         var allowedFateID = Utils.IsPlayerSyncedToFate(_ws) ? _ws.Client.ActiveFate.ID : 0;
         foreach (var actor in _ws.Actors.Where(a => IsTargetable(a) && !a.IsAlly && !a.IsDead))
         {
