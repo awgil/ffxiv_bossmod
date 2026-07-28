@@ -11,7 +11,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
     public enum AtonementStrategy { Automatic, ForceAtonement, ForceSupplication, ForceSepulchre, Delay }
     public enum BladeComboStrategy { Automatic, ForceConfiteor, ForceFaith, ForceTruth, ForceValor, Delay }
     public enum GoringBladeStrategy { Automatic, Late, Force, Delay }
-    public enum HolyStrategy { Automatic, Early, Late, VeryLate, OnlySpirit, OnlyCircle, ForceSpirit, ForceCircle, Delay }
+    public enum HolyStrategy { Automatic, Early, Late, VeryLate, OnlySpirit, OnlyCircle, ForceSpirit, ForceCircle, Delay, Conserve }
     public enum DashStrategy { Automatic, GapClose, GapClose5, GapClose10, GapCloseOpener, Opener, OvercapSafe, OvercapUnsafe, Force, Delay }
     public enum BuffsStrategy { Automatic, Together, RaidBuffsOnly, Force, ForceWeave, Delay }
     public enum RangedStrategy { Automatic, OpenerRangedCast, OpenerCast, RangedCast, RangedCastStationary, OpenerRanged, Opener, Ranged, Force, Forbid }
@@ -80,6 +80,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(HolyStrategy.Early, "Automatically use best Holy action as soon as possible", 0, 0, ActionTargets.Hostile, 68)
             .AddOption(HolyStrategy.Late, "Automatically use best Holy action after Atonement combo (or if nothing else left to use)", 0, 0, ActionTargets.Hostile, 68)
             .AddOption(HolyStrategy.VeryLate, "Automatically use best Holy action at the very last possible moment (right before next Atonement)", 0, 0, ActionTargets.Hostile, 68)
+            .AddOption(HolyStrategy.Conserve, "Automatically conserve Divine Might (uses before Royal Authority, if outside melee range, or before it expires)", 0, 0, ActionTargets.Hostile, 68)
             .AddOption(HolyStrategy.OnlySpirit, "Only use Holy Spirit as best Holy action", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(HolyStrategy.OnlyCircle, "Only use Holy Circle as best Holy action", 0, 0, ActionTargets.Hostile, 72)
             .AddOption(HolyStrategy.ForceSpirit, "Force raw or buffed Holy Spirit (if available)", 0, 0, ActionTargets.Hostile, 64)
@@ -330,12 +331,25 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         var hsMinimum = Unlocked(AID.HolySpirit) && In25y(dmhTarget) && dmhMinimum;
         var hcMinimum = Unlocked(AID.HolyCircle) && In5y(dmhTarget) && dmhMinimum;
         var bestHoly = usedmhAOE ? BestHolyCircle : AID.HolySpirit;
+        var outsideMelee = dmhTarget != null && !In3y(dmhTarget);
+        var beforeRoyalAuthority = LastComboAction is AID.RiotBlade;
+        var divineMightExpiring = DMstatus is > 0f and < 3f;
+
         var (dmhCondition, dmhAction, dmhPrio) = dmhStrat switch
         {
             HolyStrategy.Automatic => (hsMinimum, bestHoly, GCDPriority.AboveAverage - 1),
             HolyStrategy.Early => (hsMinimum, bestHoly, GCDPriority.AboveAverage + 1),
             HolyStrategy.Late => (hsMinimum, bestHoly, GCDPriority.AboveAverage - 1),
             HolyStrategy.VeryLate => (Unlocked(AID.HolySpirit) && In25y(dmhTarget) && dmhTarget != null && DMstatus > GCD && (LastComboAction is AID.RiotBlade || DMstatus < 3), bestHoly, GCDPriority.AboveAverage - 2),
+            HolyStrategy.Conserve => (
+                dmhTarget != null
+                && Unlocked(AID.HolySpirit)
+                && In25y(dmhTarget)
+                && DMstatus > GCD
+                && (outsideMelee || beforeRoyalAuthority || divineMightExpiring),
+                bestHoly,
+                GCDPriority.AboveAverage - 2
+            ),
             HolyStrategy.OnlySpirit => (hsMinimum, AID.HolySpirit, GCDPriority.AboveAverage - 1),
             HolyStrategy.OnlyCircle => (hcMinimum, AID.HolyCircle, GCDPriority.AboveAverage - 1),
             HolyStrategy.ForceSpirit => (hsMinimum, AID.HolySpirit, GCDPriority.Forced),
@@ -352,9 +366,12 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         var rStrat = r.As<RangedStrategy>();
         var rTarget = SingleTargetChoice(mainTarget, r);
         var away = !In3y(rTarget);
+        var canUseInstantHolySpirit = rTarget != null && Unlocked(AID.HolySpirit) && DMstatus > GCD && In25y(rTarget);
+        var canHardcastHolySpirit = rTarget != null && Unlocked(AID.HolySpirit) && !IsMoving && MP >= 1000 && In25y(rTarget);
+
         var (rCondition, rAction, rPriority) = rStrat switch
         {
-            RangedStrategy.Automatic => (rTarget != null && away, IsMoving || MP < 1000 ? AID.ShieldLob : AID.HolySpirit, GCDPriority.Low + 1),
+            RangedStrategy.Automatic => (rTarget != null && away, canUseInstantHolySpirit || canHardcastHolySpirit ? AID.HolySpirit : AID.ShieldLob, GCDPriority.Low + 1),
             RangedStrategy.OpenerRanged => (IsFirstGCD && away, AID.ShieldLob, GCDPriority.Low + 1),
             RangedStrategy.OpenerRangedCast => (IsFirstGCD && away && !IsMoving, Unlocked(AID.HolySpirit) ? AID.HolySpirit : AID.ShieldLob, GCDPriority.AboveAverage - 1),
             RangedStrategy.Opener => (IsFirstGCD, AID.ShieldLob, GCDPriority.Low + 1),
