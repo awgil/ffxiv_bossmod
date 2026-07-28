@@ -2,44 +2,13 @@ using Dalamud.Interface;
 
 namespace BossMod.Dawntrail.Savage.M12S2Lindwurm;
 
-sealed class IdyllicDreamArena(BossModule module) : Components.GenericAOEs(module)
+sealed class IdyllicDreamArena(BossModule module) : Components.GenericAOEs(module, warningText: "Go to correct plattform!")
 {
-    private static readonly ArenaBoundsCustom PlatformBounds = BuildPlatformBounds();
-    private static readonly AOEShapeCustom InversePlatformShape = BuildInverseShape();
-    private readonly AOEInstance[] _aoe = new AOEInstance[1];
+    private readonly Polygon[] baseArena = [new(module.Arena.Center, 20f, 60)];
+    private readonly Polygon[] splitArena = [new(new(86f, 100f), 10f, 60), new(new(114f, 100f), 10f, 60)];
+    private AOEInstance[] _aoe = [];
 
-    private DateTime _activation;
-
-    public int State { get; private set; }
-
-    private static ArenaBoundsCustom BuildPlatformBounds()
-    {
-        // two 10y circles centered ±14 from arena center
-        Shape[] union =
-        [
-            new Circle(new(-14, 0), 10),
-            new Circle(new(14, 0), 10)
-        ];
-
-        return new ArenaBoundsCustom(union);
-    }
-
-    private static AOEShapeCustom BuildInverseShape()
-    {
-        // full 20y arena minus platform union
-        Shape[] arena =
-        [
-            new Circle(default, 20)
-        ];
-
-        Shape[] subtract =
-        [
-            new Circle(new(-14, 0), 10),
-            new Circle(new(14, 0), 10)
-        ];
-
-        return new AOEShapeCustom(arena, subtract);
-    }
+    public int State;
 
     public override void OnMapEffect(byte index, uint state)
     {
@@ -48,67 +17,29 @@ sealed class IdyllicDreamArena(BossModule module) : Components.GenericAOEs(modul
 
         switch (state)
         {
-            case 0x00200010:
-                _activation = WorldState.FutureTime(9.1f);
-                break;
-
-            case 0x00800040:
-            case 0x02000040:
-                _activation = default;
-                Arena.Bounds = PlatformBounds;
+            case 0x00800040u:
+            case 0x02000040u:
+                _aoe = [];
+                Arena.Bounds = new ArenaBoundsCustom(splitArena);
                 State = 1;
                 break;
-
-            case 0x01000001:
-                _activation = default;
-                Arena.Bounds = new ArenaBoundsCircle(20);
+            case 0x01000001u:
+                Arena.Bounds = M12S2TheLindwurm.BuildArena().arena;
                 State = 0;
                 break;
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
+
+    public void Predict(double seconds)
     {
-        if (_activation == default)
-            return default;
-
-        _aoe[0] = new(InversePlatformShape, Arena.Center, default, _activation);
-        return _aoe.AsSpan(0, 1);
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (_activation == default)
-            return;
-
-        var pos = actor.Position;
-        if (!pos.InCircle(new(114, 100), 10) && !pos.InCircle(new(86, 100), 10))
-            hints.Add("Go to platform!");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_activation != default)
-        {
-            hints.AddForbiddenZone(
-                new SDOutsideOfUnion(
-                [
-                    new SDInvertedCircle(new(114, 100), 10),
-                    new SDInvertedCircle(new(86, 100), 10)
-                ]),
-                _activation
-            );
-        }
-    }
-
-    public void Predict(float seconds)
-    {
-        _activation = WorldState.FutureTime(seconds);
+        _aoe = [new(new AOEShapeCustom(baseArena, splitArena), Arena.Center, default, WorldState.FutureTime(seconds))];
     }
 }
 
 // Shared state for Idyllic Dream to persist tower assignments across component lifecycles
-class IdyllicDreamSharedState : BossComponent
+sealed class IdyllicDreamSharedState : BossComponent
 {
     public readonly int[] TowerAssignments = new int[PartyState.MaxPartySize];
     public readonly Element[] TowerElements = new Element[PartyState.MaxPartySize];
@@ -147,35 +78,37 @@ class IdyllicDreamSharedState : BossComponent
     }
 }
 
-class ArcadianArcanum(BossModule module) : Components.UniformStackSpread(module, 0, 6)
+sealed class ArcadianArcanum(BossModule module) : Components.UniformStackSpread(module, 0, 6)
 {
     public int NumCasts;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.ArcadianArcanumCast)
+        if (spell.Action.ID == (uint)AID.ArcadianArcanumCast)
         {
             foreach (var p in Raid.WithoutSlot())
-                AddSpread(p, Module.CastFinishAt(spell, 1.4f));
+                AddSpread(p, Module.CastFinishAt(spell, 1.4d));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.ArcadianArcanum)
+        if (spell.Action.ID == (uint)AID.ArcadianArcanum)
         {
-            NumCasts++;
+            ++NumCasts;
             Spreads.Clear();
         }
     }
 }
+
 sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.GenericTowers(module)
 {
-    internal readonly record struct Meteor(Actor Actor, Element Element)
+    internal readonly struct Meteor(Actor actor, Element element)
     {
-        public WPos Position => Actor.Position;
+        internal readonly Actor Actor = actor;
+        internal readonly Element Element = element;
     }
-
+    private IdyllicDreamSharedState? sharedState;
     internal readonly List<Meteor> Meteors = [];
 
     BitMask _lightVuln;
@@ -196,15 +129,15 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
-        if (state != 0x00010002)
+        if (state != 0x00010002u)
             return;
 
-        var element = (OID)actor.OID switch
+        var element = actor.OID switch
         {
-            OID.MeteorWind => Element.Wind,
-            OID.MeteorDark => Element.Dark,
-            OID.MeteorEarth => Element.Earth,
-            OID.MeteorFire => Element.Fire,
+            (uint)OID.MeteorWind => Element.Wind,
+            (uint)OID.MeteorDark => Element.Dark,
+            (uint)OID.MeteorEarth => Element.Earth,
+            (uint)OID.MeteorFire => Element.Fire,
             _ => default
         };
 
@@ -214,7 +147,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if ((SID)status.ID == SID.LightResistanceDownII)
+        if (status.ID == (uint)SID.LightResistanceDownII)
         {
             var slot = Raid.FindSlot(actor.InstanceID);
             if (slot >= 0)
@@ -226,7 +159,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
     {
         if (DrawIcons && Towers.Count > 0)
         {
-            var sharedState = Module.FindComponent<IdyllicDreamSharedState>();
+            sharedState ??= Module.FindComponent<IdyllicDreamSharedState>();
             if (sharedState != null)
             {
                 foreach (var (slot, actor) in Raid.WithSlot(true))
@@ -238,7 +171,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
                         if (tower.IsInside(actor))
                         {
                             var meteor = Meteors[assignedTower];
-                            sharedState.RecordTowerSoak(slot, assignedTower, meteor.Element, meteor.Position);
+                            sharedState.RecordTowerSoak(slot, assignedTower, meteor.Element, meteor.Actor.Position);
                         }
                     }
                 }
@@ -248,10 +181,10 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID != AID.CosmicKiss)
+        if (spell.Action.ID != (uint)AID.CosmicKiss)
             return;
 
-        NumCasts++;
+        ++NumCasts;
         Towers.Clear();
         Meteors.Clear();
         _lightVuln = default;
@@ -267,9 +200,8 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
     {
         DrawIcons = true;
 
-        var activation = WorldState.FutureTime(8.4f);
+        var activation = WorldState.FutureTime(8.4d);
         var meteors = CollectionsMarshal.AsSpan(Meteors);
-
         for (var i = 0; i < meteors.Length; ++i)
         {
             ref var m = ref meteors[i];
@@ -278,7 +210,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
                 ? _lightVuln
                 : ~_lightVuln;
 
-            Towers.Add(new(m.Position, 3, forbiddenSoakers: forbidden, activation: activation));
+            Towers.Add(new(m.Actor.Position, 3, forbiddenSoakers: forbidden, activation: activation));
         }
 
         AssignTowers();
@@ -321,9 +253,9 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
                     continue;
 
                 var pos = player.Position;
-                if (pos.InCircle(new WPos(86, 100), 10))
+                if (pos.InCircle(new WPos(86f, 100f), 10f))
                     actualWestSlots.Add(slot);
-                else if (pos.InCircle(new WPos(114, 100), 10))
+                else if (pos.InCircle(new WPos(114f, 100f), 10f))
                     actualEastSlots.Add(slot);
             }
 
@@ -348,8 +280,9 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         for (var i = 0; i < meteors.Length; ++i)
         {
             ref var m = ref meteors[i];
-            var isWest = m.Position.X < 100;
-            var isNorth = m.Position.Z < 100;
+            var pos = m.Actor.PosRot;
+            var isWest = pos.X < 100f;
+            var isNorth = pos.Z < 100f;
 
             if (isWest)
                 westTowers.Add((i, m, isNorth));
@@ -358,17 +291,17 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         }
 
         // Sort towers: closer to boss (closer to center X) first, then by element type
-        westTowers.Sort((a, b) =>
+        westTowers.Sort(static (a, b) =>
         {
-            var distA = Math.Abs(a.meteor.Position.X - 100);
-            var distB = Math.Abs(b.meteor.Position.X - 100);
+            var distA = Math.Abs(a.meteor.Actor.PosRot.X - 100);
+            var distB = Math.Abs(a.meteor.Actor.PosRot.X - 100);
             return distA.CompareTo(distB);
         });
 
-        eastTowers.Sort((a, b) =>
+        eastTowers.Sort(static (a, b) =>
         {
-            var distA = Math.Abs(a.meteor.Position.X - 100);
-            var distB = Math.Abs(b.meteor.Position.X - 100);
+            var distA = Math.Abs(a.meteor.Actor.PosRot.X - 100);
+            var distB = Math.Abs(a.meteor.Actor.PosRot.X - 100);
             return distA.CompareTo(distB);
         });
 
@@ -417,8 +350,9 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         for (var i = 0; i < meteors.Length; ++i)
         {
             ref var m = ref meteors[i];
-            var isWest = m.Position.X < 100;
-            var isNorth = m.Position.Z < 100;
+            var pos = m.Actor.PosRot;
+            var isWest = pos.X < 100f;
+            var isNorth = pos.Z < 100f;
 
             if (isWest)
                 westTowers.Add((i, m, isNorth));
@@ -427,17 +361,17 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         }
 
         // Sort towers by distance to center
-        westTowers.Sort((a, b) =>
+        westTowers.Sort(static (a, b) =>
         {
-            var distA = Math.Abs(a.meteor.Position.X - 100);
-            var distB = Math.Abs(b.meteor.Position.X - 100);
+            var distA = Math.Abs(a.meteor.Actor.PosRot.X - 100f);
+            var distB = Math.Abs(b.meteor.Actor.PosRot.X - 100f);
             return distA.CompareTo(distB);
         });
 
-        eastTowers.Sort((a, b) =>
+        eastTowers.Sort(static (a, b) =>
         {
-            var distA = Math.Abs(a.meteor.Position.X - 100);
-            var distB = Math.Abs(b.meteor.Position.X - 100);
+            var distA = Math.Abs(a.meteor.Actor.PosRot.X - 100f);
+            var distB = Math.Abs(b.meteor.Actor.PosRot.X - 100f);
             return distA.CompareTo(distB);
         });
 
@@ -539,10 +473,10 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         }
 
         // Determine which players are close (<10 yalms from center X=100) vs far
-        var support1Close = Math.Abs(support1.Position.X - 100) < 10;
-        var support2Close = Math.Abs(support2.Position.X - 100) < 10;
-        var dps1Close = Math.Abs(dps1.Position.X - 100) < 10;
-        var dps2Close = Math.Abs(dps2.Position.X - 100) < 10;
+        var support1Close = Math.Abs(support1.PosRot.X - 100f) < 10f;
+        var support2Close = Math.Abs(support2.PosRot.X - 100f) < 10f;
+        var dps1Close = Math.Abs(dps1.PosRot.X - 100f) < 10f;
+        var dps2Close = Math.Abs(dps2.PosRot.X - 100f) < 10f;
 
         // Count how many of each category are close
         var supportsCloseCount = (support1Close ? 1 : 0) + (support2Close ? 1 : 0);
@@ -555,7 +489,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         for (var i = 0; i < towers.Count; ++i)
         {
             var tower = towers[i];
-            if (Math.Abs(tower.meteor.Position.X - 100) < 10)
+            if (Math.Abs(tower.meteor.Actor.PosRot.X - 100f) < 10f)
                 closeTowers.Add(tower);
             else
                 farTowers.Add(tower);
@@ -691,7 +625,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         for (var i = 0; i < towers.Count; ++i)
         {
             var tower = towers[i];
-            if (Math.Abs(tower.meteor.Position.X - 100) < 10)
+            if (Math.Abs(tower.meteor.Actor.PosRot.X - 100f) < 10f)
                 closeTowers.Add(tower);
             else
                 farTowers.Add(tower);
@@ -820,12 +754,12 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         for (var i = 0; i < meteors.Length; ++i)
         {
             ref var m = ref meteors[i];
+            var pos = m.Actor.Position;
+            var center = pos.X > 100f
+                ? new WPos(114f, 100f)
+                : new WPos(86f, 100f);
 
-            var center = m.Position.X > 100
-                ? new WPos(114, 100)
-                : new WPos(86, 100);
-
-            DrawElement(m.Element, m.Position + (m.Position - center));
+            DrawElement(m.Element, pos + (pos - center));
         }
 
         // Highlight assigned tower
@@ -834,7 +768,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         {
             var tower = Towers[assignedTower];
             if (tower.Shape is AOEShapeCircle circle)
-                Arena.AddCircle(tower.Position, circle.Radius, Colors.Safe, 2);
+                Arena.AddCircle(tower.Position, circle.Radius, Colors.Safe, 2f);
         }
     }
 
@@ -886,7 +820,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
             if (inAssignedTower)
             {
                 var sharedState = Module.FindComponent<IdyllicDreamSharedState>();
-                sharedState?.RecordTowerSoak(slot, assignedTower, meteor.Element, meteor.Position);
+                sharedState?.RecordTowerSoak(slot, assignedTower, meteor.Element, meteor.Actor.Position);
             }
 
             if (!inAssignedTower && tower.Activation > WorldState.CurrentTime)
@@ -966,10 +900,10 @@ sealed class IdyllicDreamWindTower(BossModule module) : Components.GenericKnockb
                 continue;
 
             _knockbacks.Add(new Knockback(
-                origin: m.Position,
+                origin: m.Actor.Position,
                 distance: 23.5f,
                 activation: activation,
-                shape: new AOEShapeCircle(3),
+                shape: new AOEShapeCircle(3f),
                 kind: Kind.AwayFromOrigin
             ));
         }
@@ -982,7 +916,7 @@ sealed class IdyllicDreamWindTower(BossModule module) : Components.GenericKnockb
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID != AID.LindwurmsDarkII)
+        if (spell.Action.ID != (uint)AID.LindwurmsDarkII)
             return;
 
         _knockbacks.Clear();
@@ -1049,7 +983,7 @@ sealed class IdyllicDreamLindwurmsDarkII(BossModule module) : Components.Generic
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.LindwurmsDarkII or AID.CosmicKiss)
+        if (spell.Action.ID is (uint)AID.LindwurmsDarkII or (uint)AID.CosmicKiss)
         {
             _sources.Clear();
             _initialized = false;
@@ -1072,7 +1006,7 @@ sealed class IdyllicDreamDoom(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if ((SID)status.ID != SID.Doom)
+        if (status.ID != (uint)SID.Doom)
             return;
 
         var slot = Raid.FindSlot(actor.InstanceID);
@@ -1082,7 +1016,7 @@ sealed class IdyllicDreamDoom(BossModule module) : BossComponent(module)
 
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
     {
-        if ((SID)status.ID != SID.Doom)
+        if (status.ID != (uint)SID.Doom)
             return;
 
         var slot = Raid.FindSlot(actor.InstanceID);

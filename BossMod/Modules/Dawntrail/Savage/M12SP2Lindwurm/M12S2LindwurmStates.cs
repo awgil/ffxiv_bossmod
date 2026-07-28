@@ -199,7 +199,8 @@ class M12S2LindwurmStates : StateMachineBuilder
 
         CastStart(id + 0x150, (uint)AID.LindwurmsMeteor, 3.5f)
             .ActivateOnEnter<LindwurmsMeteor>();
-        ComponentCondition<IdyllicDreamPowerGusherSnakingKick>(id + 0x151, 0.9f, k => k.NumCasts > 0, "Stored AOEs");
+        ComponentCondition<IdyllicDreamPowerGusherSnakingKick>(id + 0x151, 0.9f, k => k.NumCasts > 0, "Stored AOEs")
+            .ExecOnExit<IdyllicDreamArena>(static p => p.Predict(7.8d));
         CastEnd(id + 0x152, 4.1f, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide)
             .DeactivateOnExit<LindwurmsMeteor>();
@@ -226,12 +227,12 @@ class M12S2LindwurmStates : StateMachineBuilder
         ComponentCondition<IdyllicDreamWurmStackSpread>(id + 0x221, 15, w => w.NumCasts == 8, "Clone mechanics end")
             .ExecOnExit<IdyllicDreamStaging>(s => s.WurmsFinished = true);
 
-        Timeout(id + 0x222, 1.5f).DeactivateOnExit<IdyllicDreamWurmStackSpread>();
+        Timeout(id + 0x222, 1.5f).DeactivateOnExit<IdyllicDreamWurmStackSpread>()
+            .ExecOnExit<IdyllicDreamArena>(static p => p.Predict(8.8d))
+            .ExecOnExit<IdyllicDreamElementalMeteor>(static m => m.CreateTowers());
 
         // platform transform, towers appear and activate
         Cast(id + 0x230, (uint)AID.TwistedVision, 3.6f, 4)
-            .ExecOnEnter<IdyllicDreamArena>(p => p.Predict(8.8f))
-            .ExecOnEnter<IdyllicDreamElementalMeteor>(m => m.CreateTowers())
             .ActivateOnEnter<IdyllicDreamSharedState>()
             .ActivateOnEnter<IdyllicDreamLindwurmsDarkII>()
             .ActivateOnEnter<IdyllicDreamWindTower>()
@@ -279,11 +280,10 @@ class M12S2LindwurmStates : StateMachineBuilder
         Cast(id + 0x320, (uint)AID.Reenactment, 1.9f, 3)
             .ExecOnEnter<IdyllicDreamManaBurstPlayer>(p => p.Risky = true);
         //    .ExecOnEnter<IdyllicDreamHeavySlamPlayer>(p => p.EnableHints = true);
-        ComponentCondition<IdyllicDreamPlayerCastCounter>(id + 0x322, 3.6f, c => c.NumCasts == 4, "Reenactment 1");
-
+        ComponentCondition<IdyllicDreamPlayerCastCounter>(id + 0x322, 3.6f, c => c.NumCasts == 4, "Reenactment 1")
+            .ExecOnExit<IdyllicDreamArena>(static a => a.Predict(6.7d));
         // platform transform, jumpy clones
         Cast(id + 0x330, (uint)AID.TwistedVision, 1.5f, 4)
-            .ExecOnEnter<IdyllicDreamArena>(a => a.Predict(10))
             // TODO: fix aoe activation time, im tired
             .ExecOnEnter<IdyllicDreamPowerGusherSnakingKick>(k =>
             {

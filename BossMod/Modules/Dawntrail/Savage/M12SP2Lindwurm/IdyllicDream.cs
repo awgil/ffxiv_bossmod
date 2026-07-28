@@ -3,7 +3,7 @@ namespace BossMod.Dawntrail.Savage.M12S2Lindwurm;
 
 sealed class IdyllicDreamStaging(BossModule module) : StagingAssignment<Replication3Role>(module, playerGroupSize: 4, cloneGroupSize: 2, hasBossTether: false)
 {
-    readonly M12S2LindwurmConfig _config = Service.Config.Get<M12S2LindwurmConfig>();
+    private static readonly M12S2LindwurmConfig _config = Service.Config.Get<M12S2LindwurmConfig>();
 
     public bool WurmsFinished;
 
@@ -90,10 +90,10 @@ sealed class IdyllicDreamPowerGusherSnakingKick(BossModule module) : Components.
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        AOEShape? shape = (AID)spell.Action.ID switch
+        AOEShape? shape = spell.Action.ID switch
         {
-            AID.PowerGusherAOEVisual => new AOEShapeCone(60, 45.Degrees()),
-            AID.SnakingKickCastFirst => new AOEShapeCircle(10),
+            (uint)AID.PowerGusherAOEVisual => new AOEShapeCone(60f, 45f.Degrees()),
+            (uint)AID.SnakingKickCastFirst => new AOEShapeCircle(10f),
             _ => null
         };
 
@@ -103,18 +103,18 @@ sealed class IdyllicDreamPowerGusherSnakingKick(BossModule module) : Components.
                 shape,
                 spell.LocXZ,
                 spell.Rotation,
-                WorldState.FutureTime(29.3f)
+                WorldState.FutureTime(29.3d)
             ));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        var aid = (AID)spell.Action.ID;
+        var aid = spell.Action.ID;
 
-        if (aid is AID.PowerGusher or AID.IdyllicDreamSnakingKick)
+        if (aid is (uint)AID.PowerGusher or (uint)AID.IdyllicDreamSnakingKick)
         {
-            NumCasts++;
+            ++NumCasts;
             Visible = false;
 
             if (WatchTeleport)
@@ -124,7 +124,7 @@ sealed class IdyllicDreamPowerGusherSnakingKick(BossModule module) : Components.
         if (!WatchTeleport)
             return;
 
-        if (aid == AID.TemporalTearEnter)
+        if (aid == (uint)AID.TemporalTearEnter)
         {
             var pos = caster.Position;
 
@@ -137,7 +137,7 @@ sealed class IdyllicDreamPowerGusherSnakingKick(BossModule module) : Components.
                 }
             }
         }
-        else if (aid == AID.TemporalTearExit)
+        else if (aid == (uint)AID.TemporalTearExit)
         {
             var newPos = spell.TargetXZ;
 
@@ -147,7 +147,7 @@ sealed class IdyllicDreamPowerGusherSnakingKick(BossModule module) : Components.
 
             _portaled.Clear();
         }
-        else if (aid == AID.Dash)
+        else if (aid == (uint)AID.Dash)
         {
             var oldPos = caster.Position;
             var newPos = spell.TargetXZ;
@@ -205,9 +205,7 @@ sealed class IdyllicDreamWurmStackSpread : Components.UniformStackSpread
     }
 
     // Suppress default UniformStackSpread hints
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-    }
+    public override void AddHints(int slot, Actor actor, TextHints hints) { }
 
     public override void Update()
     {
@@ -233,18 +231,20 @@ sealed class IdyllicDreamWurmStackSpread : Components.UniformStackSpread
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        var aid = (AID)spell.Action.ID;
+        var aid = spell.Action.ID;
 
-        if (aid is AID.IdyllicDreamManaBurstVisual or AID.IdyllicDreamHeavySlam)
-            NumCasts++;
-
-        if (aid is AID.IdyllicDreamManaBurst or AID.IdyllicDreamHeavySlam)
+        if (aid is (uint)AID.IdyllicDreamManaBurstVisual or (uint)AID.IdyllicDreamHeavySlam)
+        {
+            ++NumCasts;
+        }
+        if (aid is (uint)AID.IdyllicDreamManaBurst or (uint)AID.IdyllicDreamHeavySlam)
         {
             if (Stored.Count > 0)
                 Stored.RemoveAt(0);
         }
     }
 }
+
 sealed class IdyllicDreamManaBurstPlayer(BossModule module) : Components.GenericAOEs(module)
 {
     readonly List<AOEInstance> _predicted = [];
@@ -312,14 +312,14 @@ sealed class IdyllicDreamManaBurstPlayer(BossModule module) : Components.Generic
                 new AOEShapeCircle(20f),
                 playerClone.Actor.Position,
                 default,
-                Module.WorldState.FutureTime(10f) // TODO: correct activation timing
+                Module.WorldState.FutureTime(10d) // TODO: correct activation timing
             ));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID != AID.ManaBurstReplay)
+        if (spell.Action.ID != (uint)AID.ManaBurstReplay)
             return;
 
         var target = Module.WorldState.Actors.Find(spell.MainTargetID);
@@ -337,6 +337,7 @@ sealed class IdyllicDreamManaBurstPlayer(BossModule module) : Components.Generic
         NumCasts++;
     }
 }
+
 sealed class IdyllicDreamHeavySlamPlayer(BossModule module) : Components.GenericTowers(module)
 {
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -394,7 +395,7 @@ sealed class IdyllicDreamHeavySlamPlayer(BossModule module) : Components.Generic
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID != AID.HeavySlamReplay)
+        if (spell.Action.ID != (uint)AID.HeavySlamReplay)
             return;
 
         var pos = caster.Position;
@@ -405,7 +406,8 @@ sealed class IdyllicDreamHeavySlamPlayer(BossModule module) : Components.Generic
                 Towers.RemoveAt(i);
         }
 
-        NumCasts++;
+        ++NumCasts;
     }
 }
-class IdyllicDreamPlayerCastCounter(BossModule module) : Components.CastCounterMulti(module, [(uint)AID.ManaBurstReplay, (uint)AID.HeavySlamReplay]);
+
+sealed class IdyllicDreamPlayerCastCounter(BossModule module) : Components.CastCounterMulti(module, [(uint)AID.ManaBurstReplay, (uint)AID.HeavySlamReplay]);

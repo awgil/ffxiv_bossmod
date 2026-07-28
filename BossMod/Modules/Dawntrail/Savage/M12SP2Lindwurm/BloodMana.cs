@@ -41,8 +41,8 @@ sealed class ManaSphere(BossModule module) : BossComponent(module)
         new() { Position = new(110, 100) }
     ];
 
-    public bool SwapDone { get; private set; }
-    public bool HaveDebuff { get; private set; }
+    public bool SwapDone;
+    public bool HaveDebuff;
 
     const uint Green = 0xE0B7EA3C;
     const uint Blue = 0xE0F4E414;
@@ -51,8 +51,8 @@ sealed class ManaSphere(BossModule module) : BossComponent(module)
 
     static readonly AOEShapeDonut Donut = new(0.6f, 1.2f);
     static readonly AOEShapeCircle Circle = new(1.2f);
-    static readonly AOEShapeCone BowtieVertical = new(1.2f, 30.Degrees());
-    static readonly AOEShapeCone BowtieHorizontal = new(1.2f, 30.Degrees(), 90.Degrees());
+    static readonly AOEShapeCone BowtieVertical = new(1.2f, 30f.Degrees());
+    static readonly AOEShapeCone BowtieHorizontal = new(1.2f, 30f.Degrees(), 90f.Degrees());
 
     private readonly Shape[] _closeShapes = new Shape[4];
     private int _closeShapeCount;
@@ -69,17 +69,17 @@ sealed class ManaSphere(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        switch (spell.Action.ID)
         {
-            case AID.ManaSphereSpawn:
+            case (uint)AID.ManaSphereSpawn:
                 AddSphere(caster, spell.TargetXZ);
                 break;
 
-            case AID.BlackHoleAbsorb:
+            case (uint)AID.BlackHoleAbsorb:
                 AbsorbSphere(caster);
                 break;
 
-            case AID.BloodyBurst:
+            case (uint)AID.BloodyBurst:
                 DelayNearbySpheres(spell);
                 break;
         }
@@ -88,12 +88,12 @@ sealed class ManaSphere(BossModule module) : BossComponent(module)
     private void AddSphere(Actor caster, WPos origin)
     {
         Shape shape;
-        switch ((OID)caster.OID)
+        switch (caster.OID)
         {
-            case OID.ManaSphereBlueSphere: shape = Shape.BlueSphere; break;
-            case OID.ManaSphereGreenDonut: shape = Shape.GreenDonut; break;
-            case OID.ManaSpherePurpleBowtie: shape = Shape.PurpleBowtie; break;
-            case OID.ManaSphereOrangeBowtie: shape = Shape.OrangeBowtie; break;
+            case (uint)OID.ManaSphereBlueSphere: shape = Shape.BlueSphere; break;
+            case (uint)OID.ManaSphereGreenDonut: shape = Shape.GreenDonut; break;
+            case (uint)OID.ManaSpherePurpleBowtie: shape = Shape.PurpleBowtie; break;
+            case (uint)OID.ManaSphereOrangeBowtie: shape = Shape.OrangeBowtie; break;
             default: return;
         }
 
@@ -145,17 +145,17 @@ sealed class ManaSphere(BossModule module) : BossComponent(module)
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
         Letter letter;
-        switch ((SID)status.ID)
+        switch (status.ID)
         {
-            case SID.MutationA:
+            case (uint)SID.MutationA:
                 letter = Letter.A;
                 break;
 
-            case SID.MutationB:
+            case (uint)SID.MutationB:
                 letter = Letter.B;
                 break;
 
-            case SID.MutatingCells:
+            case (uint)SID.MutatingCells:
                 letter = Letter.None;
                 SwapDone = true;
                 break;
@@ -257,7 +257,7 @@ sealed class ManaSphere(BossModule module) : BossComponent(module)
             shape.Draw(Arena, sphere.Actor.Position, default, color);
 
             if (shape is AOEShapeCone)
-                shape.Draw(Arena, sphere.Actor.Position, 180.Degrees(), color);
+                shape.Draw(Arena, sphere.Actor.Position, 180f.Degrees(), color);
 
             if (_playerAssignments[pcSlot].L == Letter.B &&
                 sphere.Order == 0 &&
@@ -298,7 +298,7 @@ sealed class BloodWakeningReplay(BossModule module) : Components.GenericAOEs(mod
 
     public static readonly AOEShapeCircle Water = new(8);
     public static readonly AOEShapeDonut Aero = new(5, 60);
-    public static readonly AOEShapeCone ThunderFire = new(40, 60.Degrees());
+    public static readonly AOEShapeCone ThunderFire = new(40f, 60f.Degrees());
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -312,11 +312,11 @@ sealed class BloodWakeningReplay(BossModule module) : Components.GenericAOEs(mod
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID != AID.BloodWakening)
+        if (spell.Action.ID != (uint)AID.BloodWakening)
             return;
 
-        var activation1 = Module.CastFinishAt(spell, 1.7f);
-        var activation2 = activation1.AddSeconds(5.1f);
+        var activation1 = Module.CastFinishAt(spell, 1.7d);
+        var activation2 = activation1.AddSeconds(5.1d);
 
         var mana = Module.FindComponent<ManaSphere>();
         if (mana == null)
@@ -364,24 +364,24 @@ sealed class BloodWakeningReplay(BossModule module) : Components.GenericAOEs(mod
 
             case ManaSphere.Shape.PurpleBowtie:
                 buffer[count++] = new(ThunderFire, origin, default, activation);
-                buffer[count++] = new(ThunderFire, origin, 180.Degrees(), activation);
+                buffer[count++] = new(ThunderFire, origin, 180f.Degrees(), activation);
                 break;
 
             case ManaSphere.Shape.OrangeBowtie:
-                buffer[count++] = new(ThunderFire, origin, 90.Degrees(), activation);
-                buffer[count++] = new(ThunderFire, origin, (-90).Degrees(), activation);
+                buffer[count++] = new(ThunderFire, origin, 90f.Degrees(), activation);
+                buffer[count++] = new(ThunderFire, origin, (-90f).Degrees(), activation);
                 break;
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        switch (spell.Action.ID)
         {
-            case AID.LindwurmsWaterIII:
-            case AID.LindwurmsAeroIII:
-            case AID.StraightforwardThunderII:
-            case AID.SidewaysFireII:
+            case (uint)AID.LindwurmsWaterIII:
+            case (uint)AID.LindwurmsAeroIII:
+            case (uint)AID.StraightforwardThunderII:
+            case (uint)AID.SidewaysFireII:
 
                 ++NumCasts;
                 ResolveOne();
@@ -421,10 +421,10 @@ sealed class Netherworld(BossModule module) : Components.UniformStackSpread(modu
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        bool? far = (AID)spell.Action.ID switch
+        bool? far = spell.Action.ID switch
         {
-            AID.NetherworldNear => false,
-            AID.NetherworldFar => true,
+            (uint)AID.NetherworldNear => false,
+            (uint)AID.NetherworldFar => true,
             _ => null
         };
 
@@ -432,7 +432,7 @@ sealed class Netherworld(BossModule module) : Components.UniformStackSpread(modu
             return;
 
         _far = far.Value;
-        _activation = Module.CastFinishAt(spell, 1.3f);
+        _activation = Module.CastFinishAt(spell, 1.3d);
 
         BuildForbiddenMask();
     }
@@ -447,14 +447,14 @@ sealed class Netherworld(BossModule module) : Components.UniformStackSpread(modu
         for (var i = 0; i < len; ++i)
         {
             var (slot, actor) = party[i];
-            if (actor.FindStatus(SID.MutationA) != null)
+            if (actor.FindStatus((uint)SID.MutationA) != null)
                 _forbidden.Set(slot);
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.WailingWave)
+        if (spell.Action.ID == (uint)AID.WailingWave)
         {
             _activation = default;
             ++NumCasts;
