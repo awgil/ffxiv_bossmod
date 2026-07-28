@@ -511,19 +511,22 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             aiConfig.Enabled = true;
             aiConfig.Modified.Fire();
-            Service.ChatMessage("AI enabled");
+            if (aiConfig.ChatConfirmation)
+                Service.ChatMessage("AI enabled");
         });
         cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () =>
         {
             aiConfig.Enabled = false;
             aiConfig.Modified.Fire();
-            Service.ChatMessage("AI disabled");
+            if (aiConfig.ChatConfirmation)
+                Service.ChatMessage("AI disabled");
         });
         cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () =>
         {
             aiConfig.Enabled ^= true;
             aiConfig.Modified.Fire();
-            Service.ChatMessage($"AI {(aiConfig.Enabled ? "enabled" : "disabled")}");
+            if (aiConfig.ChatConfirmation)
+                Service.ChatMessage($"AI {(aiConfig.Enabled ? "enabled" : "disabled")}");
         });
         cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
         {
@@ -531,7 +534,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             if (_ws.Party[masterSlot] != null)
             {
                 _wndAI.SetSlot(masterSlot);
-                Service.ChatMessage($"AI follow slot = {masterSlot}");
+                if (aiConfig.ChatConfirmation)
+                    Service.ChatMessage($"AI follow slot = {masterSlot}");
             }
             else
                 Service.ChatError($"Error: can't find {masterString} in our party");
