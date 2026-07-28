@@ -1,5 +1,8 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.NH104Stormcaller;
 
+// TODO add a way to figure out where he will jump, this will give an extra second to move out of the way, so not really needed
+// TODO if not possible tell the player to go behind the boss I guess?
+
 public enum OID : uint {
     Stormcaller = 0x4BEC,
     Helper = 0x233C,
@@ -29,7 +32,6 @@ public enum AID : uint {
     FocusedTremor9 = 47595, // 4BED->location, 15.5s cast, range 20-30 donut
 }
 
-sealed class FreeFall(BossModule module) : Components.SimpleAOEs(module, (uint)AID.FreefallTeleport, new AOEShapeCircle(12.0f));
 // TODO improve this, maybe just add a circle around like 5.0 to keep players away from them
 sealed class Windage(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Windage, new AOEShapeCircle(7.0f));
 sealed class BitingScratch(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BitingScratch, new AOEShapeCone(40.0f, 45.0f.Degrees()));
@@ -61,7 +63,6 @@ sealed class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module
 sealed class StormcallerStates : StateMachineBuilder {
     public StormcallerStates(BossModule module) : base(module) {
         TrivialPhase()
-            .ActivateOnEnter<FreeFall>()
             .ActivateOnEnter<Windage>()
             .ActivateOnEnter<BitingScratch>()
             .ActivateOnEnter<FocusedTremor>();
