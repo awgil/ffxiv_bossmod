@@ -6,7 +6,6 @@ sealed class Border(BossModule module) : Components.GenericAOEs(module)
     private AOEInstance[] _aoe = [];
     private static readonly WPos circleCenterNW = new(85.71058f, 91.75f), circleCenterS = new(100f, 116.5f), circleCenterNE = new(114.28942f, 91.75f), arenaCenter = new(100f, 100f);
     private readonly Polygon[] circles = [new(circleCenterNW, 10f, 48), new(circleCenterS, 10f, 48), new(circleCenterNE, 10f, 48)];
-    private readonly Polygon[] baseArena = [new Polygon(arenaCenter, 20f, 128)];
     private readonly RectangleSE[] centerBridge = [new(arenaCenter, circleCenterNW, 4f), new(arenaCenter, circleCenterS, 4f), new(arenaCenter, circleCenterNE, 4f)];
     private readonly List<RectangleSE> activeBridges = [with(3)];
     private readonly List<RectangleSE> disappearingBridges = [with(3)];
@@ -26,7 +25,7 @@ sealed class Border(BossModule module) : Components.GenericAOEs(module)
                     // 0x00800040 - small platforms appear?
                     // 0x08000004 - small platforms disappear?
                     case 0x00020001u: // small plattforms appear preparation
-                        _aoe = [new(new AOEShapeCustom(baseArena, circles), arenaCenter, activation: WorldState.FutureTime(6.8d))];
+                        _aoe = [new(new AOEShapeCustom([new Square(Arena.Center, 20f)], circles), arenaCenter, activation: WorldState.FutureTime(6.8d))];
                         break;
                     case 0x00800040u: // small platforms appear
                         _aoe = [];
@@ -39,7 +38,7 @@ sealed class Border(BossModule module) : Components.GenericAOEs(module)
                         break;
                     case 0x08000004u: // large platform appears
                         _aoe = [];
-                        var arena2 = new ArenaBoundsCustom(baseArena);
+                        var arena2 = new ArenaBoundsCustom([new Polygon(arenaCenter, 20f, 128)]);
                         Arena.Bounds = arena2;
                         Arena.Center = arena2.Center;
                         break;

@@ -4,7 +4,6 @@ namespace BossMod.Dawntrail.Savage.M12S2Lindwurm;
 
 sealed class IdyllicDreamArena(BossModule module) : Components.GenericAOEs(module, warningText: "Go to correct plattform!")
 {
-    private readonly Polygon[] baseArena = [new(module.Arena.Center, 20f, 60)];
     private readonly Polygon[] splitArena = [new(new(86f, 100f), 10f, 60), new(new(114f, 100f), 10f, 60)];
     private AOEInstance[] _aoe = [];
 
@@ -34,7 +33,8 @@ sealed class IdyllicDreamArena(BossModule module) : Components.GenericAOEs(modul
 
     public void Predict(double seconds)
     {
-        _aoe = [new(new AOEShapeCustom(baseArena, splitArena), Arena.Center, default, WorldState.FutureTime(seconds))];
+        var center = Arena.Center;
+        _aoe = [new(new AOEShapeCustom([new Square(center, 20f)], splitArena), center, default, WorldState.FutureTime(seconds))];
     }
 }
 
