@@ -1,4 +1,7 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface.Utility;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -446,4 +449,23 @@ public static partial class Utils
     }
 
     public static Vector3 ToSystem(this Lumina.Data.Parsing.Common.Vector3 v) => new(v.X, v.Y, v.Z);
+
+    public static void TextOutlined(string text, Color outlineColor)
+    {
+        // FIXME: when (if) SeStringRenderer is an interface and dalamock supports it
+        if (outlineColor.A > 0 && !Service.IsMock)
+        {
+            var prms = new SeStringDrawParams()
+            {
+                Edge = true,
+                EdgeStrength = 1,
+                EdgeColor = outlineColor.ABGR,
+                WrapWidth = float.MaxValue
+            };
+
+            ImGuiHelpers.CompileSeStringWrapped(text, prms);
+        }
+        else
+            ImGui.TextUnformatted(text);
+    }
 }

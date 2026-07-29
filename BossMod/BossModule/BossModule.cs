@@ -172,7 +172,7 @@ public abstract class BossModule : IDisposable
         if (includeText)
         {
             if (WindowConfig.ShowMechanicTimers)
-                StateMachine.Draw();
+                StateMachine.Draw(ActualShadowColor);
 
             if (WindowConfig.ShowGlobalHints)
                 DrawGlobalHints(CalculateGlobalHints());
@@ -187,6 +187,9 @@ public abstract class BossModule : IDisposable
             Arena.End();
         }
     }
+
+    // sestringrenderer is a bit expensive so let's not do all the extra work if the hints window is opaque
+    Color ActualShadowColor => WindowConfig.HintsFloating ? WindowConfig.HintShadowColor : default;
 
     static bool IsMelee(Actor pc) => pc is { Role: Role.Melee or Role.Tank } or { Class: Class.RDM };
 
@@ -259,15 +262,18 @@ public abstract class BossModule : IDisposable
         hints.PathfindMapCenter = Center;
         hints.PathfindMapBounds = Bounds;
 
-        var (entry, bitmap) = Obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
-        if (entry != null && bitmap != null)
+        if (Info is not { BitmapDisabled: true })
         {
-            var originCell = (Center - entry.Origin) / bitmap.PixelSize;
-            var originX = (int)originCell.X;
-            var originZ = (int)originCell.Z;
-            var halfH = (int)(Bounds.PfHalfHeight / bitmap.PixelSize);
-            var halfW = (int)(Bounds.PfHalfWidth / bitmap.PixelSize);
-            hints.PathfindMapObstacles = new(bitmap, new(originX - halfW, originZ - halfH, originX + halfW, originZ + halfH));
+            var (entry, bitmap) = Obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
+            if (entry != null && bitmap != null && bitmap.PixelSize == Bounds.MapResolution)
+            {
+                var originCell = (Center - entry.Origin) / bitmap.PixelSize;
+                var originX = (int)originCell.X;
+                var originZ = (int)originCell.Z;
+                var halfH = (int)(Bounds.PfHalfHeight / bitmap.PixelSize);
+                var halfW = (int)(Bounds.PfHalfWidth / bitmap.PixelSize);
+                hints.PathfindMapObstacles = new(bitmap, new(originX - halfW, originZ - halfH, originX + halfW, originZ + halfH));
+            }
         }
 
         foreach (var comp in _components)
@@ -336,7 +342,7 @@ public abstract class BossModule : IDisposable
         using var color = ImRaii.PushColor(ImGuiCol.Text, 0xffffff00);
         foreach (var hint in hints)
         {
-            ImGui.TextUnformatted(hint);
+            Utils.TextOutlined(hint, ActualShadowColor);
             ImGui.SameLine();
         }
         ImGui.NewLine();
@@ -347,7 +353,7 @@ public abstract class BossModule : IDisposable
         foreach ((var hint, bool risk) in hints)
         {
             using var color = ImRaii.PushColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
-            ImGui.TextUnformatted(hint);
+            Utils.TextOutlined(hint, ActualShadowColor);
             ImGui.SameLine();
         }
         ImGui.NewLine();
@@ -468,7 +474,7 @@ public abstract class BossModule : IDisposable
     private void OnActorCreated(Actor actor)
     {
         _relevantEnemies.GetValueOrDefault(actor.OID)?.Add(actor);
-        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
+        if (actor.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo))
             foreach (var comp in _components)
                 comp.OnActorCreated(actor);
     }
@@ -476,21 +482,21 @@ public abstract class BossModule : IDisposable
     private void OnActorDestroyed(Actor actor)
     {
         _relevantEnemies.GetValueOrDefault(actor.OID)?.Remove(actor);
-        if (actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo)
+        if (actor.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo))
             foreach (var comp in _components)
                 comp.OnActorDestroyed(actor);
     }
 
     private void OnActorCastStarted(Actor actor)
     {
-        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
+        if (actor.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo) && actor.CastInfo?.IsSpell() == true)
             foreach (var comp in _components)
                 comp.OnCastStarted(actor, actor.CastInfo);
     }
 
     private void OnActorCastFinished(Actor actor)
     {
-        if ((actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo) && (actor.CastInfo?.IsSpell() ?? false))
+        if (actor.Type is not (ActorType.Player or ActorType.Pet or ActorType.Chocobo) && actor.CastInfo?.IsSpell() == true)
             foreach (var comp in _components)
                 comp.OnCastFinished(actor, actor.CastInfo);
     }

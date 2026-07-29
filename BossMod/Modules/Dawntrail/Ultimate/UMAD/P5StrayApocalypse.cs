@@ -4,7 +4,7 @@ class P5StrayApocalypse(BossModule module) : Components.Exaflare(module, new AOE
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_StrayApocalypse)
+        if ((AID)spell.Action.ID == AID.StrayApocalypseFirst)
         {
             Lines.Add(new()
             {
@@ -21,7 +21,7 @@ class P5StrayApocalypse(BossModule module) : Components.Exaflare(module, new AOE
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Ability_StrayApocalypse or AID._Ability_StrayApocalypse2)
+        if ((AID)spell.Action.ID is AID.StrayApocalypseFirst or AID.StrayApocalypseRest)
         {
             NumCasts++;
             var ix = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position, 1));
@@ -31,17 +31,19 @@ class P5StrayApocalypse(BossModule module) : Components.Exaflare(module, new AOE
     }
 }
 
+class P5StrayDebug(BossModule module) : Components.DebugCasts(module, [AID.StrayApocalypseFirst, AID.StrayApocalypseRest], new AOEShapeCircle(6), 1);
+
 class P5StrayEntropy(BossModule module) : Components.UniformStackSpread(module, 0, 5)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_StrayEntropy)
+        if ((AID)spell.Action.ID == AID.StrayEntropyCast)
             AddSpreads(Raid.WithoutSlot(), Module.CastFinishAt(spell, 0.9f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Ability_StrayEntropy1 && Spreads.Count > 0)
+        if ((AID)spell.Action.ID == AID.StrayEntropy && Spreads.Count > 0)
             Spreads.RemoveAt(0);
     }
 }

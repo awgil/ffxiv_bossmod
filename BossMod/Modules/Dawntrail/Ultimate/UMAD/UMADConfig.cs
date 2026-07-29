@@ -55,16 +55,29 @@ public class UMADConfig : ConfigNode
     [PropertyDisplay("P5 Maddening Orchestra: treat Chaotic Holy as a spread", tooltip: "The tank that receives the Surprise Holy debuff is targeted by Chaotic Holy, a small stack that is intended to be shared with the party. It can be taken solo using invuln, which simplifies the mechanic.")]
     public bool P5MaddeningSpreadAll = true;
 
+    public enum P5CelestriadAssignment
+    {
+        [PropertyDisplay("None; only forbid towers matching debuffs")]
+        None,
+        [PropertyDisplay("Players with debuffs take first available CW tower")]
+        CW,
+        [PropertyDisplay("Players with debuffs take first available CCW tower")]
+        CCW
+    }
+
+    [PropertyDisplay("P5 Celestriad: tower assignments")]
+    public P5CelestriadAssignment P5CelestriadStrategy = P5CelestriadAssignment.CW;
+
+    [SectionStart("AI-only settings")]
+    [PropertyDisplay("P1 Gravitas: Puddle drop strategy")]
+    public P1GravityPuddlePlacement P1GravityPuddleStrategy = P1GravityPuddlePlacement.None;
+
     public enum P1GravityPuddlePlacement
     {
         None,
         [PropertyDisplay("Whole party stack on A/C marker")]
         StackAll
     }
-
-    [SectionStart("AI-only settings")]
-    [PropertyDisplay("P1 Gravitas: Puddle drop strategy")]
-    public P1GravityPuddlePlacement P1GravityPuddleStrategy = P1GravityPuddlePlacement.None;
 
     [PropertyDisplay("P1 Gravitas: Spread destinations")]
     [GroupDetails(["G1 (left)", "G2 (right)"])]
