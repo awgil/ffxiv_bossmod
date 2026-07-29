@@ -189,7 +189,7 @@ abstract class RubyGlowRecolor(BossModule module, int expectedMagicStones) : Rub
 
         if (VenomPoolActive)
             foreach (var a in Raid.WithoutSlot(false, true, true).Where(a => a.Role == Role.Healer))
-                Arena.AddCircle(a.Position, _recolorRadius, Colors.Safe);
+                Arena.ZoneCircleOutline(a.Position, _recolorRadius, Colors.Safe);
     }
 
     public override void OnActorEAnim(Actor actor, uint state)

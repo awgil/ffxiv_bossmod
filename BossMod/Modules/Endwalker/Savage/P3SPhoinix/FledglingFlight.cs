@@ -56,7 +56,7 @@ class FledglingFlight(BossModule module) : BossComponent(module)
 
         var eyePos = GetEyePlacementPosition(pcSlot, pc);
         if (eyePos != null)
-            Arena.AddCircle(eyePos.Value, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(eyePos.Value, 1, Colors.Safe);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

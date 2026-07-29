@@ -35,7 +35,7 @@ class Ania(BossModule module) : BossComponent(module)
         if (_target == null)
             return;
 
-        Arena.AddCircle(_target.Position, _aoeRadius, Colors.Danger);
+        Arena.ZoneCircleOutline(_target.Position, _aoeRadius, Colors.Danger);
         if (pc == _target)
         {
             foreach (var a in Raid.WithoutSlot(false, true, true).Exclude(pc))

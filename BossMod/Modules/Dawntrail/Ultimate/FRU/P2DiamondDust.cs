@@ -167,7 +167,7 @@ sealed class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_safeOffs[pcSlot] != default)
-            Arena.AddCircle(Arena.Center + _safeOffs[pcSlot], 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + _safeOffs[pcSlot], 1f, Colors.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -261,7 +261,7 @@ sealed class P2HeavenlyStrike(BossModule module) : Components.GenericKnockback(m
     {
         base.DrawArenaForeground(pcSlot, pc);
         if (_safeDirs[pcSlot] != default)
-            Arena.AddCircle(Arena.Center + 18f * _safeDirs[pcSlot], 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + 18f * _safeDirs[pcSlot], 1f, Colors.Safe);
     }
 
     private static WDir[] BuildSafeDirs(BossModule module)

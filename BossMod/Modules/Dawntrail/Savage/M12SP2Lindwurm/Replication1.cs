@@ -253,7 +253,7 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
                 Arena.ActorInsideBounds(clone.Actor.Position, clone.Actor.Rotation, color);
 
                 if (_highlightClone)
-                    Arena.AddCircle(clone.Actor.Position, 1.25f, Colors.Danger);
+                    Arena.ZoneCircleOutline(clone.Actor.Position, 1.25f, Colors.Danger);
             }
         }
     }
@@ -1125,7 +1125,7 @@ sealed class Replication1Guidance : BossComponent
 
         // Mark the wall-dark clone as "new North" for Static strategy.
         if (_rep1.IsStatic && TryGetFormation(out _, out _, out _, out var farDark))
-            Arena.AddCircle(farDark, 1.25f, Colors.Other1);
+            Arena.ZoneCircleOutline(farDark, 1.25f, Colors.Other1);
 
         var pos = DebuffsAssigned()
             ? FinalPosition(pcSlot, pc)
@@ -1134,7 +1134,7 @@ sealed class Replication1Guidance : BossComponent
         if (pos == null)
             return;
 
-        Arena.AddCircle(pos.Value, 1.1f, Colors.Safe);
+        Arena.ZoneCircleOutline(pos.Value, 1.1f, Colors.Safe);
         Arena.AddLine(pc.Position, pos.Value, Colors.Safe);
     }
 

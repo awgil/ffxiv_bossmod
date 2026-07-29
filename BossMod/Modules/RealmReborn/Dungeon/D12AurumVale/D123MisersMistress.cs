@@ -126,7 +126,7 @@ sealed class MorbolFruit(BossModule module) : BossComponent(module)
             var fruit = _fruits[i];
             if (fruit.IsTargetable)
             {
-                Arena.AddCircle(fruit.Position, 3f, Colors.Safe);
+                Arena.ZoneCircleOutline(fruit.Position, 3f, Colors.Safe);
             }
         }
     }

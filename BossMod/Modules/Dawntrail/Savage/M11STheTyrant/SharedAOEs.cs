@@ -204,7 +204,7 @@ sealed class MaelstromBaitSafeSpots(BossModule module) : BossComponent(module)
 
             if (spot != default)
             {
-                Arena.AddCircle(spot, Radius, Colors.Safe);
+                Arena.ZoneCircleOutline(spot, Radius, Colors.Safe);
                 Arena.AddLine(pc.Position, spot, Colors.Safe);
                 return;
             }
@@ -370,6 +370,6 @@ sealed class AtomicImpactBaitPath(BossModule module) : BossComponent(module)
             return;
 
         var target = NextTarget(slot, actor);
-        Module.Arena.AddCircle(target, 1.2f, Colors.Safe);
+        Module.Arena.ZoneCircleOutline(target, 1.2f, Colors.Safe);
     }
 }

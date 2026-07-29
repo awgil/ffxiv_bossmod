@@ -75,7 +75,7 @@ sealed class KegExplosion(BossModule module) : BossComponent(module)
         var count = kegs.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(kegs[i].Position, 10f);
+            Arena.ZoneCircleOutline(kegs[i].Position, 10f);
         }
     }
 

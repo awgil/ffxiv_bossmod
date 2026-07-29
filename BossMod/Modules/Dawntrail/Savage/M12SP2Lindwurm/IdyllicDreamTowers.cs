@@ -739,7 +739,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
             _ => default
         };
 
-        Arena.AddCircleFilled(p, 1.5f, Colors.Background);
+        Arena.ZoneCircle(p, 1.5f, Colors.Background);
         Arena.IconWorld(p, icon, color);
     }
 
@@ -768,7 +768,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
         {
             var tower = Towers[assignedTower];
             if (tower.Shape is AOEShapeCircle circle)
-                Arena.AddCircle(tower.Position, circle.Radius, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(tower.Position, circle.Radius, Colors.Safe, 2f);
         }
     }
 
@@ -1380,7 +1380,7 @@ sealed class LindwurmsPortent(BossModule module) : Components.GenericBaitAway(mo
         var config = Service.Config.Get<M12S2LindwurmConfig>();
         if (config.ShowLindwurmsPortentHints && _assignedPositions.TryGetValue(pcSlot, out var assignedPos))
         {
-            Arena.AddCircle(assignedPos, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(assignedPos, 1, Colors.Safe);
             Arena.AddLine(pc.Position, assignedPos, Colors.Safe);
         }
     }

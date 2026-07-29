@@ -49,7 +49,7 @@ sealed class P5Delta(BossModule module) : BossComponent(module)
             Arena.AddLine(pc.Position, partner.Position);
 
         foreach (var safeSpot in SafeSpotOffsets(pcSlot))
-            Arena.AddCircle(Arena.Center + safeSpot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + safeSpot, 1f, Colors.Safe);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -388,7 +388,7 @@ sealed class P5DeltaExplosion(BossModule module) : Components.SimpleAOEs(module,
         var ps = _delta.Players[pcSlot];
         var partner = Raid.WithSlot(true, true, true).WhereSlot(i => _delta.Players[i].IsLocal == ps.IsLocal && i != ps.PartnerSlot && _delta.Players[i].RocketPunch?.OID != ps.RocketPunch?.OID).FirstOrDefault().Item2;
         if (partner != null)
-            Arena.AddCircle(partner.Position, 3f, Colors.Safe);
+            Arena.ZoneCircleOutline(partner.Position, 3f, Colors.Safe);
     }
 }
 

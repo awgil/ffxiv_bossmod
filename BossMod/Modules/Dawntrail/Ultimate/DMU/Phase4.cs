@@ -492,12 +492,12 @@ sealed class ForkedWater(BossModule module) : Components.UniformStackSpread(modu
         {
             if (pc.Class.IsSupport())
             {
-                Arena.AddCircle(new WPos(100.0f, 88.0f), 1.0f, active ? Colors.Safe : Colors.Danger, 2.0f);
+                Arena.ZoneCircleOutline(new WPos(100.0f, 88.0f), 1.0f, active ? Colors.Safe : Colors.Danger, 2.0f);
             }
 
             if (pc.Class.IsDD())
             {
-                Arena.AddCircle(new WPos(100.0f, 112.0f), 1.0f, active ? Colors.Safe : Colors.Danger, 2.0f);
+                Arena.ZoneCircleOutline(new WPos(100.0f, 112.0f), 1.0f, active ? Colors.Safe : Colors.Danger, 2.0f);
             }
         }
 
@@ -506,12 +506,12 @@ sealed class ForkedWater(BossModule module) : Components.UniformStackSpread(modu
         {
             if (pc.Class.IsSupport())
             {
-                Arena.AddCircle(new WPos(88.0f, 100.0f), 1.0f, active ? Colors.Safe : Colors.Danger, 2.0f);
+                Arena.ZoneCircleOutline(new WPos(88.0f, 100.0f), 1.0f, active ? Colors.Safe : Colors.Danger, 2.0f);
             }
 
             if (pc.Class.IsDD())
             {
-                Arena.AddCircle(new WPos(112.0f, 100.0f), 1.0f, active ? Colors.Safe : Colors.Danger, 2.0f);
+                Arena.ZoneCircleOutline(new WPos(112.0f, 100.0f), 1.0f, active ? Colors.Safe : Colors.Danger, 2.0f);
             }
         }
     }
@@ -706,25 +706,25 @@ sealed class CursedShriek(BossModule module) : Components.GenericGaze(module)
             // Support gaze player
             if (pendingGazes.Any(eye => eye.player == pc) && pc.Class.IsSupport())
             {
-                Arena.AddCircle(Module.Center - new WDir(0, 2.0f), 1f, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(Module.Center - new WDir(0, 2.0f), 1f, Colors.Safe, 2f);
             }
 
             // DD gaze player
             if (pendingGazes.Any(eye => eye.player == pc) && pc.Class.IsDD())
             {
-                Arena.AddCircle(Module.Center - new WDir(0, -2.0f), 1f, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(Module.Center - new WDir(0, -2.0f), 1f, Colors.Safe, 2f);
             }
 
             // Support players
             if (!pendingGazes.Any(eye => eye.player == pc) && pc.Class.IsSupport())
             {
-                Arena.AddCircle(Module.Center - new WDir(0, 6.0f), 1f, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(Module.Center - new WDir(0, 6.0f), 1f, Colors.Safe, 2f);
             }
 
             // DD players
             if (!pendingGazes.Any(eye => eye.player == pc) && pc.Class.IsDD())
             {
-                Arena.AddCircle(Module.Center - new WDir(0, -6.0f), 1f, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(Module.Center - new WDir(0, -6.0f), 1f, Colors.Safe, 2f);
             }
 
             return;
@@ -764,25 +764,25 @@ sealed class CursedShriek(BossModule module) : Components.GenericGaze(module)
             // Support gaze player
             if (pendingGazes.Any(eye => eye.player == pc) && pc.Class.IsSupport())
             {
-                Arena.AddCircle(safeSpot - forward * 2f, 1f, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(safeSpot - forward * 2f, 1f, Colors.Safe, 2f);
             }
 
             // DD gaze player
             if (pendingGazes.Any(eye => eye.player == pc) && pc.Class.IsDD())
             {
-                Arena.AddCircle(safeSpot + forward * 2f, 1f, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(safeSpot + forward * 2f, 1f, Colors.Safe, 2f);
             }
 
             // Support players
             if (!pendingGazes.Any(eye => eye.player == pc) && pc.Class.IsSupport())
             {
-                Arena.AddCircle(safeSpot - forward * 6f, 1f, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(safeSpot - forward * 6f, 1f, Colors.Safe, 2f);
             }
 
             // DD players
             if (!pendingGazes.Any(eye => eye.player == pc) && pc.Class.IsDD())
             {
-                Arena.AddCircle(safeSpot + forward * 6f, 1f, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(safeSpot + forward * 6f, 1f, Colors.Safe, 2f);
             }
         }
     }
@@ -877,7 +877,7 @@ sealed class Inferno(BossModule module) : Components.GenericBaitProximity(module
 
         if (!active)
         {
-            Arena.AddCircle(new WPos(100.0f, 100.0f), 1.0f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(new WPos(100.0f, 100.0f), 1.0f, Colors.Safe, 2.0f);
         }
     }
 }
@@ -971,7 +971,7 @@ sealed class Tsunami(BossModule module) : Components.GenericBaitProximity(module
 
         if (!active)
         {
-            Arena.AddCircle(new WPos(100.0f, 100.0f), 1.0f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(new WPos(100.0f, 100.0f), 1.0f, Colors.Safe, 2.0f);
         }
     }
 }

@@ -44,7 +44,7 @@ class P5Hatch(BossModule module) : BossComponent(module)
             foreach (var orb in Orbs)
                 Arena.AddLine(orb.Position, Target.Position, Colors.Danger);
         foreach (var neurolink in Neurolinks)
-            Arena.AddCircle(neurolink.Position, T05Twintania.NeurolinkRadius, Target == pc ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(neurolink.Position, T05Twintania.NeurolinkRadius, Target == pc ? Colors.Safe : Colors.Danger);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

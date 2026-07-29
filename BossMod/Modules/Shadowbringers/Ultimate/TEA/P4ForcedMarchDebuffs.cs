@@ -67,7 +67,7 @@ abstract class P4ForcedMarchDebuffs(BossModule module) : BossComponent(module)
                 break;
         }
 
-        Arena.AddCircle(Arena.Center + SafeSpotDirection(pcSlot), 1, Colors.Safe);
+        Arena.ZoneCircleOutline(Arena.Center + SafeSpotDirection(pcSlot), 1, Colors.Safe);
     }
 
     protected abstract WDir SafeSpotDirection(int slot);

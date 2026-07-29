@@ -14,7 +14,7 @@ sealed class ProjectionOfTurmoil(BossModule module) : Components.CastCounter(mod
         {
             var actor = Raid[slot];
             if (actor != null)
-                Arena.AddCircle(actor.Position, 8f, Colors.Safe);
+                Arena.ZoneCircleOutline(actor.Position, 8f, Colors.Safe);
         }
         var count = _line.Count;
         for (var i = 0; i < count; ++i)

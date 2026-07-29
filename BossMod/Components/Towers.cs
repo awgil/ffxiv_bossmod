@@ -184,7 +184,7 @@ public class GenericTowers(BossModule module, uint aid = default, bool prioritiz
 
     // default tower styling
     public static void DrawTower(MiniArena arena, ref Tower tower, bool safe) => tower.Shape.Outline(arena, tower.Position, tower.Rotation, safe ? Colors.Safe : default, 2f);
-    public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe) => arena.AddCircle(pos, radius, safe ? Colors.Safe : default, 2f);
+    public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe) => arena.ZoneCircleOutline(pos, radius, safe ? Colors.Safe : default, 2f);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -410,7 +410,7 @@ public class GenericTowersOpenWorld(BossModule module, uint aid = default, bool 
     public readonly bool PrioritizeEmpty = prioritizeEmpty; // give priority to towers with 0 soakers
 
     // default tower styling
-    public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe) => arena.AddCircle(pos, radius, safe ? Colors.Safe : default, 2f);
+    public static void DrawTower(MiniArena arena, WPos pos, float radius, bool safe) => arena.ZoneCircleOutline(pos, radius, safe ? Colors.Safe : default, 2f);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

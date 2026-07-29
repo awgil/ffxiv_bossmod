@@ -62,7 +62,7 @@ class OminousWind(BossModule module) : BossComponent(module)
                 }
                 if (Targets[p.Item1])
                 {
-                    Arena.AddCircle(p.Item2.Position, 6f);
+                    Arena.ZoneCircleOutline(p.Item2.Position, 6f);
                 }
             }
         }

@@ -94,9 +94,9 @@ sealed class AetherlettingPuddle(BossModule module) : Components.SpreadFromCastT
                 }
 
                 if (inside)
-                    Arena.AddCircleFilled(pos, radius, Colors.AOE);
+                    Arena.ZoneCircle(pos, radius, Colors.AOE);
                 else
-                    Arena.AddCircle(pos, radius, Colors.Safe);
+                    Arena.ZoneCircleOutline(pos, radius, Colors.Safe);
             }
             return;
         }
@@ -116,7 +116,7 @@ sealed class AetherlettingPuddle(BossModule module) : Components.SpreadFromCastT
         }
 
         if (isTarget)
-            Arena.AddCircle(baitPos, radius, Colors.Safe);
+            Arena.ZoneCircleOutline(baitPos, radius, Colors.Safe);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

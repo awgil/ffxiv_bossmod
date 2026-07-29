@@ -173,7 +173,7 @@ class StartingPositions(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (readyPos is WPos { } pos)
-            Arena.AddCircle(pos, radius, Colors.Safe);
+            Arena.ZoneCircleOutline(pos, radius, Colors.Safe);
     }
 }
 class Interact(BossModule module) : BossComponent(module)

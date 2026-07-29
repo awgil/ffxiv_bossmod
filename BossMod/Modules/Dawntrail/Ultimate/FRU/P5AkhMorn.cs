@@ -3,7 +3,7 @@
 sealed class P5AkhMorn(BossModule module) : Components.UniformStackSpread(module, 4f, 0, 4)
 {
     public Actor? Source;
-    private readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
+    private static readonly FRUConfig _config = Service.Config.Get<FRUConfig>();
     private readonly P5FulgentBlade? _fulgent = module.FindComponent<P5FulgentBlade>();
     private BitMask _leftSoakers;
     private DateTime _activation;

@@ -199,6 +199,6 @@ sealed class RaptorKnuckles(BossModule module) : Components.GenericKnockback(mod
         // Determine side by origin X
         var safe = kb.Origin.X < Module.Center.X ? SafeWest : SafeEast;
 
-        Arena.AddCircle(safe, SafeRadius, Colors.Safe);
+        Arena.ZoneCircleOutline(safe, SafeRadius, Colors.Safe);
     }
 }

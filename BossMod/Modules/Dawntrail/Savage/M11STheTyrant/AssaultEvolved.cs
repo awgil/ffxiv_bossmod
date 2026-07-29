@@ -460,7 +460,7 @@ sealed class AssaultEvolvedAxeStack(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_target != null)
-            Arena.AddCircle(_target.Position, Radius, Colors.Safe);
+            Arena.ZoneCircleOutline(_target.Position, Radius, Colors.Safe);
     }
 }
 
@@ -645,7 +645,7 @@ sealed class AssaultWeaponSafeSpots(BossModule module) : BossComponent(module)
         if (spot == default)
             return;
 
-        Arena.AddCircle(spot, Radius, Colors.Safe);
+        Arena.ZoneCircleOutline(spot, Radius, Colors.Safe);
         Arena.AddLine(pc.Position, spot, Colors.Safe);
     }
 

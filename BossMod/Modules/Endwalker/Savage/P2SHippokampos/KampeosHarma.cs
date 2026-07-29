@@ -29,7 +29,7 @@ class KampeosHarma(BossModule module) : Components.CastCounter(module, (uint)AID
     {
         var pos = GetSafeZone(pcSlot);
         if (pos != null)
-            Arena.AddCircle(pos.Value, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(pos.Value, 1, Colors.Safe);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

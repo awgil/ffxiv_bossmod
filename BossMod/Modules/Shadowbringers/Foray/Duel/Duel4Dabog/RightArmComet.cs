@@ -36,7 +36,7 @@ class RightArmComet(BossModule module, uint aid, float distance) : Components.Si
         for (var i = 0; i < count; ++i)
         {
             ref readonly var c = ref casters[i];
-            Arena.AddCircle(c.Origin, _radius, pc.Position.InCircle(c.Origin, _radius) ? Colors.Safe : default, 2f);
+            Arena.ZoneCircleOutline(c.Origin, _radius, pc.Position.InCircle(c.Origin, _radius) ? Colors.Safe : default, 2f);
         }
     }
 }

@@ -45,7 +45,7 @@ class DarkTwister(BossModule module) : Components.SimpleKnockbacks(module, (uint
             var dir = burningTwister.Position - darkTwister.Origin;
             var len = dir.Length();
             dir /= len;
-            Arena.AddCircle(darkTwister.Origin + dir * (len - safeOffset), safeRadius, Colors.Safe);
+            Arena.ZoneCircleOutline(darkTwister.Origin + dir * (len - safeOffset), safeRadius, Colors.Safe);
         }
 
         List<Actor> BurningTwisters()

@@ -16,9 +16,9 @@ class Thundercall(BossModule module) : Components.GenericAOEs(module)
     {
         Arena.Actors(_orbs, Colors.Object, true);
         if (_miniTarget != null)
-            Arena.AddCircle(_miniTarget.Position, 3f);
+            Arena.ZoneCircleOutline(_miniTarget.Position, 3f);
         if (_safeOrb != null)
-            Arena.AddCircle(_safeOrb.Position, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(_safeOrb.Position, 1f, Colors.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

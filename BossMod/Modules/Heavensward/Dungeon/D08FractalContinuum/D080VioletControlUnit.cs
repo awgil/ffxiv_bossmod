@@ -38,7 +38,7 @@ class Interact(BossModule module) : BossComponent(module)
     {
         var primary = Module.PrimaryActor;
         if (primary.IsTargetable)
-            Arena.AddCircle(primary.Position, 3f, Colors.Safe);
+            Arena.ZoneCircleOutline(primary.Position, 3f, Colors.Safe);
     }
 }
 

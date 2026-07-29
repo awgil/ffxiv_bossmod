@@ -28,7 +28,7 @@ class RedCrystals2 : Components.SimpleAOEs {
 class KindleFlameStackIcon(BossModule module) : Components.StackTogether(module, (uint)IconID.StackIcon, 5, 6) {
     public override void DrawArenaForeground(int pcSlot, Actor pc) {
         foreach (var target in Targets) {
-            Arena.AddCircle(target.Position, Radius, Colors.Safe);
+            Arena.ZoneCircleOutline(target.Position, Radius, Colors.Safe);
         }
     }
 }

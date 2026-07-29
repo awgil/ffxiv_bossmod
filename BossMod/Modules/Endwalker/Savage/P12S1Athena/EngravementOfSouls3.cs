@@ -121,7 +121,7 @@ sealed class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)
             var chain = hints[i];
             if (chain.Count > 0)
             {
-                Arena.AddCircle(Arena.Center + chain[0], 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(Arena.Center + chain[0], 1f, Colors.Safe);
             }
         }
     }

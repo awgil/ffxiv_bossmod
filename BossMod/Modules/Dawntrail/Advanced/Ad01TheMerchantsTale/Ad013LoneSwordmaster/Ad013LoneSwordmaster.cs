@@ -361,7 +361,7 @@ sealed class MaleficPortent(BossModule module) : Components.CastCounter(module, 
 
             if (!isSafe)
             {
-                Arena.AddCircle(player.Position, 1.5f);
+                Arena.ZoneCircleOutline(player.Position, 1.5f);
             }
         }
         */
@@ -386,7 +386,7 @@ sealed class MaleficPortent(BossModule module) : Components.CastCounter(module, 
                     // with 4man 1st time 2 players are safe to pass
                     if (IsPlayerSafe(player, tether))
                     {
-                        Arena.AddCircle(player.Position, 1.5f);
+                        Arena.ZoneCircleOutline(player.Position, 1.5f);
                     }
                 }
             }
@@ -402,7 +402,7 @@ sealed class MaleficPortent(BossModule module) : Components.CastCounter(module, 
                 if (!isTetherSafe && IsPlayerSafe(pc, tether))
                 {
                     Arena.AddLine(Module.PrimaryActor.Position, player.Position);
-                    Arena.AddCircle(player.Position, 1.5f);
+                    Arena.ZoneCircleOutline(player.Position, 1.5f);
                 }
             }
         }
@@ -578,10 +578,10 @@ sealed class SilentEight(BossModule module) : Components.GenericBaitAway(module)
         if (ActiveBaits.Count == 0)
             return;
 
-        Arena.AddCircle(Arena.Center - new WDir(-18f, -18f), 2f);
-        Arena.AddCircle(Arena.Center - new WDir(-18f, 18f), 2f);
-        Arena.AddCircle(Arena.Center - new WDir(18f, -18f), 2f);
-        Arena.AddCircle(Arena.Center - new WDir(18f, 18f), 2f);
+        Arena.ZoneCircleOutline(Arena.Center - new WDir(-18f, -18f), 2f);
+        Arena.ZoneCircleOutline(Arena.Center - new WDir(-18f, 18f), 2f);
+        Arena.ZoneCircleOutline(Arena.Center - new WDir(18f, -18f), 2f);
+        Arena.ZoneCircleOutline(Arena.Center - new WDir(18f, 18f), 2f);
     }
 }
 

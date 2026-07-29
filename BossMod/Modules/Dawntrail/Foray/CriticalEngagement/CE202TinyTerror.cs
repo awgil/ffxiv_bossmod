@@ -253,7 +253,7 @@ sealed class Comet(BossModule module) : BossComponent(module) {
             return;
         }
 
-        Arena.AddCircle(firstComet.actor.Position, 2.0f, Colors.Safe, 2.0f);
+        Arena.ZoneCircleOutline(firstComet.actor.Position, 2.0f, Colors.Safe, 2.0f);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints) {

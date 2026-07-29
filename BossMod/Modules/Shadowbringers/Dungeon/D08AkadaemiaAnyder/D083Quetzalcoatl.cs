@@ -75,7 +75,7 @@ sealed class OrbCollecting(BossModule module) : BossComponent(module)
         var count = _orbs.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(_orbs[i].Position, 0.7f, Colors.Safe);
+            Arena.ZoneCircleOutline(_orbs[i].Position, 0.7f, Colors.Safe);
         }
     }
 

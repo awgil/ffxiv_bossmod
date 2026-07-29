@@ -970,7 +970,7 @@ public class InterceptTetherStatus(BossModule module, uint aid, uint tetherID, u
         {
             var side = Tethers[i];
             Arena.AddLine(side.Enemy.Position, side.Player.Position, _hasStatus[Raid.FindSlot(side.Player.InstanceID)] ? Colors.Danger : Colors.Safe);
-            Arena.AddCircle(side.Player.Position, Radius);
+            Arena.ZoneCircleOutline(side.Player.Position, Radius);
         }
     }
 

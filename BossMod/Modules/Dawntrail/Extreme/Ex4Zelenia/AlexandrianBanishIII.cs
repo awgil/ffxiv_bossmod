@@ -28,7 +28,7 @@ sealed class AlexandrianBanishIII(BossModule module) : Components.GenericBaitSta
         if (count == 0)
             return;
         if (CurrentBaits[0].Target == pc)
-            Arena.AddCircle(pc.Position, 4f, Colors.Safe);
+            Arena.ZoneCircleOutline(pc.Position, 4f, Colors.Safe);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

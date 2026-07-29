@@ -121,7 +121,7 @@ class Knockback : BossComponent
             // draw AOE source
             Arena.Actor(targetPos, target.Rotation, Colors.Other2);
         }
-        Arena.AddCircle(targetPos, aoeRange, Colors.Danger);
+        Arena.ZoneCircleOutline(targetPos, aoeRange, Colors.Danger);
 
         // draw vulnerable target
         if (_knockbackTarget != pc && _knockbackTarget != target)

@@ -49,7 +49,7 @@ class TrailOfCondemnation(BossModule module) : BossComponent(module)
         }
 
         // draw circle around pc
-        Arena.AddCircle(pc.Position, _aoeRadius, Colors.Danger);
+        Arena.ZoneCircleOutline(pc.Position, _aoeRadius, Colors.Danger);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

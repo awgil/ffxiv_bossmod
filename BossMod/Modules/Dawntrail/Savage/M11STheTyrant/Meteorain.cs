@@ -40,7 +40,7 @@ sealed class MeteorainComets(BossModule module) : BossComponent(module)
         {
             var c = comets[i];
             if (IsValidComet(c))
-                Arena.AddCircle(c.Position, c.HitboxRadius, Colors.Object);
+                Arena.ZoneCircleOutline(c.Position, c.HitboxRadius, Colors.Object);
         }
     }
 
@@ -447,7 +447,7 @@ sealed class MeteorMechanicHints(BossModule module) : BossComponent(module)
         if (tetherSource != null)
         {
             var spot = ChooseTetherSpot(tetherSource, leftPlatformLeftSafe, rightPlatformLeftSafe);
-            Arena.AddCircle(spot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(spot, 1f, Colors.Safe);
             return;
         }
 
@@ -456,7 +456,7 @@ sealed class MeteorMechanicHints(BossModule module) : BossComponent(module)
         {
             var spots = GetFireSpots(onLeftPlatform, leftSafe);
             for (var i = 0; i < spots.Length; ++i)
-                Arena.AddCircle(spots[i], 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(spots[i], 1f, Colors.Safe);
         }
     }
 
@@ -739,6 +739,6 @@ sealed class ExplosionTowerHints(BossModule module) : BossComponent(module)
                 stand = new WPos(stand.X, stand.Z + (north ? 1.5f : -1.5f));
         }
 
-        Arena.AddCircle(stand, 1f, Colors.Safe);
+        Arena.ZoneCircleOutline(stand, 1f, Colors.Safe);
     }
 }

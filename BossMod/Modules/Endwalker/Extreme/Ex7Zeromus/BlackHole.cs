@@ -40,7 +40,7 @@ class BlackHole(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Baiter != null)
-            Arena.AddCircle(Baiter.Position, _startingRadius, Colors.Danger);
+            Arena.ZoneCircleOutline(Baiter.Position, _startingRadius, Colors.Danger);
     }
 
     public override void OnActorCreated(Actor actor)

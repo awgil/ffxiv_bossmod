@@ -264,7 +264,7 @@ sealed class ManaSphere(BossModule module) : BossComponent(module)
                 sphere.Side != _closeSide &&
                 IsCloseShape(sphere.Shape))
             {
-                Arena.AddCircle(sphere.Actor.Position, 2, Colors.Safe);
+                Arena.ZoneCircleOutline(sphere.Actor.Position, 2, Colors.Safe);
             }
         }
     }

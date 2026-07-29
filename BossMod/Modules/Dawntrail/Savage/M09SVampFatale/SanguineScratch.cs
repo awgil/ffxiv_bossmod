@@ -119,7 +119,7 @@ sealed class BreakdownWing(BossModule module) : Components.GenericAOEs(module)
         for (var i = 0; i < _vamps.Count; i++)
         {
             if (tethered.InstanceID == _vamps[i].Actor.InstanceID)
-                Arena.AddCircle(_vamps[i].Actor.Position, _vampRadius, danger ? Colors.Danger : Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(_vamps[i].Actor.Position, _vampRadius, danger ? Colors.Danger : Colors.Safe, 2f);
         }
 
         Arena.AddLine(pc.Position, tethered.Position, danger ? Colors.Danger : Colors.Safe, 1f);

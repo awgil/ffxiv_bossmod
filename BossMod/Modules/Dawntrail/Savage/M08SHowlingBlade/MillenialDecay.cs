@@ -121,7 +121,7 @@ sealed class WindsOfDecayBait(BossModule module) : Components.GenericBaitAway(mo
                 return;
             }
             var center = Arena.Center;
-            Arena.AddCone(center, 4f, Angle.FromDirection(center - bait.Source.Position), 20f.Degrees(), Colors.Safe);
+            Arena.ZoneConeOutline(center, 0f, 4f, Angle.FromDirection(center - bait.Source.Position), 20f.Degrees(), Colors.Safe);
         }
     }
 

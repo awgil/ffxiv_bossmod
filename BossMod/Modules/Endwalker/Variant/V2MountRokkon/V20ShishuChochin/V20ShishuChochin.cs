@@ -128,7 +128,7 @@ sealed class Lanterns(BossModule module) : Components.GenericAOEs(module)
         var count = lanterns.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(lanterns[i].Center, 5f, Colors.Safe, 5f);
+            Arena.ZoneCircleOutline(lanterns[i].Center, 5f, Colors.Safe, 5f);
         }
     }
 }

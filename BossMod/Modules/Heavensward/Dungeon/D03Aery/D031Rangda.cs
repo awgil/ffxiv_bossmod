@@ -107,7 +107,7 @@ class IonosphericCharge(BossModule module) : Components.BaitAwayTethers(module, 
         var count = statues.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(statues[i].Position, 4f, Colors.Safe);
+            Arena.ZoneCircleOutline(statues[i].Position, 4f, Colors.Safe);
         }
     }
 }

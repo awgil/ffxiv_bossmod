@@ -12,7 +12,7 @@ sealed class WateryGrave(BossModule module) : Components.Adds(module, (uint)OID.
         base.DrawArenaBackground(pcSlot, pc);
 
         if (ActiveActors.Count > 0)
-            Arena.AddCircle(Arena.Center, 4f, default);
+            Arena.ZoneCircleOutline(Arena.Center, 4f, default);
     }
 }
 

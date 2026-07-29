@@ -250,7 +250,7 @@ sealed class MortalSlayer(BossModule module) : Components.GenericAOEs(module)
 
             // self: safe unless dangerous, others: always danger
             var color = isSelf ? (isDangerous ? Colors.Danger : Colors.Safe) : Colors.Danger;
-            Arena.AddCircle(closest.Position, _shape.Radius, color);
+            Arena.ZoneCircleOutline(closest.Position, _shape.Radius, color);
         }
     }
 

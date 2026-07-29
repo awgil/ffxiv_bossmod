@@ -45,13 +45,13 @@ sealed class TheDecisiveBattle(BossModule module) : BossComponent(module)
         if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.H1 or
             PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2)
         {
-            Arena.AddCircle(chaosBoss.Position, 1.25f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(chaosBoss.Position, 1.25f, Colors.Safe, 2.0f);
         }
 
         if (assignment is PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.H2 or
             PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.R2)
         {
-            Arena.AddCircle(exDeathBoss.Position, 1.25f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(exDeathBoss.Position, 1.25f, Colors.Safe, 2.0f);
         }
     }
 
@@ -176,7 +176,7 @@ sealed class Crystals(BossModule module) : BossComponent(module)
     {
         foreach (var (actor, colour) in crystals)
         {
-            Arena.AddCircleFilled(actor.Position, 1, colour);
+            Arena.ZoneCircle(actor.Position, 1, colour);
         }
     }
 }
@@ -264,23 +264,23 @@ sealed class WaterCrystal(BossModule module) : Components.GenericBaitProximity(m
 
         if (assignment == PartyRolesConfig.Assignment.H1)
         {
-            Arena.AddCircle(waterCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(waterCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
         }
 
         if (assignment == PartyRolesConfig.Assignment.H2)
         {
-            Arena.AddCircle(Module.Center + (waterCrystal.actor.Position - Module.Center).Normalized() * 3.5f, 1.5f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(Module.Center + (waterCrystal.actor.Position - Module.Center).Normalized() * 3.5f, 1.5f, Colors.Safe, 2.0f);
         }
 
         if (assignment is PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.R2)
         {
-            Arena.AddCircle(fireCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(fireCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
         }
 
         if (assignment is PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2 or
             PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
         {
-            Arena.AddCircle(windCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(windCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
         }
     }
 }
@@ -366,27 +366,27 @@ sealed class FireCrystal(BossModule module) : Components.GenericBaitProximity(mo
 
         if (assignment == PartyRolesConfig.Assignment.H1)
         {
-            Arena.AddCircle(waterCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(waterCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
         }
 
         if (assignment == PartyRolesConfig.Assignment.H2)
         {
-            Arena.AddCircle(Module.Center + (waterCrystal.actor.Position - Module.Center).Normalized() * 3.5f, 1.5f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(Module.Center + (waterCrystal.actor.Position - Module.Center).Normalized() * 3.5f, 1.5f, Colors.Safe, 2.0f);
         }
 
         if (assignment is PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.R2)
         {
-            Arena.AddCircle(fireCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(fireCrystal.actor.Position, 1.5f, Colors.Safe, 2.0f);
         }
 
         if (assignment is PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2)
         {
-            Arena.AddCircle(windCrystal.actor.Position + (windCrystal.actor.Position - Module.Center).Normalized().OrthoL() * 2.5f, 1.0f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(windCrystal.actor.Position + (windCrystal.actor.Position - Module.Center).Normalized().OrthoL() * 2.5f, 1.0f, Colors.Safe, 2.0f);
         }
 
         if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
         {
-            Arena.AddCircle(windCrystal.actor.Position + (windCrystal.actor.Position - Module.Center).Normalized().OrthoR() * 2.5f, 1.0f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(windCrystal.actor.Position + (windCrystal.actor.Position - Module.Center).Normalized().OrthoR() * 2.5f, 1.0f, Colors.Safe, 2.0f);
         }
     }
 }
@@ -551,7 +551,7 @@ sealed class UmbraSmash(BossModule module) : Components.GenericBaitProximity(mod
 
         if (assignment == PartyRolesConfig.Assignment.R1)
         {
-            Arena.AddCircle((Arena.Center - (windCrystal.actor.Position - Arena.Center).Normalized() * 20f) + new WDir(0, 1.0f), 1.0f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline((Arena.Center - (windCrystal.actor.Position - Arena.Center).Normalized() * 20f) + new WDir(0, 1.0f), 1.0f, Colors.Safe, 2.0f);
         }
     }
 }
@@ -633,7 +633,7 @@ sealed class UltimaBlasterLimitCut(BossModule module) : Components.GenericBaitAw
 
         foreach (var bait in ActiveBaitsOn(pc))
         {
-            Arena.AddCircle(Arena.Center + (Arena.Center - bait.Source.Position).Normalized().Rotate(angleRotate * 0.5f) * 19.0f, 0.75f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + (Arena.Center - bait.Source.Position).Normalized().Rotate(angleRotate * 0.5f) * 19.0f, 0.75f, Colors.Safe);
         }
     }
 }
@@ -1208,18 +1208,18 @@ sealed class P3Blizzard(BossModule module) : Components.GenericBaitAway(module, 
         {
             if (NumCasts < 8)
             {
-                Arena.AddCircle(kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection(), 1.0f, Colors.Safe);
+                Arena.ZoneCircleOutline(kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection(), 1.0f, Colors.Safe);
             }
 
             if (assignment is PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.R1)
             {
                 if (NumCasts < 8)
                 {
-                    Arena.AddCircle((kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection()) - 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Danger);
+                    Arena.ZoneCircleOutline((kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection()) - 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Danger);
                 }
                 else
                 {
-                    Arena.AddCircle((kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection()) - 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Safe);
+                    Arena.ZoneCircleOutline((kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection()) - 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Safe);
                 }
             }
 
@@ -1227,11 +1227,11 @@ sealed class P3Blizzard(BossModule module) : Components.GenericBaitAway(module, 
             {
                 if (NumCasts < 8)
                 {
-                    Arena.AddCircle((kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection()) + 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Danger);
+                    Arena.ZoneCircleOutline((kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection()) + 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Danger);
                 }
                 else
                 {
-                    Arena.AddCircle((kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection()) + 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Safe);
+                    Arena.ZoneCircleOutline((kefkaBoss.Position + 10.0f * kefkaBoss.Rotation.ToDirection()) + 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Safe);
                 }
             }
         }
@@ -1240,18 +1240,18 @@ sealed class P3Blizzard(BossModule module) : Components.GenericBaitAway(module, 
         {
             if (NumCasts < 8)
             {
-                Arena.AddCircle(kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection(), 1.0f, Colors.Safe);
+                Arena.ZoneCircleOutline(kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection(), 1.0f, Colors.Safe);
             }
 
             if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.H1)
             {
                 if (NumCasts < 8)
                 {
-                    Arena.AddCircle((kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection()) - 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Danger);
+                    Arena.ZoneCircleOutline((kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection()) - 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Danger);
                 }
                 else
                 {
-                    Arena.AddCircle((kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection()) - 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Safe);
+                    Arena.ZoneCircleOutline((kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection()) - 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Safe);
                 }
             }
 
@@ -1259,11 +1259,11 @@ sealed class P3Blizzard(BossModule module) : Components.GenericBaitAway(module, 
             {
                 if (NumCasts < 8)
                 {
-                    Arena.AddCircle((kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection()) + 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Danger);
+                    Arena.ZoneCircleOutline((kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection()) + 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Danger);
                 }
                 else
                 {
-                    Arena.AddCircle((kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection()) + 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Safe);
+                    Arena.ZoneCircleOutline((kefkaBoss.Position - 10.0f * kefkaBoss.Rotation.ToDirection()) + 8.0f * kefkaBoss.Rotation.ToDirection().OrthoL(), 1.0f, Colors.Safe);
                 }
             }
         }

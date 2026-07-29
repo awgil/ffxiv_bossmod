@@ -34,7 +34,7 @@ sealed class P5FulgentBlade : Components.Exaflare
     {
         var safespot = SafeSpot();
         if (safespot != default)
-            Arena.AddCircle(safespot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot, 1f, Colors.Safe);
     }
 
     public override void OnActorCreated(Actor actor)

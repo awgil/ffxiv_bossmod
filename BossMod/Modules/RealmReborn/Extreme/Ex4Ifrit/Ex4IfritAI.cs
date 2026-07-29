@@ -171,7 +171,7 @@ class Ex4IfritAINormal(BossModule module) : Ex4IfritAICommon(module)
         if (Module.PrimaryActor.TargetID == pc.InstanceID)
         {
             // cone to help mt with proper positioning
-            Arena.AddCone(Module.PrimaryActor.Position, 2, Angle.FromDirection(Module.PrimaryActor.Position - Arena.Center), Incinerate.CleaveShape.HalfAngle, Colors.Safe);
+            Arena.ZoneConeOutline(Module.PrimaryActor.Position, 0f, 2f, Angle.FromDirection(Module.PrimaryActor.Position - Arena.Center), Incinerate.CleaveShape.HalfAngle, Colors.Safe);
         }
     }
 }
@@ -287,7 +287,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
         base.DrawArenaForeground(pcSlot, pc);
         var nextNail = NailKillOrder.FirstOrDefault();
         if (nextNail != null)
-            Arena.AddCircle(nextNail.Position, 2, Colors.Safe);
+            Arena.ZoneCircleOutline(nextNail.Position, 2, Colors.Safe);
     }
 
     private (float, float) NailDirDist(WDir offset, Angle startingDir)
@@ -386,7 +386,7 @@ class Ex4IfritAIHellfire : Ex4IfritAICommon
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.AddCircle(Arena.Center + _safespotOffset, 2, Colors.Safe);
+        Arena.ZoneCircleOutline(Arena.Center + _safespotOffset, 2, Colors.Safe);
     }
 }
 class Ex4IfritAIHellfire1(BossModule module) : Ex4IfritAIHellfire(module, 150f.Degrees(), PartyRolesConfig.Assignment.MT);

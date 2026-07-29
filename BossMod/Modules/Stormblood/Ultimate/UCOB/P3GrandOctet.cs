@@ -35,7 +35,7 @@ class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
     {
         // draw safespot
         if (NumCasts == 0 && AOEs.Count <= 1 && _initialSafespot != default)
-            Arena.AddCircle(_initialSafespot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(_initialSafespot, 1f, Colors.Safe);
 
         // draw bait
         var order = _baitOrder[pcSlot];

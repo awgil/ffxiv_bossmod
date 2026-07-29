@@ -49,7 +49,7 @@ public abstract class ThinIce(BossModule module, float distance, bool createforb
         base.DrawArenaForeground(pcSlot, pc);
         if (Mask[pcSlot])
         {
-            Arena.AddCircle(pc.Position, Distance, Colors.Vulnerable);
+            Arena.ZoneCircleOutline(pc.Position, Distance, Colors.Vulnerable);
         }
     }
 

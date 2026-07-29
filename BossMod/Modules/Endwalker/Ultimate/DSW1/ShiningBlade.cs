@@ -136,7 +136,7 @@ sealed class ShiningBladeExecution(BossModule module) : Components.CastCounter(m
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_target != null)
-            Arena.AddCircle(_target.Position, _executionRadius);
+            Arena.ZoneCircleOutline(_target.Position, _executionRadius);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -73,7 +73,7 @@ sealed class P4WaveCannonStack : BossComponent
 
         var safeDir = SafeDir(pcSlot);
         if (safeDir != default)
-            Arena.AddCircle(Arena.Center + 12 * safeDir.ToDirection(), 1, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + 12 * safeDir.ToDirection(), 1, Colors.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

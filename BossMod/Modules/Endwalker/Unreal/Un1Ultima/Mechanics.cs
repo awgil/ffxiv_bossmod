@@ -96,23 +96,23 @@ class Mechanics(BossModule module) : BossComponent(module)
         foreach (var player in Raid.WithoutSlot(false, true, true).Exclude(pc))
             Arena.Actor(player, _orbKiters.Contains(player.InstanceID) ? Colors.Danger : player == mt ? Colors.PlayerInteresting : Colors.PlayerGeneric);
         if (mt != null)
-            Arena.AddCircle(mt.Position, _aoeCleave.Radius, Colors.Danger);
+            Arena.ZoneCircleOutline(mt.Position, _aoeCleave.Radius, Colors.Danger);
 
         //if (pc.Role is Role.Healer or Role.Ranged)
-        //    Arena.AddCircle(Module.PrimaryActor.Position, _ceruleumVentRange, Colors.Danger);
+        //    Arena.ZoneCircleOutline(Module.PrimaryActor.Position, _ceruleumVentRange, Colors.Danger);
 
         foreach (var orb in Module.Enemies((uint)OID.Ultimaplasm).Where(orb => !_orbsSharedExploded.Contains(orb.InstanceID)))
         {
             // TODO: line between paired orbs
             Arena.Actor(orb, Colors.Danger, true);
-            Arena.AddCircle(orb.Position, _orbSharedRange, Colors.Safe);
+            Arena.ZoneCircleOutline(orb.Position, _orbSharedRange, Colors.Safe);
         }
 
         foreach (var orb in Module.Enemies((uint)OID.Aetheroplasm).Where(orb => !_orbsKitedExploded.Contains(orb.InstanceID)))
         {
             // TODO: line from corresponding target
             Arena.Actor(orb, Colors.Danger, true);
-            Arena.AddCircle(orb.Position, _orbFixateRange, Colors.Danger);
+            Arena.ZoneCircleOutline(orb.Position, _orbFixateRange, Colors.Danger);
         }
 
         foreach (var bit in Module.Enemies((uint)OID.MagitekBit))

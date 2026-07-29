@@ -51,9 +51,9 @@ class P2BrokenSeal(BossModule module) : BossComponent(module)
         }
 
         for (var i = 0; i < _fireTowers.Count; ++i)
-            Arena.AddCircle(_fireTowers[i].Position, 2, state.Color == Color.Fire ? Colors.Safe : default);
+            Arena.ZoneCircleOutline(_fireTowers[i].Position, 2, state.Color == Color.Fire ? Colors.Safe : default);
         for (var i = 0; i < _iceTowers.Count; ++i)
-            Arena.AddCircle(_iceTowers[i].Position, 2, state.Color == Color.Ice ? Colors.Safe : default);
+            Arena.ZoneCircleOutline(_iceTowers[i].Position, 2, state.Color == Color.Ice ? Colors.Safe : default);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -122,8 +122,8 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
             if (pcIcon == IconID.AkanthaiWater)
             {
                 // if player has blue => show AOE radius around him and single safe spot
-                Arena.AddCircle(pc.Position, _waterExplosionRange, Colors.Danger);
-                Arena.AddCircle(DetermineWaterSafeSpot(pcTetherSource), 1, Colors.Safe);
+                Arena.ZoneCircleOutline(pc.Position, _waterExplosionRange, Colors.Danger);
+                Arena.ZoneCircleOutline(DetermineWaterSafeSpot(pcTetherSource), 1, Colors.Safe);
             }
             else
             {
@@ -132,13 +132,13 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
                 {
                     if (_playerIcons[i] == IconID.AkanthaiWater && Raid[i] is var player && player != null)
                     {
-                        Arena.AddCircle(player.Position, _waterExplosionRange, Colors.Danger);
+                        Arena.ZoneCircleOutline(player.Position, _waterExplosionRange, Colors.Danger);
                     }
                 }
                 var tower = DetermineTowerToSoak(pcTetherSource);
                 if (tower != null)
                 {
-                    Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, Colors.Safe);
+                    Arena.ZoneCircleOutline(tower.Position, P4S2.WreathTowerRadius, Colors.Safe);
                 }
             }
         }

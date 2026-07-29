@@ -44,7 +44,7 @@ class BeloneCoils(BossModule module) : BossComponent(module)
         var validSoaker = IsValidSoaker(pc);
         foreach (var tower in _activeTowers)
         {
-            Arena.AddCircle(tower.Position, _towerRadius, validSoaker ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(tower.Position, _towerRadius, validSoaker ? Colors.Safe : Colors.Danger);
         }
     }
 

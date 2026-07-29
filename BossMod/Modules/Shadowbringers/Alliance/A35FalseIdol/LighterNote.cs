@@ -53,7 +53,7 @@ sealed class LighterNoteBait(BossModule module) : BossComponent(module)
                     }
                     for (var k = 0; k < maxexplosions; ++k)
                     {
-                        Arena.AddCircle(cc.Position + k * (j == 0 && k == 0 ? default : 6f) * dirs[j], 6f);
+                        Arena.ZoneCircleOutline(cc.Position + k * (j == 0 && k == 0 ? default : 6f) * dirs[j], 6f);
                     }
                 }
             }

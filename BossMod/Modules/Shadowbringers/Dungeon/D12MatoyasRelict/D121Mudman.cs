@@ -132,7 +132,7 @@ class RockyRoll(BossModule module) : Components.GenericBaitAway(module)
         base.DrawArenaForeground(pcSlot, pc);
         var count = activeHoles.Count;
         for (var i = 0; i < count; ++i)
-            Arena.AddCircle(activeHoles[i], 5f, Colors.Safe, 5f);
+            Arena.ZoneCircleOutline(activeHoles[i], 5f, Colors.Safe, 5f);
     }
 
     public override void Update()

@@ -112,12 +112,12 @@ class BlazingFootfalls(BossModule module) : BossComponent(module)
         if (NumMechanicsDone < 2 && _seenVisuals > 0)
         {
             // draw first safespot
-            Arena.AddCircle(Arena.Center + _safespotOffset * new WDir(_firstSafeLeft ? -1 : 1, 0), _safespotRadius, Colors.Safe, 2);
+            Arena.ZoneCircleOutline(Arena.Center + _safespotOffset * new WDir(_firstSafeLeft ? -1 : 1, 0), _safespotRadius, Colors.Safe, 2);
         }
         if (NumMechanicsDone < 4 && _seenVisuals > 1)
         {
             // draw second safespot
-            Arena.AddCircle(Arena.Center + _safespotOffset * new WDir(0, _secondSafeTop ? -1 : 1), _safespotRadius, Colors.Safe, 2);
+            Arena.ZoneCircleOutline(Arena.Center + _safespotOffset * new WDir(0, _secondSafeTop ? -1 : 1), _safespotRadius, Colors.Safe, 2);
         }
 
         if (NumMechanicsDone == 0)

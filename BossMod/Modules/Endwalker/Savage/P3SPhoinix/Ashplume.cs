@@ -78,7 +78,7 @@ class Ashplume : BossComponent
         }
 
         // draw circle around pc
-        Arena.AddCircle(pc.Position, aoeRadius, Colors.Danger);
+        Arena.ZoneCircleOutline(pc.Position, aoeRadius, Colors.Danger);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

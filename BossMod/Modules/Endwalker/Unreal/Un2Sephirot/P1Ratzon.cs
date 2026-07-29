@@ -27,9 +27,9 @@ class P1Ratzon(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var (slot, actor) in Raid.WithSlot(false, true, true).IncludedInMask(_greenTargets))
-            Arena.AddCircle(actor.Position, _greenRadius, Colors.Safe, slot == pcSlot ? 2 : 1);
+            Arena.ZoneCircleOutline(actor.Position, _greenRadius, Colors.Safe, slot == pcSlot ? 2 : 1);
         foreach (var (slot, actor) in Raid.WithSlot(false, true, true).IncludedInMask(_purpleTargets))
-            Arena.AddCircle(actor.Position, _purpleRadius, Colors.Vulnerable, slot == pcSlot ? 2 : 1);
+            Arena.ZoneCircleOutline(actor.Position, _purpleRadius, Colors.Vulnerable, slot == pcSlot ? 2 : 1);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

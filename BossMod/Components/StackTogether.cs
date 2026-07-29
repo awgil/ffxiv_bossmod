@@ -102,7 +102,7 @@ public class StackTogether(BossModule module, uint iconId, float activationDelay
         var countPos = positions.Count;
         for (var i = 0; i < countPos; ++i)
         {
-            Arena.AddCircle(positions[i], Radius, Colors.Safe);
+            Arena.ZoneCircleOutline(positions[i], Radius, Colors.Safe);
         }
     }
 

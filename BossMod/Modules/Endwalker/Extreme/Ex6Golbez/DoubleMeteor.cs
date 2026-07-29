@@ -94,7 +94,7 @@ class Explosion(BossModule module) : BossComponent(module)
     private void DrawTower(Actor? tower, bool safe)
     {
         if (tower != null)
-            Arena.AddCircle(tower.Position, 4f, safe ? Colors.Safe : 0, 2f);
+            Arena.ZoneCircleOutline(tower.Position, 4f, safe ? Colors.Safe : 0, 2f);
     }
 }
 

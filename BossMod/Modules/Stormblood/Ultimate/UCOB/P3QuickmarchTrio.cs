@@ -13,7 +13,7 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
         Arena.Actor(_relNorth, Colors.Object, true);
         var safespot = _safeSpots[pcSlot];
         if (safespot != default)
-            Arena.AddCircle(safespot, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot, 1, Colors.Safe);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

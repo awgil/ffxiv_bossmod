@@ -24,7 +24,7 @@ class Spectrum(BossModule module) : Components.CastCounter(module, (uint)AID.Bri
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.AddCircle(pc.Position, _radius, Colors.Danger);
+        Arena.ZoneCircleOutline(pc.Position, _radius, Colors.Danger);
         foreach (var player in Raid.WithoutSlot(false, true, true).Exclude(pc))
             Arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? Colors.PlayerInteresting : Colors.PlayerGeneric);
     }

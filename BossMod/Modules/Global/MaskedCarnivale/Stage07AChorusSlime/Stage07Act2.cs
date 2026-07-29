@@ -37,7 +37,7 @@ sealed class SlimeExplosion(BossModule module) : Components.GenericStackSpread(m
         var count = slimes.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(slimes[i].Position, 7.6f);
+            Arena.ZoneCircleOutline(slimes[i].Position, 7.6f);
         }
     }
 

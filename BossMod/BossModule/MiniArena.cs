@@ -14,6 +14,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public static readonly BossModuleConfig Config = Service.Config.Get<BossModuleConfig>();
     private WPos _center = center;
     private readonly TriangulationCache _triCache = new();
+    private readonly PolygonCache _polyCache = new();
 
     // needed for border cache
     private Vector2[][] outlines = [];
@@ -29,6 +30,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
                 _center = value;
                 outlines = [];
                 _triCache.Invalidate();
+                _polyCache.Invalidate();
             }
         }
     }
@@ -44,6 +46,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
                 _bounds = value;
                 outlines = [];
                 _triCache.Invalidate();
+                _polyCache.Invalidate();
             }
         }
     }
@@ -76,6 +79,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         {
             _bounds.ScreenHalfSize = ScreenHalfSize;
             _triCache.Invalidate();
+            _polyCache.Invalidate();
             outlines = [];
         }
         else
@@ -139,8 +143,6 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         ImGui.GetWindowDrawList().AddQuad(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), WorldPositionToScreenPosition(p4), color != default ? color : Colors.Danger, thickness);
     }
 
-    public void AddQuadFilled(WPos p1, WPos p2, WPos p3, WPos p4, uint color = default) => ImGui.GetWindowDrawList().AddQuadFilled(WorldPositionToScreenPosition(p1), WorldPositionToScreenPosition(p2), WorldPositionToScreenPosition(p3), WorldPositionToScreenPosition(p4), color != default ? color : Colors.Danger);
-
     public void AddRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color, float thickness = 1f)
     {
         thickness *= Config.ThicknessScale;
@@ -148,133 +150,6 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         var front = origin + lenFront * direction;
         var back = origin - lenBack * direction;
         AddQuad(front + side, front - side, back - side, back + side, color, thickness);
-    }
-
-    public void AddCircle(WPos center, float radius, uint color = default, float thickness = 1f)
-    {
-        var radiusscreenhalfsize = radius / _bounds.Radius * ScreenHalfSize;
-        thickness *= Config.ThicknessScale;
-        if (Config.ShowOutlinesAndShadows)
-        {
-            ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radiusscreenhalfsize, Colors.Shadows, default, thickness + 1f);
-        }
-
-        ImGui.GetWindowDrawList().AddCircle(WorldPositionToScreenPosition(center), radiusscreenhalfsize, color != default ? color : Colors.Danger, default, thickness);
-    }
-
-    public void AddCircleFilled(WPos center, float radius, uint color = default) => ImGui.GetWindowDrawList().AddCircleFilled(WorldPositionToScreenPosition(center), radius / _bounds.Radius * ScreenHalfSize, color != default ? color : Colors.Danger);
-
-    public void AddCone(WPos center, float radius, Angle centerDirection, Angle halfAngle, uint color = default, float thickness = 1f)
-    {
-        thickness *= Config.ThicknessScale;
-        var sCenter = WorldPositionToScreenPosition(center);
-        var sDir = Angle.HalfPi - centerDirection.Rad + _cameraAzimuth.Rad;
-        var drawlist = ImGui.GetWindowDrawList();
-        drawlist.PathLineTo(sCenter);
-        drawlist.PathArcTo(sCenter, radius / _bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
-        drawlist.PathStroke(color != default ? color : Colors.Danger, ImDrawFlags.Closed, thickness);
-    }
-
-    public void AddDonutCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color = default, float thickness = 1f)
-    {
-        thickness *= Config.ThicknessScale;
-        var sCenter = WorldPositionToScreenPosition(center);
-        var sDir = Angle.HalfPi - centerDirection.Rad + _cameraAzimuth.Rad;
-        var drawlist = ImGui.GetWindowDrawList();
-        var sDirP = sDir + halfAngle.Rad;
-        var sDirN = sDir - halfAngle.Rad;
-        var radius = _bounds.Radius;
-        var screenHalfSize = ScreenHalfSize;
-        drawlist.PathArcTo(sCenter, innerRadius / radius * screenHalfSize, sDirP, sDirN);
-        drawlist.PathArcTo(sCenter, outerRadius / radius * screenHalfSize, sDirN, sDirP);
-        drawlist.PathStroke(color != default ? color : Colors.Danger, ImDrawFlags.Closed, thickness);
-    }
-
-    public void AddCapsule(WPos start, WDir direction, float radius, float length, uint color = default, float thickness = 1f)
-    {
-        var dirNorm = direction.Normalized();
-        var halfLengthdirNorm = dirNorm * length * 0.5f;
-        var capsuleStart = start - halfLengthdirNorm;
-        var capsuleEnd = start + halfLengthdirNorm;
-        var orthoDir = dirNorm.OrthoR();
-
-        var drawList = ImGui.GetWindowDrawList();
-
-        var screenRadius = radius / _bounds.Radius * ScreenHalfSize;
-        var screenCapsuleStart = WorldPositionToScreenPosition(capsuleStart);
-        var screenCapsuleEnd = WorldPositionToScreenPosition(capsuleEnd);
-
-        var dirAngle = MathF.Atan2(dirNorm.Z, dirNorm.X);
-        var sDirAngle = Angle.HalfPi - dirAngle + _cameraAzimuth.Rad;
-        var dirMHalfPI = sDirAngle - Angle.HalfPi;
-        var dirPHalfPI = sDirAngle + Angle.HalfPi;
-        var orthoDirRadius = orthoDir * radius;
-
-        // Start path at capsuleStart + orthoDir * radius
-        drawList.PathLineTo(WorldPositionToScreenPosition(capsuleStart + orthoDirRadius));
-
-        // Line to capsuleEnd + orthoDir * radius
-        drawList.PathLineTo(WorldPositionToScreenPosition(capsuleEnd + orthoDirRadius));
-
-        // Arc around capsuleEnd from sDirAngle - π/2 to sDirAngle + π/2
-        drawList.PathArcTo(screenCapsuleEnd, screenRadius, dirMHalfPI, dirPHalfPI);
-
-        // Line back to capsuleStart - orthoDir * radius
-        drawList.PathLineTo(WorldPositionToScreenPosition(capsuleStart - orthoDirRadius));
-
-        // Arc around capsuleStart from sDirAngle + π/2 to sDirAngle - π/2
-        drawList.PathArcTo(screenCapsuleStart, screenRadius, dirPHalfPI, dirMHalfPI);
-
-        drawList.PathStroke(color != default ? color : Colors.Danger, ImDrawFlags.Closed, thickness);
-    }
-
-    public void AddArcCapsule(WPos start, WPos orbitCenter, Angle angularLength, float radius, uint color = default, float thickness = 1f)
-    {
-        thickness *= Config.ThicknessScale;
-
-        // centerline geometry
-        var r0 = start - orbitCenter; // orbit -> start
-        var R = r0.Length();
-
-        var theta0 = r0.ToAngle();
-        var theta1 = theta0 + angularLength;
-
-        var u0 = r0 / R;
-        var u1 = u0.Rotate(angularLength);
-        var end = orbitCenter + u1 * R;
-
-        var outerR = R + radius;
-        var innerR = Math.Max(R - radius, 1e-4f);
-
-        var s = Math.Sign(angularLength.Rad);
-        if (s == 0)
-        {
-            s = 1;
-        }
-
-        // tangents at start/end (follow sweep direction)
-        var t0 = s > 0 ? u0.OrthoL() : u0.OrthoR();
-        var t1 = s > 0 ? u1.OrthoL() : u1.OrthoR();
-        var a90 = 90f.Degrees();
-
-        // begin at outer boundary start
-        PathLineTo(orbitCenter + outerR * u0);
-
-        // outer arc (orbit center)
-        PathArcTo(orbitCenter, outerR, theta0.Rad, theta1.Rad);
-
-        // end cap around 'end' (semicircle aligned to tangent)
-        var t1Ang = t1.ToAngle();
-        PathArcTo(end, radius, (t1Ang - a90).Rad, (t1Ang + a90).Rad);
-
-        // inner arc back (orbit center)
-        PathArcTo(orbitCenter, innerR, theta1.Rad, theta0.Rad);
-
-        // start cap around 'start' (reverse to connect inner→outer)
-        var t0Ang = t0.ToAngle();
-        PathArcTo(start, radius, (t0Ang + a90).Rad, (t0Ang - a90).Rad);
-
-        PathStroke(true, color != default ? color : Colors.Danger, thickness);
     }
 
     public void AddPolygon(ReadOnlySpan<WPos> vertices, uint color = default, float thickness = 1f)
@@ -289,10 +164,9 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         PathStroke(true, color != default ? color : Colors.Danger, thickness);
     }
 
-    public void AddComplexPolygon(in WPos center, RelSimplifiedComplexPolygon poly, uint color, float thickness = 1f)
+    private void AddComplexPolygon(in WPos center, RelSimplifiedComplexPolygon poly, uint color = default, float thickness = 1f)
     {
-        thickness *= Config.ThicknessScale;
-
+        var colors = color != default ? color : Colors.Danger;
         var parts = poly.Parts;
         var count = parts.Count;
         for (var i = 0; i < count; ++i)
@@ -309,7 +183,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
                     PathLineTo(center + end);
                 }
             }
-            PathStroke(true, color, thickness);
+            PathStroke(true, colors, thickness);
             var holes = part.Holes;
             var lenHoles = holes.Length;
             for (var k = 0; k < lenHoles; ++k)
@@ -325,7 +199,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
                         PathLineTo(center + end);
                     }
                 }
-                PathStroke(true, color, thickness);
+                PathStroke(true, colors, thickness);
             }
         }
     }
@@ -342,8 +216,6 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         thickness *= Config.ThicknessScale;
         ImGui.GetWindowDrawList().PathStroke(color != default ? color : Colors.Danger, closed ? ImDrawFlags.Closed : ImDrawFlags.None, thickness);
     }
-
-    public static void PathFillConvex(uint color = default) => ImGui.GetWindowDrawList().PathFillConvex(color != default ? color : Colors.Danger);
 
     // draw clipped & triangulated zone
     public void Zone(List<RelTriangle> triangulation, uint color = default)
@@ -446,9 +318,9 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         Zone(tri, color);
     }
 
-    public void ZoneCross(WPos origin, Angle length, float range, float halfWidth, WPos[] contour, uint color)
+    public void ZoneCross(WPos origin, Angle rotation, float range, float halfWidth, WPos[] contour, uint color)
     {
-        ref var tri = ref _triCache.Get(10, origin, length, range, halfWidth);
+        ref var tri = ref _triCache.Get(10, origin, rotation, range, halfWidth);
         if (tri == null)
         {
             var len = contour.Length;
@@ -484,6 +356,114 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         var toOrbitCenter = orbitCenter - start;
         tri ??= _bounds.ClipAndTriangulateArcCapsule(startOffset, toOrbitCenter, angularLength, radius);
         Zone(tri, color);
+    }
+
+    // draw zone outlines - these are filled primitives clipped to arena border; note that clipped polygons are cached
+    public void ZoneConeOutline(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(1, center, innerRadius, outerRadius, centerDirection, halfAngle);
+        poly ??= _bounds.ClipCone(center - Center, innerRadius, outerRadius, centerDirection, halfAngle);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneCircleOutline(WPos center, float radius, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(2, center, radius);
+        poly ??= _bounds.ClipCircle(center - Center, radius);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneDonutOutline(WPos center, float innerRadius, float outerRadius, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(3, center, innerRadius, outerRadius);
+        poly ??= _bounds.ClipDonut(center - Center, innerRadius, outerRadius);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneTriOutline(WPos a, WPos b, WPos c, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(4, a, b, c);
+        poly ??= _bounds.ClipTri(a - Center, b - Center, c - Center);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneIsoscelesTriOutline(WPos apex, WDir height, WDir halfBase, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(5, apex, height, halfBase);
+        poly ??= _bounds.ClipIsoscelesTri(apex - Center, height, halfBase);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneRectOutline(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(7, origin, direction, lenFront, lenBack, halfWidth);
+        poly ??= _bounds.ClipRect(origin - Center, direction, lenFront, lenBack, halfWidth);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneRectOutline(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(8, origin, direction, lenFront, lenBack, halfWidth);
+        poly ??= _bounds.ClipRect(origin - Center, direction, lenFront, lenBack, halfWidth);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneRectOutline(WPos start, WPos end, float halfWidth, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(9, start, end, halfWidth);
+        poly ??= _bounds.ClipRect(start - Center, end - Center, halfWidth);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneCrossOutline(WPos origin, Angle rotation, float range, float halfWidth, WPos[] contour, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(10, origin, rotation, range, halfWidth);
+        if (poly == null)
+        {
+            var len = contour.Length;
+            var adjusted = new WDir[len];
+            for (var i = 0; i < len; i++)
+            {
+                adjusted[i] = contour[i] - Center;
+            }
+            poly = _bounds.Clip(adjusted);
+        }
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneRelPolyOutline(int key, RelSimplifiedComplexPolygon poly, uint color = default, float thickness = 1f)
+    {
+        ref var polygon = ref _polyCache.GetByHash(key);
+        polygon ??= _bounds.Clip(poly);
+        DrawOutline(Center, polygon, color, thickness);
+    }
+
+    public void ZoneCapsuleOutline(WPos start, WDir direction, float radius, float length, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(11, start, direction, radius, length);
+        poly ??= _bounds.ClipCapsule(start - Center, direction, radius, length);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    public void ZoneArcCapsuleOutline(WPos start, WPos orbitCenter, Angle angularLength, float radius, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(13, start, orbitCenter, angularLength, radius);
+        // startOffset: local translation; toOrbitCenter: vector from start to orbit center
+        var startOffset = start - Center;
+        var toOrbitCenter = orbitCenter - start;
+        poly ??= _bounds.ClipArcCapsule(startOffset, toOrbitCenter, angularLength, radius);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void DrawOutline(WPos Center, RelSimplifiedComplexPolygon poly, uint color = default, float thickness = 1f)
+    {
+        thickness *= Config.ThicknessScale;
+        if (Config.ShowOutlinesAndShadows)
+        {
+            AddComplexPolygon(Center, poly, Colors.Shadows, (thickness + 1f) * Config.ThicknessScale);
+        }
+        AddComplexPolygon(Center, poly, color, thickness);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

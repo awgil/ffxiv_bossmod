@@ -43,7 +43,7 @@ sealed class P5Sigma(BossModule module) : BossComponent(module)
         }
 
         foreach (var safeSpot in SafeSpotOffsets(pcSlot))
-            Arena.AddCircle(Arena.Center + safeSpot, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + safeSpot, 1, Colors.Safe);
     }
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
@@ -401,7 +401,7 @@ sealed class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(mod
     {
         base.DrawArenaForeground(pcSlot, pc);
         foreach (var p in SafeSpots(pcSlot, pc))
-            Arena.AddCircle(p, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(p, 1f, Colors.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

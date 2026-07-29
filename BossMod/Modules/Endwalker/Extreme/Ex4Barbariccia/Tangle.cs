@@ -11,7 +11,7 @@ class Tangle(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Tangle
         var tether = _tethers[pcSlot];
         if (tether != null)
         {
-            Arena.AddCircle(tether.Position, 8f, Colors.Object);
+            Arena.ZoneCircleOutline(tether.Position, 8f, Colors.Object);
         }
     }
 

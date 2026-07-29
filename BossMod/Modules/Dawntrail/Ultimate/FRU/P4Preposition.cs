@@ -16,7 +16,7 @@ sealed class P4Preposition(BossModule module) : BossComponent(module)
     {
         var count = _boss.Count;
         for (var i = 0; i < count; ++i)
-            Arena.AddCircle(_boss[i].Position, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(_boss[i].Position, 1, Colors.Safe);
     }
 }
 
@@ -41,7 +41,7 @@ sealed class P4FragmentOfFate(BossModule module) : BossComponent(module)
         for (var i = 0; i < count; ++i)
         {
             var f = _fragment[i];
-            Arena.AddCircle(f.Position, f.HitboxRadius, Colors.Object);
+            Arena.ZoneCircleOutline(f.Position, f.HitboxRadius, Colors.Object);
         }
     }
 }

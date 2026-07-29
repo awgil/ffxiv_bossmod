@@ -42,7 +42,7 @@ sealed class RightArmRayBuffed(BossModule module) : Components.GenericRotatingAO
                                 var midpointOffset = (ccwOffset + cwOffset) * 0.5f;
                                 if (midpointOffset.OrthoL().Dot(ccwOffset) < 0f)
                                 {
-                                    Arena.AddCircle(Arena.Center + midpointOffset, 1f, Colors.Safe);
+                                    Arena.ZoneCircleOutline(Arena.Center + midpointOffset, 1f, Colors.Safe);
                                 }
                             }
                         }

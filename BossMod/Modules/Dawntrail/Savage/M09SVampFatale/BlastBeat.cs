@@ -184,6 +184,6 @@ sealed class BombpyreRing(BossModule module) : BossComponent(module)
         if (_start == default)
             return;
 
-        Arena.AddCircle(Arena.Center, _radius, Colors.Danger);
+        Arena.ZoneCircleOutline(Arena.Center, _radius, Colors.Danger);
     }
 }

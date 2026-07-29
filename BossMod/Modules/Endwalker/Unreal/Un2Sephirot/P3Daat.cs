@@ -12,6 +12,6 @@ class P3Daat(BossModule module) : Components.CastCounter(module, (uint)AID.DaatR
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.AddCircle(pc.Position, radius, Colors.Danger);
+        Arena.ZoneCircleOutline(pc.Position, radius, Colors.Danger);
     }
 }

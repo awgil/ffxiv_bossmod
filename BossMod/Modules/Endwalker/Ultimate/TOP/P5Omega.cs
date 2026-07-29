@@ -188,7 +188,7 @@ sealed class P5OmegaOversampledWaveCannon(BossModule module) : Components.Unifor
     {
         base.DrawArenaForeground(pcSlot, pc);
         foreach (var p in SafeSpots(pcSlot, pc))
-            Arena.AddCircle(p, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(p, 1f, Colors.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -260,7 +260,7 @@ sealed class P5OmegaBlaster : Components.BaitAwayTethers
     {
         base.DrawArenaForeground(pcSlot, pc);
         foreach (var p in SafeSpots(pc))
-            Arena.AddCircle(p, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(p, 1f, Colors.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

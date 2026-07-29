@@ -281,12 +281,12 @@ class Fireworks1Hints(BossModule module) : BossComponent(module)
         {
             var safeSpots = add.OID is (uint)OID.NSurprisingClaw or (uint)OID.SSurprisingClaw ? _safeSpotsClaw : _safeSpotsMissile;
             foreach (var p in safeSpots)
-                Arena.AddCircle(p, 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(p, 1f, Colors.Safe);
         }
         else
         {
             foreach (var p in _safeSpotsClaw)
-                Arena.AddCircle(p, 1f, Colors.Enemy);
+                Arena.ZoneCircleOutline(p, 1f, Colors.Enemy);
         }
     }
 
@@ -315,12 +315,12 @@ class Fireworks2Hints(BossModule module) : BossComponent(module)
         if (_fireworks?.Spreads.Count > 0)
         {
             foreach (var dir in SafeSpots(pcSlot, pc))
-                Arena.AddCircle(Arena.Center + 19f * dir.ToDirection(), 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(Arena.Center + 19f * dir.ToDirection(), 1f, Colors.Safe);
         }
         else if (_relNorth != null)
         {
             // show rel north before assignments are done
-            Arena.AddCircle(Arena.Center + 19f * _relNorth.Value.ToDirection(), 1f, Colors.Enemy);
+            Arena.ZoneCircleOutline(Arena.Center + 19f * _relNorth.Value.ToDirection(), 1f, Colors.Enemy);
         }
     }
 
