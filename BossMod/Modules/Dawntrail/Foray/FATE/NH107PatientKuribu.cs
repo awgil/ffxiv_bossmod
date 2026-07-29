@@ -23,7 +23,8 @@ public enum AID : uint {
     HolyNext = 49913, // 4DCC->location, 3.0s cast, range 6 circle
 
     ShortswordAndSorcery = 50118, // PatientKuribu->self, 5.0s cast, range 15 circle
-    LongswordAndSorcery = 50121, // PatientKuribu->self, 5.0s cast, range 15-25 donut
+    LongswordAndSorcery = 50121, // PatientKuribu->self, 5.0s cast, range 10-25 donut
+    LongswordAndSorcery1 = 50120, // PatientKuribu->self, 5.0s cast, range 10-25 donut
 }
 
 public enum SID : uint {
@@ -37,7 +38,8 @@ sealed class StoneIII(BossModule module) : Components.SimpleAOEGroups(module, [(
 sealed class AeroIII(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.AeroIII, (uint)AID.AeroIII1], new AOEShapeRect(40.0f, 4.0f));
 sealed class Holy(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.HolyStart, (uint)AID.HolyNext], new AOEShapeCircle(6.0f));
 sealed class ShortswordAndSorcery(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ShortswordAndSorcery, new AOEShapeCircle(15.0f));
-sealed class LongswordAndSorcery(BossModule module) : Components.SimpleAOEs(module, (uint)AID.LongswordAndSorcery, new AOEShapeDonut(15.0f, 25.0f));
+sealed class LongswordAndSorcery(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.LongswordAndSorcery, (uint)AID.LongswordAndSorcery1],
+    new AOEShapeDonut(10.0f, 25.0f));
 
 [SkipLocalsInit]
 sealed class PatientKuribuStates : StateMachineBuilder {
