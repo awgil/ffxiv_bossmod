@@ -83,30 +83,33 @@ sealed class FleshTele(BossModule module) : Components.GenericKnockback(module)
         var rot = actor.Rotation;
         var pos = actor.Position;
         var moveDir = (forwardKb[slot] ? rot : rot + 180f.Degrees()).ToDirection();
+        const float distSq = 15f * 15f;
+        const float radiusSq = 12f * 12f;
+        const float distSqRadiusSq = distSq - radiusSq;
 
         for (var i = 0; i < len; ++i)
         {
             var origin = aoes[i];
             var d = origin - pos;
             var dist = d.Length();
-
-            if (dist is <= 12f or >= 28f) // inside voidzone or max distance 15 + 12 radius + 1 safety margin
+            if (dist is <= 12f or >= 27f) // inside aoe or max distance 15 + 12 radius
             {
-                continue; // inside voidzone or impossible to run into this from current position
+                continue; // inside aoe or impossible to run into this from current position
             }
-
             var forward = d.Dot(moveDir);
             var sideways = d.Dot(moveDir.OrthoL());
 
-            hints.ForbiddenDirections.Add(new(Angle.Atan2(sideways, forward), Angle.Asin(12f / dist), act));
+            hints.ForbiddenDirections.Add(new(Angle.Atan2(sideways, forward), Angle.Acos((dist * dist + distSqRadiusSq) / (2f * dist * 15f)), act));
         }
-        var arena = Arena.Bounds.ShapeSimplified;
-        arena.AddForbiddenDirectionsArena(actor, Arena.Center, arena, hints, _activation, 15f, 1f);
-        if (_reach.ActiveCasters is var aoe && aoe.Length != 0 && _reach.Shape is AOEShapeCone cone)
-        {
-            ref readonly var aoe0 = ref aoe[0];
-            cone.AddForbiddenDirections(actor, aoe0.Origin, aoe0.Rotation, cone.Radius, cone.HalfAngle, hints, _activation, 15f);
-        }
+
+        Arena.Bounds.ShapeSimplified.AddForbiddenDirectionsArena(actor, Arena.Center, hints, _activation, 15f, 1f);
+
+        // probably not needed since the cone resolves a long time after the knockback
+        // if (_reach.ActiveCasters is var aoe && aoe.Length != 0 && _reach.Shape is AOEShapeCone cone)
+        // {
+        //     ref readonly var aoe0 = ref aoe[0];
+        //     cone.AddForbiddenDirections(actor, aoe0.Origin, aoe0.Rotation, cone.Radius * 5f, cone.HalfAngle, hints, _activation, 15f);
+        // }
     }
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)

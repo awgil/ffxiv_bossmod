@@ -89,7 +89,6 @@ public enum TetherID : uint
     HolySwordTether = 88, // ForgivenVenery1->ForgivenShame1
 }
 
-
 sealed class CrownTrash(BossModule module) : Components.AddsMulti(module, T02Innocence.CrownMobs);
 
 sealed class RealmRazer(BossModule module) : Components.RaidwideCast(module, (uint)AID.Realmrazer1);
@@ -202,7 +201,7 @@ sealed class SoulAndBody(BossModule module) : Components.SimpleAOEs(module, (uin
  * After the attack, the swords will linger for a few seconds before returning to Innocence as Line AoEs.
  * Getting hit by either part of the attack inflicts Physical Vulnerability Up.
  */
-sealed class Reprobation(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Reprobation1, new AOEShapeRect(21f,2f));
+sealed class Reprobation(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Reprobation1, new AOEShapeRect(21f, 2f));
 sealed class ReprobationLong(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Reprobation3, new AOEShapeRect(42f, 2));
 
 sealed class Shadowreaver(BossModule module) : Components.RaidwideCast(module, (uint)AID.Shadowreaver);
@@ -277,7 +276,6 @@ sealed class InnocenceStates : StateMachineBuilder
     PlanLevel = 0)]
 [SkipLocalsInit]
 
-
 /*
  * The first stage of innocence is the fat innocence.  Phase 1 ends when that model
  * dies and is replaced by the muscular innocence (OID.BossP2)
@@ -286,8 +284,7 @@ sealed class InnocenceStates : StateMachineBuilder
  * We also have a condition in the state machine that both primary actor and BossP2
  * actor are dead or destroyed before the fight is over.
  */
-public sealed class T02Innocence(WorldState ws, Actor primary)
-    : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsCircle(20f))
+public sealed class T02Innocence(WorldState ws, Actor primary) : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsCircle(20f))
 {
     private Actor? _bossP2;
 

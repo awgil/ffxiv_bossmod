@@ -71,7 +71,9 @@ sealed class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAwa
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID == (uint)AID.HemorrhagicProjection)
+        {
             CurrentBaits.Clear();
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -85,20 +87,24 @@ sealed class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAwa
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (CurrentBaits.Count == 0)
+        {
+            return;
+        }
         base.AddAIHints(slot, actor, assignment, hints);
-
-        // point bait outwards
-        // add forbidden direction if clipping players
-        // rotation added as part of bait shape so just use player rotation?
         var activeBaits = CollectionsMarshal.AsSpan(ActiveBaitsOn(actor));
         if (activeBaits.Length != 0)
         {
             ref var b = ref activeBaits[0];
-            var clipped = PlayersClippedBy(ref b);
-            var count = clipped.Count;
-            if (count > 0)
+            var party = Raid.WithoutSlot(false, true, true);
+            var lenP = party.Length;
+            var pos = actor.Position;
+            var angle = 15f.Degrees();
+            var offset = ((_direction[slot] - 0x408) * -90f).Degrees();
+            var act = b.Activation;
+            for (var j = 0; j < lenP; ++j)
             {
-                hints.ForbiddenDirections.Add((actor.Rotation, 15f.Degrees(), b.Activation));
+                hints.ForbiddenDirections.Add((Angle.FromDirection(party[j].Position - pos) - offset, angle, act));
             }
         }
     }

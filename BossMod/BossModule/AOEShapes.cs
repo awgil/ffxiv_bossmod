@@ -103,9 +103,7 @@ public sealed class AOEShapeCone(float radius, Angle halfAngle, Angle directionO
             var width = end - start;
             if (width <= 1e-7)
                 continue;
-
             var centerA = PolygonBoundaryIndex2D.NormalizeAngle(start + 0.5 * width);
-
             hints.ForbiddenDirections.Add(new(new((float)centerA), new((float)(0.5d * width)), act));
         }
     }
@@ -149,7 +147,7 @@ public sealed class AOEShapeCone(float radius, Angle halfAngle, Angle directionO
             return;
         }
 
-        var c = (radius * radius - d2 - knockbackDist * knockbackDist) / (2f * d * knockbackDist);
+        var c = (d2 + knockbackDist * knockbackDist - radius * radius) / (2f * d * knockbackDist);
         if (c is < -1f or > 1f)
         {
             return;
@@ -173,11 +171,6 @@ public sealed class AOEShapeCone(float radius, Angle halfAngle, Angle directionO
         var mb = mx * bx + mz * bz;
         var c = mx * mx + mz * mz - knockbackDist * knockbackDist;
         var disc = mb * mb - c;
-
-        if (disc < -1e-6f)
-        {
-            return;
-        }
 
         if (disc < 0f)
         {

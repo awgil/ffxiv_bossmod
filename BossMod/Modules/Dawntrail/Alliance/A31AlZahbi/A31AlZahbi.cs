@@ -37,6 +37,7 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // 4DB4/Boss/4DA7/4DA9/4DAB->player/4DAF/4DAC, no cast, single-target
+
     AcrolithAuto = 872, // 4DB5/4DAA->player/4DB1/4DB2/4DAD, no cast, single-target
     LamiaAuto = 873, // 4DA5/4DA8->player, no cast, single-target
     Earthshatter = 50085, // 4DA4->self, 4.0s cast, range 8 circle
@@ -63,27 +64,27 @@ public enum AID : uint
     Petrifaction = 50102, // 4DAB->self, 5.0s cast, range 60 circle
 }
 
-class Earthshatter(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Earthshatter, 8);
-class TranscendentShot(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TranscendentShot, new AOEShapeRect(60, 2.5f), maxCasts: 4);
-sealed class LeapingCleave(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.LeapingCleave, 22);
-class FeralLunge(BossModule module) : Components.SimpleAOEs(module, (uint)AID.FeralLunge, 10);
-class WhirlingSlash(BossModule module) : Components.SimpleAOEs(module, (uint)AID.WhirlingSlash, 6);
-class Perdition(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Perdition, 9);
-class Tourbillion(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Tourbillion, new AOEShapeRect(40, 25));
-class PinningShot(BossModule module) : Components.BaitAwayCast(module, (uint)AID.PinningShot, new AOEShapeCircle(13), centerAtTarget: true);
-class FulminationKhalkeos(BossModule module) : Components.RaidwideCast(module, (uint)AID.FulminationKhalkeos);
-class DanceToDust(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(7))
+sealed class Earthshatter(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Earthshatter, 8);
+sealed class TranscendentShot(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TranscendentShot, new AOEShapeRect(60f, 2.5f), maxCasts: 4);
+sealed class LeapingCleave(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.LeapingCleave, 22f);
+sealed class FeralLunge(BossModule module) : Components.SimpleAOEs(module, (uint)AID.FeralLunge, 10f);
+sealed class WhirlingSlash(BossModule module) : Components.SimpleAOEs(module, (uint)AID.WhirlingSlash, 6f);
+sealed class Perdition(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Perdition, 9f);
+sealed class Tourbillion(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Tourbillion, new AOEShapeRect(40f, 25f));
+sealed class PinningShot(BossModule module) : Components.BaitAwayCast(module, (uint)AID.PinningShot, 13f, tankbuster: true);
+sealed class FulminationKhalkeos(BossModule module) : Components.RaidwideCast(module, (uint)AID.FulminationKhalkeos);
+sealed class DanceToDust(BossModule module) : Components.Exaflare(module, 7f)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.DanceToDustFirst)
+        if (spell.Action.ID == (uint)AID.DanceToDustFirst)
             Lines.Add(new(caster.Position, caster.Rotation.ToDirection() * 8, Module.CastFinishAt(spell), 2,
                 caster.Rotation.AlmostEqual(default, 0.1f) || caster.Rotation.AlmostEqual(180.Degrees(), 0.1f) ? 2 : 3, 3));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.DanceToDustFirst or AID.DanceToDustRest)
+        if (spell.Action.ID is (uint)AID.DanceToDustFirst or (uint)AID.DanceToDustRest)
         {
             var ix = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position, 1));
             if (ix >= 0)
@@ -91,16 +92,15 @@ class DanceToDust(BossModule module) : Components.Exaflare(module, new AOEShapeC
         }
     }
 }
-class ShadowSlash(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.RightShadowSlash, (uint)AID.LeftShadowSlash], new AOEShapeCone(60, 90.Degrees()));
-class BellowingGrunt(BossModule module) : Components.RaidwideCast(module, (uint)AID.BellowingGrunt);
-class Disregard(BossModule module) : Components.RaidwideCast(module, (uint)AID.DisregardRaidwide);
-class DisregardRect(BossModule module) : Components.SimpleAOEs(module, (uint)AID.DisregardRect, new AOEShapeRect(55, 5));
-class Petrifaction(BossModule module) : Components.CastGaze(module, (uint)AID.Petrifaction);
+sealed class ShadowSlash(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.RightShadowSlash, (uint)AID.LeftShadowSlash], new AOEShapeCone(60f, 90f.Degrees()));
+sealed class BellowingGrunt(BossModule module) : Components.RaidwideCast(module, (uint)AID.BellowingGrunt);
+sealed class Disregard(BossModule module) : Components.RaidwideCast(module, (uint)AID.DisregardRaidwide);
+sealed class DisregardRect(BossModule module) : Components.SimpleAOEs(module, (uint)AID.DisregardRect, new AOEShapeRect(55f, 5f));
+sealed class Petrifaction(BossModule module) : Components.CastGaze(module, (uint)AID.Petrifaction);
 
 sealed class AlZahbiTrash(BossModule module) : Components.AddsMulti(module, A31AlZahbi.AlZahbiMobs);
 
-
-class A31AlZahbiStates : StateMachineBuilder
+sealed class A31AlZahbiStates : StateMachineBuilder
 {
     public A31AlZahbiStates(BossModule module) : base(module)
     {
@@ -125,7 +125,6 @@ class A31AlZahbiStates : StateMachineBuilder
     }
 }
 
-
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(A31AlZahbiStates),
     ConfigType = null,
@@ -147,7 +146,7 @@ class A31AlZahbiStates : StateMachineBuilder
  * for the AlZahbiMobs[] list.  We could also probably finish on Swarmsinger being dead as well since she
  * is generally last wave.
  */
-public class A31AlZahbi(WorldState ws, Actor primary) : BossModule(ws, primary, new(721, 720), new ArenaBoundsRect(25, 20))
+public class A31AlZahbi(WorldState ws, Actor primary) : BossModule(ws, primary, new(721f, 720f), new ArenaBoundsRect(25f, 20f))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
 
@@ -166,10 +165,9 @@ public class A31AlZahbi(WorldState ws, Actor primary) : BossModule(ws, primary, 
             (uint)OID.MedusaSwarmsinger
         ];
 
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
-        Arena.Actors(WorldState.Actors.Where(a => !a.IsAlly), Colors.Enemy);
+        Arena.Actors(this, AlZahbiMobs);
     }
 
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

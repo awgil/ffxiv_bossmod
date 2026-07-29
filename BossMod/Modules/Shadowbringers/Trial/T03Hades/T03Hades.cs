@@ -58,7 +58,7 @@ public enum AID : uint
     HellbornYawp1 = 16751, // 233C->self, 4.0s cast, range 100 60.000-degree cone
     EchoOfTheLost1 = 16739, // 294A->self, 7.0s cast, range 100 ?-degree cone
     Captivity = 16744, // 294A->self, 5.0s cast, single-target
-    CaptivityCast= 16745, // 233C->player, no cast, range 8 circle
+    CaptivityCast = 16745, // 233C->player, no cast, range 8 circle
     __ = 16767, // 233C->self, no cast, single-target
     _Spell_2 = 16746, // 233C->player, no cast, single-target
     _Spell_3 = 16747, // 294A->self, no cast, single-target
@@ -88,7 +88,6 @@ public enum SID : uint
     Bleeding = 320, // none->player, extra=0x0
 }
 
-
 public enum IconID : uint
 {
     Tankbuster = 343, //Player -> self : vfx tank_lockonae_5m_5s_01k1
@@ -103,7 +102,6 @@ public enum TetherID : uint
 {
     DottedLineTether = 17 // Player -> 29D8/29D9/29DA/29DB (Hades Parts) : vfx chn_tergetfix1f
 }
-
 
 // Phase 1
 // Ravenous Assault Tankbuster
@@ -266,12 +264,7 @@ sealed class NetherBlast(BossModule module) : Components.BaitAwayTethers(module,
     }
 }
 
-sealed class LastPhaseRaidwides(BossModule module) : Components.RaidwideCasts(module,
-[
-    (uint)AID.LifeInCaptivity, (uint)AID.BlackCauldron, (uint)AID.TheDarkDevours,
-    (uint)AID.ChorusOfTheLost
-]);
-
+sealed class LastPhaseRaidwides(BossModule module) : Components.RaidwideCasts(module, [(uint)AID.LifeInCaptivity, (uint)AID.BlackCauldron, (uint)AID.TheDarkDevours, (uint)AID.ChorusOfTheLost]);
 
 [SkipLocalsInit]
 sealed class HadesStates : StateMachineBuilder
@@ -305,7 +298,6 @@ sealed class HadesStates : StateMachineBuilder
             .ActivateOnEnter<DoomTowers>()
             .ActivateOnEnter<NetherBlast>()
             .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed && module.Enemies((uint)OID.HadesBig).All(k => k.IsDeadOrDestroyed);
-            ;
     }
 }
 
@@ -327,8 +319,7 @@ sealed class HadesStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class Hades(WorldState ws, Actor primary)
-    : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsCircle(20f))
+public sealed class Hades(WorldState ws, Actor primary) : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsCircle(20f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
