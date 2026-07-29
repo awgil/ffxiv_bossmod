@@ -1,5 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE202TinyTerror;
 
+// TODO Improvements: Make knockback aoe easier to know the position off
+// TODO first aoe showing annoying - shouldn't show AOE until it has been solved
+// TODO 4 combo wave - can be knockback in between but flares act as if they're going off first
+
 public enum OID : uint {
     TinyMage = 0x4C6D,
     Helper = 0x233C,
@@ -261,10 +265,11 @@ sealed class Comet(BossModule module) : BossComponent(module) {
     }
 }
 
-// Will blow up 90 degrees anti-clockwise from spawn point
 sealed class FlareGrowable(BossModule module) : Components.GenericAOEs(module) {
     private List<Actor> mages = [];
-    private WPos? start = null;
+    private Actor? orb = null;
+    private int startPoint = -1;
+    private int direction = 0;
 
     public override void OnActorCreated(Actor actor) {
         if (actor.OID == (uint)OID.TinyApprentice) {
@@ -285,42 +290,50 @@ sealed class FlareGrowable(BossModule module) : Components.GenericAOEs(module) {
         }
 
         if (actor.OID == (uint)OID.FlareSphereGrow) {
-            start = actor.Position;
+            orb = actor;
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.TinyFlare1) {
-            start = null;
+            orb = null;
+            startPoint = -1;
+            direction = 0;
         }
     }
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (mages.Count == 0 || start == null) {
+        if (mages.Count == 0 || orb == null) {
             return [];
         }
 
-        var startAOE = mages.FindIndex(a => a.Position.AlmostEqual(start.Value, 0.5f));
-        if (startAOE < 0) {
-            return [];
+        if (startPoint == -1) {
+            var startAOE = mages.FindIndex(a => a.Position.AlmostEqual(orb.Position, 0.5f));
+            if (startAOE < 0) {
+                return [];
+            }
+
+            startPoint = startAOE;
         }
 
-        Actor targetActor;
-
-        // AOE is -1 from that index, but if 0 then its 3
-        if (startAOE == 0) {
-            targetActor = mages[3];
-        } else {
-            targetActor = mages[startAOE - 1];
+        if (direction == 0) {
+            var currentPoint = mages.FindIndex(a => a.Position.AlmostEqual(orb.Position, 0.5f));
+            if (currentPoint >= 0 && currentPoint != startPoint) {
+                direction = (currentPoint - startPoint + 4) % 4 == 1 ? 1 : -1;
+            }
         }
 
+        var targetPoint = (startPoint + 4 - direction) % 4;
+        var targetActor  = mages[targetPoint];
         return new AOEInstance[1] { new AOEInstance(new AOEShapeCircle(18.0f), targetActor.Position) };
     }
 }
 
 sealed class HolyGrowable(BossModule module) : Components.GenericKnockback(module) {
     private List<Actor> mages = [];
-    private WPos? start = null;
+    private Actor? orb = null;
+    private int startPoint = -1;
+    private int direction = 0;
 
     public override void OnActorCreated(Actor actor) {
         if (actor.OID == (uint)OID.TinyApprentice) {
@@ -341,35 +354,41 @@ sealed class HolyGrowable(BossModule module) : Components.GenericKnockback(modul
         }
 
         if (actor.OID == (uint)OID.HolySphere1Grow) {
-            start = actor.Position;
+            orb = actor;
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID == (uint)AID.TinyHoly1) {
-            start = null;
+            orb = null;
+            startPoint = -1;
+            direction = 0;
         }
     }
 
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor) {
-        if (mages.Count == 0 || start == null) {
+        if (mages.Count == 0 || orb == null) {
             return [];
         }
 
-        var startAOE = mages.FindIndex(a => a.Position.AlmostEqual(start.Value, 0.5f));
-        if (startAOE < 0) {
-            return [];
+        if (startPoint == -1) {
+            var startAOE = mages.FindIndex(a => a.Position.AlmostEqual(orb.Position, 0.5f));
+            if (startAOE < 0) {
+                return [];
+            }
+
+            startPoint = startAOE;
         }
 
-        Actor targetActor;
-
-        // AOE is -1 from that index, but if 0 then its 3
-        if (startAOE == 0) {
-            targetActor = mages[3];
-        } else {
-            targetActor = mages[startAOE - 1];
+        if (direction == 0) {
+            var currentPoint = mages.FindIndex(a => a.Position.AlmostEqual(orb.Position, 0.5f));
+            if (currentPoint >= 0 && currentPoint != startPoint) {
+                direction = (currentPoint - startPoint + 4) % 4 == 1 ? 1 : -1;
+            }
         }
 
+        var targetPoint = (startPoint + 4 - direction) % 4;
+        var targetActor  = mages[targetPoint];
         return new Knockback[1] { new (targetActor.Position, 15.0f) };
     }
 }
