@@ -1,5 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Raid.M12NLindwurm;
 
+[SkipLocalsInit]
 sealed class BurstingGrotesquerie(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.SpreadBurstingGrotesquerie, (uint)AID.DramaticLysis, 5f, 5d)
 {
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
@@ -43,11 +44,13 @@ sealed class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAwa
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (status.ID == (uint)SID._Gen_Direction)
+        if (status.ID == (uint)SID.Direction)
         {
             // 408 = front, 409 = right, 40A = behind, 40B = left
             if (status.Extra is < 0x408 or > 0x40B)
+            {
                 return;
+            }
 
             _direction[Raid.FindSlot(actor.InstanceID)] = status.Extra;
         }
@@ -60,7 +63,9 @@ sealed class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAwa
             var slot = Raid.FindSlot(actor.InstanceID);
             var extra = _direction[slot];
             if (extra == 0)
+            {
                 return;
+            }
 
             var rotation = ((extra - 0x408) * -90f).Degrees();
             AOEShapeCone cone = new(60f, 15f.Degrees(), rotation);
