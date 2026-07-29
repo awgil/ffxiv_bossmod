@@ -12,24 +12,28 @@ sealed class RuinfallKB(BossModule module) : Components.SimpleKnockbacks(module,
         {
             return;
         }
-        if (actor.Role != Role.Tank)
+        ref readonly var c = ref Casters.Ref(0);
+        var act = c.Activation;
+        if (!IsImmune(slot, act))
         {
-            ref readonly var c = ref Casters.Ref(0);
-            hints.AddForbiddenZone(new SDInvertedRect(Module.PrimaryActor.Position, new WDir(default, 1f), 1f, default, 20f), c.Activation);
-            return;
-        }
-        var towers = _tower.Towers;
-        var count = towers.Count;
-        if (count == 0)
-        {
-            return;
-        }
-        ref var t0 = ref towers.Ref(0);
-        var isDelayDeltaLow = (t0.Activation - WorldState.CurrentTime).TotalSeconds < 5d;
+            if (actor.Role != Role.Tank)
+            {
+                hints.AddForbiddenZone(new SDKnockbackInAABBRectFixedDirection(Arena.Center, 21f * c.Direction.ToDirection(), 19f, 14f), act); // rect intentionally slightly smaller to prevent sus knockback
+                return;
+            }
+            var towers = _tower.Towers;
+            var count = towers.Count;
+            if (count == 0)
+            {
+                return;
+            }
+            ref var t0 = ref towers.Ref(0);
+            var isDelayDeltaLow = (act - WorldState.CurrentTime).TotalSeconds < 5d;
 
-        if (isDelayDeltaLow && t0.IsInside(actor))
-        {
-            hints.ActionsToExecute.Push(ActionDefinitions.Armslength, actor, ActionQueue.Priority.High);
+            if (isDelayDeltaLow && t0.IsInside(actor))
+            {
+                hints.ActionsToExecute.Push(ActionDefinitions.Armslength, actor, ActionQueue.Priority.High);
+            }
         }
     }
 }
