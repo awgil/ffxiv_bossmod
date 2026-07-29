@@ -872,7 +872,7 @@ sealed class IdyllicDreamElementalMeteor(BossModule module) : Components.Generic
     }
 }
 
-sealed class IdyllicDreamWindTower(BossModule module) : Components.GenericKnockback(module, maxCasts: int.MaxValue)
+sealed class IdyllicDreamWindTower(BossModule module) : Components.GenericKnockback(module)
 {
     readonly List<Knockback> _knockbacks = [];
     IdyllicDreamElementalMeteor? _meteor;
@@ -904,7 +904,8 @@ sealed class IdyllicDreamWindTower(BossModule module) : Components.GenericKnockb
                 distance: 23.5f,
                 activation: activation,
                 shape: new AOEShapeCircle(3f),
-                kind: Kind.AwayFromOrigin
+                kind: Kind.AwayFromOrigin,
+                ignoreImmunes: true
             ));
         }
 
