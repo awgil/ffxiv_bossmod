@@ -45,6 +45,232 @@ public sealed class AOEShapeCone(float radius, Angle halfAngle, Angle directionO
             ? new SDCone(origin, Radius, rotation + DirectionOffset, HalfAngle)
             : new SDInvertedCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
     public override ShapeDistance InvertedDistance(WPos origin, Angle rotation) => new SDInvertedCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
+
+    public void AddForbiddenDirections(Actor actor, WPos originAOE, Angle rotation, float radius, Angle halfAngle, AIHints hints, DateTime act, float knockbackDist)
+    {
+        var origin = actor.Position;
+
+        var crit = new List<double>(8);
+        var axis = rotation.ToDirection();
+        // Intersections with the cone’s outer circle
+        AddCircleCircleCriticalAngles(origin, originAOE, knockbackDist, radius, crit);
+
+        // Intersections with the two side rays of the cone
+        var axisA = Angle.FromDirection(axis);
+        AddRayCircleCriticalAngles(origin, originAOE, (axisA + halfAngle).ToDirection(), knockbackDist, crit);
+        AddRayCircleCriticalAngles(origin, originAOE, (axisA - halfAngle).ToDirection(), knockbackDist, crit);
+
+        SortUniqueAngles(crit);
+        var count = crit.Count;
+        var blocked = new List<(double start, double end)>(count + 1);
+
+        if (count == 0)
+        {
+            if (IsBlockedByCone(origin, 0d, knockbackDist, originAOE, axis, radius, halfAngle))
+            {
+                blocked.Add((0d, Math.Tau));
+            }
+        }
+        else
+        {
+            for (var i = 0; i < count; ++i)
+            {
+                var start = crit[i];
+                var end = (i + 1 < count) ? crit[i + 1] : crit[0] + Math.Tau;
+                var mid = start + 0.5d * (end - start);
+
+                if (IsBlockedByCone(origin, mid, knockbackDist, originAOE, axis, radius, halfAngle))
+                {
+                    blocked.Add((start, end));
+                }
+            }
+        }
+
+        var countB = blocked.Count;
+
+        if (countB == 0)
+        {
+            return;
+        }
+
+        MergeAngleIntervals(blocked);
+        countB = blocked.Count;
+        for (var i = 0; i < countB; ++i)
+        {
+            var block = blocked[i];
+            var start = block.start;
+            var end = block.end;
+            var width = end - start;
+            if (width <= 1e-7)
+                continue;
+            var centerA = PolygonBoundaryIndex2D.NormalizeAngle(start + 0.5 * width);
+            hints.ForbiddenDirections.Add(new(new((float)centerA), new((float)(0.5d * width)), act));
+        }
+    }
+
+    private static bool IsBlockedByCone(in WPos actorPos, double angle, float knockbackDist, in WPos apex, in WDir axis, float radius, Angle halfAngle)
+    {
+        var (sd, cd) = Math.SinCos(angle);
+        var kbDir = new WDir((float)sd, (float)cd);
+        var finalPos = actorPos + kbDir * knockbackDist;
+        return IsInsideCone(finalPos, apex, axis, radius, halfAngle);
+    }
+
+    private static bool IsInsideCone(in WPos p, in WPos apex, in WDir axis, float radius, Angle halfAngle)
+    {
+        var v = p - apex;
+        var d2 = v.LengthSq();
+
+        if (d2 > radius * radius + 1e-4f)
+        {
+            return false;
+        }
+
+        if (d2 <= 1e-7f)
+        {
+            return true;
+        }
+
+        var d = MathF.Sqrt(d2);
+        return v.Dot(axis) >= d * halfAngle.Cos();
+    }
+
+    private static void AddCircleCircleCriticalAngles(in WPos actorPos, in WPos apex, float knockbackDist, float radius, List<double> crit)
+    {
+        var dx = actorPos.X - apex.X;
+        var dz = actorPos.Z - apex.Z;
+        var d2 = dx * dx + dz * dz;
+        var d = MathF.Sqrt(d2);
+
+        if (d <= 1e-6f)
+        {
+            return;
+        }
+
+        var c = (d2 + knockbackDist * knockbackDist - radius * radius) / (2f * d * knockbackDist);
+        if (c is < -1f or > 1f)
+        {
+            return;
+        }
+
+        var delta = MathF.Acos(Math.Clamp(c, -1f, 1f));
+        var phi = MathF.Atan2(dx, dz);
+
+        AddCriticalAngle(crit, phi - delta);
+        AddCriticalAngle(crit, phi + delta);
+    }
+
+    private static void AddRayCircleCriticalAngles(in WPos actorPos, in WPos origin, in WDir boundaryDir, float knockbackDist, List<double> crit)
+    {
+        var mx = origin.X - actorPos.X;
+        var mz = origin.Z - actorPos.Z;
+
+        var bx = boundaryDir.X;
+        var bz = boundaryDir.Z;
+
+        var mb = mx * bx + mz * bz;
+        var c = mx * mx + mz * mz - knockbackDist * knockbackDist;
+        var disc = mb * mb - c;
+
+        if (disc < 0f)
+        {
+            disc = 0f;
+        }
+
+        var s = MathF.Sqrt(disc);
+
+        AddRayIntersection(-mb - s, origin, actorPos);
+        AddRayIntersection(-mb + s, origin, actorPos);
+
+        void AddRayIntersection(float t, WPos origin, WPos actorPos)
+        {
+            if (t < -1e-6f)
+            {
+                return;
+            }
+
+            if (t < 0f)
+            {
+                t = 0f;
+            }
+
+            var px = origin.X + t * bx;
+            var pz = origin.Z + t * bz;
+            var a = Math.Atan2(px - actorPos.X, pz - actorPos.Z);
+            AddCriticalAngle(crit, a);
+        }
+    }
+
+    private static void AddCriticalAngle(List<double> crit, double a)
+    {
+        crit.Add(PolygonBoundaryIndex2D.NormalizeAngle(a));
+    }
+
+    private static void SortUniqueAngles(List<double> angles)
+    {
+        angles.Sort();
+
+        var w = 0;
+        var count = angles.Count;
+        for (var i = 0; i < count; ++i)
+        {
+            if (w == 0 || PolygonBoundaryIndex2D.AngleDiffCCW(angles[w - 1], angles[i]) > 1e-7)
+            {
+                angles[w++] = angles[i];
+            }
+        }
+
+        if (w < count)
+        {
+            angles.RemoveRange(w, count - w);
+        }
+    }
+
+    private static void MergeAngleIntervals(List<(double start, double end)> intervals)
+    {
+        var count = intervals.Count;
+        if (count <= 1)
+        {
+            return;
+        }
+
+        intervals.Sort(static (x, y) => x.start.CompareTo(y.start));
+
+        var merged = new List<(double start, double end)>(count);
+        var cur = intervals[0];
+
+        for (var i = 1; i < count; ++i)
+        {
+            var next = intervals[i];
+
+            if (next.start <= cur.end + 1e-7)
+            {
+                if (next.end > cur.end)
+                {
+                    cur.end = next.end;
+                }
+            }
+            else
+            {
+                merged.Add(cur);
+                cur = next;
+            }
+        }
+
+        merged.Add(cur);
+
+        if (merged.Count >= 2 && merged[0].start <= 1e-7 && merged[^1].end >= Math.Tau - 1e-7)
+        {
+            var first = merged[0];
+            var last = merged[^1];
+
+            merged[0] = (last.start, first.end + Math.Tau);
+            merged.RemoveAt(merged.Count - 1);
+        }
+
+        intervals.Clear();
+        intervals.AddRange(merged);
+    }
 }
 
 [SkipLocalsInit]

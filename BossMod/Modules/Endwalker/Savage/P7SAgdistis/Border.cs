@@ -25,7 +25,7 @@ sealed class Border(BossModule module) : Components.GenericAOEs(module)
                     // 0x00800040 - small platforms appear?
                     // 0x08000004 - small platforms disappear?
                     case 0x00020001u: // small plattforms appear preparation
-                        _aoe = [new(new AOEShapeCustom([new Square(Arena.Center, 20f)], circles), arenaCenter, activation: WorldState.FutureTime(6.8d))];
+                        _aoe = [new(new AOEShapeCustom([new Square(arenaCenter, 20f)], circles), arenaCenter, activation: WorldState.FutureTime(6.8d))];
                         break;
                     case 0x00800040u: // small platforms appear
                         _aoe = [];

@@ -15,6 +15,10 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     private WPos _center = center;
     private readonly TriangulationCache _triCache = new();
 
+    // needed for border cache
+    private Vector2[][] outlines = [];
+    private Vector2 lastOffset;
+
     public WPos Center
     {
         get => _center;
@@ -23,6 +27,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             if (_center != value)
             {
                 _center = value;
+                outlines = [];
                 _triCache.Invalidate();
             }
         }
@@ -37,6 +42,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             if (!ReferenceEquals(_bounds, value))
             {
                 _bounds = value;
+                outlines = [];
                 _triCache.Invalidate();
             }
         }
@@ -70,6 +76,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         {
             _bounds.ScreenHalfSize = ScreenHalfSize;
             _triCache.Invalidate();
+            outlines = [];
         }
         else
         {
@@ -503,46 +510,89 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void Border(uint color)
     {
         var dl = ImGui.GetWindowDrawList();
-        var parts = _bounds.ShapeSimplified.Parts;
-        var count = parts.Count;
-        for (var i = 0; i < count; ++i)
+        var newOffset = ScreenCenter + WorldOffsetToScreenOffset(new(1f, 1f));
+        if (lastOffset != newOffset)
         {
-            var part = parts[i];
-            Vector2? lastPoint = null;
-            var partExt = part.Exterior;
-            var exteriorLen = partExt.Length;
-            for (var j = 0; j < exteriorLen; ++j)
+            outlines = [];
+        }
+        if (outlines.Length == 0)
+        {
+            var cachedOutlines = new List<Vector2[]>();
+            lastOffset = newOffset;
+            var parts = _bounds.ShapeSimplified.Parts;
+            var count = parts.Count;
+
+            for (var i = 0; i < count; ++i)
             {
-                var offset = partExt[j];
-                var currentPoint = ScreenCenter + WorldOffsetToScreenOffset(offset);
-                if (lastPoint != currentPoint)
+                var part = parts[i];
+
+                // exterior
                 {
-                    dl.PathLineTo(currentPoint);
+                    var exterior = part.Exterior;
+                    var lenExt = exterior.Length;
+                    var points = new List<Vector2>(lenExt);
+
+                    Vector2? lastPoint = null;
+                    for (var j = 0; j < lenExt; ++j)
+                    {
+                        var currentPoint = ScreenCenter + WorldOffsetToScreenOffset(exterior[j]);
+
+                        if (lastPoint != currentPoint)
+                        {
+                            points.Add(currentPoint);
+                        }
+
+                        lastPoint = currentPoint;
+                    }
+
+                    cachedOutlines.Add([.. points]);
                 }
-                lastPoint = currentPoint;
+
+                // holes
+                var holes = part.Holes;
+                var lenHoles = holes.Length;
+                for (var h = 0; h < lenHoles; ++h)
+                {
+                    var interior = part.Interior(holes[h]);
+                    var lenInt = interior.Length;
+                    var points = new List<Vector2>(lenInt);
+                    Vector2? lastPoint = null;
+                    for (var k = 0; k < lenInt; ++k)
+                    {
+                        var currentPoint = ScreenCenter + WorldOffsetToScreenOffset(interior[k]);
+
+                        if (lastPoint != currentPoint)
+                        {
+                            points.Add(currentPoint);
+                        }
+
+                        lastPoint = currentPoint;
+                    }
+
+                    cachedOutlines.Add([.. points]);
+                }
             }
 
-            dl.PathStroke(color, ImDrawFlags.Closed, 2f);
-            var holes = part.Holes;
-            var lenHoles = holes.Length;
-            for (var l = 0; l < lenHoles; ++l)
-            {
-                lastPoint = null;
+            outlines = [.. cachedOutlines];
+        }
 
-                var holeInteriorPoints = part.Interior(holes[l]);
-                var interiorLen = holeInteriorPoints.Length;
-                for (var k = 0; k < interiorLen; ++k)
+        unsafe
+        {
+            var lenOutlines = outlines.Length;
+            var thickness = 2 * Config.ThicknessScale;
+            for (var i = 0; i < lenOutlines; ++i)
+            {
+                var points = outlines[i];
+
+                if (points.Length < 2)
                 {
-                    var offset = holeInteriorPoints[k];
-                    var currentPoint = ScreenCenter + WorldOffsetToScreenOffset(offset);
-                    if (lastPoint != currentPoint)
-                    {
-                        dl.PathLineTo(currentPoint);
-                    }
-                    lastPoint = currentPoint;
+                    continue;
                 }
 
-                dl.PathStroke(color, ImDrawFlags.Closed, 2f);
+                fixed (Vector2* p = points)
+                {
+                    dl.AddPolyline(p, points.Length, color, ImDrawFlags.Closed, thickness);
+                }
             }
         }
     }

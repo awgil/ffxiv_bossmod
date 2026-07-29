@@ -74,6 +74,8 @@ sealed class P2Intermission(BossModule module) : Components.GenericBaitAway(modu
 
     public bool CrystalsActive => CrystalsOfLight.Count != 0;
 
+    public override bool KeepOnPhaseChange => true; // collision might not be removed if component gets unloaded too early
+
     public override void Update()
     {
         IgnoreOtherBaits = true;

@@ -1,32 +1,31 @@
 ﻿namespace BossMod.Dawntrail.Raid.M12NLindwurm;
 
+[SkipLocalsInit]
 sealed class TheFixer(BossModule module) : Components.RaidwideCast(module, (uint)AID.TheFixer);
+
+[SkipLocalsInit]
 sealed class SerpentineScourge(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly AOEShapeRect _rect = new(30f, 10f);
-    private readonly double _delay = 4.5d;
-    private readonly List<AOEInstance> _aoes = [];
+    private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count == 0)
-            return [];
-
-        var time = WorldState.CurrentTime;
-        var aoes = CollectionsMarshal.AsSpan(_aoes);
-
-        for (var i = 0; i < aoes.Length; ++i)
+        if (_aoe.Length == 0)
         {
-            ref var aoe = ref aoes[i];
-            aoe.Risky = aoe.Activation.AddSeconds(-_delay) <= time;
+            return _aoe;
         }
-        return aoes;
+
+        ref var aoe = ref _aoe[0];
+        aoe.Risky = aoe.Activation.AddSeconds(-4.5d) <= WorldState.CurrentTime;
+        return _aoe;
     }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID is var action && action is (uint)AID.BloodshedLeft or (uint)AID.BloodshedRight)
         {
-            _aoes.Add(new(_rect, new(action == (uint)AID.BloodshedLeft ? 90f : 110f, 85f), default, WorldState.FutureTime(7.5d), default));
+            _aoe = [(new(_rect, new WPos(action == (uint)AID.BloodshedLeft ? 90f : 110f, 85f).Quantized(), Angle.AnglesCardinals[1], WorldState.FutureTime(7.5d)))];
         }
     }
 
@@ -34,35 +33,48 @@ sealed class SerpentineScourge(BossModule module) : Components.GenericAOEs(modul
     {
         if (spell.Action.ID == (uint)AID.SerpentineScourge)
         {
-            _aoes.Clear();
+            _aoe = [];
         }
     }
 
     public override void OnActorUntargetable(Actor actor)
     {
-        if (actor.OID == (uint)OID.Lindwurm)
+        if (actor == Module.PrimaryActor)
         {
-            _aoes.Clear();
+            _aoe = [];
         }
     }
 }
+
+[SkipLocalsInit]
 sealed class RavenousReach(BossModule module) : Components.SimpleAOEs(module, (uint)AID.RavenousReach, new AOEShapeCone(35f, 60f.Degrees()), riskyWithSecondsLeft: 7d)
 {
     public override void OnActorUntargetable(Actor actor)
     {
-        if (actor.OID == (uint)OID.Lindwurm)
+        if (actor == Module.PrimaryActor)
         {
             Casters.Clear();
         }
     }
 }
-sealed class Splattershed(BossModule module) : Components.RaidwideCasts(module, [(uint)AID.Splattershed1Visual, (uint)AID.Splattershed2Visual]);
+
+[SkipLocalsInit]
+sealed class Splattershed(BossModule module) : Components.RaidwideCastsDelay(module, [(uint)AID.Splattershed1Visual1, (uint)AID.Splattershed1Visual2],
+[(uint)AID.Splattershed1, (uint)AID.Splattershed2], 2.3d);
+[SkipLocalsInit]
 sealed class BringDownTheHouse(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BringDownTheHouse, new AOEShapeRect(15f, 5f));
+[SkipLocalsInit]
 sealed class SplitScourge(BossModule module) : Components.SimpleAOEs(module, (uint)AID.SplitScourge, new AOEShapeRect(30f, 5f));
+[SkipLocalsInit]
 sealed class VenomousScourge(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.VenomousScourge, (uint)AID.VenomousScourge, 5f, 5d);
+[SkipLocalsInit]
 sealed class GrandEntrance(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.GrandEntrance1, (uint)AID.GrandEntrance2], 2f);
+[SkipLocalsInit]
 sealed class VisceralBurst(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.TankBait, (uint)AID.VisceralBurst, 6f, 5d);
+[SkipLocalsInit]
 sealed class MindlessFlesh(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.MindlessFlesh1, (uint)AID.MindlessFlesh2, (uint)AID.MindlessFlesh3, (uint)AID.MindlessFlesh4, (uint)AID.MindlessFlesh5], new AOEShapeRect(30f, 4f), 2, 2);
+
+[SkipLocalsInit]
 sealed class MindlessFleshBig(BossModule module) : Components.SimpleAOEs(module, (uint)AID.MindlessFleshBig, new AOEShapeRect(30f, 17.5f), riskyWithSecondsLeft: 9d)
 {
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -81,26 +93,33 @@ sealed class MindlessFleshBig(BossModule module) : Components.SimpleAOEs(module,
         return [];
     }
 }
+
+[SkipLocalsInit]
 sealed class Burst(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly AOEShapeCircle circle = new(12f);
-    public readonly List<AOEInstance> AOEs = [];
+    private readonly List<AOEInstance> aoes = [];
+    public readonly List<WPos> Positions = [];
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan([.. AOEs]);
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(aoes);
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
-        if (actor.OID == (uint)OID.BurstBlob)
+        if (state == 0x00100020u && actor.OID == (uint)OID.BurstBlob)
         {
-            if (state == 0x00100020u)
-                AOEs.Add(new(circle, actor.Position, activation: WorldState.FutureTime(6.6d)));
+            var pos = actor.Position.Quantized();
+            aoes.Add(new(circle, pos, activation: WorldState.FutureTime(6.6d)));
+            Positions.Add(pos);
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID == (uint)AID.Burst)
-            AOEs.Clear();
+        {
+            aoes.Clear();
+            Positions.Clear();
+        }
     }
 }
 
@@ -121,8 +140,5 @@ GroupID = 1074u,
 NameID = 14378u,
 SortOrder = 1,
 PlanLevel = 0)]
-public sealed class M12NLindwurm(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, ArenaBounds)
-{
-    public static readonly WPos ArenaCenter = new(100f, 100f);
-    public static readonly ArenaBoundsRect ArenaBounds = new(20f, 15f);
-}
+[SkipLocalsInit]
+public sealed class M12NLindwurm(WorldState ws, Actor primary) : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsRect(20f, 15f));

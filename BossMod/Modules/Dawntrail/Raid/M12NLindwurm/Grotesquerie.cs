@@ -1,5 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Raid.M12NLindwurm;
 
+[SkipLocalsInit]
 sealed class BurstingGrotesquerie(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.SpreadBurstingGrotesquerie, (uint)AID.DramaticLysis, 5f, 5d)
 {
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
@@ -43,11 +44,13 @@ sealed class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAwa
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (status.ID == (uint)SID._Gen_Direction)
+        if (status.ID == (uint)SID.Direction)
         {
             // 408 = front, 409 = right, 40A = behind, 40B = left
             if (status.Extra is < 0x408 or > 0x40B)
+            {
                 return;
+            }
 
             _direction[Raid.FindSlot(actor.InstanceID)] = status.Extra;
         }
@@ -60,7 +63,9 @@ sealed class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAwa
             var slot = Raid.FindSlot(actor.InstanceID);
             var extra = _direction[slot];
             if (extra == 0)
+            {
                 return;
+            }
 
             var rotation = ((extra - 0x408) * -90f).Degrees();
             AOEShapeCone cone = new(60f, 15f.Degrees(), rotation);
@@ -71,7 +76,9 @@ sealed class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAwa
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID == (uint)AID.HemorrhagicProjection)
+        {
             CurrentBaits.Clear();
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -85,20 +92,24 @@ sealed class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAwa
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (CurrentBaits.Count == 0)
+        {
+            return;
+        }
         base.AddAIHints(slot, actor, assignment, hints);
-
-        // point bait outwards
-        // add forbidden direction if clipping players
-        // rotation added as part of bait shape so just use player rotation?
         var activeBaits = CollectionsMarshal.AsSpan(ActiveBaitsOn(actor));
         if (activeBaits.Length != 0)
         {
             ref var b = ref activeBaits[0];
-            var clipped = PlayersClippedBy(ref b);
-            var count = clipped.Count;
-            if (count > 0)
+            var party = Raid.WithoutSlot(false, true, true);
+            var lenP = party.Length;
+            var pos = actor.Position;
+            var angle = 15f.Degrees();
+            var offset = ((_direction[slot] - 0x408) * -90f).Degrees();
+            var act = b.Activation;
+            for (var j = 0; j < lenP; ++j)
             {
-                hints.ForbiddenDirections.Add((actor.Rotation, 15f.Degrees(), b.Activation));
+                hints.ForbiddenDirections.Add((Angle.FromDirection(party[j].Position - pos) - offset, angle, act));
             }
         }
     }
