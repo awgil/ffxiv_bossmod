@@ -1,167 +1,141 @@
 ﻿namespace BossMod.Dawntrail.Raid.M12NLindwurm;
 
-sealed class FleshTele(BossModule module) : BossComponent(module)
+sealed class FleshTele(BossModule module) : Components.GenericKnockback(module)
 {
     private readonly RavenousReach _reach = module.FindComponent<RavenousReach>()!;
     private readonly Burst _burst = module.FindComponent<Burst>()!;
     private DateTime _activation;
-    private readonly Dictionary<ulong, bool> _jumps = [];
-    private const float _distance = 16f;
+    private BitMask forwardKb;
+    private BitMask backwardKb;
 
-    private RelSimplifiedComplexPolygon _poly;
+    public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor)
+    {
+        if (forwardKb[slot] || backwardKb[slot])
+        {
+            var rot = actor.Rotation;
+            return new Knockback[1] { new(actor.Position, 15f, _activation, default, forwardKb[slot] ? rot : rot + 180f.Degrees(), Kind.DirForward) };
+        }
+        return [];
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID == (uint)AID.Shockwave)
         {
             _activation = default;
-            _jumps.Clear();
         }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID == (uint)IconID.FleshTimer)
+        if (iconID == (uint)IconID.FleshTimer && _activation == default)
         {
-            if (Arena.Bounds is ArenaBoundsCustom arena)
-            {
-                _poly = arena.Polygon.Offset(-1.5f); // pretend polygon is 1.5y smaller than real for less suspect knockbacks
-            }
-            else
-            {
-                _poly = Arena.Bounds.ShapeSimplified.Offset(-1.5f);
-            }
             _activation = WorldState.FutureTime(5d);
         }
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (status.ID is (uint)SID.FleshForward or (uint)SID.FleshBack)
+        switch (status.ID)
         {
-            _jumps[actor.InstanceID] = status.ID is (uint)SID.FleshForward;
+            case (uint)SID.FleshForward:
+                forwardKb.Set(Raid.FindSlot(actor.InstanceID));
+                break;
+            case (uint)SID.FleshBack:
+                backwardKb.Set(Raid.FindSlot(actor.InstanceID));
+                break;
         }
     }
 
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
     {
-        if (status.ID is (uint)SID.FleshForward or (uint)SID.FleshBack)
+        switch (status.ID)
         {
-            if (_jumps.ContainsKey(actor.InstanceID))
-            {
-                _jumps.Remove(actor.InstanceID);
-            }
+            case (uint)SID.FleshForward:
+                forwardKb.Clear(Raid.FindSlot(actor.InstanceID));
+                break;
+            case (uint)SID.FleshBack:
+                backwardKb.Clear(Raid.FindSlot(actor.InstanceID));
+                break;
         }
     }
 
     public override void OnActorUntargetable(Actor actor)
     {
-        if (actor.OID == Module.PrimaryActor.OID)
+        if (actor == Module.PrimaryActor)
         {
             _activation = default;
-            _jumps.Clear();
+            forwardKb.Reset();
+            backwardKb.Reset();
         }
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (_activation == default)
-            return;
-
-        if (!_jumps.ContainsKey(pc.InstanceID))
-            return;
-
-        var tp = GetTeleport(pc, _distance, _jumps[pc.InstanceID]);
-        Arena.ActorProjected(tp.from, tp.to, tp.rotation, Colors.Danger);
-        Arena.AddLine(tp.from, tp.to);
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (_activation == default)
-            return;
-
-        if (!_jumps.ContainsKey(actor.InstanceID))
-            return;
-
-        var tp = GetTeleport(actor, _distance, _jumps[actor.InstanceID]);
-        if (DestinationUnsafe(tp.to))
-            hints.Add("About to teleport into danger!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_activation == default)
+        if (!forwardKb[slot] && !backwardKb[slot] || IsImmune(slot, _activation))
+        {
             return;
+        }
 
-        if (!_jumps.ContainsKey(actor.InstanceID))
-            return;
-
+        var act = _activation;
+        var aoes = CollectionsMarshal.AsSpan(_burst.Positions);
+        var len = aoes.Length;
         var rot = actor.Rotation;
-        var dir = rot.ToDirection() * _distance * (_jumps[actor.InstanceID] ? 1f : -1f);
+        var pos = actor.Position;
+        var moveDir = (forwardKb[slot] ? rot : rot + 180f.Degrees()).ToDirection();
 
-        var tp = GetTeleport(actor, _distance, _jumps[actor.InstanceID]);
-
-        // check if tp is in bounds; if not, need to rotate
-        // teleport just barely safe; -1 offset not enough, or just coincidence it was safe?
-        if (!Arena.InBounds(tp.to))
+        for (var i = 0; i < len; ++i)
         {
-            hints.AddForbiddenZone(new SDKnockbackInComplexPolygonFixedDirection(Arena.Center, dir, _poly), _activation);
+            var origin = aoes[i];
+            var d = origin - pos;
+            var dist = d.Length();
+
+            if (dist is <= 12f or >= 28f) // inside voidzone or max distance 15 + 12 radius + 1 safety margin
+            {
+                continue; // inside voidzone or impossible to run into this from current position
+            }
+
+            var forward = d.Dot(moveDir);
+            var sideways = d.Dot(moveDir.OrthoL());
+
+            hints.ForbiddenDirections.Add(new(Angle.Atan2(sideways, forward), Angle.Asin(12f / dist), act));
         }
-
-        var reach = _reach.ActiveCasters;
-        var reachLen = reach.Length;
-        if (reachLen > 0)
+        var arena = Arena.Bounds.ShapeSimplified;
+        arena.AddForbiddenDirectionsArena(actor, Arena.Center, arena, hints, _activation, 15f, 1f);
+        if (_reach.ActiveCasters is var aoe && aoe.Length != 0 && _reach.Shape is AOEShapeCone cone)
         {
-            // offset cone by teleport direction?
-            hints.AddForbiddenZone(reach[0].Shape, reach[0].Origin - dir, reach[0].Rotation, _activation);
-        }
-
-        var burst = CollectionsMarshal.AsSpan(_burst.AOEs);
-        var burstLen = burst.Length;
-        if (burstLen > 0)
-        {
-            hints.AddForbiddenZone(new SDKnockbackInAABBRectFixedDirectionPlusAOECircles(Arena.Center, dir, 20f, 15f, [.. _burst.AOEs.Select(x => x.Origin)], 12f, burstLen), _activation);
+            ref readonly var aoe0 = ref aoe[0];
+            cone.AddForbiddenDirections(actor, aoe0.Origin, aoe0.Rotation, cone.Radius, cone.HalfAngle, hints, _activation, 15f);
         }
     }
 
-    private bool DestinationUnsafe(WPos pos)
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
         if (!Arena.InBounds(pos))
+        {
             return true;
+        }
 
         var reach = _reach.ActiveCasters;
         var reachLen = reach.Length;
         for (var i = 0; i < reachLen; ++i)
         {
             if (reach[i].Check(pos))
+            {
                 return true;
+            }
         }
 
-        var burst = CollectionsMarshal.AsSpan(_burst.AOEs);
+        var burst = CollectionsMarshal.AsSpan(_burst.Positions);
         var burstLen = burst.Length;
         for (var i = 0; i < burstLen; ++i)
         {
-            if (burst[i].Check(pos))
+            if (pos.InCircle(burst[i], 12f))
+            {
                 return true;
+            }
         }
 
         return false;
-    }
-
-    private const float approxHitBoxRadius = 0.499f;
-    private const float maxIntersectionError = 0.5f - approxHitBoxRadius;
-
-    private (WPos from, WPos to, Angle rotation) GetTeleport(Actor actor, float distance, bool isForward)
-    {
-        var from = actor.Position;
-        var rot = actor.Rotation;
-        var dir = rot.ToDirection() * (isForward ? 1f : -1f);
-
-        // stopAfterWall
-        var dist = Math.Min(distance, Arena.IntersectRayBounds(from, dir) + maxIntersectionError);
-        var to = from + dist * dir;
-
-        return (from, to, rot);
     }
 }

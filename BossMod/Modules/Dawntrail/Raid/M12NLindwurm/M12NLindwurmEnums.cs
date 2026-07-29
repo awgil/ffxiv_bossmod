@@ -2,13 +2,13 @@
 
 public enum OID : uint
 {
-    Lindwurm = 0x4AF7, // R13.800, x?
-    BurstBlob = 0x1EBF29, // R0.500, x0 (spawn during fight), EventObj type
-    _Gen_Lindwurm = 0x233C, // R0.500, x?, Helper type
+    Lindwurm = 0x4AF7, // R13.8
+    BurstBlob = 0x1EBF29, // R0.5
     _Gen_Lindwurm1 = 0x4AE4, // R1.000, x?
     _Gen_Lindwurm2 = 0x4AF9, // R1.000, x?, Helper type
     _Gen_Lindwurm3 = 0x4AF8, // R4.000, x?, Helper type
     _Gen_Lindwurm4 = 0x4AFA, // R0.000, x?, Part type
+    Helper = 0x233C
 }
 
 public enum AID : uint
@@ -28,6 +28,7 @@ public enum AID : uint
     Burst = 46191, // 233C->location, 2.5s cast, range 12 circle
     _Weaponskill_CruelCoil = 45339, // 4AF7->location, 3.0s cast, single-target
     _Spell_ = 46194, // 233C->self, no cast, range 60 circle
+    _Weaponskill_9 = 48332, // Lindwurm->self, no cast, single-target
     SkinsplitterVisual = 46195, // 4AF7->self, no cast, single-target (spin + reset)
     Skinsplitter = 46396, // 233C->self, no cast, range ?-13 donut
     _Weaponskill_Constrictor = 46397, // 4AF7->location, no cast, single-target

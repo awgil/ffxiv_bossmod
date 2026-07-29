@@ -53,6 +53,19 @@ public sealed class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> parts)
         return idx.Contains(p);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] // useful for knockbacks that have the player as origin
+    public void AddForbiddenDirectionsArena(Actor actor, WPos center, RelSimplifiedComplexPolygon polygon, AIHints hints, DateTime activation, float forbiddenDist, float safetyMargin = 1f)
+    {
+        var idx = _rayIndex;
+        if (idx == null)
+        {
+            var built = PolygonBoundaryIndex2D.Build(this);
+            var original = Interlocked.CompareExchange(ref _rayIndex, built, null);
+            idx = original ?? built;
+        }
+        idx.AddForbiddenDirections(actor, center, polygon, hints, activation, forbiddenDist + safetyMargin);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float Raycast(in WDir originOffset, in WDir dir)
     {

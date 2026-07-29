@@ -1019,6 +1019,141 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         return outPts;
     }
 
+    public void AddForbiddenDirections(Actor actor, WPos center, RelSimplifiedComplexPolygon polygon, AIHints hints, DateTime act, float forbiddenDist)
+    {
+        var origin = actor.Position - center;
+        var angs = CollectUniqueAngles(origin, polygon);
+        var count = angs.Count;
+        if (count == 0)
+        {
+            return;
+        }
+
+        var blocked = new List<(double start, double end)>(count * 2);
+
+        for (var i = 0; i < count; ++i)
+        {
+            var a0 = angs[i];
+            var a1 = (i + 1 < count) ? angs[i + 1] : angs[0] + Math.Tau;
+            CollectBlockedIntervals(origin, a0, a1, forbiddenDist, blocked, 0);
+        }
+
+        var countB = blocked.Count;
+
+        if (countB == 0)
+        {
+            return;
+        }
+
+        MergeAngleIntervals(blocked);
+        countB = blocked.Count;
+        for (var i = 0; i < countB; ++i)
+        {
+            var block = blocked[i];
+            var start = block.start;
+            var end = block.end;
+            var width = AngleDiffCCW(start, end);
+            if (width <= 1e-7)
+            {
+                continue;
+            }
+
+            var centerA = NormalizeAngle(start + 0.5d * width);
+
+            hints.ForbiddenDirections.Add(new(new((float)centerA), new(0.5f * (float)width), act));
+        }
+    }
+
+    private void CollectBlockedIntervals(in WDir origin, double a0, double a1, float forbiddenDist, List<(double start, double end)> blocked, int depth)
+    {
+        var d = AngleDiffCCW(a0, a1);
+        if (d <= 1e-9)
+            return;
+
+        var eps = Math.Min(1e-4, 0.2d * d);
+        var left = NormalizeAngle(a0 + eps);
+        var right = NormalizeAngle(a1 - eps);
+        var mid = NormalizeAngle(a0 + 0.5d * d);
+
+        var sL = IsBlocked(origin, left, forbiddenDist);
+        var sM = IsBlocked(origin, mid, forbiddenDist);
+        var sR = IsBlocked(origin, right, forbiddenDist);
+
+        if (sL == sM && sM == sR)
+        {
+            if (sM)
+            {
+                blocked.Add((a0, a1));
+            }
+            return;
+        }
+
+        if (depth >= 10 || d <= 0.25d * (Math.PI / 180d))
+        {
+            if (sL || sM || sR)
+            {
+                blocked.Add((a0, a1));
+            }
+            return;
+        }
+
+        var am = a0 + 0.5 * d;
+        CollectBlockedIntervals(origin, a0, am, forbiddenDist, blocked, depth + 1);
+        CollectBlockedIntervals(origin, am, a1, forbiddenDist, blocked, depth + 1);
+    }
+
+    private bool IsBlocked(in WDir origin, double angle, float forbiddenDist)
+    {
+        return RayAt(origin, angle, out _, out var t) && t <= forbiddenDist;
+    }
+
+    public static void MergeAngleIntervals(List<(double start, double end)> intervals)
+    {
+        var count = intervals.Count;
+        if (count <= 1)
+        {
+            return;
+        }
+
+        intervals.Sort(static (x, y) => x.start.CompareTo(y.start));
+
+        var merged = new List<(double start, double end)>(intervals.Count);
+        var cur = intervals[0];
+
+        for (var i = 1; i < count; ++i)
+        {
+            var next = intervals[i];
+
+            if (next.start <= cur.end + 1e-7)
+            {
+                if (next.end > cur.end)
+                {
+                    cur.end = next.end;
+                }
+            }
+            else
+            {
+                merged.Add(cur);
+                cur = next;
+            }
+        }
+
+        merged.Add(cur);
+
+        intervals.Clear();
+        intervals.AddRange(merged);
+    }
+
+    public static double NormalizeAngle(double a)
+    {
+        a %= Math.Tau;
+        if (a < 0d)
+        {
+            a += Math.Tau;
+        }
+        return a;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool RayAt(in WDir origin, double angle, out WDir hit, out float t)
     {
@@ -1150,7 +1285,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static double AngleDiffCCW(double a, double b)
+    public static double AngleDiffCCW(double a, double b)
     {
         var d = b - a;
         if (d < 0d)

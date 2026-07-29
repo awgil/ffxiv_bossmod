@@ -471,6 +471,9 @@ public sealed class ArenaBoundsCustom : ArenaBounds
     public override bool Contains(in WDir offset) => Polygon.Contains(offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddForbiddenDirections(Actor actor, WPos center, AIHints hints, DateTime activation, float forbiddenDist, float safetyMargin = 1f) => Polygon.AddForbiddenDirectionsArena(actor, center, Polygon, hints, activation, forbiddenDist, safetyMargin);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override float IntersectRay(in WDir originOffset, in WDir dir) => Intersect.RayPolygon(originOffset, dir, Polygon);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
