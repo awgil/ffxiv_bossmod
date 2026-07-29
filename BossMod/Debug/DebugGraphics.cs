@@ -424,6 +424,7 @@ sealed class DebugGraphics
         ImGui.InputFloat("##RotationInput", ref rotationDegrees, 0.1f, 1, "%.3f");
         _overlayRotation = new Angle(rotationDegrees * Angle.DegToRad);
 
+        // TODO there should be protection here to make sure _overlayStep cannot be zero. Divide by zero -> crash.
         var mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
         var mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
         var y = Service.ObjectTable.LocalPlayer.Position.Y;
@@ -440,9 +441,37 @@ sealed class DebugGraphics
             }
             for (var ia = 0; ia < 8; ++ia)
             {
+                //var mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);  These are not being used for circle overlay.
+                // would be good to change the labels to something more pertinent for cartesian planes
+                /*
+                 * Key Parts of a Polar Graph
+                 * The Pole: The central reference point, like the origin on a normal grid.
+                 * The Polar Axis: A horizontal ray starting at the pole and pointing right, acting as the starting line
+                 * for angles (\(0^{\circ }\) or \(0\) radians).
+                 * Concentric Circles:
+                 * Rings spaced at set radius distances (\(r\)) out from the pole to measure how far away a point is.
+                 * Ray Lines (Angle Lines):
+                 * Lines that go out from the pole at different angles (\(\theta \)), measured in degrees or radians.
+                 * We want to be able to choose the amount of angles theta we can display. Currently hardcoded to [8/pi ~ 22.5 degrees]
+                 */
+                //var angle = _overlayCenter.Y + iz * _overlayStep.Y;
+
                 var offset = ((ia * 22.5f.Degrees()).ToDirection() * _overlayMaxOffset.X).ToVec3();
+                // For circle overlay we would put in the degrees we want for the ray lines.
                 Camera.Instance.DrawWorldLine(center - offset, center + offset, Colors.PC);
             }
+            // Angle Visualizer for circular overlay. Show an angle with vec 3 coordinates.
+            // This is drawing the line to move around and show the angle we are at.
+            // Use the degrees slider to move the angle visualizer around the circle.
+            var pickOffset = (_overlayRotation.ToDirection() * (_overlayMaxOffset.X)).ToVec3();
+            var outsideVec3 = center + pickOffset;
+            Camera.Instance.DrawWorldLine(center, center + pickOffset, Colors.Danger, thickness: 3);
+            Camera.Instance.DrawWorldCircle(outsideVec3, 0.5f, Colors.Danger, thickness: 3);
+
+            // TODO would be incredible if we showed the coordinates for the outside edge of the circle where
+            ImGui.TextUnformatted("Vec3 coordinates in the center of angle visualizer circle: ");
+            ImGui.TextUnformatted(Utils.Vec3String(outsideVec3));
+
         }
         else
         {
