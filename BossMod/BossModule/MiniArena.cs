@@ -16,10 +16,6 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     private readonly TriangulationCache _triCache = new();
     private readonly PolygonCache _polyCache = new();
 
-    // needed for border cache
-    private Vector2[][] outlines = [];
-    private Vector2 lastOffset;
-
     public WPos Center
     {
         get => _center;
@@ -28,7 +24,6 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             if (_center != value)
             {
                 _center = value;
-                outlines = [];
                 _triCache.Invalidate();
                 _polyCache.Invalidate();
             }
@@ -44,7 +39,6 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             if (!ReferenceEquals(_bounds, value))
             {
                 _bounds = value;
-                outlines = [];
                 _triCache.Invalidate();
                 _polyCache.Invalidate();
             }
@@ -80,7 +74,6 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             _bounds.ScreenHalfSize = ScreenHalfSize;
             _triCache.Invalidate();
             _polyCache.Invalidate();
-            outlines = [];
         }
         else
         {
@@ -103,9 +96,11 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
 
     // if you are 100% sure your primitive does not need clipping, you can use drawlist api directly
     // this helper allows converting world-space coords to screen-space ones
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector2 WorldPositionToScreenPosition(WPos p) => ScreenCenter + WorldOffsetToScreenOffset(p - Center);
 
     // this is useful for drawing on margins (TODO better api)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector2 RotatedCoords(Vector2 coords)
     {
         var cx = coords.X;
@@ -115,7 +110,8 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         return new(x, y);
     }
 
-    private Vector2 WorldOffsetToScreenOffset(WDir worldOffset) => ScreenHalfSize * RotatedCoords(new(worldOffset.X, worldOffset.Z)) / _bounds.Radius;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Vector2 WorldOffsetToScreenOffset(WDir worldOffset) => ScreenHalfSize * RotatedCoords(new(worldOffset.X, worldOffset.Z)) * _bounds.InvRadius;
 
     // unclipped primitive rendering that accept world-space positions; thin convenience wrappers around drawlist api
     public void AddLine(WPos a, WPos b, uint color = default, float thickness = 1f)
@@ -164,51 +160,74 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         PathStroke(true, color != default ? color : Colors.Danger, thickness);
     }
 
-    private void AddComplexPolygon(in WPos center, RelSimplifiedComplexPolygon poly, uint color = default, float thickness = 1f)
+    public void AddComplexPolygon(RelSimplifiedComplexPolygon poly, uint color = default, float thickness = 1f, bool addShadows = true)
     {
         var colors = color != default ? color : Colors.Danger;
+
+        var dl = ImGui.GetWindowDrawList();
         var parts = poly.Parts;
         var count = parts.Count;
+        var showShadows = addShadows && Config.ShowOutlinesAndShadows;
+        var scale = Config.ThicknessScale;
+        var thickness_ = thickness;
+        var screencenter = ScreenCenter;
+
         for (var i = 0; i < count; ++i)
         {
             var part = parts[i];
-            var exteriorEdges = part.ExteriorEdges;
-            var exteriorLen = exteriorEdges.Length;
-            for (var j = 0; j < exteriorLen; ++j)
+
+            // exterior
             {
-                var (start, end) = exteriorEdges[j];
-                PathLineTo(center + start);
-                if (j != exteriorLen - 1)
+                var exterior = part.Exterior;
+                var lenExt = exterior.Length;
+                var points = new Vector2[lenExt];
+
+                for (var j = 0; j < lenExt; ++j)
                 {
-                    PathLineTo(center + end);
+                    var currentPoint = screencenter + WorldOffsetToScreenOffset(exterior[j]);
+                    points[j] = currentPoint;
                 }
+                DrawPolygon(points);
             }
-            PathStroke(true, colors, thickness);
+
+            // holes
             var holes = part.Holes;
             var lenHoles = holes.Length;
-            for (var k = 0; k < lenHoles; ++k)
+            for (var h = 0; h < lenHoles; ++h)
             {
-                var interiorEdges = part.InteriorEdges(holes[k]);
-                var interiorLen = interiorEdges.Length;
-                for (var j = 0; j < interiorLen; ++j)
+                var interior = part.Interior(holes[h]);
+                var lenInt = interior.Length;
+                var points = new Vector2[lenInt];
+                for (var k = 0; k < lenInt; ++k)
                 {
-                    var (start, end) = interiorEdges[j];
-                    PathLineTo(center + start);
-                    if (j != interiorLen - 1)
-                    {
-                        PathLineTo(center + end);
-                    }
+                    var currentPoint = screencenter + WorldOffsetToScreenOffset(interior[k]);
+                    points[k] = currentPoint;
                 }
-                PathStroke(true, colors, thickness);
+                DrawPolygon(points);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            unsafe void DrawPolygon(Vector2[] points)
+            {
+                fixed (Vector2* p = points)
+                {
+                    var len = points.Length;
+                    if (showShadows)
+                    {
+                        dl.AddPolyline(p, len, Colors.Shadows, ImDrawFlags.Closed, (thickness + 1f) * scale);
+                    }
+                    dl.AddPolyline(p, len, colors, ImDrawFlags.Closed, thickness * scale);
+                }
             }
         }
     }
 
     // path api: add new point to path; this adds new edge from last added point, or defines first vertex if path is empty
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void PathLineTo(WPos p) => ImGui.GetWindowDrawList().PathLineToMergeDuplicate(WorldPositionToScreenPosition(p));
 
     // adds a bunch of points corresponding to arc - if path is non empty, this adds an edge from last point to first arc point
-    public void PathArcTo(WPos center, float radius, float amin, float amax) => ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius / _bounds.Radius * ScreenHalfSize, Angle.HalfPi - amin + _cameraAzimuth.Rad, Angle.HalfPi - amax + _cameraAzimuth.Rad);
+    public void PathArcTo(WPos center, float radius, float amin, float amax) => ImGui.GetWindowDrawList().PathArcTo(WorldPositionToScreenPosition(center), radius * _bounds.InvRadius * ScreenHalfSize, Angle.HalfPi - amin + _cameraAzimuth.Rad, Angle.HalfPi - amax + _cameraAzimuth.Rad);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void PathStroke(bool closed, uint color = default, float thickness = 1f)
@@ -231,7 +250,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         var cosAzimuth = _cameraCosAzimuth;
         var sinAzimuth = _cameraSinAzimuth;
         var screenHalfSize = ScreenHalfSize;
-        var invRadius = 1f / _bounds.Radius;
+        var invRadius = _bounds.InvRadius;
 
         for (var i = 0; i < len; ++i)
         {
@@ -363,14 +382,14 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     {
         ref var poly = ref _polyCache.Get(1, center, innerRadius, outerRadius, centerDirection, halfAngle);
         poly ??= _bounds.ClipCone(center - Center, innerRadius, outerRadius, centerDirection, halfAngle);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneCircleOutline(WPos center, float radius, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(2, center, radius);
         poly ??= _bounds.ClipCircle(center - Center, radius);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneCircleOutlineUnclipped(WPos center, float radius, uint color = default, float thickness = 1f)
@@ -385,49 +404,49 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             pointsO.Add(points[i] + offset);
         }
         poly ??= new(pointsO);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneDonutOutline(WPos center, float innerRadius, float outerRadius, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(3, center, innerRadius, outerRadius);
         poly ??= _bounds.ClipDonut(center - Center, innerRadius, outerRadius);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneTriOutline(WPos a, WPos b, WPos c, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(4, a, b, c);
         poly ??= _bounds.ClipTri(a - Center, b - Center, c - Center);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneIsoscelesTriOutline(WPos apex, WDir height, WDir halfBase, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(5, apex, height, halfBase);
         poly ??= _bounds.ClipIsoscelesTri(apex - Center, height, halfBase);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRectOutline(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(7, origin, direction, lenFront, lenBack, halfWidth);
         poly ??= _bounds.ClipRect(origin - Center, direction, lenFront, lenBack, halfWidth);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRectOutline(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(8, origin, direction, lenFront, lenBack, halfWidth);
         poly ??= _bounds.ClipRect(origin - Center, direction, lenFront, lenBack, halfWidth);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRectOutline(WPos start, WPos end, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(9, start, end, halfWidth);
         poly ??= _bounds.ClipRect(start - Center, end - Center, halfWidth);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneCrossOutline(WPos origin, Angle rotation, float range, float halfWidth, WPos[] contour, uint color = default, float thickness = 1f)
@@ -443,21 +462,21 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             }
             poly = _bounds.Clip(adjusted);
         }
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRelPolyOutline(int key, RelSimplifiedComplexPolygon poly, uint color = default, float thickness = 1f)
     {
         ref var polygon = ref _polyCache.GetByHash(key);
         polygon ??= _bounds.Clip(poly);
-        DrawOutline(Center, polygon, color, thickness);
+        AddComplexPolygon(polygon, color, thickness);
     }
 
     public void ZoneCapsuleOutline(WPos start, WDir direction, float radius, float length, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(11, start, direction, radius, length);
         poly ??= _bounds.ClipCapsule(start - Center, direction, radius, length);
-        DrawOutline(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneArcCapsuleOutline(WPos start, WPos orbitCenter, Angle angularLength, float radius, uint color = default, float thickness = 1f)
@@ -467,18 +486,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         var startOffset = start - Center;
         var toOrbitCenter = orbitCenter - start;
         poly ??= _bounds.ClipArcCapsule(startOffset, toOrbitCenter, angularLength, radius);
-        DrawOutline(Center, poly, color, thickness);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void DrawOutline(WPos Center, RelSimplifiedComplexPolygon poly, uint color = default, float thickness = 1f)
-    {
-        thickness *= Config.ThicknessScale;
-        if (Config.ShowOutlinesAndShadows)
-        {
-            AddComplexPolygon(Center, poly, Colors.Shadows, (thickness + 1f) * Config.ThicknessScale);
-        }
-        AddComplexPolygon(Center, poly, color, thickness);
+        AddComplexPolygon(poly, color, thickness);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -500,98 +508,6 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
 
     public void IconWorld(WPos center, FontAwesomeIcon icon, uint color, float fontSize = 17) => IconScreen(WorldPositionToScreenPosition(center), icon, color, fontSize);
 
-    // high level utilities
-    // draw arena border
-    public void Border(uint color)
-    {
-        var dl = ImGui.GetWindowDrawList();
-        var newOffset = ScreenCenter + WorldOffsetToScreenOffset(new(1f, 1f));
-        if (lastOffset != newOffset)
-        {
-            outlines = [];
-        }
-        if (outlines.Length == 0)
-        {
-            var cachedOutlines = new List<Vector2[]>();
-            lastOffset = newOffset;
-            var parts = _bounds.ShapeSimplified.Parts;
-            var count = parts.Count;
-
-            for (var i = 0; i < count; ++i)
-            {
-                var part = parts[i];
-
-                // exterior
-                {
-                    var exterior = part.Exterior;
-                    var lenExt = exterior.Length;
-                    var points = new List<Vector2>(lenExt);
-
-                    Vector2? lastPoint = null;
-                    for (var j = 0; j < lenExt; ++j)
-                    {
-                        var currentPoint = ScreenCenter + WorldOffsetToScreenOffset(exterior[j]);
-
-                        if (lastPoint != currentPoint)
-                        {
-                            points.Add(currentPoint);
-                        }
-
-                        lastPoint = currentPoint;
-                    }
-
-                    cachedOutlines.Add([.. points]);
-                }
-
-                // holes
-                var holes = part.Holes;
-                var lenHoles = holes.Length;
-                for (var h = 0; h < lenHoles; ++h)
-                {
-                    var interior = part.Interior(holes[h]);
-                    var lenInt = interior.Length;
-                    var points = new List<Vector2>(lenInt);
-                    Vector2? lastPoint = null;
-                    for (var k = 0; k < lenInt; ++k)
-                    {
-                        var currentPoint = ScreenCenter + WorldOffsetToScreenOffset(interior[k]);
-
-                        if (lastPoint != currentPoint)
-                        {
-                            points.Add(currentPoint);
-                        }
-
-                        lastPoint = currentPoint;
-                    }
-
-                    cachedOutlines.Add([.. points]);
-                }
-            }
-
-            outlines = [.. cachedOutlines];
-        }
-
-        unsafe
-        {
-            var lenOutlines = outlines.Length;
-            var thickness = 2 * Config.ThicknessScale;
-            for (var i = 0; i < lenOutlines; ++i)
-            {
-                var points = outlines[i];
-
-                if (points.Length < 2)
-                {
-                    continue;
-                }
-
-                fixed (Vector2* p = points)
-                {
-                    dl.AddPolyline(p, points.Length, color, ImDrawFlags.Closed, thickness);
-                }
-            }
-        }
-    }
-
     public void CardinalNames()
     {
         var center = ScreenCenter;
@@ -607,7 +523,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
 
     public void ActorInsideBounds(WPos position, Angle rotation, uint color)
     {
-        var scale = Config.ActorScale;
+        var scale = Config.ActorScale * Config.ThicknessScale;
         var dir = rotation.ToDirection();
         var scale07 = scale * 0.7f * dir;
         var scale035 = scale * 0.35f * dir;
