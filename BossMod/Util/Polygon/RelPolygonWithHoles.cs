@@ -5,31 +5,15 @@ namespace BossMod;
 // a complex polygon that is a single simple-polygon exterior minus 0 or more simple-polygon holes; all edges are assumed to be non intersecting
 // hole-starts list contains starting index of each hole
 [SkipLocalsInit]
-public sealed class RelPolygonWithHoles(List<WDir> vertices, List<int> HoleStarts)
+public sealed class RelPolygonWithHoles(List<WDir> vertices, List<int> holeStarts)
 {
     // constructor for simple polygon
     public readonly List<WDir> Vertices = vertices;
-    public int VerticesCount => Vertices.Count;
+    public readonly List<int> HoleStarts = holeStarts;
     public RelPolygonWithHoles(List<WDir> simpleVertices) : this(simpleVertices, []) { }
     public ReadOnlySpan<WDir> AllVertices => CollectionsMarshal.AsSpan(Vertices);
     public ReadOnlySpan<WDir> Exterior => AllVertices[..ExteriorEnd];
     public ReadOnlySpan<WDir> Interior(int index) => AllVertices[HoleStarts[index]..HoleEnd(index)];
-    public ReadOnlySpan<int> Holes
-    {
-        get
-        {
-            var count = HoleStarts.Count;
-            var result = new int[count];
-            for (var i = 0; i < count; ++i)
-            {
-                result[i] = i;
-            }
-            return result;
-        }
-    }
-
-    public ReadOnlySpan<(WDir, WDir)> ExteriorEdges => PolygonUtil.EnumerateEdges(Exterior);
-    public ReadOnlySpan<(WDir, WDir)> InteriorEdges(int index) => PolygonUtil.EnumerateEdges(Interior(index));
 
     private int ExteriorEnd => HoleStarts.Count > 0 ? HoleStarts[0] : Vertices.Count;
     private int HoleEnd(int index) => index + 1 < HoleStarts.Count ? HoleStarts[index + 1] : Vertices.Count;

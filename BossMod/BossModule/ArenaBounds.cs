@@ -675,7 +675,7 @@ public sealed class ArenaBoundsCustom : ArenaBounds
         var vertsCount = 0;
         for (var i = 0; i < count; ++i)
         {
-            vertsCount += parts[i].VerticesCount;
+            vertsCount += parts[i].Vertices.Count;
         }
         return $"{nameof(ArenaBoundsCustom)}, Radius {Radius}, HalfWidth: {HalfWidth}, HalfHeight: {HalfHeight}, MapResolution: {MapResolution}, Pathfinding offset: {offset}, Vertices: {vertsCount}, ScaleFactor: {ScaleFactor}";
     }

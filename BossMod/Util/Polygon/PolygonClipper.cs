@@ -35,15 +35,22 @@ public sealed class PolygonClipper
         public void AddPolygon(RelPolygonWithHoles polygon)
         {
             AddContour(polygon.Exterior);
-            var holes = polygon.Holes;
-            var len = holes.Length;
-            for (var i = 0; i < len; ++i)
+            var countH = polygon.HoleStarts.Count;
+            for (var i = 0; i < countH; ++i)
             {
-                AddContour(polygon.Interior(holes[i]));
+                AddContour(polygon.Interior(i));
             }
         }
 
-        public void AddPolygon(RelSimplifiedComplexPolygon polygon) => polygon.Parts.ForEach(AddPolygon);
+        public void AddPolygon(RelSimplifiedComplexPolygon polygon)
+        {
+            var parts = polygon.Parts;
+            var count = parts.Count;
+            for (var i = 0; i < count; ++i)
+            {
+                AddPolygon(parts[i]);
+            }
+        }
 
         public void Assign(Clipper64 clipper, PathType role) => clipper.AddReuseableData(_data, role);
 

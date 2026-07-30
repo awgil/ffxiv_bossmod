@@ -165,59 +165,50 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         var colors = color != default ? color : Colors.Danger;
 
         var dl = ImGui.GetWindowDrawList();
-        var parts = poly.Parts;
-        var count = parts.Count;
+        var parts = CollectionsMarshal.AsSpan(poly.Parts);
+        var len = parts.Length;
         var showShadows = addShadows && Config.ShowOutlinesAndShadows;
         var scale = Config.ThicknessScale;
         var thickness_ = thickness;
         var screencenter = ScreenCenter;
 
-        for (var i = 0; i < count; ++i)
+        for (var i = 0; i < len; ++i)
         {
             var part = parts[i];
 
-            // exterior
+            DrawContour(part.Exterior);
+            var countH = part.HoleStarts.Count;
+            for (var h = 0; h < countH; ++h)
             {
-                var exterior = part.Exterior;
-                var lenExt = exterior.Length;
-                var points = new Vector2[lenExt];
+                DrawContour(part.Interior(h));
+            }
+        }
 
-                for (var j = 0; j < lenExt; ++j)
-                {
-                    var currentPoint = screencenter + WorldOffsetToScreenOffset(exterior[j]);
-                    points[j] = currentPoint;
-                }
-                DrawPolygon(points);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void DrawContour(ReadOnlySpan<WDir> contour)
+        {
+            var len = contour.Length;
+            Span<Vector2> points = stackalloc Vector2[len];
+
+            for (var i = 0; i < len; ++i)
+            {
+                points[i] = screencenter + WorldOffsetToScreenOffset(contour[i]);
             }
 
-            // holes
-            var holes = part.Holes;
-            var lenHoles = holes.Length;
-            for (var h = 0; h < lenHoles; ++h)
-            {
-                var interior = part.Interior(holes[h]);
-                var lenInt = interior.Length;
-                var points = new Vector2[lenInt];
-                for (var k = 0; k < lenInt; ++k)
-                {
-                    var currentPoint = screencenter + WorldOffsetToScreenOffset(interior[k]);
-                    points[k] = currentPoint;
-                }
-                DrawPolygon(points);
-            }
+            DrawPolygon(points);
+        }
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            unsafe void DrawPolygon(Vector2[] points)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe void DrawPolygon(Span<Vector2> points)
+        {
+            fixed (Vector2* p = points)
             {
-                fixed (Vector2* p = points)
+                var len = points.Length;
+                if (showShadows)
                 {
-                    var len = points.Length;
-                    if (showShadows)
-                    {
-                        dl.AddPolyline(p, len, Colors.Shadows, ImDrawFlags.Closed, (thickness + 1f) * scale);
-                    }
-                    dl.AddPolyline(p, len, colors, ImDrawFlags.Closed, thickness * scale);
+                    dl.AddPolyline(p, len, Colors.Shadows, ImDrawFlags.Closed, (thickness + 1f) * scale);
                 }
+                dl.AddPolyline(p, len, colors, ImDrawFlags.Closed, thickness * scale);
             }
         }
     }
