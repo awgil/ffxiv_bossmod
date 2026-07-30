@@ -64,8 +64,8 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
         return res;
     }
 
-    public bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
-    public int EnemiesTargetingPlayer => Hints.PotentialTargets.Count(x => !x.Actor.IsDeadOrDestroyed && x.Actor.TargetID == Player.InstanceID);
+    private bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
+    private int EnemiesTargetingPlayer => Hints.PotentialTargets.Count(x => !x.Actor.IsDeadOrDestroyed && x.Actor.TargetID == Player.InstanceID);
     private bool TargetsNearby(float range) => Hints.PotentialTargets.Any(h => !h.Actor.IsDeadOrDestroyed && h.Actor.DistanceToHitbox(Player) <= range);
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -117,7 +117,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
             !TargetsNearby(32) && strategy.Option(Track.Sprint).As<DefensiveStrategy>() == DefensiveStrategy.Allow)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SprintPvP), Player, (int)ActionQueue.Priority.High);
 
-        if (strategy.Option(Track.Elixir).As<ElixirStrategy>() switch
+        if ((Player.HPMP.CurHP != Player.HPMP.MaxHP || Player.HPMP.CurMP != Player.HPMP.MaxMP) && strategy.Option(Track.Elixir).As<ElixirStrategy>() switch
         {
             ElixirStrategy.Close => !TargetsNearby(32),
             ElixirStrategy.Far => !TargetsNearby(52),
