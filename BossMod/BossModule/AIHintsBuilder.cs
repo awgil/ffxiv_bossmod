@@ -96,11 +96,13 @@ public sealed class AIHintsBuilder : IDisposable
             FillEnemies(hints, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank), outOfCombatPriority);
             if (activeModule != null)
             {
+                if (activeModule.Components.Count == 0)
+                    CalculateAutoHints(hints, player, false);
                 activeModule.CalculateAIHints(playerSlot, player, playerAssignment, hints, Obstacles);
             }
             else
             {
-                CalculateAutoHints(hints, player);
+                CalculateAutoHints(hints, player, true);
                 _zmm.ActiveModule?.CalculateAIHints(playerSlot, player, hints);
             }
         }
@@ -137,66 +139,69 @@ public sealed class AIHintsBuilder : IDisposable
 
     private bool IsTargetable(Actor a) => a.IsTargetable; //|| a.Statuses.Any(s => s.ID is 676 or 1621 or 3997);
 
-    private void CalculateAutoHints(AIHints hints, Actor player)
+    private void CalculateAutoHints(AIHints hints, Actor player, bool setBounds)
     {
-        var inFate = Utils.IsPlayerSyncedToFate(_ws);
-        var center = inFate ? _ws.Client.ActiveFate.Center : player.PosRot.XYZ();
-        var (e, bitmap) = Obstacles.Find(center);
-        var resolution = bitmap?.PixelSize ?? 0.5f;
-        if (inFate)
+        if (setBounds)
         {
-            hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
-
-            // if in a big fate with no obstacle map available, reduce resolution to avoid slowing down rasterization significantly
-            if (bitmap == null)
+            var inFate = Utils.IsPlayerSyncedToFate(_ws);
+            var center = inFate ? _ws.Client.ActiveFate.Center : player.PosRot.XYZ();
+            var (e, bitmap) = Obstacles.Find(center);
+            var resolution = bitmap?.PixelSize ?? 0.5f;
+            if (inFate)
             {
-                resolution = _ws.Client.ActiveFate.Radius switch
+                hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
+
+                // if in a big fate with no obstacle map available, reduce resolution to avoid slowing down rasterization significantly
+                if (bitmap == null)
                 {
-                    > 60 => 2,
-                    > 30 => 1,
-                    _ => resolution
-                };
-            }
+                    resolution = _ws.Client.ActiveFate.Radius switch
+                    {
+                        > 60 => 2,
+                        > 30 => 1,
+                        _ => resolution
+                    };
+                }
 
-            hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius, resolution));
-            if (e != null && bitmap != null)
+                hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius, resolution));
+                if (e != null && bitmap != null)
+                {
+                    var originCell = (hints.PathfindMapCenter - e.Origin) / resolution;
+                    var originX = (int)originCell.X;
+                    var originZ = (int)originCell.Z;
+                    var halfSize = (int)(_ws.Client.ActiveFate.Radius / resolution);
+                    hints.PathfindMapObstacles = new(bitmap, new(originX - halfSize, originZ - halfSize, originX + halfSize, originZ + halfSize));
+                }
+            }
+            else if (e != null && bitmap != null)
             {
-                var originCell = (hints.PathfindMapCenter - e.Origin) / resolution;
+                var originCell = (player.Position - e.Origin) / resolution;
                 var originX = (int)originCell.X;
                 var originZ = (int)originCell.Z;
-                var halfSize = (int)(_ws.Client.ActiveFate.Radius / resolution);
-                hints.PathfindMapObstacles = new(bitmap, new(originX - halfSize, originZ - halfSize, originX + halfSize, originZ + halfSize));
+                // if player is too close to the border, adjust origin
+                originX = Math.Min(originX, bitmap.Width - e.ViewWidth);
+                originZ = Math.Min(originZ, bitmap.Height - e.ViewHeight);
+                originX = Math.Max(originX, e.ViewWidth);
+                originZ = Math.Max(originZ, e.ViewHeight);
+                // TODO: consider quantizing even more, to reduce jittering when player moves?..
+                hints.PathfindMapCenter = e.Origin + resolution * new WDir(originX, originZ);
+                hints.PathfindMapBounds = new ArenaBoundsRect(e.ViewWidth * resolution, e.ViewHeight * resolution, MapResolution: resolution); // note: we don't bother caching these bounds, they are very lightweight
+                hints.PathfindMapObstacles = new(bitmap, new(originX - e.ViewWidth, originZ - e.ViewHeight, originX + e.ViewWidth, originZ + e.ViewHeight));
             }
-        }
-        else if (e != null && bitmap != null)
-        {
-            var originCell = (player.Position - e.Origin) / resolution;
-            var originX = (int)originCell.X;
-            var originZ = (int)originCell.Z;
-            // if player is too close to the border, adjust origin
-            originX = Math.Min(originX, bitmap.Width - e.ViewWidth);
-            originZ = Math.Min(originZ, bitmap.Height - e.ViewHeight);
-            originX = Math.Max(originX, e.ViewWidth);
-            originZ = Math.Max(originZ, e.ViewHeight);
-            // TODO: consider quantizing even more, to reduce jittering when player moves?..
-            hints.PathfindMapCenter = e.Origin + resolution * new WDir(originX, originZ);
-            hints.PathfindMapBounds = new ArenaBoundsRect(e.ViewWidth * resolution, e.ViewHeight * resolution, MapResolution: resolution); // note: we don't bother caching these bounds, they are very lightweight
-            hints.PathfindMapObstacles = new(bitmap, new(originX - e.ViewWidth, originZ - e.ViewHeight, originX + e.ViewWidth, originZ + e.ViewHeight));
-        }
-        else
-        {
-            hints.PathfindMapCenter = player.Position.Rounded(5);
-            // try to keep player near grid center
-            var playerOffset = player.Position - hints.PathfindMapCenter;
-            if (playerOffset.X < -1.25f)
-                hints.PathfindMapCenter.X -= 2.5f;
-            else if (playerOffset.X > 1.25f)
-                hints.PathfindMapCenter.X += 2.5f;
-            if (playerOffset.Z < -1.25f)
-                hints.PathfindMapCenter.Z -= 2.5f;
-            else if (playerOffset.Z > 1.25f)
-                hints.PathfindMapCenter.Z += 2.5f;
-            // keep default bounds
+            else
+            {
+                hints.PathfindMapCenter = player.Position.Rounded(5);
+                // try to keep player near grid center
+                var playerOffset = player.Position - hints.PathfindMapCenter;
+                if (playerOffset.X < -1.25f)
+                    hints.PathfindMapCenter.X -= 2.5f;
+                else if (playerOffset.X > 1.25f)
+                    hints.PathfindMapCenter.X += 2.5f;
+                if (playerOffset.Z < -1.25f)
+                    hints.PathfindMapCenter.Z -= 2.5f;
+                else if (playerOffset.Z > 1.25f)
+                    hints.PathfindMapCenter.Z += 2.5f;
+                // keep default bounds
+            }
         }
 
         foreach (var aoe in _activeAOEs.Values)

@@ -19,6 +19,8 @@ public class GenericRotatingAOE(BossModule module) : GenericAOEs(module)
     public uint ImminentColor = ArenaColor.Danger;
     public uint FutureColor = ArenaColor.AOE;
 
+    public bool FutureRisky = true;
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         // future AOEs
@@ -31,7 +33,7 @@ public class GenericRotatingAOE(BossModule module) : GenericAOEs(module)
             {
                 rot += s.Increment;
                 time = time.AddSeconds(s.SecondsBetweenActivations);
-                yield return new(s.Shape, s.Origin, rot, time, FutureColor);
+                yield return new(s.Shape, s.Origin, rot, time, FutureColor, FutureRisky);
             }
         }
 
