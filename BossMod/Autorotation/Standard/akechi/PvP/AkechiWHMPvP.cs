@@ -25,9 +25,9 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
 
         res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
             .AddOption(RoleActionStrategy.Forbid, "Do not use any role actions")
-            .AddOption(RoleActionStrategy.Haelan, "Use Haelan when available")
-            .AddOption(RoleActionStrategy.Stoneskin2, "Use Stoneskin II when available")
-            .AddOption(RoleActionStrategy.Diabrosis, "Use Diabrosis when available");
+            .AddOption(RoleActionStrategy.Haelan, "Use Haelan on self when under 70% HP")
+            .AddOption(RoleActionStrategy.Stoneskin2, "Use Stoneskin II when under 80% HP or two enemies are currently targeting you")
+            .AddOption(RoleActionStrategy.Diabrosis, "Use Diabrosis on best target when available");
 
         res.Define(Track.LimitBreak).As<LBStrategy>("Limit Break", "", 300)
             .AddOption(LBStrategy.Any, "Use Limit Break when available")
@@ -105,7 +105,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
         if (HasLOS(mainTarget))
         {
             var lb = strategy.Option(Track.LimitBreak).As<LBStrategy>();
-            if (World.Party.LimitBreakLevel >= 1 && lb switch
+            if (DistanceFrom(bestLineTarget, 40f) && World.Party.LimitBreakLevel >= 1 && lb switch
             {
                 LBStrategy.Any => lineTargets > 0,
                 LBStrategy.Two => lineTargets > 1,
@@ -116,9 +116,9 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
 
             var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
             {
-                RoleActionStrategy.Haelan => (HasStatus(SID.HaelanEquippedPvP) && MP >= 2500 && Player.PendingHPRatio < 0.6f, AID.HaelanPvP, Player),
-                RoleActionStrategy.Stoneskin2 => (HasStatus(SID.StoneskinEquippedPvP) && IsReady(AID.StoneskinIIPvP) && EnemiesTargetingPlayer >= 2, AID.StoneskinIIPvP, Player),
-                RoleActionStrategy.Diabrosis => (HasStatus(SID.DiabrosisEquippedPvP) && IsReady(AID.DiabrosisPvP), AID.DiabrosisPvP, bestSeraphStrikeTarget),
+                RoleActionStrategy.Haelan => (HasStatus(SID.HaelanEquippedPvP) && MP >= 2000 && Player.PendingHPRatio < 0.7f, AID.HaelanPvP, Player),
+                RoleActionStrategy.Stoneskin2 => (HasStatus(SID.StoneskinEquippedPvP) && IsReady(AID.StoneskinIIPvP) && (Player.PendingHPRatio < 0.8f || EnemiesTargetingPlayer >= 2), AID.StoneskinIIPvP, Player),
+                RoleActionStrategy.Diabrosis => (In25y(bestSeraphStrikeTarget) && HasStatus(SID.DiabrosisEquippedPvP) && IsReady(AID.DiabrosisPvP), AID.DiabrosisPvP, bestSeraphStrikeTarget),
                 _ => (false, AID.None, null)
             };
             if (roleCondition)
@@ -132,6 +132,8 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
                 StatusDetails(Player, ClassShared.SID.DeepFreezePvP, Player.InstanceID, 5).Left,
                 StatusDetails(Player, SID.MiracleOfNaturePvP, Player.InstanceID, 5).Left);
 
+            //self only
+            //TODO: add party stuff? 
             if (IsReady(AID.AquaveilPvP) && strategy.Option(Track.Aquaveil).As<AquaveilStrategy>() switch
             {
                 AquaveilStrategy.Auto => Player.PendingHPRatio < 1.0f && EnemiesTargetingPlayer >= 2,
@@ -153,7 +155,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
                 CureTargetStrategy.SelfOrParty => auto ? World.Party.WithoutSlot(excludeNPCs: true).Where(a => a.HPMP.CurHP != a.HPMP.MaxHP).OrderBy(a => a.PendingHPRatio).FirstOrDefault() : mainTarget ?? Player,
                 _ => null
             };
-            if ((Cooldown(AID.CureIIPvP) < 12.6f || HasStatus(SID.CureIIIReadyPvP)) && strategy.Option(Track.Cure).As<CureStrategy>() switch
+            if (DistanceFrom(healtarget, 30f) && (Cooldown(AID.CureIIPvP) < 12.6f || HasStatus(SID.CureIIIReadyPvP)) && strategy.Option(Track.Cure).As<CureStrategy>() switch
             {
                 CureStrategy.Eighty => healtarget?.PendingHPRatio < 0.8f && healtarget.HPMP.CurHP != healtarget.HPMP.MaxHP,
                 CureStrategy.Seventy => healtarget?.PendingHPRatio < 0.7f && healtarget.HPMP.CurHP != healtarget.HPMP.MaxHP,
@@ -164,19 +166,17 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
             })
                 QueueGCD(HasStatus(SID.CureIIIReadyPvP) ? AID.CureIIIPvP : AID.CureIIPvP, healtarget, GCDPriority.VeryHigh);
 
-            if (IsReady(AID.AfflatusMiseryPvP) && strategy.Option(Track.AfflatusMisery).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.AfflatusMiseryPvP, bestSplashTarget, GCDPriority.Average);
-
             if (IsReady(AID.MiracleOfNaturePvP) &&
-                mainTarget!.NameID == 0 && //doesn't work on NPCs or striking dummies
-                mainTarget.MountId == 0 && //doesn't work on mounted players
-                mainTarget.FindStatus(GNB.SID.RelentlessRushPvP) == null && //doesn't work on Relentless Rush
-                mainTarget.FindStatus(3162) == null && //doesn't work on Honing Dance
-                mainTarget.FindStatus(3039) == null && //don't use on invulnerable DRKs
-                mainTarget.FindStatus(1302) == null && //don't use on invulnerable PLDs
-                mainTarget.FindStatus(1301) == null && mainTarget.FindStatus(1300) == null && //don't use on any enemies with PLD:Cover
-                mainTarget.FindStatus(1978) == null && //don't use on any tanks with Rampart active
-                mainTarget.FindStatus(ClassShared.SID.GuardPvP) == null && //don't use on any enemies with Guard active
+                In10y(mainTarget) &&
+                mainTarget?.NameID == 0 && //doesn't work on NPCs or striking dummies
+                mainTarget?.MountId == 0 && //doesn't work on mounted players
+                mainTarget?.FindStatus(GNB.SID.RelentlessRushPvP) == null && //doesn't work on Relentless Rush
+                mainTarget?.FindStatus(3162) == null && //doesn't work on Honing Dance
+                mainTarget?.FindStatus(3039) == null && //don't use on invulnerable DRKs
+                mainTarget?.FindStatus(1302) == null && //don't use on invulnerable PLDs
+                mainTarget?.FindStatus(1301) == null && mainTarget?.FindStatus(1300) == null && //don't use on any enemies with PLD:Cover
+                mainTarget?.FindStatus(1978) == null && //don't use on any tanks with Rampart active
+                mainTarget?.FindStatus(ClassShared.SID.GuardPvP) == null && //don't use on any enemies with Guard active
                 strategy.Option(Track.MiracleOfNature).As<CommonStrategy>() == CommonStrategy.Allow)
                 QueueGCD(AID.MiracleOfNaturePvP, mainTarget, GCDPriority.Average);
 
@@ -190,7 +190,13 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
             })
                 QueueGCD(AID.SeraphStrikePvP, bestSeraphStrikeTarget, GCDPriority.Average);
 
-            QueueGCD(HasStatus(SID.SacredSightPvP) ? AID.GlareIVPvP : AID.GlareIIIPvP, HasStatus(SID.SacredSightPvP) ? bestSplashTarget : mainTarget, GCDPriority.Low);
+            if (In25y(mainTarget))
+            {
+                if (IsReady(AID.AfflatusMiseryPvP) && strategy.Option(Track.AfflatusMisery).As<CommonStrategy>() == CommonStrategy.Allow)
+                    QueueGCD(AID.AfflatusMiseryPvP, bestSplashTarget, GCDPriority.Average);
+
+                QueueGCD(HasStatus(SID.SacredSightPvP) ? AID.GlareIVPvP : AID.GlareIIIPvP, HasStatus(SID.SacredSightPvP) ? bestSplashTarget : mainTarget, GCDPriority.Low);
+            }
         }
     }
 }
