@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE207ElmGigas;
 
 // TODO was made with ARR support
+//  Status: COMPLETED
 
 public enum OID : uint {
     ElmGigas = 0x4BD9,

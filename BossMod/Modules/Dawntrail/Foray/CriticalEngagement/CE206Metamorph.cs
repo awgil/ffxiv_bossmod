@@ -1,5 +1,9 @@
 ﻿namespace BossMod.Foray.CriticalEngagement.CE206Metamorph;
 
+// TODO was made with ARR support
+//  Status:
+//      1. Missing left rotating direction spell, everything else seems to work
+
 public enum OID : uint {
     Metamorph = 0x4C77,
     Helper = 0x233C,
@@ -13,8 +17,8 @@ public enum OID : uint {
 
 public enum AID : uint {
     AutoAttack = 48334, // Metamorph->player, no cast, single-target
-    BlackenedRainCast = 48335, // Metamorph->self, 4.0+1.0s cast, single-target
-    BlackenedRain = 48336, // Helper->self, 5.0s cast, ???
+    BlackenedRain = 48335, // Metamorph->self, 4.0+1.0s cast, single-target
+    BlackenedRainVisual = 48336, // Helper->self, 5.0s cast, ???
     DarkDealing = 48337, // Metamorph->player, 5.0s cast, single-target
     Revert = 48340, // Metamorph->self, no cast, single-target
 
@@ -74,7 +78,7 @@ sealed class HellfireFetch(BossModule module) : Components.SimpleAOEs(module, (u
 sealed class DarkDealing(BossModule module) : Components.SingleTargetCast(module, (uint)AID.DarkDealing);
 sealed class CyclonicRing(BossModule module) : Components.SimpleAOEs(module, (uint)AID.CyclonicRing, new AOEShapeDonut(10.0f, 30.0f));
 sealed class CycloneCrossing(BossModule module) : Components.SimpleAOEs(module, (uint)AID.CycloneCrossing1, new AOEShapeCross(60.0f, 8.0f));
-sealed class WindSphere(BossModule module) : Components.Voidzone(module, 18.0f, module => module.Enemies((uint)OID.WindSphere).Where(z => z.EventState != 7));
+sealed class WindSphere(BossModule module) : Components.Voidzone(module, 17.5f, module => module.Enemies((uint)OID.WindSphere).Where(z => z.EventState != 7));
 
 sealed class HellwardBoundCharge : Components.ChargeAOEs {
     public HellwardBoundCharge(BossModule module) : base(module, (uint)AID.HellwardBoundStart, 5.0f) {
@@ -125,7 +129,7 @@ sealed class HellwardBound(BossModule module) : Components.GenericAOEs(module) {
             Actor? nextInLine = null;
 
             // Case: first one is the closest one
-            if (aoes.Count == 0) {
+            if (pathList.Count == 0) {
                 nextInLine = arrows.Closest(boss.Position);
             } else { // Case: all other arrows take the direction it is looking
                 var lastArrow = pathList[^1];
@@ -155,6 +159,9 @@ sealed class HellwardBound(BossModule module) : Components.GenericAOEs(module) {
             var shape = new AOEShapeRect(direction.Length(), 5.0f);
             aoes.Add(new(shape, origin.Position, Angle.FromDirection(direction)));
         }
+
+        // final path that doesn't work on arrows - aoe range is just a guess so its never set
+        aoes.Add(new(new AOEShapeRect(40.0f, 5.0f), pathList[^1].Position, pathList[^1].Rotation));
     }
 }
 
