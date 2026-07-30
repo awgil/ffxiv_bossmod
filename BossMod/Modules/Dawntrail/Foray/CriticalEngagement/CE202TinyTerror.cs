@@ -226,7 +226,7 @@ sealed class Comet(BossModule module) : BossComponent(module) {
 
         var firstArcaneSphere = arcaneSpheres.MaxBy(a => a.tethers);
         if (firstArcaneSphere != null) {
-            Arena.AddCircle(firstArcaneSphere.arcaneSphere.Position, 2.0f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(firstArcaneSphere.arcaneSphere.Position, 2.0f, Colors.Safe, 2.0f);
         }
     }
 
@@ -294,7 +294,7 @@ sealed class FlareHolyMerge(BossModule module) : BossComponent(module) {
 
         foreach (var combination in nextCombinations) {
             if (!combination.isFlare) {
-                Arena.AddCircleFilled(combination.origin, 2.0f, Colors.Other7);
+                Arena.ZoneCircle(combination.origin, 2.0f, Colors.Other7);
             }
         }
     }
@@ -384,7 +384,7 @@ sealed class SphereGrowable(BossModule module) : BossComponent(module) {
         }
 
         if (orb.OID == (uint)OID.HolySphereGrow) {
-            Arena.AddCircleFilled(target.Position, 2.0f, Colors.Other7);
+            Arena.ZoneCircle(target.Position, 2.0f, Colors.Other7);
         }
     }
 
