@@ -150,7 +150,7 @@ public sealed class Definitions : Defs
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.PassageOfArms)!.TransformAngle = (ws, player, _, _) => _config.Wings switch
+        d.Spell(AID.PassageOfArms)!.TransformAngle = (ws, player, _) => _config.Wings switch
         {
             PLDConfig.WingsBehavior.CharacterForward => player.Rotation + 180.Degrees(),
             PLDConfig.WingsBehavior.CameraBackward => ws.Client.CameraAzimuth + 180.Degrees(),

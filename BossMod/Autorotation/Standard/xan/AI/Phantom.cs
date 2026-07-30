@@ -44,6 +44,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         [Track("Dancer: Dance", Actions = [PhantomID.Dance, PhantomID.PhantomSwordDance, PhantomID.TemptingTango, PhantomID.Jitterbug, PhantomID.MysteryWaltz, PhantomID.Quickstep])]
         public Track<EnabledByDefault> Dancer;
+
+        [Track("Dragoon: Jump, Lance", Actions = [PhantomID.OccultJump, PhantomID.Lance])]
+        public Track<EnabledByDefault> Dragoon;
     }
 
     public enum RaiseStrategy
@@ -348,6 +351,12 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
                 if (Player.FindStatus(PhantomSID.WillingToWaltz) != null)
                     UseAction(PhantomID.MysteryWaltz, primaryTarget, ActionQueue.Priority.VeryHigh);
             }
+        }
+
+        if (strategy.Dragoon.IsEnabled() && primaryTarget?.IsAlly == false)
+        {
+            UseAction(PhantomID.OccultJump, primaryTarget, ActionQueue.Priority.VeryHigh);
+            UseAction(PhantomID.Lance, primaryTarget, ActionQueue.Priority.VeryHigh);
         }
 
         if (DesiredRange < float.MaxValue && primaryTarget != null)
