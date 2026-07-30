@@ -24,20 +24,17 @@ public enum TetherID : uint
 {
     WhaleOilTether = 3,
 }
+public enum SID : uint
+{
+    Invincibility = 325, // none->Boss, extra=0x0
+    VulnerabilityUp = 202, // Boss->player, extra=0x1/0x2
+    Burns = 503, // none->Boss, extra=0x0
+}
 
 class PageTear(BossModule module) : Components.StandardAOEs(module, AID.PageTear, new AOEShapeCone(5f + 3f, 45.Degrees()));
-class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, AID.HeadDown, 4)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var b in ActiveBaitsNotOn(actor))
-            hints.AddForbiddenZone(b.Shape, BaitOrigin(b), b.Rotation, b.Activation);
-        foreach (var b in ActiveBaitsOn(actor))
-            hints.AddForbiddenZone(new AOEShapeDonut(3f + 2.6f, 23f), BaitOrigin(b), b.Rotation, b.Activation);
-    }
-}
-class BoneShaker(BossModule module) : Components.RaidwideInstant(module, AID.BoneShaker, 5.1f);
-class Bibliocide(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(3f), (uint)TetherID.WhaleOilTether, AID.Bibliocide)
+class Invincibility(BossModule module) : Components.InvincibleStatus(module, (uint)SID.Invincibility);
+class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, AID.HeadDown, 4);
+class Bibliocide(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(3), (uint)TetherID.WhaleOilTether, AID.Bibliocide)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -49,59 +46,31 @@ class Bibliocide(BossModule module) : Components.BaitAwayTethers(module, new AOE
                 if (Arena.Config.ShowOutlinesAndShadows)
                     Arena.AddLine(b.Source.Position, b.Target.Position, 0xFF000000, 2);
                 Arena.AddLine(b.Source.Position, b.Target.Position, ArenaColor.Danger);
-                Arena.AddCircle(Module.Center, 3f, ArenaColor.Safe);
             }
         }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        {
-            foreach (var b in ActiveBaits)
-            {
-                if (b.Target == actor)
-                {
-                    hints.Add("Bait Tether through Boss!");
-                }
-            }
-        }
+        if (ActiveBaitsOn(actor).Any())
+            hints.Add("Pull orb into boss!", false);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        foreach (var b in ActiveBaits)
         {
-            foreach (var b in ActiveBaits)
-            {
-                if (b.Target == actor)
-                {
-                    hints.AddForbiddenZone(new AOEShapeDonut(3f, 23f), Module.Center);
-                }
-                else
-                {
-                    hints.AddForbiddenZone(new AOEShapeCircle(3f), b.Source.Position, b.Rotation, b.Activation);
-                }
-            }
+            if (b.Target == actor)
+                hints.AddForbiddenZone(new AOEShapeDonut(3f, 23f), Module.Center);
+            else
+                hints.AddForbiddenZone(new AOEShapeCircle(3f), b.Source.Position, b.Rotation, b.Activation);
         }
     }
 };
 class GaleCut(BossModule module) : Components.SingleTargetCast(module, AID.GaleCut);
 class TailSmash(BossModule module) : Components.StandardAOEs(module, AID.TailSmash, new AOEShapeCone(9f + 3f, 45.Degrees()));
 class DeathRay(BossModule module) : Components.StandardAOEs(module, AID.DeathRay, new AOEShapeRect(23f + 3f, 1.5f));
-class TomeWind(BossModule module) : BossComponent(module)
-{
-    private IEnumerable<Actor> TomeWinds => Module.Enemies(OID.TomeWind).Where(e => !e.IsDead);
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var b in TomeWinds)
-            Arena.AddCircleFilled(b.Position, 3, ArenaColor.AOE);
-    }
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var b in TomeWinds)
-            hints.AddForbiddenZone(new AOEShapeCircle(3), b.Position);
-    }
-}
+class TomeWind(BossModule module) : Components.PersistentVoidzone(module, 3, m => m.Enemies(OID.TomeWind).Where(w => !w.IsDead));
 class AddsModule(BossModule module) : Components.Adds(module, (uint)OID.Page64);
 class D052ByblosStates : StateMachineBuilder
 {
@@ -110,13 +79,13 @@ class D052ByblosStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<PageTear>()
             .ActivateOnEnter<HeadDown>()
-            .ActivateOnEnter<BoneShaker>()
             .ActivateOnEnter<Bibliocide>()
             .ActivateOnEnter<GaleCut>()
             .ActivateOnEnter<TailSmash>()
             .ActivateOnEnter<DeathRay>()
             .ActivateOnEnter<TomeWind>()
-            .ActivateOnEnter<AddsModule>();
+            .ActivateOnEnter<AddsModule>()
+            .ActivateOnEnter<Invincibility>();
     }
 }
 

@@ -139,7 +139,7 @@ public sealed class RotationModuleManager : IDisposable
             return;
 
         // forced target update
-        if (Hints.ForcedTarget == null && Presets.Count == 0 && Planner?.ActiveForcedTarget() is var forced && forced != null)
+        if (Hints.ForcedTarget == null && Presets.Count == 0 && Planner?.ActiveForcedTarget(WorldState, PlayerSlot) is var forced && forced != null)
         {
             Hints.ForcedTarget = forced.Target != StrategyTarget.Automatic
                 ? ResolveTargetOverride(forced.Target, forced.TargetParam)
@@ -150,7 +150,7 @@ public sealed class RotationModuleManager : IDisposable
         var target = Hints.ForcedTarget ?? WorldState.Actors.Find(Player?.TargetID ?? 0);
         foreach (var (slot, m) in _activeModules ?? [])
         {
-            var values = Presets.BoundSafeAt(slot)?.ActiveStrategyOverrides(m.DataIndex) ?? Planner?.ActiveStrategyOverrides(m.DataIndex) ?? throw new InvalidOperationException("Both preset and plan are null, but there are active modules");
+            var values = Presets.BoundSafeAt(slot)?.ActiveStrategyOverrides(m.DataIndex) ?? Planner?.ActiveStrategyOverrides(m.DataIndex, WorldState, PlayerSlot) ?? throw new InvalidOperationException("Both preset and plan are null, but there are active modules");
             m.Module.Execute(values, ref target, estimatedAnimLockDelay, isMoving);
         }
     }
@@ -322,7 +322,13 @@ public sealed class RotationModuleManager : IDisposable
             Service.Log($"[RMM] Player ninja pulled => force-disabling from '{PresetNames}'");
             SetForceDisabled();
         }
-        // if player enters combat when countdown is either not active or around zero, proceed normally - if override is queued, let it run, otherwise let plan run
+
+        // some jank: we can't check value of this.Planner because the expected plan isn't loaded until either countdown starts or boss is pulled, and BMM doesn't activate the module until after this event fires, so the best we can do is check what the plan is expected to be
+        else if (actor.InCombat && WorldState.Client.CountdownRemaining == null && Config.PlannedPullSafety && Bossmods.LoadedModules is [var mod] && Database.Plans.GetPlans(mod.GetType(), actor.Class).SelectedIndex >= 0)
+        {
+            Service.Log($"[RMM] Boss pulled without countdown => force-disabling from '{PresetNames}'");
+            SetForceDisabled();
+        }
     }
 
     private void OnDeadChanged(Actor actor)

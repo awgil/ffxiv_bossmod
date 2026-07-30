@@ -1,5 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Dawntrail.Ultimate.UMAD;
+﻿namespace BossMod.Dawntrail.Ultimate.UMAD;
 
 public enum OID : uint
 {
@@ -24,6 +23,10 @@ public enum OID : uint
     NeoExdeathP4 = 0x4C36, // R9.000, x0 (spawn during fight)
 
     KefkaP5 = 0x4C37, // R8.010, x0 (spawn during fight)
+
+    FireTower = 0x1EC03E,
+    IceTower = 0x1EC03F,
+    LightningTower = 0x1EC040,
 
     Helper = 0x233C, // R0.500, x37, Helper type
 }
@@ -138,7 +141,7 @@ public enum AID : uint
     SlapHappyBig = 47848, // Helper->self, no cast, range 13 circle
     SlapHappySmall = 47849, // Helper->self, 1.5s cast, range 6 circle
     SlapHappyShockingImpact = 47850, // Helper->self, no cast, range 100 60-degree cone, party stack
-    SlapHappyShockwave = 47851, // Helper->self, no cast, range 100 45?-degree cone, role spread, TODO verify angle
+    SlapHappyShockwave = 47851, // Helper->self, no cast, range 100 60-degree cone, role spread
     BlackHole = 47867, // ExdeathP3->self, 3.0s cast, single-target
     Nothingness = 47868, // BlackHoleP3->self, no cast, range 125 width 6 rect
     DamningEdict = 47873, // ChaosP3->self, 5.0s cast, range 60 width 80 rect
@@ -196,42 +199,46 @@ public enum AID : uint
     UltimaUpsurge = 49738, // KefkaP4->self, 5.0s cast, range 100 circle
     ManaRelease = 47781, // KefkaP4->self, 7.0s cast, single-target
 
-    _Ability_UltimaRepeater = 47936, // KefkaP5->self, 4.0+1.0s cast, single-target
-    _Ability_UltimaRepeater1 = 47937, // Helper->self, no cast, range 100 circle
-    _Ability_ = 50770, // KefkaP5->self, no cast, single-target
-    _Ability_FellForces = 50773, // Helper->players, no cast, range 5 circle, dps
-    _Ability_FellForces1 = 50772, // Helper->players, no cast, range 5 circle, healer
-    _Ability_FellForces2 = 50771, // Helper->players, no cast, range 3 circle, tank
-    _Ability_1 = 49539, // Helper->self, 1.5s cast, range 40 width 10 rect
-    _Ability_Flood = 49471, // KefkaP5->self, 5.0+1.2s cast, single-target
-    _Ability_ChaoticFlood = 47951, // Helper->players, no cast, range 6 circle
-    _Ability_Flood1 = 49769, // Helper->self, no cast, range 40 width 10 rect
-    _Ability_MaddeningOrchestra = 47952, // KefkaP5->self, 5.0+0.8s cast, single-target
-    _Ability_Flare = 47954, // Helper->player, no cast, range 5 circle, spread on 1+2 enmity
-    _Ability_Holy = 47956, // Helper->player, no cast, range 5 circle, random spread on 3+ enmity
-    _Ability_MaddeningOrchestra1 = 47953, // KefkaP5->self, no cast, single-target
-    _Ability_ChaoticFlare = 47955, // Helper->players, no cast, range 5 circle, stack buster
-    _Ability_FlareDiffusion = 47957, // Helper->players, no cast, range 25 circle, Surprise Flare explosion
-    _Ability_ChaoticHoly = 47958, // Helper->player, no cast, range 6 circle
-    _Ability_Celestriad = 47938, // KefkaP5->self, 5.0s cast, single-target
-    _Ability_CatastrophicChoice = 49742, // KefkaP5->self, 4.3+0.7s cast, single-target
-    _Ability_FireIII = 47939, // Helper->self, no cast, range 3 circle
-    _Ability_BlizzardIII = 47940, // Helper->self, no cast, range 3 circle
-    _Ability_ThunderIII = 47941, // Helper->self, no cast, range 3 circle
-    _Ability_Quake = 47946, // Helper->self, no cast, range 10 circle
-    _Ability_CatastrophicChoice1 = 49743, // KefkaP5->self, 4.3+0.7s cast, single-target
-    _Ability_Tornado = 47947, // Helper->self, no cast, range ?-40 donut
-    _Ability_StrayApocalypse = 47932, // Helper->self, 4.0s cast, range 6 circle
-    _Ability_StrayApocalypse1 = 47931, // KefkaP5->self, 4.0s cast, single-target
-    _Ability_StrayApocalypse2 = 47933, // Helper->self, no cast, range 6 circle
-    _Ability_StrayEntropy = 47934, // KefkaP5->self, 5.0s cast, single-target
-    _Ability_StrayEntropy1 = 47935, // Helper->player, no cast, range 5 circle
-    _Ability_Forsaken = 47925, // KefkaP5->self, 10.0s cast, range 100 circle
-    _Ability_ForsakenGround = 47927, // Helper->self, 5.0s cast, range 8 circle
-    _Ability_Forsaken1 = 47928, // Helper->self, 5.0s cast, range 8 circle
-    _Ability_ForsakenBonds = 47929, // Helper->players, no cast, range 6 circle
-    _Ability_Forsaken2 = 47926, // KefkaP5->self, no cast, range 100 circle
-    _Ability_ForsakenNull = 47930, // KefkaP5->self, 26.0s cast, range 100 circle
+    UltimaRepeaterCast = 47936, // KefkaP5->self, 4.0+1.0s cast, single-target
+    UltimaRepeater = 47937, // Helper->self, no cast, range 100 circle
+    UnkP5 = 50770, // KefkaP5->self, no cast, single-target
+    FellForcesTank = 50771, // Helper->players, no cast, range 3 circle, tank
+    FellForcesHealer = 50772, // Helper->players, no cast, range 5 circle, healer
+    FellForcesDPS = 50773, // Helper->players, no cast, range 5 circle, dps
+    FloodCast = 49471, // KefkaP5->self, 5.0+1.2s cast, single-target
+    FloodTelegraph = 49539, // Helper->self, 1.5s cast, range 40 width 10 rect
+    ChaoticFlood = 47951, // Helper->players, no cast, range 6 circle, stack
+    FloodAOE = 49769, // Helper->self, no cast, range 40 width 10 rect
+
+    MaddeningOrchestra = 47952, // KefkaP5->self, 5.0+0.8s cast, single-target
+    Flare = 47954, // Helper->player, no cast, range 5 circle, spread on 1+2 enmity
+    Holy = 47956, // Helper->player, no cast, range 5 circle; random spread on 3+ enmity for first hit, closest 3 players for second hit
+    MaddeningOrchestraInstant = 47953, // KefkaP5->self, no cast, single-target
+    ChaoticFlare = 47955, // Helper->players, no cast, range 5 circle, stack buster
+    FlareDiffusion = 47957, // Helper->players, no cast, range 25 circle, Surprise Flare explosion
+    ChaoticHoly = 47958, // Helper->player, no cast, range 6 circle, party stack (on tank)
+
+    Celestriad = 47938, // KefkaP5->self, 5.0s cast, single-target
+    CatastrophicChoiceEarth = 49742, // KefkaP5->self, 4.3+0.7s cast, single-target
+    CatastrophicChoiceWind = 49743, // KefkaP5->self, 4.3+0.7s cast, single-target
+    TriadFireIII = 47939, // Helper->self, no cast, range 3 circle, tower
+    TriadBlizzardIII = 47940, // Helper->self, no cast, range 3 circle, tower
+    TriadThunderIII = 47941, // Helper->self, no cast, range 3 circle, tower
+    Quake = 47946, // Helper->self, no cast, range 10 circle
+    Tornado = 47947, // Helper->self, no cast, range 10-40 donut
+
+    StrayApocalypseCast = 47931, // KefkaP5->self, 4.0s cast, single-target
+    StrayApocalypseFirst = 47932, // Helper->self, 4.0s cast, range 6 circle
+    StrayApocalypseRest = 47933, // Helper->self, no cast, range 6 circle
+    StrayEntropyCast = 47934, // KefkaP5->self, 5.0s cast, single-target
+    StrayEntropy = 47935, // Helper->player, no cast, range 5 circle
+
+    ForsakenP5Cast = 47925, // KefkaP5->self, 10.0s cast, range 100 circle
+    ForsakenP5Instant = 47926, // KefkaP5->self, no cast, range 100 circle
+    ForsakenGround = 47927, // Helper->self, 5.0s cast, range 8 circle
+    ForsakenPuddle = 47928, // Helper->self, 5.0s cast, range 8 circle
+    ForsakenBonds = 47929, // Helper->players, no cast, range 6 circle
+    ForsakenNull = 47930, // KefkaP5->self, 26.0s cast, range 100 circle
 }
 
 public enum SID : uint
@@ -306,8 +313,8 @@ public enum SID : uint
 
     SurpriseFlare = 5350, // none->player, extra=0x0
     SurpriseHoly = 5351, // none->player, extra=0x0
-    _Gen_FireResistanceDownII = 2902, // Helper->player, extra=0x0
-    _Gen_IceResistanceDownII = 2903, // Helper->player, extra=0x0
+    FireResistanceDownII = 2902, // Helper->player, extra=0x0
+    IceResistanceDownII = 2903, // Helper->player, extra=0x0
 }
 
 public enum IconID : uint
@@ -336,7 +343,7 @@ public enum IconID : uint
     Blaster7 = 439, // player->self
     Blaster8 = 440, // player->self
 
-    KnockDownShare = 161, // player->self
+    Share6y = 161, // player->self
 }
 
 public enum TetherID : uint

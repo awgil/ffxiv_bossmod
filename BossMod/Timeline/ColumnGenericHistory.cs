@@ -6,7 +6,7 @@ namespace BossMod;
 // entry is attached to a node (this is important if timings are adjusted for any reason)
 public class ColumnGenericHistory : Timeline.Column
 {
-    public class Entry(Entry.Type type, StateMachineTree.Node attachNode, float delay, float duration, string name, Color color, float widthRel = 1.0f)
+    public class Entry(Entry.Type type, StateMachineTree.Node attachNode, float delay, float duration, string name, Color color, float widthRel = 1.0f, bool visible = true)
     {
         public enum Type { Dot, Line, Range }
 
@@ -17,6 +17,7 @@ public class ColumnGenericHistory : Timeline.Column
         public string Name = name;
         public Color Color = color;
         public float WidthRel = widthRel;
+        public bool Visible = visible;
         public Action<List<string>, float>? TooltipExtra;
 
         public float TimeSincePhaseStart() => (AttachNode.Predecessor?.Time ?? 0) + Delay;
@@ -49,6 +50,8 @@ public class ColumnGenericHistory : Timeline.Column
 
     protected bool IsEntryVisible(Entry e)
     {
+        if (!e.Visible)
+            return false;
         int branchID = Tree.Phases[e.AttachNode.PhaseID].StartingNode.BranchID + PhaseBranches[e.AttachNode.PhaseID];
         return branchID >= e.AttachNode.BranchID && branchID < e.AttachNode.BranchID + e.AttachNode.NumBranches;
     }

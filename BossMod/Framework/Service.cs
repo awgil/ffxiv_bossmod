@@ -41,6 +41,9 @@ public sealed class Service
     public static bool IsDev => PluginInterface.IsDev;
     public static bool IsMock;
 
+    public static void ChatMessage(string msg) => ChatGui.Print(msg, "VBM");
+    public static void ChatError(string msg) => ChatGui.PrintError(msg, "VBM");
+
     public static Lumina.GameData LuminaGameData = null!;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData.GetExcelSheet<T>();
     public static T? LuminaRow<T>(uint row) where T : struct, Lumina.Excel.IExcelRow<T> => LuminaSheet<T>()?.GetRowOrDefault(row);
@@ -49,6 +52,7 @@ public sealed class Service
     public static IWindowSystem WindowSystem = null!;
     public static IFileDialogManager FileDialogManager = null!;
     public static ImFontPtr IconFont = ImFontPtr.Null;
+    public static ImFontPtr MonoFont = ImFontPtr.Null;
     public static IFontAtlas FontAtlas = null!;
 #pragma warning restore CA2211
 

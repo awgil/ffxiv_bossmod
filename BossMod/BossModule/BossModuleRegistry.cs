@@ -26,6 +26,7 @@ public static class BossModuleRegistry
         public int SortOrder;
         public int PlanLevel;
         public bool Incomplete;
+        public bool BitmapDisabled;
 
         public static Info? Build(Type module)
         {
@@ -153,6 +154,7 @@ public static class BossModuleRegistry
                 SortOrder = sortOrder,
                 PlanLevel = infoAttr?.PlanLevel ?? 0,
                 Incomplete = infoAttr?.Incomplete ?? false,
+                BitmapDisabled = infoAttr?.BitmapDisabled ?? false
             };
         }
 

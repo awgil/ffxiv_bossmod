@@ -33,7 +33,7 @@ class P3StompAMole(BossModule module) : Components.GenericTowers(module, AID.Sto
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID.KnockDownShare && NumCasts == 0)
+        if ((IconID)iconID == IconID.Share6y && NumCasts == 0)
         {
             _stackFirst = Raid.WithSlot().WhereActor(a => a.Class.IsSupport() == actor.Class.IsSupport()).Mask();
             for (var i = 0; i < Towers.Count; i++)
@@ -55,7 +55,7 @@ class P3StompAMole(BossModule module) : Components.GenericTowers(module, AID.Sto
     }
 }
 
-class P3KnockDown(BossModule module) : Components.StackWithIcon(module, (uint)IconID.KnockDownShare, AID.KnockDown, 6, 5.7f, 4, 4);
+class P3KnockDown(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Share6y, AID.KnockDown, 6, 5.7f, 4, 4);
 
 class P3BlizzardIIIFreeze(BossModule module) : Components.StayMove(module)
 {

@@ -114,6 +114,12 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show text hints in separate window", tooltip: "Separates the radar window from the hints window, allowing you to reposition the hints window")]
     public bool HintsInSeparateWindow = false;
 
+    [PropertyDisplay("Transparent background for text hints window", since: "7.5.1.32", depends: nameof(HintsInSeparateWindow))]
+    public bool HintsFloating = false;
+
+    [PropertyDisplay("Text outline color", since: "7.5.1.32", depends: nameof(HintsInSeparateWindow))]
+    public Color HintShadowColor = new(0xFF000000);
+
     [PropertyDisplay("Show mechanic sequence and timer hints")]
     public bool ShowMechanicTimers = true;
 

@@ -12,6 +12,9 @@ public abstract record class ArenaBounds(float Radius, float MapResolution)
     public List<RelTriangle> ShapeTriangulation { get; private set; } = [];
     private readonly PolygonClipper.Operand _clipOperand = new();
 
+    public virtual float PfHalfWidth => Radius;
+    public virtual float PfHalfHeight => Radius;
+
     public float ScreenHalfSize
     {
         get;
@@ -162,6 +165,9 @@ public record class ArenaBoundsSquare(float Radius, float MapResolution = 0.5f) 
 public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rotation = default, float Radius = 0, float MapResolution = 0.5f) : ArenaBounds(Radius > 0 ? Radius : MathF.Max(HalfWidth, HalfHeight), MapResolution)
 {
     public readonly WDir Orientation = Rotation.ToDirection();
+
+    public override float PfHalfHeight => HalfHeight;
+    public override float PfHalfWidth => HalfWidth;
 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Orientation, HalfWidth, HalfHeight));
     public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(MapResolution, center, HalfWidth, HalfHeight, Rotation);

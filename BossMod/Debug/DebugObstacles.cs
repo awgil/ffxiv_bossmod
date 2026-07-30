@@ -182,7 +182,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
 
     internal readonly ObstacleMapManager Obstacles = obstacles;
     private readonly UITree _tree = new();
-    private readonly Func<Vector3, string, float, Vector3, Vector3, (Vector3, Vector3)> _createMap = (startingPos, filename, pixelSize, minBounds, maxBounds) => dalamud.GetIpcSubscriber<Vector3, string, float, Vector3, Vector3, (Vector3, Vector3)>("vnavmesh.Nav.BuildBitmapBounded").InvokeFunc(startingPos, filename, pixelSize, minBounds, maxBounds);
+    private readonly Func<List<Vector3>, string, float, Vector3, Vector3, (Vector3, Vector3)> _createMap = (startingPos, filename, pixelSize, minBounds, maxBounds) => dalamud.GetIpcSubscriber<List<Vector3>, string, float, Vector3, Vector3, (Vector3, Vector3)>("vnavmesh.Nav.BuildBitmapMultiBounded").InvokeFunc(startingPos, filename, pixelSize, minBounds, maxBounds);
     private bool _dbModified;
 
     private static readonly Vector3 DefaultMinBounds = new(-1024);
@@ -228,11 +228,23 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
         ImGui.DragFloat3("Map min bounds", ref _minBounds, 1, -1024, 1024);
         ImGui.DragFloat3("Map max bounds", ref _maxBounds, 1, -1024, 1024);
 
+        if (ImGui.Button("Add current location as extra seed point") && Obstacles.World.Party.Player() is { } player)
+            _extraPoints.Add(player.PosRot.XYZ());
+
+        ImGui.SameLine();
+        if (ImGui.Button("Clear points"))
+            _extraPoints.Clear();
+
+        foreach (var _ in _tree.Node("Extra points", _extraPoints.Count == 0))
+            _tree.LeafNodes(_extraPoints, Utils.Vec3String);
+
         foreach (var n in _tree.Node($"Current zone: {Obstacles.World.CurrentZone}.{Obstacles.World.CurrentCFCID}###curr", curZoneEntries == null || curZoneEntries.Count == 0))
             DrawEntries(curZoneEntries ?? []);
         foreach (var n in _tree.Nodes(Obstacles.Database.Entries, kv => new($"Zone {kv.Key >> 16}.{kv.Key & 0xFFFF}", kv.Value.Count == 0)))
             DrawEntries(n.Value);
     }
+
+    readonly List<Vector3> _extraPoints = [];
 
     internal void MarkModified() => _dbModified = true;
 
@@ -269,7 +281,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     {
         var pos = Obstacles.World.Party.Player()?.PosRot.XYZ() ?? default;
         var filename = GenerateMapName();
-        var (min, max) = _createMap(pos, Obstacles.SourceFilename(filename), 0.5f, _minBounds, _maxBounds);
+        var (min, max) = _createMap([pos, .. _extraPoints], Obstacles.SourceFilename(filename), 0.5f, _minBounds, _maxBounds);
         var (tweakMin, tweakMax) = _minBounds == DefaultMinBounds && _maxBounds == DefaultMaxBounds ? (min - new Vector3(0, 1, 0), max + new Vector3(0, 10, 0)) : (min, max); // account for jumping etc...
         var entry = new ObstacleMapDatabase.Entry(tweakMin, tweakMax, new(min.XZ()), 60, 60, filename) { Embedded = true };
         OpenEditor(entry);

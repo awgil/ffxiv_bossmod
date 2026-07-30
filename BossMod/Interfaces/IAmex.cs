@@ -8,6 +8,7 @@ public interface IAmex : IDisposable
     float AnimationLockDelayEstimate { get; }
     float ComboTimeLeft { get; }
     bool MoveMightInterruptCast { get; }
+    bool MacroCapture { get; set; }
 
     void QueueManualActions();
     void FinishActionGather();
@@ -21,6 +22,7 @@ internal sealed class MockAmex : IAmex
     public float AnimationLockDelayEstimate => 0.02f;
     public float ComboTimeLeft => 0;
     public bool MoveMightInterruptCast => false;
+    public bool MacroCapture { get; set; }
 
     public void QueueManualActions() { }
     public void FinishActionGather() { }

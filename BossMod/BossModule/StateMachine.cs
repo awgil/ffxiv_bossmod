@@ -107,20 +107,17 @@ public class StateMachine(List<StateMachine.Phase> phases)
         }
     }
 
-    public void Draw()
+    public void Draw(Color outlineColor)
     {
         (var activeName, var next) = ActiveState != null ? BuildComplexStateNameAndDuration(ActiveState, TimeSinceTransition, true) : ("Inactive", null);
-        ImGui.TextUnformatted($"Cur: {activeName}");
-
         var future = BuildStateChain(next, " ---> ");
+
+        Utils.TextOutlined($"Cur: {activeName}", outlineColor);
+
         if (future.Length == 0)
-        {
             ImGui.TextUnformatted("");
-        }
         else
-        {
-            ImGui.TextUnformatted($"Then: {future}");
-        }
+            Utils.TextOutlined($"Then: {future}", outlineColor);
     }
 
     public string BuildStateChain(State? start, string sep, int maxCount = 5)

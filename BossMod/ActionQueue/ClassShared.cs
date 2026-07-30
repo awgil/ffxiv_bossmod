@@ -302,7 +302,7 @@ public sealed class Definitions : Defs
         d.Spell(AID.Interject)!.AllowExecute = (_, _, act, _) => act.Target is { CastInfo.Interruptible: true }; // don't use interject if target is not casting interruptible spell
         d.Spell(AID.HeadGraze)!.AllowExecute = (_, _, act, _) => act.Target is { CastInfo.Interruptible: true };
 
-        d.Spell(AID.Reprisal)!.AllowExecute = (_, player, _, hints) => hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(player.Position, 5 + e.Actor.HitboxRadius)); // don't use reprisal if no one would be hit; TODO: consider checking only target?..
+        d.Spell(AID.Reprisal)!.AllowExecute = (_, player, _, hints) => hints.PotentialTargets.Any(e => e.Actor.Position.InCircle(player.Position, 5 + e.Actor.HitboxRadius) && e.Priority >= AIHints.Enemy.PriorityPointless); // don't use reprisal if no one would be hit
         d.Spell(AID.Shirk)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 
         //d.Spell(AID.Repose)!.EffectDuration = 30;

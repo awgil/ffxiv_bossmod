@@ -13,6 +13,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
@@ -243,6 +244,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex.FinishActionGather();
 
         Service.IconFont = uiBuilder.FontIcon;
+        Service.MonoFont = uiBuilder.FontMono;
         Service.FontAtlas = uiBuilder.FontAtlas;
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
@@ -376,6 +378,27 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", _hintsBuilder.Obstacles.ClearGenerated);
 
+        _slashCmd.AddSubcommand("macro").SetSimpleHandler("enables VBM action queue inside macros (by default, any actions used in macros bypass the queue)", () =>
+        {
+            unsafe
+            {
+                if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
+                    _amex.MacroCapture = true;
+                else
+                    Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
+            }
+        });
+        _slashCmd.AddSubcommand("macro-off").SetSimpleHandler("disables VBM action queue inside a macro, if it has been enabled previously", () =>
+        {
+            unsafe
+            {
+                if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
+                    _amex.MacroCapture = false;
+                else
+                    Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
+            }
+        });
+
         _slashCmd.AddSubcommand("helpme").SetSimpleHandler("gather diagnostic information", HelpMe);
 
         _slashCmd.Register();
@@ -405,7 +428,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             if (preset != null)
                 SetOrToggle(preset, toggle, exclusive);
             else
-                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
+                Service.ChatError($"Failed to find preset '{presetName}'");
         }
 
         void ClearByName(ReadOnlySpan<char> presetName)
@@ -417,7 +440,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 _rotation.Deactivate(preset);
             }
             else
-                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
+                Service.ChatError($"Failed to find preset '{presetName}'");
         }
 
         cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
@@ -473,24 +496,30 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             aiConfig.Enabled = true;
             aiConfig.Modified.Fire();
+            Service.ChatMessage("AI enabled");
         });
         cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () =>
         {
             aiConfig.Enabled = false;
             aiConfig.Modified.Fire();
+            Service.ChatMessage("AI disabled");
         });
         cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () =>
         {
             aiConfig.Enabled ^= true;
             aiConfig.Modified.Fire();
+            Service.ChatMessage($"AI {(aiConfig.Enabled ? "enabled" : "disabled")}");
         });
         cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
         {
             var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : _ws.Party.FindSlot(masterString);
             if (_ws.Party[masterSlot] != null)
+            {
                 _wndAI.SetSlot(masterSlot);
+                Service.ChatMessage($"AI follow slot = {masterSlot}");
+            }
             else
-                Service.ChatGui.PrintError($"[MB] [Follow] Error: can't find {masterString} in our party");
+                Service.ChatError($"Error: can't find {masterString} in our party");
             return true;
         });
 
@@ -600,13 +629,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             }
         }
 
-        ImGui.SetClipboardText(diag.ToString());
+        ImGui.SetClipboardText($"```{diag.ToString()}```");
 
-        Service.ChatGui.Print(new Dalamud.Game.Text.XivChatEntry()
-        {
-            Type = Dalamud.Game.Text.XivChatType.Echo,
-            Message = "[VBM] Diagnostic data has been copied to your clipboard."
-        });
+        Service.ChatMessage("Diagnostic data has been copied to your clipboard.");
     }
 
     protected override void Dispose(bool disposing)

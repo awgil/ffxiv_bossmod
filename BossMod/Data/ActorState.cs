@@ -514,8 +514,8 @@ public sealed class ActorState : IEnumerable<Actor>
                     // 1: effectresult never arrives
                     //    * happens if source dies
                     //    * happens always for some actions, such as Inhale from Traverse Gigant in Pilgrim's Traverse; effect is simply applied on the next globalseq
-                    // 2. effecthandler entry disappears before effectresult arrives
-                    //    * happens (always?) if type = knockback and direction = 6
+                    // 2. effecthandler entry disappears before effectresult arrives; happens when the knockback is not actually applied by the spell
+                    //    * indicated by type=knockback dir=6; knockback is applied some time later by an ActorControl
                     var requiresEffectResult = val.Type == ActionEffectType.Knockback && Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(val.Value)?.Direction == 6;
                     actor.PendingKnockbacks.Add(new(Value.GlobalSequence, Value.TargetIndex, Value.SourceInstanceId, ws.FutureTime(3), requiresEffectResult));
                 }

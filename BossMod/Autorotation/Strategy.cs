@@ -52,6 +52,12 @@ public enum StrategyEnemySelection : int
     HighestMaxHP = 4,
 }
 
+public enum StrategyCondition : int
+{
+    None = 0,
+    AssignedRole = 1
+}
+
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class TrackAttribute() : Attribute
 {
