@@ -373,6 +373,21 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         DrawOutline(Center, poly, color, thickness);
     }
 
+    public void ZoneCircleOutlineUnclipped(WPos center, float radius, uint color = default, float thickness = 1f)
+    {
+        ref var poly = ref _polyCache.Get(14, center, radius);
+        var points = CurveApprox.Circle(radius, _bounds.MaxApproxError);
+        var len = points.Length;
+        var offset = center - Center;
+        List<WDir> pointsO = [with(len)];
+        for (var i = 0; i < len; ++i)
+        {
+            pointsO.Add(points[i] + offset);
+        }
+        poly ??= new(pointsO);
+        DrawOutline(Center, poly, color, thickness);
+    }
+
     public void ZoneDonutOutline(WPos center, float innerRadius, float outerRadius, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(3, center, innerRadius, outerRadius);
