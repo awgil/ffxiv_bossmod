@@ -49,9 +49,9 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
             Arena.Actor(shapes.hexa, default, Colors.Object);
             Arena.Actor(shapes.linked, default, Colors.Object);
             var safespot = shapes.hexa + (shapes.linked - shapes.hexa) / 3;
-            Arena.AddCircle(safespot, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot, 1, Colors.Safe);
             if (_invert)
-                Arena.AddCircle(InvertedPos(safespot), 1f);
+                Arena.ZoneCircleOutline(InvertedPos(safespot), 1f);
         }
         if (_showTethers && Raid[_states[pcSlot].PartnerSlot] is var partner && partner != null)
         {

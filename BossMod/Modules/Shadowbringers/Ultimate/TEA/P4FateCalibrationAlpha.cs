@@ -130,7 +130,7 @@ sealed class P4FateCalibrationAlphaSacrament(BossModule module) : Components.Gen
     {
         base.DrawArenaForeground(pcSlot, pc);
         if (_safespots != null)
-            Arena.AddCircle(_safespots[pcSlot], 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(_safespots[pcSlot], 1f, Colors.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

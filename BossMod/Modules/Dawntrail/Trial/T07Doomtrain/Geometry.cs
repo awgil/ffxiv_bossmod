@@ -84,11 +84,11 @@ class CarGeometry : BossComponent
                     // Space between the blocks is left in place so teleporter exit can be navigated.
                     // Intentionally extra wide to prevent pc from squeezing between teleport and platform and having a seizure.
                     //Right side
-                    hints.TemporaryObstacles.Add(new SDRect(new(92.5f, 195f), new (92.5f, 204f), 3f));
-                    hints.TemporaryObstacles.Add(new SDRect(new(92.5f, 206f), new (92.5f, 215f), 3f));
+                    hints.TemporaryObstacles.Add(new SDRect(new(92.5f, 195f), new(92.5f, 204f), 3f));
+                    hints.TemporaryObstacles.Add(new SDRect(new(92.5f, 206f), new(92.5f, 215f), 3f));
                     //Left side
-                    hints.TemporaryObstacles.Add(new SDRect(new(107.5f, 195f), new (107.5f, 204f), 3f));
-                    hints.TemporaryObstacles.Add(new SDRect(new(107.5f, 206f), new (107.5f, 215f), 3f));
+                    hints.TemporaryObstacles.Add(new SDRect(new(107.5f, 195f), new(107.5f, 204f), 3f));
+                    hints.TemporaryObstacles.Add(new SDRect(new(107.5f, 206f), new(107.5f, 215f), 3f));
                 }
                 else
                 {
@@ -115,8 +115,8 @@ class CarGeometry : BossComponent
                     hints.TemporaryObstacles.Add(new SDRect(new(92.5f, 305f), new(92.5f, 309f), 3f));
                     hints.TemporaryObstacles.Add(new SDRect(new(92.5f, 311f), new(92.5f, 315f), 3f));
                     // Right side
-                    hints.TemporaryObstacles.Add(new SDRect(new(107.5f, 295f), new (107.5f, 299f), 3f));
-                    hints.TemporaryObstacles.Add(new SDRect(new(107.5f, 301f), new (107.5f, 305f), 3));
+                    hints.TemporaryObstacles.Add(new SDRect(new(107.5f, 295f), new(107.5f, 299f), 3f));
+                    hints.TemporaryObstacles.Add(new SDRect(new(107.5f, 301f), new(107.5f, 305f), 3));
                 }
                 else
                 {
@@ -140,16 +140,16 @@ class CarGeometry : BossComponent
                 WPos carThreeLeftEntrance = new WPos(96.1f, 204.9f);
                 WPos carThreeRightEntrance = new WPos(104.1f, 204.9f);
 
-                Arena.AddCircleFilled(carThreeRightEntrance, 1f, color);
-                Arena.AddCircleFilled(carThreeLeftEntrance, 1f, color);
+                Arena.ZoneCircle(carThreeRightEntrance, 1f, color);
+                Arena.ZoneCircle(carThreeLeftEntrance, 1f, color);
                 break;
 
             case 5:
                 WPos carFiveLeftEntrance = new WPos(96.1f, 310f);
                 WPos carFiveRightEntrance = new WPos(104.1f, 300f);
 
-                Arena.AddCircleFilled(carFiveRightEntrance, 1f, color);
-                Arena.AddCircleFilled(carFiveLeftEntrance, 1f, color);
+                Arena.ZoneCircle(carFiveRightEntrance, 1f, color);
+                Arena.ZoneCircle(carFiveLeftEntrance, 1f, color);
                 break;
         }
     }
@@ -184,7 +184,7 @@ class CarGeometry : BossComponent
         AirShape = new AOEShapeCustom(Platforms);
 
         //This arena bounds draws the lower deck and upper deck, but treats the platforms as unpassable holes.
-        ArenaBoundsCustom carThreeOutline = new(carOutline , null);
+        ArenaBoundsCustom carThreeOutline = new(carOutline, null);
 
         Module.Arena.Center = new(100, 200);
         Module.Arena.Bounds = carThreeOutline;

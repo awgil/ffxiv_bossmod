@@ -102,7 +102,7 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
     {
         var doomOrder = _dooms.FindIndex(d => d.player == pc);
         if (doomOrder >= 0 && !_dooms[doomOrder].cleansed && doomOrder < _cleanses.Count)
-            Arena.AddCircle(_cleanses[doomOrder].voidzone?.Position ?? _cleanses[doomOrder].predicted, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(_cleanses[doomOrder].voidzone?.Position ?? _cleanses[doomOrder].predicted, 1, Colors.Safe);
     }
 
     public override void OnActorCreated(Actor actor)

@@ -39,12 +39,12 @@ sealed class Selfdetonation(BossModule module) : BossComponent(module)
     {
         if (!Module.PrimaryActor.IsDead)
         {
-            Arena.AddCircle(Module.PrimaryActor.Position, 10f);
+            Arena.ZoneCircleOutline(Module.PrimaryActor.Position, 10f);
         }
         var count = bombs.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(bombs[i].Position, 6f);
+            Arena.ZoneCircleOutline(bombs[i].Position, 6f);
         }
     }
 

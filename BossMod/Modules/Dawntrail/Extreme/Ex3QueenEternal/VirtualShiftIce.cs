@@ -100,7 +100,7 @@ sealed class Rush(BossModule module) : Components.GenericBaitAway(module)
             if (b.Target == pc)
             {
                 Arena.AddLine(b.Source.Position, b.Target.Position, _unstretched[pcSlot] ? 0 : Colors.Safe);
-                Arena.AddCircle(SafeSpot(b.Source, _config), 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(SafeSpot(b.Source, _config), 1f, Colors.Safe);
             }
         }
     }

@@ -73,7 +73,7 @@ sealed class MeteorImpactCharge(BossModule module) : Components.GenericAOEs(modu
         var count = _meteors.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(_meteors[i], _radius, Colors.Object);
+            Arena.ZoneCircleOutline(_meteors[i], _radius, Colors.Object);
         }
 
         foreach (var (slot, target) in Raid.WithSlot(true, true, true))
@@ -96,7 +96,7 @@ sealed class MeteorImpactCharge(BossModule module) : Components.GenericAOEs(modu
 
         // circle showing approximate min stretch distance; for second order, we might be forced to drop meteor there and die to avoid wipe
         if (SourceIfActive(pcSlot) is var pcSource && pcSource != null)
-            Arena.AddCircle(pcSource.Position, 26f);
+            Arena.ZoneCircleOutline(pcSource.Position, 26f);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

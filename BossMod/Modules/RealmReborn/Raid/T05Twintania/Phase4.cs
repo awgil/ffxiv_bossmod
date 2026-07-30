@@ -36,7 +36,7 @@ class P4Twisters(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var twister in ActiveTwisters)
-            Arena.AddCircle(twister.Position, twister.HitboxRadius, Colors.Danger);
+            Arena.ZoneCircleOutline(twister.Position, twister.HitboxRadius, Colors.Danger);
     }
 }
 

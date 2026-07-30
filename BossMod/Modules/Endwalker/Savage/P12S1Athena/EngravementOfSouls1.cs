@@ -21,7 +21,7 @@ class EngravementOfSouls1Spread(BossModule module) : Components.UniformStackSpre
         var safespot = CalculateSafeSpot(pcSlot);
         if (safespot != default)
         {
-            Arena.AddCircle(safespot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot, 1f, Colors.Safe);
         }
     }
 

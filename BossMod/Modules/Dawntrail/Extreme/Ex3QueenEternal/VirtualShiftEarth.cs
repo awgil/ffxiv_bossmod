@@ -232,7 +232,7 @@ sealed class MeteorImpact(BossModule module) : Components.CastCounter(module, de
             ref readonly var p = ref partyWithSlot[i];
             if (_meteorsAbovePlatforms[p.Item1])
             {
-                Arena.AddCircle(p.Item2.Position, 4f);
+                Arena.ZoneCircleOutline(p.Item2.Position, 4f);
             }
         }
     }

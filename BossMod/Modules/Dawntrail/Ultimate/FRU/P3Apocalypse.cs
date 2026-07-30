@@ -285,15 +285,15 @@ sealed class P3ApocalypseDarkEruption(BossModule module) : Components.SpreadFrom
         var safeSpot = SafeOffset(pcSlot, out var refSafeSpot);
         if (safeSpot != default)
         {
-            Arena.AddCircle(Arena.Center + safeSpot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + safeSpot, 1f, Colors.Safe);
             if (refSafeSpot != safeSpot)
-                Arena.AddCircle(Arena.Center + refSafeSpot, 1f);
+                Arena.ZoneCircleOutline(Arena.Center + refSafeSpot, 1f);
         }
         else if (refSafeSpot != default)
         {
             // we don't have assignments, at least draw two reference ones
-            Arena.AddCircle(Arena.Center + refSafeSpot, 1f);
-            Arena.AddCircle(Arena.Center - refSafeSpot, 1f);
+            Arena.ZoneCircleOutline(Arena.Center + refSafeSpot, 1f);
+            Arena.ZoneCircleOutline(Arena.Center - refSafeSpot, 1f);
         }
     }
 

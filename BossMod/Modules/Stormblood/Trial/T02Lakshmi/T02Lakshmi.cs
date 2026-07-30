@@ -12,7 +12,6 @@ public enum OID : uint
     VoidZone = 0x1EA76C // R0.5 voidzone aoes : Spawn during fight.
 }
 
-
 public enum AID : uint
 {
     AutoAttack = 8535, // Boss->player, no cast, single-target
@@ -87,7 +86,6 @@ sealed class EmanationTrash(BossModule module) : Components.Adds(module, (uint)O
 sealed class TailSlap(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TailSlap, new AOEShapeCone(7f, 60f.Degrees()));
 
 sealed class InnerDemonsGaze(BossModule module) : Components.CastGaze(module, (uint)AID.InnerDemons);
-
 
 // Lakshmi abilities
 /*
@@ -167,7 +165,7 @@ sealed class VrilOrbs(BossModule module) : BossComponent(module)
         var orbs = GetOrbs(Module);
         var count = orbs.Count;
         for (var i = 0; i < count; ++i)
-            Arena.AddCircleFilled(orbs[i].Position, 0.75f, Colors.Safe);
+            Arena.ZoneCircle(orbs[i].Position, 0.75f, Colors.Safe);
     }
 }
 
@@ -295,16 +293,16 @@ sealed class BlissfulBaits(BossModule module) : Components.GenericBaitAway(modul
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        _nextActivation = WorldState.FutureTime(4.7f);
+        _nextActivation = WorldState.FutureTime(4.7d);
         // next target is the pc with the icon.
         _nextTarget = WorldState.Actors.Find(targetID);
 
-        if ((IconID)iconID == IconID.SpreadCross && _nextTarget != null)
+        if (iconID == (uint)IconID.SpreadCross && _nextTarget != null)
         {
             // 180 degrees rotation to keep the cross from spinning with pc.
-            CurrentBaits.Add(new(_nextTarget, _nextTarget, new AOEShapeCross(40f, 4f), _nextActivation, customRotation: 180.Degrees()));
+            CurrentBaits.Add(new(_nextTarget, _nextTarget, new AOEShapeCross(40f, 4f), _nextActivation, customRotation: 180f.Degrees()));
         }
-        else if ((IconID)iconID == IconID.SpreadCircle &&  _nextTarget != null)
+        else if (iconID == (uint)IconID.SpreadCircle && _nextTarget != null)
         {
             CurrentBaits.Add(new(_nextTarget, _nextTarget, new AOEShapeCircle(7f), _nextActivation));
         }
@@ -312,13 +310,9 @@ sealed class BlissfulBaits(BossModule module) : Components.GenericBaitAway(modul
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID
-            is (uint)AID.BlissfulSpear1
-            or (uint)AID.BlissfulSpear2
-            or (uint)AID.BlissfulSpear3
-            or (uint)AID.BlissfulSpear4)
+        if (spell.Action.ID is (uint)AID.BlissfulSpear1 or (uint)AID.BlissfulSpear2 or (uint)AID.BlissfulSpear3 or (uint)AID.BlissfulSpear4)
         {
-            NumCasts++;
+            ++NumCasts;
             CurrentBaits.Clear();
         }
     }
@@ -329,8 +323,7 @@ sealed class BlissfulBaits(BossModule module) : Components.GenericBaitAway(modul
 // but for first pass we just want something to show so that pc runs out of voidzone.
 sealed class CircleZone(BossModule module) : Components.Voidzone(module, 10, m => m.Enemies((uint)OID.VoidZone));
 
-
-class T02LakshmiStates : StateMachineBuilder
+sealed class T02LakshmiStates : StateMachineBuilder
 {
     public T02LakshmiStates(BossModule module) : base(module)
     {
@@ -349,16 +342,13 @@ class T02LakshmiStates : StateMachineBuilder
             .ActivateOnEnter<PathOfLightCleave>()
             .ActivateOnEnter<BlissfulBaits>()
             .ActivateOnEnter<VrilOrbs>()
-            .ActivateOnEnter<CircleZone>()
-            ;
+            .ActivateOnEnter<CircleZone>();
     }
 }
 
-
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "wen, Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)]
 
-public class T02Lakshmi(WorldState ws, Actor primary)
-    : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20f))
+public sealed class T02Lakshmi(WorldState ws, Actor primary) : BossModule(ws, primary, default, new ArenaBoundsCircle(20f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
@@ -371,8 +361,8 @@ public class T02Lakshmi(WorldState ws, Actor primary)
                 Arena.ActorOutsideBounds(Arena.Center - new WDir(0, 20f), PrimaryActor.Rotation, Colors.Enemy);
         }
 
-        Arena.Actors(Enemies((uint)OID.Boss), Colors.Enemy);              // R3.500, x1
-        Arena.Actors(Enemies((uint)OID.DreamingKshatriya), Colors.Enemy); // R1.000, x2
+        Arena.Actors(Enemies((uint)OID.Boss));              // R3.500, x1
+        Arena.Actors(Enemies((uint)OID.DreamingKshatriya)); // R1.000, x2
         Arena.Actors(Enemies((uint)OID.Vril), Colors.Object); // orbs that recharge the special action shield ability.
     }
 

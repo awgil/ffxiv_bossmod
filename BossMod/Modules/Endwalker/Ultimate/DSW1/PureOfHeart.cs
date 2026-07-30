@@ -50,7 +50,7 @@ sealed class PureOfHeartSkyblindBait(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var (_, player) in Raid.WithSlot(false, true, true).IncludedInMask(_baiters))
-            Arena.AddCircle(player.Position, _radius, Colors.Danger);
+            Arena.ZoneCircleOutline(player.Position, _radius, Colors.Danger);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

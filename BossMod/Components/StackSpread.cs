@@ -526,7 +526,7 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
                 dangerColor = !isInside && numInside >= max || isInside && numInside > max || IsStackTarget(pc) || IsSpreadTarget(pc);
             }
         done:
-            Arena.AddCircle(t.Position.Quantized(), s.Radius, dangerColor ? default : Colors.Safe);
+            Arena.ZoneCircleOutline(t.Position.Quantized(), s.Radius, dangerColor ? default : Colors.Safe);
         }
 
         var spreads = CollectionsMarshal.AsSpan(Spreads);
@@ -539,7 +539,7 @@ public abstract class GenericStackSpread(BossModule module, bool raidwideOnResol
             {
                 continue;
             }
-            Arena.AddCircle(t.Position.Quantized(), s.Radius);
+            Arena.ZoneCircleOutline(t.Position.Quantized(), s.Radius);
         }
     }
 }

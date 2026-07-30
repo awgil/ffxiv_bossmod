@@ -20,7 +20,7 @@ class OminousBubbling(BossModule module) : Components.CastCounter(module, (uint)
             if (player.Role == Role.Healer)
             {
                 Arena.Actor(player, Colors.Danger);
-                Arena.AddCircle(player.Position, _radius, Colors.Danger);
+                Arena.ZoneCircleOutline(player.Position, _radius, Colors.Danger);
             }
             else
             {

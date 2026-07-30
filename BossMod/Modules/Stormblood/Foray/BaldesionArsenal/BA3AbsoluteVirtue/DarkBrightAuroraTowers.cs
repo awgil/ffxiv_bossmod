@@ -146,7 +146,7 @@ abstract class Towers(BossModule module, uint oid, uint tid) : Components.Generi
         if (source != null)
         {
             Arena.AddLine(source.Position, pc.Position);
-            Arena.AddCircle(source.Position, 2f);
+            Arena.ZoneCircleOutline(source.Position, 2f);
             Arena.Actor(source, Colors.Object, true);
         }
     }

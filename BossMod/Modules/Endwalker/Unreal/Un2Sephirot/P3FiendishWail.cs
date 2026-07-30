@@ -25,7 +25,7 @@ class P3FiendishWail(BossModule module) : Components.CastCounter(module, (uint)A
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var t in _towers)
-            Arena.AddCircle(t.Position, _radius, Colors.Danger);
+            Arena.ZoneCircleOutline(t.Position, _radius, Colors.Danger);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

@@ -206,7 +206,7 @@ sealed class ElectronStreamCurrent(BossModule module) : Components.GenericAOEs(m
         }
 
         foreach (var p in SafeSpots(pcSlot, pc))
-            Arena.AddCircle(p, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(p, 1, Colors.Safe);
     }
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)

@@ -40,7 +40,7 @@ sealed class P2StrengthOfTheWard2SpreadStack : Components.UniformStackSpread
     {
         base.DrawArenaForeground(pcSlot, pc);
         foreach (var safespot in EnumSafeSpots(pc))
-            Arena.AddCircle(safespot, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot, 1, Colors.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

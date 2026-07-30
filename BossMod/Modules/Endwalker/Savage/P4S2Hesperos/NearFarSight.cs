@@ -63,7 +63,7 @@ class NearFarSight : BossComponent
             if (_targets[i])
             {
                 Arena.Actor(player, Colors.Danger);
-                Arena.AddCircle(player.Position, _aoeRadius, Colors.Danger);
+                Arena.ZoneCircleOutline(player.Position, _aoeRadius, Colors.Danger);
             }
             else
             {

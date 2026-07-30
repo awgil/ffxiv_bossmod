@@ -204,7 +204,7 @@ sealed class AlleyOopInferno(BossModule module) : Components.SpreadFromCastTarge
                 var origin = new WPos(113f, 97f);
                 var targetPos = origin + new WDir(col * 6f, row * 6f);
                 var targetSd = new SDCircle(targetPos, radius);
-                Arena.AddCircle(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+                Arena.ZoneCircleOutline(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
             }
             else
             {
@@ -212,7 +212,7 @@ sealed class AlleyOopInferno(BossModule module) : Components.SpreadFromCastTarge
                 var mult = role == 3 ? 0 : role + 1;
                 var targetPos = origin + new WDir(0f, mult * 6f);
                 var targetSd = new SDCircle(targetPos, radius);
-                Arena.AddCircle(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+                Arena.ZoneCircleOutline(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
             }
         }
         else if (CurrentState == State.DeepVarial)
@@ -233,7 +233,7 @@ sealed class AlleyOopInferno(BossModule module) : Components.SpreadFromCastTarge
                     targetPos += varialRotation.Value.ToDirection() * 7f;
                 }
                 var targetSd = new SDCircle(targetPos.Value, radius);
-                Arena.AddCircle(targetPos.Value, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+                Arena.ZoneCircleOutline(targetPos.Value, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
             }
             else
             {
@@ -241,7 +241,7 @@ sealed class AlleyOopInferno(BossModule module) : Components.SpreadFromCastTarge
                 // leeway to move after deep varial resolves
                 var targetPos = varialOrigin + varialRotation.Value.ToDirection() + new WDir(2.5f + role * 5.5f, 0f);
                 var targetSd = new SDCircle(targetPos.Value, radius);
-                Arena.AddCircle(targetPos.Value, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+                Arena.ZoneCircleOutline(targetPos.Value, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
             }
         }
         else
@@ -260,7 +260,7 @@ sealed class AlleyOopInferno(BossModule module) : Components.SpreadFromCastTarge
                 _ => default
             };
             var targetSd = new SDCircle(targetPos, radius);
-            Arena.AddCircle(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
         }
     }
 }

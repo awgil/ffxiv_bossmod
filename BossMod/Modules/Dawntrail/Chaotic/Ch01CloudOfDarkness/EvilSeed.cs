@@ -7,7 +7,7 @@ sealed class EvilSeedBait(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var p in Raid.WithSlot(false, false, true).IncludedInMask(Baiters).Actors())
-            Arena.AddCircle(p.Position, 5f);
+            Arena.ZoneCircleOutline(p.Position, 5f);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

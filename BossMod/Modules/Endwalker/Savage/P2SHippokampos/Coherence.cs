@@ -76,7 +76,7 @@ class Coherence(BossModule module) : Components.CastCounter(module, (uint)AID.Co
             {
                 Arena.AddLine(player.Position, Module.PrimaryActor.Position, Colors.Danger);
                 Arena.Actor(player, Colors.Danger);
-                Arena.AddCircle(player.Position, _aoeRadius, Colors.Danger);
+                Arena.ZoneCircleOutline(player.Position, _aoeRadius, Colors.Danger);
             }
             else if (player == _rayTarget)
             {

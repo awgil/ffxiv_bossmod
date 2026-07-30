@@ -31,7 +31,7 @@ sealed class RekindleP1(BossModule module) : Rekindle(module)
         {
             var b = birds[i];
             if (b.IsDead)
-                Arena.AddCircle(b.Position, 1.12f, Colors.Vulnerable);
+                Arena.ZoneCircleOutline(b.Position, 1.12f, Colors.Vulnerable);
         }
     }
 

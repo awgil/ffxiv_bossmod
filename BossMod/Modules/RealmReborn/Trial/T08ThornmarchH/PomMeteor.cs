@@ -57,7 +57,7 @@ class PomMeteor(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var i in _activeTowers.SetBits())
-            Arena.AddCircle(Arena.Center + _towerOffsets[i], _towerRadius, _soakedTowers[i] ? Colors.Safe : 0);
+            Arena.ZoneCircleOutline(Arena.Center + _towerOffsets[i], _towerRadius, _soakedTowers[i] ? Colors.Safe : 0);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

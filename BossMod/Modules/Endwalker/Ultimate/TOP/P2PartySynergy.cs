@@ -191,7 +191,7 @@ sealed class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericA
         Arena.Actor(_source, Colors.Object, true);
         var pos = AssignedPosition(pcSlot);
         if (pos != default)
-            Arena.AddCircle(Arena.Center + pos, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + pos, 1f, Colors.Safe);
     }
 
     private WDir AssignedPosition(int slot)
@@ -263,7 +263,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
     {
         var pos = AssignedPosition(pcSlot);
         if (pos != default)
-            Arena.AddCircle(Arena.Center + pos, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + pos, 1f, Colors.Safe);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

@@ -57,7 +57,7 @@ sealed class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
         var towerToSoak = soakTowers ? SelectTowerForGroup(ps.Group) : null;
         foreach (var t in _towers.Skip(NumTowersDone).Take(2))
         {
-            Arena.AddCircle(t.Position, _towerRadius, soakTowers && (towerToSoak == null || towerToSoak == t) ? Colors.Safe : default, 2f);
+            Arena.ZoneCircleOutline(t.Position, _towerRadius, soakTowers && (towerToSoak == null || towerToSoak == t) ? Colors.Safe : default, 2f);
         }
 
         if (ps.Order == NextTowersOrder(1))
@@ -65,7 +65,7 @@ sealed class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
             // show next tower to soak if possible
             var futureTowerToSoak = SelectTowerForGroup(ps.Group, 1);
             if (futureTowerToSoak != null)
-                Arena.AddCircle(futureTowerToSoak.Position, _towerRadius, Colors.Safe);
+                Arena.ZoneCircleOutline(futureTowerToSoak.Position, _towerRadius, Colors.Safe);
         }
 
         var grabThisTether = ps.Order == NextTethersOrder();
@@ -75,7 +75,7 @@ sealed class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
             var ts = PlayerStates[s];
             var correctSoaker = ts.Order == NextTethersOrder();
             var tetherToGrab = ts.Group == ps.Group && (grabNextTether ? correctSoaker : grabThisTether && NumTethersDone > 0 && ts.Order == NextTethersOrder(-1));
-            Arena.AddCircle(t.Position, _tetherRadius, t == pc ? Colors.Safe : default);
+            Arena.ZoneCircleOutline(t.Position, _tetherRadius, t == pc ? Colors.Safe : default);
             Arena.AddLine(t.Position, Module.PrimaryActor.Position, correctSoaker ? Colors.Safe : default, tetherToGrab ? 2f : 1f);
         }
 
@@ -84,7 +84,7 @@ sealed class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
             // show hint for tether position
             var spot = GetTetherDropSpot(ps.Group);
             if (spot != null)
-                Arena.AddCircle(spot.Value, 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(spot.Value, 1f, Colors.Safe);
         }
     }
 

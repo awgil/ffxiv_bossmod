@@ -156,7 +156,7 @@ sealed class FlameFloater(BossModule module) : Components.GenericAOEs(module)
         {
             var baitPos = GetBaitPosition(order);
             var baitSd = new SDCircle(baitPos, _baitRadius);
-            Arena.AddCircle(baitPos, _baitRadius, baitSd.Contains(pcPos) ? Colors.Safe : Colors.Danger, 2f);
+            Arena.ZoneCircleOutline(baitPos, _baitRadius, baitSd.Contains(pcPos) ? Colors.Safe : Colors.Danger, 2f);
         }
     }
 

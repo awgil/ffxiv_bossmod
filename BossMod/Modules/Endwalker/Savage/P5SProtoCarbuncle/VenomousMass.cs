@@ -15,7 +15,7 @@ class VenomousMass(BossModule module) : Components.CastCounter(module, (uint)AID
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_target != null)
-            Arena.AddCircle(_target.Position, _radius, Colors.Danger);
+            Arena.ZoneCircleOutline(_target.Position, _radius, Colors.Danger);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -30,7 +30,7 @@ class Roar(BossModule module) : Components.GenericBaitAway(module)
         {
             Arena.Actor(s.actor, Colors.Object, true);
             if (_highlightSnakes && s.bubble != _playerBubbles[pcSlot])
-                Arena.AddCircle(s.actor.Position, 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(s.actor.Position, 1f, Colors.Safe);
         }
     }
 

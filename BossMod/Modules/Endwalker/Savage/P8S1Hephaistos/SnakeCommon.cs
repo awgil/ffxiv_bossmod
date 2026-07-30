@@ -102,6 +102,6 @@ abstract class PetrifactionCommon(BossModule module) : Components.GenericGaze(mo
         }
     }
 
-    public void DrawPetrify(Actor source, bool delayed) => Arena.AddCone(source.Position, 25f, source.Rotation, 45f.Degrees(), delayed ? Colors.Safe : default);
-    public void DrawExplode(Actor source, bool delayed) => Arena.AddCircle(source.Position, 5f, delayed ? Colors.Safe : default);
+    public void DrawPetrify(Actor source, bool delayed) => Arena.ZoneConeOutline(source.Position, 0f, 25f, source.Rotation, 45f.Degrees(), delayed ? Colors.Safe : default);
+    public void DrawExplode(Actor source, bool delayed) => Arena.ZoneCircleOutline(source.Position, 5f, delayed ? Colors.Safe : default);
 }

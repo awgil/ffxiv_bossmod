@@ -178,12 +178,12 @@ sealed class ChaoticFlood(BossModule module) : Components.SimpleAOEs(module, (ui
             return;
         }
 
-        Arena.AddCircle(Module.Center + currentDirection * 2.0f, 1.0f, Colors.Safe, 2.0f);
+        Arena.ZoneCircleOutline(Module.Center + currentDirection * 2.0f, 1.0f, Colors.Safe, 2.0f);
 
         if (NumCasts <= 4)
         {
             var nextDirection = clockwise.Value ? new WDir(-currentDirection.Z, currentDirection.X) : new WDir(currentDirection.Z, -currentDirection.X);
-            Arena.AddCircle(Module.Center + nextDirection * 2.0f, 1.0f, Colors.Danger, 2.0f);
+            Arena.ZoneCircleOutline(Module.Center + nextDirection * 2.0f, 1.0f, Colors.Danger, 2.0f);
         }
     }
 

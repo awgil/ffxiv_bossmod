@@ -89,10 +89,10 @@ sealed class Prisons(BossModule module) : BossComponent(module)
                     if (activeTeleporters[i])
                     {
                         var color = Colors.SafeFromAOE;
-                        Arena.AddCircleFilled(pos + new WDir(default, -7.4f), 2f, color);
-                        Arena.AddCircleFilled(pos + new WDir(-2.5f, -20f), 2f, color);
-                        Arena.AddCircleFilled(pos + new WDir(15f, -11.5f), 2f, color);
-                        Arena.AddCircleFilled(pos + new WDir(20f, default), 1.5f, color);
+                        Arena.ZoneCircle(pos + new WDir(default, -7.4f), 2f, color);
+                        Arena.ZoneCircle(pos + new WDir(-2.5f, -20f), 2f, color);
+                        Arena.ZoneCircle(pos + new WDir(15f, -11.5f), 2f, color);
+                        Arena.ZoneCircle(pos + new WDir(20f, default), 1.5f, color);
                     }
                     return;
                 }

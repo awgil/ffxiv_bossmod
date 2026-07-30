@@ -48,7 +48,7 @@ class BirdDistance(BossModule module, uint watchedBirdsID) : BossComponent(modul
             var bird = watchedBirds[i];
             if (bird.IsDead)
             {
-                Arena.AddCircle(bird.Position, _radius, Colors.Danger);
+                Arena.ZoneCircleOutline(bird.Position, _radius, Colors.Danger);
             }
             else if (bird.TargetID == pc.InstanceID)
             {

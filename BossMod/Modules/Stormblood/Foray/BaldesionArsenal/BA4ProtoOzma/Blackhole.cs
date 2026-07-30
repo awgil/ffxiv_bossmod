@@ -41,7 +41,7 @@ sealed class BlackHole(BossModule module) : Components.GenericTowersOpenWorld(mo
         {
             var t = Towers[i];
             if (t.NumInside(Module) == 0)
-                Arena.AddCircle(t.Position, t.Radius, Colors.Vulnerable, 3f);
+                Arena.ZoneCircleOutline(t.Position, t.Radius, Colors.Vulnerable, 3f);
         }
     }
 

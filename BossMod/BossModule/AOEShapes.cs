@@ -40,7 +40,7 @@ public sealed class AOEShapeCone(float radius, Angle halfAngle, Angle directionO
     public override string ToString() => $"Cone: r={Radius:f3}, angle={HalfAngle * 2f}, off={DirectionOffset}, ifz={InvertForbiddenZone}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InCircleCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = default) => arena.ZoneCone(origin, default, Radius, rotation + DirectionOffset, HalfAngle, color);
-    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.AddCone(origin, Radius, rotation + DirectionOffset, HalfAngle, color, thickness);
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.ZoneConeOutline(origin, 0f, Radius, rotation + DirectionOffset, HalfAngle, color, thickness);
     public override ShapeDistance Distance(WPos origin, Angle rotation) => !InvertForbiddenZone
             ? new SDCone(origin, Radius, rotation + DirectionOffset, HalfAngle)
             : new SDInvertedCone(origin, Radius, rotation + DirectionOffset, HalfAngle);
@@ -281,7 +281,7 @@ public sealed class AOEShapeCircle(float radius, bool invertForbiddenZone = fals
     public override string ToString() => $"Circle: r={Radius:f3}, ifz={InvertForbiddenZone}";
     public override bool Check(WPos position, WPos origin, Angle rotation = default) => position.InCircle(origin, Radius);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation = default, uint color = default) => arena.ZoneCircle(origin, Radius, color);
-    public override void Outline(MiniArena arena, WPos origin, Angle rotation = default, uint color = default, float thickness = 1f) => arena.AddCircle(origin, Radius, color, thickness);
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation = default, uint color = default, float thickness = 1f) => arena.ZoneCircleOutline(origin, Radius, color, thickness);
     public override ShapeDistance Distance(WPos origin, Angle rotation) => !InvertForbiddenZone
             ? new SDCircle(origin, Radius)
             : new SDInvertedCircle(origin, Radius);
@@ -297,11 +297,8 @@ public sealed class AOEShapeDonut(float innerRadius, float outerRadius, bool inv
     public override string ToString() => $"Donut: r={InnerRadius:f3}-{OuterRadius:f3}, ifz={InvertForbiddenZone}";
     public override bool Check(WPos position, WPos origin, Angle rotation = default) => position.InDonut(origin, InnerRadius, OuterRadius);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation = default, uint color = default) => arena.ZoneDonut(origin, InnerRadius, OuterRadius, color);
-    public override void Outline(MiniArena arena, WPos origin, Angle rotation = default, uint color = default, float thickness = 1f)
-    {
-        arena.AddCircle(origin, InnerRadius, color, thickness);
-        arena.AddCircle(origin, OuterRadius, color, thickness);
-    }
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation = default, uint color = default, float thickness = 1f) => arena.ZoneDonutOutline(origin, InnerRadius, OuterRadius, color, thickness);
+
     public override ShapeDistance Distance(WPos origin, Angle rotation) => !InvertForbiddenZone
             ? new SDDonut(origin, InnerRadius, OuterRadius)
             : new SDInvertedDonut(origin, InnerRadius, OuterRadius);
@@ -319,7 +316,7 @@ public sealed class AOEShapeDonutSector(float innerRadius, float outerRadius, An
     public override string ToString() => $"Donut sector: r={InnerRadius:f3}-{OuterRadius:f3}, angle={HalfAngle * 2f}, off={DirectionOffset}, ifz={InvertForbiddenZone}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InDonutCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = default) => arena.ZoneCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle, color);
-    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.AddDonutCone(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle, color, thickness);
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.ZoneConeOutline(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle, color, thickness);
     public override ShapeDistance Distance(WPos origin, Angle rotation) => !InvertForbiddenZone
             ? new SDDonutSector(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle)
             : new SDInvertedDonutSector(origin, InnerRadius, OuterRadius, rotation + DirectionOffset, HalfAngle);
@@ -337,7 +334,7 @@ public sealed class AOEShapeRect(float lengthFront, float halfWidth, float lengt
     public override string ToString() => $"Rect: l={LengthFront:f3}+{LengthBack:f3}, w={HalfWidth * 2f}, off={DirectionOffset}, ifz={InvertForbiddenZone}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InRect(origin, rotation, LengthFront, LengthBack, HalfWidth);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = default) => arena.ZoneRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth, color);
-    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.AddRect(origin, (rotation + DirectionOffset).ToDirection(), LengthFront, LengthBack, HalfWidth, color, thickness);
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.ZoneRectOutline(origin, (rotation + DirectionOffset).ToDirection(), LengthFront, LengthBack, HalfWidth, color, thickness);
     public override ShapeDistance Distance(WPos origin, Angle rotation) => !InvertForbiddenZone
             ? new SDRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth)
             : new SDInvertedRect(origin, rotation + DirectionOffset, LengthFront, LengthBack, HalfWidth);
@@ -355,15 +352,7 @@ public sealed class AOEShapeCross(float length, float halfWidth, Angle direction
     public override string ToString() => $"Cross: l={Length:f3}, w={HalfWidth * 2f}, off={DirectionOffset}, ifz={InvertForbiddenZone}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InCross(origin, rotation + DirectionOffset, Length, HalfWidth);
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = default) => arena.ZoneCross(origin, rotation + DirectionOffset, Length, HalfWidth, ContourPoints(origin, rotation), color);
-    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f)
-    {
-        var points = ContourPoints(origin, rotation);
-        for (var i = 0; i < 12; ++i)
-        {
-            arena.PathLineTo(points[i]);
-        }
-        MiniArena.PathStroke(true, color, thickness);
-    }
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.ZoneCrossOutline(origin, rotation + DirectionOffset, Length, HalfWidth, ContourPoints(origin, rotation), color, thickness);
 
     private WPos[] ContourPoints(WPos origin, Angle rotation, float offset = default)
     {
@@ -411,7 +400,7 @@ public sealed class AOEShapeTriCone(float sideLength, Angle halfAngle, Angle dir
     public override string ToString() => $"TriCone: side={SideLength:f3}, angle={HalfAngle * 2f}, off={DirectionOffset}, ifz={InvertForbiddenZone}";
     public override bool Check(WPos position, WPos origin, Angle rotation) => position.InTri(origin, origin + SideLength * (rotation + DirectionOffset + HalfAngle).ToDirection(), origin + SideLength * (rotation + DirectionOffset - HalfAngle).ToDirection());
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = default) => arena.ZoneTri(origin, origin + SideLength * (rotation + DirectionOffset + HalfAngle).ToDirection(), origin + SideLength * (rotation + DirectionOffset - HalfAngle).ToDirection(), color);
-    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.AddTriangle(origin, origin + SideLength * (rotation + DirectionOffset + HalfAngle).ToDirection(), origin + SideLength * (rotation + DirectionOffset - HalfAngle).ToDirection(), color, thickness);
+    public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f) => arena.ZoneTriOutline(origin, origin + SideLength * (rotation + DirectionOffset + HalfAngle).ToDirection(), origin + SideLength * (rotation + DirectionOffset - HalfAngle).ToDirection(), color, thickness);
 
     public override ShapeDistance Distance(WPos origin, Angle rotation)
     {
@@ -443,7 +432,7 @@ public sealed class AOEShapeCapsule(float radius, float length, Angle directionO
 
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = default) => arena.ZoneCapsule(origin, (rotation + DirectionOffset).ToDirection(), Radius, Length, color);
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f)
-    => arena.AddCapsule(origin, (rotation + DirectionOffset).ToDirection(), Radius, Length, color, thickness);
+    => arena.ZoneCapsuleOutline(origin, (rotation + DirectionOffset).ToDirection(), Radius, Length, color, thickness);
     public override ShapeDistance Distance(WPos origin, Angle rotation) => !InvertForbiddenZone ? new SDCapsule(origin, rotation, Length, Radius) : new SDInvertedCapsule(origin, rotation, Length, Radius);
     public override ShapeDistance InvertedDistance(WPos origin, Angle rotation) => new SDInvertedCapsule(origin, rotation, Length, Radius);
 }
@@ -460,7 +449,7 @@ public sealed class AOEShapeArcCapsule(float radius, Angle angularLength, WPos o
 
     public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = default) => arena.ZoneArcCapsule(origin, OrbitCenter, AngularLength, Radius, color);
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f)
-        => arena.AddArcCapsule(origin, OrbitCenter, AngularLength, Radius, color, thickness);
+        => arena.ZoneArcCapsuleOutline(origin, OrbitCenter, AngularLength, Radius, color, thickness);
     public override ShapeDistance Distance(WPos origin, Angle rotation) => !InvertForbiddenZone ? new SDArcCapsule(origin, -(origin - OrbitCenter), AngularLength, Radius) : new SDInvertedArcCapsule(origin, -(origin - OrbitCenter), AngularLength, Radius);
     public override ShapeDistance InvertedDistance(WPos origin, Angle rotation) => new SDInvertedArcCapsule(origin, -(origin - OrbitCenter), AngularLength, Radius);
 }
@@ -630,7 +619,7 @@ public sealed class AOEShapeCustom : AOEShape
     public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = default, float thickness = 1f)
     {
         var combinedPolygon = Polygon ?? GetCombinedPolygon(origin);
-        arena.AddComplexPolygon(origin, combinedPolygon, color, thickness);
+        arena.ZoneRelPolyOutline(hashkey, combinedPolygon, color, thickness);
     }
 
     public override ShapeDistance Distance(WPos origin, Angle rotation)

@@ -59,13 +59,13 @@ sealed class P1JagdDolls(BossModule module) : BossComponent(module)
             Arena.Actor(doll, isMine ? Colors.Enemy : Colors.Object);
 
             if (NumExhausts < 2)
-                Arena.AddCircle(doll.Position, _exhaustRadius);
+                Arena.ZoneCircleOutline(doll.Position, _exhaustRadius);
 
             var tether = WorldState.Actors.Find(doll.Tether.Target);
             if (tether != null)
                 Arena.AddLine(doll.Position, tether.Position);
             else if (isMine)
-                Arena.AddCircle(doll.Position, 1.5f, Colors.Safe);
+                Arena.ZoneCircleOutline(doll.Position, 1.5f, Colors.Safe);
         }
     }
 

@@ -27,7 +27,7 @@ sealed class P1PlumeShield(BossModule module) : BossComponent(module)
         {
             var targetpos = _shield.First().Position;
             var targetSd = new SDCircle(targetpos, 6f);
-            Arena.AddCircle(targetpos, 6f, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(targetpos, 6f, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
         }
     }
 }

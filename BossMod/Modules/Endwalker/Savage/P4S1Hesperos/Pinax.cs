@@ -96,7 +96,7 @@ class Pinax(BossModule module) : BossComponent(module)
     {
         if (_acid != null)
         {
-            Arena.AddCircle(pc.Position, _acidAOERadius, Colors.Danger);
+            Arena.ZoneCircleOutline(pc.Position, _acidAOERadius, Colors.Danger);
             foreach (var player in Raid.WithoutSlot(false, true, true).Exclude(pc))
                 Arena.Actor(player, player.Position.InCircle(pc.Position, _acidAOERadius) ? Colors.PlayerInteresting : Colors.PlayerGeneric);
         }
@@ -107,7 +107,7 @@ class Pinax(BossModule module) : BossComponent(module)
                 if (player.Role == Role.Healer)
                 {
                     Arena.Actor(player, Colors.Danger);
-                    Arena.AddCircle(player.Position, _fireAOERadius, Colors.Danger);
+                    Arena.ZoneCircleOutline(player.Position, _fireAOERadius, Colors.Danger);
                 }
                 else
                 {

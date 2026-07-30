@@ -52,7 +52,7 @@ sealed class PortentousCometeorBait(BossModule module) : Components.GenericBaitA
         base.DrawArenaForeground(pcSlot, pc);
         if (IsBaitTarget(pc) && meteor != null)
         {
-            Arena.AddCircle(meteor.Position, 2f, Colors.Vulnerable, 2f);
+            Arena.ZoneCircleOutline(meteor.Position, 2f, Colors.Vulnerable, 2f);
         }
     }
 

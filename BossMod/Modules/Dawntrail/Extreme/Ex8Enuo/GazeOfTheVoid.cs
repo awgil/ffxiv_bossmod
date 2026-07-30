@@ -69,11 +69,11 @@ sealed class GazeOfTheVoidSoaks(BossModule module) : BossComponent(module)
         var colorBig = isTank ? Colors.Safe : Colors.Danger;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(orbs[i].Position, 1f, colorSmall);
+            Arena.ZoneCircleOutline(orbs[i].Position, 1f, colorSmall);
         }
         for (var i = 0; i < bigcount; ++i)
         {
-            Arena.AddCircle(bigorbs[i].Position, 1f, colorBig);
+            Arena.ZoneCircleOutline(bigorbs[i].Position, 1f, colorBig);
         }
     }
 }

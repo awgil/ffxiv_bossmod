@@ -42,7 +42,7 @@ class DarkAndLight(BossModule module) : BossComponent(module)
         if (pcState.Tether != TetherType.None && Raid[pcState.PartnerSlot] is var partner && partner != null)
             Arena.AddLine(pc.Position, partner.Position, pcState.TetherBad ? default : Colors.Safe);
         if (Safespot(pcSlot, pc) is var safespot && safespot != null)
-            Arena.AddCircle(safespot.Value, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot.Value, 1f, Colors.Safe);
     }
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)

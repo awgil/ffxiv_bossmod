@@ -31,7 +31,7 @@ class Snake1(BossModule module) : PetrifactionCommon(module)
         {
             // show circle around assigned snake
             if (state.AssignedSnake >= 0)
-                Arena.AddCircle(ActiveGorgons[state.AssignedSnake].caster.Position, 2, Colors.Safe);
+                Arena.ZoneCircleOutline(ActiveGorgons[state.AssignedSnake].caster.Position, 2, Colors.Safe);
 
             if (state.IsExplode)
                 DrawExplode(pc, state.Order == 1 && NumCasts < 2);

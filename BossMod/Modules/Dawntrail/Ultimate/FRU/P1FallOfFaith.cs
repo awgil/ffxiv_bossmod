@@ -78,12 +78,12 @@ sealed class P1FallOfFaith(BossModule module) : Components.CastCounter(module, d
         {
             var tetherSpot = TetherSpot(baitOrder);
             var isBaiter = _playerOrder[pcSlot] == baitOrder;
-            Arena.AddCircle(tetherSpot, 1, isBaiter ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(tetherSpot, 1, isBaiter ? Colors.Safe : Colors.Danger);
             if (!isBaiter)
             {
                 var offset = BaitOffset(_playerOrder[pcSlot], _fireTethers[baitOrder - 1]);
                 if (offset != default)
-                    Arena.AddCircle(tetherSpot + offset, 1f, Colors.Safe);
+                    Arena.ZoneCircleOutline(tetherSpot + offset, 1f, Colors.Safe);
             }
         }
     }

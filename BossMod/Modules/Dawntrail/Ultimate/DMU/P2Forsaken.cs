@@ -102,7 +102,7 @@ sealed class AllThingsEnding(BossModule module) : Components.GenericBaitAway(mod
                     return;
                 }
 
-                Arena.AddCircle(waymark.Value.ToWPos(), 1.0f, Colors.Safe, 2.0f);
+                Arena.ZoneCircleOutline(waymark.Value.ToWPos(), 1.0f, Colors.Safe, 2.0f);
                 return;
             }
 
@@ -139,11 +139,11 @@ sealed class AllThingsEnding(BossModule module) : Components.GenericBaitAway(mod
         var newSouth = (midPoint - Arena.Center).Normalized();
         if (currentBait == BaitType.Close)
         {
-            Arena.AddCircle(midPoint + newSouth * 2.0f, 1.0f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(midPoint + newSouth * 2.0f, 1.0f, Colors.Safe, 2.0f);
         }
         else if (currentBait == BaitType.Far)
         {
-            Arena.AddCircle(midPoint - newSouth * 13.0f, 1.0f, Colors.Safe, 2.0f);
+            Arena.ZoneCircleOutline(midPoint - newSouth * 13.0f, 1.0f, Colors.Safe, 2.0f);
         }
     }
 }

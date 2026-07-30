@@ -14,6 +14,6 @@ class P3AethericProfusion(BossModule module) : Components.CastCounter(module, (u
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var neurolink in _neurolinks)
-            Arena.AddCircle(neurolink.Position, 2, Colors.Safe);
+            Arena.ZoneCircleOutline(neurolink.Position, 2, Colors.Safe);
     }
 }

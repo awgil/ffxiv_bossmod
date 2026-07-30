@@ -30,7 +30,7 @@ class FordolaShield(BossModule module) : BossComponent(module)
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Shield != null)
-            Arena.AddCircleFilled(Shield.Position, 4f, Colors.SafeFromAOE);
+            Arena.ZoneCircle(Shield.Position, 4f, Colors.SafeFromAOE);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

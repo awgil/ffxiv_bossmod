@@ -44,7 +44,7 @@ class Hatch(BossModule module) : Components.CastCounter(module, (uint)AID.Hatch)
     {
         if (Active)
             foreach (var neurolink in _neurolinks)
-                Arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? Colors.Safe : Colors.Danger);
+                Arena.ZoneCircleOutline(neurolink.Position, 2, _targets[pcSlot] ? Colors.Safe : Colors.Danger);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

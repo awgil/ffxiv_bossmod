@@ -33,7 +33,7 @@ class Replication2Staging(BossModule module)
             var correct = RoleEq(p.WantedRole, w.AssignedRole);
 
             if (correct)
-                Arena.AddCircle(w.Actor.Position, 1.25f, Colors.Safe);
+                Arena.ZoneCircleOutline(w.Actor.Position, 1.25f, Colors.Safe);
         }
     }
 
@@ -248,7 +248,7 @@ class Replication2ScaldingWaves : Components.GenericBaitProximity
 
         // Draw positioning hint
         var isInPosition = pc.Position.InCircle(targetPos, 2f);
-        Arena.AddCircle(targetPos, 1f, isInPosition ? Colors.Safe : Colors.Vulnerable);
+        Arena.ZoneCircleOutline(targetPos, 1f, isInPosition ? Colors.Safe : Colors.Vulnerable);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -386,7 +386,7 @@ class Replication2ManaBurst : Components.UniformStackSpread
 
         // Draw positioning hint
         var isInPosition = pc.Position.InCircle(targetPos, 2f);
-        Arena.AddCircle(targetPos, 1f, isInPosition ? Colors.Safe : Colors.Vulnerable);
+        Arena.ZoneCircleOutline(targetPos, 1f, isInPosition ? Colors.Safe : Colors.Vulnerable);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -518,7 +518,7 @@ class Replication2HeavySlam : Components.UniformStackSpread
                     dangerColor = !isInside && numInside >= max || isInside && numInside > max || IsStackTarget(pc) || IsSpreadTarget(pc);
                 }
 
-                Arena.AddCircle(stackTarget.Position.Quantized(), stack.Radius, dangerColor ? default : Colors.Safe);
+                Arena.ZoneCircleOutline(stackTarget.Position.Quantized(), stack.Radius, dangerColor ? default : Colors.Safe);
             }
         }
     }
@@ -1150,7 +1150,7 @@ class Replication2TimelessSpite(BossModule module)
                     targetPos = bossPos + 7f * perpDir; // Left side near clone
 
                 var isInPosition = pc.Position.InCircle(targetPos, 2f);
-                Arena.AddCircle(targetPos, 1f, isInPosition ? Colors.Safe : Colors.Vulnerable);
+                Arena.ZoneCircleOutline(targetPos, 1f, isInPosition ? Colors.Safe : Colors.Vulnerable);
                 return; // Don't show stack indicators
             }
             else if (role.IsStack)
@@ -1168,7 +1168,7 @@ class Replication2TimelessSpite(BossModule module)
             }
 
             var inPosition = pc.Position.InCircle(targetPos, 2f);
-            Arena.AddCircle(targetPos, 1f, inPosition ? Colors.Safe : Colors.Vulnerable);
+            Arena.ZoneCircleOutline(targetPos, 1f, inPosition ? Colors.Safe : Colors.Vulnerable);
         }
 
         base.DrawArenaForeground(pcSlot, pc);

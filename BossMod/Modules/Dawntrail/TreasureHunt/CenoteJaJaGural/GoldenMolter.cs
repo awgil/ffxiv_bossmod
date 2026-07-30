@@ -82,7 +82,7 @@ sealed class Crypsis(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (IsConcealed)
-            Arena.AddCircle(Module.PrimaryActor.Position, RevealDistance, Colors.Safe);
+            Arena.ZoneCircleOutline(Module.PrimaryActor.Position, RevealDistance, Colors.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

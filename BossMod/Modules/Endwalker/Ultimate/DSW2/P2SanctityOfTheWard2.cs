@@ -24,7 +24,7 @@ sealed class P2SanctityOfTheWard2HiemalStorm(BossModule module) : Components.Cas
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.AddCircle(pc.Position, 7f, Colors.Danger);
+        Arena.ZoneCircleOutline(pc.Position, 7f, Colors.Danger);
     }
 }
 
@@ -131,7 +131,7 @@ sealed class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTow
         base.DrawArenaForeground(pcSlot, pc);
         if (!_stormsDone && _players[pcSlot].AssignedQuadrant >= 0)
 {
-    Arena.AddCircle(StormPlacementPosition(_players[pcSlot].AssignedQuadrant), 1f, Colors.Safe);
+    Arena.ZoneCircleOutline(StormPlacementPosition(_players[pcSlot].AssignedQuadrant), 1f, Colors.Safe);
 }
 
 
@@ -148,7 +148,7 @@ sealed class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTow
             foreach (var comet in Module.Enemies((uint)OID.HolyComet))
             {
                 Arena.Actor(comet, Colors.Object, true);
-                Arena.AddCircle(comet.Position, _cometLinkRange, Colors.Object);
+                Arena.ZoneCircleOutline(comet.Position, _cometLinkRange, Colors.Object);
             }
         }
     }

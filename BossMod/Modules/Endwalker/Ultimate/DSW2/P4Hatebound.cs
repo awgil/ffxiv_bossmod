@@ -27,7 +27,7 @@ sealed class P4Hatebound(BossModule module) : BossComponent(module)
         {
             Arena.Actor(o.orb, Colors.Object, true);
             if (OrbReady(o.orb))
-                Arena.AddCircle(o.orb.Position, 6, _playerColors[pcSlot] == Color.Red ? Colors.Safe : default);
+                Arena.ZoneCircleOutline(o.orb.Position, 6, _playerColors[pcSlot] == Color.Red ? Colors.Safe : default);
         }
     }
 
@@ -99,7 +99,7 @@ sealed class P4MirageDive(BossModule module) : Components.CastCounter(module, (u
         foreach (var (slot, player) in Raid.WithSlot(true, true, true).IncludedInMask(_baiters))
         {
             var canSwap = pcCanSwap && _forbidden[slot];
-            Arena.AddCircle(player.Position, _radius, canSwap ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(player.Position, _radius, canSwap ? Colors.Safe : Colors.Danger);
         }
     }
 

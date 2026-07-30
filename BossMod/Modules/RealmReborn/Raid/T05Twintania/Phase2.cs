@@ -18,7 +18,7 @@ class P2Fireball(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Target != null)
-            Arena.AddCircle(Target.Position, Radius, Colors.Safe);
+            Arena.ZoneCircleOutline(Target.Position, Radius, Colors.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

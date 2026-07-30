@@ -23,7 +23,7 @@ class PlanarTactics(BossModule module) : Components.GenericAOEs(module)
         {
             var len = p.StartingOffsets.Length;
             for (var i = 0; i < len; ++i)
-                Arena.AddCircle(Arena.Center + p.StartingOffsets[i], 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(Arena.Center + p.StartingOffsets[i], 1f, Colors.Safe);
         }
     }
 

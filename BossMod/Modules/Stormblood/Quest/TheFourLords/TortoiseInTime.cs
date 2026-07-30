@@ -51,7 +51,7 @@ class ExplosiveTataru(BossModule module) : BossComponent(module)
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Tataru != null)
-            Arena.AddCircle(Tataru.Position, 6, Colors.Danger);
+            Arena.ZoneCircleOutline(Tataru.Position, 6, Colors.Danger);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

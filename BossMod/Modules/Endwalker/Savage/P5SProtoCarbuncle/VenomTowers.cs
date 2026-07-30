@@ -15,7 +15,7 @@ class VenomTowers(BossModule module) : BossComponent(module)
         foreach (var t in _activeTowerOffsets)
         {
             var origin = Arena.Center + t;
-            Arena.AddCircle(origin, _radius, Raid.WithoutSlot(false, true, true).InRadius(origin, _radius).Any() ? Colors.Safe : default);
+            Arena.ZoneCircleOutline(origin, _radius, Raid.WithoutSlot(false, true, true).InRadius(origin, _radius).Any() ? Colors.Safe : default);
         }
     }
 

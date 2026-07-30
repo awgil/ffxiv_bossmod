@@ -83,7 +83,7 @@ sealed class AccursedEdge : Components.GenericBaitAway
                 }
                 if (safespotSafe)
                 {
-                    Arena.AddCircle(potentialSafespot, 1f, Colors.Safe);
+                    Arena.ZoneCircleOutline(potentialSafespot, 1f, Colors.Safe);
                 }
             }
         }

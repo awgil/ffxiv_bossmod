@@ -20,7 +20,7 @@ class P2Eruption(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Er
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_baiters[pcSlot])
-            Arena.AddCircle(pc.Position, 8, Colors.Safe);
+            Arena.ZoneCircleOutline(pc.Position, 8, Colors.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

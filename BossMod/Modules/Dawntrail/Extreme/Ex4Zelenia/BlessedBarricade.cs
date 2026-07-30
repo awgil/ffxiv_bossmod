@@ -114,7 +114,7 @@ sealed class SpearpointPushBait(BossModule module) : Components.GenericBaitAway(
                 var pos = b.Source.Position;
                 Arena.AddLine(pos, pc.Position);
                 var offsetDir = pos.X < 100f ? offset == -a90 ? 1f : -1f : offset == a90 ? 1f : -1f;
-                Arena.AddCircle(pos + offsetDir * dir, 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(pos + offsetDir * dir, 1f, Colors.Safe);
             }
         }
     }

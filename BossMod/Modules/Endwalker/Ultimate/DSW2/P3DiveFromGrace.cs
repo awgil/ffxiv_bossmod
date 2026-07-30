@@ -150,14 +150,14 @@ sealed class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, 
         foreach (var (slot, player) in Raid.WithSlot(true, true, true).WhereSlot(i => _playerStates[i].JumpOrder == baitOrder))
         {
             var pos = player.Position + _playerStates[slot].JumpDirection * player.Rotation.ToDirection() * _towerOffset;
-            Arena.AddCircle(pos, Radius, Colors.Object);
+            Arena.ZoneCircleOutline(pos, Radius, Colors.Object);
             if (slot == pcSlot)
                 Arena.AddLine(pc.Position, pos, Colors.Object);
         }
 
         // safe spots
         foreach (var s in SafeSpots(pcSlot))
-            Arena.AddCircle(s, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(s, 1, Colors.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

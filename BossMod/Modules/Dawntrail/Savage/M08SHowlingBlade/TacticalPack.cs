@@ -78,7 +78,7 @@ sealed class Adds(BossModule module) : BossComponent(module)
         Arena.Actors(Windpack[pcSlot] ? Module.Enemies((uint)OID.WolfOfStone2) : Module.Enemies((uint)OID.WolfOfWind2));
         if (pc.Role == Role.Tank && stonepack != default)
         {
-            Arena.AddCircle(Windpack[pcSlot] ? Module.Enemies((uint)OID.FontOfWindAether)[0].Position : Module.Enemies((uint)OID.FontOfEarthAether)[0].Position, 1.5f, Colors.Vulnerable, 2f);
+            Arena.ZoneCircleOutline(Windpack[pcSlot] ? Module.Enemies((uint)OID.FontOfWindAether)[0].Position : Module.Enemies((uint)OID.FontOfEarthAether)[0].Position, 1.5f, Colors.Vulnerable, 2f);
         }
     }
 
@@ -120,7 +120,7 @@ sealed class EarthWindborneEnd(BossModule module) : BossComponent(module)
         if (player != default)
         {
             var remaining = Math.Max(0d, (player.Expiration - WorldState.CurrentTime).TotalSeconds);
-            Arena.AddCircle(player.wind ? Module.Enemies((uint)OID.FontOfWindAether)[0].Position : Module.Enemies((uint)OID.FontOfEarthAether)[0].Position, 1.5f, remaining < 9d && vulnerability == default ? Colors.Safe : default, 2f);
+            Arena.ZoneCircleOutline(player.wind ? Module.Enemies((uint)OID.FontOfWindAether)[0].Position : Module.Enemies((uint)OID.FontOfEarthAether)[0].Position, 1.5f, remaining < 9d && vulnerability == default ? Colors.Safe : default, 2f);
         }
     }
 

@@ -11,9 +11,9 @@ sealed class MaelstromsBolt(BossModule module) : Components.CastCounter(module, 
         foreach (var b in _ballLightnings.Where(b => !b.IsDead))
         {
             Arena.Actor(b, Colors.Object, true);
-            Arena.AddCircle(b.Position, 8, Colors.Object);
+            Arena.ZoneCircleOutline(b.Position, 8, Colors.Object);
         }
         for (var i = 0; i < _domes.Count; ++i)
-            Arena.AddCircle(_domes[i].Position, 8, Colors.Safe);
+            Arena.ZoneCircleOutline(_domes[i].Position, 8, Colors.Safe);
     }
 }

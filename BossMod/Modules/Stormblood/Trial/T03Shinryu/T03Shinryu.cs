@@ -235,11 +235,11 @@ sealed class WaterPuddles(BossModule module) : BossComponent(module)
         for (var i = 0; i < count; ++i)
         {
             if (_levinCasting)
-                Arena.AddCircleFilled(orbs[i].Position, 5f, Colors.Danger);
+                Arena.ZoneCircle(orbs[i].Position, 5f, Colors.Danger);
             else if (_fireCasting)
-                Arena.AddCircleFilled(orbs[i].Position, 5f, Colors.SafeFromAOE);
+                Arena.ZoneCircle(orbs[i].Position, 5f, Colors.SafeFromAOE);
             else
-                Arena.AddCircle(orbs[i].Position, 5f, Colors.Object);
+                Arena.ZoneCircleOutline(orbs[i].Position, 5f, Colors.Object);
         }
     }
 }

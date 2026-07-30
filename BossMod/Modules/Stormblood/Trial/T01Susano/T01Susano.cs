@@ -1,6 +1,5 @@
 ﻿namespace BossMod.Stormblood.Trial.T01Susano;
 
-
 public enum OID : uint
 {
     Susano = 0x1AF7,
@@ -72,8 +71,7 @@ public enum TetherID : uint
     _Gen_Tether_chn_m0372_01j = 66, // AmaNoIwato1->Susano
 }
 
-
-sealed class RasenKaikyo(BossModule module) : Components.SimpleAOEs(module, (uint)AID.RasenKaikyo, new AOEShapeCircle(6));
+sealed class RasenKaikyo(BossModule module) : Components.SimpleAOEs(module, (uint)AID.RasenKaikyo, 6f);
 
 sealed class YataNoKagami(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.YataNoKagami, 20f, kind: Kind.AwayFromOrigin);
 
@@ -85,9 +83,9 @@ sealed class ThePartingClouds(BossModule module) : Components.SimpleAOEs(module,
 
 sealed class AmeNoMurakumoRaidwide(BossModule module) : Components.RaidwideInstant(module, (uint)AID.AmeNoMurakumoRaidwide);
 
-sealed class AmeNoMurakumoRectAOE(BossModule module) : Components.SimpleAOEs(module, (uint)AID.AmeNoMurakumoRectAOE,  new AOEShapeRect(65f, 3f));
+sealed class AmeNoMurakumoRectAOE(BossModule module) : Components.SimpleAOEs(module, (uint)AID.AmeNoMurakumoRectAOE, new AOEShapeRect(65f, 3f));
 
-sealed class Shock(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Shock, new AOEShapeCircle(6f));
+sealed class Shock(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Shock, 6f);
 
 sealed class AmeNoMurakumoOrbs(BossModule module) : BossComponent(module)
 {
@@ -122,7 +120,7 @@ sealed class AmeNoMurakumoOrbs(BossModule module) : BossComponent(module)
         var orbs = GetOrbs(Module);
         var count = orbs.Count;
         for (var i = 0; i < count; ++i)
-            Arena.AddCircleFilled(orbs[i].Position, 1f, Colors.Danger);
+            Arena.ZoneCircle(orbs[i].Position, 1f, Colors.Danger);
     }
 }
 
@@ -134,9 +132,7 @@ sealed class SeaSplitter3(BossModule module) : Components.SimpleAOEs(module, (ui
 
 sealed class StormSplitter(BossModule module) : Components.IconSharedTankbuster(module, (uint)IconID.StormsplitterIcon, (uint)AID.Stormsplitter, new AOEShapeRect(40f, 2f));
 
-
 sealed class SheerForce(BossModule module) : Components.RaidwideInstant(module, (uint)AID.SheerForce);
-
 
 [SkipLocalsInit]
 sealed class SusanoStates : StateMachineBuilder

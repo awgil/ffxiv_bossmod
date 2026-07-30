@@ -71,10 +71,10 @@ sealed class P3WormholeRepentance(BossModule module) : BossComponent(module)
         var shouldSoak = ShouldSoakWormhole(pcOrder);
 
         foreach (var w in _wormholes)
-            Arena.AddCircle(w, _radiuses[NumSoaks], shouldSoak && dirToSide.Dot(w - Arena.Center) > 0f ? Colors.Safe : default);
+            Arena.ZoneCircleOutline(w, _radiuses[NumSoaks], shouldSoak && dirToSide.Dot(w - Arena.Center) > 0f ? Colors.Safe : default);
 
         if (!shouldSoak || !_chakramsDone)
-            Arena.AddCircle(Arena.Center + SafeSpotOffset(pcOrder, dirToAlex, dirToSide), 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + SafeSpotOffset(pcOrder, dirToAlex, dirToSide), 1f, Colors.Safe);
     }
 
     public override void OnActorCreated(Actor actor)

@@ -87,7 +87,7 @@ class P3Adds(BossModule module) : BossComponent(module)
         foreach (var a in ActiveHygieia)
         {
             Arena.Actor(a);
-            Arena.AddCircle(a.Position, _explosionRadius);
+            Arena.ZoneCircleOutline(a.Position, _explosionRadius);
         }
         Arena.Actors(Asclepius);
     }
@@ -122,6 +122,6 @@ class P3AethericProfusion(BossModule module) : Components.CastCounter(module, (u
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var neurolink in Module.Enemies((uint)OID.Neurolink))
-            Arena.AddCircle(neurolink.Position, T05Twintania.NeurolinkRadius, Colors.Safe);
+            Arena.ZoneCircleOutline(neurolink.Position, T05Twintania.NeurolinkRadius, Colors.Safe);
     }
 }

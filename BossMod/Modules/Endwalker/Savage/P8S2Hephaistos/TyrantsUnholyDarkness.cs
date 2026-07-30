@@ -24,6 +24,6 @@ class TyrantsUnholyDarkness(BossModule module) : Components.CastCounter(module, 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var target in Raid.WithoutSlot(false, true, true).Where(IsTarget))
-            Arena.AddCircle(target.Position, _radius, Colors.Danger);
+            Arena.ZoneCircleOutline(target.Position, _radius, Colors.Danger);
     }
 }

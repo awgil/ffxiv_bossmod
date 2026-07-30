@@ -10,6 +10,6 @@ sealed class ViciousSwipe(BossModule module) : Components.GenericKnockback(modul
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.AddCircle(Module.PrimaryActor.Position, _shape.Radius);
+        Arena.ZoneCircleOutline(Module.PrimaryActor.Position, _shape.Radius);
     }
 }

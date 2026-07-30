@@ -145,7 +145,7 @@ class Shardstrike(BossModule module) : Components.SpreadFromCastTargets(module, 
         for (var i = 0; i < count; ++i)
         {
             var a = crystals[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius);
         }
     }
 

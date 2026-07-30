@@ -53,7 +53,7 @@ sealed class WolvesReignConeCircle(BossModule module) : Components.GenericAOEs(m
         var count = safespots.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(safespots[i], 0.7f, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(safespots[i], 0.7f, Colors.Safe, 2f);
         }
     }
 

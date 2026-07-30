@@ -98,17 +98,23 @@ class RockyRoll(BossModule module) : Components.GenericBaitAway(module)
         };
         if (pos != default)
         {
-            if (state == 0x00020001)
+            if (state == 0x00020001u)
+            {
                 activeHoles.Add(pos);
-            else if (state == 0x00080004)
+            }
+            else if (state == 0x00080004u)
+            {
                 activeHoles.Remove(pos);
+            }
         }
     }
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Mudball)
+        {
             CurrentBaits.Add(new(source, WorldState.Actors.Find(tether.Target)!, rect1, WorldState.FutureTime(8.2d)));
+        }
     }
 
     public override void OnUntethered(Actor source, in ActorTetherInfo tether)
@@ -132,14 +138,18 @@ class RockyRoll(BossModule module) : Components.GenericBaitAway(module)
         base.DrawArenaForeground(pcSlot, pc);
         var count = activeHoles.Count;
         for (var i = 0; i < count; ++i)
-            Arena.AddCircle(activeHoles[i], 5f, Colors.Safe, 5f);
+        {
+            Arena.ZoneCircleOutlineUnclipped(activeHoles[i], 5f, Colors.Safe, 5f);
+        }
     }
 
     public override void Update()
     {
         var count = CurrentBaits.Count;
         if (count == 0)
+        {
             return;
+        }
         var baits = CollectionsMarshal.AsSpan(CurrentBaits);
         var activation = WorldState.FutureTime(9.7d);
 

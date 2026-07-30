@@ -38,7 +38,7 @@ sealed class IronRainStorm(BossModule module) : Components.GenericAOEs(module)
                 }
                 if (safespotSafe)
                 {
-                    Arena.AddCircle(safespot + offset * dir.OrthoR(), 1f, Colors.Safe);
+                    Arena.ZoneCircleOutline(safespot + offset * dir.OrthoR(), 1f, Colors.Safe);
                 }
             }
         }

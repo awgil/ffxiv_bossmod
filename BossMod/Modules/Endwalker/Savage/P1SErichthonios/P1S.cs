@@ -11,7 +11,7 @@ public class P1S(WorldState ws, Actor primary) : BossModule(ws, primary, new(100
         {
             // cells mode
             var diag = Bounds.Radius / 1.414214f;
-            Arena.AddCircle(Center, InnerCircleRadius, Colors.Border);
+            Arena.ZoneCircleOutline(Center, InnerCircleRadius, Colors.Border);
             Arena.AddLine(Center + new WDir(Bounds.Radius, 0), Center - new WDir(Bounds.Radius, 0), Colors.Border);
             Arena.AddLine(Center + new WDir(0, Bounds.Radius), Center - new WDir(0, Bounds.Radius), Colors.Border);
             Arena.AddLine(Center + new WDir(diag, +diag), Center - new WDir(diag, +diag), Colors.Border);

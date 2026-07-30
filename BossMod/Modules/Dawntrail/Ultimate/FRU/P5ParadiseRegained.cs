@@ -50,8 +50,8 @@ sealed class P5ParadiseRegainedBaits(BossModule module) : Components.GenericBait
     private DateTime _activation;
     private bool _tetherClosest;
 
-    private readonly AOEShapeCone _shapeCleaveL = new(20f, 120f.Degrees(), 60f.Degrees()); // note: looks wrong on bait target with correct range...
-    private readonly AOEShapeCone _shapeCleaveD = new(20f, 120f.Degrees(), -60f.Degrees());
+    private readonly AOEShapeCone _shapeCleaveL = new(100f, 120f.Degrees(), 60f.Degrees());
+    private readonly AOEShapeCone _shapeCleaveD = new(100f, 120f.Degrees(), -60f.Degrees());
     private readonly AOEShapeCircle _shapeTether = new(4);
 
     public override void Update()
@@ -101,7 +101,7 @@ sealed class P5ParadiseRegainedBaits(BossModule module) : Components.GenericBait
         var safeOffset = SafeOffset(pcSlot, pc);
         if (safeOffset != default)
         {
-            Arena.AddCircle(Arena.Center + safeOffset, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + safeOffset, 1f, Colors.Safe);
         }
     }
 

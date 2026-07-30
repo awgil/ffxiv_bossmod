@@ -32,7 +32,7 @@ class BrightenedFire(BossModule module) : Components.CastCounter(module, (uint)A
             return;
 
         var pos = PositionForOrder(_playerOrder[pcSlot]);
-        Arena.AddCircle(pos, 1, Colors.Safe);
+        Arena.ZoneCircleOutline(pos, 1, Colors.Safe);
 
         // draw all adds
         var addIndex = 0;
@@ -42,7 +42,7 @@ class BrightenedFire(BossModule module) : Components.CastCounter(module, (uint)A
         }
 
         // draw range circle
-        Arena.AddCircle(pc.Position, _aoeRange, Colors.Danger);
+        Arena.ZoneCircleOutline(pc.Position, _aoeRange, Colors.Danger);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

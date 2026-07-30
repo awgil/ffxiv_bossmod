@@ -12,7 +12,7 @@ sealed class DragonsGaze(BossModule module) : Components.GenericGaze(module)
         base.DrawArenaForeground(pcSlot, pc);
         if (_posHint != default)
         {
-            Arena.AddCircle(_posHint, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(_posHint, 1f, Colors.Safe);
         }
     }
 

@@ -233,13 +233,13 @@ sealed class GrotesquerieAct3(BossModule module) : Components.GenericAOEs(module
         if (safeSpot != default)
         {
             var isInside = pc.Position.InCircle(safeSpot, SafeSpotRadius);
-            Arena.AddCircle(safeSpot, SafeSpotRadius, isInside ? Colors.Danger : Colors.Safe);
+            Arena.ZoneCircleOutline(safeSpot, SafeSpotRadius, isInside ? Colors.Danger : Colors.Safe);
         }
 
         DrawAllDefamations();
 
         var towerPos = GetTowerPosition(pc.Position, dir);
-        Arena.AddCircle(towerPos, 3f, Colors.Object);
+        Arena.ZoneCircleOutline(towerPos, 3f, Colors.Object);
     }
 
     private void DrawAllDefamations()
@@ -252,7 +252,7 @@ sealed class GrotesquerieAct3(BossModule module) : Components.GenericAOEs(module
 
             var remaining = StatusDuration(status.Value.ExpireAt);
             if (remaining is > 0 and < 3)
-                Arena.AddCircle(actor.Position, 9f, Colors.Danger); // DramaticLysis1
+                Arena.ZoneCircleOutline(actor.Position, 9f, Colors.Danger); // DramaticLysis1
         }
     }
 
@@ -286,7 +286,7 @@ sealed class GrotesquerieAct3(BossModule module) : Components.GenericAOEs(module
 
     private void DrawSafeSpotWithLabel(WPos pos, string label)
     {
-        Arena.AddCircle(pos, SafeSpotRadius, Colors.Safe);
+        Arena.ZoneCircleOutline(pos, SafeSpotRadius, Colors.Safe);
         Arena.TextWorld(pos, label, Colors.Object);
     }
 

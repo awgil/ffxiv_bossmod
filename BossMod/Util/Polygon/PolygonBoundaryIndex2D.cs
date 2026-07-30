@@ -163,61 +163,32 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
     public static PolygonBoundaryIndex2D Build(RelSimplifiedComplexPolygon complex, int minRows = 32, int maxRows = 512)
     {
         // Collect edges and global bbox
-        var parts = complex.Parts;
-        var countP = parts.Count;
+        var parts = CollectionsMarshal.AsSpan(complex.Parts);
+        var lenP = parts.Length;
 
         float bbMinX = float.MaxValue, bbMinY = float.MaxValue;
         float bbMaxX = float.MinValue, bbMaxY = float.MinValue;
 
         var vertsCount = 0;
-        for (var i = 0; i < countP; ++i)
+        for (var i = 0; i < lenP; ++i)
         {
-            vertsCount += parts[i].VerticesCount;
+            vertsCount += parts[i].Vertices.Count;
         }
 
         var eList = new List<E>(vertsCount);
-        var hList = new List<H>(Math.Max(8, vertsCount / 8));
+        var hList = new List<H>(Math.Max(8, vertsCount / 2));
 
-        for (var i = 0; i < countP; ++i)
+        for (var i = 0; i < lenP; ++i)
         {
             var part = parts[i];
+            var ext = part.Exterior;
+            AccumulateContourBounds(ext, ref bbMinX, ref bbMinY, ref bbMaxX, ref bbMaxY);
+            ProcessContour(ext, eList, hList);
 
-            var ext = part.ExteriorEdges;
-            var lenExt = ext.Length;
-            for (int j = 0, n = lenExt; j < n; ++j)
+            var countHoles = part.HoleStarts.Count;
+            for (var h = 0; h < countHoles; ++h)
             {
-                var (a, b) = ext[j];
-                AccumBB(a, b, ref bbMinX, ref bbMinY, ref bbMaxX, ref bbMaxY);
-                float ax = a.X, ay = a.Z, bx = b.X, by = b.Z;
-                if (Math.Abs(ay - by) <= Eps)
-                {
-                    hList.Add(new(ax, ay, bx));
-                }
-                else
-                {
-                    eList.Add(new(ax, ay, bx, by));
-                }
-            }
-
-            var holes = part.Holes;
-            var lenHoles = holes.Length;
-            for (int h = 0, nh = lenHoles; h < nh; ++h)
-            {
-                var ie = part.InteriorEdges(holes[h]);
-                var lenIE = ie.Length;
-                for (int j = 0, n = lenIE; j < n; ++j)
-                {
-                    var (a, b) = ie[j];
-                    float ax = a.X, ay = a.Z, bx = b.X, by = b.Z;
-                    if (Math.Abs(ay - by) <= Eps)
-                    {
-                        hList.Add(new(ax, ay, bx));
-                    }
-                    else
-                    {
-                        eList.Add(new(ax, ay, bx, by));
-                    }
-                }
+                ProcessContour(part.Interior(h), eList, hList);
             }
         }
 
@@ -455,40 +426,63 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         static int RoundUp(int v, int m) => (v + (m - 1)) / m * m;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void AccumBB(in WDir a, in WDir b, ref float minX, ref float minY, ref float maxX, ref float maxY)
+        static void AccumulateContourBounds(ReadOnlySpan<WDir> contour, ref float bbMinX, ref float bbMinY, ref float bbMaxX, ref float bbMaxY)
         {
-            float ax = a.X, ay = a.Z, bx = b.X, by = b.Z;
-            if (ax < minX)
+            var count = contour.Length;
+            for (var i = 0; i < count; ++i)
             {
-                minX = ax;
+                var p = contour[i];
+                var pX = p.X;
+                var pZ = p.Z;
+                if (pX < bbMinX)
+                {
+                    bbMinX = pX;
+                }
+                if (pX > bbMaxX)
+                {
+                    bbMaxX = pX;
+                }
+                if (pZ < bbMinY)
+                {
+                    bbMinY = pZ;
+                }
+                if (pZ > bbMaxY)
+                {
+                    bbMaxY = pZ;
+                }
             }
-            if (ay < minY)
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void ProcessContour(ReadOnlySpan<WDir> contour, List<E> eList, List<H> hList)
+        {
+            var count = contour.Length;
+            if (count < 2)
             {
-                minY = ay;
+                return;
             }
-            if (ax > maxX)
+
+            var prev = contour[count - 1];
+
+            for (var i = 0; i < count; ++i)
             {
-                maxX = ax;
-            }
-            if (ay > maxY)
-            {
-                maxY = ay;
-            }
-            if (bx < minX)
-            {
-                minX = bx;
-            }
-            if (by < minY)
-            {
-                minY = by;
-            }
-            if (bx > maxX)
-            {
-                maxX = bx;
-            }
-            if (by > maxY)
-            {
-                maxY = by;
+                var curr = contour[i];
+
+                var ax = prev.X;
+                var ay = prev.Z;
+                var bx = curr.X;
+                var by = curr.Z;
+
+                if (Math.Abs(ay - by) <= Eps)
+                {
+                    hList.Add(new(ax, ay, bx));
+                }
+                else
+                {
+                    eList.Add(new(ax, ay, bx, by));
+                }
+
+                prev = curr;
             }
         }
     }
@@ -1178,7 +1172,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         var countP = parts.Count;
         for (var i = 0; i < countP; ++i)
         {
-            vertsCount += parts[i].VerticesCount;
+            vertsCount += parts[i].Vertices.Count;
         }
         var angles = new List<double>(vertsCount);
 

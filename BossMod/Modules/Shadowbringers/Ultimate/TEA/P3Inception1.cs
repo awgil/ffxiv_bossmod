@@ -55,12 +55,12 @@ sealed class P3Inception1(BossModule module) : Components.CastCounter(module, (u
                 {
                     Arena.Actor(sphere, Colors.Object, true);
                     Arena.AddLine(sphere.Position, player.Position, slot == pcSlot ? Colors.Safe : default);
-                    Arena.AddCircle(player.Position, _sphereRadius);
+                    Arena.ZoneCircleOutline(player.Position, _sphereRadius);
                 }
             }
             else if (!CrystalsDone)
             {
-                Arena.AddCircle(player.Position, _crystalRadius);
+                Arena.ZoneCircleOutline(player.Position, _crystalRadius);
             }
         }
 
@@ -69,17 +69,17 @@ sealed class P3Inception1(BossModule module) : Components.CastCounter(module, (u
         {
             if (!pcSphere.IsDead)
             {
-                Arena.AddCircle(_assignedPositions[pcSlot], 1, Colors.Safe);
+                Arena.ZoneCircleOutline(_assignedPositions[pcSlot], 1, Colors.Safe);
             }
         }
         else if (!CrystalsDone)
         {
             var color = Colors.Safe;
             var pos = _assignedPositions[pcSlot];
-            Arena.AddCircle(pos + new WDir(-5f, -5f), 1f, color);
-            Arena.AddCircle(pos + new WDir(-5f, +5f), 1f, color);
-            Arena.AddCircle(pos + new WDir(+5f, -5f), 1f, color);
-            Arena.AddCircle(pos + new WDir(+5f, +5f), 1f, color);
+            Arena.ZoneCircleOutline(pos + new WDir(-5f, -5f), 1f, color);
+            Arena.ZoneCircleOutline(pos + new WDir(-5f, +5f), 1f, color);
+            Arena.ZoneCircleOutline(pos + new WDir(+5f, -5f), 1f, color);
+            Arena.ZoneCircleOutline(pos + new WDir(+5f, +5f), 1f, color);
         }
     }
 
