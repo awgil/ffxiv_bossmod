@@ -73,7 +73,7 @@ sealed class KnowledgeLevelCorrection(BossModule module) : Components.RaidwideCa
 sealed class Summon(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Summon, new AOEShapeCircle(4.0f));
 sealed class Marginalia(BossModule module) : Components.RaidwideCast(module, (uint)AID.Marginalia);
 sealed class UnboundInk(BossModule module) : Components.SimpleAOEs(module, (uint)AID.UnboundInk, new AOEShapeCircle(9.0f));
-sealed class BookDrop(BossModule module) : Components.CastTowers(module, (uint)AID.BookDrop, 3.0f, 3);
+sealed class BookDrop(BossModule module) : Components.CastTowers(module, (uint)AID.BookDrop, 3.0f, 3, 3);
 sealed class ThunderII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ThunderII, new AOEShapeRect(50.0f, 2.5f), 10);
 sealed class FireII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.FireII, new AOEShapeCone(60.0f, 22.5f.Degrees()));
 sealed class QuadRule(BossModule module) : Components.SimpleAOEs(module, (uint)AID.QuadRule, new AOEShapeCross(25.0f, 5.0f));
