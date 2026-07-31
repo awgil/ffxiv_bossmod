@@ -3,6 +3,8 @@
 // TODO was made with ARR support
 //  Status:
 //      1. Missing left rotating direction spell, everything else seems to work
+//      2. Double check the wind sphere aoe size
+//      3. double check these timers for the aoes after the first ones - ShapeshiftingSupercell
 
 public enum OID : uint {
     Metamorph = 0x4C77,
@@ -236,11 +238,11 @@ sealed class ShapeshiftingSupercellRings(BossModule module) : Components.Generic
     }
 }
 
-// TODO double check these timers for the aoes after the first ones
 sealed class ShapeshiftingSupercell(BossModule module) : Components.GenericAOEs(module) {
     private List<AOEInstance> aoes = [];
     private AOEShapeCone shape = new AOEShapeCone(60.0f, 45.0f.Degrees());
     private int clockwise = 0; // -1 = right, 1 = left
+    private bool futureAOEsAdded = false;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID) {
         if (iconID == (uint)IconID.TurnRight) {
@@ -250,12 +252,7 @@ sealed class ShapeshiftingSupercell(BossModule module) : Components.GenericAOEs(
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.ShapeshiftingSupercellCone) {
-            aoes.Add(new(shape, caster.Position,  caster.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(shape, caster.Position,  caster.Rotation + 30.0f.Degrees() * clockwise, Module.CastFinishAt(spell, 1.5)));
-            aoes.Add(new(shape, caster.Position,  caster.Rotation + 60.0f.Degrees() * clockwise, Module.CastFinishAt(spell, 3.0)));
-            aoes.Add(new(shape, caster.Position,  caster.Rotation + 90.0f.Degrees() * clockwise, Module.CastFinishAt(spell, 4.5)));
-            aoes.Add(new(shape, caster.Position,  caster.Rotation + 120.0f.Degrees() * clockwise, Module.CastFinishAt(spell, 6.0)));
-            aoes.Add(new(shape, caster.Position,  caster.Rotation + 150.0f.Degrees() * clockwise, Module.CastFinishAt(spell, 7.5)));
+            aoes.Add(new(shape, caster.Position,  caster.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID));
         }
     }
 
@@ -265,7 +262,20 @@ sealed class ShapeshiftingSupercell(BossModule module) : Components.GenericAOEs(
             if (aoes.Count > 0) {
                 aoes.RemoveAt(0);
             }
+
+            if (aoes.Count == 0) {
+                clockwise = 0;
+                futureAOEsAdded = false;
+            }
         }
+    }
+
+    public override void Update() {
+        if (clockwise == 0) {
+            return;
+        }
+
+        AddFutureAOEs();
     }
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
@@ -276,6 +286,24 @@ sealed class ShapeshiftingSupercell(BossModule module) : Components.GenericAOEs(
         }
 
         return CollectionsMarshal.AsSpan(incomingAOEs);
+    }
+
+    private void AddFutureAOEs() {
+        if (futureAOEsAdded == true) {
+            return;
+        }
+
+        List<AOEInstance> futureAOEs = [];
+        foreach (var aoe in aoes) {
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 30.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(1.5f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 60.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(3.0f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 90.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(4.5f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 120.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(6.0f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 150.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(7.5f)));
+        }
+
+        aoes.AddRange(futureAOEs);
+        futureAOEsAdded = true;
     }
 }
 
