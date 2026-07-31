@@ -65,11 +65,11 @@ sealed class FrigidTwister(BossModule module) : Components.GenericAOEs(module)
             var mov = vz.LastFrameMovement != default;
             if (mov)
             {
-                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a15, 4f), forbiddenNearFuture);
-                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a25, 4f), forbiddenSoon);
-                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a35, 4f), forbiddenFarFuture);
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a15, 5f), forbiddenNearFuture);
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a25, 5f), forbiddenSoon);
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a35, 5f), forbiddenFarFuture);
             }
-            hints.TemporaryObstacles.Add(new SDCircle(pos.Quantized(), mov ? 4f : 5f));
+            hints.TemporaryObstacles.Add(new SDCircle(pos.Quantized(), mov ? 5f : 6f));
         }
     }
 }
