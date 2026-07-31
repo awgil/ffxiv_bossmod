@@ -1,6 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201Arbatel;
 
 // TODO improve exaflares
+// TODO jitters between safe aoes, maybe best to make them all safe until we know they're not
+//  actually most likely will cause the same effect again, so should set them up first then display them
+// TODO clean up functions *gulp*
 
 public enum OID : uint {
     Arbatel = 0x4BD3,
@@ -53,8 +56,10 @@ public enum AID : uint {
     KnowledgeLevel3Flare1 = 47312, // Helper->self, 11.0s cast, range 25 120.000-degree cone
 
     KnowledgeLevel4HolyCast = 47317, // 4BD6->self, 11.0s cast, single-target
-    KnowledgeLevel4HolyVisual = 50559, // Helper->self, 11.0s cast, range 25 ?-degree cone
-    KnowledgeLevel4Holy = 47313, // Helper->self, 11.0s cast, range 25 120.000-degree cone
+    KnowledgeLevel4Holy = 47310, // Helper->self, 11.0s cast, range 25 180.000-degree cone
+    KnowledgeLevel4HolyVisual = 50556, // Helper->self, 11.0s cast, range 25 ?-degree cone
+    KnowledgeLevel4HolyVisual1 = 50559, // Helper->self, 11.0s cast, range 25 ?-degree cone
+    KnowledgeLevel4Holy1 = 47313, // Helper->self, 11.0s cast, range 25 120.000-degree cone
 
     KnowledgeLevel5DeathCast = 47315, // 4BD4->self, 11.0s cast, single-target
     KnowledgeLevel5DeathVisual = 50557, // Helper->self, 11.0s cast, range 25 ?-degree cone
@@ -188,6 +193,10 @@ sealed class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module) 
         }
 
         if (spell.Action.ID == (uint)AID.KnowledgeLevel4Holy) {
+            aoes.Add(new(new(shapeHalf, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID), 4));
+        }
+
+        if (spell.Action.ID == (uint)AID.KnowledgeLevel4Holy1) {
             aoes.Add(new(new(shapeThird, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID), 4));
         }
 
@@ -198,7 +207,7 @@ sealed class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module) 
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID is (uint)AID.PrimeKnowledgeLevelDeath or (uint)AID.PrimeKnowledgeLevelDeath1 or (uint)AID.KnowledgeLevel3Flare or
-            (uint)AID.KnowledgeLevel3Flare1 or (uint)AID.KnowledgeLevel4Holy or (uint)AID.KnowledgeLevel5Death) {
+            (uint)AID.KnowledgeLevel3Flare1 or (uint)AID.KnowledgeLevel4Holy or (uint)AID.KnowledgeLevel4Holy1 or (uint)AID.KnowledgeLevel5Death) {
             if (aoes.Count > 0) {
                 aoes.RemoveAll(aoe => aoe.aoe.ActorID == caster.InstanceID);
             }
