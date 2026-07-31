@@ -235,10 +235,7 @@ class SphereShatter(BossModule module) : Components.GenericAOEs(module)
 
     readonly List<AOEInstance> _predicted = [];
 
-    public bool Risky;
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => p with { Risky = Risky }).TakeSpan(TimeSpan.FromSeconds(2));
-
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.TakeSpan(TimeSpan.FromSeconds(2));
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state == 0x00100020)
@@ -442,10 +439,9 @@ class SwimmingInTheAir(BossModule module) : Components.GenericAOEs(module, AID.H
 {
     DateTime _activation;
 
-    public bool Risky;
     readonly List<WPos> _sources = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _sources.Select(s => new AOEInstance(new AOEShapeCircle(12), s, default, _activation, Risky: Risky));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _sources.Select(s => new AOEInstance(new AOEShapeCircle(12), s, default, _activation));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
