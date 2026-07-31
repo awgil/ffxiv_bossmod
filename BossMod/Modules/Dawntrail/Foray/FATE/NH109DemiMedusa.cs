@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Foray.FATE;
+﻿namespace BossMod.Dawntrail.Foray.FATE.NH109DemiMedusa;
 
 public enum OID : uint {
     DemiMedusa = 0x4C6A,

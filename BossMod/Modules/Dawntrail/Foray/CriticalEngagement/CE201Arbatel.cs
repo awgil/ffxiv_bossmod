@@ -1,6 +1,9 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201Arbatel;
 
 // TODO improve exaflares
+// TODO jitters between safe aoes, maybe best to make them all safe until we know they're not
+//  actually most likely will cause the same effect again, so should set them up first then display them
+// TODO clean up functions *gulp*
 
 public enum OID : uint
 {

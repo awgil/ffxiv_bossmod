@@ -2,6 +2,7 @@
 
 // TODO was made with ARR support
 //  Status: COMPLETED
+//  1. UnbowedSpirit circles don't disappear right away -> check eventcast maybe instead or actor death instead of destroyed?
 
 public enum OID : uint {
     ElmGigas = 0x4BD9,
