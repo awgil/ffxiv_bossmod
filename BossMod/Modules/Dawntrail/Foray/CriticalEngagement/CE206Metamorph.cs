@@ -2,7 +2,6 @@
 
 // TODO was made with ARR support
 //  Status:
-//      1. Missing left rotating direction spell, everything else seems to work
 //      2. Double check the wind sphere aoe size
 //      3. double check these timers for the aoes after the first ones - ShapeshiftingSupercell
 
@@ -243,16 +242,16 @@ sealed class ShapeshiftingSupercellRings(BossModule module) : Components.Generic
 sealed class ShapeshiftingSupercell(BossModule module) : Components.GenericAOEs(module) {
     private List<AOEInstance> aoes = [];
     private AOEShapeCone shape = new AOEShapeCone(60.0f, 45.0f.Degrees());
-    private int clockwise = 0; // -1 = right, 1 = left
+    private int direction = 0; // -1 = right, 1 = left
     private bool futureAOEsAdded = false;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID) {
         if (iconID == (uint)IconID.TurnRight) {
-            clockwise = -1;
+            direction = -1;
         }
 
         if (iconID == (uint)IconID.TurnLeft) {
-            clockwise = 1;
+            direction = 1;
         }
     }
 
@@ -270,14 +269,14 @@ sealed class ShapeshiftingSupercell(BossModule module) : Components.GenericAOEs(
             }
 
             if (aoes.Count == 0) {
-                clockwise = 0;
+                direction = 0;
                 futureAOEsAdded = false;
             }
         }
     }
 
     public override void Update() {
-        if (clockwise == 0) {
+        if (direction == 0) {
             return;
         }
 
@@ -301,11 +300,11 @@ sealed class ShapeshiftingSupercell(BossModule module) : Components.GenericAOEs(
 
         List<AOEInstance> futureAOEs = [];
         foreach (var aoe in aoes) {
-            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 30.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(1.5f)));
-            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 60.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(3.0f)));
-            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 90.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(4.5f)));
-            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 120.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(6.0f)));
-            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 150.0f.Degrees() * clockwise, aoe.Activation.AddSeconds(7.5f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 30.0f.Degrees() * direction, aoe.Activation.AddSeconds(1.5f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 60.0f.Degrees() * direction, aoe.Activation.AddSeconds(3.0f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 90.0f.Degrees() * direction, aoe.Activation.AddSeconds(4.5f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 120.0f.Degrees() * direction, aoe.Activation.AddSeconds(6.0f)));
+            futureAOEs.Add(new(shape, aoe.Origin,  aoe.Rotation + 150.0f.Degrees() * direction, aoe.Activation.AddSeconds(7.5f)));
         }
 
         aoes.AddRange(futureAOEs);
