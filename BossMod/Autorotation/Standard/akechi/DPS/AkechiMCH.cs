@@ -372,7 +372,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
             (WFleft > 0 || //Wildfire active
             RaidBuffsLeft > 0 || //raid buffs active
             OverheatActive || //Overheat active
-            target?.HPRatio < 0.5f || //target low HP
+            target?.HPRatio < 0.05f || //target low HP
             ((!Unlocked(AID.Wildfire) || Cooldown(AID.Wildfire) > 1f) || cooldown <= 0.6f) || //hold for Wildfire window if we have less than max charges
             Cooldown(AID.Wildfire) > 90); //spend all in 2m window, else hold 1
 
@@ -395,7 +395,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         //max prio
         if (RaidBuffsLeft > 0 || //raid buffs active
             (WFleft > 0 && OverheatActive) || //2m active
-            target?.HPRatio < 0.5f || //send all before death
+            target?.HPRatio < 0.05f || //send all before death
             cooldown <= 0.6f) //overcap
             return OGCDPriority.High;
 

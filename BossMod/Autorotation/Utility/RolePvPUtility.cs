@@ -1,6 +1,4 @@
 ﻿namespace BossMod.Autorotation.Utility;
-//Contribution by Akechi
-//Discord @akechdz or 'Akechi' on Puni.sh for maintenance
 
 public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
