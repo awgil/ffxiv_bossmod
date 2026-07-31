@@ -8,12 +8,12 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 {
     public enum Track { AOE = SharedTrack.Count, Atonement, BladeCombo, FightOrFlight, Requiescat, GoringBlade, Holy, Dash, Ranged, SpiritsWithin, CircleOfScorn, BladeOfHonor }
     public enum AOEStrategy { AutoFinish, ForceSTFinish, ForceAOEFinish, AutoBreak, ForceSTBreak, ForceAOEBreak }
-    public enum AtonementStrategy { Automatic, ForceAtonement, ForceSupplication, ForceSepulchre, Delay }
-    public enum BladeComboStrategy { Automatic, ForceConfiteor, ForceFaith, ForceTruth, ForceValor, Delay }
+    public enum AtonementStrategy { Automatic, Delay }
+    public enum BladeComboStrategy { Automatic, Delay }
     public enum GoringBladeStrategy { Automatic, Late, Force, Delay }
     public enum HolyStrategy { Automatic, Early, Late, VeryLate, OnlySpirit, OnlyCircle, ForceSpirit, ForceCircle, Delay }
     public enum DashStrategy { Automatic, GapClose, GapClose5, GapClose10, GapCloseOpener, Opener, OvercapSafe, OvercapUnsafe, Force, Delay }
-    public enum BuffsStrategy { Automatic, Together, RaidBuffsOnly, Force, ForceWeave, Delay }
+    public enum BuffsStrategy { Automatic, Together, Force, ForceWeave, Delay }
     public enum RangedStrategy { Automatic, OpenerRangedCast, OpenerCast, RangedCast, RangedCastStationary, OpenerRanged, Opener, Ranged, Force, Forbid }
 
     public static RotationModuleDefinition Definition()
@@ -35,25 +35,17 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         res.Define(Track.Atonement).As<AtonementStrategy>("Atones", "Atonement Combo", 155)
             .AddOption(AtonementStrategy.Automatic, "Automatically use full Atonement combo - will hold if Fight or Flight is imminent (unless Fight or Flight is user disabled)")
-            .AddOption(AtonementStrategy.ForceAtonement, "Force Atonement (if available)", 0, 30, ActionTargets.Hostile, 76)
-            .AddOption(AtonementStrategy.ForceSupplication, "Force Supplication (if available)", 0, 30, ActionTargets.Hostile, 76)
-            .AddOption(AtonementStrategy.ForceSepulchre, "Force Sepulchre (if available)", 0, 0, ActionTargets.Hostile, 76)
             .AddOption(AtonementStrategy.Delay, "Do not use Atonement combo", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.Atonement, AID.Supplication, AID.Sepulchre);
 
         res.Define(Track.BladeCombo).As<BladeComboStrategy>("Blades", "Confiteor + Blade Combo", 160)
             .AddOption(BladeComboStrategy.Automatic, "Automatically use full Blades combo - if no blades, will use best Holy action")
-            .AddOption(BladeComboStrategy.ForceConfiteor, "Force Confiteor (if available)", 0, 0, ActionTargets.Hostile, 80)
-            .AddOption(BladeComboStrategy.ForceFaith, "Force Blade of Faith (if available)", 0, 0, ActionTargets.Hostile, 90)
-            .AddOption(BladeComboStrategy.ForceTruth, "Force Blade of Truth (if available)", 0, 0, ActionTargets.Hostile, 90)
-            .AddOption(BladeComboStrategy.ForceValor, "Force Blade of Valor (if available)", 0, 0, ActionTargets.Hostile, 90)
             .AddOption(BladeComboStrategy.Delay, "Do not use Confiteor or any Blades", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Confiteor, AID.BladeOfFaith, AID.BladeOfTruth, AID.BladeOfValor);
 
         res.Define(Track.FightOrFlight).As<BuffsStrategy>("FoF", "Fight or Flight", 170)
             .AddOption(BuffsStrategy.Automatic, "Automatically use Fight or Flight on cooldown")
             .AddOption(BuffsStrategy.Together, "Automatically use Fight or Flight only with Requiescat - will delay in attempt to align itself with Requiescat if misaligned", 60, 20, ActionTargets.Self, 2)
-            .AddOption(BuffsStrategy.RaidBuffsOnly, "Automatically use Fight or Flight only with raid buffs - will delay in attempt to align itself with raid buffs", 60, 20, ActionTargets.Self, 2)
             .AddOption(BuffsStrategy.Force, "Force Fight or Flight (if available)", 60, 20, ActionTargets.Self, 2)
             .AddOption(BuffsStrategy.ForceWeave, "Force Fight or Flight inside the next possible weave window (if available)", 60, 20, ActionTargets.Self, 2)
             .AddOption(BuffsStrategy.Delay, "Do not use Fight or Flight", 0, 0, ActionTargets.None, 2)
@@ -61,8 +53,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         res.Define(Track.Requiescat).As<BuffsStrategy>("Req.", "Requiescat", 165)
             .AddOption(BuffsStrategy.Automatic, "Automatically use Requiescat on cooldown")
-            .AddOption(BuffsStrategy.Together, "Automatically use Requiescat only with Fight or Flight - will delay in attempt to align itself with Fight or Flight", 60, 20, ActionTargets.Self, 68)
-            .AddOption(BuffsStrategy.RaidBuffsOnly, "Automatically use Requiescat only with raid buffs - will delay in attempt to align itself with raid buffs", 60, 20, ActionTargets.Self, 68)
+            .AddOption(BuffsStrategy.Together, "Automatically use Requiescat only with Fight or Flight - will delay in attempt to align itself with Fight or Flight if misaligned", 60, 20, ActionTargets.Self, 68)
             .AddOption(BuffsStrategy.Force, "Force Requiescat (if available)", 60, 20, ActionTargets.Self, 68)
             .AddOption(BuffsStrategy.ForceWeave, "Force Requiescat inside the next possible weave window (if available)", 60, 20, ActionTargets.Self, 68)
             .AddOption(BuffsStrategy.Delay, "Do not use Requiescat", 0, 0, ActionTargets.None, 68)
@@ -75,7 +66,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddOption(GoringBladeStrategy.Delay, "Do not use Goring Blade", 0, 0, ActionTargets.None, 54)
             .AddAssociatedActions(AID.GoringBlade);
 
-        res.Define(Track.Holy).As<HolyStrategy>("Holy", "(Divine Might) Holy Spirit/Circle", 150)
+        res.Define(Track.Holy).As<HolyStrategy>("Holy", "Holy Spirit/Circle", 150)
             .AddOption(HolyStrategy.Automatic, "Automatically use best Holy action based on targets")
             .AddOption(HolyStrategy.Early, "Automatically use best Holy action as soon as possible", 0, 0, ActionTargets.Hostile, 68)
             .AddOption(HolyStrategy.Late, "Automatically use best Holy action after Atonement combo (or if nothing else left to use)", 0, 0, ActionTargets.Hostile, 68)
@@ -101,14 +92,14 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             .AddAssociatedActions(AID.Intervene);
 
         res.Define(Track.Ranged).As<RangedStrategy>("Ranged", "Ranged Options", 100)
-            .AddOption(RangedStrategy.Automatic, "Automatically use best ranged attack if outside of melee range - Holy Spirit if stationary; Shield Lob if moving")
-            .AddOption(RangedStrategy.OpenerRangedCast, "Automatically use Holy Spirit at the start of combat if outside melee range", 0, 0, ActionTargets.Hostile, 64)
-            .AddOption(RangedStrategy.OpenerCast, "Automatically use Holy Spirit at the start of combat, regardless of range", 0, 0, ActionTargets.Hostile, 64)
-            .AddOption(RangedStrategy.RangedCast, "Automatically use Holy Spirit as ranged choice if outside melee range", 0, 0, ActionTargets.Hostile, 64)
-            .AddOption(RangedStrategy.RangedCastStationary, "Automatically use Holy Spirit as ranged choice if outside melee range and stationary", 0, 0, ActionTargets.Hostile, 64)
+            .AddOption(RangedStrategy.Automatic, "Automatically use best ranged attack if outside of melee range - Holy Spirit first, then Shield Lob as fallback")
+            .AddOption(RangedStrategy.OpenerRangedCast, "Automatically use Holy Spirit at the start of combat if outside melee range - will use Shield Lob as fallback", 0, 0, ActionTargets.Hostile, 64)
+            .AddOption(RangedStrategy.OpenerCast, "Automatically use Holy Spirit at the start of combat, regardless of range - will use Shield Lob as fallback", 0, 0, ActionTargets.Hostile, 64)
+            .AddOption(RangedStrategy.RangedCast, "Automatically use Holy Spirit as ranged attack if outside melee range - will use Shield Lob as fallback", 0, 0, ActionTargets.Hostile, 64)
+            .AddOption(RangedStrategy.RangedCastStationary, "Automatically use Holy Spirit as ranged attack if outside melee range and stationary - will use Shield Lob as fallback", 0, 0, ActionTargets.Hostile, 64)
             .AddOption(RangedStrategy.OpenerRanged, "Automatically use Shield Lob at the start of combat if outside melee range", 0, 0, ActionTargets.Hostile, 15)
             .AddOption(RangedStrategy.Opener, "Automatically use Shield Lob at the start of combat regardless of range", 0, 0, ActionTargets.Hostile, 15)
-            .AddOption(RangedStrategy.Ranged, "Automatically use Shield Lob as ranged choice if outside melee range", 0, 0, ActionTargets.Hostile, 15)
+            .AddOption(RangedStrategy.Ranged, "Automatically use Shield Lob as ranged attack if outside melee range", 0, 0, ActionTargets.Hostile, 15)
             .AddOption(RangedStrategy.Force, "Force Shield Lob", 0, 0, ActionTargets.Hostile, 15)
             .AddOption(RangedStrategy.Forbid, "Do not use any ranged attacks", 0, 0, ActionTargets.Hostile, 15)
             .AddAssociatedActions(AID.ShieldLob, AID.HolySpirit);
@@ -161,9 +152,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         var minimal = InCombat(target) && MP >= 4000 && (Unlocked(AID.Imperator) ? In25y(target) : In3y(target));
         return strategy switch
         {
-            BuffsStrategy.Automatic => (minimal && Opener, OGCDPriority.Severe),
-            BuffsStrategy.Together => (minimal && together, OGCDPriority.Severe),
-            BuffsStrategy.RaidBuffsOnly => (minimal && (RaidBuffsLeft > 0 || RaidBuffsIn < 3000), OGCDPriority.Severe),
+            BuffsStrategy.Automatic => (minimal && Opener, OGCDPriority.High),
+            BuffsStrategy.Together => (minimal && together, OGCDPriority.High),
             BuffsStrategy.Force => (true, OGCDPriority.Forced),
             _ => (false, OGCDPriority.None)
         };
@@ -204,7 +194,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             AOEStrategy.ForceAOEBreak => (NextAOECombo(false), Player),
             _ => (AID.None, null)
         };
-        if (aoeTarget != null && (wantAOE ? In5y(aoeTarget) : In3y(aoeTarget)))
+        if (aoeTarget != null && (wantAOE ? In5y(stTarget) : In3y(stTarget)))
             QueueGCD(aoeAction, aoeTarget, GCDPriority.Low);
 
         var fof = strategy.Option(Track.FightOrFlight);
@@ -217,7 +207,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
                 {
                     var (fofCondition, fofPrio) = ShouldBuffUp(fofStrat, mainTarget, ActionReady(AID.FightOrFlight), Cooldown(BestRequiescat) < 1f);
                     if (fofCondition)
-                        QueueOGCD(AID.FightOrFlight, Player, fofPrio);
+                        QueueOGCD(AID.FightOrFlight, Player, fofPrio + 1);
 
                     var req = strategy.Option(Track.Requiescat);
                     var reqStrat = req.As<BuffsStrategy>();
@@ -229,13 +219,13 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
                 var cos = strategy.Option(Track.CircleOfScorn);
                 var cosStrat = cos.As<OGCDStrategy>();
-                if (ShouldUseOGCD(cosStrat, mainTarget, ActionReady(AID.CircleOfScorn), In5y(mainTarget) && FOFcd is < 57.55f and > 12))
-                    QueueOGCD(AID.CircleOfScorn, Player, OGCDPrio(cosStrat, OGCDPriority.AboveAverage));
+                if (ShouldUseOGCD(cosStrat, mainTarget, ActionReady(AID.CircleOfScorn), In5y(mainTarget) && FOFcd > 12.5f))
+                    QueueOGCD(AID.CircleOfScorn, Player, OGCDPrio(cosStrat, OGCDPriority.Average + 1));
 
                 var sw = strategy.Option(Track.SpiritsWithin);
                 var swStrat = sw.As<OGCDStrategy>();
-                var swTarget = SingleTargetChoice(mainTarget, sw);
-                if (ShouldUseOGCD(swStrat, swTarget, ActionReady(BestSpirits), In3y(swTarget) && FOFcd is < 57.55f and > 12))
+                var swTarget = Unlocked(AID.Expiacion) ? AOETargetChoice(mainTarget, GetBestTarget(primaryTarget, 3, IsSplashTarget).Best?.Actor, sw, strategy) : SingleTargetChoice(mainTarget, sw);
+                if (ShouldUseOGCD(swStrat, swTarget, ActionReady(BestSpirits), In3y(swTarget) && FOFcd > 12.5f))
                     QueueOGCD(BestSpirits, swTarget, OGCDPrio(swStrat, OGCDPriority.Average));
 
                 var dash = strategy.Option(Track.Dash);
@@ -244,11 +234,11 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
                 var dashMinimum = dashTarget != null && INTcd < 30.6f;
                 var (dashCondition, dashPrio) = dashStrat switch
                 {
-                    DashStrategy.Automatic => (!IsMoving && In3y(dashTarget) && HasStatus(SID.FightOrFlight), OGCDPriority.SlightlyLow),
+                    DashStrategy.Automatic => (!IsMoving && In3y(dashTarget) && HasStatus(SID.FightOrFlight), OGCDPriority.Low),
                     DashStrategy.Force => (true, OGCDPriority.Forced),
-                    DashStrategy.GapClose => (!In3y(dashTarget), OGCDPriority.SlightlyLow),
-                    DashStrategy.GapClose5 => (!In5y(dashTarget), OGCDPriority.SlightlyLow),
-                    DashStrategy.GapClose10 => (!In10y(dashTarget), OGCDPriority.SlightlyLow),
+                    DashStrategy.GapClose => (!In3y(dashTarget), OGCDPriority.Low),
+                    DashStrategy.GapClose5 => (!In5y(dashTarget), OGCDPriority.Low),
+                    DashStrategy.GapClose10 => (!In10y(dashTarget), OGCDPriority.Low),
                     DashStrategy.GapCloseOpener => (IsFirstGCD && !In3y(dashTarget), OGCDPriority.Max),
                     DashStrategy.Opener => (IsFirstGCD, OGCDPriority.Max),
                     DashStrategy.OvercapSafe => (!IsMoving && In3y(dashTarget) && INTcd <= GCD, OGCDPriority.Max),
@@ -271,8 +261,8 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             var gbMinimum = gbTarget != null && In3y(gbTarget) && GBstatus > GCD;
             var (gbCondition, gbPrio) = gbStrat switch
             {
-                GoringBladeStrategy.Automatic => (true, GCDPriority.High),
-                GoringBladeStrategy.Late => (REQstatus <= GCD && GBstatus is < 25f and not 0f, GCDPriority.SlightlyHigh),
+                GoringBladeStrategy.Automatic => (true, GCDPriority.High + 1),
+                GoringBladeStrategy.Late => (REQstatus <= GCD && GBstatus is < 25f and not 0f, GCDPriority.High - 1),
                 GoringBladeStrategy.Force => (true, GCDPriority.Forced),
                 _ => (false, GCDPriority.None)
             };
@@ -282,86 +272,74 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             if (ShouldUsePotion(strategy))
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.High - 1);
         }
-
         var boftv = strategy.Option(Track.BladeCombo);
         var boftvStrat = boftv.As<BladeComboStrategy>();
         var boftvTarget = AOETargetChoice(mainTarget, bladesTarget, boftv, strategy);
-        var boftvBest = BladeComboStep == 3 ? AID.BladeOfValor : BladeComboStep == 2 ? AID.BladeOfTruth : BladeComboStep == 1 && Unlocked(AID.BladeOfFaith) ? AID.BladeOfFaith : CONFstatus > GCD ? AID.Confiteor : wantAOE ? BestHolyCircle : AID.HolySpirit;
-        var boftvMinimum = boftvTarget != null && In25y(boftvTarget);
-        var (boftvCondition, boftvAction, boftvPrio) = boftvStrat switch
+        var boftvAction = BladeComboStep switch
         {
-            BladeComboStrategy.Automatic => (REQstatus > GCD && BladeComboStep is 0 or 1 or 2 or 3, boftvBest, GCDPriority.ModeratelyHigh),
-            BladeComboStrategy.ForceConfiteor => (Unlocked(AID.Confiteor) && CONFstatus > GCD && BladeComboStep is 0, AID.Confiteor, GCDPriority.Forced),
-            BladeComboStrategy.ForceFaith => (BladeComboStep is 1, AID.BladeOfFaith, GCDPriority.Forced),
-            BladeComboStrategy.ForceTruth => (BladeComboStep is 2, AID.BladeOfTruth, GCDPriority.Forced),
-            BladeComboStrategy.ForceValor => (BladeComboStep is 3, AID.BladeOfValor, GCDPriority.Forced),
-            _ => (false, AID.None, GCDPriority.None)
+            3 => AID.BladeOfValor,
+            2 => AID.BladeOfTruth,
+            1 when Unlocked(AID.BladeOfFaith) => AID.BladeOfFaith,
+            _ => CONFstatus > GCD ? AID.Confiteor : wantAOE ? BestHolyCircle : AID.HolySpirit
         };
-        if (boftvMinimum && boftvCondition)
-            QueueGCD(boftvAction, boftvTarget, boftvPrio);
+        if (boftvStrat == BladeComboStrategy.Automatic && boftvTarget != null && In25y(boftvTarget) && REQstatus > GCD && BladeComboStep is 0 or 1 or 2 or 3 && MP >= 1000)
+            QueueGCD(boftvAction, boftvTarget, GCDPriority.High);
 
         var buffActive = DMstatus > GCD || ATOstatus > GCD || SUPstatus > GCD || SEPstatus > GCD;
-        var dmacSkipHold = LastComboAction is AID.RiotBlade && FOFcd > GCD;
+        var buffClose = DMstatus is < 3 and not 0 || ATOstatus is < 3 and not 0 || SUPstatus is < 3 and not 0 || SEPstatus is < 3 and not 0;
+        var dmacSkipHold = (LastComboAction is AID.RiotBlade && FOFcd > GCD) || (buffActive && buffClose);
         var dmacHold = fofStrat != BuffsStrategy.Delay && !strategy.HoldBuffs() && buffActive && !dmacSkipHold &&
-            ((LastComboAction is AID.RoyalAuthority ? !CanFitSkSGCD(FOFcd, 2) : LastComboAction is AID.FastBlade ? !CanFitSkSGCD(FOFcd, 1) : LastComboAction is AID.RiotBlade && !CanFitSkSGCD(FOFcd)) ||
-            dmacSkipHold);
+            ((LastComboAction is AID.RoyalAuthority ? !CanFitSkSGCD(FOFcd, 2) : LastComboAction is AID.FastBlade ? !CanFitSkSGCD(FOFcd, 1) : LastComboAction is AID.RiotBlade && !CanFitSkSGCD(FOFcd)) || dmacSkipHold);
 
         var atone = strategy.Option(Track.Atonement);
-        var atoneStrat = atone.As<AtonementStrategy>();
-        var aTarget = SingleTargetChoice(mainTarget, atone);
-        var aMinimum = aTarget != null && In3y(aTarget) && !dmacHold && (ATOstatus > GCD || SUPstatus > GCD || SEPstatus > GCD);
-        var bestAtonement = SEPstatus > GCD ? AID.Sepulchre : SUPstatus > GCD ? AID.Supplication : AID.Atonement;
-        var (aCondition, aAction, aPriority) = atoneStrat switch
-        {
-            AtonementStrategy.Automatic => (aMinimum, bestAtonement, GCDPriority.AboveAverage),
-            AtonementStrategy.ForceAtonement => (ATOstatus > GCD, AID.Atonement, GCDPriority.Forced),
-            AtonementStrategy.ForceSupplication => (SUPstatus > GCD, AID.Supplication, GCDPriority.Forced),
-            AtonementStrategy.ForceSepulchre => (SEPstatus > GCD, AID.Sepulchre, GCDPriority.Forced),
-            _ => (false, AID.None, GCDPriority.None)
-        };
-        if (aMinimum && aCondition)
-            QueueGCD(aAction, aTarget, aPriority);
+        var atoneTarget = SingleTargetChoice(mainTarget, atone);
+        if (atone.As<AtonementStrategy>() == AtonementStrategy.Automatic && atoneTarget != null && In3y(atoneTarget) && !dmacHold && (ATOstatus > GCD || SUPstatus > GCD || SEPstatus > GCD))
+            QueueGCD(SEPstatus > GCD ? AID.Sepulchre : SUPstatus > GCD ? AID.Supplication : AID.Atonement, atoneTarget, GCDPriority.Average);
 
         var dmh = strategy.Option(Track.Holy);
         var dmhStrat = dmh.As<HolyStrategy>();
-        var usedmhAOE = dmhStrat is HolyStrategy.OnlyCircle or HolyStrategy.ForceCircle || wantAOE;
-        var dmhTarget = usedmhAOE ? Player : SingleTargetChoice(mainTarget, dmh);
-        var dmhMinimum = dmhTarget != null && DMstatus > GCD && !dmacHold;
-        var hsMinimum = Unlocked(AID.HolySpirit) && In25y(dmhTarget) && dmhMinimum;
-        var hcMinimum = Unlocked(AID.HolyCircle) && In5y(dmhTarget) && dmhMinimum;
-        var bestHoly = usedmhAOE ? BestHolyCircle : AID.HolySpirit;
+        var useAOE = wantAOE || dmhStrat is HolyStrategy.OnlyCircle or HolyStrategy.ForceCircle;
+        var dmhSingleTarget = SingleTargetChoice(mainTarget, dmh);
+        var dmhTarget = useAOE ? Player : dmhSingleTarget;
+        var hsReady = Unlocked(AID.HolySpirit) && MP >= 1000 && In25y(dmhSingleTarget);
+        var hcReady = Unlocked(AID.HolyCircle) && MP >= 1000 && In5y(dmhSingleTarget);
+        var dmhReady = dmhTarget != null && !dmacHold && DMstatus > GCD;
+        var dmhsMinimum = dmhReady && hsReady;
+        var dmhcMinimum = Unlocked(AID.HolyCircle) ? (dmhReady && hcReady) : dmhsMinimum;
+        var dmhFirst = (fofStrat != BuffsStrategy.Delay && FOFstatus is > 0 and <= 2.5f && SUPstatus <= GCD && SEPstatus <= GCD) || DMstatus is > 0 and <= 2.5f;
+        var bestCondition = useAOE ? dmhcMinimum : dmhsMinimum;
+        var bestAction = useAOE ? BestHolyCircle : AID.HolySpirit;
+        var bestPrio = dmhFirst ? GCDPriority.Average + 1 : GCDPriority.Average - 1;
         var (dmhCondition, dmhAction, dmhPrio) = dmhStrat switch
         {
-            HolyStrategy.Automatic => (hsMinimum, bestHoly, GCDPriority.AboveAverage - 1),
-            HolyStrategy.Early => (hsMinimum, bestHoly, GCDPriority.AboveAverage + 1),
-            HolyStrategy.Late => (hsMinimum, bestHoly, GCDPriority.AboveAverage - 1),
-            HolyStrategy.VeryLate => (Unlocked(AID.HolySpirit) && In25y(dmhTarget) && dmhTarget != null && DMstatus > GCD && (LastComboAction is AID.RiotBlade || DMstatus < 3), bestHoly, GCDPriority.AboveAverage - 2),
-            HolyStrategy.OnlySpirit => (hsMinimum, AID.HolySpirit, GCDPriority.AboveAverage - 1),
-            HolyStrategy.OnlyCircle => (hcMinimum, AID.HolyCircle, GCDPriority.AboveAverage - 1),
-            HolyStrategy.ForceSpirit => (hsMinimum, AID.HolySpirit, GCDPriority.Forced),
-            HolyStrategy.ForceCircle => (hcMinimum, AID.HolyCircle, GCDPriority.Forced),
+            HolyStrategy.Automatic => (bestCondition, bestAction, bestPrio),
+            HolyStrategy.Early => (bestCondition, bestAction, GCDPriority.Average + 1),
+            HolyStrategy.Late => (bestCondition, bestAction, GCDPriority.Average - 1),
+            HolyStrategy.VeryLate => (bestCondition && (LastComboAction is AID.RiotBlade or AID.TotalEclipse || DMstatus is > 0 and <= 3), bestAction, GCDPriority.Average + 1),
+            HolyStrategy.OnlySpirit => (dmhsMinimum, AID.HolySpirit, bestPrio),
+            HolyStrategy.OnlyCircle => (dmhcMinimum, AID.HolyCircle, bestPrio),
+            HolyStrategy.ForceSpirit => (hsReady, AID.HolySpirit, GCDPriority.Low + 2),
+            HolyStrategy.ForceCircle => (hcReady, AID.HolyCircle, GCDPriority.Low + 2),
             _ => (false, AID.None, GCDPriority.None)
         };
         if (dmhCondition)
-        {
-            var lastsecbuff = (fofStrat != BuffsStrategy.Delay && FOFstatus is <= 2.5f and >= 0.01f && SUPstatus <= GCD && SEPstatus <= GCD) || DMstatus is <= 2.5f and > 0f;
-            QueueGCD(dmhAction, dmhTarget, lastsecbuff ? GCDPriority.SlightlyHigh : dmhPrio);
-        }
+            QueueGCD(dmhAction, dmhTarget, dmhPrio);
 
         var r = strategy.Option(Track.Ranged);
         var rStrat = r.As<RangedStrategy>();
         var rTarget = SingleTargetChoice(mainTarget, r);
-        var away = !In3y(rTarget);
+        var away = wantAOE ? !In5y(rTarget) : !In3y(rTarget);
         var (rCondition, rAction, rPriority) = rStrat switch
         {
-            RangedStrategy.Automatic => (rTarget != null && away, IsMoving || MP < 1000 ? AID.ShieldLob : AID.HolySpirit, GCDPriority.Low + 1),
+            RangedStrategy.Automatic => (rTarget != null && away, (IsMoving && DMstatus <= GCD) || (Unlocked(AID.HolySpirit) && MP < 1000) || !Unlocked(AID.HolySpirit) ? AID.ShieldLob : AID.HolySpirit, GCDPriority.Low + 1),
+            RangedStrategy.OpenerRangedCast => (IsFirstGCD && away && !IsMoving, hsReady ? AID.HolySpirit : AID.ShieldLob, GCDPriority.Low + 1),
+            RangedStrategy.OpenerCast => (IsFirstGCD && !IsMoving, hsReady ? AID.HolySpirit : AID.ShieldLob, GCDPriority.Low + 1),
+            RangedStrategy.RangedCast => (away, hsReady ? AID.HolySpirit : AID.ShieldLob, GCDPriority.Low + 1),
+            RangedStrategy.RangedCastStationary => (away && !IsMoving, hsReady ? AID.HolySpirit : AID.ShieldLob, GCDPriority.Low + 1),
             RangedStrategy.OpenerRanged => (IsFirstGCD && away, AID.ShieldLob, GCDPriority.Low + 1),
-            RangedStrategy.OpenerRangedCast => (IsFirstGCD && away && !IsMoving, Unlocked(AID.HolySpirit) ? AID.HolySpirit : AID.ShieldLob, GCDPriority.AboveAverage - 1),
             RangedStrategy.Opener => (IsFirstGCD, AID.ShieldLob, GCDPriority.Low + 1),
-            RangedStrategy.OpenerCast => (IsFirstGCD && !IsMoving, Unlocked(AID.HolySpirit) ? AID.HolySpirit : AID.ShieldLob, GCDPriority.AboveAverage - 1),
-            RangedStrategy.Force => (true, AID.ShieldLob, GCDPriority.Forced),
             RangedStrategy.Ranged => (away, AID.ShieldLob, GCDPriority.Low + 1),
-            RangedStrategy.RangedCast => (away && !IsMoving, Unlocked(AID.HolySpirit) ? AID.HolySpirit : AID.ShieldLob, GCDPriority.AboveAverage - 1),
+            RangedStrategy.Force => (true, AID.ShieldLob, GCDPriority.Low + 1),
             _ => (false, AID.None, GCDPriority.None)
         };
         if (rCondition)
