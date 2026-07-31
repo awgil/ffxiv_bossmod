@@ -295,9 +295,8 @@ public abstract class QuestBattle : ZoneModule
         //    ObjectiveCleared.Subscribe(OnObjectiveCleared)
         //);
 
-        if (Service.PluginInterface == null)
+        if (Service.IsMock)
         {
-            //Log($"UIDev detected, skipping initialization");
             _pathfind = new PathfindNoop();
             _meshIsReady = new PathReadyNoop();
         }
@@ -382,8 +381,6 @@ public abstract class QuestBattle : ZoneModule
             }
         }
 
-        AddQuestAIHints(player, hints);
-
         curObjective = CurrentObjective;
         if (curObjective != null)
         {
@@ -399,6 +396,8 @@ public abstract class QuestBattle : ZoneModule
                 MoveNext(player, curObjective, hints);
             }
         }
+
+        AddQuestAIHints(player, hints);
     }
 
     public void DrawDebugInfo()

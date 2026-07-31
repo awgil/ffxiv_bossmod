@@ -95,11 +95,11 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             switch (strategy.Misery.Value)
             {
                 case MiseryStrategy.ASAP:
-                    PushGCD(AID.AfflatusMisery, ResolveTargetOverride(strategy.Misery) ?? BestRangedAOETarget);
+                    PushGCD(AID.AfflatusMisery, ResolveEnemy(strategy.Misery) ?? BestRangedAOETarget);
                     break;
                 case MiseryStrategy.BuffedOnly:
                     if (RaidBuffsLeft > GCD)
-                        PushGCD(AID.AfflatusMisery, ResolveTargetOverride(strategy.Misery) ?? BestRangedAOETarget);
+                        PushGCD(AID.AfflatusMisery, ResolveEnemy(strategy.Misery) ?? BestRangedAOETarget);
                     break;
             }
         }

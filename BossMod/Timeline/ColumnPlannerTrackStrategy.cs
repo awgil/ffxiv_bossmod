@@ -44,28 +44,48 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
         }
     }
 
+    const float HeaderAngle = 60 * Angle.DegToRad;
+    static readonly float HeaderCos = MathF.Cos(HeaderAngle);
+    static readonly float HeaderSin = MathF.Sin(HeaderAngle);
+    static readonly float HeaderTan = MathF.Tan(HeaderAngle);
+
+    static Vector2 ClickableEdge => new(Timeline.TopMargin * HeaderCos, -Timeline.TopMargin * HeaderSin);
+
     public override void DrawHeader(Vector2 topLeft)
     {
         using var _ = ImRaii.PushId($"{config.OptionEnum}_{config.InternalName}");
         var paddingY = ImGui.GetStyle().ItemSpacing.Y;
         var cursor = ImGui.GetCursorPos();
-        var isHovered = false;
-        using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0, paddingY)))
+        var isActuallyHovered = false;
+        var wl = ImGui.GetWindowDrawList();
+        var wp = ImGui.GetWindowPos();
+
+        var viewMinY = cursor.Y + wl.GetClipRectMin().Y - Timeline.TopMargin;
+
+        wl.PushClipRect(new(0, viewMinY), new(int.MaxValue, int.MaxValue), true);
+
+        var originAdj = topLeft - wp;
+        var mouseAbs = ImGui.GetMousePos();
+        var mouseRelative = mouseAbs - topLeft;
+
+        // check for hover on bounding box. if we manually try to do hover logic it interferes with other modals and popups etc
+        ImGui.SetCursorPos(originAdj + new Vector2(0, ClickableEdge.Y));
+        ImGui.Dummy(new Vector2(ClickableEdge.X + Width, -ClickableEdge.Y));
+
+        if (ImGui.IsItemHovered() && mouseAbs.Y > viewMinY && mouseRelative.Y <= 0)
         {
-            var textSize = ImGui.CalcTextSize(Name);
-            var originAdj = topLeft - ImGui.GetWindowPos();
-            using (ImRaii.Group())
+            var offX = mouseRelative.X + mouseRelative.Y / HeaderTan;
+            if (offX >= 0 && offX < Width)
             {
-                ImGui.SetCursorPos(originAdj);
-                ImGui.Selectable("", DefaultOverride.Option > 0, ImGuiSelectableFlags.None, textSize with { X = Width });
-                isHovered = ImGui.IsItemHovered();
-                ImGui.SetCursorPos(originAdj + new Vector2((Width - textSize.X) * 0.5f, 0));
-                ImGui.Text(Name);
+                isActuallyHovered = true;
+                ImGui.AddQuadFilled(ImGui.GetWindowDrawList(), topLeft, topLeft + ClickableEdge, topLeft + ClickableEdge + new Vector2(Width, 0), topLeft + new Vector2(Width, 0), 0xFF404040);
             }
         }
 
-        if (isHovered && config.InternalName != config.DisplayName && config.DisplayName.Length > 0)
-            ImGui.SetTooltip(config.DisplayName);
+        ImGui.SetCursorPos(originAdj + new Vector2(Width * 0.5f, 0) + new WDir(ImGui.GetFrameHeight() * 0.5f, 0).Rotate(new WDir(HeaderSin, HeaderCos)).ToVec2());
+        UIMisc.TextRotated(Name, HeaderAngle);
+
+        wl.PopClipRect();
 
         using (var popup = ImRaii.Popup("settings"))
         {
@@ -84,8 +104,14 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
             }
         }
 
-        if (ImGui.IsItemClicked())
-            ImGui.OpenPopup("settings");
+        if (isActuallyHovered)
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (config.UIName != Name)
+                ImGui.SetTooltip(config.UIName);
+            if (ImGui.IsMouseDown(ImGuiMouseButton.Left))
+                ImGui.OpenPopup("settings");
+        }
 
         ImGui.SetCursorPos(cursor);
     }

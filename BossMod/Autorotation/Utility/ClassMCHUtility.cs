@@ -28,7 +28,7 @@ public sealed class ClassMCHUtility(RotationModuleManager manager, Actor player)
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         ExecuteShared(strategy, IDLimitBreak3, primaryTarget);
-        ExecuteSimple(strategy.Option(Track.Dismantle), MCH.AID.Dismantle, ResolveTargetOverride(strategy.Option(Track.Dismantle).Value) ?? primaryTarget);
+        ExecuteSimple(strategy.Option(Track.Dismantle), MCH.AID.Dismantle, ResolveTarget(strategy.Option(Track.Dismantle).Value) ?? primaryTarget);
 
         // TODO: for 'if-not-active' strategy, add configurable min-time-left
         // TODO: combine 87/88 options

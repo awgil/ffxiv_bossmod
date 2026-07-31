@@ -128,6 +128,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
+    protected unsafe AID LastComboAction => (AID)(object)Instance()->Combo.Action;
     protected float SkSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float SpSGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected bool CanFitSkSGCD(float duration, int extraGCDs = 0) => GCD + SkSGCDLength * extraGCDs < duration;
@@ -162,8 +163,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected delegate P PriorityFunc<P>(int totalTargets, Actor primaryTarget);
 
     protected bool TargetsInAOECircle(float range = 3f, int numTargets = 1) => Hints.NumPriorityTargetsInAOECircle(Player.Position, range) >= numTargets;
-    protected Actor? SingleTargetChoice(Actor? manual, StrategyValues.OptionRef track) => ResolveTargetOverride(track.Value) ?? manual;
-    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => ResolveTargetOverride(track.Value) ?? (strategy.AutoTarget() ? auto : manual);
+    protected Actor? SingleTargetChoice(Actor? manual, StrategyValues.OptionRef track) => ResolveTarget(track.Value) ?? manual;
+    protected Actor? AOETargetChoice(Actor? manual, Actor? auto, StrategyValues.OptionRef track, StrategyValues strategy) => ResolveTarget(track.Value) ?? (strategy.AutoTarget() ? auto : manual);
 
     //position checks
     protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);

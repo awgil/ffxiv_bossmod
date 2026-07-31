@@ -1,4 +1,4 @@
-﻿namespace BossMod.RealmReborn.Novice.NoviceTank04;
+﻿namespace BossMod.Global.HallOfTheNovice.NoviceTank04;
 
 public enum OID : uint
 {

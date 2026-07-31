@@ -268,7 +268,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
     private void HJMD(Strategy strategy, Enemy? primaryTarget)
     {
-        var target = ResolveTargetOverride(strategy.HJMD) ?? primaryTarget;
+        var target = ResolveEnemy(strategy.HJMD) ?? primaryTarget;
 
         if (target == null)
             return;

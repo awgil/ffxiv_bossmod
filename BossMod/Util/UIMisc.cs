@@ -136,4 +136,31 @@ public static class UIMisc
         }
     }
     public static void HelpMarker(string helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle) => HelpMarker(() => helpText, icon);
+
+    /// <summary>
+    /// Draw rotated text at the current cursor position. The origin of rotation is the point on the left edge of the text's bounding box and at its vertical midpoint.
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="radians"></param>
+    public static unsafe void TextRotated(ImU8String text, float radians)
+    {
+        var dl = ImGui.GetWindowDrawList();
+        var ts = ImGui.CalcTextSize(text, false);
+        var startVert = dl.VtxCurrentIdx;
+        var screenPos = ImGui.GetCursorScreenPos();
+        dl.AddText(screenPos - new Vector2(0, ts.Y * 0.5f), ImGui.GetColorU32(ImGuiCol.Text), text);
+
+        var endVert = dl.VtxCurrentIdx;
+
+        for (var ix = (int)startVert; ix < endVert; ix++)
+        {
+            ref var vert = ref dl.Handle->VtxBuffer.Ref(ix);
+            vert.Pos = Rotate(vert.Pos - screenPos, radians) + screenPos;
+        }
+    }
+
+    static Vector2 Rotate(Vector2 vec, float rad)
+    {
+        return new WDir(vec).Rotate(new Angle(rad)).ToVec2();
+    }
 }

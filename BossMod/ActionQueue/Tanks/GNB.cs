@@ -248,9 +248,9 @@ public sealed class Definitions : Defs
     {
         d.RegisterChargeIncreaseTrait(AID.Aurora, TraitID.EnhancedAurora);
 
-        d.Spell(AID.LightningShot)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
+        d.Spell(AID.LightningShot)!.AllowExecute = (ws, player, _, _) => !(_config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f);
 
-        d.Spell(AID.Trajectory)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
+        d.Spell(AID.Trajectory)!.AllowExecute = ActionPredicate.AllowDashToTarget;
 
         //d.Spell(AID.Aurora)!.ForbidExecute = (_, player, _, _) => player.HPMP.CurHP >= player.HPMP.MaxHP; // don't use at full hp
 

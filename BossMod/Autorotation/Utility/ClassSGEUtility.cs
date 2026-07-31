@@ -98,7 +98,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         var kardiaStrat = kardia.As<KardiaOption>();
         if (kardiaStrat != KardiaOption.None)
         {
-            var kardiaTarget = ResolveTargetOverride(kardia.Value) ?? primaryTarget ?? Player;
+            var kardiaTarget = ResolveTarget(kardia.Value) ?? primaryTarget ?? Player;
             var hasKardia = kardiaTarget.FindStatus(SGE.SID.Kardia) != null;
             if (kardiaStrat == KardiaOption.Kardia && !hasKardia)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Kardia), kardiaTarget, kardia.Priority(), kardia.Value.ExpireIn);
@@ -121,7 +121,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
                 if (!hasEukrasia)
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.Eukrasia), Player, ed.Priority(), ed.Value.ExpireIn);
                 if (hasEukrasia)
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), ResolveTargetOverride(ed.Value) ?? primaryTarget ?? Player, ed.Priority(), ed.Value.ExpireIn);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(SGE.AID.EukrasianDiagnosis), ResolveTarget(ed.Value) ?? primaryTarget ?? Player, ed.Priority(), ed.Value.ExpireIn);
             }
         }
 
@@ -157,7 +157,7 @@ public sealed class ClassSGEUtility(RotationModuleManager manager, Actor player)
         //Icarus execution
         var dash = strategy.Option(Track.Icarus);
         var dashStrategy = strategy.Option(Track.Icarus).As<DashStrategy>();
-        var dashTarget = ResolveTargetOverride(dash.Value) ?? primaryTarget; //Smart-Targeting
+        var dashTarget = ResolveTarget(dash.Value) ?? primaryTarget; //Smart-Targeting
         var distance = Player.DistanceToHitbox(dashTarget);
         var shouldDash = dashStrategy switch
         {

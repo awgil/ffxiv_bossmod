@@ -28,4 +28,7 @@ sealed class AIConfig : ConfigNode
 
     [PropertyDisplay("Disable auto-target")]
     public bool ForbidActions = false;
+
+    [PropertyDisplay("Move towards current target", since: "7.5.1.21")]
+    public bool GoalZoneFallback = true;
 }

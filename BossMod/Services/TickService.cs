@@ -2,8 +2,10 @@
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
+using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
@@ -11,9 +13,11 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -240,6 +244,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex.FinishActionGather();
 
         Service.IconFont = uiBuilder.FontIcon;
+        Service.MonoFont = uiBuilder.FontMono;
+        Service.FontAtlas = uiBuilder.FontAtlas;
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
         {
@@ -271,6 +277,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     {
         if (_pauseBitmapGeneration || _ws.Party.Player() is not { } player || !Service.Config.Get<DeveloperConfig>().AutoBitmaps)
             return;
+
+        unsafe
+        {
+            // vnav isn't reliable in housing zones and there's not really a reason to have bitmaps there anyway
+            // TODO isn't there a oneliner for this?
+            if (FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance()->CurrentTerritoryIntendedUseId is FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.HousingIndoor or FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.HousingOutdoor)
+                return;
+        }
 
         // already have an entry, everything is ok
         var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
@@ -364,6 +378,29 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", _hintsBuilder.Obstacles.ClearGenerated);
 
+        _slashCmd.AddSubcommand("macro").SetSimpleHandler("enables VBM action queue inside macros (by default, any actions used in macros bypass the queue)", () =>
+        {
+            unsafe
+            {
+                if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
+                    _amex.MacroCapture = true;
+                else
+                    Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
+            }
+        });
+        _slashCmd.AddSubcommand("macro-off").SetSimpleHandler("disables VBM action queue inside a macro, if it has been enabled previously", () =>
+        {
+            unsafe
+            {
+                if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
+                    _amex.MacroCapture = false;
+                else
+                    Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
+            }
+        });
+
+        _slashCmd.AddSubcommand("helpme").SetSimpleHandler("gather diagnostic information", HelpMe);
+
         _slashCmd.Register();
         _slashCmd.RegisterAlias("/vbmai", "ai"); // TODO: deprecated
     }
@@ -391,7 +428,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             if (preset != null)
                 SetOrToggle(preset, toggle, exclusive);
             else
-                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
+                Service.ChatError($"Failed to find preset '{presetName}'");
         }
 
         void ClearByName(ReadOnlySpan<char> presetName)
@@ -403,7 +440,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 _rotation.Deactivate(preset);
             }
             else
-                Service.ChatGui.PrintError($"Failed to find preset '{presetName}'");
+                Service.ChatError($"Failed to find preset '{presetName}'");
         }
 
         cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
@@ -459,24 +496,30 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             aiConfig.Enabled = true;
             aiConfig.Modified.Fire();
+            Service.ChatMessage("AI enabled");
         });
         cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () =>
         {
             aiConfig.Enabled = false;
             aiConfig.Modified.Fire();
+            Service.ChatMessage("AI disabled");
         });
         cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () =>
         {
             aiConfig.Enabled ^= true;
             aiConfig.Modified.Fire();
+            Service.ChatMessage($"AI {(aiConfig.Enabled ? "enabled" : "disabled")}");
         });
         cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
         {
             var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : _ws.Party.FindSlot(masterString);
             if (_ws.Party[masterSlot] != null)
+            {
                 _wndAI.SetSlot(masterSlot);
+                Service.ChatMessage($"AI follow slot = {masterSlot}");
+            }
             else
-                Service.ChatGui.PrintError($"[MB] [Follow] Error: can't find {masterString} in our party");
+                Service.ChatError($"Error: can't find {masterString} in our party");
             return true;
         });
 
@@ -506,6 +549,91 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         });
     }
 
+    private void HelpMe()
+    {
+        StringBuilder diag = new();
+
+        var i = 0;
+
+        diag.AppendLine($"VBM {typeof(TickService).Assembly.GetName().Version}");
+        diag.AppendLine($"current zone: {_ws.CurrentZone}/{_ws.CurrentCFCID}");
+
+        var player = _ws.Party.Player();
+
+        if (player != null)
+        {
+            diag.AppendLine();
+            diag.AppendLine("player:");
+            diag.AppendLine($"L{player.Level} {player.Class}, HP {player.HPMP.CurHP}/{player.HPMP.MaxHP}, MP {player.HPMP.CurMP}/{player.HPMP.MaxMP}");
+
+            diag.AppendLine();
+            diag.AppendLine("statuses:");
+            foreach (var sid in player.Statuses)
+            {
+                if (sid.ID == 0)
+                    continue;
+                var desc = Service.LuminaRow<Lumina.Excel.Sheets.Status>(sid.ID);
+                diag.AppendLine($"status [{i++}]: {sid.ID} '{desc?.Name ?? "unknown"}' p=0x{sid.Extra:X} ({(sid.ExpireAt - _ws.CurrentTime).TotalSeconds:f1})");
+            }
+        }
+
+        diag.AppendLine();
+        diag.AppendLine("autorot:");
+        foreach (var m in _rotation.Presets)
+        {
+            diag.AppendLine($"{m.Name}");
+            foreach (var mod in m.Modules)
+            {
+                diag.AppendLine($"- {mod.Definition.DisplayName} ({mod.Type.FullName})");
+                foreach (var s in mod.TransientSettings)
+                {
+                    var track = mod.Definition.Configs[s.Track];
+                    diag.AppendLine($"  - {track.InternalName} = {track.ToDisplayString(s.Value)}");
+                }
+            }
+        }
+
+        diag.AppendLine();
+        diag.AppendLine("modules:");
+        foreach (var m in _bossmod.LoadedModules)
+        {
+            var s = m.StateMachine.ActiveState == null ? "inactive" : "active";
+            diag.AppendLine($"{m.GetType()} ({s}) (OID=0x{m.PrimaryActor.OID:X})");
+        }
+
+        if (player != null)
+        {
+            diag.AppendLine();
+            diag.AppendLine("bitmap:");
+
+            var (entry, _) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
+            if (entry != null)
+                diag.AppendLine(entry.ToString());
+
+            var (map, rect) = _hints.PathfindMapObstacles;
+            diag.AppendLine($"current bounds: {rect}");
+
+            if (map != null)
+            {
+                var offX = -rect.Left;
+                var offY = -rect.Top;
+                var r = rect.Clamped(map.FullRect).Clamped(new(0, 0, map.Width, map.Height), offX, offY);
+                var allPx = (r.Bottom - r.Top) * (r.Right - r.Left);
+                var filledPx = 0;
+                for (var y = r.Top; y < r.Bottom; ++y)
+                    for (var x = r.Left; x < r.Right; ++x)
+                        if (map[x, y])
+                            filledPx++;
+
+                diag.AppendLine($"map is {filledPx}/{allPx} filled ({filledPx / (float)allPx * 100:f2}%)");
+            }
+        }
+
+        ImGui.SetClipboardText($"```{diag.ToString()}```");
+
+        Service.ChatMessage("Diagnostic data has been copied to your clipboard.");
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -513,6 +641,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!disposing)
             return;
 
+        GaugeVisualizer.Dispose();
         _onConfigSave?.Dispose();
         _wndDebug?.Dispose();
         _wndAI.Dispose();

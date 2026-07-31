@@ -163,7 +163,7 @@ class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 5, m
             var dir = t.Rotation.ToDirection();
             hints.AddForbiddenZone(ShapeContains.Circle(t.Position, 5));
             hints.AddForbiddenZone(ShapeContains.Capsule(t.Position, dir, 5, 5), WorldState.FutureTime(1));
-            hints.AddForbiddenZone(ShapeContains.Capsule(t.Position, dir, 20, 5), WorldState.FutureTime(10));
+            hints.AddForbiddenZone(ShapeContains.Capsule(t.Position, dir, 40, 5), WorldState.FutureTime(10));
         }
     }
 }
@@ -188,11 +188,7 @@ class WindswrathLong(BossModule module) : Components.KnockbackFromCastTarget(mod
     {
         foreach (var s in Sources(slot, actor))
         {
-            if (IsImmune(slot, s.Activation))
-                continue;
-
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center, 12), s.Activation);
-            if ((s.Activation - Module.WorldState.CurrentTime).TotalSeconds > 3)
+            if (IsImmune(slot, s.Activation) || (s.Activation - Module.WorldState.CurrentTime).TotalSeconds > 3)
                 continue;
 
             // ok knockback is imminent, calculate precise safe zone

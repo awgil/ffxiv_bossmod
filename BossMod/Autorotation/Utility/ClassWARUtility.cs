@@ -65,6 +65,6 @@ public sealed class ClassWARUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (bwAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(bwAction), bwAction == WAR.AID.NascentFlash ? ResolveTargetOverride(bw.Value) ?? CoTank() : Player, bw.Priority(), bw.Value.ExpireIn);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(bwAction), bwAction == WAR.AID.NascentFlash ? ResolveTarget(bw.Value) ?? CoTank() : Player, bw.Priority(), bw.Value.ExpireIn);
     }
 }

@@ -94,9 +94,6 @@ internal class SleepNowInSapphire(WorldState ws) : QuestBattle(ws)
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {
-        hints.PathfindMapBounds = new ArenaBoundsSquare(60, 1);
-        hints.PathfindMapCenter = new WPos(-15, 610);
-
         _weapon.Execute(player, hints);
     }
 }

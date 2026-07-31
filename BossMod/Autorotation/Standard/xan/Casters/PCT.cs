@@ -137,17 +137,6 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         High = 600
     }
 
-    private float GetApplicationDelay(AID action) => action switch
-    {
-        AID.RainbowDrip => 1.24f,
-        AID.FireInRed => 0.84f,
-        AID.ClawedMuse => 0.98f,
-        AID.FangedMuse => 1.16f,
-        AID.MogOfTheAges => 1.15f,
-        AID.RetributionOfTheMadeen => 1.30f,
-        _ => 0
-    };
-
     public const uint LeylinesOID = 0x6DF;
 
     private AID BestLivingMuse
@@ -206,10 +195,10 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
 
         BestLineTarget = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget).Best;
 
-        MuseTarget = ResolveTargetOverride(strategy.Muse) ?? BestAOETarget;
-        PortraitTarget = ResolveTargetOverride(strategy.Portrait) ?? BestLineTarget;
-        HammerTarget = ResolveTargetOverride(strategy.Hammer) ?? BestAOETarget;
-        HolyTarget = ResolveTargetOverride(strategy.Holy) ?? BestAOETarget;
+        MuseTarget = ResolveEnemy(strategy.Muse) ?? BestAOETarget;
+        PortraitTarget = ResolveEnemy(strategy.Portrait) ?? BestLineTarget;
+        HammerTarget = ResolveEnemy(strategy.Hammer) ?? BestAOETarget;
+        HolyTarget = ResolveEnemy(strategy.Holy) ?? BestAOETarget;
 
         if (!Player.InCombat && Player.CastInfo is { Action: var act } && (AID)act.ID is AID.PomMotif or AID.WingMotif or AID.ClawMotif or AID.MawMotif or AID.HammerMotif or AID.StarrySkyMotif)
             Hints.ForceCancelCast = true;

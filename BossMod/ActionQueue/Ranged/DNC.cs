@@ -185,6 +185,6 @@ public sealed class Definitions : Defs
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
 
-        d.Spell(AID.EnAvant)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(10);
+        d.Spell(AID.EnAvant)!.AllowExecute = ActionPredicate.AllowDashFixed(10);
     }
 }

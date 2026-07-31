@@ -81,7 +81,7 @@ public enum SID : uint
     BloodWeapon = 742, // applied by BloodWeapon to self
     Grit = 743, // applied by Grit to self
     SaltedEarth = 749, // applied by Salted Earth
-    TheBlackestNight = 1308, // applied by The Blackest Night to target
+    TheBlackestNight = 1178, // applied by The Blackest Night to target
     Delirium = 1972, // applied by Delirium to self
     Oblation = 2682, // applied by Oblation to target
     EnhancedDelirium = 3836, // applied by Delirium to self (Lv96+)
@@ -138,6 +138,6 @@ public sealed class Definitions : Defs
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Shadowstride)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
+        d.Spell(AID.Shadowstride)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
 }

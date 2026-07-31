@@ -159,8 +159,8 @@ public sealed class Definitions : Defs
         };
 
         d.Spell(AID.Intervention)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
-        d.Spell(AID.HolySpirit)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyHolySpirit && !player.InCombat && ws.Client.CountdownRemaining > 1.75f;
-        d.Spell(AID.ShieldLob)!.ForbidExecute = (ws, player, _, _) => _config.ForbidEarlyShieldLob && !player.InCombat && ws.Client.CountdownRemaining > 0.7f;
+        d.Spell(AID.HolySpirit)!.AllowExecute = (ws, player, _, _) => !(_config.ForbidEarlyHolySpirit && !player.InCombat && ws.Client.CountdownRemaining > 1.75f);
+        d.Spell(AID.ShieldLob)!.AllowExecute = (ws, player, _, _) => !(_config.ForbidEarlyShieldLob && !player.InCombat && ws.Client.CountdownRemaining > 0.7f);
         //d.Spell(AID.LastBastion)!.EffectDuration = 8;
         //d.Spell(AID.FightOrFlight)!.EffectDuration = 20;
         //d.Spell(AID.Sheltron)!.EffectDuration = 4; // TODO: duration increases to 6...
@@ -170,6 +170,6 @@ public sealed class Definitions : Defs
         //d.Spell(AID.DivineVeil)!.EffectDuration = 30;
         // TODO: Intervention effect duration?
 
-        d.Spell(AID.Intervene)!.ForbidExecute = ActionDefinitions.DashToTargetCheck;
+        d.Spell(AID.Intervene)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
 }

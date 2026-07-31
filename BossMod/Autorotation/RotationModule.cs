@@ -214,6 +214,16 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
         return default;
     }
 
+    public float MaxChargesIn(ActionID action)
+    {
+        if (ActionDefinitions.Instance[action] is not { } def || !def.IsUnlocked(World, Player))
+            return float.MaxValue;
+
+        return def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level);
+    }
+
+    public float MaxChargesIn<AID>(AID aid) where AID : Enum => MaxChargesIn(ActionID.MakeSpell(aid));
+
     public bool TraitUnlocked(uint id)
     {
         var trait = Service.LuminaRow<Lumina.Excel.Sheets.Trait>(id);
@@ -224,8 +234,9 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     // utility to resolve the target overrides; returns null on failure - in this case module is expected to run smart-targeting logic
     // expected usage is `ResolveTargetOverride(strategy) ?? CustomSmartTargetingLogic(...)`
-    protected Actor? ResolveTargetOverride(in StrategyValueTrack strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
-    protected AIHints.Enemy? ResolveTargetOverride<T>(in Track<T> track) where T : struct => Hints.FindEnemy(Manager.ResolveTargetOverride(track.TrackRaw.Target, track.TrackRaw.TargetParam));
+    protected Actor? ResolveTarget(in StrategyValueTrack strategy) => Manager.ResolveTargetOverride(strategy.Target, strategy.TargetParam);
+    protected Actor? ResolveTarget<T>(in Track<T> track) where T : struct => ResolveTarget(track.TrackRaw);
+    protected AIHints.Enemy? ResolveEnemy<T>(in Track<T> track) where T : struct => Hints.FindEnemy(ResolveTarget(track.TrackRaw));
     protected WPos ResolveTargetLocation(in StrategyValueTrack strategy) => Manager.ResolveTargetLocation(strategy.Target, strategy.TargetParam, strategy.Offset1, strategy.Offset2);
 
     protected float StatusDuration(DateTime expireAt) => Math.Max((float)(expireAt - World.CurrentTime).TotalSeconds, 0.0f);

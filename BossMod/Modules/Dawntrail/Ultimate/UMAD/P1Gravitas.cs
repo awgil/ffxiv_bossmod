@@ -149,6 +149,20 @@ class P1GravitasPuddleSoak(BossModule module) : Components.CastCounter(module, A
             hints.Add("Soak puddles!", !Puddles.Any(p => actor.Position.InCircle(p.Position, 5)));
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!EnableHints)
+            return;
+
+        // soak all touching puddles that are close to us
+        if (Puddles.Closest(actor.Position) is { } p)
+        {
+            var others = Puddles.Where(p2 => p2.Position.InCircle(p.Position, 9.5f)).Select(p2 => ShapeContains.InvertedCircle(p2.Position, 5)).ToList();
+            if (others.Count > 0)
+                hints.AddForbiddenZone(ShapeContains.Union(others));
+        }
+    }
+
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.Gravitas && state == 0x00100020)

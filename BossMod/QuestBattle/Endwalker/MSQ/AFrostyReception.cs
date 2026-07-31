@@ -44,6 +44,10 @@ internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
                     hints.AddForbiddenZone(GetSightCone(h.Actor));
 
         _ai.Execute(player, hints);
+
+        // allow interrupting interact to dodge patrols
+        if (hints.ForbiddenZones.Any(z => z.containsFn(player.Position)))
+            hints.InteractWithTarget = null;
     }
 
     private static Func<WPos, bool> GetSightCone(Actor p)
@@ -164,14 +168,14 @@ internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Carriage 2")
-            .MoveHint(new WPos(0, 235))
+            .WithConnection(new Vector3(0, 1, 235))
             .With(obj => {
                 obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.UpdateID == 0x10000001 && diru.Param1 == 0x7B77);
             }),
 
         new QuestObjective(ws)
             .Named("Carriage 3")
-            .MoveHint(new WPos(0, 176))
+            .WithConnection(new Vector3(0, 1, 176))
             .CompleteOnKilled(0x3635),
 
         new QuestObjective(ws)

@@ -7,35 +7,62 @@ class P3EarthHints(BossModule module) : BossComponent(module)
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.Accretion)
-            _accretions.Add(actor);
+        {
+            if (actor.FindStatus(SID.FirstInLine) != null)
+                _accretions.Insert(0, actor);
+            else
+                _accretions.Add(actor);
+        }
+
+        if ((SID)status.ID == SID.FirstInLine && _accretions.Contains(actor))
+        {
+            _accretions.Remove(actor);
+            _accretions.Insert(0, actor);
+        }
     }
 
-    public override void AddGlobalHints(GlobalHints hints) => hints.Add($"Accretion: {string.Join(", ", _accretions.Select(a => a.Name))}");
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (_accretions.Count > 0)
+            hints.Add($"Accretions: {string.Join(", ", _accretions.Select(a => a.Name))}");
+    }
 }
 
 class P3KefkaIndicator(BossModule module) : BossComponent(module)
 {
     Actor? _bigKefka;
+    bool offset;
+
     public override void OnStatusGain(Actor actor, ActorStatus status)
     {
         if ((SID)status.ID == SID.P3Max)
+        {
             _bigKefka = actor;
+            offset = true;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.StandOnArena)
+            offset = false;
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_bigKefka is { } k)
-            Arena.Actor(k.Position - k.Rotation.ToDirection() * 20, k.Rotation, ArenaColor.Object);
+            Arena.Actor(offset ? k.Position - k.Rotation.ToDirection() * 20 : k.Position, k.Rotation, ArenaColor.Object);
     }
 }
 
 class P3SlapHappy(BossModule module) : Components.GenericAOEs(module)
 {
+    public bool Risky = true;
     readonly List<AOEInstance> _predicted = [];
 
     const float Displacement = 10;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => p with { Risky = Risky });
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -86,14 +113,14 @@ class P3SlapHappyShockwave(BossModule module) : Components.UntelegraphedBait(mod
             case AID.SlapHappyLeftHand:
                 _numExpected = 3;
                 activation = Module.CastFinishAt(spell, 3.4f);
-                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.IsDD()).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1, stackSize: 4));
-                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Healer).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1, stackSize: 2));
-                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Tank).Mask(), new AOEShapeCone(100, 22.5f.Degrees()), activation, count: 1, stackSize: 2));
+                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.IsDD()).Mask(), new AOEShapeCone(100, 30.Degrees()), activation, count: 1));
+                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Healer).Mask(), new AOEShapeCone(100, 30.Degrees()), activation, count: 1));
+                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Tank).Mask(), new AOEShapeCone(100, 30.Degrees()), activation, count: 1));
                 break;
             case AID.SlapHappyRightHand:
                 _numExpected = 1;
                 activation = Module.CastFinishAt(spell, 3.4f);
-                CurrentBaits.Add(new(Arena.Center, new(0xff), new AOEShapeCone(100, 30.Degrees()), activation, count: 1, stackSize: 8));
+                CurrentBaits.Add(new(Arena.Center, Raid.WithSlot().WhereActor(a => a.Class.GetClassCategory() == ClassCategory.Healer).Mask(), new AOEShapeCone(100, 30.Degrees()), activation, count: 1, stackSize: 8));
                 break;
         }
     }
@@ -116,22 +143,19 @@ class P3Blackhole(BossModule module) : Components.PersistentVoidzone(module, 2, 
 
 class P3Nothingness : Components.BaitAwayTethers
 {
-    enum TargetRole
-    {
-        Unknown,
-        DPS,
-        Support,
-        Accretion
-    }
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
 
-    record struct TargetOrder(TargetRole Role, int Order);
+    record struct TargetOrder(char Role, int Order);
     readonly TargetOrder[] _order = new TargetOrder[8];
 
     class Blackhole
     {
         public required Actor Hole;
+        public bool Predicted; // true if this blackhole hasn't spawned a tether yet, but is going to
         public int CastsLeft;
         public TargetOrder DesiredTarget;
+        public TargetOrder DesiredNextTarget;
+        public bool SwapImminent => DesiredTarget != DesiredNextTarget && CastsLeft > 1;
     }
 
     readonly List<Blackhole> _holes = [];
@@ -147,7 +171,13 @@ class P3Nothingness : Components.BaitAwayTethers
 
         var order = _order[slot];
         if (order != default)
-            hints.Add($"Order: {order.Role} {order.Order}", false);
+        {
+            var os = order.Role == 'D' ? "DPS" : order.Role == 'S' ? "Support" : order.Role == 'A' ? "Accretion" : "";
+            hints.Add($"Order: {os} {order.Order}", false);
+        }
+
+        if (_holes.Any(h => h.Predicted && h.DesiredTarget == _order[slot] || h.DesiredNextTarget == _order[slot] && h.SwapImminent))
+            hints.Add("Prepare to take tether!", false);
 
         foreach (var b in CurrentBaits)
         {
@@ -174,10 +204,14 @@ class P3Nothingness : Components.BaitAwayTethers
     {
         base.OnTethered(source, tether);
 
-        if ((TetherID)tether.ID == TetherID.BlackHole && !_holes.Any(h => h.Hole == source))
+        if ((TetherID)tether.ID == TetherID.BlackHole)
         {
-            _holes.Add(new() { Hole = source, CastsLeft = NumCasts is < 3 or >= 21 ? 1 : 3 });
-            AssignHoles();
+            _holes.RemoveAll(h => h.Hole == source && h.Predicted);
+            if (!_holes.Any(h => h.Hole == source))
+            {
+                _holes.Add(new() { Hole = source, CastsLeft = NumCasts is < 3 or >= 21 ? 1 : 3 });
+                AssignHoles();
+            }
         }
     }
 
@@ -206,11 +240,22 @@ class P3Nothingness : Components.BaitAwayTethers
                 var color = isMine ? ArenaColor.Safe : ArenaColor.Danger;
                 var width = (bait.Target == pc) == isMine ? 1 : 2;
 
+                if (bh.DesiredNextTarget == _order[pcSlot] && bh.SwapImminent)
+                    width = 2;
+
                 if (Arena.Config.ShowOutlinesAndShadows)
                     Arena.AddLine(bait.Source.Position, bait.Target.Position, 0xFF000000, width + 1);
                 Arena.AddLine(bait.Source.Position, bait.Target.Position, color, width);
             }
+            else if (bh.Predicted && bh.DesiredTarget == _order[pcSlot])
+                Arena.AddCircle(bh.Hole.Position, 1, ArenaColor.Danger, 2);
         }
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.BlackHoleP3)
+            AssignHoles();
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)
@@ -226,12 +271,12 @@ class P3Nothingness : Components.BaitAwayTethers
         if (order > 0 && Raid.TryFindSlot(actor, out var slot))
         {
             _order[slot].Order = order;
-            if (_order[slot].Role == TargetRole.Unknown)
-                _order[slot].Role = actor.Class.IsDD() ? TargetRole.DPS : TargetRole.Support;
+            if (_order[slot].Role == default)
+                _order[slot].Role = actor.Class.IsDD() ? 'D' : 'S';
         }
 
         if ((SID)status.ID == SID.Accretion && Raid.TryFindSlot(actor, out slot))
-            _order[slot] = _order[slot] with { Role = TargetRole.Accretion };
+            _order[slot] = _order[slot] with { Role = 'A' };
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -244,43 +289,94 @@ class P3Nothingness : Components.BaitAwayTethers
 
     void AssignHoles()
     {
+        _holes.RemoveAll(h => h.Predicted);
         foreach (var h in _holes)
-            h.DesiredTarget = default;
-
-        TargetOrder[] toApply = (NumCasts, _holes.Count) switch
         {
-            // set 1
-            (0, 1) => [new(TargetRole.DPS, 1)],
-            (1, 2) => [new(TargetRole.DPS, 1), new(TargetRole.Support, 1)],
-            // set 2
-            (3, 3) => [new(TargetRole.DPS, 1), new(TargetRole.Support, 1), new(TargetRole.Accretion, 1)],
-            (6, 3) => [new(TargetRole.DPS, 2), new(TargetRole.Support, 1), new(TargetRole.Accretion, 1)],
-            (9, 3) => [new(TargetRole.DPS, 2), new(TargetRole.Support, 2), new(TargetRole.Accretion, 1)],
-            // set 3
-            (12, 3) => [new(TargetRole.DPS, 2), new(TargetRole.Support, 2), new(TargetRole.Accretion, 2)],
-            (15, 3) => [new(TargetRole.DPS, 3), new(TargetRole.Support, 2), new(TargetRole.Accretion, 2)],
-            (18, 3) => [new(TargetRole.DPS, 3), new(TargetRole.Support, 3), new(TargetRole.Accretion, 2)],
-            // set 4
-            (21, 2) => [new(TargetRole.DPS, 3), new(TargetRole.Support, 3)],
-            (23, 1) => [new(TargetRole.Support, 3)],
+            h.DesiredTarget = default;
+            h.DesiredNextTarget = default;
+        }
+
+        var iteration = (NumCasts, _holes.Count(h => !h.Predicted)) switch
+        {
+            (0, 1) => 0,
+            (1, 2) => 1,
+            (3, 3) => 2,
+            (6, 3) => 3,
+            (9, 3) => 4,
+            (12, 3) => 5,
+            (15, 3) => 6,
+            (18, 3) => 7,
+            (21, 2) => 8,
+            (23, 1) => 9,
+            _ => -1
+        };
+
+        if (iteration < 0)
+            return;
+
+        var bhOrder = _config.P3BlackholeStrategy switch
+        {
+            UMADConfig.P3BlackholeStrategyType.DSA => BlackholeOrder.DSA,
+            UMADConfig.P3BlackholeStrategyType.SDA => BlackholeOrder.SDA,
+            UMADConfig.P3BlackholeStrategyType.DoubleTether => BlackholeOrder.DoubleTether,
             _ => []
         };
 
-        if (toApply.Length > 0)
+        if (bhOrder.Length == 0)
+            return;
+
+        if (((UMAD)Module).KefkaP3() is not { } k3)
         {
-            if (((UMAD)Module).KefkaP3() is not { } k3)
+            ReportError("unable to assign tethers - can't find kefka???");
+            return;
+        }
+
+        // set 2 spawns CCW of set 1
+        if (iteration == 0)
+        {
+            var dirFirst = _holes[0].Hole.Position - Arena.Center;
+            var allHoles = WorldState.Actors.Where(a => (OID)a.OID == OID.BlackHoleP3);
+            _holes.Add(new()
             {
-                ReportError("unable to assign tethers - can't find kefka???");
-                return;
+                Hole = allHoles.Closest(Arena.Center + dirFirst.OrthoL())!,
+                Predicted = true,
+            });
+            _holes.Add(new()
+            {
+                Hole = allHoles.Closest(Arena.Center - dirFirst)!,
+                Predicted = true,
+            });
+        }
+
+        // last tether spawns CW of set 9
+        if (iteration == 8)
+        {
+            var dirFirst = (_holes[0].Hole.Position - Arena.Center + (_holes[1].Hole.Position - Arena.Center)) * 0.5f;
+            var allHoles = WorldState.Actors.Where(a => (OID)a.OID == OID.BlackHoleP3);
+            _holes.Add(new()
+            {
+                Hole = allHoles.Closest(Arena.Center + dirFirst.Rotate(-135.Degrees()))!,
+                Predicted = true
+            });
+        }
+
+        // the closest hole to kefka's right is at least 45 degrees away, whereas the one directly under him may be <1 degree counterclockwise, but should still be treated as the basis for prioritization
+        var holesOrdered = _holes.ClockOrderWith(bh => bh.Hole, k3, k3.Position + (k3.Rotation + 5.Degrees()).ToDirection());
+
+        int i = 0, j = 0;
+        foreach (var blackhole in holesOrdered)
+        {
+            var assignment = blackhole.Predicted ? bhOrder[iteration + 1][j++] : bhOrder[iteration][i++];
+            blackhole.DesiredTarget = new(assignment.Role, assignment.Order);
+
+            if (iteration is >= 2 and < 7)
+            {
+                var nextAssignment = bhOrder[iteration + 1][i - 1];
+                blackhole.DesiredNextTarget = new(nextAssignment.Role, nextAssignment.Order);
             }
-            // the closest hole to kefka's right is at least 45 degrees away, whereas the one directly under him may be <1 degree counterclockwise, but should still be treated as the basis for prioritization
-            foreach (var (h, r) in _holes.ClockOrderWith(bh => bh.Hole, k3, k3.Position + (k3.Rotation + 5.Degrees()).ToDirection()).Zip(toApply))
-                h.DesiredTarget = r;
         }
     }
 }
 
 class P3DamningEdict(BossModule module) : Components.StandardAOEs(module, AID.DamningEdict, new AOEShapeRect(60, 40));
 class P3HotTail(BossModule module) : Components.StandardAOEs(module, AID.LookUponMeAndDespair, new AOEShapeRect(100, 8));
-
-// vfx/monster/gimmick6/eff/z3oy_b0_g10c0c.avfx

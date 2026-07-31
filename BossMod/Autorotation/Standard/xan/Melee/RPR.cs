@@ -10,10 +10,11 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
-        [Track("Arcane Circle", MinLevel = 72, Action = AID.ArcaneCircle)]
+
+        [Track("Arcane Circle", MinLevel = 72, Action = AID.ArcaneCircle, OGCDPriority = OGCDPriority.Default)]
         public Track<OffensiveStrategy> Buffs;
 
-        [Track(Action = AID.Enshroud, MinLevel = 80)]
+        [Track(Action = AID.Enshroud, MinLevel = 80, OGCDPriority = OGCDPriority.Default)]
         public Track<OffensiveStrategy> Enshroud;
 
         [Track(Action = AID.Communio, MinLevel = 90, Targets = ActionTargets.Hostile)]
@@ -64,7 +65,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
     {
         [Option("Use ASAP, unless shroud gauge is full or Gluttony is almost off cooldown", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Use Blood Stalk/Grim Swathe at max gauge, otherwise hold", Targets = ActionTargets.Hostile, MinLevel = 76)]
+        [Option("Reserve 50 gauge for Gluttony; use other spenders at maximum gauge", Targets = ActionTargets.Hostile, MinLevel = 76)]
         ReserveGluttony,
         [Option("Use Stalk/Gluttony ASAP, ignoring timers", Targets = ActionTargets.Hostile, MinLevel = 76)]
         Force,
@@ -163,9 +164,12 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool Enshrouded => BlueSouls > 0;
 
+    private bool HaveTarget;
+
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
+        HaveTarget = primaryTarget != null && Player.InCombat;
 
         var gauge = World.Client.GetGauge<ReaperGauge>();
 
@@ -222,6 +226,8 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             if (CountdownRemaining < GetCastTime(AID.Harpe))
                 PushGCD(AID.Harpe, primaryTarget);
 
+            OGCD(strategy, primaryTarget);
+
             return;
         }
 
@@ -264,10 +270,10 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             {
                 case HarpeStrategy.Automatic:
                     if (EnhancedHarpe > GCD)
-                        PushGCD(AID.Harpe, ResolveTargetOverride(strategy.Harpe) ?? primaryTarget, GCDPriority.EnhancedHarpe);
+                        PushGCD(AID.Harpe, ResolveEnemy(strategy.Harpe) ?? primaryTarget, GCDPriority.EnhancedHarpe);
                     break;
                 case HarpeStrategy.Ranged:
-                    PushOGCD(AID.Harpe, ResolveTargetOverride(strategy.Harpe) ?? primaryTarget, 50);
+                    PushOGCD(AID.Harpe, ResolveEnemy(strategy.Harpe) ?? primaryTarget, 50);
                     break;
             }
         }
@@ -306,15 +312,23 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
     private void OGCD(Strategy strategy, Enemy? primaryTarget)
     {
-        if (primaryTarget == null || !Player.InCombat)
-            return;
-
-        if (strategy.Buffs != OffensiveStrategy.Delay)
+        switch (strategy.Buffs.Value)
         {
-            // wait for soul slice in opener
-            if (OnCooldown(AID.SoulSlice) || CombatTimer > 10)
-                PushOGCD(AID.ArcaneCircle, Player, delay: GCD - 1.6f);
+            case OffensiveStrategy.Automatic:
+                if (HaveTarget && (OnCooldown(AID.SoulSlice) || CombatTimer > 10))
+                    UsePlanned(strategy.Buffs, AID.ArcaneCircle, Player, delay: GCD - 1.6f);
+                break;
+            case OffensiveStrategy.Force:
+                UsePlanned(strategy.Buffs, AID.ArcaneCircle, Player);
+                break;
         }
+
+        if (ShouldEnshroud(strategy))
+            UsePlanned(strategy.Enshroud, AID.Enshroud, Player);
+
+        // all the other OGCDs are gauge spenders or whatever
+        if (!HaveTarget)
+            return;
 
         if (NextPositionalImminent && !NextPositionalCorrect)
             PushOGCD(AID.TrueNorth, Player, delay: GCD - 0.8f);
@@ -329,9 +343,6 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
             PushOGCD(AID.LemuresSlice, primaryTarget);
         }
-
-        if (ShouldEnshroud(strategy))
-            PushOGCD(AID.Enshroud, Player);
 
         UseSoul(strategy, primaryTarget);
 
@@ -351,7 +362,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             _ => GCDPriority.None
         };
 
-        PushGCD(AID.HarvestMoon, ResolveTargetOverride(strategy.HM) ?? BestRangedAOETarget, prio);
+        PushGCD(AID.HarvestMoon, ResolveEnemy(strategy.HM) ?? BestRangedAOETarget, prio);
     }
 
     private void DDRefresh(Enemy? primaryTarget)
@@ -385,7 +396,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             _ => GCDPriority.None
         };
 
-        PushGCD(AID.Perfectio, ResolveTargetOverride(opt) ?? BestRangedAOETarget, prio);
+        PushGCD(AID.Perfectio, ResolveEnemy(opt) ?? BestRangedAOETarget, prio);
     }
 
     private void PlentifulHarvest(in Strategy strategy)
@@ -393,7 +404,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (ImmortalSacrifice.Left <= GCD || BloodsownCircle > GCD || !strategy.PH.IsEnabled() || SoulReaver)
             return;
 
-        PushGCD(AID.PlentifulHarvest, ResolveTargetOverride(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest);
+        PushGCD(AID.PlentifulHarvest, ResolveEnemy(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest);
     }
 
     private void Sow(in Strategy strategy)
@@ -411,6 +422,10 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         // forced by plan
         if (strategy.Enshroud == OffensiveStrategy.Force)
             return true;
+
+        // need to be in combat for automatic usage
+        if (!HaveTarget)
+            return false;
 
         // let's assume wasting perfectio or soul reaver is a mistake
         if (PerfectioParata > GCD || SoulReaver)
@@ -444,7 +459,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         // before 70, blood stalk IS our dps output from red gauge, so we don't want to waste it on dying targets
         var haveBlueGauge = Unlocked(AID.Gallows);
-        var targetOverride = ResolveTargetOverride(strategy.RedGauge);
+        var targetOverride = ResolveEnemy(strategy.RedGauge);
 
         void useBloodStalk()
         {
@@ -502,7 +517,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (!shouldUse)
             return;
 
-        var sliceTarget = ResolveTargetOverride(strategy.Slice);
+        var sliceTarget = ResolveEnemy(strategy.Slice);
 
         // assuming if a target is specified, we don't want to use AOE rotation - TODO is this necessary at all?
         if (NumAOETargets > 2 && sliceTarget == null)
@@ -519,7 +534,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (BlueSouls == 1)
         {
             if (strategy.Communio.IsEnabled())
-                PushGCD(AID.Communio, ResolveTargetOverride(strategy.Communio) ?? BestRangedAOETarget, GCDPriority.Communio);
+                PushGCD(AID.Communio, ResolveEnemy(strategy.Communio) ?? BestRangedAOETarget, GCDPriority.Communio);
 
             if (Soulsow)
                 PushGCD(AID.HarvestMoon, BestRangedAOETarget, GCDPriority.EnshroudMove);

@@ -172,16 +172,6 @@ public sealed class Definitions : Defs
         // hardcoded mechanics
         d.RegisterChargeIncreaseTrait(AID.Thunderclap, TraitID.EnhancedThunderclap);
 
-        d.Spell(AID.Thunderclap)!.ForbidExecute = ActionDefinitions.DashToPositionCheck;
-
-        // upgrades (TODO: don't think we actually care...)
-        //d.Spell(AID.SteelPeak)!.TransformAction = d.Spell(AID.ForbiddenChakra)!.TransformAction = () => ActionID.MakeSpell(_state.BestForbiddenChakra);
-        //d.Spell(AID.HowlingFist)!.TransformAction = d.Spell(AID.Enlightenment)!.TransformAction = () => ActionID.MakeSpell(_state.BestEnlightenment);
-        //d.Spell(AID.Meditation)!.TransformAction = () => ActionID.MakeSpell(_state.Chakra == 5 ? _state.BestForbiddenChakra : AID.Meditation);
-        //d.Spell(AID.ArmOfTheDestroyer)!.TransformAction = d.Spell(AID.ShadowOfTheDestroyer)!.TransformAction = () => ActionID.MakeSpell(_state.BestShadowOfTheDestroyer);
-        //d.Spell(AID.MasterfulBlitz)!.TransformAction = () => ActionID.MakeSpell(_state.BestBlitz);
-        //d.Spell(AID.PerfectBalance)!.Condition = _ => _state.PerfectBalanceLeft == 0;
-        // combo replacement (TODO: don't think we actually care...)
-        //d.Spell(AID.FourPointFury)!.TransformAction = config.AOECombos ? () => ActionID.MakeSpell(Rotation.GetNextComboAction(_state, _strategy)) : null;
+        d.Spell(AID.Thunderclap)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
 }

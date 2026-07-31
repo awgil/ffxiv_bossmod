@@ -96,7 +96,7 @@ public class DebugObjects
             Camera.Instance?.DrawWorldLine(Service.ObjectTable.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
             Camera.Instance?.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
             Camera.Instance?.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
-            Camera.Instance?.DrawWorldCircle(selected.Position - h, selected.HitboxRadius, 0xff00ff00);
+            Camera.Instance?.DrawWorldCircle(selected.Position + h * 2, selected.HitboxRadius, 0xff00ff00);
             int numSegments = CurveApprox.CalculateCircleSegments(selected.HitboxRadius, 360.Degrees(), 1);
             for (int i = 0; i < numSegments; ++i)
             {

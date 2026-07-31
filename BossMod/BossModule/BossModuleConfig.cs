@@ -88,6 +88,9 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show waymarks on radar")]
     public bool ShowWaymarks = false;
 
+    [PropertyDisplay("Show waymark shapes on radar", since: "7.5.1.15", depends: nameof(ShowWaymarks))]
+    public bool StrokeWaymarks = false;
+
     [PropertyDisplay("Show signs on radar ('attack', 'bind', 'ignore', and shape markers)", since: "0.4.10.0")]
     public bool ShowSigns = false;
 
@@ -110,6 +113,12 @@ public class BossModuleConfig : ConfigNode
     [SectionStart]
     [PropertyDisplay("Show text hints in separate window", tooltip: "Separates the radar window from the hints window, allowing you to reposition the hints window")]
     public bool HintsInSeparateWindow = false;
+
+    [PropertyDisplay("Transparent background for text hints window", since: "7.5.1.32", depends: nameof(HintsInSeparateWindow))]
+    public bool HintsFloating = false;
+
+    [PropertyDisplay("Text outline color", since: "7.5.1.32", depends: nameof(HintsInSeparateWindow))]
+    public Color HintShadowColor = new(0xFF000000);
 
     [PropertyDisplay("Show mechanic sequence and timer hints")]
     public bool ShowMechanicTimers = true;

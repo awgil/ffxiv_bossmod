@@ -38,6 +38,40 @@ public class UMADConfig : ConfigNode
     [GroupPreset("HHTTMMRR", [3, 2, 1, 0, 4, 5, 6, 7])]
     public GroupAssignmentUnique P2ForsakenTiebreaker = new() { Assignments = [3, 2, 1, 0, 4, 5, 6, 7] };
 
+    public enum P3BlackholeStrategyType
+    {
+        None,
+        [PropertyDisplay("DPS -> Support -> Accretion")]
+        DSA,
+        [PropertyDisplay("Support -> DPS -> Accretion")]
+        SDA,
+        [PropertyDisplay("DSA with double tethers")]
+        DoubleTether
+    }
+
+    [PropertyDisplay("P3 Blackhole tether assignments")]
+    public P3BlackholeStrategyType P3BlackholeStrategy = P3BlackholeStrategyType.None;
+
+    [PropertyDisplay("P5 Maddening Orchestra: treat Chaotic Holy as a spread", tooltip: "The tank that receives the Surprise Holy debuff is targeted by Chaotic Holy, a small stack that is intended to be shared with the party. It can be taken solo using invuln, which simplifies the mechanic.")]
+    public bool P5MaddeningSpreadAll = true;
+
+    public enum P5CelestriadAssignment
+    {
+        [PropertyDisplay("None; only forbid towers matching debuffs")]
+        None,
+        [PropertyDisplay("Players with debuffs take first available CW tower")]
+        CW,
+        [PropertyDisplay("Players with debuffs take first available CCW tower")]
+        CCW
+    }
+
+    [PropertyDisplay("P5 Celestriad: tower assignments")]
+    public P5CelestriadAssignment P5CelestriadStrategy = P5CelestriadAssignment.CW;
+
+    [SectionStart("AI-only settings")]
+    [PropertyDisplay("P1 Gravitas: Puddle drop strategy")]
+    public P1GravityPuddlePlacement P1GravityPuddleStrategy = P1GravityPuddlePlacement.None;
+
     public enum P1GravityPuddlePlacement
     {
         None,
@@ -45,13 +79,29 @@ public class UMADConfig : ConfigNode
         StackAll
     }
 
-    [SectionStart("AI-only settings")]
-    [PropertyDisplay("P1 Gravitas: Puddle drop strategy")]
-    public P1GravityPuddlePlacement P1GravityPuddleStrategy = P1GravityPuddlePlacement.None;
-
     [PropertyDisplay("P1 Gravitas: Spread destinations")]
     [GroupDetails(["G1 (left)", "G2 (right)"])]
     public GroupAssignmentLightParties P1GravityPuddleSpread = GroupAssignmentLightParties.DefaultLightParties();
+
+    public enum P1ArrowsStacks
+    {
+        None,
+        [PropertyDisplay("Supports NW, DPS SE")]
+        SuppNDamageS
+    }
+
+    [PropertyDisplay("P1 Tele-Portent: Confetti positions")]
+    public P1ArrowsStacks P1ArrowsConfettiStrategy = P1ArrowsStacks.None;
+
+    public enum P1ArrowsSpots
+    {
+        None,
+        [PropertyDisplay("Melee in, ranged out; G1 N/S, G2 E/W")]
+        KefkabinStatic
+    }
+
+    [PropertyDisplay("P1 Tele-Portent: Post-confetti positions")]
+    public P1ArrowsSpots P1ArrowsSpreadStrategy = P1ArrowsSpots.None;
 }
 
 public class GroupAssignmentRolePairs : GroupAssignment
@@ -74,4 +124,55 @@ public class GroupAssignmentRolePairs : GroupAssignment
                 counts[Assignments[i]]++;
         return counts.All(c => c == 2);
     }
+}
+
+public static class BlackholeOrder
+{
+    public static readonly (char Role, int Order)[][] DSA = [
+        [('D', 1)],
+        [('D', 1), ('S', 1)],
+
+        [('D', 1), ('S', 1), ('A', 1)],
+        [('D', 2), ('S', 1), ('A', 1)],
+        [('D', 2), ('S', 2), ('A', 1)],
+
+        [('D', 2), ('S', 2), ('A', 2)],
+        [('D', 3), ('S', 2), ('A', 2)],
+        [('D', 3), ('S', 3), ('A', 2)],
+
+        [('D', 3), ('S', 3)],
+        [('S', 3)],
+    ];
+
+    public static readonly (char Role, int Order)[][] SDA = [
+        [('S', 1)],
+        [('S', 1), ('D', 1)],
+
+        [('S', 1), ('D', 1), ('A', 1)],
+        [('S', 2), ('D', 1), ('A', 1)],
+        [('S', 2), ('D', 2), ('A', 1)],
+
+        [('S', 2), ('D', 2), ('A', 2)],
+        [('S', 3), ('D', 2), ('A', 2)],
+        [('S', 3), ('D', 3), ('A', 2)],
+
+        [('S', 3), ('D', 3)],
+        [('D', 3)],
+    ];
+
+    public static readonly (char Role, int Order)[][] DoubleTether = [
+        [('S', 1)],
+        [('D', 1), ('D', 1)],
+
+        [('D', 1), ('S', 1), ('A', 1)],
+        [('D', 2), ('S', 1), ('A', 1)],
+        [('D', 2), ('S', 2), ('A', 1)],
+
+        [('D', 2), ('S', 2), ('A', 2)],
+        [('D', 3), ('S', 2), ('A', 2)],
+        [('D', 3), ('S', 3), ('A', 2)],
+
+        [('S', 3), ('S', 3)],
+        [('D', 3)]
+    ];
 }

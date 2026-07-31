@@ -9,13 +9,21 @@ class UMADStates : StateMachineBuilder
         _module = (UMAD)module;
 
         SimplePhase(0, P1, "P1")
+            .ActivateOnEnter<P1DoubleTroubleStay>()
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, P2, "P2")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => _module.BossP2() is { IsTargetable: false, HPRatio: < 1 };
         SimplePhase(2, P3, "P3")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => _module.ExdeathP3()?.IsDeadOrDestroyed == true && _module.ChaosP3()?.IsDeadOrDestroyed == true;
+            .Raw.Update = () => _module.ExdeathP3() is { HPMP.CurHP: 1, IsTargetable: false } && _module.ChaosP3() is { HPMP.CurHP: 1, IsTargetable: false };
+        SimplePhase(3, P4, "P4")
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .Raw.Update = () => _module.KefkaP4() is { IsTargetable: false, HPRatio: < 1 };
+        SimplePhase(4, P5, "P5")
+            .ActivateOnEnter<P5ForsakenHoles>()
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .Raw.Update = () => _module.KefkaP5()?.IsDead == true;
     }
 
     void P1(uint id)
@@ -59,7 +67,50 @@ class UMADStates : StateMachineBuilder
         P3BowelsOfAgony(id + 0x10000, 14.5f);
         P3UltimaBlaster(id + 0x20000, 9.2f);
         P3Earthquake(id + 0x30000, 0.9f);
-        P3Blackhole(id + 0x40000, 10.4f);
+        P3Blackhole1(id + 0x40000, 10.4f);
+        P3Blackhole2(id + 0x50000, 0.1f);
+        P3Blackhole3(id + 0x60000, 10.2f);
+        P3StompAMole(id + 0x70000, 6);
+        P3Enrage(id + 0x80000, 13.4f);
+    }
+
+    void P4(uint id)
+    {
+        ActorTargetable(id, _module.KefkaP4, true, 4.4f, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+        ActorCast(id + 0x10, _module.KefkaP4, AID.KefkaSays, 5.2f, 5, true);
+
+        P4GrandCross(id + 0x100, 4.6f);
+        P4Death(id + 0x10000, 7.1f);
+
+        Timeout(id + 0x20000, 4.2f, "Boss HP check");
+
+        ActorCast(id + 0x20100, _module.KefkaP4, AID.UltimaUpsurge, 3.5f, 5, true, "Raidwide + boss disappears")
+            .ActivateOnEnter<P4UltimaUpsurge>()
+            .SetHint(StateMachine.StateHint.Raidwide)
+            .SetHint(StateMachine.StateHint.DowntimeStart);
+    }
+
+    void P5(uint id)
+    {
+        ActorTargetable(id, _module.KefkaP5, true, 31, "Boss appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
+
+        P5UltimaRepeater(id + 0x100, 3.1f);
+        P5FellForces(id + 0x200, 2.8f, 3);
+        P5Flood(id + 0x10000, 0.3f);
+        P5MaddeningOrchestra(id + 0x20000, 4);
+        P5FellForces(id + 0x21000, 4.7f, 2);
+        P5Celestriad(id + 0x30000, 1.5f);
+        P5UltimaRepeater(id + 0x31000, 4.1f);
+        P5FellForces(id + 0x32000, 2.7f, 2);
+        P5StrayApocalypse(id + 0x40000, 1.4f);
+        P5MaddeningOrchestra(id + 0x50000, 3.3f);
+        P5FellForces(id + 0x51000, 4.7f, 3);
+        P5Forsaken(id + 0x60000, 1.4f);
+
+        ActorCast(id + 0x70000, _module.KefkaP5, AID.ForsakenNull, 5.1f, 26, true, "Enrage");
     }
 
     void P1RevoltingRuin(uint id, float delay)
@@ -228,18 +279,24 @@ class UMADStates : StateMachineBuilder
             .ActivateOnEnter<P1DoubleTroubleTrap>()
             .ActivateOnEnter<P1DoubleTroubleTrapKB>()
             .ActivateOnEnter<P1DoubleTroubleTrapCounter>()
-            .ExecOnEnter<P1DoubleTroubleTrap>(p => p.EnableHints = true)
+            .ExecOnEnter<P1DoubleTroubleTrap>(p =>
+            {
+                p.EnableHints = true;
+                p.Order = 3;
+            })
             .ExecOnEnter<P1DoubleTroubleTrapCounter>(c => c.Timeout = 5.5f)
             .DeactivateOnExit<P1DoubleTroubleTrap>()
             .DeactivateOnExit<P1DoubleTroubleTrapKB>()
             .DeactivateOnExit<P1DoubleTroubleTrapCounter>();
 
         ComponentCondition<P1IdyllicWillCounter>(id + 0x300, 5.6f, p => p.NumCasts > 0, "Stuns")
+            .ActivateOnEnter<P1ArrowsPositioning>()
             .ActivateOnEnter<P1IdyllicWillCounter>()
             .ActivateOnEnter<P1StatueGaze>()
             .ExecOnEnter<P1IndulgentWill>(p => p.Draw = true)
             .ExecOnEnter<P1IdyllicWill>(p => p.Activate())
             .DeactivateOnExit<P1IdyllicWillCounter>()
+            .DeactivateOnExit<P1ArrowsPositioning>()
             .DeactivateOnExit<P1IdyllicWill>()
             .DeactivateOnExit<P1IndulgentWill>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
@@ -251,9 +308,10 @@ class UMADStates : StateMachineBuilder
 
         CastStart(id + 0x400, AID.MysteryMagic, 2)
             .ActivateOnEnter<P1ThrummingThunderIII>()
-            .ActivateOnEnter<P1FlagrantFireIII>();
+            .ActivateOnEnter<P1FlagrantFireIII>()
+            .ExecOnEnter<P1FlagrantFireIII>(p => p.Iteration = 1);
 
-        Condition(id + 0x410, 5, () => Module.FindComponent<P1ThrummingThunderIII>()!.NumCasts > 0 && Module.FindComponent<P1StatueGaze>()!.NumCasts > 0, "Lightning + gaze")
+        Condition(id + 0x410, 5.2f, () => Module.FindComponent<P1ThrummingThunderIII>()!.NumCasts > 0 && Module.FindComponent<P1StatueGaze>()!.NumCasts > 0, "Lightning + gaze")
             .DeactivateOnExit<P1ThrummingThunderIII>()
             .DeactivateOnExit<P1StatueGaze>();
 
@@ -276,10 +334,11 @@ class UMADStates : StateMachineBuilder
         ActorCast(id, _module.BossP2, AID.Forsaken, delay, 7, true, "Raidwide")
             .ActivateOnEnter<P2ForsakenRaidwide>()
             .ActivateOnEnter<P2PathOfLight>()
-            .ActivateOnEnter<P2Shapes>()
             .ActivateOnEnter<P2StackSpread>()
             .ActivateOnEnter<P2Spellwave>()
             .ActivateOnEnter<P2AllThingsEnding>()
+            .ActivateOnEnter<P2PastsEndFuturesEnd>()
+            .ActivateOnEnter<P2Shapes>()
             .DeactivateOnExit<P2ForsakenRaidwide>();
 
         void TowerSet(uint id, int round, float delay = 5.1f)
@@ -292,10 +351,8 @@ class UMADStates : StateMachineBuilder
                 .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true);
 
             ComponentCondition<P2PastsEndFuturesEnd>(id + 0x10, 2.3f, p => p.Active)
-                .ActivateOnEnter<P2AllThingsEndingBait>()
-                .ActivateOnEnter<P2PastsEndFuturesEnd>();
-            ComponentCondition<P2PastsEndFuturesEnd>(id + 0x11, 6.9f, p => !p.Active, "Clones")
-                .DeactivateOnExit<P2PastsEndFuturesEnd>();
+                .ActivateOnEnter<P2AllThingsEndingBait>();
+            ComponentCondition<P2PastsEndFuturesEnd>(id + 0x11, 6.9f, p => !p.Active, "Clones");
 
             ComponentCondition<P2PathOfLight>(id + 0x12, 0.2f, p => p.NumCasts == 2 * (r1 + 1), $"Towers {r1 + 1}");
             ComponentCondition<P2Shapes>(id + 0x13, 0.6f, s => s.NumCasts > 0, $"Shapes {r1 + 1}")
@@ -309,9 +366,11 @@ class UMADStates : StateMachineBuilder
                 .DeactivateOnExit<P2Spellwave>(round == 4);
 
             ComponentCondition<P2AllThingsEndingBait>(id + 0x20, 5.4f, p => p.Casting, "Baits")
-                .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true)
-                .ExecOnExit<P2StackSpread>(p => p.EnableHints = true)
-                .ExecOnExit<P2Spellwave>(p => p.EnableHints = true)
+                .ExecOnEnter<P2Shapes>(s => s.Baiting = true, round < 4)
+                .ExecOnExit<P2Shapes>(s => s.Baiting = false, round < 4)
+                .ExecOnExit<P2PathOfLight>(p => p.EnableHints = true, round < 4)
+                .ExecOnExit<P2StackSpread>(p => p.EnableHints = true, round < 4)
+                .ExecOnExit<P2Spellwave>(p => p.EnableHints = true, round < 4)
                 .DeactivateOnExit<P2AllThingsEndingBait>()
                 .DeactivateOnExit<P2PathOfLight>(round == 4);
         }
@@ -324,7 +383,7 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P2AllThingsEnding>(id + 0x430, 4.9f, p => p.Casters.Count == 0, "Baits resolve")
             .DeactivateOnExit<P2AllThingsEnding>();
 
-        ActorCast(id + 0x1000, _module.BossP2, AID.LightOfJudgmentP2, 4.2f, 5, true, "Raidwide")
+        ActorCast(id + 0x1000, _module.BossP2, AID.LightOfJudgmentP2, 4, 5, true, "Raidwide")
             .ActivateOnEnter<P2LightOfJudgment>()
             .DeactivateOnExit<P2LightOfJudgment>();
     }
@@ -393,7 +452,7 @@ class UMADStates : StateMachineBuilder
 
         P3ThunderIIIBuster(id + 0x30, 3.2f);
 
-        ActorCastStartMulti(id + 0x100, _module.ChaosP3, [AID.LongitudinalImplosion, AID.LatitudinalImplosion], 4.7f, true)
+        ActorCastStartMulti(id + 0x100, _module.ChaosP3, [AID.LongitudinalImplosion, AID.LatitudinalImplosion], 4.8f, true)
             .ActivateOnEnter<P3EntropyFluid>()
             .ActivateOnEnter<P3LatLongShockwave>();
 
@@ -454,16 +513,16 @@ class UMADStates : StateMachineBuilder
             .DeactivateOnExit<P3EarthquakeRaidwide>();
     }
 
-    void P3Blackhole(uint id, float delay)
+    void P3Blackhole1(uint id, float delay)
     {
         ActorCastStartMulti(id, _module.KefkaP3, [AID.SlapHappyLeftHand, AID.SlapHappyRightHand], delay)
             .ActivateOnEnter<P3SlapHappy>()
             .ActivateOnEnter<P3SlapHappyShockwave>();
 
         ComponentCondition<P3SlapHappy>(id + 1, 5.8f, s => s.NumCasts > 0, "Slams start");
-        ComponentCondition<P3SlapHappy>(id + 2, 2.6f, s => s.NumCasts >= 4, "Slams finish")
+        ComponentCondition<P3SlapHappy>(id + 2, 2.6f, s => s.NumCasts >= 4)
             .DeactivateOnExit<P3SlapHappy>();
-        ComponentCondition<P3SlapHappyShockwave>(id + 0x10, 0.1f, s => s.Resolved, "Protean(s)")
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x10, 0.1f, s => s.Resolved, "Stack(s)")
             .DeactivateOnExit<P3SlapHappyShockwave>();
 
         ComponentCondition<P3Nothingness>(id + 0x100, 7.4f, n => n.NumCasts == 1, "Laser 1")
@@ -471,32 +530,404 @@ class UMADStates : StateMachineBuilder
 
         ActorCastStart(id + 0x101, _module.ExdeathP3, AID.ThunderIIIBusterCast, 5.3f, true)
             .ActivateOnEnter<P3ThunderIIIBuster>();
-        ComponentCondition<P3Nothingness>(id + 0x102, 1.6f, n => n.NumCasts == 3, "Lasers 2");
-        ComponentCondition<P3ThunderIIIBuster>(id + 0x103, 3.4f, t => t.NumCasts > 0, "Tankbuster hit 1")
+        ComponentCondition<P3Nothingness>(id + 0x102, 1.8f, n => n.NumCasts == 3, "Lasers 2");
+        ComponentCondition<P3ThunderIIIBuster>(id + 0x103, 3.3f, t => t.NumCasts > 0, "Tankbuster hit 1")
             .SetHint(StateMachine.StateHint.Tankbuster);
         ComponentCondition<P3ThunderIIIBuster>(id + 0x104, 3.1f, t => t.NumCasts > 1, "Tankbuster hit 2")
             .SetHint(StateMachine.StateHint.Tankbuster)
             .DeactivateOnExit<P3ThunderIIIBuster>();
+    }
 
-        ActorCastStart(id + 0x200, _module.ChaosP3, AID.DamningEdict, 0, true)
+    void P3Blackhole2(uint id, float delay)
+    {
+        ActorCastStart(id, _module.ChaosP3, AID.DamningEdict, delay, true)
             .ActivateOnEnter<P3DamningEdict>();
-        ActorCastStartMulti(id + 0x201, _module.KefkaP3, [AID.SlapHappyLeftHand, AID.SlapHappyRightHand], 1.3f)
+        ActorCastStartMulti(id + 1, _module.KefkaP3, [AID.SlapHappyLeftHand, AID.SlapHappyRightHand], 1.3f)
             .ActivateOnEnter<P3SlapHappy>()
             .ActivateOnEnter<P3SlapHappyShockwave>()
             .ExecOnEnter<P3SlapHappyShockwave>(s => s.EnableHints = false);
 
-        ComponentCondition<P3DamningEdict>(id + 0x202, 3.7f, d => d.NumCasts > 0, "Cleave")
+        ComponentCondition<P3DamningEdict>(id + 2, 3.7f, d => d.NumCasts > 0, "Cleave")
             .DeactivateOnExit<P3DamningEdict>()
             .ExecOnExit<P3SlapHappyShockwave>(s => s.EnableHints = true);
 
-        ComponentCondition<P3SlapHappy>(id + 0x210, 2.1f, s => s.NumCasts > 0, "Slams start");
-        ComponentCondition<P3SlapHappy>(id + 0x211, 2.6f, s => s.NumCasts >= 4, "Slams finish")
+        ComponentCondition<P3SlapHappy>(id + 0x10, 2.1f, s => s.NumCasts > 0, "Slams start");
+        ComponentCondition<P3SlapHappy>(id + 0x11, 2.6f, s => s.NumCasts >= 4)
             .DeactivateOnExit<P3SlapHappy>();
-        ComponentCondition<P3SlapHappyShockwave>(id + 0x220, 0.1f, s => s.Resolved, "Protean(s)")
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x20, 0.1f, s => s.Resolved, "Stack(s)")
             .DeactivateOnExit<P3SlapHappyShockwave>();
 
-        Timeout(id + 0xFF0000, 10000, "???")
-            .ActivateOnEnter<P3DamningEdict>()
+        ComponentCondition<P3Nothingness>(id + 0x100, 7.5f, n => n.NumCasts == 6, "Lasers 3");
+        ComponentCondition<P3Nothingness>(id + 0x110, 5, n => n.NumCasts == 9, "Lasers 4");
+        ComponentCondition<P3Nothingness>(id + 0x120, 5, n => n.NumCasts == 12, "Lasers 5");
+
+        ActorCastStart(id + 0x130, _module.ChaosP3, AID.DamningEdict, 0.2f, true)
+            .ActivateOnEnter<P3DamningEdict>();
+        ActorCastStartMulti(id + 0x131, _module.KefkaP3, [AID.LookUponMeAndDespairCast1, AID.LookUponMeAndDespairCast2], 1.4f)
             .ActivateOnEnter<P3HotTail>();
+
+        ComponentCondition<P3DamningEdict>(id + 0x132, 3.5f, d => d.NumCasts > 0, "Cleave")
+            .DeactivateOnExit<P3DamningEdict>();
+        ActorCastStart(id + 0x133, _module.ExdeathP3, AID.ThunderIIIBusterCast, 1, true)
+            .ActivateOnEnter<P3ThunderIIIBuster>();
+
+        ComponentCondition<P3HotTail>(id + 0x134, 0.6f, p => p.NumCasts > 0, "Body slam")
+            .DeactivateOnExit<P3HotTail>();
+        ComponentCondition<P3ThunderIIIBuster>(id + 0x135, 4.5f, p => p.NumCasts > 0, "Tankbuster hit 1")
+            .SetHint(StateMachine.StateHint.Tankbuster);
+        ComponentCondition<P3ThunderIIIBuster>(id + 0x136, 3.1f, t => t.NumCasts > 1, "Tankbuster hit 2")
+            .SetHint(StateMachine.StateHint.Tankbuster)
+            .DeactivateOnExit<P3ThunderIIIBuster>();
+    }
+
+    void P3Blackhole3(uint id, float delay)
+    {
+        ComponentCondition<P3Nothingness>(id, delay, n => n.NumCasts == 15, "Lasers 6");
+        ComponentCondition<P3Nothingness>(id + 0x10, 5, n => n.NumCasts == 18, "Lasers 7");
+        ComponentCondition<P3Nothingness>(id + 0x20, 5.1f, n => n.NumCasts == 21, "Lasers 8");
+
+        ActorCastStart(id + 0x100, _module.ExdeathP3, AID.WhiteHole, 6.1f, true)
+            .ActivateOnEnter<P3SlapHappy>()
+            .ActivateOnEnter<P3SlapHappyShockwave>()
+            .ExecOnEnter<P3SlapHappyShockwave>(s => s.EnableHints = false);
+        ActorCastStartMulti(id + 0x101, _module.ChaosP3, [AID.LongitudinalImplosion, AID.LatitudinalImplosion], 0.1f, true)
+            .ActivateOnEnter<P3LatLongShockwave>();
+        ActorCastEnd(id + 0x102, _module.ExdeathP3, 5, true, "HP check");
+
+        ComponentCondition<P3LatLongShockwave>(id + 0x103, 0.7f, p => p.NumCasts == 2, "Front/sides 1");
+        ComponentCondition<P3LatLongShockwave>(id + 0x104, 2, p => p.NumCasts == 4, "Front/sides 2")
+            .DeactivateOnExit<P3LatLongShockwave>();
+
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x110, 2.3f, p => p.Resolved, "Stack(s)")
+            .ExecOnEnter<P3SlapHappyShockwave>(p => p.EnableHints = true)
+            .DeactivateOnExit<P3SlapHappy>()
+            .DeactivateOnExit<P3SlapHappyShockwave>();
+
+        ComponentCondition<P3Nothingness>(id + 0x200, 7.2f, n => n.NumCasts == 23, "Lasers 9");
+
+        ActorCastStartMulti(id + 0x210, _module.KefkaP3, [AID.LookUponMeAndDespairCast1, AID.LookUponMeAndDespairCast2], 1.7f)
+            .ActivateOnEnter<P3HotTail>();
+
+        ComponentCondition<P3HotTail>(id + 0x211, 5, p => p.NumCasts > 0, "Body slam")
+            .DeactivateOnExit<P3HotTail>();
+
+        ComponentCondition<P3Nothingness>(id + 0x220, 0.3f, n => n.NumCasts == 24, "Final laser")
+            .DeactivateOnExit<P3Nothingness>()
+            .DeactivateOnExit<P3EarthHints>();
+    }
+
+    void P3StompAMole(uint id, float delay)
+    {
+        ActorCastStart(id, _module.ExdeathP3, AID.BlizzardIIIPuddleCast, delay, true)
+            .ActivateOnEnter<P3StompAMole>()
+            .ActivateOnEnter<P3KnockDown>()
+            .ActivateOnEnter<P3BigBang>()
+            .ActivateOnEnter<P3BlizzardIIIFreeze>()
+            .ExecOnEnter<P3StompAMole>(m => m.EnableHints = false)
+            .ExecOnEnter<P3KnockDown>(m => m.EnableHints = false)
+            .DeactivateOnExit<P3Blackhole>();
+
+        ComponentCondition<P3BlizzardIII>(id + 0x10, 3, p => p.NumBaits == 1, "Puddles start")
+            .ActivateOnEnter<P3BlizzardIII>();
+
+        ComponentCondition<P3BlizzardIII>(id + 0x20, 3.1f, p => p.NumBaits == 2)
+            .ExecOnExit<P3StompAMole>(m => m.EnableHints = true)
+            .ExecOnExit<P3KnockDown>(m => m.EnableHints = true);
+
+        ComponentCondition<P3KnockDown>(id + 0x30, 2.5f, k => k.NumFinishedStacks == 1, "Stack 1");
+        ComponentCondition<P3StompAMole>(id + 0x31, 0.1f, s => s.NumCasts == 1, "Stomp 1");
+        ComponentCondition<P3StompAMole>(id + 0x32, 1.3f, s => s.NumCasts == 2, "Stomp 2");
+        ComponentCondition<P3StompAMole>(id + 0x33, 1.3f, s => s.NumCasts == 3, "Stomp 3");
+        ComponentCondition<P3StompAMole>(id + 0x34, 1.3f, s => s.NumCasts == 4, "Stomp 4")
+            .DeactivateOnExit<P3StompAMole>()
+            .DeactivateOnExit<P3BlizzardIII>();
+
+        ActorCastStart(id + 0x40, _module.ExdeathP3, AID.BlizzardIIIFreezeCast, 0.8f, true);
+        ActorCastStart(id + 0x41, _module.ChaosP3, AID.BigBangCast, 0.3f, true);
+
+        ComponentCondition<P3KnockDown>(id + 0x50, 0.5f, k => k.NumFinishedStacks == 2, "Stack 2")
+            .DeactivateOnExit<P3KnockDown>()
+            .ExecOnExit<P3BigBang>(b => b.Risky = true);
+
+        ActorCastEnd(id + 0x51, _module.ExdeathP3, 3.3f, true, "Deep freeze")
+            .DeactivateOnExit<P3BlizzardIIIFreeze>();
+        ComponentCondition<P3BigBang>(id + 0x52, 1.4f, b => b.NumCasts > 0, "Delayed AOEs")
+            .DeactivateOnExit<P3BigBang>();
+    }
+
+    void P3Enrage(uint id, float delay)
+    {
+        var castStart = SimpleState(id, delay, "");
+        castStart.Raw.Comment = "Exdeath/Chaos enrage start";
+        castStart.Raw.Update = _ =>
+        {
+            var exStart = _module.ExdeathP3() is { CastInfo.Action.ID: var id } && (AID)id is AID.MeteorEnrageSlow or AID.MeteorEnrageFast;
+            var chStart = _module.ChaosP3() is { CastInfo.Action.ID: var id2 } && (AID)id2 is AID.BowelsOfAgonyEnrageSlow or AID.BowelsOfAgonyEnrageFast;
+            return exStart || chStart ? 0 : -1;
+        };
+
+        var castEnd = SimpleState(id + 1, 10, "Double enrage");
+        castEnd.Raw.Comment = "Exdeath/Chaos enrage end";
+        castEnd.Raw.Update = _ =>
+        {
+            var exEnd = _module.ExdeathP3() is { CastInfo: null };
+            var chEnd = _module.ChaosP3() is { CastInfo: null };
+            return exEnd && chEnd ? 0 : -1;
+        };
+    }
+
+    void P4GrandCross(uint id, float delay)
+    {
+        ActorCastStart(id, _module.KefkaP4, AID.MysteryMagic, delay, true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>()
+            .ActivateOnEnter<P4StrayDonut>()
+            .ActivateOnEnter<P4StrayCircle>()
+            .ActivateOnEnter<P4Debuffs>();
+
+        ActorCastStart(id + 1, _module.NeoExdeathP4, AID.GrandCross, 0.4f)
+            .ActivateOnEnter<P4GrandCross>();
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 2, 4.6f, b => b.NumCasts > 0, "Elements 1");
+
+        ActorCastStartMulti(id + 3, _module.ChaosP4, [AID.InfernoCastP4, AID.TsunamiCastP4], 0.5f)
+            .ActivateOnEnter<P4Tsunami>()
+            .ActivateOnEnter<P4Inferno>()
+            .DeactivateOnExit<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+
+        ComponentCondition<P4GrandCross>(id + 4, 3.9f, p => p.NumCasts > 0, "Grand Cross 1")
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ActorCastEnd(id + 5, _module.ChaosP4, 5.1f, false, "Fire/water 1")
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ActorCastStart(id + 0x10, _module.KefkaP4, AID.MysteryMagic, 0.5f, true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>();
+
+        ActorCastStart(id + 0x11, _module.NeoExdeathP4, AID.GrandCross, 0.4f);
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x12, 4.5f, b => b.NumCasts > 0, "Elements 2");
+
+        ActorCastStartMulti(id + 0x13, _module.ChaosP4, [AID.InfernoCastP4, AID.TsunamiCastP4], 0.6f)
+            .DeactivateOnExit<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+
+        ComponentCondition<P4GrandCross>(id + 0x14, 3.9f, p => p.NumCasts > 1, "Grand Cross 2")
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ActorCastEnd(id + 0x15, _module.ChaosP4, 5.1f, false, "Fire/water 2")
+            .DeactivateOnExit<P4Inferno>()
+            .DeactivateOnExit<P4Tsunami>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ActorCastStart(id + 0x20, _module.KefkaP4, AID.MysteryMagic, 0.6f, true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>();
+
+        ActorCastStart(id + 0x21, _module.NeoExdeathP4, AID.GrandCross, 0.3f)
+            .ActivateOnEnter<P4Antilight>();
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x22, 4.7f, b => b.NumCasts > 0, "Elements 3")
+            .DeactivateOnExit<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+
+        ComponentCondition<P4GrandCross>(id + 0x23, 4.3f, p => p.NumCasts > 2, "Grand Cross 3")
+            .DeactivateOnExit<P4GrandCross>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+    }
+
+    void P4Death(uint id, float delay)
+    {
+        ActorCastMulti(id, _module.NeoExdeathP4, [AID.FloodOfNaught1, AID.FloodOfNaught2, AID.FloodOfNaught3, AID.FloodOfNaught4], delay, 5)
+            .ActivateOnEnter<P4DeathWaveBolt>()
+            .ActivateOnEnter<P4EdgeOfDeath>();
+
+        ComponentCondition<P4Antilight>(id + 0x10, 0.5f, p => p.NumCasts > 0, "Antilight")
+            .DeactivateOnExit<P4Antilight>()
+            .DeactivateOnExit<P4EdgeOfDeath>();
+
+        ActorCastStart(id + 0x100, _module.KefkaP4, AID.ManaCharge, 5.4f, true)
+            .ActivateOnEnter<P4DeathBomb>()
+            .ExecOnEnter<P4DeathWaveBolt>(p => p.EnableHints = p.Draw = true);
+
+        Condition(id + 0x101, 3.3f, () => Module.FindComponent<P4DeathWaveBolt>()!.NumCasts > 0 && Module.FindComponent<P4DeathBomb>()!.PlayerStates.All(s => s.Requirement == default), "Stack/spread/bombs 1")
+            .DeactivateOnExit<P4DeathWaveBolt>()
+            .DeactivateOnExit<P4DeathBomb>();
+
+        // mana charge
+        ActorCastEnd(id + 0x102, _module.KefkaP4, 0.2f, true);
+
+        ActorCastStart(id + 0x110, _module.KefkaP4, AID.ThrummingThunderIIIP4, 3, true)
+            .ActivateOnEnter<P1ThrummingThunderIII>()
+            .ActivateOnEnter<P4DeathShriek>();
+
+        ComponentCondition<P1ThrummingThunderIII>(id + 0x111, 4.9f, p => p.NumCasts > 0, "Lightning")
+            .ExecOnEnter<P4DeathShriek>(s => s.EnableHints = true)
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+
+        ComponentCondition<P4DeathShriek>(id + 0x112, 1, p => p.NumCasts > 0, "Gazes 1")
+            .DeactivateOnExit<P4DeathShriek>()
+            .ExecOnExit<P4Debuffs>(p => p.HelpHints.Gaze1 = null);
+
+        ActorCastStart(id + 0x200, _module.KefkaP4, AID.UltimaUpsurge, 4.2f, true)
+            .ActivateOnEnter<P4DelayedBait>()
+            .ActivateOnEnter<P4UltimaUpsurge>()
+            .ActivateOnEnter<P4StrayCounter>();
+
+        ComponentCondition<P4StrayCounter>(id + 0x201, 2.7f, p => p.NumCasters > 0, "Delayed baits 1")
+            .ActivateOnEnter<P4DeathWaveBolt>()
+            .DeactivateOnExit<P4DelayedBait>()
+            .ExecOnExit<P4Debuffs>(p => p.HelpHints.Fire = null)
+            .ExecOnExit<P4DeathWaveBolt>(p => p.Draw = true);
+
+        ActorCastEnd(id + 0x202, _module.KefkaP4, 2.3f, true, "Raidwide")
+            .DeactivateOnExit<P4UltimaUpsurge>();
+
+        ComponentCondition<P4StrayCounter>(id + 0x210, 2.5f, p => p.NumCasts > 0, "Delayed AOEs 1")
+            .ActivateOnEnter<P4DeathBomb>()
+            .DeactivateOnExit<P4StrayCounter>();
+
+        Condition(id + 0x211, 4.2f, () => Module.FindComponent<P4DeathWaveBolt>()!.NumCasts > 0 && Module.FindComponent<P4DeathBomb>()!.PlayerStates.All(s => s.Requirement == default), "Stack/spread/bombs 2")
+            .ExecOnEnter<P4DeathWaveBolt>(p => p.EnableHints = true)
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P4DeathWaveBolt>()
+            .DeactivateOnExit<P4DeathBomb>();
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x212, 1.2f, p => p.NumCasts > 0, "Ice")
+            .DeactivateOnExit<P1BlizzardIIIBlowout>();
+
+        ComponentCondition<P4DeathShriek>(id + 0x213, 6.8f, p => p.NumCasts > 0, "Gazes 2")
+            .ActivateOnEnter<P4DeathShriek>()
+            .ExecOnEnter<P4DeathShriek>(p => p.EnableHints = true)
+            .DeactivateOnExit<P4DeathShriek>()
+            .ExecOnExit<P4Debuffs>(p => p.HelpHints.Gaze2 = null);
+
+        ComponentCondition<P4StrayCounter>(id + 0x220, 5.7f, p => p.NumCasters > 0, "Delayed baits 2")
+            .ActivateOnEnter<P4DelayedBait>()
+            .ActivateOnEnter<P1BlizzardIIIBlowout>()
+            .ActivateOnEnter<P1ThrummingThunderIII>()
+            .ActivateOnEnter<P4StrayCounter>()
+            .DeactivateOnExit<P4Debuffs>()
+            .DeactivateOnExit<P4DelayedBait>();
+
+        ComponentCondition<P4StrayCounter>(id + 0x221, 4.9f, p => p.NumCasts > 0, "Delayed AOEs 2")
+            .DeactivateOnExit<P4StrayCounter>()
+            .DeactivateOnExit<P4StrayCircle>()
+            .DeactivateOnExit<P4StrayDonut>();
+
+        ComponentCondition<P1BlizzardIIIBlowout>(id + 0x222, 0.5f, p => p.NumCasts > 0, "Final ice/thunder")
+            .DeactivateOnExit<P1BlizzardIIIBlowout>()
+            .DeactivateOnExit<P1ThrummingThunderIII>();
+    }
+
+    void P5UltimaRepeater(uint id, float delay)
+    {
+        ActorCast(id, _module.KefkaP5, AID.UltimaRepeaterCast, delay, 4, true)
+            .ActivateOnEnter<P5UltimaRepeater>();
+
+        ComponentCondition<P5UltimaRepeater>(id + 0x10, 1.1f, p => p.NumCasts > 0, "Raidwide 1");
+        ComponentCondition<P5UltimaRepeater>(id + 0x11, 2.1f, p => p.NumCasts == 4, "Raidwide 4")
+            .DeactivateOnExit<P5UltimaRepeater>();
+    }
+
+    void P5FellForces(uint id, float delay, int count)
+    {
+        ComponentCondition<P5FellForces>(id, delay, p => p.NumCasts == 3, "Autos 1")
+            .ActivateOnEnter<P5FellForces>()
+            .ExecOnEnter<P5FellForces>(f => f.Activate(delay));
+        for (var i = 2u; i <= count; i++)
+        {
+            var j = i;
+            ComponentCondition<P5FellForces>(id + i, 3.1f, p => p.NumCasts == 3 * j, $"Autos {i}")
+                .DeactivateOnExit<P5FellForces>(i == count);
+        }
+    }
+
+    void P5Flood(uint id, float delay)
+    {
+        ActorCastStart(id, _module.KefkaP5, AID.FloodCast, delay, true)
+            .ActivateOnEnter<P5Flood>()
+            .ActivateOnEnter<P5ChaoticFlood>();
+
+        ComponentCondition<P5Flood>(id + 0x10, 6, f => f.NumCasts == 2, "Waves start");
+        Condition(id + 0x20, 3.1f, () => Module.FindComponent<P5Flood>()!.NumCasts == 8 && Module.FindComponent<P5ChaoticFlood>()!.NumCasts == 4, "Waves + stack finish")
+            .DeactivateOnExit<P5Flood>()
+            .DeactivateOnExit<P5ChaoticFlood>();
+    }
+
+    void P5MaddeningOrchestra(uint id, float delay)
+    {
+        ActorCastStart(id, _module.KefkaP5, AID.MaddeningOrchestra, delay, true)
+            .ActivateOnEnter<P5MaddeningOrchestraFirst>()
+            .ActivateOnEnter<P5MaddeningOrchestraSecond>();
+        ComponentCondition<P5MaddeningOrchestraFirst>(id + 1, 5.9f, p => p.NumCasts == 5, "Random spreads")
+            .DeactivateOnExit<P5MaddeningOrchestraFirst>();
+        ComponentCondition<P5MaddeningOrchestraSecond>(id + 2, 3.1f, p => p.NumCasts == 6, "Proximity spreads")
+            .ActivateOnEnter<P5ChaoticFlare>()
+            .DeactivateOnExit<P5MaddeningOrchestraSecond>()
+            .DeactivateOnExit<P5ChaoticFlare>();
+        ComponentCondition<P5SurpriseBait>(id + 3, 3.5f, s => s.NumCasts == 2, "Flare + holy")
+            .ActivateOnEnter<P5SurpriseBait>()
+            .ActivateOnEnter<P5ChaoticHoly>()
+            .DeactivateOnExit<P5SurpriseBait>()
+            .DeactivateOnExit<P5ChaoticHoly>();
+    }
+
+    void P5Celestriad(uint id, float delay)
+    {
+        ActorCast(id, _module.KefkaP5, AID.Celestriad, delay, 5, true)
+            .ActivateOnEnter<P5Celestriad>()
+            .ActivateOnEnter<P5CatastrophicChoice>();
+        ComponentCondition<P5Celestriad>(id + 0x10, 9.1f, c => c.NumCasts == 4, "Towers 1");
+        ComponentCondition<P5CatastrophicChoice>(id + 0x11, 0.2f, p => p.NumCasts == 1, "In/out");
+        ComponentCondition<P5Celestriad>(id + 0x20, 5.9f, c => c.NumCasts == 8, "Towers 2");
+        ComponentCondition<P5Celestriad>(id + 0x30, 6, c => c.NumCasts == 12, "Towers 3")
+            .DeactivateOnExit<P5Celestriad>();
+        ComponentCondition<P5CatastrophicChoice>(id + 0x31, 0.2f, p => p.NumCasts == 2, "In/out")
+            .DeactivateOnExit<P5CatastrophicChoice>();
+    }
+
+    void P5StrayApocalypse(uint id, float delay)
+    {
+        ActorCastStart(id, _module.KefkaP5, AID.StrayApocalypseCast, delay, true)
+            .ActivateOnEnter<P5StrayApocalypse>();
+        ComponentCondition<P5StrayApocalypse>(id + 1, 4, p => p.NumCasts > 0, "Exaflares start");
+        ActorCastEnd(id + 2, _module.KefkaP5, 0, true);
+
+        ActorCastStart(id + 0x10, _module.KefkaP5, AID.StrayEntropyCast, 12.2f, true)
+            .ActivateOnEnter<P5StrayEntropy>();
+
+        ComponentCondition<P5StrayApocalypse>(id + 0x100, 3.5f, p => p.NumCasts == 84, "Exaflares finish")
+            .DeactivateOnExit<P5StrayApocalypse>();
+
+        ComponentCondition<P5StrayEntropy>(id + 0x101, 2.5f, s => !s.Active, "Spreads")
+            .DeactivateOnExit<P5StrayEntropy>();
+    }
+
+    void P5Forsaken(uint id, float delay)
+    {
+        ActorCast(id, _module.KefkaP5, AID.ForsakenP5Cast, delay, 10, true, "Raidwide")
+            .ActivateOnEnter<P5ForsakenGround>()
+            .ActivateOnEnter<P5ForsakenPuddle>()
+            .ActivateOnEnter<P5ForsakenRaidwideCast>()
+            .ActivateOnEnter<P5ForsakenRaidwideInstant>()
+            .ActivateOnEnter<P5ForsakenBonds>()
+            .DeactivateOnExit<P5ForsakenRaidwideCast>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+
+        ComponentCondition<P5ForsakenBonds>(id + 0x10, 5.1f, p => p.NumFinishedStacks == 1, "Stack");
+        ComponentCondition<P5ForsakenRaidwideInstant>(id + 0x11, 3.1f, p => p.NumCasts == 1, "Raidwide")
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<P5ForsakenBonds>(id + 0x12, 5.1f, p => p.NumFinishedStacks == 2, "Stack");
+        ComponentCondition<P5ForsakenRaidwideInstant>(id + 0x13, 3.1f, p => p.NumCasts == 2, "Raidwide")
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<P5ForsakenBonds>(id + 0x14, 5.1f, p => p.NumFinishedStacks == 3, "Stack");
+        ComponentCondition<P5ForsakenRaidwideInstant>(id + 0x15, 3.1f, p => p.NumCasts == 3, "Raidwide")
+            .DeactivateOnExit<P5ForsakenRaidwideInstant>()
+            .SetHint(StateMachine.StateHint.Raidwide);
+        ComponentCondition<P5ForsakenBonds>(id + 0x16, 5.1f, p => p.NumFinishedStacks == 4, "Stack")
+            .DeactivateOnExit<P5ForsakenBonds>();
     }
 }

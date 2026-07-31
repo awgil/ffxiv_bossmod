@@ -1,7 +1,7 @@
 ﻿namespace BossMod;
 
 // adapted from https://github.com/trylock/visibility
-public static class Visibility
+public static class Shadowcast
 {
     public record struct LineSegment(WPos A, WPos B);
 

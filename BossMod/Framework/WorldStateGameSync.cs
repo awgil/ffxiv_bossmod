@@ -13,6 +13,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.Interop;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -45,6 +46,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     private readonly Network.PacketDecoderGame _decoder = new();
 
     private readonly ConfigListener<ReplayManagementConfig> _netConfig;
+    private readonly AIHintsConfig _solverConfig;
     private readonly EventSubscriptions _subscriptions;
 
     private unsafe delegate void ProcessPacketActorCastDelegate(uint casterId, Network.ServerIPC.ActorCast* packet);
@@ -107,6 +109,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
             _interceptor.ActiveRecv = config.RecordServerPackets || config.DumpServerPackets;
             _interceptor.ActiveSend = config.DumpClientPackets;
         });
+        _solverConfig = Service.Config.Get<AIHintsConfig>();
         _subscriptions = new
         (
             amex.ActionRequestExecuted.Subscribe(OnActionRequested),
@@ -364,6 +367,8 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         var forayInfo = forayInfoPtr == null ? default : new ActorForayInfo(forayInfoPtr->Level, forayInfoPtr->Element);
         var isOpenTreasure = obj->ObjectKind == ObjectKind.Treasure && ((Treasure*)obj)->Flags.HasFlag(Treasure.TreasureFlags.Opened);
 
+        var visibility = targetable ? DetermineVisibility(obj) : Visibility.Unknown;
+
         if (act == null)
         {
             var type = (ActorType)(((int)obj->ObjectKind << 8) + obj->SubKind);
@@ -411,6 +416,8 @@ sealed class WorldStateGameSync : IWorldStateGameSync
             _ws.Execute(new ActorState.OpForayInfo(act.InstanceID, forayInfo));
         if (!act.IsOpenTreasure && isOpenTreasure)
             _ws.Execute(new ActorState.OpEventOpenTreasure(act.InstanceID));
+        if (act.Visibility != visibility)
+            _ws.Execute(new ActorState.OpVisibility(act.InstanceID, visibility));
 
         DispatchActorEvents(act.InstanceID);
 
@@ -468,6 +475,35 @@ sealed class WorldStateGameSync : IWorldStateGameSync
                 }
             }
         }
+    }
+
+    private unsafe Visibility DetermineVisibility(GameObject* obj)
+    {
+        if (!_solverConfig.EnableRaycasts)
+            return Visibility.Unknown;
+
+        var playerObj = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+
+        if (playerObj == null)
+            return Visibility.Unknown;
+
+        if (playerObj == obj)
+            return Visibility.Visible;
+
+        var sourcePos = playerObj->Position;
+        var targetPos = obj->Position;
+        sourcePos.Y += 2;
+        targetPos.Y += 2;
+        var offset = targetPos - sourcePos;
+        // if distance to target is >50y, their nameplate isn't visible and we definitely can't target them
+        if (offset.SqrMagnitude <= 2500)
+        {
+            var distance = offset.Magnitude;
+            var direction = offset / distance;
+            return BGCollisionModule.RaycastMaterialFilter(sourcePos, direction, out _, distance) ? Visibility.Blocked : Visibility.Visible;
+        }
+
+        return Visibility.Unknown;
     }
 
     private void UpdateActorCastInfo(Actor act, ActorCastInfo? cast)

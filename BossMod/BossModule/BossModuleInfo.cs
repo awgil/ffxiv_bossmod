@@ -38,6 +38,7 @@ public static class BossModuleInfo
         PVP,
         MaskedCarnivale,
         GoldSaucer,
+        HallOfTheNovice,
         Quantum,
 
         Count
@@ -94,4 +95,5 @@ public sealed class ModuleInfoAttribute() : Attribute
     public int SortOrder { get; set; } // default: first number in type name
     public int PlanLevel { get; set; } // if > 0, module supports plans for this level
     public bool Incomplete { get; set; } // user needs to opt-in to load these modules, they probably don't work (but could be useful for prog, e.g. new ultimates)
+    public bool BitmapDisabled { get; set; } // prevent framework from loading the bitmap for the current zone
 }

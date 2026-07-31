@@ -235,7 +235,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
 
         (BestAOETarget, NumAOETargets) = SelectTargetByHP(strategy, primaryTarget, 25, IsSplashTarget);
 
-        var dotTarget = ResolveTargetOverride(strategy.Thunder) ?? primaryTarget;
+        var dotTarget = ResolveEnemy(strategy.Thunder) ?? primaryTarget;
 
         if (strategy.Thunder.Value is ThunderStrategy.Force or ThunderStrategy.Delay)
         {

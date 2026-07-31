@@ -3,8 +3,6 @@
 [ZoneModuleInfo(426)]
 internal class RiseOfTheMachinists(WorldState ws) : QuestBattle(ws)
 {
-    private static readonly Vector3 Center = new(-650.33f, 97.38f, -452.71f);
-
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)
             .With(obj => {
@@ -21,11 +19,5 @@ internal class RiseOfTheMachinists(WorldState ws) : QuestBattle(ws)
                 };
             })
         ];
-
-    public override void AddQuestAIHints(Actor player, AIHints hints)
-    {
-        hints.PathfindMapCenter = new(Center.X, Center.Z);
-        hints.PathfindMapBounds = new ArenaBoundsCircle(120, 2);
-    }
 }
 

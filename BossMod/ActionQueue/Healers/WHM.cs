@@ -228,6 +228,6 @@ public sealed class Definitions : Defs
         d.Spell(AID.AetherialShift)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
-        d.Spell(AID.AetherialShift)!.ForbidExecute = ActionDefinitions.DashFixedDistanceCheck(15);
+        d.Spell(AID.AetherialShift)!.AllowExecute = ActionPredicate.AllowDashFixed(15);
     }
 }

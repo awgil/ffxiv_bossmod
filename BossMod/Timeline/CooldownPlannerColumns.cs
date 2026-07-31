@@ -222,7 +222,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             var state = _tree.Nodes.GetValueOrDefault(o.StateID);
             if (state != null)
             {
-                _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Disabled, (StrategyValueTrack)o.Value);
+                _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Disabled, (StrategyValueTrack)o.Value, o.ConditionType, o.ConditionParam);
             }
         }
     }
@@ -286,7 +286,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                 var state = _tree.Nodes.GetValueOrDefault(entry.StateID);
                 if (state != null)
                 {
-                    col.AddElement(state, entry.TimeSinceActivation, entry.WindowLength, entry.Disabled, entry.Value);
+                    col.AddElement(state, entry.TimeSinceActivation, entry.WindowLength, entry.Disabled, entry.Value, entry.ConditionType, entry.ConditionParam);
                 }
             }
             foreach (var a in _playerActions)
@@ -331,5 +331,5 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
     }
 
     private void AddEntry(List<Plan.Entry> list, ColumnPlannerTrack.Element elem)
-        => list.Add(new(elem.Value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.WindowLength, Disabled = elem.Disabled });
+        => list.Add(new(elem.Value) { StateID = elem.Window.AttachNode.State.ID, TimeSinceActivation = elem.Window.Delay, WindowLength = elem.WindowLength, Disabled = elem.Disabled, ConditionParam = elem.ConditionParam, ConditionType = elem.ConditionType });
 }

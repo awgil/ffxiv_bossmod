@@ -143,15 +143,12 @@ class P1TelePortent(BossModule module) : BossComponent(module)
         if (_timesHit[slot] > 1)
             return;
 
-        var spotsNow = _hintSpots[slot].Where(h =>
-        {
-            var toCheck = _timesHit[slot] == 0 ? _debuffs[slot].D1.Dir : _debuffs[slot].D2.Dir;
-            return h.Item1 == toCheck;
-        }).Select(s => ShapeContains.InvertedCircle(s.Item2, 1)).ToList();
+        var nextDir = _timesHit[slot] == 0 ? _debuffs[slot].D1 : _debuffs[slot].D2;
 
-        var deadline = _timesHit[slot] == 0 ? _debuffs[slot].D1.Time : _debuffs[slot].D2.Time;
+        var nextSpots = _hintSpots[slot].Where(h => h.Item1 == nextDir.Dir);
 
-        hints.AddForbiddenZone(ShapeContains.Intersection(spotsNow), deadline);
+        foreach (var (_, spot) in nextSpots.Take(1))
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), nextDir.Time);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -250,6 +247,7 @@ class P1IndulgentWill(BossModule module) : BossComponent(module)
 
 class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0, 5)
 {
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
     readonly List<Spread> _stored = [];
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)
@@ -268,6 +266,53 @@ class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0
     {
         Spreads.AddRange(_stored);
         _stored.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_config.P1ArrowsSpreadStrategy == UMADConfig.P1ArrowsSpots.KefkabinStatic && assignment != PartyRolesConfig.Assignment.Unassigned)
+            return;
+
+        base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
+
+class P1ArrowsPositioning : BossComponent
+{
+    readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
+    readonly DateTime _deadline;
+
+    public P1ArrowsPositioning(BossModule module) : base(module)
+    {
+        _deadline = WorldState.FutureTime(5.6f);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_config.P1ArrowsSpreadStrategy == UMADConfig.P1ArrowsSpots.KefkabinStatic)
+        {
+            Angle? cardinal = assignment switch
+            {
+                PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.R1 => 180.Degrees(),
+                PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.R2 => -90.Degrees(),
+                PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.H1 => default(Angle),
+                PartyRolesConfig.Assignment.M2 or PartyRolesConfig.Assignment.H2 => 90.Degrees(),
+                _ => null
+            };
+            if (cardinal == null)
+                return;
+
+            var inside = assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT or PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2;
+
+            var myArrow = Module.Enemies(OID.TelePortent).MinBy(t => MathF.Abs((t.Position - Arena.Center).ToAngle().DistanceToAngle(cardinal.Value).Rad));
+            if (myArrow != null)
+            {
+                var offset = cardinal.Value.ToDirection() * 3;
+                var spot = myArrow.Position + (inside ? -offset : offset);
+
+                hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), _deadline);
+            }
+        }
     }
 }
 

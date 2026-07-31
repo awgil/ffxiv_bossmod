@@ -6,6 +6,8 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
     public int NumCasts { get; private set; }
     public int Order;
 
+    private BitMask _wasStack;
+
     public P1DoubleTroubleTrap(BossModule module) : base(module, 6, 0, 4)
     {
         EnableHints = false;
@@ -22,6 +24,7 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
     {
         if ((AID)spell.Action.ID == AID.DoubleTroubleTrapStack)
         {
+            _wasStack.Set(Raid.FindSlot(spell.MainTargetID));
             Stacks.Clear();
             NumCasts++;
         }
@@ -32,13 +35,15 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
         if (Stacks.FirstOrNull() is not { Activation: var activation })
             return;
 
+        var isStack = IsStackTarget(actor);
+
         if (Order == 1)
         {
             var myOrder = _config.P1WaveCannonConga[assignment];
             if (myOrder >= 0)
             {
                 var side = myOrder < 4 ? -1 : 1;
-                hints.AddForbiddenZone(ShapeContains.PrecisePosition(Arena.Center + new WDir((IsStackTarget(actor) ? 9 : 5.75f) * side, 0), new(0, 1), 0.5f, actor.Position, 0.1f), activation);
+                hints.AddForbiddenZone(ShapeContains.PrecisePosition(Arena.Center + new WDir((isStack ? 9 : 5.75f) * side, 0), new(0, 1), 0.5f, actor.Position, 0.1f), activation);
                 return;
             }
         }
@@ -48,7 +53,7 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
             var ourSide = actor.Class.IsSupport() ? -1 : 1;
             if (Module.Enemies(OID.Gravitas).Where(a => MathF.Sign(a.Position.Z - 100) == ourSide).Closest(Arena.Center) is { } closestPuddle)
             {
-                if (IsStackTarget(actor))
+                if (isStack)
                 {
                     var puddleEdgeZ = closestPuddle.Position.Z - 6 * ourSide;
                     hints.AddForbiddenZone(ShapeContains.PrecisePosition(new(100, puddleEdgeZ), new(0, 1), 0.5f, actor.Position, 0.1f), activation);
@@ -61,6 +66,20 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
                     return;
                 }
             }
+        }
+
+        if (Order == 3 && _config.P1ArrowsConfettiStrategy == UMADConfig.P1ArrowsStacks.SuppNDamageS && EnableHints)
+        {
+            WPos dest = (isStack, actor.Class.IsSupport()) switch
+            {
+                (true, true) => new(94, 94),
+                (true, false) => new(106, 106),
+                (false, true) => new(96, 96),
+                (false, false) => new(104, 104)
+            };
+
+            hints.AddForbiddenZone(ShapeContains.PrecisePosition(dest, new(0, 1), 0.5f, actor.Position, 0.1f), activation);
+            return;
         }
 
         base.AddAIHints(slot, actor, assignment, hints);
@@ -92,6 +111,30 @@ class P1DoubleTroubleTrapKB(BossModule module) : Components.Knockback(module, AI
             if (_sources.Count > 0)
                 _sources.RemoveAt(0);
         }
+    }
+}
+
+// have to wait until confetti knockbacks actually go off before moving, since kb type is 6 (meaning that the cast itself does nothing and the knockback is applied later via ActorControl)
+class P1DoubleTroubleStay(BossModule module) : BossComponent(module)
+{
+    BitMask PendingStacks;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.DoubleTroubleTrapStack)
+            PendingStacks.Set(Raid.FindSlot(spell.MainTargetID));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (PendingStacks[slot])
+            hints.ForcedMovement = new(0);
+    }
+
+    public override void Update()
+    {
+        if (Raid.WithoutSlot().All(p => p.PendingKnockbacks.Count == 0))
+            PendingStacks.Reset();
     }
 }
 

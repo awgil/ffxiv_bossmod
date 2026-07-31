@@ -337,6 +337,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("PATS"u8)] = ParseActorPlayActionTimelineSync,
             [new("NYEL"u8)] = ParseActorEventNpcYell,
             [new("OPNT"u8)] = ParseActorEventOpenTreasure,
+            [new("AVIS"u8)] = ParseActorVisibility,
             [new("PAR "u8)] = ParsePartyModify,
             [new("PAR+"u8)] = ParsePartyModify, // legacy (up to v3)
             [new("PAR-"u8)] = ParsePartyLeave, // legacy (up to v3)
@@ -668,6 +669,8 @@ public sealed class ReplayParserLog : IDisposable
     }
     private ActorState.OpEventNpcYell ParseActorEventNpcYell() => new(_input.ReadActorID(), _input.ReadUShort(false));
     private ActorState.OpEventOpenTreasure ParseActorEventOpenTreasure() => new(_input.ReadActorID());
+
+    private ActorState.OpVisibility ParseActorVisibility() => new(_input.ReadActorID(), Visibility.Decode((char)_input.ReadUShort(false)));
     private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), new(_input.ReadULong(true), _input.ReadULong(true), _version >= 15 && _input.ReadBool(), _version < 15 ? "" : _input.ReadString()));
     private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), new(0, 0, false, ""));
     private PartyState.OpLimitBreakChange ParsePartyLimitBreak() => new(_input.ReadInt(), _input.ReadInt());

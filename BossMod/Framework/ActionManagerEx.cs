@@ -1,4 +1,5 @@
 ﻿using BossMod.Services;
+using Dalamud.Game.ClientState.Conditions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -8,7 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
@@ -38,6 +39,8 @@ public sealed unsafe class ActionManagerEx : IAmex
     public float ComboTimeLeft => _inst->Combo.Timer;
     public uint ComboLastMove => _inst->Combo.Action;
     public ActionID QueuedAction => new((ActionType)_inst->QueuedActionType, _inst->QueuedActionId);
+
+    public bool MacroCapture { get; set; }
 
     public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
     public float AnimationLockDelayEstimate => _animLockTweak.DelayEstimate;
@@ -141,7 +144,7 @@ public sealed unsafe class ActionManagerEx : IAmex
 
         if (AutoQueue.Priority < ActionQueue.Priority.ManualEmergency)
         {
-            if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold))
+            if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold + ApplicationDelay.Get(AutoQueue.Action)))
                 AutoQueue = default; // do not execute non-emergency actions when pyretic is imminent
 
             if (_hints.FindEnemy(AutoQueue.Target)?.Priority == AIHints.Enemy.PriorityForbidden)
@@ -426,12 +429,9 @@ public sealed unsafe class ActionManagerEx : IAmex
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
         // if we're not casting, but will start soon, moving might interrupt future cast
-        if (imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && !CanMoveWhileCasting(imminentActionAdj) && GCD() < 0.1f)
-        {
-            // check LoS on target; blocking movement can cause AI mode to get stuck behind a wall trying to cast a spell on an unreachable target forever
-            MoveMightInterruptCast |= CheckActionLoS(imminentAction, _inst->ActionQueued ? _inst->QueuedTargetId : (AutoQueue.Target?.InstanceID ?? 0));
-        }
-        bool blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
+        MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && !CanMoveWhileCasting(imminentActionAdj) && GCD() < 0.1f;
+
+        var blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
         blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode is AIHints.SpecialMode.Pyretic or AIHints.SpecialMode.PyreticMove && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
 
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
@@ -479,7 +479,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCast))
             UIState.Instance()->Hotbar.CancelCast();
 
-        if (!GameMain.IsInPvPArea())
+        if (!GameMain.IsInPvPArea() && !Service.Condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))
         {
             var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
             if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
@@ -487,7 +487,10 @@ public sealed unsafe class ActionManagerEx : IAmex
         }
 
         if (_hints.WantDismount && !_movement.FollowPathActive() && _dismountTweak.AllowDismount())
-            _inst->UseAction(CSActionType.Action, 4);
+            _inst->UseAction(CSActionType.GeneralAction, 23);
+
+        if (MacroCapture && RaptureShellModule.Instance()->MacroCurrentLine < 0)
+            MacroCapture = false;
     }
 
     // note: targetId is usually your current primary target (or 0xE0000000 if you don't target anyone), unless you do something like /ac XXX <f> etc
@@ -503,7 +506,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         // if mouseover mode is enabled AND target is a usual primary target AND current mouseover is valid target for action, then we override target to mouseover
         var primaryTarget = targetSystem->Target;
         var primaryTargetId = primaryTarget != null ? primaryTarget->GetGameObjectId() : 0xE0000000;
-        bool targetOverridden = targetId != primaryTargetId;
+        var targetOverridden = targetId != primaryTargetId;
         if (Config.PreferMouseover && !targetOverridden)
         {
             var mouseoverTarget = PronounModule.Instance()->UiMouseOverTarget;
@@ -529,9 +532,9 @@ public sealed unsafe class ActionManagerEx : IAmex
             return 0xE0000000;
         }
 
-        // note: only standard mode can be filtered
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
-        if (mode == ActionManager.UseActionMode.None && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, findNearestTarget))
+        var canManualQueue = mode == ActionManager.UseActionMode.None || mode == ActionManager.UseActionMode.Macro && MacroCapture;
+        if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, findNearestTarget))
             return false;
 
         bool areaTargeted = false;
@@ -726,33 +729,5 @@ public sealed unsafe class ActionManagerEx : IAmex
             return true;
         }
         return _setAutoAttackStateHook.Original(self, value, sendPacket, isInstant);
-    }
-
-    // just the LoS portion of ActionManager::GetActionInRangeOrLoS (which also checks range, which we don't care about, and also checks facing angle, which we don't care about)
-    private static bool CheckActionLoS(ActionID action, ulong targetID)
-    {
-        var row = action.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID) : null;
-        if (row == null)
-            return true; // unknown action, assume nothing
-
-        if (!row.Value.RequiresLineOfSight)
-            return true;
-
-        var player = GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
-        var targetObj = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetID);
-        if (targetObj == null || targetObj->EntityId == player->EntityId)
-            return true;
-
-        var playerPos = *player->GetPosition();
-        var targetPos = *targetObj->GetPosition();
-
-        playerPos.Y += 2;
-        targetPos.Y += 2;
-
-        var offset = targetPos - playerPos;
-        var maxDist = offset.Magnitude;
-        var direction = offset / maxDist;
-
-        return !BGCollisionModule.RaycastMaterialFilter(playerPos, direction, out _, maxDist);
     }
 }

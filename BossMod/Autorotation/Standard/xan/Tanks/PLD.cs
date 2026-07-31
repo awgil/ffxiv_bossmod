@@ -235,7 +235,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
             }
         }
 
-        var dashTarget = ResolveTargetOverride(strategy.Intervene) ?? primaryTarget;
+        var dashTarget = ResolveEnemy(strategy.Intervene) ?? primaryTarget;
 
         switch (strategy.Intervene.Value)
         {
@@ -244,7 +244,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
                     PushOGCD(AID.Intervene, dashTarget);
                 break;
             case DashStrategy.HoldOne:
-                if (FightOrFlight > 0 && CanWeave(MaxChargesIn(AID.Intervene), 0.8f))
+                if (FightOrFlight > 0 && CanWeave(MaxChargesIn(AID.Intervene), 0.6f))
                     PushOGCD(AID.Intervene, dashTarget);
                 break;
             case DashStrategy.GapCloser:
@@ -278,7 +278,7 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
             _ => GCDPriority.None
         };
 
-        PushGCD(AID.HolySpirit, ResolveTargetOverride(hs) ?? primaryTarget, prio);
+        PushGCD(AID.HolySpirit, ResolveEnemy(hs) ?? primaryTarget, prio);
     }
 
     private void UseHolyCircle()
@@ -303,10 +303,10 @@ public sealed class PLD(RotationModuleManager manager, Actor player) : Attackxan
         {
             case OffensiveStrategy.Automatic:
                 if (FightOrFlight > GCD || NextGCD is AID.RageOfHalone or AID.Prominence)
-                    PushGCD(AID.Atonement, ResolveTargetOverride(atone) ?? primaryTarget, GCDPriority.Atonement);
+                    PushGCD(AID.Atonement, ResolveEnemy(atone) ?? primaryTarget, GCDPriority.Atonement);
                 break;
             case OffensiveStrategy.Force:
-                PushGCD(AID.Atonement, ResolveTargetOverride(atone) ?? primaryTarget, GCDPriority.Force);
+                PushGCD(AID.Atonement, ResolveEnemy(atone) ?? primaryTarget, GCDPriority.Force);
                 break;
         }
     }
