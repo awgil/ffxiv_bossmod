@@ -1,10 +1,5 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE209PhantomHydra;
 
-// TODO was made with ARR support
-//  Status: COMPLETED - improvements can be made
-//  1. Improve aoe visual for orbs - we can actually figure out which aoes will resolve first base on which orbs spawn first, but its a lot of work
-//      this change isn't needed if there is a way to not make the map get darker when the lightning ones are going off
-
 public enum OID : uint {
     PhantomHydra = 0x4BC5,
     Helper = 0x233C,
@@ -13,8 +8,6 @@ public enum OID : uint {
     BallOfFire = 0x4BC7, // R1.500, x12
     HolySphere = 0x4BC6, // R1.200, x2
     PoisonOrb = 0x1EBFC7, // R0.500, x0 (spawn during fight), EventObj type
-
-    _Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
 }
 
 public enum AID : uint {
@@ -61,15 +54,6 @@ sealed class Discordance(BossModule module) : Components.RaidwideCast(module, (u
 sealed class ElementalCascadeElements(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.ElementalCascadeFire, (uint)AID.ElementalCascadePoison,
     (uint)AID.ElementalCascadeLightning, (uint)AID.ElementalCascadeLight, (uint)AID.ElementalCascadeIce ], new AOEShapeCircle(6.0f));
 sealed class StunningSheen(BossModule module) : Components.CastGaze(module, (uint)AID.StunningSheen);
-sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.0f, module => module.Enemies((uint)OID.PoisonOrb).Where(z => z.EventState != 7)) {
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        var aoes = new List<AOEInstance>();
-        foreach (var source in Sources(Module)) {
-            aoes.Add(new(Shape, source.Position, source.Rotation, color: Colors.Danger));
-        }
-        return CollectionsMarshal.AsSpan(aoes);
-    }
-}
 
 sealed class ScarletThread : Components.SimpleAOEs {
     public ScarletThread(BossModule module) : base(module, (uint)AID.ScarletThread, new AOEShapeRect(70.0f, 2.0f)) {
@@ -152,6 +136,31 @@ sealed class ManyHeadedBreath(BossModule module) : Components.GenericAOEs(module
     }
 }
 
+sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.5f, module => module.Enemies((uint)OID.PoisonOrb).Where(z => z.EventState != 7)) {
+    private bool active = false;
+
+    public override void OnActorEAnim(Actor actor, uint state) {
+        if (actor.OID == (uint)OID.PoisonOrb) {
+            active = true;
+        }
+    }
+
+    public override void OnActorDestroyed(Actor actor) {
+        if (actor.OID == (uint)OID.PoisonOrb) {
+            active = false;
+        }
+    }
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        var aoes = new List<AOEInstance>();
+
+        foreach (var source in Sources(Module)) {
+            aoes.Add(new(Shape, source.Position, source.Rotation, color: active == true ? Colors.Danger : Colors.AOE));
+        }
+        return CollectionsMarshal.AsSpan(aoes);
+    }
+}
+
 [SkipLocalsInit]
 sealed class PhantomHydraStates : StateMachineBuilder {
     public PhantomHydraStates(BossModule module) : base(module) {
@@ -172,7 +181,7 @@ sealed class PhantomHydraStates : StateMachineBuilder {
     StatesType = typeof(PhantomHydraStates),
     ConfigType = null, // replace null with typeof(PhantomHydraConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
+    ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
     StatusIDType = null, // replace null with typeof(SID) if applicable
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
