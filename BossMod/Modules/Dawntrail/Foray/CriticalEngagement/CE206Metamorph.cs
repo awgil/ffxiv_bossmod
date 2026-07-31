@@ -47,6 +47,7 @@ public enum AID : uint {
     AutoAttackSnake = 48369, // Metamorph->player, no cast, single-target
     CyclonicRing = 48354, // Metamorph->self, 4.0s cast, range ?-30 donut
     ShapeshiftingSupercellCast = 48355, // Metamorph->self, 5.5+0.5s cast, single-target
+    ShapeshiftingSupercell1 = 48356, // Metamorph->self, 5.5+0.5s cast, single-target
     ShapeshiftingSupercell = 48358, // Metamorph->self, no cast, single-target
     ShapeshiftingSupercellInner = 48360, // Helper->self, 6.0s cast, range 8 circle
     ShapeshiftingSupercellInner1 = 50767, // Helper->self, 6.0s cast, range 8 circle
@@ -72,6 +73,7 @@ public enum SID : uint {
 public enum IconID : uint {
     TankBuster = 198, // player->self
     TurnRight = 546, // Metamorph->self
+    TurnLeft = 547, // Metamorph->self
 }
 
 sealed class BlackenedRain(BossModule module) : Components.RaidwideCast(module, (uint)AID.BlackenedRain);
@@ -247,6 +249,10 @@ sealed class ShapeshiftingSupercell(BossModule module) : Components.GenericAOEs(
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID) {
         if (iconID == (uint)IconID.TurnRight) {
             clockwise = -1;
+        }
+
+        if (iconID == (uint)IconID.TurnLeft) {
+            clockwise = 1;
         }
     }
 
