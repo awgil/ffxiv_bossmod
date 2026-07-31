@@ -120,8 +120,6 @@ abstract partial class AutoClear : ZoneModule
             _floorRects.Reverse();
     }
 
-    //private static bool IsRoomRange(Eve)
-
     private static WDir ToCardinal(WDir x)
     {
         var abs = x.Abs();

@@ -47,6 +47,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         [Track("Dragoon: Jump, Lance", Actions = [PhantomID.OccultJump, PhantomID.Lance])]
         public Track<EnabledByDefault> Dragoon;
+
+        [Track("Ninja: Shuriken, Smoke, Scrolls", Actions = [PhantomID.FumaShuriken, PhantomID.Smoke, PhantomID.FlameScroll, PhantomID.LightningScroll])]
+        public Track<EnabledByDefault> Ninja;
     }
 
     public enum RaiseStrategy
@@ -356,7 +359,25 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         if (strategy.Dragoon.IsEnabled() && primaryTarget?.IsAlly == false)
         {
             UseAction(PhantomID.OccultJump, primaryTarget, ActionQueue.Priority.VeryHigh);
-            UseAction(PhantomID.Lance, primaryTarget, ActionQueue.Priority.VeryHigh);
+            UseAction(PhantomID.Lance, primaryTarget, ActionQueue.Priority.High);
+        }
+
+        if (strategy.Ninja.IsEnabled())
+        {
+            if (primaryTarget?.IsAlly == false)
+            {
+                UseAction(PhantomID.FumaShuriken, primaryTarget, ActionQueue.Priority.High);
+                UseAction(PhantomID.LightningScroll, primaryTarget, ActionQueue.Priority.High);
+                UseAction(PhantomID.FlameScroll, primaryTarget, ActionQueue.Priority.High);
+            }
+
+            if (Player.InCombat)
+            {
+                var smokeLeft = Player.FindStatus(PhantomSID.Smoke, World.FutureTime(90))?.ExpireAt ?? default;
+
+                if (smokeLeft < World.FutureTime(5))
+                    UseAction(PhantomID.Smoke, Player, ActionQueue.Priority.High);
+            }
         }
 
         if (DesiredRange < float.MaxValue && primaryTarget != null)
@@ -417,7 +438,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         if (cd <= GCD)
         {
-            DesiredRange = MathF.Min(DesiredRange, ActionDefinitions.Instance[action]?.Range ?? float.MaxValue);
+            if (ActionDefinitions.Instance[action] is { } def && def.Range > 0)
+                DesiredRange = MathF.Min(DesiredRange, def.Range);
+
             Hints.ActionsToExecute.Push(action, target, prio, castTime: castTime);
             return true;
         }

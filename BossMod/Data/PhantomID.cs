@@ -239,4 +239,6 @@ public enum PhantomSID : uint
     SteadfastStance = 4800, // applied by Steadfast Stance to self/ally, 10% shield
     Enamored = 4801, // applied by Mesmerize to target, -10% damage, -5% defense
     Mesmerized = 4802, // applied by Mesmerize to target, -40% damage
+
+    Smoke = 5327, // applied by Smoke to self
 }
