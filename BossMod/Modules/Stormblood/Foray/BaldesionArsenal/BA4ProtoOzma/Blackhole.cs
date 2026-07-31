@@ -18,7 +18,7 @@ sealed class BlackHole(BossModule module) : Components.GenericTowersOpenWorld(mo
                 for (var i = 0; i < count; ++i)
                 {
                     var buffer = buffers[i].Position;
-                    if (Arena.InBounds(buffer) && (int)buffer.Z != 44) // filter out irrelevant actors, unfortunately OID is also used for other stuff on this map
+                    if (Arena.InBounds(buffer) && (int)buffer.Z != 44f) // filter out irrelevant actors, unfortunately OID is also used for other stuff on this map
                     {
                         Towers.Add(new(buffer, 2f, 1, 99, soakers, activation: WorldState.FutureTime(9.1d)));
                     }
@@ -37,11 +37,12 @@ sealed class BlackHole(BossModule module) : Components.GenericTowersOpenWorld(mo
         if (count == 0)
             return;
         base.DrawArenaForeground(pcSlot, pc);
+        var towers = CollectionsMarshal.AsSpan(Towers);
         for (var i = 0; i < count; ++i)
         {
-            var t = Towers[i];
+            var t = towers[i];
             if (t.NumInside(Module) == 0)
-                Arena.ZoneCircleOutline(t.Position, t.Radius, Colors.Vulnerable, 3f);
+                Arena.ZoneCircleOutline(t.Position, 2f, Colors.Vulnerable, 3f);
         }
     }
 
@@ -52,9 +53,10 @@ sealed class BlackHole(BossModule module) : Components.GenericTowersOpenWorld(mo
             return;
         var uncovered = false;
         var isInside = false;
+        var towers = CollectionsMarshal.AsSpan(Towers);
         for (var i = 0; i < count; ++i)
         {
-            var t = Towers[i];
+            var t = towers[i];
             if (t.NumInside(Module) == 0)
                 uncovered = true;
             else if (t.IsInside(actor))

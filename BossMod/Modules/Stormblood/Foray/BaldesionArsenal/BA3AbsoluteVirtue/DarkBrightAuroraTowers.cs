@@ -56,12 +56,13 @@ abstract class Towers(BossModule module, uint oid, uint tid) : Components.Generi
         {
             var count = Towers.Count;
             var pos = actor.Position;
+            var towers = CollectionsMarshal.AsSpan(Towers);
             for (var i = 0; i < count; ++i)
             {
-                if (Towers[i].Position == pos)
+                if (towers[i].Position == pos)
                 {
                     Towers.RemoveAt(i);
-                    break;
+                    return;
                 }
             }
         }
@@ -70,19 +71,25 @@ abstract class Towers(BossModule module, uint oid, uint tid) : Components.Generi
     public override void OnActorCreated(Actor actor)
     {
         if (actor.OID == oid)
+        {
             Towers.Add(new(actor.Position, 2f, 1, 1, [], WorldState.FutureTime(20d)));
+        }
     }
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == tid)
+        {
             tetherByActor.Add((source, WorldState.Actors.Find(tether.Target)!));
+        }
     }
 
     public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == tid)
+        {
             tetherByActor.Remove((source, WorldState.Actors.Find(tether.Target)!));
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -107,9 +114,10 @@ abstract class Towers(BossModule module, uint oid, uint tid) : Components.Generi
         {
             var soakedIndex = -1;
             var countT = Towers.Count;
+            var towers = CollectionsMarshal.AsSpan(Towers);
             for (var i = 0; i < countT; ++i)
             {
-                var t = Towers[i];
+                ref var t = ref towers[i];
                 t.InitializeAllowedSoakers(Module);
                 if (t.AllowedSoakers!.Contains(actor) && t.IsInside(actor))
                 {
@@ -118,12 +126,18 @@ abstract class Towers(BossModule module, uint oid, uint tid) : Components.Generi
                 }
             }
             if (soakedIndex == -1)
+            {
                 hints.Add(Hint);
+            }
             else
+            {
                 hints.Add(Hint, false);
+            }
         }
         else
+        {
             base.AddHints(slot, actor, hints);
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -131,7 +145,9 @@ abstract class Towers(BossModule module, uint oid, uint tid) : Components.Generi
         base.DrawArenaForeground(pcSlot, pc);
         var count = tetherByActor.Count;
         if (count == 0)
+        {
             return;
+        }
 
         Actor? source = null;
         for (var i = 0; i < count; ++i)
@@ -158,9 +174,14 @@ abstract class Towers(BossModule module, uint oid, uint tid) : Components.Generi
             return;
         HashSet<Actor> allowed = [with(4)];
         for (var i = 0; i < tetherByActor.Count; ++i)
+        {
             allowed.Add(tetherByActor[i].target);
+        }
+        var towers = CollectionsMarshal.AsSpan(Towers);
         for (var i = 0; i < count; ++i)
-            Towers[i].AllowedSoakers = allowed;
+        {
+            towers[i].AllowedSoakers = allowed;
+        }
     }
 }
 
