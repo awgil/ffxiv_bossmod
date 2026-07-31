@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace BossMod.Dawntrail.Foray.FATE.NH105EvilSeer;
+﻿namespace BossMod.Dawntrail.Foray.FATE.NH105EvilSeer;
 
 public enum OID : uint {
     EvilSeer = 0x4BA7,
