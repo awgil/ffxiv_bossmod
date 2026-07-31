@@ -218,10 +218,10 @@ sealed class OrderTowers(BossModule module) : Components.GenericAOEs(module)
 
                 for (var j = 0u; j < 5u; ++j)
                 {
-                    var isDivisible = divisor == default ? MathExtension.IsPrime(maxHP + j) : MathExtension.IsDivisible(maxHP + j, divisor);
+                    var isDivisible = divisor == default ? (maxHP + j).IsPrime() : (maxHP + j).IsDivisible(divisor);
                     if (!outsideSafe && isDivisible || outsideSafe && !isDivisible)
                     {
-                        if (j == 0)
+                        if (j == 0u)
                         {
                             outsideSafe = true;
                             Numbers[p.Item1].Add(j);

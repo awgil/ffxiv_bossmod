@@ -1,5 +1,6 @@
 namespace BossMod.Shadowbringers.Alliance.A32HanselGretel;
 
+[SkipLocalsInit]
 sealed class StrongerTogether(BossModule module) : BossComponent(module)
 {
     private readonly A32HanselGretel bossmod = (A32HanselGretel)module;
