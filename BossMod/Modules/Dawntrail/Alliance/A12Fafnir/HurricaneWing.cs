@@ -74,12 +74,12 @@ sealed class Whirlwinds(BossModule module) : Components.GenericAOEs(module)
     public override bool KeepOnPhaseChange => true;
 
     private const float Length = 5f;
-    private static readonly AOEShapeCapsule capsuleSmall = new(3f, Length), capsuleBig = new(9f, Length);
-    private static readonly AOEShapeCircle circleSmall = new(3f), circleBig = new(9f);
+    private readonly AOEShapeCapsule capsuleSmall = new(3f, Length);
+    private readonly AOEShapeArcCapsule arcCW = new(9f, 40f.Degrees(), module.Arena.Center), arcCCW = new(9f, -40f.Degrees(), module.Arena.Center);
+    private readonly AOEShapeCircle circleSmall = new(3f), circleBig = new(9f);
     private readonly List<Actor> _smallWhirldwinds = [with(3)], _bigWhirldwinds = [with(3)];
     public bool Active => _smallWhirldwinds.Count != 0 || _bigWhirldwinds.Count != 0;
     private static readonly Angle a180 = 180f.Degrees();
-    private bool moving;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -87,17 +87,39 @@ sealed class Whirlwinds(BossModule module) : Components.GenericAOEs(module)
         var countBig = _bigWhirldwinds.Count;
         var total = countSmall + countBig;
         if (total == 0)
+        {
             return [];
+        }
         Span<AOEInstance> aoes = new AOEInstance[total];
+        var center = Arena.Center;
         for (var i = 0; i < countSmall; ++i)
         {
             var w = _smallWhirldwinds[i];
-            aoes[i] = new(moving ? capsuleSmall : circleSmall, w.Position, w.Rotation);
+            var pos = w.Position.Quantized();
+            if (w.LastFrameMovement == default)
+            {
+                aoes[i] = new(circleSmall, pos);
+            }
+            else
+            {
+                aoes[i] = new(capsuleSmall, pos, w.Rotation);
+            }
         }
         for (var i = 0; i < countBig; ++i)
         {
             var w = _bigWhirldwinds[i];
-            aoes[i + countSmall] = new(moving ? capsuleBig : circleBig, w.Position, w.Rotation);
+            var pos = w.Position.Quantized();
+            var idx = i + countSmall;
+            if (w.LastFrameMovement == default)
+            {
+                aoes[idx] = new(circleBig, pos);
+            }
+            else
+            {
+                var dir = pos - center;
+                var ccw = w.Rotation.ToDirection().OrthoR().Dot(dir) < 0f;
+                aoes[idx] = new(ccw ? arcCCW : arcCW, pos);
+            }
         }
         return aoes;
     }
@@ -107,48 +129,63 @@ sealed class Whirlwinds(BossModule module) : Components.GenericAOEs(module)
         if (spell.Action.ID == (uint)AID.GreatWhirlwindLarge)
         {
             _bigWhirldwinds.Add(caster);
-            moving = false;
         }
         else if (spell.Action.ID == (uint)AID.GreatWhirlwindSmall)
+        {
             _smallWhirldwinds.Add(caster);
+        }
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (actor.OID == (uint)OID.BitingWind && id == 0x1E3C)
+        {
             _smallWhirldwinds.Remove(actor);
+        }
         else if (actor.OID == (uint)OID.RavagingWind && id == 0x1E39)
+        {
             _bigWhirldwinds.Remove(actor);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (!moving && spell.Action.ID is (uint)AID.GreatWhirlwindLargeAOE or (uint)AID.GreatWhirlwindSmallAOE)
-            moving = true;
+        }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var countSmall = _smallWhirldwinds.Count;
         var countBig = _bigWhirldwinds.Count;
-
-        if (countSmall == 0 && countBig == 0)
+        if (countSmall + countBig == 0)
         {
             return;
         }
-        var act = WorldState.FutureTime(1.5d);
-        const float length = Length + 6f;
+        var forbiddenNearFuture = WorldState.FutureTime(1.1d);
+        var forbiddenSoon = WorldState.FutureTime(3d);
+        var forbiddenFarFuture = DateTime.MaxValue;
+        var center = Arena.Center;
+        var a15 = 15f.Degrees();
+        var a25 = 25f.Degrees();
+        var a40 = 40f.Degrees();
         for (var i = 0; i < countBig; ++i)
         {
-            var w = _bigWhirldwinds[i];
-            hints.AddForbiddenZone(new SDCapsule(w.Position, !moving ? w.Rotation + a180 : w.Rotation, length, 10f), act);
-            hints.TemporaryObstacles.Add(new SDCircle(w.Position, 10f));
+            var vz = _bigWhirldwinds[i];
+            var pos = vz.Position;
+            var dir = pos - center;
+            var ccw = vz.Rotation.ToDirection().OrthoR().Dot(dir) < 0f;
+            var mult = ccw ? -1f : 1f;
+            var moving = vz.LastFrameMovement != default;
+            if (moving)
+            {
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a15, 9f), forbiddenNearFuture);
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a25, 9f), forbiddenSoon);
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a40, 9f), forbiddenFarFuture);
+            }
+            hints.TemporaryObstacles.Add(new SDCircle(pos, 10f));
         }
+        const float length = Length + 6f;
         for (var i = 0; i < countSmall; ++i)
         {
             var w = _smallWhirldwinds[i];
-            hints.TemporaryObstacles.Add(new SDCircle(w.Position, 5f));
-            hints.AddForbiddenZone(new SDCapsule(w.Position, !moving ? w.Rotation + a180 : w.Rotation, length, 5f), act);
+            var moving = w.LastFrameMovement != default;
+            hints.TemporaryObstacles.Add(new SDCircle(w.Position, 4f));
+            hints.AddForbiddenZone(new SDCapsule(w.Position, !moving ? w.Rotation + a180 : w.Rotation, length, 5f), forbiddenNearFuture);
         }
     }
 }

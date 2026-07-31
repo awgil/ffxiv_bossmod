@@ -78,11 +78,12 @@ sealed class BrutalHalo(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+[SkipLocalsInit]
 sealed class BoundsOfIndulgence(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> voidzones = [];
     private readonly AOEShapeCircle circle = new(4f);
-    private readonly AOEShapeArcCapsule arcCW = new(4f, 30f.Degrees(), new(-300f, -300f)), arcCCW = new(4f, -30f.Degrees(), new(-300f, -300f));
+    private readonly AOEShapeArcCapsule arcCW = new(4f, 30f.Degrees(), module.Arena.Center), arcCCW = new(4f, -30f.Degrees(), module.Arena.Center);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -140,7 +141,7 @@ sealed class BoundsOfIndulgence(BossModule module) : Components.GenericAOEs(modu
         var center = Arena.Center;
         var a15 = 15f.Degrees();
         var a25 = 25f.Degrees();
-        var a35 = 35f.Degrees();
+        var a30 = 30f.Degrees();
         for (var i = 0; i < count; ++i)
         {
             var vz = voidzones[i];
@@ -153,7 +154,7 @@ sealed class BoundsOfIndulgence(BossModule module) : Components.GenericAOEs(modu
             {
                 hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a15, 4f), forbiddenNearFuture);
                 hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a25, 4f), forbiddenSoon);
-                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a35, 4f), forbiddenFarFuture);
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a30, 4f), forbiddenFarFuture);
             }
             hints.TemporaryObstacles.Add(new SDCircle(pos.Quantized(), mov ? 4f : 5f));
         }

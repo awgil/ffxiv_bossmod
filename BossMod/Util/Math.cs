@@ -5,17 +5,17 @@ public static class UIntExtensions
 {
     public static bool IsPrime(this uint number)
     {
-        if (number <= 1)
+        if (number <= 1u)
         {
             return false;
         }
 
-        if (number == 2)
+        if (number == 2u)
         {
             return true;
         }
 
-        if ((number & 1) == 0)
+        if ((number & 1u) == 0u)
         {
             return false;
         }

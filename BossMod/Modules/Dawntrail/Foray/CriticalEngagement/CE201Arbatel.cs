@@ -72,6 +72,7 @@ public enum AID : uint
 
 public enum SID : uint
 {
+    Invincibility = 4875, // none->Page8/Page64/Page512/4BD8/Page16, extra=0x0
     Correction1 = 5014, // none->player, extra=0x0
     Correction2 = 5015, // none->player, extra=0x0
     Correction3 = 5016, // none->player, extra=0x0
@@ -81,6 +82,7 @@ public enum SID : uint
 
 [SkipLocalsInit]
 sealed class KnowledgeLevelCorrection(BossModule module) : Components.RaidwideCast(module, (uint)AID.KnowledgeLevelCorrectionCast);
+[SkipLocalsInit]
 sealed class Summon(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Summon, 4f);
 [SkipLocalsInit]
 sealed class Marginalia(BossModule module) : Components.RaidwideCast(module, (uint)AID.Marginalia);
@@ -104,6 +106,8 @@ sealed class Blot : Components.SimpleAOEs
         MaxDangerColor = 3;
     }
 }
+[SkipLocalsInit]
+sealed class Invincibility(BossModule module) : Components.InvincibleStatus(module, (uint)SID.Invincibility);
 
 [SkipLocalsInit]
 sealed class CoverToCover(BossModule module) : Components.GenericAOEs(module)
@@ -262,6 +266,7 @@ sealed class ArbatelStates : StateMachineBuilder
             .ActivateOnEnter<FireII>()
             .ActivateOnEnter<QuadRule>()
             .ActivateOnEnter<HorizontalRule>()
+            .ActivateOnEnter<Invincibility>()
             .ActivateOnEnter<Blot>();
     }
 }
