@@ -49,6 +49,7 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
     // functions for clipping various shapes to bounds; all shapes are expected to be defined relative to bounds center
     public List<RelTriangle> ClipAndTriangulate(ReadOnlySpan<WDir> poly) => Clipper.Intersect(new PolygonClipper.Operand(poly), _clipOperand).Triangulate();
     public List<RelTriangle> ClipAndTriangulate(RelSimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
+    public List<RelTriangle> Triangulate(RelSimplifiedComplexPolygon poly) => poly.Triangulate();
     public RelSimplifiedComplexPolygon Clip(ReadOnlySpan<WDir> poly) => Clipper.Intersect(new PolygonClipper.Operand(poly), _clipOperand);
     public RelSimplifiedComplexPolygon Clip(RelSimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand);
 
@@ -242,6 +243,19 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         var dir = (endOffset - startOffset).Normalized();
         var side = halfWidth * dir.OrthoR();
         return Clip([startOffset + side, startOffset - side, endOffset - side, endOffset + side]);
+    }
+
+    public RelSimplifiedComplexPolygon CirclePolygon(WPos center, WPos ArenaCenter, float radius)
+    {
+        var points = CurveApprox.Circle(radius, MaxApproxError);
+        var len = points.Length;
+        var offset = center - ArenaCenter;
+        List<WDir> pointsO = [with(len)];
+        for (var i = 0; i < len; ++i)
+        {
+            pointsO.Add(points[i] + offset);
+        }
+        return new(pointsO);
     }
 }
 

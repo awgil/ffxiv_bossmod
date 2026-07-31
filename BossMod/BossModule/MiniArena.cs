@@ -97,7 +97,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     // if you are 100% sure your primitive does not need clipping, you can use drawlist api directly
     // this helper allows converting world-space coords to screen-space ones
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector2 WorldPositionToScreenPosition(WPos p) => ScreenCenter + WorldOffsetToScreenOffset(p - Center);
+    public Vector2 WorldPositionToScreenPosition(WPos p) => ScreenCenter + WorldOffsetToScreenOffset(p - _center);
 
     // this is useful for drawing on margins (TODO better api)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -268,63 +268,82 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color)
     {
         ref var tri = ref _triCache.Get(1, center, innerRadius, outerRadius, centerDirection, halfAngle);
-        tri ??= _bounds.ClipAndTriangulateCone(center - Center, innerRadius, outerRadius, centerDirection, halfAngle);
+        tri ??= _bounds.ClipAndTriangulateCone(center - _center, innerRadius, outerRadius, centerDirection, halfAngle);
         Zone(tri, color);
     }
 
     public void ZoneCircle(WPos center, float radius, uint color)
     {
         ref var tri = ref _triCache.Get(2, center, radius);
-        tri ??= _bounds.ClipAndTriangulateCircle(center - Center, radius);
+        if (tri == null)
+        {
+            var offset = center - _center;
+            var bounds = _bounds.ShapeSimplified;
+            if ((bounds.ClosestPointOnBoundary(offset) - offset).LengthSq() >= radius * radius) // circle is farther than it's radius away from boundary 
+            {
+                if (bounds.Contains(offset)) // no need for clipping if circle is fully inside polygon
+                {
+                    tri = _bounds.Triangulate(_bounds.CirclePolygon(center, _center, radius));
+                }
+                else // circle is fully outside of polygon, don't create at all
+                {
+                    tri = [];
+                }
+            }
+            else
+            {
+                tri = _bounds.ClipAndTriangulateCircle(center - _center, radius);
+            }
+        }
         Zone(tri, color);
     }
 
     public void ZoneDonut(WPos center, float innerRadius, float outerRadius, uint color)
     {
         ref var tri = ref _triCache.Get(3, center, innerRadius, outerRadius);
-        tri ??= _bounds.ClipAndTriangulateDonut(center - Center, innerRadius, outerRadius);
+        tri ??= _bounds.ClipAndTriangulateDonut(center - _center, innerRadius, outerRadius);
         Zone(tri, color);
     }
 
     public void ZoneTri(WPos a, WPos b, WPos c, uint color)
     {
         ref var tri = ref _triCache.Get(4, a, b, c);
-        tri ??= _bounds.ClipAndTriangulateTri(a - Center, b - Center, c - Center);
+        tri ??= _bounds.ClipAndTriangulateTri(a - _center, b - _center, c - _center);
         Zone(tri, color);
     }
 
     public void ZoneIsoscelesTri(WPos apex, WDir height, WDir halfBase, uint color)
     {
         ref var tri = ref _triCache.Get(5, apex, height, halfBase);
-        tri ??= _bounds.ClipAndTriangulateIsoscelesTri(apex - Center, height, halfBase);
+        tri ??= _bounds.ClipAndTriangulateIsoscelesTri(apex - _center, height, halfBase);
         Zone(tri, color);
     }
 
     public void ZoneIsoscelesTri(WPos apex, Angle direction, Angle halfAngle, float height, uint color)
     {
         ref var tri = ref _triCache.Get(6, apex, direction, halfAngle, height);
-        tri ??= _bounds.ClipAndTriangulateIsoscelesTri(apex - Center, direction, halfAngle, height);
+        tri ??= _bounds.ClipAndTriangulateIsoscelesTri(apex - _center, direction, halfAngle, height);
         Zone(tri, color);
     }
 
     public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color)
     {
         ref var tri = ref _triCache.Get(7, origin, direction, lenFront, lenBack, halfWidth);
-        tri ??= _bounds.ClipAndTriangulateRect(origin - Center, direction, lenFront, lenBack, halfWidth);
+        tri ??= _bounds.ClipAndTriangulateRect(origin - _center, direction, lenFront, lenBack, halfWidth);
         Zone(tri, color);
     }
 
     public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color)
     {
         ref var tri = ref _triCache.Get(8, origin, direction, lenFront, lenBack, halfWidth);
-        tri ??= _bounds.ClipAndTriangulateRect(origin - Center, direction, lenFront, lenBack, halfWidth);
+        tri ??= _bounds.ClipAndTriangulateRect(origin - _center, direction, lenFront, lenBack, halfWidth);
         Zone(tri, color);
     }
 
     public void ZoneRect(WPos start, WPos end, float halfWidth, uint color)
     {
         ref var tri = ref _triCache.Get(9, start, end, halfWidth);
-        tri ??= _bounds.ClipAndTriangulateRect(start - Center, end - Center, halfWidth);
+        tri ??= _bounds.ClipAndTriangulateRect(start - _center, end - _center, halfWidth);
         Zone(tri, color);
     }
 
@@ -337,7 +356,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             var adjusted = new WDir[len];
             for (var i = 0; i < len; i++)
             {
-                adjusted[i] = contour[i] - Center;
+                adjusted[i] = contour[i] - _center;
             }
             tri = _bounds.ClipAndTriangulate(adjusted);
         }
@@ -354,7 +373,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneCapsule(WPos start, WDir direction, float radius, float length, uint color)
     {
         ref var tri = ref _triCache.Get(11, start, direction, radius, length);
-        tri ??= _bounds.ClipAndTriangulateCapsule(start - Center, direction, radius, length);
+        tri ??= _bounds.ClipAndTriangulateCapsule(start - _center, direction, radius, length);
         Zone(tri, color);
     }
 
@@ -362,7 +381,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     {
         ref var tri = ref _triCache.Get(13, start, orbitCenter, angularLength, radius);
         // startOffset: local translation; toOrbitCenter: vector from start to orbit center
-        var startOffset = start - Center;
+        var startOffset = start - _center;
         var toOrbitCenter = orbitCenter - start;
         tri ??= _bounds.ClipAndTriangulateArcCapsule(startOffset, toOrbitCenter, angularLength, radius);
         Zone(tri, color);
@@ -372,71 +391,82 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneConeOutline(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(1, center, innerRadius, outerRadius, centerDirection, halfAngle);
-        poly ??= _bounds.ClipCone(center - Center, innerRadius, outerRadius, centerDirection, halfAngle);
+        poly ??= _bounds.ClipCone(center - _center, innerRadius, outerRadius, centerDirection, halfAngle);
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneCircleOutline(WPos center, float radius, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(2, center, radius);
-        poly ??= _bounds.ClipCircle(center - Center, radius);
+        if (poly == null)
+        {
+            var offset = center - _center;
+            var bounds = _bounds.ShapeSimplified;
+            if ((bounds.ClosestPointOnBoundary(offset) - offset).LengthSq() >= radius * radius) // circle is farther than it's radius away from boundary 
+            {
+                if (bounds.Contains(offset)) // no need for clipping if circle is fully inside polygon
+                {
+                    poly = _bounds.CirclePolygon(center, _center, radius);
+                }
+                else // circle is fully outside of polygon, don't create at all
+                {
+                    poly = new();
+                }
+            }
+            else
+            {
+                poly = _bounds.ClipCircle(center - _center, radius);
+            }
+        }
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneCircleOutlineUnclipped(WPos center, float radius, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(14, center, radius);
-        var points = CurveApprox.Circle(radius, _bounds.MaxApproxError);
-        var len = points.Length;
-        var offset = center - Center;
-        List<WDir> pointsO = [with(len)];
-        for (var i = 0; i < len; ++i)
-        {
-            pointsO.Add(points[i] + offset);
-        }
-        poly ??= new(pointsO);
+        poly ??= _bounds.CirclePolygon(center, _center, radius);
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneDonutOutline(WPos center, float innerRadius, float outerRadius, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(3, center, innerRadius, outerRadius);
-        poly ??= _bounds.ClipDonut(center - Center, innerRadius, outerRadius);
+        poly ??= _bounds.ClipDonut(center - _center, innerRadius, outerRadius);
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneTriOutline(WPos a, WPos b, WPos c, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(4, a, b, c);
-        poly ??= _bounds.ClipTri(a - Center, b - Center, c - Center);
+        poly ??= _bounds.ClipTri(a - _center, b - _center, c - _center);
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneIsoscelesTriOutline(WPos apex, WDir height, WDir halfBase, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(5, apex, height, halfBase);
-        poly ??= _bounds.ClipIsoscelesTri(apex - Center, height, halfBase);
+        poly ??= _bounds.ClipIsoscelesTri(apex - _center, height, halfBase);
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRectOutline(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(7, origin, direction, lenFront, lenBack, halfWidth);
-        poly ??= _bounds.ClipRect(origin - Center, direction, lenFront, lenBack, halfWidth);
+        poly ??= _bounds.ClipRect(origin - _center, direction, lenFront, lenBack, halfWidth);
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRectOutline(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(8, origin, direction, lenFront, lenBack, halfWidth);
-        poly ??= _bounds.ClipRect(origin - Center, direction, lenFront, lenBack, halfWidth);
+        poly ??= _bounds.ClipRect(origin - _center, direction, lenFront, lenBack, halfWidth);
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRectOutline(WPos start, WPos end, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(9, start, end, halfWidth);
-        poly ??= _bounds.ClipRect(start - Center, end - Center, halfWidth);
+        poly ??= _bounds.ClipRect(start - _center, end - _center, halfWidth);
         AddComplexPolygon(poly, color, thickness);
     }
 
@@ -449,7 +479,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             var adjusted = new WDir[len];
             for (var i = 0; i < len; i++)
             {
-                adjusted[i] = contour[i] - Center;
+                adjusted[i] = contour[i] - _center;
             }
             poly = _bounds.Clip(adjusted);
         }
@@ -466,7 +496,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneCapsuleOutline(WPos start, WDir direction, float radius, float length, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(11, start, direction, radius, length);
-        poly ??= _bounds.ClipCapsule(start - Center, direction, radius, length);
+        poly ??= _bounds.ClipCapsule(start - _center, direction, radius, length);
         AddComplexPolygon(poly, color, thickness);
     }
 
@@ -474,7 +504,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     {
         ref var poly = ref _polyCache.Get(13, start, orbitCenter, angularLength, radius);
         // startOffset: local translation; toOrbitCenter: vector from start to orbit center
-        var startOffset = start - Center;
+        var startOffset = start - _center;
         var toOrbitCenter = orbitCenter - start;
         poly ??= _bounds.ClipArcCapsule(startOffset, toOrbitCenter, angularLength, radius);
         AddComplexPolygon(poly, color, thickness);
@@ -628,7 +658,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     {
         var actors_ = actors;
         var len = actors_.Length;
-        var center = Center;
+        var center = _center;
         var radius = Bounds.Radius;
         var color_ = color == default ? Colors.Enemy : color;
         for (var i = 0; i < len; ++i)
